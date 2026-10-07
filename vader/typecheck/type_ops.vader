@@ -146,12 +146,17 @@ export with_immutable :: fn(t: Type, immutable: bool) -> Type = match t {
     is StructType   -> if t.immutable == immutable { t } else { mk_struct(t.symbol, t.args, immutable) }
     is TupleType    -> if t.immutable == immutable { t } else { mk_tuple(t.elements, immutable) }
     is UnionType    -> union_of(with_immutable_each(t.variants, immutable))
+    is TraitType    -> if t.immutable == immutable {
+        t
+    } else {
+        TraitType { ...t, .immutable = immutable }
+    }
     is DistinctType -> if !carries_mutability_bit(t) || type_is_immutable(t) == immutable {
         t
     } else {
         mk_distinct(t.symbol, with_immutable(t.backing, immutable))
     }
-    is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
+    is PrimitiveType | EnumType | FnType | TypeParamType | TypeMetaType
      | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
      | NeverType | AnyType -> t
 }
@@ -323,19 +328,15 @@ readonly_children :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
 /// without this the narrowing would hand back a mutable `Cfg` and launder a
 /// read-only borrow in one line. Since the bit is distributed over a union's
 /// variants, the answer is the matching variant's bit ; failing a nominal match
-/// (trait / subtype narrowing) the union stays immutable only when every variant
-/// is, so a narrowing never grants more than the scrutinee had.
+/// (trait / subtype narrowing) it is read-only when any variant is — the narrowing
+/// may select that one — so it never grants more than the scrutinee had.
 export narrowing_immutability :: fn(scrutinee: Type, narrowed: Type) -> bool {
     if scrutinee is UnionType {
         for v in scrutinee.variants {
             if equals_type_shape(v, narrowed) { return type_is_immutable(v) }
         }
-        for v in scrutinee.variants {
-            if !type_is_immutable(v) { return false }
-        }
-        return true
     }
-    return type_is_immutable(scrutinee)
+    return type_withholds_mutation(scrutinee)
 }
 
 // ---- canonical union ------------------------------------------------------
@@ -787,7 +788,11 @@ export strip_mutability :: fn(t: Type) -> Type = match t {
     is ArrayType    -> mk_array(strip_mutability(t.element), true)
     is TupleType    -> mk_tuple(strip_mutability_each(t.elements), true)
     is StructType   -> mk_struct(t.symbol, strip_mutability_each(t.args), true)
-    is TraitType    -> mk_trait(t.symbol, strip_mutability_each(t.args))
+    is TraitType    -> TraitType {
+        ...t,
+        .args = strip_mutability_each(t.args),
+        .immutable = true,
+    }
     is UnionType    -> mk_union(strip_mutability_each(t.variants))
     is DistinctType -> if carries_mutability_bit(t) {
         mk_distinct(t.symbol, strip_mutability(t.backing))

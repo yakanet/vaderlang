@@ -312,7 +312,7 @@ export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
         is ArrayType -> { return mk_array(substitute_map(t.element, subst), t.immutable) }
         is TupleType -> { return mk_tuple(substitute_each_map(t.elements, subst), t.immutable) }
         is StructType -> { return mk_struct(t.symbol, substitute_each_map(t.args, subst), t.immutable) }
-        is TraitType -> { return mk_trait(t.symbol, substitute_each_map(t.args, subst)) }
+        is TraitType -> { return TraitType { ...t, .args = substitute_each_map(t.args, subst) } }
         is FnType -> {
             return mk_fn_like(t, substitute_each_map(t.params, subst), substitute_map(t.return_type, subst))
         }
@@ -341,7 +341,7 @@ erase_params_in :: fn(t: Type) -> Type = @partial match t {
     is ArrayType     -> mk_array(erase_params_in(t.element), t.immutable)
     is TupleType     -> mk_tuple(erase_each(t.elements), t.immutable)
     is StructType    -> mk_struct(t.symbol, erase_each(t.args), t.immutable)
-    is TraitType     -> mk_trait(t.symbol, erase_each(t.args))
+    is TraitType     -> TraitType { ...t, .args = erase_each(t.args) }
     is FnType        -> mk_fn_like(t, erase_each(t.params), erase_params_in(t.return_type))
     is UnionType     -> mk_union(erase_each(t.variants))
     _                -> t

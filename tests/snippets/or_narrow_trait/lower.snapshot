@@ -16,7 +16,7 @@
       cond:
         or :bool
           l:
-            is Err :bool
+            is Err! :bool
               x :Refused | string | Timeout
           r:
             is string :bool
@@ -54,7 +54,7 @@
       cond:
         or :bool
           l:
-            is Err :bool
+            is Err! :bool
               x :string | Timeout
           r:
             is string :bool

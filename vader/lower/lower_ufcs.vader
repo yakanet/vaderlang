@@ -284,7 +284,7 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
             // combinators on a concrete `__genstate` receiver).
             if struct_implements_trait(recv_type, trait_key_of(first.symbol), ctx.typed) { return true }
             // A raw array fits an `Iterator<T>` first param via the blanket
-            // `T[] implements Into<Iterator<T>>` — the receiver is wrapped in
+            // `T[] implements Into<Iterator<T>!>` — the receiver is wrapped in
             // `.into()` at the call site (see `try_lower_ufcs_call`). Mirrors
             // the typer's `receiver_fits_first_param`, which already accepts
             // this ; without it the typer/lowerer disagree (typer curries the

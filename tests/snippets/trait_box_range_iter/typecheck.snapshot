@@ -1,9 +1,9 @@
 # Typecheck
 
 ## tests/snippets/trait_box_range_iter
-  FnDecl         count                :: fn(Iterator<T>) -> i32
-  TraitDecl      Doubler              :: Doubler<T>
-  TraitDecl      Greeter              :: Greeter<T>
+  FnDecl         count                :: fn(Iterator<T>!) -> i32
+  TraitDecl      Doubler              :: Doubler<T>!
+  TraitDecl      Greeter              :: Greeter<T>!
   StructDecl     Hello                :: Hello!
   FnDecl         invoke               :: fn(Greeter<T>) -> T
   FnDecl         main                 :: fn() -> i32
@@ -11,7 +11,7 @@
   expr 16:9     IdentExpr      :: bool
   expr 17:19    CallExpr       :: [T, Continuation]
   expr 17:19    FieldExpr      :: fn() -> [T, Continuation]
-  expr 17:19    IdentExpr      :: Iterator<T>
+  expr 17:19    IdentExpr      :: Iterator<T>!
   expr 18:12    BinaryExpr     :: bool
   expr 18:12    IdentExpr      :: Continuation
   expr 18:17    DotVariantExpr :: Continuation
@@ -31,10 +31,10 @@
   expr 47:12    FieldExpr      :: fn() -> T
   expr 47:12    IdentExpr      :: Doubler<T>
   expr 51:10    CallExpr       :: i32
-  expr 51:10    IdentExpr      :: fn(Iterator<T>) -> i32
+  expr 51:10    IdentExpr      :: fn(Iterator<T>!) -> i32
   expr 51:16    RangeExpr      :: Range<i32>!
   expr 52:10    CallExpr       :: i32
-  expr 52:10    IdentExpr      :: fn(Iterator<T>) -> i32
+  expr 52:10    IdentExpr      :: fn(Iterator<T>!) -> i32
   expr 52:16    SeqLitExpr     :: i32[]!
   expr 53:10    CallExpr       :: i32
   expr 53:10    IdentExpr      :: fn(Greeter<T>) -> T

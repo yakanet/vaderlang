@@ -14,12 +14,12 @@
         arg1:
           int(9) :i32
     block :void
-      let __iter_0: Iterator<i32> = outer :__genstate_each_then<i32>!
+      let __iter_0: Iterator<i32>! = outer :__genstate_each_then<i32>!
       loop
         let __step_1: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_0 :Iterator<i32>
+              __iter_0 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -44,12 +44,12 @@
                 arg1:
                   "zz" :string
             block :void
-              let __iter_2: Iterator<string> = inner :__genstate_each_then<string>!
+              let __iter_2: Iterator<string>! = inner :__genstate_each_then<string>!
               loop
                 let __step_3: [string, Continuation]! =
                   vcall std_core$Iterator.next :[string, Continuation]!
                     recv:
-                      __iter_2 :Iterator<string>
+                      __iter_2 :Iterator<string>!
                 if :void
                   cond:
                     eq :bool

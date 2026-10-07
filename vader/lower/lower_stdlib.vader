@@ -145,7 +145,7 @@ vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx!) -
 }
 
 /// Materialise a blanket array-impl member (`T[] implements<T: Equals>
-/// Contains<T>`, `T[] implements<T> Into<Iterator<T>>`) once per element type a
+/// Contains<T>`, `T[] implements<T> Into<Iterator<T>!>`) once per element type a
 /// call referenced. The generic-impl materialiser (`materialize_impl_for_instance`)
 /// is struct-instance-driven and never reaches an array receiver, so
 /// `find_impl_member_for` records the element type keyed by the call-site mangle

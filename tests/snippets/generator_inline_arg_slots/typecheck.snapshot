@@ -2,17 +2,17 @@
 
 ## tests/snippets/generator_inline_arg_slots
   FnDecl         main                 :: fn() -> i32
-  FnDecl         offset_or            :: fn(Iterator<T>, i64 | null) -> Iterator<i64>
-  FnDecl         pair_with            :: fn(Iterator<T>, Iterator<U>) -> Iterator<[T, U]>
-  FnDecl         remap                :: fn(Iterator<T>, fn(T) -> U) -> Iterator<U>
-  FnDecl         with_sentinel        :: fn(Iterator<i32>, i32) -> Iterator<i32>
-  expr 19:14    IdentExpr      :: Iterator<i32>
+  FnDecl         offset_or            :: fn(Iterator<T>!, i64 | null) -> Iterator<i64>
+  FnDecl         pair_with            :: fn(Iterator<T>!, Iterator<U>!) -> Iterator<[T, U]>
+  FnDecl         remap                :: fn(Iterator<T>!, fn(T) -> U) -> Iterator<U>
+  FnDecl         with_sentinel        :: fn(Iterator<i32>!, i32) -> Iterator<i32>
+  expr 19:14    IdentExpr      :: Iterator<i32>!
   expr 20:15    IdentExpr      :: i32
   expr 22:11    IdentExpr      :: i32
-  expr 26:14    IdentExpr      :: Iterator<T>
+  expr 26:14    IdentExpr      :: Iterator<T>!
   expr 27:19    CallExpr       :: [U, Continuation]
   expr 27:19    FieldExpr      :: fn() -> [U, Continuation]
-  expr 27:19    IdentExpr      :: Iterator<U>
+  expr 27:19    IdentExpr      :: Iterator<U>!
   expr 28:12    BinaryExpr     :: bool
   expr 28:12    IdentExpr      :: Continuation
   expr 28:17    DotVariantExpr :: Continuation
@@ -20,13 +20,13 @@
   expr 31:15    SeqLitExpr     :: [T, U]!
   expr 31:16    IdentExpr      :: T
   expr 31:19    IdentExpr      :: U
-  expr 36:14    IdentExpr      :: Iterator<T>
+  expr 36:14    IdentExpr      :: Iterator<T>!
   expr 37:12    BinaryExpr     :: bool
   expr 37:12    IdentExpr      :: i64 | null
   expr 37:9     IfExpr         :: void
   expr 40:19    BinaryExpr     :: i64
   expr 40:19    IdentExpr      :: i64
-  expr 46:14    IdentExpr      :: Iterator<T>
+  expr 46:14    IdentExpr      :: Iterator<T>!
   expr 47:15    CallExpr       :: U
   expr 47:15    IdentExpr      :: fn(T) -> U
   expr 47:17    IdentExpr      :: T
@@ -38,7 +38,7 @@
   expr 53:9     CallExpr       :: void
   expr 53:9     IdentExpr      :: fn(T) -> void
   expr 55:19    CallExpr       :: __genstate_pair_with<[i32, string]>!
-  expr 55:19    FieldExpr      :: fn(Iterator<U>) -> Iterator<[i32, U]>
+  expr 55:19    FieldExpr      :: fn(Iterator<U>!) -> Iterator<[i32, U]>
   expr 55:19    SeqLitExpr     :: i32[]!
   expr 55:39    SeqLitExpr     :: string[]!
   expr 55:40    StringLitExpr  :: string

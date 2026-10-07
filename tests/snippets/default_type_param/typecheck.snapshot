@@ -1,8 +1,8 @@
 # Typecheck
 
 ## tests/snippets/default_type_param
-  TraitDecl      Adder                :: Adder<Rhs>
-  TraitDecl      Counter              :: Counter<Step>
+  TraitDecl      Adder                :: Adder<Rhs>!
+  TraitDecl      Counter              :: Counter<Step>!
   FnDecl         main                 :: fn() -> i32
   StructDecl     N                    :: N!
   StructDecl     Tick                 :: Tick!

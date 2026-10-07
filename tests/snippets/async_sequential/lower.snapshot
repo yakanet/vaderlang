@@ -11,7 +11,7 @@
       Ready<string>! {
         v: "hi" :string
       }
-  fn snippet$mix() -> Async<string>
+  fn snippet$mix() -> Async<string>!
     return
       __asyncstate_snippet_0! {
         s0: int(0) :i32
@@ -25,14 +25,14 @@
         state: int(7) :i32
       }
   fn snippet$main() -> i32
-    let frame: Async<string> =
-      call :Async<string>
+    let frame: Async<string>! =
+      call :Async<string>!
         callee:
           mix :fn() -> Async<string>
     let r: string | Suspended =
       vcall std_core$Async.resume :string | Suspended
         recv:
-          frame :Async<string>
+          frame :Async<string>!
     if :void
       cond:
         is Suspended! :bool
@@ -59,7 +59,7 @@
     let again: string | Suspended =
       vcall std_core$Async.resume :string | Suspended
         recv:
-          frame :Async<string>
+          frame :Async<string>!
     if :void
       cond:
         is Suspended! :bool
@@ -86,7 +86,7 @@
                   cast → string
                     again :string | Suspended
     return int(0) :i32
-  struct __asyncstate_snippet_0 { s0: i32, s1: i32, s2: string, s3: string, s4: string, s5: Buffer, s6: usize, awaited: Async<Any>, state: i32 }
+  struct __asyncstate_snippet_0 { s0: i32, s1: i32, s2: string, s3: string, s4: string, s5: Buffer, s6: usize, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> string | Suspended!
     loop :dispatch$
       if :void
@@ -251,7 +251,7 @@
                       let __resumed_6: Any | Suspended! =
                         vcall std_core$Async.resume :Any | Suspended!
                           recv:
-                            .awaited :Async<Any>
+                            .awaited :Async<Any>!
                               __self_5 :__asyncstate_snippet_0!
                       if :void
                         cond:
@@ -287,10 +287,10 @@
                         then:
                           assign
                             target:
-                              .awaited :Async<Any>
+                              .awaited :Async<Any>!
                                 __self_5 :__asyncstate_snippet_0!
                             value:
-                              cast → Async<Any>
+                              cast → Async<Any>!
                                 call :Async<string>
                                   callee:
                                     make_str :fn() -> Async<string>
@@ -336,7 +336,7 @@
                                   let __resumed_7: Any | Suspended! =
                                     vcall std_core$Async.resume :Any | Suspended!
                                       recv:
-                                        .awaited :Async<Any>
+                                        .awaited :Async<Any>!
                                           __self_5 :__asyncstate_snippet_0!
                                   if :void
                                     cond:
@@ -372,10 +372,10 @@
                                     then:
                                       assign
                                         target:
-                                          .awaited :Async<Any>
+                                          .awaited :Async<Any>!
                                             __self_5 :__asyncstate_snippet_0!
                                         value:
-                                          cast → Async<Any>
+                                          cast → Async<Any>!
                                             call :Async<i32>
                                               callee:
                                                 make_num :fn() -> Async<i32>
@@ -394,13 +394,13 @@
     if :void
       cond:
         is null :bool
-          .awaited :Async<Any>
+          .awaited :Async<Any>!
             __self_5 :__asyncstate_snippet_0!
       then:
       else:
         vcall std_core$Async.cancel :void
           recv:
-            .awaited :Async<Any>
+            .awaited :Async<Any>!
               __self_5 :__asyncstate_snippet_0!
     assign
       target:

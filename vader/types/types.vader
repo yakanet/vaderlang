@@ -62,8 +62,12 @@ export DistinctType :: struct {
 }
 
 export TraitType :: struct {
-    symbol: Symbol
-    args:   Type[]
+    symbol:    Symbol
+    args:      Type[]
+    /// Same role as `StructType.immutable` : a read-only trait value refuses its
+    /// `self!` members. Ignored by type identity and by the bytecode. No default, so
+    /// a rebuild that forgets it does not compile — copy it with `...t`.
+    immutable: bool
 }
 
 export UnionType :: struct {
@@ -445,7 +449,15 @@ export mk_primitive :: fn(name: string) -> Type = PrimitiveType { .name = name }
 export mk_struct :: fn(symbol: Symbol, args: Type[], immutable: bool) -> Type =
     StructType { .symbol = symbol, .args = args, .immutable = immutable }
 
-export mk_trait :: fn(symbol: Symbol, args: Type[]) -> Type = TraitType { .symbol = symbol, .args = args }
+/// A fresh trait type ; a rebuild from an existing one spreads it (`...t`) instead,
+/// which keeps its read-only bit.
+///
+/// @param immutable  the bit — `false` for the raw type a written slot then defaults.
+export mk_trait :: fn(symbol: Symbol, args: Type[], immutable: bool) -> Type = TraitType {
+    .symbol = symbol,
+    .args = args,
+    .immutable = immutable,
+}
 
 /// Distinct (newtype) over `backing` — see `DistinctType`. `backing` is a
 /// primitive, an array, a struct or a tuple (`distinct_backing` decides), and
@@ -534,17 +546,18 @@ export mk_fn :: fn(params: Type[], return_type: Type) -> Type {
 
 /// Whether mutation through a slot of type `t` is rejected at typecheck.
 ///
-/// Only the three REFERENCE shapes carry the bit — a primitive, an enum or a
-/// distinct-over-primitive is a value, copied into the slot, so "the referent
-/// is read-only" has no meaning for it. A `DistinctType` answers for its backing,
+/// Only the three REFERENCE shapes and a trait value carry the bit — a primitive, an
+/// enum or a distinct-over-primitive is a value, copied into the slot, so "the
+/// referent is read-only" has no meaning for it. A `DistinctType` answers for its backing,
 /// where its bit lives : `strip_distinct` and the `*_backing` unwraps hand the
 /// backing out as it is, bit included.
 export type_is_immutable :: fn(t: Type) -> bool = match t {
     is ArrayType    -> t.immutable
     is StructType   -> t.immutable
     is TupleType    -> t.immutable
+    is TraitType    -> t.immutable
     is DistinctType -> type_is_immutable(t.backing)
-    is PrimitiveType | EnumType | TraitType | UnionType | FnType | TypeParamType
+    is PrimitiveType | EnumType | UnionType | FnType | TypeParamType
      | TypeMetaType | SelfType | UnresolvedType | FreeIntType | FreeFloatType
      | FreeCharType | NeverType | AnyType -> false
 }
@@ -563,25 +576,26 @@ export type_grants_mutation :: fn(t: Type) -> bool = match t {
     is TupleType    -> !t.immutable
     is UnionType    -> variants_grant_mutation(t.variants)
     is DistinctType -> type_grants_mutation(t.backing)
-    is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
+    is TraitType    -> !t.immutable
+    is PrimitiveType | EnumType | FnType | TypeParamType | TypeMetaType
      | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
      | NeverType | AnyType -> false
 }
 
 /// Whether ANY level of `t` could hand out mutation — the "some variant" dual of
-/// `type_grants_mutation`. False for a scalar, a frozen array / struct / tuple, or
-/// a union of those ; a distinct type answers for its backing.
+/// `type_grants_mutation`. False for a scalar, a frozen array / struct / tuple / trait
+/// value, or a union of those ; a distinct type answers for its backing.
 ///
 /// An unbound type parameter answers false: inside a generic body `T` grants
-/// nothing, and the call that binds it is where an argument is judged. A trait,
-/// `Self` or an unresolved type answers true — nothing is known yet.
+/// nothing, and the call that binds it is where an argument is judged. `Self` or an
+/// unresolved type answers true — nothing is known yet.
 ///
 /// @param t  the type to ask.
 export type_may_grant_mutation :: fn(t: Type) -> bool = match t {
-    is ArrayType | StructType | TupleType -> !type_is_immutable(t)
+    is ArrayType | StructType | TupleType | TraitType -> !type_is_immutable(t)
     is UnionType     -> any_variant(t.variants, type_may_grant_mutation)
     is DistinctType  -> type_may_grant_mutation(t.backing)
-    is TraitType | SelfType | AnyType | UnresolvedType -> true
+    is SelfType | AnyType | UnresolvedType -> true
     is PrimitiveType | EnumType | FnType | TypeParamType | TypeMetaType | FreeIntType
      | FreeFloatType | FreeCharType | NeverType -> false
 }
@@ -599,26 +613,34 @@ variants_grant_mutation :: fn(variants: Type[]) -> bool =
     any_variant(variants, carries_mutability_bit) && !any_variant(variants, type_withholds_mutation)
 
 /// Whether `t` carries a mutability marker of its own level — the three reference
-/// shapes, a union, whose variants carry theirs, and a distinct over one of them,
-/// whose backing holds its bit. A primitive, an enum or `null` is a value, copied
+/// shapes, a trait value, a union, whose variants carry theirs, and a distinct over
+/// one of them, whose backing holds its bit. A primitive, an enum or `null` is a value, copied
 /// out : `with_immutable` leaves it alone, so `Value!` over `ArrayVal | BoolVal`
 /// reads as `ArrayVal! | BoolVal`.
 ///
 /// @param t  the type to ask.
 export carries_mutability_bit :: fn(t: Type) -> bool =
-    t is ArrayType | StructType | TupleType | UnionType ||
+    t is ArrayType | StructType | TupleType | UnionType | TraitType ||
         (t is DistinctType && carries_mutability_bit(t.backing))
 
 /// Whether some level `t` hands out is read-only by its own marker : a frozen array,
-/// struct or tuple, or a union holding one (`Point | null` from an unmarked return).
-/// Unlike `type_is_immutable`, which a union answers false, this is the question a
-/// mutation of the VALUE asks.
+/// struct, tuple or trait value, or a union holding one (`Point | null` from an
+/// unmarked return). Unlike `type_is_immutable`, which a union answers false, this is
+/// the question a mutation of the VALUE asks.
 ///
 /// @param t  the type to ask.
-export type_withholds_mutation :: fn(t: Type) -> bool = if t is UnionType {
-    any_variant(t.variants, type_withholds_mutation)
-} else {
-    type_is_immutable(t)
+export type_withholds_mutation :: fn(t: Type) -> bool {
+    // A loop, not `any_variant` : a fn value here gives every caller a GC root
+    // frame, and `mutability_widens`, called on every assignability check, is one.
+    if t is UnionType {
+        for v in t.variants {
+            if type_is_immutable(v) {
+                return true
+            }
+        }
+        return false
+    }
+    return type_is_immutable(t)
 }
 
 /// Raw union constructor. Callers that need flattening + dedup must go
@@ -754,7 +776,10 @@ write_type_mut :: fn(sb: StringBuilder!, t: Type, show_mut: bool) -> void {
             sb.append(t.symbol.name)
             if show_mut && type_grants_mutation(t) { sb.append_char('!') }
         }
-        is TraitType      -> { sb.write_named_mut(t.symbol.name, t.args, show_mut) }
+        is TraitType      -> {
+            sb.write_named_mut(t.symbol.name, t.args, show_mut)
+            if show_mut && !t.immutable { sb.append_char('!') }
+        }
         is TypeParamType  -> { sb.append(t.symbol.name) }
         is TypeMetaType   -> { sb.append("type") }
         is SelfType       -> { sb.append("Self") }
@@ -929,7 +954,7 @@ export strip_distinct :: fn(t: Type) -> Type {
     if !contains_distinct(t) { return t }
     if t is DistinctType { return strip_distinct(t.backing) }
     if t is StructType { return mk_struct(t.symbol, strip_distinct_each(t.args), t.immutable) }
-    if t is TraitType { return mk_trait(t.symbol, strip_distinct_each(t.args)) }
+    if t is TraitType { return TraitType { ...t, .args = strip_distinct_each(t.args) } }
     if t is ArrayType { return mk_array(strip_distinct(t.element), t.immutable) }
     if t is TupleType { return mk_tuple(strip_distinct_each(t.elements), t.immutable) }
     if t is FnType { return mk_fn_like(t, strip_distinct_each(t.params), strip_distinct(t.return_type)) }

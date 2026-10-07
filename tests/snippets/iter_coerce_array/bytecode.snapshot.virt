@@ -85,7 +85,7 @@ end
 fn 2 snippet$main () -> i32
   local a i32
   local typed_iter_mut any
-  local typed_iter_immut any
+  local typed_iter_spaced any
   local $call_20 i32
   local $call_21 i32
   local __buf_0 ref
@@ -110,11 +110,11 @@ fn 2 snippet$main () -> i32
   i32.const 7
   array.new 13 3   ; i32[]
   call 10   ; std_core$[]$Into$into__i32
-  local.set 2   ; typed_iter_immut
+  local.set 2   ; typed_iter_spaced
   local.get 1   ; typed_iter_mut
   call 0   ; snippet$walk
   local.set 3   ; $call_20
-  local.get 2   ; typed_iter_immut
+  local.get 2   ; typed_iter_spaced
   call 0   ; snippet$walk
   local.set 4   ; $call_21
   local.get 3   ; $call_20

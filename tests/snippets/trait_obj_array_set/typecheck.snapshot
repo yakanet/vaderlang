@@ -3,7 +3,7 @@
 ## tests/snippets/trait_obj_array_set
   StructDecl     Circle               :: Circle!
   FnDecl         main                 :: fn() -> i32
-  TraitDecl      Shape                :: Shape
+  TraitDecl      Shape                :: Shape!
   ConstDecl      Square               :: type
   expr 16:53    BinaryExpr     :: i32
   expr 16:53    CallExpr       :: i32

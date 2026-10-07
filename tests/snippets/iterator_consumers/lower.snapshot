@@ -59,15 +59,15 @@
         r:
           int(3) :i32
   struct snippet$Point { x: i32, y: i32 }
-  fn snippet$total(it: Iterator<i64>) -> i64
+  fn snippet$total(it: Iterator<i64>!) -> i64
     let s: i64 = int(0) :i64
     block :void
-      let __iter_0: Iterator<i64> = it :Iterator<i64>
+      let __iter_0: Iterator<i64>! = it :Iterator<i64>!
       loop
         let __step_1: [i64, Continuation]! =
           vcall std_core$Iterator.next :[i64, Continuation]!
             recv:
-              __iter_0 :Iterator<i64>
+              __iter_0 :Iterator<i64>!
         if :void
           cond:
             eq :bool
@@ -92,14 +92,14 @@
                   r:
                     x :i64
     return s :i64
-  fn snippet$first_over(limit: i64, it: Iterator<i64>) -> i64
+  fn snippet$first_over(limit: i64, it: Iterator<i64>!) -> i64
     block :void
-      let __iter_0: Iterator<i64> = it :Iterator<i64>
+      let __iter_0: Iterator<i64>! = it :Iterator<i64>!
       loop
         let __step_1: [i64, Continuation]! =
           vcall std_core$Iterator.next :[i64, Continuation]!
             recv:
-              __iter_0 :Iterator<i64>
+              __iter_0 :Iterator<i64>!
         if :void
           cond:
             eq :bool
@@ -126,14 +126,14 @@
     return
       neg :i64
         int(1) :i64
-  fn snippet$print_until_stop(it: Iterator<string>) -> void
+  fn snippet$print_until_stop(it: Iterator<string>!) -> void
     block :void
-      let __iter_0: Iterator<string> = it :Iterator<string>
+      let __iter_0: Iterator<string>! = it :Iterator<string>!
       loop
         let __step_1: [string, Continuation]! =
           vcall std_core$Iterator.next :[string, Continuation]!
             recv:
-              __iter_0 :Iterator<string>
+              __iter_0 :Iterator<string>!
         if :void
           cond:
             eq :bool
@@ -174,16 +174,16 @@
           std_io$println__string :void
         arg0:
           "" :string
-  fn snippet$pair_sum(it: Iterator<[i32, i32]>) -> [i32, i32]
+  fn snippet$pair_sum(it: Iterator<[i32, i32]>!) -> [i32, i32]
     let a: i32 = int(0) :i32
     let b: i32 = int(0) :i32
     block :void
-      let __iter_1: Iterator<[i32, i32]> = it :Iterator<[i32, i32]>
+      let __iter_1: Iterator<[i32, i32]>! = it :Iterator<[i32, i32]>!
       loop
         let __step_2: [[i32, i32], Continuation]! =
           vcall std_core$Iterator.next :[[i32, i32], Continuation]!
             recv:
-              __iter_1 :Iterator<[i32, i32]>
+              __iter_1 :Iterator<[i32, i32]>!
         if :void
           cond:
             eq :bool
@@ -240,15 +240,15 @@
         _0: a :i32
         _1: b :i32
       }
-  fn snippet$weigh(it: Iterator<i64>) -> i64
+  fn snippet$weigh(it: Iterator<i64>!) -> i64
     let n: i64 = int(0) :i64
     block :void
-      let __iter_0: Iterator<i64> = it :Iterator<i64>
+      let __iter_0: Iterator<i64>! = it :Iterator<i64>!
       loop
         let __step_1: [i64, Continuation]! =
           vcall std_core$Iterator.next :[i64, Continuation]!
             recv:
-              __iter_0 :Iterator<i64>
+              __iter_0 :Iterator<i64>!
         if :void
           cond:
             eq :bool
@@ -273,15 +273,15 @@
                   r:
                     x :i64
     return n :i64
-  fn snippet$weigh_1(scale: i64, it: Iterator<i64>) -> i64
+  fn snippet$weigh_1(scale: i64, it: Iterator<i64>!) -> i64
     let n: i64 = int(0) :i64
     block :void
-      let __iter_0: Iterator<i64> = it :Iterator<i64>
+      let __iter_0: Iterator<i64>! = it :Iterator<i64>!
       loop
         let __step_1: [i64, Continuation]! =
           vcall std_core$Iterator.next :[i64, Continuation]!
             recv:
-              __iter_0 :Iterator<i64>
+              __iter_0 :Iterator<i64>!
         if :void
           cond:
             eq :bool
@@ -310,15 +310,15 @@
                       r:
                         scale :i64
     return n :i64
-  fn snippet$drained_twice(it: Iterator<i32>) -> i32
+  fn snippet$drained_twice(it: Iterator<i32>!) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __iter_0: Iterator<i32> = it :Iterator<i32>
+      let __iter_0: Iterator<i32>! = it :Iterator<i32>!
       loop
         let __step_1: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_0 :Iterator<i32>
+              __iter_0 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -343,12 +343,12 @@
                   r:
                     x :i32
     block :void
-      let __iter_2: Iterator<i32> = it :Iterator<i32>
+      let __iter_2: Iterator<i32>! = it :Iterator<i32>!
       loop
         let __step_3: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_2 :Iterator<i32>
+              __iter_2 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -440,9 +440,9 @@
         callee:
           std_iter$map__i32__i64 :__genstate_map<i64>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               a :i32[]!
         arg1:
@@ -580,9 +580,9 @@
         callee:
           std_iter$filter__i32 :__genstate_filter<i32>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               a :i32[]!
         arg1:
@@ -718,9 +718,9 @@
         callee:
           std_iter$map__i32__i64 :__genstate_map<i64>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               a :i32[]!
         arg1:
@@ -831,7 +831,7 @@
                 arg2:
                   call :i64
                     callee:
-                      total :fn(Iterator<i64>) -> i64
+                      total :fn(Iterator<i64>!) -> i64
                     arg0:
                       squares_total :__genstate_map<i64>!
           ~>
@@ -847,9 +847,9 @@
         callee:
           std_iter$map__i32__i64 :__genstate_map<i64>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               a :i32[]!
         arg1:
@@ -973,7 +973,7 @@
                 arg2:
                   call :i64
                     callee:
-                      first_over :fn(i64, Iterator<i64>) -> i64
+                      first_over :fn(i64, Iterator<i64>!) -> i64
                     arg0:
                       int(20) :i64
                     arg1:
@@ -991,9 +991,9 @@
         callee:
           std_iter$map__i32__i64 :__genstate_map<i64>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               a :i32[]!
         arg1:
@@ -1117,7 +1117,7 @@
                 arg2:
                   call :i64
                     callee:
-                      first_over :fn(i64, Iterator<i64>) -> i64
+                      first_over :fn(i64, Iterator<i64>!) -> i64
                     arg0:
                       int(1000) :i64
                     arg1:
@@ -1135,9 +1135,9 @@
         callee:
           std_iter$filter__Point :__genstate_filter<Point!>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__Point :Iterator<T>
+              std_core$[]$Into$into__Point :Iterator<T>!
             arg0:
               pts :Point![]!
         arg1:
@@ -1322,9 +1322,9 @@
         callee:
           std_iter$filter__Point :__genstate_filter<Point!>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__Point :Iterator<T>
+              std_core$[]$Into$into__Point :Iterator<T>!
             arg0:
               pts :Point![]!
         arg1:
@@ -1408,9 +1408,9 @@
         callee:
           std_iter$map__string__string :__genstate_map<string>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__string :Iterator<T>
+              std_core$[]$Into$into__string :Iterator<T>!
             arg0:
               array :string[]!
                 "a" :string
@@ -1482,7 +1482,7 @@
             "" :string
     call :void
       callee:
-        print_until_stop :fn(Iterator<string>) -> void
+        print_until_stop :fn(Iterator<string>!) -> void
       arg0:
         words :__genstate_map<string>!
     block :void
@@ -1549,9 +1549,9 @@
         callee:
           std_iter$map__i32__Any :__genstate_map<[i32, i32]>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               a :i32[]!
         arg1:
@@ -1645,7 +1645,7 @@
     let lazy_p: [i32, i32] =
       call :[i32, i32]
         callee:
-          pair_sum :fn(Iterator<[i32, i32]>) -> [i32, i32]
+          pair_sum :fn(Iterator<[i32, i32]>!) -> [i32, i32]
         arg0:
           pairs :__genstate_map<[i32, i32]>!
     call :void
@@ -1785,9 +1785,9 @@
         callee:
           std_iter$map__i32__Any :__genstate_map<[i32, i32]>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               a :i32[]!
         arg1:
@@ -1881,7 +1881,7 @@
     let lazy_q: [i32, i32] =
       call :[i32, i32]
         callee:
-          pair_sum :fn(Iterator<[i32, i32]>) -> [i32, i32]
+          pair_sum :fn(Iterator<[i32, i32]>!) -> [i32, i32]
         arg0:
           late :__genstate_map<[i32, i32]>!
     call :void
@@ -2025,9 +2025,9 @@
             callee:
               std_iter$map__i32__Any :__genstate_map<[i32, i32]>!
             arg0:
-              call :Iterator<T>
+              call :Iterator<T>!
                 callee:
-                  std_core$[]$Into$into__i32 :Iterator<T>
+                  std_core$[]$Into$into__i32 :Iterator<T>!
                 arg0:
                   a :i32[]!
             arg1:
@@ -2133,7 +2133,7 @@
     let lazy_r: [i32, i32] =
       call :[i32, i32]
         callee:
-          pair_sum :fn(Iterator<[i32, i32]>) -> [i32, i32]
+          pair_sum :fn(Iterator<[i32, i32]>!) -> [i32, i32]
         arg0:
           tuples :__genstate_filter<[i32, i32]>!
     call :void
@@ -2273,9 +2273,9 @@
         callee:
           std_iter$map__i32__i64 :__genstate_map<i64>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               a :i32[]!
         arg1:
@@ -2511,15 +2511,15 @@
                   cast → i64
                     call :i32
                       callee:
-                        drained_twice :fn(Iterator<i32>) -> i32
+                        drained_twice :fn(Iterator<i32>!) -> i32
                       arg0:
                         call :__genstate_map<i32>!
                           callee:
                             std_iter$map__i32__i32 :__genstate_map<i32>!
                           arg0:
-                            call :Iterator<T>
+                            call :Iterator<T>!
                               callee:
-                                std_core$[]$Into$into__i32 :Iterator<T>
+                                std_core$[]$Into$into__i32 :Iterator<T>!
                               arg0:
                                 a :i32[]!
                           arg1:
@@ -2937,15 +2937,15 @@
         else:
           ~>
             null
-  fn snippet$weigh_1(scale: i64, it: Iterator<i64>) -> i64
+  fn snippet$weigh_1(scale: i64, it: Iterator<i64>!) -> i64
     let n: i64 = int(0) :i64
     block :void
-      let __iter_0: Iterator<i64> = it :Iterator<i64>
+      let __iter_0: Iterator<i64>! = it :Iterator<i64>!
       loop
         let __step_1: [i64, Continuation]! =
           vcall std_core$Iterator.next :[i64, Continuation]!
             recv:
-              __iter_0 :Iterator<i64>
+              __iter_0 :Iterator<i64>!
         if :void
           cond:
             eq :bool

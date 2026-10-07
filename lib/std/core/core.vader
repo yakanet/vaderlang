@@ -317,8 +317,8 @@ export array_iter :: fn<T>(arr: T[]) -> Iterator<T> {
 // Blanket Into impls live here so the orphan rule passes — Into is owned
 // by std/core, the source shapes (`T[]`, bounded `T`) aren't.
 
-T[] implements<T> Into<Iterator<T>> {
-    into :: fn(self) -> Iterator<T> {
+T[] implements<T> Into<Iterator<T>!> {
+    into :: fn(self) -> Iterator<T>! {
         return array_iter(self)
     }
 }

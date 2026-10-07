@@ -16,7 +16,7 @@
   FnDecl         nested_same_generator :: fn() -> void
   FnDecl         nested_take          :: fn() -> void
   FnDecl         odd                  :: fn(i32) -> bool
-  FnDecl         scale                :: fn(Iterator<i32>, i32) -> Iterator<i32>
+  FnDecl         scale                :: fn(Iterator<i32>!, i32) -> Iterator<i32>
   FnDecl         skip_skip            :: fn() -> void
   FnDecl         small                :: fn(i32) -> bool
   FnDecl         sum_map_map          :: fn() -> i32
@@ -263,7 +263,7 @@
   expr 25:29    IdentExpr      :: i32
   expr 27:31    BinaryExpr     :: bool
   expr 27:31    IdentExpr      :: i32
-  expr 30:14    IdentExpr      :: Iterator<i32>
+  expr 30:14    IdentExpr      :: Iterator<i32>!
   expr 31:15    BinaryExpr     :: i32
   expr 31:15    IdentExpr      :: i32
   expr 31:19    IdentExpr      :: i32
@@ -370,7 +370,7 @@
   expr 88:10    SeqLitExpr     :: i32[]!
   expr 90:14    CallExpr       :: __genstate_chain<i32>!
   expr 90:14    CallExpr       :: __genstate_map<i32>!
-  expr 90:14    FieldExpr      :: fn(Iterator<T>) -> Iterator<T>
+  expr 90:14    FieldExpr      :: fn(Iterator<T>!) -> Iterator<T>
   expr 90:14    FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 90:14    IdentExpr      :: i32[]!
   expr 90:20    IdentExpr      :: fn(i32) -> i32
@@ -383,7 +383,7 @@
   expr 91:9     IdentExpr      :: i32
   expr 94:11    CallExpr       :: __genstate_chain<i32>!
   expr 94:11    CallExpr       :: __genstate_map<i32>!
-  expr 94:11    FieldExpr      :: fn(Iterator<T>) -> Iterator<T>
+  expr 94:11    FieldExpr      :: fn(Iterator<T>!) -> Iterator<T>
   expr 94:11    FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
   expr 94:11    IdentExpr      :: i32[]!
   expr 94:17    IdentExpr      :: fn(i32) -> i32

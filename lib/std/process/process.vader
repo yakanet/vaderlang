@@ -711,7 +711,7 @@ SpawnAsync implements Async<ProcessResult | ProcessError> {
 /// @return       an awaitable completing with the `ProcessResult`.
 /// @error        `ProcessError` on launch failure, a killing signal, or empty
 ///               `argv`.
-export spawn_async :: fn(argv: string[]) -> Async<ProcessResult | ProcessError> =
+export spawn_async :: fn(argv: string[]) -> Async<ProcessResult | ProcessError>! =
     SpawnAsync { .argv = argv }
 
 /// Run `argv[0]` with `argv[1..]`, BLOCK until exit, and return the exit code

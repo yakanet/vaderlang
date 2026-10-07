@@ -11,7 +11,7 @@
   expr 15:16    IdentExpr      :: fn(string, u8[]) -> IOError | null
   expr 15:33    IdentExpr      :: string
   expr 15:39    SeqLitExpr     :: u8[]
-  expr 16:19    IdentExpr      :: Error
+  expr 16:19    IdentExpr      :: Error!
   expr 16:5     IfExpr         :: void
   expr 16:8     BinaryExpr     :: bool
   expr 16:8     IdentExpr      :: IOError | null

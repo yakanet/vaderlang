@@ -2,13 +2,13 @@
 
 ## tests/snippets/fuse_generator_chain
   FnDecl         main                 :: fn() -> i32
-  FnDecl         my_filter            :: fn(Iterator<T>, fn(T) -> bool) -> Iterator<T>
-  FnDecl         my_map               :: fn(Iterator<T>, fn(T) -> U) -> Iterator<U>
-  expr 17:14    IdentExpr      :: Iterator<T>
+  FnDecl         my_filter            :: fn(Iterator<T>!, fn(T) -> bool) -> Iterator<T>
+  FnDecl         my_map               :: fn(Iterator<T>!, fn(T) -> U) -> Iterator<U>
+  expr 17:14    IdentExpr      :: Iterator<T>!
   expr 17:27    CallExpr       :: U
   expr 17:27    IdentExpr      :: fn(T) -> U
   expr 17:29    IdentExpr      :: T
-  expr 21:14    IdentExpr      :: Iterator<T>
+  expr 21:14    IdentExpr      :: Iterator<T>!
   expr 21:21    IfExpr         :: void
   expr 21:24    CallExpr       :: bool
   expr 21:24    IdentExpr      :: fn(T) -> bool
@@ -36,9 +36,9 @@
   expr 27:74    StringLitExpr  :: string
   expr 27:79    IdentExpr      :: i32
   expr 29:14    CallExpr       :: __genstate_my_filter<i32>!
-  expr 29:14    IdentExpr      :: fn(Iterator<T>, fn(T) -> bool) -> Iterator<T>
+  expr 29:14    IdentExpr      :: fn(Iterator<T>!, fn(T) -> bool) -> Iterator<T>
   expr 29:24    CallExpr       :: __genstate_my_map<i32>!
-  expr 29:24    IdentExpr      :: fn(Iterator<T>, fn(T) -> U) -> Iterator<U>
+  expr 29:24    IdentExpr      :: fn(Iterator<T>!, fn(T) -> U) -> Iterator<U>
   expr 29:31    SeqLitExpr     :: i32[]!
   expr 29:51    LambdaExpr     :: fn(i32) -> i32
   expr 29:63    BinaryExpr     :: i32

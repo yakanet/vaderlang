@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/impl_method_forward_use
-  TraitDecl      Bump                 :: Bump
+  TraitDecl      Bump                 :: Bump!
   StructDecl     Counter              :: Counter!
   FnDecl         main                 :: fn() -> i32
   FnDecl         run                  :: fn(Counter) -> i32

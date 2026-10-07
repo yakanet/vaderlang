@@ -373,7 +373,7 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
     start: usize = 0
     for start < argvs.len() {
         stop :: if start + wave < argvs.len() { start + wave } else { argvs.len() }
-        tasks: Async<ProcessResult | ProcessError>[]!: []
+        tasks: Async<ProcessResult | ProcessError>![]!: []
         for k in start..<stop {
             tasks.push(spawn_async(argvs[k]))
         }

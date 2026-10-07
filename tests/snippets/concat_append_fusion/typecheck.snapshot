@@ -12,7 +12,7 @@
   StructDecl     Ready                :: Ready<T>!
   FnDecl         tick                 :: fn(string) -> Async<string>
   expr 100:13   AwaitExpr      :: string
-  expr 100:19   CallExpr       :: Async<string>
+  expr 100:19   CallExpr       :: Async<string>!
   expr 100:19   IdentExpr      :: fn(string) -> Async<string>
   expr 100:36   StringLitExpr  :: string
   expr 100:5    CallExpr       :: void

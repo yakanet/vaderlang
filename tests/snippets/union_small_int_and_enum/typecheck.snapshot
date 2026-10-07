@@ -13,7 +13,7 @@
   FnDecl         show_byte            :: fn(string | u8) -> string
   FnDecl         show_cell            :: fn(Color | string) -> string
   FnDecl         show_word            :: fn(string | u32) -> string
-  TraitDecl      Shower               :: Shower
+  TraitDecl      Shower               :: Shower!
   ConstDecl      Word                 :: type
   expr 21:38    IfExpr         :: string
   expr 21:41    BinaryExpr     :: bool

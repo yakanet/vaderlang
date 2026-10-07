@@ -362,7 +362,12 @@ builtin_equals_member :: fn(owner: Type, name: string, typed: TypedProgram) -> T
     if !has_builtin_impl(owner, trait_key_of(sym)) {
         return null
     }
-    return trait_type_member(TraitType { .symbol = sym, .args = [] }, owner, name, typed)
+    owner_trait :: TraitType {
+        .symbol = sym,
+        .args = [],
+        .immutable = false,
+    }
+    return trait_type_member(owner_trait, owner, name, typed)
 }
 
 // The trait of `bound` (an `A & B` walked left first) that declares `name`.
@@ -1026,7 +1031,7 @@ export substitute_by_name :: fn(
             for a in t.args {
                 rargs.push(substitute_by_name(a, tps, args))
             }
-            return mk_trait(t.symbol, rargs)
+            return TraitType { ...t, .args = rargs }
         }
         is UnionType -> {
             vs: Type[]!: []
@@ -1120,7 +1125,7 @@ substitute_array_element :: fn(t: Type, element: Type) -> Type {
         is TraitType -> {
             rargs: Type[]!: []
             for a in t.args { rargs.push(substitute_array_element(a, element)) }
-            return mk_trait(t.symbol, rargs)
+            return TraitType { ...t, .args = rargs }
         }
         is UnionType -> {
             vs: Type[]!: []

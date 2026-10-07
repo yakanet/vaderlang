@@ -28,7 +28,7 @@
   expr 32:13    IdentExpr      :: fn(T) -> void
   expr 32:21    StringLitExpr  :: string
   expr 32:27    FieldExpr      :: i32
-  expr 32:27    IdentExpr      :: Leaf!
+  expr 32:27    IdentExpr      :: Leaf
   expr 39:11    LambdaExpr     :: fn(Leaf | Pair) -> void
   expr 40:15    CallExpr       :: Leaf | Pair
   expr 40:15    IdentExpr      :: fn(Leaf | Pair) -> Leaf | Pair
@@ -58,7 +58,7 @@
   expr 52:13    IdentExpr      :: fn(T) -> void
   expr 52:21    StringLitExpr  :: string
   expr 52:27    FieldExpr      :: i32
-  expr 52:27    IdentExpr      :: Leaf!
+  expr 52:27    IdentExpr      :: Leaf
   expr 59:13    StringLitExpr  :: string
   expr 59:19    CallExpr       :: i32
   expr 59:19    IdentExpr      :: fn(Leaf | Pair) -> i32

@@ -5,7 +5,7 @@
   StructDecl     B                    :: B!
   StructDecl     Box                  :: Box!
   FnDecl         main                 :: fn() -> i32
-  TraitDecl      Widget               :: Widget
+  TraitDecl      Widget               :: Widget!
   expr 28686:1  StructLitExpr  :: Box!
   expr 28686:12 BinaryExpr     :: i64
   expr 28686:13 CallExpr       :: i64

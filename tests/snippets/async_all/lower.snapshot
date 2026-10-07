@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$mk(n: i32) -> Async<i32>
+  fn snippet$mk(n: i32) -> Async<i32>!
     return
       __asyncstate_snippet_0! {
         s0: n :i32
@@ -15,7 +15,7 @@
         callee:
           run_async_main :i32
         arg0:
-          cast → Async<i32>
+          cast → Async<i32>!
             __asyncstate_snippet_1! {
               s0: null
               s1: null
@@ -26,7 +26,7 @@
               awaited: null
               state: int(8) :i32
             }
-  struct __asyncstate_snippet_0 { s0: i32, s1: null, awaited: Async<Any>, state: i32 }
+  struct __asyncstate_snippet_0 { s0: i32, s1: null, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> i32 | Suspended!
     loop :dispatch$
       if :void
@@ -98,7 +98,7 @@
                       let __resumed_2: Any | Suspended! =
                         vcall std_core$Async.resume :Any | Suspended!
                           recv:
-                            .awaited :Async<Any>
+                            .awaited :Async<Any>!
                               __self_1 :__asyncstate_snippet_0!
                       if :void
                         cond:
@@ -134,13 +134,13 @@
                         then:
                           assign
                             target:
-                              .awaited :Async<Any>
+                              .awaited :Async<Any>!
                                 __self_1 :__asyncstate_snippet_0!
                             value:
-                              cast → Async<Any>
-                                call :Async<null>
+                              cast → Async<Any>!
+                                call :Async<null>!
                                   callee:
-                                    sleep :fn(i64) -> Async<null>
+                                    sleep :fn(i64) -> Async<null>!
                                   arg0:
                                     cast → i64
                                       .s0 :i32
@@ -160,13 +160,13 @@
     if :void
       cond:
         is null :bool
-          .awaited :Async<Any>
+          .awaited :Async<Any>!
             __self_1 :__asyncstate_snippet_0!
       then:
       else:
         vcall std_core$Async.cancel :void
           recv:
-            .awaited :Async<Any>
+            .awaited :Async<Any>!
               __self_1 :__asyncstate_snippet_0!
     assign
       target:
@@ -174,7 +174,7 @@
           __self_1 :__asyncstate_snippet_0!
       value:
         int(-1) :i32
-  struct __asyncstate_snippet_1 { s0: i32[]!, s1: i32[]!, s2: i32[]!, s3: usize, s4: usize, s5: i32, awaited: Async<Any>, state: i32 }
+  struct __asyncstate_snippet_1 { s0: i32[]!, s1: i32[]!, s2: i32[]!, s3: usize, s4: usize, s5: i32, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_1$Async$resume(self: __asyncstate_snippet_1!) -> i32 | Suspended!
     loop :dispatch$
       if :void
@@ -403,7 +403,7 @@
                                       let __resumed_7: Any | Suspended! =
                                         vcall std_core$Async.resume :Any | Suspended!
                                           recv:
-                                            .awaited :Async<Any>
+                                            .awaited :Async<Any>!
                                               __self_6 :__asyncstate_snippet_1!
                                       if :void
                                         cond:
@@ -439,26 +439,26 @@
                                         then:
                                           assign
                                             target:
-                                              .awaited :Async<Any>
+                                              .awaited :Async<Any>!
                                                 __self_6 :__asyncstate_snippet_1!
                                             value:
-                                              cast → Async<Any>
-                                                call :Async<i32[]!>
+                                              cast → Async<Any>!
+                                                call :Async<i32[]!>!
                                                   callee:
-                                                    std_async$join_all__i32 :Async<i32[]!>
+                                                    std_async$join_all__i32 :Async<i32[]!>!
                                                   arg0:
-                                                    array :Async<i32>[]
-                                                      call :Async<i32>
+                                                    array :Async<i32>![]
+                                                      call :Async<i32>!
                                                         callee:
                                                           mk :fn(i32) -> Async<i32>
                                                         arg0:
                                                           int(3) :i32
-                                                      call :Async<i32>
+                                                      call :Async<i32>!
                                                         callee:
                                                           mk :fn(i32) -> Async<i32>
                                                         arg0:
                                                           int(1) :i32
-                                                      call :Async<i32>
+                                                      call :Async<i32>!
                                                         callee:
                                                           mk :fn(i32) -> Async<i32>
                                                         arg0:
@@ -478,13 +478,13 @@
     if :void
       cond:
         is null :bool
-          .awaited :Async<Any>
+          .awaited :Async<Any>!
             __self_6 :__asyncstate_snippet_1!
       then:
       else:
         vcall std_core$Async.cancel :void
           recv:
-            .awaited :Async<Any>
+            .awaited :Async<Any>!
               __self_6 :__asyncstate_snippet_1!
     assign
       target:

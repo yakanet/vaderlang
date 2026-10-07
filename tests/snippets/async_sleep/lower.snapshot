@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$steps() -> Async<i32>
+  fn snippet$steps() -> Async<i32>!
     return
       __asyncstate_snippet_0! {
         s0: null
@@ -13,9 +13,9 @@
     let code: i32 =
       call :i32
         callee:
-          run_async_main :fn(Async<i32>) -> i32
+          run_async_main :fn(Async<i32>!) -> i32
         arg0:
-          call :Async<i32>
+          call :Async<i32>!
             callee:
               steps :fn() -> Async<i32>
     call :void
@@ -66,7 +66,7 @@
               arg1:
                 __off_1 :usize
     return int(0) :i32
-  struct __asyncstate_snippet_0 { s0: null, s1: null, awaited: Async<Any>, state: i32 }
+  struct __asyncstate_snippet_0 { s0: null, s1: null, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> i32 | Suspended!
     loop :dispatch$
       if :void
@@ -137,7 +137,7 @@
                       let __resumed_3: Any | Suspended! =
                         vcall std_core$Async.resume :Any | Suspended!
                           recv:
-                            .awaited :Async<Any>
+                            .awaited :Async<Any>!
                               __self_2 :__asyncstate_snippet_0!
                       if :void
                         cond:
@@ -173,13 +173,13 @@
                         then:
                           assign
                             target:
-                              .awaited :Async<Any>
+                              .awaited :Async<Any>!
                                 __self_2 :__asyncstate_snippet_0!
                             value:
-                              cast → Async<Any>
-                                call :Async<null>
+                              cast → Async<Any>!
+                                call :Async<null>!
                                   callee:
-                                    sleep :fn(i64) -> Async<null>
+                                    sleep :fn(i64) -> Async<null>!
                                   arg0:
                                     int(3) :i64
                           assign
@@ -224,7 +224,7 @@
                                   let __resumed_4: Any | Suspended! =
                                     vcall std_core$Async.resume :Any | Suspended!
                                       recv:
-                                        .awaited :Async<Any>
+                                        .awaited :Async<Any>!
                                           __self_2 :__asyncstate_snippet_0!
                                   if :void
                                     cond:
@@ -260,13 +260,13 @@
                                     then:
                                       assign
                                         target:
-                                          .awaited :Async<Any>
+                                          .awaited :Async<Any>!
                                             __self_2 :__asyncstate_snippet_0!
                                         value:
-                                          cast → Async<Any>
-                                            call :Async<null>
+                                          cast → Async<Any>!
+                                            call :Async<null>!
                                               callee:
-                                                sleep :fn(i64) -> Async<null>
+                                                sleep :fn(i64) -> Async<null>!
                                               arg0:
                                                 int(2) :i64
                                       assign
@@ -305,13 +305,13 @@
     if :void
       cond:
         is null :bool
-          .awaited :Async<Any>
+          .awaited :Async<Any>!
             __self_2 :__asyncstate_snippet_0!
       then:
       else:
         vcall std_core$Async.cancel :void
           recv:
-            .awaited :Async<Any>
+            .awaited :Async<Any>!
               __self_2 :__asyncstate_snippet_0!
     assign
       target:

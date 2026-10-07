@@ -208,7 +208,7 @@
                 "explicit 4:   " :string
               arg1:
                 .msg :string
-                  e :IOError!
+                  e :IOError
     block :void
       defer.pop_exec 1
       return int(0) :i32

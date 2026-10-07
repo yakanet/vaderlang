@@ -20,11 +20,11 @@
   expr 19:12    StringLitExpr  :: string
   expr 19:15    IdentExpr      :: string
   expr 19:20    IdentExpr      :: i32
-  expr 23:14    CallExpr       :: Async<string>
+  expr 23:14    CallExpr       :: Async<string>!
   expr 23:14    IdentExpr      :: fn() -> Async<string>
   expr 24:10    CallExpr       :: string | Suspended
   expr 24:10    FieldExpr      :: fn() -> string | Suspended
-  expr 24:10    IdentExpr      :: Async<string>
+  expr 24:10    IdentExpr      :: Async<string>!
   expr 25:13    IdentExpr      :: Suspended!
   expr 25:25    CallExpr       :: void
   expr 25:25    IdentExpr      :: fn(T) -> void
@@ -38,7 +38,7 @@
   expr 26:5     IdentExpr      :: fn(T) -> void
   expr 27:14    CallExpr       :: string | Suspended
   expr 27:14    FieldExpr      :: fn() -> string | Suspended
-  expr 27:14    IdentExpr      :: Async<string>
+  expr 27:14    IdentExpr      :: Async<string>!
   expr 28:17    IdentExpr      :: Suspended!
   expr 28:29    CallExpr       :: void
   expr 28:29    IdentExpr      :: fn(T) -> void

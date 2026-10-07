@@ -15,7 +15,7 @@
   expr 15:59    IdentExpr      :: B
   expr 18:48    IdentExpr      :: A | string
   expr 22:42    IdentExpr      :: string
-  expr 24:13    IdentExpr      :: Error
+  expr 24:13    IdentExpr      :: Error!
   expr 24:28    StringLitExpr  :: string
   expr 24:5     IfExpr         :: void
   expr 24:8     BinaryExpr     :: bool

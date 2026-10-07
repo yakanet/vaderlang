@@ -33,9 +33,10 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram!, node_id: 
         }
     }
     // Trait widening : `Cat → Animal` when `Cat implements Animal`. This
-    // is a subtype widen, not an `.into()` call — record nothing.
+    // is a subtype widen, not an `.into()` call — record nothing. One that would
+    // gain rights is left to the mismatch, which words it (T3077).
     if try_trait_widen(got, expected, typed) {
-        return true
+        return !mutability_widens(got, expected)
     }
     // `T[] → Iterator<T>` : lowerer materialises the `array_iter` generator
     // at the call site. Lives in `try_into` (not `is_assignable`) to
@@ -134,7 +135,7 @@ iter_trait_for_test :: fn(elem: Type) -> Type {
         .visibility = .Public,
         .defined_at = null,
     }
-    return mk_trait(sym, [elem])
+    return mk_trait(sym, [elem], false)
 }
 
 // `T[] → Iterator<T>` is a real `.into()` coercion : `try_into` records the

@@ -172,7 +172,7 @@ Two constraints shaped the fixes and are worth remembering:
   every generic is the real question, and it is a large one.
 - **A module const's inferred type is the one type source that never passes
   through `apply_readonly_default`**, which is why `rooted_in_storageless_const`
-  has to exist and is consulted at three sites. Freezing it at `declare_const`
+  has to exist and is consulted at three sites (removed by 0035). Freezing it at `declare_const`
   collapses all three, but `decl_types` feeds `inline_consts` and lowering, and
   array identity does carry the bit — snapshots would move.
 - **`mutation_fix_hint` still names the root** for a write through a field of an

@@ -1,14 +1,14 @@
 # Typecheck
 
 ## tests/snippets/trait_static_member
-  TraitDecl      A                    :: A
+  TraitDecl      A                    :: A!
   FnDecl         areas                :: fn(Shape[]) -> i32
-  TraitDecl      B                    :: B
+  TraitDecl      B                    :: B!
   FnDecl         build                :: fn(i32) -> S
   FnDecl         main                 :: fn() -> i32
   StructDecl     P                    :: P!
   StructDecl     Rect                 :: Rect!
-  TraitDecl      Shape                :: Shape
+  TraitDecl      Shape                :: Shape!
   StructDecl     Sq                   :: Sq!
   FnDecl         via_a                :: fn() -> T
   FnDecl         via_b                :: fn() -> T

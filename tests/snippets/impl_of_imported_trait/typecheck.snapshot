@@ -14,4 +14,4 @@
   expr 17:5     IdentExpr      :: fn(T) -> void
 
 ## tests/snippets/impl_of_imported_trait/score
-  TraitDecl      Scored               :: Scored
+  TraitDecl      Scored               :: Scored!

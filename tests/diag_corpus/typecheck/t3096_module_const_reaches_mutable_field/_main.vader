@@ -1,7 +1,7 @@
 // A module const is frozen at every level its type spells out, but a level its
 // declarations mark `!` keeps its rights — a struct field, a type argument, the
-// fields of a writable array's elements — and so does a trait value, which a `self!`
-// member mutates through. The const's value may be shared by every read : through
+// fields of a writable array's elements, a trait value whose `self!` members are
+// open (`bag: Bump!`). The const's value may be shared by every read : through
 // `CFG.items` the path refuses a write, but `view()` hands the const out and loses
 // that path. Each const is refused : T3096, four times. A fn that builds a fresh
 // value is the form to use.
@@ -30,7 +30,7 @@ Inner implements Bump {
 }
 
 Holder :: struct {
-    bag: Bump
+    bag: Bump!
 }
 
 CFG :: Cfg { .items = [1, 2] }

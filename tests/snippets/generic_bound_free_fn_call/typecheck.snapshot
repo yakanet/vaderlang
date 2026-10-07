@@ -11,7 +11,7 @@
   FnDecl         shown_first          :: fn(T[]) -> string
   FnDecl         shown_later          :: fn(T) -> string
   FnDecl         stepped              :: fn(I) -> i32
-  FnDecl         steps                :: fn(Iterator<T>) -> i32
+  FnDecl         steps                :: fn(Iterator<T>!) -> i32
   FnDecl         summed               :: fn(I) -> i32
   expr 15:25    StringLitExpr  :: string
   expr 15:30    FieldExpr      :: i32
@@ -22,7 +22,7 @@
   expr 17:40    IdentExpr      :: Display
   expr 19:44    CallExpr       :: string
   expr 19:44    IdentExpr      :: fn() -> string
-  expr 23:14    IdentExpr      :: Iterator<T>
+  expr 23:14    IdentExpr      :: Iterator<T>!
   expr 24:9     BinaryExpr     :: i32
   expr 24:9     IdentExpr      :: i32
   expr 26:12    IdentExpr      :: i32
@@ -46,10 +46,10 @@
   expr 37:49    FieldExpr      :: fn() -> T
   expr 37:49    IdentExpr      :: I
   expr 39:52    CallExpr       :: usize
-  expr 39:52    IdentExpr      :: fn(Iterator<T>) -> usize
+  expr 39:52    IdentExpr      :: fn(Iterator<T>!) -> usize
   expr 39:58    IdentExpr      :: I
   expr 41:50    CallExpr       :: i32
-  expr 41:50    IdentExpr      :: fn(Iterator<T>) -> i32
+  expr 41:50    IdentExpr      :: fn(Iterator<T>!) -> i32
   expr 41:56    IdentExpr      :: I
   expr 44:13    CallExpr       :: string
   expr 44:13    IdentExpr      :: fn(T) -> string

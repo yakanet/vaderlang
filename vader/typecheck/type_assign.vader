@@ -266,6 +266,17 @@ export mismatch_diagnostic_hinted :: fn(
 ///                arguments, a fn's parameters — for the caller that only words a
 ///                diagnostic.
 mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
+    // A value widening into a trait value keeps its own rights : a read-only `Cfg`
+    // does not fill a `Bump!`, whose holder calls its `self!` members. A trait's
+    // arguments are invariant — its methods may store what they are handed
+    // (`put :: fn(self!, v: T)`), so a `Sink<Cfg!>` lent as a `Sink<Cfg>` would take
+    // in a read-only `Cfg`.
+    if to is TraitType {
+        if type_withholds_mutation(from) && !to.immutable {
+            return true
+        }
+        return from is TraitType && any_widens(from.args, to.args, strict, true)
+    }
     if from is StructType {
         if to is StructType {
             // The SAME struct at two mutabilities — without the symbol check this fired
@@ -306,15 +317,6 @@ mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
                 return true
             }
             return mutability_widens(from.element, to.element, strict)
-        }
-        return false
-    }
-    // A trait value has no bit of its own and its methods may store what they are
-    // handed (`put :: fn(self!, v: T)`), so its arguments are invariant : a
-    // `Sink<Cfg!>` lent as a `Sink<Cfg>` would take in a read-only `Cfg`.
-    if from is TraitType {
-        if to is TraitType {
-            return any_widens(from.args, to.args, strict, true)
         }
         return false
     }

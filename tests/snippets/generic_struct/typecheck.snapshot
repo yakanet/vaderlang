@@ -3,7 +3,7 @@
 ## tests/snippets/generic_struct
   FnDecl         main                 :: fn() -> i32
   StructDecl     Stack                :: Stack<T>!
-  TraitDecl      Stackable            :: Stackable<T>
+  TraitDecl      Stackable            :: Stackable<T>!
   expr 19:24    IdentExpr      :: T
   expr 19:9     CallExpr       :: void
   expr 19:9     FieldExpr      :: T[]!

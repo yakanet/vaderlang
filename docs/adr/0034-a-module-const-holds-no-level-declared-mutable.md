@@ -4,7 +4,8 @@
 
 Accepted (2026-10-07). Closes the `.rodata` writes that 0017's permissive rule left
 open. The transitive read-only rule it was weighed against is deferred until
-parameters are inferred.
+parameters are inferred. Amended by 0035: a trait value counts through its own
+bit, T3096 judges the value's own type, and `rooted_in_storageless_const` is gone.
 
 ## Context
 

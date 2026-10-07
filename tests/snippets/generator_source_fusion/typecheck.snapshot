@@ -46,8 +46,8 @@
   expr 46:14    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 46:22    IdentExpr      :: i32
   expr 46:32    IdentExpr      :: fn(i32) -> bool
-  expr 47:15    CallExpr       :: Async<null>
-  expr 47:15    IdentExpr      :: fn(i64) -> Async<null>
+  expr 47:15    CallExpr       :: Async<null>!
+  expr 47:15    IdentExpr      :: fn(i64) -> Async<null>!
   expr 47:9     AwaitExpr      :: null
   expr 48:18    IdentExpr      :: i32
   expr 48:9     BinaryExpr     :: i32
@@ -178,7 +178,7 @@
   expr 87:5     CallExpr       :: void
   expr 87:5     IdentExpr      :: fn(string, i32[]) -> void
   expr 88:17    AwaitExpr      :: i32
-  expr 88:23    CallExpr       :: Async<i32>
+  expr 88:23    CallExpr       :: Async<i32>!
   expr 88:23    IdentExpr      :: fn(i32) -> Async<i32>
   expr 89:13    StringLitExpr  :: string
   expr 89:29    IdentExpr      :: i32

@@ -10,7 +10,7 @@
   expr 17:12    FieldExpr      :: fn() -> i32
 
 ## tests/snippets/impl_trait_not_in_scope/shapes
-  TraitDecl      Animal               :: Animal
+  TraitDecl      Animal               :: Animal!
   FnDecl         zero                 :: fn() -> i32
 
 # Diagnostics

@@ -1548,25 +1548,8 @@ immutable_root_symbol :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null {
 ///
 /// @param container  the expression the written field belongs to.
 export container_is_immutable :: fn(container: AST.Expr, typed: TypedProgram) -> bool {
-    // A module const without writable storage is frozen at every level. Its type
-    // says so once declared (`auto_freeze_module_const`) ; the path answers too, so
-    // the guard holds before that type is recorded.
-    if rooted_in_storageless_const(container, typed) {
-        return true
-    }
-    ty :: typed.expr_types[container.id] ?? return walk_levels(container, typed, NARROW_BORROW_BUDGET)
+    ty :: typed.expr_types[container.id] ?? return expr_is_immutable(container, typed)
     return type_is_immutable(ty)
-}
-
-// True when the access path starts at a module const with NO runtime storage. A
-// mutable one (`X: i32[]!: …`) has a writable global and is deliberately excluded —
-// `has_mutable_const_storage` is the same gate `ident_is_immutable` uses.
-rooted_in_storageless_const :: fn(e: AST.Expr, typed: TypedProgram) -> bool {
-    sym :: immutable_root_symbol(e, typed) ?? return false
-    if sym.kind != .Const {
-        return false
-    }
-    return !has_mutable_const_storage(typed.decl_types[sym.id])
 }
 
 /// True when mutating the value `e` must be rejected : its type withholds mutation (a
@@ -1583,29 +1566,16 @@ export value_is_read_only :: fn(e: AST.Expr, ty: Type, typed: TypedProgram) -> b
 /// @param e  the path being written through.
 export expr_is_immutable :: fn(
     e: AST.Expr, typed: TypedProgram,
-) -> bool = expr_is_immutable_within(e, typed, NARROW_BORROW_BUDGET)
+) -> bool = walk_levels(e, typed, NARROW_BORROW_BUDGET)
 
 // Bounds every walk of the `is T as x` chain — the mutation check and both hint
 // paths. Bindings nest (`is A as a` inside `is B as b`), and a malformed table could
 // otherwise close a cycle. One chain, one bound.
 NARROW_BORROW_BUDGET :: 8
 
-expr_is_immutable_within :: fn(e: AST.Expr, typed: TypedProgram, budget: i32) -> bool {
-    // A module const without writable storage wins over everything below — same
-    // guard, same precedence as `container_is_immutable`.
-    //
-    // Asked ONCE, here : it is a property of the path's ROOT, so `a.b.c`, `a.b` and
-    // `a` all have the same answer, and `walk_levels` below must not re-ask it at
-    // every hop. The narrowing hop in `ident_is_immutable` re-enters through this
-    // function precisely because it moves to a different root.
-    if rooted_in_storageless_const(e, typed) {
-        return true
-    }
-    return walk_levels(e, typed, budget)
-}
-
-// The per-LEVEL half of `expr_is_immutable`, for the callers that have already
-// settled the storageless-const question.
+// The per-LEVEL walk behind `expr_is_immutable`. A module const needs no guard of
+// its own : its value reaches no level that grants mutation (T3096), so the walk
+// always arrives at its root.
 //
 // @partial: only an access path can be immutable — an ident, a field / element
 // reached from one, or a conversion re-typing one. Every other expression form
@@ -1673,7 +1643,7 @@ ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32)
     }
     at :: sym.defined_at ?? return false
     scrut :: typed.narrow.binding_scrutinee[at.hash()] ?? return false
-    return expr_is_immutable_within(scrut, typed, budget - 1)
+    return walk_levels(scrut, typed, budget - 1)
 }
 
 /// True when a module const's declared type is the one shape with real storage:
@@ -1706,18 +1676,13 @@ mark_loop_var_borrow :: fn(
     // Recorded for EVERY loop variable — see `loop_var_iterable`'s doc for why the
     // interesting case never reaches the borrow marking below.
     typed.loop_var_iterable[sym.id] = iter
-    // A const without writable storage first, as in `expr_is_immutable_within`.
-    if rooted_in_storageless_const(iter, typed) {
-        typed.resolved.immutable_borrows[sym.id] = true
-        return
-    }
     // `for x in xs` only strips the `[]` — over `Box![]` the loop variable IS typed
     // `Box!`. Stamping it read-only anyway contradicts its own type and leaves the
     // reader nothing to annotate (`for x! in` is not syntax).
     if type_grants_mutation(elem) {
         return
     }
-    if !walk_levels(iter, typed, NARROW_BORROW_BUDGET) {
+    if !expr_is_immutable(iter, typed) {
         return
     }
     typed.resolved.immutable_borrows[sym.id] = true

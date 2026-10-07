@@ -27,7 +27,7 @@
             int(105) :u8
     if :void
       cond:
-        is Error :bool
+        is Error! :bool
           written :IOError | null
       then:
         call :void

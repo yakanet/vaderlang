@@ -1,14 +1,14 @@
 # Lower
 
 ## snippet
-  fn snippet$walk(it: Iterator<i32>) -> i32
+  fn snippet$walk(it: Iterator<i32>!) -> i32
     let sum: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
       let __tup_0: [i32, Continuation] =
         vcall std_core$Iterator.next :[i32, Continuation]
           recv:
-            it :Iterator<i32>
+            it :Iterator<i32>!
       let v: i32 =
         ._0 :i32
           __tup_0 :[i32, Continuation]
@@ -91,7 +91,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        walk :fn(Iterator<i32>) -> i32
+                        walk :fn(Iterator<i32>!) -> i32
                       arg0:
                         r :Repeat<i32>!
           ~>
@@ -142,7 +142,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        walk :fn(Iterator<i32>) -> i32
+                        walk :fn(Iterator<i32>!) -> i32
                       arg0:
                         o :Once<i32>!
           ~>

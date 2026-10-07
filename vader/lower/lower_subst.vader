@@ -83,7 +83,7 @@ any_leaves_of :: fn(t: Type) -> Type {
         if t.args.is_empty() { return TY_ANY }
         new_args: Type[]!: []
         for a in t.args { new_args.push(any_leaves_of(a)) }
-        return mk_trait(t.symbol, new_args)
+        return TraitType { ...t, .args = new_args }
     }
     if t is ArrayType {
         return mk_array(any_leaves_of(t.element), t.immutable)

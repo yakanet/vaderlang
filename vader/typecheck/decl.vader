@@ -177,7 +177,7 @@ declare_decl :: fn(
                 typed,
                 resolved.path,
                 factory,
-                mk_trait,
+                (sym: Symbol, args: Type[]) -> mk_trait(sym, args, false),
             )
             sym :: by_name[decl.name]
             if sym is Symbol {
@@ -1186,12 +1186,12 @@ reject_mutable_module_const :: fn(
 }
 
 // T3096 — a module const whose value reaches a level its declarations mark `!` (a
-// struct field `items: i32[]!`, a type argument `Box<Cfg!>`) or a trait value : the
+// struct field `items: i32[]!`, a type argument `Box<Cfg!>`, a field `bag: Bump!`) : the
 // const's freeze cannot reach that level, and a write through it lands in a value
 // every read shares. See ADR 0034. A marker T3076 refuses is not reported twice ;
 // T3076 reads the annotation's array and tuple levels, not a type argument's.
 reject_const_reaching_mutable_level :: fn(
-    cd: AST.ConstDecl, ty: Type, value_ty: Type, typed: TypedProgram, diags: Diagnostic[]!,
+    cd: AST.ConstDecl, value_ty: Type, typed: TypedProgram, diags: Diagnostic[]!,
 ) -> void {
     written :: cd.ty
     if written != null && marks_unstorable(written) {
@@ -1202,33 +1202,27 @@ reject_const_reaching_mutable_level :: fn(
     if value is AST.SeqLitExpr && value.elements.len() == 0 {
         return
     }
-    // A const holds the variant its value built : under a union annotation the
-    // value's own type is the one to walk (`DEFAULT: Cfg | null: null`).
-    held :: if ty is UnionType { apply_readonly_default(value_ty, null) } else { ty }
-    report_mutable_level(
-        "`${cd.name}`", held, "hand out a fresh value from a fn instead",
-        cd.name_span, typed, diags,
-    )
+    // The const holds the value it was built from, frozen as the const is. Its own
+    // type is the one to walk : under a union or a trait annotation it is narrower
+    // than the slot (`DEFAULT: Cfg | null: null`), and it is what an `is` test hands
+    // back (`BAG: Bag: Cfg { … }`, then `b is Cfg`).
+    held :: auto_freeze_module_const(value_ty)
+    advice :: "hand out a fresh value from a fn instead"
+    report_mutable_level("`${cd.name}`", held, advice, cd.name_span, typed, diags)
 }
 
-// T3096 at `span` when `t`, the type of a constant value `subject` names, is a trait
-// value or reaches a mutable level below its own — its own level being frozen, or
-// the storable `X: T[]!`. `advice` ends the detail.
+// T3096 at `span` when `t`, the type of a constant value `subject` names, reaches a
+// mutable level below its own — its own level being frozen, or the storable
+// `X: T[]!`. `advice` ends the detail.
 report_mutable_level :: fn(
     subject: string, t: Type, advice: string, span: Span, typed: TypedProgram, diags: Diagnostic[]!,
 ) -> void {
-    found :: if t is TraitType {
-        "it is a trait value, which a `self!` member mutates through"
-    } else {
-        mutable_level_below(t, typed, MutableSet<i32> {})
-    }
-    level :: found ?? return
+    level :: mutable_level_below(t, typed, MutableSet<i32> {}) ?? return
     detail :: "${subject} is `${display_type(t)}`, and ${level} — ${advice}"
     diags.push(typecheck_error(.ConstValueReachesMutableLevel, span, detail))
 }
 
-// The first level below `t`'s own that grants mutation — a level marked `!`, or a
-// trait value, which a `self!` member mutates through — worded for T3096, or null
+// The first level below `t`'s own that grants mutation, worded for T3096, or null
 // when every level below is read-only. A struct is walked through its type
 // arguments, then its DECLARED field types, once per struct (`seen`, by symbol id) :
 // the declared fields are finite where a substituted walk is not
@@ -1246,16 +1240,13 @@ mutable_level_below :: fn(
      | NeverType | AnyType -> null
 }
 
-// `part`, as the level `what` names, when it grants mutation or is a trait value ;
-// else the first such level below it.
+// `part`, as the level `what` names, when it grants mutation ; else the first such
+// level below it.
 level_at :: fn(
     part: Type, what: string, typed: TypedProgram, seen: MutableSet<i32>!,
 ) -> string | null {
     if type_grants_mutation(part) {
         return "${what} `${display_type(part)}`"
-    }
-    if part is TraitType {
-        return "${what} `${display_type(part)}`, a trait value a `self!` member mutates through"
     }
     return mutable_level_below(part, typed, seen)
 }

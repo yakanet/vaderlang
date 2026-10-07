@@ -95,7 +95,7 @@ StringChars implements Iterator<char> {
 }
 
 /// Iterate `s` codepoint-by-codepoint. `for c in s` desugars to this via
-/// the `Into<Iterator<char>>` impl below — call `s.chars()` explicitly
+/// the `Into<Iterator<char>!>` impl below — call `s.chars()` explicitly
 /// only when you need the iterator as a value. Byte-indexed `s[i]` loops
 /// return U+FFFD on continuation bytes for non-ASCII content ; prefer
 /// `for c in s` for Unicode-correct iteration.
@@ -112,8 +112,8 @@ export chars :: fn(s: string) -> StringChars! {
 
 // `for c in s` desugars to `for c in s.into()` via this impl — codepoints
 // are the default unit. Byte iteration stays opt-in via `s.bytes()`.
-string implements Into<Iterator<char>> {
-    into :: fn(self) -> Iterator<char> {
+string implements Into<Iterator<char>!> {
+    into :: fn(self) -> Iterator<char>! {
         bs :: self.bytes()
         return StringChars { .bytes = bs, .cursor = 0, .length = bs.len() }
     }

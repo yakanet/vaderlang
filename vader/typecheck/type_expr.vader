@@ -214,7 +214,7 @@ walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
         is TraitType -> {
             sargs: Type[]!: []
             for a in t.args { sargs.push(walk_substitute(a, params, args)) }
-            return mk_trait(t.symbol, sargs)
+            return TraitType { ...t, .args = sargs }
         }
         is UnionType -> {
             vs: Type[]!: []
@@ -388,7 +388,7 @@ export type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
             return builtin
         }
         .Struct    -> { return mk_struct(sym, args, false) }
-        .Trait     -> { return mk_trait(sym, args) }
+        .Trait     -> { return mk_trait(sym, args, false) }
         .TypeParam -> { return mk_type_param(sym) }
         .Enum      -> { return mk_struct(sym, args, false) }   // placeholder until enum_pass plumbs declTypes
         // TypeAlias / Const-as-type-alias fall through to a marker

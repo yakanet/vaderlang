@@ -2,12 +2,12 @@
 
 ## tests/snippets/iter_coerce_array
   FnDecl         main                 :: fn() -> i32
-  FnDecl         make_iter            :: fn() -> Iterator<i32>
-  FnDecl         walk                 :: fn(Iterator<i32>) -> i32
+  FnDecl         make_iter            :: fn() -> Iterator<i32>!
+  FnDecl         walk                 :: fn(Iterator<i32>!) -> i32
   expr 17:9     IdentExpr      :: bool
   expr 18:19    CallExpr       :: [i32, Continuation]
   expr 18:19    FieldExpr      :: fn() -> [i32, Continuation]
-  expr 18:19    IdentExpr      :: Iterator<i32>
+  expr 18:19    IdentExpr      :: Iterator<i32>!
   expr 19:12    BinaryExpr     :: bool
   expr 19:12    IdentExpr      :: Continuation
   expr 19:17    DotVariantExpr :: Continuation
@@ -21,21 +21,21 @@
   expr 29:12    SeqLitExpr     :: i32[]!
   expr 30:12    IdentExpr      :: i32[]!
   expr 35:10    CallExpr       :: i32
-  expr 35:10    IdentExpr      :: fn(Iterator<i32>) -> i32
+  expr 35:10    IdentExpr      :: fn(Iterator<i32>!) -> i32
   expr 35:15    SeqLitExpr     :: i32[]!
-  expr 38:36    SeqLitExpr     :: i32[]!
-  expr 39:39    SeqLitExpr     :: i32[]!
+  expr 38:37    SeqLitExpr     :: i32[]!
+  expr 39:41    SeqLitExpr     :: i32[]!
   expr 40:10    BinaryExpr     :: i32
   expr 40:10    CallExpr       :: i32
-  expr 40:10    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 40:15    IdentExpr      :: Iterator<i32>
+  expr 40:10    IdentExpr      :: fn(Iterator<i32>!) -> i32
+  expr 40:15    IdentExpr      :: Iterator<i32>!
   expr 40:33    CallExpr       :: i32
-  expr 40:33    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 40:38    IdentExpr      :: Iterator<i32>
+  expr 40:33    IdentExpr      :: fn(Iterator<i32>!) -> i32
+  expr 40:38    IdentExpr      :: Iterator<i32>!
   expr 43:10    CallExpr       :: i32
-  expr 43:10    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 43:15    CallExpr       :: Iterator<i32>
-  expr 43:15    IdentExpr      :: fn() -> Iterator<i32>
+  expr 43:10    IdentExpr      :: fn(Iterator<i32>!) -> i32
+  expr 43:15    CallExpr       :: Iterator<i32>!
+  expr 43:15    IdentExpr      :: fn() -> Iterator<i32>!
   expr 45:13    StringLitExpr  :: string
   expr 45:18    IdentExpr      :: i32
   expr 45:25    IdentExpr      :: i32

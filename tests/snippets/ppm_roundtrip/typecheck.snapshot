@@ -22,7 +22,7 @@
   expr 19:11    IdentExpr      :: fn(string, u8[]) -> IOError | null
   expr 19:28    IdentExpr      :: string
   expr 19:34    IdentExpr      :: u8[]
-  expr 20:14    IdentExpr      :: Error
+  expr 20:14    IdentExpr      :: Error!
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
   expr 20:8     IdentExpr      :: IOError | null
@@ -37,7 +37,7 @@
   expr 24:12    IdentExpr      :: fn(string, usize) -> IOError | u8[]
   expr 24:28    IdentExpr      :: string
   expr 24:34    IdentExpr      :: usize
-  expr 25:15    IdentExpr      :: Error
+  expr 25:15    IdentExpr      :: Error!
   expr 25:5     IfExpr         :: void
   expr 25:8     BinaryExpr     :: bool
   expr 25:8     IdentExpr      :: IOError | u8[]

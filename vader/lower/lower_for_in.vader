@@ -11,7 +11,7 @@
 //     <body>
 //   }
 //
-// and auto-wraps `T[]` iterators through `Into<Iterator<T>>` so the loop
+// and auto-wraps `T[]` iterators through `Into<Iterator<T>!>` so the loop
 // dispatches through the standard Iterator impl. Before falling back to
 // it, `lower_for_in` tries a series of fast paths that bypass the
 // Iterator dispatch entirely : `try_lower_chain_fusion` (std/iter
@@ -277,7 +277,7 @@ WrapResult :: struct {
 
 // `string` → `StringChars`, via a synthesised `chars(s)` call.
 //
-// `string` implements `Into<Iterator<char>>`, but routing through `into()` hands
+// `string` implements `Into<Iterator<char>!>`, but routing through `into()` hands
 // back the ERASED `Iterator<char>` trait; calling `chars` keeps the concrete
 // `StringChars`, which `build_step_call`'s StructType path resolves — so
 // `for c in s` lowers like `for c in s.chars()`.
@@ -370,7 +370,7 @@ resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type
 erase_genstate_for_dispatch :: fn(ctx: FnLowerCtx, iter_type: Type, element_type: Type) -> Type {
     if !is_gen_state_struct(iter_type) { return iter_type }
     trait_sym :: find_core_trait(ctx.project, TRAIT_ITERATOR)
-    if trait_sym is Symbol { return mk_trait(trait_sym, [element_type]) }
+    if trait_sym is Symbol { return mk_trait(trait_sym, [element_type], false) }
     return iter_type
 }
 

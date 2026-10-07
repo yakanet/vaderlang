@@ -3,7 +3,7 @@
 ## tests/snippets/enum_trait_self_return
   EnumDecl       Direction            :: Direction
   FnDecl         main                 :: fn() -> i32
-  TraitDecl      Turnable             :: Turnable
+  TraitDecl      Turnable             :: Turnable!
   expr 18:29    MatchExpr      :: Direction
   expr 18:35    IdentExpr      :: Direction
   expr 19:19    DotVariantExpr :: Direction

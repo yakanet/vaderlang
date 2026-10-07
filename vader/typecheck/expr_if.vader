@@ -277,9 +277,7 @@ pop_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram!) -> void {
 }
 
 // `narrowed` carrying the immutability its scrutinee had — see the call site in
-// `detect_is_narrow`. Returns `narrowed` untouched when it can't carry the bit
-// or when the scrutinee is neither a bare ident nor a field chain (a call, an
-// index, … narrows nothing anyway).
+// `detect_is_narrow`. Returns `narrowed` untouched when it can't carry the bit.
 narrowed_with_scrutinee_immutability :: fn(
     narrowed: Type, scrut: AST.Expr, typed: TypedProgram,
 ) -> Type {
@@ -290,7 +288,8 @@ narrowed_with_scrutinee_immutability :: fn(
 
 // The flow-narrowed static type of an `is` scrutinee, for the two shapes that
 // narrow : a bare ident and a field chain. Mirrors what the two branches of
-// `detect_is_narrow` compute as their `base`.
+// `detect_is_narrow` compute as their `base`. Any other scrutinee — a call, an
+// index — narrows nothing, but an `as` binds it : its own type carries the bit.
 scrutinee_narrow_base :: fn(scrut: AST.Expr, typed: TypedProgram) -> Type | null {
     if scrut is AST.IdentExpr {
         sym :: typed.resolved.idents[scrut.span.hash()] ?? return null
@@ -300,7 +299,7 @@ scrutinee_narrow_base :: fn(scrut: AST.Expr, typed: TypedProgram) -> Type | null
         info :: resolve_field_chain_static(scrut, typed) ?? return null
         return narrow_for_field(typed, info.field_key, info.static_ty)
     }
-    return null
+    return typed.expr_types[scrut.id]
 }
 
 detect_is_narrow :: fn(
@@ -379,8 +378,8 @@ detect_is_narrow :: fn(
     // own — taken verbatim it would hand back a MUTABLE `Cfg` even when `x` is a
     // read-only borrow, laundering the borrow in one line. Inherit the bit from
     // the scrutinee instead (from the matching variant, since a union spreads the
-    // bit over its variants). Only reference shapes can carry it, so the common
-    // narrowing (null, primitive, enum, trait object) skips the lookup.
+    // bit over its variants). Only reference shapes and trait values can carry it,
+    // so the common narrowing (null, primitive, enum) skips the lookup.
     narrowed :: narrowed_with_scrutinee_immutability(
         type_from_expr(cond.right, typed.resolved, diags), cond.left, typed,
     )

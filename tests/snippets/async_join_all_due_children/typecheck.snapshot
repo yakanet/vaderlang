@@ -10,25 +10,25 @@
   expr 19:9     IdentExpr      :: i64[]!
   expr 19:9     IndexExpr      :: i64
   expr 20:16    CallExpr       :: null | Suspended
-  expr 20:16    FieldExpr      :: Async<null>
+  expr 20:16    FieldExpr      :: Async<null>!
   expr 20:16    FieldExpr      :: fn() -> null | Suspended
   expr 20:16    IdentExpr      :: Counted!
   expr 25:14    RangeExpr      :: Range<i32>!
   expr 26:15    StructLitExpr  :: Counted!
-  expr 26:34    CallExpr       :: Async<null>
-  expr 26:34    IdentExpr      :: fn(i64) -> Async<null>
+  expr 26:34    CallExpr       :: Async<null>!
+  expr 26:34    IdentExpr      :: fn(i64) -> Async<null>!
   expr 26:40    IdentExpr      :: i64
   expr 26:9     AwaitExpr      :: Counted!
   expr 28:12    IdentExpr      :: i64
   expr 32:13    AwaitExpr      :: i64[]!
-  expr 32:19    CallExpr       :: Async<i64[]!>
-  expr 32:19    IdentExpr      :: fn(Async<T>[]) -> Async<T[]!>
-  expr 32:28    SeqLitExpr     :: Async<i64>[]
-  expr 32:29    CallExpr       :: Async<i64>
+  expr 32:19    CallExpr       :: Async<i64[]!>!
+  expr 32:19    IdentExpr      :: fn(Async<T>![]) -> Async<T[]!>!
+  expr 32:28    SeqLitExpr     :: Async<i64>![]
+  expr 32:29    CallExpr       :: Async<i64>!
   expr 32:29    IdentExpr      :: fn(i64) -> Async<i64>
-  expr 32:38    CallExpr       :: Async<i64>
+  expr 32:38    CallExpr       :: Async<i64>!
   expr 32:38    IdentExpr      :: fn(i64) -> Async<i64>
-  expr 32:47    CallExpr       :: Async<i64>
+  expr 32:47    CallExpr       :: Async<i64>!
   expr 32:47    IdentExpr      :: fn(i64) -> Async<i64>
   expr 33:13    StringLitExpr  :: string
   expr 33:16    IdentExpr      :: i64[]!

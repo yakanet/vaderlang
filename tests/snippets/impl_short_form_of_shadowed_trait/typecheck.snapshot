@@ -15,11 +15,11 @@
   expr 14:5     IdentExpr      :: fn(T) -> void
 
 ## tests/snippets/impl_short_form_of_shadowed_trait/shapes
-  TraitDecl      Animal               :: Animal
+  TraitDecl      Animal               :: Animal!
   FnDecl         zero                 :: fn() -> i32
 
 ## tests/snippets/impl_short_form_of_shadowed_trait/zoo
-  TraitDecl      Animal               :: Animal
+  TraitDecl      Animal               :: Animal!
   FnDecl         describe             :: fn(Animal) -> i32
   StructDecl     Dog                  :: Dog!
   expr 12:43    BinaryExpr     :: i32

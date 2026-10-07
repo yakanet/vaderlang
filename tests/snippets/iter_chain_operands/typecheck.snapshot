@@ -180,7 +180,7 @@
   expr 56:62    IdentExpr      :: fn(i32) -> fn(i32) -> i32
   expr 57:14    CallExpr       :: __genstate_chain<i32>!
   expr 57:14    CallExpr       :: i32[]
-  expr 57:14    FieldExpr      :: fn(Iterator<i32>) -> Iterator<i32>
+  expr 57:14    FieldExpr      :: fn(Iterator<i32>!) -> Iterator<i32>
   expr 57:14    IdentExpr      :: fn(string, i32[]) -> i32[]
   expr 57:21    StringLitExpr  :: string
   expr 57:26    SeqLitExpr     :: i32[]

@@ -1,0 +1,25 @@
+// A value widening into a trait value keeps its own rights : a read-only `Cfg`
+// does not fill a `Bump!`, whose holder calls its `self!` members. T3077.
+module "snippet"
+
+Bump :: trait {
+    bump :: fn(self!) -> void
+}
+
+Cfg :: struct {
+    n: i32
+}
+
+Cfg implements Bump {
+    bump :: fn(self!) -> void {
+        self.n += 1
+    }
+}
+
+keep :: fn(c: Cfg) -> Bump! = c
+
+main :: fn() -> i32 {
+    b :: keep(Cfg { .n = 1 })
+    b.bump()
+    return 0
+}

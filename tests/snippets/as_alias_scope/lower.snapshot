@@ -256,7 +256,7 @@
                       arg2:
                         cast → i64
                           .v :i32
-                            lf :Leaf!
+                            lf :Leaf
                 ~>
                   call :string
                     callee:
@@ -455,7 +455,7 @@
                       arg2:
                         cast → i64
                           .v :i32
-                            df :Leaf!
+                            df :Leaf
                 ~>
                   call :string
                     callee:

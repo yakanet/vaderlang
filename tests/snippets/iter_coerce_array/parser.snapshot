@@ -198,17 +198,20 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "GenericInstExpr",
-        "callee": {
-          "kind": "IdentExpr",
-          "name": "Iterator"
-        },
-        "typeArgs": [
-          {
+        "kind": "MutableTypeExpr",
+        "inner": {
+          "kind": "GenericInstExpr",
+          "callee": {
             "kind": "IdentExpr",
-            "name": "i32"
-          }
-        ]
+            "name": "Iterator"
+          },
+          "typeArgs": [
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        }
       },
       "body": {
         "kind": "BlockExpr",
@@ -311,17 +314,20 @@
               "name": "typed_iter_mut"
             },
             "type": {
-              "kind": "GenericInstExpr",
-              "callee": {
-                "kind": "IdentExpr",
-                "name": "Iterator"
-              },
-              "typeArgs": [
-                {
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "GenericInstExpr",
+                "callee": {
                   "kind": "IdentExpr",
-                  "name": "i32"
-                }
-              ]
+                  "name": "Iterator"
+                },
+                "typeArgs": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                ]
+              }
             },
             "value": {
               "kind": "SeqLitExpr",
@@ -350,20 +356,23 @@
             "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
-              "name": "typed_iter_immut"
+              "name": "typed_iter_spaced"
             },
             "type": {
-              "kind": "GenericInstExpr",
-              "callee": {
-                "kind": "IdentExpr",
-                "name": "Iterator"
-              },
-              "typeArgs": [
-                {
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "GenericInstExpr",
+                "callee": {
                   "kind": "IdentExpr",
-                  "name": "i32"
-                }
-              ]
+                  "name": "Iterator"
+                },
+                "typeArgs": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                ]
+              }
             },
             "value": {
               "kind": "SeqLitExpr",
@@ -422,7 +431,7 @@
                     "name": null,
                     "value": {
                       "kind": "IdentExpr",
-                      "name": "typed_iter_immut"
+                      "name": "typed_iter_spaced"
                     },
                     "spread": false
                   }

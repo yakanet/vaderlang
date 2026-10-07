@@ -3,7 +3,7 @@
 ## tests/snippets/trait_dispatch_struct
   FnDecl         apply_tag            :: fn(T) -> i32
   FnDecl         main                 :: fn() -> i32
-  TraitDecl      Tagger               :: Tagger
+  TraitDecl      Tagger               :: Tagger!
   expr 11:37    BinaryExpr     :: i32
   expr 11:37    IdentExpr      :: i32
   expr 15:12    BinaryExpr     :: i32

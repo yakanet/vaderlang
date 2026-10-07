@@ -55,9 +55,9 @@
                           callee:
                             std_iter$map__i32__i32 :__genstate_map<i32>!
                           arg0:
-                            call :Iterator<T>
+                            call :Iterator<T>!
                               callee:
-                                std_core$[]$Into$into__i32 :Iterator<T>
+                                std_core$[]$Into$into__i32 :Iterator<T>!
                               arg0:
                                 xs :i32[]!
                           arg1:
@@ -105,9 +105,9 @@
                           callee:
                             std_iter$map__i32__i32 :__genstate_map<i32>!
                           arg0:
-                            call :Iterator<T>
+                            call :Iterator<T>!
                               callee:
-                                std_core$[]$Into$into__i32 :Iterator<T>
+                                std_core$[]$Into$into__i32 :Iterator<T>!
                               arg0:
                                 xs :i32[]!
                           arg1:
@@ -154,9 +154,9 @@
                         callee:
                           std_iter$map__i32__i32 :__genstate_map<i32>!
                         arg0:
-                          call :Iterator<T>
+                          call :Iterator<T>!
                             callee:
-                              std_core$[]$Into$into__i32 :Iterator<T>
+                              std_core$[]$Into$into__i32 :Iterator<T>!
                             arg0:
                               xs :i32[]!
                         arg1:
@@ -238,9 +238,9 @@
                           callee:
                             std_iter$map__i32__i32 :__genstate_map<i32>!
                           arg0:
-                            call :Iterator<T>
+                            call :Iterator<T>!
                               callee:
-                                std_core$[]$Into$into__i32 :Iterator<T>
+                                std_core$[]$Into$into__i32 :Iterator<T>!
                               arg0:
                                 xs :i32[]!
                           arg1:

@@ -14,7 +14,7 @@
           std_io$println__string :void
         arg0:
           "never cancelled" :string
-  fn snippet$inner() -> Async<i32>
+  fn snippet$inner() -> Async<i32>!
     return
       __asyncstate_snippet_2! {
         s0: null
@@ -25,7 +25,7 @@
         awaited: null
         state: int(7) :i32
       }
-  fn snippet$outer() -> Async<i32>
+  fn snippet$outer() -> Async<i32>!
     return
       __asyncstate_snippet_5! {
         s0: int(0) :i32
@@ -36,17 +36,17 @@
         state: int(7) :i32
       }
   fn snippet$main() -> i32
-    let o: Async<i32> =
-      call :Async<i32>
+    let o: Async<i32>! =
+      call :Async<i32>!
         callee:
           outer :fn() -> Async<i32>
     let _: i32 | Suspended =
       vcall std_core$Async.resume :i32 | Suspended
         recv:
-          o :Async<i32>
+          o :Async<i32>!
     vcall std_core$Async.cancel :void
       recv:
-        o :Async<i32>
+        o :Async<i32>!
     call :void
       callee:
         std_io$println__string :void
@@ -61,7 +61,7 @@
           std_io$println__string :void
         arg0:
           "inner cleanup" :string
-  struct __asyncstate_snippet_2 { s0: Async<i32>, s1: i32, s2: i32, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
+  struct __asyncstate_snippet_2 { s0: Async<i32>, s1: i32, s2: i32, __defers: (fn() -> void)[]!, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_2$Async$resume(self: __asyncstate_snippet_2!) -> i32 | Suspended!
     loop :dispatch$
       if :void
@@ -200,7 +200,7 @@
                               let __resumed_3: Any | Suspended! =
                                 vcall std_core$Async.resume :Any | Suspended!
                                   recv:
-                                    .awaited :Async<Any>
+                                    .awaited :Async<Any>!
                                       __self_2 :__asyncstate_snippet_2!
                               if :void
                                 cond:
@@ -236,10 +236,10 @@
                                 then:
                                   assign
                                     target:
-                                      .awaited :Async<Any>
+                                      .awaited :Async<Any>!
                                         __self_2 :__asyncstate_snippet_2!
                                     value:
-                                      cast → Async<Any>
+                                      cast → Async<Any>!
                                         .s0 :Async<i32>
                                           __self_2 :__asyncstate_snippet_2!
                                   assign
@@ -281,13 +281,13 @@
     if :void
       cond:
         is null :bool
-          .awaited :Async<Any>
+          .awaited :Async<Any>!
             __self_2 :__asyncstate_snippet_2!
       then:
       else:
         vcall std_core$Async.cancel :void
           recv:
-            .awaited :Async<Any>
+            .awaited :Async<Any>!
               __self_2 :__asyncstate_snippet_2!
     loop while (<…>)
       call :void
@@ -333,7 +333,7 @@
           std_io$println__string :void
         arg0:
           "outer cleanup" :string
-  struct __asyncstate_snippet_5 { s0: i32, s1: i32, __defers: (fn() -> void)[]!, awaited: Async<Any>, state: i32 }
+  struct __asyncstate_snippet_5 { s0: i32, s1: i32, __defers: (fn() -> void)[]!, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_5$Async$resume(self: __asyncstate_snippet_5!) -> i32 | Suspended!
     loop :dispatch$
       if :void
@@ -472,7 +472,7 @@
                               let __resumed_3: Any | Suspended! =
                                 vcall std_core$Async.resume :Any | Suspended!
                                   recv:
-                                    .awaited :Async<Any>
+                                    .awaited :Async<Any>!
                                       __self_2 :__asyncstate_snippet_5!
                               if :void
                                 cond:
@@ -508,11 +508,11 @@
                                 then:
                                   assign
                                     target:
-                                      .awaited :Async<Any>
+                                      .awaited :Async<Any>!
                                         __self_2 :__asyncstate_snippet_5!
                                     value:
-                                      cast → Async<Any>
-                                        call :Async<i32>
+                                      cast → Async<Any>!
+                                        call :Async<i32>!
                                           callee:
                                             inner :fn() -> Async<i32>
                                   assign
@@ -547,13 +547,13 @@
     if :void
       cond:
         is null :bool
-          .awaited :Async<Any>
+          .awaited :Async<Any>!
             __self_2 :__asyncstate_snippet_5!
       then:
       else:
         vcall std_core$Async.cancel :void
           recv:
-            .awaited :Async<Any>
+            .awaited :Async<Any>!
               __self_2 :__asyncstate_snippet_5!
     loop while (<…>)
       call :void

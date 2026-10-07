@@ -133,7 +133,7 @@
       Ready<string>! {
         v: v :string
       }
-  fn snippet$appends_in_async(seed: string) -> Async<string>
+  fn snippet$appends_in_async(seed: string) -> Async<string>!
     return
       __asyncstate_snippet_0! {
         s0: seed :string
@@ -170,7 +170,7 @@
     let __root_3: i32 | Suspended! =
       vcall std_core$Async.resume :i32 | Suspended!
         recv:
-          cast → Async<i32>
+          cast → Async<i32>!
             __asyncstate_snippet_3! {
               s0: "" :string
               awaited: null
@@ -185,7 +185,7 @@
     return
       cast → i32
         __root_3 :i32 | Suspended!
-  struct __asyncstate_snippet_0 { s0: string, s1: string, s2: string, s3: string, awaited: Async<Any>, state: i32 }
+  struct __asyncstate_snippet_0 { s0: string, s1: string, s2: string, s3: string, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> string | Suspended!
     loop :dispatch$
       if :void
@@ -265,7 +265,7 @@
                       let __resumed_2: Any | Suspended! =
                         vcall std_core$Async.resume :Any | Suspended!
                           recv:
-                            .awaited :Async<Any>
+                            .awaited :Async<Any>!
                               __self_1 :__asyncstate_snippet_0!
                       if :void
                         cond:
@@ -301,10 +301,10 @@
                         then:
                           assign
                             target:
-                              .awaited :Async<Any>
+                              .awaited :Async<Any>!
                                 __self_1 :__asyncstate_snippet_0!
                             value:
-                              cast → Async<Any>
+                              cast → Async<Any>!
                                 call :Async<string>
                                   callee:
                                     tick :fn(string) -> Async<string>
@@ -374,13 +374,13 @@
     if :void
       cond:
         is null :bool
-          .awaited :Async<Any>
+          .awaited :Async<Any>!
             __self_1 :__asyncstate_snippet_0!
       then:
       else:
         vcall std_core$Async.cancel :void
           recv:
-            .awaited :Async<Any>
+            .awaited :Async<Any>!
               __self_1 :__asyncstate_snippet_0!
     assign
       target:
@@ -392,7 +392,7 @@
   fn __lambda_snippet_1(__env_0: __lambda_env_snippet_2!) -> string
     return
       LoweredCellGet
-  struct __asyncstate_snippet_3 { s0: string, awaited: Async<Any>, state: i32 }
+  struct __asyncstate_snippet_3 { s0: string, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_3$Async$resume(self: __asyncstate_snippet_3!) -> i32 | Suspended!
     loop :dispatch$
       if :void
@@ -471,7 +471,7 @@
                       let __resumed_2: Any | Suspended! =
                         vcall std_core$Async.resume :Any | Suspended!
                           recv:
-                            .awaited :Async<Any>
+                            .awaited :Async<Any>!
                               __self_1 :__asyncstate_snippet_3!
                       if :void
                         cond:
@@ -507,11 +507,11 @@
                         then:
                           assign
                             target:
-                              .awaited :Async<Any>
+                              .awaited :Async<Any>!
                                 __self_1 :__asyncstate_snippet_3!
                             value:
-                              cast → Async<Any>
-                                call :Async<string>
+                              cast → Async<Any>!
+                                call :Async<string>!
                                   callee:
                                     appends_in_async :fn(string) -> Async<string>
                                   arg0:
@@ -596,13 +596,13 @@
     if :void
       cond:
         is null :bool
-          .awaited :Async<Any>
+          .awaited :Async<Any>!
             __self_1 :__asyncstate_snippet_3!
       then:
       else:
         vcall std_core$Async.cancel :void
           recv:
-            .awaited :Async<Any>
+            .awaited :Async<Any>!
               __self_1 :__asyncstate_snippet_3!
     assign
       target:

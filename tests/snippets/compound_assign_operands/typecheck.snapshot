@@ -10,7 +10,7 @@
   StructDecl     Row                  :: Row!
   StructDecl     Shelf                :: Shelf!
   FnDecl         slot                 :: fn(usize) -> usize
-  TraitDecl      Stepper              :: Stepper
+  TraitDecl      Stepper              :: Stepper!
   StructDecl     Two                  :: Two!
   expr 100:10   IdentExpr      :: Counter!
   expr 100:5    BinaryExpr     :: i32

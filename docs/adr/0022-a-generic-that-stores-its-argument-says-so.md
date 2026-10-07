@@ -84,5 +84,5 @@ signature is where Vader states mutation; storage is mutation the caller will se
   the same `T`, erased to its maximal rights, so a `v: T!` there would demand a
   mutable argument either way. `MutableMap`'s write path is
   `m[k] = v`, which the recursive freeze covers at the index-set slot.
-- **`rooted_in_storageless_const` may now be redundant**: the const's type tells the
+- **`rooted_in_storageless_const` may now be redundant** (removed by 0035): the const's type tells the
   truth, which is what its three call sites compensated for. Not removed here.

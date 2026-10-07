@@ -973,7 +973,9 @@ collect_bound_trait_types :: fn(bound: AST.Expr, resolved: ResolvedModule, out: 
         collect_bound_trait_types(bound.right, resolved, out)
         return
     }
-    bound_type :: type_from_expr(bound, resolved, diag_sink())
+    // A bound is a written type : it takes the read-only default, so it reads as
+    // `Display`, as the trait was written, wherever a diagnostic names it.
+    bound_type :: apply_readonly_default(type_from_expr(bound, resolved, diag_sink()), bound)
     if bound_type is TraitType {
         out.push(bound_type)
     }
@@ -2474,7 +2476,11 @@ check_impl_members :: fn(
     trait_decl :: typed.trait_decls[trait_sym.id] ?? return
     // Resolved again by `record_impl_members`, which reports what fails.
     trait_args :: written_type_args(id.trait_args, typed.resolved, [])
-    trait_type :: TraitType { .symbol = trait_sym, .args = trait_args }
+    trait_type :: TraitType {
+        .symbol = trait_sym,
+        .args = trait_args,
+        .immutable = false,
+    }
     for member in id.members {
         trait_method :: lookup_trait_method(trait_decl, member.name)
         if trait_method != null {
@@ -2765,7 +2771,7 @@ check_const_value :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, diags: Diagnos
     got :: check_expr(cd.value, annot, typed, diags)
     final :: annot ?? auto_freeze_module_const(default_if_free(got))
     typed.decl_types[sym.id] = final
-    reject_const_reaching_mutable_level(cd, final, got, typed, diags)
+    reject_const_reaching_mutable_level(cd, got, typed, diags)
 }
 
 // An UNANNOTATED module const is frozen at every level — the same recursive default

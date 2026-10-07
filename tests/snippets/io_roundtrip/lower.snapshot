@@ -101,7 +101,7 @@
             ~>
               if :void
                 cond:
-                  is Error :bool
+                  is Error! :bool
                     contents :IOError | string
                 then:
                   ~>

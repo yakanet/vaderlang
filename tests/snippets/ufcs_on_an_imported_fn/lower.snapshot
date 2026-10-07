@@ -152,7 +152,7 @@
                 "bound 4:   " :string
               arg1:
                 .msg :string
-                  e :IOError!
+                  e :IOError
     if :void
       cond:
         is IOError! :bool
@@ -184,7 +184,7 @@
                 "named 4:   " :string
               arg1:
                 .msg :string
-                  e :IOError!
+                  e :IOError
     let removed: IOError | null =
       call :IOError | null
         callee:

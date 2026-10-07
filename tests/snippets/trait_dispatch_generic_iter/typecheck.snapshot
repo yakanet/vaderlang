@@ -4,7 +4,7 @@
   FnDecl         main                 :: fn() -> i32
   StructDecl     Once                 :: Once<T>!
   StructDecl     Repeat               :: Repeat<T>!
-  FnDecl         walk                 :: fn(Iterator<i32>) -> i32
+  FnDecl         walk                 :: fn(Iterator<i32>!) -> i32
   expr 24:12    BinaryExpr     :: bool
   expr 24:12    FieldExpr      :: i32
   expr 24:12    IdentExpr      :: Repeat<T>!
@@ -39,7 +39,7 @@
   expr 51:9     IdentExpr      :: bool
   expr 52:19    CallExpr       :: [i32, Continuation]
   expr 52:19    FieldExpr      :: fn() -> [i32, Continuation]
-  expr 52:19    IdentExpr      :: Iterator<i32>
+  expr 52:19    IdentExpr      :: Iterator<i32>!
   expr 53:12    BinaryExpr     :: bool
   expr 53:12    IdentExpr      :: Continuation
   expr 53:17    DotVariantExpr :: Continuation
@@ -54,13 +54,13 @@
   expr 64:10    StructLitExpr  :: Once<i32>!
   expr 65:13    StringLitExpr  :: string
   expr 65:23    CallExpr       :: i32
-  expr 65:23    IdentExpr      :: fn(Iterator<i32>) -> i32
+  expr 65:23    IdentExpr      :: fn(Iterator<i32>!) -> i32
   expr 65:28    IdentExpr      :: Repeat<i32>!
   expr 65:5     CallExpr       :: void
   expr 65:5     IdentExpr      :: fn(T) -> void
   expr 66:13    StringLitExpr  :: string
   expr 66:21    CallExpr       :: i32
-  expr 66:21    IdentExpr      :: fn(Iterator<i32>) -> i32
+  expr 66:21    IdentExpr      :: fn(Iterator<i32>!) -> i32
   expr 66:26    IdentExpr      :: Once<i32>!
   expr 66:5     CallExpr       :: void
   expr 66:5     IdentExpr      :: fn(T) -> void

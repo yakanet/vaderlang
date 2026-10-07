@@ -4,7 +4,7 @@
   StructDecl     Cat                  :: Cat!
   StructDecl     Dog                  :: Dog!
   FnDecl         main                 :: fn() -> i32
-  TraitDecl      Tag                  :: Tag
+  TraitDecl      Tag                  :: Tag!
   StructDecl     Wrap                 :: Wrap<T>!
   expr 11:57    FieldExpr      :: string
   expr 11:57    IdentExpr      :: Cat

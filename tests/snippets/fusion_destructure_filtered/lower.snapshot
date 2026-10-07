@@ -23,9 +23,9 @@
             callee:
               std_iter$indexed__i32 :__genstate_indexed<[i32, usize]>!
             arg0:
-              call :Iterator<T>
+              call :Iterator<T>!
                 callee:
-                  std_core$[]$Into$into__i32 :Iterator<T>
+                  std_core$[]$Into$into__i32 :Iterator<T>!
                 arg0:
                   array :i32[]!
                     int(10) :i32
@@ -34,12 +34,12 @@
         arg1:
           not_twenty :fn([i32, usize]) -> bool
     block :void
-      let __iter_1: Iterator<[i32, usize]> = it :__genstate_filter<[i32, usize]>!
+      let __iter_1: Iterator<[i32, usize]>! = it :__genstate_filter<[i32, usize]>!
       loop
         let __step_2: [[i32, usize], Continuation]! =
           vcall std_core$Iterator.next :[[i32, usize], Continuation]!
             recv:
-              __iter_1 :Iterator<[i32, usize]>
+              __iter_1 :Iterator<[i32, usize]>!
         if :void
           cond:
             eq :bool

@@ -9,7 +9,7 @@
   expr 13:20    IdentExpr      :: Foo!
 
 ## tests/snippets/impl_on_same_named_type/a
-  TraitDecl      Animal               :: Animal
+  TraitDecl      Animal               :: Animal!
   FnDecl         count                :: fn(Animal) -> i32
   StructDecl     Foo                  :: Foo!
   expr 13:41    CallExpr       :: i32

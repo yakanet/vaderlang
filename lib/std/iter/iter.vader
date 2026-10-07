@@ -310,7 +310,7 @@ export flat_map :: fn<T, U>(self: Iterator<T>!, f: fn(T) -> U[]) -> Iterator<U> 
 // ---------------------------------------------------------------- short-circuit
 //
 // Each combinator takes an `Iterator<T>`. Raw arrays are accepted at the
-// call site via the blanket `T[] implements<T> Into<Iterator<T>>` impl in
+// call site via the blanket `T[] implements<T> Into<Iterator<T>!>` impl in
 // `std/core` — both direct (`any_match(arr, p)`) and UFCS (`arr.any_match(p)`) forms
 // auto-coerce.
 

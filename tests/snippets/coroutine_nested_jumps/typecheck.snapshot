@@ -33,14 +33,14 @@
   expr 111:9    CallExpr       :: void
   expr 111:9    IdentExpr      :: fn(T) -> void
   expr 113:14   AwaitExpr      :: i32
-  expr 113:20   CallExpr       :: Async<i32>
+  expr 113:20   CallExpr       :: Async<i32>!
   expr 113:20   IdentExpr      :: fn(i32) -> Async<i32>
   expr 114:13   StringLitExpr  :: string
   expr 114:28   IdentExpr      :: i32
   expr 114:5    CallExpr       :: void
   expr 114:5    IdentExpr      :: fn(T) -> void
   expr 115:14   AwaitExpr      :: i32
-  expr 115:20   CallExpr       :: Async<i32>
+  expr 115:20   CallExpr       :: Async<i32>!
   expr 115:20   IdentExpr      :: fn(i32[], i32) -> Async<i32>
   expr 115:32   SeqLitExpr     :: i32[]
   expr 116:13   StringLitExpr  :: string
@@ -114,8 +114,8 @@
   expr 68:15    IdentExpr      :: i32
   expr 74:14    RangeExpr      :: Range<i32>!
   expr 74:18    IdentExpr      :: i32
-  expr 75:15    CallExpr       :: Async<null>
-  expr 75:15    IdentExpr      :: fn(i64) -> Async<null>
+  expr 75:15    CallExpr       :: Async<null>!
+  expr 75:15    IdentExpr      :: fn(i64) -> Async<null>!
   expr 75:9     AwaitExpr      :: null
   expr 76:18    CallExpr       :: i32 | null
   expr 76:18    IdentExpr      :: fn(i32) -> i32 | null
@@ -125,8 +125,8 @@
   expr 76:9     IdentExpr      :: i32
   expr 78:12    IdentExpr      :: i32
   expr 82:14    IdentExpr      :: i32[]
-  expr 83:15    CallExpr       :: Async<null>
-  expr 83:15    IdentExpr      :: fn(i64) -> Async<null>
+  expr 83:15    CallExpr       :: Async<null>!
+  expr 83:15    IdentExpr      :: fn(i64) -> Async<null>!
   expr 83:9     AwaitExpr      :: null
   expr 84:15    IfExpr         :: i32 | null
   expr 84:15    NullCoalesceExpr :: i32

@@ -312,8 +312,8 @@ export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
 // materialises the generator's state machine. Walks the dense entry arrays by
 // index — no snapshot. Mutating `self` while an iterator is live is UB.
 
-MutableMap<K, V> implements<K, V> Into<Iterator<[K, V]>> {
-    into :: fn(self) -> Iterator<[K, V]> {
+MutableMap<K, V> implements<K, V> Into<Iterator<[K, V]>!> {
+    into :: fn(self) -> Iterator<[K, V]>! {
         for i in 0..<self.size {
             yield [self.ekeys[i], self.evals[i]]
         }
@@ -375,8 +375,8 @@ MutableSet<T> implements<T: Hash & Equals> Contains<T> -> value in self.inner
 // only when the iterator escapes). Walks the backing map's dense key array by
 // index. Same undefined-behaviour caveat on concurrent mutation.
 
-MutableSet<T> implements<T> Into<Iterator<T>> {
-    into :: fn(self) -> Iterator<T> {
+MutableSet<T> implements<T> Into<Iterator<T>!> {
+    into :: fn(self) -> Iterator<T>! {
         for i in 0..<self.inner.size {
             yield self.inner.ekeys[i]
         }

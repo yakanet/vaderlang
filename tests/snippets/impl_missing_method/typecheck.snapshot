@@ -3,7 +3,7 @@
 ## tests/snippets/impl_missing_method
   StructDecl     Foo                  :: Foo!
   FnDecl         main                 :: fn() -> i32
-  TraitDecl      TwoFn                :: TwoFn
+  TraitDecl      TwoFn                :: TwoFn!
   expr 16:39    FieldExpr      :: i32
   expr 16:39    IdentExpr      :: Foo
 

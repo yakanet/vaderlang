@@ -1,9 +1,9 @@
 # Typecheck
 
 ## tests/snippets/trait_method_ambig
-  TraitDecl      Annot                :: Annot
+  TraitDecl      Annot                :: Annot!
   StructDecl     Cat                  :: Cat!
-  TraitDecl      Greet                :: Greet
+  TraitDecl      Greet                :: Greet!
   FnDecl         main                 :: fn() -> i32
   expr 13:61    StringLitExpr  :: string
   expr 13:66    FieldExpr      :: string

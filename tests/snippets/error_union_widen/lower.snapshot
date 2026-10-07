@@ -104,7 +104,7 @@
   fn snippet$tail_string(x: A | B | string) -> string
     if :void
       cond:
-        is Error :bool
+        is Error! :bool
           x :A | B | string
       then:
         return "was-error" :string
@@ -127,7 +127,7 @@
       ~>
         if :void
           cond:
-            is Error :bool
+            is Error! :bool
               __scrut_0 :Error | string
           then:
             ~>

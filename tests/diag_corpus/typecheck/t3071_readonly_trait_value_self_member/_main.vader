@@ -1,0 +1,27 @@
+// A trait value carries the read-only bit a struct does : `as_bump` hands its
+// argument out as a `Bump`, read-only, so its `self!` member is refused (T3071) —
+// here it would write into the module const `ORIGIN`.
+module "snippet"
+
+Bump :: trait {
+    bump :: fn(self!) -> void
+}
+
+Cfg :: struct {
+    n: i32
+}
+
+Cfg implements Bump {
+    bump :: fn(self!) -> void {
+        self.n += 1
+    }
+}
+
+ORIGIN :: Cfg { .n = 1 }
+
+as_bump :: fn(c: Cfg) -> Bump = c
+
+main :: fn() -> i32 {
+    as_bump(ORIGIN).bump()
+    return ORIGIN.n
+}

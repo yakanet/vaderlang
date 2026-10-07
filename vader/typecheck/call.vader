@@ -901,8 +901,10 @@ export infer_call :: fn(
                 }
                 continue
             }
-            if is_assignable(arg_types[i], want)                       { continue }
-            if try_into(arg_types[i], want, typed, c.args[i].value.id) { continue }
+            // T3072 owns the argument's own top-level bit, as on the plain path below.
+            cleared :: arg_mutability_cleared(arg_types[i])
+            if is_assignable(cleared, want)                       { continue }
+            if try_into(cleared, want, typed, c.args[i].value.id) { continue }
             diags.push(mismatch_diagnostic_hinted(
                 arg_types[i], want, c.args[i].span, .TypeMismatch,
                 mutability_level_hint(c.args[i].value, arg_types[i], want, typed)))
@@ -969,8 +971,9 @@ export infer_call :: fn(
         // bit so the generic assignability check doesn't double-report the same
         // problem as T3077 — measured, that double-report alone was 424 of 535 sites.
         // Array mutability still flows through : nothing else checks it here.
-        if is_assignable(arg_mutability_cleared(arg_ty), param_ty) { continue }
-        if try_into(arg_ty, param_ty, typed, c.args[i].value.id) { continue }
+        cleared :: arg_mutability_cleared(arg_ty)
+        if is_assignable(cleared, param_ty) { continue }
+        if try_into(cleared, param_ty, typed, c.args[i].value.id) { continue }
         diags.push(mismatch_diagnostic_hinted(
                 arg_ty, param_ty, c.args[i].span, .TypeMismatch,
                 mutability_level_hint(c.args[i].value, arg_ty, param_ty, typed)))
@@ -1547,7 +1550,7 @@ main :: fn() -> void { greet(42) }
     }
 }
 
-// An argument with its own top-level STRUCT / TUPLE read-only bit dropped — a
+// An argument with its own top-level STRUCT / TUPLE / TRAIT read-only bit dropped — a
 // distinct's backing included, but never an ARRAY's, nor a nominal argument's.
 //
 // T3072 owns struct mutability at an argument, and it reasons about the whole access
@@ -1557,7 +1560,7 @@ main :: fn() -> void { greet(42) }
 // stays too : `gen_mut(h: Holder<Box!>)` handed a `Holder<Box>` would write through
 // its `Box`.
 arg_mutability_cleared :: fn(t: Type) -> Type = match t {
-    is StructType   -> with_immutable(t, false)
+    is StructType | TraitType -> with_immutable(t, false)
     is TupleType    -> mk_tuple(arg_mutability_cleared_each(t.elements), false)
     is UnionType    -> mk_union(arg_mutability_cleared_each(t.variants))
     is DistinctType -> if carries_mutability_bit(t) {
@@ -1567,7 +1570,7 @@ arg_mutability_cleared :: fn(t: Type) -> Type = match t {
     }
     // `FnType` sits in the identity group, where `strip_mutability` descends: a fn
     // type carries no element bit to clear — its marker rides `params_mutable`.
-    is ArrayType | TraitType | PrimitiveType | EnumType | FnType | TypeParamType
+    is ArrayType | PrimitiveType | EnumType | FnType | TypeParamType
      | TypeMetaType | SelfType | UnresolvedType | FreeIntType | FreeFloatType
      | FreeCharType | NeverType | AnyType -> t
 }

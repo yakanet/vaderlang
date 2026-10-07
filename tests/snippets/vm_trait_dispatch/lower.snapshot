@@ -13,7 +13,7 @@
         ~>
           if :i32
             cond:
-              is Printable :bool
+              is Printable! :bool
                 items :Cat | Dog
             then:
               ~>
@@ -27,7 +27,7 @@
         ~>
           if :i32
             cond:
-              is Printable :bool
+              is Printable! :bool
                 w :Cat | Wrapper<i32>
             then:
               ~>

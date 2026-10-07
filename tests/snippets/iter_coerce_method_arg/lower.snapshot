@@ -1,15 +1,15 @@
 # Lower
 
 ## snippet
-  fn snippet$sum_both(a: Iterator<i32>, b: Iterator<i32>) -> i32
+  fn snippet$sum_both(a: Iterator<i32>!, b: Iterator<i32>!) -> i32
     let total: i32 = int(0) :i32
     block :void
-      let __iter_0: Iterator<i32> = a :Iterator<i32>
+      let __iter_0: Iterator<i32>! = a :Iterator<i32>!
       loop
         let __step_1: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_0 :Iterator<i32>
+              __iter_0 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -34,12 +34,12 @@
                   r:
                     x :i32
     block :void
-      let __iter_2: Iterator<i32> = b :Iterator<i32>
+      let __iter_2: Iterator<i32>! = b :Iterator<i32>!
       loop
         let __step_3: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_2 :Iterator<i32>
+              __iter_2 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -65,17 +65,17 @@
                     y :i32
     return total :i32
   struct snippet$Tally { base: i32 }
-  fn snippet$Tally$Adder$add_all(self: Tally!, xs: Iterator<i32>) -> i32
+  fn snippet$Tally$Adder$add_all(self: Tally!, xs: Iterator<i32>!) -> i32
     let out: i32 =
       .base :i32
         self :Tally
     block :void
-      let __iter_0: Iterator<i32> = xs :Iterator<i32>
+      let __iter_0: Iterator<i32>! = xs :Iterator<i32>!
       loop
         let __step_1: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_0 :Iterator<i32>
+              __iter_0 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -150,10 +150,10 @@
                   cast → i64
                     block :i32
                       let __fuse_arr_0: i32[]! = xs :i32[]!
-                      let b: Iterator<i32> =
-                        call :Iterator<i32>
+                      let b: Iterator<i32>! =
+                        call :Iterator<i32>!
                           callee:
-                            std_core$[]$Into$into__i32 :Iterator<i32>
+                            std_core$[]$Into$into__i32 :Iterator<i32>!
                           arg0:
                             ys :i32[]!
                       let total: i32 = int(0) :i32
@@ -188,12 +188,12 @@
                                 r:
                                   int(1) :usize
                       block :void
-                        let __iter_2: Iterator<i32> = b :Iterator<i32>
+                        let __iter_2: Iterator<i32>! = b :Iterator<i32>!
                         loop
                           let __step_3: [i32, Continuation]! =
                             vcall std_core$Iterator.next :[i32, Continuation]!
                               recv:
-                                __iter_2 :Iterator<i32>
+                                __iter_2 :Iterator<i32>!
                           if :void
                             cond:
                               eq :bool
@@ -247,10 +247,10 @@
                   cast → i64
                     block :i32
                       let __fuse_arr_2: i32[]! = xs :i32[]!
-                      let b: Iterator<i32> =
-                        call :Iterator<i32>
+                      let b: Iterator<i32>! =
+                        call :Iterator<i32>!
                           callee:
-                            std_core$[]$Into$into__i32 :Iterator<i32>
+                            std_core$[]$Into$into__i32 :Iterator<i32>!
                           arg0:
                             ys :i32[]!
                       let total: i32 = int(0) :i32
@@ -285,12 +285,12 @@
                                 r:
                                   int(1) :usize
                       block :void
-                        let __iter_2: Iterator<i32> = b :Iterator<i32>
+                        let __iter_2: Iterator<i32>! = b :Iterator<i32>!
                         loop
                           let __step_3: [i32, Continuation]! =
                             vcall std_core$Iterator.next :[i32, Continuation]!
                               recv:
-                                __iter_2 :Iterator<i32>
+                                __iter_2 :Iterator<i32>!
                           if :void
                             cond:
                               eq :bool
@@ -372,9 +372,9 @@
                       arg0:
                         t :Tally!
                       arg1:
-                        call :Iterator<i32>
+                        call :Iterator<i32>!
                           callee:
-                            std_core$[]$Into$into__i32 :Iterator<i32>
+                            std_core$[]$Into$into__i32 :Iterator<i32>!
                           arg0:
                             xs :i32[]!
           assign

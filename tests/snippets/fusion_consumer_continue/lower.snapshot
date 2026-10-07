@@ -120,9 +120,9 @@
         callee:
           std_iter$indexed__i32 :__genstate_indexed<[i32, usize]>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               array :i32[]!
                 int(10) :i32
@@ -130,12 +130,12 @@
                 int(30) :i32
                 int(40) :i32
     block :void
-      let __iter_8: Iterator<[i32, usize]> = it :__genstate_indexed<[i32, usize]>!
+      let __iter_8: Iterator<[i32, usize]>! = it :__genstate_indexed<[i32, usize]>!
       loop
         let __step_9: [[i32, usize], Continuation]! =
           vcall std_core$Iterator.next :[[i32, usize], Continuation]!
             recv:
-              __iter_8 :Iterator<[i32, usize]>
+              __iter_8 :Iterator<[i32, usize]>!
         if :void
           cond:
             eq :bool
@@ -320,9 +320,9 @@
         callee:
           std_iter$take__i32 :__genstate_take<i32>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               array :i32[]!
                 int(1) :i32
@@ -332,12 +332,12 @@
         arg1:
           int(2) :usize
     block :void
-      let __iter_3: Iterator<i32> = it :__genstate_take<i32>!
+      let __iter_3: Iterator<i32>! = it :__genstate_take<i32>!
       loop
         let __step_4: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_3 :Iterator<i32>
+              __iter_3 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -606,12 +606,12 @@
         callee:
           twice_per_round :fn() -> Iterator<i32>
     block :void
-      let __iter_2: Iterator<i32> = it :__genstate_twice_per_round<i32>!
+      let __iter_2: Iterator<i32>! = it :__genstate_twice_per_round<i32>!
       loop
         let __step_3: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_2 :Iterator<i32>
+              __iter_2 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -1007,12 +1007,12 @@
             callee:
               three :fn() -> Iterator<i32>
         block :void
-          let __iter_2: Iterator<i32> = it :__genstate_three<i32>!
+          let __iter_2: Iterator<i32>! = it :__genstate_three<i32>!
           loop
             let __step_3: [i32, Continuation]! =
               vcall std_core$Iterator.next :[i32, Continuation]!
                 recv:
-                  __iter_2 :Iterator<i32>
+                  __iter_2 :Iterator<i32>!
             if :void
               cond:
                 eq :bool
@@ -1245,9 +1245,9 @@
         callee:
           std_iter$take__i32 :__genstate_take<i32>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               array :i32[]!
                 int(1) :i32
@@ -1257,12 +1257,12 @@
         arg1:
           int(2) :usize
     block :void
-      let __iter_6: Iterator<i32> = it :__genstate_take<i32>!
+      let __iter_6: Iterator<i32>! = it :__genstate_take<i32>!
       loop :y
         let __step_7: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_6 :Iterator<i32>
+              __iter_6 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -1470,12 +1470,12 @@
             arg0:
               "fused" :string
     block :void
-      let __iter_5: Iterator<[char, usize]> = it :__genstate_indexed<[char, usize]>!
+      let __iter_5: Iterator<[char, usize]>! = it :__genstate_indexed<[char, usize]>!
       loop
         let __step_6: [[char, usize], Continuation]! =
           vcall std_core$Iterator.next :[[char, usize], Continuation]!
             recv:
-              __iter_5 :Iterator<[char, usize]>
+              __iter_5 :Iterator<[char, usize]>!
         if :void
           cond:
             eq :bool
@@ -1607,10 +1607,10 @@
                 x :i32
           r:
             int(1) :i32
-  fn snippet$drop_odd(self: Iterator<i32>) -> Iterator<i32>
+  fn snippet$drop_odd(self: Iterator<i32>!) -> Iterator<i32>
     return
       __genstate_drop_odd! {
-        s0: self :Iterator<i32>
+        s0: self :Iterator<i32>!
         s1: null
         s2: null
         s3: int(0) :i32
@@ -1757,9 +1757,9 @@
             callee:
               std_iter$take__i32 :__genstate_take<i32>!
             arg0:
-              call :Iterator<T>
+              call :Iterator<T>!
                 callee:
-                  std_core$[]$Into$into__i32 :Iterator<T>
+                  std_core$[]$Into$into__i32 :Iterator<T>!
                 arg0:
                   array :i32[]!
                     int(1) :i32
@@ -1771,12 +1771,12 @@
             arg1:
               int(3) :usize
     block :void
-      let __iter_5: Iterator<i32> = it :__genstate_drop_odd<i32>!
+      let __iter_5: Iterator<i32>! = it :__genstate_drop_odd<i32>!
       loop
         let __step_6: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_5 :Iterator<i32>
+              __iter_5 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -2037,9 +2037,9 @@
         callee:
           std_iter$indexed__i32 :__genstate_indexed<[i32, usize]>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               array :i32[]!
                 int(1) :i32
@@ -2047,12 +2047,12 @@
                 int(3) :i32
                 int(4) :i32
     block :void
-      let __iter_9: Iterator<[i32, usize]> = it :__genstate_indexed<[i32, usize]>!
+      let __iter_9: Iterator<[i32, usize]>! = it :__genstate_indexed<[i32, usize]>!
       loop
         let __step_10: [[i32, usize], Continuation]! =
           vcall std_core$Iterator.next :[[i32, usize], Continuation]!
             recv:
-              __iter_9 :Iterator<[i32, usize]>
+              __iter_9 :Iterator<[i32, usize]>!
         if :void
           cond:
             eq :bool
@@ -2271,9 +2271,9 @@
         callee:
           std_iter$flat_map__i32__i32 :__genstate_flat_map<i32>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               array :i32[]!
                 int(1) :i32
@@ -2281,12 +2281,12 @@
         arg1:
           spread :fn(i32) -> i32[]
     block :void
-      let __iter_3: Iterator<i32> = it :__genstate_flat_map<i32>!
+      let __iter_3: Iterator<i32>! = it :__genstate_flat_map<i32>!
       loop
         let __step_4: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_3 :Iterator<i32>
+              __iter_3 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -2489,28 +2489,28 @@
         callee:
           std_iter$chain__i32 :__genstate_chain<i32>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               array :i32[]!
                 int(1) :i32
                 int(2) :i32
         arg1:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               array :i32[]!
                 int(3) :i32
                 int(4) :i32
     block :void
-      let __iter_6: Iterator<i32> = it :__genstate_chain<i32>!
+      let __iter_6: Iterator<i32>! = it :__genstate_chain<i32>!
       loop
         let __step_7: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_6 :Iterator<i32>
+              __iter_6 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -2789,28 +2789,28 @@
         callee:
           std_iter$chain__i32 :__genstate_chain<i32>!
         arg0:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               array :i32[]!
                 int(1) :i32
                 int(2) :i32
         arg1:
-          call :Iterator<T>
+          call :Iterator<T>!
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
+              std_core$[]$Into$into__i32 :Iterator<T>!
             arg0:
               array :i32[]!
                 int(3) :i32
                 int(4) :i32
     block :void
-      let __iter_9: Iterator<i32> = it :__genstate_chain<i32>!
+      let __iter_9: Iterator<i32>! = it :__genstate_chain<i32>!
       loop :x
         let __step_10: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_9 :Iterator<i32>
+              __iter_9 :Iterator<i32>!
         if :void
           cond:
             eq :bool
@@ -2955,7 +2955,7 @@
                   __buf_14 :Buffer
                 arg1:
                   __off_15 :usize
-  fn snippet$async_indexed_continue(xs: i32[]) -> Async<i32>
+  fn snippet$async_indexed_continue(xs: i32[]) -> Async<i32>!
     return
       __asyncstate_snippet_0! {
         s0: xs :i32[]
@@ -2972,7 +2972,7 @@
         awaited: null
         state: int(14) :i32
       }
-  fn snippet$async_indexed_continue_lazy(xs: i32[]) -> Async<i32>
+  fn snippet$async_indexed_continue_lazy(xs: i32[]) -> Async<i32>!
     return
       __asyncstate_snippet_1! {
         s0: xs :i32[]
@@ -2993,7 +2993,7 @@
         callee:
           run_async_main :i32
         arg0:
-          cast → Async<i32>
+          cast → Async<i32>!
             __asyncstate_snippet_2! {
               s0: int(0) :i32
               s1: int(0) :i32
@@ -3260,7 +3260,7 @@
                           _0: int(0) :i32
                           _1: int(1) :u8
                         }
-  struct snippet$__genstate_drop_odd { s0: Iterator<i32>, s1: Iterator<i32>, s2: [i32, Continuation]!, s3: i32, state: i32 }
+  struct snippet$__genstate_drop_odd { s0: Iterator<i32>!, s1: Iterator<i32>!, s2: [i32, Continuation]!, s3: i32, state: i32 }
   fn snippet$__genstate_drop_odd$Iterator$next(self: __genstate_drop_odd!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -3539,7 +3539,7 @@
                                                                 value:
                                                                   vcall std_core$Iterator.next :[i32, Continuation]!
                                                                     recv:
-                                                                      .s1 :Iterator<i32>
+                                                                      .s1 :Iterator<i32>!
                                                                         __self_2 :__genstate_drop_odd!
                                                               assign
                                                                 target:
@@ -3559,10 +3559,10 @@
                                                                 then:
                                                                   assign
                                                                     target:
-                                                                      .s1 :Iterator<i32>
+                                                                      .s1 :Iterator<i32>!
                                                                         __self_2 :__genstate_drop_odd!
                                                                     value:
-                                                                      .s0 :Iterator<i32>
+                                                                      .s0 :Iterator<i32>!
                                                                         __self_2 :__genstate_drop_odd!
                                                                   assign
                                                                     target:
@@ -3576,7 +3576,7 @@
                                                                       _0: int(0) :i32
                                                                       _1: int(1) :u8
                                                                     }
-  struct __asyncstate_snippet_0 { s0: i32[], s1: i32, s2: i32[], s3: usize, s4: usize, s5: usize, s6: i32, s7: [i32, usize], s8: i32, s9: usize, s10: null, awaited: Async<Any>, state: i32 }
+  struct __asyncstate_snippet_0 { s0: i32[], s1: i32, s2: i32[], s3: usize, s4: usize, s5: usize, s6: i32, s7: [i32, usize], s8: i32, s9: usize, s10: null, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> i32 | Suspended!
     loop :dispatch$
       if :void
@@ -3824,7 +3824,7 @@
                                                   let __resumed_7: Any | Suspended! =
                                                     vcall std_core$Async.resume :Any | Suspended!
                                                       recv:
-                                                        .awaited :Async<Any>
+                                                        .awaited :Async<Any>!
                                                           __self_6 :__asyncstate_snippet_0!
                                                   if :void
                                                     cond:
@@ -3860,13 +3860,13 @@
                                                     then:
                                                       assign
                                                         target:
-                                                          .awaited :Async<Any>
+                                                          .awaited :Async<Any>!
                                                             __self_6 :__asyncstate_snippet_0!
                                                         value:
-                                                          cast → Async<Any>
-                                                            call :Async<null>
+                                                          cast → Async<Any>!
+                                                            call :Async<null>!
                                                               callee:
-                                                                sleep :fn(i64) -> Async<null>
+                                                                sleep :fn(i64) -> Async<null>!
                                                               arg0:
                                                                 int(1) :i64
                                                       assign
@@ -4004,13 +4004,13 @@
     if :void
       cond:
         is null :bool
-          .awaited :Async<Any>
+          .awaited :Async<Any>!
             __self_6 :__asyncstate_snippet_0!
       then:
       else:
         vcall std_core$Async.cancel :void
           recv:
-            .awaited :Async<Any>
+            .awaited :Async<Any>!
               __self_6 :__asyncstate_snippet_0!
     assign
       target:
@@ -4018,7 +4018,7 @@
           __self_6 :__asyncstate_snippet_0!
       value:
         int(-1) :i32
-  struct __asyncstate_snippet_1 { s0: i32[], s1: i32, s2: __genstate_indexed<[i32, usize]>!, s3: Iterator<[i32, usize]>, s4: [[i32, usize], Continuation]!, s5: [i32, usize], s6: i32, s7: usize, s8: null, awaited: Async<Any>, state: i32 }
+  struct __asyncstate_snippet_1 { s0: i32[], s1: i32, s2: __genstate_indexed<[i32, usize]>!, s3: Iterator<[i32, usize]>!, s4: [[i32, usize], Continuation]!, s5: [i32, usize], s6: i32, s7: usize, s8: null, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_1$Async$resume(self: __asyncstate_snippet_1!) -> i32 | Suspended!
     loop :dispatch$
       if :void
@@ -4259,7 +4259,7 @@
                                                           let __resumed_6: Any | Suspended! =
                                                             vcall std_core$Async.resume :Any | Suspended!
                                                               recv:
-                                                                .awaited :Async<Any>
+                                                                .awaited :Async<Any>!
                                                                   __self_5 :__asyncstate_snippet_1!
                                                           if :void
                                                             cond:
@@ -4295,13 +4295,13 @@
                                                             then:
                                                               assign
                                                                 target:
-                                                                  .awaited :Async<Any>
+                                                                  .awaited :Async<Any>!
                                                                     __self_5 :__asyncstate_snippet_1!
                                                                 value:
-                                                                  cast → Async<Any>
-                                                                    call :Async<null>
+                                                                  cast → Async<Any>!
+                                                                    call :Async<null>!
                                                                       callee:
-                                                                        sleep :fn(i64) -> Async<null>
+                                                                        sleep :fn(i64) -> Async<null>!
                                                                       arg0:
                                                                         int(1) :i64
                                                               assign
@@ -4400,7 +4400,7 @@
                                                                             value:
                                                                               vcall std_core$Iterator.next :[[i32, usize], Continuation]!
                                                                                 recv:
-                                                                                  .s3 :Iterator<[i32, usize]>
+                                                                                  .s3 :Iterator<[i32, usize]>!
                                                                                     __self_5 :__asyncstate_snippet_1!
                                                                           assign
                                                                             target:
@@ -4420,7 +4420,7 @@
                                                                             then:
                                                                               assign
                                                                                 target:
-                                                                                  .s3 :Iterator<[i32, usize]>
+                                                                                  .s3 :Iterator<[i32, usize]>!
                                                                                     __self_5 :__asyncstate_snippet_1!
                                                                                 value:
                                                                                   .s2 :__genstate_indexed<[i32, usize]>!
@@ -4456,9 +4456,9 @@
                                                                                         callee:
                                                                                           std_iter$indexed__i32 :__genstate_indexed<[i32, usize]>!
                                                                                         arg0:
-                                                                                          call :Iterator<T>
+                                                                                          call :Iterator<T>!
                                                                                             callee:
-                                                                                              std_core$[]$Into$into__i32 :Iterator<T>
+                                                                                              std_core$[]$Into$into__i32 :Iterator<T>!
                                                                                             arg0:
                                                                                               .s0 :i32[]
                                                                                                 __self_5 :__asyncstate_snippet_1!
@@ -4477,13 +4477,13 @@
     if :void
       cond:
         is null :bool
-          .awaited :Async<Any>
+          .awaited :Async<Any>!
             __self_5 :__asyncstate_snippet_1!
       then:
       else:
         vcall std_core$Async.cancel :void
           recv:
-            .awaited :Async<Any>
+            .awaited :Async<Any>!
               __self_5 :__asyncstate_snippet_1!
     assign
       target:
@@ -4491,7 +4491,7 @@
           __self_5 :__asyncstate_snippet_1!
       value:
         int(-1) :i32
-  struct __asyncstate_snippet_2 { s0: i32, s1: i32, s2: i32, s3: i32, awaited: Async<Any>, state: i32 }
+  struct __asyncstate_snippet_2 { s0: i32, s1: i32, s2: i32, s3: i32, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_2$Async$resume(self: __asyncstate_snippet_2!) -> i32 | Suspended!
     loop :dispatch$
       if :void
@@ -4638,7 +4638,7 @@
                       let __resumed_5: Any | Suspended! =
                         vcall std_core$Async.resume :Any | Suspended!
                           recv:
-                            .awaited :Async<Any>
+                            .awaited :Async<Any>!
                               __self_4 :__asyncstate_snippet_2!
                       if :void
                         cond:
@@ -4674,11 +4674,11 @@
                         then:
                           assign
                             target:
-                              .awaited :Async<Any>
+                              .awaited :Async<Any>!
                                 __self_4 :__asyncstate_snippet_2!
                             value:
-                              cast → Async<Any>
-                                call :Async<i32>
+                              cast → Async<Any>!
+                                call :Async<i32>!
                                   callee:
                                     async_indexed_continue_lazy :fn(i32[]) -> Async<i32>
                                   arg0:
@@ -4729,7 +4729,7 @@
                                   let __resumed_6: Any | Suspended! =
                                     vcall std_core$Async.resume :Any | Suspended!
                                       recv:
-                                        .awaited :Async<Any>
+                                        .awaited :Async<Any>!
                                           __self_4 :__asyncstate_snippet_2!
                                   if :void
                                     cond:
@@ -4765,11 +4765,11 @@
                                     then:
                                       assign
                                         target:
-                                          .awaited :Async<Any>
+                                          .awaited :Async<Any>!
                                             __self_4 :__asyncstate_snippet_2!
                                         value:
-                                          cast → Async<Any>
-                                            call :Async<i32>
+                                          cast → Async<Any>!
+                                            call :Async<i32>!
                                               callee:
                                                 async_indexed_continue :fn(i32[]) -> Async<i32>
                                               arg0:
@@ -4842,13 +4842,13 @@
     if :void
       cond:
         is null :bool
-          .awaited :Async<Any>
+          .awaited :Async<Any>!
             __self_4 :__asyncstate_snippet_2!
       then:
       else:
         vcall std_core$Async.cancel :void
           recv:
-            .awaited :Async<Any>
+            .awaited :Async<Any>!
               __self_4 :__asyncstate_snippet_2!
     assign
       target:

@@ -979,12 +979,12 @@
         arg0:
           int(6) :i32
     block :void
-      let __iter_0: Iterator<i32> = it :__genstate_evens<i32>!
+      let __iter_0: Iterator<i32>! = it :__genstate_evens<i32>!
       loop
         let __step_1: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_0 :Iterator<i32>
+              __iter_0 :Iterator<i32>!
         if :void
           cond:
             eq :bool

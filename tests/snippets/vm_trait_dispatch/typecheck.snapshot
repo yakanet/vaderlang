@@ -6,7 +6,7 @@
   FnDecl         describe_wrapper     :: fn(Cat | Wrapper<i32>) -> i32
   StructDecl     Dog                  :: Dog!
   FnDecl         main                 :: fn() -> i32
-  TraitDecl      Printable            :: Printable
+  TraitDecl      Printable            :: Printable!
   StructDecl     Wrapper              :: Wrapper<T>!
   expr 21:42    FieldExpr      :: string
   expr 21:42    IdentExpr      :: Dog
