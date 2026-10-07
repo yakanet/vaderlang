@@ -624,6 +624,89 @@ export dispatch_key :: fn(t: Type) -> string = impl_base_key(default_if_free(t))
 /// its `canonical_key` without the mutability an impl is not registered under.
 export impl_type_key :: fn(t: Type) -> string = canonical_key(strip_mutability(t))
 
+/// Whether an impl for `t` covers one instance of a generic base — `Wrapper<MonType>`,
+/// `MonType[]` — and so wins over the base's generic impl for that instance alone.
+///
+/// @param t  an impl's receiver.
+export is_instance_receiver :: fn(t: Type) -> bool =
+    (t is ArrayType || (t is StructType && t.args.len() > 0)) && !type_contains_type_param(t)
+
+/// The key an impl's side tables register it under : its own type for an impl on
+/// one instance (`is_instance_receiver`), its base otherwise, shared by every
+/// instance the impl covers.
+///
+/// @param for_ty  the impl's receiver.
+export impl_side_key :: fn(for_ty: Type) -> string =
+    if is_instance_receiver(for_ty) { impl_type_key(for_ty) } else { impl_base_key(for_ty) }
+
+// The key `t`'s own impls register under, or null when no impl on one instance
+// can cover `t` : it is no instance, or its base has none.
+own_impl_key :: fn(typed: TypedProgram, t: Type) -> string | null {
+    key_ty :: default_if_free(t)
+    if typed.instance_impl_bases.is_empty() || !is_instance_receiver(key_ty) {
+        return null
+    }
+    if !(impl_base_key(key_ty) in typed.instance_impl_bases) {
+        return null
+    }
+    return impl_type_key(key_ty)
+}
+
+/// What an impl side table holds for `t` : the entry of an impl on `t` itself,
+/// which wins, else its base's.
+///
+/// @param typed   the module whose `table` it is.
+/// @param table   a table keyed by `impl_side_key`, followed by `suffix`.
+/// @param t       the receiver asked about.
+/// @param suffix  appended to both keys : `"::member"` for `impl_methods`, `""` for
+///                a table keyed by the type alone.
+export impl_side :: fn<V>(
+    typed: TypedProgram, table: MutableMap<string, V>, t: Type, suffix: string,
+) -> V | null {
+    own_key :: own_impl_key(typed, t)
+    if own_key != null {
+        own :: table["${own_key}${suffix}"]
+        if own != null {
+            return own
+        }
+    }
+    return table["${dispatch_key(t)}${suffix}"]
+}
+
+/// The entries `t`'s own instance impls and its base's gather — for tables that list
+/// several under one key (`struct_implemented_traits`, `impl_method_traits`).
+///
+/// @param typed   the module whose `table` it is.
+/// @param table   a table keyed by `impl_side_key`, followed by `suffix`.
+/// @param t       the receiver asked about.
+/// @param suffix  appended to both keys : `"::member"`, or `""` for a key alone.
+export impl_side_list :: fn(
+    typed: TypedProgram, table: MutableMap<string, string[]!>, t: Type, suffix: string,
+) -> string[] {
+    base :: table["${dispatch_key(t)}${suffix}"] ?? []
+    own_key :: own_impl_key(typed, t) ?? return base
+    own :: table["${own_key}${suffix}"] ?? return base
+    out: string[]!: []
+    out.push_all(own)
+    for name in base {
+        if !(name in own) {
+            out.push(name)
+        }
+    }
+    return out
+}
+
+/// Whether an impl written for `t` itself — one instance, `Wrapper<MonType>` —
+/// implements `trait_key` : it wins over the base's generic impl, bounds unasked.
+///
+/// @param t          the receiver.
+/// @param trait_key  the trait asked about.
+export has_instance_impl :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool {
+    own_key :: own_impl_key(typed, t) ?? return false
+    own :: typed.struct_implemented_traits[own_key] ?? return false
+    return trait_key in own
+}
+
 /// The `impl_methods` key of a `source implements Into<target>` impl, so several
 /// `Into` impls of one source don't collide.
 ///
@@ -642,13 +725,11 @@ into_impl_key :: fn(source: Type, target: Type) -> string =
 export into_impl_method :: fn(typed: TypedProgram, source: Type, target: Type) -> ImplMethod | null =
     typed.impl_methods[into_impl_key(source, target)]
 
-/// True iff the base of `t` is registered as implementing `trait_key` in
-/// `typed.struct_implemented_traits` — every argument of a
-/// generic impl included, which is what the run-time `is Trait` test sees.
-export base_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool {
-    bucket :: typed.struct_implemented_traits[dispatch_key(t)] ?? return false
-    return trait_key in bucket
-}
+/// True iff an impl on `t` itself or on its base registers `trait_key` in
+/// `typed.struct_implemented_traits` — every argument of a generic impl
+/// included, whatever its bounds.
+export base_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool =
+    trait_key in impl_side_list(typed, typed.struct_implemented_traits, t, "")
 
 /// True iff `t` implements `trait_key` : it has the impl built in
 /// (`has_builtin_impl`), or its nominal carrier
@@ -754,10 +835,11 @@ UnmetBound :: struct {
 
 // What keeps every generic impl of `trait_key` for `t`'s base from holding for
 // `t`'s arguments : the first impl's first unmet bound. Null when an impl holds,
-// or when no generic impl of the trait is recorded for the base.
+// when `t` has an impl of its own, or when no generic impl of the trait is
+// recorded for the base.
 blocking_bound :: fn(t: Type, trait_key: string, typed: TypedProgram) -> UnmetBound | null {
     args :: type_arguments(t)
-    if args.len() == 0 {
+    if args.len() == 0 || has_instance_impl(t, trait_key, typed) {
         return null
     }
     impls :: typed.impl_bounds[dispatch_key(t)] ?? return null
@@ -874,8 +956,19 @@ all_satisfy_bound :: fn(types: Type[], trait_key: string, typed: TypedProgram) -
 /// nominal carrier. Shared by the typecheck's `unify_struct_to_trait_args`
 /// and the lowerer's trait-param monomorphisation.
 export lookup_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
+    own :: own_trait_args(t, trait_key, typed)
+    if own != null {
+        return own
+    }
     per_struct :: typed.struct_trait_args[dispatch_key(t)] ?? return null
     return per_struct[trait_key]
+}
+
+// The trait args an impl on `t` itself records for `trait_key`.
+own_trait_args :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
+    own_key :: own_impl_key(typed, t) ?? return null
+    per_type :: typed.struct_trait_args[own_key] ?? return null
+    return per_type[trait_key]
 }
 
 /// The trait args for `t implements <trait>`, with a GENERIC impl's recorded

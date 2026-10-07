@@ -180,7 +180,7 @@ opaque_iter_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 // against the instance's arguments — then the sole type arg (`Range<T>`, a user
 // iterator).
 opaque_iter_element :: fn(ctx: FnLowerCtx, t: Type) -> Type | null {
-    side :: ctx.typed.iter_element_types[impl_base_key(t)]
+    side :: impl_side(ctx.typed, ctx.typed.iter_element_types, t, "")
     if t is StructType {
         if side != null {
             decl :: ctx.typed.struct_decls[t.symbol.id] ?? return side

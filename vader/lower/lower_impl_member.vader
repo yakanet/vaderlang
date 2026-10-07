@@ -64,7 +64,7 @@ queue_generic_impl_receiver :: fn(ctx: FnLowerCtx!, recv: StructType) -> void {
     // queued instance must match the registry's raw backing instance, not a
     // separate distinct one. Distinct ends at the lowering boundary.
     mono_args :: strip_distinct_each(recv.args)
-    recv_key :: "${recv.symbol.name}${mixed_any_suffix(mono_args)}"
+    recv_key :: "${recv.symbol.name}${mixed_any_suffix(ctx.project.impls, mono_args)}"
     if ctx.project.seen_generic_impl_recv.contains(recv_key) { return }
     ctx.project.seen_generic_impl_recv.add(recv_key)
     ctx.project.pending_generic_impl_recv.push(GenericInstance {
@@ -113,7 +113,7 @@ resolve_impl_member :: fn(
     candidates: ImplEntry[]: if trait_key == "" { ctx.project.impls.all } else {
         ctx.project.impls.impls_of(target, trait_key)
     }
-    for entry in candidates {
+    for entry in covering_first(candidates, target_type) {
         decl :: entry.decl
         if entry.target != target { continue }
         m :: select_member(entry, trait_key, name) ?? continue
@@ -170,6 +170,33 @@ member_vtable_slot :: fn(trait_key: string, member: FnDecl) -> VtableSlot | null
         null
     }
 
+// The instance suffix of the member `entry` materialises for `target_type`. A
+// generic-struct receiver picks up the materialised member's instance suffix. The
+// materialiser erases the args to `Any` for generic impls (`Range<i32>` →
+// `count__Any`) so the shared erased body's sibling self-calls resolve to one
+// name ; an impl on one instance keeps the concrete suffix (`Wrapper<i32>` →
+// `count__i32`). Primitive receivers (`string implements Display`) have no args →
+// empty suffix.
+// @partial: only struct/array receivers carry an arg suffix; primitive/etc. have none → "".
+receiver_suffix :: fn(ctx: FnLowerCtx, entry: ImplEntry, target_type: Type) -> string =
+    @partial match target_type {
+        // Generic impl : structure-free `__Any` × arity so the call-site name
+        // matches the single deduped body regardless of the receiver's concrete
+        // args (see `mixed_any_suffix`). Concrete-instantiation impls keep their
+        // concrete args.
+        is StructType -> if entry.is_generic {
+            mixed_any_suffix(ctx.project.impls, target_type.args)
+        } else {
+            args_suffix(target_type.args)
+        }
+        // Blanket array impl (`T[] implements Contains`) : materialise one
+        // CONCRETE body per element type (`contains__i32`) so the member's `==`
+        // devirtualises to the element primop — distinct from the struct
+        // generic-erasure path (`__Any`).
+        is ArrayType -> args_suffix([target_type.element])
+        _ -> ""
+    }
+
 /// Build the `UfcsMember` for `method_name` on `entry`'s impl of `target_type` :
 /// the deterministic mangle, plus the side-tables that surface / materialise it.
 build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string, method_name: string, entry: ImplEntry, is_identity: bool) -> UfcsMember {
@@ -189,34 +216,8 @@ build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string
     // NOTE : this mangle omits the overload `${suffix}` that
     // `impl_member_mangled` (lower.vader) appends to disambiguate multiple
     // impls of the same trait/method on one type — see audit follow-up.
-    //
-    // Suffix : a generic-struct receiver picks up the materialised member's
-    // instance suffix. The materialiser erases the args to `Any` for generic
-    // impls (`Range<i32>` → `count__Any`) so the shared erased body's sibling
-    // self-calls resolve to one name ; concrete-instantiation impls keep the
-    // concrete suffix (`Wrapper<i32>` → `count__i32`). Primitive receivers
-    // (`string implements Display`) have no args → empty suffix.
-    // @partial: only struct/array receivers carry an arg suffix; primitive/etc. have none → "".
-    recv_suffix :: @partial match target_type {
-        is StructType -> {
-            // Generic impl : structure-free `__Any` × arity so the call-site
-            // name matches the single deduped body regardless of the receiver's
-            // concrete args (see `mixed_any_suffix`). Concrete-instantiation
-            // impls keep their concrete args.
-            if entry.is_generic {
-                mixed_any_suffix(target_type.args)
-            } else {
-                args_suffix(target_type.args)
-            }
-        }
-        // Blanket array impl (`T[] implements Contains`) : materialise one
-        // CONCRETE body per element type (`contains__i32`) so the member's `==`
-        // devirtualises to the element primop — distinct from the struct
-        // generic-erasure path (`__Any`).
-        is ArrayType -> args_suffix([target_type.element])
-        _ -> ""
-    }
-    mangled :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}$${method_name}${recv_suffix}"
+    suffix :: receiver_suffix(ctx, entry, target_type)
+    mangled :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}$${method_name}${suffix}"
     // Record the call so the post-lowering pass surfaces referenced stdlib impl
     // members : bodyless (`@intrinsic`) → import ; with-body (e.g. `i32
     // implements Hash -> u64(self)`) → materialised real fn.
@@ -267,14 +268,9 @@ build_ufcs_member :: fn(ctx: FnLowerCtx!, target_type: Type, target_name: string
 // guessing a slot type.
 impl_member_arg_types :: fn(ctx: FnLowerCtx, recv_type: Type, method_name: string) -> Type[] {
     entry_typed :: ctx.project.typed.modules[ctx.project.loaded.entry] ?? return []
-    direct :: entry_typed.impl_methods["${impl_type_key(recv_type)}::${method_name}"]
-    if direct is ImplMethod {
-        if direct.ty is FnType as ft { return ft.params }
-    }
-    base :: entry_typed.impl_methods["${impl_base_key(recv_type)}::${method_name}"]
-    if base is ImplMethod {
-        if base.ty is FnType as ft { return ft.params }
-    }
+    methods :: entry_typed.impl_methods
+    found :: impl_side(entry_typed, methods, recv_type, "::${method_name}") ?? return []
+    if found.ty is FnType as ft { return ft.params }
     return []
 }
 
@@ -503,7 +499,7 @@ try_emit_into_coercion :: fn(
     // find its impl rather than choosing again. The registry answers first :
     // most coerced types have no `Into` impl, and the typechecker's key builds
     // both types' full keys.
-    candidates :: ctx.project.impls.impls_of(impl_base_key(arg_type), core_trait_key(TRAIT_INTO))
+    candidates :: ctx.project.impls.impls_for(arg_type, core_trait_key(TRAIT_INTO))
     if candidates.len() == 0 { return null }
     chosen :: into_impl_method(ctx.typed, arg_type, target_type) ?? return null
     member :: chosen.decl ?? return null
@@ -518,9 +514,15 @@ try_emit_into_coercion :: fn(
             // agree by construction, overload `_N` suffix included — reusing its
             // `impl_member_overload_suffix` keeps the two in lockstep. Generic
             // blanket impls (`T[] implements Into<Iterator>`) mangle via the
-            // element recv_suffix instead, so they stay on the bare path for now.
+            // element `receiver_suffix` instead, so they stay on the bare path for now.
+            // An impl on one instance (`Wrapper<MonType>`) is materialised per
+            // instance, under its receiver suffix.
             if entry.is_generic { return mk_bare_into_call(ctx, arg, target_type, span) }
-            suffix :: impl_member_overload_suffix(m, decl, src_name, module_impl_decls(ctx, entry.module))
+            suffix :: if entry.instance {
+                receiver_suffix(ctx, entry, arg_type)
+            } else {
+                impl_member_overload_suffix(m, decl, src_name, module_impl_decls(ctx, entry.module))
+            }
             mangled :: "${mangle_module_id(entry.module)}$${src_name}$${decl.trait_name}$${m.name}${suffix}"
             ctx.project.referenced_impl_mangles.add(mangled)
             return mk_into_call(arg, target_type, span, mangled, entry.module)

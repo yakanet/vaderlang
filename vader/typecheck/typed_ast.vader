@@ -501,6 +501,11 @@ export TypedProgram :: struct {
     /// `fn<T>(g: Greeter<T>)` called as `f(Hello {})` can bind T → i32.
     struct_trait_args: MutableMap<string, MutableMap<string, Type[]!>!>!
 
+    /// `impl_base_key` of every base an impl on one instance is written for
+    /// (`Wrapper` for `Wrapper<MonType> implements …`) — the receivers whose
+    /// lookups ask their own type's key before their base's (`own_impl_key`).
+    instance_impl_bases: MutableSet<string>! = MutableSet<string> {}
+
     /// Enclosing fn-body context, pushed by `check_fn_body` and
     /// popped when it returns. Lets `check_return` (called via the
     /// recursive expression path where the ctx arg is `null`) still

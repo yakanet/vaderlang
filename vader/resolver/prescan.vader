@@ -88,10 +88,18 @@ lookup_trait_sym :: fn(
     return resolve_import_redirect(bound, wire_targets)
 }
 
+// The declaration that owns the impl's type. An array belongs to its element's
+// owner (`MonType[]` to `MonType`'s module) ; the `T[]` of a generic impl, to
+// nobody.
 for_type_owner_sym :: fn(
     t: AST.TypeExpr,
     idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
 ) -> Symbol | null {
+    if t is AST.ArrayTypeExpr {
+        element :: AST.strip_mut_marker(t.element) ?? return null
+        owner :: for_type_owner_sym(element, idents, wire_targets) ?? return null
+        return if owner.kind == .TypeParam { null } else { owner }
+    }
     if t is AST.IdentExpr {
         raw :: idents[t.span.hash()] ?? return null
         return resolve_import_redirect(raw, wire_targets)
@@ -106,6 +114,10 @@ for_type_owner_sym :: fn(
 }
 
 for_type_display_name :: fn(t: AST.TypeExpr) -> string {
+    if t is AST.ArrayTypeExpr {
+        element :: AST.strip_mut_marker(t.element) ?? return "?[]"
+        return "${for_type_display_name(element)}[]"
+    }
     if t is AST.IdentExpr { return t.name }
     if t is AST.GenericInstExpr {
         if t.callee is AST.IdentExpr as i { return i.name }

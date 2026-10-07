@@ -227,7 +227,7 @@ materialize_struct_instance :: fn(
         // `Hash.hash` trap. The mangle is unchanged (`Entry__string__Any` already,
         // ref arg pre-erased), so only field types change.
         subst :: build_struct_subst(decl, inst.args, owner_typed)
-        erase :: build_struct_mixed_subst(decl, owner_typed, inst.args)
+        erase :: build_struct_mixed_subst(project_ctx.impls, decl, owner_typed, inst.args)
         fields: LoweredStructField[]!: []
         for f in decl.fields {
             raw_ty :: resolve_field_type(f.ty, owner_typed, decl, inst.args)
@@ -444,18 +444,23 @@ materialize_impl_members_for :: fn(
     }
 }
 
-// True when `impl_decl` is written for the struct `inst` instantiates : a generic
-// impl of its declaration, or a concrete instantiation (`Box<i32> implements …`)
-// of exactly its arguments.
+// True when `impl_decl` serves the struct `inst` instantiates : an impl on that
+// instance (`Box<i32> implements …`), or a generic impl of its declaration unless
+// one on the instance wins for the trait.
 impl_applies_to_instance :: fn(project_ctx: LowerProjectCtx, impl_decl: ImplDecl, inst: GenericInstance) -> bool {
     if !(impl_decl.for_type is GenericInstExpr) {
         return false
     }
     entry :: project_ctx.impls.entry_of(impl_decl) ?? return false
-    if entry.is_generic {
-        return entry.target == declaration_key(inst.symbol)
+    if entry.target != declaration_key(inst.symbol) {
+        return false
     }
-    return equals_type(entry.for_type, mk_struct(inst.symbol, inst.args, false))
+    instance :: mk_struct(inst.symbol, inst.args, false)
+    if entry.instance {
+        return impl_covers(entry, instance)
+    }
+    winner :: project_ctx.impls.winning_impl(instance, entry.trait_key) ?? return true
+    return !winner.instance
 }
 
 materialize_impl_for_instance :: fn(
@@ -469,7 +474,7 @@ materialize_impl_for_instance :: fn(
     // erasure can then collapse to a single C-emit body. Mangled name
     // keeps the concrete args suffix (`__i32`) so identity tags stay
     // distinct.
-    subst :: build_impl_mixed_subst(impl_decl, impl_typed, inst.args)
+    subst :: build_impl_mixed_subst(project_ctx.impls, impl_decl, impl_typed, inst.args)
     // A concrete-instantiation impl (`Wrapper<i32> implements …`) has no
     // type params, so the substitution is empty — keep the concrete
     // instance args (self stays `Wrapper<i32>`). Only a genuinely
@@ -479,7 +484,11 @@ materialize_impl_for_instance :: fn(
     // args to `Any` via the shared `build_mixed_args_list` kernel. The box runtime
     // tag (`erase_generic_struct_tag`) MUST route through the same kernel so a
     // generic-struct box interns to this exact receiver key (else `vtable miss`).
-    erased_args :: if is_empty_substitution(subst) { inst.args } else { build_mixed_args_list(inst.args) }
+    erased_args :: if is_empty_substitution(subst) {
+        inst.args
+    } else {
+        build_mixed_args_list(project_ctx.impls, inst.args)
+    }
     self_struct :: StructType { .symbol = inst.symbol, .args = erased_args, .immutable = false }
     self_type: Type: self_struct
     // Suffix from the ERASED args : a generic impl mangles `next__Any`
@@ -493,7 +502,11 @@ materialize_impl_for_instance :: fn(
     // would leak inner shape (`MutableMap<_, _[]>` → `at__Any__Any__`) and
     // diverge from a sibling instance's `at__Any__Any`, breaking the
     // single-body dedupe.
-    suffix :: if is_empty_substitution(subst) { args_suffix(erased_args) } else { mixed_any_suffix(inst.args) }
+    suffix :: if is_empty_substitution(subst) {
+        args_suffix(erased_args)
+    } else {
+        mixed_any_suffix(project_ctx.impls, inst.args)
+    }
     types :: make_entry_types(impl_typed, subst)
     impl_key_prefix :: impl_decl.span.hash()
     impl_trait :: impl_trait_key(project_ctx, impl_decl)

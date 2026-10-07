@@ -77,14 +77,15 @@ lower_struct_lit :: fn(ctx: FnLowerCtx!, lit: StructLitExpr, type: Type) -> Lowe
     // `Ready<Any>` ; this generalises that same erasure to the non-generic site.
     // Primitive args stay concrete (`Ready<i32>` unchanged) so their devirtualised
     // dispatch is preserved.
-    box_type :: erase_generic_struct_tag(type)
+    box_type :: erase_generic_struct_tag(ctx, type)
     struct_lit :: LoweredStructLit { .span = lit.span, .type = box_type, .fields = fields }
     return with_prelude(spread_stmts, struct_lit, lit.span)
 }
 
 // Erase a generic struct instance's runtime TAG exactly as
-// `materialize_impl_for_instance` erases the impl self : keep every primitive arg
-// concrete, collapse every ref arg to `Any` (`build_mixed_args_list`, the shared
+// `materialize_impl_for_instance` erases the impl self : keep every argument
+// `kept_argument` keeps (a primitive, a type an impl on one instance names),
+// collapse every other ref arg to `Any` (`build_mixed_args_list`, the shared
 // kernel). So `Ready<Boom>` and `Ready<User>` intern to the single `Ready<Any>`
 // tag the erased vtable row is keyed on, while `Ready<i32>` stays concrete
 // (devirtualised dispatch preserved). A non-generic struct (no args) — and any
@@ -94,14 +95,12 @@ lower_struct_lit :: fn(ctx: FnLowerCtx!, lit: StructLitExpr, type: Type) -> Lowe
 //
 // The tag/vtable-key agreement funnels through `type_intern_key` (context-free,
 // keys faithfully on args) : erasure can't live there because the decision is
-// context-dependent (a concrete-instantiation impl keeps its args concrete — the
-// `is_empty_substitution` gate materialize applies), so the lowering layer owns it.
-// This site erases UNCONDITIONALLY : a concrete-instantiation impl over a ref arg
-// is unsupported (it exists nowhere), consistent with the generic-fn-body path.
-erase_generic_struct_tag :: fn(t: Type) -> Type {
+// context-dependent (which arguments are kept depends on the project's impls), so
+// the lowering layer owns it.
+erase_generic_struct_tag :: fn(ctx: FnLowerCtx, t: Type) -> Type {
     if t is StructType {
         if t.args.is_empty() { return t }
-        return mk_struct(t.symbol, build_mixed_args_list(t.args), t.immutable)
+        return mk_struct(t.symbol, build_mixed_args_list(ctx.project.impls, t.args), t.immutable)
     }
     return t
 }
@@ -197,7 +196,8 @@ ctx_in_owning_module :: fn(ctx: FnLowerCtx!, module_id: string, decl: StructDecl
     // ERASED view (`K = Any` → boxed array) while the construction + later usage
     // are monomorphised (`K = i32` → raw): a box-vs-raw representation mismatch
     // that silently corrupts the struct cross-module.
-    merged :: merge_subst(ctx.subst, build_struct_mixed_subst(decl, owner_typed, args))
+    own_args :: build_struct_mixed_subst(ctx.project.impls, decl, owner_typed, args)
+    merged :: merge_subst(ctx.subst, own_args)
     return FnLowerCtx {
         ...ctx,
         .typed = owner_typed,

@@ -1,0 +1,32 @@
+// R2030: two generic impls of one trait on one base may both cover an instance —
+// a `Wrapper` of any type implementing both `A` and `B` — and nothing would pick
+// between them. Bounds don't separate them: such a type can always be declared.
+// An impl on one instance (`Wrapper<MonType>`) is not a second generic: it wins
+// for its instance.
+module "snippet"
+
+A :: trait {
+    a :: fn(self) -> i32
+}
+
+B :: trait {
+    b :: fn(self) -> i32
+}
+
+Poke :: trait {
+    poke :: fn(self) -> string
+}
+
+Wrapper :: struct<T> {
+    inner: T
+}
+
+Wrapper<T> implements<T: A> Poke {
+    poke :: fn(self) -> string = "via A"
+}
+
+Wrapper<T> implements<T: B> Poke {
+    poke :: fn(self) -> string = "via B"
+}
+
+main :: fn() -> i32 = 0

@@ -1,5 +1,6 @@
-// T3090 — an array impl whose element is not a bare type parameter (`T[][]`) is
-// refused even though it is generic: only `T[]` can carry an impl on an array.
+// T3090 — an array impl whose element is built from a type parameter without
+// being one (`T[][]`) is refused: it would be a second generic impl on arrays,
+// overlapping `T[]`. An impl on arrays is on `T[]` or on a concrete array.
 module "snippet"
 
 Tag :: trait {

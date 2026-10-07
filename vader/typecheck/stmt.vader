@@ -2541,7 +2541,7 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
                 }
                 return TY_UNRESOLVED
             }
-            elem :: typed.iter_element_types[impl_base_key(iter_ty)]
+            elem :: impl_side(typed, typed.iter_element_types, iter_ty, "")
             if elem == null {
                 if iter_ty.args.len() >= 1 {
                     return iter_ty.args[0]
@@ -2559,13 +2559,17 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
         // A distinct or an enum keeps its own `Iterator` impl, recorded under its
         // declaration ; a distinct without one iterates through its backing.
         is DistinctType -> {
-            own :: typed.iter_element_types[impl_base_key(iter_ty)]
+            own :: impl_side(typed, typed.iter_element_types, iter_ty, "")
             if own != null {
                 return own
             }
             return for_in_element(iter_ty.backing, typed)
         }
-        is EnumType -> { return typed.iter_element_types[impl_base_key(iter_ty)] ?? TY_UNRESOLVED }
+        is EnumType -> {
+            elements :: typed.iter_element_types
+            element :: impl_side(typed, elements, iter_ty, "") ?? return TY_UNRESOLVED
+            return element
+        }
         is TraitType  -> {
             // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
             // result stored as the trait) carries its element as the sole type arg.

@@ -41,9 +41,11 @@ lower_impl_member_list :: fn(
 ) -> LoweredDecl![] {
     out: LoweredDecl![]!: []
     // Skip generic impls entirely — the mono pass binds them via a
-    // separate path.
+    // separate path — and array impls, materialised per element
+    // (`surface_array_blanket_members`).
     if impl_decl.type_params.len() > 0 { return out }
     if impl_decl.for_type is GenericInstExpr { return out }
+    if strip_mut_marker(impl_decl.for_type) is ArrayTypeExpr { return out }
     self_type :: lower_for_type(impl_decl, typed)
     base_mangle :: "${mangle_module_id(typed.resolved.display_path)}$${impl_decl.trait_name}"
     for member in impl_decl.members {

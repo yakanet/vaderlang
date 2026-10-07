@@ -582,6 +582,7 @@ check_impl_coherence :: fn(
     diags: Diagnostic[]!,
 ) -> void {
     seen :: MutableMap<string, Span> {}
+    by_base :: MutableMap<string, ImplShape[]!> {}
     // Register every NON-entry module's impls (the `std/core` prelude + stdlib +
     // deps) first, then the entry module LAST. A user impl that duplicates a
     // prelude/stdlib one is then the *second* seen, so R2030 lands on the user's
@@ -591,9 +592,9 @@ check_impl_coherence :: fn(
         if id == project.entry {
             continue
         }
-        check_module_impl_coherence(id, project, per_module, seen, diags)
+        check_module_impl_coherence(id, project, per_module, seen, by_base, diags)
     }
-    check_module_impl_coherence(project.entry, project, per_module, seen, diags)
+    check_module_impl_coherence(project.entry, project, per_module, seen, by_base, diags)
 }
 
 check_module_impl_coherence :: fn(
@@ -601,6 +602,7 @@ check_module_impl_coherence :: fn(
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram!>,
     seen: MutableMap<string, Span>!,
+    by_base: MutableMap<string, ImplShape[]!>!,
     diags: Diagnostic[]!,
 ) -> void {
     tp :: per_module[id] ?? return
@@ -618,6 +620,9 @@ check_module_impl_coherence :: fn(
             for ta in decl.trait_args {
                 args.push(type_from_expr(ta, tp.resolved, diag_sink()))
             }
+            if reject_overlapping_impl(decl, for_ty, args, by_base, diags) {
+                continue
+            }
             key :: coherence_key(for_ty, decl.trait_name, args) ?? continue
             if seen[key] != null {
                 // `ConflictingImpl` is a `ResolverCode` (declaration-level, like
@@ -629,6 +634,89 @@ check_module_impl_coherence :: fn(
             }
         }
     }
+}
+
+// An impl met so far, as the overlap check compares it.
+ImplShape :: struct {
+    for_ty: Type
+    args:   Type[]
+    span:   Span
+}
+
+// R2030 for two generic impls of one trait on one base type that some instance could
+// both match : dispatch could not tell which one it takes. The bounds are not
+// compared : nothing proves that no type implements both. An impl on a concrete
+// instance (`Wrapper<MonType>`) is not one of them — it wins over the generic impl
+// for that instance. A blanket over a bare `T` stays out too — a type's own impl
+// wins over it — and so does an array receiver over anything but a bare `T`, which
+// T3090 refuses. True when reported ; the impl is recorded otherwise.
+reject_overlapping_impl :: fn(
+    decl: AST.ImplDecl,
+    for_ty: Type,
+    args: Type[],
+    by_base: MutableMap<string, ImplShape[]!>!,
+    diags: Diagnostic[]!,
+) -> bool {
+    if for_ty is TypeParamType {
+        return false
+    }
+    if for_ty is ArrayType && for_ty.element !is TypeParamType {
+        return false
+    }
+    if !type_contains_type_param(for_ty) && !any_contains(args) {
+        return false
+    }
+    bucket :: "${impl_base_key(for_ty)}#${decl.trait_name}"
+    shape :: ImplShape { .for_ty = for_ty, .args = args, .span = decl.span }
+    seen :: by_base[bucket]
+    if seen == null {
+        by_base[bucket] = [shape]
+        return false
+    }
+    for other in seen {
+        if may_coincide(for_ty, other.for_ty) && may_coincide_each(args, other.args) {
+            diags.push(resolver_error(.ConflictingImpl, decl.span,
+                "this impl and the one at ${where_of(other.span)} may both cover an " +
+                    "instance of `${display_type_key(for_ty)}` — two generic " +
+                    "impls of one trait cannot overlap"))
+            return true
+        }
+    }
+    seen.push(shape)
+    return false
+}
+
+// Whether some instantiation makes `a` and `b` one type : a type parameter stands
+// for any type.
+may_coincide :: fn(a: Type, b: Type) -> bool {
+    if a is TypeParamType || b is TypeParamType {
+        return true
+    }
+    // @partial: the shapes holding other types compare part by part ; any other type
+    // coincides only with itself.
+    return @partial match a {
+        is StructType -> b is StructType && b.symbol.id == a.symbol.id &&
+            may_coincide_each(a.args, b.args)
+        is TraitType  -> b is TraitType && b.symbol.id == a.symbol.id &&
+            may_coincide_each(a.args, b.args)
+        is ArrayType  -> b is ArrayType && may_coincide(a.element, b.element)
+        is TupleType  -> b is TupleType && may_coincide_each(a.elements, b.elements)
+        is FnType     -> b is FnType && may_coincide_each(a.params, b.params) &&
+            may_coincide(a.return_type, b.return_type)
+        _             -> equals_type(a, b)
+    }
+}
+
+may_coincide_each :: fn(a: Type[], b: Type[]) -> bool {
+    if a.len() != b.len() {
+        return false
+    }
+    for i in 0..<a.len() {
+        if !may_coincide(a[i], b[i]) {
+            return false
+        }
+    }
+    return true
 }
 
 // Whether `decl` writes an impl `for_ty` already has with none (`has_builtin_impl`).
@@ -835,23 +923,23 @@ diag_sink :: fn() -> Diagnostic[]! { return [] }
 // and `m[k] = v` pin their types. `trait_key` is the impl's resolved trait, so a
 // user trait that happens to be named `Index` indexes nothing.
 index_impl_metadata :: fn(typed: TypedProgram!, for_ty: Type, trait_key: string, trait_args: Type[]) -> void {
-    base_key :: impl_base_key(for_ty)
+    key :: impl_side_key(for_ty)
     if trait_key == core_trait_key(TRAIT_ITERATOR) && trait_args.len() == 1 {
-        typed.iter_element_types[base_key] = trait_args[0]
+        typed.iter_element_types[key] = trait_args[0]
     }
     if trait_key == core_trait_key(TRAIT_INTO) && trait_args.len() == 1 {
         elem :: iterator_element_of(trait_args[0])
         if elem != null {
-            typed.iter_element_types[base_key] = elem
+            typed.iter_element_types[key] = elem
         }
     }
     if trait_key == core_trait_key(TRAIT_INDEX) && trait_args.len() == 2 {
-        typed.index_key_types[base_key] = trait_args[0]
-        typed.index_target_types[base_key] = trait_args[1]
+        typed.index_key_types[key] = trait_args[0]
+        typed.index_target_types[key] = trait_args[1]
     }
     if trait_key == core_trait_key(TRAIT_INDEX_SET) && trait_args.len() == 2 {
-        typed.index_key_types[base_key] = trait_args[0]
-        typed.index_set_value_types[base_key] = trait_args[1]
+        typed.index_key_types[key] = trait_args[0]
+        typed.index_set_value_types[key] = trait_args[1]
     }
 }
 
@@ -878,13 +966,16 @@ add_trait_unique :: fn<K: Hash & Equals>(
 
 record_struct_trait :: fn(typed: TypedProgram!, for_ty: Type, trait_key: string) -> void {
     // Two membership maps populated in lockstep: the symbol-id map drives the
-    // runtime `is Trait` impl_table rows via the emitter, the `impl_base_key` map
-    // answers the typecheck consumers and also covers primitives and arrays.
+    // runtime `is Trait` impl_table rows via the emitter, the `impl_side_key` map
+    // answers the typecheck consumers and also covers primitives and arrays. An
+    // impl on one instance stays off the symbol-id map, which every tag of the
+    // declaration reads : the instance's own tag gets its row from the members
+    // materialised for it.
     target :: type_to_target_symbol(for_ty)
-    if target is Symbol {
+    if target is Symbol && !is_instance_receiver(for_ty) {
         add_trait_unique(typed.struct_traits_by_sym, target.id, trait_key)
     }
-    add_trait_unique(typed.struct_implemented_traits, impl_base_key(for_ty), trait_key)
+    add_trait_unique(typed.struct_implemented_traits, impl_side_key(for_ty), trait_key)
 }
 
 // The bounds `decl`'s type parameters put on the arguments of `for_ty`, the type
@@ -895,7 +986,7 @@ record_impl_bounds :: fn(
     typed: TypedProgram!, decl: AST.ImplDecl, for_ty: Type, trait_key: string, resolved: ResolvedModule,
 ) -> void {
     args :: type_arguments(for_ty)
-    if args.is_empty() {
+    if args.is_empty() || is_instance_receiver(for_ty) {
         return
     }
     bounds: ArgBound[]!: []
@@ -1094,13 +1185,13 @@ record_struct_trait_args :: fn(
     // Mutable because that is what `struct_trait_args` stores.
     args: Type[]!,
 ) -> void {
-    base :: impl_base_key(for_ty)
-    per_struct :: typed.struct_trait_args[base]
+    key :: impl_side_key(for_ty)
+    per_struct :: typed.struct_trait_args[key]
     match per_struct {
         is null -> {
             fresh :: MutableMap<string, Type[]!> {}
             fresh[trait_key] = args
-            typed.struct_trait_args[base] = fresh
+            typed.struct_trait_args[key] = fresh
         }
         _       -> { per_struct[trait_key] = args }
     }
@@ -2416,10 +2507,12 @@ check_field_defaults :: fn(
     }
 }
 
-// Every array type shares one set of impls, the one `T[] implements<T> …` writes
-// to, so an impl on an array is sound only when its element IS a type parameter:
-// any other element (`i32[]`, `T[][]`, `[T, i32][]`) would be read as `T[]`.
-is_refused_array_impl :: fn(t: Type) = t is ArrayType && t.element !is TypeParamType
+// Every array type shares the impls `T[] implements<T> …` writes, and a concrete
+// array (`i32[]`, `MonType[]`) adds its own, which win for it. An element built
+// from a type parameter without being one (`T[][]`, `[T, i32][]`) would be a second
+// generic impl on arrays, overlapping `T[]`.
+is_refused_array_impl :: fn(t: Type) =
+    t is ArrayType && t.element !is TypeParamType && type_contains_type_param(t)
 
 // Register every lookup table + structural check for an impl block of this
 // module — `record_impl_members`, the member parameter types, the impl
@@ -2434,17 +2527,11 @@ register_impl_metadata :: fn(
 ) -> void {
     for_ty :: type_from_expr(id.for_type, typed.resolved, diags)
     if is_refused_array_impl(for_ty) {
-        written :: display_type_key(for_ty)
-        hint :: if type_contains_type_param(for_ty) {
-            "write the impl on `T[]`"
-        } else {
-            "declare a distinct type (`Items :: ${written}`) and implement `${id.trait_name}` on it"
-        }
         diags.push(
             typecheck_error(
-                .ArrayImplNotOverTypeParam,
+                .ArrayImplPartlyGeneric,
                 id.for_type.span,
-                "`${written}` — ${hint}",
+                "`${display_type_key(for_ty)}` — write the impl on `T[]` or on a concrete array",
             ),
         )
         return
@@ -2484,6 +2571,9 @@ register_impl_metadata :: fn(
 record_impl_membership :: fn(
     typed: TypedProgram!, decl: AST.ImplDecl, for_ty: Type, trait_key: string, owner: ResolvedModule,
 ) -> void {
+    if is_instance_receiver(for_ty) {
+        typed.instance_impl_bases.add(impl_base_key(for_ty))
+    }
     record_struct_trait(typed, for_ty, trait_key)
     record_impl_bounds(typed, decl, for_ty, trait_key, owner)
 }
@@ -2512,9 +2602,9 @@ record_impl_members :: fn(
     record_struct_trait_args(typed, for_ty, trait_key, trait_args)
     trait_decl :: typed.trait_decls[trait_sym.id]
     is_into :: trait_key == core_trait_key(TRAIT_INTO) && trait_args.len() == 1
+    side :: impl_side_key(for_ty)
     for m in decl.members {
         trait_method :: lookup_trait_method(trait_decl, m.name)
-        base_key :: "${impl_base_key(for_ty)}::${m.name}"
         // `self!` is read from the impl member when it declares one, else from the
         // trait's own signature — a blanket impl like
         // `@intrinsic T[] implements<T> ArrayOps<T>` has NO members at all, so the
@@ -2525,8 +2615,11 @@ record_impl_members :: fn(
             .decl = m,
         }
         typed.impl_methods["${impl_type_key(for_ty)}::${m.name}"] = entry
-        typed.impl_methods[base_key] = entry
-        add_trait_unique(typed.impl_method_traits, base_key, trait_key)
+        // And under its side key : the base, which every instance of a generic impl
+        // reads, or the impl's own type, which wins for that instance alone.
+        member_key :: "${side}::${m.name}"
+        typed.impl_methods[member_key] = entry
+        add_trait_unique(typed.impl_method_traits, member_key, trait_key)
         // `Into<T>` impls are indexed under a target-qualified key so
         // multiple `Into` impls for the same source (e.g. `Into<i32>` +
         // `Into<string>`) don't collide.

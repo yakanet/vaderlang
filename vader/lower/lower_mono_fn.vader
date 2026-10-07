@@ -236,10 +236,10 @@ build_fn_instance_decl :: fn(
     //   Erased — all-reference: uniform pointer like Java, symbol-id indexed + deduped.
     // Mono+Mixed are both mangle-indexed (entry_symbol=null). Mixed SUBSUMES Inc 1's
     // narrow all-primitive case (an all-primitive mixed subst equals the concrete one).
-    flavor :: fn_instance_flavor(fn_decl, owner_typed, inst.type_args)
+    flavor :: fn_instance_flavor(project_ctx.impls, fn_decl, owner_typed, inst.type_args)
     subst :: match flavor {
         .Mono   -> build_fn_concrete_subst(fn_decl, owner_typed, inst.type_args)
-        .Mixed  -> build_fn_mixed_subst(fn_decl, owner_typed, inst.type_args)
+        .Mixed  -> build_fn_mixed_subst(project_ctx.impls, fn_decl, owner_typed, inst.type_args)
         .Erased -> build_fn_any_subst(fn_decl, owner_typed)
     }
     force_concrete :: flavor == .Mono || flavor == .Mixed
@@ -350,7 +350,9 @@ InstanceFlavor :: enum { Mono, Mixed, Erased }
 // Core classifier. Order matters: Mono (concrete instances needed / array-return)
 // is checked before Mixed so an array-returning fn with a primitive arg stays
 // full-concrete.
-fn_instance_flavor :: fn(fn_decl: FnDecl, owner_typed: TypedProgram, type_args: Type[]) -> InstanceFlavor {
+fn_instance_flavor :: fn(
+    impls: ImplRegistry, fn_decl: FnDecl, owner_typed: TypedProgram, type_args: Type[],
+) -> InstanceFlavor {
     if owner_typed.fn_needs_concrete_instances[fn_decl.id] is bool {
         return .Mono
     }
@@ -359,7 +361,7 @@ fn_instance_flavor :: fn(fn_decl: FnDecl, owner_typed: TypedProgram, type_args: 
         return .Mono
     }
     if returns_typeparam_array(fn_decl) { return .Mono }
-    if has_any_kept_arg(type_args) { return .Mixed }
+    if has_any_kept_arg(impls, type_args) { return .Mixed }
     return .Erased
 }
 
@@ -374,7 +376,9 @@ call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) ->
         owner_loaded :: ctx.project.loaded.modules[fn_sym.module]
         if owner_loaded is LoadedModule {
             fd :: find_fn_decl_for_symbol(module_decls(owner_loaded), fn_sym, type_args.len())
-            if fd is FnDecl { return fn_instance_flavor(fd, owner_typed, type_args) }
+            if fd is FnDecl {
+                return fn_instance_flavor(ctx.project.impls, fd, owner_typed, type_args)
+            }
         }
     }
     return .Erased
@@ -408,7 +412,7 @@ instance_type_args :: fn(ctx: FnLowerCtx, fn_sym: Symbol, args: Type[]) -> Type[
 // `try_lower_ufcs_call`) so the registered mangle + inst_key reconcile with the body.
 call_site_instance_suffix :: fn(ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: Type[]) -> string {
     if call_site_fn_flavor(ctx, fn_sym, concrete_args) == .Mixed {
-        return mixed_any_suffix(concrete_args)
+        return mixed_any_suffix(ctx.project.impls, concrete_args)
     }
     return mono_suffix(concrete_args)
 }

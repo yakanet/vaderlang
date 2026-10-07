@@ -44,6 +44,10 @@ export ImplEntry :: struct {
     /// `impl_base_key(for_type)` — compared with a receiver's to ask whether the
     /// impl applies to its declaration.
     target: string = ""
+    /// Written for one instance of its base (`Wrapper<MonType> implements …`,
+    /// `is_instance_receiver`) : it covers that instance alone, and wins there over
+    /// the base's generic impl.
+    instance: bool = false
 }
 
 /// Project-wide registry. Built once by `build_impl_registry` ; queried
@@ -57,6 +61,9 @@ export ImplRegistry :: struct {
     /// Every entry the registry has seen — used by the lowerer to drive
     /// virtual dispatch over trait-typed receivers.
     all: ImplEntry[]! = []
+    /// `impl_type_key` of every type an impl on one instance is built from
+    /// (`MonType` for `Wrapper<MonType>`) — see `is_specialized_arg`.
+    specialized_args: MutableSet<string>! = MutableSet<string> {}
 }
 
 /// Harvest the `ImplDecl`s of `program_decls` into a fresh registry.
@@ -106,6 +113,7 @@ collect_impl :: fn(self: ImplRegistry!, impl_: ImplDecl, resolved: ResolvedModul
         .trait_key    = trait_key_of(trait_sym),
         .for_type     = for_type,
         .target       = impl_base_key(for_type),
+        .instance     = is_instance_receiver(for_type),
     }
     key :: "${entry.target}::${entry.trait_key}"
     same_target :: self.by_target[key]
@@ -116,6 +124,20 @@ collect_impl :: fn(self: ImplRegistry!, impl_: ImplDecl, resolved: ResolvedModul
     }
     self.by_decl[impl_.span.hash()] = entry
     self.all.push(entry)
+    if entry.instance {
+        self.record_specialized_args(for_type)
+    }
+}
+
+// Every type `receiver`'s arguments are built from.
+record_specialized_args :: fn(self: ImplRegistry!, receiver: Type) -> void {
+    built_from: Type[]!: []
+    for arg in type_arguments(receiver) {
+        for_each_type(arg, (sub) -> built_from.push(sub))
+    }
+    for sub in built_from {
+        self.specialized_args.add(impl_type_key(sub))
+    }
 }
 
 /// True when the impl references ≥1 type parameter. Mirrors the
@@ -150,6 +172,84 @@ NO_IMPLS: ImplEntry[]: []
 export impls_of :: fn(self: ImplRegistry, target: string, trait_key: string) -> ImplEntry[] {
     found :: self.by_target["${target}::${trait_key}"] ?? return NO_IMPLS
     return found
+}
+
+/// Whether `entry` covers `receiver` : a generic or plain impl covers every instance
+/// of its base, an impl on one instance (`Wrapper<MonType>`) that instance alone.
+///
+/// @param entry     an impl of `receiver`'s base.
+/// @param receiver  the type asked about.
+export impl_covers :: fn(entry: ImplEntry, receiver: Type) -> bool =
+    !entry.instance || impl_type_key(entry.for_type) == impl_type_key(default_if_free(receiver))
+
+any_instance_impl :: fn(entries: ImplEntry[]) -> bool {
+    for entry in entries {
+        if entry.instance {
+            return true
+        }
+    }
+    return false
+}
+
+/// The impls of `trait_key` that cover `receiver`, the one written for its own
+/// instance first : it wins over its base's generic impl.
+///
+/// @param receiver   the type asked about.
+/// @param trait_key  a `trait_key`.
+export impls_for :: fn(self: ImplRegistry, receiver: Type, trait_key: string) -> ImplEntry[] =
+    covering_first(self.impls_of(impl_base_key(receiver), trait_key), receiver)
+
+/// The impl of `trait_key` that serves `receiver` : the one written for its own
+/// instance, else its base's. Null when none covers it.
+///
+/// @param receiver   the type asked about.
+/// @param trait_key  a `trait_key`.
+export winning_impl :: fn(self: ImplRegistry, receiver: Type, trait_key: string) -> ImplEntry | null {
+    covering :: self.impls_for(receiver, trait_key)
+    return if covering.len() == 0 { null } else { covering[0] }
+}
+
+/// `entries` that cover `receiver`, the instance impls first.
+///
+/// @param entries   impls of `receiver`'s base.
+/// @param receiver  the type asked about.
+export covering_first :: fn(entries: ImplEntry[], receiver: Type) -> ImplEntry[] {
+    if !any_instance_impl(entries) {
+        return entries
+    }
+    own: ImplEntry[]!: []
+    rest: ImplEntry[]!: []
+    for entry in entries {
+        if !impl_covers(entry, receiver) {
+            continue
+        }
+        if entry.instance {
+            own.push(entry)
+        } else {
+            rest.push(entry)
+        }
+    }
+    own.push_all(rest)
+    return own
+}
+
+/// Whether a generic instance must keep the type argument `t` concrete : `t` is, or
+/// is built from, a type an impl on one instance names. Erased to `Any`, it would
+/// build that instance under its base's shared tag, and the instance's own impl
+/// would never be reached.
+///
+/// @param t  a concrete type argument of a generic instance.
+export is_specialized_arg :: fn(self: ImplRegistry, t: Type) -> bool {
+    if self.specialized_args.is_empty() {
+        return false
+    }
+    named: Type[]!: []
+    for_each_type(t, (sub) -> {
+        if impl_type_key(sub) in self.specialized_args {
+            named.push(sub)
+        }
+    })
+    return named.len() > 0
 }
 
 /// The entry of `decl`, or null when its trait name binds to no trait.

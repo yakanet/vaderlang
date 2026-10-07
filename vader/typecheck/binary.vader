@@ -321,12 +321,11 @@ check_operator_rhs :: fn(
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> FnType | null {
-    key :: "${impl_base_key(recv)}::${method_name}"
-    method_impl :: typed.impl_methods[key]
+    method_impl :: impl_side(typed, typed.impl_methods, recv, "::${method_name}")
     method :: if method_impl !is null { method_impl.ty } else { null }
     if method is FnType {
-        traits :: typed.impl_method_traits[key]
-        if traits != null {
+        traits :: impl_side_list(typed, typed.impl_method_traits, recv, "::${method_name}")
+        if traits.len() > 0 {
             _ :: reject_unmet_impl_bounds(
                 recv, traits[0], .OperatorTraitNotImplemented, span, typed, diags,
             )
@@ -507,13 +506,8 @@ check_compare :: fn(
     return TY_BOOL
 }
 
-has_impl_method :: fn(t: Type, name: string, typed: TypedProgram) -> bool {
-    base :: impl_base_key(t)
-    if base == "" {
-        return false
-    }
-    return typed.impl_methods["${base}::${name}"] !is null
-}
+has_impl_method :: fn(t: Type, name: string, typed: TypedProgram) -> bool =
+    impl_side(typed, typed.impl_methods, t, "::${name}") !is null
 
 /// T3043 — operand `t` must implement `trait_name` for this operator, but no
 /// such impl exists. More precise than the generic T3017 : it names the missing

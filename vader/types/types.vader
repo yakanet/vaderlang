@@ -766,11 +766,10 @@ export impl_base_key :: fn(t: Type) -> string {
     //
     // ArrayType collapses to the element-independent key `"[]"` so a CONCRETE
     // array (`BlockId[][]`) matches a blanket `T[] implements …` impl (registered
-    // under the same `"[]"` key). Without this the blanket key is the param-named
-    // `"T[]"` and never matches, which is why `in`/`*` on arrays used to need a
-    // hard-coded `is ArrayType` branch in `check_in`/`check_arith`. An array impl
-    // whose element is not a type parameter (`i32[]`, `T[][]`) is refused (T3090),
-    // so the collapse can't mis-match.
+    // under the same `"[]"` key) ; the param-named `"T[]"` would match no
+    // concrete array. An impl on a concrete array (`i32[]`) registers under its own key and is read first, and
+    // one on a partly generic array (`T[][]`) is refused (T3090), so the collapse
+    // can't mis-match.
     @partial match t {
         is StructType | TraitType | EnumType | DistinctType -> { return declaration_key(t.symbol) }
         is ArrayType -> { return "[]" }

@@ -127,7 +127,7 @@ export TypecheckCode :: enum(CodeInfo) {
     IsTestOnSharedInstance          { .id = "T3087", .message = "an `is` test cannot tell apart the instances of a generic that share one body" },
     NotIterable                     { .id = "T3088", .message = "value is not iterable" },
     AmbiguousLiteralInUnion         { .id = "T3089", .message = "literal could take several members of the union" },
-    ArrayImplNotOverTypeParam       { .id = "T3090", .message = "an impl on an array type must take its element as a type parameter" },
+    ArrayImplPartlyGeneric          { .id = "T3090", .message = "an impl on an array has a partly generic element" },
     StaticMemberOnValue             { .id = "T3091", .message = "a static member is called on a type, not on a value" },
     InstanceMemberOnType            { .id = "T3092", .message = "an instance member is called on a value, not on a type" },
     StaticMemberNotCalled           { .id = "T3093", .message = "a static member is called, not taken as a value" },

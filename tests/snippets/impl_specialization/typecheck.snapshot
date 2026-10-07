@@ -1,0 +1,181 @@
+# Typecheck
+
+## tests/snippets/impl_specialization
+  FnDecl         both                 :: fn(T) -> string
+  FnDecl         bounded              :: fn(T) -> string
+  TraitDecl      Fancy                :: Fancy!
+  FnDecl         fancy_or_plain       :: fn(Wrapper<MonType> | Wrapper<Other>) -> string
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     MonType              :: MonType!
+  StructDecl     Other                :: Other!
+  FnDecl         pair                 :: fn(T) -> T[]
+  TraitDecl      Poke                 :: Poke!
+  FnDecl         relay                :: fn(T) -> string
+  FnDecl         show                 :: fn(Poke) -> string
+  TraitDecl      Tag                  :: Tag!
+  FnDecl         wrap                 :: fn(T) -> Wrapper<T>
+  StructDecl     Wrapper              :: Wrapper<T>!
+  expr 38:34    StringLitExpr  :: string
+  expr 42:34    StringLitExpr  :: string
+  expr 42:41    FieldExpr      :: MonType
+  expr 42:41    FieldExpr      :: i32
+  expr 42:41    IdentExpr      :: Wrapper<MonType>
+  expr 46:34    StringLitExpr  :: string
+  expr 46:41    FieldExpr      :: i32
+  expr 46:41    IdentExpr      :: Wrapper<i32>
+  expr 50:33    StringLitExpr  :: string
+  expr 54:35    StringLitExpr  :: string
+  expr 54:44    FieldExpr      :: MonType
+  expr 54:44    FieldExpr      :: i32
+  expr 54:44    IdentExpr      :: Wrapper<MonType>
+  expr 58:34    StringLitExpr  :: string
+  expr 58:42    CallExpr       :: usize
+  expr 58:42    FieldExpr      :: fn() -> usize
+  expr 58:42    IdentExpr      :: MonType![]
+  expr 62:34    StringLitExpr  :: string
+  expr 62:43    CallExpr       :: usize
+  expr 62:43    FieldExpr      :: fn() -> usize
+  expr 62:43    IdentExpr      :: T[]
+  expr 65:33    CallExpr       :: string
+  expr 65:33    FieldExpr      :: fn() -> string
+  expr 65:33    IdentExpr      :: Poke
+  expr 67:42    CallExpr       :: string
+  expr 67:42    FieldExpr      :: fn() -> string
+  expr 67:42    IdentExpr      :: T
+  expr 69:45    StringLitExpr  :: string
+  expr 69:48    CallExpr       :: string
+  expr 69:48    FieldExpr      :: fn() -> string
+  expr 69:48    IdentExpr      :: T
+  expr 69:60    CallExpr       :: string
+  expr 69:60    FieldExpr      :: fn() -> string
+  expr 69:60    IdentExpr      :: T
+  expr 71:37    StructLitExpr  :: Wrapper<T>!
+  expr 71:59    IdentExpr      :: T
+  expr 73:34    CallExpr       :: string
+  expr 73:34    IdentExpr      :: fn(Poke) -> string
+  expr 73:39    CallExpr       :: Wrapper<T>
+  expr 73:39    IdentExpr      :: fn(T) -> Wrapper<T>
+  expr 73:44    IdentExpr      :: T
+  expr 75:30    SeqLitExpr     :: T[]
+  expr 75:31    IdentExpr      :: T
+  expr 75:34    IdentExpr      :: T
+  expr 78:13    IdentExpr      :: Fancy!
+  expr 78:5     IfExpr         :: void
+  expr 78:8     BinaryExpr     :: bool
+  expr 78:8     IdentExpr      :: Wrapper<MonType> | Wrapper<Other>
+  expr 79:16    CallExpr       :: string
+  expr 79:16    FieldExpr      :: fn() -> string
+  expr 79:16    IdentExpr      :: Fancy
+  expr 81:12    StringLitExpr  :: string
+  expr 85:10    StructLitExpr  :: MonType!
+  expr 86:10    StructLitExpr  :: Other!
+  expr 86:23    StringLitExpr  :: string
+  expr 87:11    StructLitExpr  :: Wrapper<MonType>!
+  expr 87:39    IdentExpr      :: MonType!
+  expr 88:13    StringLitExpr  :: string
+  expr 88:16    CallExpr       :: string
+  expr 88:16    FieldExpr      :: fn() -> string
+  expr 88:16    IdentExpr      :: Wrapper<MonType>!
+  expr 88:29    CallExpr       :: Wrapper<Other!>
+  expr 88:29    CallExpr       :: string
+  expr 88:29    FieldExpr      :: fn() -> string
+  expr 88:29    IdentExpr      :: fn(T) -> Wrapper<T>
+  expr 88:34    IdentExpr      :: Other!
+  expr 88:47    CallExpr       :: Wrapper<i32>
+  expr 88:47    CallExpr       :: string
+  expr 88:47    FieldExpr      :: fn() -> string
+  expr 88:47    IdentExpr      :: fn(T) -> Wrapper<T>
+  expr 88:5     CallExpr       :: void
+  expr 88:5     IdentExpr      :: fn(T) -> void
+  expr 88:65    CallExpr       :: Wrapper<string>
+  expr 88:65    CallExpr       :: string
+  expr 88:65    FieldExpr      :: fn() -> string
+  expr 88:65    IdentExpr      :: fn(T) -> Wrapper<T>
+  expr 88:70    StringLitExpr  :: string
+  expr 89:13    StringLitExpr  :: string
+  expr 89:16    CallExpr       :: string
+  expr 89:16    IdentExpr      :: fn(Poke) -> string
+  expr 89:21    IdentExpr      :: Wrapper<MonType>!
+  expr 89:28    CallExpr       :: string
+  expr 89:28    IdentExpr      :: fn(Poke) -> string
+  expr 89:33    CallExpr       :: Wrapper<Other!>
+  expr 89:33    IdentExpr      :: fn(T) -> Wrapper<T>
+  expr 89:38    IdentExpr      :: Other!
+  expr 89:45    CallExpr       :: string
+  expr 89:45    IdentExpr      :: fn(T) -> string
+  expr 89:5     CallExpr       :: void
+  expr 89:5     IdentExpr      :: fn(T) -> void
+  expr 89:51    IdentExpr      :: MonType!
+  expr 89:57    CallExpr       :: string
+  expr 89:57    IdentExpr      :: fn(T) -> string
+  expr 89:63    IdentExpr      :: Other!
+  expr 89:69    CallExpr       :: string
+  expr 89:69    IdentExpr      :: fn(T) -> string
+  expr 90:13    StringLitExpr  :: string
+  expr 90:16    CallExpr       :: string
+  expr 90:16    IdentExpr      :: fn(T) -> string
+  expr 90:24    IdentExpr      :: Wrapper<MonType>!
+  expr 90:31    CallExpr       :: string
+  expr 90:31    IdentExpr      :: fn(T) -> string
+  expr 90:39    CallExpr       :: Wrapper<Other!>
+  expr 90:39    IdentExpr      :: fn(T) -> Wrapper<T>
+  expr 90:44    IdentExpr      :: Other!
+  expr 90:5     CallExpr       :: void
+  expr 90:5     IdentExpr      :: fn(T) -> void
+  expr 90:51    CallExpr       :: string
+  expr 90:51    IdentExpr      :: fn(T) -> string
+  expr 90:56    IdentExpr      :: Wrapper<MonType>!
+  expr 90:63    CallExpr       :: string
+  expr 90:63    IdentExpr      :: fn(T) -> string
+  expr 90:68    CallExpr       :: Wrapper<i32>
+  expr 90:68    IdentExpr      :: fn(T) -> Wrapper<T>
+  expr 91:11    SeqLitExpr     :: MonType![]!
+  expr 91:12    IdentExpr      :: MonType!
+  expr 92:11    SeqLitExpr     :: Other![]!
+  expr 92:12    IdentExpr      :: Other!
+  expr 92:15    IdentExpr      :: Other!
+  expr 93:13    StringLitExpr  :: string
+  expr 93:16    CallExpr       :: string
+  expr 93:16    FieldExpr      :: fn() -> string
+  expr 93:16    IdentExpr      :: MonType![]!
+  expr 93:29    CallExpr       :: string
+  expr 93:29    FieldExpr      :: fn() -> string
+  expr 93:29    IdentExpr      :: Other![]!
+  expr 93:42    CallExpr       :: MonType![]
+  expr 93:42    CallExpr       :: string
+  expr 93:42    FieldExpr      :: fn() -> string
+  expr 93:42    IdentExpr      :: fn(T) -> T[]
+  expr 93:47    IdentExpr      :: MonType!
+  expr 93:5     CallExpr       :: void
+  expr 93:5     IdentExpr      :: fn(T) -> void
+  expr 93:60    CallExpr       :: Other![]
+  expr 93:60    CallExpr       :: string
+  expr 93:60    FieldExpr      :: fn() -> string
+  expr 93:60    IdentExpr      :: fn(T) -> T[]
+  expr 93:65    IdentExpr      :: Other!
+  expr 94:13    StringLitExpr  :: string
+  expr 94:16    CallExpr       :: string
+  expr 94:16    IdentExpr      :: fn(Poke) -> string
+  expr 94:21    IdentExpr      :: MonType![]!
+  expr 94:28    CallExpr       :: string
+  expr 94:28    IdentExpr      :: fn(Poke) -> string
+  expr 94:33    IdentExpr      :: Other![]!
+  expr 94:40    CallExpr       :: string
+  expr 94:40    IdentExpr      :: fn(T) -> string
+  expr 94:48    IdentExpr      :: MonType![]!
+  expr 94:5     CallExpr       :: void
+  expr 94:5     IdentExpr      :: fn(T) -> void
+  expr 94:55    CallExpr       :: string
+  expr 94:55    IdentExpr      :: fn(T) -> string
+  expr 94:63    IdentExpr      :: Other![]!
+  expr 95:13    StringLitExpr  :: string
+  expr 95:16    CallExpr       :: string
+  expr 95:16    IdentExpr      :: fn(Wrapper<MonType> | Wrapper<Other>) -> string
+  expr 95:31    IdentExpr      :: Wrapper<MonType>!
+  expr 95:38    CallExpr       :: string
+  expr 95:38    IdentExpr      :: fn(Wrapper<MonType> | Wrapper<Other>) -> string
+  expr 95:5     CallExpr       :: void
+  expr 95:5     IdentExpr      :: fn(T) -> void
+  expr 95:53    CallExpr       :: Wrapper<Other!>
+  expr 95:53    IdentExpr      :: fn(T) -> Wrapper<T>
+  expr 95:58    IdentExpr      :: Other!

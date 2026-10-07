@@ -171,12 +171,12 @@ stored_array :: fn(t: Type, typed: TypedProgram) -> ArrayType | null {
 // struct decl is unavailable.
 index_param :: fn(target: Type, table: MutableMap<string, Type>, typed: TypedProgram) -> Type | null {
     if target is DistinctType {
-        return table[impl_base_key(target)]
+        return impl_side(typed, table, target, "")
     }
     if target !is StructType {
         return null
     }
-    tmpl :: table[impl_base_key(target)] ?? return null
+    tmpl :: impl_side(typed, table, target, "") ?? return null
     decl :: typed.struct_decls[target.symbol.id] ?? return tmpl
     return substitute_by_name(tmpl, decl.type_params, target.args)
 }

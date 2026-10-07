@@ -1,0 +1,97 @@
+// An impl on one instance of a generic base wins over the base's generic impl,
+// for that instance only, whichever is declared first: on a struct
+// (`Wrapper<MonType>`, `Wrapper<i32>`) as on an array (`MonType[]`, `i32[]`).
+// It holds through every way a call reaches the impl — a method call, a bounded
+// type parameter, a trait value — and when the instance is built inside a
+// generic body (`wrap`, `pair`), where its argument is a type parameter. The
+// base's other traits still reach the instance through their generic impl, and
+// a trait only one instance implements (`Fancy`) is not the other instances'.
+module "snippet"
+
+import "std/io"
+
+Poke :: trait {
+    poke :: fn(self) -> string
+}
+
+Tag :: trait {
+    tag :: fn(self) -> string
+}
+
+Fancy :: trait {
+    fancy :: fn(self) -> string
+}
+
+MonType :: struct {
+    n: i32
+}
+
+Other :: struct {
+    s: string
+}
+
+Wrapper :: struct<T> {
+    inner: T
+}
+
+Wrapper<T> implements<T> Poke {
+    poke :: fn(self) -> string = "generic"
+}
+
+Wrapper<MonType> implements Poke {
+    poke :: fn(self) -> string = "mon ${self.inner.n}"
+}
+
+Wrapper<i32> implements Poke {
+    poke :: fn(self) -> string = "int ${self.inner}"
+}
+
+Wrapper<T> implements<T> Tag {
+    tag :: fn(self) -> string = "tag"
+}
+
+Wrapper<MonType> implements Fancy {
+    fancy :: fn(self) -> string = "fancy ${self.inner.n}"
+}
+
+MonType[] implements Poke {
+    poke :: fn(self) -> string = "mons ${self.len()}"
+}
+
+T[] implements<T> Poke {
+    poke :: fn(self) -> string = "array ${self.len()}"
+}
+
+show :: fn(p: Poke) -> string = p.poke()
+
+bounded :: fn<T: Poke>(x: T) -> string = x.poke()
+
+both :: fn<T: Poke & Tag>(x: T) -> string = "${x.poke()}/${x.tag()}"
+
+wrap :: fn<T>(x: T) -> Wrapper<T> = Wrapper<T> { .inner = x }
+
+relay :: fn<T>(x: T) -> string = show(wrap(x))
+
+pair :: fn<T>(x: T) -> T[] = [x, x]
+
+fancy_or_plain :: fn(x: Wrapper<MonType> | Wrapper<Other>) -> string {
+    if x is Fancy {
+        return x.fancy()
+    }
+    return "plain"
+}
+
+main :: fn() -> i32 {
+    m :: MonType { .n = 7 }
+    o :: Other { .s = "o" }
+    wm :: Wrapper<MonType> { .inner = m }
+    println("${wm.poke()} ${wrap(o).poke()} ${wrap(3).poke()} ${wrap("s").poke()}")
+    println("${show(wm)} ${show(wrap(o))} ${relay(m)} ${relay(o)} ${relay(4)}")
+    println("${bounded(wm)} ${bounded(wrap(o))} ${both(wm)} ${both(wrap(5))}")
+    ms :: [m]
+    os :: [o, o]
+    println("${ms.poke()} ${os.poke()} ${pair(m).poke()} ${pair(o).poke()}")
+    println("${show(ms)} ${show(os)} ${bounded(ms)} ${bounded(os)}")
+    println("${fancy_or_plain(wm)} ${fancy_or_plain(wrap(o))}")
+    return 0
+}

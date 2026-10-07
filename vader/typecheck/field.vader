@@ -358,10 +358,13 @@ type_member :: fn(owner: Type, name: string, typed: TypedProgram) -> TypeMember 
         trait_ty :: bound_trait_declaring(bound, name, typed) ?? return null
         return trait_type_member(trait_ty, owner, name, typed)
     }
-    base_key :: "${impl_base_key(owner)}::${name}"
-    found :: typed.impl_methods[base_key] ?? return builtin_equals_member(owner, name, typed)
+    found :: impl_side(typed, typed.impl_methods, owner, "::${name}") ??
+        return builtin_equals_member(owner, name, typed)
     decl :: found.decl ?? return null
-    traits :: typed.impl_method_traits[base_key] ?? return null
+    traits :: impl_side_list(typed, typed.impl_method_traits, owner, "::${name}")
+    if traits.len() == 0 {
+        return null
+    }
     return TypeMember { .ty = found.ty, .decl = decl, .trait_key = traits[0] }
 }
 
@@ -1119,7 +1122,7 @@ check_trait_ambiguity :: fn(
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> void {
-    traits :: typed.impl_method_traits["${dispatch_key(target_ty)}::${e.field}"] ?? return
+    traits :: impl_side_list(typed, typed.impl_method_traits, target_ty, "::${e.field}")
     if traits.len() < 2 {
         return
     }
@@ -1312,8 +1315,7 @@ try_default_trait_method :: fn(
     name: string,
     typed: TypedProgram,
 ) -> Type | null {
-    traits :: typed.struct_implemented_traits[impl_base_key(target_ty)] ?? return null
-    for trait_key in traits {
+    for trait_key in impl_side_list(typed, typed.struct_implemented_traits, target_ty, "") {
         trait_id :: find_trait_id(trait_key, typed) ?? continue
         decl :: typed.trait_decls[trait_id] ?? continue
         for m in decl.members {
@@ -1342,8 +1344,7 @@ substitute_trait_typeparams :: fn(
     if trait_decl.type_params.len() == 0 {
         return t
     }
-    per_struct :: typed.struct_trait_args[impl_base_key(target_ty)] ?? return t
-    impl_args :: per_struct[trait_key] ?? return t
+    impl_args :: lookup_struct_trait_args(target_ty, trait_key, typed) ?? return t
     // The impl args might themselves reference TypeParams from the
     // implementing struct (`Range<T> implements Iterator<T>` records
     // `[T]` where T is Range's). Resolve those against the receiver's

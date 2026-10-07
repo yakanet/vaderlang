@@ -1,0 +1,15 @@
+// The orphan rule gives an array to its element's owner : this module owns
+// neither `Foo` (from `snippet/lib_a`), so neither `Foo[]`, nor `Bar` (from
+// `snippet/lib_b`, imported here as `B`), so the impl is an orphan (R2018). An
+// array of a type this module declares would be its own.
+
+module "snippet"
+
+import "snippet/lib_a"
+import "snippet/lib_b" { Bar as B }
+
+Foo[] implements B {
+    baz :: fn(self) -> i32 = i32(self.len())
+}
+
+main :: fn() -> i32 = 0

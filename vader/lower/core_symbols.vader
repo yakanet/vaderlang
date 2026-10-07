@@ -126,7 +126,7 @@ import "vader/typecheck"
 /// @param for_type   the receiver type.
 /// @param trait_sym  the trait's declaration symbol.
 export has_impl_for :: fn(ctx: LowerProjectCtx, for_type: Type, trait_sym: Symbol) -> bool =
-    ctx.impls.impls_of(impl_base_key(for_type), trait_key_of(trait_sym)).len() > 0
+    ctx.impls.impls_for(for_type, trait_key_of(trait_sym)).len() > 0
 
 // The `trait_key` of the trait `impl_decl` implements, as the registry resolved
 // it. Empty when its name binds to no trait.

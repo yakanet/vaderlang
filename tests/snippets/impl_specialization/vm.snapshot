@@ -1,0 +1,9 @@
+# stdout
+mon 7 generic int 3 generic
+mon 7 generic mon 7 generic int 4
+mon 7 generic mon 7/tag int 5/tag
+mons 1 array 2 mons 2 array 2
+mons 1 array 2 mons 1 array 2
+fancy 7 plain
+# exit
+0

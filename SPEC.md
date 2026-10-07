@@ -1531,14 +1531,46 @@ dispatch order deciding which impl won — and `"${self}"` inside the override
 could re-enter the override and recurse.) To attach behaviour to a primitive,
 declare your own trait and `impl` that instead.
 
-Only **fully-concrete** receivers are checked. Blanket / generic-receiver impls
-(`T implements …`, `T[] implements …`, `Range<T> implements …`) have subtler
-overlap rules and are not yet diagnosed.
+Two **generic** impls of one trait on one base (`Wrapper<T>`, `T[]`) may not
+both cover an instance: `Wrapper<T> implements<T: A> Poke` beside
+`Wrapper<T> implements<T: B> Poke` is **R2030**, whatever the bounds say — a
+type implementing both `A` and `B` can always be declared. A bare type-parameter
+receiver (`T implements<T: A> …`) is not checked yet.
 
-An array type takes impls **over a bare element type parameter** only: `T[] implements<T> …`.
-Any other array receiver — a concrete one (`i32[] implements Tag`) or a partly generic one
-(`T[][]`, `[T, i32][]`) — is **T3090**. For a concrete array, declare a distinct type
-over it (`Items :: i32[]`) and implement the trait on that.
+#### Specialization — the instance wins
+
+An impl on **one instance** of a generic base — `Wrapper<MonType> implements
+Poke`, `MonType[] implements Poke` — is not a second generic impl: it covers that
+instance alone, and wins over the base's generic impl for it, whatever the order
+of declaration.
+
+```vader
+Wrapper<T> implements<T> Poke {
+    poke :: fn(self) -> string = "generic"
+}
+
+Wrapper<MonType> implements Poke {      // wins for `Wrapper<MonType>` alone
+    poke :: fn(self) -> string = "mon"
+}
+```
+
+- Every route to the impl agrees: a method call, a bounded type parameter, a
+  trait-typed value, and an instance built inside a generic body
+  (`fn<T>(x: T) -> Wrapper<T>` called with a `MonType`).
+- The base's other traits still reach the instance through their generic impls.
+- The rule is per trait: an impl on one instance replaces every generic impl of
+  that trait for the instance, whatever their trait arguments.
+- A type an instance impl is built from (`MonType` above) keeps its generic
+  instances apart at run time, as a primitive argument does: a generic function
+  or struct instantiated with it gets its own body instead of the erased one
+  the reference arguments share.
+
+An array type takes impls on `T[]` (`T[] implements<T> …`) and on a **concrete
+array** (`i32[] implements Tag`, `MonType[] implements Tag`), which wins for its
+element type. A partly generic array — `T[][]`, `[T, i32][]` — would be a second
+generic impl on arrays and is **T3090**. For the orphan rule (R2018), an array
+belongs to its element's owner: `MonType[]` to `MonType`'s module, `i32[]` to
+every module, as `i32` does.
 
 #### Bounded-generic impls
 
