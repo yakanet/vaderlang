@@ -3,7 +3,9 @@
 ## Status
 
 Accepted (2026-10-07). Closes the `.rodata` write that 0034 left open, and removes
-the storageless-const guard that 0022 suspected was redundant.
+the storageless-const guard that 0022 suspected was redundant. 0036 closes the two
+holes left open below (a bounded `T!` and `await`), and one this change missed: a
+read-only value filling the trait variant of a union (`Bump! | null`).
 
 ## Context
 

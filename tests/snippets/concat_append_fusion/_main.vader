@@ -66,7 +66,7 @@ Ready<T> implements Async<T> {
     resume :: fn(self) -> T | Suspended { return self.v }
 }
 
-tick :: fn(v: string) -> Async<string> = Ready<string> { .v = v }
+tick :: fn(v: string) -> Async<string>! = Ready<string> { .v = v }
 
 appends_in_async :: fn(seed: string) -> Async<string> {
     s := seed

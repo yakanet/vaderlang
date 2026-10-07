@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$greeting() -> Async<string>
+  fn snippet$greeting() -> Async<string>!
     ~>
       Ready<string>! {
         v: "world" :string
@@ -149,9 +149,9 @@
                                 __self_1 :__asyncstate_snippet_0!
                             value:
                               cast → Async<Any>!
-                                call :Async<string>
+                                call :Async<string>!
                                   callee:
-                                    greeting :fn() -> Async<string>
+                                    greeting :fn() -> Async<string>!
                           assign
                             target:
                               .state :i32

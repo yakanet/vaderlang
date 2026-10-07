@@ -903,11 +903,12 @@ export infer_call :: fn(
             }
             // T3072 owns the argument's own top-level bit, as on the plain path below.
             cleared :: arg_mutability_cleared(arg_types[i])
-            if is_assignable(cleared, want)                       { continue }
-            if try_into(cleared, want, typed, c.args[i].value.id) { continue }
-            diags.push(mismatch_diagnostic_hinted(
+            slot :: param_shape_slot(arg_types[i], want)
+            if is_assignable(cleared, slot)                       { continue }
+            if try_into(cleared, slot, typed, c.args[i].value.id) { continue }
+            diags.push(mismatch_diagnostic(
                 arg_types[i], want, c.args[i].span, .TypeMismatch,
-                mutability_level_hint(c.args[i].value, arg_types[i], want, typed)))
+                mutability_level_hint(c.args[i].value, arg_types[i], want, typed), typed))
         }
         // Default any FreeInt/FreeFloat bound to a typeParam before
         // substituting, so the return type comes back concrete
@@ -972,11 +973,12 @@ export infer_call :: fn(
         // problem as T3077 — measured, that double-report alone was 424 of 535 sites.
         // Array mutability still flows through : nothing else checks it here.
         cleared :: arg_mutability_cleared(arg_ty)
-        if is_assignable(cleared, param_ty) { continue }
-        if try_into(cleared, param_ty, typed, c.args[i].value.id) { continue }
-        diags.push(mismatch_diagnostic_hinted(
+        slot :: param_shape_slot(arg_ty, param_ty)
+        if is_assignable(cleared, slot) { continue }
+        if try_into(cleared, slot, typed, c.args[i].value.id) { continue }
+        diags.push(mismatch_diagnostic(
                 arg_ty, param_ty, c.args[i].span, .TypeMismatch,
-                mutability_level_hint(c.args[i].value, arg_ty, param_ty, typed)))
+                mutability_level_hint(c.args[i].value, arg_ty, param_ty, typed), typed))
     }
     if overloaded {
         typed.overloaded_arg_depth = typed.overloaded_arg_depth - 1
@@ -1125,14 +1127,27 @@ check_typeparam_bounds :: fn(
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> void {
+    bounds :: typed.type_param_bound_traits
     for [id, bound_ty] in bindings {
-        bound :: typed.type_param_bound_traits[id] ?? continue
+        bound :: bounds[id] ?? continue
         for trait_ty in bound.traits {
             key :: trait_key_of(trait_ty.symbol)
             wanted: Type: if trait_ty.args.len() == 0 { trait_ty } else {
                 substitute_map(trait_ty, bindings)
             }
             if satisfies_bound(bound_ty, key, typed) && meets_trait_args(bound_ty, wanted, typed) {
+                // A bound marked `!` lets the body mutate through `T` : the binding
+                // must grant it.
+                if !trait_ty.immutable && withholds_mutation(bound_ty, bounds) {
+                    diags.push(
+                        typecheck_error(
+                            .TraitNotSatisfied, c.span,
+                            "`${display_type(bound_ty)}` grants no mutation, but the bound "
+                                + "`${display_type(trait_ty)}` of type parameter `${bound.name}` "
+                                + "of `${callee_name(c.callee)}` asks for it",
+                        ),
+                    )
+                }
                 continue
             }
             // `satisfies_bound` refuses an array any `Display` : say why.
@@ -1573,6 +1588,24 @@ arg_mutability_cleared :: fn(t: Type) -> Type = match t {
     is ArrayType | PrimitiveType | EnumType | FnType | TypeParamType
      | TypeMetaType | SelfType | UnresolvedType | FreeIntType | FreeFloatType
      | FreeCharType | NeverType | AnyType -> t
+}
+
+// The parameter an argument's shape is checked against. A `T` at the argument's top
+// level, bare or as a variant, has no bit for `arg_mutability_cleared` to clear, so
+// the parameter's top level is set aside instead : T3072 judges a `T` through its
+// bound.
+param_shape_slot :: fn(arg_ty: Type, param_ty: Type) -> Type {
+    if arg_ty is TypeParamType {
+        return with_immutable(param_ty, true)
+    }
+    if arg_ty is UnionType {
+        for v in arg_ty.variants {
+            if v is TypeParamType {
+                return with_immutable(param_ty, true)
+            }
+        }
+    }
+    return param_ty
 }
 
 arg_mutability_cleared_each :: fn(ts: Type[]) -> Type[] {

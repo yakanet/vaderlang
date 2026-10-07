@@ -283,7 +283,9 @@ narrowed_with_scrutinee_immutability :: fn(
 ) -> Type {
     if !carries_mutability_bit(narrowed) { return narrowed }
     base :: scrutinee_narrow_base(scrut, typed) ?? return narrowed
-    return with_immutable(narrowed, narrowing_immutability(base, narrowed))
+    return with_immutable(
+        narrowed, narrowing_immutability(base, narrowed, typed.type_param_bound_traits),
+    )
 }
 
 // The flow-narrowed static type of an `is` scrutinee, for the two shapes that

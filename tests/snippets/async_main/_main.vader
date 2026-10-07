@@ -9,7 +9,7 @@ Ready<T> implements Async<T> {
     resume :: fn(self) -> T | Suspended { return self.v }
 }
 
-greeting :: fn() -> Async<string> = Ready<string> { .v = "world" }
+greeting :: fn() -> Async<string>! = Ready<string> { .v = "world" }
 
 main :: fn() -> i32 {
     who :: await greeting()

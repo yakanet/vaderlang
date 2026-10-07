@@ -10,8 +10,8 @@ Ready<T> implements Async<T> {
     resume :: fn(self) -> T | Suspended { return self.v }
 }
 
-make_num :: fn() -> Async<i32> = Ready<i32> { .v = 7 }
-make_str :: fn() -> Async<string> = Ready<string> { .v = "hi" }
+make_num :: fn() -> Async<i32>! = Ready<i32> { .v = 7 }
+make_str :: fn() -> Async<string>! = Ready<string> { .v = "hi" }
 
 mix :: fn() -> Async<string> {
     n :: await make_num()

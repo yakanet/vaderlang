@@ -2,21 +2,21 @@
 
 ## tests/snippets/async_sequential
   FnDecl         main                 :: fn() -> i32
-  FnDecl         make_num             :: fn() -> Async<i32>
-  FnDecl         make_str             :: fn() -> Async<string>
+  FnDecl         make_num             :: fn() -> Async<i32>!
+  FnDecl         make_str             :: fn() -> Async<string>!
   FnDecl         mix                  :: fn() -> Async<string>
   StructDecl     Ready                :: Ready<T>!
   expr 10:50    FieldExpr      :: T
   expr 10:50    IdentExpr      :: Ready<T>
-  expr 13:34    StructLitExpr  :: Ready<i32>!
-  expr 14:37    StructLitExpr  :: Ready<string>!
-  expr 14:58    StringLitExpr  :: string
+  expr 13:35    StructLitExpr  :: Ready<i32>!
+  expr 14:38    StructLitExpr  :: Ready<string>!
+  expr 14:59    StringLitExpr  :: string
   expr 17:10    AwaitExpr      :: i32
-  expr 17:16    CallExpr       :: Async<i32>
-  expr 17:16    IdentExpr      :: fn() -> Async<i32>
+  expr 17:16    CallExpr       :: Async<i32>!
+  expr 17:16    IdentExpr      :: fn() -> Async<i32>!
   expr 18:10    AwaitExpr      :: string
-  expr 18:16    CallExpr       :: Async<string>
-  expr 18:16    IdentExpr      :: fn() -> Async<string>
+  expr 18:16    CallExpr       :: Async<string>!
+  expr 18:16    IdentExpr      :: fn() -> Async<string>!
   expr 19:12    StringLitExpr  :: string
   expr 19:15    IdentExpr      :: string
   expr 19:20    IdentExpr      :: i32

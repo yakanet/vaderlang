@@ -48,7 +48,7 @@ Cell implements IndexSet<usize, i32> {
 }
 
 // The same write through a type-param bound : a virtual `at` then `set_at`.
-bump_nth :: fn<C: Index<usize, i32> & IndexSet<usize, i32>>(c: C, i: usize) {
+bump_nth :: fn<C: Index<usize, i32> & IndexSet<usize, i32>!>(c: C!, i: usize) {
     c[slot(i)] += 100
 }
 

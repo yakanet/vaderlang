@@ -420,21 +420,24 @@
               ]
             },
             "right": {
-              "kind": "GenericInstExpr",
-              "callee": {
-                "kind": "IdentExpr",
-                "name": "IndexSet"
-              },
-              "typeArgs": [
-                {
+              "kind": "MutableTypeExpr",
+              "inner": {
+                "kind": "GenericInstExpr",
+                "callee": {
                   "kind": "IdentExpr",
-                  "name": "usize"
+                  "name": "IndexSet"
                 },
-                {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
-              ]
+                "typeArgs": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "usize"
+                  },
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                ]
+              }
             }
           },
           "isComptimeValue": false
@@ -444,8 +447,11 @@
         {
           "name": "c",
           "type": {
-            "kind": "IdentExpr",
-            "name": "C"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "C"
+            }
           },
           "defaultValue": null,
           "variadic": false

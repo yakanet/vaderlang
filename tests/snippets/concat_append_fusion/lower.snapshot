@@ -128,7 +128,7 @@
           arg3:
             ">" :string
     return s :string
-  fn snippet$tick(v: string) -> Async<string>
+  fn snippet$tick(v: string) -> Async<string>!
     ~>
       Ready<string>! {
         v: v :string
@@ -305,9 +305,9 @@
                                 __self_1 :__asyncstate_snippet_0!
                             value:
                               cast → Async<Any>!
-                                call :Async<string>
+                                call :Async<string>!
                                   callee:
-                                    tick :fn(string) -> Async<string>
+                                    tick :fn(string) -> Async<string>!
                                   arg0:
                                     "!" :string
                           assign

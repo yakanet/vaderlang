@@ -1412,7 +1412,7 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) {
 }
 ```
 
-A bound names traits, joined by `&` (`K: A & B`: K satisfies both). A union is not a bound — `K: A | B` grants nothing a body could use, so it is **R2042**, as it is in a trait's `requires`; an optional value carries `null` where the parameter is used, not on its bound: `fn<T: Bump>(x: T! | null)`, never `fn<T: Bump | null>(x: T!)`. A future predicate-bound escape hatch (`<T: @size_of <= 64>`-style) is reserved for non-trait constraints once they land.
+A bound names traits, joined by `&` (`K: A & B`: K satisfies both). A bound marked `!` (`T: Bump!`) is what lets the body mutate through a `T`, and what the call binding `T` must then honour — see *The marker is per LEVEL*. A union is not a bound — `K: A | B` grants nothing a body could use, so it is **R2042**, as it is in a trait's `requires`; an optional value carries `null` where the parameter is used, not on its bound: `fn<T: Bump!>(x: T! | null)`, never `fn<T: Bump! | null>(x: T!)`. A future predicate-bound escape hatch (`<T: @size_of <= 64>`-style) is reserved for non-trait constraints once they land.
 
 **Compile-time values** (post-MVP candidate; the fixed-size array surface itself is not designed yet — the example below uses placeholder syntax):
 
@@ -1886,7 +1886,7 @@ The default does **not** descend through the argument into the *program's* slots
 
 Through a **mutable struct** its type arguments are invariant, as an array's element is through a mutable array: a `Box<Cfg!>` does not fill a `Box<Cfg>!` slot (T3001), whose holder could store a read-only `Cfg` its owner then writes through. A UFCS receiver is the call's first argument and is held to it the same way: `h.poke()` is refused wherever `poke(h)` is — the function is picked by shape, then the receiver is checked.
 
-A **trait value** carries the bit as a struct does: `b: Bump` is read-only — its `self!` members are T3071 — and `b: Bump!` mutable. A value widening into a trait value keeps its own rights, so a read-only `Cfg` does not fill a `Bump!` (T3077), and what a function hands out as `-> Bump` is read-only. A factory says `!`: `-> Async<T>!`, and the stdlib's `T[] implements<T> Into<Iterator<T>!>`, whose `into` hands back an iterator its caller advances.
+A **trait value** carries the bit as a struct does: `b: Bump` is read-only — its `self!` members are T3071 — and `b: Bump!` mutable. A value widening into a trait value keeps its own rights, so a read-only `Cfg` does not fill a `Bump!`, nor the `Bump!` of a `Bump! | null` (T3077), and what a function hands out as `-> Bump` is read-only. A factory says `!`: `-> Async<T>!`, and the stdlib's `T[] implements<T> Into<Iterator<T>!>`, whose `into` hands back an iterator its caller advances. `await` drives its operand through `resume`, a `self!` member, so a read-only awaitable is T3071, as `for` over a read-only iterator is.
 
 A **distinct type** holds its backing's rights: `Color :: Rgb` is read-only or mutable as an `Rgb` is, written `Color` / `Color!`, and a conversion `Color(ORIGIN)` is the const under another name — `c.r = 5` through it is T3070. Below its own level the backing takes the default a written slot's children do: `Grid :: Cfg[]` holds read-only `Cfg`s. An index write into an array-backed distinct stores into its backing and is held to it, rights and element type, as a write into the array itself — unless the distinct implements `IndexSet` of its own, whose value type it is then held to.
 
@@ -1898,7 +1898,17 @@ The assignability of an array does **not** descend into a nested array: `T[]![]`
 
 Through a **read-only** array a value may always **drop** rights (`Cfg![]` fills a `Cfg[]` slot), never gain them. A `Cfg[]` handed to a `Cfg![]` slot is T3077 — the callee declared it may write through the elements, and they are not its to write. Through a **mutable** array the elements' rights must **match**: a `Cfg![]!` does not fill a `Cfg[]!` slot (T3001), because whoever holds the slot may push a read-only `Cfg` — a module const — that the array's owner then writes through as a `Cfg!`. An accumulator parameter therefore spells the elements its caller holds: `out: Stmt![]!`.
 
-A **generic** parameter binds the argument **with its rights**: `T` is whatever the call lends. So `sort<T>(arr: T[], …)` takes a `Cfg[]` (`T` is `Cfg`) and a `Cfg![]` (`T` is `Cfg!`) alike, and what comes back says the same — `peek(xs)` over a `Cfg[]` hands out a read-only `Cfg`, `wrap(p)` of a read-only `p` a `Box<Cfg>`, `xs.map(f).collect()` the elements `f` returns. Two `Cfg` stay one type whatever their bit, so no generic forks on it. Inside the body the element is a `T`, which grants no mutation of its own; a bound's `self!` member is no way around that: through `x: T` it is T3071, and needs `x: T!`.
+A **generic** parameter binds the argument **with its rights**: `T` is whatever the call lends. So `sort<T>(arr: T[], …)` takes a `Cfg[]` (`T` is `Cfg`) and a `Cfg![]` (`T` is `Cfg!`) alike, and what comes back says the same — `peek(xs)` over a `Cfg[]` hands out a read-only `Cfg`, `wrap(p)` of a read-only `p` a `Box<Cfg>`, `xs.map(f).collect()` the elements `f` returns. Two `Cfg` stay one type whatever their bit, so no generic forks on it. Inside the body the element is a `T`, which grants no mutation of its own. Mutating through a `T` needs a mutable slot (`x: T!`) **and** a bound marked `!` (`T: Bump!`), since a call may bind `T` to a read-only type. That holds for every form that mutates: a bound's `self!` member, `for` over a `T: Iterator<U>`, `c[i] = v` through a `T: IndexSet<I, V>`, `await` on a `T: Async<U>` (T3071), an argument for a `!` parameter (T3072), a `Bump!` slot (T3077). A call binding `T: Bump!` to a type that grants no mutation — a module const, a read-only return, a `T` whose own bound is unmarked — is **T3006**; an explicit type argument is a written type, so it says `poke<Cfg!>(c)`.
+
+```vader
+poke :: fn<T: Bump!>(x: T!) -> void {
+    x.bump()              // fine — the slot and the bound grant it
+}
+poke_unmarked :: fn<T: Bump>(x: T!) -> void {
+    x.bump()              // T3071 — `T` may be bound to a read-only `Cfg`
+}
+poke(CFG)                 // T3006 — a module const grants no mutation
+```
 
 **A generic that stores its argument** says so. A bare `T` grants nothing to what the callee *does* with it, but says nothing about where it *puts* it: `push` writes nothing through its argument, but stores it in an array that hands it back writable. Such a parameter carries the marker on the type parameter — `push :: fn(self!, value: T!)` — and the argument must then be as mutable as `T` is bound to:
 

@@ -1,0 +1,35 @@
+// A bound marked `!` lets the body mutate through `T`, so the call must bind `T` to
+// a type that grants mutation : a module const is read-only, and so is a `T` whose
+// own bound is not marked. A fresh value is accepted.
+module "snippet"
+
+Bump :: trait {
+    bump :: fn(self!) -> void
+}
+
+Cfg :: struct {
+    n: i32
+}
+
+Cfg implements Bump {
+    bump :: fn(self!) -> void {
+        self.n += 1
+    }
+}
+
+CFG :: Cfg { .n = 1 }
+
+poke :: fn<T: Bump!>(x: T!) -> void {
+    x.bump()
+}
+
+relay :: fn<T: Bump>(x: T!) -> void {
+    poke(x)
+}
+
+main :: fn() -> i32 {
+    poke(CFG)
+    relay(CFG)
+    poke(Cfg { .n = 2 })
+    return 0
+}

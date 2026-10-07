@@ -524,17 +524,20 @@
         {
           "name": "I",
           "bound": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "i32"
-              }
-            ]
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
+            }
           },
           "isComptimeValue": false
         }
@@ -584,17 +587,20 @@
         {
           "name": "I",
           "bound": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "i32"
-              }
-            ]
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
+            }
           },
           "isComptimeValue": false
         }
@@ -649,17 +655,20 @@
         {
           "name": "I",
           "bound": {
-            "kind": "GenericInstExpr",
-            "callee": {
-              "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "GenericInstExpr",
+              "callee": {
                 "kind": "IdentExpr",
-                "name": "i32"
-              }
-            ]
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
+            }
           },
           "isComptimeValue": false
         }

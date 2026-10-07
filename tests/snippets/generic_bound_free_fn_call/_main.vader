@@ -34,11 +34,11 @@ shown_later :: fn<T: Display>(x: T) -> string = apply(() -> x.show())
 
 shown_first :: fn<T: Display>(xs: T[]) -> string = xs.first_shown()
 
-summed :: fn<I: Iterator<i32>>(it: I!) -> i32 = it.sum()
+summed :: fn<I: Iterator<i32>!>(it: I!) -> i32 = it.sum()
 
-counted :: fn<I: Iterator<i32>>(it: I!) -> usize = count(it)
+counted :: fn<I: Iterator<i32>!>(it: I!) -> usize = count(it)
 
-stepped :: fn<I: Iterator<i32>>(it: I!) -> i32 = steps(it)
+stepped :: fn<I: Iterator<i32>!>(it: I!) -> i32 = steps(it)
 
 main :: fn() -> i32 {
     println(shown(P { .x = 2 }))

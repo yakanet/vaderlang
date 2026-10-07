@@ -1,5 +1,6 @@
 // A value widening into a trait value keeps its own rights : a read-only `Cfg`
-// does not fill a `Bump!`, whose holder calls its `self!` members. T3077.
+// does not fill a `Bump!`, whose holder calls its `self!` members, nor the `Bump!`
+// variant of a union. T3077, twice.
 module "snippet"
 
 Bump :: trait {
@@ -18,8 +19,14 @@ Cfg implements Bump {
 
 keep :: fn(c: Cfg) -> Bump! = c
 
+keep_optional :: fn(c: Cfg) -> Bump! | null = c
+
 main :: fn() -> i32 {
     b :: keep(Cfg { .n = 1 })
     b.bump()
+    o :: keep_optional(Cfg { .n = 2 })
+    if o != null {
+        o.bump()
+    }
     return 0
 }

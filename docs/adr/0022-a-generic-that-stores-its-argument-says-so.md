@@ -5,7 +5,8 @@
 Accepted (2026-09-28). Amends 0017 on two points: the generic-parameter exemption,
 and the storageless module const. Amended by 0032 : `T` is no longer erased to its
 maximal rights, it keeps the argument's. The first "Left open" item is resolved by
-0032 and 0033.
+0032 and 0033. Amended by 0036 : inside the body, mutating through a `T` also takes
+a bound marked `!`.
 
 ## Context
 

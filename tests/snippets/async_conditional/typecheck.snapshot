@@ -2,16 +2,16 @@
 
 ## tests/snippets/async_conditional
   FnDecl         drive                :: fn(Async<i32>!) -> i32
-  FnDecl         fetch                :: fn() -> Async<i32>
+  FnDecl         fetch                :: fn() -> Async<i32>!
   FnDecl         main                 :: fn() -> i32
   FnDecl         pick                 :: fn(bool) -> Async<i32>
   StructDecl     Ready                :: Ready<T>!
-  expr 12:31    StructLitExpr  :: Ready<i32>!
+  expr 12:32    StructLitExpr  :: Ready<i32>!
   expr 16:5     IfExpr         :: void
   expr 16:8     IdentExpr      :: bool
   expr 17:13    AwaitExpr      :: i32
-  expr 17:19    CallExpr       :: Async<i32>
-  expr 17:19    IdentExpr      :: fn() -> Async<i32>
+  expr 17:19    CallExpr       :: Async<i32>!
+  expr 17:19    IdentExpr      :: fn() -> Async<i32>!
   expr 17:9     IdentExpr      :: i32
   expr 19:9     IdentExpr      :: i32
   expr 21:12    BinaryExpr     :: i32

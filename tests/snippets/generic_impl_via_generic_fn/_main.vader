@@ -13,7 +13,7 @@ Box<T> implements Async<T> {
     resume :: fn(self) -> T | Suspended { return self.v }
 }
 
-viagen :: fn<T>(x: T) -> Async<T> = Box<T> { .v = x }
+viagen :: fn<T>(x: T) -> Async<T>! = Box<T> { .v = x }
 
 main :: fn() -> i32 {
     v :: await viagen(5)

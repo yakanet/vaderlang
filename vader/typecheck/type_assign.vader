@@ -14,6 +14,7 @@
 
 module "vader/typecheck"
 
+import "std/collections"
 import "vader/types"
 import "toolchain/span"
 import "vader/diagnostics"
@@ -193,22 +194,19 @@ export is_assignable_fn :: fn(from: Type, self: FnType, to: Type) -> bool {
 /// @param expected  the slot's type.
 /// @param span      where to anchor the diagnostic.
 /// @param fallback  the code to use when the cause is an ordinary mismatch.
+/// @param hint      `mutability_level_hint`'s output, empty unless the two types
+///                  differ by mutability alone ; "" when the caller has no value
+///                  expression to reason from.
+/// @param typed     reads the bound of a type parameter in `got`.
 export mismatch_diagnostic :: fn(
-    got: Type, expected: Type, span: Span, fallback: TypecheckCode,
-) -> Diagnostic = mismatch_diagnostic_hinted(got, expected, span, fallback, "")
-
-/// `mismatch_diagnostic` with a caller-supplied hint appended.
-///
-/// @param hint  `mutability_level_hint`'s output, empty unless the two types differ
-///              by mutability alone ; "" when the caller has no value expression to
-///              reason from.
-export mismatch_diagnostic_hinted :: fn(
     got: Type, expected: Type, span: Span, fallback: TypecheckCode, hint: string,
+    typed: TypedProgram,
 ) -> Diagnostic {
     // A read-only value into a slot promising mutation, at any level. Same treatment
     // as the fn case below : a dedicated wording, because "expected Cfg!, got Cfg"
     // says nothing about WHY they differ nor where to fix it.
-    if mutability_widens(got, expected, false) {
+    bounds :: typed.type_param_bound_traits
+    if mutability_widens(got, expected, false, bounds) {
         what :: if got is FnType { "returns a read-only value" } else { "is read-only" }
         return typecheck_error(
             .ImmutableValueIntoMutableSlot,
@@ -218,7 +216,7 @@ export mismatch_diagnostic_hinted :: fn(
     }
     // The other way round : a level that holds MORE rights than the slot's, where
     // the slot's holder could store a read-only value its owner then writes.
-    if mutability_widens(got, expected) {
+    if mutability_widens(got, expected, true, bounds) {
         return typecheck_error(
             fallback,
             span,
@@ -265,17 +263,26 @@ export mismatch_diagnostic_hinted :: fn(
 ///                fault — a mutable array's element, a mutable struct's or a trait's
 ///                arguments, a fn's parameters — for the caller that only words a
 ///                diagnostic.
-mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
+/// @param bounds  the type-parameter bounds (`type_param_bound_traits`), to judge a
+///                `T` widening into a trait value ; null for `is_assignable`, which
+///                never widens one.
+mutability_widens :: fn(
+    from: Type, to: Type, strict: bool = true,
+    bounds: MutableMap<i32, TypeParamBound> | null = null,
+) -> bool {
     // A value widening into a trait value keeps its own rights : a read-only `Cfg`
-    // does not fill a `Bump!`, whose holder calls its `self!` members. A trait's
-    // arguments are invariant — its methods may store what they are handed
-    // (`put :: fn(self!, v: T)`), so a `Sink<Cfg!>` lent as a `Sink<Cfg>` would take
-    // in a read-only `Cfg`.
+    // does not fill a `Bump!`, whose holder calls its `self!` members, nor does a `T`
+    // whose bound is unmarked. A trait's arguments are invariant — its methods may
+    // store what they are handed (`put :: fn(self!, v: T)`), so a `Sink<Cfg!>` lent
+    // as a `Sink<Cfg>` would take in a read-only `Cfg`.
     if to is TraitType {
-        if type_withholds_mutation(from) && !to.immutable {
+        if !to.immutable && withholds_mutation(from, bounds) {
             return true
         }
-        return from is TraitType && any_widens(from.args, to.args, strict, true)
+        return from is TraitType && any_widens(from.args, to.args, strict, true, bounds)
+    }
+    if to is UnionType && from !is UnionType {
+        return widens_into_trait_variant(from, to.variants, strict, bounds)
     }
     if from is StructType {
         if to is StructType {
@@ -291,7 +298,7 @@ mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
             // Through a mutable struct its type arguments are invariant, as an
             // array's element is : a `Box<Cfg>!` slot could store a read-only `Cfg`
             // in the `Box<Cfg!>` its owner then writes through.
-            return any_widens(from.args, to.args, strict, !to.immutable)
+            return any_widens(from.args, to.args, strict, !to.immutable, bounds)
         }
         return false
     }
@@ -303,7 +310,7 @@ mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
             if from.immutable && !to.immutable {
                 return true
             }
-            return any_widens(from.elements, to.elements, strict)
+            return any_widens(from.elements, to.elements, strict, false, bounds)
         }
         return false
     }
@@ -313,10 +320,11 @@ mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
     // handed to a `Cfg[]!` would take in a read-only `Cfg` its owner then writes.
     if from is ArrayType {
         if to is ArrayType {
-            if strict && !to.immutable && mutability_widens(to.element, from.element) {
+            loses :: strict && !to.immutable
+            if loses && mutability_widens(to.element, from.element, true, bounds) {
                 return true
             }
-            return mutability_widens(from.element, to.element, strict)
+            return mutability_widens(from.element, to.element, strict, bounds)
         }
         return false
     }
@@ -330,7 +338,7 @@ mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
             if type_is_immutable(from) && !type_is_immutable(to) {
                 return true
             }
-            return mutability_widens(from.backing, to.backing, strict)
+            return mutability_widens(from.backing, to.backing, strict, bounds)
         }
         return false
     }
@@ -340,10 +348,10 @@ mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
     // `!` on a parameter's NAME is `fn_mutability_widens`'s.
     if from is FnType {
         if to is FnType {
-            if strict && any_widens(to.params, from.params) {
+            if strict && any_widens(to.params, from.params, true, false, bounds) {
                 return true
             }
-            return mutability_widens(from.return_type, to.return_type, strict)
+            return mutability_widens(from.return_type, to.return_type, strict, bounds)
         }
         return false
     }
@@ -354,7 +362,16 @@ mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
     // `Box!`. The single key-tie, `T[] | T[]!`, is T3074 before it reaches here.
     if from is UnionType {
         if to is UnionType {
-            return any_widens(from.variants, to.variants, strict)
+            if any_widens(from.variants, to.variants, strict, false, bounds) {
+                return true
+            }
+            // The pairing matches variants of one shape ; a variant of another shape
+            // fills a trait value (`T | null` into `Bump! | null`).
+            for f in from.variants {
+                if widens_into_trait_variant(f, to.variants, strict, bounds) {
+                    return true
+                }
+            }
         }
         return false
     }
@@ -366,15 +383,77 @@ mutability_widens :: fn(from: Type, to: Type, strict: bool = true) -> bool {
 // mismatch, not a mutability story, so it is left to the shape check. `invariant`
 // also refuses an element that LOSES rights, under `strict` : the arguments of a
 // mutable struct or of a trait, which their holder may store into.
-any_widens :: fn(from: Type[], to: Type[], strict: bool = true, invariant: bool = false) -> bool {
+any_widens :: fn(
+    from: Type[], to: Type[], strict: bool = true, invariant: bool = false,
+    bounds: MutableMap<i32, TypeParamBound> | null = null,
+) -> bool {
     if from.len() != to.len() {
         return false
     }
     for i in 0..<from.len() {
-        if mutability_widens(from[i], to[i], strict) {
+        if mutability_widens(from[i], to[i], strict, bounds) {
             return true
         }
-        if strict && invariant && mutability_widens(to[i], from[i]) {
+        if strict && invariant && mutability_widens(to[i], from[i], true, bounds) {
+            return true
+        }
+    }
+    return false
+}
+
+// A value fills ONE variant of a union slot. A variant of its own shape is
+// `is_assignable_union`'s to judge ; otherwise it is a trait value it widens into, so
+// a read-only `Cfg` does not fill a `Bump! | null`.
+widens_into_trait_variant :: fn(
+    from: Type, variants: Type[], strict: bool,
+    bounds: MutableMap<i32, TypeParamBound> | null,
+) -> bool {
+    for v in variants {
+        if v is TraitType && mutability_widens(from, v, strict, bounds) {
+            for w in variants {
+                if equals_type_shape(w, from) {
+                    return false
+                }
+            }
+            return true
+        }
+    }
+    return false
+}
+
+// `type_withholds_mutation`, with a type parameter judged through its bound : a `T`
+// grants mutation only when a trait of its bound is marked `!` (`T: Bump!`), since a
+// call may bind it to a read-only type otherwise. Without `bounds` a `T` withholds
+// nothing, as `type_withholds_mutation` answers.
+withholds_mutation :: fn(t: Type, bounds: MutableMap<i32, TypeParamBound> | null) -> bool {
+    if bounds == null {
+        return type_withholds_mutation(t)
+    }
+    if t is TypeParamType {
+        return !bound_grants_mutation(t, bounds)
+    }
+    // `union_of` flattens, so a variant is never a union itself.
+    if t is UnionType {
+        for v in t.variants {
+            if v is TypeParamType {
+                if !bound_grants_mutation(v, bounds) {
+                    return true
+                }
+            } else if type_is_immutable(v) {
+                return true
+            }
+        }
+        return false
+    }
+    return type_is_immutable(t)
+}
+
+// Whether a trait of `t`'s bound is marked `!` : the call binding `t` must then grant
+// mutation (`check_typeparam_bounds`), and the generic body may use it.
+bound_grants_mutation :: fn(t: TypeParamType, bounds: MutableMap<i32, TypeParamBound>) -> bool {
+    bound :: bounds[t.symbol.id] ?? return false
+    for trait_ty in bound.traits {
+        if !trait_ty.immutable {
             return true
         }
     }

@@ -10,8 +10,8 @@ Ready<T> implements Async<T> {
     resume :: fn(self) -> T | Suspended { return self.v }
 }
 
-a :: fn() -> Async<i32> = Ready<i32> { .v = 3 }
-b :: fn() -> Async<i32> = Ready<i32> { .v = 4 }
+a :: fn() -> Async<i32>! = Ready<i32> { .v = 3 }
+b :: fn() -> Async<i32>! = Ready<i32> { .v = 4 }
 
 // `await a()` is the trailing expression — no `return` keyword.
 trailing :: fn() -> Async<i32> {

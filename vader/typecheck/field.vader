@@ -201,7 +201,8 @@ try_typeparam_bound_method :: fn(
     if rejects_static_member(member.decl, e, typed, diags) {
         return TY_UNRESOLVED
     }
-    // `x: T` is read-only like any written type : a bound's `self!` member needs `x: T!`.
+    // `x: T` is read-only like any written type : a bound's `self!` member needs `x: T!`,
+    // and a bound marked `!` (`value_is_read_only`).
     reject_mutating_method_on_immutable(
         ImplMethod { .ty = member.ty, .self_mutable = has_mutable_self(member.decl) },
         e, target_ty, typed, diags,
@@ -462,8 +463,14 @@ try_free_fn_ufcs_dispatch :: fn(
         // Below its own level — T3071's — the receiver is held to the parameter's
         // rights as any argument is : a `Box<Cfg>` handed to a `Box<Cfg!>!` would
         // take in a read-only `Cfg` that the callee writes through.
-        if mutability_widens(arg_mutability_cleared(target_ty), first_param) {
-            diags.push(mismatch_diagnostic_hinted(target_ty, first_param, e.target.span, .TypeMismatch, ""))
+        cleared :: arg_mutability_cleared(target_ty)
+        slot :: param_shape_slot(target_ty, first_param)
+        if mutability_widens(cleared, slot, true, typed.type_param_bound_traits) {
+            diags.push(
+                mismatch_diagnostic(
+                    target_ty, first_param, e.target.span, .TypeMismatch, "", typed,
+                ),
+            )
         }
     }
     return free_ufcs.curried

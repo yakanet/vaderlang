@@ -9,7 +9,7 @@ Ready<T> implements Async<T> {
     resume :: fn(self) -> T | Suspended { return self.v }
 }
 
-fetch :: fn() -> Async<i32> = Ready<i32> { .v = 7 }
+fetch :: fn() -> Async<i32>! = Ready<i32> { .v = 7 }
 
 pick :: fn(flag: bool) -> Async<i32> {
     r: i32 = 0

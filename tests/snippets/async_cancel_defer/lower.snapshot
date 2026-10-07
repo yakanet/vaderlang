@@ -61,7 +61,7 @@
           std_io$println__string :void
         arg0:
           "inner cleanup" :string
-  struct __asyncstate_snippet_2 { s0: Async<i32>, s1: i32, s2: i32, __defers: (fn() -> void)[]!, awaited: Async<Any>!, state: i32 }
+  struct __asyncstate_snippet_2 { s0: Async<i32>!, s1: i32, s2: i32, __defers: (fn() -> void)[]!, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_2$Async$resume(self: __asyncstate_snippet_2!) -> i32 | Suspended!
     loop :dispatch$
       if :void
@@ -240,7 +240,7 @@
                                         __self_2 :__asyncstate_snippet_2!
                                     value:
                                       cast → Async<Any>!
-                                        .s0 :Async<i32>
+                                        .s0 :Async<i32>!
                                           __self_2 :__asyncstate_snippet_2!
                                   assign
                                     target:
@@ -261,7 +261,7 @@
                                       LoweredArrayPush
                                       assign
                                         target:
-                                          .s0 :Async<i32>
+                                          .s0 :Async<i32>!
                                             __self_2 :__asyncstate_snippet_2!
                                         value:
                                           Never! {

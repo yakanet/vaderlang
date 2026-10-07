@@ -119,8 +119,9 @@ check_field :: fn(
     want :: if as_pattern { erase_type_params(expected) } else { expected }
     if is_assignable(got, want)               { return }
     if try_into(got, want, typed, f.value.id) { return }
-    diags.push(mismatch_diagnostic_hinted(
+    diags.push(mismatch_diagnostic(
         got, expected, f.span, .TypeMismatch, mutability_level_hint(f.value, got, expected, typed),
+        typed,
     ))
 }
 

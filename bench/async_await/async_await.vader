@@ -22,7 +22,7 @@ Ready<T> implements Async<T> {
     resume :: fn(self) -> T | Suspended = self.value
 }
 
-step :: fn(x: i64) -> Async<i64> = Ready<i64> { .value = x + 1 }
+step :: fn(x: i64) -> Async<i64>! = Ready<i64> { .value = x + 1 }
 
 run :: fn() -> Async<i64> {
     total: i64 = 0

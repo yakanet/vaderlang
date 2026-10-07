@@ -1,20 +1,20 @@
 # Typecheck
 
 ## tests/snippets/async_fallible
-  FnDecl         fetch                :: fn() -> Async<i32>
+  FnDecl         fetch                :: fn() -> Async<i32>!
   FnDecl         load                 :: fn(bool) -> Async<i32 | LoadError>
   StructDecl     LoadError            :: LoadError!
   FnDecl         main                 :: fn() -> i32
   StructDecl     Ready                :: Ready<T>!
   FnDecl         report               :: fn(Async<i32 | LoadError>!) -> void
-  expr 14:31    StructLitExpr  :: Ready<i32>!
+  expr 14:32    StructLitExpr  :: Ready<i32>!
   expr 17:5     IfExpr         :: void
   expr 17:8     IdentExpr      :: bool
   expr 18:16    StructLitExpr  :: LoadError!
   expr 18:38    StringLitExpr  :: string
   expr 20:10    AwaitExpr      :: i32
-  expr 20:16    CallExpr       :: Async<i32>
-  expr 20:16    IdentExpr      :: fn() -> Async<i32>
+  expr 20:16    CallExpr       :: Async<i32>!
+  expr 20:16    IdentExpr      :: fn() -> Async<i32>!
   expr 21:12    BinaryExpr     :: i32
   expr 21:12    IdentExpr      :: i32
   expr 25:10    CallExpr       :: i32 | LoadError | Suspended

@@ -1,12 +1,12 @@
 # Lower
 
 ## snippet
-  fn snippet$make_num() -> Async<i32>
+  fn snippet$make_num() -> Async<i32>!
     ~>
       Ready<i32>! {
         v: int(7) :i32
       }
-  fn snippet$make_str() -> Async<string>
+  fn snippet$make_str() -> Async<string>!
     ~>
       Ready<string>! {
         v: "hi" :string
@@ -291,9 +291,9 @@
                                 __self_5 :__asyncstate_snippet_0!
                             value:
                               cast → Async<Any>!
-                                call :Async<string>
+                                call :Async<string>!
                                   callee:
-                                    make_str :fn() -> Async<string>
+                                    make_str :fn() -> Async<string>!
                           assign
                             target:
                               .state :i32
@@ -376,9 +376,9 @@
                                             __self_5 :__asyncstate_snippet_0!
                                         value:
                                           cast → Async<Any>!
-                                            call :Async<i32>
+                                            call :Async<i32>!
                                               callee:
-                                                make_num :fn() -> Async<i32>
+                                                make_num :fn() -> Async<i32>!
                                       assign
                                         target:
                                           .state :i32

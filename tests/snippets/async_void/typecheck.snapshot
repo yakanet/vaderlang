@@ -1,15 +1,15 @@
 # Typecheck
 
 ## tests/snippets/async_void
-  FnDecl         fetch                :: fn() -> Async<i32>
+  FnDecl         fetch                :: fn() -> Async<i32>!
   FnDecl         log_it               :: fn() -> Async<void>
   FnDecl         main                 :: fn() -> i32
   StructDecl     Ready                :: Ready<T>!
   FnDecl         wrap                 :: fn() -> Async<void>
-  expr 12:31    StructLitExpr  :: Ready<i32>!
+  expr 12:32    StructLitExpr  :: Ready<i32>!
   expr 15:10    AwaitExpr      :: i32
-  expr 15:16    CallExpr       :: Async<i32>
-  expr 15:16    IdentExpr      :: fn() -> Async<i32>
+  expr 15:16    CallExpr       :: Async<i32>!
+  expr 15:16    IdentExpr      :: fn() -> Async<i32>!
   expr 16:13    StringLitExpr  :: string
   expr 16:23    IdentExpr      :: i32
   expr 16:5     CallExpr       :: void

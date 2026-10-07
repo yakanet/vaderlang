@@ -160,7 +160,7 @@
                   recv:
                     w :Async<i32>!
     return int(0) :i32
-  struct __asyncstate_snippet_0 { s0: Async<i32>, s1: i32, s2: i32, awaited: Async<Any>!, state: i32 }
+  struct __asyncstate_snippet_0 { s0: Async<i32>!, s1: i32, s2: i32, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> i32 | Suspended!
     loop :dispatch$
       if :void
@@ -277,7 +277,7 @@
                                 __self_1 :__asyncstate_snippet_0!
                             value:
                               cast → Async<Any>!
-                                .s0 :Async<i32>
+                                .s0 :Async<i32>!
                                   __self_1 :__asyncstate_snippet_0!
                           assign
                             target:
@@ -297,7 +297,7 @@
                             then:
                               assign
                                 target:
-                                  .s0 :Async<i32>
+                                  .s0 :Async<i32>!
                                     __self_1 :__asyncstate_snippet_0!
                                 value:
                                   CountDown! {

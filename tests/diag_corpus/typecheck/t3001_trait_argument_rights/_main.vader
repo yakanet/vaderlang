@@ -29,7 +29,7 @@ feed :: fn(s: Sink<Cfg>!) -> void {
     s.put(ORIGIN)
 }
 
-relay :: fn<S: Sink<Cfg!>>(s: S!) -> void {
+relay :: fn<S: Sink<Cfg!>!>(s: S!) -> void {
     feed(s)
 }
 

@@ -1,12 +1,12 @@
 # Lower
 
 ## snippet
-  fn snippet$a() -> Async<i32>
+  fn snippet$a() -> Async<i32>!
     ~>
       Ready<i32>! {
         v: int(3) :i32
       }
-  fn snippet$b() -> Async<i32>
+  fn snippet$b() -> Async<i32>!
     ~>
       Ready<i32>! {
         v: int(4) :i32
@@ -240,9 +240,9 @@
                             __self_1 :__asyncstate_snippet_0!
                         value:
                           cast → Async<Any>!
-                            call :Async<i32>
+                            call :Async<i32>!
                               callee:
-                                a :fn() -> Async<i32>
+                                a :fn() -> Async<i32>!
                       assign
                         target:
                           .state :i32
@@ -371,9 +371,9 @@
                             __self_2 :__asyncstate_snippet_1!
                         value:
                           cast → Async<Any>!
-                            call :Async<i32>
+                            call :Async<i32>!
                               callee:
-                                b :fn() -> Async<i32>
+                                b :fn() -> Async<i32>!
                       assign
                         target:
                           .state :i32
@@ -433,9 +433,9 @@
                                     __self_2 :__asyncstate_snippet_1!
                                 value:
                                   cast → Async<Any>!
-                                    call :Async<i32>
+                                    call :Async<i32>!
                                       callee:
-                                        a :fn() -> Async<i32>
+                                        a :fn() -> Async<i32>!
                               assign
                                 target:
                                   .state :i32

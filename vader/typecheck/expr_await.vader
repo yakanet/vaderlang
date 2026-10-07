@@ -23,6 +23,9 @@ export infer_await :: fn(
         diags.push(typecheck_error(.AwaitOutsideAsync, e.span, ""))
     }
     inner :: check_expr_fn(e.inner, null, typed, diags)
+    _ :: reject_driving_immutable(
+        e.inner, inner, TRAIT_ASYNC, "`await` drives this value through `resume`", typed, diags,
+    )
     return awaitable_element_of(inner)
 }
 

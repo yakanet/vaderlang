@@ -11,6 +11,7 @@
 
 module "vader/typecheck"
 
+import "std/collections"
 import "std/string"
 import "std/sort"
 AST :: import "toolchain/ast"
@@ -329,14 +330,19 @@ readonly_children :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
 /// read-only borrow in one line. Since the bit is distributed over a union's
 /// variants, the answer is the matching variant's bit ; failing a nominal match
 /// (trait / subtype narrowing) it is read-only when any variant is — the narrowing
-/// may select that one — so it never grants more than the scrutinee had.
-export narrowing_immutability :: fn(scrutinee: Type, narrowed: Type) -> bool {
+/// may select that one — so it never grants more than the scrutinee had. A `T`
+/// grants what its bound does.
+///
+/// @param bounds  the type-parameter bounds (`type_param_bound_traits`).
+export narrowing_immutability :: fn(
+    scrutinee: Type, narrowed: Type, bounds: MutableMap<i32, TypeParamBound>,
+) -> bool {
     if scrutinee is UnionType {
         for v in scrutinee.variants {
             if equals_type_shape(v, narrowed) { return type_is_immutable(v) }
         }
     }
-    return type_withholds_mutation(scrutinee)
+    return withholds_mutation(scrutinee, bounds)
 }
 
 // ---- canonical union ------------------------------------------------------

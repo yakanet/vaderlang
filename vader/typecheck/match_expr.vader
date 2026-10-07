@@ -385,7 +385,9 @@ is_never :: fn(t: Type) -> bool {
 pattern_type_of :: fn(ty: AST.Expr, scrut: Type, typed: TypedProgram, diags: Diagnostic[]!) -> Type {
     narrowed :: type_from_expr(ty, typed.resolved, diags)
     if !carries_mutability_bit(narrowed) { return narrowed }
-    return with_immutable(narrowed, narrowing_immutability(scrut, narrowed))
+    return with_immutable(
+        narrowed, narrowing_immutability(scrut, narrowed, typed.type_param_bound_traits),
+    )
 }
 
 arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Type | null {

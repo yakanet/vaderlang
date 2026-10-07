@@ -1,0 +1,19 @@
+// An index write on a `C: IndexSet` calls `set_at`, declared `self!` : the
+// receiver must be a `C!` and the bound marked `!`.
+module "snippet"
+
+put :: fn<C: IndexSet<usize, i32>>(c: C!) -> void {
+    c[0] = 1
+}
+
+put_unmarked :: fn<C: IndexSet<usize, i32>!>(c: C) -> void {
+    c[0] = 1
+}
+
+put_mutable :: fn<C: IndexSet<usize, i32>!>(c: C!) -> void {
+    c[0] = 1
+}
+
+main :: fn() -> i32 {
+    return 0
+}
