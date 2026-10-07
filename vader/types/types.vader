@@ -767,9 +767,9 @@ export impl_base_key :: fn(t: Type) -> string {
     // ArrayType collapses to the element-independent key `"[]"` so a CONCRETE
     // array (`BlockId[][]`) matches a blanket `T[] implements …` impl (registered
     // under the same `"[]"` key) ; the param-named `"T[]"` would match no
-    // concrete array. An impl on a concrete array (`i32[]`) registers under its own key and is read first, and
-    // one on a partly generic array (`T[][]`) is refused (T3090), so the collapse
-    // can't mis-match.
+    // concrete array. An impl on a concrete array (`i32[]`) registers under its
+    // own key and is read first, and one on a partly generic array (`T[][]`) is
+    // refused (T3090), so the collapse can't mis-match.
     @partial match t {
         is StructType | TraitType | EnumType | DistinctType -> { return declaration_key(t.symbol) }
         is ArrayType -> { return "[]" }
@@ -933,6 +933,37 @@ export for_each_type :: fn(t: Type, visit: fn(Type) -> void) -> void {
         is DistinctType -> { for_each_type(t.backing, visit) }
         _ -> {}
     }
+}
+
+/// Whether `t` or a type nested in it satisfies `pred` — `for_each_type`'s walk,
+/// stopping at the first type that does.
+///
+/// @param t     the type to walk.
+/// @param pred  the test, applied root first.
+export any_type :: fn(t: Type, pred: fn(Type) -> bool) -> bool {
+    if pred(t) {
+        return true
+    }
+    // @partial: only these variants nest other types ; every other one is a leaf.
+    @partial match t {
+        is StructType   -> { return any_type_each(t.args, pred) }
+        is TraitType    -> { return any_type_each(t.args, pred) }
+        is ArrayType    -> { return any_type(t.element, pred) }
+        is TupleType    -> { return any_type_each(t.elements, pred) }
+        is FnType       -> { return any_type_each(t.params, pred) || any_type(t.return_type, pred) }
+        is UnionType    -> { return any_type_each(t.variants, pred) }
+        is DistinctType -> { return any_type(t.backing, pred) }
+        _ -> { return false }
+    }
+}
+
+any_type_each :: fn(ts: Type[], pred: fn(Type) -> bool) -> bool {
+    for t in ts {
+        if any_type(t, pred) {
+            return true
+        }
+    }
+    return false
 }
 
 /// True when `t` carries a `DistinctType` anywhere in its tree. Guards

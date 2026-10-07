@@ -1,0 +1,16 @@
+// T3001: the receiver of `rows.put(LIST)` is held to `put`'s first parameter as the
+// call binds it, exactly as `put(rows, LIST)` holds it: `T` takes the read-only
+// `i32[]` that `LIST` lends, and `rows` stores mutable `i32[]!` elements.
+module "snippet"
+
+LIST :: [1, 2]
+
+put :: fn<T>(dst: T[]!, x: T) -> void {
+    dst.push(x)
+}
+
+main :: fn() -> i32 {
+    rows: i32[]![]!: []
+    rows.put(LIST)
+    return 0
+}

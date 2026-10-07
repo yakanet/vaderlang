@@ -1,5 +1,6 @@
-// The receiver binds `T = Cfg!`, so the curried `pick` takes `b` as a `Cfg!` : the
-// read-only `CFG` would come back mutable. T3072.
+// T3070: `local.pick(CFG)` binds `T` as `pick(local, CFG)` does, to the rights both
+// arguments hold — a read-only `Cfg`. The result is read-only, so writing through
+// it is refused; the call itself is not.
 module "snippet"
 
 Cfg :: struct {

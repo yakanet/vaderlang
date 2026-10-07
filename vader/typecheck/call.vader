@@ -757,7 +757,9 @@ export infer_call :: fn(
     // has multiple fn overloads (`describe :: fn(Box) -> ... ;
     // describe :: fn(Bag) -> ...`), pre-walk the args and pick the
     // overload whose first param accepts the first arg.
-    callee_ty :: pick_overload(c, initial_callee_ty, typed, diags, check_expr_fn)
+    callee_ty :: ufcs_generic_signature(
+        c.callee, pick_overload(c, initial_callee_ty, typed, diags, check_expr_fn), typed,
+    )
     // `T(x)` cast-style call : treat the call as a conversion and return the target
     // type. Folded before reaching the not-callable arm.
     if converts_by_name(c, callee_ty, typed) {
@@ -875,20 +877,24 @@ export infer_call :: fn(
             // scratch sink so a lambda that reports twice isn't counted twice ;
             // the authoritative pass below re-runs them against `diags`.
             // Bounded by the argument count : every round that continues has
-            // bound at least one more type-param.
-            scratch: Diagnostic[]!: []
-            for 0..<n {
-                before :: bindings.len()
-                for i in 0..<n {
-                    if c.args[i].value !is AST.LambdaExpr {
-                        continue
+            // bound at least one more type-param. Skipped when every lambda's
+            // slot is bound already : the rounds could bind nothing, and nested
+            // lambdas would be checked twice per level.
+            if lambda_slot_unbound(c, callee_ty, bindings, n) {
+                scratch: Diagnostic[]!: []
+                for 0..<n {
+                    before :: bindings.len()
+                    for i in 0..<n {
+                        if c.args[i].value !is AST.LambdaExpr {
+                            continue
+                        }
+                        check_generic_arg(
+                            c, i, callee_ty, bindings, held, typed, scratch, check_expr_fn,
+                        )
                     }
-                    check_generic_arg(
-                        c, i, callee_ty, bindings, held, typed, scratch, check_expr_fn,
-                    )
-                }
-                if bindings.len() == before {
-                    break
+                    if bindings.len() == before {
+                        break
+                    }
                 }
             }
             for i in 0..<n {
@@ -901,6 +907,7 @@ export infer_call :: fn(
             }
         }
         report_unbound_type_args(c, callee_ty, bindings, arg_types, expected, n, typed, diags)
+        reject_ufcs_receiver_at_instance(c, bindings, typed, diags)
         instance :: substitute_fn_map(callee_ty, bindings)
         for i in 0..<n {
             want :: instance.params[i]
@@ -933,13 +940,13 @@ export infer_call :: fn(
             v :: bindings[k] ?? continue
             bindings[k] = default_if_free(v)
         }
-        // Box a Free* numeric arg into a trait-typed param : when `7`
-        // flows into `Doubler<T>` and `i32 implements Doubler(i32)`,
-        // record the substituted trait type on the arg expr so the
-        // lowerer emits `int(7) :Doubler(i32)` (the boxed trait-object)
-        // rather than a bare `i32`. Scoped to trait targets since the
-        // numeric→numeric case already defaults to the same concrete
-        // primitive downstream.
+        // A Free* numeric arg takes what its parameter was bound to. Into a
+        // trait-typed param it is boxed : when `7` flows into `Doubler<T>` and
+        // `i32 implements Doubler(i32)`, the arg expr records the substituted trait
+        // type so the lowerer emits `int(7) :Doubler(i32)`. Into a primitive it is
+        // re-checked against it, nested literals included : `pick(1, x)` with
+        // `x: i64` binds `T = i64`, and the lowerer instantiates `pick` from the
+        // types recorded on the arguments.
         for i in 0..<n {
             got :: arg_types[i]
             if got !is FreeIntType && got !is FreeFloatType {
@@ -950,8 +957,11 @@ export infer_call :: fn(
                 if struct_implements_trait(default_if_free(got), trait_key_of(want.symbol), typed) {
                     typed.expr_types[c.args[i].value.id] = want
                 }
+            } else if want is PrimitiveType {
+                _ :: check_expr_fn(c.args[i].value, want, typed, [])
             }
         }
+        repin_free_ufcs_receiver_at_instance(c, bindings, typed, check_expr_fn)
         // T3006 : enforce `T: Trait` bounds on the callee's fn-decl
         // type-params against the bindings we ended up with.
         check_typeparam_bounds(c, bindings, typed, diags)
@@ -1000,7 +1010,7 @@ export infer_call :: fn(
         typed.overloaded_arg_depth = typed.overloaded_arg_depth - 1
     }
     widen_empty_array_on_push(c, typed)
-    check_receiver_bounds(c, typed, diags)
+    check_receiver_alone(c, typed, diags)
     if diverges {
         return TY_NEVER
     }
@@ -1182,20 +1192,120 @@ meets_trait_args :: fn(t: Type, wanted: Type, typed: TypedProgram) -> bool {
     return t is UnresolvedType | AnyType || implements_trait_instance(t, wanted, typed)
 }
 
-// T3006 for a UFCS call whose curried signature kept none of the callee's type
-// parameters (`m.println()` on `println<T: Display>(msg: T)`) : the receiver alone
-// binds them, so the generic path never ran.
-check_receiver_bounds :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]!) -> void {
+// The fn a UFCS call reaches when its receiver's parameter names the fn's type
+// parameters, else null.
+generic_ufcs_callee :: fn(callee: AST.Expr, typed: TypedProgram) -> FnCandidate | null {
+    if callee !is AST.FieldExpr || typed.ufcs_receiver_types[callee.id] == null {
+        return null
+    }
+    chosen :: typed.chosen_fns[callee.id] ?? return null
+    return if type_contains_type_param(chosen.ty.params[0]) { chosen } else { null }
+}
+
+// The signature a UFCS call of a generic fn is checked against : the callee's own,
+// minus the receiver, its type parameters left for the receiver AND the arguments to
+// bind together, as the free call binds them (`local.pick(CFG)` is
+// `pick(local, CFG)`). Any other callee keeps `callee_ty`.
+ufcs_generic_signature :: fn(callee: AST.Expr, callee_ty: Type, typed: TypedProgram) -> Type {
+    if callee_ty !is FnType {
+        return callee_ty
+    }
+    chosen :: generic_ufcs_callee(callee, typed) ?? return callee_ty
+    return mk_fn_drop_self(chosen.ty)
+}
+
+// The receiver of a UFCS call of a generic fn, held to its parameter as the instance
+// has it, as any argument is (`rows.put(LIST)` is `put(rows, LIST)`). Its own top
+// level was judged when the method was resolved (T3071).
+reject_ufcs_receiver_at_instance :: fn(
+    c: AST.CallExpr, bindings: MutableMap<i32, Type>, typed: TypedProgram, diags: Diagnostic[]!,
+) -> void {
     if c.callee !is AST.FieldExpr {
         return
     }
-    decl :: chosen_decl(typed, c.callee.id) ?? return
-    if !has_bounded_type_param(decl) {
+    chosen :: generic_ufcs_callee(c.callee, typed) ?? return
+    first :: chosen.ty.params[0]
+    if mentions_unbound_type_param(first, bindings) {
+        return
+    }
+    receiver_ty :: typed.expr_types[c.callee.target.id] ?? return
+    if converts_to_fresh_iterator(receiver_ty, first) {
+        return
+    }
+    want :: substitute_map(first, bindings)
+    // A receiver widening into a trait parameter fits through its impl, which the
+    // method access checked.
+    if want is TraitType {
+        return
+    }
+    if is_assignable(arg_mutability_cleared(receiver_ty), param_shape_slot(receiver_ty, want)) {
+        return
+    }
+    diags.push(mismatch_diagnostic(
+        receiver_ty, want, c.callee.target.span, .TypeMismatch,
+        mutability_level_hint(c.callee.target, receiver_ty, want, typed), typed,
+    ))
+}
+
+// Whether a lambda argument's parameter still names a type parameter of the callee
+// that a round over the lambdas could bind : one nothing has bound, or one only a
+// free literal has (`fold(0, (acc: i32, x: i32) -> …)` settles `U` on `i32`).
+lambda_slot_unbound :: fn(
+    c: AST.CallExpr, callee_ty: FnType, bindings: MutableMap<i32, Type>, n: usize,
+) -> bool {
+    for i in 0..<n {
+        if c.args[i].value !is AST.LambdaExpr {
+            continue
+        }
+        slot :: callee_ty.params[i]
+        if mentions_unbound_type_param(slot, bindings) {
+            return true
+        }
+        if any_type(substitute_map(slot, bindings), is_free_numeric) {
+            return true
+        }
+    }
+    return false
+}
+
+
+// A free literal receiver of a UFCS call takes what its parameter was bound to, as
+// a free literal argument does : `1.pick(x)` with `x: i64` is an `i64` receiver.
+repin_free_ufcs_receiver_at_instance :: fn(
+    c: AST.CallExpr,
+    bindings: MutableMap<i32, Type>,
+    typed: TypedProgram!,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> void {
+    if c.callee !is AST.FieldExpr {
+        return
+    }
+    chosen :: generic_ufcs_callee(c.callee, typed) ?? return
+    receiver_ty :: typed.expr_types[c.callee.target.id] ?? return
+    if receiver_ty !is FreeIntType && receiver_ty !is FreeFloatType {
+        return
+    }
+    want :: substitute_map(chosen.ty.params[0], bindings)
+    if want is PrimitiveType {
+        _ :: check_expr_fn(c.callee.target, want, typed, [])
+    }
+}
+
+// A UFCS call whose signature minus the receiver names none of the callee's type
+// parameters (`m.println()` on `println<T: Display>(msg: T)`) : the receiver alone
+// binds them, so the generic path never ran. Its bounds (T3006) and its rights
+// are judged here.
+check_receiver_alone :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]!) -> void {
+    if c.callee !is AST.FieldExpr || generic_ufcs_callee(c.callee, typed) == null {
         return
     }
     bindings :: MutableMap<i32, Type> {}
     seed_ufcs_bindings(c.callee, typed, bindings, null)
-    check_typeparam_bounds(c, bindings, typed, diags)
+    reject_ufcs_receiver_at_instance(c, bindings, typed, diags)
+    decl :: chosen_decl(typed, c.callee.id) ?? return
+    if has_bounded_type_param(decl) {
+        check_typeparam_bounds(c, bindings, typed, diags)
+    }
 }
 
 has_bounded_type_param :: fn(decl: AST.FnDecl) -> bool {

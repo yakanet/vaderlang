@@ -38,7 +38,8 @@ surface_referenced_intrinsic_externs :: fn(
         for d in decls_list {
             if d is ImplDecl {
                 if !is_entry {
-                    extra.push_all(surface_stdlib_impl_externs(d, module_typed, project_ctx, decls_list))
+                    externs :: surface_stdlib_impl_externs(d, module_typed, project_ctx, decls_list)
+                    extra.push_all(externs)
                 }
                 extra.push_all(surface_array_blanket_members(d, module_typed, project_ctx))
             }

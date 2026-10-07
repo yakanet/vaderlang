@@ -204,7 +204,9 @@ export impls_for :: fn(self: ImplRegistry, receiver: Type, trait_key: string) ->
 ///
 /// @param receiver   the type asked about.
 /// @param trait_key  a `trait_key`.
-export winning_impl :: fn(self: ImplRegistry, receiver: Type, trait_key: string) -> ImplEntry | null {
+export winning_impl :: fn(
+    self: ImplRegistry, receiver: Type, trait_key: string,
+) -> ImplEntry | null {
     covering :: self.impls_for(receiver, trait_key)
     return if covering.len() == 0 { null } else { covering[0] }
 }
@@ -243,13 +245,7 @@ export is_specialized_arg :: fn(self: ImplRegistry, t: Type) -> bool {
     if self.specialized_args.is_empty() {
         return false
     }
-    named: Type[]!: []
-    for_each_type(t, (sub) -> {
-        if impl_type_key(sub) in self.specialized_args {
-            named.push(sub)
-        }
-    })
-    return named.len() > 0
+    return any_type(t, (sub) -> impl_type_key(sub) in self.specialized_args)
 }
 
 /// The entry of `decl`, or null when its trait name binds to no trait.

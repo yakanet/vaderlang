@@ -494,15 +494,19 @@ try_free_fn_ufcs_dispatch :: fn(
         )
         // Below its own level — T3071's — the receiver is held to the parameter's
         // rights as any argument is : a `Box<Cfg>` handed to a `Box<Cfg!>!` would
-        // take in a read-only `Cfg` that the callee writes through.
-        cleared :: arg_mutability_cleared(target_ty)
-        slot :: param_shape_slot(target_ty, first_param)
-        if mutability_widens(cleared, slot, true, typed.type_param_bound_traits) {
-            diags.push(
-                mismatch_diagnostic(
-                    target_ty, first_param, e.target.span, .TypeMismatch, "", typed,
-                ),
-            )
+        // take in a read-only `Cfg` that the callee writes through. A parameter
+        // naming the callee's type parameters waits for the call, which binds them
+        // (`reject_ufcs_receiver_at_instance`).
+        if !type_contains_type_param(first_param) {
+            cleared :: arg_mutability_cleared(target_ty)
+            slot :: param_shape_slot(target_ty, first_param)
+            if mutability_widens(cleared, slot, true, typed.type_param_bound_traits) {
+                diags.push(
+                    mismatch_diagnostic(
+                        target_ty, first_param, e.target.span, .TypeMismatch, "", typed,
+                    ),
+                )
+            }
         }
     }
     return free_ufcs.curried

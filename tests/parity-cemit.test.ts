@@ -292,6 +292,8 @@ const C_PARITY = new Set<string>([
   // `x[i]` / `x[i] = v` through a trait value or a bounded `T`, and a
   // destructuring place written through `set_at`.
   "index_through_trait_value",
+  // A free literal takes the type its call binds, in method and free syntax alike.
+  "literal_argument_takes_its_binding",
   // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's
   // defer runs on teardown, the winner's at its own completion.
   "async_race",

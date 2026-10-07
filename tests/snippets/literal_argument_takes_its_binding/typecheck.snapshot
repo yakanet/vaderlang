@@ -1,0 +1,45 @@
+# Typecheck
+
+## tests/snippets/literal_argument_takes_its_binding
+  ConstDecl      CFG                  :: Cfg
+  StructDecl     Cfg                  :: Cfg!
+  FnDecl         first                :: fn(T, T) -> T
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         pick                 :: fn(T, T) -> T
+  expr 14:8     StructLitExpr  :: Cfg!
+  expr 16:34    IdentExpr      :: T
+  expr 18:35    IdentExpr      :: T
+  expr 22:13    StringLitExpr  :: string
+  expr 22:16    CallExpr       :: i64
+  expr 22:16    IdentExpr      :: fn(T, T) -> T
+  expr 22:24    IdentExpr      :: i64
+  expr 22:30    CallExpr       :: i64
+  expr 22:30    FieldExpr      :: fn(i32) -> i32
+  expr 22:37    IdentExpr      :: i64
+  expr 22:43    CallExpr       :: i64
+  expr 22:43    FieldExpr      :: fn(i64) -> i64
+  expr 22:43    IdentExpr      :: i64
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 22:56    CallExpr       :: i64
+  expr 22:56    IdentExpr      :: fn(T, T) -> T
+  expr 22:65    IdentExpr      :: i64
+  expr 23:18    StructLitExpr  :: Cfg!
+  expr 24:13    StringLitExpr  :: string
+  expr 24:16    CallExpr       :: Cfg
+  expr 24:16    FieldExpr      :: fn(Cfg!) -> Cfg!
+  expr 24:16    FieldExpr      :: i32
+  expr 24:16    IdentExpr      :: Cfg!
+  expr 24:27    IdentExpr      :: Cfg
+  expr 24:37    CallExpr       :: Cfg
+  expr 24:37    FieldExpr      :: fn(Cfg) -> Cfg
+  expr 24:37    FieldExpr      :: i32
+  expr 24:37    IdentExpr      :: Cfg
+  expr 24:46    IdentExpr      :: Cfg!
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 24:58    CallExpr       :: Cfg
+  expr 24:58    FieldExpr      :: i32
+  expr 24:58    IdentExpr      :: fn(T, T) -> T
+  expr 24:63    IdentExpr      :: Cfg!
+  expr 24:70    IdentExpr      :: Cfg
