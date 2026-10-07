@@ -1,0 +1,56 @@
+// `x[i]` and `x[i] = v` on a receiver that dispatches through `Index` / `IndexSet`
+// itself — a value of the trait, a type parameter bounded by it — read and write
+// through `at` / `set_at`, as `x.at(i)` / `x.set_at(i, v)` do. A destructuring
+// place is a write like any other: it goes through `set_at` and takes its value
+// type, on a bounded `T` and on a struct with an `IndexSet` and no `Index`. A key
+// takes the trait's key type, so a wide literal key reaches an `i64` map whole.
+module "snippet"
+
+import "std/collections"
+import "std/io"
+
+Log :: struct {
+    lines: string[]! = []
+}
+
+Log implements IndexSet<string, i32> {
+    set_at :: fn(self!, key: string, value: i32) -> void {
+        self.lines.push("${key}=${value}")
+    }
+}
+
+fill :: fn(store: IndexSet<string, i32>!) -> void {
+    store["a"] = 1
+    store.set_at("b", 2)
+}
+
+peek :: fn(store: Index<string, i32 | null>, key: string) -> i32 = store[key] ?? -1
+
+pair_into :: fn<C: IndexSet<string, i32>!>(c: C!) -> void {
+    [c["x"], c["y"]] = [3, 4]
+}
+
+put_wide :: fn(store: IndexSet<i64, i32>!) -> void {
+    store[9000000000] = 7
+}
+
+put_wider :: fn<C: IndexSet<i64, i32>!>(c: C!) -> void {
+    c[9000000001] = 8
+}
+
+main :: fn() -> i32 {
+    m :: MutableMap<string, i32> {}
+    fill(m)
+    pair_into(m)
+    println("${peek(m, "a")} ${peek(m, "b")} ${peek(m, "x")} ${peek(m, "y")} ${peek(m, "z")}")
+    l :: Log {}
+    fill(l)
+    [l["p"], l["q"]] = [5, 6]
+    println("${l.lines.len()} ${l.lines[0]} ${l.lines[3]}")
+    wide :: MutableMap<i64, i32> {}
+    put_wide(wide)
+    put_wider(wide)
+    k: i64: 9000000000
+    println("${wide[k] ?? -1} ${wide[k + 1] ?? -1} ${wide.len()}")
+    return 0
+}

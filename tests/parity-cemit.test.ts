@@ -289,6 +289,9 @@ const C_PARITY = new Set<string>([
   // An impl on one instance wins over its base's generic impl, through a trait
   // value, a bounded parameter, and an instance built in a generic body.
   "impl_specialization",
+  // `x[i]` / `x[i] = v` through a trait value or a bounded `T`, and a
+  // destructuring place written through `set_at`.
+  "index_through_trait_value",
   // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's
   // defer runs on teardown, the winner's at its own completion.
   "async_race",

@@ -226,10 +226,10 @@ lower_index :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type) -> LoweredExpr!
             }
         }
     }
-    // TypeParam-bounded `Index` receiver : the typer recorded the dispatch on
-    // this index expr — emit a virtual `Index.at(c, i)` call so the erased
-    // receiver's runtime tag picks the impl, mirroring the `c.at(i)` method form
-    // (`try_lower_virtual_call`). The entry only says the index dispatches : in
+    // A receiver dispatching through `Index` (a bounded `T`, a trait value) : the
+    // typer recorded the dispatch on this index expr — emit a virtual
+    // `Index.at(c, i)` call so the receiver's runtime tag picks the impl, mirroring
+    // the `c.at(i)` method form (`try_lower_virtual_call`). The entry only says the index dispatches : in
     // `c[i] op= v` one node is read AND written, so it may name `IndexSet`.
     if ctx.typed.bounded_dispatch_trait[expr.id] != null {
         ctx.project.virtually_dispatched_traits.add(core_trait_key(TRAIT_INDEX))
@@ -383,8 +383,9 @@ try_lower_index_set_assign :: fn(
     // other Expr target → null (handled by the regular assign path).
     @partial match target {
         is IndexExpr -> {
-            // TypeParam-bounded `IndexSet` receiver : the typer recorded the
-            // dispatch on this index expr (`check_assign`) — emit a virtual
+            // A receiver dispatching through `IndexSet` (a bounded `T`, a trait
+            // value) : the typer recorded the dispatch on this index expr
+            // (`dispatched_index_args`) — emit a virtual
             // `IndexSet.set_at(c, i, v)` call (erased receiver, runtime tag picks
             // the impl), mirroring the read-side `Index.at` vcall in `lower_index`.
             // As there, the entry only says the index dispatches : `c[i] op= v`

@@ -766,73 +766,12 @@ check_assign :: fn(
             return
         }
     }
-    // T3042 : `arr[i] = v` when arr's static type is read-only `T[]`.
-    // For an array receiver — or an array-backed distinct, `stored_array` — we
-    // still write the full IndexExpr into `expr_types`. For any other receiver
-    // the assignment LHS doesn't land in `expr_types` — only its sub-parts do,
-    // since the IndexSet trait dispatch is the read site.
     if s.target is AST.IndexExpr {
-        ix :: s.target
-        target_arr_ty :: check_expr_fn(ix.target, null, typed, diags)
-        // Pin a free-literal index key to the IndexSet key type K
-        // (`m[9000000000] = v`); null for arrays = plain integer index.
-        index_ty :: check_expr_fn(ix.index, index_key_expected(target_arr_ty, typed), typed, diags)
-        arr :: stored_array(target_arr_ty, typed)
-        if reject_index_write_receiver(ix.target, target_arr_ty, arr, s.target.span, typed, diags) {
-            return
-        }
-        if arr != null {
-            // Array elements are never flow-narrowed, so it is the declared slot type
-            // the write must fit.
-            elem_ty :: array_write_slot(ix, arr, index_ty, typed, diags)
-            value_ty :: check_expr_fn(s.value, elem_ty, typed, diags)
-            emit_assign_mismatch_if(value_ty, elem_ty, s.span, s.value, typed, diags)
-            return
-        }
-        // TypeParam bounded by `IndexSet<I, V>` — `c[i] = v` dispatches through
-        // the bound (`set_at`), like the `c[i]` read routes through `Index`.
-        // Record the dispatch so `try_lower_index_set_assign` emits the virtual
-        // call, and pin the write value to V.
-        if target_arr_ty is TypeParamType {
-            bound :: typed.resolved.type_param_bounds[target_arr_ty.symbol.id]
-            if bound != null {
-                set_args :: bounded_trait_args(bound, core_trait_key(TRAIT_INDEX_SET), typed)
-                if set_args != null && set_args.len() >= 2 {
-                    typed.bounded_dispatch_trait[ix.id] = core_trait_key(TRAIT_INDEX_SET)
-                    keep_instances_concrete(typed)
-                    set_value :: check_expr_fn(s.value, set_args[1], typed, diags)
-                    emit_assign_mismatch_if(set_value, set_args[1], s.span, s.value, typed, diags)
-                    return
-                }
-            }
-        }
-        if target_arr_ty is UnresolvedType {
-            return
-        }
-        // Nothing stores into a receiver with no `IndexSet` and no array to fall back
-        // on : the write would reach its `Index` read, a call.
-        if index_route(target_arr_ty, core_trait_key(TRAIT_INDEX_SET), typed) != .Impl {
-            diags.push(
-                typecheck_error(
-                    .NotIndexable, ix.target.span,
-                    "`${display_type(target_arr_ty)}` has no `IndexSet` to write through",
-                ),
-            )
-            return
-        }
-        if reject_unmet_impl_bounds(
-            target_arr_ty, core_trait_key(TRAIT_INDEX_SET), .TraitNotSatisfied, ix.target.span,
-            typed, diags,
-        ) {
-            return
-        }
-        // Pin a free-literal write value to the IndexSet value type V
-        // (`m[k] = 9000000000`) and check the write fits V. A `null` V means
-        // the receiver records no `IndexSet` impl — the read-side dispatch
-        // already surfaced that, so `emit_assign_mismatch_if` no-ops on it.
-        v_expected :: index_set_value_expected(target_arr_ty, typed)
-        value_ty :: check_expr_fn(s.value, v_expected, typed, diags)
-        emit_assign_mismatch_if(value_ty, v_expected, s.span, s.value, typed, diags)
+        // Pin a free-literal write value to the slot (`m[k] = 9000000000`) and check
+        // the write fits it.
+        slot :: index_write_slot(s.target, typed, diags, check_expr_fn) ?? return
+        value_ty :: check_expr_fn(s.value, slot, typed, diags)
+        emit_assign_mismatch_if(value_ty, slot, s.span, s.value, typed, diags)
         return
     }
     target_ty :: check_expr_fn(s.target, null, typed, diags)
@@ -950,7 +889,7 @@ check_destructuring_assign :: fn(
     if rest_slot != null {
         for t in s.targets {
             if t is AST.PlaceTarget {
-                _ :: check_expr_fn(t.place, null, typed, diags)
+                _ :: place_slot(t.place, typed, diags, check_expr_fn)
             }
         }
         value_ty :: check_expr_fn(s.value, rest_slot, typed, diags)
@@ -983,7 +922,7 @@ check_destructuring_assign :: fn(
     for t in s.targets {
         match t {
             is AST.PlaceTarget    -> {
-                slot_types.push(check_expr_fn(t.place, null, typed, diags))
+                slot_types.push(place_slot(t.place, typed, diags, check_expr_fn))
             }
             is AST.WildcardTarget -> {
                 slot_types.push(TY_UNRESOLVED)
@@ -1018,6 +957,22 @@ check_destructuring_assign :: fn(
     }
 }
 
+// The slot a destructuring place offers, typed before the source so the source
+// takes its shape. An index place is a write : it offers what its receiver stores,
+// never what an `Index` read gives back — `check_destructure_target` judges it.
+place_slot :: fn(
+    place: AST.Expr!,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> Type {
+    if place !is AST.IndexExpr {
+        return check_expr_fn(place, null, typed, diags)
+    }
+    receiver :: check_expr_fn(place.target, null, typed, diags)
+    return index_write_type(receiver, typed) ?? TY_UNRESOLVED
+}
+
 /// Element types a destructuring target of `count` elements would read, or null
 /// when `value_ty` cannot be destructured that way. A tuple answers per position
 /// and must match `count` exactly ; an array answers its element type for every
@@ -1039,6 +994,58 @@ destructure_element_types :: fn(value_ty: Type, count: usize) -> Type[] | null {
         return out
     }
     return null
+}
+
+// What a write into `ix` must fit, for every write form : its receiver judged
+// (`reject_index_write_receiver`) and its key too (`reject_index_key`), an array's
+// element, else the `IndexSet` value of a receiver dispatching through the trait
+// (`dispatched_index_args`) or of its own impl. Null when the receiver is
+// unresolved or the write is refused — reported.
+index_write_slot :: fn(
+    ix: AST.IndexExpr!,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> Type | null {
+    set_trait :: core_trait_key(TRAIT_INDEX_SET)
+    receiver_ty :: check_expr_fn(ix.target, null, typed, diags)
+    key_ty :: index_key_expected(receiver_ty, set_trait, typed)
+    index_ty :: check_expr_fn(ix.index, key_ty, typed, diags)
+    arr :: stored_array(receiver_ty, typed)
+    if reject_index_write_receiver(ix.target, receiver_ty, arr, ix.span, typed, diags) {
+        return null
+    }
+    if arr != null {
+        // Array elements are never flow-narrowed, so it is the declared slot type
+        // the write must fit.
+        return array_write_slot(ix, arr, index_ty, typed, diags)
+    }
+    dispatched :: dispatched_index_args(ix, receiver_ty, set_trait, typed)
+    if dispatched != null {
+        reject_index_key(ix.index, index_ty, key_ty, typed, diags)
+        return dispatched[1]
+    }
+    if receiver_ty is UnresolvedType {
+        return null
+    }
+    // Nothing stores into a receiver with no `IndexSet` and no array to fall back
+    // on : the write would reach its `Index` read, a call.
+    if index_route(receiver_ty, set_trait, typed) != .Impl {
+        diags.push(
+            typecheck_error(
+                .NotIndexable, ix.target.span,
+                "`${display_type(receiver_ty)}` has no `IndexSet` to write through",
+            ),
+        )
+        return null
+    }
+    if reject_unmet_impl_bounds(
+        receiver_ty, set_trait, .TraitNotSatisfied, ix.target.span, typed, diags,
+    ) {
+        return null
+    }
+    reject_index_key(ix.index, index_ty, key_ty, typed, diags)
+    return index_set_value_expected(receiver_ty, typed) ?? TY_UNRESOLVED
 }
 
 // The slot an element write into an array fills : the backing's element, recorded
@@ -1084,20 +1091,13 @@ check_destructure_target :: fn(
             return
         }
     } else if target is AST.IndexExpr {
-        // T3042 then T3070 — a read-only `T[]` leaf first, then a mutable array
-        // reached through an immutable path. Skipping these would let a
-        // destructuring assignment write through a read-only borrow.
-        recv_ty :: check_expr_fn(target.target, null, typed, diags)
-        arr :: stored_array(recv_ty, typed)
-        if reject_index_write_receiver(target.target, recv_ty, arr, target.span, typed, diags) {
-            return
-        }
-        if arr != null {
-            index_ty :: check_expr_fn(target.index, null, typed, diags)
-            slot :: array_write_slot(target, arr, index_ty, typed, diags)
-            emit_assign_mismatch_if(elem_ty, slot, target.span, target, typed, diags)
-            return
-        }
+        // Judged as `m[k] = v` is : skipping it would let a destructuring assignment
+        // write through a read-only borrow.
+        slot :: index_write_slot(target, typed, diags, check_expr_fn) ?? return
+        // The lowering types the element it writes by the target's own type.
+        record_expr(typed, target, slot)
+        emit_assign_mismatch_if(elem_ty, slot, target.span, target, typed, diags)
+        return
     } else {
         diags.push(typecheck_error(
             .InvalidAssignTarget, target.span,

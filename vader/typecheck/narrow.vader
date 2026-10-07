@@ -82,7 +82,7 @@ export NarrowState :: struct {
     /// scope resolution. `Symbol.defined_at` is the bridge; adding the
     /// declaration span to `idents` instead is not an option — measured, it
     /// triples the tree's diagnostics (that table is consulted for other things).
-    binding_scrutinee: MutableMap<i64, AST.Expr>! = MutableMap<i64, AST.Expr> {}
+    binding_scrutinee: MutableMap<u64, AST.Expr>! = MutableMap<u64, AST.Expr> {}
 }
 
 

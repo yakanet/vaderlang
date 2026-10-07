@@ -191,7 +191,7 @@ fn 4 snippet$main () -> i32
   local.get 4   ; $add_48
   array.set 1   ; i32[]
   local.get 0   ; o
-  i32.const 2
+  i64.const 2
   i32.const 42
   array.set 1   ; i32[]
   i64.const 29

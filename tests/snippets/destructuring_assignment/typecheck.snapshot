@@ -67,7 +67,7 @@
   expr 58:14    IdentExpr      :: i32
   expr 58:19    SeqLitExpr     :: [i32, i32]!
   expr 58:6     IdentExpr      :: MutableMap<string, i32>!
-  expr 58:6     IndexExpr      :: i32 | null
+  expr 58:6     IndexExpr      :: i32
   expr 58:8     StringLitExpr  :: string
   expr 59:13    StringLitExpr  :: string
   expr 59:27    IdentExpr      :: MutableMap<string, i32>!

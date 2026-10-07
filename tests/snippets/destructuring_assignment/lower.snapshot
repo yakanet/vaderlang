@@ -586,8 +586,8 @@
           _0: int(30) :i32
           _1: int(40) :i32
         }
-      let __destr_el_28: i32 | null =
-        ._0 :i32 | null
+      let __destr_el_28: i32 =
+        ._0 :i32
           __destr_src_27 :[i32, i32]!
       let __destr_el_29: i32 =
         ._1 :i32
@@ -600,7 +600,7 @@
         arg1:
           "k" :string
         arg2:
-          __destr_el_28 :i32 | null
+          __destr_el_28 :i32
       assign
         target:
           z :i32

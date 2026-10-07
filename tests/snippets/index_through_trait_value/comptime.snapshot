@@ -1,0 +1,69 @@
+# Comptime
+
+## tests/snippets/index_through_trait_value
+
+## generic instances
+  __genstate_array_iter<T>
+  MutableMap<i32, bool>
+  MutableMap<i32, i32>
+  MutableMap<i64, i32>
+  MutableMap<string, i32>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<K, V>
+  MutableSet<i32>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<string, i32 | null>
+  Index<I, T>
+  IndexSet<i64, i32>
+  IndexSet<string, i32>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<[K, V]>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Async<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayOps<T>

@@ -1,0 +1,11 @@
+// T3001: the key of `m[k]` must be the key type of the receiver's `Index` /
+// `IndexSet`, here `i64`. A `string` key reached the map unchecked, read or write.
+module "snippet"
+
+import "std/collections"
+
+main :: fn() -> i32 {
+    m :: MutableMap<i64, i32> {}
+    m["nope"] = 1
+    return m["nope"] ?? 0
+}

@@ -77,7 +77,7 @@ fn 1 snippet$main () -> i32
   local __buf_19 ref
   local __destr_el_22 i32
   local __destr_el_23 i32
-  local __destr_el_28 any
+  local __coalesce_30 any
   local c2 any
   local $len_219 usize
   local $cast_236 u64
@@ -350,14 +350,11 @@ fn 1 snippet$main () -> i32
   call 10   ; std_collections$MutableMap$IndexSet$set_at__string__i32
   i32.const 0
   local.set 5   ; __destr_el_6
-  i32.const 30
-  retag 2   ; i32
-  local.set 12   ; __destr_el_28
   i32.const 40
   local.set 5   ; __destr_el_6
   local.get 2   ; __buf_3
   string.const 12   ; "k"
-  local.get 12   ; __destr_el_28
+  i32.const 30
   call 10   ; std_collections$MutableMap$IndexSet$set_at__string__i32
   i64.const 54
   call 4   ; std_core$new_byte_buffer
@@ -372,14 +369,14 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_3
   string.const 12   ; "k"
   call 9   ; std_collections$MutableMap$Index$at__string__i32
-  local.tee 12   ; __destr_el_28
+  local.tee 12   ; __coalesce_30
   type_check 0   ; null
   if $L0 void
     i32.const 1
     i32.neg
     local.set 10   ; __destr_el_22
   else
-    local.get 12   ; __destr_el_28
+    local.get 12   ; __coalesce_30
     ref.cast 2   ; i32
     local.set 10   ; __destr_el_22
   end $L0
@@ -410,15 +407,15 @@ fn 1 snippet$main () -> i32
   call 20   ; std_io$println__string
   i32.const 1
   struct.new 19   ; $Cell_i32
-  local.set 12   ; __destr_el_28
+  local.set 12   ; __coalesce_30
   i32.const 2
   struct.new 19   ; $Cell_i32
   local.set 13   ; c2
-  local.get 12   ; __destr_el_28
+  local.get 12   ; __coalesce_30
   local.get 13   ; c2
   struct.new 4   ; __lambda_env_snippet_1
   local.set 2   ; __buf_3
-  local.get 12   ; __destr_el_28
+  local.get 12   ; __coalesce_30
   i32.const 50
   struct.set 19 0   ; $Cell_i32.value
   local.get 13   ; c2

@@ -590,6 +590,8 @@ export TypedProgram :: struct {
     /// `Equals`. The lower consumes this to emit `vcall std/core.Hash.hash` on
     /// erased-to-Any receivers instead of a direct field-call to an unresolved
     /// member, and the comparison itself on an enum or primitive receiver.
+    /// IndexExpr.id → `Index` / `IndexSet` when `x[k]` dispatches through the trait
+    /// (`dispatched_index_args`) : a bounded `T`, a trait value.
     bounded_dispatch_trait: MutableMap<usize, string>!
 
     /// Generic fn AST-node id → true when its body needs each instance's real
