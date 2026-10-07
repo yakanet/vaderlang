@@ -203,8 +203,8 @@ async function runVaderDump(stage: string, entryPath: string, modules?: readonly
 }
 
 // A vader panic prints "vader: panic — …" to stderr, then abort()s. The abort's
-// OS exit code is NOT portable — POSIX reports 134 (128 + SIGABRT), wine 3, the
-// Windows CI 9 — so a snapshot can't bake a single number. Identify the abort by
+// OS exit code is NOT portable — POSIX reports 134 (128 + SIGABRT), the Windows
+// CI 9 — so a snapshot can't bake a single number. Identify the abort by
 // its stderr signature (printed before abort() on every platform), or by a
 // POSIX signal-range code, and canonicalise to 134 (what the crash snapshots
 // bake) so a snippet that aborts the compiler (e.g. for_in_iter_trait's midir

@@ -1,9 +1,7 @@
 # tools/windows-vm/Vagrantfile -- a headless Windows 11 ARM64 guest, driven
 # entirely from a macOS terminal over SSH.
 #
-# Why it exists: wine is not a Windows oracle (TODO.md, "Where wine belongs" --
-# its GetFileAttributesA("C:") succeeds, so it never reproduced the drive-root
-# bug), and the real `windows-latest` CI job costs a ~12 min round trip. This is
+# Why it exists: the `windows-latest` CI job costs a ~12 min round trip. This is
 # a genuine NT kernel on Apple Silicon, accelerated by Hypervisor.framework, so
 # the 28 `_WIN32` branches of runtime/c/vader_runtime.c can be exercised here.
 #

@@ -250,7 +250,7 @@ RUN_FMT_TESTS=1 bun run test               # also exercise the Vader formatter e
 
 ### Running the suite on Windows
 
-[`tools/windows-vm/`](./tools/windows-vm/) holds a Vagrant definition for a headless **Windows 11 ARM64** guest, so the `_WIN32` paths can be built and tested from a macOS or Linux terminal without waiting on CI. Unlike wine it is a real NT kernel, which is what makes it an oracle for the Windows-only surface — drive roots, path separators, CRLF stdio, pipes, process spawn.
+[`tools/windows-vm/`](./tools/windows-vm/) holds a Vagrant definition for a headless **Windows 11 ARM64** guest, so the `_WIN32` paths can be built and tested from a macOS or Linux terminal without waiting on CI. It runs a real NT kernel, which is what makes it an oracle for the Windows-only surface — drive roots, path separators, CRLF stdio, pipes, process spawn.
 
 ```sh
 cd tools/windows-vm && vagrant up   # once: boots the guest, installs clang/bun/pwsh

@@ -60,8 +60,8 @@ jobs:
           VADER_TEST_GATE: ${{ inputs.gate }}
         run: bun run test --only-failures
 
-  # Real Windows build + test. Faithful (unlike wine) and a regression guard for
-  # the Windows-specific surface (CRLF stdio, path separators, the runtime).
+  # Real Windows build + test : a regression guard for the Windows-specific
+  # surface (CRLF stdio, path separators, the runtime).
   test-windows:
     name: Test (Windows)
     runs-on: windows-latest

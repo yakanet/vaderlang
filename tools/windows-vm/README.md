@@ -6,11 +6,9 @@ opened.
 
 ## Why
 
-`wine` is a fast local loop, not a Windows oracle — its
-`GetFileAttributesA("C:")` succeeds, so it never reproduced the drive-root bug
-(TODO.md, *"Where wine belongs"*). The real `windows-latest` CI job **is** an
-oracle, but at a ~12 min round trip. This VM is a genuine NT kernel with genuine
-Win32 semantics, roughly a minute away.
+The `windows-latest` CI job is a Windows oracle, but at a ~12 min round trip.
+This VM is a genuine NT kernel with genuine Win32 semantics, roughly a minute
+away.
 
 **What it covers**: the 28 `_WIN32` branches of `runtime/c/vader_runtime.c`,
 drive roots, path separators, CRLF stdio, pipes, process spawn — every bug the
