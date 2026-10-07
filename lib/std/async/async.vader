@@ -110,7 +110,7 @@ JoinAll :: struct<T> {
     children: Async<T>![]
     /// Completed results keyed by input index ; an index is present iff its
     /// child is done. `results.len() == children.len()` ⇒ all joined.
-    results:  MutableMap<usize, T>
+    results:  MutableMap<usize, T>!
     /// The `wake_at` each child last reported, by input index ; `NEVER` once it
     /// is done.
     wake_at:  i64[]!

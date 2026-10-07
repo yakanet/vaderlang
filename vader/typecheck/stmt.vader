@@ -778,24 +778,10 @@ check_assign :: fn(
         // (`m[9000000000] = v`); null for arrays = plain integer index.
         index_ty :: check_expr_fn(ix.index, index_key_expected(target_arr_ty, typed), typed, diags)
         arr :: stored_array(target_arr_ty, typed)
+        if reject_index_write_receiver(ix.target, target_arr_ty, arr, s.target.span, typed, diags) {
+            return
+        }
         if arr != null {
-            if arr.immutable {
-                diags.push(
-                    typecheck_error(
-                        .CannotMutateImmutableArray,
-                        ix.target.span,
-                        "cannot mutate `${display_type(target_arr_ty)}`"
-                            + mutation_fix_hint(ix.target, typed),
-                    ),
-                )
-                return
-            }
-            // T3070 : the array itself is mutable, but we got to it through an
-            // immutable path — `CFG.tags[0] = 9`, where `tags: i32[]`. T3042 above
-            // already handled the read-only `T[]` leaf, so this only fires past it.
-            if push_immutable_path_write(ix.target, s.target.span, typed, diags) {
-                return
-            }
             // Array elements are never flow-narrowed, so it is the declared slot type
             // the write must fit.
             elem_ty :: array_write_slot(ix, arr, index_ty, typed, diags)
@@ -812,12 +798,6 @@ check_assign :: fn(
             if bound != null {
                 set_args :: bounded_trait_args(bound, core_trait_key(TRAIT_INDEX_SET), typed)
                 if set_args != null && set_args.len() >= 2 {
-                    if reject_driving_immutable(
-                        ix.target, target_arr_ty, TRAIT_INDEX_SET, INDEX_WRITE_DETAIL,
-                        typed, diags,
-                    ) {
-                        return
-                    }
                     typed.bounded_dispatch_trait[ix.id] = core_trait_key(TRAIT_INDEX_SET)
                     keep_instances_concrete(typed)
                     set_value :: check_expr_fn(s.value, set_args[1], typed, diags)
@@ -838,10 +818,6 @@ check_assign :: fn(
                     "`${display_type(target_arr_ty)}` has no `IndexSet` to write through",
                 ),
             )
-            return
-        }
-        // T3070 : same rule for an `IndexSet` receiver (a map field of a const).
-        if push_immutable_path_write(ix.target, s.target.span, typed, diags) {
             return
         }
         if reject_unmet_impl_bounds(
@@ -1113,14 +1089,7 @@ check_destructure_target :: fn(
         // destructuring assignment write through a read-only borrow.
         recv_ty :: check_expr_fn(target.target, null, typed, diags)
         arr :: stored_array(recv_ty, typed)
-        if arr != null && arr.immutable {
-            diags.push(typecheck_error(
-                .CannotMutateImmutableArray, target.target.span,
-                "cannot mutate `${display_type(recv_ty)}`"
-                    + mutation_fix_hint(target.target, typed)))
-            return
-        }
-        if push_immutable_path_write(target.target, target.span, typed, diags) {
+        if reject_index_write_receiver(target.target, recv_ty, arr, target.span, typed, diags) {
             return
         }
         if arr != null {
@@ -1777,9 +1746,39 @@ mark_loop_var_borrow :: fn(
 
 
 
+// What forbids writing an element of `receiver`, for every write form (`check_assign`,
+// a destructuring target). True when reported.
+//   - T3042 : a read-only array.
+//   - T3070 : a mutable array reached through a read-only path (`CFG.tags[0] = 9`).
+//   - T3071 : a receiver that cannot take `IndexSet.set_at`, a `self!` member, which
+//     the write calls — a field written without `!`, a read-only parameter.
+reject_index_write_receiver :: fn(
+    receiver: AST.Expr,
+    receiver_ty: Type,
+    arr: ArrayType | null,
+    write_span: Span,
+    typed: TypedProgram,
+    diags: Diagnostic[]!,
+) -> bool {
+    if arr == null {
+        return reject_driving_immutable(
+            receiver, receiver_ty, TRAIT_INDEX_SET, INDEX_WRITE_DETAIL, typed, diags,
+        )
+    }
+    if arr.immutable {
+        diags.push(typecheck_error(
+            .CannotMutateImmutableArray,
+            receiver.span,
+            "cannot mutate `${display_type(receiver_ty)}`" + mutation_fix_hint(receiver, typed),
+        ))
+        return true
+    }
+    return push_immutable_path_write(receiver, write_span, typed, diags)
+}
+
 // T3070 for an element write (`CFG.tags[0] = 9`) whose container is mutable but
-// reached through an immutable path. Shared by the array and IndexSet branches of
-// `check_assign` ; the read-only `T[]` case keeps T3042's more specific wording.
+// reached through an immutable path ; the read-only `T[]` case keeps T3042's more
+// specific wording.
 push_immutable_path_write :: fn(
     target: AST.Expr, span: Span, typed: TypedProgram, diags: Diagnostic[]!,
 ) -> bool = push_immutability_diag_for(

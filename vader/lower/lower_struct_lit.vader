@@ -18,7 +18,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx!, lit: StructLitExpr, type: Type) -> Lowe
     // struct decl in declaration order ; this yields a canonical field
     // ordering even when the source literal reorders
     // fields or omits ones with defaults.
-    provided: MutableMap<string, Expr>: MutableMap<string, Expr> {}
+    provided :: MutableMap<string, Expr> {}
     // Bind each `...spread` source to a synthetic temp so it's
     // evaluated exactly once even when several fields inherit from it.
     // Later spreads win, so `spread_sym` tracks the LAST source —

@@ -224,7 +224,7 @@ export TypedProgram :: struct {
     /// nodes inside materialised trait default-method bodies). Lets the
     /// dump emit multiple entries for cloned nodes that share the same
     /// source span.
-    expr_types: MutableMap<usize, Type>
+    expr_types: MutableMap<usize, Type>!
 
     /// Target type of every implicit `.into()` coercion, keyed by the
     /// coerced value expression's `Expr.id`. Written by `coerce.vader::
@@ -234,13 +234,13 @@ export TypedProgram :: struct {
     /// it records nothing. Consumed only by the LSP inlay-hint handler,
     /// which surfaces a ghost `.into()` at the value's end. Invisible to
     /// lowering / bytecode — the coercion decision itself is unchanged.
-    into_coercions: MutableMap<usize, Type>
+    into_coercions: MutableMap<usize, Type>!
 
     /// Type of every `:=` / `::` local binding, keyed by binding span
     /// (the span on `SimpleBinding` / `RestBinding`, not the LetStmt)
     /// via `Span.hash()` — the file's FNV hash folded with the start
     /// line/column (`diagnostics/diagnostic.vader`).
-    local_types: MutableMap<u64, Type>
+    local_types: MutableMap<u64, Type>!
 
     /// `x := []` — the empty-array initialiser's expression id, keyed by the
     /// same binding span as `local_types`. Read by
@@ -249,7 +249,7 @@ export TypedProgram :: struct {
     /// lowerer reads to pick the buffer's element kind, so leaving it at `?[]`
     /// allocates a BOXED buffer that the (now concrete) reads and writes access
     /// as packed elements. Only empty-array bindings are recorded.
-    empty_array_inits: MutableMap<u64, usize>
+    empty_array_inits: MutableMap<u64, usize>!
 
     /// Type of every top-level decl (FnDecl, StructDecl, ConstDecl…).
     /// Keyed by `Symbol.id`. Previously span-keyed via
@@ -257,7 +257,7 @@ export TypedProgram :: struct {
     /// multi-file modules (two decls at same `(line, col)` would
     /// clobber each other). Symbol.id is globally unique within a
     /// `LoadedProject`.
-    decl_types: MutableMap<i32, Type>
+    decl_types: MutableMap<i32, Type>!
 
     /// Impl-method types, keyed by the method's `name_span` via
     /// `Span.hash()`. Impl methods don't have a resolver `Symbol` —
@@ -266,38 +266,38 @@ export TypedProgram :: struct {
     /// keying used by `decl_types`. Per-file uniqueness is enough
     /// because an `impl` block lives in one file ; cross-file
     /// collisions don't apply.
-    impl_method_decl_types: MutableMap<u64, Type>
+    impl_method_decl_types: MutableMap<u64, Type>!
 
     /// Type of every fn / lambda parameter, keyed by `FnParam.span`
     /// via `Span.hash()`.
-    param_types: MutableMap<u64, Type>
+    param_types: MutableMap<u64, Type>!
 
     /// Type of every type-position expression — `let x: T = …` annotations,
     /// fn signatures, struct field types, etc. Keyed by the expression's
     /// own span via `Span.hash()` so downstream passes can reuse what
     /// `type_from_expr` already computed.
-    type_expr_types: MutableMap<u64, Type>
+    type_expr_types: MutableMap<u64, Type>!
 
     /// `StructDecl` keyed by the symbol's id. Populated by `decl.vader`
     /// while it mints struct types ; consumed by `field.vader` so it
     /// can walk a struct's field list to type `obj.f` accesses without
     /// re-walking the program AST.
-    struct_decls: MutableMap<i32, AST.StructDecl>
+    struct_decls: MutableMap<i32, AST.StructDecl>!
 
     /// `TraitDecl` keyed by the symbol's id. Same shape as
     /// `struct_decls` ; consumed by orchestrate's T3036 check.
-    trait_decls: MutableMap<i32, AST.TraitDecl>
+    trait_decls: MutableMap<i32, AST.TraitDecl>!
 
     /// `Symbol.id → FnDecl` for every top-level fn (and impl method).
     /// Lets call-site code reach the fn's `type_params` (with bounds)
     /// without re-walking the AST. Populated at `declare_module` time.
-    fn_decls: MutableMap<i32, AST.FnDecl>
+    fn_decls: MutableMap<i32, AST.FnDecl>!
 
     /// Owner module of each trait — used when resolving trait method
     /// signatures so cross-module `Iterator<T>.next` types `T` against
     /// std/core's resolved.idents, not the entry's. Keyed by the
     /// trait's Symbol id, populated alongside `trait_decls`.
-    trait_decl_owners: MutableMap<i32, ResolvedModule>
+    trait_decl_owners: MutableMap<i32, ResolvedModule>!
 
     /// `type::method_name → ImplMethod`, under two keys per member: the impl's
     /// own type (`impl_type_key`, arguments included) and its base
@@ -305,7 +305,7 @@ export TypedProgram :: struct {
     /// `record_impl_members` ; consumed by `field.vader::infer_field` for the
     /// `x.method()` dispatch path when `x` is not a struct with a member named
     /// `method`.
-    impl_methods: MutableMap<string, ImplMethod>
+    impl_methods: MutableMap<string, ImplMethod>!
 
     /// Flow-sensitive narrowing state — the five tables `narrow.vader` owns.
     /// Grouped because they are one machine: an entry in `bindings` is only
@@ -317,7 +317,7 @@ export TypedProgram :: struct {
     /// same `Expr.id`. Populated alongside `expr_types` from
     /// `check_expr` ; consumed by `dump.vader` so the typed-ast dump
     /// can label each expression line without re-walking the AST.
-    expr_kinds: MutableMap<usize, string>
+    expr_kinds: MutableMap<usize, string>!
 
     /// Per-ImportBinding redirect table : `Symbol.id → ImportTarget`.
     /// Populated by `vader/resolver/wire.vader::wire_imports` ; null
@@ -332,13 +332,13 @@ export TypedProgram :: struct {
     /// module's decls. `type_of_symbol` falls back to this when the
     /// per-module `decl_types[sym.defined_at.hash()]` misses (the
     /// symbol's `defined_at` is in another module).
-    external_types: MutableMap<i32, Type>
+    external_types: MutableMap<i32, Type>!
 
     /// Per-namespace export tables : `module_id → field_name → Type`.
     /// Populated alongside `external_types` for every namespace
     /// `name :: import "p"` binding. Consumed by `field.vader` so
     /// `mod.foo` accesses can resolve to the export's concrete type.
-    namespace_exports: MutableMap<string, MutableMap<string, Type>>
+    namespace_exports: MutableMap<string, MutableMap<string, Type>>!
 
     /// Declared parameters of exported FN members, per namespace :
     /// `module_id → fn_name → params`. Populated alongside
@@ -346,7 +346,7 @@ export TypedProgram :: struct {
     /// for fn members. Consumed by `call.vader::callee_param_decls` so a
     /// namespace-qualified call (`mod.foo(...)`) can reorder named args and
     /// fill omitted defaults from each param's `default_value`.
-    namespace_export_decls: MutableMap<string, MutableMap<string, AST.FnDecl>>
+    namespace_export_decls: MutableMap<string, MutableMap<string, AST.FnDecl>>!
 
     /// `std/core` exported symbols indexed by name. Populated by
     /// the orchestrator after loading core, consumed by passes that
@@ -387,33 +387,33 @@ export TypedProgram :: struct {
     /// the `<clone>:` form a materialised trait-default body carries — so the
     /// map holds two entries per file, both pointing at the same table. Counting
     /// its entries does not count the module's files.
-    imported_fn_overloads: MutableMap<string, MutableMap<string, FnCandidate[]!>!>
+    imported_fn_overloads: MutableMap<string, MutableMap<string, FnCandidate[]!>!>!
 
     /// `impl_base_key(for_ty) → element` for every `X implements
     /// Iterator<T>` impl reached during type-checking — the impl's own `T`,
     /// which a reader substitutes against the instance's arguments. Consumed by
     /// `stmt.vader::for_in_element` so `for c in some_iter` binds
     /// `c` to T.
-    iter_element_types: MutableMap<string, Type>
+    iter_element_types: MutableMap<string, Type>!
 
     /// `impl_base_key(for_ty) → T` for every `X implements Index<I, T>`
     /// impl. Consumed by `expr_index.vader` so `m[k]` returns T when
     /// `m` is a user struct with an Index impl.
-    index_target_types: MutableMap<string, Type>
+    index_target_types: MutableMap<string, Type>!
 
     /// `impl_base_key(for_ty) → K` for every `X implements Index<K, _>`
     /// or `X implements IndexSet<K, _>` impl. Consumed by
     /// `expr_index.vader` / `stmt.vader` to pin a free-literal index key
     /// (`m[9000000000]`) to the resolved key type instead of letting it
     /// default to i32 and silently truncate.
-    index_key_types: MutableMap<string, Type>
+    index_key_types: MutableMap<string, Type>!
 
     /// `impl_base_key(for_ty) → V` for every `X implements IndexSet<K, V>`
     /// impl. Consumed by `stmt.vader::check_assign` to pin a free-literal
     /// index-set value (`m[k] = 9000000000`) to the declared value type.
     /// Distinct from `index_target_types` (which records the nullable
     /// `Index` *read* result `V | null`, not the write value `V`).
-    index_set_value_types: MutableMap<string, Type>
+    index_set_value_types: MutableMap<string, Type>!
 
     /// `FieldExpr.id → original first-param type` for every
     /// UFCS-dispatched field access (i.e. the param that got
@@ -421,7 +421,7 @@ export TypedProgram :: struct {
     /// type to harvest type-param bindings before substituting the
     /// return type — the curried fn keeps the un-substituted
     /// signature for display.
-    ufcs_receiver_types: MutableMap<usize, Type>
+    ufcs_receiver_types: MutableMap<usize, Type>!
 
     /// Callee id → the fn typecheck chose for the call : the fn a UFCS `x.f(…)`
     /// dispatched to (keyed by the `FieldExpr`), the overload a direct call to
@@ -432,16 +432,16 @@ export TypedProgram :: struct {
     /// the winner later gives a second answer to a question already answered,
     /// from a different candidate set : a search over every loaded module reaches
     /// fns this file imports only behind a namespace alias, or not at all.
-    chosen_fns: MutableMap<usize, FnCandidate>
+    chosen_fns: MutableMap<usize, FnCandidate>!
 
     /// `FieldExpr` id → the impl method a call `x.m(…)` dispatched to. Read by
     /// tooling: the lowerer finds the impl member from the receiver itself.
-    chosen_impl_methods: MutableMap<usize, ImplMethod>
+    chosen_impl_methods: MutableMap<usize, ImplMethod>!
 
     /// `FieldExpr` id → the static member a `Type.member` access names. Read by
     /// the lowerer, which calls the owner's impl member directly, with no
     /// receiver.
-    static_members: MutableMap<usize, StaticMember>
+    static_members: MutableMap<usize, StaticMember>!
 
     /// Type-parameter symbol id → the traits of its bound. A project check
     /// shares ONE table across every module (`broadcast_type_param_bounds`), so a
@@ -471,7 +471,7 @@ export TypedProgram :: struct {
     /// cross-module field lookups (`entry.value` where `entry`'s
     /// struct lives in another module) get the right TypeParams /
     /// nominal references.
-    struct_field_types: MutableMap<i32, MutableMap<string, Type>>
+    struct_field_types: MutableMap<i32, MutableMap<string, Type>>!
 
     /// `impl_base_key → trait_key`s for every `X implements Trait` impl — what
     /// the run-time `is Trait` test sees. A generic impl
@@ -483,7 +483,7 @@ export TypedProgram :: struct {
     /// with the bounds it puts on the type's arguments. Keyed by the impl's span
     /// because an impl is recorded again at every walk of its module ; an impl
     /// for a type without arguments puts no bound and is not recorded.
-    impl_bounds: MutableMap<string, MutableMap<u64, BoundedImpl>!>
+    impl_bounds: MutableMap<string, MutableMap<u64, BoundedImpl>!>!
 
     /// `Symbol.id → trait_key`s — the twin of `struct_implemented_traits` for
     /// the types that have a declaration, populated in lockstep by
@@ -499,7 +499,7 @@ export TypedProgram :: struct {
     /// `struct_trait_args[base of Hello]["main.Greeter"] = [i32]`. Consumed by
     /// `unify.vader::unify_type_param` so a generic fn parametrised by
     /// `fn<T>(g: Greeter<T>)` called as `f(Hello {})` can bind T → i32.
-    struct_trait_args: MutableMap<string, MutableMap<string, Type[]!>>
+    struct_trait_args: MutableMap<string, MutableMap<string, Type[]!>!>!
 
     /// Enclosing fn-body context, pushed by `check_fn_body` and
     /// popped when it returns. Lets `check_return` (called via the
@@ -511,7 +511,7 @@ export TypedProgram :: struct {
     /// rendering (or `undefined:undefined` for materialised spans). Populated
     /// alongside `expr_kinds` — and, like it, only when `dump_types` is set
     /// (see below) ; `expr_types` always populates, these two do not.
-    node_spans: MutableMap<usize, Span>
+    node_spans: MutableMap<usize, Span>!
 
     /// When true, `record_expr` (+ the stmt / binary dump sites) populate the
     /// dump-only side-tables `expr_kinds` / `node_spans`. Set only for a
@@ -532,7 +532,7 @@ export TypedProgram :: struct {
     /// declaration of the same C symbol — the linker would otherwise
     /// silently bind both call sites to one prototype, producing UB at
     /// mismatched ABIs.
-    extern_symbols: MutableMap<string, AST.FnDecl>
+    extern_symbols: MutableMap<string, AST.FnDecl>!
 
     /// In-fn type aliases : `t :: i32` inside a fn body. Keyed by the
     /// binding's `Symbol.id` (resolver-minted Local), value is the
@@ -540,7 +540,7 @@ export TypedProgram :: struct {
     /// RHS is a structural type expression and the binding is
     /// immutable. Consumed at use sites — `@size_of(t)` and friends
     /// fold to a literal when the ident resolves to a key here.
-    let_type_aliases: MutableMap<i32, Type>
+    let_type_aliases: MutableMap<i32, Type>!
 
     /// Where the fix goes when a write is rejected — four tables, one per shape a
     /// read-only value can arrive in, all read by `mutation_fix_hint`.
@@ -553,13 +553,13 @@ export TypedProgram :: struct {
     ///
     /// Local Symbol.id → what produced its value : a call, whose RETURN is the
     /// lever, or a field path (`body :: d.body`), whose FIELD is.
-    local_init_source: MutableMap<i32, AST.Expr>
+    local_init_source: MutableMap<i32, AST.Expr>!
     /// Loop-variable Symbol.id → the expression it iterates. Recorded for EVERY
     /// loop variable: one over a collection with a MUTABLE root but read-only
     /// ELEMENTS is rejected by the element's type, never by the path, so it never
     /// reaches `immutable_borrows` — and it is exactly the case with no guessable
     /// lever.
-    loop_var_iterable: MutableMap<i32, AST.Expr>
+    loop_var_iterable: MutableMap<i32, AST.Expr>!
     /// Local / PARAMETER Symbol.id → its written type.
     ///
     /// A mutability-only mismatch on such a local is fixed at its annotation, and at
@@ -567,17 +567,17 @@ export TypedProgram :: struct {
     /// default is recursive, so a slot wanting `X![]` needs `out: X![]!`. The reader
     /// sees two types that print almost alike; only the compiler knows which level
     /// they diverge at.
-    local_annotation: MutableMap<i32, AST.TypeExpr>
+    local_annotation: MutableMap<i32, AST.TypeExpr>!
 
     /// Local Symbol.id → the collection it was indexed out of (`top :: stack[i]`).
     /// Same lever as a loop variable — the ELEMENT type — and the same reason the
     /// reader cannot guess it: marking the local would be a strengthening.
-    local_init_index: MutableMap<i32, AST.Expr>
+    local_init_index: MutableMap<i32, AST.Expr>!
 
     /// Const Symbol.id → its declaration, for the span of its written type. A module
     /// const IS reopenable now (a mutable one gets a writable global), so `annotate
     /// \`WORDS!\`` is actionable rather than a dead end.
-    const_decls: MutableMap<i32, AST.ConstDecl>
+    const_decls: MutableMap<i32, AST.ConstDecl>!
 
     /// FieldExpr.id → the resolved trait's `trait_key`. Populated when a
     /// `x.method()` call dispatches via a TypeParam bound (`T: Hash`
@@ -585,7 +585,7 @@ export TypedProgram :: struct {
     /// `Equals`. The lower consumes this to emit `vcall std/core.Hash.hash` on
     /// erased-to-Any receivers instead of a direct field-call to an unresolved
     /// member, and the comparison itself on an enum or primitive receiver.
-    bounded_dispatch_trait: MutableMap<usize, string>
+    bounded_dispatch_trait: MutableMap<usize, string>!
 
     /// Generic fn AST-node id → true when its body needs each instance's real
     /// types (`keep_instances_concrete`) : a trait dispatch on a type-param (no
@@ -594,14 +594,14 @@ export TypedProgram :: struct {
     /// fn, and infers no callee type argument). The lowerer's `fn_instance_flavor`
     /// then keeps those instances CONCRETE instead of erasing every type-param to
     /// `Any`. Keyed by node id (not name) so overloaded generics don't collide.
-    fn_needs_concrete_instances: MutableMap<usize, bool>
+    fn_needs_concrete_instances: MutableMap<usize, bool>!
 
     /// Generic fn AST-node id → true when its body interpolates a value whose
     /// type mentions a type-param, so renders it through a `Display` dispatched
     /// on it. Read by the lowerer's instance flavor : an enum or a distinct
     /// argument then gets a concrete instance, since erasure boxes it as its
     /// representation and the dispatch would reach that type's `Display`.
-    fn_display_dispatches: MutableMap<usize, bool>
+    fn_display_dispatches: MutableMap<usize, bool>!
 
     /// Callee `IdentExpr.id` → true when overload resolution picked a
     /// non-primary overload for a direct call (`describe(b)` choosing
@@ -609,13 +609,13 @@ export TypedProgram :: struct {
     /// The lowerer emits the call's *result* type on the callee ident
     /// for these. Direct calls to the primary
     /// (or non-overloaded names) keep the fn-type display.
-    overload_result_callees: MutableMap<usize, bool>
+    overload_result_callees: MutableMap<usize, bool>!
 
     /// `FieldExpr.id` → true when `v.x` reads a field of an enum value's
     /// variant data rather than naming a variant (`Enum.Variant`). The lowerer
     /// reads the variant-data table for these and folds every other enum-typed
     /// field access to the variant's integer.
-    enum_data_reads: MutableMap<usize, bool>
+    enum_data_reads: MutableMap<usize, bool>!
 
     /// Walk-global stack of enclosing loops, pushed around each loop body by
     /// `check_for`. Unlike `FnContext.loop_depth` (not threaded through the
@@ -636,16 +636,16 @@ export TypedProgram :: struct {
     /// The lowerer reads it to stamp `LoweredLoop.label` (only for targeted loops
     /// — untargeted loops keep their pristine `ForStmt.label`). Written
     /// idempotently, so it survives the two-pass / multi-module walks.
-    loop_target_labels: MutableMap<usize, string>
+    loop_target_labels: MutableMap<usize, string>!
 
     /// A jump that names a labelled loop by its iteration variable: jump id → the
     /// loop's label, which it is lowered under.
-    jump_labels: MutableMap<usize, string>
+    jump_labels: MutableMap<usize, string>!
 
     /// Every `break` / `continue` → the `ForStmt.id` of the loop it targets,
     /// written bare or by name. The fusion reads it: a jump out of a body spliced
     /// into a producer's code may have to land elsewhere than its loop.
-    jump_targets: MutableMap<usize, usize>
+    jump_targets: MutableMap<usize, usize>!
 }
 
 /// One enclosing loop as seen by the loop-jump resolver. `binding` is the
@@ -665,7 +665,7 @@ import "toolchain/span"
 /// Across the whole project — multi-module aggregation. Populated by
 /// the orchestrator (`check.vader`).
 export TypedProject :: struct {
-    modules: MutableMap<string, TypedProgram>
+    modules: MutableMap<string, TypedProgram>!
 }
 
 /// Create an empty `TypedProgram` bound to `resolved`. All side-tables
@@ -714,7 +714,7 @@ export new_typed_program :: fn(resolved: ResolvedModule!) = TypedProgram {
     .struct_implemented_traits = MutableMap<string, string[]!> {},
     .impl_bounds = MutableMap<string, MutableMap<u64, BoundedImpl>!> {},
     .struct_traits_by_sym = MutableMap<i32, string[]!> {},
-    .struct_trait_args = MutableMap<string, MutableMap<string, Type[]!>> {},
+    .struct_trait_args = MutableMap<string, MutableMap<string, Type[]!>!> {},
     .current_fn_ctx  = null,
     .node_spans      = MutableMap<usize, Span> {},
     .dump_types      = false,

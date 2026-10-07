@@ -51,9 +51,9 @@ export ImplEntry :: struct {
 export ImplRegistry :: struct {
     /// Entries keyed `"${target}::${trait_key}"` — several when concrete
     /// instantiations (`Box<i32>`, `Box<string>`) each implement the trait.
-    by_target: MutableMap<string, ImplEntry[]!> = MutableMap<string, ImplEntry[]!> {}
+    by_target: MutableMap<string, ImplEntry[]!>! = MutableMap<string, ImplEntry[]!> {}
     /// Every entry, keyed by its impl's `span.hash()` — unique project-wide.
-    by_decl: MutableMap<u64, ImplEntry> = MutableMap<u64, ImplEntry> {}
+    by_decl: MutableMap<u64, ImplEntry>! = MutableMap<u64, ImplEntry> {}
     /// Every entry the registry has seen — used by the lowerer to drive
     /// virtual dispatch over trait-typed receivers.
     all: ImplEntry[]! = []

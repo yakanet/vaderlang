@@ -93,7 +93,7 @@ BveCtx :: struct {
     usize_ty:     Type
     u8_ty:        Type
     /// bound view local `symbol.id` -> its `.bytes()` receiver ident.
-    candidates: MutableMap<i32, LoweredIdent>
+    candidates: MutableMap<i32, LoweredIdent>!
     /// view local `symbol.id`s seen in a NON-len/index position (escaped), or
     /// bound more than once — never elided.
     disq: MutableSet<i32>!

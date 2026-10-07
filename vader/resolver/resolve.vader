@@ -43,7 +43,7 @@ export ResolvedModule :: struct {
     /// order. Two files may each bind the same name ; a binding's span names its
     /// file.
     import_bindings: Symbol[] = []
-    idents:  MutableMap<u64, Symbol>
+    idents:  MutableMap<u64, Symbol>!
     /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
     /// Consumed by stmt.vader::check_assign to surface T3041.
     immutable_locals: MutableMap<i32, bool>
@@ -53,7 +53,7 @@ export ResolvedModule :: struct {
     /// orthogonal axis (`::` freezes the binding, not the referent).
     /// Module-level consts are NOT here — they are recognised from
     /// `SymbolKind.Const`, so they need no table and work cross-module.
-    immutable_borrows: MutableMap<i32, bool>
+    immutable_borrows: MutableMap<i32, bool>!
     /// Locals and parameters no assignment rebinds (see `ResolvedFile`). Empty
     /// for a module that was not body-walked, which claims nothing.
     rebind_free: MutableSet<i32> = MutableSet<i32> {}
@@ -66,16 +66,16 @@ export ResolvedModule :: struct {
     /// `ParseError` to the real struct symbol on the std/string side
     /// instead of the local import binding. Populated by the
     /// typecheck orchestrator after `wire_imports`.
-    imports_to: MutableMap<i32, Symbol>
+    imports_to: MutableMap<i32, Symbol>!
     /// `alias_types[sym.id]` carries the resolved Type for any
     /// `TypeAlias` symbol (local or imported). Lets `type_from_expr`
     /// expand `Maybe<T>` to `T | null` instead of leaving it as a
     /// placeholder StructType. Populated by the typecheck orchestrator.
-    alias_types: MutableMap<i32, Type>
+    alias_types: MutableMap<i32, Type>!
     /// `alias_decls[sym.id]` carries the `TypeAliasDecl` AST node so
     /// `type_from_expr` can substitute the alias's type-params when
     /// instantiated (e.g. `Maybe(i32)` → `i32 | null`).
-    alias_decls: MutableMap<i32, TypeAliasDecl>
+    alias_decls: MutableMap<i32, TypeAliasDecl>!
     /// `type_param_bounds[type_param_sym.id]` → bound TypeExpr (e.g.
     /// `fn[T: Add]` records the `Add` ident here). Consumed by
     /// `field.vader` so `x.method()` on a bounded TypeParam can
@@ -87,20 +87,20 @@ export ResolvedModule :: struct {
     /// `Symbol.id → message` for every decl annotated with
     /// `@deprecated("...")`. `expr.vader` reads this when an
     /// IdentExpr references a deprecated decl and emits W0001.
-    deprecated_messages: MutableMap<i32, string>
+    deprecated_messages: MutableMap<i32, string>!
     /// `namespace_sym.id → field_name → Type` for every `P :: import
     /// "..."` namespace binding. Lets `type_from_expr`'s FieldExpr
     /// arm resolve `P.Decl` in type position without needing
     /// TypedProgram. Populated by the typecheck orchestrator after
     /// `namespace_exports` builds. Holds EXPORTED members only.
-    namespace_member_types: MutableMap<i32, MutableMap<string, Type>>
+    namespace_member_types: MutableMap<i32, MutableMap<string, Type>>!
     /// `namespace_sym.id → private-member-name → true` for every
     /// `P :: import "..."` binding : the PRIVATE (non-`export`) members
     /// of the target module. Lets a `P.private` access fire R2008 —
     /// matching the destructured-import check in `wire.vader` — instead
     /// of silently degrading to unresolved. Populated alongside
     /// `namespace_member_types`.
-    namespace_private_members: MutableMap<i32, MutableMap<string, bool>>
+    namespace_private_members: MutableMap<i32, MutableMap<string, bool>>!
 }
 
 export ResolvedProject :: struct {
@@ -219,7 +219,7 @@ export file_imports :: fn(collected: CollectedModule, file: string) -> FileImpor
 export file_root_scope :: fn(
     builtins: MutableMap<string, Symbol>, collected: CollectedModule, imports: FileImports,
     name_index: MutableMap<string, LoadedModule>, core_seed: MutableMap<string, Symbol>,
-) -> MutableMap<string, Symbol> {
+) -> MutableMap<string, Symbol>! {
     root :: MutableMap<string, Symbol> {}
     for [name, sym] in builtins { root[name] = sym }
     for [name, sym] in imports.bindings { root[name] = sym }

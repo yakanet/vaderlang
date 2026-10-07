@@ -68,9 +68,9 @@ devirt_body :: fn(body: LoweredBlock!) -> void {
 
 AnalyzeCtx :: struct {
     /// named-fn-ref local `symbol.id` -> the concrete fn `Symbol` it aliases.
-    aliases: MutableMap<i32, Symbol>
+    aliases: MutableMap<i32, Symbol>!
     /// lambda/closure local `symbol.id` -> its lifted fn + env type.
-    closures: MutableMap<i32, ClosureAlias>
+    closures: MutableMap<i32, ClosureAlias>!
     /// local `symbol.id`s that appear in a NON-callee (value) position — a bare
     /// `LoweredIdent` anywhere but a `LoweredCall.callee`. Such a local escapes,
     /// so its alias is not safe to devirtualize away. Also gathers any symbol bound

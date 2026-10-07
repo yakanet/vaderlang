@@ -511,8 +511,8 @@ export propagate_const_single_use :: fn(function: BcFunction!) -> BcFunction! {
     }
 
     // Decide which (set_pc, get_pc) pairs to rewrite.
-    to_delete_set: MutableMap<i32, bool>: MutableMap<i32, bool> {}
-    replace_with: MutableMap<i32, Op>: MutableMap<i32, Op> {}
+    to_delete_set :: MutableMap<i32, bool> {}
+    replace_with :: MutableMap<i32, Op> {}
     for k in param_count..<total_slots {
         valid := true
         if tee_count[k] != 0 { valid = false }

@@ -212,7 +212,7 @@ push_mutating_on_immutable :: fn(
     diags.push(
         typecheck_error(
             .MutatingMethodOnImmutable, span,
-            detail + field_annotate_hint(target, typed) + mutation_fix_hint(target, typed),
+            detail + mutation_fix_hint(target, typed),
         ),
     )
 }

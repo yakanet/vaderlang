@@ -29,7 +29,7 @@ import "toolchain/span"
 /// What one file of a module sees at its top level : its root scope, and the
 /// names two of its wildcard imports both export (R2031).
 export FileScope :: struct {
-    root:      MutableMap<string, Symbol>
+    root:      MutableMap<string, Symbol>!
     ambiguous: MutableMap<string, string[]!>
 }
 
@@ -42,7 +42,7 @@ export FileScope :: struct {
 export ResolvedFile :: struct {
     /// Every `AST.IdentExpr` reached during the body walk, span-keyed
     /// via `Span.hash()`.
-    idents:    MutableMap<u64, Symbol>
+    idents:    MutableMap<u64, Symbol>!
     /// `Symbol.id` set for every Local minted from a `name :: ...`
     /// binding (`mutable = false`). `name :=` ones don't appear here.
     /// Read by typecheck's check_assign for T3041.
@@ -53,7 +53,7 @@ export ResolvedFile :: struct {
     /// freezes the binding, not the referent). Module-level consts are NOT here:
     /// they are recognised from `SymbolKind.Const`, needing no table and working
     /// cross-module for free.
-    immutable_borrows: MutableMap<i32, bool>
+    immutable_borrows: MutableMap<i32, bool>!
     /// Locals and parameters no assignment of the file rebinds, `::` or not. Two
     /// reads of one yield the same value — within one iteration, for a `for`
     /// loop variable, which the loop itself advances. A symbol missing here may be
@@ -74,7 +74,7 @@ export ResolvedFile :: struct {
 /// Caller-owned so multi-module projects can extend the root scope
 /// before walking.
 export resolve_program :: fn(
-    program: AST.Program, top_level_seed: MutableMap<string, Symbol>,
+    program: AST.Program, top_level_seed: MutableMap<string, Symbol>!,
     module_path: string, factory: SymbolFactory!,
 ) -> ResolvedFile {
     scopes :: MutableMap<string, FileScope> {}
@@ -133,9 +133,9 @@ export resolve_module_programs :: fn(
 // ---- internal state -------------------------------------------------------
 
 ResolveState :: struct {
-    idents:           MutableMap<u64, Symbol>
-    immutable_locals: MutableMap<i32, bool>
-    immutable_borrows: MutableMap<i32, bool>
+    idents:           MutableMap<u64, Symbol>!
+    immutable_locals: MutableMap<i32, bool>!
+    immutable_borrows: MutableMap<i32, bool>!
     /// When true, a parameter declared WITHOUT `!` is recorded as an immutable
     /// borrow root. An INPUT to the walk, not part of its output — which is why it
     /// lives here and not on `ResolvedFile` / `ResolvedModule`: those carry the
@@ -145,7 +145,7 @@ ResolveState :: struct {
     /// On everywhere: the whole tree is annotated, and no construction site sets
     /// it. Writes through a bare parameter are T3070 / T3071 / T3072 outright.
     params_immutable_default: bool = true
-    type_param_bounds: MutableMap<i32, AST.Expr>
+    type_param_bounds: MutableMap<i32, AST.Expr>!
     /// W0015 candidates, in declaration order — one entry per `:=` statement.
     mutable_decls:    MutableDecl[]!
     /// Symbol ids an assignment rebinds. Read once the file is walked.

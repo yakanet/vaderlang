@@ -31,9 +31,9 @@ import "std/collections"
 /// as the recursion-cycle guard : a fn is stamped impure on entry (a re-entrant
 /// query reads that) and overwritten with its real verdict before returning.
 BcePurityCtx :: struct {
-    by_mangle: MutableMap<string, LoweredFnDecl>
-    by_symid:  MutableMap<i32, LoweredFnDecl>
-    memo:      MutableMap<string, bool>
+    by_mangle: MutableMap<string, LoweredFnDecl>!
+    by_symid:  MutableMap<i32, LoweredFnDecl>!
+    memo:      MutableMap<string, bool>!
 }
 
 /// Resolve a call's callee `(name, sym_id)` to its decl — mangle first, then the

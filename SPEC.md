@@ -1856,7 +1856,7 @@ inferred :: [s]       // no annotation : inferred, owned
 inferred.push(other)  // OK
 ```
 
-**A value is as read-only as the slot that handed it out.** A call to an unmarked return, a local bound from one, and a value read through a read-only field refuse a `self!` method (T3071) and a `!` parameter (T3072), exactly as they refuse a field write (T3070). A conversion re-types the same value, so `Ids(TABLE)` is as read-only as `TABLE`. A function whose caller owns the result says so with `!`:
+**A value is as read-only as the slot that handed it out.** A call to an unmarked return, a local bound from one, and a value read through a read-only field refuse a `self!` method (T3071) — an index write through `IndexSet` too, since it calls `set_at` (`c.by_name[k] = v` where `by_name: MutableMap<string, i32>`) — and a `!` parameter (T3072), exactly as they refuse a field write (T3070). A conversion re-types the same value, so `Ids(TABLE)` is as read-only as `TABLE`. A function whose caller owns the result says so with `!`:
 
 ```vader
 make  :: fn() -> Point = Point { .x = 1 }    // hands out a read-only view
@@ -1996,7 +1996,7 @@ Markers on function values are **contravariant**: a function that does not mutat
 
 #### Diagnostics
 
-Calling a `self!` method on a read-only receiver (`x: T` and `c: Trait` included, and `for x in it` over a read-only iterator) is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. Filling a slot that promises mutation with a read-only value is T3077, at any level. On a module const, a marker outside the one storable shape is T3076, and a level its declarations mark `!` is T3096. Writing the removed `const` qualifier is P1027.
+Calling a `self!` method on a read-only receiver (`x: T` and `c: Trait` included, `for x in it` over a read-only iterator, and `m[k] = v` through `IndexSet`) is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. Filling a slot that promises mutation with a read-only value is T3077, at any level. On a module const, a marker outside the one storable shape is T3076, and a level its declarations mark `!` is T3096. Writing the removed `const` qualifier is P1027.
 
 T3070/T3071/T3042 carry the fix as a hint, and it names the **one** declaration that can be reopened — following the wrong one hits a wall, since marking a local bound from a factory is a strengthening and a loop variable takes no marker at all. Ordered from the most specific lever to the least:
 

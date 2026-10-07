@@ -19,9 +19,9 @@ import "vader/resolver/symbol"
 /// a SIGSEGV on `map[k] = UnionValue` writes (union-tag bookkeeping
 /// inside the bucket allocator).
 export ImportTargetTable :: struct {
-    symbol_targets:    MutableMap<i32, SymbolTarget>
-    namespace_targets: MutableMap<i32, string>
-    missing:           MutableMap<i32, bool>
+    symbol_targets:    MutableMap<i32, SymbolTarget>!
+    namespace_targets: MutableMap<i32, string>!
+    missing:           MutableMap<i32, bool>!
 }
 
 export SymbolTarget :: struct {

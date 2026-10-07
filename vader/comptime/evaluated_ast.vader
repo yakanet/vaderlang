@@ -50,7 +50,7 @@ export EvaluatedProgram :: struct {
     /// Phase 4 populates ; phase 3 leaves empty. Symbol-id keying
     /// matches every other declaration-keyed side-table in the
     /// project (`decl_types` switching to id-keyed is tracked in TODO).
-    comptime_decls: MutableMap<i32, ComptimeValue>
+    comptime_decls: MutableMap<i32, ComptimeValue>!
 }
 
 /// Project-wide comptime output. Carries the per-module slices, the
@@ -62,7 +62,7 @@ export EvaluatedProject :: struct {
 
     /// Per-module `EvaluatedProgram`, keyed by canonical module path
     /// (matches `TypedProject.modules` keying).
-    modules: MutableMap<string, EvaluatedProgram>
+    modules: MutableMap<string, EvaluatedProgram>!
 
     /// `@file`-baked const values keyed by the const's Symbol id.
     /// Populated alongside `file_exprs` ; the lower merges these
@@ -70,12 +70,12 @@ export EvaluatedProject :: struct {
     /// literal. Kept SEPARATE from per-module `comptime_decls` so
     /// the comptime dump's `@comptime` listing only shows user-
     /// marked decls.
-    file_baked_consts: MutableMap<i32, ComptimeValue>
+    file_baked_consts: MutableMap<i32, ComptimeValue>!
 
     /// `@file("path")` expression-position calls baked at comptime,
     /// keyed by the IntrinsicCallExpr's AST node id. Lower reads this
     /// to emit a `LoweredStringLit` of the file contents.
-    file_exprs: MutableMap<usize, string>
+    file_exprs: MutableMap<usize, string>!
 
     /// Sorted list of every generic instantiation seen in the typed AST
     /// (Struct/Trait with non-empty args). Drives the `## generic

@@ -65,7 +65,7 @@ export ModuleBuilder :: struct {
     /// Intern map for `strings` — keyed by the source string, valued
     /// with the pool index. Avoids O(n) lookups when interning the
     /// same string twice from caller code.
-    string_index: MutableMap<string, i32>
+    string_index: MutableMap<string, i32>!
     types: bc.BcType[]!
     imports: bc.BcImport[]!
     functions: bc.BcFunction![]!

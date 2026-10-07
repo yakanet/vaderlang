@@ -14,12 +14,12 @@ import "vader/resolver/symbol"
 
 /// LIFO stack of binding frames — innermost at the end, root at index 0.
 export Scope :: struct {
-    frames: MutableMap<string, Symbol>[]!
+    frames: MutableMap<string, Symbol>![]!
 }
 
-/// Build a scope whose root frame is `root`. The caller keeps ownership ;
-/// downstream `bind` calls write to push-introduced frames, not the seed.
-export new_scope :: fn(root: MutableMap<string, Symbol>) -> Scope! {
+/// Build a scope whose root frame is `root`, kept by reference : a `bind` while no
+/// frame is pushed writes into it.
+export new_scope :: fn(root: MutableMap<string, Symbol>!) -> Scope! {
     return Scope { .frames = [root] }
 }
 
@@ -27,7 +27,9 @@ export new_scope :: fn(root: MutableMap<string, Symbol>) -> Scope! {
 ///
 /// @param root  the new root frame.
 /// @return      the previous root frame, to put back.
-export swap_root :: fn(self: Scope!, root: MutableMap<string, Symbol>) -> MutableMap<string, Symbol> {
+export swap_root :: fn(
+    self: Scope!, root: MutableMap<string, Symbol>!,
+) -> MutableMap<string, Symbol>! {
     previous :: self.frames[0]
     self.frames[0] = root
     return previous

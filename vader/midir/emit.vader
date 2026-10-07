@@ -446,7 +446,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         // Collect (trait, method) keys actually dispatched on so the
         // vtable-target rooting AND the impl-table type pinning below
         // can both gate on real virtual.call sites.
-        used_vt_keys: MutableMap<string, bool>: MutableMap<string, bool> {}
+        used_vt_keys :: MutableMap<string, bool> {}
         for f in ctx.functions {
             for op in f.body {
                 if op is VirtualCall { used_vt_keys[op.vtable_key] = true }
@@ -519,13 +519,13 @@ resolve_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 {
 build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!) -> VtableRow[] {
     // Collect every `(trait, method)` key referenced by a surviving
     // VirtualCall — only rows in this set survive.
-    used_keys: MutableMap<string, bool>: MutableMap<string, bool> {}
+    used_keys :: MutableMap<string, bool> {}
     for f in ctx.functions {
         for op in f.body {
             if op is VirtualCall { used_keys[op.vtable_key] = true }
         }
     }
-    rows_by_key: MutableMap<string, usize>: MutableMap<string, usize> {}
+    rows_by_key :: MutableMap<string, usize> {}
     out: VtableRow[]!: []
     // An enum or a distinct boxes under its representation's tag, so its entry
     // shares that type's slot : listed last, it only fills a slot the

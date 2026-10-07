@@ -118,7 +118,7 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx!, project: Lowered
     // `origin.symbol` (set in `build_fn_instance_decl`), so the body-emit
     // pass indexes them by mangle — exactly like materialised impl members.
     sorted_pending :: sort(project_ctx.generic_collected, pending_fn_instance_less)
-    emitted_fns: MutableMap<i32, bool>: MutableMap<i32, bool> {}
+    emitted_fns :: MutableMap<i32, bool> {}
     for p in sorted_pending {
         // Erasure-dedup gate : dispatching (GATE A) instances always emit ;
         // non-dispatching ones collapse to the first per symbol id.

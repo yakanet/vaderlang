@@ -29,9 +29,9 @@ import "toolchain/span"
 /// keyed by Symbol.id — consumed by the wire pass to resolve each
 /// binding to its concrete target.
 export CollectedModule :: struct {
-    symbols:      MutableMap<string, Symbol>
-    fn_overloads: MutableMap<string, Symbol[]!>
-    imports:      MutableMap<i32, ImportInfo>
+    symbols:      MutableMap<string, Symbol>!
+    fn_overloads: MutableMap<string, Symbol[]!>!
+    imports:      MutableMap<i32, ImportInfo>!
     /// Raw `import "path"` entries in source order — the loader uses
     /// these to walk the module graph transitively.
     import_paths: string[]!
@@ -55,11 +55,11 @@ export FileImports :: struct {
     /// Per-path exclusions from a `import "p" { x as _, y as z }` modifier list
     /// — every listed source name (both `as _` and rename sources) is removed
     /// from that path's wildcard. Renames rebind via `imports`.
-    excludes: MutableMap<string, string[]!> = MutableMap<string, string[]!> {}
+    excludes: MutableMap<string, string[]!>! = MutableMap<string, string[]!> {}
     /// The import bindings this file mints — namespace aliases and renames — by
     /// local name. Their only home : `CollectedModule.symbols` holds the
     /// declarations alone.
-    bindings: MutableMap<string, Symbol> = MutableMap<string, Symbol> {}
+    bindings: MutableMap<string, Symbol>! = MutableMap<string, Symbol> {}
 }
 
 /// True when this file's wildcard import of `path` drops `name` through its
@@ -92,7 +92,7 @@ export collect_module :: fn(
     out :: CollectedModule {
         .symbols      = MutableMap<string, Symbol> {},
         .fn_overloads = MutableMap<string, Symbol[]!> {},
-        .imports      = new_import_table(),
+        .imports      = MutableMap<i32, ImportInfo> {},
         .import_paths = [],
         .files        = [FileImports { .file = program.file }],
     }

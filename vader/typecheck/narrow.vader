@@ -67,10 +67,10 @@ export NarrowState :: struct {
     /// when a reassignment invalidates the binding's active narrowing. Entries
     /// pushed at an older generation are ignored by `narrow_for_binding`,
     /// including the stacked `prev` values a later `pop_narrow` would restore.
-    kill_gens: MutableMap<i32, i32> = MutableMap<i32, i32> {}
+    kill_gens: MutableMap<i32, i32>! = MutableMap<i32, i32> {}
 
     /// Kill generation per field-chain slot; mirrors `kill_gens` for `fields`.
-    field_kill_gens: MutableMap<string, i32> = MutableMap<string, i32> {}
+    field_kill_gens: MutableMap<string, i32>! = MutableMap<string, i32> {}
 
     /// `as` binding (`if e is T as x`, `match e as x`) DECLARATION-span hash →
     /// the scrutinee. One hop
@@ -82,7 +82,7 @@ export NarrowState :: struct {
     /// scope resolution. `Symbol.defined_at` is the bridge; adding the
     /// declaration span to `idents` instead is not an option — measured, it
     /// triples the tree's diagnostics (that table is consulted for other things).
-    binding_scrutinee: MutableMap<i64, AST.Expr> = MutableMap<i64, AST.Expr> {}
+    binding_scrutinee: MutableMap<i64, AST.Expr>! = MutableMap<i64, AST.Expr> {}
 }
 
 

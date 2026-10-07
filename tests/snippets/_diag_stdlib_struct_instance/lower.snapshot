@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  struct snippet$Counts { by_name: MutableMap<string, i32> }
+  struct snippet$Counts { by_name: MutableMap<string, i32>! }
   fn snippet$main() -> i32
     let c: Counts! =
       Counts! {
@@ -22,7 +22,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
-        .by_name :MutableMap<string, i32>
+        .by_name :MutableMap<string, i32>!
           c :Counts!
       arg1:
         "x" :string
@@ -33,7 +33,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__i32 :i32 | null
         arg0:
-          .by_name :MutableMap<string, i32>
+          .by_name :MutableMap<string, i32>!
             c :Counts!
         arg1:
           "x" :string

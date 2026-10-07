@@ -40,7 +40,7 @@ GenBuild :: struct {
     /// Finalized states — `states[k]` is the if-arm body for `self.state == k`.
     states:   LoweredStmt![]![]!
     /// Spilled symbol id → its `g$State` field name (params + all locals).
-    field_map: MutableMap<i32, string>
+    field_map: MutableMap<i32, string>!
     /// `g$State` fields for the spilled symbols (in declaration order),
     /// excluding the trailing `state: i32`.
     fields:    LoweredStructField[]!

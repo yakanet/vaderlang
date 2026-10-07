@@ -96,7 +96,7 @@ export ConstFnWrap :: struct {
 /// Project-wide lowered output. Cross-module shape ; downstream phases
 /// (bytecode emit, C emit, DCE) read this directly.
 export LoweredProject :: struct {
-    modules:        MutableMap<string, LoweredModule>
+    modules:        MutableMap<string, LoweredModule>!
     /// Entry module id — the module being built / tested. Lowering and DCE
     /// treat every OTHER module as a lazily-lowered dependency ; this is the
     /// axis that replaced the old stdlib-vs-user split (a dependency is pruned
@@ -110,12 +110,12 @@ export LoweredProject :: struct {
     /// `call` to the accessor. The accessor REUSES the const's symbol id, so
     /// a `LoweredIdent` referencing the const marks it reachable through DCE's
     /// normal `visit_fn` path — it survives iff the const is reached.
-    const_fn_wrap:  MutableMap<i32, ConstFnWrap>
+    const_fn_wrap:  MutableMap<i32, ConstFnWrap>!
     /// Const symbol id → lowered value, populated by `inline_consts` for
     /// every other (non-fn-wrapped) const. `build_ident` re-builds the
     /// value at each read site (`inline` bucket). Scalars also land here as
     /// a safety net for any reference `lower_ident` didn't fold.
-    const_inline:   MutableMap<i32, LoweredExpr>
+    const_inline:   MutableMap<i32, LoweredExpr>!
     /// `Symbol.id → trait_key`s — the frontend's authoritative trait
     /// membership (from `TypedProgram.struct_traits_by_sym`), threaded to the
     /// bytecode emitter to seed `is Trait` impl_table rows per interned struct

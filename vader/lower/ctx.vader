@@ -51,8 +51,8 @@ export Capture :: struct {
 /// so it needs no qualification.
 export ClosureAnalysis :: struct {
     cell_symbols: MutableSet<i32>!
-    lambda_captures:  MutableMap<string, Capture[]>
-    defer_captures:   MutableMap<string, Capture[]>
+    lambda_captures:  MutableMap<string, Capture[]>!
+    defer_captures:   MutableMap<string, Capture[]>!
 }
 
 /// Module-qualified key for the closure-analysis capture maps. Combines the
@@ -102,27 +102,27 @@ export LowerProjectCtx :: struct {
 
     /// The bindings each inlined callee declares, keyed by its symbol id —
     /// gathered once per callee (`declared_bindings`).
-    instance_bindings:   MutableMap<i32, Symbol[]> = MutableMap<i32, Symbol[]> {}
+    instance_bindings:   MutableMap<i32, Symbol[]>! = MutableMap<i32, Symbol[]> {}
     /// The callees whose body is being inlined right now — generators and
     /// iterator consumers alike. Inlining one of them again, from inside its own
     /// body, would never end.
     inlining_callees:    MutableSet<i32>! = MutableSet<i32> {}
     /// Instance clone id → the resolver's id for the same binding: the key of
     /// every resolver table indexed by symbol id (`origin_symbol_id`).
-    clone_origins:       MutableMap<i32, i32> = MutableMap<i32, i32> {}
+    clone_origins:       MutableMap<i32, i32>! = MutableMap<i32, i32> {}
     /// How each callee known to consume an iterator argument does it, keyed by
     /// its declaration's span (`inline_consumer.vader`).
-    consumers:           MutableMap<u64, ConsumerShape> = MutableMap<u64, ConsumerShape> {}
+    consumers:           MutableMap<u64, ConsumerShape>! = MutableMap<u64, ConsumerShape> {}
     /// The callees known to consume none, keyed the same way.
     non_consumers:       MutableSet<u64>! = MutableSet<u64> {}
 
     /// `name -> Symbol` from `std/core` (cached once at construction
     /// so trait / struct lookups don't re-walk the module map).
-    core_symbols:        MutableMap<string, Symbol>
+    core_symbols:        MutableMap<string, Symbol>!
     /// Resolved `EnumType`s for `core_symbols` entries of enum kind. Separate
     /// because resolving one means finding the module that TYPED it, and the
     /// answer is project-global — see `find_core_enum`.
-    core_enum_types:     MutableMap<string, Type>
+    core_enum_types:     MutableMap<string, Type>!
 
     /// Per-(display-path) `name -> Symbol` cache backing `module_export` — a
     /// generic replacement for the old hardcoded per-module tables (std/iter,
@@ -130,21 +130,21 @@ export LowerProjectCtx :: struct {
     /// first lookup of a path with that module's exports (an empty map for an
     /// unloaded module, so chain-fusion / inline peepholes that gate on the
     /// lookup simply don't fire).
-    module_symbol_cache: MutableMap<string, MutableMap<string, Symbol>>
+    module_symbol_cache: MutableMap<string, MutableMap<string, Symbol>>!
 
     /// Global `symbol_id -> ComptimeValue` index over every loaded
     /// module's `evaluated.modules[*].comptime_decls`. Populated once
     /// at the start of `lower_project` so per-ident const-baked lookups
     /// in `lower_expr.vader::lower_ident` run in O(1) instead of
     /// walking every module's map per call.
-    comptime_value_by_symbol_id: MutableMap<i32, ComptimeValue>
+    comptime_value_by_symbol_id: MutableMap<i32, ComptimeValue>!
 
     /// Per-module `defined_span_key -> Symbol` cache, lazily populated
     /// by `lookup_local_symbol`. The naive shape walked
     /// `resolved.idents.values()` then `resolved.symbols` per call
     /// (O(idents + symbols) per let / param) ; the index turns each
     /// lookup into a constant-time probe.
-    local_symbol_indices: MutableMap<string, MutableMap<u64, Symbol>>
+    local_symbol_indices: MutableMap<string, MutableMap<u64, Symbol>>!
 
     /// Free-variable analysis output, populated by `closure_analysis`.
     /// A closure-free project leaves it empty (no captures).
@@ -165,7 +165,7 @@ export LowerProjectCtx :: struct {
     /// `get_or_create_concat`. Caching keeps it ONE shared fn per arity (no
     /// inline bloat at the call sites) and replaces the hand-written
     /// `concat2/3/4` + the >4 StringBuilder cliff.
-    concat_fn_syms:      MutableMap<i32, Symbol>
+    concat_fn_syms:      MutableMap<i32, Symbol>!
     /// The synthesised `concat_N` decls themselves, in synthesis order. A
     /// project-GLOBAL cached decl can't ride the per-window `synth_decls` sink
     /// (whose erasure-dedupe drop semantics assume per-site lambdas — a
@@ -176,11 +176,11 @@ export LowerProjectCtx :: struct {
     /// Enum symbol id → the synthetic read-only const holding that enum's
     /// variant data, one slot per rank. Minted at the first read
     /// (`enum_table_const`) so every read shares one symbol.
-    enum_data_consts:    MutableMap<i32, Symbol>
+    enum_data_consts:    MutableMap<i32, Symbol>!
     /// Enum symbol id → the const holding that enum's written values, one slot
     /// per rank — for an enum with variant data whose values are not
     /// consecutive. Minted like `enum_data_consts`.
-    enum_value_consts:   MutableMap<i32, Symbol>
+    enum_value_consts:   MutableMap<i32, Symbol>!
     /// Tables due, in first-read order. `materialize_enum_tables` lowers each
     /// from `enum_table_cursor` on, inside the lowering fixpoint.
     enum_table_order:    EnumTable[]!
@@ -212,7 +212,7 @@ export LowerProjectCtx :: struct {
     /// `lower_project` as one `LoweredFnDecl` per instance.
     /// `fn_instances_order` preserves insertion order so the dump
     /// stays deterministic.
-    fn_instances:        MutableMap<string, GenericFnInstance>
+    fn_instances:        MutableMap<string, GenericFnInstance>!
     fn_instances_order:  GenericFnInstance[]!
     /// Claimed instance mangles, for `uniq` overload disambiguation. Two
     /// same-name/same-arity overloads (`collect(arr: T[])` vs
@@ -317,7 +317,7 @@ export LowerProjectCtx :: struct {
     /// `contains`'s `==` devirtualises to the element primop). A blanket array
     /// impl has no struct instance to drive the regular generic-impl
     /// materialiser, so it keys off this table instead.
-    array_blanket_elems: MutableMap<string, Type>
+    array_blanket_elems: MutableMap<string, Type>!
 
     /// Erased generic-struct impl-member receivers (`MutableMap<Any, bool>`)
     /// discovered by `find_impl_member_for` — their instance never reaches
@@ -342,7 +342,7 @@ export LowerProjectCtx :: struct {
     /// fixpoint converges, so emission order is a single deterministic sort.
     @internal
     generic_collected:   PendingFnInstance![]!
-    generic_processed:   MutableMap<string, bool>
+    generic_processed:   MutableMap<string, bool>!
     generic_fn_cursor:   usize
     generic_recv_cursor: usize
 
