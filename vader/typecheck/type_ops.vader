@@ -549,9 +549,35 @@ export implements_trait_instance :: fn(t: Type, wanted: TraitType, typed: TypedP
 /// @param trait_key  the trait it was checked against.
 export unmet_impl_bound_note :: fn(t: Type, trait_key: string, typed: TypedProgram) -> string {
     unmet :: blocking_bound(t, trait_key, typed) ?? return ""
-    required :: trait_key_name(unmet.required)
-    return (" ; its impl requires `${unmet.bound.name}: ${required}`, which "
-        + "`${display_type(unmet.arg)}` does not implement")
+    return impl_bound_note(unmet)
+}
+
+// " ; its impl requires `T: Bump`, and `Plain` does not implement it".
+impl_bound_note :: fn(unmet: UnmetBound) -> string {
+    required :: display_type(unmet.required)
+    return " ; its impl requires `${unmet.bound.name}: ${required}`, and ${unmet.reason}"
+}
+
+/// Why `arg` does not meet the bound trait `required`, or null when it does. It
+/// must implement the trait at its arguments, and grant mutation when the bound is
+/// marked `!` (`T: Bump!`). The one rule a generic call, a struct literal and a
+/// bounded impl's member are held to.
+///
+/// @param arg       the type bound to the parameter.
+/// @param required  one trait of the parameter's bound, with its rights ; arguments
+///                  naming a type parameter are left undecided.
+/// @return          the end of a sentence (`` `Cfg` grants no mutation ``), or null.
+export unmet_bound_reason :: fn(
+    arg: Type, required: TraitType, typed: TypedProgram,
+) -> string | null {
+    key :: trait_key_of(required.symbol)
+    if !satisfies_bound(arg, key, typed) || !meets_trait_args(arg, required, typed) {
+        return "`${display_type(arg)}` does not implement it"
+    }
+    if !required.immutable && withholds_mutation(arg, typed.type_param_bound_traits) {
+        return "`${display_type(arg)}` grants no mutation"
+    }
+    return null
 }
 
 /// The type arguments a generic impl's bounds speak of : a struct's arguments,
@@ -569,22 +595,24 @@ export type_arguments :: fn(t: Type) -> Type[] {
     return no_arguments
 }
 
-// A bound of a generic impl that one of `t`'s arguments leaves unmet.
+// A bound of a generic impl or struct that one of `t`'s arguments leaves unmet.
 UnmetBound :: struct {
     bound: ArgBound
-    required: string
+    required: TraitType
     arg: Type
+    /// `unmet_bound_reason`'s answer.
+    reason: string
 }
 
 // What keeps every generic impl of `trait_key` for `t`'s base from holding for
 // `t`'s arguments : the first impl's first unmet bound. Null when an impl holds,
 // or when no generic impl of the trait is recorded for the base.
 blocking_bound :: fn(t: Type, trait_key: string, typed: TypedProgram) -> UnmetBound | null {
-    impls :: typed.impl_bounds[dispatch_key(t)] ?? return null
     args :: type_arguments(t)
     if args.len() == 0 {
         return null
     }
+    impls :: typed.impl_bounds[dispatch_key(t)] ?? return null
     first: UnmetBound | null = null
     for [_, impl_] in impls {
         if impl_.trait_key != trait_key {
@@ -598,24 +626,39 @@ blocking_bound :: fn(t: Type, trait_key: string, typed: TypedProgram) -> UnmetBo
     return first
 }
 
-first_unmet_bound :: fn(args: Type[], bounds: ArgBound[], typed: TypedProgram) -> UnmetBound | null {
+// The first of `bounds`, by position, that `args` leave unmet in shape or in rights.
+first_unmet_bound :: fn(
+    args: Type[], bounds: ArgBound[], typed: TypedProgram,
+) -> UnmetBound | null {
     for bound in bounds {
         if bound.position >= args.len() {
             continue
         }
         arg :: args[bound.position]
         for required in bound.traits {
-            if !satisfies_bound(arg, required, typed) {
-                return UnmetBound {
-                    .bound = bound,
-                    .required = required,
-                    .arg = arg,
-                }
+            reason :: unmet_bound_reason(arg, required, typed) ?? continue
+            return UnmetBound {
+                .bound = bound,
+                .required = required,
+                .arg = arg,
+                .reason = reason,
             }
         }
     }
     return null
 }
+
+/// The detail of a T3006 on a type parameter's bound : ``type parameter `T` of
+/// `owner` requires `Bump!`, and `Cfg` grants no mutation``.
+///
+/// @param param     the type parameter's name.
+/// @param owner     the generic fn or struct that declares it.
+/// @param required  the bound trait it fails.
+/// @param reason    `unmet_bound_reason`'s answer.
+export unmet_bound_detail :: fn(
+    param: string, owner: string, required: TraitType, reason: string,
+) -> string =
+    "type parameter `${param}` of `${owner}` requires `${display_type(required)}`, and ${reason}"
 
 // Whether `arg` satisfies the bound trait `trait_key` — at a bounded position of a
 // generic impl, or bound to a callee's type parameter (T3006). An erased instance
@@ -625,10 +668,7 @@ first_unmet_bound :: fn(args: Type[], bounds: ArgBound[], typed: TypedProgram) -
 // no vtable carries.
 // A type still unknown here is not held against the bound.
 satisfies_bound :: fn(arg: Type, trait_key: string, typed: TypedProgram) -> bool = match arg {
-    is TypeParamType -> {
-        bound :: typed.resolved.type_param_bounds[arg.symbol.id]
-        bound != null && bounded_trait_args(bound, trait_key, typed) != null
-    }
+    is TypeParamType -> bound_names_trait(arg, trait_key, typed)
     is UnionType     -> (all_satisfy_bound(arg.variants, trait_key, typed)
         && (trait_key != core_trait_key(TRAIT_EQUALS) || untagged_beside_variant(arg) == null))
     is TraitType     -> trait_key_of(arg.symbol) == trait_key || struct_implements_trait(arg, trait_key, typed)
@@ -640,6 +680,18 @@ satisfies_bound :: fn(arg: Type, trait_key: string, typed: TypedProgram) -> bool
     is PrimitiveType | StructType | EnumType | TupleType | FnType | TypeMetaType -> {
         struct_implements_trait(arg, trait_key, typed)
     }
+}
+
+// Whether `t`'s bound names `trait_key`, read from the project table, where a
+// parameter an impl borrows from its struct also carries the struct's bound.
+bound_names_trait :: fn(t: TypeParamType, trait_key: string, typed: TypedProgram) -> bool {
+    bound :: typed.type_param_bound_traits[t.symbol.id] ?? return false
+    for trait_ty in bound.traits {
+        if trait_key_of(trait_ty.symbol) == trait_key {
+            return true
+        }
+    }
+    return false
 }
 
 // A variant of `u` with no tag of its own (`is_untagged`) that sits beside another

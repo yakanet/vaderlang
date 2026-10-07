@@ -23,6 +23,7 @@ export infer_struct_lit :: fn(
     // against the backing, return the distinct `Color` (not the raw `Rgb`).
     st_backing :: struct_backing(ty)
     if st_backing != null {
+        reject_unmet_struct_bounds(st_backing, e.type_name.span, typed, diags)
         check_struct_items(e.items, e.span, st_backing, typed, diags, check_expr_fn)
         return ty
     }
@@ -31,6 +32,20 @@ export infer_struct_lit :: fn(
     // Still type every item so nested diagnostics surface.
     for item in e.items { check_item_no_expected(item, typed, diags, check_expr_fn) }
     return ty
+}
+
+// T3006 — a literal is where a value of `Wrapper<X>` comes to exist, so `X` meets the
+// bounds the struct declares on its type arguments there.
+reject_unmet_struct_bounds :: fn(
+    st: StructType, span: Span, typed: TypedProgram, diags: Diagnostic[]!,
+) -> void {
+    if st.args.len() == 0 {
+        return
+    }
+    bounds :: typed.struct_bounds[st.symbol.id] ?? return
+    unmet :: first_unmet_bound(st.args, bounds, typed) ?? return
+    detail :: unmet_bound_detail(unmet.bound.name, st.symbol.name, unmet.required, unmet.reason)
+    diags.push(typecheck_error(.TraitNotSatisfied, span, detail))
 }
 
 /// Type-check the items of a struct literal against `st` : each field

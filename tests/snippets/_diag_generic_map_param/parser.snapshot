@@ -55,7 +55,18 @@
       "typeParams": [
         {
           "name": "K",
-          "bound": null,
+          "bound": {
+            "kind": "BinaryExpr",
+            "op": "bitand",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "Hash"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "Equals"
+            }
+          },
           "isComptimeValue": false
         },
         {

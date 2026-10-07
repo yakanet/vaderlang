@@ -830,6 +830,12 @@ check_assign :: fn(
         if push_immutable_path_write(ix.target, s.target.span, typed, diags) {
             return
         }
+        if reject_unmet_impl_bounds(
+            target_arr_ty, core_trait_key(TRAIT_INDEX_SET), .TraitNotSatisfied, ix.target.span,
+            typed, diags,
+        ) {
+            return
+        }
         // Pin a free-literal write value to the IndexSet value type V
         // (`m[k] = 9000000000`) and check the write fits V. A `null` V means
         // the receiver records no `IndexSet` impl — the read-side dispatch
@@ -1871,6 +1877,10 @@ check_for :: fn(
                 typed, diags,
             )
             elem :: for_in_element(iter_ty, typed)
+            _ :: reject_unmet_impl_bounds(
+                iter_ty, core_trait_key(TRAIT_ITERATOR), .TraitNotSatisfied, w.iter.span,
+                typed, diags,
+            )
             if elem is UnresolvedType && is_known_non_iterable(iter_ty) {
                 got :: display_type(iter_ty)
                 diags.push(typecheck_error(

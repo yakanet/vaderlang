@@ -1,0 +1,24 @@
+// An operator dispatches through its trait's impl : with
+// `Pair<T> implements<T: Add> Add`, `a + b` on a `Pair<Plain>` reaches a member the
+// impl does not admit for `Plain`. T3043. `Pair<i32>` is accepted.
+module "snippet"
+
+Plain :: struct {
+    n: i32
+}
+
+Pair :: struct<T> {
+    x: T
+}
+
+Pair<T> implements<T: Add> Add {
+    add :: fn(self, other: Self) -> Self = Pair<T> { .x = self.x + other.x }
+}
+
+main :: fn() -> i32 {
+    a :: Pair<Plain> { .x = Plain { .n = 1 } }
+    _ :: a + a
+    c :: Pair<i32> { .x = 2 }
+    _ :: c + c
+    return c.x
+}

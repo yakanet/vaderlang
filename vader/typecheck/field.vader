@@ -126,25 +126,54 @@ try_impl_method_ufcs :: fn(
         typed.chosen_impl_methods[e.id] = impl_ufcs
         return impl_ufcs.ty
     }
-    base_impl := typed.impl_methods["${impl_base_key(key_ty)}::${e.field}"]
-    if base_impl is null {
-        // Array-backed distinct newtype (`BigInt :: i32[]`) : its base name is the
-        // newtype's, not `[]`, so try the array-blanket key so `bigint.push(x)`
-        // forwards to `T[] implements ArrayOps`.
-        if array_backing(key_ty) is ArrayType {
-            base_impl = typed.impl_methods["[]::${e.field}"]
-        }
+    base_key := "${impl_base_key(key_ty)}::${e.field}"
+    found := typed.impl_methods[base_key]
+    // Array-backed distinct newtype (`BigInt :: i32[]`) : its base name is the
+    // newtype's, not `[]`, so try the array-blanket key so `bigint.push(x)`
+    // forwards to `T[] implements ArrayOps`.
+    if found == null && array_backing(key_ty) is ArrayType {
+        base_key = "[]::${e.field}"
+        found = typed.impl_methods[base_key]
     }
-    if base_impl is null {
-        return null
-    }
+    base_impl :: found ?? return null
     if rejects_static_member(base_impl.decl, e, typed, diags) {
         return TY_UNRESOLVED
     }
     check_trait_ambiguity(e, target_ty, typed, diags)
     reject_mutating_method_on_immutable(base_impl, e, target_ty, typed, diags)
+    traits :: typed.impl_method_traits[base_key]
+    if traits != null {
+        _ :: reject_unmet_impl_bounds(
+            key_ty, traits[0], .TraitNotSatisfied, e.field_span, typed, diags,
+        )
+    }
     typed.chosen_impl_methods[e.id] = base_impl
     return substitute_impl_method(base_impl.ty, key_ty, typed)
+}
+
+/// The diagnostic for a value reaching a member of a bounded impl whose bounds its
+/// arguments do not meet : `Wrapper<T> implements<T: Bump> Poke` gives a
+/// `Wrapper<Plain>` no `poke`, no `+`, no `for`, and `implements<T: Bump!>` none of
+/// them to a `Wrapper<Cfg>` over a read-only `Cfg`. Every form that dispatches
+/// through an impl by its base asks here.
+///
+/// @param receiver   the value's type.
+/// @param trait_key  the trait whose impl the form dispatches through.
+/// @param code       T3006, or T3043 for an operator.
+/// @return           true when reported.
+export reject_unmet_impl_bounds :: fn(
+    receiver: Type, trait_key: string, code: TypecheckCode, span: Span,
+    typed: TypedProgram, diags: Diagnostic[]!,
+) -> bool {
+    unmet :: blocking_bound(receiver, trait_key, typed) ?? return false
+    diags.push(
+        typecheck_error(
+            code, span,
+            "`${display_type(receiver)}` does not implement `${trait_key_name(trait_key)}`"
+                + impl_bound_note(unmet),
+        ),
+    )
+    return true
 }
 
 // T3071 — a `self!` method is unavailable on an immutable receiver. Shared by every

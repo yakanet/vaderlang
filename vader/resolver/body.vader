@@ -362,7 +362,10 @@ walk_struct_decl :: fn(self: ResolveState!, d: AST.StructDecl) -> void {
     self.walk_decorators(d.decorators)
     self.scope.push()
     for tp in d.type_params {
-        self.declare_type_param(tp)
+        sym :: self.declare_type_param(tp)
+        // The decl site → Symbol, as for a fn's : `record_struct_bounds` recovers the
+        // bounds a literal is held to from it.
+        self.idents[tp.span.hash()] = sym
     }
     for f in d.fields {
         self.walk_expr(f.ty)

@@ -5,6 +5,7 @@
 Accepted (2026-10-07). Closes the two `.rodata` writes that 0035 left open, and a
 third that 0035 opened: a read-only value filling the trait variant of a union.
 Amends 0022: inside the body, mutating through a `T` also takes a marked bound.
+0037 closes the struct type-parameter item left open below.
 
 ## Context
 

@@ -1161,7 +1161,7 @@ Match on an enum scrutinee is **exhaustive**: every variant must appear as an ar
 
 #### Equality
 
-`==` and `!=` work on enum values and compare by variant identity. Every enum also implements `Equals`, comparing the same way, with no impl: an enum fits a `T: Equals` bound and a slot typed `Equals` alike, `c.equals(d)` is `c == d`, and an impl written for one is `R2030`.
+`==` and `!=` work on enum values and compare by variant identity. Every enum also implements `Equals`, comparing the same way, with no impl: an enum fits a `T: Equals` bound and a slot typed `Equals` alike, `c.equals(d)` is `c == d`, and an impl written for one is `R2030`. It implements `Hash` the same way, so an enum keys a `MutableMap` or a `MutableSet`.
 
 #### Representation
 
@@ -1565,7 +1565,11 @@ The angle-bracket list after `implements` introduces the typeParams *for the ent
 
 Compared to the borrowing form (`Foo<T> implements Trait<T>` without an impl-level `<T>`, where `T` aliases the struct's own type-param), the bounded form lets the impl declare *its own* `T` whose bounds are scoped to this block — the struct itself stays unbounded.
 
-**A bounded impl holds only for the arguments its bounds admit.** With `Box<T> implements<T: Display> Display`, `Box<i32>` implements `Display` and `Box<Point>` does not while `Point` has no `Display`: interpolating it is `T3018`, passing it to a `T: Display` parameter is `T3006`, and the detail names the unmet bound. A type argument that is itself a type parameter meets a bound its own bound names; a union meets it when every variant does; a distinct, through its own impl or its backing's. An array does not meet a `Display` bound there — the impl's instance reaches its argument through an erased slot, and no vtable carries an array's `Display`. An `is Trait` test still matches by the type's base, as the run-time test does. The check needs the arguments: a generic struct literal written without them (`Box { .value = p }`) is typed `Box`, and its bounds are not checked.
+**A bounded impl holds only for the arguments its bounds admit.** With `Box<T> implements<T: Display> Display`, `Box<i32>` implements `Display` and `Box<Point>` does not while `Point` has no `Display`: interpolating it is `T3018`, passing it to a `T: Display` parameter is `T3006`, and the detail names the unmet bound. A type argument that is itself a type parameter meets a bound its own bound names; a union meets it when every variant does; a distinct, through its own impl or its backing's. An array does not meet a `Display` bound there — the impl's instance reaches its argument through an erased slot, and no vtable carries an array's `Display`. An `is Trait` test still matches by the type's base, as the run-time test does. A member of a bounded impl is reached only through an instance its bounds admit, whatever the form: with `Wrapper<T> implements<T: Bump> Poke`, `w.poke()` on a `Wrapper<Plain>` is `T3006`, and so are `for`, `w[i]` and `w[i] = v` through such an impl; an operator (`+`, `<`, `in`) is `T3043`. An argument meets a bound when it implements the trait at the bound's own arguments (`S: Source<i32>` admits no `Source<i64>`) and, for a bound marked `!` (see *The marker is per LEVEL*), grants mutation: `implements<T: Bump!>` admits no `Wrapper<Cfg>` over a read-only `Cfg`.
+
+**A struct's bounds hold at its literal.** `Wrapper :: struct<T: Bump>` puts its bound on every `Wrapper<X> { … }`: an `X` that does not meet it is `T3006` there, where a value of the type comes to exist. A type written elsewhere (`w: Wrapper<Plain>`) is not checked, since no value can inhabit it. An impl that borrows the struct's parameters (`Wrapper<T> implements Poke`) holds only for what the struct admits, so its `T` carries the struct's bound. A generic fn states the bounds it relies on: `fn<K>(m: MutableMap<K, V>)` indexing `m` is `T3006`, and says `fn<K: Hash & Equals>`.
+
+Both checks need the arguments: a generic struct literal written without them (`Box { .value = p }`) is typed `Box`, and its bounds are not checked.
 
 #### Trait composition
 
@@ -1728,7 +1732,7 @@ match u {
 | Integers, `bool`, `char` | By value |
 | Floats | IEEE 754: `nan != nan`, `0.0 == -0.0` — the same in a union or a generic body |
 | `string` | Structural (compares contents) |
-| `enum` | Discriminant equality; every enum implements `Equals` |
+| `enum` | Discriminant equality; every enum implements `Equals` and `Hash` |
 | Distinct type | Its own `Equals` impl, else the backing type's `==` |
 | Tuple | Element by element (see *Tuples*) |
 | Union (`A \| B`, `T \| null`) | Same variant, then that variant's `==`; `null == null` |

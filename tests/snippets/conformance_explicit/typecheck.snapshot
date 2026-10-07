@@ -31,4 +31,4 @@
   expr 22:17    IdentExpr      :: Vec3!
 
 # Diagnostics
-[22:10] error[T3006] trait not satisfied: `Vec3!` does not implement `Add` (required by type parameter `T` of `double`)
+[22:10] error[T3006] trait not satisfied: type parameter `T` of `double` requires `Add`, and `Vec3!` does not implement it

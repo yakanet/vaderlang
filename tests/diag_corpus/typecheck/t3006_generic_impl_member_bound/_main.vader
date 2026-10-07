@@ -1,0 +1,65 @@
+// A member of a bounded impl is reached only through an instance its bounds admit,
+// whatever the form : `poke`, `for` and `w[0]` on a `Wrapper<Plain>`, where `Plain`
+// has no `Bump`, and `refresh` on a `Wrapper<Cfg>` over a read-only `Cfg`, where the
+// bound is marked `!`, are T3006. `refresh` on a `Wrapper<Cfg!>` is accepted.
+module "snippet"
+
+Bump :: trait {
+    bump :: fn(self!) -> void
+}
+
+Poke :: trait {
+    poke :: fn(self) -> i32
+}
+
+Refresh :: trait {
+    refresh :: fn(self!) -> void
+}
+
+Plain :: struct {
+    n: i32
+}
+
+Cfg :: struct {
+    n: i32
+}
+
+Cfg implements Bump {
+    bump :: fn(self!) -> void {
+        self.n += 1
+    }
+}
+
+Wrapper :: struct<T> {
+    inner: T!
+}
+
+Wrapper<T> implements<T: Bump> Poke {
+    poke :: fn(self) -> i32 = 1
+}
+
+Wrapper<T> implements<T: Bump!> Refresh {
+    refresh :: fn(self!) -> void {
+        self.inner.bump()
+    }
+}
+
+Wrapper<T> implements<T: Bump> Iterator<i32> {
+    next :: fn(self!) -> [i32, Continuation] = [0, .Stop]
+}
+
+Wrapper<T> implements<T: Bump> Index<i32, i32> {
+    at :: fn(self, i: i32) -> i32 = i
+}
+
+main :: fn() -> i32 {
+    w :: Wrapper<Plain> { .inner = Plain { .n = 1 } }
+    p :: w.poke()
+    for _ in w {}
+    q :: w[0]
+    c :: Wrapper<Cfg> { .inner = Cfg { .n = 1 } }
+    c.refresh()
+    d :: Wrapper<Cfg!> { .inner = Cfg { .n = 1 } }
+    d.refresh()
+    return p + q
+}

@@ -1,0 +1,64 @@
+// A struct's bounds hold at its literal, where a value of the type comes to exist :
+// `Wrapper<Plain>` where `Plain` has no `Bump`, `Guarded<Cfg>` over a read-only `Cfg`
+// where the bound is marked `!`, and `Holder<Src64>` where the bound asks for a
+// `Source<i32>`, are T3006. `Guarded<Cfg!>` is accepted, and so is a literal in an
+// impl that borrows the struct's `T`, which carries the struct's bound.
+module "snippet"
+
+Bump :: trait {
+    bump :: fn(self!) -> void
+}
+
+Remake :: trait {
+    remake :: fn(self) -> Self
+}
+
+Source :: trait<X> {
+    get :: fn(self) -> X
+}
+
+Plain :: struct {
+    n: i32
+}
+
+Cfg :: struct {
+    n: i32
+}
+
+Cfg implements Bump {
+    bump :: fn(self!) -> void {
+        self.n += 1
+    }
+}
+
+Src64 :: struct {
+    v: i64
+}
+
+Src64 implements Source<i64> {
+    get :: fn(self) -> i64 = self.v
+}
+
+Wrapper :: struct<T: Bump> {
+    inner: T
+}
+
+Wrapper<T> implements Remake {
+    remake :: fn(self) -> Self = Wrapper<T> { .inner = self.inner }
+}
+
+Guarded :: struct<T: Bump!> {
+    inner: T!
+}
+
+Holder :: struct<S: Source<i32>> {
+    s: S
+}
+
+main :: fn() -> i32 {
+    a :: Wrapper<Plain> { .inner = Plain { .n = 1 } }
+    b :: Guarded<Cfg> { .inner = Cfg { .n = 2 } }
+    c :: Guarded<Cfg!> { .inner = Cfg { .n = 3 } }
+    h :: Holder<Src64> { .s = Src64 { .v = 4 } }
+    return a.inner.n + b.inner.n + c.inner.n + i32(h.s.v)
+}

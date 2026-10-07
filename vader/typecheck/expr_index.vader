@@ -81,6 +81,9 @@ export infer_index :: fn(
                     "${display_type(target)} is not indexable"))
                 return TY_UNRESOLVED
             }
+            _ :: reject_unmet_impl_bounds(
+                target, core_trait_key(TRAIT_INDEX), .TraitNotSatisfied, e.span, typed, diags,
+            )
             return result_ty
         }
         _ -> {

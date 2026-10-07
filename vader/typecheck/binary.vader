@@ -321,10 +321,16 @@ check_operator_rhs :: fn(
     typed: TypedProgram,
     diags: Diagnostic[]!,
 ) -> FnType | null {
-    base :: impl_base_key(recv)
-    method_impl :: typed.impl_methods["${base}::${method_name}"]
+    key :: "${impl_base_key(recv)}::${method_name}"
+    method_impl :: typed.impl_methods[key]
     method :: if method_impl !is null { method_impl.ty } else { null }
     if method is FnType {
+        traits :: typed.impl_method_traits[key]
+        if traits != null {
+            _ :: reject_unmet_impl_bounds(
+                recv, traits[0], .OperatorTraitNotImplemented, span, typed, diags,
+            )
+        }
         if method.params.len() > 0 {
             // The impl's own parameters are free here : `Rhs = Vec<T>` takes a
             // `Vec<i32>` right operand. Erased before `Self` becomes `recv`, which
@@ -552,16 +558,10 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram!,
     if has_impl_method(right, METHOD_CONTAINS, typed) {
         // The impl may bound its argument : `T[] implements<T: Equals> Contains<T>`
         // holds for no element type outside the bound.
-        note :: unmet_impl_bound_note(right, core_trait_key(TRAIT_CONTAINS), typed)
-        if note != "" {
-            diags.push(
-                typecheck_error(
-                    .OperatorTraitNotImplemented,
-                    e.span,
-                    "`${display_type(right)}` does not implement `${TRAIT_CONTAINS}`${note}",
-                ),
-            )
-        }
+        _ :: reject_unmet_impl_bounds(
+            right, core_trait_key(TRAIT_CONTAINS), .OperatorTraitNotImplemented, e.span,
+            typed, diags,
+        )
         return TY_BOOL
     }
     // A container type parameter whose bound names `Contains` (`C: Contains<i32>`).
