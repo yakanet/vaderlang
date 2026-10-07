@@ -1,0 +1,11 @@
+# stdout
+offset read 301
+set_at 0 9
+cells read 20
+log read -1
+log backing 7
+log backing 99
+log backing 42
+log slice 2
+# exit
+0

@@ -7,6 +7,7 @@ import "std/collections"
 import "toolchain/ast"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
+import "vader/typecheck"
 import "vader/types"
 import "toolchain/span"
 
@@ -187,6 +188,19 @@ lower_assign_target :: fn(ctx: FnLowerCtx!, target: Expr) -> LoweredExpr! {
             }
         }
     }
+    // An element written into an array, or into the backing of a distinct with no
+    // `IndexSet` of its own : the slot itself, never the `Index` read of a distinct
+    // that has one (`index_route`).
+    if target is IndexExpr {
+        receiver :: ctx.types.expr_type(target.target)
+        if index_route(receiver, core_trait_key(TRAIT_INDEX_SET), ctx.typed) == .Array {
+            return LoweredIndex {
+                .span = target.span, .type = ctx.types.expr_type(target),
+                .target = lower_expr(ctx, target.target),
+                .index  = lower_expr(ctx, target.index),
+            }
+        }
+    }
     return lower_expr(ctx, target)
 }
 
@@ -226,11 +240,10 @@ lower_index :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type) -> LoweredExpr!
             .args = [lower_expr(ctx, expr.index)], .param_types = [],
         }
     }
-    // Index trait routing : `s[i]` on a `string` / user struct with an
-    // `Index<I, T>` impl rewrites to a direct `at(s, i)` call. Skip for
-    // ArrayType (built-in path above) and for Range-typed indices
-    // (slicing handled above).
-    if !is_range && array_backing(target_type) == null {
+    // Index trait routing (`index_route`, shared with the typecheck) : `s[i]` on a
+    // `string`, a user struct or a distinct with its own `Index<I, T>` impl rewrites
+    // to a direct `at(s, i)` call.
+    if index_route(target_type, core_trait_key(TRAIT_INDEX), ctx.typed) == .Impl {
         member :: find_trait_impl_member(ctx, target_type, core_trait_key(TRAIT_INDEX))
         if member is UfcsMember {
             args: LoweredExpr![]!: []
@@ -389,14 +402,13 @@ try_lower_index_set_assign :: fn(
                 }
             }
             target_type :: ctx.types.expr_type(target.target)
-            // Resolve the write through the `IndexSet` impl by TRAIT identity —
-            // never by a hard-coded `"set_at"` literal. This matches how the
-            // typechecker routes `m[k] = v` (`orchestrate.vader`, TRAIT_INDEX_SET)
-            // and how `lower_index` reads (`find_trait_impl_member(…, TRAIT_INDEX)`),
-            // and it carries the SAME mangle the materialiser emits (and that DCE
-            // indexes). The old `synth_set_at_symbol` minted a bare `set_at` symbol
-            // that no fn-table slot matched, so the call was silently dropped and
-            // `m[k] = v` became a no-op (the value leaked onto the stack).
+            // An array store is `lower_assign_target`'s (`index_route`).
+            if index_route(target_type, core_trait_key(TRAIT_INDEX_SET), ctx.typed) != .Impl {
+                return null
+            }
+            // Resolve the write through the `IndexSet` impl by TRAIT identity — never
+            // by a `"set_at"` literal : it carries the mangle the materialiser emits,
+            // and that DCE indexes.
             member :: find_trait_impl_member(ctx, target_type, core_trait_key(TRAIT_INDEX_SET)) ?? return null
             if member is UfcsMember {
                 // Build `set_at(target, index, value)` direct call.

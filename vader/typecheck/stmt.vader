@@ -776,7 +776,7 @@ check_assign :: fn(
         target_arr_ty :: check_expr_fn(ix.target, null, typed, diags)
         // Pin a free-literal index key to the IndexSet key type K
         // (`m[9000000000] = v`); null for arrays = plain integer index.
-        check_expr_fn(ix.index, index_key_expected(target_arr_ty, typed), typed, diags)
+        index_ty :: check_expr_fn(ix.index, index_key_expected(target_arr_ty, typed), typed, diags)
         arr :: stored_array(target_arr_ty, typed)
         if arr != null {
             if arr.immutable {
@@ -796,9 +796,9 @@ check_assign :: fn(
             if push_immutable_path_write(ix.target, s.target.span, typed, diags) {
                 return
             }
-            // `arr[i]` types to the element type ; array elements are never
-            // flow-narrowed, so it is the declared slot type the write must fit.
-            elem_ty :: check_expr_fn(s.target, null, typed, diags)
+            // Array elements are never flow-narrowed, so it is the declared slot type
+            // the write must fit.
+            elem_ty :: array_write_slot(ix, arr, index_ty, typed, diags)
             value_ty :: check_expr_fn(s.value, elem_ty, typed, diags)
             emit_assign_mismatch_if(value_ty, elem_ty, s.span, s.value, typed, diags)
             return
@@ -825,6 +825,20 @@ check_assign :: fn(
                     return
                 }
             }
+        }
+        if target_arr_ty is UnresolvedType {
+            return
+        }
+        // Nothing stores into a receiver with no `IndexSet` and no array to fall back
+        // on : the write would reach its `Index` read, a call.
+        if index_route(target_arr_ty, core_trait_key(TRAIT_INDEX_SET), typed) != .Impl {
+            diags.push(
+                typecheck_error(
+                    .NotIndexable, ix.target.span,
+                    "`${display_type(target_arr_ty)}` has no `IndexSet` to write through",
+                ),
+            )
+            return
         }
         // T3070 : same rule for an `IndexSet` receiver (a map field of a const).
         if push_immutable_path_write(ix.target, s.target.span, typed, diags) {
@@ -1051,6 +1065,19 @@ destructure_element_types :: fn(value_ty: Type, count: usize) -> Type[] | null {
     return null
 }
 
+// The slot an element write into an array fills : the backing's element, recorded
+// on `ix` — never what a distinct's own `Index` would read there (`index_route`).
+array_write_slot :: fn(
+    ix: AST.IndexExpr, arr: ArrayType, index_ty: Type, typed: TypedProgram!, diags: Diagnostic[]!,
+) -> Type {
+    if !is_integer_index(index_ty) && index_ty !is UnresolvedType {
+        diags.push(typecheck_error(.TypeMismatch, ix.index.span,
+            "array index must be an integer, got ${display_type(index_ty)}"))
+    }
+    record_expr(typed, ix, arr.element)
+    return arr.element
+}
+
 /// One element of a destructuring target. Holds it to the same rules a bare
 /// assignment would: a `::` local is still frozen, an immutable path is still
 /// closed, and the element type must fit the slot.
@@ -1094,6 +1121,12 @@ check_destructure_target :: fn(
             return
         }
         if push_immutable_path_write(target.target, target.span, typed, diags) {
+            return
+        }
+        if arr != null {
+            index_ty :: check_expr_fn(target.index, null, typed, diags)
+            slot :: array_write_slot(target, arr, index_ty, typed, diags)
+            emit_assign_mismatch_if(elem_ty, slot, target.span, target, typed, diags)
             return
         }
     } else {

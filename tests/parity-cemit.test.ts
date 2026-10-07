@@ -398,6 +398,8 @@ const C_PARITY = new Set<string>([
   "distinct_equality_either_side",
   // Without an impl of its own, a distinct orders through its backing's.
   "distinct_orders_as_backing",
+  // A distinct's own `Index` / `IndexSet` wins over its backing, trait by trait.
+  "distinct_own_index",
   "generic_enum_same_name",
   // An enum with variant data stores its variant's rank : its value tables and
   // the conversion back to the written value, inside a generic instance too.

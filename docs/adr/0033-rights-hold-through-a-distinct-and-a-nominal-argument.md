@@ -3,7 +3,8 @@
 ## Status
 
 Accepted (2026-10-07). Resolves the nominal-argument item that 0017 and 0032 left
-open, and the first item of 0022's "Left open" with 0032.
+open, and the first item of 0022's "Left open" with 0032. 0038 resolves the index
+read item left open below.
 
 ## Context
 

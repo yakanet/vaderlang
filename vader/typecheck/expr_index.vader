@@ -1,9 +1,5 @@
-// vader/typecheck/expr_index — IndexExpr inference (`arr[i]`).
-//
-// MVP : only array indexing — `arr[i]` requires `arr: T[]` and an
-// integer-typed index, yielding `T`. T3008 on non-array target.
-// Custom `Index` trait dispatch (powers `s[i]` on user structs) lands
-// with the trait-method machinery.
+// vader/typecheck/expr_index — IndexExpr inference (`x[i]`), and `index_route`, the
+// dispatch decision the typecheck and the lowerings share.
 
 module "vader/typecheck"
 
@@ -12,7 +8,8 @@ import "vader/diagnostics"
 import "vader/types"
 AST :: import "toolchain/ast"
 
-/// Type-check `target[index]`. Returns `T` when `target: T[]`.
+/// Type-check the read `target[index]` : an array's element, a bound's or an impl's
+/// `Index` result, a string's `char`, a slice for a `Range` index.
 export infer_index :: fn(
     e: AST.IndexExpr!, typed: TypedProgram!, diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
@@ -37,22 +34,15 @@ export infer_index :: fn(
             return mk_primitive("char")
         }
     }
-    // Arrays — and array-backed distinct newtypes (`BigInt :: u32[]`) via
-    // `array_backing` — index by element. `arr[r]` with `r: Range<T>` slices.
+    // A `Range` index on an array, or on an array-backed distinct, slices it : no
+    // impl of a distinct's own takes a `Range` key.
     arr_view :: array_backing(target)
-    if arr_view != null {
-        if is_range_type(index) {
-            // A slice is a zero-copy VIEW sharing the parent's buffer (SPEC §Arrays),
-            // so it inherits the parent's mutability. Hard-wiring it mutable
-            // laundered the freeze : `frozen[0..<1]` handed back a writable alias
-            // onto the very buffer that was frozen.
-            return mk_array(arr_view.element, arr_view.immutable)
-        }
-        if !is_integer_index(index) {
-            diags.push(typecheck_error(.TypeMismatch, e.index.span,
-                "array index must be an integer, got ${display_type(index)}"))
-        }
-        return arr_view.element
+    if arr_view != null && is_range_type(index) {
+        // A slice is a zero-copy VIEW sharing the parent's buffer (SPEC §Arrays),
+        // so it inherits the parent's mutability. Hard-wiring it mutable
+        // laundered the freeze : `frozen[0..<1]` handed back a writable alias
+        // onto the very buffer that was frozen.
+        return mk_array(arr_view.element, arr_view.immutable)
     }
     // A TypeParam bounded by `Index<I, T>` — `c[i]` dispatches through the bound
     // exactly like the method form `c.at(i)` (`try_typeparam_bound_method`).
@@ -62,36 +52,69 @@ export infer_index :: fn(
         bound :: typed.resolved.type_param_bounds[target.symbol.id]
         if bound != null {
             idx_args :: bounded_trait_args(bound, core_trait_key(TRAIT_INDEX), typed)
-            if idx_args != null {
-                if idx_args.len() >= 2 {
-                    typed.bounded_dispatch_trait[e.id] = core_trait_key(TRAIT_INDEX)
-                    keep_instances_concrete(typed)
-                    return idx_args[1]
-                }
+            if idx_args != null && idx_args.len() >= 2 {
+                typed.bounded_dispatch_trait[e.id] = core_trait_key(TRAIT_INDEX)
+                keep_instances_concrete(typed)
+                return idx_args[1]
             }
         }
     }
-    // @partial: structs index by their Index impl; the string case is handled
-    // above, and every other type kind is not indexable.
-    @partial match target {
-        is StructType -> {
-            result_ty :: index_param(target, typed.index_target_types, typed)
-            if result_ty == null {
-                diags.push(typecheck_error(.NotIndexable, e.span,
-                    "${display_type(target)} is not indexable"))
-                return TY_UNRESOLVED
-            }
-            _ :: reject_unmet_impl_bounds(
-                target, core_trait_key(TRAIT_INDEX), .TraitNotSatisfied, e.span, typed, diags,
-            )
-            return result_ty
+    route :: index_route(target, core_trait_key(TRAIT_INDEX), typed)
+    // Arrays — and array-backed distinct newtypes (`BigInt :: u32[]`) with no `Index`
+    // of their own — index by element.
+    if route == .Array && arr_view != null {
+        if !is_integer_index(index) {
+            diags.push(typecheck_error(.TypeMismatch, e.index.span,
+                "array index must be an integer, got ${display_type(index)}"))
         }
-        _ -> {
-            diags.push(typecheck_error(.NotIndexable, e.span,
-                "${display_type(target)} is not indexable"))
-            return TY_UNRESOLVED
-        }
+        return arr_view.element
     }
+    // A struct or a distinct indexes by its own `Index` impl.
+    result_ty :: if route == .Impl {
+        index_param(target, typed.index_target_types, typed)
+    } else {
+        null
+    }
+    if result_ty == null {
+        diags.push(
+            typecheck_error(.NotIndexable, e.span, "${display_type(target)} is not indexable"),
+        )
+        return TY_UNRESOLVED
+    }
+    _ :: reject_unmet_impl_bounds(
+        target, core_trait_key(TRAIT_INDEX), .TraitNotSatisfied, e.span, typed, diags,
+    )
+    return result_ty
+}
+
+/// Where `x[i]` goes for one of `Index` / `IndexSet`.
+export IndexRoute :: enum {
+    /// Through the type's own impl of the trait — a struct, a distinct, `string`.
+    Impl
+    /// Into an array, or the array backing a distinct with no impl of its own.
+    Array
+    /// Nowhere, for that trait.
+    None
+}
+
+/// The route `target[i]` takes for `trait_key` : `Index` for a read, `IndexSet` for
+/// a write. The one decision the typecheck and both lowerings read, so they never
+/// dispatch one `x[i]` two ways. A type's own impl of the trait wins over the array
+/// it may be backed by, trait by trait. A bounded type parameter is `None` here :
+/// it dispatches through its bound (`bounded_dispatch_trait`).
+///
+/// @param target     the indexed value's type.
+/// @param trait_key  `Index` for a read, `IndexSet` for a write.
+export index_route :: fn(target: Type, trait_key: string, typed: TypedProgram) -> IndexRoute {
+    // Indexing an array is built in : an `Index` impl written on `T[]` never takes
+    // it over, so a bare array needs no lookup.
+    if target is ArrayType {
+        return .Array
+    }
+    if base_implements_trait(target, trait_key, typed) {
+        return .Impl
+    }
+    return if array_backing(target) != null { .Array } else { .None }
 }
 
 /// The type args of a named trait carried by a TypeParam's bound (e.g.
@@ -133,10 +156,9 @@ index_set_value_expected :: fn(target: Type, typed: TypedProgram) -> Type | null
 
 // The array an `a[i] = v` stores into : `a` itself, or the backing of an
 // array-backed distinct (`Ids :: i32[]`) that does not implement `IndexSet` of
-// its own — the order `try_lower_index_set_assign` dispatches in. Null when the
-// write goes through an `IndexSet` impl.
+// its own (`index_route`). Null when the write goes through an `IndexSet` impl.
 stored_array :: fn(t: Type, typed: TypedProgram) -> ArrayType | null {
-    if t is DistinctType && index_set_value_expected(t, typed) != null {
+    if index_route(t, core_trait_key(TRAIT_INDEX_SET), typed) != .Array {
         return null
     }
     return array_backing(t)

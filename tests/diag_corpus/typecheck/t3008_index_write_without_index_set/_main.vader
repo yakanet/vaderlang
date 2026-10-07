@@ -1,0 +1,20 @@
+// An index write needs an `IndexSet`, or an array to store into : `Grid` implements
+// only `Index`, and a `string` has no `IndexSet`. Each write would reach the `Index`
+// read, a call. T3008.
+module "snippet"
+
+Grid :: struct {
+    w: i32
+}
+
+Grid implements Index<usize, i32> {
+    at :: fn(self, i: usize) -> i32 = i32(i)
+}
+
+main :: fn() -> i32 {
+    g :: Grid { .w = 1 }
+    g[0] = 3
+    s :: "abc"
+    s[0] = 'x'
+    return g[1]
+}
