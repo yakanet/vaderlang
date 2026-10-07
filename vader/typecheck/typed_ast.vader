@@ -301,7 +301,8 @@ export TypedProgram :: struct {
 
     /// `type::method_name → ImplMethod`, under two keys per member: the impl's
     /// own type (`impl_type_key`, arguments included) and its base
-    /// (`impl_base_key`); plus `into_impl_key` for an `Into` impl. Written by
+    /// (`impl_base_key`); plus `into_impl_key` for an `Into` impl, and the base of
+    /// its target for a generic one (`into_method_toward`). Written by
     /// `record_impl_members` ; consumed by `field.vader::infer_field` for the
     /// `x.method()` dispatch path when `x` is not a struct with a member named
     /// `method`.

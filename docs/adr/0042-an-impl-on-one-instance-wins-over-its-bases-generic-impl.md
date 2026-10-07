@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted (2026-10-07).
+Accepted (2026-10-07). Amended by 0045: an implicit conversion chooses its `into`
+by its target, not per trait, and two impls of one trait on one instance name
+their members apart.
 
 ## Context
 

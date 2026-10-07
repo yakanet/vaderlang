@@ -42,7 +42,7 @@ lower_impl_member_list :: fn(
     out: LoweredDecl![]!: []
     // Skip generic impls entirely — the mono pass binds them via a
     // separate path — and array impls, materialised per element
-    // (`surface_array_blanket_members`).
+    // (`surface_array_impl_members`).
     if impl_decl.type_params.len() > 0 { return out }
     if impl_decl.for_type is GenericInstExpr { return out }
     if strip_mut_marker(impl_decl.for_type) is ArrayTypeExpr { return out }

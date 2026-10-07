@@ -484,9 +484,10 @@ try_free_fn_ufcs_dispatch :: fn(
         typed.into_coercions[e.target.id] = first_param
     }
     // T3071 on this dispatch path too : a mutator declared as a free fn (`put`,
-    // `remove`, `clear`) is the dominant stdlib style. A receiver converted to a fresh
-    // iterator is exempt — the callee advances that iterator, never `arr`.
-    if !converts_to_fresh_iterator(target_ty, first_param) {
+    // `remove`, `clear`) is the dominant stdlib style. A receiver converted into an
+    // owned value (`converts_to_owned`) is exempt — the callee mutates that value,
+    // never `arr`.
+    if !converts_to_owned(target_ty, first_param, typed) {
         self_mutable :: param_mutable_at(free_ufcs.winner.ty, 0)
         reject_mutating_method_on_immutable(
             ImplMethod { .ty = free_ufcs.curried, .self_mutable = self_mutable },

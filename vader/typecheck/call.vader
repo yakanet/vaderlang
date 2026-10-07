@@ -1229,12 +1229,9 @@ reject_ufcs_receiver_at_instance :: fn(
         return
     }
     receiver_ty :: typed.expr_types[c.callee.target.id] ?? return
-    if converts_to_fresh_iterator(receiver_ty, first) {
-        return
-    }
     want :: substitute_map(first, bindings)
     // A receiver widening into a trait parameter fits through its impl, which the
-    // method access checked.
+    // method access checked — or converts into it, as an array into an `Iterator`.
     if want is TraitType {
         return
     }
@@ -1736,9 +1733,9 @@ reject_immutable_into_mutable_param :: fn(
     if !type_may_grant_mutation(filled_variant(arg_ty, param_ty)) {
         return
     }
-    // An array into an `Iterator<T>!` converts to a fresh iterator : the callee
-    // advances that, never the array.
-    if converts_to_fresh_iterator(arg_ty, param_ty) {
+    // An argument converted on its way in takes the rights of the `into` it goes
+    // through : an owned result is what the callee mutates, never the argument.
+    if converts_to_owned(arg_ty, param_ty, typed) {
         return
     }
     if !value_is_read_only(c.args[i].value, arg_ty, typed) {

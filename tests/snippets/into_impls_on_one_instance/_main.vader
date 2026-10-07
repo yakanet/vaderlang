@@ -1,0 +1,55 @@
+module "snippet"
+
+import "std/io"
+
+// Two impls of `Into` on one instance — a struct instance and a concrete array —
+// each run their own `into` : the conversion toward `Label` and the one toward
+// `Tag` name distinct members.
+
+Mon :: struct {
+    v: i32
+}
+
+Wrapper :: struct<T> {
+    x: T
+}
+
+Label :: struct {
+    s: string
+}
+
+Tag :: struct {
+    n: i32
+}
+
+Wrapper<Mon> implements Into<Label> {
+    into :: fn(self) -> Label = Label { .s = "w=${self.x.v}" }
+}
+
+Wrapper<Mon> implements Into<Tag> {
+    into :: fn(self) -> Tag = Tag { .n = 100 + self.x.v }
+}
+
+Mon[] implements Into<Label> {
+    into :: fn(self) -> Label = Label { .s = "n=${self.len()}" }
+}
+
+Mon[] implements Into<Tag> {
+    into :: fn(self) -> Tag = Tag { .n = 200 + i32(self.len()) }
+}
+
+show :: fn(l: Label) -> string = l.s
+
+tag :: fn(t: Tag) -> i32 = t.n
+
+main :: fn() -> i32 {
+    w :: Wrapper<Mon> { .x = Mon { .v = 7 } }
+    println(show(w))
+    println("${tag(w)}")
+    xs :: [Mon { .v = 4 }, Mon { .v = 5 }]
+    println(show(xs))
+    println("${tag(xs)}")
+    println(Label(xs).s)
+    println("${Tag(w).n}")
+    return 0
+}

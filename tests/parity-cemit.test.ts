@@ -294,6 +294,11 @@ const C_PARITY = new Set<string>([
   "index_through_trait_value",
   // A free literal takes the type its call binds, in method and free syntax alike.
   "literal_argument_takes_its_binding",
+  // An array converted by the `into` toward its slot's type: impls on its own
+  // instance toward `Label` and `Iterator<Label>`, core's toward `Iterator<Mon>`.
+  "array_into_by_target",
+  // Two `Into` impls on one struct instance or one concrete array, each run.
+  "into_impls_on_one_instance",
   // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's
   // defer runs on teardown, the winner's at its own completion.
   "async_race",

@@ -12,6 +12,7 @@ module "vader/lower"
 import "std/collections"
 import "vader/diagnostics"
 import "toolchain/ast"
+import "toolchain/span"
 import "vader/resolver/symbol"
 import "vader/types"
 import "vader/typecheck"
@@ -74,6 +75,14 @@ export new_closure_analysis :: fn() -> ClosureAnalysis {
 // ============================================================================
 // Project context
 // ============================================================================
+
+/// An array impl member a call reached (`LowerProjectCtx.array_member_uses`).
+export ArrayMemberUse :: struct {
+    /// The array's element : the member is materialised with `T → element`.
+    element:     Type
+    /// The span of the member the call chose — the body the mangle names.
+    member_span: Span
+}
 
 /// Inputs every lowering pass reads. Built once at `lower_project`
 /// entry — passes never mutate the upstream `evaluated` view, only the
@@ -308,23 +317,23 @@ export LowerProjectCtx :: struct {
     /// otherwise an inhabitable-nowhere struct would bloat the table.
     constructed_struct_symbols: MutableSet<i32>!
 
-    /// Blanket-array impl-member call sites (`x in arr` → `T[] implements
-    /// Contains`, `[T]`-to-`Iterator` coercion → `T[] implements Into`) : maps
-    /// the call-site mangle (`std_core$[]$Contains$contains__i32`,
-    /// `std_core$[]$Into$into__i32`) to the array's element type.
-    /// `surface_array_blanket_members` reads this to materialise one CONCRETE
+    /// Array impl-member call sites (`x in arr` → `T[] implements Contains`,
+    /// `[T]`-to-`Iterator` coercion → `T[] implements Into`) : maps the call-site
+    /// mangle (`std_core$[]$Contains$contains__i32`, `std_core$[]$Into$into__i32`)
+    /// to the array's element type and the member the call chose.
+    /// `surface_array_impl_members` reads this to materialise one CONCRETE
     /// member body per element type, with `T → element` substituted (so e.g.
-    /// `contains`'s `==` devirtualises to the element primop). A blanket array
-    /// impl has no struct instance to drive the regular generic-impl
-    /// materialiser, so it keys off this table instead.
-    array_blanket_elems: MutableMap<string, Type>!
+    /// `contains`'s `==` devirtualises to the element primop). An array impl has
+    /// no struct instance to drive the regular generic-impl materialiser, so it
+    /// keys off this table instead.
+    array_member_uses: MutableMap<string, ArrayMemberUse>!
 
     /// Erased generic-struct impl-member receivers (`MutableMap<Any, bool>`)
     /// discovered by `find_impl_member_for` — their instance never reaches
     /// `evaluated.instances` (erasure artifacts, not source-level). Drained
     /// inside the `drain_generic_fn_instances` fixpoint so the impl
     /// bodies' transitive free-fn harvests stay on the same cursor. Struct
-    /// analogue of `array_blanket_elems`.
+    /// analogue of `array_member_uses`.
     pending_generic_impl_recv: GenericInstance![]!
     /// Receiver keys already queued, so each erased instance is queued once
     /// (bounds the queue + avoids redundant per-receiver module scans).
@@ -393,7 +402,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .referenced_impl_mangles = MutableSet<string> {},
         .virtually_dispatched_traits = MutableSet<string> {},
         .constructed_struct_symbols = MutableSet<i32> {},
-        .array_blanket_elems = MutableMap<string, Type> {},
+        .array_member_uses = MutableMap<string, ArrayMemberUse> {},
         .pending_generic_impl_recv = [],
         .seen_generic_impl_recv = MutableSet<string> {},
         .generic_collected   = [],

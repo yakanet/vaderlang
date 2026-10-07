@@ -199,6 +199,29 @@ any_instance_impl :: fn(entries: ImplEntry[]) -> bool {
 export impls_for :: fn(self: ImplRegistry, receiver: Type, trait_key: string) -> ImplEntry[] =
     covering_first(self.impls_of(impl_base_key(receiver), trait_key), receiver)
 
+/// What tells apart the members of several impls of one trait on one instance,
+/// declared in one module (`MonType[] implements Into<Label>` beside
+/// `… Into<Tag>`) : "" for the first, then `$1`, `$2`, … — a `$`, which no type
+/// name in the receiver's own suffix carries. Every other impl takes "" : two
+/// generic impls of one trait on one base are R2030.
+///
+/// @param entry  the impl whose member is mangled.
+export instance_overload_suffix :: fn(self: ImplRegistry, entry: ImplEntry) -> string {
+    if !entry.instance {
+        return ""
+    }
+    n := 0
+    for other in self.impls_of(entry.target, entry.trait_key) {
+        if other.decl.span == entry.decl.span {
+            break
+        }
+        if other.instance && other.module == entry.module && impl_covers(other, entry.for_type) {
+            n += 1
+        }
+    }
+    return if n == 0 { "" } else { "$${n}" }
+}
+
 /// The impl of `trait_key` that serves `receiver` : the one written for its own
 /// instance, else its base's. Null when none covers it.
 ///

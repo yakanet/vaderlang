@@ -1,0 +1,56 @@
+module "snippet"
+
+import "std/io"
+
+// An array converted implicitly goes through the `into` toward its slot's type:
+// `Mon[] implements Into<Label>` toward a `Label`, and core's
+// `T[] implements<T> Into<Iterator<T>!>` toward an `Iterator<Mon>!` — not
+// `Mon[] implements Into<Iterator<Label>!>`, which converts toward another
+// iterator — as an argument, a receiver and a declared slot. Each conversion takes the rights of
+// its own `into`: the owned iterator fills a `!` slot from a read-only const.
+
+Mon :: struct {
+    v: i32
+}
+
+Label :: struct {
+    s: string
+}
+
+Mon[] implements Into<Label> {
+    into :: fn(self) -> Label = Label { .s = "n=${self.len()}" }
+}
+
+labels :: fn(xs: Mon[]) -> Iterator<Label> {
+    for m in xs {
+        yield Label { .s = "L${m.v}" }
+    }
+}
+
+Mon[] implements Into<Iterator<Label>!> {
+    into :: fn(self) -> Iterator<Label>! = labels(self)
+}
+
+drain :: fn(it: Iterator<Mon>!) -> i32 {
+    n := 0
+    for m in it {
+        n += m.v
+    }
+    return n
+}
+
+show :: fn(l: Label) -> string = l.s
+
+LIST :: [Mon { .v = 4 }, Mon { .v = 5 }, Mon { .v = 6 }]
+
+main :: fn() -> i32 {
+    println(show(LIST))
+    println("${drain(LIST)}")
+    println("${LIST.drain()}")
+    l: Label: LIST
+    println(l.s)
+    it: Iterator<Mon>!: LIST
+    println("${it.drain()}")
+    println(Label(LIST).s)
+    return 0
+}

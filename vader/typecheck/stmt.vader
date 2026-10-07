@@ -683,7 +683,7 @@ check_let :: fn(
     }
     assign_binding_types(s.binding, declared, typed, diags)
     // `buf: Iterator<i32>!: xs` walks a fresh iterator : `buf` borrows nothing of `xs`.
-    if !converts_to_fresh_iterator(got, declared) {
+    if !converts_to_owned(got, declared, typed) {
         mark_binding_borrow(s.binding, s.value, typed)
     }
     record_empty_array_init(s, declared, typed)

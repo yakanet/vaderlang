@@ -715,6 +715,10 @@ export has_instance_impl :: fn(t: Type, trait_key: string, typed: TypedProgram) 
 into_impl_key :: fn(source: Type, target: Type) -> string =
     "${impl_type_key(source)}::into::${impl_type_key(target)}"
 
+// The suffix a generic impl's `into` is keyed under after its side key : the base
+// of the type it converts into (`"[]::into::<Iterator>"`).
+into_toward_suffix :: fn(target: Type) -> string = "::${METHOD_INTO}::${impl_base_key(target)}"
+
 /// The `into` member registered for converting `source` into `target` — the
 /// impl a coercion between the two goes through. Null when none converts them.
 ///
@@ -724,6 +728,23 @@ into_impl_key :: fn(source: Type, target: Type) -> string =
 /// @param target  the type it converts into.
 export into_impl_method :: fn(typed: TypedProgram, source: Type, target: Type) -> ImplMethod | null =
     typed.impl_methods[into_impl_key(source, target)]
+
+/// The `into` an implicit conversion of `source` toward `target` goes through : the
+/// impl of that exact pair, else the generic impl of `source`'s base toward
+/// `target`'s base (`T[] implements<T> Into<Iterator<T>!>`). Null when neither.
+///
+/// @param typed   the module the conversion is written in.
+/// @param source  the converted value's type.
+/// @param target  the slot's type.
+export into_method_toward :: fn(
+    typed: TypedProgram, source: Type, target: Type,
+) -> ImplMethod | null {
+    exact :: into_impl_method(typed, source, target)
+    if exact != null {
+        return exact
+    }
+    return typed.impl_methods["${dispatch_key(source)}${into_toward_suffix(target)}"]
+}
 
 /// True iff an impl on `t` itself or on its base registers `trait_key` in
 /// `typed.struct_implemented_traits` — every argument of a generic impl

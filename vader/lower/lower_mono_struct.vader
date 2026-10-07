@@ -502,14 +502,22 @@ materialize_impl_for_instance :: fn(
     // would leak inner shape (`MutableMap<_, _[]>` → `at__Any__Any__`) and
     // diverge from a sibling instance's `at__Any__Any`, breaking the
     // single-body dedupe.
-    suffix :: if is_empty_substitution(subst) {
+    instance_suffix :: if is_empty_substitution(subst) {
         args_suffix(erased_args)
     } else {
         mixed_any_suffix(project_ctx.impls, inst.args)
     }
+    impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return
+    // An impl on one instance adds what tells it from another impl of the trait on
+    // that instance (`Wrapper<MonType> implements Into<Label>` beside `Into<Tag>`).
+    suffix :: if impl_entry.instance {
+        "${instance_suffix}${project_ctx.impls.instance_overload_suffix(impl_entry)}"
+    } else {
+        instance_suffix
+    }
     types :: make_entry_types(impl_typed, subst)
     impl_key_prefix :: impl_decl.span.hash()
-    impl_trait :: impl_trait_key(project_ctx, impl_decl)
+    impl_trait :: impl_entry.trait_key
     for member in impl_decl.members {
         // Erasure dedupe : every concrete-args instance of the same
         // (impl_decl, member) collapses to one emission. The first

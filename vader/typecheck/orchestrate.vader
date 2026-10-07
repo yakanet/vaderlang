@@ -2622,9 +2622,14 @@ record_impl_members :: fn(
         add_trait_unique(typed.impl_method_traits, member_key, trait_key)
         // `Into<T>` impls are indexed under a target-qualified key so
         // multiple `Into` impls for the same source (e.g. `Into<i32>` +
-        // `Into<string>`) don't collide.
+        // `Into<string>`) don't collide. A generic impl's pair names a type
+        // parameter no conversion carries : it is found by the base of its target
+        // instead (`into_method_toward`).
         if is_into && m.name == METHOD_INTO {
             typed.impl_methods[into_impl_key(for_ty, trait_args[0])] = entry
+            if type_contains_type_param(for_ty) {
+                typed.impl_methods["${side}${into_toward_suffix(trait_args[0])}"] = entry
+            }
         }
     }
 }

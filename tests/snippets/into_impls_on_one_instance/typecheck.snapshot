@@ -1,0 +1,76 @@
+# Typecheck
+
+## tests/snippets/into_impls_on_one_instance
+  StructDecl     Label                :: Label!
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Mon                  :: Mon!
+  FnDecl         show                 :: fn(Label) -> string
+  StructDecl     Tag                  :: Tag!
+  FnDecl         tag                  :: fn(Tag) -> i32
+  StructDecl     Wrapper              :: Wrapper<T>!
+  expr 26:33    StructLitExpr  :: Label!
+  expr 26:46    StringLitExpr  :: string
+  expr 26:51    FieldExpr      :: Mon
+  expr 26:51    FieldExpr      :: i32
+  expr 26:51    IdentExpr      :: Wrapper<Mon>
+  expr 30:31    StructLitExpr  :: Tag!
+  expr 30:42    BinaryExpr     :: i32
+  expr 30:48    FieldExpr      :: Mon
+  expr 30:48    FieldExpr      :: i32
+  expr 30:48    IdentExpr      :: Wrapper<Mon>
+  expr 34:33    StructLitExpr  :: Label!
+  expr 34:46    StringLitExpr  :: string
+  expr 34:51    CallExpr       :: usize
+  expr 34:51    FieldExpr      :: fn() -> usize
+  expr 34:51    IdentExpr      :: Mon![]
+  expr 38:31    StructLitExpr  :: Tag!
+  expr 38:42    BinaryExpr     :: i32
+  expr 38:48    CallExpr       :: i32
+  expr 38:48    IdentExpr      :: type
+  expr 38:52    CallExpr       :: usize
+  expr 38:52    FieldExpr      :: fn() -> usize
+  expr 38:52    IdentExpr      :: Mon![]
+  expr 41:34    FieldExpr      :: string
+  expr 41:34    IdentExpr      :: Label
+  expr 43:28    FieldExpr      :: i32
+  expr 43:28    IdentExpr      :: Tag
+  expr 46:10    StructLitExpr  :: Wrapper<Mon>!
+  expr 46:30    StructLitExpr  :: Mon!
+  expr 47:13    CallExpr       :: string
+  expr 47:13    IdentExpr      :: fn(Label) -> string
+  expr 47:18    IdentExpr      :: Wrapper<Mon>!
+  expr 47:5     CallExpr       :: void
+  expr 47:5     IdentExpr      :: fn(T) -> void
+  expr 48:13    StringLitExpr  :: string
+  expr 48:16    CallExpr       :: i32
+  expr 48:16    IdentExpr      :: fn(Tag) -> i32
+  expr 48:20    IdentExpr      :: Wrapper<Mon>!
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 49:11    SeqLitExpr     :: Mon![]!
+  expr 49:12    StructLitExpr  :: Mon!
+  expr 49:28    StructLitExpr  :: Mon!
+  expr 50:13    CallExpr       :: string
+  expr 50:13    IdentExpr      :: fn(Label) -> string
+  expr 50:18    IdentExpr      :: Mon![]!
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 51:13    StringLitExpr  :: string
+  expr 51:16    CallExpr       :: i32
+  expr 51:16    IdentExpr      :: fn(Tag) -> i32
+  expr 51:20    IdentExpr      :: Mon![]!
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void
+  expr 52:13    CallExpr       :: Label!
+  expr 52:13    FieldExpr      :: string
+  expr 52:13    IdentExpr      :: Label!
+  expr 52:19    IdentExpr      :: Mon![]!
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
+  expr 53:13    StringLitExpr  :: string
+  expr 53:16    CallExpr       :: Tag!
+  expr 53:16    FieldExpr      :: i32
+  expr 53:16    IdentExpr      :: Tag!
+  expr 53:20    IdentExpr      :: Wrapper<Mon>!
+  expr 53:5     CallExpr       :: void
+  expr 53:5     IdentExpr      :: fn(T) -> void
