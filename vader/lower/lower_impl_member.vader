@@ -474,17 +474,21 @@ try_array_iter_coercion :: fn(
             // `into` returns `array_iter(self)`, a generator: its state struct
             // and `Iterator` impl are synthesised when that call is lowered, so
             // there is nothing named to pre-register here.
-            // The member the typechecker judged the conversion by, never another
-            // `Into` of the same array (`MonType[] implements Into<Label>`).
-            chosen :: into_method_toward(ctx.typed, arg_type, target_type)
-            if chosen == null { return mk_bare_into_call(ctx, arg, target_type, span) }
-            candidates :: ctx.project.impls.impls_for(arg_type, core_trait_key(TRAIT_INTO))
-            found :: impl_declaring(candidates, chosen)
+            found :: array_into_member(ctx, arg_type, target_type)
             if found == null { return mk_bare_into_call(ctx, arg, target_type, span) }
             return call_into_member(ctx, found, arg, arg_type, target_type, span)
         }
     }
     return null
+}
+
+// The `into` member an `array` converts toward `target` through : the one the
+// typechecker judged the conversion by (`into_method_toward`), never another
+// `Into` of the same array (`MonType[] implements Into<Label>`).
+array_into_member :: fn(ctx: FnLowerCtx, array: Type, target: Type) -> ImplMemberMatch | null {
+    chosen :: into_method_toward(ctx.typed, array, target) ?? return null
+    candidates :: ctx.project.impls.impls_for(array, core_trait_key(TRAIT_INTO))
+    return impl_declaring(candidates, chosen)
 }
 
 // `into(arg)` through the member `found` names, mangled as its materialiser names

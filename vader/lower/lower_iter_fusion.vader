@@ -252,9 +252,22 @@ descend_chain_concrete :: fn(ctx: FnLowerCtx!, expr: AST.Expr) -> IterChain | nu
 bare_array_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
     bare :: ctx.types.expr_type(expr)
     if bare is ArrayType {
+        if converts_through_own_into(ctx, bare, expr) {
+            return null
+        }
         return mk_array_chain(expr, bare.element, span_of(expr), true)
     }
     return null
+}
+
+// True when the array `expr` reaches its `Iterator` slot through the `into` of an
+// impl on its own instance (`MonType[] implements Into<Iterator<MonType>!>`), the
+// one the typechecker chose (`into_method_toward`) : iterating the raw array would
+// skip it.
+converts_through_own_into :: fn(ctx: FnLowerCtx, array: Type, expr: AST.Expr) -> bool {
+    target :: ctx.typed.into_coercions[expr.id] ?? return false
+    found :: array_into_member(ctx, array, target) ?? return false
+    return found.entry.instance
 }
 
 // The receiver (chain source) + transform/predicate arg of a fluent
@@ -322,6 +335,11 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
     into_arr :: array_from_into_call(ctx, call)
     if into_arr != null {
         arr_ty :: ctx.types.expr_type(into_arr)
+        // `arr.into()` resolves by name, to the `into` of an impl on the array's own
+        // instance when there is one : iterating the raw array would skip it.
+        if has_instance_impl(arr_ty, core_trait_key(TRAIT_INTO), ctx.typed) {
+            return null
+        }
         elem :: if arr_ty is ArrayType as a { a.element } else { TY_UNRESOLVED }
         return mk_array_chain(into_arr, elem, call.span, false)
     }

@@ -299,6 +299,8 @@ const C_PARITY = new Set<string>([
   "array_into_by_target",
   // Two `Into` impls on one struct instance or one concrete array, each run.
   "into_impls_on_one_instance",
+  // An array iterated through its own `into` by an inlined consumer and a chain.
+  "array_own_into_not_fused",
   // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's
   // defer runs on teardown, the winner's at its own completion.
   "async_race",

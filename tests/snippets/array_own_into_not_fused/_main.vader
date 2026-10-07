@@ -1,0 +1,80 @@
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+// An array whose own instance converts to an iterator is iterated through that
+// `into` by an inlined consumer, and by a chain headed by `.into()` — never as the
+// raw array its elements would make.
+
+Mon :: struct {
+    v: i32
+}
+
+Label :: struct {
+    s: string
+}
+
+scaled :: fn(xs: Mon[]) -> Iterator<Mon> {
+    for m in xs {
+        yield Mon { .v = m.v * 100 }
+    }
+}
+
+labels :: fn(xs: Mon[]) -> Iterator<Label> {
+    for m in xs {
+        yield Label { .s = "L${m.v}" }
+    }
+}
+
+Mon[] implements Into<Iterator<Mon>!> {
+    into :: fn(self) -> Iterator<Mon>! = scaled(self)
+}
+
+Mon[] implements Into<Iterator<Label>!> {
+    into :: fn(self) -> Iterator<Label>! = labels(self)
+}
+
+Pt :: struct {
+    x: i32
+}
+
+shifted :: fn(ps: Pt[]) -> Iterator<Pt> {
+    for p in ps {
+        yield Pt { .x = p.x + 1000 }
+    }
+}
+
+Pt[] implements Into<Iterator<Pt>!> {
+    into :: fn(self) -> Iterator<Pt>! = shifted(self)
+}
+
+drain :: fn(it: Iterator<Mon>!) -> i32 {
+    n := 0
+    for m in it {
+        n += m.v
+    }
+    return n
+}
+
+join_labels :: fn(it: Iterator<Label>!) -> string {
+    out := ""
+    for l in it {
+        out = "${out}${l.s} "
+    }
+    return out
+}
+
+LIST :: [Mon { .v = 4 }, Mon { .v = 5 }]
+
+main :: fn() -> i32 {
+    println("${drain(LIST)}")
+    println(join_labels(LIST))
+    ps :: [Pt { .x = 1 }, Pt { .x = 2 }]
+    sum := 0
+    for x in ps.into().map((p) -> p.x) {
+        sum += x
+    }
+    println("${sum}")
+    return 0
+}

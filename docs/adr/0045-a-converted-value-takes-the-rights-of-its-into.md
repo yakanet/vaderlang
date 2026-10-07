@@ -89,14 +89,20 @@ Still open:
 - **A conversion into a declared slot** (`buf: Iterator<i32>!: LIST`) is judged
   only on the borrow it records. Its rights against the slot are not checked
   through the `into`. No conversion reaches it with a read-only result today.
-- **Iterator fusion takes an array heading a chain for its own elements**, past
-  the `into` a conversion chose. Fed to an inlined consumer, `MonType[]` with its
-  own `Into<Iterator<MonType>!>` is iterated as the array, silently. With
-  `Into<Iterator<Label>!>`, the build panics. Both behaved this way before this
-  change.
+- **A generic `Iterator<T>` slot ignores an array's own `into`.** The target
+  recorded for it is the unbound `Iterator<T>`, which no exact pair matches. So
+  `xs.map(f)` converts through core's `into` even when `MonType[]` implements
+  `Into<Iterator<MonType>!>`. The free call `map(xs, f)` is T3001: the exact pair
+  is found, then its `Iterator<MonType>` is compared with `Iterator<MonType!>`.
+
 - **Two impls of one trait on one instance are told apart on conversions only.**
   A method call (`w.into()`), a trait value (`v: Into<Tag>: w`) and a `for` over
   two `Iterator` impls run the first impl's body, as they do for two impls on a
   whole type.
 - **A generic `Into` impl on a struct** is still refused by a coercion (T3010).
   Even if accepted, the lowering would call the bare `into`.
+
+Iterator fusion used to take an array heading a chain for its own elements,
+skipping such an `into`: silently with `Into<Iterator<MonType>!>`, with a build
+panic toward `Iterator<Label>`. It now declines that array, and the call that is
+not fused converts through the chosen `into` (snippet `array_own_into_not_fused`).
