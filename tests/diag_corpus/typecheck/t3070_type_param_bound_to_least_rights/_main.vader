@@ -1,0 +1,19 @@
+// A type parameter two arguments bind keeps the rights both hold : `pick(local, CFG)`
+// binds `T = Cfg` read-only, whichever comes first, so the field write through its
+// result would reach the module const. T3070.
+module "snippet"
+
+Cfg :: struct {
+    n: i32
+}
+
+CFG :: Cfg { .n = 1 }
+
+pick :: fn<T>(a: T, b: T) -> T = b
+
+main :: fn() -> i32 {
+    local :: Cfg { .n = 1 }
+    r :: pick(local, CFG)
+    r.n = 5
+    return CFG.n
+}

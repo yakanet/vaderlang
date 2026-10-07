@@ -28,9 +28,23 @@ is_free_numeric :: fn(t: Type) -> bool {
 }
 
 /// Walk `param_type` against `arg_type` and record any TypeParam
-/// binding into `out`. First binding wins.
+/// binding into `out`. The first binding wins, but for its rights : a later
+/// argument giving the same type with fewer rights lowers them
+/// (`least_permissive`), so `pick(local, CFG)` cannot hand back a mutable `CFG`.
+///
+/// @param held           the type parameters an explicit `<…>` bound : their
+///                       rights are written, and stand. Null holds none.
+/// @param lowers_rights  whether `arg_type`'s rights are ones an argument holds.
+///                       False for the call's expected type, whose rights are the
+///                       slot's, and inside a fn type's parameters, whose rights
+///                       are what the fn accepts : `find(pts, (p) -> …)` keeps the
+///                       elements' rights.
 export unify_type_param :: fn(
-    param_type: Type, arg_type: Type, out: MutableMap<i32, Type>!,
+    param_type: Type,
+    arg_type: Type,
+    out: MutableMap<i32, Type>!,
+    held: MutableSet<i32> | null = null,
+    lowers_rights: bool = true,
 ) -> void {
     match param_type {
         is TypeParamType -> {
@@ -64,23 +78,35 @@ export unify_type_param :: fn(
             // so the post-loop assignability check accepts the lambda.
             if is_free_numeric(existing) && !is_free_numeric(arg_type) {
                 out[param_type.symbol.id] = arg_type
+                return
             }
             // Same reasoning as above for a binding that was recorded before
             // this rule existed elsewhere in the tree : an unresolved binding
             // yields to anything that carries real information.
             if type_contains_unresolved(existing) {
                 out[param_type.symbol.id] = arg_type
+                return
             }
             if existing is TypeParamType {
                 if existing.symbol.id == param_type.symbol.id {
                     out[param_type.symbol.id] = arg_type
+                    return
                 }
             }
+            if existing === arg_type || !lowers_rights {
+                return
+            }
+            if held != null && param_type.symbol.id in held {
+                return
+            }
+            out[param_type.symbol.id] = least_permissive(existing, arg_type) ?? return
             return
         }
         is ArrayType -> {
             match arg_type {
-                is ArrayType -> { unify_type_param(param_type.element, arg_type.element, out) }
+                is ArrayType -> {
+                    unify_type_param(param_type.element, arg_type.element, out, held, lowers_rights)
+                }
                 _ -> {}
             }
             return
@@ -90,7 +116,13 @@ export unify_type_param :: fn(
                 is TupleType -> {
                     if param_type.elements.len() == arg_type.elements.len() {
                         for i in 0..<param_type.elements.len() {
-                            unify_type_param(param_type.elements[i], arg_type.elements[i], out)
+                            unify_type_param(
+                                param_type.elements[i],
+                                arg_type.elements[i],
+                                out,
+                                held,
+                                lowers_rights,
+                            )
                         }
                     }
                 }
@@ -102,7 +134,7 @@ export unify_type_param :: fn(
             match arg_type {
                 is StructType -> {
                     if param_type.symbol.id == arg_type.symbol.id {
-                        unify_args(param_type.args, arg_type.args, out)
+                        unify_args(param_type.args, arg_type.args, out, held, lowers_rights)
                     }
                 }
                 _ -> {}
@@ -113,7 +145,7 @@ export unify_type_param :: fn(
             match arg_type {
                 is TraitType -> {
                     if param_type.symbol.id == arg_type.symbol.id {
-                        unify_args(param_type.args, arg_type.args, out)
+                        unify_args(param_type.args, arg_type.args, out, held, lowers_rights)
                     }
                 }
                 // An array argument satisfies an `Iterator<T>` parameter through
@@ -124,7 +156,9 @@ export unify_type_param :: fn(
                 // generic body is never specialised. Bind `T = element`.
                 is ArrayType -> {
                     if param_type.symbol.name == TRAIT_ITERATOR && param_type.args.len() == 1 {
-                        unify_type_param(param_type.args[0], arg_type.element, out)
+                        unify_type_param(
+                            param_type.args[0], arg_type.element, out, held, lowers_rights,
+                        )
                     }
                 }
                 _ -> {}
@@ -136,9 +170,11 @@ export unify_type_param :: fn(
                 is FnType -> {
                     n :: min(param_type.params.len(), arg_type.params.len())
                     for i in 0..<n {
-                        unify_type_param(param_type.params[i], arg_type.params[i], out)
+                        unify_type_param(param_type.params[i], arg_type.params[i], out, held, false)
                     }
-                    unify_type_param(param_type.return_type, arg_type.return_type, out)
+                    unify_type_param(
+                        param_type.return_type, arg_type.return_type, out, held, lowers_rights,
+                    )
                 }
                 _ -> {}
             }
@@ -146,7 +182,7 @@ export unify_type_param :: fn(
         }
         is UnionType -> {
             for pair in union_leftovers(param_type.variants, union_variants(arg_type) ?? [arg_type]) {
-                unify_type_param(pair.pattern, pair.actual, out)
+                unify_type_param(pair.pattern, pair.actual, out, held, lowers_rights)
             }
             return
         }
@@ -222,10 +258,80 @@ any_contains :: fn(ts: Type[]) -> bool {
     return false
 }
 
-unify_args :: fn(p_args: Type[], a_args: Type[], out: MutableMap<i32, Type>!) -> void {
+unify_args :: fn(
+    p_args: Type[],
+    a_args: Type[],
+    out: MutableMap<i32, Type>!,
+    held: MutableSet<i32> | null,
+    lowers_rights: bool,
+) -> void {
     n :: min(p_args.len(), a_args.len())
-    for i in 0..<n { unify_type_param(p_args[i], a_args[i], out) }
+    for i in 0..<n { unify_type_param(p_args[i], a_args[i], out, held, lowers_rights) }
 }
+
+// The binding a type parameter keeps when two arguments give it `a` and `b` : the
+// same type, each level read-only when either is, so neither argument lends rights
+// the other lacks. Null when they differ by more than their rights — the first
+// binding then stands, and the argument check reports the mismatch.
+//
+// A fn type is kept as the first binding has it : its parameters take rights the
+// other way round, so the argument check judges the other one against it.
+least_permissive :: fn(a: Type, b: Type) -> Type | null {
+    match a {
+        is ArrayType -> {
+            if b is ArrayType {
+                element :: least_permissive(a.element, b.element) ?? return null
+                return mk_array(element, a.immutable || b.immutable)
+            }
+        }
+        is StructType -> {
+            if b is StructType && b.symbol.id == a.symbol.id {
+                args :: least_permissive_each(a.args, b.args) ?? return null
+                return mk_struct(a.symbol, args, a.immutable || b.immutable)
+            }
+        }
+        is TupleType -> {
+            if b is TupleType {
+                elements :: least_permissive_each(a.elements, b.elements) ?? return null
+                return mk_tuple(elements, a.immutable || b.immutable)
+            }
+        }
+        is TraitType -> {
+            if b is TraitType && b.symbol.id == a.symbol.id {
+                args :: least_permissive_each(a.args, b.args) ?? return null
+                return TraitType { ...a, .args = args, .immutable = a.immutable || b.immutable }
+            }
+        }
+        is DistinctType -> {
+            if b is DistinctType && b.symbol.id == a.symbol.id {
+                backing :: least_permissive(a.backing, b.backing) ?? return null
+                return mk_distinct(a.symbol, backing)
+            }
+        }
+        // Variants pair by index : `union_of` sorts them on a key blind to the marker.
+        is UnionType -> {
+            if b is UnionType {
+                variants :: least_permissive_each(a.variants, b.variants) ?? return null
+                return union_of(variants)
+            }
+        }
+        _ -> {}
+    }
+    // Any other pair agrees only with itself.
+    return if equals_type(a, b) { a } else { null }
+}
+
+least_permissive_each :: fn(a: Type[], b: Type[]) -> Type[] | null {
+    if a.len() != b.len() {
+        return null
+    }
+    out: Type[]!: []
+    for i in 0..<a.len() {
+        out.push(least_permissive(a[i], b[i]) ?? return null)
+    }
+    return out
+}
+
 
 /// A variant of a union pattern left unmatched, and the argument type it unifies
 /// with.
@@ -365,6 +471,7 @@ substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) -> Type[]
 
 import "std/string"
 import "std/testing"
+import "vader/resolver/symbol"
 
 display_leftovers :: fn(pairs: UnionLeftover[]) -> string {
     parts: string[]!: []
@@ -393,4 +500,70 @@ test_union_leftovers_pairs_several_params_by_position :: fn() -> void {
     u :: mk_type_param(fresh_type_param(2, "U"))
     pairs :: union_leftovers([t, u, TY_NULL], [mk_primitive("i32"), TY_STRING, TY_NULL])
     assert_eq(display_leftovers(pairs), "T <- i32, U <- string")
+}
+
+struct_symbol :: fn(name: string) -> Symbol =
+    SymbolFactory {}.make(.Struct, name, "test", "test", .Public, null)
+
+display_least_permissive :: fn(a: Type, b: Type) -> string {
+    met :: least_permissive(a, b) ?? return "null"
+    return display_type(met)
+}
+
+@test
+test_least_permissive_lowers_each_level :: fn() -> void {
+    i32_ty :: mk_primitive("i32")
+    outer_frozen :: mk_array(mk_array(i32_ty, false), true)
+    inner_frozen :: mk_array(mk_array(i32_ty, true), false)
+    assert_eq(display_least_permissive(outer_frozen, inner_frozen), "i32[][]")
+}
+
+@test
+test_least_permissive_lowers_a_struct_and_its_arguments :: fn() -> void {
+    box :: struct_symbol("Box")
+    i32_ty :: mk_primitive("i32")
+    mutable :: mk_struct(box, [mk_array(i32_ty, false)], false)
+    frozen :: mk_struct(box, [mk_array(i32_ty, true)], true)
+    met :: least_permissive(mutable, frozen) ?? return assert(false, "no least permissive struct")
+    assert_eq(display_type(met), "Box<i32[]>")
+    assert(type_is_immutable(met), "the struct level keeps the read-only bit")
+}
+
+@test
+test_least_permissive_refuses_another_shape :: fn() -> void {
+    i32_array :: mk_array(mk_primitive("i32"), true)
+    assert_eq(display_least_permissive(i32_array, mk_array(TY_STRING, true)), "null")
+}
+
+@test
+test_unify_lowers_a_later_binding :: fn() -> void {
+    t :: mk_type_param(fresh_type_param(1, "T"))
+    i32_ty :: mk_primitive("i32")
+    out :: MutableMap<i32, Type> {}
+    unify_type_param(t, mk_array(i32_ty, false), out)
+    unify_type_param(t, mk_array(i32_ty, true), out)
+    assert_eq(display_type(out[1] ?? TY_UNRESOLVED), "i32[]")
+}
+
+@test
+test_unify_keeps_a_held_binding :: fn() -> void {
+    t :: mk_type_param(fresh_type_param(1, "T"))
+    i32_ty :: mk_primitive("i32")
+    out :: MutableMap<i32, Type> {}
+    held :: MutableSet<i32> {}
+    held.add(1)
+    unify_type_param(t, mk_array(i32_ty, false), out, held)
+    unify_type_param(t, mk_array(i32_ty, true), out, held)
+    assert_eq(display_type(out[1] ?? TY_UNRESOLVED), "i32[]!")
+}
+
+@test
+test_unify_fn_parameter_lowers_no_binding :: fn() -> void {
+    t :: mk_type_param(fresh_type_param(1, "T"))
+    cfg :: struct_symbol("Cfg")
+    out :: MutableMap<i32, Type> {}
+    unify_type_param(t, mk_struct(cfg, [], false), out)
+    unify_type_param(mk_fn([t], TY_BOOL), mk_fn([mk_struct(cfg, [], true)], TY_BOOL), out)
+    bound :: out[1] ?? TY_UNRESOLVED
+    assert(!type_is_immutable(bound), "a predicate taking a read-only `Cfg` keeps `T = Cfg!`")
 }

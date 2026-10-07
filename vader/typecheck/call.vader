@@ -283,19 +283,20 @@ seed_ufcs_bindings :: fn(
     callee: AST.Expr,
     typed: TypedProgram,
     bindings: MutableMap<i32, Type>!,
+    held: MutableSet<i32> | null,
 ) -> void {
     if callee !is AST.FieldExpr {
         return
     }
     receiver_ty :: typed.ufcs_receiver_types[callee.id] ?? return
     target_ty :: typed.expr_types[callee.target.id] ?? return
-    unify_type_param(receiver_ty, target_ty, bindings)
+    unify_type_param(receiver_ty, target_ty, bindings, held)
     // A struct receiver impl'ing the trait the first param expects (a concrete
     // `FilterIterator<i32>` / a generator state struct curried into `self: Iterator<T>`)
     // binds `T` from the impl args — `unify_type_param` can't (different nominal
     // heads). Without this a lazy combinator/terminal's SOURCE `T` stays unbound, so
     // `filter`/`take`/`skip` (element = `T`) and `collect` (`-> T[]`) erase.
-    unify_struct_to_trait_args(receiver_ty, target_ty, typed, bindings)
+    unify_struct_to_trait_args(receiver_ty, target_ty, typed, bindings, held)
 }
 
 // Seed `bindings` from a `f<T1, T2>(…)` callee's explicit type args.
@@ -303,21 +304,25 @@ seed_ufcs_bindings :: fn(
 // `idents` by their decl-site span) with the resolved
 // `<…>` argument types. No-op when the callee isn't an explicit generic
 // instantiation. Lets a free-literal arg pin to the named concrete type.
+// Returns the type params it seeded, whose rights no argument may lower.
 seed_explicit_type_args :: fn(
     callee: AST.Expr,
     typed: TypedProgram,
     bindings: MutableMap<i32, Type>!,
     diags: Diagnostic[]!,
-) -> void {
+) -> MutableSet<i32> | null {
     if callee !is AST.GenericInstExpr {
-        return
+        return null
     }
-    decl :: lookup_callee_fn_decl(callee, typed) ?? return
+    decl :: lookup_callee_fn_decl(callee, typed) ?? return null
+    held :: MutableSet<i32> {}
     n :: min(decl.type_params.len(), callee.type_args.len())
     for i in 0..<n {
         tp_sym :: typed.resolved.idents[decl.type_params[i].span.hash()] ?? continue
         bindings[tp_sym.id] = type_from_expr(callee.type_args[i], typed.resolved, diags)
+        held.add(tp_sym.id)
     }
+    return held
 }
 
 // ---- named-arg + default-value normalisation -----------------------------
@@ -712,17 +717,18 @@ check_generic_arg :: fn(
     i: usize,
     callee_ty: FnType,
     bindings: MutableMap<i32, Type>!,
+    held: MutableSet<i32> | null,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     param_ty :: substitute_map(callee_ty.params[i], bindings)
     arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
-    unify_type_param(callee_ty.params[i], arg_ty, bindings)
+    unify_type_param(callee_ty.params[i], arg_ty, bindings, held)
     // `fn<T>(g: Greeter<T>)` called with `Hello{}` (where `Hello implements
     // Greeter(i32)`) : unify can't recover T from a struct→trait dispatch —
     // read it from the recorded impl args.
-    unify_struct_to_trait_args(callee_ty.params[i], arg_ty, typed, bindings)
+    unify_struct_to_trait_args(callee_ty.params[i], arg_ty, typed, bindings, held)
     return arg_ty
 }
 
@@ -820,12 +826,12 @@ export infer_call :: fn(
         // `9000000000` → i64) instead of defaulting to i32 and
         // truncating. Authoritative — seeded first so arg-unify can't
         // loosen it.
-        seed_explicit_type_args(c.callee, typed, bindings, diags)
+        held :: seed_explicit_type_args(c.callee, typed, bindings, diags)
         // UFCS dispatch : seed bindings from the receiver's type so
         // type-params bound by the (curried-away) first param
         // (`fn<T>(x: T) -> T` called as `42.identity()`) still
         // substitute through the return type.
-        seed_ufcs_bindings(c.callee, typed, bindings)
+        seed_ufcs_bindings(c.callee, typed, bindings, held)
         arg_types: Type[]!: []
         // Lambda arguments are checked LAST. Their param type may mention a
         // type-param that nothing has bound yet — one a later argument, or the
@@ -841,7 +847,9 @@ export infer_call :: fn(
                 has_lambda = true
                 continue
             }
-            arg_types.push(check_generic_arg(c, i, callee_ty, bindings, typed, diags, check_expr_fn))
+            arg_types.push(
+                check_generic_arg(c, i, callee_ty, bindings, held, typed, diags, check_expr_fn),
+            )
         }
         // Whatever the arguments left unbound, the result slot may pin :
         // `out: i32[][] = filled(n, () -> [])` binds `T = i32[]` through
@@ -853,7 +861,7 @@ export infer_call :: fn(
         // outer's still-unbound `Iterator<T>`, and binding to it would carry
         // that foreign type-param into the result instead of a concrete type.
         if expected != null && !type_contains_type_param(expected) {
-            unify_type_param(callee_ty.return_type, expected, bindings)
+            unify_type_param(callee_ty.return_type, expected, bindings, null, lowers_rights = false)
         }
         if has_lambda {
             // Run the deferred lambdas to a FIXPOINT, not once : within the
@@ -872,7 +880,9 @@ export infer_call :: fn(
                     if c.args[i].value !is AST.LambdaExpr {
                         continue
                     }
-                    check_generic_arg(c, i, callee_ty, bindings, typed, scratch, check_expr_fn)
+                    check_generic_arg(
+                        c, i, callee_ty, bindings, held, typed, scratch, check_expr_fn,
+                    )
                 }
                 if bindings.len() == before {
                     break
@@ -882,7 +892,9 @@ export infer_call :: fn(
                 if c.args[i].value !is AST.LambdaExpr {
                     continue
                 }
-                arg_types[i] = check_generic_arg(c, i, callee_ty, bindings, typed, diags, check_expr_fn)
+                arg_types[i] = check_generic_arg(
+                    c, i, callee_ty, bindings, held, typed, diags, check_expr_fn,
+                )
             }
         }
         report_unbound_type_args(c, callee_ty, bindings, arg_types, expected, n, typed, diags)
@@ -1178,7 +1190,7 @@ check_receiver_bounds :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnos
         return
     }
     bindings :: MutableMap<i32, Type> {}
-    seed_ufcs_bindings(c.callee, typed, bindings)
+    seed_ufcs_bindings(c.callee, typed, bindings, null)
     check_typeparam_bounds(c, bindings, typed, diags)
 }
 
@@ -1313,6 +1325,7 @@ unify_struct_to_trait_args :: fn(
     arg: Type,
     typed: TypedProgram,
     out: MutableMap<i32, Type>!,
+    held: MutableSet<i32> | null,
 ) -> void {
     if param !is TraitType {
         return
@@ -1323,7 +1336,7 @@ unify_struct_to_trait_args :: fn(
     impl_args :: resolve_struct_trait_args(arg, trait_key_of(param.symbol), typed) ?? return
     n :: min(param.args.len(), impl_args.len())
     for i in 0..<n {
-        unify_type_param(param.args[i], impl_args[i], out)
+        unify_type_param(param.args[i], impl_args[i], out, held)
     }
 }
 

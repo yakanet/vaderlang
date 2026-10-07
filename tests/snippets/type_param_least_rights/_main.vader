@@ -1,0 +1,32 @@
+// Two arguments binding one type parameter at different rights bind it to the rights
+// both hold, whichever comes first : `pick(got, LIST)` is accepted as `pick(LIST, got)`
+// is, and hands back a read-only `i32[]`. The instance runs as the read-only one would,
+// and `got` stays the caller's own mutable array.
+module "snippet"
+
+import "std/io"
+
+Cfg :: struct {
+    n: i32
+}
+
+CFG :: Cfg { .n = 1 }
+LIST :: [10, 20]
+
+pick :: fn<T>(a: T, b: T) -> T = b
+
+pair :: fn<T>(a: T, b: T) -> [T, T] = [a, b]
+
+make :: fn() -> i32[]! = [1, 2, 3]
+
+main :: fn() -> i32 {
+    local :: Cfg { .n = 7 }
+    r :: pick(local, CFG)
+    got :: make()
+    s :: pick(got, LIST)
+    t :: pick(LIST, got)
+    [p, q] :: pair(got, LIST)
+    got.push(4)
+    println("${r.n} ${s.len()} ${t.len()} ${p.len()} ${q.len()} ${got.len()}")
+    return 0
+}

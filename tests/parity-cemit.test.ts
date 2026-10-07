@@ -400,6 +400,9 @@ const C_PARITY = new Set<string>([
   "distinct_orders_as_backing",
   // A distinct's own `Index` / `IndexSet` wins over its backing, trait by trait.
   "distinct_own_index",
+  // A type parameter bound at two rights takes the lesser ; the instance the
+  // lowerer picks keeps the first, and the code must not depend on it.
+  "type_param_least_rights",
   "generic_enum_same_name",
   // An enum with variant data stores its variant's rank : its value tables and
   // the conversion back to the written value, inside a generic instance too.

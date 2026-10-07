@@ -1,0 +1,23 @@
+// `bump` binds `T = Cfg!` and `CFG` binds `T = Cfg` : the call keeps the read-only
+// one, whatever the order, so `bump` does not fit `fn(T) -> void` and cannot be
+// handed the module const. T3001.
+module "snippet"
+
+Cfg :: struct {
+    n: i32
+}
+
+CFG :: Cfg { .n = 1 }
+
+apply :: fn<T>(f: fn(T) -> void, x: T) -> void {
+    f(x)
+}
+
+bump :: fn(c: Cfg!) -> void {
+    c.n = 5
+}
+
+main :: fn() -> i32 {
+    apply(bump, CFG)
+    return CFG.n
+}
