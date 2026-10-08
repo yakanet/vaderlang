@@ -51,7 +51,7 @@ ProjectCtx :: struct {
     diags: Diagnostic[]!
 }
 
-new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]!) -> ProjectCtx! {
+new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx! {
     externs :: MutableMap<i32, MutableSet<usize>> {}
     for [_, m] in lp.modules {
         for d in m.decls {
@@ -82,7 +82,7 @@ new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]!) -> ProjectCtx! {
     }
 }
 
-intern_string_pool :: fn(ctx: ProjectCtx!, s: string) -> i32 {
+intern_string_pool :: fn(ctx: ProjectCtx, s: string) -> i32 {
     existing :: ctx.string_index[s]
     if existing is i32 { return existing }
     idx :: i32(ctx.strings.len())
@@ -140,7 +140,7 @@ import "vader/comptime"
 ///
 /// @param lp  the lowered project from the lowerer pass.
 /// @return    a fresh `CFGProject` with one entry per non-stdlib module.
-export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]! = []) -> CFGProject! {
+export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[] = []) -> CFGProject! {
     ctx :: new_project_ctx(lp, diags)
     modules :: MutableMap<string, CFGModule> {}
     for [module_id, m] in lp.modules {
@@ -434,7 +434,7 @@ make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
 /// Convert one body-having `LoweredFnDecl` into a `CFGFunction`.
 /// Returns `null` for bodyless fns (caller routes them through
 /// `make_extern_decl` instead).
-convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx!) -> CFGFunction! | null {
+convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction! | null {
     if d.body is null { return null }
     body :: d.body
 
@@ -520,7 +520,7 @@ freeze_block :: fn(b: MutableBlock) -> BasicBlock {
 
 /// Build a block body. Returns the LocalId carrying the trailing expr's
 /// value (or null when the block is void / control flow ended mid-body).
-build_block_body :: fn(fn_ctx: FnCtx!, b: LoweredBlock) -> LocalId | null {
+build_block_body :: fn(fn_ctx: FnCtx, b: LoweredBlock) -> LocalId | null {
     for s in b.stmts {
         if fn_ctx.current is null { return null }
         build_stmt(fn_ctx, s)
@@ -533,7 +533,7 @@ build_block_body :: fn(fn_ctx: FnCtx!, b: LoweredBlock) -> LocalId | null {
 // Exhaustive over `LoweredStmt` (a closed compiler union) so a new variant trips
 // T3013 here rather than being silently dropped — the coroutine markers below
 // were exactly such a silent drop (midir-1).
-build_stmt :: fn(fn_ctx: FnCtx!, s: LoweredStmt) -> void {
+build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
     match s {
         is LoweredLet -> {
             v :: s.value
@@ -618,7 +618,7 @@ build_stmt :: fn(fn_ctx: FnCtx!, s: LoweredStmt) -> void {
     }
 }
 
-build_assign :: fn(fn_ctx: FnCtx!, s: LoweredAssign) -> void {
+build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
     target :: s.target
     if target is LoweredIdent {
         slot_opt :: fn_ctx.local_by_sym_id[target.symbol.id]
@@ -660,7 +660,7 @@ build_assign :: fn(fn_ctx: FnCtx!, s: LoweredAssign) -> void {
 // A loop with no condition starts its body in its header. A header that only
 // forwards to the body has no test of its own: the C emitter could not write
 // the loop as a `while` when its body opens with `if c { break }`.
-build_loop :: fn(fn_ctx: FnCtx!, s: LoweredLoop) -> void {
+build_loop :: fn(fn_ctx: FnCtx, s: LoweredLoop) -> void {
     header_id :: new_block(fn_ctx, s.span)
     exit_id :: new_block(fn_ctx, s.span)
 
@@ -698,7 +698,7 @@ build_loop :: fn(fn_ctx: FnCtx!, s: LoweredLoop) -> void {
 
 // The body, then the exit a `break <label>` reaches early. The region is recorded:
 // nothing in the CFG says where the `block` that jump leaves has to open.
-build_labelled_block :: fn(fn_ctx: FnCtx!, s: LoweredLabelledBlock) -> void {
+build_labelled_block :: fn(fn_ctx: FnCtx, s: LoweredLabelledBlock) -> void {
     entry_id :: new_block(fn_ctx, s.span)
     exit_id :: new_block(fn_ctx, s.span)
     if fn_ctx.current !is null {
@@ -719,7 +719,7 @@ build_labelled_block :: fn(fn_ctx: FnCtx!, s: LoweredLabelledBlock) -> void {
 // Run `frame`'s step, then go back to its header. Each jump builds its own copy:
 // one step block every `continue` reaches is a latch, which the structurer takes
 // for the join of the conditional around the `continue`.
-build_back_edge :: fn(fn_ctx: FnCtx!, frame: LoopFrame, span: Span) -> void {
+build_back_edge :: fn(fn_ctx: FnCtx, frame: LoopFrame, span: Span) -> void {
     for st in frame.step {
         build_stmt(fn_ctx, st)
     }
@@ -762,7 +762,7 @@ resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame {
 // Expression conversion
 // ============================================================================
 
-build_expr :: fn(fn_ctx: FnCtx!, e: LoweredExpr) -> LocalId | null {
+build_expr :: fn(fn_ctx: FnCtx, e: LoweredExpr) -> LocalId | null {
     if fn_ctx.current is null { return null }
     match e {
         is LoweredIntLit    -> { return emit_const(fn_ctx, e.type, ConstInt { .value = e.value }, e.span) }
@@ -801,13 +801,13 @@ build_expr :: fn(fn_ctx: FnCtx!, e: LoweredExpr) -> LocalId | null {
     }
 }
 
-build_type_const :: fn(fn_ctx: FnCtx!, e: LoweredTypeConst) -> LocalId | null {
+build_type_const :: fn(fn_ctx: FnCtx, e: LoweredTypeConst) -> LocalId | null {
     dst :: fresh_tmp(fn_ctx, "type_const", e.type)
     emit(fn_ctx, InstrTypeConst { .dst = dst, .type = e.type, .value_type = e.value, .span = e.span })
     return dst
 }
 
-build_ident :: fn(fn_ctx: FnCtx!, e: LoweredIdent) -> LocalId | null {
+build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
     slot_opt :: fn_ctx.local_by_sym_id[e.symbol.id]
     if slot_opt !is null {
         // Binding-kind narrowing : the slot's declared type is wider
@@ -856,7 +856,7 @@ build_ident :: fn(fn_ctx: FnCtx!, e: LoweredIdent) -> LocalId | null {
     return build_unreachable_type(fn_ctx, e.type, e.span, "unresolved ident ${e.symbol.name}")
 }
 
-build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
+build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
     if e.callee is LoweredIdent as callee_id {
         if callee_id.symbol.kind == .Fn {
             slots :: fn_ctx.project.extern_callbacks[callee_id.symbol.id]
@@ -890,7 +890,7 @@ build_call :: fn(fn_ctx: FnCtx!, e: LoweredCall) -> LocalId | null {
 // ends there, so nothing is emitted for a result it never produces (the `drop` of
 // a statement call, the `return` of a `-> never` body). `null` is the builder's
 // "this path diverged".
-end_after_no_return :: fn(fn_ctx: FnCtx!, e: LoweredCall, dst: LocalId | null) -> LocalId | null {
+end_after_no_return :: fn(fn_ctx: FnCtx, e: LoweredCall, dst: LocalId | null) -> LocalId | null {
     if e.type is NeverType {
         terminate(fn_ctx, TermUnreachable { .reason = "a no-return call returned", .span = e.span })
         return null
@@ -914,7 +914,7 @@ end_after_no_return :: fn(fn_ctx: FnCtx!, e: LoweredCall, dst: LocalId | null) -
 /// @param slots   parameter indices that are callbacks, from the DECLARATION.
 /// @param callee  the callee's name, for the failure message.
 build_extern_args :: fn(
-    fn_ctx: FnCtx!, args: LoweredExpr[], slots: MutableSet<usize>, callee: string,
+    fn_ctx: FnCtx, args: LoweredExpr[], slots: MutableSet<usize>, callee: string,
 ) -> LocalId[] | null {
     out: LocalId[]!: []
     for i in 0..<args.len() {
@@ -944,7 +944,7 @@ build_extern_args :: fn(
     return out
 }
 
-build_args :: fn(fn_ctx: FnCtx!, args: LoweredExpr[]) -> LocalId[] | null {
+build_args :: fn(fn_ctx: FnCtx, args: LoweredExpr[]) -> LocalId[] | null {
     out: LocalId[]!: []
     for a in args {
         local :: build_expr(fn_ctx, a) ?? return null
@@ -953,7 +953,7 @@ build_args :: fn(fn_ctx: FnCtx!, args: LoweredExpr[]) -> LocalId[] | null {
     return out
 }
 
-build_virtual_call :: fn(fn_ctx: FnCtx!, e: LoweredVirtualCall) -> LocalId | null {
+build_virtual_call :: fn(fn_ctx: FnCtx, e: LoweredVirtualCall) -> LocalId | null {
     receiver :: build_expr(fn_ctx, e.receiver) ?? return null
     args :: build_args(fn_ctx, e.args) ?? return null
     dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "vcall", e.type) }
@@ -965,7 +965,7 @@ build_virtual_call :: fn(fn_ctx: FnCtx!, e: LoweredVirtualCall) -> LocalId | nul
     return dst
 }
 
-build_field_access :: fn(fn_ctx: FnCtx!, e: LoweredFieldAccess) -> LocalId | null {
+build_field_access :: fn(fn_ctx: FnCtx, e: LoweredFieldAccess) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target) ?? return null
     dst :: fresh_tmp(fn_ctx, "field", e.type)
     emit(fn_ctx, InstrFieldGet {
@@ -974,7 +974,7 @@ build_field_access :: fn(fn_ctx: FnCtx!, e: LoweredFieldAccess) -> LocalId | nul
     return dst
 }
 
-build_index :: fn(fn_ctx: FnCtx!, e: LoweredIndex) -> LocalId | null {
+build_index :: fn(fn_ctx: FnCtx, e: LoweredIndex) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target)
     index :: build_expr(fn_ctx, e.index)
     if target is null { return null }
@@ -987,7 +987,7 @@ build_index :: fn(fn_ctx: FnCtx!, e: LoweredIndex) -> LocalId | null {
     return dst
 }
 
-build_unary :: fn(fn_ctx: FnCtx!, e: LoweredUnary) -> LocalId | null {
+build_unary :: fn(fn_ctx: FnCtx, e: LoweredUnary) -> LocalId | null {
     operand :: build_expr(fn_ctx, e.operand) ?? return null
     dst :: fresh_tmp(fn_ctx, "unop", e.type)
     emit(fn_ctx, InstrUnOp {
@@ -996,7 +996,7 @@ build_unary :: fn(fn_ctx: FnCtx!, e: LoweredUnary) -> LocalId | null {
     return dst
 }
 
-build_binary :: fn(fn_ctx: FnCtx!, e: LoweredBinary) -> LocalId | null {
+build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
     if is_short_circuit_op(e.op) { return build_short_circuit(fn_ctx, e, null) }
     lhs :: build_expr(fn_ctx, e.left) ?? return null
     rhs :: build_expr(fn_ctx, e.right) ?? return null
@@ -1007,7 +1007,7 @@ build_binary :: fn(fn_ctx: FnCtx!, e: LoweredBinary) -> LocalId | null {
     return dst
 }
 
-build_short_circuit :: fn(fn_ctx: FnCtx!, e: LoweredBinary, dest: LocalId | null) -> LocalId | null {
+build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary, dest: LocalId | null) -> LocalId | null {
     lhs :: build_expr(fn_ctx, e.left) ?? return null
 
     is_and :: e.op == .And
@@ -1102,7 +1102,7 @@ is_short_circuit_op :: fn(op: LoweredBinaryOp) -> bool = op == .And || op == .Or
 // any nesting of if / block / match is handled by the mutual recursion rather
 // than a structural pattern-match on the lowerer output. The special-cased set
 // mirrors `is_dest_passing_shape`.
-build_expr_into :: fn(fn_ctx: FnCtx!, e: LoweredExpr, dest: LocalId) -> void {
+build_expr_into :: fn(fn_ctx: FnCtx, e: LoweredExpr, dest: LocalId) -> void {
     // No `current is null` early-return here : `build_expr` below (and `build_if`
     // / `build_block_into`) already handle a departed block, and narrowing
     // `current` up front would make the post-`build_expr` re-check read as dead.
@@ -1128,7 +1128,7 @@ build_expr_into :: fn(fn_ctx: FnCtx!, e: LoweredExpr, dest: LocalId) -> void {
 
 // A block built in destination-passing position : its statements run, then its
 // trailing value lands in `dest`.
-build_block_into :: fn(fn_ctx: FnCtx!, b: LoweredBlock, dest: LocalId) -> void {
+build_block_into :: fn(fn_ctx: FnCtx, b: LoweredBlock, dest: LocalId) -> void {
     for s in b.stmts {
         if fn_ctx.current is null {
             return
@@ -1146,7 +1146,7 @@ build_block_into :: fn(fn_ctx: FnCtx!, b: LoweredBlock, dest: LocalId) -> void {
 // Build one `if`-arm block : route its value into `result` when the `if` is
 // value-typed (so a nested value-if / match arm coalesces onto `result` instead
 // of allocating its own slot), else just run it for effect.
-build_if_arm :: fn(fn_ctx: FnCtx!, block: LoweredBlock, result: LocalId | null) -> void {
+build_if_arm :: fn(fn_ctx: FnCtx, block: LoweredBlock, result: LocalId | null) -> void {
     if result !is null {
         build_block_into(fn_ctx, block, result)
     } else {
@@ -1160,7 +1160,7 @@ build_if_arm :: fn(fn_ctx: FnCtx!, block: LoweredBlock, result: LocalId | null) 
 // `goto`: a then-arm that does not leave at once, behind an `||`, or an else-arm
 // behind an `&&`. With no `else`, a false condition goes straight to the join.
 // Rationale and measurements: `docs/adr/0028`.
-build_if :: fn(fn_ctx: FnCtx!, e: LoweredIf, dest: LocalId | null) -> LocalId | null {
+build_if :: fn(fn_ctx: FnCtx, e: LoweredIf, dest: LocalId | null) -> LocalId | null {
     result :: if dest !is null {
         dest
     } else if is_void(e.type) {
@@ -1205,7 +1205,7 @@ CondReach :: struct {
 // diverges leaves a target unreachable — `a || <diverges>` still reaches
 // `on_true` through `a`.
 branch_on_cond :: fn(
-    fn_ctx: FnCtx!,
+    fn_ctx: FnCtx,
     cond: LoweredExpr,
     on_true: BlockId,
     on_false: BlockId,
@@ -1300,7 +1300,7 @@ only_leaves :: fn(block: LoweredBlock) -> bool {
     return false
 }
 
-build_struct_lit :: fn(fn_ctx: FnCtx!, e: LoweredStructLit) -> LocalId | null {
+build_struct_lit :: fn(fn_ctx: FnCtx, e: LoweredStructLit) -> LocalId | null {
     field_locals: LocalId[]!: []
     for f in e.fields {
         local :: build_expr(fn_ctx, f.value) ?? return null
@@ -1314,7 +1314,7 @@ build_struct_lit :: fn(fn_ctx: FnCtx!, e: LoweredStructLit) -> LocalId | null {
     return dst
 }
 
-build_array_lit :: fn(fn_ctx: FnCtx!, e: LoweredArrayLit) -> LocalId | null {
+build_array_lit :: fn(fn_ctx: FnCtx, e: LoweredArrayLit) -> LocalId | null {
     elems: LocalId[]!: []
     for el in e.elements {
         local :: build_expr(fn_ctx, el) ?? return null
@@ -1328,14 +1328,14 @@ build_array_lit :: fn(fn_ctx: FnCtx!, e: LoweredArrayLit) -> LocalId | null {
     return dst
 }
 
-build_cast :: fn(fn_ctx: FnCtx!, e: LoweredCast) -> LocalId | null {
+build_cast :: fn(fn_ctx: FnCtx, e: LoweredCast) -> LocalId | null {
     value :: build_expr(fn_ctx, e.value) ?? return null
     dst :: fresh_tmp(fn_ctx, "cast", e.type)
     emit(fn_ctx, InstrCast { .dst = dst, .value = value, .type = e.type, .span = e.span })
     return dst
 }
 
-build_type_check :: fn(fn_ctx: FnCtx!, e: LoweredTypeCheck) -> LocalId | null {
+build_type_check :: fn(fn_ctx: FnCtx, e: LoweredTypeCheck) -> LocalId | null {
     value :: build_expr(fn_ctx, e.value) ?? return null
     dst :: fresh_tmp(fn_ctx, "type_check", e.type)
     emit(fn_ctx, InstrTypeCheck {
@@ -1344,14 +1344,14 @@ build_type_check :: fn(fn_ctx: FnCtx!, e: LoweredTypeCheck) -> LocalId | null {
     return dst
 }
 
-build_unreachable_type :: fn(fn_ctx: FnCtx!, type: Type, span: Span, reason: string) -> LocalId | null {
+build_unreachable_type :: fn(fn_ctx: FnCtx, type: Type, span: Span, reason: string) -> LocalId | null {
     if fn_ctx.current is null { return null }
     placeholder :: if is_void(type) { null } else { declare_local(fn_ctx, "unreachable", type, null) }
     terminate(fn_ctx, TermUnreachable { .reason = reason, .span = span })
     return placeholder
 }
 
-build_intrinsic_call :: fn(fn_ctx: FnCtx!, e: LoweredIntrinsicCall) -> LocalId | null {
+build_intrinsic_call :: fn(fn_ctx: FnCtx, e: LoweredIntrinsicCall) -> LocalId | null {
     args :: build_args(fn_ctx, e.args) ?? return null
     dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "intrinsic", e.type) }
     emit(fn_ctx, InstrIntrinsic {
@@ -1360,14 +1360,14 @@ build_intrinsic_call :: fn(fn_ctx: FnCtx!, e: LoweredIntrinsicCall) -> LocalId |
     return dst
 }
 
-build_array_len :: fn(fn_ctx: FnCtx!, e: LoweredArrayLen) -> LocalId | null {
+build_array_len :: fn(fn_ctx: FnCtx, e: LoweredArrayLen) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target) ?? return null
     dst :: fresh_tmp(fn_ctx, "len", e.type)
     emit(fn_ctx, InstrArrayLen { .dst = dst, .target = target, .span = e.span })
     return dst
 }
 
-build_array_push :: fn(fn_ctx: FnCtx!, e: LoweredArrayPush) -> LocalId | null {
+build_array_push :: fn(fn_ctx: FnCtx, e: LoweredArrayPush) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target)
     value :: build_expr(fn_ctx, e.value)
     if target is null { return null }
@@ -1376,7 +1376,7 @@ build_array_push :: fn(fn_ctx: FnCtx!, e: LoweredArrayPush) -> LocalId | null {
     return null
 }
 
-build_array_slice :: fn(fn_ctx: FnCtx!, e: LoweredArraySlice) -> LocalId | null {
+build_array_slice :: fn(fn_ctx: FnCtx, e: LoweredArraySlice) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target)
     lo :: build_expr(fn_ctx, e.lo)
     hi :: build_expr(fn_ctx, e.hi)
@@ -1390,7 +1390,7 @@ build_array_slice :: fn(fn_ctx: FnCtx!, e: LoweredArraySlice) -> LocalId | null 
     return dst
 }
 
-build_string_slice :: fn(fn_ctx: FnCtx!, e: LoweredStringSlice) -> LocalId | null {
+build_string_slice :: fn(fn_ctx: FnCtx, e: LoweredStringSlice) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target)
     lo :: build_expr(fn_ctx, e.lo)
     hi :: build_expr(fn_ctx, e.hi)
@@ -1404,7 +1404,7 @@ build_string_slice :: fn(fn_ctx: FnCtx!, e: LoweredStringSlice) -> LocalId | nul
     return dst
 }
 
-build_data_const :: fn(fn_ctx: FnCtx!, e: LoweredDataConst) -> LocalId | null {
+build_data_const :: fn(fn_ctx: FnCtx, e: LoweredDataConst) -> LocalId | null {
     dst :: fresh_tmp(fn_ctx, "data_const", e.type)
     emit(fn_ctx, InstrDataConst {
         .dst = dst, .type = e.type, .pool_index = i32(e.pool_index), .span = e.span,
@@ -1412,7 +1412,7 @@ build_data_const :: fn(fn_ctx: FnCtx!, e: LoweredDataConst) -> LocalId | null {
     return dst
 }
 
-build_cell_new :: fn(fn_ctx: FnCtx!, e: LoweredCellNew) -> LocalId | null {
+build_cell_new :: fn(fn_ctx: FnCtx, e: LoweredCellNew) -> LocalId | null {
     value :: build_expr(fn_ctx, e.value) ?? return null
     dst :: fresh_tmp(fn_ctx, "cell", e.type)
     emit(fn_ctx, InstrCellNew {
@@ -1421,7 +1421,7 @@ build_cell_new :: fn(fn_ctx: FnCtx!, e: LoweredCellNew) -> LocalId | null {
     return dst
 }
 
-build_cell_get :: fn(fn_ctx: FnCtx!, e: LoweredCellGet) -> LocalId | null {
+build_cell_get :: fn(fn_ctx: FnCtx, e: LoweredCellGet) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target) ?? return null
     dst :: fresh_tmp(fn_ctx, "cell_get", e.type)
     emit(fn_ctx, InstrCellGet {
@@ -1430,7 +1430,7 @@ build_cell_get :: fn(fn_ctx: FnCtx!, e: LoweredCellGet) -> LocalId | null {
     return dst
 }
 
-build_make_closure :: fn(fn_ctx: FnCtx!, e: LoweredMakeClosure) -> LocalId | null {
+build_make_closure :: fn(fn_ctx: FnCtx, e: LoweredMakeClosure) -> LocalId | null {
     env :: build_expr(fn_ctx, e.env) ?? return null
     dst :: fresh_tmp(fn_ctx, "closure", e.type)
     emit(fn_ctx, InstrMakeClosure {
@@ -1444,25 +1444,25 @@ build_make_closure :: fn(fn_ctx: FnCtx!, e: LoweredMakeClosure) -> LocalId | nul
 // Bookkeeping helpers
 // ============================================================================
 
-emit :: fn(fn_ctx: FnCtx!, instr: Instruction) -> void {
+emit :: fn(fn_ctx: FnCtx, instr: Instruction) -> void {
     if fn_ctx.current is null { return }
     fn_ctx.blocks[usize(fn_ctx.current)].instructions.push(instr)
 }
 
-emit_const :: fn(fn_ctx: FnCtx!, type: Type, value: ConstValue, span: Span) -> LocalId {
+emit_const :: fn(fn_ctx: FnCtx, type: Type, value: ConstValue, span: Span) -> LocalId {
     dst :: fresh_tmp(fn_ctx, "k", type)
     emit(fn_ctx, InstrConst { .dst = dst, .value = value, .type = type, .span = span })
     return dst
 }
 
-terminate :: fn(fn_ctx: FnCtx!, t: Terminator) -> void {
+terminate :: fn(fn_ctx: FnCtx, t: Terminator) -> void {
     if fn_ctx.current is null { return }
     cur :: fn_ctx.blocks[usize(fn_ctx.current)]
     if cur.terminator is null { cur.terminator = t }
     fn_ctx.current = null
 }
 
-new_block :: fn(fn_ctx: FnCtx!, span: Span) -> BlockId {
+new_block :: fn(fn_ctx: FnCtx, span: Span) -> BlockId {
     id :: BlockId(i32(fn_ctx.blocks.len()))
     fn_ctx.blocks.push(MutableBlock {
         .id = id, .instructions = [], .terminator = null, .span = span,
@@ -1470,13 +1470,13 @@ new_block :: fn(fn_ctx: FnCtx!, span: Span) -> BlockId {
     return id
 }
 
-declare_local :: fn(fn_ctx: FnCtx!, name: string, type: Type, symbol: Symbol | null) -> LocalId {
+declare_local :: fn(fn_ctx: FnCtx, name: string, type: Type, symbol: Symbol | null) -> LocalId {
     id :: LocalId(i32(fn_ctx.locals.len()))
     fn_ctx.locals.push(CFGLocal { .name = name, .type = type, .symbol = symbol })
     return id
 }
 
-fresh_tmp :: fn(fn_ctx: FnCtx!, hint: string, type: Type) -> LocalId {
+fresh_tmp :: fn(fn_ctx: FnCtx, hint: string, type: Type) -> LocalId {
     return declare_local(fn_ctx, "\$${hint}_${fn_ctx.locals.len()}", type, null)
 }
 

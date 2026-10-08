@@ -1,7 +1,7 @@
-// T3071 on `poke`, whose `x` is read-only, and on `poke_through_read_only_bound`,
-// whose bound grants no mutation : a call may bind `T` to a read-only type.
-// `for` over an `I: Iterator<i32>` is refused the same way, since it calls `next`.
-// `poke_mutable`, through `T!` and a bound marked `!`, is accepted.
+// T3071 on `poke_through_read_only_bound`, whose bound grants no mutation : a call
+// may bind `T` to a read-only type. `for` over an `I: Iterator<i32>` is refused the
+// same way, since it calls `next`. `poke`, through a bound marked `!`, is accepted :
+// its `x` takes the `!` the call needs.
 module "snippet"
 
 Bump :: trait {
@@ -12,15 +12,11 @@ poke :: fn<T: Bump!>(x: T) -> void {
     x.bump()
 }
 
-poke_through_read_only_bound :: fn<T: Bump>(x: T!) -> void {
+poke_through_read_only_bound :: fn<T: Bump>(x: T) -> void {
     x.bump()
 }
 
-poke_mutable :: fn<T: Bump!>(x: T!) -> void {
-    x.bump()
-}
-
-walk :: fn<I: Iterator<i32>>(it: I!) -> void {
+walk :: fn<I: Iterator<i32>>(it: I) -> void {
     for _ in it {}
 }
 

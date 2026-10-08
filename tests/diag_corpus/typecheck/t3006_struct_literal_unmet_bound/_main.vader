@@ -26,7 +26,7 @@ Cfg :: struct {
 }
 
 Cfg implements Bump {
-    bump :: fn(self!) -> void {
+    bump :: fn(self) -> void {
         self.n += 1
     }
 }

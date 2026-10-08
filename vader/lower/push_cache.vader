@@ -53,7 +53,7 @@ export push_cache_tag :: fn(project: LoweredProject) -> void {
 // down and refined statement by statement, which is what makes the answer
 // flow-sensitive: `return out` AFTER the loop is harmless (the write-back has
 // run), the same `return` before it would not be.
-pc_scan_block :: fn(b: LoweredBlock!, live: i32[], pctx: BcePurityCtx!) -> void {
+pc_scan_block :: fn(b: LoweredBlock, live: i32[], pctx: BcePurityCtx) -> void {
     working: i32[]!: []
     working.push_all(live)
     for st in b.stmts {
@@ -68,7 +68,7 @@ pc_scan_block :: fn(b: LoweredBlock!, live: i32[], pctx: BcePurityCtx!) -> void 
 
 // Apply one statement to the live set: first drop whatever it handed away, then
 // admit the array it mints, if it mints one.
-pc_update_live :: fn(live: i32[]!, st: LoweredStmt) -> void {
+pc_update_live :: fn(live: i32[], st: LoweredStmt) -> void {
     kept: i32[]!: []
     for sym in live {
         if !cf_stmt_mentions(st, sym, CF_ESCAPE_ONLY) {
@@ -113,7 +113,7 @@ pc_live_entering :: fn(live: i32[], lp: LoweredLoop) -> i32[]! {
     return kept
 }
 
-pc_scan_stmt :: fn(st: LoweredStmt!, live: i32[], pctx: BcePurityCtx!) -> void {
+pc_scan_stmt :: fn(st: LoweredStmt, live: i32[], pctx: BcePurityCtx) -> void {
     if st is LoweredLoop {
         inner :: pc_live_entering(live, st)
         pc_try_cache(st, inner, pctx)
@@ -151,7 +151,7 @@ pc_scan_stmt :: fn(st: LoweredStmt!, live: i32[], pctx: BcePurityCtx!) -> void {
     }
 }
 
-pc_scan_expr :: fn(e: LoweredExpr!, live: i32[], pctx: BcePurityCtx!) -> void {
+pc_scan_expr :: fn(e: LoweredExpr, live: i32[], pctx: BcePurityCtx) -> void {
     match e {
         is LoweredBlock -> { pc_scan_block(e, live, pctx) }
         is LoweredIf    -> {
@@ -168,7 +168,7 @@ pc_scan_expr :: fn(e: LoweredExpr!, live: i32[], pctx: BcePurityCtx!) -> void {
 // ---- decide, then mark ----------------------------------------------------
 
 // Every condition the lifted form needs, in the order that rejects fastest.
-pc_try_cache :: fn(lp: LoweredLoop!, live: i32[], pctx: BcePurityCtx!) -> void {
+pc_try_cache :: fn(lp: LoweredLoop, live: i32[], pctx: BcePurityCtx) -> void {
     pushes: LoweredArrayPush![]!: []
     pc_collect_pushes(lp.body, pushes)
     for st in lp.step {
@@ -214,7 +214,7 @@ pc_try_cache :: fn(lp: LoweredLoop!, live: i32[], pctx: BcePurityCtx!) -> void {
 
 // The pushes this loop owns. A nested loop's pushes are its own candidates —
 // descending into one would mark a push whose enclosing region is not this body.
-pc_collect_pushes :: fn(b: LoweredBlock!, out: LoweredArrayPush![]!) -> void {
+pc_collect_pushes :: fn(b: LoweredBlock, out: LoweredArrayPush[]) -> void {
     for st in b.stmts {
         pc_collect_in_stmt(st, out)
     }
@@ -224,7 +224,7 @@ pc_collect_pushes :: fn(b: LoweredBlock!, out: LoweredArrayPush![]!) -> void {
     }
 }
 
-pc_collect_in_stmt :: fn(st: LoweredStmt!, out: LoweredArrayPush![]!) -> void {
+pc_collect_in_stmt :: fn(st: LoweredStmt, out: LoweredArrayPush[]) -> void {
     match st {
         is LoweredExprStmt -> {
             pc_collect_in_expr(st.expr, out)
@@ -242,7 +242,7 @@ pc_collect_in_stmt :: fn(st: LoweredStmt!, out: LoweredArrayPush![]!) -> void {
     }
 }
 
-pc_collect_in_expr :: fn(e: LoweredExpr!, out: LoweredArrayPush![]!) -> void {
+pc_collect_in_expr :: fn(e: LoweredExpr, out: LoweredArrayPush[]) -> void {
     match e {
         is LoweredArrayPush -> { out.push(e) }
         is LoweredBlock     -> { pc_collect_pushes(e, out) }
@@ -322,7 +322,7 @@ pc_used_outside_push :: fn(lp: LoweredLoop, sym: i32) -> bool = cf_stmt_mentions
 // candidate push is held to its value expression only. The grow IS a safepoint;
 // it is the one the lifted form refreshes across, which is why it is exempt here
 // and nowhere else.
-pc_body_unsafe :: fn(b: LoweredBlock, sym: i32, pctx: BcePurityCtx!) -> bool {
+pc_body_unsafe :: fn(b: LoweredBlock, sym: i32, pctx: BcePurityCtx) -> bool {
     for st in b.stmts {
         if pc_stmt_unsafe(st, sym, pctx) {
             return true
@@ -332,7 +332,7 @@ pc_body_unsafe :: fn(b: LoweredBlock, sym: i32, pctx: BcePurityCtx!) -> bool {
     return pc_expr_unsafe_skipping_push(t, sym, pctx)
 }
 
-pc_stmt_unsafe :: fn(st: LoweredStmt, sym: i32, pctx: BcePurityCtx!) -> bool {
+pc_stmt_unsafe :: fn(st: LoweredStmt, sym: i32, pctx: BcePurityCtx) -> bool {
     if st is LoweredExprStmt {
         return pc_expr_unsafe_skipping_push(st.expr, sym, pctx)
     }
@@ -346,7 +346,7 @@ pc_stmt_unsafe :: fn(st: LoweredStmt, sym: i32, pctx: BcePurityCtx!) -> bool {
     return bce_stmt_unsafe(st, sym, pctx)
 }
 
-pc_expr_unsafe_skipping_push :: fn(e: LoweredExpr, sym: i32, pctx: BcePurityCtx!) -> bool {
+pc_expr_unsafe_skipping_push :: fn(e: LoweredExpr, sym: i32, pctx: BcePurityCtx) -> bool {
     if e is LoweredArrayPush {
         // Only a push onto the candidate is exempt ; a push onto some OTHER
         // array still allocates, and that moves our buffer too.

@@ -23,7 +23,7 @@ combine :: fn() -> Async<i32> {
     return (await a()) + (await b()) * 10
 }
 
-drive :: fn(f: Async<i32>!) -> i32 {
+drive :: fn(f: Async<i32>) -> i32 {
     r :: f.resume()
     if r is Suspended { return -1 }
     return r

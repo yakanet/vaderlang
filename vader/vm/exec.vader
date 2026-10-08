@@ -85,7 +85,7 @@ is_i32_tag :: fn(t: StackTag) = t == .I32 || t == .Char || t == .I64
 /// `I32` holding raw bits, so widening it must ZERO-extend rather than
 /// sign-extend. Any other source tag or target falls through to the boxed path
 /// unchanged.
-convert_int_fast :: fn(frame: Frame!, target: bc.ConvertTarget, from_name: string) -> bool {
+convert_int_fast :: fn(frame: Frame, target: bc.ConvertTarget, from_name: string) -> bool {
     if target != .I32 && target != .I64 {
         return false
     }
@@ -121,7 +121,7 @@ convert_int_fast :: fn(frame: Frame!, target: bc.ConvertTarget, from_name: strin
 }
 
 /// Grow the three stack columns by one slot. Only `reserve_stack` calls it.
-stack_grow :: fn(frame: Frame!) -> void {
+stack_grow :: fn(frame: Frame) -> void {
     frame.payload.push(0)
     frame.tag.push(.Null)
     frame.stack.push(NullVal {})
@@ -129,7 +129,7 @@ stack_grow :: fn(frame: Frame!) -> void {
 
 /// Size `frame`'s three stack columns to at least `depth`, so a push inside the op
 /// it runs never checks capacity. The columns are grow-only.
-reserve_stack :: fn(frame: Frame!, depth: usize) -> void {
+reserve_stack :: fn(frame: Frame, depth: usize) -> void {
     for frame.payload.len() < depth {
         stack_grow(frame)
     }
@@ -139,7 +139,7 @@ reserve_stack :: fn(frame: Frame!, depth: usize) -> void {
 /// Write `value` into the stack columns at `cursor` — sized by `reserve_stack`
 /// (the caller bumps `sp`). Scalars land in payload + tag, heap values in the refs
 /// column.
-push_val :: fn(frame: Frame!, cursor: usize, value: Value!) -> void {
+push_val :: fn(frame: Frame, cursor: usize, value: Value) -> void {
     match value {
         is I32Val -> {
             frame.payload[cursor] = i64(value)
@@ -199,7 +199,7 @@ peek_owned :: fn(frame: Frame, idx: usize) -> Value! = match frame.tag[idx] {
 /// @param label  informational — names the operand in the trap message.
 /// @return       the writable `ArrayVal`, or a `Trap` when the slot holds
 ///               anything else.
-peek_array_mut :: fn(frame: Frame!, idx: usize, at_pc: i32, label: string) -> ArrayVal! | Trap! {
+peek_array_mut :: fn(frame: Frame, idx: usize, at_pc: i32, label: string) -> ArrayVal! | Trap! {
     if frame.tag[idx] == .Ref {
         v :: frame.stack[idx]
         if v is ArrayVal {
@@ -375,7 +375,7 @@ fn_index_trap :: fn(function_index: i32, at_pc: i32, op_label: string) = Trap {
 /// word — but a `null` operand can't be read as an i32. Compare those by
 /// null-identity (`null == null`, `null != anything-non-null`) ; everything
 /// else falls back to the numeric i32 path.
-apply_eq_binop :: fn(frame: Frame!, op_label: string, negate: bool) -> Trap | null {
+apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | null {
     lt :: frame.tag[frame.sp - 2]
     rt :: frame.tag[frame.sp - 1]
     eq: bool = false
@@ -537,7 +537,7 @@ export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
 // truncates slots and returns itself (`Narrow`). Non-narrow ValTypes return `v`
 // unchanged — `i32` / `i64` (and the unsigned `u32` / `u64`, read back through the
 // unsigned view) already wrap at their width via native `i32` / `i64` overflow.
-narrow_mask :: fn(v: Value!, vt: bc.ValType) -> Value! {
+narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value! {
     // Only the sub-32-bit widths need masking ; i32/i64 (and the unsigned u32/u64
     // read back through the unsigned view) already wrap at their width.
     if !bc.is_narrow_valtype(vt) { return v }
@@ -598,7 +598,7 @@ field_valtype :: fn(types: bc.BcType[], type_index: i32) -> bc.ValType {
 ///                     comes from `prepare_debug`.
 /// @return             the exit code, or the trap that stopped the run.
 export exec_entry :: fn(
-    state: VmState, entry_index: i32, host_argv: string[], capture: Value[]! | null, is_comptime: bool,
+    state: VmState, entry_index: i32, host_argv: string[], capture: Value[] | null, is_comptime: bool,
     debug: DebugController | null,
 ) -> VmResult {
     if entry_index < 0 || usize(entry_index) >= state.bc.functions.len() {
@@ -621,7 +621,7 @@ export exec_entry :: fn(
 /// @param frame    current top frame, mutated in place (sp/pc advanced).
 /// @return         `null` on success, or a `Trap` if the stack is too short.
 /// @error          stack underflow when `frame.sp < length`.
-build_array :: fn(type_id: i32, length: i32, frame: Frame!) -> Trap | null {
+build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
     if length < 0 {
         return Trap { .message = "array.new length ${length} is negative at pc=${frame.pc}" }
     }
@@ -651,7 +651,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame!) -> Trap | null {
 /// @error          `type_id` out of range ; type-table entry isn't a
 ///                 `BcStruct` ; stack carries fewer than `field_count`
 ///                 values.
-build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame!) -> Trap | null {
+build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | null {
     type_decl :: types[usize(type_id)]
     if !(type_decl is bc.BcStruct) {
         return Trap { .message = "struct.new type ${type_id} is not a struct at pc=${frame.pc}" }
@@ -692,7 +692,7 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame!) -> Trap | nu
 /// @return             `null` on success, or a `Trap` on stack underflow /
 ///                     negative size.
 /// @error              empty stack ; negative size.
-build_buffer :: fn(frame: Frame!, handle_cell: i32[]!) -> Trap | null {
+build_buffer :: fn(frame: Frame, handle_cell: i32[]) -> Trap | null {
     size_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "buffer.new size")
     if size_unwrap is Trap { return size_unwrap }
     if size_unwrap < 0 {
@@ -788,7 +788,7 @@ load_bytes_op :: fn(frame: Frame, width: usize, label: string) -> u64 | Trap {
 /// @param label  op label for trap messages.
 /// @return       `null` on success, or a `Trap` on bad obj / OOB offset.
 /// @error        non-object receiver ; negative or out-of-range offset.
-store_bytes_op :: fn(frame: Frame!, width: usize, value: u64, label: string) -> Trap | null {
+store_bytes_op :: fn(frame: Frame, width: usize, value: u64, label: string) -> Trap | null {
     off_unwrap :: stack_i32(frame, frame.sp - 2, label, "offset")
     if off_unwrap is Trap { return off_unwrap }
     obj_unwrap :: stack_obj(frame, frame.sp - 3, label)
@@ -811,7 +811,7 @@ store_bytes_op :: fn(frame: Frame!, width: usize, value: u64, label: string) -> 
 /// @return       `null` on success, or a `Trap` on underflow / bad obj / OOB.
 /// @error        fewer than 5 stack slots ; non-object dst/src ; negative
 ///               length/offset ; source or dest range past the byte length.
-do_memory_copy :: fn(frame: Frame!) -> Trap | null {
+do_memory_copy :: fn(frame: Frame) -> Trap | null {
     n_unwrap :: read_i32(peek_val(frame, frame.sp - 1), frame.pc, "memory_copy n")
     if n_unwrap is Trap { return n_unwrap }
     src_off_unwrap :: read_i32(peek_val(frame, frame.sp - 2), frame.pc, "memory_copy src_off")
@@ -898,7 +898,7 @@ primitive_impl_import :: fn(mangle: string, arity: usize) = bc.BcImport {
 /// @return         `null` when the op ran.
 /// @error          the `Trap` that stops the run.
 apply_boxed :: fn(
-    state: VmState, run: RunHost!, instr: bc.Op, frame: Frame!, fn_name: string,
+    state: VmState, run: RunHost, instr: bc.Op, frame: Frame, fn_name: string,
 ) -> Trap | null {
     // @partial: the ops the register engine runs itself.
     @partial match instr {

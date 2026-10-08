@@ -16,7 +16,7 @@
         index :i32
           on:
             .slots :i32[]!
-              self :Cell!
+              self :Cell
           ix:
             i :usize
       value:

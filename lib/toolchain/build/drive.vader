@@ -65,7 +65,7 @@ AST :: import "toolchain/ast"
 /// @return     a lazy stream of messages, in pipeline order.
 /// @error      H6006 when generation never settles ; H6008 when a generated
 ///             module cannot be written. Both land on `ctx.diagnostics`.
-export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
+export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
     // Configuration is read ONCE, here. Mutating `ctx.out` / `ctx.release` / …
     // after the first pull is therefore ignored uniformly, rather than honoured
     // for entries not yet reached — a stream cannot re-read what it already
@@ -174,7 +174,7 @@ export messages :: fn(ctx: BuildContext!) -> Iterator<Message> {
 // concatenating here: that keeps its single-file fast path, which returns the
 // file's own `decls` with no copy. Single-file modules are the common case, and
 // this runs for every module of the project on every round.
-undelivered_decls :: fn(files: SourceFile[], delivered: MutableSet<string>!) -> AST.Decl[] {
+undelivered_decls :: fn(files: SourceFile[], delivered: MutableSet<string>) -> AST.Decl[] {
     fresh: SourceFile[]!: []
     for f in files {
         if f.path in delivered {
@@ -189,7 +189,7 @@ undelivered_decls :: fn(files: SourceFile[], delivered: MutableSet<string>!) -> 
 // Carry one lowered entry to its output, per `ctx.target`. Diagnostics land on
 // the context so they interleave with the driver's own reports in order.
 emit_one :: fn(
-    ctx: BuildContext!, lowered: LoweredEntry!, entry: Path,
+    ctx: BuildContext, lowered: LoweredEntry, entry: Path,
     target: BuildTarget, release: bool, cc: string, ldflags: string, out: string, entries: usize,
 ) -> i32 {
     // One `out` cannot name N binaries: the second would overwrite the first in
@@ -241,7 +241,7 @@ emit_one :: fn(
 /// @param ctx  the configured context ; queue entries with `add_build_file`.
 /// @return     0 when every entry built, 1 as soon as one failed. A driver
 ///             normally returns this from `build`.
-export emit_native :: fn(ctx: BuildContext!) -> i32 {
+export emit_native :: fn(ctx: BuildContext) -> i32 {
     ctx.target = .Native
     return drain(ctx)
 }
@@ -255,7 +255,7 @@ export emit_native :: fn(ctx: BuildContext!) -> i32 {
 /// @param ctx  the configured context ; queue entries with `add_build_file`.
 /// @return     one C source per queued entry, in queue order. Empty when a
 ///             front end rejected an entry — the reports say why.
-export emit_c :: fn(ctx: BuildContext!) -> string[] {
+export emit_c :: fn(ctx: BuildContext) -> string[] {
     ctx.target = .C
     _ :: drain(ctx)
     return ctx.c_sources
@@ -264,7 +264,7 @@ export emit_c :: fn(ctx: BuildContext!) -> string[] {
 // Drain the stream, ignoring every message but the last. This is what makes
 // `emit_native` / `emit_c` shortcuts rather than a second implementation: there
 // is one build path, and a driver that observes sees the same one.
-drain :: fn(ctx: BuildContext!) -> i32 {
+drain :: fn(ctx: BuildContext) -> i32 {
     code := 1
     for msg in ctx.messages() {
         if msg is CompleteMessage as c {

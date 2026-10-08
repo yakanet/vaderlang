@@ -3,14 +3,15 @@
 ## tests/snippets/const_array_bad
   ConstDecl      DIGITS               :: i32[]
   FnDecl         main                 :: fn() -> i32
-  FnDecl         write_through_param  :: fn(i32[]) -> void
-  expr 12:5     IdentExpr      :: i32[]
+  FnDecl         write_through_param  :: fn(i32[]!) -> void
+  expr 12:5     IdentExpr      :: i32[]!
+  expr 12:5     IndexExpr      :: i32
   expr 16:5     IdentExpr      :: i32[]
   expr 17:25    IdentExpr      :: i32[]
   expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn(i32[]) -> void
+  expr 17:5     IdentExpr      :: fn(i32[]!) -> void
   expr 9:11     SeqLitExpr     :: i32[]!
 
 # Diagnostics
-[12:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]` — annotate `a!` at tests/snippets/const_array_bad/_main.vader:11:27
 [16:5] error[T3042] cannot mutate an immutable array: cannot mutate `i32[]` — `DIGITS` is frozen by the module-const default at tests/snippets/const_array_bad/_main.vader:9:1 : give it a marked type (`DIGITS: T[]!: …`)
+[17:25] error[T3072] this argument is immutable, but its parameter grants mutation: `write_through_param` mutates `a` : an element of it is written here at tests/snippets/const_array_bad/_main.vader:12:5 — `DIGITS` is frozen by the module-const default at tests/snippets/const_array_bad/_main.vader:9:1 : give it a marked type (`DIGITS: T[]!: …`)

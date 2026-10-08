@@ -268,7 +268,7 @@ new_blocks :: fn(module: bc.BytecodeModule, f: bc.BcFunction, width: usize) -> B
 }
 
 // Union `state` into block `b`'s entry ; queue `b` when it grew.
-merge_block :: fn(blocks: Blocks!, b: usize, d: usize, state: u8[]) -> void {
+merge_block :: fn(blocks: Blocks, b: usize, d: usize, state: u8[]) -> void {
     base :: b * blocks.width
     grew := blocks.entry_depth[b] < 0
     blocks.entry_depth[b] = i64(d)
@@ -289,8 +289,8 @@ merge_block :: fn(blocks: Blocks!, b: usize, d: usize, state: u8[]) -> void {
 // Run block `b` from its entry state, merging into its successors. With `record`,
 // write each pc's depth and stack instead, and merge nothing.
 walk_block :: fn(
-    ctx: TagContext, f: bc.BcFunction, blocks: Blocks!, b: usize, slots: usize, state: u8[]!,
-    record: FunctionTags! | null,
+    ctx: TagContext, f: bc.BcFunction, blocks: Blocks, b: usize, slots: usize, state: u8[],
+    record: FunctionTags | null,
 ) -> void {
     n :: f.body.len()
     base :: b * blocks.width
@@ -332,7 +332,7 @@ walk_block :: fn(
 // whatever they held: `exec` never clears them, and nothing reads them before a
 // push overwrites them.
 transfer :: fn(
-    ctx: TagContext, op: bc.Op, state: u8[]!, slots: usize, d: usize, e: StackEffect,
+    ctx: TagContext, op: bc.Op, state: u8[], slots: usize, d: usize, e: StackEffect,
 ) -> usize {
     top :: if d > 0 { state[slots + d - 1] } else { 0 }
     base :: d - e.pops

@@ -8,7 +8,7 @@ export Point :: struct {
     x: i32
 }
 
-export bump :: fn(self: Point!) -> void {
+export bump :: fn(self: Point) -> void {
     self.x += 1
 }
 
@@ -32,7 +32,7 @@ export through_call :: fn() -> void {
     fresh().bump()
 }
 
-export through_field :: fn(h: Holder!) -> void {
+export through_field :: fn(h: Holder) -> void {
     h.p.bump()
     h.q.bump()
 }

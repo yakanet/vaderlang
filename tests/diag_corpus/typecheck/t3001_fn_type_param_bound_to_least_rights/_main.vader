@@ -13,7 +13,7 @@ apply :: fn<T>(f: fn(T) -> void, x: T) -> void {
     f(x)
 }
 
-bump :: fn(c: Cfg!) -> void {
+bump :: fn(c: Cfg) -> void {
     c.n = 5
 }
 

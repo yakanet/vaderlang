@@ -42,15 +42,15 @@
   expr 35:52    CallExpr       :: string
   expr 35:52    FieldExpr      :: fn() -> string
   expr 35:52    IdentExpr      :: T[]
-  expr 37:50    CallExpr       :: i32
-  expr 37:50    FieldExpr      :: fn() -> i32
-  expr 37:50    IdentExpr      :: I
-  expr 39:53    CallExpr       :: usize
-  expr 39:53    IdentExpr      :: fn(Iterator<T>!) -> usize
-  expr 39:59    IdentExpr      :: I
-  expr 41:51    CallExpr       :: i32
-  expr 41:51    IdentExpr      :: fn(Iterator<T>!) -> i32
-  expr 41:57    IdentExpr      :: I
+  expr 37:49    CallExpr       :: i32
+  expr 37:49    FieldExpr      :: fn() -> i32
+  expr 37:49    IdentExpr      :: I
+  expr 39:52    CallExpr       :: usize
+  expr 39:52    IdentExpr      :: fn(Iterator<T>!) -> usize
+  expr 39:58    IdentExpr      :: I
+  expr 41:50    CallExpr       :: i32
+  expr 41:50    IdentExpr      :: fn(Iterator<T>!) -> i32
+  expr 41:56    IdentExpr      :: I
   expr 44:13    CallExpr       :: string
   expr 44:13    IdentExpr      :: fn(T) -> string
   expr 44:19    StructLitExpr  :: P!

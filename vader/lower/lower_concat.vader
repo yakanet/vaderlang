@@ -42,7 +42,7 @@ import "toolchain/span"
 /// @return     the concat fn symbol, or `null` when the std/core buffer API
 ///             can't be resolved (impossible — it is force-loaded ; the caller
 ///             then diverges via `unreachable_buffer`).
-get_or_create_concat :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
+get_or_create_concat :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     cached :: ctx.project.concat_fn_syms[n]
     if cached is Symbol { return cached }
     sym :: synthesize_concat_fn(ctx, n) ?? return null
@@ -65,7 +65,7 @@ get_or_create_concat :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
 //       …
 //       finish_buffer(buf, total)
 //   }
-synthesize_concat_fn :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
+synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     string_type :: TY_STRING
     usize_type :: mk_primitive("usize")
     span :: empty_span()
@@ -176,7 +176,7 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx!, n: i32) -> Symbol | null {
 ///
 /// @param project_ctx  carries the collected `concat_decls`.
 /// @param project       the lowered project ; the entry module gains the decls.
-drain_concat_decls :: fn(project_ctx: LowerProjectCtx!, project: LoweredProject) -> void {
+drain_concat_decls :: fn(project_ctx: LowerProjectCtx, project: LoweredProject) -> void {
     for decl in project_ctx.concat_decls {
         push_to_module(project, project.entry, decl)
     }
@@ -191,7 +191,7 @@ drain_concat_decls :: fn(project_ctx: LowerProjectCtx!, project: LoweredProject)
 // artifact of which body first triggered synthesis. `kind = Fn` for the fn (so a
 // bare reference resolves as a fn ref), `Synthetic` for params / locals
 // (resolved via `local_by_sym_id`).
-synth_concat_symbol :: fn(ctx: FnLowerCtx!, kind: SymbolKind, name: string) -> Symbol = Symbol {
+synth_concat_symbol :: fn(ctx: FnLowerCtx, kind: SymbolKind, name: string) -> Symbol = Symbol {
     .id         = next_synthetic_id(ctx),
     .kind       = kind,
     .name       = name,

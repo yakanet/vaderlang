@@ -33,7 +33,7 @@ export is_empty :: fn<T>(arr: T[]) -> bool = arr.len() == 0
 /// `false` result has consumed the first one.
 ///
 /// @param it  source iterator.
-export is_empty :: fn<T>(it: Iterator<T>!) -> bool {
+export is_empty :: fn<T>(it: Iterator<T>) -> bool {
     for _ in it {
         return false
     }
@@ -48,7 +48,7 @@ export count :: fn<T>(arr: T[]) -> usize = arr.len()
 /// Drain `it`, returning how many elements it yielded — O(n).
 ///
 /// @param it  source iterator.
-export count :: fn<T>(it: Iterator<T>!) -> usize {
+export count :: fn<T>(it: Iterator<T>) -> usize {
     total: usize = 0
     for _ in it {
         total += 1
@@ -70,7 +70,7 @@ export last :: fn<T>(arr: T[]) -> T | null {
 /// Drain `it`, returning its last element, or `null` when it yields none.
 ///
 /// @param it  source iterator.
-export last :: fn<T>(it: Iterator<T>!) -> T | null {
+export last :: fn<T>(it: Iterator<T>) -> T | null {
     result: T | null = null
     for x in it {
         result = x
@@ -84,7 +84,7 @@ export last :: fn<T>(it: Iterator<T>!) -> T | null {
 /// Drain `it` into a fresh array. Pair with the lazy combinators
 /// (`it.filter(p).map(f).collect()`) when a snapshot is required ;
 /// `for x in it` consumes directly without the intermediate array.
-export collect :: fn<T>(it: Iterator<T>!) -> T[]! {
+export collect :: fn<T>(it: Iterator<T>) -> T[]! {
     out: T[]!: []
     for x in it {
         out.push(x)
@@ -104,7 +104,7 @@ export collect :: fn<T>(it: Iterator<T>!) -> T[]! {
 /// @param init  initial accumulator value.
 /// @param f     reducer ; takes the running accumulator and the next element.
 /// @return      the accumulator after consuming the iterator.
-export fold :: fn<T, U>(self: Iterator<T>!, init: U, f: fn(U, T) -> U) -> U {
+export fold :: fn<T, U>(self: Iterator<T>, init: U, f: fn(U, T) -> U) -> U {
     acc := init
     for x in self {
         acc = f(acc, x)
@@ -118,7 +118,7 @@ export fold :: fn<T, U>(self: Iterator<T>!, init: U, f: fn(U, T) -> U) -> U {
 /// @return      their sum ; `T.zero()` when there are none.
 /// @example
 ///   total :: [1.5, 2.25].sum()   // 3.75
-export sum :: fn<T: Add & Zero>(self: Iterator<T>!) -> T {
+export sum :: fn<T: Add & Zero>(self: Iterator<T>) -> T {
     s := T.zero()
     for x in self {
         s += x
@@ -132,7 +132,7 @@ export sum :: fn<T: Add & Zero>(self: Iterator<T>!) -> T {
 /// @return      their product ; `T.one()` when there are none.
 /// @example
 ///   total :: [2, 3, 4].product()   // 24
-export product :: fn<T: Mul & One>(self: Iterator<T>!) -> T {
+export product :: fn<T: Mul & One>(self: Iterator<T>) -> T {
     p := T.one()
     for x in self {
         p *= x
@@ -193,7 +193,7 @@ export zip :: fn<T, U>(self: T[], other: U[]) -> Iterator<[T, U]> {
 ///              while the window fits.
 /// @example
 ///   for w in [1, 2, 3, 4, 5].window(3) { println("${w}") }   // [1,2,3] [2,3,4] [3,4,5]
-export window :: fn<T>(self: T[]!, size: usize) -> Iterator<T[]> {
+export window :: fn<T>(self: T[], size: usize) -> Iterator<T[]> {
     n :: self.len()
     count :: if size > 0 && n >= size { n - size + 1 } else { 0 }
     for start in 0..<count {
@@ -207,7 +207,7 @@ export window :: fn<T>(self: T[]!, size: usize) -> Iterator<T[]> {
 /// @param self   first source iterator (a raw array auto-coerces at the call site).
 /// @param other  second source, streamed after `self` is exhausted.
 /// @return       a lazy `Iterator<T>` over `self` followed by `other`.
-export chain :: fn<T>(self: Iterator<T>!, other: Iterator<T>!) -> Iterator<T> {
+export chain :: fn<T>(self: Iterator<T>, other: Iterator<T>) -> Iterator<T> {
     for x in self { yield x }
     for y in other { yield y }
 }
@@ -217,7 +217,7 @@ export chain :: fn<T>(self: Iterator<T>!, other: Iterator<T>!) -> Iterator<T> {
 /// 0-arg combinator: fuses over the source with no intermediate array.
 /// @param self  source iterator (a raw array auto-coerces at the call site).
 /// @return      a lazy `Iterator<[T, usize]>` — `[self[0], 0]`, `[self[1], 1]`, …
-export indexed :: fn<T>(self: Iterator<T>!) -> Iterator<[T, usize]> {
+export indexed :: fn<T>(self: Iterator<T>) -> Iterator<[T, usize]> {
     i: usize = 0
     for x in self {
         yield [x, i]
@@ -240,7 +240,7 @@ CHUNK_RESERVE_CAP: usize: 1024
 ///              run, … , then the shorter remainder if any.
 /// @example
 ///   for c in [1, 2, 3, 4, 5].chunked(2) { println("${c}") }   // [1, 2] [3, 4] [5]
-export chunked :: fn<T>(self: Iterator<T>!, size: usize) -> Iterator<T[]> {
+export chunked :: fn<T>(self: Iterator<T>, size: usize) -> Iterator<T[]> {
     if size == 0 {
         return
     }
@@ -269,7 +269,7 @@ export chunked :: fn<T>(self: Iterator<T>!, size: usize) -> Iterator<T[]> {
 /// @return      a lazy `Iterator<T>` with every repeat dropped.
 /// @example
 ///   for x in [3, 1, 3, 2, 1].distinct() { println("${x}") }   // 3 1 2
-export distinct :: fn<T: Hash & Equals>(self: Iterator<T>!) -> Iterator<T> {
+export distinct :: fn<T: Hash & Equals>(self: Iterator<T>) -> Iterator<T> {
     seen :: MutableSet<T> {}
     for x in self {
         if seen.add(x) {
@@ -285,7 +285,7 @@ export distinct :: fn<T: Hash & Equals>(self: Iterator<T>!) -> Iterator<T> {
 /// @example
 ///   maybe: (i32 | null)[]: [1, null, 3]
 ///   for x in maybe.filter_not_null() { println("${x + 1}") }   // 2 4
-export filter_not_null :: fn<T>(self: Iterator<T | null>!) -> Iterator<T> {
+export filter_not_null :: fn<T>(self: Iterator<T | null>) -> Iterator<T> {
     for x in self {
         if x != null {
             yield x
@@ -299,7 +299,7 @@ export filter_not_null :: fn<T>(self: Iterator<T | null>!) -> Iterator<T> {
 /// @param self  source iterator.
 /// @param f     mapper from one element to an array of outputs.
 /// @return      an iterator over `f(x0)` then `f(x1)` then … , flattened.
-export flat_map :: fn<T, U>(self: Iterator<T>!, f: fn(T) -> U[]) -> Iterator<U> {
+export flat_map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[]) -> Iterator<U> {
     for x in self {
         for y in f(x) {
             yield y
@@ -318,7 +318,7 @@ export flat_map :: fn<T, U>(self: Iterator<T>!, f: fn(T) -> U[]) -> Iterator<U> 
 /// Short-circuits — `pred` is not invoked past the first match.
 /// @param it    source array or iterator.
 /// @param pred  predicate invoked on each element until one returns `true`.
-export any_match :: fn<T>(it: Iterator<T>!, pred: fn(T) -> bool) -> bool {
+export any_match :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> bool {
     for x in it {
         if pred(x) {
             return true
@@ -331,7 +331,7 @@ export any_match :: fn<T>(it: Iterator<T>!, pred: fn(T) -> bool) -> bool {
 /// first `false`. Returns `true` on an empty source (vacuous truth).
 /// @param it    source array or iterator.
 /// @param pred  predicate invoked on each element until one returns `false`.
-export all_match :: fn<T>(it: Iterator<T>!, pred: fn(T) -> bool) -> bool {
+export all_match :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> bool {
     for x in it {
         if !pred(x) {
             return false
@@ -344,7 +344,7 @@ export all_match :: fn<T>(it: Iterator<T>!, pred: fn(T) -> bool) -> bool {
 /// Consumers narrow naturally : `match arr.find(p) as hit { is T -> … }`.
 /// @param it    source array or iterator.
 /// @param pred  predicate invoked on each element until one returns `true`.
-export find :: fn<T>(it: Iterator<T>!, pred: fn(T) -> bool) -> T | null {
+export find :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> T | null {
     for x in it {
         if pred(x) {
             return x
@@ -359,7 +359,7 @@ export find :: fn<T>(it: Iterator<T>!, pred: fn(T) -> bool) -> T | null {
 /// @param it  source array or iterator.
 /// @param f   mapper that returns `null` to skip the element or a value
 ///            to short-circuit on.
-export find_map :: fn<T, U>(it: Iterator<T>!, f: fn(T) -> U | null) -> U | null {
+export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
     for x in it {
         v :: f(x)
         if v != null {
@@ -385,19 +385,19 @@ export find_map :: fn<T, U>(it: Iterator<T>!, f: fn(T) -> U | null) -> U | null 
 /// Fluent lazy `filter`. Distinct from the eager `T[]`-overload above —
 /// the resolver picks this one when the receiver implements `Iterator<T>`
 /// (Range, an array iterator, MutableMap, …).
-export filter :: fn<T>(self: Iterator<T>!, pred: fn(T) -> bool) -> Iterator<T> {
+export filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T> {
     for x in self { if pred(x) { yield x } }
 }
 
 /// Fluent lazy `map`. Mirror of `filter` for transforms ; element type
 /// can change (`T` → `U`).
-export map :: fn<T, U>(self: Iterator<T>!, f: fn(T) -> U) -> Iterator<U> {
+export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
     for x in self { yield f(x) }
 }
 
 /// Fluent lazy `take`. Yields the first `n` items from `self`, then ends —
 /// pulling exactly `n` items from `self`, none for `take(0)`.
-export take :: fn<T>(self: Iterator<T>!, n: usize) -> Iterator<T> {
+export take :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
     if n == 0 {
         return
     }
@@ -413,7 +413,7 @@ export take :: fn<T>(self: Iterator<T>!, n: usize) -> Iterator<T> {
 
 /// Fluent lazy `skip`. Drops the first `n` items from `self`, then forwards
 /// every subsequent item.
-export skip :: fn<T>(self: Iterator<T>!, n: usize) -> Iterator<T> {
+export skip :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
     i: usize = 0
     for x in self {
         if i >= n { yield x }

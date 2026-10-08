@@ -13,7 +13,7 @@ Box :: struct<T> {
 
 ORIGIN :: Cfg { .n = 1 }
 
-stash :: fn(b: Box<Cfg>!) -> void {
+stash :: fn(b: Box<Cfg>) -> void {
     b.item = ORIGIN
 }
 

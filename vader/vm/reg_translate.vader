@@ -146,7 +146,7 @@ skips_else :: fn(f: bc.BcFunction, pc: usize) -> bool {
 }
 
 // Translate the op at `pc` ; false when it is not one the register engine runs.
-translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags, t: Translation!, pc: usize) -> bool {
+translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags, t: Translation, pc: usize) -> bool {
     op :: f.body[pc]
     // Only the op an arm emits next may be retargeted or fused ; `local.set`,
     // `if` and `br_if` read the previous one.
@@ -366,7 +366,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
 
 // Emit `op` as a `Boxed` op over the top `pops` cells, which it replaces with
 // `pushes` values.
-boxed :: fn(t: Translation!, pc: usize, op: bc.Op, pops: usize, pushes: usize) -> void {
+boxed :: fn(t: Translation, pc: usize, op: bc.Op, pops: usize, pushes: usize) -> void {
     flush(t, pc)
     base :: pop_to(t, pops)
     t.code.boxed.push(op)
@@ -377,7 +377,7 @@ boxed :: fn(t: Translation!, pc: usize, op: bc.Op, pops: usize, pushes: usize) -
 }
 
 // Push the string `op` names, built once.
-string_constant :: fn(module: bc.BytecodeModule, t: Translation!, pc: usize, op: bc.StringConst) -> void {
+string_constant :: fn(module: bc.BytecodeModule, t: Translation, pc: usize, op: bc.StringConst) -> void {
     dst :: canonical(t, t.stack.len())
     t.code.values.push(StringVal(module.strings[usize(op.index)]))
     emit(t, pc, .ConstRef, dst, i32(t.code.values.len() - 1), 0)
@@ -493,7 +493,7 @@ unary_op :: fn(op: bc.Op, ft: FunctionTags, pc: usize) -> RegOp | null {
 operands_within :: fn(ft: FunctionTags, pc: usize, allowed: u8) =
     tags_within(stack_tags(ft, pc, 1), allowed) && tags_within(stack_tags(ft, pc, 2), allowed)
 
-emit :: fn(t: Translation!, pc: usize, op: RegOp, a: i32, b: i32, c: i32) -> void {
+emit :: fn(t: Translation, pc: usize, op: RegOp, a: i32, b: i32, c: i32) -> void {
     t.code.ops.push(op)
     t.operands.push(a)
     t.operands.push(b)
@@ -502,7 +502,7 @@ emit :: fn(t: Translation!, pc: usize, op: RegOp, a: i32, b: i32, c: i32) -> voi
 }
 
 // Emit a jump whose `a` is patched to the op translating `target`.
-jump :: fn(t: Translation!, pc: usize, op: RegOp, b: i32, c: i32, target: i32) -> void {
+jump :: fn(t: Translation, pc: usize, op: RegOp, b: i32, c: i32, target: i32) -> void {
     back :: target >= 0 && target < i32(pc)
     span :: i32(pc) - target + 1
     kind := op
@@ -564,7 +564,7 @@ branch :: fn(when_true: bool, op: RegOp, swap: bool, negated: RegOp, negated_swa
 operand_of :: fn(t: Translation, k: usize, i: usize) -> i32 = t.operands[3 * k + i]
 
 // Remove the op emitted last.
-drop_last_op :: fn(t: Translation!) -> void {
+drop_last_op :: fn(t: Translation) -> void {
     t.code.ops.remove_last()
     t.code.origin.remove_last()
     for 0..<3 {
@@ -573,7 +573,7 @@ drop_last_op :: fn(t: Translation!) -> void {
 }
 
 // Push a scalar constant ; `collect_constants` gave it a register.
-push_constant :: fn(t: Translation!, c: bc.ConstOp) -> void {
+push_constant :: fn(t: Translation, c: bc.ConstOp) -> void {
     scalar :: scalar_of(c) ?? panic("reg_translate: a string has no constant register")
     k :: constant_index(t.code.consts, t.code.const_tags, scalar)
     if k < 0 {
@@ -610,7 +610,7 @@ constant_index :: fn(consts: i64[], tags: StackTag[], scalar: Scalar) -> i64 {
 }
 
 // Every distinct scalar constant `f` uses, into `consts` / `tags`.
-collect_constants :: fn(f: bc.BcFunction, consts: i64[]!, tags: StackTag[]!) -> void {
+collect_constants :: fn(f: bc.BcFunction, consts: i64[], tags: StackTag[]) -> void {
     for op in f.body {
         if op is bc.ReturnLit {
             add_constant(op.value, consts, tags)
@@ -620,7 +620,7 @@ collect_constants :: fn(f: bc.BcFunction, consts: i64[]!, tags: StackTag[]!) -> 
     }
 }
 
-add_constant :: fn(c: bc.ConstOp, consts: i64[]!, tags: StackTag[]!) -> void {
+add_constant :: fn(c: bc.ConstOp, consts: i64[], tags: StackTag[]) -> void {
     scalar :: scalar_of(c)
     if scalar != null && constant_index(consts, tags, scalar) < 0 {
         consts.push(scalar.bits)
@@ -628,7 +628,7 @@ add_constant :: fn(c: bc.ConstOp, consts: i64[]!, tags: StackTag[]!) -> void {
     }
 }
 
-push_register :: fn(t: Translation!, register: i32) -> void {
+push_register :: fn(t: Translation, register: i32) -> void {
     t.stack.push(Pending { .kind = .Register, .register = register })
 }
 
@@ -639,7 +639,7 @@ canonical :: fn(t: Translation, at: usize) -> i32 = i32(t.stack_base + at)
 operand :: fn(t: Translation, back: usize) -> i32 = t.stack[t.stack.len() - back].register
 
 // Pop `count` cells ; the register the result of their op goes to.
-pop_to :: fn(t: Translation!, count: usize) -> i32 {
+pop_to :: fn(t: Translation, count: usize) -> i32 {
     for 0..<count {
         t.stack.remove_last()
     }
@@ -647,7 +647,7 @@ pop_to :: fn(t: Translation!, count: usize) -> i32 {
 }
 
 // Write the cell at `at` to its canonical register.
-materialise :: fn(t: Translation!, pc: usize, at: usize) -> void {
+materialise :: fn(t: Translation, pc: usize, at: usize) -> void {
     cell :: t.stack[at]
     target :: canonical(t, at)
     if cell.kind == .Constant {
@@ -659,7 +659,7 @@ materialise :: fn(t: Translation!, pc: usize, at: usize) -> void {
 }
 
 // Every pending cell to its canonical register.
-flush :: fn(t: Translation!, pc: usize) -> void {
+flush :: fn(t: Translation, pc: usize) -> void {
     for at in 0..<t.stack.len() {
         materialise(t, pc, at)
     }
@@ -668,7 +668,7 @@ flush :: fn(t: Translation!, pc: usize) -> void {
 }
 
 // Start a block with `depth` cells, each in its canonical register.
-reset_stack :: fn(t: Translation!, depth: usize) -> void {
+reset_stack :: fn(t: Translation, depth: usize) -> void {
     t.stack.clear()
     for at in 0..<depth {
         push_register(t, canonical(t, at))
@@ -676,7 +676,7 @@ reset_stack :: fn(t: Translation!, depth: usize) -> void {
 }
 
 // Return the values on top of the stack, each truncated to its own class.
-return_many :: fn(t: Translation!, pc: usize, results: bc.ValType[]) -> void {
+return_many :: fn(t: Translation, pc: usize, results: bc.ValType[]) -> void {
     flush(t, pc)
     count :: results.len()
     first :: t.stack.len() - count
@@ -702,7 +702,7 @@ narrow_code :: fn(v: bc.ValType) -> i32 = match v {
 // `local.set slot` — or `local.tee`, which leaves the value on the stack. A slot of
 // a narrow class is truncated to its width after the store. `previous` is the op
 // that may be retargeted onto the slot, or `-1`.
-store_slot :: fn(t: Translation!, f: bc.BcFunction, pc: usize, slot: i32, keep: bool, previous: i64) -> void {
+store_slot :: fn(t: Translation, f: bc.BcFunction, pc: usize, slot: i32, keep: bool, previous: i64) -> void {
     top :: t.stack.len() - 1
     narrow :: narrow_code(slot_valtype(f, slot))
     // A cell still reading the slot must be read before the slot changes — and

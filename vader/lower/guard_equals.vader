@@ -33,7 +33,7 @@ import "vader/types"
 ///
 /// @param project      the lowered project ; its modules gain the guard fns.
 /// @param project_ctx  mints the guards' symbol ids.
-guard_equals_slots :: fn(project: LoweredProject, project_ctx: LowerProjectCtx!) -> void {
+guard_equals_slots :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) -> void {
     equals_key :: core_trait_key(TRAIT_EQUALS)
     // A primitive's impl may be lowered twice under one mangle ; it gets one guard.
     guarded :: MutableSet<string> {}
@@ -65,7 +65,7 @@ guard_equals_slots :: fn(project: LoweredProject, project_ctx: LowerProjectCtx!)
 }
 
 // `other is R && impl(self, other)`.
-guard_for :: fn(d: LoweredFnDecl, receiver: Type, project_ctx: LowerProjectCtx!) -> LoweredDecl! {
+guard_for :: fn(d: LoweredFnDecl, receiver: Type, project_ctx: LowerProjectCtx) -> LoweredDecl! {
     span :: empty_span()
     self_param :: guard_param("self", receiver, project_ctx)
     other_param :: guard_param("other", TY_ANY, project_ctx)
@@ -98,7 +98,7 @@ guard_for :: fn(d: LoweredFnDecl, receiver: Type, project_ctx: LowerProjectCtx!)
     }
 }
 
-guard_param :: fn(name: string, type: Type, project_ctx: LowerProjectCtx!) = LoweredParam {
+guard_param :: fn(name: string, type: Type, project_ctx: LowerProjectCtx) = LoweredParam {
     .name = name,
     .symbol = synthetic_symbol(next_project_synthetic_id(project_ctx), .Param, name),
     .type = type,

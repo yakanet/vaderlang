@@ -1330,6 +1330,7 @@ Top-level constants follow the same pattern but are restricted to compile-time e
 
 - **Mutable local never reassigned (`W0015`)**: a `:=` / `name: T =` local that no assignment ever rebinds earns a warning — the mutable form advertises a rebinding that does not happen. The fix is the immutable form on the same row of the table above (`n := 0` → `n :: 0`, `n: i32 = 0` → `n: i32: 0`). What counts as a rebinding is a **bare name as the whole assignment target**, compound assignments included: `x.f = 1` and `x[0] = 1` mutate what the name designates, which the immutable form already permits, so they do not justify a `:=`. A destructuring declaration carries one `:=` for every name it binds, so rebinding any one of them justifies it.
 
+- **Deduced parameter marker (`W0017`) and needless one (`W0018`)**: a `!` written on a parameter of a function with a body earns `W0017` when the body demands it — the compiler deduces it anyway, and the detail names the mutation — and `W0018` when nothing does. Both point at the `!` itself, and `vader fix <file>` removes them. See *A parameter's `!` is deduced from its body*.
 - **Needless enum type prefix (`W0016`)**: writing `Enum.Variant` where the slot already pins that enum earns a warning — the name before the dot repeats what the context says, and the bare `.Variant` reads the same. The slots that pin are the ones the shorthand already resolves against: a typed return, a parameter, an annotated local or field, a match arm's BODY, an element of an array literal in a typed slot, and the other operand of an `==` / `!=`. A nullable slot (`Color | null`) pins just as well. A match PATTERN never triggers it — the qualified form does not parse there, the bare `.Variant` being the only spelling a pattern accepts. It stays silent wherever the prefix is load-bearing: an unannotated local (`c :: Color.Red` has nothing to infer from); a slot whose union carries two enums sharing the variant name, where the bare form resolves to the first that carries it; and **any argument of an overloaded call**, where the prefix is what selects the candidate — given `pick(c: Color)` and `pick(f: Fruit)`, `pick(Fruit.Red)` and `pick(.Red)` reach different functions, so advising the bare form there would change the call in silence. The qualified form remains legal everywhere; the warning only says it earns nothing here.
 
 ### Type inference
@@ -1890,12 +1891,12 @@ main :: fn() -> i32 {
 
 ### Read-only by default — `!` grants mutation
 
-Every **slot** a value is reached through is read-only unless its type says otherwise. A slot is anywhere a type is **written**: a **parameter**, a **struct field**, a **return type** (free function, trait or impl member, lambda alike), or an **annotated local**. Writing a field or element through a read-only slot, or calling a method that mutates it, is rejected. Appending `!` to the **type** grants mutation:
+Every **slot** a value is reached through is read-only unless its type says otherwise. A slot is anywhere a type is **written**: a **parameter**, a **struct field**, a **return type** (free function, trait or impl member, lambda alike), or an **annotated local**. Writing a field or element through a read-only slot, or calling a method that mutates it, is rejected. Appending `!` to the **type** grants mutation — and on a parameter of a function with a body, the compiler deduces it (see *A parameter's `!` is deduced from its body*):
 
 ```vader
 describe :: fn(c: Counter) -> string = "${c.label} = ${c.count}"   // reads only
 
-fill :: fn(buf: i32[]!, value: i32, n: i32) -> void {              // mutates the array
+fill :: fn(buf: i32[], value: i32, n: i32) -> void {               // `buf` is deduced `i32[]!`
     for _ in 0..<n {
         buf.push(value)
     }
@@ -1933,6 +1934,35 @@ fresh().bump()     // OK
 p :: make()
 p.bump()           // T3071 — `p` holds the view `make` handed out
 ```
+
+#### A parameter's `!` is deduced from its body
+
+A parameter of a function with a body takes `!` at a level when the body mutates it there — writes through it, calls a `self!` member on it, stores it where a mutable value is expected — or hands it at that level to a parameter that takes `!`. The compiler deduces it over the whole program, through calls, so nothing is written:
+
+```vader
+fill :: fn(buf: i32[], value: i32, n: i32) -> void {   // `buf` : `i32[]!`
+    for _ in 0..<n {
+        buf.push(value)
+    }
+}
+
+refill :: fn(buf: i32[]) -> void = fill(buf, 0, 4)     // `buf` : `i32[]!`, through `fill`
+
+TABLE :: [1, 2, 3]
+fill(TABLE, 1, 2)   // T3072 — `fill` mutates `buf`, and `TABLE` is a module const
+```
+
+The refusal lands on the caller that hands in what cannot be mutated, and it names why the callee mutates: the chain of calls down to the mutation. An editor shows a deduced `!` where it would be written, with that chain on hover.
+
+It is deduced per level, as it is written (see *The marker is per LEVEL* below): `xs[0].n = 1` on `xs: Box[]` makes it `Box![]`, `xs.push(b)` makes it `Box[]!`. Under a spine the function grows the element is invariant, so a function handed a `Box![]!` to push into takes `Box![]!`.
+
+A contract has no body to deduce from, and keeps its written marker:
+
+- a trait member, abstract or default, and the `fn(...)` type of a callback;
+- an `@extern` or intrinsic function;
+- a lambda's parameter, which takes its rights from the slot the lambda fills.
+
+A `!` written on a deduced parameter is kept, and warned about: `W0017` when the body demands it anyway, `W0018` when nothing does. `vader fix <file>` removes both. A `!` on a type with no interior is `T3075` there as anywhere, and gets no warning. An impl member is held to its trait whether its `!` is written or deduced: it may not mutate a receiver or a parameter the trait lends read-only (T3095).
 
 #### The marker is per LEVEL
 
@@ -4067,6 +4097,7 @@ to the program like any other argument.
 | `vader build --emit=bytecode` | Emits a binary `.vir` bytecode module *(not yet implemented)* |
 | `vader build --emit=c` | Emits the generated C source only |
 | `vader fmt [path]` | Single opinionated formatter, **no config**; defaults to recursive walk under `.` |
+| `vader fix [--target=…] <file>` | Removes, in every file of the project, the parameters' `!` the compiler deduces anyway (`W0017`) or nothing needs (`W0018`) |
 | `vader test [path]` | Runs all functions marked `@test`, each in an isolated process. |
 | `vader lsp` | Runs the Language Server (JSON-RPC over stdin/stdout). Spawned by VS Code / IntelliJ |
 | `vader dump --stage=<stage> <file>` | Dumps an IR stage (text or JSON depending on stage) |

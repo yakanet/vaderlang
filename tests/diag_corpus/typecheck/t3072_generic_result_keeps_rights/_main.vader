@@ -18,7 +18,7 @@ wrap :: fn<T>(v: T) -> Box<T>! = Box<T> { .v = v }
 
 peek :: fn<T>(xs: T[]) -> T = xs[0]
 
-bump :: fn(p: Point!) -> void {
+bump :: fn(p: Point) -> void {
     p.x = 9
 }
 

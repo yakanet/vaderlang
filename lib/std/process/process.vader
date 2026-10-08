@@ -253,7 +253,7 @@ close_pair :: fn(fds: i32[]) -> void {
 /// @param into   the accumulating buffer.
 /// @return       true once the writer is gone and the pipe is drained.
 @target
-drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool
+drain_pipe :: fn(child: i64, which: usize, into: u8[]) -> bool
 
 @target(.Linux, .Darwin)
 drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool {
@@ -474,7 +474,7 @@ command_line_bytes :: fn(argv: string[]) -> u8[]! {
 ///
 /// @param word  the argument's bytes.
 /// @param out   the command line being built.
-push_quoted :: fn(word: u8[], out: u8[]!) -> void {
+push_quoted :: fn(word: u8[], out: u8[]) -> void {
     if word.len() > 0 && !needs_quoting(word) {
         for b in word {
             out.push(b)
@@ -664,7 +664,7 @@ SpawnAsync implements Async<ProcessResult | ProcessError> {
         }
     }
 
-    resume :: fn(self!) -> ProcessResult | ProcessError | Suspended {
+    resume :: fn(self) -> ProcessResult | ProcessError | Suspended {
         if !self.started {
             self.started = true
             if self.argv.len() == 0 {

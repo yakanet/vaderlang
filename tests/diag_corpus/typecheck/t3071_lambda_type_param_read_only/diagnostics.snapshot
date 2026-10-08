@@ -1,3 +1,4 @@
-[11:9] error[T3071]
-[5:1] warning[W0007]
-[9:1] warning[W0007]
+[10:1] warning[W0007]
+[12:1] warning[W0007]
+[14:9] error[T3071]
+[6:1] warning[W0007]

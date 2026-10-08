@@ -23,7 +23,7 @@ import "std/iter"
 /// cannot — a continue of an OUTER loop, which C cannot name — keeps its label.
 ///
 /// @param root  the body to rewrite in place.
-export structure_loops :: fn(root: CBlock!) -> void {
+export structure_loops :: fn(root: CBlock) -> void {
     rewrite_block(root, [])
     used :: MutableSet<string> {}
     collect_goto_labels(root, used)
@@ -34,7 +34,7 @@ export structure_loops :: fn(root: CBlock!) -> void {
 
 // Rewrite the loops in `block`, innermost first. `exits` are the labels control
 // reaches by falling off the end of `block`.
-rewrite_block :: fn(block: CBlock!, exits: string[]) -> void {
+rewrite_block :: fn(block: CBlock, exits: string[]) -> void {
     end :: statements_end(block.body)
     for k in 0..<block.body.len() {
         statement :: block.body[k]
@@ -75,7 +75,7 @@ exits_after :: fn(end_label: string, exits: string[], falls_out: bool) -> string
 
 // The end labels of the statements `block` ends with, followed down its tail :
 // a jump to one of them lands where falling off `block` does.
-push_tail_labels :: fn(block: CBlock, labels: string[]!) -> void {
+push_tail_labels :: fn(block: CBlock, labels: string[]) -> void {
     statement :: tail_statement(block.body)
     if statement is CIf {
         if statement.end_label != "" {
@@ -101,7 +101,7 @@ push_tail_labels :: fn(block: CBlock, labels: string[]!) -> void {
 // In a loop's body, `goto <continue_label>` becomes `continue` and a `goto` to
 // one of `breaks` becomes `break` — outside any inner loop or `switch`, which
 // would take the jump for themselves.
-substitute_jumps :: fn(block: CBlock!, continue_label: string, breaks: string[]) -> void {
+substitute_jumps :: fn(block: CBlock, continue_label: string, breaks: string[]) -> void {
     for k in 0..<block.body.len() {
         statement :: block.body[k]
         if statement is CGoto {
@@ -208,7 +208,7 @@ tail_statement :: fn(statements: CStatement[]) -> CStatement | null {
 // ---- labels and braces ----------------------------------------------------
 
 // Every label a `goto` in `block` still names.
-collect_goto_labels :: fn(block: CBlock, used: MutableSet<string>!) -> void {
+collect_goto_labels :: fn(block: CBlock, used: MutableSet<string>) -> void {
     for statement in block.body {
         // @partial: only these statements hold a jump or a nested block.
         @partial match statement {
@@ -236,7 +236,7 @@ collect_goto_labels :: fn(block: CBlock, used: MutableSet<string>!) -> void {
 }
 
 // The labels the `goto`s of a switch clause name.
-collect_clause_labels :: fn(body: CCaseStatement[], used: MutableSet<string>!) -> void {
+collect_clause_labels :: fn(body: CCaseStatement[], used: MutableSet<string>) -> void {
     for statement in body {
         if statement is CGoto {
             used.add(statement.label)
@@ -246,7 +246,7 @@ collect_clause_labels :: fn(body: CCaseStatement[], used: MutableSet<string>!) -
 
 // Drop the labels no `goto` names, then splice into `block` every bare scope —
 // no label, no declaration of its own — that only groups statements.
-tidy_block :: fn(block: CBlock!, used: MutableSet<string>) -> void {
+tidy_block :: fn(block: CBlock, used: MutableSet<string>) -> void {
     kept: CStatement[]!: []
     for statement in block.body {
         match statement {
@@ -360,13 +360,13 @@ declares :: fn(block: CBlock) -> bool {
 import "std/testing"
 
 // `loop_1: { body }` — a loop scope as the walker builds it.
-loop_scope :: fn(body: CStatement[]!) -> CStatement = CScope {
+loop_scope :: fn(body: CStatement[]) -> CStatement = CScope {
     .label = "loop_1",
     .body = CBlock { .body = body },
 }
 
 // `root` after the pass, printed.
-structured :: fn(root: CBlock!) -> string {
+structured :: fn(root: CBlock) -> string {
     structure_loops(root)
     printer :: CPrinter {}
     printer.print_block(root, 0)

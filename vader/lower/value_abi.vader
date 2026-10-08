@@ -365,7 +365,7 @@ index_struct_decls :: fn(project: LoweredProject) -> MutableMap<string, LoweredS
 // marker costs instead of dropping those sites in silence.
 collect_value_abi_sites :: fn(
     fd: LoweredFnDecl, structs: MutableMap<string, LoweredStructDecl>, typed: TypedProject,
-    out: ValueAbiSite[]!,
+    out: ValueAbiSite[],
 ) -> i64 {
     body :: fd.body
     fresh :: body != null && returns_only_fresh_composites(body)
@@ -389,7 +389,7 @@ collect_value_abi_sites :: fn(
 
 // `size` comes from the caller, which already had to compute it to decide.
 push_site :: fn(
-    out: ValueAbiSite[]!, fn_name: string, position: string, t: Type, size: i64, fresh: bool,
+    out: ValueAbiSite[], fn_name: string, position: string, t: Type, size: i64, fresh: bool,
 ) -> void {
     if size < 0 {
         return
@@ -554,7 +554,7 @@ test_fresh_returns_looks_inside_an_if :: fn() -> void {
     assert(!returns_only_fresh_composites(fresh_test_body([nested])), "an arm's return counts")
 }
 
-fresh_test_body :: fn(stmts: LoweredStmt![]) -> LoweredBlock! = LoweredBlock {
+fresh_test_body :: fn(stmts: LoweredStmt[]) -> LoweredBlock! = LoweredBlock {
     .span = empty_span(),
     .type = TY_VOID,
     .stmts = stmts,

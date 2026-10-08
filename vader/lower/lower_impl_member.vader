@@ -47,7 +47,7 @@ is_identity_member :: fn(m: FnDecl) -> bool {
 /// `LoweredCall` exactly as before. The single hook every "resolve impl member +
 /// build call" site should route through (P2 will extend it to general
 /// expression bodies via value-substitution).
-build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr![]!, ret: Type, span: Span) -> LoweredExpr! {
+build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr! {
     // Identity uses `self` exactly once, so returning the (already-lowered)
     // receiver evaluates it once — no temp / double-eval concern.
     if member.is_identity && args.len() == 1 { return args[0] }
@@ -59,7 +59,7 @@ build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr![]!, ret
 // virtual `recv.method()` resolves at emit. Deduped per receiver via
 // `seen_generic_impl_recv`. Shared by the erased-receiver path
 // (`build_ufcs_member`) and a generic struct literal.
-queue_generic_impl_receiver :: fn(ctx: FnLowerCtx!, recv: StructType) -> void {
+queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
     // Distinct→backing on the receiver's args before keying/queuing — the
     // queued instance must match the registry's raw backing instance, not a
     // separate distinct one. Distinct ends at the lowering boundary.
@@ -101,7 +101,7 @@ ImplMemberMatch :: struct {
 /// user impl turns up. The mangle always reads the SELECTED member's own name,
 /// so trait-keyed dispatch picks up whatever the impl declares.
 resolve_impl_member :: fn(
-    ctx: FnLowerCtx!,
+    ctx: FnLowerCtx,
     target_type: Type,
     trait_key: string,
     name: string,
@@ -147,7 +147,7 @@ select_member :: fn(entry: ImplEntry, trait_key: string, name: string) -> FnDecl
 }
 
 // Resolve a UFCS member by method NAME (`recv.method()` dispatch).
-find_impl_member_for :: fn(ctx: FnLowerCtx!, target_type: Type, method_name: string) -> UfcsMember | null =
+find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: string) -> UfcsMember | null =
     resolve_impl_member(ctx, target_type, "", method_name)
 
 /// Resolve the sole method member of `target_type`'s impl of `trait_key` (a
@@ -156,7 +156,7 @@ find_impl_member_for :: fn(ctx: FnLowerCtx!, target_type: Type, method_name: str
 /// typechecker's index routing (`vader/typecheck/orchestrate.vader`,
 /// `TRAIT_INDEX` / `TRAIT_INDEX_SET`), so a rename of the trait's method can't
 /// drift a hard-coded name.
-find_trait_impl_member :: fn(ctx: FnLowerCtx!, target_type: Type, trait_key: string) -> UfcsMember | null =
+find_trait_impl_member :: fn(ctx: FnLowerCtx, target_type: Type, trait_key: string) -> UfcsMember | null =
     resolve_impl_member(ctx, target_type, trait_key, "")
 
 /// The vtable slot an impl member of `trait_key` fills ; null for a static member,
@@ -201,7 +201,7 @@ receiver_suffix :: fn(ctx: FnLowerCtx, entry: ImplEntry, target_type: Type) -> s
 /// Build the `UfcsMember` for `member` of `entry`'s impl on `target_type` :
 /// the deterministic mangle, plus the side-tables that surface / materialise it.
 build_ufcs_member :: fn(
-    ctx: FnLowerCtx!,
+    ctx: FnLowerCtx,
     target_type: Type,
     target_name: string,
     member: FnDecl,
@@ -314,7 +314,7 @@ impl_member_arg_types :: fn(
 /// @param receiver  the concrete type the member is called on.
 /// @param name      the member's name.
 use_site_member :: fn(
-    ctx: FnLowerCtx!,
+    ctx: FnLowerCtx,
     picks: MutableMap<usize, ImplMethod>,
     node_id: usize,
     receiver: Type,
@@ -335,7 +335,7 @@ use_site_member :: fn(
 // The member `name` of `receiver`'s impl at the trait arguments a bounded `T`'s
 // dispatch recorded under `node_id`, substituted for this instance.
 bound_member :: fn(
-    ctx: FnLowerCtx!,
+    ctx: FnLowerCtx,
     node_id: usize,
     receiver: Type,
     name: string,
@@ -359,7 +359,7 @@ bound_member :: fn(
 /// @param trait_key  the trait the call dispatches through.
 /// @param method     the member it calls.
 surface_array_variants :: fn(
-    ctx: FnLowerCtx!,
+    ctx: FnLowerCtx,
     receiver: Type,
     trait_key: string,
     method: string,
@@ -385,11 +385,11 @@ surface_array_variants :: fn(
 ///                     retagged for ; empty when every argument is already boxed or
 ///                     concrete.
 virtual_call :: fn(
-    ctx: FnLowerCtx!,
+    ctx: FnLowerCtx,
     trait_key: string,
     method: string,
-    receiver: LoweredExpr!,
-    args: LoweredExpr![]!,
+    receiver: LoweredExpr,
+    args: LoweredExpr[],
     type: Type,
     span: Span,
     param_types: Type[] = [],
@@ -409,7 +409,7 @@ virtual_call :: fn(
 
 // The member `name` of `entry`, built for `receiver`.
 member_named :: fn(
-    ctx: FnLowerCtx!,
+    ctx: FnLowerCtx,
     entry: ImplEntry,
     receiver: Type,
     name: string,
@@ -467,7 +467,7 @@ type_surface_name :: fn(t: Type) -> string = match t {
 /// through `try_into` ; the lowered arg is then handed back verbatim only when
 /// the cast is a true identity — unwrapping a distinct still stamps its target,
 /// see `emit_value_cast`.
-try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr! | null {
+try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr! | null {
     if call.args.len() != 1 { return null }
     if call.callee !is IdentExpr && ctx.types.expr_type(call.callee) is TypeMetaType {
         return emit_value_cast(ctx, call, type)
@@ -499,7 +499,7 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
 /// by the direct-ident path (`try_lower_cast_call`) and the namespace path
 /// (`nsM.T(value)` in `try_lower_namespace_call`). The caller has already
 /// confirmed this is a cast (type-shaped callee / TypeMetaType) with one arg.
-emit_value_cast :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredExpr! {
+emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr! {
     // The checked type, not the lowered one : a variant literal lowers to its
     // bare index and no longer says it is an enum.
     source :: enum_type_or_unwrap(ctx, ctx.types.expr_type(call.args[0].value))
@@ -562,7 +562,7 @@ emit_value_cast :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> LoweredEx
 // `callee_module` is informational on that path, so callers pass the impl's
 // owning module when resolved and the caller's module on the bare fallback.
 mk_into_call :: fn(
-    arg: LoweredExpr!, result_type: Type, span: Span, callee_name: string, callee_module: string,
+    arg: LoweredExpr, result_type: Type, span: Span, callee_name: string, callee_module: string,
 ) -> LoweredCall! {
     return LoweredCall {
         .span = span, .type = result_type,
@@ -582,7 +582,7 @@ mk_into_call :: fn(
 // The bare `into` placeholder — emit can't resolve it to a member mangle. A
 // generic `Into` impl on a struct reaches it : the coercion path builds no
 // erased-instance mangle.
-mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr!, result_type: Type, span: Span) -> LoweredCall! =
+mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr, result_type: Type, span: Span) -> LoweredCall! =
     mk_into_call(arg, result_type, span, METHOD_INTO, ctx.typed.resolved.path)
 
 // `T[] -> Iterator<T>` value-slot coercion. Returns `into(arr)` resolved to the
@@ -595,7 +595,7 @@ mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr!, result_type: Type, s
 // and records it in `array_member_uses`, which `surface_array_impl_members`
 // materialises.
 try_array_iter_coercion :: fn(
-    ctx: FnLowerCtx!, arg: LoweredExpr!, arg_type: Type, target_type: Type, span: Span,
+    ctx: FnLowerCtx, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
 ) -> LoweredExpr! | null {
     if arg_type is ArrayType {
         if target_type is TraitType {
@@ -624,9 +624,9 @@ array_into_member :: fn(ctx: FnLowerCtx, array: Type, target: Type) -> ImplMembe
 // `into(arg)` through the member `found` names, mangled as its materialiser names
 // it for `source`.
 call_into_member :: fn(
-    ctx: FnLowerCtx!,
+    ctx: FnLowerCtx,
     found: ImplMemberMatch,
-    arg: LoweredExpr!,
+    arg: LoweredExpr,
     source: Type,
     target: Type,
     span: Span,
@@ -652,7 +652,7 @@ impl_declaring :: fn(candidates: ImplEntry[], chosen: ImplMethod) -> ImplMemberM
 /// `Target(value)` where `value : Source` and `Source implements Into<Target>`
 /// emits `LoweredCall { callee: into, args: [value] }`.
 try_emit_into_coercion :: fn(
-    ctx: FnLowerCtx!, arg: LoweredExpr!, arg_type: Type, target_type: Type, span: Span,
+    ctx: FnLowerCtx, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
 ) -> LoweredExpr! | null {
     // An array into an `Iterator` finds its `into` by the target's base too : core's
     // generic impl has no exact pair for the scan below to find.

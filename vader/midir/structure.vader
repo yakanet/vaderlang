@@ -58,7 +58,7 @@ StructureShape :: struct {
 ///
 /// @param ctx  the per-function emitter state, `ctx.fn_` already threaded by
 ///             `skip_forwarding_blocks`.
-structure_function :: fn(ctx: FnEmitCfg!) -> void {
+structure_function :: fn(ctx: FnEmitCfg) -> void {
     preds :: predecessors_of(ctx.fn_)
     shape :: shape_of(ctx.fn_, preds, compute_dominators(ctx.fn_, preds))
     emit_subtree(ctx, shape, ctx.fn_.entry, BlockId(-1))
@@ -271,7 +271,7 @@ outermost_loop_left :: fn(
 
 // `x` and everything placed beneath it. `next` is where control goes when the
 // emitted code falls off its end; -1 when nothing may fall through.
-emit_subtree :: fn(ctx: FnEmitCfg!, shape: StructureShape, x: BlockId, next: BlockId) -> void {
+emit_subtree :: fn(ctx: FnEmitCfg, shape: StructureShape, x: BlockId, next: BlockId) -> void {
     if shape.loop_header[i32(x)] {
         emit_loop(ctx, shape, x, next)
     } else {
@@ -285,7 +285,7 @@ emit_subtree :: fn(ctx: FnEmitCfg!, shape: StructureShape, x: BlockId, next: Blo
 // `break` to the C emitter — except the header's own test falling out of a
 // body that ends with it, the shape the C emitter turns into a `while`; the
 // edge that test takes follows the loop's `end`.
-emit_loop :: fn(ctx: FnEmitCfg!, shape: StructureShape, x: BlockId, next: BlockId) -> void {
+emit_loop :: fn(ctx: FnEmitCfg, shape: StructureShape, x: BlockId, next: BlockId) -> void {
     exits :: shape.exits[i32(x)]
     after :: open_blocks(ctx, exits, next)
     span :: ctx.fn_.blocks[i32(x)].span
@@ -308,7 +308,7 @@ emit_loop :: fn(ctx: FnEmitCfg!, shape: StructureShape, x: BlockId, next: BlockI
 // branches to them. A loop header's open inside its `loop`: its instructions
 // run on every iteration.
 emit_body :: fn(
-    ctx: FnEmitCfg!,
+    ctx: FnEmitCfg,
     shape: StructureShape,
     x: BlockId,
     next: BlockId,
@@ -326,7 +326,7 @@ emit_body :: fn(
 // Open one `block` per block in `ys`, the latest in reverse postorder
 // outermost. Returns where the code inside falls through to: the first of
 // `ys`, or `next` when there is none.
-open_blocks :: fn(ctx: FnEmitCfg!, ys: BlockId[], next: BlockId) -> BlockId {
+open_blocks :: fn(ctx: FnEmitCfg, ys: BlockId[], next: BlockId) -> BlockId {
     for i in 0..<ys.len() {
         y :: ys[ys.len() - 1 - i]
         cf_block(ctx, ctx.fn_.blocks[i32(y)].span, y)
@@ -336,7 +336,7 @@ open_blocks :: fn(ctx: FnEmitCfg!, ys: BlockId[], next: BlockId) -> BlockId {
 
 // Close the `block`s `open_blocks` opened for `ys`, each block in `ys` emitted
 // after its own `end` and falling through to the next one, the last to `next`.
-close_blocks :: fn(ctx: FnEmitCfg!, shape: StructureShape, ys: BlockId[], next: BlockId) -> void {
+close_blocks :: fn(ctx: FnEmitCfg, shape: StructureShape, ys: BlockId[], next: BlockId) -> void {
     for i in 0..<ys.len() {
         falls_to :: if i + 1 < ys.len() { ys[i + 1] } else { next }
         cf_end(ctx, ctx.fn_.blocks[i32(ys[i])].span)
@@ -372,7 +372,7 @@ last_empty_stack_point :: fn(ctx: FnEmitCfg, x: BlockId) -> usize {
     return at
 }
 
-emit_instructions :: fn(ctx: FnEmitCfg!, x: BlockId, from: usize, until: usize) -> void {
+emit_instructions :: fn(ctx: FnEmitCfg, x: BlockId, from: usize, until: usize) -> void {
     block :: ctx.fn_.blocks[i32(x)]
     for i in from..<until {
         emit_instr(ctx, block.instructions[i], pos_key(x, i))
@@ -380,7 +380,7 @@ emit_instructions :: fn(ctx: FnEmitCfg!, x: BlockId, from: usize, until: usize) 
 }
 
 emit_terminator :: fn(
-    ctx: FnEmitCfg!,
+    ctx: FnEmitCfg,
     shape: StructureShape,
     x: BlockId,
     next: BlockId,
@@ -398,7 +398,7 @@ emit_terminator :: fn(
 // Control leaving `from` for `to`: nothing when it falls through, a `br` when
 // `to` is a merge or a loop header behind it, else `to`'s subtree in place.
 emit_branch :: fn(
-    ctx: FnEmitCfg!,
+    ctx: FnEmitCfg,
     shape: StructureShape,
     from: BlockId,
     to: BlockId,
@@ -416,7 +416,7 @@ emit_branch :: fn(
 }
 
 emit_cond_branch :: fn(
-    ctx: FnEmitCfg!,
+    ctx: FnEmitCfg,
     shape: StructureShape,
     x: BlockId,
     t: TermCondBranch,

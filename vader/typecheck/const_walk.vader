@@ -19,7 +19,7 @@ AST :: import "toolchain/ast"
 ///
 /// @param decls  the module's declarations, as the walk holds them.
 /// @param diags  the walk's diagnostics, where every const reports.
-open_const_walk :: fn(decls: AST.Decl![], typed: TypedProgram!, diags: Diagnostic[]!) -> void {
+open_const_walk :: fn(decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[]) -> void {
     walk :: ConstWalk { .diags = diags }
     for decl in decls {
         // The alias keeps the declaration mutable — a `for` variable comes out
@@ -34,7 +34,7 @@ open_const_walk :: fn(decls: AST.Decl![], typed: TypedProgram!, diags: Diagnosti
 
 // Type the const `cd`, the consts its value reads first, in dependency order.
 // `deferred` when a read inside a fn body reached it.
-settle_with_reads :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, deferred: bool = false) -> void {
+settle_with_reads :: fn(cd: AST.ConstDecl, typed: TypedProgram, deferred: bool = false) -> void {
     for c in consts_in_dependency_order(cd, typed) {
         settle_const(c, typed, deferred)
     }
@@ -44,7 +44,7 @@ settle_with_reads :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, deferred: bool
 // twice is not idempotent (the second check reads the type the first wrote as its
 // expected type, and drops an array literal's `!`). It reports into the walk's
 // diagnostics, wherever it was reached from.
-settle_const :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, deferred: bool = false) -> void {
+settle_const :: fn(cd: AST.ConstDecl, typed: TypedProgram, deferred: bool = false) -> void {
     walk :: typed.const_walk
     key :: cd.span.hash()
     if key in walk.states {
@@ -62,7 +62,7 @@ settle_const :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, deferred: bool = fa
 // it calls into — would otherwise see no type. The value is typed as at module
 // level, the reading fn's state set aside. A read inside the const's own value,
 // directly or through other consts, is a cycle : T3099.
-settle_const_read :: fn(sym: Symbol, span: Span, typed: TypedProgram!) -> void {
+settle_const_read :: fn(sym: Symbol, span: Span, typed: TypedProgram) -> void {
     walk :: typed.const_walk
     declared :: typed.const_decls[sym.id] ?? return
     key :: declared.span.hash()
@@ -136,7 +136,7 @@ DependencyFrame :: struct {
 // `root` and the consts of this walk it reads, not yet typed, each after the ones it
 // reads : a depth-first post-order, kept on an explicit stack so a long chain costs
 // no call depth. In a cycle, the read that closes it reports it (T3099).
-consts_in_dependency_order :: fn(root: AST.ConstDecl!, typed: TypedProgram) -> AST.ConstDecl![] {
+consts_in_dependency_order :: fn(root: AST.ConstDecl, typed: TypedProgram) -> AST.ConstDecl![] {
     out: AST.ConstDecl![]!: []
     walk :: typed.const_walk
     if root.span.hash() in walk.states {
@@ -162,7 +162,7 @@ consts_in_dependency_order :: fn(root: AST.ConstDecl!, typed: TypedProgram) -> A
     return out
 }
 
-frame_of :: fn(decl: AST.ConstDecl!, typed: TypedProgram) -> DependencyFrame! =
+frame_of :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> DependencyFrame! =
     DependencyFrame { .decl = decl, .reads = const_reads(decl.value, typed) }
 
 // The consts of this walk the value `e` names directly — through operators, field

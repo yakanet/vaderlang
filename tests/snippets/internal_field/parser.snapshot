@@ -53,11 +53,8 @@
         {
           "name": "c",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "Counter"
-            }
+            "kind": "IdentExpr",
+            "name": "Counter"
           },
           "defaultValue": null,
           "variadic": false

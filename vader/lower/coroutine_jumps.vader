@@ -31,7 +31,7 @@ gb_break_to :: fn(gb: GenBuild, frame: LoopFrame) -> LoweredStmt![]! = [gb_set_s
 // A `return` completes the coroutine: a generator stops its stream, an async fn
 // hands back its value — the `null` done-marker for a bare `return`, so the
 // resume result stays `T | Suspended`.
-gb_complete :: fn(gb: GenBuild, value: LoweredExpr! | null) -> LoweredStmt![]! {
+gb_complete :: fn(gb: GenBuild, value: LoweredExpr | null) -> LoweredStmt![]! {
     done :: gb_set_state(gb, i64(DONE_STATE))
     if !gb.is_async {
         return [done, gb_done_return(gb)]
@@ -47,7 +47,7 @@ gb_complete :: fn(gb: GenBuild, value: LoweredExpr! | null) -> LoweredStmt![]! {
 // `gb_resolve_loop_frame` — the one resolution rule — tells a jump that stays
 // from one that leaves the state.
 
-gb_retarget_stmt :: fn(gb: GenBuild!, s: LoweredStmt!) -> LoweredStmt! = match s {
+gb_retarget_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> LoweredStmt! = match s {
     is LoweredBreak -> {
         frame :: gb_resolve_loop_frame(gb, s.label)
         if frame.local { s } else { gb_reenter(gb, gb_break_to(gb, frame)) }
@@ -97,12 +97,12 @@ gb_retarget_stmt :: fn(gb: GenBuild!, s: LoweredStmt!) -> LoweredStmt! = match s
 }
 
 // `transition`, then back to the dispatch loop, which runs the state it names.
-gb_reenter :: fn(gb: GenBuild, transition: LoweredStmt![]!) -> LoweredStmt! {
+gb_reenter :: fn(gb: GenBuild, transition: LoweredStmt[]) -> LoweredStmt! {
     transition.push(LoweredContinue { .span = gb.span, .label = DISPATCH_LABEL })
     return wrap_stmts(gb.span, transition)
 }
 
-gb_retarget_block :: fn(gb: GenBuild!, b: LoweredBlock) -> LoweredBlock! {
+gb_retarget_block :: fn(gb: GenBuild, b: LoweredBlock) -> LoweredBlock! {
     stmts: LoweredStmt![]!: []
     for st in b.stmts {
         stmts.push(gb_retarget_stmt(gb, st))
@@ -110,10 +110,10 @@ gb_retarget_block :: fn(gb: GenBuild!, b: LoweredBlock) -> LoweredBlock! {
     return LoweredBlock { ...b, .stmts = stmts, .trailing = gb_retarget_opt(gb, b.trailing) }
 }
 
-gb_retarget_opt :: fn(gb: GenBuild!, e: LoweredExpr! | null) -> LoweredExpr! | null =
+gb_retarget_opt :: fn(gb: GenBuild, e: LoweredExpr | null) -> LoweredExpr! | null =
     if e == null { null } else { gb_retarget_expr(gb, e) }
 
-gb_retarget_exprs :: fn(gb: GenBuild!, es: LoweredExpr![]) -> LoweredExpr![]! {
+gb_retarget_exprs :: fn(gb: GenBuild, es: LoweredExpr[]) -> LoweredExpr![]! {
     out: LoweredExpr![]!: []
     for e in es {
         out.push(gb_retarget_expr(gb, e))
@@ -121,7 +121,7 @@ gb_retarget_exprs :: fn(gb: GenBuild!, es: LoweredExpr![]) -> LoweredExpr![]! {
     return out
 }
 
-gb_retarget_expr :: fn(gb: GenBuild!, e: LoweredExpr!) -> LoweredExpr! = match e {
+gb_retarget_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr! = match e {
     is LoweredBlock -> gb_retarget_block(gb, e)
     is LoweredIf -> LoweredIf {
         ...e,

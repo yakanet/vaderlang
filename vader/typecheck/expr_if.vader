@@ -21,7 +21,7 @@ AST :: import "toolchain/ast"
 /// answer can be picked for the author : a read-only array cannot flow into a
 /// mutable slot, so widening would break the read-only branch, and narrowing would
 /// silently drop a permission the other branch had.
-export report_mixed_mutability :: fn(joined: Type, span: Span, diags: Diagnostic[]!) -> void {
+export report_mixed_mutability :: fn(joined: Type, span: Span, diags: Diagnostic[]) -> void {
     mixed :: union_mixed_mutability(joined) ?? return
     diags.push(typecheck_error(.UnionMixesMutabilities, span,
         "`${display_type(joined)}` — write `${display_type(with_immutable(mixed, false))}` "
@@ -61,9 +61,9 @@ repin_free :: fn(t: Type, siblings: Type[]) -> Type {
 /// Type-check an `IfExpr`. `expected` flows into both branches so
 /// `let x: i64 = if c { 1 } else { 2 }` narrows each literal to i64.
 export infer_if :: fn(
-    e: AST.IfExpr!, expected: Type | null,
-    typed: TypedProgram!, diags: Diagnostic[]!,
-    ctx: FnContext! | null,
+    e: AST.IfExpr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+    ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     cond_ty :: check_expr_fn(e.cond, TY_BOOL, typed, diags)
@@ -111,9 +111,9 @@ collapse_if_unresolved :: fn(joined: Type, a: Type, b: Type) -> Type {
 }
 
 check_else_with_narrow :: fn(
-    block: AST.BlockExpr!, cond: AST.Expr,
-    expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,
-    ctx: FnContext! | null,
+    block: AST.BlockExpr, cond: AST.Expr,
+    expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+    ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     pushed :: push_cond_narrows(cond, false, typed, diag_sink())
@@ -123,8 +123,8 @@ check_else_with_narrow :: fn(
 }
 
 check_else_branch_expr :: fn(
-    inner: AST.Expr!, cond: AST.Expr,
-    expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,
+    inner: AST.Expr, cond: AST.Expr,
+    expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     pushed :: push_cond_narrows(cond, false, typed, diag_sink())
@@ -174,7 +174,7 @@ same_slot :: fn(a: IsNarrow, b: IsNarrow) = a.sym_id == b.sym_id && a.field_key 
 // The leaves of a `||` chain (nested `||` flattened), or null as soon as one
 // operand narrows nothing — a true disjunction then says nothing about any slot.
 // Detection only : the operands were type-checked by the caller.
-or_leaves :: fn(cond: AST.Expr, typed: TypedProgram!, out: IsNarrow[]!) -> bool {
+or_leaves :: fn(cond: AST.Expr, typed: TypedProgram, out: IsNarrow[]) -> bool {
     if cond is AST.BinaryExpr {
         if cond.op == .Or {
             return or_leaves(cond.left, typed, out) && or_leaves(cond.right, typed, out)
@@ -204,14 +204,14 @@ or_leaves :: fn(cond: AST.Expr, typed: TypedProgram!, out: IsNarrow[]!) -> bool 
 /// @param diags  receives what detecting a LONE leaf reports ; the leaves of a
 ///               compound condition report to a sink, their operands having
 ///               been checked already.
-push_cond_narrows :: fn(cond: AST.Expr, truth: bool, typed: TypedProgram!, diags: Diagnostic[]!) -> PushedNarrow[]! {
+push_cond_narrows :: fn(cond: AST.Expr, truth: bool, typed: TypedProgram, diags: Diagnostic[]) -> PushedNarrow[]! {
     pushed: PushedNarrow[]!: []
     push_cond_narrows_into(cond, truth, typed, diags, pushed)
     return pushed
 }
 
 push_cond_narrows_into :: fn(
-    cond: AST.Expr, truth: bool, typed: TypedProgram!, diags: Diagnostic[]!, pushed: PushedNarrow[]!,
+    cond: AST.Expr, truth: bool, typed: TypedProgram, diags: Diagnostic[], pushed: PushedNarrow[],
 ) -> void {
     if cond is AST.UnaryExpr {
         if cond.op == .Not {
@@ -236,7 +236,7 @@ push_cond_narrows_into :: fn(
 
 // A true `||` narrows only when every operand tests the SAME slot : then to the
 // union of what they matched.
-push_or_true :: fn(cond: AST.Expr, typed: TypedProgram!, pushed: PushedNarrow[]!) -> void {
+push_or_true :: fn(cond: AST.Expr, typed: TypedProgram, pushed: PushedNarrow[]) -> void {
     leaves: IsNarrow[]!: []
     if !or_leaves(cond, typed, leaves) {
         return
@@ -253,7 +253,7 @@ push_or_true :: fn(cond: AST.Expr, typed: TypedProgram!, pushed: PushedNarrow[]!
 
 // Narrow one slot to `ty`, returning the record that unwinds it. A `field_key` of
 // `""` addresses the binding itself, anything else a field chain under it.
-push_one_narrow :: fn(typed: TypedProgram!, n: IsNarrow, ty: Type) -> PushedNarrow {
+push_one_narrow :: fn(typed: TypedProgram, n: IsNarrow, ty: Type) -> PushedNarrow {
     if n.field_key == "" {
         return PushedNarrow {
             .sym_id = n.sym_id, .field_key = "", .prev = push_narrow(typed, n.sym_id, ty),
@@ -268,7 +268,7 @@ push_one_narrow :: fn(typed: TypedProgram!, n: IsNarrow, ty: Type) -> PushedNarr
 
 // Unwind in reverse (LIFO) so stacked pushes on the same slot restore cleanly.
 // Shared by the then and else sides — a pushed record carries everything needed.
-pop_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram!) -> void {
+pop_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram) -> void {
     for k in 0..<pushed.len() {
         rec :: pushed[pushed.len() - 1 - k]
         if rec.field_key == "" { pop_narrow(typed, rec.sym_id, rec.prev) }
@@ -310,7 +310,7 @@ scrutinee_narrow_base :: fn(scrut: AST.Expr, typed: TypedProgram) -> Type | null
 }
 
 detect_is_narrow :: fn(
-    cond: AST.Expr, typed: TypedProgram!, diags: Diagnostic[]!,
+    cond: AST.Expr, typed: TypedProgram, diags: Diagnostic[],
 ) -> IsNarrow | null {
     // `!(x is T)` flips the two arms — peel the Not, then swap. Carry
     // `field_key` so a field scrutinee (`!(b.opt is null)`) still narrows the
@@ -454,7 +454,7 @@ import "vader/resolver/symbol"
 import "toolchain/span"
 
 expr_if_check_stub :: fn(
-    e: AST.Expr!, expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,
+    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     // @partial: test stub — only the literal / ident / if expr kinds the if
     // tests build are typed; every other Expr is irrelevant → unresolved.
@@ -467,7 +467,7 @@ expr_if_check_stub :: fn(
     }
 }
 
-accept_if :: fn(e: AST.Expr!) -> AST.Expr! | null {
+accept_if :: fn(e: AST.Expr) -> AST.Expr! | null {
     if e is AST.IfExpr { return e }
     return null
 }

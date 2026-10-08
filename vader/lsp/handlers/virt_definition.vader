@@ -23,7 +23,7 @@ Vm :: import "vader/vm"
 /// @param state   the server state, which holds the document and caches its
 ///                read-back module.
 /// @param params  the `textDocument/definition` params.
-export handle_virt_definition :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
+export handle_virt_definition :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     li :: state.virt_line_index_for(uri) ?? return JsonNull {}
     text :: li.source

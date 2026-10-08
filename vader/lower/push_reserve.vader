@@ -29,7 +29,7 @@ import "vader/types"
 /// sees a reserved array as the fresh array it is.
 ///
 /// @param stmts  the block's statements so far ; the `let`s are rewritten in place.
-export reserve_push_tail :: fn(stmts: LoweredStmt![]!) -> void {
+export reserve_push_tail :: fn(stmts: LoweredStmt[]) -> void {
     n :: stmts.len()
     if n < 2 || stmts[n - 2] !is LoweredLet {
         return
@@ -84,7 +84,7 @@ counted_loop_of :: fn(st: LoweredStmt) -> CountedLoop | null {
     return counted_loop_in(st, lets)
 }
 
-counted_loop_in :: fn(st: LoweredStmt, lets: LoweredLet[]!) -> CountedLoop | null {
+counted_loop_in :: fn(st: LoweredStmt, lets: LoweredLet[]) -> CountedLoop | null {
     if st is LoweredLoop {
         turns :: st.turns ?? return null
         hoisted_turns :: LoopTurns {
@@ -196,7 +196,7 @@ trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr! {
     }
 }
 
-plus_one :: fn(e: LoweredExpr!, span: Span) -> LoweredExpr! = LoweredBinary {
+plus_one :: fn(e: LoweredExpr, span: Span) -> LoweredExpr! = LoweredBinary {
     .span = span,
     .type = mk_primitive("usize"),
     .op = .Add,
@@ -232,7 +232,7 @@ usize_lit :: fn(value: i64, span: Span) -> LoweredExpr! = LoweredIntLit {
 // and an array's length are the values a counter loop starts from or runs to ;
 // a call may not be re-run early. Read early, a value some `let` in between does
 // change only mis-sizes the capacity.
-hoisted :: fn(e: LoweredExpr!, lets: LoweredLet[]) -> LoweredExpr! | null {
+hoisted :: fn(e: LoweredExpr, lets: LoweredLet[]) -> LoweredExpr! | null {
     if e is LoweredIntLit {
         return e
     }

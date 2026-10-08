@@ -89,7 +89,7 @@ over_fused_generator :: fn() -> i32 {
     return total
 }
 
-scaled :: fn(it: Iterator<i32>!, k: i32) -> Iterator<i32> {
+scaled :: fn(it: Iterator<i32>, k: i32) -> Iterator<i32> {
     times :: (x: i32) -> x * k
     for v in it {
         yield times(v)

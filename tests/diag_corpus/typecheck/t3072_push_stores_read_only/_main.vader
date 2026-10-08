@@ -1,6 +1,7 @@
 // `push :: fn(self!, value: T!)` STORES its argument, and the array hands it back
 // writable when its elements are `Box!` — so a read-only `Box` cannot go in: it
-// would come out mutable. On a baked const the write lands in read-only memory.
+// would come out mutable. On a baked const the write lands in read-only memory. The
+// parameter `b` takes the `!` instead, so pushing it is accepted.
 //
 // The marker asks as much as `T` is bound to: an `i32[]` or a `Box[]` (frozen
 // elements) take a read-only value without complaint. T3072.

@@ -290,7 +290,7 @@ export read_struct_field :: fn(v: Value, field_index: i32, at_pc: i32, label: st
 
 /// Unwrap an `ArrayVal` from a `Value`. Used by the array-op arms
 /// (`array.push` / `array.get` / `array.set` / `array.len`).
-export read_array :: fn(v: Value!, at_pc: i32, label: string) -> ArrayVal! | Trap {
+export read_array :: fn(v: Value, at_pc: i32, label: string) -> ArrayVal! | Trap {
     if v is ArrayVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected array, got ${describe_value_tag(v)}" }
 }
@@ -322,7 +322,7 @@ export is_array_view :: fn(a: ArrayVal) -> bool {
 /// would read past the view's own window.
 ///
 /// @param a  the array to detach; mutated in place.
-export detach_array_view :: fn(a: ArrayVal!) -> void {
+export detach_array_view :: fn(a: ArrayVal) -> void {
     if a.raw == null && !is_array_view(a) {
         return
     }
@@ -344,7 +344,7 @@ export read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
 
 /// Unwrap a `FnVal` from a `Value`, or the trap naming what was found
 /// instead — for a call through a fn value.
-export read_fn :: fn(v: Value!, at_pc: i32, label: string) -> FnVal! | Trap {
+export read_fn :: fn(v: Value, at_pc: i32, label: string) -> FnVal! | Trap {
     if v is FnVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected fn, got ${describe_value_tag(v)}" }
 }
@@ -678,7 +678,7 @@ export element_at :: fn(a: ArrayVal, at: usize) -> Value! {
 /// anything writes or grows it. A no-op when it reads none.
 ///
 /// @param a  the array; mutated in place.
-export own_bytes :: fn(a: ArrayVal!) -> void {
+export own_bytes :: fn(a: ArrayVal) -> void {
     if a.raw != null {
         detach_array_view(a)
     }

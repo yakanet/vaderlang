@@ -151,7 +151,7 @@ nullable_results :: fn(elements: Type[]) -> Type[] {
 TY_TAG :: PrimitiveType { .name = "i32" }
 
 rewrite_nullable_return :: fn(
-    b: BasicBlock, elements: Type[], locals: CFGLocal[]!,
+    b: BasicBlock, elements: Type[], locals: CFGLocal[],
 ) -> BasicBlock {
     t :: b.terminator
     if t !is TermReturn {
@@ -182,7 +182,7 @@ rewrite_nullable_return :: fn(
 }
 
 // A fresh local holding `v`, appended to `instrs`.
-const_i32 :: fn(instrs: Instruction[]!, locals: CFGLocal[]!, v: i64, span: Span) -> LocalId {
+const_i32 :: fn(instrs: Instruction[], locals: CFGLocal[], v: i64, span: Span) -> LocalId {
     dst :: add_local(locals, "tag", TY_TAG)
     instrs.push(InstrConst {
         .span = span,
@@ -194,7 +194,7 @@ const_i32 :: fn(instrs: Instruction[]!, locals: CFGLocal[]!, v: i64, span: Span)
 }
 
 // A fresh local holding the zero of `t` — the filler the absent path pushes.
-zero_of :: fn(instrs: Instruction[]!, locals: CFGLocal[]!, t: Type, span: Span) -> LocalId {
+zero_of :: fn(instrs: Instruction[], locals: CFGLocal[], t: Type, span: Span) -> LocalId {
     dst :: add_local(locals, "absent", t)
     instrs.push(InstrConst {
         .span = span,

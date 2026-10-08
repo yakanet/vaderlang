@@ -31,7 +31,7 @@ Mon[] implements Into<Iterator<Label>!> {
     into :: fn(self) -> Iterator<Label>! = labels(self)
 }
 
-drain :: fn(it: Iterator<Mon>!) -> i32 {
+drain :: fn(it: Iterator<Mon>) -> i32 {
     n := 0
     for m in it {
         n += m.v

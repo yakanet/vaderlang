@@ -139,7 +139,7 @@
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
         .counts :MutableMap<string, i32>!
-          self :Tally!
+          self :Tally
       arg1:
         k :string
       arg2:
@@ -163,7 +163,7 @@
         index :i32
           on:
             .cells :i32[]!
-              self :Cell!
+              self :Cell
           ix:
             int(0) :i32
       value:

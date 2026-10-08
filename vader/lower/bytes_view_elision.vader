@@ -56,7 +56,7 @@ import "vader/types"
 ///
 /// @param project      the lowered project whose fn bodies are rewritten.
 /// @param project_ctx  resolves the `std/core` byte intrinsics.
-export elide_bytes_views :: fn(project: LoweredProject, project_ctx: LowerProjectCtx!) -> void {
+export elide_bytes_views :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) -> void {
     bytes_sym    :: module_export(project_ctx, "std/core", "bytes")
     byte_len_sym :: module_export(project_ctx, "std/core", "byte_len")
     byte_at_sym  :: module_export(project_ctx, "std/core", "byte_at")
@@ -106,8 +106,8 @@ BveCtx :: struct {
 }
 
 bve_elide_body :: fn(
-    body: LoweredBlock!, bytes_id: i32, byte_len_sym: Symbol, byte_at_sym: Symbol, usize_ty: Type, u8_ty: Type,
-    project_ctx: LowerProjectCtx!,
+    body: LoweredBlock, bytes_id: i32, byte_len_sym: Symbol, byte_at_sym: Symbol, usize_ty: Type, u8_ty: Type,
+    project_ctx: LowerProjectCtx,
 ) -> void {
     ctx :: BveCtx {
         .bytes_id = bytes_id, .byte_len_sym = byte_len_sym, .byte_at_sym = byte_at_sym,
@@ -126,7 +126,7 @@ bve_elide_body :: fn(
 // THE STATE, not the attempt: a `x :: s.bytes()` local that WAS a candidate and
 // ends the pass un-rewritten. Its ~40-byte `vader_array_t` header survives, and
 // every `.len()` / `[i]` on it keeps going through the descriptor.
-bve_collect_misses :: fn(ctx: BveCtx, project_ctx: LowerProjectCtx!) -> void {
+bve_collect_misses :: fn(ctx: BveCtx, project_ctx: LowerProjectCtx) -> void {
     if !project_ctx.opt_report {
         return
     }
@@ -177,7 +177,7 @@ bve_bytes_receiver :: fn(value: LoweredExpr, bytes_id: i32) -> LoweredIdent | nu
     return null
 }
 
-bve_analyze_block :: fn(b: LoweredBlock, ctx: BveCtx!) -> void {
+bve_analyze_block :: fn(b: LoweredBlock, ctx: BveCtx) -> void {
     for s in b.stmts {
         bve_analyze_stmt(s, ctx)
     }
@@ -187,7 +187,7 @@ bve_analyze_block :: fn(b: LoweredBlock, ctx: BveCtx!) -> void {
     }
 }
 
-bve_analyze_stmt :: fn(s: LoweredStmt, ctx: BveCtx!) -> void {
+bve_analyze_stmt :: fn(s: LoweredStmt, ctx: BveCtx) -> void {
     match s {
         is LoweredLet -> {
             // A symbol bound more than once is ambiguous — disqualify it.
@@ -245,7 +245,7 @@ bve_analyze_stmt :: fn(s: LoweredStmt, ctx: BveCtx!) -> void {
     }
 }
 
-bve_analyze_expr :: fn(e: LoweredExpr, ctx: BveCtx!) -> void {
+bve_analyze_expr :: fn(e: LoweredExpr, ctx: BveCtx) -> void {
     match e {
         // A bare ident in value position = an escaping use of that local.
         is LoweredIdent -> { _ :: ctx.disq.add(e.symbol.id) }
@@ -344,7 +344,7 @@ bve_analyze_expr :: fn(e: LoweredExpr, ctx: BveCtx!) -> void {
 
 // ---- rewrite : swap len/index for byte_len/byte_at, drop the dead binding --
 
-bve_rewrite_block :: fn(b: LoweredBlock!, ctx: BveCtx) -> void {
+bve_rewrite_block :: fn(b: LoweredBlock, ctx: BveCtx) -> void {
     // Rewrite children in place (a dead let's RHS rewrite is a harmless no-op).
     for s in b.stmts {
         bve_rewrite_stmt(s, ctx)
@@ -380,7 +380,7 @@ bve_rewrite_block :: fn(b: LoweredBlock!, ctx: BveCtx) -> void {
     }
 }
 
-bve_rewrite_stmt :: fn(s: LoweredStmt!, ctx: BveCtx) -> void {
+bve_rewrite_stmt :: fn(s: LoweredStmt, ctx: BveCtx) -> void {
     match s {
         is LoweredLet -> { s.value = bve_rewrite_expr(s.value, ctx) }
         is LoweredAssign -> {
@@ -418,7 +418,7 @@ bve_rewrite_stmt :: fn(s: LoweredStmt!, ctx: BveCtx) -> void {
     }
 }
 
-bve_rewrite_expr :: fn(e: LoweredExpr!, ctx: BveCtx) -> LoweredExpr! {
+bve_rewrite_expr :: fn(e: LoweredExpr, ctx: BveCtx) -> LoweredExpr! {
     match e {
         is LoweredArrayLen -> {
             if e.target is LoweredIdent as tid {
@@ -545,7 +545,7 @@ bve_rewrite_expr :: fn(e: LoweredExpr!, ctx: BveCtx) -> LoweredExpr! {
 // Rewrite each element IN PLACE — never allocate a fresh array. An arg list that
 // nothing changes must keep its backing buffer, else the lowered tree retains a
 // duplicate array per call site (hundreds of MB across a self-compile).
-bve_rewrite_exprs :: fn(items: LoweredExpr![]!, ctx: BveCtx) -> void {
+bve_rewrite_exprs :: fn(items: LoweredExpr[], ctx: BveCtx) -> void {
     for i in 0..<items.len() {
         items[i] = bve_rewrite_expr(items[i], ctx)
     }

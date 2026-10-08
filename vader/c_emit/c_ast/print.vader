@@ -36,7 +36,7 @@ export printed_text :: fn(printer: CPrinter) -> string = printer.out.to_string()
 /// @param printer  receives the text.
 /// @param block    the statements to print.
 /// @param depth    the indentation level of `block`'s own lines.
-export print_block :: fn(printer: CPrinter!, block: CBlock, depth: i32) -> void = write_block(
+export print_block :: fn(printer: CPrinter, block: CBlock, depth: i32) -> void = write_block(
     printer.out,
     block,
     depth,
@@ -48,7 +48,7 @@ export print_block :: fn(printer: CPrinter!, block: CBlock, depth: i32) -> void 
 ///
 /// @param printer  receives the text.
 /// @param section  the items to print, with the comment above them.
-export print_section :: fn(printer: CPrinter!, section: CSection) -> void {
+export print_section :: fn(printer: CPrinter, section: CSection) -> void {
     if section.items.len() == 0 {
         return
     }
@@ -75,11 +75,11 @@ export print_section :: fn(printer: CPrinter!, section: CSection) -> void {
 ///
 /// @param printer  receives the text.
 /// @param item     the declaration, definition or directive to print.
-export print_item :: fn(printer: CPrinter!, item: CTopLevel) -> void = printer.print_section(
+export print_item :: fn(printer: CPrinter, item: CTopLevel) -> void = printer.print_section(
     CSection { .items = [item] },
 )
 
-write_top_level :: fn(out: StringBuilder!, item: CTopLevel) -> void {
+write_top_level :: fn(out: StringBuilder, item: CTopLevel) -> void {
     match item {
         is CInclude                -> out.append("#include ${include_operand(item)}\n")
         is CDefine                 -> {
@@ -138,7 +138,7 @@ storage_keyword :: fn(storage: CStorage) -> string = match storage {
 }
 
 // `storage inline result name(parameters)`, without `;` or body.
-write_signature :: fn(out: StringBuilder!, signature: CSignature) -> void {
+write_signature :: fn(out: StringBuilder, signature: CSignature) -> void {
     out.append(storage_keyword(signature.storage))
     if signature.inline {
         out.append("inline ")
@@ -149,7 +149,7 @@ write_signature :: fn(out: StringBuilder!, signature: CSignature) -> void {
 }
 
 // `parameters` separated by `, ` — `void` when there is none.
-write_parameters :: fn(out: StringBuilder!, parameters: CParameter[]) -> void {
+write_parameters :: fn(out: StringBuilder, parameters: CParameter[]) -> void {
     if parameters.len() == 0 {
         out.append("void")
     }
@@ -168,7 +168,7 @@ write_parameters :: fn(out: StringBuilder!, parameters: CParameter[]) -> void {
     }
 }
 
-write_function :: fn(out: StringBuilder!, function: CFunction) -> void {
+write_function :: fn(out: StringBuilder, function: CFunction) -> void {
     write_signature(out, function.signature)
     out.append(" {\n")
     write_statements(out, function.prologue, 0, function.prologue.len(), 1)
@@ -177,7 +177,7 @@ write_function :: fn(out: StringBuilder!, function: CFunction) -> void {
 }
 
 // `block`'s statements, `depth` levels deep.
-write_block :: fn(out: StringBuilder!, block: CBlock, depth: i32) -> void = write_statements(
+write_block :: fn(out: StringBuilder, block: CBlock, depth: i32) -> void = write_statements(
     out,
     block.body,
     0,
@@ -187,7 +187,7 @@ write_block :: fn(out: StringBuilder!, block: CBlock, depth: i32) -> void = writ
 
 // `statements[from..<to]`, `depth` levels deep.
 write_statements :: fn(
-    out: StringBuilder!,
+    out: StringBuilder,
     statements: CStatement[],
     from: usize,
     to: usize,
@@ -257,7 +257,7 @@ write_statements :: fn(
     }
 }
 
-write_if :: fn(out: StringBuilder!, node: CIf, depth: i32) -> void {
+write_if :: fn(out: StringBuilder, node: CIf, depth: i32) -> void {
     write_if_head(out, "if (", node.condition, depth)
     write_block(out, node.then_block, depth + 1)
     write_else_chain(out, node, node.end_label, depth)
@@ -269,7 +269,7 @@ write_if :: fn(out: StringBuilder!, node: CIf, depth: i32) -> void {
 // carry a label. A directive leading an arm is written above the `} else` line,
 // next to the condition it describes ; one trailing it, below the shared
 // closing brace, innermost arm first.
-write_else_chain :: fn(out: StringBuilder!, node: CIf, label: string, depth: i32) -> void {
+write_else_chain :: fn(out: StringBuilder, node: CIf, label: string, depth: i32) -> void {
     arm :: node.else_block
     if arm == null {
         write_closer(out, label, depth)
@@ -294,7 +294,7 @@ write_else_chain :: fn(out: StringBuilder!, node: CIf, label: string, depth: i32
 
 // ---- expressions ----------------------------------------------------------
 
-write_expression :: fn(out: StringBuilder!, expression: CExpression) -> void {
+write_expression :: fn(out: StringBuilder, expression: CExpression) -> void {
     match expression {
         is CTemporary       -> {
             if expression.slot < 0 {
@@ -415,7 +415,7 @@ CAST_PRECEDENCE :: 11
 // `child`, an operand needing at least `minimum` precedence : a `CBinary` that
 // binds looser is parenthesised. A right operand needs one more than its
 // operator — every binary operator here is left-associative.
-write_operand :: fn(out: StringBuilder!, child: CExpression, minimum: i32) -> void {
+write_operand :: fn(out: StringBuilder, child: CExpression, minimum: i32) -> void {
     if child is CBinary && COperatorInfo(child.operator).precedence < minimum {
         out.append("(")
         write_expression(out, child)
@@ -425,7 +425,7 @@ write_operand :: fn(out: StringBuilder!, child: CExpression, minimum: i32) -> vo
     write_expression(out, child)
 }
 
-write_integer_literal :: fn(out: StringBuilder!, literal: CIntegerLiteral) -> void {
+write_integer_literal :: fn(out: StringBuilder, literal: CIntegerLiteral) -> void {
     wide :: literal.class == .I64
     if is_most_negative(literal) {
         out.append(if wide { "INT64_MIN" } else { "INT32_MIN" })
@@ -441,14 +441,14 @@ write_integer_literal :: fn(out: StringBuilder!, literal: CIntegerLiteral) -> vo
 // A return on one line : bare, or braced around the frame restore — every value
 // is read before `vader_gc_top` moves, through the `__vret` snapshot when the
 // value may read a frame-pinned local.
-write_return :: fn(out: StringBuilder!, node: CReturn, depth: i32) -> void {
+write_return :: fn(out: StringBuilder, node: CReturn, depth: i32) -> void {
     indent(out, depth)
     write_return_text(out, node)
     out.append("\n")
 }
 
 // A return, without indentation or newline.
-write_return_text :: fn(out: StringBuilder!, node: CReturn) -> void {
+write_return_text :: fn(out: StringBuilder, node: CReturn) -> void {
     if node.pops_frame {
         out.append("{ ")
     }
@@ -485,14 +485,14 @@ write_return_text :: fn(out: StringBuilder!, node: CReturn) -> void {
 }
 
 // `goto label;`, or `if (condition) goto label;`, without indentation or newline.
-write_goto :: fn(out: StringBuilder!, node: CGoto) -> void = write_jump(
+write_goto :: fn(out: StringBuilder, node: CGoto) -> void = write_jump(
     out,
     node.condition,
     "goto ${node.label};",
 )
 
 // `jump`, or `if (condition) jump` — a jump guarded by its condition.
-write_jump :: fn(out: StringBuilder!, condition: CExpression | null, jump: string) -> void {
+write_jump :: fn(out: StringBuilder, condition: CExpression | null, jump: string) -> void {
     if condition != null {
         out.append("if (")
         write_expression(out, condition)
@@ -507,7 +507,7 @@ labelled :: fn(label: string, head: string) -> string = if label == "" { head } 
 }
 
 // `switch (subject) {`, one line per clause, then `}`.
-write_switch :: fn(out: StringBuilder!, node: CSwitch, depth: i32) -> void {
+write_switch :: fn(out: StringBuilder, node: CSwitch, depth: i32) -> void {
     indent(out, depth)
     out.append("switch (")
     write_expression(out, node.subject)
@@ -531,7 +531,7 @@ write_switch :: fn(out: StringBuilder!, node: CSwitch, depth: i32) -> void {
 
 // A clause's statements on its `case` line, then `break;` unless the last one
 // already leaves the switch or the clause is the switch's last.
-write_case_body :: fn(out: StringBuilder!, body: CCaseStatement[], last_clause: bool) -> void {
+write_case_body :: fn(out: StringBuilder, body: CCaseStatement[], last_clause: bool) -> void {
     for statement in body {
         out.append(" ")
         match statement {
@@ -551,7 +551,7 @@ write_case_body :: fn(out: StringBuilder!, body: CCaseStatement[], last_clause: 
 }
 
 // `opening condition) {` on its own line.
-write_if_head :: fn(out: StringBuilder!, opening: string, condition: CExpression, depth: i32) -> void {
+write_if_head :: fn(out: StringBuilder, opening: string, condition: CExpression, depth: i32) -> void {
     indent(out, depth)
     out.append(opening)
     write_expression(out, condition)
@@ -559,7 +559,7 @@ write_if_head :: fn(out: StringBuilder!, opening: string, condition: CExpression
 }
 
 // `target = value;`, without indentation or newline.
-write_assign :: fn(out: StringBuilder!, node: CAssign) -> void {
+write_assign :: fn(out: StringBuilder, node: CAssign) -> void {
     write_expression(out, node.target)
     operator :: node.operator
     if operator != null {
@@ -574,7 +574,7 @@ write_assign :: fn(out: StringBuilder!, node: CAssign) -> void {
 }
 
 // `type d1, d2 = v, d3[n] = { … };`, without indentation or newline.
-write_declaration :: fn(out: StringBuilder!, node: CDeclaration, depth: i32) -> void {
+write_declaration :: fn(out: StringBuilder, node: CDeclaration, depth: i32) -> void {
     out.append(node.type)
     out.append(" ")
     column :: usize(depth) * INDENT_WIDTH + node.type.bytes().len() + 1
@@ -589,7 +589,7 @@ write_declaration :: fn(out: StringBuilder!, node: CDeclaration, depth: i32) -> 
 
 // `name[length] = value`, `column` being where `name` starts.
 write_declarator :: fn(
-    out: StringBuilder!,
+    out: StringBuilder,
     declarator: CDeclarator,
     column: usize,
     depth: i32,
@@ -602,7 +602,7 @@ write_declarator :: fn(
 // `head = value`, `value` laid out by `write_initializer` ; `head` alone when
 // `value` is null.
 write_declared :: fn(
-    out: StringBuilder!,
+    out: StringBuilder,
     head: string,
     value: CExpression | null,
     column: usize,
@@ -618,7 +618,7 @@ write_declared :: fn(
 // ` value`, laid out by `write_initializer_line` from `column + 1` ; adjacent
 // string literals that do not fit take one literal per line instead.
 write_initializer :: fn(
-    out: StringBuilder!,
+    out: StringBuilder,
     value: CExpression,
     column: usize,
     depth: i32,
@@ -641,7 +641,7 @@ write_initializer :: fn(
 // a block one level deeper than `depth` : a table — every element a list —
 // takes one element per line, any other list fills its lines.
 write_initializer_line :: fn(
-    out: StringBuilder!,
+    out: StringBuilder,
     value: CExpression,
     column: usize,
     depth: i32,
@@ -655,7 +655,7 @@ write_initializer_line :: fn(
 
 // `write_initializer_line` for a `value` already rendered on one line as `text`.
 write_laid_out :: fn(
-    out: StringBuilder!,
+    out: StringBuilder,
     value: CExpression,
     text: string,
     column: usize,
@@ -692,7 +692,7 @@ is_table :: fn(elements: CExpression[]) -> bool {
 
 // `elements` at `depth`, each followed by `,`, as many on a line as fit in
 // `LINE_WIDTH` ; one too wide for a line of its own is laid out on its own lines.
-write_filled :: fn(out: StringBuilder!, elements: CExpression[], depth: i32) -> void {
+write_filled :: fn(out: StringBuilder, elements: CExpression[], depth: i32) -> void {
     start :: usize(depth) * INDENT_WIDTH
     column := start
     for element in elements {
@@ -724,7 +724,7 @@ write_filled :: fn(out: StringBuilder!, elements: CExpression[], depth: i32) -> 
 }
 
 // One element of an initializer list, already indented to `depth`.
-write_element :: fn(out: StringBuilder!, element: CExpression, depth: i32) -> void {
+write_element :: fn(out: StringBuilder, element: CExpression, depth: i32) -> void {
     column :: usize(depth) * INDENT_WIDTH
     if element is CDesignated {
         write_declared(out, element.designator, element.value, column, depth)
@@ -745,7 +745,7 @@ text_of :: fn(expression: CExpression) -> string {
 }
 
 // `expressions` separated by `, `.
-write_list :: fn(out: StringBuilder!, expressions: CExpression[]) -> void {
+write_list :: fn(out: StringBuilder, expressions: CExpression[]) -> void {
     for k in 0..<expressions.len() {
         if k > 0 {
             out.append(", ")
@@ -754,23 +754,23 @@ write_list :: fn(out: StringBuilder!, expressions: CExpression[]) -> void {
     }
 }
 
-indent :: fn(out: StringBuilder!, depth: i32) -> void = out.append_repeated(
+indent :: fn(out: StringBuilder, depth: i32) -> void = out.append_repeated(
     ' ',
     depth * i32(INDENT_WIDTH),
 )
 
-write_line :: fn(out: StringBuilder!, text: string, depth: i32) -> void {
+write_line :: fn(out: StringBuilder, text: string, depth: i32) -> void {
     indent(out, depth)
     out.append(text)
     out.append("\n")
 }
 
-write_directive :: fn(out: StringBuilder!, text: string) -> void {
+write_directive :: fn(out: StringBuilder, text: string) -> void {
     out.append(text)
     out.append("\n")
 }
 
-write_closer :: fn(out: StringBuilder!, label: string, depth: i32) -> void = write_line(
+write_closer :: fn(out: StringBuilder, label: string, depth: i32) -> void = write_line(
     out,
     if label == "" { "}" } else { "} ${label}: ;" },
     depth,

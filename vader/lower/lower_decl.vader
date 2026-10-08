@@ -19,7 +19,7 @@ import "toolchain/span"
 // `for_type`. The lifted fns are appended to `project_ctx.synth_decls`
 // so the module driver drains them in the right order.
 lower_impl_members :: fn(
-    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> void {
     // Back-compat shape : keep the void-returning entry but route
     // through the inline emit + push results to `synth_decls` so any
@@ -35,7 +35,7 @@ lower_impl_members :: fn(
 /// right after the impl's source position, emitting each member
 /// individually.
 lower_impl_member_list :: fn(
-    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl![] {
     out: LoweredDecl![]!: []
     // Skip generic impls entirely — the mono pass binds them via a
@@ -68,7 +68,7 @@ lower_impl_member_list :: fn(
 
 build_impl_member_params :: fn(
     member: FnDecl, self_type: Type, types: EntryTypes,
-    typed: TypedProgram, project_ctx: LowerProjectCtx!,
+    typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> LoweredParam[] {
     params: LoweredParam[]!: []
     for ast_param in member.params {
@@ -184,7 +184,7 @@ synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string, tra
 // skipped here — they're materialised per concrete instance by the mono
 // pass (`lower_mono_fn.vader`) ; this path handles non-generic decls only.
 lower_fn_decl :: fn(
-    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
+    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl! | null {
     if fn_decl.type_params.len() > 0 { return null }
     subst :: new_substitution()
@@ -267,7 +267,7 @@ lower_fn_decl :: fn(
 // Build the fn-body context and invoke the block lowerer. Returns
 // `null` for `@extern` / signature-only fns (`body is null`).
 lower_fn_body :: fn(
-    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
+    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
     entry: MonoEntry, subst: Substitution, return_type: Type,
 ) -> LoweredBlock! | null {
     if fn_decl.body == null { return null }
@@ -301,7 +301,7 @@ lower_fn_body :: fn(
 /// @return        `block` unchanged when no param is captured, else a new block
 ///                with the cell-promoting prologue prepended.
 export promote_cell_params :: fn(
-    fn_ctx: FnLowerCtx!, params: FnParam[], block: LoweredBlock!,
+    fn_ctx: FnLowerCtx, params: FnParam[], block: LoweredBlock,
 ) -> LoweredBlock! {
     // Common case — a closure-free project never promotes anything, so skip the
     // per-param symbol lookups entirely.
@@ -326,7 +326,7 @@ export promote_cell_params :: fn(
 // place self-referential types like `Node.next: Node | null` reach
 // without going through a `TypeExpr` lookup that may miss.
 lower_struct_decl :: fn(
-    struct_decl: StructDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
+    struct_decl: StructDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl! | null {
     if struct_decl.type_params.len() > 0 { return null }
     types :: make_entry_types(typed, new_substitution())
@@ -377,7 +377,7 @@ resolve_field_type :: fn(
 // downstream phases see the materialised literal. Type-alias / metatype
 // consts have no runtime slot and are skipped.
 lower_const_decl :: fn(
-    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
+    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl! | null {
     subst :: new_substitution()
     types :: make_entry_types(typed, subst)
@@ -402,8 +402,8 @@ lower_const_decl :: fn(
 }
 
 lower_const_value :: fn(
-    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
-    fn_ctx: FnLowerCtx!, type_val: Type,
+    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+    fn_ctx: FnLowerCtx, type_val: Type,
 ) -> LoweredExpr! {
     baked :: lookup_comptime_value(const_decl, typed, project_ctx)
     if baked == null { return lower_expr(fn_ctx, const_decl.value) }
@@ -411,7 +411,7 @@ lower_const_value :: fn(
 }
 
 lookup_comptime_value :: fn(
-    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
+    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> ComptimeValue | null {
     program :: project_ctx.evaluated.modules[typed.resolved.path] ?? return null
     symbol :: lookup_const_symbol(const_decl, typed) ?? return null

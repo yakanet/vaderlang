@@ -58,7 +58,7 @@ chain_jump_frame :: fn(loop_id: usize, chain: IterChain) -> JumpFrame! {
 /// is lowered.
 ///
 /// @param ctx  the context the frame was pushed on.
-pop_jump_frame :: fn(ctx: FnLowerCtx!) -> JumpFrame =
+pop_jump_frame :: fn(ctx: FnLowerCtx) -> JumpFrame =
     ctx.jump_frames.remove_last() ?? panic("a jump frame popped where none was pushed")
 
 /// `body`, the loop body lowered under `frame`: inside its resume block when a
@@ -66,7 +66,7 @@ pop_jump_frame :: fn(ctx: FnLowerCtx!) -> JumpFrame =
 ///
 /// @param frame  the frame the body was lowered under, popped.
 /// @param body   the loop body.
-resumable_body :: fn(frame: JumpFrame, body: LoweredBlock!) -> LoweredBlock! {
+resumable_body :: fn(frame: JumpFrame, body: LoweredBlock) -> LoweredBlock! {
     label :: frame.resume ?? return body
     return arm_block([labelled_block(label, body.span, block_stmts_with_trailing(body))], body.span)
 }
@@ -77,7 +77,7 @@ resumable_body :: fn(frame: JumpFrame, body: LoweredBlock!) -> LoweredBlock! {
 /// @param frame  the frame the loop body was lowered under, popped.
 /// @param span   span of the block when one is built.
 /// @param stmts  the producer's emitted statements.
-exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt![]) -> LoweredStmt![] {
+exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt[]) -> LoweredStmt![] {
     label :: frame.exit ?? return stmts
     return [labelled_block(label, span, stmts)]
 }
@@ -91,7 +91,7 @@ exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt![]) -> Lowered
 /// @param written  the label the jump names, null when it names none.
 /// @param span     the jump's span.
 spliced_jump :: fn(
-    ctx: FnLowerCtx!, jump_id: usize, written: string | null, is_break: bool, span: Span,
+    ctx: FnLowerCtx, jump_id: usize, written: string | null, is_break: bool, span: Span,
 ) -> LoweredStmt! | null {
     target :: ctx.typed.jump_targets[jump_id] ?? return null
     frame :: frame_of(ctx, target) ?? return null
@@ -114,13 +114,13 @@ frame_of :: fn(ctx: FnLowerCtx, loop_id: usize) -> JumpFrame! | null {
     return null
 }
 
-resume_label :: fn(ctx: FnLowerCtx!, frame: JumpFrame!) -> string {
+resume_label :: fn(ctx: FnLowerCtx, frame: JumpFrame) -> string {
     label :: frame.resume ?? synthetic_label(ctx.project, r"$resume")
     frame.resume = label
     return label
 }
 
-exit_label :: fn(ctx: FnLowerCtx!, frame: JumpFrame!) -> string {
+exit_label :: fn(ctx: FnLowerCtx, frame: JumpFrame) -> string {
     label :: frame.exit ?? synthetic_label(ctx.project, r"$leave")
     frame.exit = label
     return label

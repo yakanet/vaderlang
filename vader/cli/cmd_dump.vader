@@ -183,7 +183,7 @@ run_resolver_stage :: fn(
 // Resolve every loaded module. Out-of-scope modules (dependencies, by default
 // everything outside the entry's subtree) stay loaded for import targets but
 // aren't surfaced in the dump. `ResolvedModule.path` is the first file's path.
-resolve_loaded_project :: fn(project: LoadedProject!, scope: string[]) -> ResolvedProject {
+resolve_loaded_project :: fn(project: LoadedProject, scope: string[]) -> ResolvedProject {
     core_seed :: build_core_seed(project)
     mod_index :: module_index_by_name(project)
     materialize_all_sams_pre_resolve(project, mod_index, core_seed)

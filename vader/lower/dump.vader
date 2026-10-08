@@ -50,7 +50,7 @@ export dump_lowered :: fn(project: LoweredProject, scope: string[]) -> string {
     return lines.join("\n")
 }
 
-emit_decl :: fn(lines: string[]!, decl: LoweredDecl, indent: string) -> void {
+emit_decl :: fn(lines: string[], decl: LoweredDecl, indent: string) -> void {
     match decl {
         is LoweredFnDecl -> {
             params :: render_params(decl.params)
@@ -90,7 +90,7 @@ render_fields :: fn(fields: LoweredStructField[]) -> string {
     return sb.to_string()
 }
 
-emit_block :: fn(lines: string[]!, block: LoweredBlock, indent: string) -> void {
+emit_block :: fn(lines: string[], block: LoweredBlock, indent: string) -> void {
     for stmt in block.stmts {
         emit_stmt(lines, stmt, indent)
     }
@@ -100,7 +100,7 @@ emit_block :: fn(lines: string[]!, block: LoweredBlock, indent: string) -> void 
     }
 }
 
-emit_stmt :: fn(lines: string[]!, stmt: LoweredStmt, indent: string) -> void {
+emit_stmt :: fn(lines: string[], stmt: LoweredStmt, indent: string) -> void {
     match stmt {
         is LoweredLet -> {
             inline_value :: expr_inline(stmt.value)
@@ -211,7 +211,7 @@ render_label :: fn(label: string | null) -> string {
     }
 }
 
-emit_expr :: fn(lines: string[]!, expr: LoweredExpr, indent: string) -> void {
+emit_expr :: fn(lines: string[], expr: LoweredExpr, indent: string) -> void {
     inline_value :: expr_inline(expr)
     match inline_value {
         is string -> { lines.push("${indent}${inline_value}") }
@@ -219,7 +219,7 @@ emit_expr :: fn(lines: string[]!, expr: LoweredExpr, indent: string) -> void {
     }
 }
 
-emit_expr_compound :: fn(lines: string[]!, expr: LoweredExpr, indent: string) -> void {
+emit_expr_compound :: fn(lines: string[], expr: LoweredExpr, indent: string) -> void {
     match expr {
         is LoweredCall -> {
             lines.push("${indent}call :${display_type(expr.type)}")

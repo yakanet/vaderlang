@@ -71,7 +71,7 @@
         index :i32
           on:
             .cells :i32[]!
-              self :Grid!
+              self :Grid
           ix:
             i :i32
       value:
@@ -82,7 +82,7 @@
         index :string
           on:
             .names :string[]!
-              self :Grid!
+              self :Grid
           ix:
             int(0) :i32
       value:
@@ -237,7 +237,7 @@
         index :i32
           on:
             .cells :i32[]!
-              self :Sheet!
+              self :Sheet
           ix:
             i :i32
       value:

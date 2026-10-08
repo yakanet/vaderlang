@@ -15,7 +15,7 @@ Counted :: struct {
 }
 
 Counted implements Async<null> {
-    resume :: fn(self!) -> null | Suspended {
+    resume :: fn(self) -> null | Suspended {
         RESUMES[0] += 1
         return self.inner.resume()
     }

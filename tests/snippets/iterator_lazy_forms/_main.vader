@@ -36,11 +36,11 @@ total :: fn(w: i32[]) -> i32 {
     return s
 }
 
-erased_count :: fn(i: Iterator<i32>!) -> usize = i.count()
+erased_count :: fn(i: Iterator<i32>) -> usize = i.count()
 
-erased_last :: fn(i: Iterator<i32>!) -> i32 = i.last() ?? -1
+erased_last :: fn(i: Iterator<i32>) -> i32 = i.last() ?? -1
 
-erased_empty :: fn(i: Iterator<i32>!) -> bool = i.is_empty()
+erased_empty :: fn(i: Iterator<i32>) -> bool = i.is_empty()
 
 upto :: fn(n: i32) -> Iterator<i32> {
     for i in 0..<n {

@@ -11,15 +11,18 @@
 // array-mutation check fires — T3042 instead of T3070, same position, same
 // rejection, and no dedicated "did the borrow leak into a local" analysis. This
 // is exactly what "the bit travels on its own" buys.
+//
+// The borrow is a callback's parameter : a fn's own would take the `!` its body
+// needs.
 module "snippet"
 
-sneak :: fn(a: i32[]) -> void {
-    m :: a
-    m[0] = 99
-}
+each :: fn(xs: i32[], f: fn(i32[]) -> void) -> void = f(xs)
 
 main :: fn() -> i32 {
     xs :: [1, 2, 3]
-    sneak(xs)
+    each(xs, (a: i32[]) -> {
+        m :: a
+        m[0] = 99
+    })
     return xs[0]
 }

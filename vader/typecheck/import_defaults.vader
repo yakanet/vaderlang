@@ -33,7 +33,7 @@ import "vader/resolver/symbol"
 /// @param into  the module importing it — the resolutions are copied here.
 /// @param fd    the exported declaration whose defaults may name something.
 export publish_default_resolutions :: fn(
-    from: TypedProgram, into: TypedProgram!, fd: AST.FnDecl,
+    from: TypedProgram, into: TypedProgram, fd: AST.FnDecl,
 ) -> void {
     for pm in fd.params {
         dv :: pm.default_value
@@ -54,7 +54,7 @@ export publish_default_resolutions :: fn(
 // something the language has ever been asked for, and covering it means a second
 // exhaustive walker over `Stmt`. The trailing expression of a block IS followed,
 // which is the form a value-position block actually takes.
-copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram!) -> void {
+copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram) -> void {
     match e {
         is AST.IdentExpr -> {
             sym :: from.resolved.idents[e.span.hash()]
@@ -161,7 +161,7 @@ copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram!
     }
 }
 
-copy_if_resolutions :: fn(f: AST.IfExpr, from: TypedProgram, into: TypedProgram!) -> void {
+copy_if_resolutions :: fn(f: AST.IfExpr, from: TypedProgram, into: TypedProgram) -> void {
     copy_expr_resolutions(f.cond, from, into)
     t :: f.then_block.trailing
     if t != null {

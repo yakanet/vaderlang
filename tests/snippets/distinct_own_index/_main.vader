@@ -14,7 +14,7 @@ Offset implements Index<usize, i32> {
 }
 
 Offset implements IndexSet<usize, i32> {
-    set_at :: fn(self!, i: usize, v: i32) {
+    set_at :: fn(self, i: usize, v: i32) {
         println("set_at ${i} ${v}")
     }
 }

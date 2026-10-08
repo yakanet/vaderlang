@@ -39,13 +39,13 @@ Grid implements Index<string, string> {
 }
 
 Grid implements IndexSet<i32, i32> {
-    set_at :: fn(self!, i: i32, v: i32) -> void {
+    set_at :: fn(self, i: i32, v: i32) -> void {
         self.cells[i] = v
     }
 }
 
 Grid implements IndexSet<string, string> {
-    set_at :: fn(self!, k: string, v: string) -> void {
+    set_at :: fn(self, k: string, v: string) -> void {
         self.names[0] = "${k}=${v}"
     }
 }
@@ -142,7 +142,7 @@ Sheet implements Index<i32, i32> {
 }
 
 Sheet implements IndexSet<i32, i32> {
-    set_at :: fn(self!, i: i32, v: i32) -> void {
+    set_at :: fn(self, i: i32, v: i32) -> void {
         self.cells[i] = v
     }
 }
@@ -172,7 +172,7 @@ Counter :: struct {
 }
 
 Counter implements Iterator<i32> {
-    next :: fn(self!) -> [i32, Continuation] {
+    next :: fn(self) -> [i32, Continuation] {
         if self.n >= 2 {
             return [0, .Stop]
         }

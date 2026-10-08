@@ -26,7 +26,7 @@ odd :: fn(x: i32) -> bool = x % 2 == 1
 
 small :: fn(x: i32) -> bool = x < 6
 
-scale :: fn(self: Iterator<i32>!, k: i32) -> Iterator<i32> {
+scale :: fn(self: Iterator<i32>, k: i32) -> Iterator<i32> {
     for x in self {
         yield x * k
     }

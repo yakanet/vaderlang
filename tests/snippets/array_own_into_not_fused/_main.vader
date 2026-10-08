@@ -49,7 +49,7 @@ Pt[] implements Into<Iterator<Pt>!> {
     into :: fn(self) -> Iterator<Pt>! = shifted(self)
 }
 
-drain :: fn(it: Iterator<Mon>!) -> i32 {
+drain :: fn(it: Iterator<Mon>) -> i32 {
     n := 0
     for m in it {
         n += m.v
@@ -57,7 +57,7 @@ drain :: fn(it: Iterator<Mon>!) -> i32 {
     return n
 }
 
-join_labels :: fn(it: Iterator<Label>!) -> string {
+join_labels :: fn(it: Iterator<Label>) -> string {
     out := ""
     for l in it {
         out = "${out}${l.s} "

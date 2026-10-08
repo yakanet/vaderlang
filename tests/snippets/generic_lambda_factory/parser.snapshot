@@ -217,18 +217,12 @@
         {
           "name": "rows",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
+            "kind": "ArrayTypeExpr",
+            "element": {
               "kind": "ArrayTypeExpr",
               "element": {
-                "kind": "MutableTypeExpr",
-                "inner": {
-                  "kind": "ArrayTypeExpr",
-                  "element": {
-                    "kind": "IdentExpr",
-                    "name": "i32"
-                  }
-                }
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             }
           },
@@ -389,13 +383,10 @@
           "type": {
             "kind": "ArrayTypeExpr",
             "element": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             }
           },

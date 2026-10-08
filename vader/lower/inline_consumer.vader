@@ -41,7 +41,7 @@ export ConsumerShape :: struct {
 /// @param call  the call expression.
 /// @param type  the call's result type from typecheck.
 /// @return      a block-expression evaluating to the call's result, or null.
-export try_inline_consumer :: fn(ctx: FnLowerCtx!, call: AST.CallExpr, type: Type) -> LoweredExpr! | null {
+export try_inline_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type: Type) -> LoweredExpr! | null {
     if is_known_non_consumer(ctx, call) {
         return null
     }
@@ -92,7 +92,7 @@ is_known_non_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> bool {
 
 // The shape of `target`'s callee, or null when it consumes no parameter —
 // keyed by its declaration, so a module's callee is examined once.
-consumer_shape :: fn(project: LowerProjectCtx!, target: CallTarget, signature: FnType) -> ConsumerShape | null {
+consumer_shape :: fn(project: LowerProjectCtx, target: CallTarget, signature: FnType) -> ConsumerShape | null {
     key :: target.decl.span.hash()
     if key in project.non_consumers {
         return null
@@ -110,7 +110,7 @@ consumer_shape :: fn(project: LowerProjectCtx!, target: CallTarget, signature: F
     return found
 }
 
-find_consumer_shape :: fn(project: LowerProjectCtx!, target: CallTarget, signature: FnType) -> ConsumerShape | null {
+find_consumer_shape :: fn(project: LowerProjectCtx, target: CallTarget, signature: FnType) -> ConsumerShape | null {
     decl :: target.decl
     if fn_is_generator(decl) || fn_is_async(decl) {
         return null
@@ -283,7 +283,7 @@ consumer_subst :: fn(
 // ---- the inlined body -------------------------------------------------------
 
 // `{ <arguments, in parameter order>; [let result]; <body>; <result> }`.
-emit_inlined_consumer :: fn(ctx: FnLowerCtx!, call: ConsumerCall, type: Type, span: Span) -> LoweredExpr! {
+emit_inlined_consumer :: fn(ctx: FnLowerCtx, call: ConsumerCall, type: Type, span: Span) -> LoweredExpr! {
     stmts: LoweredStmt![]!: []
     chain :: bind_consumer_arguments(ctx, call, stmts)
     decl :: call.target.decl
@@ -324,7 +324,7 @@ emit_inlined_consumer :: fn(ctx: FnLowerCtx!, call: ConsumerCall, type: Type, sp
     return result_block(stmts, tail, type, span)
 }
 
-result_block :: fn(stmts: LoweredStmt![], trailing: LoweredExpr! | null, type: Type, span: Span) -> LoweredExpr! =
+result_block :: fn(stmts: LoweredStmt[], trailing: LoweredExpr | null, type: Type, span: Span) -> LoweredExpr! =
     LoweredBlock {
         .span = span,
         .type = type,
@@ -336,7 +336,7 @@ result_block :: fn(stmts: LoweredStmt![], trailing: LoweredExpr! | null, type: T
 // consumed one as its chain's operands, every other one bound to the instance's
 // clone of its parameter. Returns the consumed chain, bound.
 bind_consumer_arguments :: fn(
-    ctx: FnLowerCtx!, call: ConsumerCall, out: LoweredStmt![]!,
+    ctx: FnLowerCtx, call: ConsumerCall, out: LoweredStmt[],
 ) -> IterChain {
     target :: call.target
     bound := call.chain
@@ -374,10 +374,10 @@ value_tail :: fn(body: AST.BlockExpr) -> AST.BlockExpr {
 
 // `value` in the call's result slot ; a void result keeps it as it is, a
 // statement.
-slot_result :: fn(ctx: FnLowerCtx!, value: LoweredExpr!, type: Type, span: Span) -> LoweredExpr! =
+slot_result :: fn(ctx: FnLowerCtx, value: LoweredExpr, type: Type, span: Span) -> LoweredExpr! =
     if is_void(type) { value } else { prepare_value_for_slot(ctx, value, type, span) }
 
-assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr!, span: Span) -> LoweredStmt! {
+assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr, span: Span) -> LoweredStmt! {
     if is_void(type) {
         return LoweredExprStmt { .span = span, .expr = value }
     }
@@ -396,7 +396,7 @@ assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr!, span: Spa
 /// @param stmt      the `return`.
 /// @param out       receives the assignment, when the `return` carries a value.
 assign_consumer_return :: fn(
-    ctx: FnLowerCtx!, consumer: InlineConsumer, stmt: AST.ReturnStmt, out: LoweredStmt![]!,
+    ctx: FnLowerCtx, consumer: InlineConsumer, stmt: AST.ReturnStmt, out: LoweredStmt[],
 ) -> void {
     if stmt.value is AST.Expr as v {
         value :: slot_result(ctx, lower_expr(ctx, v), consumer.result_type, stmt.span)

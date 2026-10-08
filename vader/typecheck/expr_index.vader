@@ -11,7 +11,7 @@ AST :: import "toolchain/ast"
 /// Type-check the read `target[index]` : an array's element, a bound's or an impl's
 /// `Index` result, a string's `char`, a slice for a `Range` index.
 export infer_index :: fn(
-    e: AST.IndexExpr!, typed: TypedProgram!, diags: Diagnostic[]!,
+    e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     target :: check_expr_fn(e.target, null, typed, diags)
@@ -88,7 +88,7 @@ export infer_index :: fn(
 // T3001 when the key of `x[k]` is no `key`, the key type the receiver's `Index` /
 // `IndexSet` takes ; a null `key` (an array, a string) asks nothing more.
 reject_index_key :: fn(
-    index: AST.Expr, index_ty: Type, key: Type | null, typed: TypedProgram, diags: Diagnostic[]!,
+    index: AST.Expr, index_ty: Type, key: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     if key == null || index_ty is UnresolvedType || is_assignable(index_ty, key) {
         return
@@ -114,8 +114,8 @@ dispatched_index_args :: fn(
     e: AST.IndexExpr,
     target: Type,
     trait_key: string,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type[] | null {
     if target is UnionType {
         method :: index_method(trait_key)
@@ -237,8 +237,8 @@ pick_index_member :: fn(
     receiver: Type,
     trait_key: string,
     key_ty: Type,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> FnType | null {
     members :: trait_members(typed, receiver, trait_key, index_method(trait_key))
     if members.len() < 2 {

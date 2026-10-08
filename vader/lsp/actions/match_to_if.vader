@@ -130,7 +130,7 @@ arm_body_empty :: fn(body: AST.Expr) -> bool {
 // → `X !is T` (built as `Not(Is)`, which the printer restores to the `!is`
 // spelling — a binding is dropped, unusable on the negated side). Anything else
 // wraps in `!(…)`.
-negate_cond :: fn(cond: AST.Expr!) -> AST.Expr! {
+negate_cond :: fn(cond: AST.Expr) -> AST.Expr! {
     if cond is AST.BinaryExpr {
         if cond.op == .Eq {
             return AST.BinaryExpr {
@@ -149,7 +149,7 @@ negate_cond :: fn(cond: AST.Expr!) -> AST.Expr! {
 }
 
 // `is T` → `scrutinee is T` ; literal `v` → `scrutinee == v`.
-build_cond :: fn(scrut: AST.Expr!, p: AST.Pattern) -> AST.Expr! {
+build_cond :: fn(scrut: AST.Expr, p: AST.Pattern) -> AST.Expr! {
     if p is AST.IsPattern {
         return AST.BinaryExpr {
             .span = scrut.span, .op = .Is, .left = scrut, .right = p.ty,
@@ -166,7 +166,7 @@ build_cond :: fn(scrut: AST.Expr!, p: AST.Pattern) -> AST.Expr! {
 
 // An arm body becomes a branch block : reuse it when it's already a block,
 // otherwise wrap the single expression as the block's trailing value.
-arm_block :: fn(body: AST.Expr!) -> AST.BlockExpr! {
+arm_block :: fn(body: AST.Expr) -> AST.BlockExpr! {
     if body is AST.BlockExpr { return body }
     no_stmts: AST.Stmt![]: []
     return AST.BlockExpr { .span = body.span, .stmts = no_stmts, .trailing = body }

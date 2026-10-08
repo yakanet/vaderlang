@@ -46,7 +46,7 @@ export operand_refs :: fn(op: Op) -> (OperandRef | null)[] {
 }
 
 // Print `mnemonic` then the number of each operand, noting what each names.
-printed :: fn(out: StringBuilder!, refs: (OperandRef | null)[]!, mnemonic: string, operands: OperandRef[]) -> void {
+printed :: fn(out: StringBuilder, refs: (OperandRef | null)[], mnemonic: string, operands: OperandRef[]) -> void {
     out.append(mnemonic)
     for operand in operands {
         out.append(" ${operand.index}")

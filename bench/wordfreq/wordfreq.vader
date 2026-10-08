@@ -63,7 +63,7 @@ main :: fn() -> i32 {
 // Base-26 rendering of the scrambled index, little-endian. The scramble is what
 // makes consecutive vocabulary entries differ in every byte rather than only the
 // last one.
-append_word :: fn(out: u8[]!, index: i32) -> void {
+append_word :: fn(out: u8[], index: i32) -> void {
     scrambled := i64(index) * SCRAMBLE_MULTIPLIER % VOCABULARY_SPACE
     for 0..<WORD_LENGTH {
         out.push(u8('a' + scrambled % 26))

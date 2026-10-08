@@ -157,7 +157,7 @@
   expr 58:9     CallExpr       :: void
   expr 58:9     FieldExpr      :: fn(string) -> void
   expr 58:9     FieldExpr      :: string[]!
-  expr 58:9     IdentExpr      :: Log!
+  expr 58:9     IdentExpr      :: Log
   expr 63:19    StringLitExpr  :: string
   expr 63:5     CallExpr       :: void
   expr 63:5     FieldExpr      :: fn(string, i32) -> void
@@ -173,13 +173,13 @@
   expr 77:26    BinaryExpr     :: i32
   expr 77:26    IdentExpr      :: i32
   expr 77:9     FieldExpr      :: MutableMap<string, i32>!
-  expr 77:9     IdentExpr      :: Tally!
+  expr 77:9     IdentExpr      :: Tally
   expr 86:40    FieldExpr      :: i32[]!
   expr 86:40    IdentExpr      :: Cell
   expr 86:40    IndexExpr      :: i32
   expr 91:25    IdentExpr      :: i32
   expr 91:9     FieldExpr      :: i32[]!
-  expr 91:9     IdentExpr      :: Cell!
+  expr 91:9     IdentExpr      :: Cell
   expr 91:9     IndexExpr      :: i32
   expr 96:5     BinaryExpr     :: i32
   expr 96:5     IdentExpr      :: Cell! | Tally!

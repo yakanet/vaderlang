@@ -55,7 +55,7 @@ import "vader/bytecode"
 /// @param temporaries  every temp of the body, indexed by id ; each receives
 ///                     its `slot`.
 /// @return             the ValType of each slot, indexed by slot.
-export coalesce_temporaries :: fn(root: CBlock!, temporaries: CTemporary![]) -> ValType[]! {
+export coalesce_temporaries :: fn(root: CBlock, temporaries: CTemporary[]) -> ValType[]! {
     n :: temporaries.len()
     if n == 0 {
         return []
@@ -116,9 +116,9 @@ TemporaryUsage :: struct {
     position: i32 = -1
 }
 
-scan_block :: fn(block: CBlock, usage: TemporaryUsage!) -> void = scan_statements(block.body, usage)
+scan_block :: fn(block: CBlock, usage: TemporaryUsage) -> void = scan_statements(block.body, usage)
 
-scan_statements :: fn(statements: CStatement[], usage: TemporaryUsage!) -> void {
+scan_statements :: fn(statements: CStatement[], usage: TemporaryUsage) -> void {
     for statement in statements {
         usage.position += 1
         match statement {
@@ -188,7 +188,7 @@ scan_statements :: fn(statements: CStatement[], usage: TemporaryUsage!) -> void 
 }
 
 // A switch clause's statements.
-scan_clause :: fn(body: CCaseStatement[], usage: TemporaryUsage!) -> void {
+scan_clause :: fn(body: CCaseStatement[], usage: TemporaryUsage) -> void {
     for statement in body {
         match statement {
             is CExpressionStatement -> scan_expression(statement.expression, usage)
@@ -212,7 +212,7 @@ scan_clause :: fn(body: CCaseStatement[], usage: TemporaryUsage!) -> void {
     }
 }
 
-scan_expression :: fn(expression: CExpression, usage: TemporaryUsage!) -> void {
+scan_expression :: fn(expression: CExpression, usage: TemporaryUsage) -> void {
     match expression {
         is CTemporary                           -> {
             id :: usize(expression.id)
@@ -273,7 +273,7 @@ scan_expression :: fn(expression: CExpression, usage: TemporaryUsage!) -> void {
 // has no other use ; `tN` is then unused. Only statements next to each other
 // in one block fuse, so no side-effecting expression is reordered. Compacts
 // `block.body` in place.
-fuse_temp_local_copies :: fn(block: CBlock!, usage: TemporaryUsage!) -> void {
+fuse_temp_local_copies :: fn(block: CBlock, usage: TemporaryUsage) -> void {
     body :: block.body
     kept: usize = 0
     k: usize = 0
@@ -305,7 +305,7 @@ fuse_temp_local_copies :: fn(block: CBlock!, usage: TemporaryUsage!) -> void {
 
 // `lM = EXPR;` when `definition` is `tN = EXPR;`, `copy` is `lM = tN;` and the
 // two are `tN`'s only uses — `tN` is then marked unused ; null otherwise.
-fused_copy :: fn(definition: CStatement, copy: CStatement, usage: TemporaryUsage!) -> CAssign | null {
+fused_copy :: fn(definition: CStatement, copy: CStatement, usage: TemporaryUsage) -> CAssign | null {
     if definition !is CAssign || copy !is CAssign {
         return null
     }

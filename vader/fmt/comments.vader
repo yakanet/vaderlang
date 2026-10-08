@@ -257,7 +257,7 @@ export first_line_before :: fn(self: CommentMap, before: usize) -> i32 | null {
 // cursor past them. The printer calls this just before emitting each
 // AST node so leading comments land at the right position.
 
-export take_before :: fn(self: CommentMap!, before: usize) -> Comment[] {
+export take_before :: fn(self: CommentMap, before: usize) -> Comment[] {
     out: Comment[]!: []
     for self.cursor < self.comments.len() {
         c :: self.comments[self.cursor]
@@ -270,7 +270,7 @@ export take_before :: fn(self: CommentMap!, before: usize) -> Comment[] {
 
 // Drain every remaining comment (used at end-of-file to flush trailing
 // comments after the last decl).
-export drain_remaining :: fn(self: CommentMap!) -> Comment[] {
+export drain_remaining :: fn(self: CommentMap) -> Comment[] {
     out: Comment[]!: []
     for self.cursor < self.comments.len() {
         out.push(self.comments[self.cursor])

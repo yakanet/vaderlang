@@ -548,8 +548,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             },
             {
               "name": "k",
@@ -639,31 +638,25 @@
             "kind": "BinaryExpr",
             "op": "bitor",
             "left": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "GenericInstExpr",
-                "callee": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "MutableMap"
+              },
+              "typeArgs": [
+                {
                   "kind": "IdentExpr",
-                  "name": "MutableMap"
+                  "name": "string"
                 },
-                "typeArgs": [
-                  {
-                    "kind": "IdentExpr",
-                    "name": "string"
-                  },
-                  {
-                    "kind": "IdentExpr",
-                    "name": "i32"
-                  }
-                ]
-              }
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
             },
             "right": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "IdentExpr",
-                "name": "Log"
-              }
+              "kind": "IdentExpr",
+              "name": "Log"
             }
           },
           "defaultValue": null,
@@ -882,8 +875,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             },
             {
               "name": "k",
@@ -1072,8 +1064,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             },
             {
               "name": "k",
@@ -1143,18 +1134,12 @@
             "kind": "BinaryExpr",
             "op": "bitor",
             "left": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "IdentExpr",
-                "name": "Tally"
-              }
+              "kind": "IdentExpr",
+              "name": "Tally"
             },
             "right": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "IdentExpr",
-                "name": "Cell"
-              }
+              "kind": "IdentExpr",
+              "name": "Cell"
             }
           },
           "defaultValue": null,

@@ -533,8 +533,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             },
             {
               "name": "i",
@@ -621,8 +620,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             },
             {
               "name": "k",
@@ -1983,8 +1981,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             },
             {
               "name": "i",
@@ -2388,8 +2385,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             }
           ],
           "returnType": {

@@ -134,7 +134,7 @@ verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> usize | Ve
 // Control reaching `at` with `d` values: past the last op it leaves the function,
 // which must then hold its results ; anywhere else the depth is merged.
 flow_to :: fn(
-    f: bc.BcFunction, depth: i64[]!, work: usize[]!, at: usize, d: usize, from: usize, results: usize,
+    f: bc.BcFunction, depth: i64[], work: usize[], at: usize, d: usize, from: usize, results: usize,
 ) -> VerifyError | null {
     if at < f.body.len() {
         return merge(f, depth, work, at, d, from)
@@ -147,7 +147,7 @@ flow_to :: fn(
 
 // Record `at`'s depth, or check it against the one already recorded.
 merge :: fn(
-    f: bc.BcFunction, depth: i64[]!, work: usize[]!, at: usize, d: usize, from: usize,
+    f: bc.BcFunction, depth: i64[], work: usize[], at: usize, d: usize, from: usize,
 ) -> VerifyError | null {
     if depth[at] < 0 {
         depth[at] = i64(d)

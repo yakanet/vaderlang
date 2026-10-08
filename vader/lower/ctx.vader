@@ -604,7 +604,7 @@ InlineConsumer :: struct {
 /// @param return_type  the entry's resolved return type.
 /// @return             a fresh fn-body context.
 export new_fn_lower_ctx :: fn(
-    project: LowerProjectCtx!, entry: MonoEntry, typed: TypedProgram,
+    project: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, return_type: Type,
 ) -> FnLowerCtx! {
     return FnLowerCtx {

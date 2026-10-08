@@ -17,7 +17,7 @@ import "toolchain/span"
 // to the variant, so the following `type_check` constant-folds. Returning the
 // cast's inner union value keeps the runtime tag intact (the narrowing is a
 // compile-time view, so the check on the original box is what we want).
-strip_narrowing_cast :: fn(e: LoweredExpr!) -> LoweredExpr! {
+strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr! {
     if e is LoweredCast {
         if type_of(e.value) is UnionType { return e.value }
     }
@@ -25,7 +25,7 @@ strip_narrowing_cast :: fn(e: LoweredExpr!) -> LoweredExpr! {
 }
 
 // `!cond` when `negate`, else `cond`.
-maybe_negate :: fn(cond: LoweredExpr!, negate: bool, span: Span) -> LoweredExpr! {
+maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr! {
     if negate {
         return LoweredUnary {
             .span = span,
@@ -37,7 +37,7 @@ maybe_negate :: fn(cond: LoweredExpr!, negate: bool, span: Span) -> LoweredExpr!
     return cond
 }
 
-lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredExpr! {
+lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr! {
     // `expr is T` lowers to a runtime tag check ; the RHS is a type
     // expression, not a value. The `bind_as` parsing is handled inside
     // `if x is T as alias` where the if's then-branch consumes the
@@ -234,7 +234,7 @@ is_primitive_string_concat :: fn(ctx: FnLowerCtx, b: BinaryExpr) -> bool {
 // Flatten a primitive string `+` tree into its leaf operands, lowered in order.
 // `((a + b) + c)` collects `[a, b, c]`. A nested node is recursed into only when
 // it is itself a primitive string `+` ; everything else is an opaque leaf.
-collect_concat_operands :: fn(ctx: FnLowerCtx!, e: Expr, out: LoweredExpr![]!) -> void {
+collect_concat_operands :: fn(ctx: FnLowerCtx, e: Expr, out: LoweredExpr[]) -> void {
     if e is BinaryExpr {
         if is_primitive_string_concat(ctx, e) {
             collect_concat_operands(ctx, e.left, out)
@@ -245,7 +245,7 @@ collect_concat_operands :: fn(ctx: FnLowerCtx!, e: Expr, out: LoweredExpr![]!) -
     out.push(lower_expr(ctx, e))
 }
 
-try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredExpr! | null {
+try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr! | null {
     info :: op_trait_method(binary.op) ?? return null
     if info is OpTraitInfo {
         left_ty :: ctx.types.expr_type(binary.left)
@@ -324,7 +324,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) ->
 // one for every operator but ordering a `string`, which only its `Comparable` impl
 // answers.
 operator_member :: fn(
-    ctx: FnLowerCtx!,
+    ctx: FnLowerCtx,
     t: Type,
     info: OpTraitInfo,
     node_id: usize,
@@ -348,7 +348,7 @@ operator_member :: fn(
 // element picked when several offer it, else its own, else — on an array-backed
 // distinct — its backing array's (the `T[] implements Contains` blanket), as
 // `check_in` falls back.
-contains_member :: fn(ctx: FnLowerCtx!, node_id: usize, coll_type: Type) -> UfcsMember | null {
+contains_member :: fn(ctx: FnLowerCtx, node_id: usize, coll_type: Type) -> UfcsMember | null {
     picks :: ctx.typed.picked_impl_members
     picked :: use_site_member(ctx, picks, node_id, coll_type, METHOD_CONTAINS)
     if picked != null {
@@ -378,7 +378,7 @@ dispatched_trait :: fn(ctx: FnLowerCtx, t: Type, node_id: usize) -> string | nul
 // the field-expr vcall path : Eq / Comparable share the dispatch + outer-op
 // patterns from `op_trait_method`.
 lower_op_overload_via_vcall :: fn(
-    ctx: FnLowerCtx!, binary: BinaryExpr, type: Type, oti: OpTraitInfo,
+    ctx: FnLowerCtx, binary: BinaryExpr, type: Type, oti: OpTraitInfo,
 ) -> LoweredExpr! | null {
     lowered_left  :: lower_expr(ctx, binary.left)
     args: LoweredExpr![]!: [lower_expr(ctx, binary.right)]
@@ -437,7 +437,7 @@ op_trait_method :: fn(op: BinaryOp) -> OpTraitInfo | null {
     return null
 }
 
-try_lower_null_eq :: fn(ctx: FnLowerCtx!, binary: BinaryExpr) -> LoweredExpr! | null {
+try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr! | null {
     union_operand: Expr | null = null
     if is_null_lit(binary.left) && is_union_with_null(ctx.types.expr_type(binary.right)) {
         union_operand = binary.right

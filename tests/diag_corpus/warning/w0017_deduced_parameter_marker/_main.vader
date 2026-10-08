@@ -1,0 +1,33 @@
+// W0017 — the body mutates the parameter at the level the `!` is written on, so the
+// compiler deduces the marker anyway. Quiet on a contract : a trait member and a
+// callback's type have no body to deduce from.
+
+module "snippet"
+
+Box :: struct { n: i32 }
+
+// The warning, at the top level and at the element.
+bump :: fn(b: Box!) -> void {
+    b.n += 1
+}
+bump_first :: fn(xs: Box![]) -> void {
+    xs[0].n += 1
+}
+
+// The warning through a call : `twice` mutates `b` by handing it to `bump`.
+twice :: fn(b: Box!) -> void {
+    bump(b)
+    bump(b)
+}
+
+// Quiet — a trait member is a contract.
+Bump :: trait {
+    poke :: fn(self!) -> void
+}
+
+// Quiet — a callback's type is a contract too.
+each :: fn(xs: Box[], f: fn(Box!) -> void) -> void {
+    for x in xs {
+        f(x)
+    }
+}

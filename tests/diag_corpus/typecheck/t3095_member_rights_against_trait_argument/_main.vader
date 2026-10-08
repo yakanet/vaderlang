@@ -17,14 +17,14 @@ Holder :: struct {
 }
 
 Holder implements Sink<Cfg> {
-    put :: fn(self!, v: Cfg!) -> void {
+    put :: fn(self, v: Cfg) -> void {
         self.c = v
     }
 }
 
 ORIGIN :: Cfg { .n = 1 }
 
-feed :: fn(s: Sink<Cfg>!) -> void {
+feed :: fn(s: Sink<Cfg>) -> void {
     s.put(ORIGIN)
 }
 

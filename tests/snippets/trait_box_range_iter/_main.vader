@@ -10,7 +10,7 @@
 
 module "snippet"
 
-count :: fn<T>(it: Iterator<T>!) -> i32 {
+count :: fn<T>(it: Iterator<T>) -> i32 {
     n := 0
     cont := true
     for cont {

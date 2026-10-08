@@ -105,7 +105,7 @@ export discarded_bodies :: fn(files: SourceFile[], target: Target | null) -> AST
 export select_target_bodies :: fn(
     files: SourceFile[],
     target: Target | null,
-    diags: Diagnostic[]!,
+    diags: Diagnostic[],
 ) -> SourceFile[] {
     // Group well-formedness is checked BEFORE any filtering, and therefore for
     // every target rather than only the one being built. That is what makes a
@@ -176,7 +176,7 @@ export select_target_bodies :: fn(
 // A body may not carry `export` for the same reason: the declaration owns the
 // visibility, so a body carrying its own would make a group's public surface
 // depend on which target you built.
-check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
+check_groups :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
     // Where each name's bare declaration is, and which platforms its bodies have
     // already claimed. Both carry a SPAN rather than a flag: a conflict
     // diagnostic that cannot name the other side leaves the reader to find it.
@@ -292,7 +292,7 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
 // comparator, and the tree's only one (`signature_help::render_type_expr`) falls
 // back to `"?"` — which makes two unrelated types compare EQUAL. A wrong
 // comparator here is worse than none.
-check_signature :: fn(decl: AST.FnDecl, body: AST.FnDecl, diags: Diagnostic[]!) -> void {
+check_signature :: fn(decl: AST.FnDecl, body: AST.FnDecl, diags: Diagnostic[]) -> void {
     if decl.params.len() != body.params.len() {
         diags.push(
             resolver_error(
@@ -331,7 +331,7 @@ report_uncovered :: fn(
     target: Target,
     winners: MutableMap<string, AST.FnDecl>,
     covered: MutableMap<string, string>,
-    diags: Diagnostic[]!,
+    diags: Diagnostic[],
 ) -> void {
     for f in files {
         for d in f.program.decls {
@@ -386,7 +386,7 @@ span_origin :: fn(s: Span) -> string = "${s.start.file}:${s.start.line}"
 
 // What a declaration becomes for this target: itself, a merge, or nothing.
 resolve_decl :: fn(
-    d: AST.Decl!,
+    d: AST.Decl,
     target: Target,
     winners: MutableMap<string, AST.FnDecl>,
     bare: MutableMap<string, bool>,
@@ -490,7 +490,7 @@ target_selectors :: fn(decorators: AST.Decorator[]) -> TargetSelectors | null {
 // when it wins and the body itself is gone when it loses, so a typo inside one
 // reached no check at all. A wrong selector on any body is an error on the
 // machine that wrote it, whichever platform is being built.
-check_selectors :: fn(files: SourceFile[], diags: Diagnostic[]!) -> void {
+check_selectors :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
     for f in files {
         for d in f.program.decls {
             if d is AST.FnDecl {

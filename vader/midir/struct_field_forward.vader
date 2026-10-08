@@ -36,7 +36,7 @@ import "std/collections"
 /// @param p  the CFG project, after `scalarise_value_returns` planted the
 ///           rebuilds this pass exists to undo.
 /// @return   a fresh project with forwardable `FieldGet`s rewritten to `Move`.
-export struct_field_forward_project :: fn(p: CFGProject!) -> CFGProject! {
+export struct_field_forward_project :: fn(p: CFGProject) -> CFGProject! {
     out :: MutableMap<string, CFGModule> {}
     for [id, m] in p.modules {
         new_fns: CFGFunction![]!: []
@@ -51,7 +51,7 @@ export struct_field_forward_project :: fn(p: CFGProject!) -> CFGProject! {
 // `exits` holds what each walked block knew when it ended, keyed by block id.
 // A block with no entry there has not been walked — which is how a back edge
 // reports itself, and why the join treats it as contributing nothing.
-forward_struct_fields_in_fn :: fn(fn_: CFGFunction!) -> CFGFunction! {
+forward_struct_fields_in_fn :: fn(fn_: CFGFunction) -> CFGFunction! {
     preds :: predecessors_of(fn_)
     order :: reverse_postorder(fn_)
     exits :: MutableMap<i32, MutableMap<i32, LocalId[]>> {}
@@ -129,7 +129,7 @@ join_of_predecessors :: fn(
 // The intra-block walk, starting from `built` rather than from nothing. Mutates
 // `built` so the caller can hand it to a single successor.
 forward_block_with :: fn(
-    instrs: Instruction[], built: MutableMap<i32, LocalId[]>!,
+    instrs: Instruction[], built: MutableMap<i32, LocalId[]>,
 ) -> Instruction[] {
     out: Instruction[]!: []
     for ins in instrs {

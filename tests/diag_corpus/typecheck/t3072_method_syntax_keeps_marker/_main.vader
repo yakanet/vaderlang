@@ -15,7 +15,7 @@ Merges :: trait {
 }
 
 Cfg implements Merges {
-    absorb :: fn(self!, other: Cfg!) -> void {
+    absorb :: fn(self, other: Cfg) -> void {
         self.count += other.count
         other.count = 0
     }

@@ -705,6 +705,14 @@ export TypedProgram :: struct {
     /// The consts of the module `walk_bodies` is walking, so a read of one before
     /// its turn types it then (`settle_const_read`).
     const_walk: ConstWalk! = ConstWalk {}
+
+    /// A local that borrows what it was bound to (`m :: a`, `mark_binding_borrow`) →
+    /// that value : a deduced `!` that frees `a` frees `m`.
+    borrowed_from: MutableMap<i32, AST.Expr>! = MutableMap<i32, AST.Expr> {}
+
+    /// The deduction of parameters' `!` this check feeds (`param_inference.vader`),
+    /// one for every module of the project ; null when nothing is deduced.
+    param_inference: ParamInference! | null = null
 }
 
 /// Where a const stands in a `walk_bodies` walk.
@@ -761,7 +769,7 @@ export TypedProject :: struct {
 
 /// Create an empty `TypedProgram` bound to `resolved`. All side-tables
 /// start empty ; the passes fill them in as they walk.
-export new_typed_program :: fn(resolved: ResolvedModule!) = TypedProgram {
+export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .resolved        = resolved,
     .expr_types      = MutableMap<usize, Type> {},
     .loop_target_labels = MutableMap<usize, string> {},

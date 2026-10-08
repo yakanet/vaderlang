@@ -1513,7 +1513,7 @@
                                   "window fused" :string
                                 arg1:
                                   block :i32[]!
-                                    let self: i32[]! =
+                                    let self: i32[] =
                                       .s16 :i32[]!
                                         __self_21 :__asyncstate_snippet_2!
                                     let size: usize = int(3) :usize
@@ -1557,9 +1557,9 @@
                                         let start: usize = int(0) :usize
                                         loop while (<…>)
                                           let x: i32[] =
-                                            slice :i32[]!
+                                            slice :i32[]
                                               on:
-                                                self :i32[]!
+                                                self :i32[]
                                               lo:
                                                 start :usize
                                               hi:

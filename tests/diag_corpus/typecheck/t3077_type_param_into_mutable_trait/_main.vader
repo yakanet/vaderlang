@@ -7,11 +7,11 @@ Bump :: trait {
     bump :: fn(self!) -> void
 }
 
-store :: fn(b: Bump!) -> void {
+store :: fn(b: Bump) -> void {
     b.bump()
 }
 
-hold :: fn<T: Bump>(x: T!, y: T!, z: T! | null) -> void {
+hold :: fn<T: Bump>(x: T, y: T, z: T | null) -> void {
     b: Bump! = x
     b = y
     store(x)
@@ -19,7 +19,7 @@ hold :: fn<T: Bump>(x: T!, y: T!, z: T! | null) -> void {
     maybe: Bump! | null: z
 }
 
-hold_mutable :: fn<T: Bump!>(x: T!) -> void {
+hold_mutable :: fn<T: Bump!>(x: T) -> void {
     b: Bump!: x
     store(b)
 }

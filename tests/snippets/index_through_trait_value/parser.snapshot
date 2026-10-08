@@ -78,8 +78,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             },
             {
               "name": "key",
@@ -166,24 +165,21 @@
         {
           "name": "store",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "IndexSet"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "IndexSet"
+                "name": "string"
               },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "string"
-                },
-                {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
-              ]
-            }
+              {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            ]
           },
           "defaultValue": null,
           "variadic": false
@@ -370,11 +366,8 @@
         {
           "name": "c",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "C"
-            }
+            "kind": "IdentExpr",
+            "name": "C"
           },
           "defaultValue": null,
           "variadic": false
@@ -457,24 +450,21 @@
         {
           "name": "store",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "IndexSet"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "IndexSet"
+                "name": "i64"
               },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "i64"
-                },
-                {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
-              ]
-            }
+              {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            ]
           },
           "defaultValue": null,
           "variadic": false
@@ -544,11 +534,8 @@
         {
           "name": "c",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "C"
-            }
+            "kind": "IdentExpr",
+            "name": "C"
           },
           "defaultValue": null,
           "variadic": false

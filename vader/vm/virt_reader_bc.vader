@@ -387,7 +387,7 @@ parse_module_name :: fn(cleaned: string) -> string {
 /// @param cleaned  the `type …` line, comment already stripped.
 /// @param types    the type table, appended to in ordinal order.
 /// @return         `null` when a type was appended, else why it could not be.
-parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]!) -> DirectiveError | null {
+parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> DirectiveError | null {
     cb :: cleaned.bytes()
     after_type :: cb["type ".bytes().len()..<cb.len()].bytes_to_string().trim()
     first_space :: after_type.index_of(' ', 0)
@@ -559,7 +559,7 @@ parse_union_type_bc :: fn(rest: string) -> bc.BcUnion {
 /// Parse `import N [extern ]EXTERN_NAME MANGLED (sig) -> ret`. The `extern`
 /// keyword (when present) shifts the name/mangled tokens by one.
 parse_import_decl_bc :: fn(
-    cleaned: string, imports: bc.BcImport[]!, types: bc.BcType[],
+    cleaned: string, imports: bc.BcImport[], types: bc.BcType[],
 ) -> DirectiveError | null {
     cb :: cleaned.bytes()
     after :: cb["import ".bytes().len()..<cb.len()].bytes_to_string()
@@ -692,7 +692,7 @@ parse_import_decl_bc :: fn(
     return null
 }
 
-parse_impl_decl_bc :: fn(cleaned: string, impl_table: bc.ImplEntry[]!) -> DirectiveError | null {
+parse_impl_decl_bc :: fn(cleaned: string, impl_table: bc.ImplEntry[]) -> DirectiveError | null {
     cb :: cleaned.bytes()
     after :: cb["impl ".bytes().len()..<cb.len()].bytes_to_string().trim()
     space :: after.index_of(' ', 0)
@@ -710,7 +710,7 @@ parse_impl_decl_bc :: fn(cleaned: string, impl_table: bc.ImplEntry[]!) -> Direct
     return null
 }
 
-parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]!) -> DirectiveError | null {
+parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]) -> DirectiveError | null {
     cb :: cleaned.bytes()
     after :: cb["vtable ".bytes().len()..<cb.len()].bytes_to_string().trim()
     last_space :: last_index_of_space(after)
@@ -748,7 +748,7 @@ parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]!) -> Directi
     return null
 }
 
-register_vtable_row :: fn(vtables: bc.VtableRow[]!, key: string, entry: bc.VtableEntry) -> void {
+register_vtable_row :: fn(vtables: bc.VtableRow[], key: string, entry: bc.VtableEntry) -> void {
     for i in 0..<vtables.len() {
         if vtables[i].key == key { vtables[i].entries.push(entry) return }
     }
@@ -758,7 +758,7 @@ register_vtable_row :: fn(vtables: bc.VtableRow[]!, key: string, entry: bc.Vtabl
 
 /// Parse `export NAME N`. Returns the fn index when `NAME == "main"` (the
 /// entry directive), otherwise records a `BcExport` row and returns `-1`.
-parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]!) -> i32 {
+parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]) -> i32 {
     cb :: cleaned.bytes()
     after :: cb["export ".bytes().len()..<cb.len()].bytes_to_string().trim()
     parts :: after.split(" ")
@@ -776,7 +776,7 @@ parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]!) -> i32 {
 /// `virt_reader::parse_data_decl` but keeps the unmaterialised form `emit_c`
 /// lowers to `.rodata` (the VM reader materialises to values in `reduce_data_pool`).
 parse_data_decl_bc :: fn(
-    cleaned: string, data_pool: bc.BcDataEntry[]!, strings: string[],
+    cleaned: string, data_pool: bc.BcDataEntry[], strings: string[],
 ) -> DirectiveError | null {
     cb :: cleaned.bytes()
     after :: cb["data ".bytes().len()..<cb.len()].bytes_to_string()
@@ -806,7 +806,7 @@ parse_data_decl_bc :: fn(
 
 parse_data_entry_body :: fn(
     kind_name: string, payload: string, mutable: bool,
-    data_pool: bc.BcDataEntry[]!, strings: string[],
+    data_pool: bc.BcDataEntry[], strings: string[],
 ) -> DirectiveError | null {
     if kind_name == "str" {
         data_pool.push(bc.BcStrData { .values = parse_quoted_strings(payload), .mutable = mutable })
@@ -919,7 +919,7 @@ parse_structs_decl :: fn(payload: string, strings: string[], mutable: bool) -> b
 
 // Recursive descent over the token stream (`pos` is a 1-element mutable cursor).
 // `strings` resolves a `strref <i>` leaf to the `string N` pool value.
-parse_data_value :: fn(tokens: string[], pos: i32[]!, strings: string[]) -> bc.BcDataValue {
+parse_data_value :: fn(tokens: string[], pos: i32[], strings: string[]) -> bc.BcDataValue {
     tag :: take_token(tokens, pos)
     if tag == "str" { return bc.BcValStr { .value = take_token(tokens, pos) } }
     if tag == "strref" {
@@ -950,7 +950,7 @@ parse_data_value :: fn(tokens: string[], pos: i32[]!, strings: string[]) -> bc.B
 }
 
 // Read the token at the cursor and advance it ; "" past the end.
-take_token :: fn(tokens: string[], pos: i32[]!) -> string {
+take_token :: fn(tokens: string[], pos: i32[]) -> string {
     if usize(pos[0]) >= tokens.len() { return "" }
     t :: tokens[usize(pos[0])]
     pos[0] = pos[0] + 1

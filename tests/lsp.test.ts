@@ -521,6 +521,49 @@ test("lsp: an inlay hint carries the mutability marker", async () => {
   expect(labels).toContain("u32[]!");
 }, { timeout: MEDIUM_BUILD });
 
+// A `!` the compiler deduces on a parameter shows where it would be written, and
+// says why — on the hint and on a hover of the parameter.
+const INLAY_DEDUCED_SOURCE = `module "demo"
+
+Box :: struct { n: i32 }
+
+bump :: fn(b: Box) -> void {
+    b.n += 1
+}
+
+main :: fn() -> i32 {
+    x :: Box { .n = 1 }
+    bump(x)
+    return x.n
+}
+`;
+
+test("lsp: a parameter's deduced `!` is shown with its cause", async () => {
+  const results = await driveLsp(INLAY_DEDUCED_SOURCE, [
+    {
+      method: "textDocument/inlayHint",
+      range: {
+        start: { line: 0, character: 0 },
+        end: { line: 13, character: 0 },
+      },
+    },
+    { method: "textDocument/hover", position: { line: 4, character: 11 } },
+  ]);
+  const hints = results[0]!.result as {
+    label: string;
+    position: { line: number; character: number };
+    tooltip?: string;
+  }[];
+  const bang = hints.find((h) => h.label === "!");
+  expect(bang).toBeDefined();
+  // Right after `Box` in `bump :: fn(b: Box)`.
+  expect(bang!.position).toEqual({ line: 4, character: 17 });
+  expect(bang!.tooltip).toContain("it is written through here");
+  const hover = results[1]!.result as Hover;
+  expect(hover.contents.value).toContain("b: Box!");
+  expect(hover.contents.value).toContain("`!` deduced");
+}, { timeout: MEDIUM_BUILD });
+
 // The hint nests BETWEEN the two operator characters (`v :u32[]: …`), so its
 // position must track the real operator — not `value.column - 3`, which assumed
 // exactly one space after it. Here the operator is padded for vertical alignment
@@ -1964,7 +2007,9 @@ test("lsp: hover and goto-def follow the overload typecheck chose", async () => 
     { method: "textDocument/definition", position: { line: 6, character: 21 } },
   ]);
   const hover = results[0]!.result as Hover;
-  expect(hover.contents.value).toContain("last :: fn<T>(it: Iterator<T>!) -> T | null");
+  expect(hover.contents.value).toContain("last :: fn<T>(it: Iterator<T>) -> T | null");
+  // The signature is read from the source ; the `!` the compiler deduces follows it.
+  expect(hover.contents.value).toContain("`it` : `!` deduced");
   const loc = results[1]!.result as Location;
   expect(loc.uri.split("/").pop()).toBe("iter.vader");
 });

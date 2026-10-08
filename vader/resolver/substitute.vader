@@ -33,7 +33,7 @@ export new_subst :: fn() -> Subst! {
 /// "original" tree ; substitution clones it on every lookup so a single
 /// subst entry can be reused across multiple call sites without
 /// AST-node aliasing.
-export bind :: fn(self: Subst!, name: string, replacement: AST.TypeExpr!) -> void {
+export bind :: fn(self: Subst, name: string, replacement: AST.TypeExpr) -> void {
     self.entries[name] = replacement
 }
 
@@ -50,7 +50,7 @@ lookup_subst :: fn(self: Subst, name: string) -> AST.TypeExpr! | null {
 // @partial: only type-position Expr variants are reconstructed; all value-level
 // variants pass through unchanged (a type-position walker never reaches them — see
 // the trailing `_ -> expr` comment).
-export substitute_type_expr :: fn(expr: AST.TypeExpr!, subst: Subst) -> AST.TypeExpr! {
+export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeExpr! {
     @partial match expr {
         is AST.IdentExpr -> {
             replacement :: lookup_subst(subst, expr.name) ?? return clone_ident(expr)

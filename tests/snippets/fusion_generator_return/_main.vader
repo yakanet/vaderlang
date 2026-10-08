@@ -50,7 +50,7 @@ lazy_value :: fn() -> i32 {
     return total
 }
 
-until_negative :: fn(self: Iterator<i32>!) -> Iterator<i32> {
+until_negative :: fn(self: Iterator<i32>) -> Iterator<i32> {
     for x in self {
         if x < 0 {
             return

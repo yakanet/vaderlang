@@ -112,7 +112,7 @@ head_printer :: fn(source: string) -> Printer! {
 
 // `NAME :: value`, `NAME: T: value`, or their `@comptime` form — the operand the
 // parser kept, not the helper call it desugared the const into.
-const_head :: fn(h: Printer!, d: p.ConstDecl) -> string {
+const_head :: fn(h: Printer, d: p.ConstDecl) -> string {
     h.write(d.name)
     if d.ty is null {
         h.write(" :: ")

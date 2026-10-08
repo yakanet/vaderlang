@@ -33,7 +33,7 @@ import "vader/types"
 /// @param span       the read, stamped on every node built here.
 /// @return           the slot, typed as the enum's read-only data.
 export lower_enum_data_slot :: fn(
-    ctx: FnLowerCtx!, value: LoweredExpr!, enum_type: EnumType, span: Span,
+    ctx: FnLowerCtx, value: LoweredExpr, enum_type: EnumType, span: Span,
 ) -> LoweredExpr! {
     data :: enum_type.data ?? return stub(span, TY_UNRESOLVED, "enum without variant data")
     return LoweredIndex {
@@ -54,7 +54,7 @@ export lower_enum_data_slot :: fn(
 /// @param source   the expression, for its checked type.
 /// @param lowered  `source`, lowered.
 /// @return         an `i64` holding the written value, or `lowered`.
-export as_written_value :: fn(ctx: FnLowerCtx!, source: Expr, lowered: LoweredExpr!) -> LoweredExpr! {
+export as_written_value :: fn(ctx: FnLowerCtx, source: Expr, lowered: LoweredExpr) -> LoweredExpr! {
     enum_type :: enum_type_or_unwrap(ctx, ctx.types.expr_type(source))
     if enum_type is EnumType && enum_type.data != null {
         return lower_enum_value(ctx, lowered, enum_type, source.span)
@@ -66,7 +66,7 @@ export as_written_value :: fn(ctx: FnLowerCtx!, source: Expr, lowered: LoweredEx
 // constant for a constant rank, `rank + first` for consecutive values, else a
 // read of `<Enum>$value`.
 lower_enum_value :: fn(
-    ctx: FnLowerCtx!, value: LoweredExpr!, enum_type: EnumType, span: Span,
+    ctx: FnLowerCtx, value: LoweredExpr, enum_type: EnumType, span: Span,
 ) -> LoweredExpr! {
     values :: enum_type.values
     i64_type :: mk_primitive("i64")
@@ -98,7 +98,7 @@ lower_enum_value :: fn(
     }
 }
 
-rank_of :: fn(value: LoweredExpr!, span: Span) -> LoweredExpr! =
+rank_of :: fn(value: LoweredExpr, span: Span) -> LoweredExpr! =
     LoweredCast { .span = span, .type = mk_primitive("i64"), .value = value }
 
 is_consecutive :: fn(values: i64[]) -> bool {
@@ -118,7 +118,7 @@ value_element_width :: fn(values: i64[]) -> string {
 
 // The const holding one of `enum_type`'s tables, minted at its first read and
 // queued for `materialize_enum_tables`.
-enum_table_const :: fn(ctx: FnLowerCtx!, enum_type: EnumType, kind: EnumTableKind) -> Symbol {
+enum_table_const :: fn(ctx: FnLowerCtx, enum_type: EnumType, kind: EnumTableKind) -> Symbol {
     owner :: enum_type.symbol
     consts :: if kind == .Data { ctx.project.enum_data_consts } else { ctx.project.enum_value_consts }
     existing :: consts[owner.id]
@@ -151,7 +151,7 @@ enum_table_const :: fn(ctx: FnLowerCtx!, enum_type: EnumType, kind: EnumTableKin
 /// @error              C4001 when a variant's data is not a constant the data
 ///                     pool can bake.
 export materialize_enum_tables :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!, project: LoweredProject,
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
     for project_ctx.enum_table_cursor < project_ctx.enum_table_order.len() {
         due :: project_ctx.enum_table_order[project_ctx.enum_table_cursor]
@@ -176,7 +176,7 @@ export materialize_enum_tables :: fn(
 // The `<Enum>$data` const : each variant's data lowered as a literal of the
 // data struct, at its rank.
 lower_data_table :: fn(
-    decl: EnumDecl, due: EnumTable, typed: TypedProgram, project_ctx: LowerProjectCtx!,
+    decl: EnumDecl, due: EnumTable, typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> LoweredConstDecl! | null {
     data :: due.enum_type.data ?? return null
     table_type :: mk_array(data, true)
@@ -218,7 +218,7 @@ table_entry :: fn(decl: EnumDecl, due: EnumTable, typed: TypedProgram) = MonoEnt
     .symbol  = due.symbol,
 }
 
-table_decl :: fn(decl: EnumDecl, entry: MonoEntry, type: Type, elements: LoweredExpr![]!) = LoweredConstDecl {
+table_decl :: fn(decl: EnumDecl, entry: MonoEntry, type: Type, elements: LoweredExpr[]) = LoweredConstDecl {
     .mangled = entry.mangled,
     .type    = type,
     .value   = LoweredArrayLit { .span = decl.span, .type = type, .elements = elements },

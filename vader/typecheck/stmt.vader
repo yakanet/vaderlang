@@ -19,11 +19,11 @@ import "vader/types"
 /// `ctx` carries the surrounding fn's return type + loop depth ;
 /// pass `null` for stand-alone block exprs.
 export check_block :: fn(
-    block: AST.BlockExpr!,
+    block: AST.BlockExpr,
     expected: Type | null,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
-    ctx: FnContext! | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     // Track flow-narrowing pushed by divergent guards (`if x is T
@@ -99,10 +99,10 @@ export check_block :: fn(
 /// Type-check a single statement. Reads `ctx` for `return` / `break` /
 /// `continue` validation ; writes `local_types` for let-bindings.
 export check_stmt :: fn(
-    stmt: AST.Stmt!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
-    ctx: FnContext! | null,
+    stmt: AST.Stmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     match stmt {
@@ -263,7 +263,7 @@ expr_has_await :: fn(e: AST.Expr) -> bool = @partial match e {
 /// (plus a T3056 diagnostic) when the return type isn't a valid
 /// `Iterator<T>`. A function that `yield`s must honour it with an
 /// `Iterator<T>` return.
-generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]!) -> Type | null {
+generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) -> Type | null {
     if return_type is TraitType {
         if return_type.symbol.name == TRAIT_ITERATOR && return_type.args.len() > 0 {
             return return_type.args[0]
@@ -374,9 +374,9 @@ if_has_yield :: fn(i: AST.IfExpr) -> bool {
 /// the trailing-expr arm of `check_block`.
 export check_fn_body :: fn(
     fn_decl: AST.FnDecl,
-    body: AST.BlockExpr!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    body: AST.BlockExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
@@ -468,7 +468,7 @@ export check_fn_body :: fn(
     typed.current_fn_ctx = prev
 }
 
-patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram!) -> void {
+patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) -> void {
     sym :: lookup_decl_symbol_stmt(typed.resolved, fn_decl)
     match sym {
         is Symbol -> {
@@ -558,8 +558,8 @@ emit_return_mismatch_if :: fn(
     expected: Type,
     span: Span,
     value: AST.Expr | null,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void = emit_mismatch_if(got, expected, span, value, .BodyReturnIncompatible, typed, diags)
 
 // The one coercion gate shared by let / return / yield / assign : `got` flows
@@ -574,7 +574,7 @@ emit_return_mismatch_if :: fn(
 // `check_block`, tripping the emit-time field-access panic). The current
 // compiler handles the single-expr form fine; the seed does not. Leave it
 // brace-bodied until the seed is advanced past that inliner/interning bug.
-flows_into :: fn(got: Type, expected: Type, node_id: usize, typed: TypedProgram!) -> bool {
+flows_into :: fn(got: Type, expected: Type, node_id: usize, typed: TypedProgram) -> bool {
     if is_assignable(got, expected) {
         return true
     }
@@ -592,8 +592,8 @@ emit_mismatch_if :: fn(
     span: Span,
     value: AST.Expr | null,
     code: TypecheckCode,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     fits :: if value == null {
         is_assignable(got, expected)
@@ -603,14 +603,32 @@ emit_mismatch_if :: fn(
     if fits {
         return
     }
-    hint :: if value == null { "" } else { mutability_level_hint(value, got, expected, typed) }
+    if value == null {
+        diags.push(mismatch_diagnostic(got, expected, span, code, "", typed))
+        return
+    }
+    push_level_mismatch(got, expected, span, code, value, typed, diags)
+}
+
+/// Report `value`, of type `got`, failing its slot `expected` — unless the mismatch is a
+/// level a deduced `!` grants next round (`note_widening_need`).
+///
+/// @param code  the code the mismatch takes when it is not about mutability.
+export push_level_mismatch :: fn(
+    got: Type, expected: Type, span: Span, code: TypecheckCode, value: AST.Expr,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    if note_widening_need(value, got, expected, span, typed) {
+        return
+    }
+    hint :: mutability_level_hint(value, got, expected, typed)
     diags.push(mismatch_diagnostic(got, expected, span, code, hint, typed))
 }
 
 // Resolve the effective fn-context: the arg-side `ctx` when present, else the
 // walk-global `current_fn_ctx` (the recursive `infer_if` / `infer_match` paths
 // pass `ctx = null`, so the body's return / yield targets need this fallback).
-resolve_ctx :: fn(ctx: FnContext! | null, typed: TypedProgram) -> FnContext! | null {
+resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext! | null {
     if ctx != null {
         return ctx
     }
@@ -620,9 +638,9 @@ resolve_ctx :: fn(ctx: FnContext! | null, typed: TypedProgram) -> FnContext! | n
 // ---- per-stmt helpers -----------------------------------------------------
 
 check_let :: fn(
-    s: AST.LetStmt!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    s: AST.LetStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     ann: Type | null = null
@@ -632,6 +650,8 @@ check_let :: fn(
         // grants mutation (`out: i32[]! = []`). An UNANNOTATED local keeps the
         // inferred type — nothing was written, and a local is owned.
         ann = apply_readonly_default(type_from_expr(s.ty, typed.resolved, diags), s.ty)
+    } else if s.value is AST.LambdaExpr && s.binding is AST.SimpleBinding {
+        register_local_fn(s.value, s.binding.name, typed)
     }
     got :: check_expr_fn(s.value, ann, typed, diags)
     record_local_producer(s, typed)
@@ -641,9 +661,7 @@ check_let :: fn(
         _       -> {
             declared = ann
             if !flows_into(got, ann, s.value.id, typed) {
-                diags.push(mismatch_diagnostic(
-                    got, ann, s.span, .TypeMismatch,
-                    mutability_level_hint(s.value, got, ann, typed), typed))
+                push_level_mismatch(got, ann, s.span, .TypeMismatch, s.value, typed, diags)
             }
         }
     }
@@ -700,20 +718,21 @@ check_let :: fn(
 // Only a WHOLE-value rebind propagates. A tuple destructure takes elements APART,
 // and an element of an immutable aggregate is reached through the path predicate
 // already, so nothing is lost by not marking the leaves here.
-mark_binding_borrow :: fn(b: AST.LetBinding, value: AST.Expr, typed: TypedProgram!) -> void {
+mark_binding_borrow :: fn(b: AST.LetBinding, value: AST.Expr, typed: TypedProgram) -> void {
     if !expr_is_immutable(value, typed) {
         return
     }
     if b is AST.SimpleBinding {
         sym :: typed.resolved.idents[b.name_span.hash()] ?? return
         typed.resolved.immutable_borrows[sym.id] = true
+        typed.borrowed_from[sym.id] = value
     }
 }
 
 // `x := []` : remember which expression the `?[]` came from, so the first
 // `x.push(elem)` can widen the LITERAL as well as the local (see
 // `TypedProgram.empty_array_inits`).
-record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgram!) -> void {
+record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgram) -> void {
     if declared !is ArrayType {
         return
     }
@@ -729,9 +748,9 @@ record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgra
 import "vader/resolver/symbol"
 
 check_assign :: fn(
-    s: AST.AssignStmt!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    s: AST.AssignStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     // T3041 : bare-ident assignment to a `::`-bound local. Surface
@@ -771,6 +790,7 @@ check_assign :: fn(
         // the write fits it.
         slot :: index_write_slot(s.target, typed, diags, check_expr_fn) ?? return
         value_ty :: check_expr_fn(s.value, slot, typed, diags)
+        note_store_edge(s.target.target, s.value, value_ty, s.span, typed)
         emit_assign_mismatch_if(value_ty, slot, s.span, s.value, typed, diags)
         return
     }
@@ -835,11 +855,12 @@ emit_assign_mismatch_if :: fn(
     expected: Type | null,
     span: Span,
     value: AST.Expr,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     if expected == null                           { return }
     if flows_into(got, expected, value.id, typed) { return }
+    if note_widening_need(value, got, expected, span, typed) { return }
     // Both mutability families take the dedicated wording — "cannot assign A to a
     // slot of type B" says nothing when A and B differ only by a marker.
     bounds :: typed.type_param_bound_traits
@@ -867,9 +888,9 @@ emit_assign_mismatch_if :: fn(
 /// the element read, exactly as `arr[i]` is elsewhere. A `...rest` target
 /// receives a fresh array, so it asks for an array source.
 check_destructuring_assign :: fn(
-    s: AST.DestructureAssignStmt!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    s: AST.DestructureAssignStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     // `[] = v` — P1023 already reported it.
@@ -961,9 +982,9 @@ check_destructuring_assign :: fn(
 // takes its shape. An index place is a write : it offers what its receiver stores,
 // never what an `Index` read gives back — `check_destructure_target` judges it.
 place_slot :: fn(
-    place: AST.Expr!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    place: AST.Expr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     if place !is AST.IndexExpr {
@@ -1002,9 +1023,9 @@ destructure_element_types :: fn(value_ty: Type, count: usize) -> Type[] | null {
 // (`dispatched_index_args`) or of its own impl. Null when the receiver is
 // unresolved or the write is refused — reported.
 index_write_slot :: fn(
-    ix: AST.IndexExpr!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    ix: AST.IndexExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type | null {
     set_trait :: core_trait_key(TRAIT_INDEX_SET)
@@ -1059,7 +1080,7 @@ index_write_slot :: fn(
 // The slot an element write into an array fills : the backing's element, recorded
 // on `ix` — never what a distinct's own `Index` would read there (`index_route`).
 array_write_slot :: fn(
-    ix: AST.IndexExpr, arr: ArrayType, index_ty: Type, typed: TypedProgram!, diags: Diagnostic[]!,
+    ix: AST.IndexExpr, arr: ArrayType, index_ty: Type, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     if !is_integer_index(index_ty) && index_ty !is UnresolvedType {
         diags.push(typecheck_error(.TypeMismatch, ix.index.span,
@@ -1073,10 +1094,10 @@ array_write_slot :: fn(
 /// assignment would: a `::` local is still frozen, an immutable path is still
 /// closed, and the element type must fit the slot.
 check_destructure_target :: fn(
-    target: AST.Expr!,
+    target: AST.Expr,
     elem_ty: Type,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     if target is AST.IdentExpr {
@@ -1151,13 +1172,41 @@ is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
 ///                   has no meaningful value left to type.
 push_immutability_diag_for :: fn(
     immutable: bool, code: TypecheckCode, span: Span, message: string,
-    value: AST.Expr, typed: TypedProgram, diags: Diagnostic[]!,
+    value: AST.Expr, typed: TypedProgram, diags: Diagnostic[],
 ) -> bool {
     if !immutable {
         return false
     }
-    diags.push(typecheck_error(code, span, message + mutation_fix_hint(value, typed)))
+    return refuse_rights(code, span, message, value, "it is written through here", typed, diags)
+}
+
+/// Report that `value` lacks the rights it needs here — T3042, T3070, T3071, T3072 —
+/// unless a `!` the next round deduces lifts the refusal (`note_param_need`). A lifted
+/// refusal is reported by no round : the caller goes on as if allowed, and the next
+/// round checks the rest against the marked parameter.
+///
+/// @param detail  what is refused ; the fix hint follows it.
+/// @param value   the value whose rights fall short.
+/// @param what    what happens to `value` here, as a deduced mark's cause words it.
+/// @return        whether the refusal is reported.
+refuse_rights :: fn(
+    code: TypecheckCode, span: Span, detail: string, value: AST.Expr, what: string,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> bool {
+    if note_param_need(value, span, what, typed) {
+        return false
+    }
+    report_refusal(code, span, detail, value, typed, diags)
     return true
+}
+
+// Report a rights refusal no deduced `!` lifts — `refuse_rights`' second half, for a
+// caller whose detail is worth building only once `note_param_need` has said no.
+report_refusal :: fn(
+    code: TypecheckCode, span: Span, detail: string, value: AST.Expr, typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    diags.push(typecheck_error(code, span, detail + mutation_fix_hint(value, typed)))
 }
 
 /// `annotate \`<field>!\` at <where its type is written>` when `e` reaches through
@@ -1199,7 +1248,7 @@ annotate_hint :: fn(root_param: Symbol | null) -> string {
 
 // Remember what produced a local's value — a call, a field path, an element — so a
 // fix hint can name the declaration that hands it out.
-record_local_producer :: fn(s: AST.LetStmt, typed: TypedProgram!) -> void {
+record_local_producer :: fn(s: AST.LetStmt, typed: TypedProgram) -> void {
     // Positive form throughout : an `as` binding does not survive a negated `is`.
     if s.binding is AST.SimpleBinding as sb {
         local_sym :: typed.resolved.idents[sb.name_span.hash()] ?? return
@@ -1465,10 +1514,7 @@ call_return_hint :: fn(call: AST.CallExpr, typed: TypedProgram) -> string {
     if result != null && type_grants_mutation(result) {
         return ""
     }
-    decl: AST.FnDecl | null = callee_decl(call, typed)
-    if decl == null {
-        decl = chosen_impl_decl(typed, call.callee.id)
-    }
+    decl :: called_decl(call, typed)
     if decl != null {
         rt :: decl.return_type ?? return ""
         return " — annotate the return of `${decl.name}` at ${where_of(rt.span)}"
@@ -1667,9 +1713,13 @@ walk_levels :: fn(e: AST.Expr, typed: TypedProgram, budget: i32) -> bool {
 }
 
 // A conversion `T(x)` of a value that holds a reference re-types that same
-// reference, so it is as read-only as `x`. A scalar converts to a copy, which no
-// path can freeze.
-converted_is_immutable :: fn(c: AST.CallExpr, typed: TypedProgram, budget: i32) -> bool {
+// reference, so it is as read-only as `x`.
+converted_is_immutable :: fn(c: AST.CallExpr, typed: TypedProgram, budget: i32) -> bool =
+    retypes_reference(c, typed) && walk_levels(c.args[0].value, typed, budget)
+
+// Whether `c` is a conversion `T(x)` of a value that holds a reference : it re-types
+// that same reference. A scalar converts to a copy, which no path can freeze.
+retypes_reference :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
     if c.args.len() != 1 {
         return false
     }
@@ -1678,8 +1728,7 @@ converted_is_immutable :: fn(c: AST.CallExpr, typed: TypedProgram, budget: i32) 
         return false
     }
     converted :: typed.expr_types[c.args[0].value.id] ?? return false
-    return carries_mutability_bit(strip_distinct(converted)) &&
-        walk_levels(c.args[0].value, typed, budget)
+    return carries_mutability_bit(strip_distinct(converted))
 }
 
 ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32) -> bool {
@@ -1736,7 +1785,7 @@ export has_mutable_const_storage :: fn(t: Type | null) -> bool {
 // contribution is recording the loop var's Symbol in `idents` so it can be reached
 // from here. Runs before the body is checked, so uses inside see the mark.
 mark_loop_var_borrow :: fn(
-    nv: AST.NamedVar, iter: AST.Expr, elem: Type, typed: TypedProgram!,
+    nv: AST.NamedVar, iter: AST.Expr, elem: Type, typed: TypedProgram,
 ) -> void {
     sym :: typed.resolved.idents[nv.span.hash()] ?? return
     // Recorded for EVERY loop variable — see `loop_var_iterable`'s doc for why the
@@ -1768,7 +1817,7 @@ reject_index_write_receiver :: fn(
     arr: ArrayType | null,
     write_span: Span,
     typed: TypedProgram,
-    diags: Diagnostic[]!,
+    diags: Diagnostic[],
 ) -> bool {
     if arr == null {
         return reject_driving_immutable(
@@ -1776,11 +1825,11 @@ reject_index_write_receiver :: fn(
         )
     }
     if arr.immutable {
-        diags.push(typecheck_error(
-            .CannotMutateImmutableArray,
-            receiver.span,
-            "cannot mutate `${display_type(receiver_ty)}`" + mutation_fix_hint(receiver, typed),
-        ))
+        if note_param_need(receiver, receiver.span, "an element of it is written here", typed) {
+            return false
+        }
+        detail :: "cannot mutate `${display_type(receiver_ty)}`"
+        report_refusal(.CannotMutateImmutableArray, receiver.span, detail, receiver, typed, diags)
         return true
     }
     return push_immutable_path_write(receiver, write_span, typed, diags)
@@ -1790,17 +1839,17 @@ reject_index_write_receiver :: fn(
 // reached through an immutable path ; the read-only `T[]` case keeps T3042's more
 // specific wording.
 push_immutable_path_write :: fn(
-    target: AST.Expr, span: Span, typed: TypedProgram, diags: Diagnostic[]!,
+    target: AST.Expr, span: Span, typed: TypedProgram, diags: Diagnostic[],
 ) -> bool = push_immutability_diag_for(
     expr_is_immutable(target, typed), .CannotMutateImmutableBinding, span,
     "this element is reached through an immutable path", target, typed, diags,
 )
 
 check_return :: fn(
-    s: AST.ReturnStmt!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
-    ctx: FnContext! | null,
+    s: AST.ReturnStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     effective :: resolve_ctx(ctx, typed)
@@ -1851,10 +1900,10 @@ check_return :: fn(
 }
 
 check_yield :: fn(
-    s: AST.YieldStmt!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
-    ctx: FnContext! | null,
+    s: AST.YieldStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     effective :: resolve_ctx(ctx, typed)
@@ -1885,10 +1934,10 @@ check_yield :: fn(
 }
 
 check_for :: fn(
-    s: AST.ForStmt!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
-    ctx: FnContext! | null,
+    s: AST.ForStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     binding: string | null = null
@@ -1985,9 +2034,9 @@ check_loop_jump :: fn(
     span: Span,
     jump_id: usize,
     label: string | null,
-    typed: TypedProgram!,
-    ctx: FnContext! | null,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    ctx: FnContext | null,
+    diags: Diagnostic[],
 ) -> void {
     // A bare `break`/`continue` targets the innermost loop (no diagnostic — reader
     // clarity is served by the LSP go-to-loop). A `break <name>` must resolve to an
@@ -2075,10 +2124,10 @@ resolve_loop_target :: fn(stack: EnclosingLoop[], name: string) -> EnclosingLoop
 }
 
 check_defer :: fn(
-    s: AST.DeferStmt!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
-    ctx: FnContext! | null,
+    s: AST.DeferStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     // `defer` inside a generator is still forbidden in v1 — a generator can be
@@ -2104,7 +2153,7 @@ check_defer :: fn(
     return
 }
 
-outside_loops :: fn(ctx: FnContext! | null) -> FnContext! | null {
+outside_loops :: fn(ctx: FnContext | null) -> FnContext! | null {
     if ctx is null {
         return null
     }
@@ -2113,7 +2162,7 @@ outside_loops :: fn(ctx: FnContext! | null) -> FnContext! | null {
 
 // ---- support --------------------------------------------------------------
 
-bump_loop_depth :: fn(ctx: FnContext! | null) -> FnContext! | null {
+bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext! | null {
     if ctx is null {
         return null
     }
@@ -2149,8 +2198,8 @@ DivergentNarrow :: struct {
 // this by requiring the then-block's last stmt to be a `ReturnStmt`.
 push_divergent_narrow_if :: fn(
     stmt: AST.Stmt,
-    typed: TypedProgram!,
-    stack: DivergentNarrow[]!,
+    typed: TypedProgram,
+    stack: DivergentNarrow[],
 ) -> void {
     if stmt !is AST.ExprStmt    { return }
     if stmt.expr !is AST.IfExpr { return }
@@ -2165,7 +2214,7 @@ push_divergent_narrow_if :: fn(
 // EVERY operand was false. Subtraction composes — pushing them in sequence, each
 // detected against the narrowing the previous one left, lands on the same type as
 // subtracting their union at once — so no grouping is needed.
-push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram!, stack: DivergentNarrow[]!) -> void {
+push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram, stack: DivergentNarrow[]) -> void {
     if cond is AST.BinaryExpr {
         if cond.op == .Or {
             push_guard_narrows(cond.left, typed, stack)
@@ -2508,13 +2557,12 @@ INDEX_WRITE_DETAIL :: "an index write mutates this receiver through `set_at`"
 // `IndexSet.set_at`. A read-only value cannot be driven. True when reported.
 reject_driving_immutable :: fn(
     e: AST.Expr, ty: Type, trait_name: string, detail: string,
-    typed: TypedProgram, diags: Diagnostic[]!,
+    typed: TypedProgram, diags: Diagnostic[],
 ) -> bool {
     if !drives_in_place(ty, trait_name, typed) || !value_is_read_only(e, ty, typed) {
         return false
     }
-    push_mutating_on_immutable(e, e.span, detail, typed, diags)
-    return true
+    return push_mutating_on_immutable(e, e.span, detail, typed, diags)
 }
 
 // Whether the form calls the member on `t` itself : an array is walked by index and
@@ -2635,8 +2683,8 @@ lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
 export assign_binding_types :: fn(
     b: AST.LetBinding,
     declared: Type,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     match b {
         is AST.SimpleBinding   -> { typed.local_types[b.name_span.hash()] = declared }
@@ -2649,8 +2697,8 @@ export assign_binding_types :: fn(
 assign_tuple :: fn(
     tb: AST.TupleBinding,
     declared: Type,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     // A tuple- or array-backed distinct newtype (`Coord :: [i32, i32]`,
     // `BigInt :: u32[]`) destructures through its backing composite — the

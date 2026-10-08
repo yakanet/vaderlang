@@ -1,18 +1,19 @@
 // A body that can mutate through `T` (`T: Bump!`) cannot store a read-only `T`
 // where it may mutate it later. T3072, as for a `Cfg`. Under an unmarked bound the
-// value is stored as it came.
+// value is stored as it came. The stored value is a callback's parameter, which the
+// callback's type lends read-only.
 module "snippet"
 
 Bump :: trait {
     bump :: fn(self!) -> void
 }
 
-launder :: fn<T: Bump!>(x: T, xs: T[]!) -> void {
+launder :: fn<T: Bump!>(xs: T[]) -> fn(T) -> void = (x: T) -> {
     xs.push(x)
     xs[0].bump()
 }
 
-keep :: fn<T>(x: T, xs: T[]!) -> void {
+keep :: fn<T>(xs: T[]) -> fn(T) -> void = (x: T) -> {
     xs.push(x)
 }
 

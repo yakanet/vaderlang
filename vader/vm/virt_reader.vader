@@ -137,7 +137,7 @@ parse_int_list :: fn(csv: string) -> i32[]! {
 /// @param cleaned  the .virt line, already comment-stripped.
 /// @param strings  the module-wide string pool, appended to in place.
 /// @return         `null` when a string was appended, else why it could not be.
-parse_string_decl :: fn(cleaned: string, strings: string[]!) -> DirectiveError | null {
+parse_string_decl :: fn(cleaned: string, strings: string[]) -> DirectiveError | null {
     after :: cleaned.bytes()["string ".bytes().len()..<cleaned.bytes().len()].bytes_to_string()
     first_quote :: after.index_of('"', 0)
     if first_quote < 0 {
@@ -206,7 +206,7 @@ read_fn_mangled_name :: fn(cleaned: string) -> string {
 ///                 helpers that re-parse args like the branch label.
 /// @param head     the line's pre-computed head token (see `head_of`).
 /// @param pc       the pc that was just emitted (= `state.ops.len() - 1`).
-wire_control_flow :: fn(state: ParserState!, cleaned: string, head: string, pc: i32) -> void {
+wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i32) -> void {
     if head == "block" {
         push_scope(state.scopes, state.scope_sp, ScopeEntry { .label = first_token_after(cleaned, "block "), .is_loop = false, .opener_pc = pc })
     } else if head == "loop" {

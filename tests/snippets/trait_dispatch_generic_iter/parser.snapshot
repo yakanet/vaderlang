@@ -81,8 +81,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             }
           ],
           "returnType": {
@@ -285,8 +284,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             }
           ],
           "returnType": {
@@ -398,20 +396,17 @@
         {
           "name": "it",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "Iterator"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "Iterator"
-              },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
-              ]
-            }
+                "name": "i32"
+              }
+            ]
           },
           "defaultValue": null,
           "variadic": false

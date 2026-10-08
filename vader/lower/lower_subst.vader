@@ -366,7 +366,7 @@ collect_impl_type_param_names :: fn(impl_decl: ImplDecl) -> string[] {
 /// WHEN `kept_argument` keeps it (so the materialised body sees `K = i32` and
 /// primitive trait dispatch devirtualises), else to `Any`. `names[i]` corresponds to `args[i]`.
 map_type_params_mixed :: fn(
-    impls: ImplRegistry, subst: Substitution!, scope: Symbol[], names: string[], args: Type[],
+    impls: ImplRegistry, subst: Substitution, scope: Symbol[], names: string[], args: Type[],
 ) -> void {
     for s in scope {
         if s.kind != .TypeParam { continue }

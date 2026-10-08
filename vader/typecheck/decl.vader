@@ -37,10 +37,10 @@ import "toolchain/span"
 /// the sorted `resolved.symbols` array N times.
 export declare_module :: fn(
     program_decls: AST.Decl[],
-    resolved: ResolvedModule!,
-    typed: TypedProgram!,
-    factory: SymbolFactory!,
-    diags: Diagnostic[]!,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    factory: SymbolFactory,
+    diags: Diagnostic[],
 ) -> void {
     by_name :: MutableMap<string, Symbol> {}
     for s in resolved.symbols {
@@ -55,7 +55,7 @@ export declare_module :: fn(
 register_deprecated :: fn(
     decl: AST.Decl,
     by_name: MutableMap<string, Symbol>,
-    resolved: ResolvedModule!,
+    resolved: ResolvedModule,
 ) -> void {
     name :: decorated_decl_name(decl)
     if name == "" {
@@ -117,10 +117,10 @@ deprecated_message :: fn(decs: AST.Decorator[]) -> string | null {
 declare_decl :: fn(
     decl: AST.Decl,
     by_name: MutableMap<string, Symbol>,
-    resolved: ResolvedModule!,
-    typed: TypedProgram!,
-    factory: SymbolFactory!,
-    diags: Diagnostic[]!,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    factory: SymbolFactory,
+    diags: Diagnostic[],
 ) -> void {
     match decl {
         is AST.FnDecl     -> { declare_fn(decl, by_name, resolved, typed, diags) }
@@ -206,9 +206,9 @@ declare_named_with_args :: fn(
     name_span: Span,
     type_params: AST.TypeParam[],
     by_name: MutableMap<string, Symbol>,
-    typed: TypedProgram!,
+    typed: TypedProgram,
     module_path: string,
-    factory: SymbolFactory!,
+    factory: SymbolFactory,
     mk: fn(Symbol, Type[]) -> Type,
 ) -> void {
     sym :: by_name[name] ?? return
@@ -226,8 +226,8 @@ declare_fn :: fn(
     decl: AST.FnDecl,
     by_name: MutableMap<string, Symbol>,
     resolved: ResolvedModule,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     params: Type[]!: []
     for p in decl.params {
@@ -304,7 +304,7 @@ report_private_leak :: fn(
     span: Span,
     owner_name: string,
     role: string,
-    diags: Diagnostic[]!,
+    diags: Diagnostic[],
 ) -> void {
     leak :: first_unexported_type(ty) ?? return
     diags.push(
@@ -324,7 +324,7 @@ check_public_fn_visibility :: fn(
     decl: AST.FnDecl,
     params: Type[],
     return_type: Type,
-    diags: Diagnostic[]!,
+    diags: Diagnostic[],
 ) -> void {
     if decl.visibility != .Public {
         return
@@ -500,7 +500,7 @@ param_has_c_pointer :: fn(pm: AST.FnParam) -> bool {
 /// @param decl       the fn whose parameters to check.
 /// @param is_extern  whether the declaration carries `@extern`.
 /// @param diags      accumulator for T3079.
-validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagnostic[]!) -> void {
+validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagnostic[]) -> void {
     for pm in decl.params {
         for d in pm.decorators {
             if d.name != "c_pointer" {
@@ -544,8 +544,8 @@ validate_mirror_fields :: fn(
     t: Type,
     span: Span,
     typed: TypedProgram,
-    seen: MutableSet<i32>!,
-    diags: Diagnostic[]!,
+    seen: MutableSet<i32>,
+    diags: Diagnostic[],
 ) -> void {
     if t !is StructType {
         return
@@ -594,8 +594,8 @@ validate_extern :: fn(
     decl: AST.FnDecl,
     params: Type[],
     return_type: Type,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     if decl.body !is null {
         diags.push(
@@ -985,7 +985,7 @@ check_main_signature :: fn(
     decl: AST.FnDecl,
     params: Type[],
     return_type: Type,
-    diags: Diagnostic[]!,
+    diags: Diagnostic[],
 ) -> void {
     if !is_primitive_named(return_type, "i32") {
         diags.push(typecheck_error(.InvalidMainSignature, decl.span, "main must return i32"))
@@ -1020,8 +1020,8 @@ is_primitive_named :: fn(t: Type, name: string) -> bool {
 declare_fn_param :: fn(
     p: AST.FnParam,
     resolved: ResolvedModule,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type {
     ty :: p.ty
     if ty == null {
@@ -1051,7 +1051,7 @@ declare_fn_param :: fn(
 declare_fn_return :: fn(
     decl: AST.FnDecl,
     resolved: ResolvedModule,
-    diags: Diagnostic[]!,
+    diags: Diagnostic[],
 ) -> Type {
     rt :: decl.return_type
     if rt == null {
@@ -1071,9 +1071,9 @@ declare_fn_return :: fn(
 declare_enum :: fn(
     decl: AST.EnumDecl,
     by_name: MutableMap<string, Symbol>,
-    resolved: ResolvedModule!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     sym :: by_name[decl.name]
     if sym is Symbol {
@@ -1085,9 +1085,9 @@ declare_enum :: fn(
 
 declare_type_alias :: fn(
     decl: AST.TypeAliasDecl,
-    resolved: ResolvedModule!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     aliased :: type_from_expr(decl.aliased, resolved, diags)
     // Index by alias symbol id ; `decl_types` and `alias_types` share
@@ -1103,9 +1103,9 @@ declare_type_alias :: fn(
 
 declare_const :: fn(
     decl: AST.ConstDecl,
-    resolved: ResolvedModule!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     sym :: lookup_sym_by_name(resolved, decl.name) ?? return
     typed.const_decls[sym.id] = decl
@@ -1148,7 +1148,7 @@ declare_const :: fn(
 // non-array const: a bare struct or map isn't pooled at all, so there is no storage
 // to make writable. T3076.
 reject_mutable_module_const :: fn(
-    ty: Type, annotation: AST.TypeExpr, diags: Diagnostic[]!,
+    ty: Type, annotation: AST.TypeExpr, diags: Diagnostic[],
 ) -> void {
     // Keyed on the WRITTEN marker, never on `type_is_immutable` : a primitive
     // carries no mutability bit, so `type_is_immutable(i32)` is false and every
@@ -1191,7 +1191,7 @@ reject_mutable_module_const :: fn(
 // every read shares. See ADR 0034. A marker T3076 refuses is not reported twice ;
 // T3076 reads the annotation's array and tuple levels, not a type argument's.
 reject_const_reaching_mutable_level :: fn(
-    cd: AST.ConstDecl, value_ty: Type, typed: TypedProgram, diags: Diagnostic[]!,
+    cd: AST.ConstDecl, value_ty: Type, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     written :: cd.ty
     if written != null && marks_unstorable(written) {
@@ -1215,7 +1215,7 @@ reject_const_reaching_mutable_level :: fn(
 // mutable level below its own — its own level being frozen, or the storable
 // `X: T[]!`. `advice` ends the detail.
 report_mutable_level :: fn(
-    subject: string, t: Type, advice: string, span: Span, typed: TypedProgram, diags: Diagnostic[]!,
+    subject: string, t: Type, advice: string, span: Span, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     level :: mutable_level_below(t, typed, MutableSet<i32> {}) ?? return
     detail :: "${subject} is `${display_type(t)}`, and ${level} — ${advice}"
@@ -1228,7 +1228,7 @@ report_mutable_level :: fn(
 // the declared fields are finite where a substituted walk is not
 // (`Nest<T> { deeper: Nest<T[]> }`).
 mutable_level_below :: fn(
-    t: Type, typed: TypedProgram, seen: MutableSet<i32>!,
+    t: Type, typed: TypedProgram, seen: MutableSet<i32>,
 ) -> string | null = match t {
     is StructType   -> struct_mutable_level(t, typed, seen)
     is ArrayType    -> level_at(t.element, "an element is", typed, seen)
@@ -1243,7 +1243,7 @@ mutable_level_below :: fn(
 // `part`, as the level `what` names, when it grants mutation ; else the first such
 // level below it.
 level_at :: fn(
-    part: Type, what: string, typed: TypedProgram, seen: MutableSet<i32>!,
+    part: Type, what: string, typed: TypedProgram, seen: MutableSet<i32>,
 ) -> string | null {
     if type_grants_mutation(part) {
         return "${what} `${display_type(part)}`"
@@ -1252,7 +1252,7 @@ level_at :: fn(
 }
 
 struct_mutable_level :: fn(
-    t: StructType, typed: TypedProgram, seen: MutableSet<i32>!,
+    t: StructType, typed: TypedProgram, seen: MutableSet<i32>,
 ) -> string | null {
     in_args :: first_mutable_level(t.args, "a type argument of `${t.symbol.name}` is", typed, seen)
     if in_args != null {
@@ -1272,7 +1272,7 @@ struct_mutable_level :: fn(
 }
 
 first_mutable_level :: fn(
-    parts: Type[], what: string, typed: TypedProgram, seen: MutableSet<i32>!,
+    parts: Type[], what: string, typed: TypedProgram, seen: MutableSet<i32>,
 ) -> string | null {
     for part in parts {
         found :: level_at(part, what, typed, seen) ?? continue
@@ -1380,7 +1380,7 @@ lookup_sym_by_name :: fn(resolved: ResolvedModule, name: string) -> Symbol | nul
 /// @return          the enum type ; a malformed header still yields one,
 ///                  backed by `i32`, so the rest of the module keeps checking.
 export build_enum_type :: fn(
-    sym: Symbol, decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[]!,
+    sym: Symbol, decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
     header :: classify_enum_header(decl, resolved, diags)
     if header.data != null {
@@ -1401,7 +1401,7 @@ export build_enum_type :: fn(
 // table directly ; the written values move to `values`, read by a conversion
 // to an integer. The width, written or inferred, holds the ranks.
 build_data_enum_type :: fn(
-    sym: Symbol, decl: AST.EnumDecl, header: EnumHeader, diags: Diagnostic[]!,
+    sym: Symbol, decl: AST.EnumDecl, header: EnumHeader, diags: Diagnostic[],
 ) -> EnumType {
     written :: resolve_enum_indices(decl, "i64", diags)
     ranks :: MutableMap<string, i64> {}
@@ -1433,7 +1433,7 @@ EnumHeader :: struct {
 
 // A lone argument is the data when it is a struct and the width otherwise ;
 // two arguments are `(data, width)`.
-classify_enum_header :: fn(decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[]!) -> EnumHeader {
+classify_enum_header :: fn(decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[]) -> EnumHeader {
     if decl.header.len() == 0 {
         return EnumHeader {}
     }
@@ -1454,7 +1454,7 @@ classify_enum_header :: fn(decl: AST.EnumDecl, resolved: ResolvedModule, diags: 
 }
 
 // The integer a width names — directly, or through a distinct over one.
-enum_width :: fn(ty: Type, written: AST.TypeExpr, diags: Diagnostic[]!) -> string {
+enum_width :: fn(ty: Type, written: AST.TypeExpr, diags: Diagnostic[]) -> string {
     backing :: strip_distinct(ty)
     if backing is PrimitiveType && is_int_name(backing.name) {
         return backing.name

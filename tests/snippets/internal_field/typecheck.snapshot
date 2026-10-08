@@ -4,11 +4,11 @@
   FnDecl         bump                 :: fn(Counter!) -> void
   StructDecl     Counter              :: Counter!
   FnDecl         main                 :: fn() -> i32
-  expr 17:35    FieldExpr      :: i32
-  expr 17:35    IdentExpr      :: Counter!
-  expr 17:45    BinaryExpr     :: i32
-  expr 17:45    FieldExpr      :: i32
-  expr 17:45    IdentExpr      :: Counter!
+  expr 17:34    FieldExpr      :: i32
+  expr 17:34    IdentExpr      :: Counter!
+  expr 17:44    BinaryExpr     :: i32
+  expr 17:44    FieldExpr      :: i32
+  expr 17:44    IdentExpr      :: Counter!
   expr 20:10    StructLitExpr  :: Counter!
   expr 20:29    StringLitExpr  :: string
   expr 21:10    IdentExpr      :: Counter!

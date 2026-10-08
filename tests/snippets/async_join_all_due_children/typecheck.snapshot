@@ -12,7 +12,7 @@
   expr 20:16    CallExpr       :: null | Suspended
   expr 20:16    FieldExpr      :: Async<null>!
   expr 20:16    FieldExpr      :: fn() -> null | Suspended
-  expr 20:16    IdentExpr      :: Counted!
+  expr 20:16    IdentExpr      :: Counted
   expr 25:14    RangeExpr      :: Range<i32>!
   expr 26:15    StructLitExpr  :: Counted!
   expr 26:34    CallExpr       :: Async<null>!

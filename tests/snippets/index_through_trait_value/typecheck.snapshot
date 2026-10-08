@@ -15,7 +15,7 @@
   expr 18:9     CallExpr       :: void
   expr 18:9     FieldExpr      :: fn(string) -> void
   expr 18:9     FieldExpr      :: string[]!
-  expr 18:9     IdentExpr      :: Log!
+  expr 18:9     IdentExpr      :: Log
   expr 23:11    StringLitExpr  :: string
   expr 23:5     IdentExpr      :: IndexSet<string, i32>!
   expr 24:18    StringLitExpr  :: string

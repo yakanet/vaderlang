@@ -91,7 +91,7 @@ fn_value_resolves :: fn(r: CfgResolution, target: Symbol) -> bool =
 ///                 into every detail so the report names the producer
 ///                 rather than the verifier.
 /// @param diags    accumulator ; violations are pushed as `I7xxx` errors.
-export verify_cfg :: fn(project: CFGProject, after: string, diags: Diagnostic[]!) -> void {
+export verify_cfg :: fn(project: CFGProject, after: string, diags: Diagnostic[]) -> void {
     resolution :: build_cfg_resolution(project)
     for [_module_id, m] in project.modules {
         for f in m.functions { verify_cfg_function(f, resolution, after, diags) }
@@ -99,7 +99,7 @@ export verify_cfg :: fn(project: CFGProject, after: string, diags: Diagnostic[]!
 }
 
 verify_cfg_function :: fn(
-    fn_: CFGFunction, resolution: CfgResolution, after: string, diags: Diagnostic[]!,
+    fn_: CFGFunction, resolution: CfgResolution, after: string, diags: Diagnostic[],
 ) -> void {
     where :: "after `${after}`, in `${fn_.mangled}`"
 
@@ -134,7 +134,7 @@ verify_cfg_function :: fn(
 // body from the terminator, and the mismatch surfaces as a stack-depth ICE in a
 // different function, or not at all.
 verify_return_arity :: fn(
-    fn_: CFGFunction, reachable: MutableSet<BlockId>, where: string, diags: Diagnostic[]!,
+    fn_: CFGFunction, reachable: MutableSet<BlockId>, where: string, diags: Diagnostic[],
 ) -> void {
     // A scalarised fn hands back its elements ; every other fn hands back one
     // value, or none when it returns void.
@@ -176,7 +176,7 @@ verify_return_arity :: fn(
 // block's `id` must equal its index : `predecessors_of` and the emitter both
 // index `blocks` by id, so a mismatch silently reads the wrong block.
 // Returns false when any id is broken, which disables the reachability walk.
-verify_block_ids :: fn(fn_: CFGFunction, where: string, diags: Diagnostic[]!) -> bool {
+verify_block_ids :: fn(fn_: CFGFunction, where: string, diags: Diagnostic[]) -> bool {
     block_count :: i32(fn_.blocks.len())
     ok: bool = true
     for i in 0..<fn_.blocks.len() {
@@ -205,7 +205,7 @@ verify_block_ids :: fn(fn_: CFGFunction, where: string, diags: Diagnostic[]!) ->
 // itself one of the things a broken pass can violate. A cheap check that never
 // false-positives beats a precise one that fires on its own broken input.
 verify_locals :: fn(
-    fn_: CFGFunction, reachable: MutableSet<BlockId>, where: string, diags: Diagnostic[]!,
+    fn_: CFGFunction, reachable: MutableSet<BlockId>, where: string, diags: Diagnostic[],
 ) -> void {
     local_count :: i32(fn_.locals.len())
     written :: MutableSet<LocalId> {}
@@ -264,7 +264,7 @@ verify_locals :: fn(
 // file header explains why the call chain and the fn-as-value chain differ.
 verify_fn_references :: fn(
     fn_: CFGFunction, resolution: CfgResolution, reachable: MutableSet<BlockId>,
-    where: string, diags: Diagnostic[]!,
+    where: string, diags: Diagnostic[],
 ) -> void {
     for b in fn_.blocks {
         if !reachable.contains(b.id) { continue }

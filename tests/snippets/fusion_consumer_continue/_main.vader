@@ -150,7 +150,7 @@ chars_indexed_continue :: fn() -> void {
 
 spread :: fn(x: i32) -> i32[] = [10 * x, 10 * x + 1]
 
-drop_odd :: fn(self: Iterator<i32>!) -> Iterator<i32> {
+drop_odd :: fn(self: Iterator<i32>) -> Iterator<i32> {
     for x in self {
         if x % 2 == 1 {
             continue

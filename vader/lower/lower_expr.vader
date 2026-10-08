@@ -43,7 +43,7 @@ lower_char_lit :: fn(e: CharLitExpr, ty: Type) -> LoweredExpr! {
     return LoweredCharLit { .span = e.span, .type = mk_primitive("char"), .value = e.value }
 }
 
-export lower_expr :: fn(ctx: FnLowerCtx!, expr: Expr) -> LoweredExpr! {
+export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr! {
     if !ctx.bound_operands.is_empty() {
         bound :: ctx.bound_operands[expr.id]
         if bound != null {
@@ -202,7 +202,7 @@ resolver_reported_at :: fn(ctx: FnLowerCtx, span: Span) -> bool {
     return false
 }
 
-lower_ident :: fn(ctx: FnLowerCtx!, ident: IdentExpr, type: Type) -> LoweredExpr! {
+lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr! {
     symbol :: resolve_ident(ctx, ident.span)
     match symbol {
         is null -> {
@@ -310,7 +310,7 @@ lower_ident :: fn(ctx: FnLowerCtx!, ident: IdentExpr, type: Type) -> LoweredExpr
 /// symbol (a `LoweredIdent`, which emit turns into a FnRef), mirroring the
 /// direct-ident fn-value path in `lower_ident`. Returns null for non-fn members
 /// (a const is handled by `try_lower_namespace_const` ; a type-as-value is exotic).
-try_lower_namespace_fn_value :: fn(ctx: FnLowerCtx!, e: FieldExpr, type: Type) -> LoweredExpr! | null {
+try_lower_namespace_fn_value :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> LoweredExpr! | null {
     ns :: as_namespace_binding(ctx, e.target) ?? return null
     member :: resolve_namespace_member(ctx, ns, e.field)
     if member.kind != .Fn { return null }
@@ -360,7 +360,7 @@ lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue
 // Caller gates on `resolved.kind == Const` (the hot-path read of every
 // local / param shouldn't pay the module lookups below). Returns null when the
 // decl can't be located or its RHS isn't foldable (caller keeps its path).
-try_fold_unbaked_const :: fn(ctx: FnLowerCtx!, resolved: Symbol, type: Type) -> LoweredExpr! | null {
+try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> LoweredExpr! | null {
     owner_loaded :: ctx.project.loaded.modules[resolved.module] ?? return null
     owner_typed :: ctx.project.evaluated.typed.modules[resolved.module] ?? return null
     const_decl :: find_const_decl_by_name(module_decls(owner_loaded), resolved.name) ?? return null
@@ -537,7 +537,7 @@ declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
 }
 
 try_lower_common_union_field :: fn(
-    ctx: FnLowerCtx!, expr: FieldExpr, expr_type: Type, target_type: Type, field_name: string,
+    ctx: FnLowerCtx, expr: FieldExpr, expr_type: Type, target_type: Type, field_name: string,
 ) -> LoweredExpr! | null {
     if target_type is UnionType {
         if target_type.variants.len() == 0 { return null }
@@ -569,7 +569,7 @@ try_lower_common_union_field :: fn(
 // pointer once the use is a field access. The narrowing is then a cast over the
 // value, exactly as an uncaptured slot does in `lower_ident`.
 cell_value :: fn(
-    ctx: FnLowerCtx, symbol: Symbol, cell_ref: LoweredExpr!, span: Span, use_type: Type,
+    ctx: FnLowerCtx, symbol: Symbol, cell_ref: LoweredExpr, span: Span, use_type: Type,
 ) -> LoweredExpr! {
     stored :: read_type(declared_type_of_symbol(ctx, symbol), use_type)
     got :: LoweredCellGet {
@@ -588,7 +588,7 @@ read_type :: fn(declared: Type | null, use_type: Type) -> Type {
 // `value`, read at `read`, as the use of type `use_type` sees it: a cast to the
 // variant a narrowed use names. Only a union is read at a type other than the use's
 // (`read_type`).
-as_use :: fn(span: Span, value: LoweredExpr!, read: Type, use_type: Type) -> LoweredExpr! {
+as_use :: fn(span: Span, value: LoweredExpr, read: Type, use_type: Type) -> LoweredExpr! {
     if read !is UnionType || equals_type(read, use_type) {
         return value
     }
@@ -618,7 +618,7 @@ try_route_through_env :: fn(
 // The `is null` test runs on the un-narrowed union `_t` (so the C-emit tag
 // check doesn't constant-fold), and the else casts `_t` to the non-null
 // result, reusing the existing narrowing-cast lowering path.
-lower_null_coalesce :: fn(ctx: FnLowerCtx!, e: NullCoalesceExpr) -> LoweredExpr! {
+lower_null_coalesce :: fn(ctx: FnLowerCtx, e: NullCoalesceExpr) -> LoweredExpr! {
     result  :: ctx.types.expr_type(e)         // T (null subtracted), set by infer
     left_ty :: ctx.types.expr_type(e.left)    // T | null
     tmp :: fresh_synthetic_symbol(ctx, "coalesce")
@@ -643,12 +643,12 @@ lower_null_coalesce :: fn(ctx: FnLowerCtx!, e: NullCoalesceExpr) -> LoweredExpr!
 
 // Then-branch block for a `??` : the fallback value wrapped in a block, or the
 // lowered divergent statement followed by a provably-dead `unreachable`.
-lower_coalesce_fallback :: fn(ctx: FnLowerCtx!, f: CoalesceFallback, result: Type) -> LoweredBlock! = match f {
+lower_coalesce_fallback :: fn(ctx: FnLowerCtx, f: CoalesceFallback, result: Type) -> LoweredBlock! = match f {
     is ReturnStmt | BreakStmt | ContinueStmt -> coalesce_diverge_block(ctx, f, result)
     is Expr -> wrap_block(f.span, lower_expr(ctx, f))
 }
 
-coalesce_diverge_block :: fn(ctx: FnLowerCtx!, s: Stmt, result: Type) -> LoweredBlock! {
+coalesce_diverge_block :: fn(ctx: FnLowerCtx, s: Stmt, result: Type) -> LoweredBlock! {
     stmts: LoweredStmt![]!: []
     lower_stmt_into(ctx, s, stmts)
     return LoweredBlock {
@@ -660,7 +660,7 @@ coalesce_diverge_block :: fn(ctx: FnLowerCtx!, s: Stmt, result: Type) -> Lowered
     }
 }
 
-lower_if :: fn(ctx: FnLowerCtx!, if_expr: IfExpr, type: Type) -> LoweredExpr! {
+lower_if :: fn(ctx: FnLowerCtx, if_expr: IfExpr, type: Type) -> LoweredExpr! {
     cond :: lower_expr(ctx, if_expr.cond)
     then_block :: lower_then_with_binding(ctx, if_expr)
     else_block :: lower_if_else(ctx, if_expr.else_branch)
@@ -687,7 +687,7 @@ lower_if :: fn(ctx: FnLowerCtx!, if_expr: IfExpr, type: Type) -> LoweredExpr! {
 // statement `if` that assigns each arm's value into a fresh spilled temp, push
 // `let tmp; if {…}` onto the ANF sink, and return `tmp` as the value. Else
 // `null` (the caller keeps the plain value `if`).
-lift_value_if :: fn(ctx: FnLowerCtx!, lowered: LoweredExpr, type: Type, span: Span) -> LoweredExpr! | null {
+lift_value_if :: fn(ctx: FnLowerCtx, lowered: LoweredExpr, type: Type, span: Span) -> LoweredExpr! | null {
     if lowered is LoweredIf {
         if !if_has_await(lowered) { return null }
         tmp :: fresh_synthetic_symbol(ctx, "cond")
@@ -713,7 +713,7 @@ lift_value_if :: fn(ctx: FnLowerCtx!, lowered: LoweredExpr, type: Type, span: Sp
     return null
 }
 
-arm_block :: fn(stmts: LoweredStmt![], span: Span) -> LoweredBlock! =
+arm_block :: fn(stmts: LoweredStmt[], span: Span) -> LoweredBlock! =
     LoweredBlock { .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null }
 
 // `block.stmts` + a trailing `tmp = <block.trailing>` (skipped when the arm
@@ -766,7 +766,7 @@ voidify_block :: fn(block: LoweredBlock) -> LoweredBlock! {
 /// `<scrut> is T as <bind_as>`. The binding only lives inside the
 /// then-block ; the lowering site materialises its slot once and every
 /// downstream read sees the narrowed type.
-lower_then_with_binding :: fn(ctx: FnLowerCtx!, if_expr: IfExpr) -> LoweredBlock! {
+lower_then_with_binding :: fn(ctx: FnLowerCtx, if_expr: IfExpr) -> LoweredBlock! {
     block :: lower_block(ctx, if_expr.then_block, false, null)
     cond :: if_expr.cond
     if !(cond is BinaryExpr) { return block }
@@ -793,7 +793,7 @@ lower_then_with_binding :: fn(ctx: FnLowerCtx!, if_expr: IfExpr) -> LoweredBlock
     return block
 }
 
-lower_if_else :: fn(ctx: FnLowerCtx!, branch: IfElse | null) -> LoweredBlock! | null {
+lower_if_else :: fn(ctx: FnLowerCtx, branch: IfElse | null) -> LoweredBlock! | null {
     match branch {
         is null -> { return null }
         is IfElseIf -> {

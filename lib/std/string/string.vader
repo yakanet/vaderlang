@@ -82,7 +82,7 @@ export StringChars :: struct {
 }
 
 StringChars implements Iterator<char> {
-    next :: fn(self!) -> [char, Continuation] {
+    next :: fn(self) -> [char, Continuation] {
         if (self.cursor >= self.length) {
             // The element beside `Stop` is never read; `char` is concrete here,
             // so any one does.

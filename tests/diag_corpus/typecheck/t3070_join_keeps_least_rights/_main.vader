@@ -17,7 +17,7 @@ Box :: struct<T> {
 
 get :: fn<T>(b: Box<T>) -> T = b.v
 
-wrap :: fn(c: Cfg!) -> Box<Cfg!> = Box<Cfg!> { .v = c }
+wrap :: fn(c: Cfg) -> Box<Cfg!> = Box<Cfg!> { .v = c }
 
 fresh :: fn() -> Cfg! = Cfg { .n = 1 }
 

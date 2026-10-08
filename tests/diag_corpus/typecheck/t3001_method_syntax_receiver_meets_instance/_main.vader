@@ -5,7 +5,7 @@ module "snippet"
 
 LIST :: [1, 2]
 
-put :: fn<T>(dst: T[]!, x: T) -> void {
+put :: fn<T>(dst: T[], x: T) -> void {
     dst.push(x)
 }
 

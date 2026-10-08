@@ -18,7 +18,7 @@ Other :: struct {
     z: i32
 }
 
-bump :: fn(b: Box!) -> void {
+bump :: fn(b: Box) -> void {
     b.n = b.n + 1
 }
 

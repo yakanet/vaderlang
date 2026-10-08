@@ -59,7 +59,7 @@ FN_WRAP_MIN_ELEMENTS :: usize(4)
 ///                     to a bodyless stub. Real (resolver-minted) ids are
 ///                     positive, so the negative synthetic range never touches
 ///                     them.
-export inline_consts :: fn(project: LoweredProject!, project_ctx: LowerProjectCtx!) -> void {
+export inline_consts :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) -> void {
     for module_id in project.modules.keys() {
         m :: project.modules[module_id] ?? continue
         new_decls: LoweredDecl![]!: []
@@ -117,7 +117,7 @@ should_fn_wrap :: fn(value: LoweredExpr) -> bool {
 // Poolable elements : integer / char / bool / float literals (each reduced to an
 // `i64` bit pattern) and string literals (kept verbatim). Struct arrays route
 // through later phases.
-try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject!) -> bool {
+try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject) -> bool {
     if cd.type is ArrayType as arr_type {
         // A MUTABLE array pools too, into a writable global rather than `.rodata`.
         // Typecheck's T3076 has already restricted that shape to value elements, so
@@ -144,7 +144,7 @@ try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProjec
 // `auto_freeze_module_const`), so nothing can write into the shared `.rodata`
 // object. A const whose declared type is not the struct itself (`X: Value: …`)
 // keeps the inline bucket: its reads must carry the declared type.
-try_pool_struct :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject!) -> bool {
+try_pool_struct :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject) -> bool {
     if cd.type !is StructType || cd.value !is LoweredStructLit {
         return false
     }

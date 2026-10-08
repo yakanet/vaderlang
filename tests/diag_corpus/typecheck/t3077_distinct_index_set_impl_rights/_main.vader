@@ -13,7 +13,7 @@ Holder :: struct {
 Wrap :: Holder
 
 Wrap implements IndexSet<usize, Cfg!> {
-    set_at :: fn(self!, i: usize, v: Cfg!) -> void {
+    set_at :: fn(self, i: usize, v: Cfg) -> void {
         self.c = v
     }
 }

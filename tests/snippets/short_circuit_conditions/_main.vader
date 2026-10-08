@@ -10,7 +10,7 @@ module "snippet"
 import "std/io"
 import "std/string_builder"
 
-trace :: fn(sb: StringBuilder!, tag: string, v: bool) -> bool {
+trace :: fn(sb: StringBuilder, tag: string, v: bool) -> bool {
     sb.append(tag)
     return v
 }

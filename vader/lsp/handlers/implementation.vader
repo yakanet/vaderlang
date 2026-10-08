@@ -40,7 +40,7 @@ import "vader/resolver"
 /// @param state   the server state (carries the overlay + both caches).
 /// @param params  the LSP request params (`textDocument`, `position`).
 /// @return        a JSON array of `Location`, or `JsonNull`.
-export handle_implementation :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
+export handle_implementation :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" {
         return JsonNull {}

@@ -32,7 +32,7 @@ import "toolchain/span"
 /// `@intrinsic impl ... {}` carries an empty body : fill it with one
 /// stub FnDecl per trait method so downstream phases see the impl's
 /// full surface. No-op when the impl already has members.
-export materialize_intrinsic_members :: fn(impl_: AST.ImplDecl!, trait_: AST.TraitDecl) -> void {
+export materialize_intrinsic_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> void {
     if !is_intrinsic(impl_.decorators) { return }
     if impl_.members.len() > 0 { return }
     subst :: build_subst(impl_, trait_)
@@ -55,7 +55,7 @@ export materialize_intrinsic_members :: fn(impl_: AST.ImplDecl!, trait_: AST.Tra
 /// module's namespace so id-keyed `expr_types` / `expr_kinds` slots
 /// don't collide with the impl module's pre-existing nodes.
 export materialize_default_members :: fn(
-    impl_: AST.ImplDecl!, trait_: AST.TraitDecl, host_factory: NodeIdFactory!,
+    impl_: AST.ImplDecl, trait_: AST.TraitDecl, host_factory: NodeIdFactory,
 ) -> void {
     if !any_has_body(trait_.members) { return }
     provided :: provided_names(impl_.members)
@@ -83,7 +83,7 @@ export materialize_default_members :: fn(
 
 synth_with_body :: fn(
     method: AST.FnDecl, subst: Subst,
-    decorators: AST.Decorator![], body: AST.BlockExpr!, stamp: StampCtx!,
+    decorators: AST.Decorator[], body: AST.BlockExpr, stamp: StampCtx,
 ) -> AST.FnDecl! {
     return AST.FnDecl {
         .span = method.span,
@@ -115,7 +115,7 @@ synth_with_body :: fn(
 /// Substitute params, anchoring each at a deterministic `<clone>` span from
 /// `stamp` (shared with the cloned body). Used for default-method clones so
 /// the param Symbols agree with the body's span-keyed `idents` entries.
-substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: StampCtx!) -> AST.FnParam![]! {
+substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: StampCtx) -> AST.FnParam![]! {
     out: AST.FnParam![]!: []
     for p in params {
         out.push(AST.FnParam {
@@ -132,7 +132,7 @@ substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: Stam
 /// non-self param (or body node). `line = 0` keeps it clear of any real
 /// source span (real spans are 1-based) ; the minted factory id rides in
 /// `column` so each call yields a distinct `Span.hash()`.
-synth_clone_span :: fn(factory: NodeIdFactory!) -> Span {
+synth_clone_span :: fn(factory: NodeIdFactory) -> Span {
     pos :: Position { .file = "", .offset = 0, .line = 0, .column = i32(factory.mint()) }
     return Span { .start = pos, .end = pos }
 }
@@ -143,7 +143,7 @@ synth_clone_span :: fn(factory: NodeIdFactory!) -> Span {
 /// other: Self)`) doesn't collide `other` across sibling impls in the
 /// span-keyed `param_types` table.
 substitute_params_disambiguated :: fn(
-    params: AST.FnParam[], subst: Subst, self_span: Span, factory: NodeIdFactory!,
+    params: AST.FnParam[], subst: Subst, self_span: Span, factory: NodeIdFactory,
 ) -> AST.FnParam![]! {
     out: AST.FnParam![]!: []
     for p in params {
@@ -165,7 +165,7 @@ substitute_params_disambiguated :: fn(
 /// member in place. SAM shape-mismatch diagnostics (R2016) aren't
 /// emitted here — `check_short_impl_arity` (orchestrate.vader) fires
 /// them before this runs.
-export materialize_sam_members :: fn(impl_: AST.ImplDecl!, trait_: AST.TraitDecl, factory: NodeIdFactory!) -> void {
+export materialize_sam_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl, factory: NodeIdFactory) -> void {
     syn_count :: count_sam_synthetics(impl_.members)
     if syn_count == 0 { return }
     required :: required_methods(trait_.members)
@@ -252,7 +252,7 @@ build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
 }
 
 synth_signature :: fn(
-    method: AST.FnDecl, name_span: Span, subst: Subst, decorators: AST.Decorator![],
+    method: AST.FnDecl, name_span: Span, subst: Subst, decorators: AST.Decorator[],
 ) -> AST.FnDecl! {
     return AST.FnDecl {
         .span = method.span,
@@ -283,7 +283,7 @@ substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam![]! 
     return out
 }
 
-substitute_opt_type :: fn(t: AST.TypeExpr! | null, subst: Subst) -> AST.TypeExpr! | null {
+substitute_opt_type :: fn(t: AST.TypeExpr | null, subst: Subst) -> AST.TypeExpr! | null {
     if t == null { return null }
     return substitute_type_expr(t, subst)
 }
@@ -372,7 +372,7 @@ find_trait :: fn(decls: AST.Decl[], name: string) -> AST.TraitDecl | null {
     return null
 }
 
-find_impl :: fn(decls: AST.Decl![]) -> AST.ImplDecl! | null {
+find_impl :: fn(decls: AST.Decl[]) -> AST.ImplDecl! | null {
     for d in decls {
         match d {
             is AST.ImplDecl -> { return d }

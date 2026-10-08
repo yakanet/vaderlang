@@ -8,7 +8,7 @@ Point :: struct {
 
 ORIGIN :: Point { .x = 1 }
 
-fill :: fn(dst: Point[]! | null) -> void {
+fill :: fn(dst: Point[] | null) -> void {
     if dst != null {
         dst.push(ORIGIN)
     }

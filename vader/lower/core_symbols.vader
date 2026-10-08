@@ -74,7 +74,7 @@ export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | nul
 /// @param ctx   the fn-body context.
 /// @param name  the source-level enum name (e.g. `"Continuation"`).
 /// @return      the enum type, or `null` when not resolvable.
-export find_core_enum :: fn(ctx: FnLowerCtx!, name: string) -> Type | null {
+export find_core_enum :: fn(ctx: FnLowerCtx, name: string) -> Type | null {
     cached :: ctx.project.core_enum_types[name]
     if cached != null {
         return cached

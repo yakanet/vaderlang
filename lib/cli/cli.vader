@@ -223,7 +223,7 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
 // Store a `Str` flag's value, rejecting it when the spec pins a closed set.
 // `spelling` is the token as the user wrote it (`--stage` or `-s`) so the
 // message echoes their spelling rather than the canonical name.
-record_str_flag :: fn(spec: FlagSpec, spelling: string, value: string, flags: MutableMap<string, string>!, errors: string[]!) -> void {
+record_str_flag :: fn(spec: FlagSpec, spelling: string, value: string, flags: MutableMap<string, string>, errors: string[]) -> void {
     if spec.values.len() > 0 && !accepts_value(spec, value) {
         errors.push("${spelling}: unknown value \"${value}\" (expected: ${value_list(spec)})")
         return

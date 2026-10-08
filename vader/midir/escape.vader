@@ -53,7 +53,7 @@ export AnnotatedProject :: struct {
 /// Walk every fn in `p`, escape-analyse it, and rewrite StructNew /
 /// ArrayNew / FieldSet with `stack` / `barrierless` flags set.
 /// Returns the rewritten project + aggregate stats.
-export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
+export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
     total_allocs := 0
     stack_promoted := 0
     // Recording every heap site costs one push per allocation, so it is gated on
@@ -101,7 +101,7 @@ export annotate_escape :: fn(p: CFGProject!) -> AnnotatedProject {
     return AnnotatedProject { .project = CFGProject { ...p, .modules = modules }, .stats = EscapeStats { .total_allocs = total_allocs, .stack_promoted = stack_promoted, .heap_sites = heap_sites } }
 }
 
-annotate_function :: fn(fn_: CFGFunction!) -> CFGFunction! {
+annotate_function :: fn(fn_: CFGFunction) -> CFGFunction! {
     // Collect alloc-producing locals.
     alloc_locals :: MutableSet<LocalId> {}
     struct_news: LocalId[]!: []
@@ -370,7 +370,7 @@ read_may_carry_ref :: fn(t: Type) -> bool {
     return v == .Ref || v == .Any
 }
 
-append_alias :: fn(map: MutableMap<LocalId, LocalId[]!>!, dst: LocalId, src: LocalId) -> void {
+append_alias :: fn(map: MutableMap<LocalId, LocalId[]!>, dst: LocalId, src: LocalId) -> void {
     existing :: map[dst]
     match existing {
         is null -> { map[dst] = [src] }
@@ -378,7 +378,7 @@ append_alias :: fn(map: MutableMap<LocalId, LocalId[]!>!, dst: LocalId, src: Loc
     }
 }
 
-record_alias :: fn(alias_of: MutableMap<LocalId, LocalId[]!>!, alias_from: MutableMap<LocalId, LocalId[]!>!, dst: LocalId, src: LocalId) -> void {
+record_alias :: fn(alias_of: MutableMap<LocalId, LocalId[]!>, alias_from: MutableMap<LocalId, LocalId[]!>, dst: LocalId, src: LocalId) -> void {
     append_alias(alias_of, dst, src)
     append_alias(alias_from, src, dst)
 }

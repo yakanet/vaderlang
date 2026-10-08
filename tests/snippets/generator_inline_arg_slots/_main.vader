@@ -15,14 +15,14 @@ module "snippet"
 import "std/io"
 import "std/iter"
 
-with_sentinel :: fn(self: Iterator<i32>!, last: i32) -> Iterator<i32> {
+with_sentinel :: fn(self: Iterator<i32>, last: i32) -> Iterator<i32> {
     for x in self {
         yield x
     }
     yield last
 }
 
-pair_with :: fn<T, U>(self: Iterator<T>!, other: Iterator<U>!) -> Iterator<[T, U]> {
+pair_with :: fn<T, U>(self: Iterator<T>, other: Iterator<U>) -> Iterator<[T, U]> {
     for x in self {
         [y, c] :: other.next()
         if c == .Stop {
@@ -32,7 +32,7 @@ pair_with :: fn<T, U>(self: Iterator<T>!, other: Iterator<U>!) -> Iterator<[T, U
     }
 }
 
-offset_or :: fn<T>(self: Iterator<T>!, d: i64 | null) -> Iterator<i64> {
+offset_or :: fn<T>(self: Iterator<T>, d: i64 | null) -> Iterator<i64> {
     for x in self {
         if d == null {
             yield 0
@@ -42,7 +42,7 @@ offset_or :: fn<T>(self: Iterator<T>!, d: i64 | null) -> Iterator<i64> {
     }
 }
 
-remap :: fn<U, T>(self: Iterator<T>!, f: fn(T) -> U) -> Iterator<U> {
+remap :: fn<U, T>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
     for x in self {
         yield f(x)
     }

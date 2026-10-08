@@ -233,7 +233,7 @@ arg_or_empty :: fn(args: string[], i: usize) -> string {
 ///
 /// @param ctx   the context being configured.
 /// @param path  entry `.vader` file, relative to `project_root`.
-export add_build_file :: fn(ctx: BuildContext!, path: string) -> void {
+export add_build_file :: fn(ctx: BuildContext, path: string) -> void {
     ctx.build_files.push(path)
 }
 
@@ -252,7 +252,7 @@ export build_files_of :: fn(ctx: BuildContext) -> string[] = ctx.build_files
 /// @param ctx  the context being configured; its `include_paths` is REPLACED,
 ///             not appended to, so calling this after setting them by hand
 ///             discards the hand-set values.
-export load_from_vader_config :: fn(ctx: BuildContext!) -> void {
+export load_from_vader_config :: fn(ctx: BuildContext) -> void {
     if ctx.project_root == "" {
         return
     }
@@ -280,7 +280,7 @@ export load_from_vader_config :: fn(ctx: BuildContext!) -> void {
 /// @param span     smallest source range the user can act on.
 /// @param message  what is wrong, lowercase and without a trailing period —
 ///                 backtick identifiers, as the registry style requires.
-export report :: fn(ctx: BuildContext!, span: Span, message: string) -> void {
+export report :: fn(ctx: BuildContext, span: Span, message: string) -> void {
     ctx.diagnostics.push(hook_error(.HookReport, span, message))
 }
 

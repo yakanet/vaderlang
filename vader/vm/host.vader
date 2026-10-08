@@ -74,7 +74,7 @@ extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: usize) -> I64Val
 /// @error           traps with an `is_impure_comptime_trap_message` marker when
 ///                  `is_comptime` and the host is impure — `comptime_vm` routes
 ///                  it to `C4016` rather than the generic `C4002`.
-export dispatch_import :: fn(info: bc.BcImport, stack: Value![], arg_base: usize, gc_state: usize[]!, sched_state: usize[]!, at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId) -> HostCallResult {
+export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], sched_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId) -> HostCallResult {
     // ---- compiler-internal `@extern` hosts ---------------------------------
     //
     // `@extern` is EXEMPT from the emit-time wiring check (`midir/emit.vader` :
@@ -405,7 +405,7 @@ array_bytes :: fn(a: ArrayVal, count: usize, at_pc: i32, label: string) -> u8[] 
 /// @param at_pc     program counter, for trap messages.
 /// @param debug     the attached controller.
 /// @return          the byte count, as the syscall would report it.
-debug_write :: fn(info: bc.BcImport, stack: Value![], arg_base: usize, at_pc: i32, debug: DebugController) -> HostCallResult {
+debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, debug: DebugController) -> HostCallResult {
     fd :: read_i64(stack[arg_base], at_pc, "sys_write fd")
     if fd is Trap { return fd }
     arr :: read_array(stack[arg_base + 1], at_pc, "sys_write buf")
@@ -449,7 +449,7 @@ debug_write :: fn(info: bc.BcImport, stack: Value![], arg_base: usize, at_pc: i3
 /// @param types        the module type table, for a lent array's element width.
 /// @param debug        the DAP controller when one is attached, else null.
 /// @return             the callee's result, or a `Trap` naming what stopped it.
-dispatch_extern :: fn(info: bc.BcImport, stack: Value![], arg_base: usize, at_pc: i32, types: bc.BcType[], debug: DebugController | null) -> HostCallResult {
+dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, types: bc.BcType[], debug: DebugController | null) -> HostCallResult {
     // A foreign call at comptime is allowed — SPEC §"Comptime". What the compiler
     // owes ITSELF is checked by `bootstrap/verify.sh` (stage1 == stage2), not
     // here.
@@ -813,7 +813,7 @@ field_val_type :: fn(types: bc.BcType[], f: bc.BcField) -> bc.ValType {
 /// @param fields  the mirror's fields at this level.
 /// @param depth   guards a malformed self-referential mirror.
 read_back_mirror :: fn(
-    frame: u8[], base: usize, target: StructVal!, fields: bc.BcField[],
+    frame: u8[], base: usize, target: StructVal, fields: bc.BcField[],
     types: bc.BcType[], depth: i32,
 ) -> void {
     if depth >= bc.NEST_CAP {
@@ -853,7 +853,7 @@ read_back_mirror :: fn(
 /// @param depth   guards a malformed self-referential mirror.
 /// @return        `null` on success, a `Trap` naming the field otherwise.
 serialise_mirror :: fn(
-    data: u8[]!, base: usize, sv: StructVal, fields: bc.BcField[], types: bc.BcType[],
+    data: u8[], base: usize, sv: StructVal, fields: bc.BcField[], types: bc.BcType[],
     at_pc: i32, extern_name: string, depth: i32,
 ) -> Trap | null {
     if depth >= bc.NEST_CAP {
@@ -896,7 +896,7 @@ param_mirror_is_mutable :: fn(sig: bc.BcSignature, i: usize) -> bool {
 }
 
 /// Write `value` into `buf` at `at`, little-endian, over `width` bytes.
-write_little_endian :: fn(buf: u8[]!, at: usize, value: i64, width: usize) -> void {
+write_little_endian :: fn(buf: u8[], at: usize, value: i64, width: usize) -> void {
     v :: u64(value)
     for k in 0..<width {
         buf[at + k] = u8((v >> u64(k * 8)) & 0xFF)
@@ -989,7 +989,7 @@ extern_by_address :: fn(sig: bc.BcSignature, i: usize) -> bool {
 /// @param buf    the flat lend buffer, appended to.
 /// @param value  the scalar to spill.
 /// @param width  how many bytes the foreign parameter occupies.
-push_little_endian :: fn(buf: u8[]!, value: i64, width: usize) -> void {
+push_little_endian :: fn(buf: u8[], value: i64, width: usize) -> void {
     for k in 0..<width {
         buf.push(u8((value >> i64(k * 8)) & 0xFF))
     }
@@ -1075,7 +1075,7 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
 
 // A timer already due carries nothing: the program re-drives every task after a
 // park, so each of them sees the clock it waited for. `state[0]` is the clock.
-drop_due_timers :: fn(state: usize[]!) -> void {
+drop_due_timers :: fn(state: usize[]) -> void {
     i: usize = 1
     for i < state.len() {
         if state[i] <= state[0] {

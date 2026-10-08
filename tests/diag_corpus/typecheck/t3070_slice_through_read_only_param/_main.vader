@@ -1,17 +1,17 @@
 // Rebinding a field through a read-only parameter is T3070, reported before
-// lowering : an ill-typed program is never lowered, which would panic on it.
+// lowering : an ill-typed program is never lowered, which would panic on it. The
+// parameter is a callback's, read-only by the callback's type.
 module "snippet"
 
 St :: struct {
     stack: i32[]!
 }
 
-pop :: fn(s: St) -> void {
-    s.stack = s.stack[0..<1]
-}
+each :: fn(s: St, f: fn(St) -> void) -> void = f(s)
 
 main :: fn() -> i32 {
-    s :: St { .stack = [1, 2] }
-    pop(s)
+    each(St { .stack = [1, 2] }, (s: St) -> {
+        s.stack = s.stack[0..<1]
+    })
     return 0
 }

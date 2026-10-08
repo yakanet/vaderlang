@@ -115,7 +115,7 @@
   expr 46:20    IdentExpr      :: usize
   expr 46:25    IdentExpr      :: i32
   expr 46:9     FieldExpr      :: i32[]!
-  expr 46:9     IdentExpr      :: Cell!
+  expr 46:9     IdentExpr      :: Cell
   expr 46:9     IndexExpr      :: i32
   expr 52:12    IdentExpr      :: usize
   expr 52:5     BinaryExpr     :: i32

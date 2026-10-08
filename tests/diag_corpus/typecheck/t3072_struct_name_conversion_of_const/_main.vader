@@ -8,7 +8,7 @@ Point :: struct {
 
 ORIGIN :: Point { .x = 1 }
 
-bump :: fn(p: Point!) -> void {
+bump :: fn(p: Point) -> void {
     p.x = 9
 }
 

@@ -41,9 +41,9 @@ genstate_element :: fn(typed: TypedProgram, decl: AST.FnDecl, subst: Substitutio
 // resolve. (Doing it at yield time would splice into the generator's own ctx,
 // where those leaf symbols don't resolve — the destructure would silently drop.)
 build_gen_sink :: fn(
-    ctx: FnLowerCtx!, pattern: AST.LetBinding | null,
+    ctx: FnLowerCtx, pattern: AST.LetBinding | null,
     binding_symbol: Symbol, binding_name: string,
-    element_type: Type, body: LoweredBlock!, span: Span,
+    element_type: Type, body: LoweredBlock, span: Span,
 ) -> GenInlineSink {
     if pattern is AST.TupleBinding {
         elem_sym :: fresh_synthetic_symbol(ctx, "gen_elem")
@@ -212,7 +212,7 @@ GenComboLayer :: struct {
 // `self` ; `chain`: two, over `self` and `other`). Returns a `Generator` chain
 // layer whose primary source is `descend_chain(<recv>)` and whose extra source
 // params fuse independently, else null (the chain falls back to the boxed path).
-try_descend_gen_combinator :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterChain | null {
+try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
     fluent :: unpack_fluent_combinator(ctx, call) ?? return null
     callee_sym :: combinator_callee_sym(ctx, call, fluent.receiver) ?? return null
     owner :: resolve_owner_typed(ctx, callee_sym.module) ?? return null
@@ -306,7 +306,7 @@ combinator_arg_slot :: fn(owner: TypedProgram, callee: Symbol, subst: Substituti
 
 // The symbol of a combinator's single non-self param (`decl.params[1]`), or null
 // for a 0-arg combinator (`indexed`, whose only param is `self`).
-combinator_arg_sym :: fn(ctx: FnLowerCtx!, decl: AST.FnDecl, owner: TypedProgram) -> Symbol | null {
+combinator_arg_sym :: fn(ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram) -> Symbol | null {
     if decl.params.len() < 2 { return null }
     return lookup_local_symbol(ctx.project, owner.resolved, decl.params[1].span)
 }
@@ -455,7 +455,7 @@ gen_combo_subst :: fn(
 // multi-source combinators (`chain`) fuse each source loop in body order, all
 // into the same sink.
 emit_fused_gen_combinator :: fn(
-    ctx: FnLowerCtx!,
+    ctx: FnLowerCtx,
     chain: IterChain,
     outer_span: Span,
     template: BodyTemplate,
@@ -495,7 +495,7 @@ emit_fused_gen_combinator :: fn(
 // counter `let`, sibling of the loop so inner counter refs resolve) followed by the
 // fused source loop binding the loop var to each element.
 fuse_source_loop :: fn(
-    ctx: FnLowerCtx!, gen_ctx: FnLowerCtx!, binding: GenSourceBinding,
+    ctx: FnLowerCtx, gen_ctx: FnLowerCtx, binding: GenSourceBinding,
     outer_span: Span, span: Span, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
 ) -> LoweredStmt![] {
     // The loop over the source is the source's consumer: its own jumps land in
@@ -542,7 +542,7 @@ GenSourceCall :: struct {
 
 // `call` as a chain source when it calls a generator with every parameter given
 // and its instance and element type resolve ; null otherwise.
-try_descend_gen_source :: fn(ctx: FnLowerCtx!, call: AST.CallExpr) -> IterChain | null {
+try_descend_gen_source :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
     target :: call_target(ctx, call) ?? return null
     decl :: target.decl
     owner :: target.owner
@@ -601,8 +601,8 @@ gen_source_subst :: fn(
 // parameter's slot as a call would: a `T[]` reaching an `Iterator<T>` parameter
 // is read through `Iterator.next` by the body, so it must arrive wrapped.
 bind_gen_source_operands :: fn(
-    ctx: FnLowerCtx!, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
-    out: LoweredStmt![]!,
+    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
+    out: LoweredStmt[],
 ) -> IterChain {
     gs :: chain.gen_source ?? return chain
     for k in 0..<gs.decl.params.len() {
@@ -616,7 +616,7 @@ bind_gen_source_operands :: fn(
 
 // The generator's body lowered in its own ctx — its module, its instance — with
 // `template` installed as the `yield` sink.
-emit_fused_gen_source :: fn(ctx: FnLowerCtx!, chain: IterChain, template: BodyTemplate) -> LoweredStmt![] {
+emit_fused_gen_source :: fn(ctx: FnLowerCtx, chain: IterChain, template: BodyTemplate) -> LoweredStmt![] {
     gs :: chain.gen_source ?? panic(UNBOUND_CHAIN)
     body :: gs.decl.body ?? panic("generator source: the generator has no body")
     gen_ctx :: inline_gen_ctx(ctx, gs.decl, gs.owner, gs.subst, gs.instance, template, chain.span)
@@ -627,8 +627,8 @@ emit_fused_gen_source :: fn(ctx: FnLowerCtx!, chain: IterChain, template: BodyTe
 // The ctx a generator body is inlined under: its module and instance substitution,
 // its instance's names, and `template` — the consumer — as the `yield` sink.
 inline_gen_ctx :: fn(
-    ctx: FnLowerCtx!, decl: AST.FnDecl, owner: TypedProgram, subst: Substitution,
-    instance: InlineInstance!, template: BodyTemplate, span: Span,
+    ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram, subst: Substitution,
+    instance: InlineInstance, template: BodyTemplate, span: Span,
 ) -> FnLowerCtx! {
     gen_ctx :: instance_ctx(ctx, decl, owner, subst, instance)
     gen_ctx.gen_inline_sink = build_gen_sink(

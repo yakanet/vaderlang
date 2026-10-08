@@ -52,7 +52,7 @@ bce_resolve_fn :: fn(pctx: BcePurityCtx, name: string, sym_id: i32) -> LoweredFn
 /// (`@extern`) fn and any recursion cycle are conservatively impure. This is what
 /// makes `bce_call_unsafe` accept a pure callback (`a.map(square)`) without naming
 /// any combinator.
-bce_fn_pure :: fn(pctx: BcePurityCtx!, fd: LoweredFnDecl) -> bool {
+bce_fn_pure :: fn(pctx: BcePurityCtx, fd: LoweredFnDecl) -> bool {
     key :: fd.mangled
     cached :: pctx.memo[key]
     if cached != null {
@@ -124,7 +124,7 @@ export bce_prove_tag :: fn(project: LoweredProject) -> void {
 // is the cost of the language, not a missed optimisation.
 
 /// Collect every in-loop element access still carrying a bounds check.
-export bce_unproven_accesses :: fn(project: LoweredProject, ctx: LowerProjectCtx!) -> void {
+export bce_unproven_accesses :: fn(project: LoweredProject, ctx: LowerProjectCtx) -> void {
     if !ctx.opt_report {
         return
     }
@@ -140,7 +140,7 @@ export bce_unproven_accesses :: fn(project: LoweredProject, ctx: LowerProjectCtx
     }
 }
 
-bp_scan_block :: fn(b: LoweredBlock, in_loop: bool, ctx: LowerProjectCtx!) -> void {
+bp_scan_block :: fn(b: LoweredBlock, in_loop: bool, ctx: LowerProjectCtx) -> void {
     for st in b.stmts {
         bp_scan_stmt(st, in_loop, ctx)
     }
@@ -150,7 +150,7 @@ bp_scan_block :: fn(b: LoweredBlock, in_loop: bool, ctx: LowerProjectCtx!) -> vo
     }
 }
 
-bp_scan_stmt :: fn(s: LoweredStmt, in_loop: bool, ctx: LowerProjectCtx!) -> void {
+bp_scan_stmt :: fn(s: LoweredStmt, in_loop: bool, ctx: LowerProjectCtx) -> void {
     match s {
         is LoweredLet       -> { bp_scan_expr(s.value, in_loop, ctx) }
         is LoweredAssign    -> { bp_scan_expr(s.target, in_loop, ctx)  bp_scan_expr(s.value, in_loop, ctx) }
@@ -172,7 +172,7 @@ bp_scan_stmt :: fn(s: LoweredStmt, in_loop: bool, ctx: LowerProjectCtx!) -> void
     }
 }
 
-bp_scan_expr :: fn(e: LoweredExpr, in_loop: bool, ctx: LowerProjectCtx!) -> void {
+bp_scan_expr :: fn(e: LoweredExpr, in_loop: bool, ctx: LowerProjectCtx) -> void {
     if e is LoweredIndex {
         if in_loop && !e.bounds_safe {
             record_miss(ctx, "array bounds-check", e.span,
@@ -190,7 +190,7 @@ bp_scan_expr :: fn(e: LoweredExpr, in_loop: bool, ctx: LowerProjectCtx!) -> void
 
 // ---- descent : reach every block, pair a recheck-len with its sibling loop ----
 
-bp_block :: fn(b: LoweredBlock!, pctx: BcePurityCtx!) -> void {
+bp_block :: fn(b: LoweredBlock, pctx: BcePurityCtx) -> void {
     for st in b.stmts {
         bp_stmt(st, pctx)
     }
@@ -201,7 +201,7 @@ bp_block :: fn(b: LoweredBlock!, pctx: BcePurityCtx!) -> void {
     bp_pair(b, pctx)
 }
 
-bp_stmt :: fn(s: LoweredStmt!, pctx: BcePurityCtx!) -> void {
+bp_stmt :: fn(s: LoweredStmt, pctx: BcePurityCtx) -> void {
     if s is LoweredLet {
         bp_expr(s.value, pctx)
     } else if s is LoweredAssign {
@@ -238,7 +238,7 @@ bp_stmt :: fn(s: LoweredStmt!, pctx: BcePurityCtx!) -> void {
     // Break / Continue / DeferPopExec : no nested block.
 }
 
-bp_expr :: fn(e: LoweredExpr!, pctx: BcePurityCtx!) -> void {
+bp_expr :: fn(e: LoweredExpr, pctx: BcePurityCtx) -> void {
     if e is LoweredBlock {
         bp_block(e, pctx)
     } else if e is LoweredIf {
@@ -314,7 +314,7 @@ bp_expr :: fn(e: LoweredExpr!, pctx: BcePurityCtx!) -> void {
 // the next loop. A block can hold several such pairs back-to-back (`a.chain(b)`
 // fuses to two sequential source loops, and any N-way sequential fusion likewise);
 // each is proven independently, not just the last.
-bp_pair :: fn(b: LoweredBlock!, pctx: BcePurityCtx!) -> void {
+bp_pair :: fn(b: LoweredBlock, pctx: BcePurityCtx) -> void {
     pending_len: LoweredArrayLen! | null = null
     for st in b.stmts {
         if st is LoweredLet {
@@ -335,7 +335,7 @@ bp_pair :: fn(b: LoweredBlock!, pctx: BcePurityCtx!) -> void {
 // Consume `the_len`'s recheck marker ; if `the_loop`'s body is BCE-safe (no alloc /
 // impure call / yield / rebind of the bound array), elide the loop's synthesized
 // `arr[idx]` checks.
-bp_try_prove :: fn(the_len: LoweredArrayLen!, the_loop: LoweredLoop!, pctx: BcePurityCtx!) -> void {
+bp_try_prove :: fn(the_len: LoweredArrayLen, the_loop: LoweredLoop, pctx: BcePurityCtx) -> void {
     the_len.bce_recheck = false
     // Guard on the bound array's symbol : the length was read from the array that
     // symbol held, so rebinding it (`arr = other`) voids the proof.
@@ -357,7 +357,7 @@ bp_guard_sym :: fn(al: LoweredArrayLen) -> i32 | null =
 // but does NOT descend into a nested LoweredLoop — a nested loop's accesses belong
 // to its own (separately paired) len bound.
 
-bp_mark_idx_block :: fn(b: LoweredBlock!) -> void {
+bp_mark_idx_block :: fn(b: LoweredBlock) -> void {
     for st in b.stmts {
         bp_mark_idx_stmt(st)
     }
@@ -367,7 +367,7 @@ bp_mark_idx_block :: fn(b: LoweredBlock!) -> void {
     }
 }
 
-bp_mark_idx_stmt :: fn(s: LoweredStmt!) -> void {
+bp_mark_idx_stmt :: fn(s: LoweredStmt) -> void {
     if s is LoweredLet {
         bp_mark_idx_expr(s.value)
     } else if s is LoweredAssign {
@@ -396,7 +396,7 @@ bp_mark_idx_stmt :: fn(s: LoweredStmt!) -> void {
     // Break / Continue / DeferPopExec : nothing.
 }
 
-bp_mark_idx_expr :: fn(e: LoweredExpr!) -> void {
+bp_mark_idx_expr :: fn(e: LoweredExpr) -> void {
     if e is LoweredIndex {
         if e.bce_recheck {
             e.bounds_safe = true
@@ -479,7 +479,7 @@ bce_test_sym :: fn(id: i32, name: string) -> Symbol = Symbol {
     .defined_at = null,
 }
 
-bce_test_fn :: fn(sym: Symbol, body: LoweredBlock! | null) -> LoweredFnDecl! {
+bce_test_fn :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl! {
     // MonoEntry shape mirrors `synth_mono_entry` (lower_lambda.vader) — kept inline
     // because that helper needs a FnLowerCtx the fixture deliberately doesn't build.
     return LoweredFnDecl {
@@ -500,7 +500,7 @@ bce_test_fn :: fn(sym: Symbol, body: LoweredBlock! | null) -> LoweredFnDecl! {
     }
 }
 
-bce_test_block :: fn(stmts: LoweredStmt![]) -> LoweredBlock! = LoweredBlock {
+bce_test_block :: fn(stmts: LoweredStmt[]) -> LoweredBlock! = LoweredBlock {
     .span = empty_span(), .type = TY_VOID, .stmts = stmts, .trailing = null,
 }
 
@@ -530,7 +530,7 @@ bce_test_call_return :: fn(callee: Symbol) -> LoweredStmt! = LoweredReturn {
 }
 
 // Register a callee both ways `bce_resolve_fn` looks it up.
-bce_test_register :: fn(ctx: BcePurityCtx!, fd: LoweredFnDecl) -> void {
+bce_test_register :: fn(ctx: BcePurityCtx, fd: LoweredFnDecl) -> void {
     ctx.by_mangle[fd.mangled] = fd
     s :: fd.origin.symbol
     if s != null {
@@ -617,14 +617,14 @@ bce_test_recheck_index :: fn(sym: Symbol) -> LoweredIndex! = LoweredIndex {
 }
 
 // A safe counter loop whose only body statement is `idx` (a pure element read).
-bce_test_loop_over :: fn(idx: LoweredIndex!) -> LoweredStmt! = LoweredLoop {
+bce_test_loop_over :: fn(idx: LoweredIndex) -> LoweredStmt! = LoweredLoop {
     .span = empty_span(), .label = null, .cond = null,
     .body = bce_test_block([LoweredExprStmt { .span = empty_span(), .expr = idx }]),
     .step = [],
 }
 
 // `let len = <recheck arr.len()>` — the preheader bound.
-bce_test_len_let :: fn(len: LoweredArrayLen!) -> LoweredStmt! = LoweredLet {
+bce_test_len_let :: fn(len: LoweredArrayLen) -> LoweredStmt! = LoweredLet {
     .span = empty_span(), .name = "len", .symbol = bce_test_sym(0, "len"),
     .type = TY_VOID, .value = len,
 }

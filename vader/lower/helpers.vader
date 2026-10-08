@@ -31,7 +31,7 @@ import "std/string_builder"
 /// @param span  span to attribute a synthesised `into` call to.
 /// @return      the coerced value, or `expr` unchanged when no `Into` applies.
 prepare_value_for_slot :: fn(
-    ctx: FnLowerCtx!, expr: LoweredExpr!, slot: Type, span: Span,
+    ctx: FnLowerCtx, expr: LoweredExpr, slot: Type, span: Span,
 ) -> LoweredExpr! = try_emit_into_coercion(ctx, expr, type_of(expr), slot, span) ?? expr
 
 /// Lower a call's arguments, then prepare each one for the param slot it binds to.
@@ -48,7 +48,7 @@ prepare_value_for_slot :: fn(
 /// @param first_slot  index in `params` that `args[0]` binds to.
 /// @return            a fresh list, each argument lowered and prepared for its slot.
 lower_call_args :: fn(
-    ctx: FnLowerCtx!,
+    ctx: FnLowerCtx,
     args: CallArg[],
     params: Type[],
     first_slot: usize,
@@ -75,7 +75,7 @@ lower_call_args :: fn(
 /// @param ctx   the fn-body context (carries `uniq` + project counter).
 /// @param hint  short kebab-case-ish tag describing the synth slot.
 /// @return      the freshly minted symbol.
-export fresh_synthetic_symbol :: fn(ctx: FnLowerCtx!, hint: string) -> Symbol {
+export fresh_synthetic_symbol :: fn(ctx: FnLowerCtx, hint: string) -> Symbol {
     n :: ctx.uniq
     ctx.uniq = n + 1
     next_id :: next_project_synthetic_id(ctx.project)
@@ -97,7 +97,7 @@ export fresh_synthetic_symbol :: fn(ctx: FnLowerCtx!, hint: string) -> Symbol {
 /// @param span   span to attach to the wrapping stmt.
 /// @param stmts  statements to wrap.
 /// @return       a single stmt that runs every input stmt in order.
-export wrap_stmts :: fn(span: Span, stmts: LoweredStmt![]) -> LoweredStmt! {
+export wrap_stmts :: fn(span: Span, stmts: LoweredStmt[]) -> LoweredStmt! {
     if stmts.len() == 1 { return stmts[0] }
     block :: LoweredBlock {
         .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null,
@@ -111,7 +111,7 @@ export wrap_stmts :: fn(span: Span, stmts: LoweredStmt![]) -> LoweredStmt! {
 /// @param expr  the trailing expression.
 /// @param span  span of the wrapping block.
 /// @return      a fresh block carrying `expr` as its trailing value.
-export wrap_as_block :: fn(expr: LoweredExpr!, span: Span) -> LoweredBlock! {
+export wrap_as_block :: fn(expr: LoweredExpr, span: Span) -> LoweredBlock! {
     return LoweredBlock { .span = span, .type = type_of(expr), .stmts = [], .trailing = expr }
 }
 
@@ -134,7 +134,7 @@ export block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt![] {
 /// @param span   span attached to every synthesised binary node.
 /// @param parts  individual boolean expressions.
 /// @return       the OR-chained expression.
-export or_all :: fn(span: Span, parts: LoweredExpr![]) -> LoweredExpr! = chain_all(span, parts, .Or)
+export or_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr! = chain_all(span, parts, .Or)
 
 /// Combine a list of boolean expressions with short-circuit AND, left to
 /// right — a later part is only evaluated once every earlier one held. Empty
@@ -142,9 +142,9 @@ export or_all :: fn(span: Span, parts: LoweredExpr![]) -> LoweredExpr! = chain_a
 /// @param span   span attached to every synthesised binary node.
 /// @param parts  individual boolean expressions.
 /// @return       the AND-chained expression.
-export and_all :: fn(span: Span, parts: LoweredExpr![]) -> LoweredExpr! = chain_all(span, parts, .And)
+export and_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr! = chain_all(span, parts, .And)
 
-chain_all :: fn(span: Span, parts: LoweredExpr![], op: LoweredBinaryOp) -> LoweredExpr! {
+chain_all :: fn(span: Span, parts: LoweredExpr[], op: LoweredBinaryOp) -> LoweredExpr! {
     if parts.len() == 0 {
         return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = op == .And }
     }
@@ -182,7 +182,7 @@ lives_in_cell :: fn(ctx: FnLowerCtx, symbol_id: i32) -> bool {
 /// @param span        span attached to the cell-new node when emitted.
 /// @return            the `(value, slot_type)` to use for the binding.
 export lower_cell_init :: fn(
-    ctx: FnLowerCtx, symbol: Symbol, value: LoweredExpr!, value_type: Type, span: Span,
+    ctx: FnLowerCtx, symbol: Symbol, value: LoweredExpr, value_type: Type, span: Span,
 ) -> CellInit {
     if !lives_in_cell(ctx, symbol.id) {
         return CellInit { .value = value, .slot_type = value_type }
@@ -204,7 +204,7 @@ export lower_cell_init :: fn(
 /// @param value_type  the statically-known slot type.
 /// @param span        span of the `let` and of the cell-new when emitted.
 export cell_aware_let :: fn(
-    ctx: FnLowerCtx, symbol: Symbol, name: string, value: LoweredExpr!, value_type: Type, span: Span,
+    ctx: FnLowerCtx, symbol: Symbol, name: string, value: LoweredExpr, value_type: Type, span: Span,
 ) -> LoweredStmt! {
     init :: lower_cell_init(ctx, symbol, value, value_type, span)
     return LoweredLet {
@@ -311,7 +311,7 @@ env_field :: fn(lifted: LiftedFnContext, field: string, span: Span, type: Type) 
 /// @param block   the body to prepend onto.
 /// @return        a fresh `LoweredBlock` ; `block` is returned untouched when
 ///                `prefix` is empty.
-export prepend_stmts_to_block :: fn(prefix: LoweredStmt![], block: LoweredBlock!) -> LoweredBlock! {
+export prepend_stmts_to_block :: fn(prefix: LoweredStmt[], block: LoweredBlock) -> LoweredBlock! {
     if prefix.len() == 0 { return block }
     stmts: LoweredStmt![]!: []
     stmts.push_all(prefix)
@@ -333,8 +333,8 @@ loop_step_block :: fn(lp: LoweredLoop) -> LoweredBlock = arm_block(lp.step, lp.s
 
 // A fresh local bound to `value` in `out`, and the ident that reads it.
 bind_to_local :: fn(
-    ctx: FnLowerCtx!, value: LoweredExpr!, type: Type, name: string, span: Span,
-    out: LoweredStmt![]!,
+    ctx: FnLowerCtx, value: LoweredExpr, type: Type, name: string, span: Span,
+    out: LoweredStmt[],
 ) -> LoweredExpr! {
     symbol :: fresh_synthetic_symbol(ctx, name)
     out.push(LoweredLet {
@@ -345,7 +345,7 @@ bind_to_local :: fn(
 
 // `value` itself when it is invariant, else a local bound to it in `out`.
 bind_unless_invariant :: fn(
-    ctx: FnLowerCtx!, value: LoweredExpr!, name: string, span: Span, out: LoweredStmt![]!,
+    ctx: FnLowerCtx, value: LoweredExpr, name: string, span: Span, out: LoweredStmt[],
 ) -> LoweredExpr! = if is_invariant_operand(ctx, value) {
     value
 } else {
@@ -354,7 +354,7 @@ bind_unless_invariant :: fn(
 
 // `value` itself when it is stable, else a local bound to it in `out`.
 bind_unless_stable :: fn(
-    ctx: FnLowerCtx!, value: LoweredExpr!, name: string, span: Span, out: LoweredStmt![]!,
+    ctx: FnLowerCtx, value: LoweredExpr, name: string, span: Span, out: LoweredStmt[],
 ) -> LoweredExpr! = if is_stable_operand(value) {
     value
 } else {
@@ -402,7 +402,7 @@ is_literal :: fn(value: LoweredExpr) -> bool = @partial match value {
 }
 
 // `value` alone when `prelude` is empty, else a block running `prelude` first.
-with_prelude :: fn(prelude: LoweredStmt![], value: LoweredExpr!, span: Span) -> LoweredExpr! {
+with_prelude :: fn(prelude: LoweredStmt[], value: LoweredExpr, span: Span) -> LoweredExpr! {
     if prelude.len() == 0 {
         return value
     }

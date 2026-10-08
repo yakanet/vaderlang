@@ -663,7 +663,7 @@ export union_mixed_mutability :: fn(t: Type) -> Type | null {
     return null
 }
 
-collect_variant :: fn(v: Type, into: Type[]!) -> void {
+collect_variant :: fn(v: Type, into: Type[]) -> void {
     if v is NeverType { return }
     match v {
         is UnionType -> {

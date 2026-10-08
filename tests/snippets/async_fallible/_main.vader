@@ -21,7 +21,7 @@ load :: fn(fail: bool) -> Async<i32 | LoadError> {
     return v * 10
 }
 
-report :: fn(f: Async<i32 | LoadError>!) -> void {
+report :: fn(f: Async<i32 | LoadError>) -> void {
     r :: f.resume()
     if r is Suspended { println("parked?!") return }
     if r is LoadError as e { println("err: ${e.reason}") return }

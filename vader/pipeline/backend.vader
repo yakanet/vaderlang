@@ -136,7 +136,7 @@ export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] 
 /// @param diags   accumulator for the verifier findings ; left untouched
 ///                when `opts.verify` is false, which is every default build.
 export cfg_to_bytecode :: fn(
-    pruned: LoweredProject, name: string, opts: EmitOptions, diags: Diagnostic[]! = [],
+    pruned: LoweredProject, name: string, opts: EmitOptions, diags: Diagnostic[] = [],
 ) -> BytecodeModule {
     Prof.prof_begin(Prof.PHASE_CFG_BUILD)
     cfg :: build_cfg_project(pruned, diags)
@@ -297,7 +297,7 @@ export prepare_cfg_bytecode_with :: fn(
 ///                    emit will keep `#line`).
 /// @param verify      run the IR verifiers between passes (`--verify`).
 export prepare_cfg_bytecode_from :: fn(
-    le: LoweredEntry!, file: Path, want_debug: bool, verify: bool = false,
+    le: LoweredEntry, file: Path, want_debug: bool, verify: bool = false,
 ) -> CfgBytecode {
     // profiling brackets — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
     Prof.prof_begin(Prof.PHASE_PRUNE)

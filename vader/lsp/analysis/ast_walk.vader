@@ -90,7 +90,7 @@ find_expr_with_mode :: fn(
     return state.best
 }
 
-hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState!) -> void {
+hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState) -> void {
     // A position walk maps a cursor to a fn body; these hold none.
     if d is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
          | AST.TypeAliasDecl | AST.AssertDecl {
@@ -115,14 +115,14 @@ hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState!) -> void {
     }
 }
 
-hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindState!) -> void {
+hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindState) -> void {
     for s in b.stmts { hv_walk_stmt(s, typed, st) }
     if b.trailing !is null {
         hv_walk_expr(b.trailing, typed, st)
     }
 }
 
-hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState!) -> void {
+hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState) -> void {
     match s {
         is AST.LetStmt               -> { hv_walk_expr(s.value, typed, st) }
         is AST.ExprStmt              -> { hv_walk_expr(s.expr, typed, st) }
@@ -161,7 +161,7 @@ hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState!) -> void {
     }
 }
 
-hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState!) -> void {
+hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
     hv_consider(e, typed, st)
     // Already considered above, and no child carries an independent span.
     if e is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
@@ -254,7 +254,7 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState!) -> void {
     }
 }
 
-hv_consider :: fn(e: AST.Expr, typed: TypedProgram, st: FindState!) -> void {
+hv_consider :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
     // Skip until we have a type entry — no point reporting a node whose hover
     // would show `?`, nor resolving a receiver the typed cache can't type.
     if typed.expr_types[e.id] is null { return }
@@ -303,7 +303,7 @@ FindBindingState :: struct {
     ty:   Type | null
 }
 
-binding_hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingState!) -> void {
+binding_hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingState) -> void {
     // `ConstDecl` joins them: its value is an expression, not a binding site.
     if d is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
          | AST.TypeAliasDecl | AST.AssertDecl | AST.ConstDecl {
@@ -327,14 +327,14 @@ binding_hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingStat
     }
 }
 
-binding_hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindBindingState!) -> void {
+binding_hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindBindingState) -> void {
     for s in b.stmts { binding_hv_walk_stmt(s, typed, st) }
     if b.trailing !is null {
         binding_hv_walk_expr(b.trailing, typed, st)
     }
 }
 
-binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingState!) -> void {
+binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingState) -> void {
     // No sub-statement and no binding of their own.
     if s is AST.AssignStmt | AST.DestructureAssignStmt | AST.BreakStmt | AST.ContinueStmt {
         return
@@ -403,7 +403,7 @@ binding_type_at :: fn(
     return null
 }
 
-binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingState!) -> void {
+binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingState) -> void {
     // Only the block-bearing forms reachable DIRECTLY. A binding inside a lambda
     // passed as a call argument is not found — pre-existing gap, not a design.
     //
@@ -516,7 +516,7 @@ EncloseState :: struct {
     acc:  AST.Expr[]!
 }
 
-ee_walk_decl :: fn(d: AST.Decl, st: EncloseState!) -> void {
+ee_walk_decl :: fn(d: AST.Decl, st: EncloseState) -> void {
     // A position walk maps a cursor to a fn body; these hold none.
     if d is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
          | AST.TypeAliasDecl | AST.AssertDecl {
@@ -541,14 +541,14 @@ ee_walk_decl :: fn(d: AST.Decl, st: EncloseState!) -> void {
     }
 }
 
-ee_walk_block :: fn(b: AST.BlockExpr, st: EncloseState!) -> void {
+ee_walk_block :: fn(b: AST.BlockExpr, st: EncloseState) -> void {
     for s in b.stmts { ee_walk_stmt(s, st) }
     if b.trailing !is null {
         ee_walk_expr(b.trailing, st)
     }
 }
 
-ee_walk_stmt :: fn(s: AST.Stmt, st: EncloseState!) -> void {
+ee_walk_stmt :: fn(s: AST.Stmt, st: EncloseState) -> void {
     match s {
         is AST.LetStmt               -> { ee_walk_expr(s.value, st) }
         is AST.ExprStmt              -> { ee_walk_expr(s.expr, st) }
@@ -589,7 +589,7 @@ ee_walk_stmt :: fn(s: AST.Stmt, st: EncloseState!) -> void {
 
 // Recurse into children FIRST, then record `e` — post-order push yields an
 // innermost-first chain (a child is appended before its parent).
-ee_walk_expr :: fn(e: AST.Expr, st: EncloseState!) -> void {
+ee_walk_expr :: fn(e: AST.Expr, st: EncloseState) -> void {
     match e {
         is AST.CallExpr -> {
             ee_walk_expr(e.callee, st)

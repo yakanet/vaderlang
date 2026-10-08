@@ -18,10 +18,10 @@ Make :: trait {
 
 Holder implements Make {
     make :: fn(self) -> Holder = ORIGIN
-    take :: fn(self, other: Self!) -> void {
+    take :: fn(self, other: Self) -> void {
         other.n = 9
     }
-    poke :: fn(self!) -> void {
+    poke :: fn(self) -> void {
         self.n = 9
     }
 }

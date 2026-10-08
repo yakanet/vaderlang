@@ -134,7 +134,7 @@ export relative_to :: fn(file: string, base: string) -> string {
     return file[prefix.len()..<file.len()]
 }
 
-format_diagnostic :: fn(sb: StringBuilder!, d: Diagnostic, show_file: bool, base: string) -> void {
+format_diagnostic :: fn(sb: StringBuilder, d: Diagnostic, show_file: bool, base: string) -> void {
     sev_word :: match d.severity {
         .Error   -> "error"
         .Warning -> "warning"

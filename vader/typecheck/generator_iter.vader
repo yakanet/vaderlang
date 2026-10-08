@@ -159,3 +159,13 @@ callee_decl :: fn(c: AST.CallExpr, typed: TypedProgram) -> AST.FnDecl | null {
     }
     return lookup_callee_fn_decl(c.callee, typed)
 }
+
+// The declaration `c` reaches by any dispatch : `callee_decl`'s, else the impl member
+// a method-form call picked.
+called_decl :: fn(c: AST.CallExpr, typed: TypedProgram) -> AST.FnDecl | null {
+    direct :: callee_decl(c, typed)
+    if direct != null {
+        return direct
+    }
+    return chosen_impl_decl(typed, c.callee.id)
+}

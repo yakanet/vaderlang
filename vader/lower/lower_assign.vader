@@ -11,7 +11,7 @@ import "vader/typecheck"
 import "vader/types"
 import "toolchain/span"
 
-lower_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> LoweredStmt! {
+lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt! {
     // A bare name has no operands ; a field or an element does.
     if compound_assign_op(assign_stmt) != null && !(assign_stmt.target is IdentExpr) {
         return lower_compound_assign(ctx, assign_stmt)
@@ -25,7 +25,7 @@ lower_assign :: fn(ctx: FnLowerCtx!, assign_stmt: AssignStmt) -> LoweredStmt! {
 // place — are evaluated once, ahead of the statement, then the write and the read
 // of `lhs op rhs` both lower them to that one value (`bound_operands`). The place
 // itself is read twice : a name, a field or an array element does no work.
-lower_compound_assign :: fn(ctx: FnLowerCtx!, s: AssignStmt) -> LoweredStmt! {
+lower_compound_assign :: fn(ctx: FnLowerCtx, s: AssignStmt) -> LoweredStmt! {
     // A compound assignment in a block of `rhs` gets a table of its own ; this one
     // is back before this statement's write lowers.
     outer :: ctx.bound_operands
@@ -39,7 +39,7 @@ lower_compound_assign :: fn(ctx: FnLowerCtx!, s: AssignStmt) -> LoweredStmt! {
 
 // Bind the operands of the place `target` : a field's receiver, an element's
 // receiver and index.
-bind_place_operands :: fn(ctx: FnLowerCtx!, target: Expr, out: LoweredStmt![]!) -> void {
+bind_place_operands :: fn(ctx: FnLowerCtx, target: Expr, out: LoweredStmt[]) -> void {
     // @partial: only a field or an element has operands ; a bare name has none.
     @partial match target {
         is FieldExpr -> { bind_place_receiver(ctx, target.target, out) }
@@ -54,7 +54,7 @@ bind_place_operands :: fn(ctx: FnLowerCtx!, target: Expr, out: LoweredStmt![]!) 
 // A receiver that is itself a place — a name, a field, an array element — is read
 // again, so only its own operands are bound. Any other is bound whole, an element
 // an `Index` impl returns included : its read is a call.
-bind_place_receiver :: fn(ctx: FnLowerCtx!, receiver: Expr, out: LoweredStmt![]!) -> void {
+bind_place_receiver :: fn(ctx: FnLowerCtx, receiver: Expr, out: LoweredStmt[]) -> void {
     // @partial: a name, a field or an element may be a place ; anything else is a value.
     @partial match receiver {
         is IdentExpr | FieldExpr -> { bind_place_operands(ctx, receiver, out) }
@@ -71,7 +71,7 @@ bind_place_receiver :: fn(ctx: FnLowerCtx!, receiver: Expr, out: LoweredStmt![]!
 
 // `rhs` runs between the read and the write, so the operand stays in place only
 // when nothing can rebind it.
-bind_place_operand :: fn(ctx: FnLowerCtx!, operand: Expr, out: LoweredStmt![]!) -> void {
+bind_place_operand :: fn(ctx: FnLowerCtx, operand: Expr, out: LoweredStmt[]) -> void {
     value :: lower_expr(ctx, operand)
     bound :: bind_unless_invariant(ctx, value, "place_operand", span_of(value), out)
     ctx.bound_operands[operand.id] = bound
@@ -86,7 +86,7 @@ bind_place_operand :: fn(ctx: FnLowerCtx!, operand: Expr, out: LoweredStmt![]!) 
 /// built its own `LoweredAssign` would drop the map write on the floor and
 /// corrupt the captured slot.
 lower_assign_one :: fn(
-    ctx: FnLowerCtx!, target: Expr, value: LoweredExpr!, span: Span,
+    ctx: FnLowerCtx, target: Expr, value: LoweredExpr, span: Span,
 ) -> LoweredStmt! {
     via_index_set :: try_lower_index_set_assign(ctx, target, value, span)
     if via_index_set != null { return via_index_set }
@@ -100,7 +100,7 @@ lower_assign_one :: fn(
 }
 
 try_lower_cell_set_assign :: fn(
-    ctx: FnLowerCtx!, assign_target: Expr, value: LoweredExpr!, span: Span,
+    ctx: FnLowerCtx, assign_target: Expr, value: LoweredExpr, span: Span,
 ) -> LoweredStmt! | null {
     target_ident :: as_ident(assign_target) ?? return null
     if target_ident is IdentExpr {
@@ -125,7 +125,7 @@ try_lower_cell_set_assign :: fn(
 // `[a, b] = [b, a]` assign `a = b` and then read the NEW `a` back into `b`.
 // The source is bound once too, so `[a, b] = f()` calls `f` a single time. A
 // `_` reads nothing; a `...rest` builds its fresh tail array in the read phase.
-lower_destructuring_assign :: fn(ctx: FnLowerCtx!, s: DestructureAssignStmt) -> LoweredStmt! {
+lower_destructuring_assign :: fn(ctx: FnLowerCtx, s: DestructureAssignStmt) -> LoweredStmt! {
     span :: s.span
     value_ty :: ctx.types.expr_type(s.value)
     src_sym :: fresh_synthetic_symbol(ctx, "destr_src")
@@ -179,7 +179,7 @@ lower_destructuring_assign :: fn(ctx: FnLowerCtx!, s: DestructureAssignStmt) -> 
 /// `lower_ident` applies on use-site reads. The bytecode emitter resolves
 /// assignment slots via the raw `LoweredIdent` ; a cast in target position
 /// breaks that pattern match.
-lower_assign_target :: fn(ctx: FnLowerCtx!, target: Expr) -> LoweredExpr! {
+lower_assign_target :: fn(ctx: FnLowerCtx, target: Expr) -> LoweredExpr! {
     if target is IdentExpr {
         symbol :: resolve_ident(ctx, target.span)
         if symbol is Symbol {
@@ -209,7 +209,7 @@ lower_assign_target :: fn(ctx: FnLowerCtx!, target: Expr) -> LoweredExpr! {
 // (single-element access, user IndexExpr on structs) keep the
 // generic `LoweredIndex` shape.
 
-lower_index :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type) -> LoweredExpr! {
+lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr! {
     target_type :: ctx.types.expr_type(expr.target)
     is_range :: index_is_range(ctx, expr.index)
     if is_range {
@@ -281,7 +281,7 @@ index_is_range :: fn(ctx: FnLowerCtx, index_expr: Expr) -> bool {
 // Build the slice node — `LoweredStringSlice` for codepoint-range string
 // slicing, `LoweredArraySlice` for the zero-copy array view. The two
 // share an identical shape ; only the runtime op downstream differs.
-mk_slice_node :: fn(as_string: bool, span: Span, type: Type, target: LoweredExpr!, lo: LoweredExpr!, hi: LoweredExpr!) -> LoweredExpr! {
+mk_slice_node :: fn(as_string: bool, span: Span, type: Type, target: LoweredExpr, lo: LoweredExpr, hi: LoweredExpr) -> LoweredExpr! {
     if as_string {
         return LoweredStringSlice {
             .span = span, .type = type, .target = target, .lo = lo, .hi = hi,
@@ -292,7 +292,7 @@ mk_slice_node :: fn(as_string: bool, span: Span, type: Type, target: LoweredExpr
     }
 }
 
-try_lower_range_slice :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type, as_string: bool) -> LoweredExpr! | null {
+try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type, as_string: bool) -> LoweredExpr! | null {
     match expr.index as range_lit {
         is RangeExpr -> {
             target_lowered :: lower_expr(ctx, expr.target)
@@ -344,7 +344,7 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type, as_st
     return null
 }
 
-adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr!, inclusive: LoweredExpr!, span: Span) -> LoweredExpr! {
+adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr, inclusive: LoweredExpr, span: Span) -> LoweredExpr! {
     usize_ty :: mk_primitive("usize")
     delta :: LoweredIf {
         .span = span, .type = usize_ty, .cond = inclusive,
@@ -363,7 +363,7 @@ adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr!, inclusive: LoweredExpr!, spa
     }
 }
 
-cast_to_usize :: fn(value: LoweredExpr!, span: Span) -> LoweredExpr! {
+cast_to_usize :: fn(value: LoweredExpr, span: Span) -> LoweredExpr! {
     // No-op when already usize.
     vt :: type_of(value)
     if vt is PrimitiveType {
@@ -372,7 +372,7 @@ cast_to_usize :: fn(value: LoweredExpr!, span: Span) -> LoweredExpr! {
     return LoweredCast { .span = span, .type = mk_primitive("usize"), .value = value }
 }
 
-adjust_hi_inclusive :: fn(hi: LoweredExpr!, inclusive: bool, span: Span) -> LoweredExpr! {
+adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> LoweredExpr! {
     if !inclusive { return hi }
     return LoweredBinary {
         .span = span, .type = mk_primitive("usize"), .op = .Add,
@@ -382,7 +382,7 @@ adjust_hi_inclusive :: fn(hi: LoweredExpr!, inclusive: bool, span: Span) -> Lowe
 }
 
 try_lower_index_set_assign :: fn(
-    ctx: FnLowerCtx!, assign_target: Expr, value: LoweredExpr!, span: Span,
+    ctx: FnLowerCtx, assign_target: Expr, value: LoweredExpr, span: Span,
 ) -> LoweredStmt! | null {
     target :: assign_target
     // @partial: only an `m[k]` (IndexExpr) LHS can be an IndexSet assign; every

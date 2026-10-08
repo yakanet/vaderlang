@@ -56,7 +56,7 @@ build :: fn(args: string[]) -> i32 {
 // Two passes over one module's declarations: collect the struct names first, so a
 // field whose type is a sibling struct is recognised as one however the file
 // orders them, then render.
-derive_module :: fn(ctx: BuildContext!, t: TypecheckedMessage) -> void {
+derive_module :: fn(ctx: BuildContext, t: TypecheckedMessage) -> void {
     structs: AST.StructDecl[]!: []
     for d in t.declarations {
         if d is AST.StructDecl as s {
@@ -82,7 +82,7 @@ derive_module :: fn(ctx: BuildContext!, t: TypecheckedMessage) -> void {
 // One `to_json_value` + one `to_json` per struct. They are overloads on the
 // parameter type, which is what lets a module hold a serialiser per struct.
 render_struct :: fn(
-    ctx: BuildContext!, out: StringBuilder!, s: AST.StructDecl, siblings: string[],
+    ctx: BuildContext, out: StringBuilder, s: AST.StructDecl, siblings: string[],
 ) -> void {
     out.append("\n/// Generated from `${s.name}` by this project's build driver.\n")
     out.append("to_json_value :: fn(v: ${s.name}) -> J.JsonValue {\n")
@@ -102,7 +102,7 @@ render_struct :: fn(
 
 // The statements that put one field into `entries`, or "" when the field's type
 // has no JSON mapping — reported against the field, so the user sees which one.
-render_field :: fn(ctx: BuildContext!, f: AST.StructField, siblings: string[]) -> string {
+render_field :: fn(ctx: BuildContext, f: AST.StructField, siblings: string[]) -> string {
     access :: "v.${f.name}"
     scalar :: scalar_value(f.ty, access, siblings)
     if scalar != "" {

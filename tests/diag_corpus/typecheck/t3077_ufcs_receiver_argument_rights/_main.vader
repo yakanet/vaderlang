@@ -13,7 +13,7 @@ Box :: struct<T> {
 
 ORIGIN :: Cfg { .n = 1 }
 
-poke :: fn(b: Box<Cfg!>!) -> void {
+poke :: fn(b: Box<Cfg!>) -> void {
     b.v.n = 9
 }
 

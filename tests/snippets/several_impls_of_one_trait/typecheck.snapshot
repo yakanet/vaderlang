@@ -47,7 +47,7 @@
   expr 146:20   IdentExpr      :: i32
   expr 146:25   IdentExpr      :: i32
   expr 146:9    FieldExpr      :: i32[]!
-  expr 146:9    IdentExpr      :: Sheet!
+  expr 146:9    IdentExpr      :: Sheet
   expr 146:9    IndexExpr      :: i32
   expr 151:43   StringLitExpr  :: string
   expr 151:52   IdentExpr      :: string
@@ -264,13 +264,13 @@
   expr 43:20    IdentExpr      :: i32
   expr 43:25    IdentExpr      :: i32
   expr 43:9     FieldExpr      :: i32[]!
-  expr 43:9     IdentExpr      :: Grid!
+  expr 43:9     IdentExpr      :: Grid
   expr 43:9     IndexExpr      :: i32
   expr 49:25    StringLitExpr  :: string
   expr 49:28    IdentExpr      :: string
   expr 49:33    IdentExpr      :: string
   expr 49:9     FieldExpr      :: string[]!
-  expr 49:9     IdentExpr      :: Grid!
+  expr 49:9     IdentExpr      :: Grid
   expr 49:9     IndexExpr      :: string
   expr 58:44    BinaryExpr     :: bool
   expr 58:44    IdentExpr      :: i32

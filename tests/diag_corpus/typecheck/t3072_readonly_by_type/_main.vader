@@ -9,11 +9,11 @@ export Point :: struct {
 
 export Cell :: Point | i32
 
-export poke :: fn(p: Point!) -> void {
+export poke :: fn(p: Point) -> void {
     p.x += 1
 }
 
-export poke_cell :: fn(c: Cell!) -> void {
+export poke_cell :: fn(c: Cell) -> void {
     if c is Point {
         c.x += 1
     }
@@ -33,12 +33,12 @@ export calls :: fn() -> void {
     poke(fresh())
 }
 
-export fields :: fn(h: Holder!) -> void {
+export fields :: fn(h: Holder) -> void {
     poke(h.p)
     poke(h.q)
 }
 
-export cells :: fn(cs: Cell![]) -> void {
+export cells :: fn(cs: Cell[]) -> void {
     poke_cell(cs[0])
 }
 

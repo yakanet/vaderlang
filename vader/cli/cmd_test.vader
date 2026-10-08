@@ -178,7 +178,7 @@ discover_vader_files :: fn(target: Path) -> Path[] {
     return out
 }
 
-walk_test_dir :: fn(dir: Path, out: Path[]!) -> void {
+walk_test_dir :: fn(dir: Path, out: Path[]) -> void {
     entries :: read_dir(dir.as_string())
     if entries is IOError {
         return

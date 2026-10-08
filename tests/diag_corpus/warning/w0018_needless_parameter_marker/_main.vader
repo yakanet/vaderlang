@@ -1,0 +1,14 @@
+// W0018 — nothing mutates the parameter at the level the `!` is written on. The
+// marker still holds, so a caller must hand in a mutable value until it goes.
+
+module "snippet"
+
+Box :: struct { n: i32 }
+
+// The warning : the body only reads `b`.
+peek :: fn(b: Box!) -> i32 = b.n
+
+// The warning on the element : only the spine grows.
+grow :: fn(xs: Box![]!) -> void {
+    xs.push(Box { .n = 0 })
+}

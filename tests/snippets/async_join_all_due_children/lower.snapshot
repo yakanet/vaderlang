@@ -24,7 +24,7 @@
       vcall std_core$Async.resume :null | Suspended
         recv:
           .inner :Async<null>!
-            self :Counted!
+            self :Counted
   fn snippet$Counted$Async$cancel(self: Counted!) -> void
   fn snippet$task(ms: i64) -> Async<i64>!
     return

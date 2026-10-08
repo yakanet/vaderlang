@@ -12,7 +12,7 @@
   expr 26:20    IdentExpr      :: usize
   expr 26:25    IdentExpr      :: i32
   expr 26:9     FieldExpr      :: i32[]!
-  expr 26:9     IdentExpr      :: Cell!
+  expr 26:9     IdentExpr      :: Cell
   expr 26:9     IndexExpr      :: i32
   expr 31:63    IdentExpr      :: C
   expr 31:63    IndexExpr      :: i32

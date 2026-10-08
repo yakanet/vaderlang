@@ -39,7 +39,7 @@ union_trait_member :: fn(
     method: string,
     span: Span,
     typed: TypedProgram,
-    diags: Diagnostic[]!,
+    diags: Diagnostic[],
 ) -> TypeMember | null {
     traits :: union_dispatch_traits(u, trait_key, method, typed)
     if traits.len() == 0 {
@@ -67,7 +67,7 @@ trait_value_member :: fn(
     name: string,
     span: Span,
     typed: TypedProgram,
-    diags: Diagnostic[]!,
+    diags: Diagnostic[],
 ) -> TypeMember | null {
     found :: tag_member(recv, recv, name, typed) ?? return null
     if found.self_hazard == "" {

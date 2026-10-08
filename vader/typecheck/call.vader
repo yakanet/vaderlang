@@ -46,10 +46,10 @@ callee_has_overloads :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
 }
 
 pick_overload :: fn(
-    c: AST.CallExpr!,
+    c: AST.CallExpr,
     initial: Type,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     if c.callee !is AST.IdentExpr {
@@ -133,11 +133,11 @@ pick_overload :: fn(
 // call's first argument picks, or, for a member without one, the one whose result
 // fits `expected`. The pick is recorded for the lowering.
 pick_member_overload :: fn(
-    c: AST.CallExpr!,
+    c: AST.CallExpr,
     initial: Type,
     expected: Type | null,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     field :: c.callee
@@ -180,8 +180,8 @@ pick_member_index :: fn(
     field: AST.FieldExpr,
     sigs: Type[],
     expected: Type | null,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> usize | null {
     if c.args.len() > 0 {
@@ -334,7 +334,7 @@ export overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
 commit_overload_pick :: fn(
     picked: FnCandidate,
     c: AST.CallExpr,
-    typed: TypedProgram!,
+    typed: TypedProgram,
     primary_ft: Type | null,
 ) -> FnType {
     ft :: picked.ty
@@ -411,7 +411,7 @@ collect_overload_candidates :: fn(
 seed_ufcs_bindings :: fn(
     callee: AST.Expr,
     typed: TypedProgram,
-    bindings: MutableMap<i32, Type>!,
+    bindings: MutableMap<i32, Type>,
     held: MutableSet<i32> | null,
 ) -> void {
     if callee !is AST.FieldExpr {
@@ -437,8 +437,8 @@ seed_ufcs_bindings :: fn(
 seed_explicit_type_args :: fn(
     callee: AST.Expr,
     typed: TypedProgram,
-    bindings: MutableMap<i32, Type>!,
-    diags: Diagnostic[]!,
+    bindings: MutableMap<i32, Type>,
+    diags: Diagnostic[],
 ) -> MutableSet<i32> | null {
     if callee !is AST.GenericInstExpr {
         return null
@@ -469,20 +469,16 @@ seed_explicit_type_args :: fn(
 // express `...rest`), or an error —
 // T3003 too many / positional-after-named, T3004 unknown name, T3005 missing
 // required, T3025 a named arg duplicating a filled slot.
-normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnostic[]!) -> AST.CallArg[]! | null {
+normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnostic[]) -> AST.CallArg[]! | null {
     for pr in params {
         if pr.variadic {
             return null
         }
     }
-    // Fast path : already positional + full arity → nothing to reorder.
-    only_positional := true
-    for a in c.args {
-        if a.name != null {
-            only_positional = false
-        }
-    }
-    if only_positional && c.args.len() == params.len() {
+    // Already in parameter order at full arity → nothing to reorder. A list this
+    // function produced is in that shape, named arguments included : a call checked
+    // again, as each round of the `!` deduction does, keeps its arguments.
+    if c.args.len() == params.len() && in_parameter_order(params, c.args) {
         return null
     }
     slots: (AST.CallArg | null)[]!: [null] * params.len()
@@ -568,6 +564,18 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
         return null
     }
     return out
+}
+
+// Whether every argument of `args` sits at its parameter's position : unnamed, or
+// named after the parameter at its index.
+in_parameter_order :: fn(params: AST.FnParam[], args: AST.CallArg[]) -> bool {
+    for i in 0..<args.len() {
+        name :: args[i].name
+        if name != null && name != params[i].name {
+            return false
+        }
+    }
+    return true
 }
 
 param_index_by_name :: fn(params: AST.FnParam[], name: string) -> isize {
@@ -737,7 +745,7 @@ report_unbound_type_args :: fn(
     expected: Type | null,
     checked_arg_count: usize,
     typed: TypedProgram,
-    diags: Diagnostic[]!,
+    diags: Diagnostic[],
 ) -> void {
     if checked_arg_count != callee_ty.params.len() {
         return
@@ -804,7 +812,7 @@ mentions_unbound_type_param :: fn(t: Type, bindings: MutableMap<i32, Type>) -> b
 // Walk `t` and append every type-param `bindings` has no entry for, skipping
 // ones already collected. Mirrors `type_contains_type_param`'s traversal rather
 // than threading a closure through `for_each_type`.
-collect_unbound_type_params :: fn(t: Type, bindings: MutableMap<i32, Type>, out: Symbol[]!) -> void {
+collect_unbound_type_params :: fn(t: Type, bindings: MutableMap<i32, Type>, out: Symbol[]) -> void {
     // @partial: only these variants can hold a type-param ; every scalar /
     // primitive variant has no inner type to walk.
     @partial match t {
@@ -845,13 +853,13 @@ collect_unbound_type_params :: fn(t: Type, bindings: MutableMap<i32, Type>, out:
 // feed both unifiers from what came back. Shared by the eager pass and the
 // deferred-lambda pass so a future unify step can't land in only one of them.
 check_generic_arg :: fn(
-    c: AST.CallExpr!,
+    c: AST.CallExpr,
     i: usize,
     callee_ty: FnType,
-    bindings: MutableMap<i32, Type>!,
+    bindings: MutableMap<i32, Type>,
     held: MutableSet<i32> | null,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     param_ty :: substitute_map(callee_ty.params[i], bindings)
@@ -872,10 +880,10 @@ check_generic_arg :: fn(
 ///                  binds takes its binding from the return type (see the
 ///                  deferred-lambda pass below).
 export infer_call :: fn(
-    c: AST.CallExpr!,
+    c: AST.CallExpr,
     expected: Type | null,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     if c.callee is AST.FieldExpr {
@@ -1042,7 +1050,9 @@ export infer_call :: fn(
         instance :: substitute_fn_map(callee_ty, bindings)
         for i in 0..<n {
             want :: instance.params[i]
-            reject_immutable_into_mutable_param(instance, i, arg_types[i], c, typed, diags)
+            if reject_immutable_into_mutable_param(instance, i, arg_types[i], c, typed, diags) {
+                continue
+            }
             // A parameter still naming a type parameter of the callee that nothing
             // bound has nothing to check against. One bound to the enclosing fn's
             // `T` does : `pick(x, 0)` hands a literal to that `T`.
@@ -1060,9 +1070,10 @@ export infer_call :: fn(
             slot :: param_shape_slot(arg_types[i], want)
             if is_assignable(cleared, slot)                       { continue }
             if try_into(cleared, slot, typed, c.args[i].value.id) { continue }
-            diags.push(mismatch_diagnostic(
-                arg_types[i], want, c.args[i].span, .TypeMismatch,
-                mutability_level_hint(c.args[i].value, arg_types[i], want, typed), typed))
+            note_gaining_need(c, i, arg_types[i], want, typed)
+            push_level_mismatch(
+                arg_types[i], want, c.args[i].span, .TypeMismatch, c.args[i].value, typed, diags,
+            )
         }
         // Default any FreeInt/FreeFloat bound to a typeParam before
         // substituting, so the return type comes back concrete
@@ -1130,7 +1141,9 @@ export infer_call :: fn(
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
-        reject_immutable_into_mutable_param(callee_ty, i, arg_ty, c, typed, diags)
+        if reject_immutable_into_mutable_param(callee_ty, i, arg_ty, c, typed, diags) {
+            continue
+        }
         // T3072 above owns struct mutability at an argument, and says it better (it
         // names the parameter and the annotatable root). Clear the top-level struct
         // bit so the generic assignability check doesn't double-report the same
@@ -1140,9 +1153,10 @@ export infer_call :: fn(
         slot :: param_shape_slot(arg_ty, param_ty)
         if is_assignable(cleared, slot) { continue }
         if try_into(cleared, slot, typed, c.args[i].value.id) { continue }
-        diags.push(mismatch_diagnostic(
-                arg_ty, param_ty, c.args[i].span, .TypeMismatch,
-                mutability_level_hint(c.args[i].value, arg_ty, param_ty, typed), typed))
+        note_gaining_need(c, i, arg_ty, param_ty, typed)
+        push_level_mismatch(
+            arg_ty, param_ty, c.args[i].span, .TypeMismatch, c.args[i].value, typed, diags,
+        )
     }
     if overloaded {
         typed.overloaded_arg_depth = typed.overloaded_arg_depth - 1
@@ -1175,7 +1189,7 @@ export infer_call :: fn(
 /// `?[]` allocates a BOXED buffer while the widened local makes every read and
 /// write packed — a mismatch that corrupts silently once the buffer grows past
 /// its first allocation (`x := [] ; 9 × push(i)` read back `x[8] == 0`).
-widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram!) -> void {
+widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     if c.callee !is AST.FieldExpr {
         return
     }
@@ -1244,9 +1258,9 @@ converts_by_name :: fn(c: AST.CallExpr, callee_ty: Type, typed: TypedProgram) ->
 /// @error T3010 when a `(value → target)` pair is not a legal conversion
 ///        (`i32("hello")`, `bool(someStruct)`).
 cast_call_target :: fn(
-    c: AST.CallExpr!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    c: AST.CallExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     target :: type_from_expr(c.callee, typed.resolved, diags)
@@ -1289,7 +1303,7 @@ check_typeparam_bounds :: fn(
     c: AST.CallExpr,
     bindings: MutableMap<i32, Type>,
     typed: TypedProgram,
-    diags: Diagnostic[]!,
+    diags: Diagnostic[],
 ) -> void {
     for [id, bound_ty] in bindings {
         bound :: typed.type_param_bound_traits[id] ?? continue
@@ -1356,7 +1370,7 @@ ufcs_generic_signature :: fn(callee: AST.Expr, callee_ty: Type, typed: TypedProg
 // has it, as any argument is (`rows.put(LIST)` is `put(rows, LIST)`). Its own top
 // level was judged when the method was resolved (T3071).
 reject_ufcs_receiver_at_instance :: fn(
-    c: AST.CallExpr, bindings: MutableMap<i32, Type>, typed: TypedProgram, diags: Diagnostic[]!,
+    c: AST.CallExpr, bindings: MutableMap<i32, Type>, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     if c.callee !is AST.FieldExpr {
         return
@@ -1376,10 +1390,9 @@ reject_ufcs_receiver_at_instance :: fn(
     if is_assignable(arg_mutability_cleared(receiver_ty), param_shape_slot(receiver_ty, want)) {
         return
     }
-    diags.push(mismatch_diagnostic(
-        receiver_ty, want, c.callee.target.span, .TypeMismatch,
-        mutability_level_hint(c.callee.target, receiver_ty, want, typed), typed,
-    ))
+    push_level_mismatch(
+        receiver_ty, want, c.callee.target.span, .TypeMismatch, c.callee.target, typed, diags,
+    )
 }
 
 // Whether a lambda argument's parameter still names a type parameter of the callee
@@ -1409,7 +1422,7 @@ lambda_slot_unbound :: fn(
 repin_free_ufcs_receiver_at_instance :: fn(
     c: AST.CallExpr,
     bindings: MutableMap<i32, Type>,
-    typed: TypedProgram!,
+    typed: TypedProgram,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     if c.callee !is AST.FieldExpr {
@@ -1430,7 +1443,7 @@ repin_free_ufcs_receiver_at_instance :: fn(
 // parameters (`m.println()` on `println<T: Display>(msg: T)`) : the receiver alone
 // binds them, so the generic path never ran. Its bounds (T3006) and its rights
 // are judged here.
-check_receiver_alone :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]!) -> void {
+check_receiver_alone :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]) -> void {
     if c.callee !is AST.FieldExpr || generic_ufcs_callee(c.callee, typed) == null {
         return
     }
@@ -1501,7 +1514,7 @@ export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST
 /// @param typed      resolves an argument to the fn it names, if any.
 /// @param diags      accumulator for T3080.
 reject_indirect_callbacks :: fn(
-    c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram, diags: Diagnostic[]!,
+    c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     // Nothing to look up unless a parameter is a fn type — this runs on every
     // call expression in the program, and almost none has one.
@@ -1573,7 +1586,7 @@ unify_struct_to_trait_args :: fn(
     param: Type,
     arg: Type,
     typed: TypedProgram,
-    out: MutableMap<i32, Type>!,
+    out: MutableMap<i32, Type>,
     held: MutableSet<i32> | null,
 ) -> void {
     if param !is TraitType {
@@ -1602,9 +1615,9 @@ fn_has_type_params :: fn(f: FnType) -> bool {
 // fresh-position context so inner literals get a sensible type even
 // when the callee itself didn't resolve to a Fn (already errored).
 check_args_no_expected :: fn(
-    c: AST.CallExpr!,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    c: AST.CallExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     for a in c.args {
@@ -1620,10 +1633,10 @@ import "vader/parser"
 // Tiny stub : handles the variants the call tests touch. Real call sites
 // use `expr.vader::check_expr` — we can't import that here (cycle).
 call_check_stub :: fn(
-    e: AST.Expr!,
+    e: AST.Expr,
     expected: Type | null,
-    typed: TypedProgram!,
-    diags: Diagnostic[]!,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type {
     // @partial: test stub — only the literal / ident / call expr kinds the call
     // tests build are typed; every other Expr is irrelevant → unresolved.
@@ -1664,7 +1677,7 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture! {
     return CallFixture { .typed = result.typed, .call = null }
 }
 
-accept_call :: fn(e: AST.Expr!) -> AST.Expr! | null {
+accept_call :: fn(e: AST.Expr) -> AST.Expr! | null {
     if e is AST.CallExpr {
         return e
     }
@@ -1854,15 +1867,18 @@ arg_mutability_cleared_each :: fn(ts: Type[]) -> Type[] {
 }
 
 // T3071's job, in `field.vader`. `callee_ty` is the signature as this call sees it,
-// substituted.
+// substituted. True when the argument is refused : its other levels then go unjudged,
+// the refusal having said what to fix.
 reject_immutable_into_mutable_param :: fn(
     callee_ty: FnType, i: usize, arg_ty: Type, c: AST.CallExpr,
-    typed: TypedProgram, diags: Diagnostic[]!,
-) -> void {
+    typed: TypedProgram, diags: Diagnostic[],
+) -> bool {
     param_ty :: callee_ty.params[i]
+    note_arg_edge(c, i, arg_ty, param_ty, typed)
     if !param_mutable_at(callee_ty, i) {
-        return
+        return false
     }
+    note_element_store(c, i, arg_ty, typed)
     // A `!` on a type parameter promises as much mutation as `T` is bound to, and
     // no more: `push :: fn(self!, value: T!)` stores `value` in the receiver, so a
     // `Box![]` demands a mutable `Box` while a `Box[]` or an `i32[]` asks nothing.
@@ -1872,22 +1888,24 @@ reject_immutable_into_mutable_param :: fn(
     // A read-only view never fills its own `T`, whatever the bound : the caller may
     // hold that `T` mutable.
     if !lends_view(arg_ty, slot) && !slot_may_grant_mutation(slot, typed.type_param_bound_traits) {
-        return
+        return false
     }
     // An argument converted on its way in takes the rights of the `into` it goes
     // through : an owned result is what the callee mutates, never the argument.
     if converts_to_owned(arg_ty, param_ty, typed) {
-        return
+        return false
     }
     if !value_is_read_only(c.args[i].value, arg_ty, typed) {
-        return
+        return false
     }
-    diags.push(typecheck_error(
-        .ImmutableBorrowIntoMutableParam,
-        c.args[i].span,
-        mutable_param_detail(c, callee_ty, i, typed) +
-            mutation_fix_hint(c.args[i].value, typed),
-    ))
+    value :: c.args[i].value
+    what :: "it is passed to a parameter that mutates it"
+    if note_param_need(value, c.args[i].span, what, typed) {
+        return false
+    }
+    detail :: mutable_param_detail(c, callee_ty, i, typed)
+    report_refusal(.ImmutableBorrowIntoMutableParam, c.args[i].span, detail, value, typed, diags)
+    return true
 }
 
 // The variant of `param_ty` an argument of type `arg_ty` fills, or `param_ty` itself
@@ -1910,13 +1928,11 @@ mutable_param_detail :: fn(
     c: AST.CallExpr, callee_ty: FnType, i: usize, typed: TypedProgram,
 ) -> string {
     declared :: "the parameter is declared `!` — the callee may mutate it"
-    decl :: callee_decl(c, typed) ?? return declared
-    if decl.params.len() < callee_ty.params.len() {
-        return declared
+    param :: param_for_arg(c, i, typed) ?? return declared
+    deduced :: deduced_mutation_why(param, typed)
+    if deduced != null {
+        return deduced
     }
-    // A UFCS call's signature has dropped the receiver its declaration still lists.
-    receiver_offset :: decl.params.len() - callee_ty.params.len()
-    param :: decl.params[i + receiver_offset]
     if AST.param_is_mutable(param) {
         return declared
     }

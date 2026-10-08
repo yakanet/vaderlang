@@ -72,7 +72,7 @@ export opt_report_enabled :: fn() -> bool {
 /// @param ctx   the lowering project context, which accumulates the misses.
 /// @param pass  the pass, named for a reader.
 /// @param note  what runs instead, and what would have been needed.
-export record_miss :: fn(ctx: LowerProjectCtx!, pass: string, span: Span, note: string) -> void {
+export record_miss :: fn(ctx: LowerProjectCtx, pass: string, span: Span, note: string) -> void {
     if !ctx.opt_report {
         return
     }

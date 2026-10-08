@@ -20,7 +20,7 @@ export Repeat :: struct<T> {
 }
 
 Repeat<T> implements Iterator<T> {
-    next :: fn(self!) -> [T, Continuation] {
+    next :: fn(self) -> [T, Continuation] {
         if self.remaining <= 0 {
             return [self.value, .Stop]
         }
@@ -36,7 +36,7 @@ export Once :: struct<T> {
 }
 
 Once<T> implements Iterator<T> {
-    next :: fn(self!) -> [T, Continuation] {
+    next :: fn(self) -> [T, Continuation] {
         if self.yielded {
             return [self.value, .Stop]
         }
@@ -45,7 +45,7 @@ Once<T> implements Iterator<T> {
     }
 }
 
-walk :: fn(it: Iterator<i32>!) -> i32 {
+walk :: fn(it: Iterator<i32>) -> i32 {
     sum := 0
     cont := true
     for cont {

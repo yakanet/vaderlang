@@ -42,7 +42,7 @@ is_free_numeric :: fn(t: Type) -> bool {
 export unify_type_param :: fn(
     param_type: Type,
     arg_type: Type,
-    out: MutableMap<i32, Type>!,
+    out: MutableMap<i32, Type>,
     held: MutableSet<i32> | null = null,
     lowers_rights: bool = true,
 ) -> void {
@@ -261,7 +261,7 @@ any_contains :: fn(ts: Type[]) -> bool {
 unify_args :: fn(
     p_args: Type[],
     a_args: Type[],
-    out: MutableMap<i32, Type>!,
+    out: MutableMap<i32, Type>,
     held: MutableSet<i32> | null,
     lowers_rights: bool,
 ) -> void {

@@ -18,7 +18,7 @@ module "snippet"
 
 import "std/io"
 
-fill :: fn(x: i32[]! | string[]!) -> usize {
+fill :: fn(x: i32[] | string[]) -> usize {
     if x is i32[] {
         x.push(30)
         x.push(40)

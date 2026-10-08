@@ -18,7 +18,7 @@ import "vader/resolver/symbol"
 // Phase 2 (`materialize_representatives`, after the fn-instance drain) owns its
 // own dedupe set — nothing is shared between the two passes.
 materialize_concrete_struct_instances :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!,
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     for inst in project_ctx.evaluated.instances {
@@ -30,7 +30,7 @@ materialize_concrete_struct_instances :: fn(
 // the fn-instance pass has run, so the dump order is :
 //   concrete structs ; fn instances ; representative structs.
 materialize_representatives :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!,
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject,
 ) -> void {
     seen_reps :: new_string_set()
@@ -47,8 +47,8 @@ materialize_representatives :: fn(
 /// instantiations of the same generic shape only emit one.
 materialize_representative :: fn(
     inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
-    project_ctx: LowerProjectCtx!, project: LoweredProject,
-    seen_reps: MutableSet<string>!,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+    seen_reps: MutableSet<string>,
 ) -> void {
     if !all_concrete_args(inst.args) { return }
     sym :: inst.symbol
@@ -105,7 +105,7 @@ materialize_representative :: fn(
 
 materialize_one_instance :: fn(
     inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
-    project_ctx: LowerProjectCtx!, project: LoweredProject, diags: Diagnostic[],
+    project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     // Only concrete instances get a monomorphized decl. Skip uses where
     // any arg is still a TypeParam (those are the generic decl's own
@@ -199,7 +199,7 @@ mangle_struct_instance :: fn(display_path: string, name: string, args: Type[]) =
 
 materialize_struct_instance :: fn(
     inst: GenericInstance, owner_decls: Decl[], owner_typed: TypedProgram,
-    project_ctx: LowerProjectCtx!, project: LoweredProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> LoweredStructField[] {
     decl :: find_struct_decl_by_name(owner_decls, inst.symbol.name) ?? return []
     if decl is StructDecl {
@@ -274,7 +274,7 @@ materialize_struct_instance :: fn(
 /// shapes the newly-emitted decls reference in turn. Bounded by
 /// `MAX_FIELD_SHAPES` against a pathological ever-growing generic.
 close_over_field_shapes :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx!,
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject,
 ) -> void {
     materialized :: new_string_set()
@@ -324,7 +324,7 @@ MAX_FIELD_SHAPES :: 4096
 /// `type_list_equals` reads `ArrayType.immutable`) — the surplus is dropped
 /// there. It must never be COARSER : that would drop a shape nothing
 /// materialises.
-push_struct_shape :: fn(t: Type, out: StructType[]!, seen: MutableMap<i32, StructType[]!>!) -> void {
+push_struct_shape :: fn(t: Type, out: StructType[], seen: MutableMap<i32, StructType[]!>) -> void {
     if t !is StructType  { return }
     if has_type_param(t) { return }
     shapes :: seen[t.symbol.id]
@@ -360,7 +360,7 @@ shape_mangle :: fn(s: StructType, typed: TypedProject) -> string | null {
 /// the owning module's decls + typed view from a bare symbol + args.
 materialize_shape :: fn(
     sym: Symbol, args: Type[], loaded: LoadedProject, typed: TypedProject,
-    project_ctx: LowerProjectCtx!, project: LoweredProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> LoweredStructField[] {
     owner_module :: loaded.modules[sym.module]
     owner_typed :: typed.modules[sym.module]
@@ -393,7 +393,7 @@ materialize_shape :: fn(
 /// hole, and the net keeps catching what only a field type reaches.
 ensure_receiver_struct :: fn(
     inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
-    project_ctx: LowerProjectCtx!, project: LoweredProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
     if inst.symbol.kind != .Struct { return }
     if !all_concrete_args(inst.args) { return }
@@ -415,7 +415,7 @@ ensure_receiver_struct :: fn(
 
 materialize_impl_members_for :: fn(
     inst: GenericInstance, owner_typed: TypedProgram,
-    project_ctx: LowerProjectCtx!, project: LoweredProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> void {
     ensure_receiver_struct(inst, loaded, typed, project_ctx, project)
@@ -472,7 +472,7 @@ impl_applies_to_instance :: fn(project_ctx: LowerProjectCtx, impl_decl: ImplDecl
 materialize_impl_for_instance :: fn(
     impl_decl: ImplDecl, inst: GenericInstance,
     impl_typed: TypedProgram, owner_typed: TypedProgram,
-    project_ctx: LowerProjectCtx!, project: LoweredProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
     // Erasure : self type uses any-leaves args (Stack<Any> instead of
     // Stack<i32>) and the substitution carried into params / body maps
@@ -587,7 +587,7 @@ materialize_impl_for_instance :: fn(
 /// Deduped per `(type, trait)` ; no-op for unbounded type params.
 materialize_bound_trait_impls :: fn(
     impl_decl: ImplDecl, inst: GenericInstance, impl_typed: TypedProgram,
-    project_ctx: LowerProjectCtx!, project: LoweredProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> void {
     for i in 0..<impl_decl.type_params.len() {
@@ -607,7 +607,7 @@ materialize_bound_trait_impls :: fn(
 // bodies) so the vtable picks them up. Deduped per `(target, trait)`.
 materialize_bound_impl :: fn(
     target: string, trait_key: string,
-    project_ctx: LowerProjectCtx!, project: LoweredProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> void {
     dedupe_key :: "boundimpl::${target}::${trait_key}"

@@ -14,7 +14,7 @@ AST :: import "toolchain/ast"
 /// Type-check a `StructLitExpr`. Always returns the struct type even
 /// when the body has errors so downstream passes keep flowing.
 export infer_struct_lit :: fn(
-    e: AST.StructLitExpr!, typed: TypedProgram!, diags: Diagnostic[]!,
+    e: AST.StructLitExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     ty :: type_from_expr(e.type_name, typed.resolved, diags)
@@ -37,7 +37,7 @@ export infer_struct_lit :: fn(
 // T3006 — a literal is where a value of `Wrapper<X>` comes to exist, so `X` meets the
 // bounds the struct declares on its type arguments there.
 reject_unmet_struct_bounds :: fn(
-    st: StructType, span: Span, typed: TypedProgram, diags: Diagnostic[]!,
+    st: StructType, span: Span, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     if st.args.len() == 0 {
         return
@@ -59,8 +59,8 @@ reject_unmet_struct_bounds :: fn(
 /// @param check_expr_fn  the expression checker the caller runs under.
 /// @return               `st`.
 export check_struct_items :: fn(
-    items: AST.StructLitItem![], span: Span, st: StructType, typed: TypedProgram!,
-    diags: Diagnostic[]!, check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    items: AST.StructLitItem[], span: Span, st: StructType, typed: TypedProgram,
+    diags: Diagnostic[], check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     decl :: typed.struct_decls[st.symbol.id]
     provided: string[]!: []
@@ -93,8 +93,8 @@ export check_struct_items :: fn(
 }
 
 check_field :: fn(
-    f: AST.StructLitField!, st: StructType, decl: AST.StructDecl | null,
-    typed: TypedProgram!, diags: Diagnostic[]!, provided: string[]!,
+    f: AST.StructLitField, st: StructType, decl: AST.StructDecl | null,
+    typed: TypedProgram, diags: Diagnostic[], provided: string[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     expected: Type | null = null
@@ -134,16 +134,13 @@ check_field :: fn(
     want :: if as_pattern { erase_type_params(expected) } else { expected }
     if is_assignable(got, want)               { return }
     if try_into(got, want, typed, f.value.id) { return }
-    diags.push(mismatch_diagnostic(
-        got, expected, f.span, .TypeMismatch, mutability_level_hint(f.value, got, expected, typed),
-        typed,
-    ))
+    push_level_mismatch(got, expected, f.span, .TypeMismatch, f.value, typed, diags)
 }
 
 
 check_missing_fields :: fn(
     span: Span, st: StructType, decl: AST.StructDecl,
-    provided: string[], diags: Diagnostic[]!,
+    provided: string[], diags: Diagnostic[],
 ) -> void {
     missing: string[]!: []
     for sf in decl.fields {
@@ -159,7 +156,7 @@ check_missing_fields :: fn(
 }
 
 check_item_no_expected :: fn(
-    item: AST.StructLitItem!, typed: TypedProgram!, diags: Diagnostic[]!,
+    item: AST.StructLitItem, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     match item {
@@ -179,7 +176,7 @@ import "vader/resolver/symbol"
 import "toolchain/span"
 
 struct_lit_check_stub :: fn(
-    e: AST.Expr!, expected: Type | null, typed: TypedProgram!, diags: Diagnostic[]!,
+    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     // @partial: test stub — only the literal / ident / struct-lit expr kinds the
     // struct-lit tests build are typed; every other Expr is irrelevant → unresolved.
@@ -192,7 +189,7 @@ struct_lit_check_stub :: fn(
     }
 }
 
-accept_struct_lit :: fn(e: AST.Expr!) -> AST.Expr! | null {
+accept_struct_lit :: fn(e: AST.Expr) -> AST.Expr! | null {
     if e is AST.StructLitExpr { return e }
     return null
 }

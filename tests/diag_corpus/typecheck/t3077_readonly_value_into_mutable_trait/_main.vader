@@ -1,6 +1,7 @@
 // A value widening into a trait value keeps its own rights : a read-only `Cfg`
 // does not fill a `Bump!`, whose holder calls its `self!` members, nor the `Bump!`
-// variant of a union. T3077, twice.
+// variant of a union. T3077, twice — on a module const, whose rights are its own.
+// A parameter takes the `!` instead, so `lend` is accepted.
 module "snippet"
 
 Bump :: trait {
@@ -12,21 +13,29 @@ Cfg :: struct {
 }
 
 Cfg implements Bump {
-    bump :: fn(self!) -> void {
+    bump :: fn(self) -> void {
         self.n += 1
     }
 }
 
-keep :: fn(c: Cfg) -> Bump! = c
+FROZEN :: Cfg { .n = 1 }
 
-keep_optional :: fn(c: Cfg) -> Bump! | null = c
+keep :: fn() -> Bump! = FROZEN
+
+keep_optional :: fn() -> Bump! | null = FROZEN
+
+lend :: fn(c: Cfg) -> Bump! | null = c
 
 main :: fn() -> i32 {
-    b :: keep(Cfg { .n = 1 })
+    b :: keep()
     b.bump()
-    o :: keep_optional(Cfg { .n = 2 })
+    o :: keep_optional()
     if o != null {
         o.bump()
+    }
+    l :: lend(Cfg { .n = 2 })
+    if l != null {
+        l.bump()
     }
     return 0
 }

@@ -31,7 +31,7 @@ import "vader/resolver"
 /// Resolve goto-def for the position carried in `params`. Returns
 /// `LocationLink[]` (when `linkSupport`) or a bare `Location`, or
 /// `JsonNull` on miss.
-export handle_definition :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
+export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonNull {} }
     line :: position_line(params)
@@ -93,7 +93,7 @@ export handle_definition :: fn(state: ServerState!, params: JsonValue) -> JsonVa
 // Returns null when none answers — the caller then falls back to the name-based
 // search.
 member_by_type :: fn(
-    state: ServerState!, uri: string, index: DocIndex, line: i32, character: i32,
+    state: ServerState, uri: string, index: DocIndex, line: i32, character: i32,
 ) -> ExternalHit | null {
     name :: index.name_at(line, character)
     if name.bytes().len() == 0 {

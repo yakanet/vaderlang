@@ -1,14 +1,32 @@
 // Advancing an iterator mutates it (`next` is `self!`) : a read-only `it` cannot
-// be walked by `for`, nor a trait-typed `c` receive a `self!` member. T3071 on
-// `drain` and `poke` ; the `!` forms are accepted, and so is an array converted
-// to a fresh iterator (`xs.map(…)`, `total(xs)`, `buffered`), which only the
-// iterator's owner advances.
+// be walked by `for`, nor a trait-typed `c` receive a `self!` member. T3071 on the
+// two callbacks, whose parameters take their rights from the callback's type. A
+// fn's own parameter takes the `!` its body needs (`drain`, `poke`), and an array
+// converted to a fresh iterator (`xs.map(…)`, `total(xs)`, `buffered`) is advanced
+// only by the iterator's owner.
 module "snippet"
 
 import "std/iter"
 
 export Bump :: trait {
     bump :: fn(self!) -> void
+}
+
+export walk :: fn(it: Iterator<i32>, f: fn(Iterator<i32>) -> i32) -> i32 = f(it)
+
+export visit :: fn(c: Bump, f: fn(Bump) -> void) -> void = f(c)
+
+export refused :: fn(it: Iterator<i32>, c: Bump) -> i32 {
+    visit(c, (b: Bump) -> {
+        b.bump()
+    })
+    return walk(it, (i: Iterator<i32>) -> {
+        n := 0
+        for x in i {
+            n += x
+        }
+        return n
+    })
 }
 
 export drain :: fn(it: Iterator<i32>) -> i32 {
@@ -23,25 +41,13 @@ export poke :: fn(c: Bump) -> void {
     c.bump()
 }
 
-export drain_mutable :: fn(it: Iterator<i32>!) -> i32 {
-    n := 0
-    for x in it {
-        n += x
-    }
-    return n
-}
-
-export poke_mutable :: fn(c: Bump!) -> void {
-    c.bump()
-}
-
 export doubled :: fn(xs: i32[]) -> i32[]! = xs.map((x: i32) -> x * 2).collect()
 
-export total :: fn(xs: i32[]) -> i32 = drain_mutable(xs)
+export total :: fn(xs: i32[]) -> i32 = drain(xs)
 
 export buffered :: fn(xs: i32[]) -> i32 {
     buf: Iterator<i32>!: xs
-    return drain_mutable(buf)
+    return drain(buf)
 }
 
 main :: fn() -> i32 {

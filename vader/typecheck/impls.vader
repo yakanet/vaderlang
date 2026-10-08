@@ -96,7 +96,7 @@ export build_impl_registry :: fn(program_decls: Decl[], resolved: ResolvedModule
 ///
 /// @param decls     one module's declarations.
 /// @param resolved  the module that declares them — it resolves each impl.
-export collect_impls :: fn(self: ImplRegistry!, decls: Decl[], resolved: ResolvedModule) -> void {
+export collect_impls :: fn(self: ImplRegistry, decls: Decl[], resolved: ResolvedModule) -> void {
     for d in decls {
         if d is ImplDecl {
             self.collect_impl(d, resolved)
@@ -116,7 +116,7 @@ export impl_trait_symbol :: fn(decl: ImplDecl, resolved: ResolvedModule) -> Symb
     return if target.kind == .Trait { target } else { null }
 }
 
-collect_impl :: fn(self: ImplRegistry!, impl_: ImplDecl, resolved: ResolvedModule) -> void {
+collect_impl :: fn(self: ImplRegistry, impl_: ImplDecl, resolved: ResolvedModule) -> void {
     trait_sym :: impl_trait_symbol(impl_, resolved) ?? return
     scratch: Diagnostic[]!: []
     for_type :: type_from_expr(impl_.for_type, resolved, scratch)
@@ -154,7 +154,7 @@ collect_impl :: fn(self: ImplRegistry!, impl_: ImplDecl, resolved: ResolvedModul
     }
 }
 
-push_entry :: fn(table: MutableMap<string, ImplEntry[]!>!, key: string, entry: ImplEntry) -> void {
+push_entry :: fn(table: MutableMap<string, ImplEntry[]!>, key: string, entry: ImplEntry) -> void {
     found :: table[key]
     if found == null {
         table[key] = [entry]
@@ -164,7 +164,7 @@ push_entry :: fn(table: MutableMap<string, ImplEntry[]!>!, key: string, entry: I
 }
 
 // Every type `receiver`'s arguments are built from.
-record_specialized_args :: fn(self: ImplRegistry!, receiver: Type) -> void {
+record_specialized_args :: fn(self: ImplRegistry, receiver: Type) -> void {
     built_from: Type[]!: []
     for arg in type_arguments(receiver) {
         for_each_type(arg, (sub) -> built_from.push(sub))

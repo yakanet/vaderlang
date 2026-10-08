@@ -14,7 +14,7 @@ Bump :: trait {
 }
 
 Inner implements Bump {
-    bump :: fn(self!) -> void {
+    bump :: fn(self) -> void {
         self.n = self.n + 1
     }
 }
@@ -31,7 +31,7 @@ Inner implements Visit {
     get :: fn(self) -> Inner = FROZEN
 }
 
-run :: fn<T: Visit & Bump!>(t: T!) -> void {
+run :: fn<T: Visit & Bump!>(t: T) -> void {
     t.visit((x) -> {
         x.bump()
     })

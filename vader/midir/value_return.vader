@@ -35,7 +35,7 @@ import "vader/lower"
 ///
 /// @param p  the CFG project, fresh from `build_cfg_project`.
 /// @return   a fresh project; `p` is untouched.
-export scalarise_value_returns :: fn(p: CFGProject!) -> CFGProject! {
+export scalarise_value_returns :: fn(p: CFGProject) -> CFGProject! {
     by_symbol :: MutableMap<i32, string> {}
     callers :: MutableSet<string> {}
     chosen :: choose_functions(p, by_symbol, callers)
@@ -78,7 +78,7 @@ ReturnShape :: struct {
 // nullable struct — which is most of them — answers in one pass over the
 // function list, and no block is ever touched.
 choose_functions :: fn(
-    p: CFGProject, by_symbol: MutableMap<i32, string>!, callers: MutableSet<string>!,
+    p: CFGProject, by_symbol: MutableMap<i32, string>, callers: MutableSet<string>,
 ) -> MutableMap<string, ReturnShape> {
     chosen :: MutableMap<string, ReturnShape> {}
     for [_, m] in p.modules {
@@ -135,7 +135,7 @@ rewrite_callee :: fn(f: CFGFunction, elements: Type[], nullable: bool) -> CFGFun
 }
 
 rewrite_return_block :: fn(
-    b: BasicBlock, elements: Type[], locals: CFGLocal[]!,
+    b: BasicBlock, elements: Type[], locals: CFGLocal[],
 ) -> BasicBlock {
     t :: b.terminator
     if t !is TermReturn {
@@ -180,7 +180,7 @@ rewrite_return_block :: fn(
 
 // Every call to a scalarised function receives N values instead of one object.
 rewrite_call_sites :: fn(
-    f: CFGFunction!, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
+    f: CFGFunction, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
     callers: MutableSet<string>,
 ) -> CFGFunction! {
     if f.mangled !in callers {
@@ -209,7 +209,7 @@ rewrite_call_sites :: fn(
 // fresh one, so a block holding two such calls becomes seven.
 emit_rewritten_block :: fn(
     b: BasicBlock, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
-    locals: CFGLocal[]!, kept: BasicBlock[]!, extra: BasicBlock[]!, next_id: i32,
+    locals: CFGLocal[], kept: BasicBlock[], extra: BasicBlock[], next_id: i32,
 ) -> i32 {
     id := next_id
     current := b.id
@@ -304,7 +304,7 @@ emit_rewritten_block :: fn(
 // The block that kept the original id goes to `kept`, which stays indexed by id;
 // every block minted here goes to `extra`, appended after them.
 place :: fn(
-    kept: BasicBlock[]!, extra: BasicBlock[]!, id: BlockId, original: BlockId, b: BasicBlock,
+    kept: BasicBlock[], extra: BasicBlock[], id: BlockId, original: BlockId, b: BasicBlock,
 ) -> void {
     if id == original {
         kept.push(b)
@@ -315,7 +315,7 @@ place :: fn(
 
 
 // Forget every record naming `local`, as the object or as one of its fields.
-drop_records_touching :: fn(built: MutableMap<i32, LocalId[]>!, local: LocalId) -> void {
+drop_records_touching :: fn(built: MutableMap<i32, LocalId[]>, local: LocalId) -> void {
     doomed: i32[]!: []
     for [obj, fields] in built {
         if obj == i32(local) || local in fields {
@@ -340,7 +340,7 @@ tuple_field_index :: fn(field: string) -> i32 {
     return parsed
 }
 
-add_local :: fn(locals: CFGLocal[]!, hint: string, type: Type) -> LocalId {
+add_local :: fn(locals: CFGLocal[], hint: string, type: Type) -> LocalId {
     id :: LocalId(i32(locals.len()))
     locals.push(CFGLocal {
         .name = "\$${hint}_${locals.len()}",

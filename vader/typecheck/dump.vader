@@ -33,7 +33,7 @@ import "vader/types"
 /// The header omits the `# Typecheck` banner when `with_banner = false` so
 /// multi-module callers can compose without re-emitting it ; in single-module
 /// pipelines pass `true`.
-export dump_typed_program :: fn(typed: TypedProgram!, with_banner: bool) -> string {
+export dump_typed_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
     return dump_program_with_others(typed, with_banner, [], [typed.resolved.display_path])
 }
 
@@ -43,9 +43,9 @@ export dump_typed_program :: fn(typed: TypedProgram!, with_banner: bool) -> stri
 /// always come first. Only modules in `scope` are rendered (the entry's
 /// subtree by default, `--module` to widen), so dependencies stay out.
 export dump_program_with_others :: fn(
-    typed: TypedProgram!,
+    typed: TypedProgram,
     with_banner: bool,
-    others: TypedProgram![],
+    others: TypedProgram[],
     scope: string[],
 ) -> string {
     sb :: StringBuilder {}

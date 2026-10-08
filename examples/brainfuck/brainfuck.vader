@@ -111,7 +111,7 @@ match_brackets :: fn(tokens: char[]) -> i32[] {
 //   slot 2 = __out  (i32[], the bytes `.` produced, returned at the end)
 
 emit_bf_char :: fn(
-    fb: FunctionBuilder!,
+    fb: FunctionBuilder,
     c: char,
     idx: usize,
     partner: i32[],

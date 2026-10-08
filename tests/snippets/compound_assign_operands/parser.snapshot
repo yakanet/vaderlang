@@ -156,11 +156,8 @@
         {
           "name": "c",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "Counter"
-            }
+            "kind": "IdentExpr",
+            "name": "Counter"
           },
           "defaultValue": null,
           "variadic": false
@@ -336,8 +333,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             },
             {
               "name": "i",
@@ -447,11 +443,8 @@
         {
           "name": "c",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "C"
-            }
+            "kind": "IdentExpr",
+            "name": "C"
           },
           "defaultValue": null,
           "variadic": false

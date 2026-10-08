@@ -31,7 +31,7 @@ import "toolchain/span"
 /// Build the inlay-hint array for the document carried in `params`.
 /// Returns a `JsonArray` (possibly empty) — the LSP spec mandates an
 /// array response, never a null.
-export handle_inlay_hint :: fn(state: ServerState!, params: JsonValue) -> JsonValue {
+export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonArray { .items = [] } }
     file_path :: uri_to_path(uri)
@@ -52,7 +52,19 @@ export handle_inlay_hint :: fn(state: ServerState!, params: JsonValue) -> JsonVa
     for decl in sf.program.decls {
         collect_from_decl(decl, ctx, hints)
     }
+    emit_deduced_marks(file_path, ctx, hints)
     return JsonArray { .items = hints }
+}
+
+// A `!` the compiler deduces on a parameter, shown where it would be written, with
+// its cause as the tooltip.
+emit_deduced_marks :: fn(file: string, ctx: HintCtx, out: JsonValue[]) -> void {
+    inference :: ctx.typed.param_inference ?? return
+    for mark in deduced_marks(inference, p -> p.param.span.start.file == file) {
+        line :: mark.at.line - 1
+        character :: li_character(ctx.li, line, mark.at.offset)
+        out.push(build_hint(line, character, "!", "deduced : ${mark.why}"))
+    }
 }
 
 // What the walkers need at every level : the typed side-tables the hints read
@@ -67,7 +79,7 @@ HintCtx :: struct {
 
 // ---- AST walkers ---------------------------------------------------------
 
-collect_from_decl :: fn(d: AST.Decl, ctx: HintCtx, out: JsonValue[]!) -> void {
+collect_from_decl :: fn(d: AST.Decl, ctx: HintCtx, out: JsonValue[]) -> void {
     match d {
         is AST.FnDecl -> {
             match d.body as b {
@@ -94,14 +106,14 @@ collect_from_decl :: fn(d: AST.Decl, ctx: HintCtx, out: JsonValue[]!) -> void {
     }
 }
 
-collect_from_block :: fn(b: AST.BlockExpr, ctx: HintCtx, out: JsonValue[]!) -> void {
+collect_from_block :: fn(b: AST.BlockExpr, ctx: HintCtx, out: JsonValue[]) -> void {
     for s in b.stmts { collect_from_stmt(s, ctx, out) }
     if b.trailing !is null {
         collect_from_expr(b.trailing, ctx, out)
     }
 }
 
-collect_from_stmt :: fn(s: AST.Stmt, ctx: HintCtx, out: JsonValue[]!) -> void {
+collect_from_stmt :: fn(s: AST.Stmt, ctx: HintCtx, out: JsonValue[]) -> void {
     match s {
         is AST.LetStmt               -> {
             // Skip when the user already annotated the binding type.
@@ -147,7 +159,7 @@ collect_from_stmt :: fn(s: AST.Stmt, ctx: HintCtx, out: JsonValue[]!) -> void {
     }
 }
 
-collect_from_expr :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]!) -> void {
+collect_from_expr :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> void {
     // Surface an implicit `.into()` coercion carried on this value, if any.
     check_into_hint(e, ctx, out)
     // Recurse into every child expression : nested coercions (a coerced arg
@@ -222,7 +234,7 @@ collect_from_expr :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]!) -> void {
 /// `Expr.id`). Anchors right after the value : `span.end` is 1-based and
 /// exclusive, so 0-based column `end.column - 1` lands immediately past the
 /// last char and the zero-padding label reads as `value.into()`.
-check_into_hint :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]!) -> void {
+check_into_hint :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> void {
     if ctx.typed.into_coercions[e.id] is null { return }
     line :: e.span.end.line - 1
     col  :: e.span.end.column - 1
@@ -306,7 +318,7 @@ operator_hint_anchor :: fn(
 /// `name :u8: value` (`::`) or `name :u8= value` (`:=`) — the type sits between
 /// the operator's two characters. See `operator_hint_anchor` for the placement.
 emit_operator_hint :: fn(
-    ctx: HintCtx, name_span: Span, value_span: Span, label: string, out: JsonValue[]!,
+    ctx: HintCtx, name_span: Span, value_span: Span, label: string, out: JsonValue[],
 ) -> void {
     anchor :: operator_hint_anchor(ctx.li, ctx.content, name_span, value_span)
     out.push(build_hint(anchor.line, anchor.character, label))
@@ -317,7 +329,7 @@ emit_operator_hint :: fn(
 /// Currently handles the `SimpleBinding` case ; tuple-destructuring
 /// bindings are skipped (each leaf would need its own hint, and the
 /// static type isn't always useful on the destructure itself).
-emit_let_hint :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]!) -> void {
+emit_let_hint :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]) -> void {
     match ls.binding as sb {
         is AST.SimpleBinding -> {
             ty :: ctx.typed.local_types[sb.name_span.hash()] ?? return
@@ -336,7 +348,7 @@ emit_let_hint :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]!) -> void {
 /// keeps the un-defaulted free type. Type-alias constants (`Type ::
 /// i32 | string`) get `TY_TYPE` ; we skip those — they're already
 /// self-describing.
-emit_const_hint :: fn(cd: AST.ConstDecl, ctx: HintCtx, out: JsonValue[]!) -> void {
+emit_const_hint :: fn(cd: AST.ConstDecl, ctx: HintCtx, out: JsonValue[]) -> void {
     sym :: lookup_const_sym(ctx.typed.resolved, cd.name) ?? return
     ty :: ctx.typed.decl_types[sym.id] ?? return
     if ty is UnresolvedType { return }
@@ -349,7 +361,7 @@ lookup_const_sym :: fn(resolved: ResolvedModule, name: string) -> Symbol | null 
     return null
 }
 
-build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
+build_hint :: fn(line: i32, character: i32, label: string, tooltip: string = "") -> JsonValue {
     position :: MutableMap<string, JsonValue> {}
     position["line"]      = JsonNumber { .value = f64(line) }
     position["character"] = JsonNumber { .value = f64(character) }
@@ -364,6 +376,9 @@ build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
     // `.into()` coercion hint abuts the value's right edge (`value.into()`).
     hint["paddingLeft"]  = JsonBool { .value = false }
     hint["paddingRight"] = JsonBool { .value = false }
+    if tooltip != "" {
+        hint["tooltip"] = JsonString { .value = tooltip }
+    }
     return JsonObject { .entries = hint }
 }
 

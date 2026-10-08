@@ -58,7 +58,7 @@
     block :void
       let __for_arr_0: string[]! =
         .keys :string[]!
-          self :Cell!
+          self :Cell
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -82,7 +82,7 @@
                 index :i32
                   on:
                     .vals :i32[]!
-                      self :Cell!
+                      self :Cell
                   ix:
                     i :i32
               value:

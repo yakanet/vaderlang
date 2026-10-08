@@ -442,18 +442,25 @@ any_widens :: fn(
 widens_into_trait_variant :: fn(
     from: Type, variants: Type[], strict: bool,
     bounds: MutableMap<i32, TypeParamBound> | null,
-) -> bool {
+) -> bool = widened_trait_variant(from, variants, strict, bounds) != null
+
+// The trait value among `variants` that a value of `from` fills and widens — null when
+// it widens none, or a variant has its own shape.
+widened_trait_variant :: fn(
+    from: Type, variants: Type[], strict: bool,
+    bounds: MutableMap<i32, TypeParamBound> | null,
+) -> Type | null {
     for v in variants {
         if v is TraitType && mutability_widens(from, v, strict, bounds) {
             for w in variants {
                 if equals_type_shape(w, from) {
-                    return false
+                    return null
                 }
             }
-            return true
+            return v
         }
     }
-    return false
+    return null
 }
 
 // Whether `from`, a read-only view of a `T` — a `Self` lent read-only — would fill

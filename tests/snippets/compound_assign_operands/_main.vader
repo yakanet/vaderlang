@@ -28,7 +28,7 @@ Row :: struct {
 }
 
 // Hands its argument back, so a receiver evaluated twice would still write it.
-pick :: fn(c: Counter!) -> Counter! {
+pick :: fn(c: Counter) -> Counter! {
     println("pick")
     return c
 }
@@ -42,13 +42,13 @@ Cell implements Index<usize, i32> {
 }
 
 Cell implements IndexSet<usize, i32> {
-    set_at :: fn(self!, i: usize, v: i32) {
+    set_at :: fn(self, i: usize, v: i32) {
         self.slots[i] = v
     }
 }
 
 // The same write through a type-param bound : a virtual `at` then `set_at`.
-bump_nth :: fn<C: Index<usize, i32> & IndexSet<usize, i32>!>(c: C!, i: usize) {
+bump_nth :: fn<C: Index<usize, i32> & IndexSet<usize, i32>!>(c: C, i: usize) {
     c[slot(i)] += 100
 }
 

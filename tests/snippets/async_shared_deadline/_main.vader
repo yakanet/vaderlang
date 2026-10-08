@@ -15,7 +15,7 @@ Probe :: struct {
 }
 
 Probe implements Async<i32> {
-    resume :: fn(self!) -> i32 | Suspended {
+    resume :: fn(self) -> i32 | Suspended {
         self.drives += 1
         if sched_now() < self.until {
             return Suspended {}

@@ -9,7 +9,7 @@ Point :: struct {
 
 ORIGIN :: Point { .x = 1 }
 
-fill :: fn(dst: Point[]!) -> void {
+fill :: fn(dst: Point[]) -> void {
     dst.push(ORIGIN)
 }
 

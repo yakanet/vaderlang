@@ -4,16 +4,16 @@
 // `a.push(9)` compiled silently. `ArrayOps`' mutators declare `self!`, and
 // dispatch rejects them on a read-only receiver. T3071.
 //
-// The parameter carries no marker — that IS the read-only default, and it is
-// what the callee's `push` runs into.
+// The callback's parameter carries no marker — that IS the read-only default its
+// type lends, and it is what `push` runs into.
 module "snippet"
 
-grow :: fn(a: i32[]) -> void {
-    a.push(9)
-}
+each :: fn(xs: i32[], f: fn(i32[]) -> void) -> void = f(xs)
 
 main :: fn() -> i32 {
     xs :: [1, 2]
-    grow(xs)
+    each(xs, (a: i32[]) -> {
+        a.push(9)
+    })
     return 0
 }

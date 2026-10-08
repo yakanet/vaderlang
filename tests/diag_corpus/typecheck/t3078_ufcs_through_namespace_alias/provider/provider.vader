@@ -8,7 +8,7 @@ export Counter :: struct {
 }
 
 /// Free fn whose first param is the struct receiver.
-export bump :: fn(self: Counter!) -> i32 {
+export bump :: fn(self: Counter) -> i32 {
     self.n += 1
     return self.n
 }

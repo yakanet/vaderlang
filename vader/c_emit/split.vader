@@ -183,7 +183,7 @@ including :: fn(header_name: string) -> CPrinter! {
 /// @param ctx      the emit context, for the per-fn linkage decision.
 /// @param bucket   function indices belonging to this unit.
 /// @param printer  receives the declarations.
-emit_internal_forward_decls :: fn(ctx: EmitCtx, bucket: i32[], printer: CPrinter!) -> void {
+emit_internal_forward_decls :: fn(ctx: EmitCtx, bucket: i32[], printer: CPrinter) -> void {
     prototypes: CTopLevel[]!: []
     for idx in bucket {
         if module_function_storage(ctx, idx) == .Internal {
@@ -285,7 +285,7 @@ callee_index_of :: fn(op: Op) -> i32 {
 /// the function units : the data-pool arrays (`data.const`), the atom table
 /// (`main`). `vader_type_info_table` and its
 /// count are already declared by `vader.h`.
-emit_data_global_externs :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
+emit_data_global_externs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     declarations: CTopLevel[]!: []
     for i in 0..<ctx.module.data_pool.len() {
         // The qualifier must match the definition in the globals TU — a mutable

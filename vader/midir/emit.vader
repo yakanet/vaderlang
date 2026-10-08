@@ -35,7 +35,7 @@ import "toolchain/span"
 // creating a cycle.
 // ============================================================================
 
-reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx!) -> void {
+reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx) -> void {
     signature :: build_cfg_signature(cfg_fn.params, cfg_fn.return_type, cfg_fn.scalarised_results, ctx)
     function_index :: i32(ctx.functions.len())
     empty_body: Op[]!: []
@@ -59,7 +59,7 @@ reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx!) -> void {
 /// real fn index. The wrapper loads its params and forwards to the host import
 /// via `CallImport`. Registered under the member's mangle so
 /// `resolve_fn_index` (mangle-first) finds it.
-synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx!) -> void {
+synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> void {
     referenced :: MutableMap<string, bool> {}
     for e in cfg.vtable_entries { referenced[e.fn_symbol.name] = true }
     import_count :: i32(ctx.imports.len())
@@ -90,7 +90,7 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx!) -> vo
     }
 }
 
-reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx!) -> void {
+reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
     base :: build_cfg_signature(ext.params, ext.return_type, [], ctx)
     // `@c_pointer` is read straight off the origin AST rather than threaded
     // through `CFGParam`: it exists only on an `@extern`, which has no body to
@@ -107,7 +107,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx!) -> void {
     ctx.import_index_by_mangle[ext.mangled] = import_index
 }
 
-reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx!) -> void {
+reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
     sym_id: i32 = -1
     if s.origin.symbol is Symbol as sym { sym_id = sym.id }
     // Key on the struct *type*'s intern key (display_type), not the
@@ -226,7 +226,7 @@ with_by_address :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature {
 }
 
 build_cfg_signature :: fn(
-    params: CFGParam[], return_type: Type, scalarised_results: Type[], ctx: EmitterCtx!,
+    params: CFGParam[], return_type: Type, scalarised_results: Type[], ctx: EmitterCtx,
 ) -> BcSignature {
     params_val: ValType[]!: []
     param_types: i32[]!: []
@@ -516,7 +516,7 @@ resolve_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 {
 /// lookup. Entries whose fn target was pruned drop silently. Rows
 /// whose `<trait>.<method>` key isn't referenced by any `VirtualCall`
 /// op also drop.
-build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx!) -> VtableRow[] {
+build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> VtableRow[] {
     // Collect every `(trait, method)` key referenced by a surviving
     // VirtualCall — only rows in this set survive.
     used_keys :: MutableMap<string, bool> {}
@@ -672,7 +672,7 @@ FnEmitCfg :: struct {
 // Recursively intern every string leaf of a baked aggregate value into the
 // module string table, so the comptime atom table covers them (the native
 // backend reads each value's atom there). Side-effect only.
-intern_data_value_strings :: fn(v: BcDataValue, ctx: EmitterCtx!) -> void {
+intern_data_value_strings :: fn(v: BcDataValue, ctx: EmitterCtx) -> void {
     if v is BcValStr {
         _ :: intern_string(v.value, ctx)
     } else if v is BcValStruct {
@@ -687,7 +687,7 @@ intern_data_value_strings :: fn(v: BcDataValue, ctx: EmitterCtx!) -> void {
 /// pair when an instruction's single-use result flows directly to the
 /// next consumer.
 
-emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx!, string_index_map: i32[], want_debug: bool) -> void {
+emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, string_index_map: i32[], want_debug: bool) -> void {
     slot :: ctx.functions[usize(fn_idx)]
     // Open this function's per-call type-pin bucket (see `pinned_types_by_fn`) ;
     // the same array is cached on `fn_ctx.pinned_types_bucket` below so the
@@ -735,19 +735,19 @@ emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx!,
 // Maintains `slot.body` and `slot.jump_table` in parallel.
 // ============================================================================
 
-cf_block :: fn(ctx: FnEmitCfg!, span: Span, target_blk: BlockId) -> void {
+cf_block :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
     pc :: push_op_with_span(ctx, Block {}, span)
     ctx.scopes.push(ScopeFrame { .kind = "block", .target_blk = target_blk, .opener_pc = pc })
 }
 
-cf_loop :: fn(ctx: FnEmitCfg!, span: Span, target_blk: BlockId) -> void {
+cf_loop :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
     pc :: push_op_with_span(ctx, Loop {}, span)
     ctx.scopes.push(ScopeFrame { .kind = "loop", .target_blk = target_blk, .opener_pc = pc })
     // Loop target = body start (opener_pc + 1) — known immediately.
     ctx.slot.jump_table[usize(pc)] = pc + 1
 }
 
-cf_if :: fn(ctx: FnEmitCfg!, span: Span) -> void {
+cf_if :: fn(ctx: FnEmitCfg, span: Span) -> void {
     pc :: push_op_with_span(ctx, If {}, span)
     ctx.scopes.push(ScopeFrame {
         .kind = "if",
@@ -756,7 +756,7 @@ cf_if :: fn(ctx: FnEmitCfg!, span: Span) -> void {
     })
 }
 
-cf_else :: fn(ctx: FnEmitCfg!, span: Span) -> void {
+cf_else :: fn(ctx: FnEmitCfg, span: Span) -> void {
     pc :: push_op_with_span(ctx, Else {}, span)
     sp :: ctx.scopes.len()
     if sp == 0 { return }
@@ -768,7 +768,7 @@ cf_else :: fn(ctx: FnEmitCfg!, span: Span) -> void {
     ctx.scopes[sp - 1] = ScopeFrame { .kind = "if", .target_blk = top.target_blk, .opener_pc = pc }
 }
 
-cf_end :: fn(ctx: FnEmitCfg!, span: Span) -> void {
+cf_end :: fn(ctx: FnEmitCfg, span: Span) -> void {
     pc :: push_op_with_span(ctx, End {}, span)
     sp :: ctx.scopes.len()
     if sp == 0 { return }
@@ -791,7 +791,7 @@ cf_end :: fn(ctx: FnEmitCfg!, span: Span) -> void {
     drain_pending(ctx, top.target_blk, top.kind == "loop", top.opener_pc, pc)
 }
 
-emit_return :: fn(ctx: FnEmitCfg!, block_id: BlockId, t: TermReturn) -> void {
+emit_return :: fn(ctx: FnEmitCfg, block_id: BlockId, t: TermReturn) -> void {
     // Values are pushed in the order the caller receives them, so the first goes
     // down first. `skip_terminator_get` only ever applies to a lone value: with
     // several, leaving the first on the stack would bury it under the rest.
@@ -817,12 +817,12 @@ emit_return :: fn(ctx: FnEmitCfg!, block_id: BlockId, t: TermReturn) -> void {
     push_emit(ctx, Return {}, t.span)
 }
 
-cf_br :: fn(ctx: FnEmitCfg!, span: Span, target_blk: BlockId) -> void {
+cf_br :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
     pc :: push_op_with_span(ctx, Branch {}, span)
     defer_or_resolve_branch(ctx, target_blk, pc)
 }
 
-cf_br_if :: fn(ctx: FnEmitCfg!, span: Span, target_blk: BlockId) -> void {
+cf_br_if :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
     pc :: push_op_with_span(ctx, BranchIf {}, span)
     defer_or_resolve_branch(ctx, target_blk, pc)
 }
@@ -831,7 +831,7 @@ cf_br_if :: fn(ctx: FnEmitCfg!, span: Span, target_blk: BlockId) -> void {
 // `block` on the same header has closed before its `loop` opens, so an open
 // `loop` scope is the one the `br` means. Any other `br` waits for the `end` of
 // its `block`.
-defer_or_resolve_branch :: fn(ctx: FnEmitCfg!, target_blk: BlockId, pc: i32) -> void {
+defer_or_resolve_branch :: fn(ctx: FnEmitCfg, target_blk: BlockId, pc: i32) -> void {
     for s in ctx.scopes {
         if s.kind == "loop" && s.target_blk == target_blk {
             ctx.slot.jump_table[usize(pc)] = s.opener_pc + 1
@@ -841,7 +841,7 @@ defer_or_resolve_branch :: fn(ctx: FnEmitCfg!, target_blk: BlockId, pc: i32) -> 
     ctx.pending.push(PendingBranch { .branch_pc = pc, .target_blk = target_blk })
 }
 
-drain_pending :: fn(ctx: FnEmitCfg!, target_blk: BlockId, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
+drain_pending :: fn(ctx: FnEmitCfg, target_blk: BlockId, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
     resolved_pc :: if is_loop { opener_pc + 1 } else { end_pc + 1 }
     kept: PendingBranch[]!: []
     for entry in ctx.pending {
@@ -869,7 +869,7 @@ debug_pos_of_span :: fn(span: Span) -> DebugPos | null {
     return DebugPos { .file = span.start.file, .line = span.start.line, .column = span.start.column }
 }
 
-push_op_with_span :: fn(ctx: FnEmitCfg!, op: Op, span: Span) -> i32 {
+push_op_with_span :: fn(ctx: FnEmitCfg, op: Op, span: Span) -> i32 {
     pc :: i32(ctx.slot.body.len())
     ctx.slot.body.push(op)
     ctx.slot.debug.push(if ctx.want_debug { debug_pos_of_span(span) } else { null })
@@ -879,7 +879,7 @@ push_op_with_span :: fn(ctx: FnEmitCfg!, op: Op, span: Span) -> i32 {
 
 // Tag a scalar returned into a union result (see `emit_retag_into`) : an
 // expression-bodied fn and a block tail hand their value back with no Move.
-emit_return_retag :: fn(ctx: FnEmitCfg!, value: LocalId, index: usize, span: Span) -> void {
+emit_return_retag :: fn(ctx: FnEmitCfg, value: LocalId, index: usize, span: Span) -> void {
     // A scalarised return hands back each value under ITS OWN declared type, so
     // that is what decides whether it needs a retag. Judging by `return_type`
     // there would see the composite and retag every concrete element into a slot
@@ -903,7 +903,7 @@ move_retags :: fn(locals: CFGLocal[], m: InstrMove) -> bool =
 // variant too — and `is` reads the tag. Every place a value is stored into a
 // slot calls this, whatever lowering path built the instruction. An erased
 // generic slot is left to the class tag.
-emit_retag_into :: fn(ctx: FnEmitCfg!, value: LocalId, union_slot: bool, span: Span) -> void {
+emit_retag_into :: fn(ctx: FnEmitCfg, value: LocalId, union_slot: bool, span: Span) -> void {
     if !union_slot {
         return
     }
@@ -919,7 +919,7 @@ is_scalar_class :: fn(v: ValType) -> bool = !(v == .Ref || v == .Any || v == .Vo
 // Push `operands` in order — the first through the scheduler's elision — each
 // tagged when its slot is a union (`union_slots[i]` ; none past its end).
 emit_operands_into :: fn(
-    ctx: FnEmitCfg!, pos: i64, operands: LocalId[], union_slots: bool[], span: Span,
+    ctx: FnEmitCfg, pos: i64, operands: LocalId[], union_slots: bool[], span: Span,
 ) -> void {
     for i in 0..<operands.len() {
         if i == 0 {
@@ -996,7 +996,7 @@ closure_header_type :: fn(t: Type) -> Type =
 // Per-instr emit — covers the full `Instruction` set
 // ============================================================================
 
-emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
+emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     if ins is InstrConst {
         emit_const_instr(ctx, ins, pos)
         return
@@ -1409,7 +1409,7 @@ emit_instr :: fn(ctx: FnEmitCfg!, ins: Instruction, pos: i64) -> void {
 // A signed width is cut as `((x & mask) ^ sign) - sign`, which no step can
 // overflow: a shift pair would shift a negative value left, which C leaves
 // undefined.
-emit_narrowing :: fn(ctx: FnEmitCfg!, class: ValType, span: Span) -> void {
+emit_narrowing :: fn(ctx: FnEmitCfg, class: ValType, span: Span) -> void {
     byte :: class == .U8 || class == .I8
     push_emit(ctx, I32Const { .value = if byte { 0xFF } else { 0xFFFF } }, span)
     push_emit(ctx, I32BitAnd {}, span)
@@ -1560,7 +1560,7 @@ find_struct_field_index :: fn(ctx: EmitterCtx, type_index: i32, field_name: stri
     return null
 }
 
-emit_const_instr :: fn(ctx: FnEmitCfg!, c: InstrConst, pos: i64) -> void {
+emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst, pos: i64) -> void {
     v :: c.value
     if v is ConstInt {
         if is_64_bit_int_val(val_type_of_type(c.type)) {
@@ -1590,7 +1590,7 @@ emit_const_instr :: fn(ctx: FnEmitCfg!, c: InstrConst, pos: i64) -> void {
     emit_result(ctx, pos, c.dst, c.span)
 }
 
-emit_get :: fn(ctx: FnEmitCfg!, local_id: LocalId, span: Span) -> void {
+emit_get :: fn(ctx: FnEmitCfg, local_id: LocalId, span: Span) -> void {
     slot :: ctx.local_to_slot[usize(local_id)]
     push_emit(ctx, LocalGet { .slot = slot }, span)
 }
@@ -1599,7 +1599,7 @@ emit_get :: fn(ctx: FnEmitCfg!, local_id: LocalId, span: Span) -> void {
 /// flagged `pos` as `skip_first_get`, the previous instruction's result
 /// is already on the stack — no `local.get` needed. `pos` is
 /// `pos_key(block, idx)`.
-emit_first_get :: fn(ctx: FnEmitCfg!, pos: i64, local_id: LocalId, span: Span) -> void {
+emit_first_get :: fn(ctx: FnEmitCfg, pos: i64, local_id: LocalId, span: Span) -> void {
     if ctx.hints.skip_first_get.contains(pos) { return }
     emit_get(ctx, local_id, span)
 }
@@ -1607,14 +1607,14 @@ emit_first_get :: fn(ctx: FnEmitCfg!, pos: i64, local_id: LocalId, span: Span) -
 /// Final write for an instruction's result. When the scheduler flagged
 /// `pos` as `skip_set`, the value stays on the stack for the next
 /// instruction's first operand — no `local.set` needed.
-emit_result :: fn(ctx: FnEmitCfg!, pos: i64, dst: LocalId, span: Span) -> void {
+emit_result :: fn(ctx: FnEmitCfg, pos: i64, dst: LocalId, span: Span) -> void {
     if ctx.hints.skip_set.contains(pos) { return }
     emit_set(ctx, dst, span)
 }
 
 /// `emit_result` variant for Call / CallIndirect / VirtualCall /
 /// Intrinsic whose `dst` may be null (void-returning callee).
-emit_result_if_any :: fn(ctx: FnEmitCfg!, pos: i64, dst: LocalId | null, span: Span) -> void {
+emit_result_if_any :: fn(ctx: FnEmitCfg, pos: i64, dst: LocalId | null, span: Span) -> void {
     if dst == null { return }
     emit_result(ctx, pos, dst, span)
 }
@@ -1624,7 +1624,7 @@ emit_result_if_any :: fn(ctx: FnEmitCfg!, pos: i64, dst: LocalId | null, span: S
 // The callee pushed them in the order the caller receives them, so the LAST is
 // on top and they store back to front. Only the first store can take the
 // scheduler's skip hint — the ones under it have values above them on the stack.
-emit_call_results :: fn(ctx: FnEmitCfg!, pos: i64, dsts: LocalId[], span: Span) -> void {
+emit_call_results :: fn(ctx: FnEmitCfg, pos: i64, dsts: LocalId[], span: Span) -> void {
     if dsts.len() <= 1 {
         emit_result_if_any(ctx, pos, if dsts.len() == 0 { null } else { dsts[0] }, span)
         return
@@ -1664,7 +1664,7 @@ array_element_val_type :: fn(t: Type) -> ValType {
 
 // Pop the trailing `local.get N` from the body and replace with a fused
 // `local.field N type_id field_index`. Returns true iff fusion fired.
-try_fuse_local_field :: fn(ctx: FnEmitCfg!, type_id: i32, field_index: i32) -> bool {
+try_fuse_local_field :: fn(ctx: FnEmitCfg, type_id: i32, field_index: i32) -> bool {
     n :: ctx.slot.body.len()
     if n == 0 { return false }
     last :: ctx.slot.body[n - 1]
@@ -1674,12 +1674,12 @@ try_fuse_local_field :: fn(ctx: FnEmitCfg!, type_id: i32, field_index: i32) -> b
     return true
 }
 
-emit_set :: fn(ctx: FnEmitCfg!, local_id: LocalId, span: Span) -> void {
+emit_set :: fn(ctx: FnEmitCfg, local_id: LocalId, span: Span) -> void {
     slot :: ctx.local_to_slot[usize(local_id)]
     push_emit(ctx, LocalSet { .slot = slot }, span)
 }
 
-push_emit :: fn(ctx: FnEmitCfg!, op: Op, span: Span) -> void {
+push_emit :: fn(ctx: FnEmitCfg, op: Op, span: Span) -> void {
     ctx.slot.body.push(op)
     ctx.slot.debug.push(if ctx.want_debug { debug_pos_of_span(span) } else { null })
     // jump_table[pc] = -1 for non-branch ops (consumed only by the

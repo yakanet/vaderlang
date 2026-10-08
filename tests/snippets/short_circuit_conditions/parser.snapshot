@@ -31,11 +31,8 @@
         {
           "name": "sb",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "StringBuilder"
-            }
+            "kind": "IdentExpr",
+            "name": "StringBuilder"
           },
           "defaultValue": null,
           "variadic": false

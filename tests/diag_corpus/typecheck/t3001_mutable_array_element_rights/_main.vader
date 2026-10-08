@@ -1,5 +1,6 @@
-// Through a mutable array the elements' rights are invariant : `fill` may store
-// a read-only point in `held`, which its owner then writes as a `Point!`. T3001.
+// Through a mutable array the elements' rights are invariant : a callee taking a
+// `Point[]!` may store a read-only point in `held`, which its owner then writes as a
+// `Point!`. The callee is a callback's type, a contract no body widens. T3001.
 module "snippet"
 
 Point :: struct {
@@ -8,13 +9,15 @@ Point :: struct {
 
 ORIGIN :: Point { .x = 1 }
 
-fill :: fn(dst: Point[]!) -> void {
+fill :: fn(dst: Point[]) -> void {
     dst.push(ORIGIN)
 }
 
-main :: fn() -> i32 {
+refill :: fn(f: fn(Point[]!) -> void) -> i32 {
     held: Point![]!: []
-    fill(held)
+    f(held)
     held[0].x = 9
     return ORIGIN.x
 }
+
+main :: fn() -> i32 = refill(fill)

@@ -10,7 +10,7 @@ CFG :: Cfg { .n = 1 }
 
 read :: fn(c: Cfg) -> void {}
 
-write :: fn(c: Cfg!) -> void {
+write :: fn(c: Cfg) -> void {
     c.n = 5
 }
 

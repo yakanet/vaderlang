@@ -44,7 +44,7 @@ Vm :: import "vader/vm"
 /// @error            C4002 when the staged callee traps in the VM ; C4001 when
 ///                   its result `Value` can't be bridged (cf. `bridge.vader`).
 export resolve_vm_required_decls :: fn(
-    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject!, diags: Diagnostic[]!,
+    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[],
 ) -> void {
     if evaluated.vm_required.len() == 0 { return }
 
@@ -95,7 +95,7 @@ export resolve_vm_required_decls :: fn(
 // Run the canonical lower → cfg → dce → escape → emit tail over the (still
 // un-baked) project. Mirror of `bootstrap.vader::prepare_cfg_bytecode`'s tail.
 stage_to_bytecode :: fn(
-    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[]!,
+    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[],
 ) -> BytecodeModule {
     // Stage only the modules owning vm_required consts (+ their harvested
     // closure), not the whole entry-rooted project : each such module's un-baked
@@ -127,7 +127,7 @@ find_callee_mangle :: fn(module: BytecodeModule, callee_name: string) -> string 
 // Inject the bridged value into the owning module's `comptime_decls`, keyed by
 // the const's symbol id — exactly where the tree-walk would have put it. The
 // pass-2 lower's `lookup_const_baked_value` then inlines the literal.
-inject :: fn(evaluated: Ct.EvaluatedProject!, vr: Ct.VmRequiredDecl, value: Ct.ComptimeValue) -> void {
+inject :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl, value: Ct.ComptimeValue) -> void {
     program :: evaluated.modules[vr.module_id]
     if program is Ct.EvaluatedProgram {
         program.comptime_decls[vr.symbol_id] = value

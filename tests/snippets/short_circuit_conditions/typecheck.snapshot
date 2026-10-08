@@ -6,25 +6,25 @@
   FnDecl         guard                :: fn(i32 | null, i32) -> i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         shapes               :: fn(bool, bool, bool) -> string
-  FnDecl         trace                :: fn(StringBuilder!, string, bool) -> bool
+  FnDecl         trace                :: fn(StringBuilder, string, bool) -> bool
   expr 14:15    IdentExpr      :: string
   expr 14:5     CallExpr       :: void
   expr 14:5     FieldExpr      :: fn(string) -> void
-  expr 14:5     IdentExpr      :: StringBuilder!
+  expr 14:5     IdentExpr      :: StringBuilder
   expr 15:12    IdentExpr      :: bool
   expr 19:11    StructLitExpr  :: StringBuilder!
   expr 20:14    IdentExpr      :: StringBuilder!
   expr 20:18    StringLitExpr  :: string
   expr 20:23    IdentExpr      :: bool
   expr 20:29    CallExpr       :: bool
-  expr 20:29    IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 20:29    IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 20:35    IdentExpr      :: StringBuilder!
   expr 20:39    StringLitExpr  :: string
   expr 20:44    IdentExpr      :: bool
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
   expr 20:8     CallExpr       :: bool
-  expr 20:8     IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 20:8     IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 21:19    StringLitExpr  :: string
   expr 21:9     CallExpr       :: void
   expr 21:9     FieldExpr      :: fn(string) -> void
@@ -35,12 +35,12 @@
   expr 23:9     IdentExpr      :: StringBuilder!
   expr 25:10    BinaryExpr     :: bool
   expr 25:10    CallExpr       :: bool
-  expr 25:10    IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 25:10    IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 25:16    IdentExpr      :: StringBuilder!
   expr 25:20    StringLitExpr  :: string
   expr 25:25    IdentExpr      :: bool
   expr 25:31    CallExpr       :: bool
-  expr 25:31    IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 25:31    IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 25:37    IdentExpr      :: StringBuilder!
   expr 25:41    StringLitExpr  :: string
   expr 25:46    IdentExpr      :: bool
@@ -55,21 +55,21 @@
   expr 28:24    IdentExpr      :: bool
   expr 28:30    BinaryExpr     :: bool
   expr 28:30    CallExpr       :: bool
-  expr 28:30    IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 28:30    IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 28:36    IdentExpr      :: StringBuilder!
   expr 28:40    StringLitExpr  :: string
   expr 28:45    IdentExpr      :: bool
   expr 28:5     IfExpr         :: void
   expr 28:51    UnaryExpr      :: bool
   expr 28:52    CallExpr       :: bool
-  expr 28:52    IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 28:52    IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 28:58    IdentExpr      :: StringBuilder!
   expr 28:62    StringLitExpr  :: string
   expr 28:67    IdentExpr      :: bool
   expr 28:8     BinaryExpr     :: bool
   expr 28:8     UnaryExpr      :: bool
   expr 28:9     CallExpr       :: bool
-  expr 28:9     IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 28:9     IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 29:19    StringLitExpr  :: string
   expr 29:9     CallExpr       :: void
   expr 29:9     FieldExpr      :: fn(string) -> void
@@ -82,17 +82,17 @@
   expr 33:14    BinaryExpr     :: bool
   expr 33:14    BinaryExpr     :: bool
   expr 33:14    CallExpr       :: bool
-  expr 33:14    IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 33:14    IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 33:20    IdentExpr      :: StringBuilder!
   expr 33:24    StringLitExpr  :: string
   expr 33:29    IdentExpr      :: bool
   expr 33:35    CallExpr       :: bool
-  expr 33:35    IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 33:35    IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 33:41    IdentExpr      :: StringBuilder!
   expr 33:45    StringLitExpr  :: string
   expr 33:50    IdentExpr      :: bool
   expr 33:57    CallExpr       :: bool
-  expr 33:57    IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 33:57    IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 33:63    IdentExpr      :: StringBuilder!
   expr 33:67    StringLitExpr  :: string
   expr 33:72    IdentExpr      :: bool
@@ -102,7 +102,7 @@
   expr 34:5     FieldExpr      :: fn(string) -> void
   expr 34:5     IdentExpr      :: StringBuilder!
   expr 35:10    CallExpr       :: bool
-  expr 35:10    IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 35:10    IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 35:16    IdentExpr      :: StringBuilder!
   expr 35:20    StringLitExpr  :: string
   expr 35:25    IdentExpr      :: bool
@@ -116,12 +116,12 @@
   expr 37:12    IfExpr         :: void
   expr 37:15    BinaryExpr     :: bool
   expr 37:15    CallExpr       :: bool
-  expr 37:15    IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 37:15    IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 37:21    IdentExpr      :: StringBuilder!
   expr 37:25    StringLitExpr  :: string
   expr 37:30    IdentExpr      :: bool
   expr 37:36    CallExpr       :: bool
-  expr 37:36    IdentExpr      :: fn(StringBuilder!, string, bool) -> bool
+  expr 37:36    IdentExpr      :: fn(StringBuilder, string, bool) -> bool
   expr 37:42    IdentExpr      :: StringBuilder!
   expr 37:46    StringLitExpr  :: string
   expr 37:51    IdentExpr      :: bool

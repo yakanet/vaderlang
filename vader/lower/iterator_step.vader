@@ -29,7 +29,7 @@ export StepShape :: struct {
 /// @param element  the iterator's element type.
 /// @return         the shape, or null when `Continuation` is not reachable
 ///                 (std/core not loaded).
-export resolve_step_shape :: fn(ctx: FnLowerCtx!, element: Type) -> StepShape | null {
+export resolve_step_shape :: fn(ctx: FnLowerCtx, element: Type) -> StepShape | null {
     cont :: find_core_enum(ctx, ENUM_CONTINUATION) ?? return null
     return StepShape {
         .type = iterator_step_type(element, cont),
@@ -49,7 +49,7 @@ export resolve_step_shape :: fn(ctx: FnLowerCtx!, element: Type) -> StepShape | 
 /// @param ctx    the fn-body context, for the variant lookup.
 /// @return       a `bool`-typed expression.
 export step_is_done :: fn(
-    shape: StepShape, step: LoweredExpr!, span: Span, ctx: FnLowerCtx,
+    shape: StepShape, step: LoweredExpr, span: Span, ctx: FnLowerCtx,
 ) -> LoweredExpr! = LoweredBinary {
     .span = span, .type = TY_BOOL, .op = .Eq,
     .left = LoweredFieldAccess {
@@ -64,7 +64,7 @@ export step_is_done :: fn(
 /// @param step   an expression naming the step.
 /// @param span   the source span to attribute the read to.
 /// @return       an `element`-typed expression.
-export step_value :: fn(shape: StepShape, step: LoweredExpr!, span: Span) -> LoweredExpr! =
+export step_value :: fn(shape: StepShape, step: LoweredExpr, span: Span) -> LoweredExpr! =
     LoweredFieldAccess {
         .span = span, .type = shape.element, .target = step, .field = "_0",
     }
@@ -77,7 +77,7 @@ export step_value :: fn(shape: StepShape, step: LoweredExpr!, span: Span) -> Low
 /// @param ctx    the fn-body context.
 /// @return       a `shape.type`-typed expression.
 export step_of_value :: fn(
-    shape: StepShape, value: LoweredExpr!, span: Span, ctx: FnLowerCtx,
+    shape: StepShape, value: LoweredExpr, span: Span, ctx: FnLowerCtx,
 ) -> LoweredExpr! = step_pair(shape, value, CONTINUATION_CONTINUE, span, ctx)
 
 /// The step a generator returns when it is done.
@@ -97,7 +97,7 @@ export step_of_done :: fn(shape: StepShape, span: Span, ctx: FnLowerCtx) -> Lowe
 // `[value, Continuation.<variant>]`. A tuple lowers to the `_0` / `_1` struct
 // layout (mirrors `lower_seq_lit`).
 step_pair :: fn(
-    shape: StepShape, value: LoweredExpr!, variant: string, span: Span, ctx: FnLowerCtx,
+    shape: StepShape, value: LoweredExpr, variant: string, span: Span, ctx: FnLowerCtx,
 ) -> LoweredExpr! = LoweredStructLit {
     .span = span,
     .type = shape.type,

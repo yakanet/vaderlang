@@ -1,7 +1,8 @@
 // The read-only default is RECURSIVE, inside a union as much as outside it. A union
 // variant's children take the default like any other level, so `Box[] | null` means
 // what `Box[]` means — wrapping a type in `| null` must not reopen every level below
-// the top. T3070 on the element write.
+// the top. T3070 on the element write, through a callback's parameter : a slot the
+// callback's type lends, which no body widens.
 
 module "snippet"
 
@@ -9,14 +10,14 @@ Box :: struct {
     n: i32
 }
 
-mutate :: fn(xs: Box[] | null) -> void {
-    if xs == null {
-        return
-    }
-    xs[0].n = 999
-}
+run :: fn(f: fn(Box[] | null) -> void) -> void = f(null)
 
 main :: fn() -> i32 {
-    mutate(null)
+    run((xs: Box[] | null) -> {
+        if xs == null {
+            return
+        }
+        xs[0].n = 999
+    })
     return 0
 }

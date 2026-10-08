@@ -178,7 +178,7 @@ collect_loop_jumps :: fn(decls: Decl[]) -> LoopJump[] {
     return out
 }
 
-lj_decl :: fn(d: Decl, out: LoopJump[]!) -> void {
+lj_decl :: fn(d: Decl, out: LoopJump[]) -> void {
     match d {
         is FnDecl    -> { lj_fn_body(d.body, out) }
         is ImplDecl  -> { for m in d.members { lj_fn_body(m.body, out) } }
@@ -187,20 +187,20 @@ lj_decl :: fn(d: Decl, out: LoopJump[]!) -> void {
     }
 }
 
-lj_fn_body :: fn(body: BlockExpr | null, out: LoopJump[]!) -> void {
+lj_fn_body :: fn(body: BlockExpr | null, out: LoopJump[]) -> void {
     if body is BlockExpr {
         stack: LjFrame[]!: []
         lj_block(body, stack, out)
     }
 }
 
-lj_block :: fn(b: BlockExpr, stack: LjFrame[]!, out: LoopJump[]!) -> void {
+lj_block :: fn(b: BlockExpr, stack: LjFrame[], out: LoopJump[]) -> void {
     for s in b.stmts { lj_stmt(s, stack, out) }
     t :: b.trailing
     if t != null { lj_expr(t, stack, out) }
 }
 
-lj_stmt :: fn(s: Stmt, stack: LjFrame[]!, out: LoopJump[]!) -> void {
+lj_stmt :: fn(s: Stmt, stack: LjFrame[], out: LoopJump[]) -> void {
     match s {
         is ForStmt               -> {
             stack.push(LjFrame { .span = s.span, .binding = lj_for_binding(s), .label = s.label })
@@ -229,7 +229,7 @@ lj_stmt :: fn(s: Stmt, stack: LjFrame[]!, out: LoopJump[]!) -> void {
 
 // Only container expressions can host a nested `break` / `continue` in a
 // statement position ; leaves and lambdas (a jump there is illegal) are skipped.
-lj_expr :: fn(e: Expr, stack: LjFrame[]!, out: LoopJump[]!) -> void {
+lj_expr :: fn(e: Expr, stack: LjFrame[], out: LoopJump[]) -> void {
     @partial match e {
         is BlockExpr -> { lj_block(e, stack, out) }
         is IfExpr    -> {
@@ -258,7 +258,7 @@ lj_for_binding :: fn(f: ForStmt) -> string | null {
     return null
 }
 
-lj_record :: fn(jump_span: Span, label: string | null, stack: LjFrame[], out: LoopJump[]!) -> void {
+lj_record :: fn(jump_span: Span, label: string | null, stack: LjFrame[], out: LoopJump[]) -> void {
     target :: lj_resolve(stack, label)
     if target != null { out.push(LoopJump { .jump_span = jump_span, .target_span = target.span }) }
 }
@@ -438,7 +438,7 @@ export find_import :: fn(idx: DocIndex, name: string) -> Rs.ImportInfo | null {
 
 collect_decl :: fn(
     d: Decl, source: string, cmap: CommentMap,
-    entries: DeclEntry[]!,
+    entries: DeclEntry[],
 ) -> void {
     match d {
         is FnDecl -> {
@@ -579,7 +579,7 @@ binding_entry :: fn(
 
 // ---- fn body walk : params + locals + for-in -----------------------------
 
-ix_walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]!) -> void {
+ix_walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
     match f.body as body {
         is null      -> {}
         is BlockExpr -> {
@@ -615,7 +615,7 @@ name_span_from :: fn(start: Position, name: string) -> Span {
 // `b` is the block being walked. Locals it declares scope from their
 // declaration point to `b.span.end`. Nested blocks (if/match arms,
 // inner BlockExprs) recurse and get their own narrower scope.
-ix_walk_block :: fn(b: BlockExpr, source: string, entries: DeclEntry[]!) -> void {
+ix_walk_block :: fn(b: BlockExpr, source: string, entries: DeclEntry[]) -> void {
     for s in b.stmts {
         ix_walk_stmt(s, b.span, source, entries)
     }
@@ -624,7 +624,7 @@ ix_walk_block :: fn(b: BlockExpr, source: string, entries: DeclEntry[]!) -> void
     }
 }
 
-ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry[]!) -> void {
+ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry[]) -> void {
     match s {
         is LetStmt               -> {
             // Local scope : from the let down to the end of the
@@ -666,7 +666,7 @@ ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry
 
 collect_let_binding :: fn(
     b: LetBinding, scope: Span, source: string, type_hint: string,
-    entries: DeclEntry[]!,
+    entries: DeclEntry[],
 ) -> void {
     match b {
         is SimpleBinding -> {
@@ -752,7 +752,7 @@ type_expr_slice :: fn(t: Expr, source: string) -> string {
     return ""
 }
 
-ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]!) -> void {
+ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
     match f.form as w {
         is InfiniteFor -> {}
         is WhileFor    -> { ix_walk_expr(w.cond, source, entries) }
@@ -776,7 +776,7 @@ ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]!) -> void {
 // Recurse through expressions to reach nested blocks / matches / ifs /
 // lambdas. Leaf expression variants are no-ops ; container ones recurse
 // into every child that might host a binding.
-ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]!) -> void {
+ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
     match e {
         is BlockExpr -> { ix_walk_block(e, source, entries) }
         is NullCoalesceExpr -> {

@@ -26,7 +26,7 @@ Point :: struct {
     y: i32
 }
 
-total :: fn(it: Iterator<i64>!) -> i64 {
+total :: fn(it: Iterator<i64>) -> i64 {
     s: i64 = 0
     for x in it {
         s += x
@@ -35,7 +35,7 @@ total :: fn(it: Iterator<i64>!) -> i64 {
 }
 
 // An early `return` from inside the loop, and a final one after it.
-first_over :: fn(limit: i64, it: Iterator<i64>!) -> i64 {
+first_over :: fn(limit: i64, it: Iterator<i64>) -> i64 {
     for x in it {
         if x > limit {
             return x
@@ -45,7 +45,7 @@ first_over :: fn(limit: i64, it: Iterator<i64>!) -> i64 {
 }
 
 // A void consumer leaving through a bare `return`.
-print_until_stop :: fn(it: Iterator<string>!) -> void {
+print_until_stop :: fn(it: Iterator<string>) -> void {
     for s in it {
         if s == "stop" {
             return
@@ -56,7 +56,7 @@ print_until_stop :: fn(it: Iterator<string>!) -> void {
 }
 
 // A destructured element, and a tuple result with an early return.
-pair_sum :: fn(it: Iterator<[i32, i32]>!) -> [i32, i32] {
+pair_sum :: fn(it: Iterator<[i32, i32]>) -> [i32, i32] {
     a := 0
     b := 0
     for [x, y] in it {
@@ -70,7 +70,7 @@ pair_sum :: fn(it: Iterator<[i32, i32]>!) -> [i32, i32] {
 }
 
 // An overloaded consumer: the call inlines the overload typecheck picked.
-weigh :: fn(it: Iterator<i64>!) -> i64 {
+weigh :: fn(it: Iterator<i64>) -> i64 {
     n: i64 = 0
     for x in it {
         n += x
@@ -78,7 +78,7 @@ weigh :: fn(it: Iterator<i64>!) -> i64 {
     return n
 }
 
-weigh :: fn(scale: i64, it: Iterator<i64>!) -> i64 {
+weigh :: fn(scale: i64, it: Iterator<i64>) -> i64 {
     n: i64 = 0
     for x in it {
         n += x * scale
@@ -88,7 +88,7 @@ weigh :: fn(scale: i64, it: Iterator<i64>!) -> i64 {
 
 // Two loops over the parameter: the second sees a drained iterator, so this one
 // is never inlined.
-drained_twice :: fn(it: Iterator<i32>!) -> i32 {
+drained_twice :: fn(it: Iterator<i32>) -> i32 {
     n := 0
     for x in it {
         n += x

@@ -70,17 +70,17 @@
   expr 34:9     BinaryExpr     :: i32
   expr 34:9     IdentExpr      :: i32
   expr 36:12    IdentExpr      :: i32
-  expr 39:50    CallExpr       :: usize
-  expr 39:50    FieldExpr      :: fn() -> usize
-  expr 39:50    IdentExpr      :: Iterator<i32>!
-  expr 41:47    CallExpr       :: i32 | null
-  expr 41:47    FieldExpr      :: fn() -> i32 | null
-  expr 41:47    IdentExpr      :: Iterator<i32>!
-  expr 41:47    NullCoalesceExpr :: i32
-  expr 41:59    UnaryExpr      :: i32
-  expr 43:49    CallExpr       :: bool
-  expr 43:49    FieldExpr      :: fn() -> bool
-  expr 43:49    IdentExpr      :: Iterator<i32>!
+  expr 39:49    CallExpr       :: usize
+  expr 39:49    FieldExpr      :: fn() -> usize
+  expr 39:49    IdentExpr      :: Iterator<i32>!
+  expr 41:46    CallExpr       :: i32 | null
+  expr 41:46    FieldExpr      :: fn() -> i32 | null
+  expr 41:46    IdentExpr      :: Iterator<i32>!
+  expr 41:46    NullCoalesceExpr :: i32
+  expr 41:58    UnaryExpr      :: i32
+  expr 43:48    CallExpr       :: bool
+  expr 43:48    FieldExpr      :: fn() -> bool
+  expr 43:48    IdentExpr      :: Iterator<i32>!
   expr 46:14    RangeExpr      :: Range<i32>!
   expr 46:18    IdentExpr      :: i32
   expr 47:15    IdentExpr      :: i32

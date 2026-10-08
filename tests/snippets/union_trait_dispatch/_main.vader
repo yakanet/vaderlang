@@ -54,12 +54,12 @@ Log :: struct {
 }
 
 Log implements IndexSet<string, i32> {
-    set_at :: fn(self!, k: string, v: i32) -> void {
+    set_at :: fn(self, k: string, v: i32) -> void {
         self.lines.push("${k}=${v}")
     }
 }
 
-put :: fn(target: MutableMap<string, i32>! | Log!) -> void {
+put :: fn(target: MutableMap<string, i32> | Log) -> void {
     target.set_at("k", 1)
     target["j"] = 2
 }
@@ -73,7 +73,7 @@ Tally implements Index<string, i32> {
 }
 
 Tally implements IndexSet<string, i32> {
-    set_at :: fn(self!, k: string, v: i32) -> void {
+    set_at :: fn(self, k: string, v: i32) -> void {
         self.counts[k] = v * 10
     }
 }
@@ -87,12 +87,12 @@ Cell implements Index<string, i32> {
 }
 
 Cell implements IndexSet<string, i32> {
-    set_at :: fn(self!, k: string, v: i32) -> void {
+    set_at :: fn(self, k: string, v: i32) -> void {
         self.cells[0] = v
     }
 }
 
-bump :: fn(u: Tally! | Cell!) -> i32 {
+bump :: fn(u: Tally | Cell) -> i32 {
     u["a"] += 1
     return u["a"]
 }

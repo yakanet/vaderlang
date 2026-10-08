@@ -23,7 +23,7 @@ import "vader/c_emit/c_ast"
 /// Emit every import's shim plus the once-per-module `extern` declarations
 /// for `@extern` foreign symbols. Unused imports are pruned upstream, so
 /// `module.imports` already carries only the referenced host fns.
-emit_import_shims :: fn(ctx: EmitCtx, printer: CPrinter!) -> void {
+emit_import_shims :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     // Ahead of the shims that dereference them, and of the assertions that check
     // them — both of which name these types. Only under `--split`, where this
     // lands in the per-target imports header; a single file already carries them
@@ -190,7 +190,7 @@ signedness_assert :: fn(
 /// @param depth   guards a malformed self-referential mirror.
 push_member_copies :: fn(
     types: BcType[], fields: BcField[], c_expr: CExpression, v_expr: CExpression,
-    into_c: bool, out: CStatement[]!, depth: i32,
+    into_c: bool, out: CStatement[], depth: i32,
 ) -> void {
     if depth >= NEST_CAP {
         return
@@ -242,7 +242,7 @@ push_member_copies :: fn(
 /// @param depth      guards a malformed self-referential mirror.
 push_leaf_asserts :: fn(
     types: BcType[], fields: BcField[], c_name: string, c_prefix: string,
-    vader_ty: string, base: i64, out: CTopLevel[]!, depth: i32,
+    vader_ty: string, base: i64, out: CTopLevel[], depth: i32,
 ) -> void {
     if depth >= NEST_CAP {
         return

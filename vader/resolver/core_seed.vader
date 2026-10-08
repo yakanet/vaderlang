@@ -85,7 +85,7 @@ export find_async_module_id :: fn(project: LoadedProject) -> string | null {
 /// @param excludes        per-path names dropped by a `{ x as _, y as z }` modifier
 ///                        list (`FileImports.excludes`) — skipped here.
 export seed_wildcard_exports :: fn(
-    root: MutableMap<string, Symbol>!, name_index: MutableMap<string, LoadedModule>,
+    root: MutableMap<string, Symbol>, name_index: MutableMap<string, LoadedModule>,
     wildcard_paths: string[], excludes: MutableMap<string, string[]!>,
 ) -> void {
     for path in wildcard_paths {

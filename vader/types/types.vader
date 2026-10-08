@@ -785,10 +785,10 @@ export impl_base_key :: fn(t: Type) -> string {
 }
 
 
-write_type :: fn(sb: StringBuilder!, t: Type) -> void { sb.write_type_mut(t, true) }
+write_type :: fn(sb: StringBuilder, t: Type) -> void { sb.write_type_mut(t, true) }
 
 // `show_mut = false` renders the SHAPE only — see `display_type_key`.
-write_type_mut :: fn(sb: StringBuilder!, t: Type, show_mut: bool) -> void {
+write_type_mut :: fn(sb: StringBuilder, t: Type, show_mut: bool) -> void {
     match t {
         is PrimitiveType -> { sb.append(t.name) }
         is StructType    -> {
@@ -859,7 +859,7 @@ write_type_mut :: fn(sb: StringBuilder!, t: Type, show_mut: bool) -> void {
     }
 }
 
-write_named_mut :: fn(sb: StringBuilder!, name: string, args: Type[], show_mut: bool) -> void {
+write_named_mut :: fn(sb: StringBuilder, name: string, args: Type[], show_mut: bool) -> void {
     sb.append(name)
     if args.len() == 0 { return }
     sb.append_char('<')
@@ -867,7 +867,7 @@ write_named_mut :: fn(sb: StringBuilder!, name: string, args: Type[], show_mut: 
     sb.append_char('>')
 }
 
-write_type_list_mut :: fn(sb: StringBuilder!, items: Type[], sep: string, show_mut: bool) -> void {
+write_type_list_mut :: fn(sb: StringBuilder, items: Type[], sep: string, show_mut: bool) -> void {
     first := true
     for it in items {
         if !first { sb.append(sep) }
