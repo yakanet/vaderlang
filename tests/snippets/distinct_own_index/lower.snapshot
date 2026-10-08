@@ -242,7 +242,7 @@
           on:
             l :Log!
           ix:
-            int(0) :usize
+            int(0) :i32
       value:
         int(7) :i32
     assign
@@ -278,7 +278,7 @@
             on:
               l :Log!
             ix:
-              int(2) :usize
+              int(2) :i32
         value:
           __destr_el_5 :i32
     call :void

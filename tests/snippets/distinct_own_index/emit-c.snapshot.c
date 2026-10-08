@@ -210,8 +210,8 @@ static int32_t snippet_main(void) {
 #line 45 "tests/snippets/distinct_own_index/_main.vader"
     vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
-    VADER_ARRAY_CHECK_INDEX(_a3_slotarr, INT64_C(0))
-    ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) INT64_C(0)] = (int32_t) INT32_C(7);
+    VADER_ARRAY_CHECK_INDEX(_a3_slotarr, INT32_C(0))
+    ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) INT32_C(0)] = (int32_t) INT32_C(7);
 #line 46 "tests/snippets/distinct_own_index/_main.vader"
     t0 = snippet_Log_Index_at(l0, (size_t) 1);
     l4 = (t0 + INT32_C(100));
@@ -220,8 +220,8 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_CHECK_INDEX(_a4_slotarr, INT64_C(1))
     ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) INT64_C(1)] = (int32_t) l4;
 #line 47 "tests/snippets/distinct_own_index/_main.vader"
-    VADER_ARRAY_CHECK_INDEX(_a4_slotarr, INT64_C(2))
-    ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) INT64_C(2)] = (int32_t) INT32_C(42);
+    VADER_ARRAY_CHECK_INDEX(_a4_slotarr, INT32_C(2))
+    ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) INT32_C(2)] = (int32_t) INT32_C(42);
 #line 48 "tests/snippets/distinct_own_index/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 29);
     l2 = (size_t) 0;

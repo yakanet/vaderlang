@@ -301,6 +301,9 @@ const C_PARITY = new Set<string>([
   "into_impls_on_one_instance",
   // An array iterated through its own `into` by an inlined consumer and a chain.
   "array_own_into_not_fused",
+  // Several impls of one trait on one receiver : each use site runs the one its
+  // own types pick.
+  "several_impls_of_one_trait",
   // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's
   // defer runs on teardown, the winner's at its own completion.
   "async_race",

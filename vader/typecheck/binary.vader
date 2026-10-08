@@ -165,7 +165,10 @@ check_arith :: fn(
         if e.op == .Add && is_string(left) && is_string(right) {
             return TY_STRING
         }
-        if is_numeric(left) || is_numeric(right) {
+        // The left operand dispatches : a numeric one has only the built-in op, a
+        // struct one its impls, whatever the right operand (`v * 2.0` through
+        // `Vec2 implements Mul<f64>`).
+        if is_numeric(left) {
             return numeric_result(e, left, right, diags)
         }
     }
@@ -185,6 +188,7 @@ check_arith :: fn(
         method_name,
         op_label,
         e.right.span,
+        e.id,
         typed,
         diags,
     )
@@ -194,7 +198,9 @@ check_arith :: fn(
     // Dispatch through the impl method on the left operand ; its result type is
     // the operator's type (Self → left). The RHS is validated against the impl's
     // `other` param by the shared helper.
-    ft :: check_operator_rhs(left, right, method_name, op_label, e.right.span, typed, diags)
+    ft :: check_operator_rhs(
+        left, right, arith_trait(e.op), method_name, op_label, e, e.right.span, typed, diags,
+    )
     if ft != null {
         return substitute_self_in(ft.return_type, left)
     }
@@ -305,43 +311,86 @@ substitute_self_in :: fn(t: Type, self_ty: Type) -> Type {
 }
 
 /// Validate the RHS `operand` of an operator against `recv`'s impl method
-/// (`Add::add` / `Comparable::compare` / `Equals::equals` / …). Looks up
-/// `impl_methods["${base}::${method_name}"]` and, when found, checks `operand` is
-/// assignable to the method's `other: Self` param — pushing T3017 otherwise.
-/// Returns the impl `FnType` (so an arith caller can take its return type) or
-/// `null` when no impl is registered. Without this a wrong-typed RHS passes the
-/// typer and panics at lowering. Shared by `check_arith` / `check_compare` /
+/// (`Add::add` / `Comparable::compare` / `Equals::equals` / …), the one the operand
+/// picks when several impls of the trait offer it (`Add<f64>`, `Add<Vec2>`) :
+/// checks `operand` is assignable to the method's `other` param — pushing T3017
+/// otherwise. Returns the impl `FnType` (so an arith caller can take its return
+/// type) or `null` when no impl is registered. Without this a wrong-typed RHS passes
+/// the typer and panics at lowering. Shared by `check_arith` / `check_compare` /
 /// `check_equality` — the single home for the FnType/param-assignability dance.
 check_operator_rhs :: fn(
     recv: Type,
     operand: Type,
+    trait_name: string,
     method_name: string,
     op_label: string,
+    e: AST.BinaryExpr,
     span: Span,
-    typed: TypedProgram,
+    typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> FnType | null {
-    method_impl :: impl_side(typed, typed.impl_methods, recv, "::${method_name}")
-    method :: if method_impl !is null { method_impl.ty } else { null }
+    candidates :: trait_members(typed, recv, core_trait_key(trait_name), method_name)
+    if candidates.len() == 0 {
+        return null
+    }
+    chosen :: pick_operator_member(candidates, recv, operand, e, typed, diags)
+    method :: chosen.ty
     if method is FnType {
-        traits :: impl_side_list(typed, typed.impl_method_traits, recv, "::${method_name}")
-        if traits.len() > 0 {
-            _ :: reject_unmet_impl_bounds(
-                recv, traits[0], .OperatorTraitNotImplemented, span, typed, diags,
-            )
-        }
-        if method.params.len() > 0 {
-            // The impl's own parameters are free here : `Rhs = Vec<T>` takes a
-            // `Vec<i32>` right operand. Erased before `Self` becomes `recv`, which
-            // may name the enclosing fn's parameters, held opaque.
-            rhs :: substitute_self_in(erase_type_params(method.params[0]), recv)
-            if !is_assignable(operand, rhs) {
-                push_operand_mismatch(recv, operand, rhs, op_label, span, diags)
-            }
+        _ :: reject_unmet_impl_bounds(
+            recv, chosen.trait_key, .OperatorTraitNotImplemented, span, typed, diags,
+        )
+        rhs :: operator_rhs(chosen, recv)
+        if rhs != null && !is_assignable(operand, rhs) {
+            push_operand_mismatch(recv, operand, rhs, op_label, span, diags)
         }
         return method
     }
     return null
+}
+
+// The member of `candidates` an operator on `recv` dispatches to : the one whose
+// `other` takes `operand` best (`overload_rank`) when several impls of the trait
+// offer it, recorded for the lowering.
+pick_operator_member :: fn(
+    candidates: ImplMethod[],
+    recv: Type,
+    operand: Type,
+    e: AST.BinaryExpr,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+) -> ImplMethod {
+    if candidates.len() == 1 {
+        return candidates[0]
+    }
+    sigs: Type[]!: []
+    for m in candidates {
+        sigs.push(substitute_self_in(m.ty, recv))
+    }
+    pick :: pick_by_first_arg(sigs, operand, 1)
+    index :: pick.best ?? 0
+    if pick.rival != null {
+        diags.push(
+            typecheck_error(
+                .AmbiguousOverload,
+                e.right.span,
+                "several impls on ${display_type(recv)} take ${display_type(operand)} here",
+            ),
+        )
+    }
+    typed.picked_impl_members[e.id] = candidates[index]
+    return candidates[index]
+}
+
+// The type an operator method's `other` takes on `recv` ; null for a member
+// without one. The impl's own parameters are free here : `Rhs = Vec<T>` takes a
+// `Vec<i32>` right operand. Erased before `Self` becomes `recv`, which may name the
+// enclosing fn's parameters, held opaque.
+operator_rhs :: fn(member: ImplMethod, recv: Type) -> Type | null {
+    ft :: member.ty
+    if ft !is FnType || ft.params.len() == 0 {
+        return null
+    }
+    return substitute_self_in(erase_type_params(ft.params[0]), recv)
 }
 
 /// `check_operator_rhs` for a type parameter whose bound names the operator's
@@ -367,6 +416,7 @@ check_bounded_operator :: fn(
     method_name: string,
     op_label: string,
     span: Span,
+    node_id: usize,
     typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> FnType | null {
@@ -377,6 +427,7 @@ check_bounded_operator :: fn(
     if member.trait_key != core_trait_key(trait_name) {
         return null
     }
+    record_bounded_dispatch(typed, node_id, member.trait_key, member.trait_args)
     specialised :: member.ty
     if specialised !is FnType {
         return null
@@ -478,6 +529,7 @@ check_compare :: fn(
         METHOD_COMPARE,
         "comparison operator",
         e.right.span,
+        e.id,
         typed,
         diags,
     ) != null {
@@ -490,8 +542,10 @@ check_compare :: fn(
     if check_operator_rhs(
         left,
         right,
+        TRAIT_COMPARABLE,
         METHOD_COMPARE,
         "comparison operator",
+        e,
         e.right.span,
         typed,
         diags,
@@ -505,9 +559,6 @@ check_compare :: fn(
     push_trait_missing(e, left, TRAIT_COMPARABLE, typed, diags)
     return TY_BOOL
 }
-
-has_impl_method :: fn(t: Type, name: string, typed: TypedProgram) -> bool =
-    impl_side(typed, typed.impl_methods, t, "::${name}") !is null
 
 /// T3043 — operand `t` must implement `trait_name` for this operator, but no
 /// such impl exists. More precise than the generic T3017 : it names the missing
@@ -549,7 +600,11 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram!,
     // matched through the `"[]"` base key (`impl_base_key`) — no array special-case
     // needed (it used to be required because the element-specific `[string]` key
     // never matched the generic blanket).
-    if has_impl_method(right, METHOD_CONTAINS, typed) {
+    candidates :: trait_members(typed, right, core_trait_key(TRAIT_CONTAINS), METHOD_CONTAINS)
+    if candidates.len() > 0 {
+        // Several `Contains` impls (`Contains<i32>`, `Contains<string>`) : the
+        // element picks one.
+        _ :: pick_operator_member(candidates, right, left, e, typed, diags)
         // The impl may bound its argument : `T[] implements<T: Equals> Contains<T>`
         // holds for no element type outside the bound.
         _ :: reject_unmet_impl_bounds(
@@ -566,6 +621,7 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram!,
         METHOD_CONTAINS,
         "operator in",
         e.left.span,
+        e.id,
         typed,
         diags,
     ) != null {
@@ -601,7 +657,7 @@ check_equality :: fn(
     e: AST.BinaryExpr,
     left: Type,
     right: Type,
-    typed: TypedProgram,
+    typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> Type {
     // `==` / `!=` against `null` gets the same unreachable check as `is null`
@@ -688,7 +744,17 @@ check_equality :: fn(
     if left is StructType || right is StructType {
         needs :: if left is StructType { left } else { right }
         other :: if left is StructType { right } else { left }
-        check_operator_rhs(needs, other, METHOD_EQUALS, label, e.span, typed, diags)
+        check_operator_rhs(
+            needs,
+            other,
+            TRAIT_EQUALS,
+            METHOD_EQUALS,
+            label,
+            e,
+            e.span,
+            typed,
+            diags,
+        )
     }
     return TY_BOOL
 }

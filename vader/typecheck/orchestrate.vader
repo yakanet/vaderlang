@@ -927,9 +927,11 @@ index_impl_metadata :: fn(typed: TypedProgram!, for_ty: Type, trait_key: string,
     if trait_key == core_trait_key(TRAIT_ITERATOR) && trait_args.len() == 1 {
         typed.iter_element_types[key] = trait_args[0]
     }
+    // A type that is an `Iterator` itself is walked through its own `next`, whatever
+    // it converts into.
     if trait_key == core_trait_key(TRAIT_INTO) && trait_args.len() == 1 {
         elem :: iterator_element_of(trait_args[0])
-        if elem != null {
+        if elem != null && !has_iterator_impl(typed, key) {
             typed.iter_element_types[key] = elem
         }
     }
@@ -938,9 +940,14 @@ index_impl_metadata :: fn(typed: TypedProgram!, for_ty: Type, trait_key: string,
         typed.index_target_types[key] = trait_args[1]
     }
     if trait_key == core_trait_key(TRAIT_INDEX_SET) && trait_args.len() == 2 {
-        typed.index_key_types[key] = trait_args[0]
+        typed.index_set_key_types[key] = trait_args[0]
         typed.index_set_value_types[key] = trait_args[1]
     }
+}
+
+has_iterator_impl :: fn(typed: TypedProgram, key: string) -> bool {
+    traits :: typed.struct_implemented_traits[key] ?? return false
+    return core_trait_key(TRAIT_ITERATOR) in traits
 }
 
 // Append `trait_key` to `m[key]`'s bucket unless already present.
@@ -1186,16 +1193,24 @@ record_struct_trait_args :: fn(
     args: Type[]!,
 ) -> void {
     key :: impl_side_key(for_ty)
-    per_struct :: typed.struct_trait_args[key]
-    match per_struct {
-        is null -> {
-            fresh :: MutableMap<string, Type[]!> {}
-            fresh[trait_key] = args
-            typed.struct_trait_args[key] = fresh
-        }
-        _       -> { per_struct[trait_key] = args }
+    if typed.struct_trait_args[key] == null {
+        typed.struct_trait_args[key] = MutableMap<string, Type[]![]!> {}
     }
+    per_struct :: typed.struct_trait_args[key] ?? return
+    lists :: per_struct[trait_key]
+    if lists == null {
+        per_struct[trait_key] = [args]
+        return
+    }
+    // The pre-pass records an impl twice ; two impls with equal arguments are R2030.
+    for recorded in lists {
+        if type_list_equals(recorded, args) {
+            return
+        }
+    }
+    lists.push(args)
 }
+
 
 // Walk every loaded module's `ImplDecl`s and call
 // `materialize_sam_members` against the matching trait — works
@@ -1423,6 +1438,9 @@ reset_expr_tables :: fn(typed: TypedProgram!) -> void {
     // behind would outlive the full walk's.
     typed.chosen_fns = MutableMap<usize, FnCandidate> {}
     typed.chosen_impl_methods = MutableMap<usize, ImplMethod> {}
+    typed.overloaded_members = MutableMap<usize, ImplMethod[]> {}
+    typed.picked_impl_members = MutableMap<usize, ImplMethod> {}
+    typed.picked_index_writes = MutableMap<usize, ImplMethod> {}
     typed.static_members = MutableMap<usize, StaticMember> {}
     typed.callee_field_id = AST.UNASSIGNED_NODE_ID
     typed.overload_result_callees = MutableMap<usize, bool> {}
@@ -2471,9 +2489,11 @@ export walk_bodies :: fn(
                 // All impl metadata + structural checks ran in the pre-pass
                 // (`register_impl_metadata`) so forward references resolve ;
                 // only the member bodies remain to walk here.
+                typed.enclosing_impl = decl.span.hash()
                 for m in decl.members {
                     walk_fn_body(m, typed, diags, mode)
                 }
+                typed.enclosing_impl = 0
             }
             is AST.EnumDecl      -> { check_variant_data(decl, typed, diags, check_expr) }
             // Body-less decl kinds — nothing to walk. Listed explicitly (not
@@ -2613,12 +2633,16 @@ record_impl_members :: fn(
             .ty = ufcs_method_type(m, for_ty, trait_method, owner, diags),
             .self_mutable = declares_mutable_self(m, trait_method),
             .decl = m,
+            .impl_key = decl.span.hash(),
+            .trait_key = trait_key,
+            .trait_args = trait_args,
+            .generic = type_contains_type_param(for_ty),
         }
-        typed.impl_methods["${impl_type_key(for_ty)}::${m.name}"] = entry
+        add_impl_method(typed, "${impl_type_key(for_ty)}::${m.name}", entry)
         // And under its side key : the base, which every instance of a generic impl
         // reads, or the impl's own type, which wins for that instance alone.
         member_key :: "${side}::${m.name}"
-        typed.impl_methods[member_key] = entry
+        add_impl_method(typed, member_key, entry)
         add_trait_unique(typed.impl_method_traits, member_key, trait_key)
         // `Into<T>` impls are indexed under a target-qualified key so
         // multiple `Into` impls for the same source (e.g. `Into<i32>` +
@@ -2626,12 +2650,30 @@ record_impl_members :: fn(
         // parameter no conversion carries : it is found by the base of its target
         // instead (`into_method_toward`).
         if is_into && m.name == METHOD_INTO {
-            typed.impl_methods[into_impl_key(for_ty, trait_args[0])] = entry
+            add_impl_method(typed, into_impl_key(for_ty, trait_args[0]), entry)
             if type_contains_type_param(for_ty) {
-                typed.impl_methods["${side}${into_toward_suffix(trait_args[0])}"] = entry
+                add_impl_method(typed, "${side}${into_toward_suffix(trait_args[0])}", entry)
             }
         }
     }
+}
+
+// Adds `entry` to the members `key` offers, once : the pre-pass and the merge of
+// another module's impls may record one impl twice, and a plain type's own key is
+// its side key.
+add_impl_method :: fn(typed: TypedProgram!, key: string, entry: ImplMethod) -> void {
+    members :: typed.impl_methods[key]
+    if members == null {
+        typed.impl_methods[key] = [entry]
+        return
+    }
+    for i in 0..<members.len() {
+        if members[i].impl_key == entry.impl_key {
+            members[i] = entry
+            return
+        }
+    }
+    members.push(entry)
 }
 
 walk_fn_body :: fn(

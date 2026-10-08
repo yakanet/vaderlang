@@ -1044,6 +1044,10 @@ index_write_slot :: fn(
     ) {
         return null
     }
+    picked :: pick_index_member(ix, receiver_ty, set_trait, index_ty, typed, diags)
+    if picked != null && picked.params.len() > 1 {
+        return picked.params[1]
+    }
     reject_index_key(ix.index, index_ty, key_ty, typed, diags)
     return index_set_value_expected(receiver_ty, typed) ?? TY_UNRESOLVED
 }
@@ -1909,6 +1913,12 @@ check_for :: fn(
                 typed, diags,
             )
             elem :: for_in_element(iter_ty, typed)
+            // A `for` reaches `Iterator`, or the `Into` toward one, without its
+            // argument (T3097).
+            several :: several_iterators_trait(iter_ty, typed)
+            if several != null {
+                diags.push(several_impls_error(iter_ty, several, "`for`", w.iter.span))
+            }
             _ :: reject_unmet_impl_bounds(
                 iter_ty, core_trait_key(TRAIT_ITERATOR), .TraitNotSatisfied, w.iter.span,
                 typed, diags,
@@ -2710,6 +2720,27 @@ assign_tuple :: fn(
     }
 }
 
+// The trait a `for` over `iter_ty` would reach through several impls : `Iterator`,
+// or, for a struct that is no `Iterator` itself, the `Into` toward one
+// (`Into<Iterator<i32>!>` beside `Into<Iterator<string>!>`). Null when one serves.
+several_iterators_trait :: fn(iter_ty: Type, typed: TypedProgram) -> string | null {
+    iterator :: core_trait_key(TRAIT_ITERATOR)
+    if implements_more_than_once(iter_ty, iterator, typed) {
+        return iterator
+    }
+    if iter_ty !is StructType || struct_implements_trait(iter_ty, iterator, typed) {
+        return null
+    }
+    into :: core_trait_key(TRAIT_INTO)
+    n := 0
+    for args in struct_trait_arg_lists(iter_ty, into, typed) {
+        if args.len() == 1 && iterator_element_of(args[0]) != null {
+            n += 1
+        }
+    }
+    return if n > 1 { into } else { null }
+}
+
 // Resolve the `[...]` destructure coercion for a non-tuple / non-array
 // value : when `declared` is a struct implementing `Into<[...]>` of
 // `arity` elements, return that target tuple with the impl's type params
@@ -2719,12 +2750,16 @@ assign_tuple :: fn(
 // The lowerer resolves the matching `into` member's field names from the
 // impl body (`into_tuple_fields`) to bind each leaf zero-alloc.
 into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Type | null {
-    if declared is StructType {
-        into_args :: lookup_struct_trait_args(declared, core_trait_key(TRAIT_INTO), typed) ?? return null
+    if declared !is StructType {
+        return null
+    }
+    decl :: typed.struct_decls[declared.symbol.id] ?? return null
+    // Among its `Into` impls (`Into<[string, i32]>` beside `Into<Label>`), the one
+    // toward a tuple of that arity.
+    for into_args in struct_trait_arg_lists(declared, core_trait_key(TRAIT_INTO), typed) {
         if into_args.len() != 1 {
-            return null
+            continue
         }
-        decl :: typed.struct_decls[declared.symbol.id] ?? return null
         target :: substitute_by_name(into_args[0], decl.type_params, declared.args)
         if target is TupleType {
             if target.elements.len() == arity {

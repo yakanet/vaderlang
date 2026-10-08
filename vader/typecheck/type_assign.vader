@@ -198,10 +198,39 @@ export is_assignable_fn :: fn(from: Type, self: FnType, to: Type) -> bool {
 ///                  differ by mutability alone ; "" when the caller has no value
 ///                  expression to reason from.
 /// @param typed     reads the bound of a type parameter in `got`.
+/// T3097 : `t` implements `trait_key` more than once, and `what` reaches the trait
+/// without naming its arguments.
+///
+/// @param what  the use, as the detail names it (`` `for` ``).
+export several_impls_error :: fn(
+    t: Type,
+    trait_key: string,
+    what: string,
+    span: Span,
+) -> Diagnostic {
+    // The impls are the type's, whatever the slot's rights.
+    shown :: display_type(strip_mutability(t))
+    implemented :: "`${shown}` implements `${trait_key_name(trait_key)}` more than once"
+    return typecheck_error(
+        .TraitImplementedSeveralTimes,
+        span,
+        "${implemented} ; ${what} cannot tell its impls apart",
+    )
+}
+
 export mismatch_diagnostic :: fn(
     got: Type, expected: Type, span: Span, fallback: TypecheckCode, hint: string,
     typed: TypedProgram,
 ) -> Diagnostic {
+    // A trait value of a trait `got` implements several times : nothing it dispatches
+    // through can tell the impls apart (`try_trait_widen` refuses it).
+    if expected is TraitType {
+        trait_key :: trait_key_of(expected.symbol)
+        if implements_more_than_once(got, trait_key, typed) {
+            what :: "a `${display_type(expected)}` value, which dispatches by the trait alone,"
+            return several_impls_error(got, trait_key, what, span)
+        }
+    }
     // A read-only value into a slot promising mutation, at any level. Same treatment
     // as the fn case below : a dedicated wording, because "expected Cfg!, got Cfg"
     // says nothing about WHY they differ nor where to fix it.

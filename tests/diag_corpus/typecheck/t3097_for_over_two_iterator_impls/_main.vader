@@ -1,0 +1,23 @@
+// A `for` reaches `Iterator` without naming its argument : over a type that
+// implements it twice, it cannot tell which `next` to step. T3097, at the iterable.
+module "snippet"
+
+Pair :: struct {
+    a: i32
+}
+
+Pair implements Iterator<i32> {
+    next :: fn(self!) -> [i32, Continuation] = [self.a, .Stop]
+}
+
+Pair implements Iterator<string> {
+    next :: fn(self!) -> [string, Continuation] = ["x", .Stop]
+}
+
+main :: fn() -> i32 {
+    p :: Pair { .a = 1 }
+    for x in p {
+        return 1
+    }
+    return 0
+}

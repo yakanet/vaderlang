@@ -82,15 +82,15 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 static vader_string_t snippet_show(vader_box_t l0);
 static vader_string_t snippet_fancy_or_plain(vader_box_t l0);
 static int32_t snippet_main(void);
-static vader_string_t snippet_Wrapper_Poke_poke__i32(void* l0);
+static vader_string_t snippet_Wrapper_Poke_poke__i32_2(void* l0);
 static vader_string_t snippet_Wrapper_Tag_tag__i32(void* l0);
 static vader_string_t snippet_Wrapper_Poke_poke__string(void* l0);
-static vader_string_t snippet_Wrapper_Poke_poke__MonType(void* l0);
+static vader_string_t snippet_Wrapper_Poke_poke__MonType_1(void* l0);
 static vader_string_t snippet_Wrapper_Tag_tag__snippet_MonType(void* l0);
 static vader_string_t snippet_Wrapper_Fancy_fancy__MonType(void* l0);
 static vader_string_t snippet_Wrapper_Poke_poke__Any(void* l0);
 static vader_string_t snippet____Poke_poke__MonType(void* l0);
-static vader_string_t snippet____Poke_poke__Other(void* l0);
+static vader_string_t snippet____Poke_poke__Other_1(void* l0);
 static void* snippet_wrap__Any(vader_box_t l0);
 static void* snippet_wrap__snippet_MonType(void* l0);
 static void* snippet_wrap__i32(int32_t l0);
@@ -279,11 +279,11 @@ static int32_t snippet_main(void) {
     _a2_obj->f_inner = l0;
     l2 = (void*) _a2_obj;
 #line 88 "tests/snippets/impl_specialization/_main.vader"
-    l3 = snippet_Wrapper_Poke_poke__MonType(l2);
+    l3 = snippet_Wrapper_Poke_poke__MonType_1(l2);
     t0 = snippet_wrap__Any(vader_ref_box(l1));
     l4 = snippet_Wrapper_Poke_poke__Any(t0);
     t0 = snippet_wrap__i32(INT32_C(3));
-    l5 = snippet_Wrapper_Poke_poke__i32(t0);
+    l5 = snippet_Wrapper_Poke_poke__i32_2(t0);
     t0 = snippet_wrap__string(4u);
     l6 = snippet_Wrapper_Poke_poke__string(t0);
     t1 = concat_7(l3, 3u, l4, 3u, l5, 3u, l6);
@@ -317,11 +317,11 @@ static int32_t snippet_main(void) {
     l9 = (void*) _a4_arr;
 #line 93 "tests/snippets/impl_specialization/_main.vader"
     l3 = snippet____Poke_poke__MonType(l8);
-    l4 = snippet____Poke_poke__Other(l9);
+    l4 = snippet____Poke_poke__Other_1(l9);
     t0 = snippet_pair__MonType(l0);
     l5 = snippet____Poke_poke__MonType(t0);
     t0 = snippet_pair__Other(l1);
-    l6 = snippet____Poke_poke__Other(t0);
+    l6 = snippet____Poke_poke__Other_1(t0);
     t1 = concat_7(l3, 3u, l4, 3u, l5, 3u, l6);
     std_io_println__string(t1);
 #line 94 "tests/snippets/impl_specialization/_main.vader"
@@ -341,7 +341,7 @@ static int32_t snippet_main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static vader_string_t snippet_Wrapper_Poke_poke__i32(void* l0) {
+static vader_string_t snippet_Wrapper_Poke_poke__i32_2(void* l0) {
     void* l1 = NULL;
     size_t l2;
     int64_t l3;
@@ -374,7 +374,7 @@ static vader_string_t snippet_Wrapper_Poke_poke__string(void* l0) {
     return 7u;
 }
 
-static vader_string_t snippet_Wrapper_Poke_poke__MonType(void* l0) {
+static vader_string_t snippet_Wrapper_Poke_poke__MonType_1(void* l0) {
     void* l1 = NULL;
     size_t l2;
     int64_t l3;
@@ -455,7 +455,7 @@ static vader_string_t snippet____Poke_poke__MonType(void* l0) {
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t snippet____Poke_poke__Other(void* l0) {
+static vader_string_t snippet____Poke_poke__Other_1(void* l0) {
     void* l1 = NULL;
     size_t l2;
     uint64_t l3;
@@ -630,7 +630,7 @@ static vader_string_t snippet_bounded__Other__(void* l0) {
     };
     vader_gc_top = &gc_frame;
 #line 67 "tests/snippets/impl_specialization/_main.vader"
-    t0 = snippet____Poke_poke__Other(l0);
+    t0 = snippet____Poke_poke__Other_1(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -643,7 +643,7 @@ static vader_string_t snippet_bounded__Wrapper_MonType_(void* l0) {
     };
     vader_gc_top = &gc_frame;
 #line 67 "tests/snippets/impl_specialization/_main.vader"
-    t0 = snippet_Wrapper_Poke_poke__MonType(l0);
+    t0 = snippet_Wrapper_Poke_poke__MonType_1(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -665,7 +665,7 @@ static vader_string_t snippet_both__Wrapper_MonType_(void* l0) {
     };
     vader_gc_top = &gc_frame;
 #line 69 "tests/snippets/impl_specialization/_main.vader"
-    l1 = snippet_Wrapper_Poke_poke__MonType(l0);
+    l1 = snippet_Wrapper_Poke_poke__MonType_1(l0);
     l2 = snippet_Wrapper_Tag_tag__snippet_MonType(l0);
     t0 = concat_3(l1, 12u, l2);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -682,7 +682,7 @@ static vader_string_t snippet_both__Wrapper_i32_(void* l0) {
     };
     vader_gc_top = &gc_frame;
 #line 69 "tests/snippets/impl_specialization/_main.vader"
-    l1 = snippet_Wrapper_Poke_poke__i32(l0);
+    l1 = snippet_Wrapper_Poke_poke__i32_2(l0);
     l2 = snippet_Wrapper_Tag_tag__i32(l0);
     t0 = concat_3(l1, 12u, l2);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
@@ -1063,12 +1063,12 @@ static void std_io_println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static vader_string_t vader_vt_snippet_Poke__poke(vader_box_t recv) {
     switch (recv.tag) {
-        case 7u: return snippet_Wrapper_Poke_poke__i32(recv.payload.obj);
+        case 7u: return snippet_Wrapper_Poke_poke__i32_2(recv.payload.obj);
         case 8u: return snippet_Wrapper_Poke_poke__string(recv.payload.obj);
-        case 4u: return snippet_Wrapper_Poke_poke__MonType(recv.payload.obj);
+        case 4u: return snippet_Wrapper_Poke_poke__MonType_1(recv.payload.obj);
         case 9u: return snippet_Wrapper_Poke_poke__Any(recv.payload.obj);
         case 10u: return snippet____Poke_poke__MonType(recv.payload.obj);
-        case 12u: return snippet____Poke_poke__Other(recv.payload.obj);
+        case 12u: return snippet____Poke_poke__Other_1(recv.payload.obj);
         default: vader_unreachable("vtable miss in snippet$Poke.poke");
     }
     vader_unreachable("vtable miss in snippet$Poke.poke");

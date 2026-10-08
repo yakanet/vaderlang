@@ -1,0 +1,37 @@
+# Comptime
+
+## tests/snippets/several_impls_of_one_trait
+
+## generic instances
+  __genstate_array_iter<T>
+  Wrap<Vec2>
+  Wrap<T>
+  Wrap<T>
+  Wrap<T>
+  Scale<T>
+  Pile<i32>
+  Pile<T>
+  Pile<T>
+  Pile<T>
+  ArrayOps<T>
+  Make<From>
+  Describe<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<string>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Async<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>

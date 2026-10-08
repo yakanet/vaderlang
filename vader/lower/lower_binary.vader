@@ -114,7 +114,14 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
         // primitive ones (`Range<T> implements Contains<T>` via the
         // intrinsic decl in std/core).
         coll_type :: ctx.types.expr_type(binary.right)
-        direct :: find_impl_member_for(ctx, coll_type, METHOD_CONTAINS)
+        // The `Contains` impl the element picked, when several offer it.
+        picks :: ctx.typed.picked_impl_members
+        picked :: use_site_member(ctx, picks, binary.id, coll_type, METHOD_CONTAINS)
+        direct :: if picked != null {
+            picked
+        } else {
+            find_impl_member_for(ctx, coll_type, METHOD_CONTAINS)
+        }
         // Array-backed distinct : retry `Contains` on the backing array (the
         // `T[] implements Contains` blanket) — mirrors check_in's aliased fallback.
         member :: if direct is UfcsMember {
@@ -258,7 +265,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) ->
         }
         left_name :: type_surface_name(left_ty)
         if left_name == "" { return null }
-        member :: operator_member(ctx, left_ty, info) ?? return null
+        member :: operator_member(ctx, left_ty, info, binary.id) ?? return null
         if member is UfcsMember {
             lowered_left  :: lower_expr(ctx, binary.left)
             lowered_right :: lower_expr(ctx, binary.right)
@@ -317,15 +324,25 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) ->
 // (`distinct_op_fallback`). Null where the built-in op applies — a primitive has
 // one for every operator but ordering a `string`, which only its `Comparable` impl
 // answers.
-operator_member :: fn(ctx: FnLowerCtx!, t: Type, info: OpTraitInfo) -> UfcsMember | null {
+operator_member :: fn(
+    ctx: FnLowerCtx!,
+    t: Type,
+    info: OpTraitInfo,
+    node_id: usize,
+) -> UfcsMember | null {
     if t is PrimitiveType && !(info.shape == .CompareCmp && is_string_type(t)) {
         return null
+    }
+    // The impl the right operand picked, when several of the trait offer it.
+    picked :: use_site_member(ctx, ctx.typed.picked_impl_members, node_id, t, info.method_name)
+    if picked != null {
+        return picked
     }
     own :: resolve_impl_member(ctx, t, info.trait_key, info.method_name)
     if own != null || t !is DistinctType {
         return own
     }
-    return operator_member(ctx, t.backing, info)
+    return operator_member(ctx, t.backing, info, node_id)
 }
 
 // Emit `a op b` as a virtual call (the receiver is TypeParam-bound or

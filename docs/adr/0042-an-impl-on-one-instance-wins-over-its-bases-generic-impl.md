@@ -4,7 +4,9 @@
 
 Accepted (2026-10-07). Amended by 0045: an implicit conversion chooses its `into`
 by its target, not per trait, and two impls of one trait on one instance name
-their members apart.
+their members apart. Amended by 0046: an impl on one instance hides only the
+generic impls of its own trait instance, and every use site chooses among several
+impls of one trait.
 
 ## Context
 

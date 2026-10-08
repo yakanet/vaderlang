@@ -38,7 +38,7 @@ surface_referenced_intrinsic_externs :: fn(
         for d in decls_list {
             if d is ImplDecl {
                 if !is_entry {
-                    externs :: surface_stdlib_impl_externs(d, module_typed, project_ctx, decls_list)
+                    externs :: surface_stdlib_impl_externs(d, module_typed, project_ctx)
                     extra.push_all(externs)
                 }
                 extra.push_all(surface_array_impl_members(d, module_typed, project_ctx))
@@ -67,7 +67,7 @@ surface_referenced_intrinsic_externs :: fn(
 /// externs would lose their behaviour, and lowering their bodies up front
 /// is the thing the stdlib-skip is meant to avoid.
 surface_stdlib_impl_externs :: fn(
-    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, module_decls: Decl[],
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
 ) -> LoweredDecl![] {
     out: LoweredDecl![]!: []
     if impl_decl.type_params.len() > 0 { return out }
@@ -98,7 +98,7 @@ surface_stdlib_impl_externs :: fn(
         vtable_receiver_eligible(self_type, project_ctx)
     for member in impl_decl.members {
         if member.type_params.len() > 0 { continue }
-        mangled :: impl_member_mangled(impl_decl, member, typed, module_decls)
+        mangled :: impl_member_mangled(impl_decl, member, typed, project_ctx.impls)
         // Only emit members an actual call referenced (direct call → exact
         // mangle) OR an eligible implementor of a virtually-dispatched trait
         // (`vtable_gate`, above) — emitting every stdlib impl member

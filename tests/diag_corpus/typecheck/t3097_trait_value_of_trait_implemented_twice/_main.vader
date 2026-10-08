@@ -1,0 +1,30 @@
+// A trait value dispatches by the trait alone : a type implementing `Into` toward
+// two targets cannot become an `Into<Tag>` value, whose `into` would not know which
+// impl to run. T3097, at the value.
+module "snippet"
+
+Label :: struct {
+    s: string
+}
+
+Tag :: struct {
+    n: i32
+}
+
+Mon :: struct {
+    v: i32
+}
+
+Mon implements Into<Label> {
+    into :: fn(self) -> Label = Label { .s = "m" }
+}
+
+Mon implements Into<Tag> {
+    into :: fn(self) -> Tag = Tag { .n = self.v }
+}
+
+main :: fn() -> i32 {
+    m :: Mon { .v = 3 }
+    v: Into<Tag>: m
+    return 0
+}

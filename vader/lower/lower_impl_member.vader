@@ -110,12 +110,11 @@ resolve_impl_member :: fn(
     if target_name == "" { return null }
     target :: impl_base_key(target_type)
     fallback: ImplMemberMatch | null = null
-    candidates: ImplEntry[]: if trait_key == "" { ctx.project.impls.all } else {
+    candidates: ImplEntry[]: if trait_key == "" { ctx.project.impls.impls_on(target) } else {
         ctx.project.impls.impls_of(target, trait_key)
     }
     for entry in covering_first(candidates, target_type) {
         decl :: entry.decl
-        if entry.target != target { continue }
         m :: select_member(entry, trait_key, name) ?? continue
         if !impl_is_intrinsic(decl) {
             return build_ufcs_member(ctx, target_type, target_name, m, entry, is_identity_member(m))
@@ -222,12 +221,11 @@ build_ufcs_member :: fn(
     // matching where the impl is declared / its surfaced decl is registered
     // (GATE B). Same-module user impls are unaffected (entry.module == ctx's).
     //
-    // An impl on one instance adds what tells its members from another impl of
-    // the trait on that instance ; an impl on a whole type adds nothing here, as
-    // the materialisers this name must match do not either.
+    // Then what tells its members from another impl of the trait on that base
+    // (`ImplEntry.overload_suffix`), as every materialiser names them.
     impl_name :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}"
     suffix :: receiver_suffix(ctx, entry, target_type)
-    overload :: ctx.project.impls.instance_overload_suffix(entry)
+    overload :: entry.overload_suffix
     mangled :: "${impl_name}$${member.name}${suffix}${overload}"
     // Record the call so the post-lowering pass surfaces referenced stdlib impl
     // members : bodyless (`@intrinsic`) → import ; with-body (e.g. `i32
@@ -265,7 +263,7 @@ build_ufcs_member :: fn(
             .defined_at = null,
         },
         .is_identity = is_identity,
-        .arg_types = impl_member_arg_types(ctx, target_type, member.name),
+        .arg_types = impl_member_arg_types(ctx, target_type, member, entry),
     }
 }
 
@@ -281,12 +279,87 @@ build_ufcs_member :: fn(
 // Empty when the member has no entry (a receiver shape the typer keyed
 // differently) — the caller then passes its args through untouched rather than
 // guessing a slot type.
-impl_member_arg_types :: fn(ctx: FnLowerCtx, recv_type: Type, method_name: string) -> Type[] {
+impl_member_arg_types :: fn(
+    ctx: FnLowerCtx,
+    recv_type: Type,
+    member: FnDecl,
+    entry: ImplEntry,
+) -> Type[] {
     entry_typed :: ctx.project.typed.modules[ctx.project.loaded.entry] ?? return []
-    methods :: entry_typed.impl_methods
-    found :: impl_side(entry_typed, methods, recv_type, "::${method_name}") ?? return []
+    candidates :: impl_candidates(entry_typed, recv_type, "::${member.name}")
+    if candidates.len() == 0 {
+        return []
+    }
+    // The impl's own member among several impls of one trait (`Add<f64>`,
+    // `Add<Vec2>`).
+    impl_key :: entry.decl.span.hash()
+    found := candidates[0]
+    for m in candidates {
+        if m.impl_key == impl_key {
+            found = m
+        }
+    }
     if found.ty is FnType as ft { return ft.params }
     return []
+}
+
+/// The member a use site reaches when several impls of its trait cover `receiver` :
+/// the one the typechecker picked by the site's arguments, or, in an instance of a
+/// generic body, the one at the bound's trait arguments (`T: Mul<f64>` with a `T`
+/// that also implements `Mul<Vec2>`). Null when a single impl serves, found by name.
+///
+/// @param picks     the typechecker's picks : `picked_impl_members`, or
+///                  `picked_index_writes` for an index write.
+/// @param node_id   the use site.
+/// @param receiver  the concrete type the member is called on.
+/// @param name      the member's name.
+use_site_member :: fn(
+    ctx: FnLowerCtx!,
+    picks: MutableMap<usize, ImplMethod>,
+    node_id: usize,
+    receiver: Type,
+    name: string,
+) -> UfcsMember | null {
+    picked :: picks[node_id]
+    if picked == null {
+        return bound_member(ctx, node_id, receiver, name)
+    }
+    entry :: ctx.project.impls.by_decl[picked.impl_key] ?? return null
+    // A distinct operand reaches its backing's impl through its own type first.
+    if entry.target != impl_base_key(receiver) {
+        return null
+    }
+    return member_named(ctx, entry, receiver, name)
+}
+
+// The member `name` of `receiver`'s impl at the trait arguments a bounded `T`'s
+// dispatch recorded under `node_id`, substituted for this instance.
+bound_member :: fn(
+    ctx: FnLowerCtx!,
+    node_id: usize,
+    receiver: Type,
+    name: string,
+) -> UfcsMember | null {
+    trait_key :: ctx.typed.bounded_dispatch_trait[node_id] ?? return null
+    args :: ctx.typed.bounded_dispatch_args[node_id] ?? return null
+    concrete: Type[]!: []
+    for a in args {
+        concrete.push(ctx.types.apply(a))
+    }
+    entry :: ctx.project.impls.impl_at_args(receiver, trait_key, concrete) ?? return null
+    return member_named(ctx, entry, receiver, name)
+}
+
+// The member `name` of `entry`, built for `receiver`.
+member_named :: fn(
+    ctx: FnLowerCtx!,
+    entry: ImplEntry,
+    receiver: Type,
+    name: string,
+) -> UfcsMember | null {
+    m :: select_member(entry, "", name) ?? return null
+    surface :: type_surface_name(receiver)
+    return build_ufcs_member(ctx, receiver, surface, m, entry, is_identity_member(m))
 }
 
 /// True when an `@intrinsic` impl. Lets a user impl shadow the builtin in
@@ -564,11 +637,9 @@ try_emit_into_coercion :: fn(
         return call_into_member(ctx, found, arg, arg_type, target_type, span)
     }
     // The mangle mirrors `impl_member_mangled` (the materialiser's own fn in
-    // `lower_impl_member_list`) so call site and emitted member agree by
-    // construction, overload `_N` suffix included — reusing its
-    // `impl_member_overload_suffix` keeps the two in lockstep.
+    // `lower_impl_member_list`), overload suffix included.
     decl :: entry.decl
-    suffix :: impl_member_overload_suffix(m, decl, src_name, module_impl_decls(ctx, entry.module))
+    suffix :: entry.overload_suffix
     mangled :: "${mangle_module_id(entry.module)}$${src_name}$${decl.trait_name}$${m.name}${suffix}"
     ctx.project.referenced_impl_mangles.add(mangled)
     return mk_into_call(arg, target_type, span, mangled, entry.module)

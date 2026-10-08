@@ -1,0 +1,24 @@
+// A `for` over a struct that is no `Iterator` converts it into one, through an
+// `Into` whose argument it does not name : with two `Into<Iterator<…>>` impls, it
+// cannot tell which to take. T3097, at the iterable.
+module "snippet"
+
+Two :: struct {
+    n: i32
+}
+
+Two implements Into<Iterator<i32>!> {
+    into :: fn(self) -> Iterator<i32>! = [1, 2].into()
+}
+
+Two implements Into<Iterator<string>!> {
+    into :: fn(self) -> Iterator<string>! = ["a", "b"].into()
+}
+
+main :: fn() -> i32 {
+    t :: Two { .n = 0 }
+    for x in t {
+        return 1
+    }
+    return 0
+}

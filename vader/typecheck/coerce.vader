@@ -110,6 +110,11 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
     if got is TypeParamType {
         return bound_widens_into(got, expected, typed)
     }
+    // A trait value dispatches by the trait alone : it cannot tell several impls of
+    // it apart (`mismatch_diagnostic` says so, T3097).
+    if implements_more_than_once(got, trait_key_of(expected.symbol), typed) {
+        return false
+    }
     return implements_trait_instance(got, expected, typed)
 }
 

@@ -147,7 +147,12 @@ try_lower_static_member_call :: fn(
     field :: as_field_expr(call.callee) ?? return null
     found :: ctx.typed.static_members[field.id] ?? return null
     owner :: ctx.types.apply(found.owner)
-    member :: resolve_impl_member(ctx, owner, found.trait_key, field.field)
+    picked :: use_site_member(ctx, ctx.typed.picked_impl_members, field.id, owner, field.field)
+    member :: if picked != null {
+        picked
+    } else {
+        resolve_impl_member(ctx, owner, found.trait_key, field.field)
+    }
     // No impl only when typecheck refused the instance's bound (T3006) : lowering
     // still runs so every diagnostic gets reported, and the call becomes a trap.
     if member == null {
@@ -232,17 +237,6 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
         }
     }
     return null
-}
-
-// Every impl decl declared in `module`, in source order — the overload-suffix
-// counter (`impl_member_overload_suffix`) needs the owning module's impls to
-// reproduce the mangle `lower_impl_member_list` materialised the member under.
-module_impl_decls :: fn(ctx: FnLowerCtx, module: string) -> Decl[] {
-    out: Decl[]!: []
-    for e in ctx.project.impls.all {
-        if e.module == module { out.push(e.decl) }
-    }
-    return out
 }
 
 // Detect `<namespace_ident>.<member>(args)`. The target ident's

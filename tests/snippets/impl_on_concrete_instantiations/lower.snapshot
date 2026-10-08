@@ -25,7 +25,7 @@
       arg0:
         call :string
           callee:
-            snippet$Box$Display$to_string__string :string
+            snippet$Box$Display$to_string__string$1 :string
           arg0:
             b :Box<string>!
     call :void
@@ -46,7 +46,7 @@
           arg2:
             call :string
               callee:
-                snippet$Box$Display$to_string__string :string
+                snippet$Box$Display$to_string__string$1 :string
               arg0:
                 b :Box<string>!
     return int(0) :i32
@@ -98,7 +98,7 @@
             arg1:
               __off_1 :usize
   struct snippet$Box__string { value: string }
-  fn snippet$Box$Display$to_string__string(self: Box<string>!) -> string
+  fn snippet$Box$Display$to_string__string$1(self: Box<string>!) -> string
     ~>
       call :string
         callee:

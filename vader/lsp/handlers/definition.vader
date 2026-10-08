@@ -157,16 +157,18 @@ member_by_type :: fn(
     return member_in_declaring_module(state, da.start.file, sym.name, name)
 }
 
-// The fn typecheck chose for the member access `e`, as an entry of the file
-// that declares it ; null when it chose none, or when that declaration has no
-// source file to index (a generated impl).
+// The fn typecheck chose for the member access `e` — a free fn, or the member of
+// the impl its arguments picked among several (`v.mul(2.0)`) — as an entry of the
+// file that declares it ; null when it chose none, or when that declaration has
+// no source file to index (a generated impl).
 chosen_member :: fn(
     state: ServerState, typed: TypedProgram, e: AST.Expr | null,
 ) -> ExternalHit | null {
     if e !is AST.FieldExpr {
         return null
     }
-    decl :: chosen_decl(typed, e.id) ?? return null
+    free :: chosen_decl(typed, e.id)
+    decl :: if free != null { free } else { chosen_impl_decl(typed, e.id) ?? return null }
     at :: decl.name_span.start
     src :: state.source_for_path(at.file)
     if src.bytes().len() == 0 {

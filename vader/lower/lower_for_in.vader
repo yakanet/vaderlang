@@ -428,7 +428,8 @@ build_step_call :: fn(
             args_suffix(args)
         }
         owner :: iter_type.symbol.name
-        next_name = "${owning_module}$${owner}$${TRAIT_ITERATOR}$${method_next}${suffix}"
+        overload :: if winner == null { "" } else { winner.overload_suffix }
+        next_name = "${owning_module}$${owner}$${TRAIT_ITERATOR}$${method_next}${suffix}${overload}"
         // Record the call so the post-lowering pass materialises the (with-body)
         // stdlib impl member instead of dropping the call to the panic fallback.
         ctx.project.referenced_impl_mangles.add(next_name)

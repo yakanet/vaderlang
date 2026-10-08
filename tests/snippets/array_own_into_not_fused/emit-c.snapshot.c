@@ -247,7 +247,7 @@ static void* snippet___genstate_shifted_Iterator_next(void* l0);
 static int32_t __lambda_snippet_0(void* l0);
 static vader_box_t snippet____Into_into__Mon(void* l0);
 static vader_box_t snippet____Into_into__Mon_1(void* l0);
-static vader_box_t snippet____Into_into__Pt(void* l0);
+static vader_box_t snippet____Into_into__Pt_2(void* l0);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_Range_Iterator_next__i32(void* l0);
@@ -662,7 +662,7 @@ static int32_t snippet_main(void) {
 #line 74 "tests/snippets/array_own_into_not_fused/_main.vader"
     l4 = INT32_C(0);
 #line 75 "tests/snippets/array_own_into_not_fused/_main.vader"
-    t1 = snippet____Into_into__Pt(l0);
+    t1 = snippet____Into_into__Pt_2(l0);
 #line 394 "lib/std/iter/iter.vader"
     l5 = t1;
 #line 395 "lib/std/iter/iter.vader"
@@ -1065,7 +1065,7 @@ static vader_box_t snippet____Into_into__Mon_1(void* l0) {
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_box_t snippet____Into_into__Pt(void* l0) {
+static vader_box_t snippet____Into_into__Pt_2(void* l0) {
     vader_box_t t0 = vader_box_null();
     vader_box_t* gc_roots[1] = { &t0 };
     void** gc_raw_roots[1] = { &l0 };

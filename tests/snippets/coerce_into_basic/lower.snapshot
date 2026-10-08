@@ -6,7 +6,7 @@
     return
       .value :i32
         self :UserId
-  fn snippet$UserId$Into$into_1(self: UserId!) -> string
+  fn snippet$UserId$Into$into$1(self: UserId!) -> string
     return
       block :string
         let __buf_0: Buffer =
@@ -236,7 +236,7 @@
         tag:
           call :string
             callee:
-              snippet$UserId$Into$into_1 :string
+              snippet$UserId$Into$into$1 :string
             arg0:
               u :UserId!
         n:

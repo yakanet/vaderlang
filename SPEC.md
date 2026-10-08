@@ -1508,11 +1508,12 @@ start :: i64.zero()
 - Dispatch is static: the call goes straight to the owner's impl member. A generic function calling one on its type parameter is instantiated per concrete type. A static member has no vtable slot, so a trait mixing static and `self` members still dispatches the latter on a trait-typed value; the static ones are reached through a type only.
 - `std/core` declares `Zero` and `One` (`zero` / `one :: fn() -> Self`, the additive and multiplicative identities), implemented by every numeric primitive — `Zero` by `BigInt` too. `std/iter`'s `sum` is `fn<T: Add & Zero>(self: Iterator<T>!) -> T`, and `product` is `fn<T: Mul & One>(self: Iterator<T>!) -> T`.
 
-#### Coherence — one impl per (type, trait)
+#### Coherence — one impl per (type, trait, arguments)
 
-A program may declare **at most one** `impl` of a given trait for a given
-concrete receiver type. A second impl of the same `(type, trait, trait-args)`
-triple raises **R2030** ("conflicting trait impl for the same type"). This
+A program may declare **at most one** `impl` of a given trait instance for a
+given concrete receiver type. A second impl of the same `(type, trait, trait-args)`
+triple raises **R2030** ("conflicting trait impl for the same type"); impls of one
+trait at other arguments are *Several impls of one trait*, below. This
 mirrors Rust's E0119 and is a sibling of the orphan rule (R2018) and the
 `Into`-identity ban (T3039).
 
@@ -1558,8 +1559,10 @@ Wrapper<MonType> implements Poke {      // wins for `Wrapper<MonType>` alone
   trait-typed value, and an instance built inside a generic body
   (`fn<T>(x: T) -> Wrapper<T>` called with a `MonType`).
 - The base's other traits still reach the instance through their generic impls.
-- The rule is per trait: an impl on one instance replaces every generic impl of
-  that trait for the instance, whatever their trait arguments.
+- The rule is per trait instance: an impl on one instance replaces the generic
+  impls of that trait at arguments that can coincide with its own, and leaves the
+  others — `MonType[] implements Into<Label>` leaves
+  `T[] implements<T> Into<Iterator<T>!>` to an array of `MonType`.
 - A type an instance impl is built from (`MonType` above) keeps its generic
   instances apart at run time, as a primitive argument does: a generic function
   or struct instantiated with it gets its own body instead of the erased one
@@ -1571,6 +1574,34 @@ element type. A partly generic array — `T[][]`, `[T, i32][]` — would be a se
 generic impl on arrays and is **T3090**. For the orphan rule (R2018), an array
 belongs to its element's owner: `MonType[]` to `MonType`'s module, `i32[]` to
 every module, as `i32` does.
+
+#### Several impls of one trait
+
+A receiver may implement one trait several times at different arguments —
+`Vec2 implements Mul<f64>` beside `Mul<Vec2>`, `Mon implements Into<Label>` beside
+`Into<Tag>`. Each use site runs the impl its own types pick:
+
+- an operator, by its right operand (`v * 2.0`, `v * v`);
+- a method call, by its first argument (`v.mul(2.0)`), or, for a member without
+  one, by the type its result must have (`t: Tag: m.into()`);
+- `x in c`, by the element; `c[k]` and `c[k] = v`, by the key;
+- `[a, b] :: r`, by the arity of the tuple an `Into<[…]>` builds;
+- a static member, by its argument (`Vec2.make(1.5)`);
+- a call, a static member or an operator on a bounded `T`, by the bound's
+  arguments (`fn<T: Mul<f64>>(v: T) -> T = v * 2.0`, `T.make("s")` under
+  `T: Make<string>`), in a generic fn and in a generic impl's members alike;
+- inside one of the impls, a member of the trait reached on its own type is its
+  own: a default method's `self.tag()` runs the `tag` of the impl it belongs to.
+
+Two impls that fit a use site equally, a member without an argument whose result
+the site leaves untyped (`println("${m.into()}")`), and the member taken as a value
+(`f :: m.into`) are **T3032**. A use that reaches the trait without naming its
+arguments cannot pick: a `for` over a type implementing `Iterator` twice, or
+converting into two `Iterator`s (`Into<Iterator<i32>!>` beside
+`Into<Iterator<string>!>`) without being one itself, and a trait value of a trait
+its type implements twice (`v: Into<Tag>: m`), are **T3097** — a trait value
+dispatches by the trait alone. A type that is an `Iterator` and also converts into
+one is walked through its own `next`.
 
 #### Bounded-generic impls
 
@@ -1721,7 +1752,7 @@ Compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`) desugar to `lhs = lhs <op> r
 Resolution rule for **arithmetic** operators (`+ - * / %`):
 1. If both operands are primitive numerics, use the built-in op (current behaviour).
 2. `string + string` is a built-in op (`string.concat`); `string implements Add` exists for SPEC completeness and is also reachable via UFCS — the compiler routes both paths to the same op (see §12 op-level intrinsics).
-3. Otherwise, look up the matching `Add`/`Sub`/`Mul`/`Div`/`Rem` impl on the left operand's type; the right operand must be assignable to that impl's `Rhs`, and the result type is the impl's `Out`. `Rhs` and `Out` default to `Self`, so the homogeneous case needs only `implements Add`; a heterogeneous operator (e.g. `Instant implements Add<Duration, Instant>`) spells them. The defaults fill at impl materialization, so existing `i32 implements Add` and `where T: Add` keep meaning `Add<Self, Self>`.
+3. Otherwise, look up the matching `Add`/`Sub`/`Mul`/`Div`/`Rem` impl on the left operand's type — among several impls of the trait, the one the right operand picks (*Several impls of one trait*); the right operand must be assignable to that impl's `Rhs`, and the result type is the impl's `Out`. `Rhs` and `Out` default to `Self`, so the homogeneous case needs only `implements Add`; a heterogeneous operator (e.g. `Instant implements Add<Duration, Instant>`) spells them. The defaults fill at impl materialization, so existing `i32 implements Add` and `where T: Add` keep meaning `Add<Self, Self>`.
 4. A left operand typed by a type parameter whose bound names the operator's trait (`T: Add` for `+`) dispatches through that bound, exactly as `a.add(b)` would: the right operand must be a `T`, the result is a `T`, and each instance of the enclosing function is monomorphised, so a primitive `T` gets the built-in op and a struct `T` its impl.
 5. If no impl matches, T3017.
 

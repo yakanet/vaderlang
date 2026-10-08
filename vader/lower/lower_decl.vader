@@ -20,13 +20,12 @@ import "toolchain/span"
 // so the module driver drains them in the right order.
 lower_impl_members :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
-    module_decls: Decl[],
 ) -> void {
     // Back-compat shape : keep the void-returning entry but route
     // through the inline emit + push results to `synth_decls` so any
     // caller still relying on the old "drains at module end" path
     // keeps working. Modern call sites prefer `lower_impl_member_list`.
-    members :: lower_impl_member_list(impl_decl, typed, project_ctx, diags, module_decls)
+    members :: lower_impl_member_list(impl_decl, typed, project_ctx, diags)
     for m in members { project_ctx.synth_decls.push(m) }
 }
 
@@ -37,7 +36,6 @@ lower_impl_members :: fn(
 /// individually.
 lower_impl_member_list :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
-    module_decls: Decl[],
 ) -> LoweredDecl![] {
     out: LoweredDecl![]!: []
     // Skip generic impls entirely — the mono pass binds them via a
@@ -54,7 +52,7 @@ lower_impl_member_list :: fn(
         types :: make_entry_types(typed, subst)
         params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
         return_type :: return_type_of(member, types)
-        mangled :: impl_member_mangled(impl_decl, member, typed, module_decls)
+        mangled :: impl_member_mangled(impl_decl, member, typed, project_ctx.impls)
         entry :: synth_impl_entry(member, typed, mangled, impl_trait_key(project_ctx, impl_decl))
         body :: lower_fn_body(member, typed, project_ctx, entry, subst, return_type)
         out.push(LoweredFnDecl {
@@ -133,57 +131,12 @@ synth_param_or :: fn(symbol_or_null: Symbol | null, name: string, typed: TypedPr
 }
 
 impl_member_mangled :: fn(
-    impl_decl: ImplDecl, member: FnDecl, typed: TypedProgram, decls: Decl[],
+    impl_decl: ImplDecl, member: FnDecl, typed: TypedProgram, impls: ImplRegistry,
 ) -> string {
     target_name :: for_type_name(impl_decl.for_type, typed)
-    suffix :: impl_member_overload_suffix(member, impl_decl, target_name, decls)
+    entry :: impls.entry_of(impl_decl)
+    suffix :: if entry == null { "" } else { entry.overload_suffix }
     return "${mangle_module_id(typed.resolved.display_path)}$${target_name}$${impl_decl.trait_name}$${member.name}${suffix}"
-}
-
-/// Number of earlier impl members in `decls` that share the same
-/// `(target_name, trait_name, method.name)` triple. The first
-/// occurrence yields `""` ; later ones get `_1`, `_2`, …. Numbers
-/// distinct trait-impl bundles of the same trait against the same
-/// target type.
-impl_member_overload_suffix :: fn(
-    member: FnDecl, owning_impl: ImplDecl, target_name: string, decls: Decl[],
-) -> string {
-    if member.name_span.start.offset < 0 { return "" }
-    target_offset :: member.name_span.start.offset
-    seen :: i32(0)
-    counter := seen
-    for d in decls {
-        match d {
-            is ImplDecl -> {
-                other_target :: for_type_name_of(d.for_type)
-                if other_target != target_name { continue }
-                if d.trait_name != owning_impl.trait_name { continue }
-                for m in d.members {
-                    if m.name != member.name { continue }
-                    if m.name_span.start.offset == target_offset {
-                        if counter == 0 { return "" }
-                        return "_${counter}"
-                    }
-                    counter = counter + 1
-                }
-            }
-            _ -> {}
-        }
-    }
-    return ""
-}
-
-for_type_name_of :: fn(for_type: TypeExpr) -> string {
-    // @partial: only Ident / GenericInst<Ident> shapes name a nominal target;
-    // every other TypeExpr → "" (no nominal name).
-    @partial match for_type {
-        is IdentExpr -> { return for_type.name }
-        is GenericInstExpr -> {
-            if for_type.callee is IdentExpr as inner { return inner.name }
-            return ""
-        }
-        _ -> { return "" }
-    }
 }
 
 // Recover the target struct / enum / alias name from the impl's

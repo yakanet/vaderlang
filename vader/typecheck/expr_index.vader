@@ -49,6 +49,11 @@ export infer_index :: fn(
         reject_index_key(e.index, index, key_ty, typed, diags)
         return dispatched[1]
     }
+    picked :: pick_index_member(e, target, index_trait, index, typed, diags)
+    if picked != null {
+        _ :: reject_unmet_impl_bounds(target, index_trait, .TraitNotSatisfied, e.span, typed, diags)
+        return picked.return_type
+    }
     route :: index_route(target, index_trait, typed)
     // Arrays — and array-backed distinct newtypes (`BigInt :: u32[]`) with no `Index`
     // of their own — index by element.
@@ -103,7 +108,7 @@ dispatched_index_args :: fn(
     e: AST.IndexExpr, target: Type, trait_key: string, typed: TypedProgram!,
 ) -> Type[] | null {
     args :: trait_dispatch_args(target, trait_key, typed) ?? return null
-    typed.bounded_dispatch_trait[e.id] = trait_key
+    record_bounded_dispatch(typed, e.id, trait_key, args)
     if target is TypeParamType {
         keep_instances_concrete(typed)
     }
@@ -185,7 +190,69 @@ index_key_expected :: fn(target: Type, trait_key: string, typed: TypedProgram) -
     if dispatched != null {
         return dispatched[0]
     }
-    return index_param(target, typed.index_key_types, typed)
+    // Several impls take several keys : the key picks one (`pick_index_member`).
+    if trait_members(typed, target, trait_key, index_method(trait_key)).len() > 1 {
+        return null
+    }
+    keys :: if trait_key == core_trait_key(TRAIT_INDEX_SET) {
+        typed.index_set_key_types
+    } else {
+        typed.index_key_types
+    }
+    return index_param(target, keys, typed)
+}
+
+// The member `x[i]` calls through `trait_key` : `at` for `Index`, `set_at` for
+// `IndexSet`.
+index_method :: fn(trait_key: string) -> string =
+    if trait_key == core_trait_key(TRAIT_INDEX_SET) { METHOD_SET_AT } else { METHOD_AT }
+
+/// The member several impls of `trait_key` on `receiver` offer that the key `key_ty`
+/// picks (`Index<i32, Row>` beside `Index<Point, Cell>`), its signature on
+/// `receiver` without the receiver ; the pick is recorded for the lowering, in
+/// `picked_index_writes` for an `IndexSet`. Null when at most one impl offers it, or
+/// none takes the key (T3001) or two do (T3032).
+///
+/// @param trait_key  `Index` for a read, `IndexSet` for a write.
+pick_index_member :: fn(
+    e: AST.IndexExpr,
+    receiver: Type,
+    trait_key: string,
+    key_ty: Type,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+) -> FnType | null {
+    members :: trait_members(typed, receiver, trait_key, index_method(trait_key))
+    if members.len() < 2 {
+        return null
+    }
+    sigs: Type[]!: []
+    for m in members {
+        sigs.push(impl_member_type(m, receiver, typed))
+    }
+    pick :: pick_by_first_arg(sigs, key_ty, 1)
+    impls :: "`${trait_key_name(trait_key)}` on ${display_type(receiver)}"
+    key :: "`${display_type(key_ty)}`"
+    if pick.rival != null {
+        diags.push(typecheck_error(
+            .AmbiguousOverload, e.index.span, "several impls of ${impls} take a key ${key}",
+        ))
+        return null
+    }
+    index :: pick.best
+    if index == null {
+        diags.push(typecheck_error(
+            .TypeMismatch, e.index.span, "no impl of ${impls} takes a key ${key}",
+        ))
+        return null
+    }
+    if trait_key == core_trait_key(TRAIT_INDEX_SET) {
+        typed.picked_index_writes[e.id] = members[index]
+    } else {
+        typed.picked_impl_members[e.id] = members[index]
+    }
+    sig :: sigs[index]
+    return if sig is FnType { sig } else { null }
 }
 
 /// Resolved write-value type V for an `m[k] = v` target, or null when

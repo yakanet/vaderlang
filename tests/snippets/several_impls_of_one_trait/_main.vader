@@ -1,0 +1,244 @@
+module "snippet"
+
+import "std/io"
+
+// Several impls of one trait on one receiver, told apart by the trait's arguments :
+// each use site runs the impl its own types pick — an operator by its right
+// operand, a call by its argument or its expected result, `in` by the element, an
+// index by its key, a destructuring by its arity, a static member by its argument,
+// a bounded `T` by its bound — in a generic fn and in a generic impl's members —
+// and a default method by the impl it is cloned into. A type that is an `Iterator`
+// and converts into another one is walked through its own `next`.
+
+Vec2 :: struct {
+    x: f64
+    y: f64
+}
+
+Vec2 implements Mul<f64> {
+    mul :: fn(self, k: f64) -> Vec2 = Vec2 { .x = self.x * k, .y = self.y * k }
+}
+
+Vec2 implements Mul<Vec2> {
+    mul :: fn(self, o: Vec2) -> Vec2 = Vec2 { .x = self.x * o.x, .y = self.y * o.y }
+}
+
+twice :: fn<T: Mul<f64>>(v: T) -> T = v * 2.0
+
+Grid :: struct {
+    cells: i32[]!
+    names: string[]!
+}
+
+Grid implements Index<i32, i32> {
+    at :: fn(self, i: i32) -> i32 = self.cells[i]
+}
+
+Grid implements Index<string, string> {
+    at :: fn(self, k: string) -> string = "${k}:${self.names[0]}"
+}
+
+Grid implements IndexSet<i32, i32> {
+    set_at :: fn(self!, i: i32, v: i32) -> void {
+        self.cells[i] = v
+    }
+}
+
+Grid implements IndexSet<string, string> {
+    set_at :: fn(self!, k: string, v: string) -> void {
+        self.names[0] = "${k}=${v}"
+    }
+}
+
+Bag :: struct {
+    n: i32
+}
+
+Bag implements Contains<i32> {
+    contains :: fn(self, x: i32) -> bool = x == self.n
+}
+
+Bag implements Contains<string> {
+    contains :: fn(self, s: string) -> bool = s == "bag"
+}
+
+Make :: trait<From> {
+    make :: fn(x: From) -> Self
+}
+
+Describe :: trait<T> {
+    tag :: fn(self) -> string
+    describe :: fn(self) -> string = "<${self.tag()}>"
+}
+
+Vec2 implements Make<f64> {
+    make :: fn(x: f64) -> Vec2 = Vec2 { .x = x, .y = x }
+}
+
+Vec2 implements Make<string> {
+    make :: fn(x: string) -> Vec2 = Vec2 { .x = 42.0, .y = 0.0 }
+}
+
+Vec2 implements Describe<i32> {
+    tag :: fn(self) -> string = "int"
+}
+
+Vec2 implements Describe<string> {
+    tag :: fn(self) -> string = "str"
+}
+
+say_int :: fn<T: Describe<i32>>(x: T) -> string = x.describe()
+
+say_str :: fn<T: Describe<string>>(x: T) -> string = x.describe()
+
+Mon :: struct {
+    v: i32
+}
+
+Label :: struct {
+    s: string
+}
+
+Tag :: struct {
+    n: i32
+}
+
+Mon implements Into<Label> {
+    into :: fn(self) -> Label = Label { .s = "m${self.v}" }
+}
+
+Mon implements Into<Tag> {
+    into :: fn(self) -> Tag = Tag { .n = 100 + self.v }
+}
+
+Wrap :: struct<T> {
+    inner: T
+}
+
+Scale :: trait<T> {
+    scaled :: fn(self) -> T
+}
+
+Wrap<T> implements<T: Mul<f64>> Scale<T> {
+    scaled :: fn(self) -> T = self.inner * 2.0
+}
+
+Show :: trait {
+    show :: fn(self) -> string
+}
+
+Wrap<T> implements<T: Describe<string>> Show {
+    show :: fn(self) -> string = self.inner.tag()
+}
+
+built :: fn<T: Make<string>>() -> T = T.make("s")
+
+Sheet :: struct {
+    cells: i32[]!
+}
+
+Sheet implements Index<i32, i32> {
+    at :: fn(self, i: i32) -> i32 = self.cells[i]
+}
+
+Sheet implements IndexSet<i32, i32> {
+    set_at :: fn(self!, i: i32, v: i32) -> void {
+        self.cells[i] = v
+    }
+}
+
+Sheet implements Index<string, string> {
+    at :: fn(self, k: string) -> string = "sheet ${k}"
+}
+
+Rec :: struct {
+    a: i32
+    b: i32
+    s: string
+    t: string
+    u: string
+}
+
+Rec implements Into<[i32, i32]> {
+    into :: fn(self) -> [i32, i32] = [self.a, self.b]
+}
+
+Rec implements Into<[string, string, string]> {
+    into :: fn(self) -> [string, string, string] = [self.s, self.t, self.u]
+}
+
+Counter :: struct {
+    n: i32
+}
+
+Counter implements Iterator<i32> {
+    next :: fn(self!) -> [i32, Continuation] {
+        if self.n >= 2 {
+            return [0, .Stop]
+        }
+        self.n += 1
+        return [self.n, .Continue]
+    }
+}
+
+Counter implements Into<Iterator<string>!> {
+    into :: fn(self) -> Iterator<string>! = ["a", "b"].into()
+}
+
+Pile :: struct<T> {
+    top: T
+}
+
+Pile<T> implements<T> Add<Pile<T>> {
+    add :: fn(self, o: Pile<T>) -> Self = o
+}
+
+Pile<T> implements<T> Add<f64> {
+    add :: fn(self, k: f64) -> Self = self
+}
+
+main :: fn() -> i32 {
+    v :: Vec2 { .x = 1.0, .y = 2.0 }
+    a :: v * 3.0
+    b :: v * v
+    c :: v.mul(10.0)
+    d :: twice(v)
+    println("${a.x} ${b.y} ${c.x} ${d.x}")
+    g :: Grid { .cells = [1, 2, 3], .names = ["a"] }
+    g[1] = 20
+    g["k"] = "v"
+    println("${g[1]} ${g["x"]}")
+    bag :: Bag { .n = 3 }
+    println("${3 in bag} ${4 in bag} ${"bag" in bag}")
+    m :: Vec2.make(1.5)
+    n :: Vec2.make("s")
+    println("${m.x} ${n.x} ${say_int(m)} ${say_str(m)}")
+    mon :: Mon { .v = 7 }
+    t: Tag: mon.into()
+    l: Label: mon.into()
+    println("${t.n} ${l.s}")
+    p :: Pile<i32> { .top = 1 }
+    q :: Pile<i32> { .top = 9 }
+    println("${p.add(q).top} ${p.add(1.0).top}")
+    w :: Wrap<Vec2> { .inner = v }
+    built_vec: Vec2: built()
+    println("${w.scaled().x} ${w.show()} ${built_vec.x}")
+    sheet :: Sheet { .cells = [1, 2, 3] }
+    sheet[1] = 20
+    println("${sheet[1]} ${sheet["q"]}")
+    r :: Rec {
+        .a = 1,
+        .b = 2,
+        .s = "x",
+        .t = "y",
+        .u = "z",
+    }
+    [x, y, z] :: r
+    [i, j] :: r
+    println("${x}${y}${z} ${i + j}")
+    counter :: Counter { .n = 0 }
+    for k in counter {
+        println("count ${k + 1}")
+    }
+    return 0
+}

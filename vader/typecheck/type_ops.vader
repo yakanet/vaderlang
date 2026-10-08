@@ -696,6 +696,72 @@ export impl_side_list :: fn(
     return out
 }
 
+/// The members named by `suffix` that the impls covering `t` offer, every impl of a
+/// trait included (`Add<f64>` beside `Add<Vec2>`) : those written for `t` itself
+/// first, then its base's, less those an impl on `t` hides. An impl on one instance
+/// hides its base's impl of the same trait instance (`Wrapper<MonType> implements
+/// Poke` hides `Wrapper<T> implements<T> Poke`), not of another one
+/// (`MonType[] implements Into<Label>` leaves `T[] implements<T> Into<Iterator<T>!>`).
+///
+/// @param typed   the module whose `impl_methods` it reads.
+/// @param t       the receiver.
+/// @param suffix  `"::<member>"`.
+export impl_candidates :: fn(typed: TypedProgram, t: Type, suffix: string) -> ImplMethod[] {
+    found :: typed.impl_methods["${dispatch_key(t)}${suffix}"]
+    base: ImplMethod[]: if found == null { NO_IMPL_METHODS } else { found }
+    own_key :: own_impl_key(typed, t) ?? return base
+    own :: typed.impl_methods["${own_key}${suffix}"] ?? return base
+    out: ImplMethod[]!: []
+    out.push_all(own)
+    for member in base {
+        if !hides_trait_instance(own, member, t, typed) {
+            out.push(member)
+        }
+    }
+    return out
+}
+
+NO_IMPL_METHODS: ImplMethod[]: []
+
+/// The members named `method` of `t`'s impls of `trait_key` : `a + b` reaches
+/// `Add`'s `add`, never another trait's member of that name.
+///
+/// @param t          the receiver.
+/// @param trait_key  the trait the use site dispatches through.
+/// @param method     the member's name.
+export trait_members :: fn(
+    typed: TypedProgram,
+    t: Type,
+    trait_key: string,
+    method: string,
+) -> ImplMethod[] {
+    out: ImplMethod[]!: []
+    for m in impl_candidates(typed, t, "::${method}") {
+        if m.trait_key == trait_key {
+            out.push(m)
+        }
+    }
+    return out
+}
+
+// Whether one of `own` implements the trait instance `member`'s impl implements at
+// `t` : the same trait, at arguments some instantiation makes equal once the generic
+// impl's own parameters take `t`'s (`Into<Iterator<T>!>` at `MonType[]`).
+hides_trait_instance :: fn(
+    own: ImplMethod[],
+    member: ImplMethod,
+    t: Type,
+    typed: TypedProgram,
+) -> bool {
+    args :: resolve_trait_args_for(t, member.trait_args, typed)
+    for o in own {
+        if o.trait_key == member.trait_key && may_coincide_each(o.trait_args, args) {
+            return true
+        }
+    }
+    return false
+}
+
 /// Whether an impl written for `t` itself — one instance, `Wrapper<MonType>` —
 /// implements `trait_key` : it wins over the base's generic impl, bounds unasked.
 ///
@@ -726,8 +792,15 @@ into_toward_suffix :: fn(target: Type) -> string = "::${METHOD_INTO}::${impl_bas
 ///                impls of every module it sees.
 /// @param source  the converted value's type.
 /// @param target  the type it converts into.
-export into_impl_method :: fn(typed: TypedProgram, source: Type, target: Type) -> ImplMethod | null =
-    typed.impl_methods[into_impl_key(source, target)]
+export into_impl_method :: fn(
+    typed: TypedProgram,
+    source: Type,
+    target: Type,
+) -> ImplMethod | null {
+    // One impl per (source, target) pair : a second is R2030.
+    found :: typed.impl_methods[into_impl_key(source, target)] ?? return null
+    return found[0]
+}
 
 /// The `into` an implicit conversion of `source` toward `target` goes through : the
 /// impl of that exact pair, else the generic impl of `source`'s base toward
@@ -743,7 +816,10 @@ export into_method_toward :: fn(
     if exact != null {
         return exact
     }
-    return typed.impl_methods["${dispatch_key(source)}${into_toward_suffix(target)}"]
+    // One generic impl per target base : two would overlap (R2030).
+    key :: "${dispatch_key(source)}${into_toward_suffix(target)}"
+    found :: typed.impl_methods[key] ?? return null
+    return found[0]
 }
 
 /// True iff an impl on `t` itself or on its base registers `trait_key` in
@@ -786,6 +862,16 @@ export implements_trait_instance :: fn(t: Type, wanted: TraitType, typed: TypedP
     }
     if wanted.args.len() == 0 {
         return true
+    }
+    // Any impl of the trait at the arguments asked (`Into<Label>` beside `Into<Tag>`).
+    lists :: struct_trait_arg_lists(t, key, typed)
+    if lists.len() > 1 && !is_gen_state_struct(t) {
+        for raw in lists {
+            if trait_args_match(resolve_trait_args_for(t, raw, typed), wanted.args) {
+                return true
+            }
+        }
+        return false
     }
     impl_args :: resolve_struct_trait_args(t, key, typed) ?? return true
     return trait_args_match(impl_args, wanted.args)
@@ -977,19 +1063,59 @@ all_satisfy_bound :: fn(types: Type[], trait_key: string, typed: TypedProgram) -
 /// nominal carrier. Shared by the typecheck's `unify_struct_to_trait_args`
 /// and the lowerer's trait-param monomorphisation.
 export lookup_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
-    own :: own_trait_args(t, trait_key, typed)
-    if own != null {
-        return own
-    }
-    per_struct :: typed.struct_trait_args[dispatch_key(t)] ?? return null
-    return per_struct[trait_key]
+    // Several impls of the trait give `t` several argument lists : nothing single
+    // to bind (`struct_trait_arg_lists` has them all).
+    lists :: struct_trait_arg_lists(t, trait_key, typed)
+    return if lists.len() == 1 { lists[0] } else { null }
 }
 
-// The trait args an impl on `t` itself records for `trait_key`.
-own_trait_args :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
-    own_key :: own_impl_key(typed, t) ?? return null
-    per_type :: typed.struct_trait_args[own_key] ?? return null
-    return per_type[trait_key]
+/// Every argument list the impls of `trait_key` covering `t` record, one per impl
+/// (`Vec2 implements Add<f64>` beside `Add<Vec2>` gives two) : those written for
+/// `t` itself first, then its base's, less those an impl on `t` hides — the same
+/// arguments, as `impl_candidates` hides members.
+///
+/// @param t          the implementing type.
+/// @param trait_key  the trait.
+export struct_trait_arg_lists :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[][] {
+    base :: trait_arg_lists_at(typed, dispatch_key(t), trait_key)
+    own_key :: own_impl_key(typed, t) ?? return base
+    own :: trait_arg_lists_at(typed, own_key, trait_key)
+    if own.len() == 0 {
+        return base
+    }
+    out: Type[][]!: []
+    out.push_all(own)
+    for args in base {
+        if !coincides_with_any(own, resolve_trait_args_for(t, args, typed)) {
+            out.push(args)
+        }
+    }
+    return out
+}
+
+NO_ARG_LISTS: Type[][]: []
+
+/// Whether several impls of `trait_key` cover `t` (`Iterator<A>` beside
+/// `Iterator<B>`) : a use that does not name the trait's arguments cannot pick one.
+///
+/// @param t          the type asked about.
+/// @param trait_key  the trait.
+export implements_more_than_once :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool =
+    struct_trait_arg_lists(t, trait_key, typed).len() > 1
+
+trait_arg_lists_at :: fn(typed: TypedProgram, key: string, trait_key: string) -> Type[][] {
+    per_type :: typed.struct_trait_args[key] ?? return NO_ARG_LISTS
+    lists :: per_type[trait_key] ?? return NO_ARG_LISTS
+    return lists
+}
+
+coincides_with_any :: fn(lists: Type[][], args: Type[]) -> bool {
+    for l in lists {
+        if may_coincide_each(l, args) {
+            return true
+        }
+    }
+    return false
 }
 
 /// The trait args for `t implements <trait>`, with a GENERIC impl's recorded
@@ -1010,6 +1136,12 @@ export resolve_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedP
         }
     }
     raw :: lookup_struct_trait_args(t, trait_key, typed) ?? return null
+    return resolve_trait_args_for(t, raw, typed)
+}
+
+// `raw`, an impl's recorded trait arguments, with a generic impl's own parameters
+// resolved against `t`'s.
+resolve_trait_args_for :: fn(t: Type, raw: Type[], typed: TypedProgram) -> Type[] {
     if t is StructType {
         struct_decl :: typed.struct_decls[t.symbol.id] ?? return raw
         out: Type[]!: []

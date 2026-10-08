@@ -446,7 +446,7 @@ materialize_impl_members_for :: fn(
 
 // True when `impl_decl` serves the struct `inst` instantiates : an impl on that
 // instance (`Box<i32> implements …`), or a generic impl of its declaration unless
-// one on the instance wins for the trait.
+// one on the instance implements the same trait instance.
 impl_applies_to_instance :: fn(project_ctx: LowerProjectCtx, impl_decl: ImplDecl, inst: GenericInstance) -> bool {
     if !(impl_decl.for_type is GenericInstExpr) {
         return false
@@ -459,8 +459,14 @@ impl_applies_to_instance :: fn(project_ctx: LowerProjectCtx, impl_decl: ImplDecl
     if entry.instance {
         return impl_covers(entry, instance)
     }
-    winner :: project_ctx.impls.winning_impl(instance, entry.trait_key) ?? return true
-    return !winner.instance
+    // Unless an impl on the instance implements the same trait instance :
+    // `impls_for` leaves out the generic impls such an impl hides.
+    for other in project_ctx.impls.impls_for(instance, entry.trait_key) {
+        if other.decl.span == entry.decl.span {
+            return true
+        }
+    }
+    return false
 }
 
 materialize_impl_for_instance :: fn(
@@ -508,13 +514,10 @@ materialize_impl_for_instance :: fn(
         mixed_any_suffix(project_ctx.impls, inst.args)
     }
     impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return
-    // An impl on one instance adds what tells it from another impl of the trait on
-    // that instance (`Wrapper<MonType> implements Into<Label>` beside `Into<Tag>`).
-    suffix :: if impl_entry.instance {
-        "${instance_suffix}${project_ctx.impls.instance_overload_suffix(impl_entry)}"
-    } else {
-        instance_suffix
-    }
+    // Then what tells it from another impl of the trait on that base
+    // (`Wrapper<MonType> implements Into<Label>` beside `Into<Tag>`).
+    overload :: impl_entry.overload_suffix
+    suffix :: if overload == "" { instance_suffix } else { "${instance_suffix}${overload}" }
     types :: make_entry_types(impl_typed, subst)
     impl_key_prefix :: impl_decl.span.hash()
     impl_trait :: impl_entry.trait_key
@@ -624,7 +627,7 @@ materialize_bound_impl :: fn(
                     if d.for_type is GenericInstExpr { continue }
                     project_ctx.materialized_impl_keys.add(dedupe_key)
                     synth_start :: project_ctx.synth_decls.len()
-                    for m in lower_impl_member_list(d, mt, project_ctx, diags, decls) {
+                    for m in lower_impl_member_list(d, mt, project_ctx, diags) {
                         push_to_module(project, mt.resolved.path, m)
                     }
                     // Drain lambdas/defers lifted from these member bodies

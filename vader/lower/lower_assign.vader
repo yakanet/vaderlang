@@ -245,7 +245,14 @@ lower_index :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type) -> LoweredExpr!
     // `string`, a user struct or a distinct with its own `Index<I, T>` impl rewrites
     // to a direct `at(s, i)` call.
     if index_route(target_type, core_trait_key(TRAIT_INDEX), ctx.typed) == .Impl {
-        member :: find_trait_impl_member(ctx, target_type, core_trait_key(TRAIT_INDEX))
+        // The `Index` impl the key picked, when several take one.
+        picks :: ctx.typed.picked_impl_members
+        picked :: use_site_member(ctx, picks, expr.id, target_type, METHOD_AT)
+        member :: if picked != null {
+            picked
+        } else {
+            find_trait_impl_member(ctx, target_type, core_trait_key(TRAIT_INDEX))
+        }
         if member is UfcsMember {
             args: LoweredExpr![]!: []
             args.push(lower_expr(ctx, expr.target))
@@ -411,7 +418,15 @@ try_lower_index_set_assign :: fn(
             // Resolve the write through the `IndexSet` impl by TRAIT identity — never
             // by a `"set_at"` literal : it carries the mangle the materialiser emits,
             // and that DCE indexes.
-            member :: find_trait_impl_member(ctx, target_type, core_trait_key(TRAIT_INDEX_SET)) ?? return null
+            // The `IndexSet` impl the key picked, when several take one.
+            picks :: ctx.typed.picked_index_writes
+            picked :: use_site_member(ctx, picks, target.id, target_type, METHOD_SET_AT)
+            member :: if picked != null {
+                picked
+            } else {
+                index_set :: core_trait_key(TRAIT_INDEX_SET)
+                find_trait_impl_member(ctx, target_type, index_set) ?? return null
+            }
             if member is UfcsMember {
                 // Build `set_at(target, index, value)` direct call.
                 receiver :: lower_expr(ctx, target.target)

@@ -51,7 +51,13 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lower
         if chosen == null {
             // An impl member (e.g. `x.to_string()` over
             // `i32 implements Display { to_string }`).
-            member :: impl_member_or_enum(ctx, recv_type, callee_field.field)
+            picks :: ctx.typed.picked_impl_members
+            picked :: use_site_member(ctx, picks, callee_field.id, recv_type, callee_field.field)
+            member :: if picked != null {
+                picked
+            } else {
+                impl_member_or_enum(ctx, recv_type, callee_field.field)
+            }
             if member is UfcsMember {
                 // An impl member's recorded signature is receiver-dropped, so its
                 // types line up with the call's own args from slot 0. The receiver

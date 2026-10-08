@@ -35,7 +35,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 static int32_t snippet_main(void);
 static vader_string_t snippet_Box_Display_to_string__i32(void* l0);
-static vader_string_t snippet_Box_Display_to_string__string(void* l0);
+static vader_string_t snippet_Box_Display_to_string__string_1(void* l0);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
@@ -120,11 +120,11 @@ static int32_t snippet_main(void) {
     t0 = snippet_Box_Display_to_string__i32(l0);
     std_io_println__string(t0);
 #line 21 "tests/snippets/impl_on_concrete_instantiations/_main.vader"
-    t0 = snippet_Box_Display_to_string__string(l1);
+    t0 = snippet_Box_Display_to_string__string_1(l1);
     std_io_println__string(t0);
 #line 22 "tests/snippets/impl_on_concrete_instantiations/_main.vader"
     l2 = snippet_Box_Display_to_string__i32(l0);
-    l3 = snippet_Box_Display_to_string__string(l1);
+    l3 = snippet_Box_Display_to_string__string_1(l1);
     t0 = concat_3(l2, 2u, l3);
     std_io_println__string(t0);
 #line 23 "tests/snippets/impl_on_concrete_instantiations/_main.vader"
@@ -154,7 +154,7 @@ static vader_string_t snippet_Box_Display_to_string__i32(void* l0) {
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t snippet_Box_Display_to_string__string(void* l0) {
+static vader_string_t snippet_Box_Display_to_string__string_1(void* l0) {
     vader_string_t l1 = 0;
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };

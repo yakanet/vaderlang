@@ -9,7 +9,7 @@
           .value :i32
             self :UserId
       }
-  fn snippet$UserId$Into$into_1(self: UserId!) -> Box<string>
+  fn snippet$UserId$Into$into$1(self: UserId!) -> Box<string>
     ~>
       Box<string>! {
         value:
@@ -85,7 +85,7 @@
           arg0:
             call :Box<string>
               callee:
-                snippet$UserId$Into$into_1 :Box<string>
+                snippet$UserId$Into$into$1 :Box<string>
               arg0:
                 u :UserId!
     call :void

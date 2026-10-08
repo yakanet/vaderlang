@@ -320,7 +320,7 @@ lower_module :: fn(
     // dump's per-struct grouping follows source order.
     synth_start :: project_ctx.synth_decls.len()
     for decl in decls {
-        results :: lower_decl_list(decl, typed, project_ctx, diags, decls)
+        results :: lower_decl_list(decl, typed, project_ctx, diags)
         for r in results { out_decls.push(r) }
     }
     // Second pass : drain the lambda-lift synth decls accumulated while
@@ -342,14 +342,13 @@ lower_module :: fn(
 /// per member so impl methods land inline (right after the impl) in
 /// the dump.
 lower_decl_list :: fn(
-    decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx!,
-    diags: Diagnostic[], module_decls: Decl[],
+    decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
 ) -> LoweredDecl![] {
     if decl is ImplDecl {
-        return lower_impl_member_list(decl, typed, project_ctx, diags, module_decls)
+        return lower_impl_member_list(decl, typed, project_ctx, diags)
     }
     out: LoweredDecl![]!: []
-    result :: lower_decl(decl, typed, project_ctx, diags, module_decls)
+    result :: lower_decl(decl, typed, project_ctx, diags)
     if !(result is null) { out.push(result) }
     return out
 }
@@ -362,7 +361,6 @@ lower_decl_list :: fn(
 // produce runtime slots.
 lower_decl :: fn(
     decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx!, diags: Diagnostic[],
-    module_decls: Decl[],
 ) -> LoweredDecl! | null {
     // Only Fn/Struct/Const/Impl produce runtime slots; every other decl kind
     // (Enum, Trait, TypeAlias, Import, Assert) lowers to null.
@@ -371,7 +369,7 @@ lower_decl :: fn(
         is StructDecl -> { return lower_struct_decl(decl, typed, project_ctx, diags) }
         is ConstDecl  -> { return lower_const_decl(decl, typed, project_ctx, diags) }
         is ImplDecl   -> {
-            lower_impl_members(decl, typed, project_ctx, diags, module_decls)
+            lower_impl_members(decl, typed, project_ctx, diags)
             return null
         }
         is EnumDecl | TraitDecl | TypeAliasDecl | ImportDecl | AssertDecl -> { return null }

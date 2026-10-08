@@ -100,9 +100,9 @@ export infer_field :: fn(
 // body bounded instead of the original 40 k-line monster.
 
 // `x.method()` where `<x-type> implements <Trait> { method :: ... }`.
-// Indexed by orchestrate.vader at impl-load time. Try exact display
-// first, then fall back to the base-name key + substitute the impl's
-// type-params against the receiver's concrete args.
+// Indexed by orchestrate.vader at impl-load time (`impl_candidates`). A member
+// several impls of one trait offer (`Add<f64>`, `Add<Vec2>`) is left to the call,
+// which picks it by its arguments (`pick_member_overload`).
 try_impl_method_ufcs :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
@@ -116,39 +116,107 @@ try_impl_method_ufcs :: fn(
     // would. `default_if_free` is the identity on concrete types, so concrete
     // receivers are unaffected.
     key_ty :: default_if_free(target_ty)
-    impl_ufcs :: typed.impl_methods["${impl_type_key(key_ty)}::${e.field}"]
-    if impl_ufcs !is null {
-        if rejects_static_member(impl_ufcs.decl, e, typed, diags) {
+    candidates :: receiver_impl_members(key_ty, e.field, typed)
+    if candidates.len() == 0 {
+        return null
+    }
+    // Members of several traits are ambiguous whatever the call (`check_trait_ambiguity`).
+    if candidates.len() > 1 && of_one_trait(candidates) {
+        // A body of one of these impls reaches its own impl's member.
+        for m in candidates {
+            if m.impl_key == typed.enclosing_impl {
+                typed.picked_impl_members[e.id] = m
+                return settle_impl_member(m, e, target_ty, typed, diags)
+            }
+        }
+        if typed.callee_field_id != e.id {
+            sigs: Type[]!: []
+            for m in candidates {
+                sigs.push(m.ty)
+            }
+            hint :: "are offered ; call it so its arguments pick one"
+            diags.push(member_ambiguity_error(e, sigs, hint))
             return TY_UNRESOLVED
         }
-        check_trait_ambiguity(e, target_ty, typed, diags)
-        reject_mutating_method_on_immutable(impl_ufcs, e, target_ty, typed, diags)
-        typed.chosen_impl_methods[e.id] = impl_ufcs
-        return impl_ufcs.ty
+        typed.overloaded_members[e.id] = candidates
+        return impl_member_type(candidates[0], target_ty, typed)
     }
-    base_key := "${impl_base_key(key_ty)}::${e.field}"
-    found := typed.impl_methods[base_key]
-    // Array-backed distinct newtype (`BigInt :: i32[]`) : its base name is the
-    // newtype's, not `[]`, so try the array-blanket key so `bigint.push(x)`
-    // forwards to `T[] implements ArrayOps`.
-    if found == null && array_backing(key_ty) is ArrayType {
-        base_key = "[]::${e.field}"
-        found = typed.impl_methods[base_key]
+    return settle_impl_member(candidates[0], e, target_ty, typed, diags)
+}
+
+// Whether `members` all come from impls of one trait.
+of_one_trait :: fn(members: ImplMethod[]) -> bool {
+    for m in members {
+        if m.trait_key != members[0].trait_key {
+            return false
+        }
     }
-    base_impl :: found ?? return null
-    if rejects_static_member(base_impl.decl, e, typed, diags) {
+    return true
+}
+
+// The members named `field` the impls covering `key_ty` offer. An array-backed
+// distinct newtype (`BigInt :: i32[]`) takes the array's : its base name is the
+// newtype's, not `[]`, so `bigint.push(x)` forwards to `T[] implements ArrayOps`.
+receiver_impl_members :: fn(key_ty: Type, field: string, typed: TypedProgram) -> ImplMethod[] {
+    suffix :: "::${field}"
+    own :: impl_candidates(typed, key_ty, suffix)
+    if own.len() > 0 || array_backing(key_ty) !is ArrayType {
+        return own
+    }
+    found :: typed.impl_methods["[]${suffix}"] ?? return own
+    return found
+}
+
+/// The member `chosen` a call `e` reaches on `target_ty`, typed for that receiver and
+/// checked as the call's : a static member, a trait ambiguity, a `self!` member on a
+/// read-only receiver, the bounds of a generic impl. Records it for tooling.
+///
+/// @param chosen     the impl member the call goes to.
+/// @param e          the call's callee.
+/// @param target_ty  the receiver's type.
+/// @return           the member's signature without its receiver.
+export settle_impl_member :: fn(
+    chosen: ImplMethod,
+    e: AST.FieldExpr,
+    target_ty: Type,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+) -> Type {
+    if rejects_static_member(chosen.decl, e, typed, diags) {
         return TY_UNRESOLVED
     }
     check_trait_ambiguity(e, target_ty, typed, diags)
-    reject_mutating_method_on_immutable(base_impl, e, target_ty, typed, diags)
-    traits :: typed.impl_method_traits[base_key]
-    if traits != null {
+    reject_mutating_method_on_immutable(chosen, e, target_ty, typed, diags)
+    typed.chosen_impl_methods[e.id] = chosen
+    if chosen.generic {
         _ :: reject_unmet_impl_bounds(
-            key_ty, traits[0], .TraitNotSatisfied, e.field_span, typed, diags,
+            default_if_free(target_ty), chosen.trait_key, .TraitNotSatisfied, e.field_span,
+            typed, diags,
         )
     }
-    typed.chosen_impl_methods[e.id] = base_impl
-    return substitute_impl_method(base_impl.ty, key_ty, typed)
+    return impl_member_type(chosen, target_ty, typed)
+}
+
+// `chosen`'s signature on `target_ty` : a generic impl's parameters take the
+// receiver's arguments ; any other impl already names them.
+impl_member_type :: fn(chosen: ImplMethod, target_ty: Type, typed: TypedProgram) -> Type {
+    if !chosen.generic {
+        return chosen.ty
+    }
+    return substitute_impl_method(chosen.ty, default_if_free(target_ty), typed)
+}
+
+// T3032 : the members `sigs` several impls offer as `field` all `what`.
+member_ambiguity_error :: fn(field: AST.FieldExpr, sigs: Type[], what: string) -> Diagnostic {
+    names: string[]!: []
+    for s in sigs {
+        names.push("`${display_type(s)}`")
+    }
+    return typecheck_error(
+        .AmbiguousOverload,
+        field.field_span,
+        "several impls' `${field.field}` ${what}: ${names.join(", ")}",
+    )
 }
 
 /// The diagnostic for a value reaching a member of a bounded impl whose bounds its
@@ -239,9 +307,18 @@ try_typeparam_bound_method :: fn(
     // Record the trait carrying `e.field` so the lower can emit
     // `vcall <trait_key>.method` once the receiver gets erased to Any
     // post-monomorphization.
-    typed.bounded_dispatch_trait[e.id] = member.trait_key
+    record_bounded_dispatch(typed, e.id, member.trait_key, member.trait_args)
     keep_instances_concrete(typed)
     return member.ty
+}
+
+/// Records that the use site `node_id` dispatches through its bound's trait
+/// `trait_key` at `args` (`bounded_dispatch_trait`, `bounded_dispatch_args`).
+export record_bounded_dispatch :: fn(
+    typed: TypedProgram!, node_id: usize, trait_key: string, args: Type[],
+) -> void {
+    typed.bounded_dispatch_trait[node_id] = trait_key
+    typed.bounded_dispatch_args[node_id] = args
 }
 
 // `c.equals(d)` on an enum, whose `Equals` is built in (`builtin_equals_member`).
@@ -265,6 +342,8 @@ TypeMember :: struct {
     ty: Type
     decl: AST.FnDecl
     trait_key: string
+    /// The trait's arguments : the bound's for a type parameter, the impl's else.
+    trait_args: Type[] = []
 }
 
 /// `Type.member` on a static trait member — `T.zero()` with `T: Zero`,
@@ -309,8 +388,15 @@ try_static_member :: fn(
     }
     if owner is TypeParamType {
         keep_instances_concrete(typed)
+        // An instance whose `T` implements the trait more than once calls the impl
+        // at the bound's arguments.
+        record_bounded_dispatch(typed, e.id, member.trait_key, member.trait_args)
     } else {
         check_trait_ambiguity(e, owner, typed, diags)
+        candidates :: impl_candidates(typed, owner, "::${e.field}")
+        if candidates.len() > 1 && of_one_trait(candidates) {
+            typed.overloaded_members[e.id] = candidates
+        }
     }
     typed.static_members[e.id] = StaticMember { .owner = owner, .trait_key = member.trait_key }
     return member.ty
@@ -358,14 +444,19 @@ type_member :: fn(owner: Type, name: string, typed: TypedProgram) -> TypeMember 
         trait_ty :: bound_trait_declaring(bound, name, typed) ?? return null
         return trait_type_member(trait_ty, owner, name, typed)
     }
-    found :: impl_side(typed, typed.impl_methods, owner, "::${name}") ??
+    candidates :: impl_candidates(typed, owner, "::${name}")
+    if candidates.len() == 0 {
         return builtin_equals_member(owner, name, typed)
-    decl :: found.decl ?? return null
-    traits :: impl_side_list(typed, typed.impl_method_traits, owner, "::${name}")
-    if traits.len() == 0 {
-        return null
     }
-    return TypeMember { .ty = found.ty, .decl = decl, .trait_key = traits[0] }
+    // Several impls of one trait : the call picks among them (`pick_member_overload`).
+    found :: candidates[0]
+    decl :: found.decl ?? return null
+    return TypeMember {
+        .ty = found.ty,
+        .decl = decl,
+        .trait_key = found.trait_key,
+        .trait_args = found.trait_args,
+    }
 }
 
 // The member `name` of `trait_ty`, `Self` standing for `owner`.
@@ -381,6 +472,7 @@ trait_type_member :: fn(
         .ty = substitute_self(method, owner),
         .decl = decl,
         .trait_key = trait_key_of(trait_ty.symbol),
+        .trait_args = trait_ty.args,
     }
 }
 

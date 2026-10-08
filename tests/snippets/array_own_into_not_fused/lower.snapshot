@@ -175,7 +175,7 @@
       let self: Iterator<Pt>! =
         call :Iterator<Pt>!
           callee:
-            snippet$[]$Into$into__Pt :Iterator<Pt>!
+            snippet$[]$Into$into__Pt$2 :Iterator<Pt>!
           arg0:
             ps :Pt![]!
       let f: fn(Pt) -> i32 = __lambda_snippet_0 :fn(Pt) -> i32
@@ -888,7 +888,7 @@
           labels :fn(Mon[]) -> Iterator<Label>
         arg0:
           self :Mon![]
-  fn snippet$[]$Into$into__Pt(self: Pt![]!) -> Iterator<Pt>!
+  fn snippet$[]$Into$into__Pt$2(self: Pt![]!) -> Iterator<Pt>!
     ~>
       call :__genstate_shifted<Pt>!
         callee:

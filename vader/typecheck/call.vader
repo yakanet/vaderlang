@@ -128,6 +128,135 @@ pick_overload :: fn(
     return commit_overload_pick(best, c, typed, primary_ft)
 }
 
+// A callee several impls of one trait offer (`v.add(…)` with `Add<f64>` beside
+// `Add<Vec2>`, `w.into()` with `Into<Label>` beside `Into<Tag>`) : the member the
+// call's first argument picks, or, for a member without one, the one whose result
+// fits `expected`. The pick is recorded for the lowering.
+pick_member_overload :: fn(
+    c: AST.CallExpr!,
+    initial: Type,
+    expected: Type | null,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> Type {
+    field :: c.callee
+    if field !is AST.FieldExpr {
+        return initial
+    }
+    candidates :: typed.overloaded_members[field.id] ?? return initial
+    is_static :: typed.static_members[field.id] != null
+    receiver :: typed.expr_types[field.target.id] ?? TY_UNRESOLVED
+    sigs: Type[]!: []
+    for m in candidates {
+        sigs.push(if is_static { m.ty } else { impl_member_type(m, receiver, typed) })
+    }
+    // An ambiguity is reported : nothing more to say about this call.
+    index :: pick_member_index(
+        c,
+        field,
+        sigs,
+        expected,
+        typed,
+        diags,
+        check_expr_fn,
+    ) ?? return TY_UNRESOLVED
+    chosen :: candidates[index]
+    typed.picked_impl_members[field.id] = chosen
+    ty :: if is_static {
+        chosen.ty
+    } else {
+        settle_impl_member(chosen, field, receiver, typed, diags)
+    }
+    typed.expr_types[field.id] = ty
+    return ty
+}
+
+// The index of the member `c` picks among `sigs` (each without its receiver) ; the
+// first when none fits, so the call's own checks report the mismatch against it ;
+// null once an ambiguity is reported.
+pick_member_index :: fn(
+    c: AST.CallExpr,
+    field: AST.FieldExpr,
+    sigs: Type[],
+    expected: Type | null,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> usize | null {
+    if c.args.len() > 0 {
+        arg0 :: check_expr_fn(c.args[0].value, null, typed, [])
+        pick :: pick_by_first_arg(sigs, arg0, c.args.len())
+        if pick.rival != null {
+            diags.push(member_ambiguity_error(field, sigs, "accept ${display_type(arg0)}"))
+            return null
+        }
+        return pick.best ?? 0
+    }
+    // The pick reads the result's shape ; its rights are judged against the slot
+    // once picked (`Iterator<Mon!>!` from an owned array fits an `Iterator<Mon>!`
+    // conversion as surely as the call that follows reports it).
+    fits: usize[]!: []
+    if expected != null {
+        want :: strip_mutability(expected)
+        for i in 0..<sigs.len() {
+            sig :: sigs[i]
+            if sig is FnType && is_assignable(strip_mutability(sig.return_type), want) {
+                fits.push(i)
+            }
+        }
+    }
+    if fits.len() == 1 {
+        return fits[0]
+    }
+    if expected != null && fits.len() == 0 {
+        return 0
+    }
+    hint :: if expected == null {
+        "fit ; give the call's result a type"
+    } else {
+        "return a `${display_type(expected)}`"
+    }
+    diags.push(member_ambiguity_error(field, sigs, hint))
+    return null
+}
+
+/// Which of several members a first argument picks (`overload_rank`).
+ArgPick :: struct {
+    /// The best-ranked member's index ; null when none takes the argument.
+    best:  usize | null = null
+    /// Another member that ranks the same : the use site is ambiguous.
+    rival: usize | null = null
+}
+
+/// The member whose first parameter takes `arg` best, among `sigs` — each a member's
+/// signature without its receiver, already specialised for the use site.
+///
+/// @param sigs   the members' signatures ; one that is no `FnType` is skipped.
+/// @param arg    the type of the use site's first argument.
+/// @param arity  the use site's argument count, which an exact arity ranks above.
+pick_by_first_arg :: fn(sigs: Type[], arg: Type, arity: usize) -> ArgPick {
+    pick := ArgPick {}
+    best_rank: i32 = -1
+    for i in 0..<sigs.len() {
+        sig :: sigs[i]
+        if sig !is FnType || sig.params.len() == 0 {
+            continue
+        }
+        if !is_assignable(arg, erase_type_params(sig.params[0])) {
+            continue
+        }
+        rank :: overload_rank(arg, sig.params[0], sig.params.len() == arity)
+        if rank > best_rank {
+            pick = ArgPick { .best = i }
+            best_rank = rank
+        } else if rank == best_rank {
+            pick = ArgPick { .best = pick.best, .rival = i }
+        }
+    }
+    return pick
+}
+
 // How well a candidate whose first param accepts `arg0` fits, highest wins:
 // receiver specificity (a concrete union member beats a bare `T` wildcard — see
 // `overload_specificity`), then an exact arity (`size(a = 1, b = 2)` against
@@ -756,9 +885,11 @@ export infer_call :: fn(
     // Overload dispatch : when the callee is a bare ident whose name
     // has multiple fn overloads (`describe :: fn(Box) -> ... ;
     // describe :: fn(Bag) -> ...`), pre-walk the args and pick the
-    // overload whose first param accepts the first arg.
+    // overload whose first param accepts the first arg. A member several impls
+    // of one trait offer is picked the same way.
+    member_ty :: pick_member_overload(c, initial_callee_ty, expected, typed, diags, check_expr_fn)
     callee_ty :: ufcs_generic_signature(
-        c.callee, pick_overload(c, initial_callee_ty, typed, diags, check_expr_fn), typed,
+        c.callee, pick_overload(c, member_ty, typed, diags, check_expr_fn), typed,
     )
     // `T(x)` cast-style call : treat the call as a conversion and return the target
     // type. Folded before reaching the not-callable arm.

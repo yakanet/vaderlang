@@ -98,7 +98,7 @@ fn 2 snippet$main () -> i32
   local.get 0   ; m
   struct.new 4   ; snippet$Wrapper__MonType
   local.tee 2   ; wm
-  call 6   ; snippet$Wrapper$Poke$poke__MonType
+  call 6   ; snippet$Wrapper$Poke$poke__MonType$1
   local.set 3   ; $call_8
   local.get 1   ; o
   call 12   ; snippet$wrap__Any
@@ -106,7 +106,7 @@ fn 2 snippet$main () -> i32
   local.set 4   ; $call_11
   i32.const 3
   call 14   ; snippet$wrap__i32
-  call 3   ; snippet$Wrapper$Poke$poke__i32
+  call 3   ; snippet$Wrapper$Poke$poke__i32$2
   local.set 5   ; $call_15
   string.const 3   ; "s"
   call 15   ; snippet$wrap__string
@@ -182,7 +182,7 @@ fn 2 snippet$main () -> i32
   call 10   ; snippet$[]$Poke$poke__MonType
   local.set 3   ; $call_8
   local.get 9   ; os
-  call 11   ; snippet$[]$Poke$poke__Other
+  call 11   ; snippet$[]$Poke$poke__Other$1
   local.set 4   ; $call_11
   local.get 0   ; m
   call 19   ; snippet$pair__MonType
@@ -190,7 +190,7 @@ fn 2 snippet$main () -> i32
   local.set 5   ; $call_15
   local.get 1   ; o
   call 20   ; snippet$pair__Other
-  call 11   ; snippet$[]$Poke$poke__Other
+  call 11   ; snippet$[]$Poke$poke__Other$1
   local.set 6   ; $call_19
   local.get 3   ; $call_8
   string.const 2   ; " "
@@ -237,7 +237,7 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 snippet$Wrapper$Poke$poke__i32 (ref) -> string
+fn 3 snippet$Wrapper$Poke$poke__i32$2 (ref) -> string
   local __buf_0 ref
   local __off_1 usize
   local $cast_9 i64
@@ -274,7 +274,7 @@ fn 5 snippet$Wrapper$Poke$poke__string (ref) -> string
   return.lit string.const 6   ; "generic"
 end
 
-fn 6 snippet$Wrapper$Poke$poke__MonType (ref) -> string
+fn 6 snippet$Wrapper$Poke$poke__MonType$1 (ref) -> string
   local __buf_0 ref
   local __off_1 usize
   local $cast_10 i64
@@ -371,7 +371,7 @@ fn 10 snippet$[]$Poke$poke__MonType (ref) -> string
   return
 end
 
-fn 11 snippet$[]$Poke$poke__Other (ref) -> string
+fn 11 snippet$[]$Poke$poke__Other$1 (ref) -> string
   local __buf_0 ref
   local __off_1 usize
   local $cast_9 u64
@@ -467,13 +467,13 @@ end
 
 fn 22 snippet$bounded__Other__ (ref) -> string
   local.get 0   ; arg 0
-  call 11   ; snippet$[]$Poke$poke__Other
+  call 11   ; snippet$[]$Poke$poke__Other$1
   return
 end
 
 fn 23 snippet$bounded__Wrapper_MonType_ (ref) -> string
   local.get 0   ; arg 0
-  call 6   ; snippet$Wrapper$Poke$poke__MonType
+  call 6   ; snippet$Wrapper$Poke$poke__MonType$1
   return
 end
 
@@ -487,7 +487,7 @@ fn 25 snippet$both__Wrapper_MonType_ (ref) -> string
   local $call_1 string
   local $call_3 string
   local.get 0   ; arg 0
-  call 6   ; snippet$Wrapper$Poke$poke__MonType
+  call 6   ; snippet$Wrapper$Poke$poke__MonType$1
   local.set 1   ; $call_1
   local.get 0   ; arg 0
   call 7   ; snippet$Wrapper$Tag$tag__snippet_MonType
@@ -503,7 +503,7 @@ fn 26 snippet$both__Wrapper_i32_ (ref) -> string
   local $call_1 string
   local $call_3 string
   local.get 0   ; arg 0
-  call 3   ; snippet$Wrapper$Poke$poke__i32
+  call 3   ; snippet$Wrapper$Poke$poke__i32$2
   local.set 1   ; $call_1
   local.get 0   ; arg 0
   call 4   ; snippet$Wrapper$Tag$tag__i32

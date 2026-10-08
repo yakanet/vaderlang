@@ -31,7 +31,7 @@ fn 0 snippet$UserId$Into$into (ref) -> i32
   return
 end
 
-fn 1 snippet$UserId$Into$into_1 (ref) -> string
+fn 1 snippet$UserId$Into$into$1 (ref) -> string
   local __buf_0 ref
   local __off_1 usize
   local $cast_9 i64
@@ -156,7 +156,7 @@ fn 4 snippet$main () -> i32
   call 7   ; std_core$finish_buffer
   call 12   ; std_io$println__string
   local.get 0   ; u
-  call 1   ; snippet$UserId$Into$into_1
+  call 1   ; snippet$UserId$Into$into$1
   local.set 5   ; $call_38
   local.get 0   ; u
   call 0   ; snippet$UserId$Into$into

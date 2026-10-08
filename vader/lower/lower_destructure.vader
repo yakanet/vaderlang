@@ -37,8 +37,8 @@ emit_let_binding_leaves :: fn(
     // `target.<field>` — no `into()` call, no per-iteration tuple allocation.
     // `build_leaf_access` reads these names instead of the `_<i>` tuple field.
     if !(resolved is TupleType) && !(resolved is ArrayType) {
-        candidate :: into_tuple_fields(ctx, resolved)
-        if candidate != null && candidate.len() == binding.elements.len() {
+        candidate :: into_tuple_fields(ctx, resolved, binding.elements.len())
+        if candidate != null {
             for i in 0..<binding.elements.len() {
                 emit_let_leaf(ctx, binding.elements[i], target, resolved, i, span, out, candidate)
             }
@@ -65,17 +65,17 @@ emit_let_binding_leaves :: fn(
     }
 }
 
-// Resolve the field names a `[...]` destructure should read when its target
-// type coerces through `Into<[...]>`. Returns the per-element field names when
-// the impl's `into` body is a tuple literal of plain `self.<field>` reads —
-// the zero-alloc inline case — and null otherwise (the caller then falls back
-// to the `_<i>` tuple-field path). Mirror of the typer's `into_tuple_target`.
-into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type) -> string[] | null {
+// Resolve the field names a `[...]` destructure of `arity` leaves should read when
+// its target type coerces through `Into<[...]>`. Returns the per-element field
+// names when the `into` of that arity has a body that is a tuple literal of plain
+// `self.<field>` reads — the zero-alloc inline case — and null otherwise. Mirror of
+// the typer's `into_tuple_target`, which picks the first `Into` of that arity too.
+into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type, arity: usize) -> string[] | null {
     for entry in ctx.project.impls.impls_for(target_type, core_trait_key(TRAIT_INTO)) {
         for m in entry.decl.members {
             if m.name != METHOD_INTO { continue }
             names :: seq_self_field_names(m)
-            if names != null { return names }
+            if names != null && names.len() == arity { return names }
         }
     }
     return null

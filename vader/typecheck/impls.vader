@@ -48,6 +48,16 @@ export ImplEntry :: struct {
     /// `is_instance_receiver`) : it covers that instance alone, and wins there over
     /// the base's generic impl.
     instance: bool = false
+    /// The trait's arguments as the impl writes them (`Add<f64>` → `[f64]`) : what
+    /// tells two impls of one trait on one base apart.
+    trait_args: Type[] = []
+    /// What tells apart the members of several impls of one trait on one base,
+    /// declared in one module (`Vec2 implements Add<f64>` beside `Add<Vec2>`,
+    /// `MonType[] implements Into<Label>` beside `… Into<Tag>`) : "" for the first
+    /// registered, then `$1`, `$2`, … — a `$`, which no type name in a receiver's
+    /// own suffix carries. Every builder of an impl member's mangle appends it : the
+    /// call sites and the materialisers.
+    overload_suffix: string = ""
 }
 
 /// Project-wide registry. Built once by `build_impl_registry` ; queried
@@ -61,9 +71,14 @@ export ImplRegistry :: struct {
     /// Every entry the registry has seen — used by the lowerer to drive
     /// virtual dispatch over trait-typed receivers.
     all: ImplEntry[]! = []
+    /// Entries keyed by their `target`, every trait together.
+    by_base: MutableMap<string, ImplEntry[]!>! = MutableMap<string, ImplEntry[]!> {}
     /// `impl_type_key` of every type an impl on one instance is built from
     /// (`MonType` for `Wrapper<MonType>`) — see `is_specialized_arg`.
     specialized_args: MutableSet<string>! = MutableSet<string> {}
+    /// `target` of every base two impls of one trait cover whole (`Vec2 implements
+    /// Mul<f64>` beside `Mul<Vec2>`) — see `is_specialized_arg`.
+    overloaded_bases: MutableSet<string>! = MutableSet<string> {}
 }
 
 /// Harvest the `ImplDecl`s of `program_decls` into a fresh registry.
@@ -105,27 +120,46 @@ collect_impl :: fn(self: ImplRegistry!, impl_: ImplDecl, resolved: ResolvedModul
     trait_sym :: impl_trait_symbol(impl_, resolved) ?? return
     scratch: Diagnostic[]!: []
     for_type :: type_from_expr(impl_.for_type, resolved, scratch)
+    target :: impl_base_key(for_type)
+    trait_key :: trait_key_of(trait_sym)
+    instance :: is_instance_receiver(for_type)
+    same_trait :: self.impls_of(target, trait_key)
+    earlier := 0
+    for other in same_trait {
+        if other.module == resolved.display_path {
+            earlier += 1
+        }
+        if !instance && !other.instance {
+            self.overloaded_bases.add(target)
+        }
+    }
     entry :: ImplEntry {
-        .decl         = impl_,
-        .trait_symbol = trait_sym,
-        .module       = resolved.display_path,
-        .is_generic   = impl_is_generic(impl_, resolved),
-        .trait_key    = trait_key_of(trait_sym),
-        .for_type     = for_type,
-        .target       = impl_base_key(for_type),
-        .instance     = is_instance_receiver(for_type),
+        .decl            = impl_,
+        .trait_symbol    = trait_sym,
+        .module          = resolved.display_path,
+        .is_generic      = impl_is_generic(impl_, resolved),
+        .trait_key       = trait_key,
+        .for_type        = for_type,
+        .target          = target,
+        .instance        = instance,
+        .trait_args      = written_type_args(impl_.trait_args, resolved, scratch),
+        .overload_suffix = if earlier == 0 { "" } else { "$${earlier}" },
     }
-    key :: "${entry.target}::${entry.trait_key}"
-    same_target :: self.by_target[key]
-    if same_target == null {
-        self.by_target[key] = [entry]
-    } else {
-        same_target.push(entry)
-    }
+    push_entry(self.by_target, "${target}::${trait_key}", entry)
+    push_entry(self.by_base, target, entry)
     self.by_decl[impl_.span.hash()] = entry
     self.all.push(entry)
-    if entry.instance {
+    if instance {
         self.record_specialized_args(for_type)
+    }
+}
+
+push_entry :: fn(table: MutableMap<string, ImplEntry[]!>!, key: string, entry: ImplEntry) -> void {
+    found :: table[key]
+    if found == null {
+        table[key] = [entry]
+    } else {
+        found.push(entry)
     }
 }
 
@@ -174,6 +208,14 @@ export impls_of :: fn(self: ImplRegistry, target: string, trait_key: string) -> 
     return found
 }
 
+/// The impls whose target is `target`, every trait together.
+///
+/// @param target  an `impl_base_key`.
+export impls_on :: fn(self: ImplRegistry, target: string) -> ImplEntry[] {
+    found :: self.by_base[target] ?? return NO_IMPLS
+    return found
+}
+
 /// Whether `entry` covers `receiver` : a generic or plain impl covers every instance
 /// of its base, an impl on one instance (`Wrapper<MonType>`) that instance alone.
 ///
@@ -199,29 +241,6 @@ any_instance_impl :: fn(entries: ImplEntry[]) -> bool {
 export impls_for :: fn(self: ImplRegistry, receiver: Type, trait_key: string) -> ImplEntry[] =
     covering_first(self.impls_of(impl_base_key(receiver), trait_key), receiver)
 
-/// What tells apart the members of several impls of one trait on one instance,
-/// declared in one module (`MonType[] implements Into<Label>` beside
-/// `… Into<Tag>`) : "" for the first, then `$1`, `$2`, … — a `$`, which no type
-/// name in the receiver's own suffix carries. Every other impl takes "" : two
-/// generic impls of one trait on one base are R2030.
-///
-/// @param entry  the impl whose member is mangled.
-export instance_overload_suffix :: fn(self: ImplRegistry, entry: ImplEntry) -> string {
-    if !entry.instance {
-        return ""
-    }
-    n := 0
-    for other in self.impls_of(entry.target, entry.trait_key) {
-        if other.decl.span == entry.decl.span {
-            break
-        }
-        if other.instance && other.module == entry.module && impl_covers(other, entry.for_type) {
-            n += 1
-        }
-    }
-    return if n == 0 { "" } else { "$${n}" }
-}
-
 /// The impl of `trait_key` that serves `receiver` : the one written for its own
 /// instance, else its base's. Null when none covers it.
 ///
@@ -234,7 +253,9 @@ export winning_impl :: fn(
     return if covering.len() == 0 { null } else { covering[0] }
 }
 
-/// `entries` that cover `receiver`, the instance impls first.
+/// `entries` that cover `receiver`, the instance impls first, less the generic impls
+/// one of them hides — the same trait at arguments some instantiation makes equal
+/// (`MonType[] implements Into<Label>` leaves `T[] implements<T> Into<Iterator<T>!>`).
 ///
 /// @param entries   impls of `receiver`'s base.
 /// @param receiver  the type asked about.
@@ -254,22 +275,99 @@ export covering_first :: fn(entries: ImplEntry[], receiver: Type) -> ImplEntry[]
             rest.push(entry)
         }
     }
-    own.push_all(rest)
-    return own
+    if own.len() == 0 {
+        return rest
+    }
+    out: ImplEntry[]!: []
+    out.push_all(own)
+    for entry in rest {
+        if !hidden_by(own, entry, receiver) {
+            out.push(entry)
+        }
+    }
+    return out
+}
+
+/// The impl of `trait_key` covering `receiver` at the trait arguments `args`, when
+/// several impls of the trait cover it (`Vec2 implements Mul<f64>` beside
+/// `Mul<Vec2>`, reached through `T: Mul<f64>`) ; null when at most one does — it is
+/// found by name — or none matches.
+///
+/// @param receiver   the concrete receiver.
+/// @param trait_key  the trait.
+/// @param args       the trait arguments the use site names.
+export impl_at_args :: fn(
+    self: ImplRegistry, receiver: Type, trait_key: string, args: Type[],
+) -> ImplEntry | null {
+    covering :: self.impls_for(receiver, trait_key)
+    if covering.len() < 2 {
+        return null
+    }
+    for entry in covering {
+        if may_coincide_each(entry.trait_args, args) {
+            return entry
+        }
+    }
+    return null
+}
+
+// Whether one of the impls `own`, on a receiver's own instance, implements the
+// trait instance `generic` does there : it then serves that receiver instead.
+// `receiver` binds `generic`'s own parameters (`T[] implements<T>
+// Into<Iterator<T>!>` at `MonType[]` is `Into<Iterator<MonType>!>`).
+hidden_by :: fn(own: ImplEntry[], generic: ImplEntry, receiver: Type) -> bool {
+    if !any_of_trait(own, generic.trait_key) {
+        return false
+    }
+    args :: trait_args_at(generic, receiver)
+    for o in own {
+        if o.trait_key == generic.trait_key && may_coincide_each(o.trait_args, args) {
+            return true
+        }
+    }
+    return false
+}
+
+any_of_trait :: fn(entries: ImplEntry[], trait_key: string) -> bool {
+    for entry in entries {
+        if entry.trait_key == trait_key {
+            return true
+        }
+    }
+    return false
+}
+
+// `entry`'s trait arguments at `receiver` : its own type parameters bound by matching
+// the type it is written for against `receiver`.
+trait_args_at :: fn(entry: ImplEntry, receiver: Type) -> Type[] {
+    if !entry.is_generic {
+        return entry.trait_args
+    }
+    bindings :: MutableMap<i32, Type> {}
+    unify_type_param(entry.for_type, receiver, bindings, null)
+    out: Type[]!: []
+    for a in entry.trait_args {
+        out.push(substitute_map(a, bindings))
+    }
+    return out
 }
 
 /// Whether a generic instance must keep the type argument `t` concrete : `t` is, or
-/// is built from, a type an impl on one instance names. Erased to `Any`, it would
-/// build that instance under its base's shared tag, and the instance's own impl
-/// would never be reached.
+/// is built from, a type an impl on one instance names, or a type two impls of one
+/// trait cover. Erased to `Any`, the first would build that instance under its
+/// base's shared tag, and the instance's own impl would never be reached ; the
+/// second would dispatch by the trait alone, which cannot tell the two impls apart.
 ///
 /// @param t  a concrete type argument of a generic instance.
 export is_specialized_arg :: fn(self: ImplRegistry, t: Type) -> bool {
-    if self.specialized_args.is_empty() {
+    if self.specialized_args.is_empty() && self.overloaded_bases.is_empty() {
         return false
     }
-    return any_type(t, (sub) -> impl_type_key(sub) in self.specialized_args)
+    return any_type(t, (sub) -> self.keeps_concrete(sub))
 }
+
+keeps_concrete :: fn(self: ImplRegistry, t: Type) -> bool =
+    impl_type_key(t) in self.specialized_args || impl_base_key(t) in self.overloaded_bases
 
 /// The entry of `decl`, or null when its trait name binds to no trait.
 ///
