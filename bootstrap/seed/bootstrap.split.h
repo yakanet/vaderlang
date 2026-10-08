@@ -148,7 +148,7 @@ typedef struct vader_struct_std_collections_MutableMap__u64__ConstState_t vader_
 typedef struct vader_struct_std_collections_MutableMap__u64__ConsumerShape_t vader_struct_std_collections_MutableMap__u64__ConsumerShape_t;
 typedef struct vader_struct_std_collections_MutableMap__u64__GeneratorState_t vader_struct_std_collections_MutableMap__u64__GeneratorState_t;
 typedef struct vader_struct_std_collections_MutableMap__u64__ImplEntry_t vader_struct_std_collections_MutableMap__u64__ImplEntry_t;
-typedef struct vader_struct_std_collections_MutableMap__u64__InferableParam_t vader_struct_std_collections_MutableMap__u64__InferableParam_t;
+typedef struct vader_struct_std_collections_MutableMap__u64__InferableSlot_t vader_struct_std_collections_MutableMap__u64__InferableSlot_t;
 typedef struct vader_struct_std_collections_MutableMap__u64__RootedEdge___t vader_struct_std_collections_MutableMap__u64__RootedEdge___t;
 typedef struct vader_struct_std_collections_MutableMap__u64__Symbol_t vader_struct_std_collections_MutableMap__u64__Symbol_t;
 typedef struct vader_struct_std_collections_MutableMap__u64__bool_t vader_struct_std_collections_MutableMap__u64__bool_t;
@@ -789,7 +789,7 @@ typedef struct vader_struct_vader_typecheck_ImplMethod_t vader_struct_vader_type
 typedef struct vader_struct_vader_typecheck_ImplRegistry_t vader_struct_vader_typecheck_ImplRegistry_t;
 typedef struct vader_struct_vader_typecheck_ImplShape_t vader_struct_vader_typecheck_ImplShape_t;
 typedef struct vader_struct_vader_typecheck_ImportedFnSig_t vader_struct_vader_typecheck_ImportedFnSig_t;
-typedef struct vader_struct_vader_typecheck_InferableParam_t vader_struct_vader_typecheck_InferableParam_t;
+typedef struct vader_struct_vader_typecheck_InferableSlot_t vader_struct_vader_typecheck_InferableSlot_t;
 typedef struct vader_struct_vader_typecheck_IsNarrow_t vader_struct_vader_typecheck_IsNarrow_t;
 typedef struct vader_struct_vader_typecheck_LevelGap_t vader_struct_vader_typecheck_LevelGap_t;
 typedef struct vader_struct_vader_typecheck_LeverWalk_t vader_struct_vader_typecheck_LeverWalk_t;
@@ -800,11 +800,11 @@ typedef struct vader_struct_vader_typecheck_NamedDeclRefs_t vader_struct_vader_t
 typedef struct vader_struct_vader_typecheck_NarrowSlot_t vader_struct_vader_typecheck_NarrowSlot_t;
 typedef struct vader_struct_vader_typecheck_NarrowState_t vader_struct_vader_typecheck_NarrowState_t;
 typedef struct vader_struct_vader_typecheck_ParamInference_t vader_struct_vader_typecheck_ParamInference_t;
-typedef struct vader_struct_vader_typecheck_ParamRoot_t vader_struct_vader_typecheck_ParamRoot_t;
 typedef struct vader_struct_vader_typecheck_PendingNeed_t vader_struct_vader_typecheck_PendingNeed_t;
 typedef struct vader_struct_vader_typecheck_PushedNarrow_t vader_struct_vader_typecheck_PushedNarrow_t;
 typedef struct vader_struct_vader_typecheck_ReprRange_t vader_struct_vader_typecheck_ReprRange_t;
 typedef struct vader_struct_vader_typecheck_RootedEdge_t vader_struct_vader_typecheck_RootedEdge_t;
+typedef struct vader_struct_vader_typecheck_SlotRoot_t vader_struct_vader_typecheck_SlotRoot_t;
 typedef struct vader_struct_vader_typecheck_StaticMember_t vader_struct_vader_typecheck_StaticMember_t;
 typedef struct vader_struct_vader_typecheck_Substitution_t vader_struct_vader_typecheck_Substitution_t;
 typedef struct vader_struct_vader_typecheck_TagMember_t vader_struct_vader_typecheck_TagMember_t;
@@ -1001,6 +1001,7 @@ struct vader_struct___lambda_env_vader_typecheck_3_t {
     int32_t f_cap_0;
     void* f_cap_1;
     size_t f_cap_2;
+    bool f_cap_3;
 };
 struct vader_struct___lambda_env_vader_typecheck_5_t {
     vader_obj_header_t header;
@@ -1995,7 +1996,7 @@ struct vader_struct_std_collections_MutableMap__u64__ImplEntry_t {
     size_t f_size;
     size_t f_tombs;
 };
-struct vader_struct_std_collections_MutableMap__u64__InferableParam_t {
+struct vader_struct_std_collections_MutableMap__u64__InferableSlot_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -2645,6 +2646,7 @@ struct vader_struct_toolchain_ast_MutableTypeExpr_t {
     void* f_span;
     size_t f_id;
     vader_box_t f_inner;
+    bool f_deduced;
 };
 struct vader_struct_toolchain_ast_NamedNamespaceImport_t {
     vader_obj_header_t header;
@@ -5709,6 +5711,7 @@ struct vader_struct_vader_typecheck_ArgEdge_t {
     vader_obj_header_t header;
     vader_box_t f_root;
     int32_t f_elements;
+    int32_t f_floor;
     int32_t f_from;
     vader_box_t f_arg_ty;
     void* f_call;
@@ -5850,9 +5853,11 @@ struct vader_struct_vader_typecheck_ImportedFnSig_t {
     vader_string_t f_key;
     void* f_span;
 };
-struct vader_struct_vader_typecheck_InferableParam_t {
+struct vader_struct_vader_typecheck_InferableSlot_t {
     vader_obj_header_t header;
-    void* f_param;
+    vader_box_t f_owner;
+    vader_string_t f_name;
+    void* f_span;
     vader_string_t f_module;
     vader_string_t f_fn_name;
     void* f_written;
@@ -5917,7 +5922,7 @@ struct vader_struct_vader_typecheck_NarrowState_t {
 };
 struct vader_struct_vader_typecheck_ParamInference_t {
     vader_obj_header_t header;
-    void* f_params;
+    void* f_slots;
     void* f_pending;
     void* f_needs;
     void* f_edges;
@@ -5925,12 +5930,6 @@ struct vader_struct_vader_typecheck_ParamInference_t {
     bool f_first_round;
     size_t f_settled_needs;
     void* f_marks;
-};
-struct vader_struct_vader_typecheck_ParamRoot_t {
-    vader_obj_header_t header;
-    uint64_t f_key;
-    int32_t f_elements;
-    vader_box_t f_holder;
 };
 struct vader_struct_vader_typecheck_PendingNeed_t {
     vader_obj_header_t header;
@@ -5955,6 +5954,13 @@ struct vader_struct_vader_typecheck_RootedEdge_t {
     vader_obj_header_t header;
     uint64_t f_callee;
     void* f_edge;
+};
+struct vader_struct_vader_typecheck_SlotRoot_t {
+    vader_obj_header_t header;
+    uint64_t f_key;
+    int32_t f_elements;
+    int32_t f_floor;
+    vader_box_t f_holder;
 };
 struct vader_struct_vader_typecheck_StaticMember_t {
     vader_obj_header_t header;
@@ -6044,7 +6050,6 @@ struct vader_struct_vader_typecheck_TypedProgram_t {
     void* f_local_init_source;
     void* f_loop_var_iterable;
     void* f_local_annotation;
-    void* f_local_init_index;
     void* f_const_decls;
     void* f_bounded_dispatch_trait;
     void* f_bounded_dispatch_args;
@@ -6058,7 +6063,7 @@ struct vader_struct_vader_typecheck_TypedProgram_t {
     void* f_jump_labels;
     void* f_jump_targets;
     void* f_const_walk;
-    void* f_borrowed_from;
+    void* f_local_bound_to;
     vader_box_t f_param_inference;
 };
 struct vader_struct_vader_typecheck_TypedProject_t {
@@ -6617,7 +6622,7 @@ vader_box_t __lambda_vader_typecheck_0(void* l0, void* l1);
 vader_box_t __lambda_vader_typecheck_1(void* l0, void* l1);
 vader_box_t vader_typecheck_type_from_expr(vader_box_t l0, void* l1, void* l2);
 vader_box_t vader_typecheck_check_expr(vader_box_t l0, vader_box_t l1, void* l2, void* l3);
-vader_box_t vader_typecheck_marked_at(vader_box_t l0, void* l1, size_t l2);
+vader_box_t vader_typecheck_marked_at(vader_box_t l0, void* l1, size_t l2, bool l3);
 vader_box_t __lambda_vader_typecheck_2(void* l0, vader_box_t l1, int32_t l2);
 vader_string_t vader_typecheck_expr_kind_name(vader_box_t l0);
 bool vader_typecheck_is_void(vader_box_t l0);
@@ -6899,6 +6904,7 @@ void std_string_builder_append_char(void* l0, uint32_t l1);
 void std_string_builder_append_repeated(void* l0, uint32_t l1, int32_t l2);
 vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0);
 size_t std_math_min_2(size_t l0, size_t l1);
+int32_t std_math_max_1(int32_t l0, int32_t l1);
 void* toolchain_span_empty_span(void);
 bool toolchain_span_has_source_position(void* l0);
 uint64_t toolchain_span_Span_Hash_hash(void* l0);
@@ -7126,7 +7132,7 @@ vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2631u
+#define VADER_COMPTIME_ATOM_COUNT 2633u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

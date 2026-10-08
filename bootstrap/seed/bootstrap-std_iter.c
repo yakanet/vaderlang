@@ -6,7 +6,7 @@ void* std_iter_clone__CAddressOf___CBinary___CCall___CCast___CCastToTypeOf___CCo
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(190u, 0u, 13u, 1393u);
+    vader_array_t* _a0_arr = vader_array_new(190u, 0u, 13u, 1394u);
     l1 = (void*) _a0_arr;
     l2 = ((vader_array_t*) l0)->length;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l1, (size_t) l2);
