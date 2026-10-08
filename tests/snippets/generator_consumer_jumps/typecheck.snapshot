@@ -22,7 +22,7 @@
   expr 103:13   StringLitExpr  :: string
   expr 103:22   CallExpr       :: __genstate_with_header<i32>!
   expr 103:22   CallExpr       :: i32 | null
-  expr 103:22   FieldExpr      :: fn(fn(T) -> bool) -> null | T
+  expr 103:22   FieldExpr      :: fn(fn(i32) -> bool) -> i32 | null
   expr 103:22   IdentExpr      :: fn(i32[]) -> Iterator<i32>
   expr 103:34   SeqLitExpr     :: i32[]
   expr 103:5    CallExpr       :: void
@@ -121,7 +121,7 @@
   expr 94:36    IdentExpr      :: i32
   expr 97:14    CallExpr       :: __genstate_map<i32>!
   expr 97:14    CallExpr       :: __genstate_with_header<i32>!
-  expr 97:14    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
+  expr 97:14    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 97:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
   expr 97:26    SeqLitExpr     :: i32[]
   expr 97:41    IdentExpr      :: fn(i32) -> i32

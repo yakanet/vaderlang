@@ -18,7 +18,7 @@
   expr 17:78    IdentExpr      :: i32
   expr 21:11    CallExpr       :: Error | i32
   expr 21:11    CallExpr       :: Error | i32
-  expr 21:11    FieldExpr      :: fn(fn(i32) -> Error | U) -> Error | U
+  expr 21:11    FieldExpr      :: fn(fn(i32) -> Error | i32) -> Error | i32
   expr 21:11    IdentExpr      :: fn(bool) -> Error | i32
   expr 21:32    LambdaExpr     :: fn(i32) -> Error | i32
   expr 21:52    CallExpr       :: Error | i32
@@ -33,7 +33,7 @@
   expr 22:5     IdentExpr      :: fn(T) -> void
   expr 24:11    CallExpr       :: Error | i32
   expr 24:11    CallExpr       :: Error | i32
-  expr 24:11    FieldExpr      :: fn(fn(i32) -> Error | U) -> Error | U
+  expr 24:11    FieldExpr      :: fn(fn(i32) -> Error | i32) -> Error | i32
   expr 24:11    IdentExpr      :: fn(bool) -> Error | i32
   expr 24:33    LambdaExpr     :: fn(i32) -> Error | i32
   expr 24:53    CallExpr       :: Error | i32

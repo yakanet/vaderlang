@@ -58,8 +58,8 @@
   expr 49:16    CallExpr       :: __genstate_map<usize>!
   expr 49:16    CallExpr       :: __genstate_upto_1<string>!
   expr 49:16    CallExpr       :: usize[]!
-  expr 49:16    FieldExpr      :: fn() -> T[]!
-  expr 49:16    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
+  expr 49:16    FieldExpr      :: fn() -> usize[]!
+  expr 49:16    FieldExpr      :: fn(fn(string) -> usize) -> Iterator<usize>
   expr 49:16    IdentExpr      :: fn(string) -> Iterator<string>
   expr 49:21    StringLitExpr  :: string
   expr 49:31    LambdaExpr     :: fn(string) -> usize
@@ -79,7 +79,7 @@
   expr 51:16    CallExpr       :: __genstate_upto<i32>!
   expr 51:16    CallExpr       :: usize
   expr 51:16    FieldExpr      :: fn() -> usize
-  expr 51:16    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
+  expr 51:16    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 51:16    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 51:31    LambdaExpr     :: fn(i32) -> bool
   expr 51:43    BinaryExpr     :: bool

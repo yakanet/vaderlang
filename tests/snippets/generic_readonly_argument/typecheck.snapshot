@@ -29,8 +29,8 @@
   expr 28:27    StructLitExpr  :: Point!
   expr 29:22    CallExpr       :: __genstate_map<i32>!
   expr 29:22    CallExpr       :: i32[]!
-  expr 29:22    FieldExpr      :: fn() -> T[]!
-  expr 29:22    FieldExpr      :: fn(fn(Point) -> U) -> Iterator<U>
+  expr 29:22    FieldExpr      :: fn() -> i32[]!
+  expr 29:22    FieldExpr      :: fn(fn(Point) -> i32) -> Iterator<i32>
   expr 29:22    IdentExpr      :: Point[]
   expr 29:29    IdentExpr      :: fn(Point) -> i32
   expr 30:13    StringLitExpr  :: string

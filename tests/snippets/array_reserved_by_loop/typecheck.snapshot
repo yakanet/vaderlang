@@ -41,8 +41,8 @@
   expr 112:10   StringLitExpr  :: string
   expr 112:21   CallExpr       :: __genstate_map<i64>!
   expr 112:21   CallExpr       :: i64[]!
-  expr 112:21   FieldExpr      :: fn() -> T[]!
-  expr 112:21   FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 112:21   FieldExpr      :: fn() -> i64[]!
+  expr 112:21   FieldExpr      :: fn(fn(i32) -> i64) -> Iterator<i64>
   expr 112:21   IdentExpr      :: i32[]!
   expr 112:27   IdentExpr      :: fn(i32) -> i64
   expr 112:5    CallExpr       :: void
@@ -50,8 +50,8 @@
   expr 113:10   StringLitExpr  :: string
   expr 113:28   CallExpr       :: __genstate_map<i64>!
   expr 113:28   CallExpr       :: i64[]!
-  expr 113:28   FieldExpr      :: fn() -> T[]!
-  expr 113:28   FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
+  expr 113:28   FieldExpr      :: fn() -> i64[]!
+  expr 113:28   FieldExpr      :: fn(fn(i32) -> i64) -> Iterator<i64>
   expr 113:28   RangeExpr      :: Range<i32>!
   expr 113:39   IdentExpr      :: fn(i32) -> i64
   expr 113:5    CallExpr       :: void

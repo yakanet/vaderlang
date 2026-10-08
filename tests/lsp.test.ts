@@ -356,6 +356,36 @@ test("lsp: hover joins a signature wrapped across lines", async () => {
   );
 }, { timeout: MEDIUM_BUILD });
 
+// A method-syntax call of a generic fn binds its type parameters with the receiver
+// AND the arguments, as the free call does. The hover shows that binding, not the
+// one the receiver alone gave : `local` is a mutable `Cfg`, `ORIGIN` a read-only one,
+// and `T` binds to the read-only `Cfg` both accept.
+const UFCS_GENERIC_SOURCE = `module "main"
+
+Cfg :: struct {
+    n: i32
+}
+
+pick :: fn<T>(a: T, b: T) -> T = a
+
+ORIGIN :: Cfg { .n = 0 }
+
+main :: fn() -> i32 {
+    local :: Cfg { .n = 1 }
+    got :: local.pick(ORIGIN)
+    return got.n
+}
+`;
+
+test("lsp: hover on a generic method-syntax call shows the call's binding", async () => {
+  const results = await driveLsp(UFCS_GENERIC_SOURCE, [
+    // 0: hover on `pick` in `local.pick(ORIGIN)`
+    { method: "textDocument/hover", position: { line: 12, character: 17 } },
+  ]);
+  expect(results).toHaveLength(1);
+  expect((results[0]!.result as Hover).contents.value).toContain("```vader\nfn(Cfg) -> Cfg\n```");
+}, { timeout: MEDIUM_BUILD });
+
 // Regression (audit LC1): the server maps an incoming `character` as a CODEPOINT
 // offset, matching the lexer's codepoint columns. Before the fix `lsp_to_offset`
 // added `character` as raw UTF-8 bytes, so on a line with a multi-byte char

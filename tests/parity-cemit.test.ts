@@ -307,6 +307,9 @@ const C_PARITY = new Set<string>([
   // A union of a trait's implementors, and a value of the trait, dispatch its
   // members by their tag : method, index, `in`, operator.
   "union_trait_dispatch",
+  // Consts read before their declaration, by a const and by a fn ; a `fn(Self)`
+  // callback an impl writes with its own read-only type.
+  "const_read_before_its_declaration",
   // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's
   // defer runs on teardown, the winner's at its own completion.
   "async_race",

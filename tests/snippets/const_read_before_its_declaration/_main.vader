@@ -1,0 +1,42 @@
+module "snippet"
+
+import "std/io"
+
+// A const is typed at its first read when that comes before its declaration : a
+// const reading one declared further down, a fn reading a const that calls a fn.
+// A callback a trait types `fn(Self)` lends a read-only `Self`, which an impl writes
+// `fn(Inner)`.
+
+Inner :: struct {
+    n: i32
+}
+
+main :: fn() -> i32 {
+    println("${INNERS[0].n} ${TOTAL} ${MADE.n} ${MADE_LIST[0].n}")
+    ONE.visit((x: Inner) -> {
+        println("visit ${x.n}")
+    })
+    return 0
+}
+
+INNERS :: [ONE]
+
+TOTAL :: ONE.n + 1
+
+MADE_LIST :: [MADE]
+
+MADE :: make(4)
+
+ONE :: Inner { .n = 7 }
+
+make :: fn(n: i32) -> Inner = Inner { .n = n }
+
+Visit :: trait {
+    visit :: fn(self, f: fn(Self) -> void) -> void
+}
+
+Inner implements Visit {
+    visit :: fn(self, f: fn(Inner) -> void) -> void {
+        f(self)
+    }
+}

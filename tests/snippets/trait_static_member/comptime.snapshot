@@ -70,6 +70,7 @@
   Iterator<T[]>
   Iterator<null | T>
   Iterator<i32>
+  Iterator<i64>
   Iterator<string>
   Iterator<[string, usize]>
   Iterator<[T, U]>

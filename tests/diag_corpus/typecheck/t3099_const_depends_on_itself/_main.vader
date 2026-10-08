@@ -1,0 +1,11 @@
+// A const read inside its own value, here through another const : its value would
+// need itself first. T3099, at the read that closes the cycle.
+module "snippet"
+
+A :: B + 1
+
+B :: A + 1
+
+main :: fn() -> i32 {
+    return A
+}

@@ -69,7 +69,7 @@
   expr 75:14    CallExpr       :: Iterator<Pt>!
   expr 75:14    CallExpr       :: __genstate_map<i32>!
   expr 75:14    FieldExpr      :: fn() -> Iterator<Pt>!
-  expr 75:14    FieldExpr      :: fn(fn(Pt) -> U) -> Iterator<U>
+  expr 75:14    FieldExpr      :: fn(fn(Pt) -> i32) -> Iterator<i32>
   expr 75:14    IdentExpr      :: Pt![]!
   expr 75:28    LambdaExpr     :: fn(Pt) -> i32
   expr 75:35    FieldExpr      :: i32

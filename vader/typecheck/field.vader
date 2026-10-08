@@ -1409,9 +1409,10 @@ field_position :: fn(decl: AST.StructDecl, name: string) -> i32 {
     return -1
 }
 
-// Replace every `SelfType` in `t` with `self_ty`. Used to specialise
-// trait-method signatures at the receiver's type (`fn(Self) -> Self`
-// → `fn(T) -> T` when called on a `T`).
+// Replace every `SelfType` in `t` with `self_ty` — but a fn type's parameter that is
+// `Self` itself with `self_ty` at that parameter's rights. Used to specialise
+// trait-method signatures at the receiver's type (`fn(Self) -> Self` → `fn(T) -> T`
+// when called on a `T`).
 substitute_self :: fn(t: Type, self_ty: Type) -> Type {
     // @partial: only SelfType and the composite variants can contain a `Self`
     // leaf; every scalar / primitive variant has no `Self` to replace.
@@ -1426,9 +1427,19 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
             return mk_struct(t.symbol, args, t.immutable)
         }
         is FnType -> {
+            // A parameter's rights are its marker's, which the read-only default of
+            // the slot holding the fn type does not reach : `fn(Self)` lends a
+            // read-only `Self`, `fn(Self!)` a mutable one. A `Self` deeper in a
+            // parameter (`fn(Self![])`) has lost its own marker, and keeps `self_ty`'s
+            // rights.
             ps: Type[]!: []
-            for p in t.params {
-                ps.push(substitute_self(p, self_ty))
+            for i in 0..<t.params.len() {
+                p :: t.params[i]
+                if p is SelfType {
+                    ps.push(with_immutable(self_ty, !param_mutable_at(t, i)))
+                } else {
+                    ps.push(substitute_self(p, self_ty))
+                }
             }
             return mk_fn_like(t, ps, substitute_self(t.return_type, self_ty))
         }

@@ -2447,38 +2447,15 @@ export walk_bodies :: fn(
             register_impl_metadata(decl, typed, diags)
         }
     }
-    // Const VALUES that need no fn body are typed BEFORE the bodies. That is
-    // where an un-annotated const's type is inferred (`check_const_value` writes
-    // `decl_types[sym.id]`), so walking them only in the file-ordered loop below
-    // meant a fn referencing a const declared LATER read its type as `?` — and a
-    // `?` receiver panics the emitter (`no field len on ?`) or, for `in`, lowers
-    // silently to `unreachable`. Worse, it meant those sites were never type
-    // CHECKED at all.
-    for decl in decls {
-        // The alias is load-bearing here, not decoration: a `for` variable comes
-        // out read-only even over mutable elements, and `check_const_value`
-        // repins the value node. Until a mutable loop variable is expressible,
-        // this is the only way to say it.
-        if decl is AST.ConstDecl as cd {
-            if is_body_independent_value(cd.value) {
-                check_const_value(cd, typed, diags)
-            }
-        }
-    }
+    // A const is typed at its turn below, or at a read before it (`const_walk`).
+    open_const_walk(decls, typed, diags)
     for decl in decls {
         match decl {
             is AST.FnDecl        -> {
                 walk_fn_body(decl, typed, diags, mode)
             }
-            // Literal-valued consts were typed in the pre-pass above. Checking
-            // one twice is not idempotent: the second call reads the type the
-            // first wrote as its EXPECTED type, and re-recording the value
-            // against it drops the array literal's `!` marker (`i32[]!` became
-            // `i32[]`, caught by the `const_array_*` snapshots).
             is AST.ConstDecl     -> {
-                if !is_body_independent_value(decl.value) {
-                    check_const_value(decl, typed, diags)
-                }
+                settle_with_reads(decl, typed)
             }
             is AST.AssertDecl    -> {
                 check_expr(decl.condition, null, typed, diags)
@@ -2973,32 +2950,6 @@ param_type :: fn(
     // `for_ty`) mismatches `expected Self, got <for_ty>`.
     return self_slot_type(p.ty, for_ty, typed.resolved, diags)
 }
-
-/// True when a const's value can be typed WITHOUT any fn body having been typed
-/// first — a literal, or a sequence or struct literal of them.
-///
-/// Deliberately conservative. A const whose value CALLS something must stay in
-/// file order among the bodies: `std/core`'s `POW5_128 :: @comptime { … }` runs
-/// `build_pow5_split`. Note that `@comptime` there is a prefix on the VALUE, not
-/// a decorator on the declaration, so `cd.decorators` does not see it.
-// @partial: every other expression may read a body's result — a call, an ident
-// (another const, typed in file order) — and stays with the bodies.
-is_body_independent_value :: fn(e: AST.Expr) -> bool = @partial match e {
-    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.CharLitExpr | AST.NullLitExpr
-     | AST.DotVariantExpr -> true
-    // An interpolated part holds an arbitrary expression.
-    is AST.StringLitExpr -> e.parts.all_match((part) -> part is AST.StringLitText)
-    is AST.UnaryExpr     -> is_body_independent_value(e.operand)
-    is AST.SeqLitExpr    -> e.elements.all_match(is_body_independent_value)
-    // `ORIGIN :: Point { .x = 1 }` is exactly what lands in `.rodata` : typed in file
-    // order, a body above it would read it as `?` and store it anywhere unfrozen.
-    is AST.StructLitExpr -> e.items.all_match(is_independent_field)
-    _                    -> false
-}
-
-// A `...spread` copies another value, as body-dependent as that value.
-is_independent_field :: fn(item: AST.StructLitItem) -> bool =
-    item is AST.StructLitField && is_body_independent_value(item.value)
 
 check_const_value :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, diags: Diagnostic[]!) -> void {
     sym :: lookup_sym_by_name_orch(typed.resolved, cd.name) ?? return

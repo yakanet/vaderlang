@@ -74,8 +74,9 @@
   Iterator<null | T>
   Iterator<i32>
   Iterator<string>
-  Iterator<[i32, U]>
+  Iterator<[i32, i32]>
   Iterator<[string, usize]>
+  Iterator<[[i32, i32], usize]>
   Iterator<[T, U]>
   Iterator<[T, usize]>
   Iterator<[K, V]>

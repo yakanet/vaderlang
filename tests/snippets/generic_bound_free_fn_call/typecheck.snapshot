@@ -43,7 +43,7 @@
   expr 35:52    FieldExpr      :: fn() -> string
   expr 35:52    IdentExpr      :: T[]
   expr 37:50    CallExpr       :: i32
-  expr 37:50    FieldExpr      :: fn() -> T
+  expr 37:50    FieldExpr      :: fn() -> i32
   expr 37:50    IdentExpr      :: I
   expr 39:53    CallExpr       :: usize
   expr 39:53    IdentExpr      :: fn(Iterator<T>!) -> usize

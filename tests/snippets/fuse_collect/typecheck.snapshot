@@ -5,9 +5,9 @@
   expr 15:11    CallExpr       :: __genstate_filter<i32>!
   expr 15:11    CallExpr       :: __genstate_map<i32>!
   expr 15:11    CallExpr       :: i32[]!
-  expr 15:11    FieldExpr      :: fn() -> T[]!
-  expr 15:11    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
-  expr 15:11    FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 15:11    FieldExpr      :: fn() -> i32[]!
+  expr 15:11    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
+  expr 15:11    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 15:11    SeqLitExpr     :: i32[]!
   expr 15:34    LambdaExpr     :: fn(i32) -> i32
   expr 15:46    BinaryExpr     :: i32
@@ -29,8 +29,8 @@
   expr 16:62    IndexExpr      :: i32
   expr 19:12    CallExpr       :: __genstate_filter<i32>!
   expr 19:12    CallExpr       :: i32[]!
-  expr 19:12    FieldExpr      :: fn() -> T[]!
-  expr 19:12    FieldExpr      :: fn(fn(T) -> bool) -> Iterator<T>
+  expr 19:12    FieldExpr      :: fn() -> i32[]!
+  expr 19:12    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 19:12    RangeExpr      :: Range<i32>!
   expr 19:27    LambdaExpr     :: fn(i32) -> bool
   expr 19:39    BinaryExpr     :: bool

@@ -79,8 +79,8 @@
   expr 79:5     IdentExpr      :: fn(T) -> void
   expr 81:14    CallExpr       :: __genstate_map<i64>!
   expr 81:14    CallExpr       :: i64
-  expr 81:14    FieldExpr      :: fn() -> T
-  expr 81:14    FieldExpr      :: fn(fn(T) -> U) -> Iterator<U>
+  expr 81:14    FieldExpr      :: fn() -> i64
+  expr 81:14    FieldExpr      :: fn(fn(i32) -> i64) -> Iterator<i64>
   expr 81:14    RangeExpr      :: Range<i32>!
   expr 81:25    LambdaExpr     :: fn(i32) -> i64
   expr 81:32    BinaryExpr     :: i64

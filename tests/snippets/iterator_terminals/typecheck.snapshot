@@ -25,7 +25,7 @@
   expr 25:5     CallExpr       :: void
   expr 25:5     IdentExpr      :: fn(T) -> void
   expr 28:12    CallExpr       :: i32 | null
-  expr 28:12    FieldExpr      :: fn() -> null | T
+  expr 28:12    FieldExpr      :: fn() -> i32 | null
   expr 28:12    RangeExpr      :: Range<i32>!
   expr 28:5     MatchExpr      :: void
   expr 29:20    CallExpr       :: void

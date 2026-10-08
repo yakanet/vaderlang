@@ -67,11 +67,13 @@
   IndexSet<I, T>
   Contains<T>
   Iterator<i32[]>
+  Iterator<string[]>
   Iterator<T[]>
   Iterator<T[]>
   Iterator<null | T>
   Iterator<i32>
   Iterator<string>
+  Iterator<Rec>
   Iterator<[string, usize]>
   Iterator<[T, U]>
   Iterator<[T, usize]>

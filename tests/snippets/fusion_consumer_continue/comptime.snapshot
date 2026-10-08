@@ -97,6 +97,7 @@
   Iterator<char>
   Iterator<i32>
   Iterator<string>
+  Iterator<[char, usize]>
   Iterator<[i32, usize]>
   Iterator<[string, usize]>
   Iterator<[T, U]>

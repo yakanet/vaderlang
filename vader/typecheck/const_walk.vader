@@ -1,0 +1,228 @@
+// vader/typecheck/const_walk — when each module const is typed, within a walk.
+//
+// `walk_bodies` types an un-annotated const's value to infer its type. A read that
+// comes before the const's turn types it then (`settle_const_read`), whatever the
+// order of declarations ; a read inside the const's own value is a cycle (T3099).
+// Each const is typed once per walk, after the consts its value reads
+// (`settle_with_reads`) : a long chain of consts each reading one declared further
+// down then settles without nesting one typing per link.
+
+module "vader/typecheck"
+
+import "std/collections"
+import "toolchain/span"
+import "vader/diagnostics"
+import "vader/resolver/symbol"
+AST :: import "toolchain/ast"
+
+/// Start the const bookkeeping of a walk over `decls` (`TypedProgram.const_walk`).
+///
+/// @param decls  the module's declarations, as the walk holds them.
+/// @param diags  the walk's diagnostics, where every const reports.
+open_const_walk :: fn(decls: AST.Decl![], typed: TypedProgram!, diags: Diagnostic[]!) -> void {
+    walk :: ConstWalk { .diags = diags }
+    for decl in decls {
+        // The alias keeps the declaration mutable — a `for` variable comes out
+        // read-only even over mutable elements — and `check_const_value` repins its
+        // value node.
+        if decl is AST.ConstDecl as cd {
+            walk.decls[cd.span.hash()] = cd
+        }
+    }
+    typed.const_walk = walk
+}
+
+// Type the const `cd`, the consts its value reads first, in dependency order.
+// `deferred` when a read inside a fn body reached it.
+settle_with_reads :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, deferred: bool = false) -> void {
+    for c in consts_in_dependency_order(cd, typed) {
+        settle_const(c, typed, deferred)
+    }
+}
+
+// Type the const `cd` unless this walk already has, or is typing it : checking one
+// twice is not idempotent (the second check reads the type the first wrote as its
+// expected type, and drops an array literal's `!`). It reports into the walk's
+// diagnostics, wherever it was reached from.
+settle_const :: fn(cd: AST.ConstDecl!, typed: TypedProgram!, deferred: bool = false) -> void {
+    walk :: typed.const_walk
+    key :: cd.span.hash()
+    if key in walk.states {
+        return
+    }
+    walk.states[key] = .Typing
+    walk.typing.push(ConstTyping { .decl = cd, .deferred = deferred })
+    check_const_value(cd, typed, walk.diags)
+    _ :: walk.typing.remove_last()
+    walk.states[key] = .Typed
+}
+
+// Type the module const `sym` at a read of it, unless the walk already has : a read
+// before the const's turn — a const declared further down, a fn read before a const
+// it calls into — would otherwise see no type. The value is typed as at module
+// level, the reading fn's state set aside. A read inside the const's own value,
+// directly or through other consts, is a cycle : T3099.
+settle_const_read :: fn(sym: Symbol, span: Span, typed: TypedProgram!) -> void {
+    walk :: typed.const_walk
+    declared :: typed.const_decls[sym.id] ?? return
+    key :: declared.span.hash()
+    cd :: walk.decls[key] ?? return
+    // A read inside a fn body runs once every const is set : it needs only the
+    // const's type, which an annotation writes.
+    deferred :: typed.current_fn_ctx != null
+    if deferred && cd.ty != null {
+        return
+    }
+    state :: walk.states[key]
+    if state != null {
+        if state == .Typing && closes_reported_cycle(key, cd, walk) {
+            walk.states[key] = .CycleReported
+            detail :: "`${sym.name}` is read while its own value is typed"
+            walk.diags.push(typecheck_error(.ConstDependsOnItself, span, detail))
+        }
+        return
+    }
+    // The reading fn's own state, which a module-level value must not see : its
+    // context, the callee and impl it is in, its enclosing loops and narrowings.
+    fn_ctx :: typed.current_fn_ctx
+    callee :: typed.callee_field_id
+    impl_key :: typed.enclosing_impl
+    depth :: typed.overloaded_arg_depth
+    loops :: typed.loop_stack
+    narrow :: typed.narrow
+    typed.current_fn_ctx = null
+    typed.callee_field_id = AST.UNASSIGNED_NODE_ID
+    typed.enclosing_impl = 0
+    typed.overloaded_arg_depth = 0
+    typed.loop_stack = []
+    typed.narrow = NarrowState {}
+    settle_with_reads(cd, typed, deferred)
+    typed.current_fn_ctx = fn_ctx
+    typed.callee_field_id = callee
+    typed.enclosing_impl = impl_key
+    typed.overloaded_arg_depth = depth
+    typed.loop_stack = loops
+    typed.narrow = narrow
+}
+
+// Whether a read of the const `cd` (`key`), which is being typed, closes a cycle
+// reported here. Not one through a `@comptime` const : its evaluator reports it
+// (C4009). Nor one through a fn body back to an annotated `cd` : its type is written,
+// and the body runs once every const is set (`HANDLERS: (fn() -> i32)[] :
+// [() -> CONFIG.n]` with `CONFIG :: Holder { .fs = HANDLERS }`).
+closes_reported_cycle :: fn(key: u64, cd: AST.ConstDecl, walk: ConstWalk) -> bool {
+    in_cycle := false
+    through_body := false
+    for frame in walk.typing {
+        if frame.decl.span.hash() == key {
+            in_cycle = true
+        } else if in_cycle {
+            through_body = through_body || frame.deferred
+        }
+        if in_cycle && AST.decorators_have(frame.decl.decorators, "comptime") {
+            return false
+        }
+    }
+    return !through_body || cd.ty == null
+}
+
+// One const of the depth-first walk below, with the next of its reads to visit.
+DependencyFrame :: struct {
+    decl: AST.ConstDecl!
+    reads: AST.ConstDecl![]
+    next: usize = 0
+}
+
+// `root` and the consts of this walk it reads, not yet typed, each after the ones it
+// reads : a depth-first post-order, kept on an explicit stack so a long chain costs
+// no call depth. In a cycle, the read that closes it reports it (T3099).
+consts_in_dependency_order :: fn(root: AST.ConstDecl!, typed: TypedProgram) -> AST.ConstDecl![] {
+    out: AST.ConstDecl![]!: []
+    walk :: typed.const_walk
+    if root.span.hash() in walk.states {
+        return out
+    }
+    seen :: MutableSet<u64> {}
+    _ :: seen.add(root.span.hash())
+    stack: DependencyFrame![]!: [frame_of(root, typed)]
+    for stack.len() > 0 {
+        top :: stack[stack.len() - 1]
+        if top.next == top.reads.len() {
+            out.push(top.decl)
+            _ :: stack.remove_last()
+            continue
+        }
+        read :: top.reads[top.next]
+        top.next += 1
+        key :: read.span.hash()
+        if !(key in walk.states) && seen.add(key) {
+            stack.push(frame_of(read, typed))
+        }
+    }
+    return out
+}
+
+frame_of :: fn(decl: AST.ConstDecl!, typed: TypedProgram) -> DependencyFrame! =
+    DependencyFrame { .decl = decl, .reads = const_reads(decl.value, typed) }
+
+// The consts of this walk the value `e` names directly — through operators, field
+// and index reads, calls, literals and `??` ; a read under any other form is typed
+// on demand instead (`settle_const_read`).
+const_reads :: fn(e: AST.Expr, typed: TypedProgram) -> AST.ConstDecl![] {
+    out: AST.ConstDecl![]!: []
+    work: AST.Expr[]!: [e]
+    for work.len() > 0 {
+        x :: work.remove_last() ?? break
+        match x {
+            is AST.IdentExpr -> {
+                sym :: typed.resolved.idents[x.span.hash()] ?? continue
+                if sym.kind != .Const {
+                    continue
+                }
+                declared :: typed.const_decls[sym.id] ?? continue
+                found :: typed.const_walk.decls[declared.span.hash()] ?? continue
+                out.push(found)
+            }
+            is AST.BinaryExpr -> {
+                work.push(x.left)
+                work.push(x.right)
+            }
+            is AST.UnaryExpr -> { work.push(x.operand) }
+            is AST.FieldExpr -> { work.push(x.target) }
+            is AST.IndexExpr -> {
+                work.push(x.target)
+                work.push(x.index)
+            }
+            is AST.CallExpr -> {
+                work.push(x.callee)
+                for a in x.args {
+                    work.push(a.value)
+                }
+            }
+            is AST.SeqLitExpr -> { work.push_all(x.elements) }
+            is AST.StructLitExpr -> {
+                for item in x.items {
+                    if item is AST.StructLitField {
+                        work.push(item.value)
+                    } else {
+                        work.push(item.expr)
+                    }
+                }
+            }
+            is AST.StringLitExpr -> {
+                for part in x.parts {
+                    if part is AST.StringLitInterp {
+                        work.push(part.expr)
+                    }
+                }
+            }
+            is AST.NullCoalesceExpr -> {
+                work.push(x.left)
+                fallback :: AST.coalesce_fallback_expr(x.fallback) ?? continue
+                work.push(fallback)
+            }
+            _ -> {}
+        }
+    }
+    return out
+}

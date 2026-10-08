@@ -59,7 +59,7 @@
   expr 129:68   IdentExpr      :: i32
   expr 134:19   CallExpr       :: StringChars!
   expr 134:19   CallExpr       :: __genstate_indexed<[char, usize]>!
-  expr 134:19   FieldExpr      :: fn() -> Iterator<[T, usize]>
+  expr 134:19   FieldExpr      :: fn() -> Iterator<[char, usize]>
   expr 134:19   FieldExpr      :: fn() -> StringChars!
   expr 134:19   StringLitExpr  :: string
   expr 135:12   BinaryExpr     :: bool
@@ -72,7 +72,7 @@
   expr 138:9    IdentExpr      :: i32
   expr 141:11   CallExpr       :: StringChars!
   expr 141:11   CallExpr       :: __genstate_indexed<[char, usize]>!
-  expr 141:11   FieldExpr      :: fn() -> Iterator<[T, usize]>
+  expr 141:11   FieldExpr      :: fn() -> Iterator<[char, usize]>
   expr 141:11   FieldExpr      :: fn() -> StringChars!
   expr 141:11   StringLitExpr  :: string
   expr 142:19   IdentExpr      :: __genstate_indexed<[char, usize]>!
@@ -169,7 +169,7 @@
   expr 189:5    CallExpr       :: void
   expr 189:5    IdentExpr      :: fn(T) -> void
   expr 194:14   CallExpr       :: __genstate_flat_map<i32>!
-  expr 194:14   FieldExpr      :: fn(fn(i32) -> U[]) -> Iterator<U>
+  expr 194:14   FieldExpr      :: fn(fn(i32) -> i32[]) -> Iterator<i32>
   expr 194:14   SeqLitExpr     :: i32[]!
   expr 194:30   IdentExpr      :: fn(i32) -> i32[]
   expr 195:12   BinaryExpr     :: bool
@@ -179,7 +179,7 @@
   expr 198:9    BinaryExpr     :: i32
   expr 198:9    IdentExpr      :: i32
   expr 201:11   CallExpr       :: __genstate_flat_map<i32>!
-  expr 201:11   FieldExpr      :: fn(fn(i32) -> U[]) -> Iterator<U>
+  expr 201:11   FieldExpr      :: fn(fn(i32) -> i32[]) -> Iterator<i32>
   expr 201:11   SeqLitExpr     :: i32[]!
   expr 201:27   IdentExpr      :: fn(i32) -> i32[]
   expr 202:14   IdentExpr      :: __genstate_flat_map<i32>!

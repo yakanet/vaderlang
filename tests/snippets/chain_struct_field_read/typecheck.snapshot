@@ -13,7 +13,7 @@
   expr 21:30    StringLitExpr  :: string
   expr 24:15    CallExpr       :: Rec[]!
   expr 24:15    CallExpr       :: __genstate_chain<Rec>!
-  expr 24:15    FieldExpr      :: fn() -> T[]!
+  expr 24:15    FieldExpr      :: fn() -> Rec[]!
   expr 24:15    IdentExpr      :: fn(Iterator<T>!, Iterator<T>!) -> Iterator<T>
   expr 24:21    IdentExpr      :: Rec[]
   expr 24:24    IdentExpr      :: Rec[]
@@ -33,8 +33,8 @@
   expr 27:9     IdentExpr      :: fn(T) -> void
   expr 31:16    CallExpr       :: Rec![]!
   expr 31:16    CallExpr       :: __genstate_map<Rec!>!
-  expr 31:16    FieldExpr      :: fn() -> T[]!
-  expr 31:16    FieldExpr      :: fn(fn(Rec) -> U) -> Iterator<U>
+  expr 31:16    FieldExpr      :: fn() -> Rec![]!
+  expr 31:16    FieldExpr      :: fn(fn(Rec) -> Rec!) -> Iterator<Rec!>
   expr 31:16    IdentExpr      :: Rec[]
   expr 31:22    LambdaExpr     :: fn(Rec) -> Rec!
   expr 31:30    StructLitExpr  :: Rec!
@@ -53,7 +53,7 @@
   expr 33:9     IdentExpr      :: fn(T) -> void
   expr 37:13    CallExpr       :: Rec[]!
   expr 37:13    CallExpr       :: __genstate_filter<Rec>!
-  expr 37:13    FieldExpr      :: fn() -> T[]!
+  expr 37:13    FieldExpr      :: fn() -> Rec[]!
   expr 37:13    FieldExpr      :: fn(fn(Rec) -> bool) -> Iterator<Rec>
   expr 37:13    IdentExpr      :: Rec[]!
   expr 37:27    LambdaExpr     :: fn(Rec) -> bool

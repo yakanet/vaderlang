@@ -38,7 +38,7 @@
   expr 53:9     CallExpr       :: void
   expr 53:9     IdentExpr      :: fn(T) -> void
   expr 55:19    CallExpr       :: __genstate_pair_with<[i32, string]>!
-  expr 55:19    FieldExpr      :: fn(Iterator<U>!) -> Iterator<[i32, U]>
+  expr 55:19    FieldExpr      :: fn(Iterator<string>!) -> Iterator<[i32, string]>
   expr 55:19    SeqLitExpr     :: i32[]!
   expr 55:39    SeqLitExpr     :: string[]!
   expr 55:40    StringLitExpr  :: string
@@ -57,7 +57,7 @@
   expr 60:9     CallExpr       :: void
   expr 60:9     IdentExpr      :: fn(T) -> void
   expr 62:14    CallExpr       :: __genstate_remap<string>!
-  expr 62:14    FieldExpr      :: fn(fn(i32) -> U) -> Iterator<U>
+  expr 62:14    FieldExpr      :: fn(fn(i32) -> string) -> Iterator<string>
   expr 62:14    SeqLitExpr     :: i32[]!
   expr 62:27    LambdaExpr     :: fn(i32) -> string
   expr 62:39    StringLitExpr  :: string

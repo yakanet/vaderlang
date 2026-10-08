@@ -1071,6 +1071,13 @@ export infer_call :: fn(
             v :: bindings[k] ?? continue
             bindings[k] = default_if_free(v)
         }
+        // A method-form callee reads as the call binds it, receiver and arguments
+        // together, not as the receiver alone did (`local.pick(CFG)` reads
+        // `fn(Cfg) -> Cfg`, `cfg.wrap("s")` reads `fn(string) -> string`) : what
+        // tooling shows.
+        if c.callee is AST.FieldExpr && typed.ufcs_receiver_types[c.callee.id] != null {
+            typed.expr_types[c.callee.id] = substitute_fn_map(callee_ty, bindings)
+        }
         // A Free* numeric arg takes what its parameter was bound to. Into a
         // trait-typed param it is boxed : when `7` flows into `Doubler<T>` and
         // `i32 implements Doubler(i32)`, the arg expr records the substituted trait

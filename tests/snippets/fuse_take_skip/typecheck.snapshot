@@ -18,7 +18,7 @@
   expr 11:58    IdentExpr      :: i32
   expr 12:14    CallExpr       :: __genstate_skip<i32>!
   expr 12:14    CallExpr       :: __genstate_take<i32>!
-  expr 12:14    FieldExpr      :: fn(usize) -> Iterator<T>
+  expr 12:14    FieldExpr      :: fn(usize) -> Iterator<i32>
   expr 12:14    FieldExpr      :: fn(usize) -> Iterator<i32>
   expr 12:14    SeqLitExpr     :: i32[]!
   expr 12:53    CallExpr       :: void

@@ -90,7 +90,7 @@
   expr 65:14    StringLitExpr  :: string
   expr 66:14    CallExpr       :: __genstate_flat_map<i32>!
   expr 66:14    CallExpr       :: __genstate_stop_at<i32>!
-  expr 66:14    FieldExpr      :: fn(fn(i32) -> U[]) -> Iterator<U>
+  expr 66:14    FieldExpr      :: fn(fn(i32) -> i32[]) -> Iterator<i32>
   expr 66:14    FieldExpr      :: fn(i32) -> Iterator<i32>
   expr 66:14    SeqLitExpr     :: i32[]!
   expr 66:30    IdentExpr      :: fn(i32) -> i32[]
@@ -102,7 +102,7 @@
   expr 69:13    StringLitExpr  :: string
   expr 70:11    CallExpr       :: __genstate_flat_map<i32>!
   expr 70:11    CallExpr       :: __genstate_stop_at<i32>!
-  expr 70:11    FieldExpr      :: fn(fn(i32) -> U[]) -> Iterator<U>
+  expr 70:11    FieldExpr      :: fn(fn(i32) -> i32[]) -> Iterator<i32>
   expr 70:11    FieldExpr      :: fn(i32) -> Iterator<i32>
   expr 70:11    SeqLitExpr     :: i32[]!
   expr 70:27    IdentExpr      :: fn(i32) -> i32[]

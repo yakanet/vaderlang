@@ -169,6 +169,9 @@ infer_expr :: fn(
         is AST.IdentExpr -> {
             sym :: typed.resolved.idents[expr.span.hash()]
             if !(sym is null) {
+                if sym.kind == .Const {
+                    settle_const_read(sym, expr.span, typed)
+                }
                 // W0001 : reference to a `@deprecated` decl.
                 msg :: typed.resolved.deprecated_messages[sym.id]
                 if !(msg is null) {

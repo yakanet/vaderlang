@@ -701,6 +701,42 @@ export TypedProgram :: struct {
     /// written bare or by name. The fusion reads it: a jump out of a body spliced
     /// into a producer's code may have to land elsewhere than its loop.
     jump_targets: MutableMap<usize, usize>!
+
+    /// The consts of the module `walk_bodies` is walking, so a read of one before
+    /// its turn types it then (`settle_const_read`).
+    const_walk: ConstWalk! = ConstWalk {}
+}
+
+/// Where a const stands in a `walk_bodies` walk.
+export ConstState :: enum {
+    /// Its value is being typed : a read of it now is a cycle.
+    Typing
+    /// Typing, and the cycle a read closed is reported (T3099).
+    CycleReported
+    Typed
+}
+
+/// A const being typed, as `ConstWalk.typing` holds it.
+export ConstTyping :: struct {
+    decl: AST.ConstDecl
+    /// Reached by a read inside a fn body, which runs once every const is set.
+    deferred: bool
+}
+
+/// The consts of one `walk_bodies` walk and where each stands : each is typed once
+/// per walk, at its turn or at the first read before it, whichever comes first.
+export ConstWalk :: struct {
+    /// Each const's declaration, by its span hash — the key of `states` too ;
+    /// `const_decls` reaches it from a symbol.
+    decls: MutableMap<u64, AST.ConstDecl!>! = MutableMap<u64, AST.ConstDecl!> {}
+    /// Where each const stands ; absent until the walk starts typing it.
+    states: MutableMap<u64, ConstState>! = MutableMap<u64, ConstState> {}
+    /// The consts being typed, innermost last : a read of one of them closes a cycle
+    /// through every const after it.
+    typing: ConstTyping[]! = []
+    /// The walk's diagnostics, where a const typed early reports, wherever it was
+    /// first read : an argument checked twice reads into a scratch sink.
+    diags: Diagnostic[]! = []
 }
 
 /// One enclosing loop as seen by the loop-jump resolver. `binding` is the
