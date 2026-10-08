@@ -38,7 +38,7 @@ exec_array_copy :: fn(frame: Frame) -> Trap | null {
         return Trap { .message = "array.copy destination range out of bounds (dst must already be long enough) at pc=${frame.pc}" }
     }
     // Overlap-safe : snapshot the source window before writing.
-    window: Value![]!: [] * n
+    window: Value[]: [] * n
     for j in 0..<n {
         window.push(element_at(src_unwrap, src_unwrap.offset + ss + j))
     }
@@ -110,7 +110,7 @@ exec_array_repeat :: fn(frame: Frame) -> Trap | null {
     // `[] * n` yields a length-0 array with `n` slots reserved, `[v] * n` n
     // copies.
     slots :: if array_unwrap.length == 0 { count } else { count * array_unwrap.length }
-    repeated: Value![]!: [] * slots
+    repeated: Value[]: [] * slots
     for _ in 0..<count {
         for j in 0..<array_unwrap.length {
             repeated.push(element_at(array_unwrap, array_unwrap.offset + j))

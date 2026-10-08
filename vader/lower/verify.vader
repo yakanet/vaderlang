@@ -142,7 +142,7 @@ bare :: fn() -> LoweredExpr! = LoweredBoolLit { .span = empty_span(), .type = TY
 
 @test
 test_verify_captured_cells_bare_value :: fn() -> void {
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     verify_captured_cells(captured_let_project(bare()), captured_one(), diags)
     assert_eq(diags.len(), 1)
     assert_eq(diags[0].code.id, "I7011")
@@ -153,14 +153,14 @@ test_verify_captured_cells_cell :: fn() -> void {
     cell :: LoweredCellNew {
         .span = empty_span(), .type = TY_UNRESOLVED, .value = bare(), .value_type = TY_BOOL,
     }
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     verify_captured_cells(captured_let_project(cell), captured_one(), diags)
     assert_eq(diags.len(), 0)
 }
 
 @test
 test_verify_captured_cells_uncaptured :: fn() -> void {
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     verify_captured_cells(captured_let_project(bare()), MutableSet<i32> {}, diags)
     assert_eq(diags.len(), 0)
 }

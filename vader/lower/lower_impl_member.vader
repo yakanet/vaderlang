@@ -342,7 +342,7 @@ bound_member :: fn(
 ) -> UfcsMember | null {
     trait_key :: ctx.typed.bounded_dispatch_trait[node_id] ?? return null
     args :: ctx.typed.bounded_dispatch_args[node_id] ?? return null
-    concrete: Type[]!: []
+    concrete: Type[]: []
     for a in args {
         concrete.push(ctx.types.apply(a))
     }

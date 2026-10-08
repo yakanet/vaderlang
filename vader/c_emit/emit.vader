@@ -127,7 +127,7 @@ new_ctx :: fn(
     m: BytecodeModule, release: bool, split: bool, universe: string[] = [],
     internal_fns: bool[] = [],
 ) -> EmitCtx {
-    names: string[]!: []
+    names: string[]: []
     for i in 0..<m.types.len() {
         match m.types[i] as s {
             is BcStruct -> names.push(struct_c_name(s.name))
@@ -191,7 +191,7 @@ module_function_storage :: fn(ctx: EmitCtx, index: i32) -> CStorage {
 /// @return         atom ids parallel to `strings`.
 compute_atom_ids :: fn(strings: string[], universe: string[]) -> i32[] {
     if universe.is_empty() {
-        ids: i32[]!: []
+        ids: i32[]: []
         next_id: i32 = 1
         for i in 0..<strings.len() {
             if strings[i] == "" {
@@ -213,7 +213,7 @@ compute_atom_ids :: fn(strings: string[], universe: string[]) -> i32[] {
             index[universe[i]] = i32(i) + 1
         }
     }
-    ids: i32[]!: []
+    ids: i32[]: []
     for i in 0..<strings.len() {
         if strings[i] == "" {
             ids.push(0)
@@ -230,7 +230,7 @@ atom_table_of :: fn(strings: string[], universe: string[]) -> string[] {
     if universe.len() != 0 {
         return universe
     }
-    out: string[]!: []
+    out: string[]: []
     for i in 0..<strings.len() {
         if strings[i] != "" {
             out.push(strings[i])
@@ -252,7 +252,7 @@ export atom_universe_gaps :: fn(strings: string[], universe: string[]) -> string
     for u in universe {
         have.add(u)
     }
-    out: string[]!: []
+    out: string[]: []
     for s in strings {
         if s != "" && !have.contains(s) {
             out.push(s)
@@ -338,8 +338,8 @@ emit_type_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 /// @param ctx      the emit context.
 /// @param printer  receives the typedefs and definitions.
 emit_mirrored_struct_typedefs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
-    forwards: CTopLevel[]!: []
-    definitions: CTopLevel[]!: []
+    forwards: CTopLevel[]: []
+    definitions: CTopLevel[]: []
     for i in 0..<ctx.module.types.len() {
         if ctx.module.types[i] is BcStruct as s {
             if s.c_name != "" {
@@ -363,8 +363,8 @@ emit_struct_typedefs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     // declare it, and the shared header has to read the same for every target.
     // In a single file there is nowhere else to put it, and the type table
     // takes `sizeof` on it, so it stays here.
-    forwards: CTopLevel[]!: []
-    definitions: CTopLevel[]!: []
+    forwards: CTopLevel[]: []
+    definitions: CTopLevel[]: []
     for i in 0..<ctx.module.types.len() {
         if ctx.module.types[i] is BcStruct as s {
             if s.c_name == "" || !ctx.split {
@@ -412,8 +412,8 @@ emit_atom_comptime_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     // `data[len]` reads NUL ; C concatenates the adjacent literals into one
     // `.rodata` array. Each entry is one PERM owner pointing into the blob.
     storage :: global_storage(ctx.split)
-    literals: string[]!: []
-    entries: CExpression[]!: []
+    literals: string[]: []
+    entries: CExpression[]: []
     offset: i64 = 0
     for s in ctx.atom_table {
         byte_len :: i64(s.bytes().len())
@@ -499,7 +499,7 @@ external :: fn(
 /// @param type_index  index of `s` in `ctx.module.types` ; used to look
 ///                    up the cached C identifier in `struct_c_names`.
 struct_definition :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> CStructDefinition {
-    fields: CField[]!: [CField { .type = "vader_obj_header_t", .name = "header" }]
+    fields: CField[]: [CField { .type = "vader_obj_header_t", .name = "header" }]
     for f in s.fields {
         ftype :: ctx.module.types[usize(f.type_index)]
         fields.push(CField { .type = c_type_for(ftype), .name = "f_${sanitise(f.name)}" })
@@ -515,7 +515,7 @@ emit_data_pool :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     if ctx.module.data_pool.len() == 0 {
         return
     }
-    items: CTopLevel[]!: []
+    items: CTopLevel[]: []
     // The `BcDataEntry` carries no array type_id (the op does) ; recover it by
     // scanning the module's `data.const` ops once, pool_index → type_id.
     type_ids :: data_pool_type_ids(ctx.module)
@@ -647,7 +647,7 @@ emit_global_const_roots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
     // `main` installs the frame, and under `--split` `main` lives in a different
     // unit from the data pool — so `static` here leaves it undeclared there.
     storage :: global_storage(ctx.split)
-    arrays: CExpression[]!: []
+    arrays: CExpression[]: []
     for i in indices {
         arrays.push(address_of(verbatim("vader_data_${i}")))
     }
@@ -701,7 +701,7 @@ emit_global_const_roots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
 /// @param pool  the module's data pool.
 /// @return      the indices whose entry is mutable ; empty when none.
 mutable_pool_indices :: fn(pool: BcDataEntry[]) -> usize[] {
-    out: usize[]!: []
+    out: usize[]: []
     for i in 0..<pool.len() {
         if data_entry_mutable(pool[i]) { out.push(i) }
     }
@@ -725,7 +725,7 @@ emit_agg_data_entry :: fn(
     atom_of: MutableMap<string,
     i32>,
 ) -> void {
-    slots: CExpression[]!: []
+    slots: CExpression[]: []
     for k in 0..<ad.elements.len() {
         slots.push(
             box_slot(
@@ -758,7 +758,7 @@ emit_data_value :: fn(
     if v is BcValStruct {
         type_id :: type_id_for_struct_symbol(ctx.module.types, v.symbol_id)
         type :: "struct ${ctx.struct_c_names[usize(type_id)]}"
-        members: CExpression[]!: [object_header(unsigned(i64(type_id)))]
+        members: CExpression[]: [object_header(unsigned(i64(type_id)))]
         if ctx.module.types[usize(type_id)] is BcStruct as bcs {
             for k in 0..<v.fields.len() {
                 field_tid :: if k < bcs.fields.len() { bcs.fields[k].type_index } else { 0 }
@@ -809,7 +809,7 @@ emit_nested_array :: fn(
         .type_id = array_type_index_for_element(ctx.module.types, element_tag),
         .element_tag = element_tag,
     }
-    slots: CExpression[]!: []
+    slots: CExpression[]: []
     for k in 0..<a.elements.len() {
         element :: a.elements[k]
         if kind == .Boxed {
@@ -957,7 +957,7 @@ array_type_index_for_element :: fn(types: BcType[], elem_index: i32) -> i32 {
 // One primitive-element `.rodata` buffer + array header. Concrete-typed slots so
 // the initialiser is a plain C aggregate.
 emit_prim_data_entry :: fn(items: CTopLevel[], array: PoolArray, pd: BcPrimData) -> void {
-    slots: CExpression[]!: []
+    slots: CExpression[]: []
     for bits in pd.items {
         slots.push(data_slot(pd.kind, bits))
     }
@@ -974,7 +974,7 @@ emit_str_data_entry :: fn(
     atom_of: MutableMap<string,
     i32>,
 ) -> void {
-    slots: CExpression[]!: []
+    slots: CExpression[]: []
     for value in sd.values {
         slots.push(boxed_string(array.element_tag, atom_for(atom_of, value)))
     }
@@ -1045,7 +1045,7 @@ c_type_for_array_kind :: fn(k: ArrayKind) -> string = match k {
 /// (`split.vader::emit_internal_forward_decls`). A `static` definition preceded
 /// by a non-`static` declaration is invalid C, so the two have to agree.
 emit_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
-    prototypes: CTopLevel[]!: []
+    prototypes: CTopLevel[]: []
     for i in 0..<ctx.module.functions.len() {
         storage :: module_function_storage(ctx, i32(i))
         if storage == .External || !ctx.split {
@@ -1109,7 +1109,7 @@ export out_param_name :: fn(i: usize) -> string = "__o${i}"
 emit_fn_sig_typedefs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     // Canonical erased fn-pointer signatures per arity, from 0 : a module
     // with no fn type still gets the 0-arity one.
-    typedefs: CTopLevel[]!: []
+    typedefs: CTopLevel[]: []
     for n in 0..=max_fn_arity(ctx.module.types) {
         typedefs.push(CFunctionPointerTypedef {
             .result = "vader_box_t",
@@ -1148,7 +1148,7 @@ erased_parameters :: fn(count: usize) -> CParameter[] = boxed_parameters(
 /// @param first  the leading parameter.
 /// @param count  the boxed slots after it.
 boxed_parameters :: fn(first: CParameter, count: usize) -> CParameter[] {
-    parameters: CParameter[]!: [first]
+    parameters: CParameter[]: [first]
     for j in 0..<count {
         parameters.push(CParameter { .type = "vader_box_t", .name = "a${j}" })
     }
@@ -1160,7 +1160,7 @@ boxed_parameters :: fn(first: CParameter, count: usize) -> CParameter[] {
 /// @param slots   the parameters' stack classes.
 /// @param prefix  the name every parameter shares, before its index.
 value_parameters :: fn(slots: ValType[], prefix: string) -> CParameter[]! {
-    parameters: CParameter[]!: []
+    parameters: CParameter[]: []
     for i in 0..<slots.len() {
         type :: c_type_for_val_bare(slots[i])
         parameters.push(CParameter { .type = type, .name = "${prefix}${i}" })
@@ -1195,7 +1195,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         if t is BcFn    { has_fn = true }
         if t is BcArray { has_array = true }
     }
-    shared: CTopLevel[]!: []
+    shared: CTopLevel[]: []
     if has_fn {
         shared.push(single_offset_list("vader_fn_ptr_offsets", "offsetof(vader_fn_t, env)"))
     }
@@ -1208,7 +1208,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     // primitives / unions / refs only set `slot_size` and keep the zero-init
     // `VADER_TYPE_KIND_NONE` (so the GC scanner short-circuits without reading
     // the payload).
-    rows: CExpression[]!: []
+    rows: CExpression[]: []
     for j in 0..<count {
         match types[j] as entry {
             is BcStruct -> rows.push(
@@ -1313,9 +1313,9 @@ StructOffsets :: struct {
 }
 
 empty_struct_offsets :: fn() -> StructOffsets {
-    p: string[]!: []
-    s: string[]!: []
-    r: string[]!: []
+    p: string[]: []
+    s: string[]: []
+    r: string[]: []
     return StructOffsets { .ptr_offsets = p, .str_offsets = s, .ref_offsets = r }
 }
 
@@ -1367,7 +1367,7 @@ struct_info_row :: fn(
     // field order — the committed seed is compiled against the header of the
     // tree, and a positional row would shift under any new field. An empty
     // offset list is left out : it stays zero, which is `NULL` / 0.
-    members: CExpression[]!: [
+    members: CExpression[]: [
         designated(".kind", verbatim("VADER_TYPE_KIND_STRUCT")),
         designated(".size", verbatim("sizeof(${ctx.struct_c_names[type_index]})")),
         designated(".slot_size", number(i64(size_of_bc_type(s)))),
@@ -1422,7 +1422,7 @@ emit_main :: fn(ctx: EmitCtx, printer: CPrinter, entry_mangled: string) -> void 
 
 // The statements of `int main`.
 main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[]! {
-    unused_arguments: CStatement[]!: [
+    unused_arguments: CStatement[]: [
         CExpressionStatement { .expression = cast("void", verbatim("argc")) },
         CExpressionStatement { .expression = cast("void", verbatim("argv")) },
     ]
@@ -1440,7 +1440,7 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[]! {
         verbatim("vader_atom_comptime_table"),
         verbatim("VADER_COMPTIME_ATOM_COUNT"),
     ]
-    body: CStatement[]!: [perform("vader_atom_init_with_comptime", atom_table)]
+    body: CStatement[]: [perform("vader_atom_init_with_comptime", atom_table)]
     // Before any Vader code runs, so the very first collection already sees them.
     // The frame becomes the BASE of the chain: every later frame links onto it and
     // nothing ever pops below it.
@@ -1458,7 +1458,7 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[]! {
     body.push(perform("atexit", [verbatim("vader_atom_shutdown")]))
     body.push(perform("atexit", [verbatim("vader_gc_shutdown")]))
 
-    arguments: CExpression[]!: []
+    arguments: CExpression[]: []
     if takes_argv {
         string_tag :: ctx.string_tag
         array_tag :: ctx.string_array_tag

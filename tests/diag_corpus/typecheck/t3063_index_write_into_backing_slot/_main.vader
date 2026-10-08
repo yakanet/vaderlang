@@ -10,7 +10,7 @@ Names implements Index<usize, string> {
 }
 
 main :: fn() -> i32 {
-    n: Names!: Names([1, 2])
+    n: Names: Names([1, 2])
     n[0] = "oops"
     n[1] = 5
     return 0

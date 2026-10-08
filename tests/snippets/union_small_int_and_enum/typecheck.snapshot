@@ -180,9 +180,9 @@
   expr 91:23    DotVariantExpr :: Color
   expr 91:5     CallExpr       :: void
   expr 91:5     IdentExpr      :: fn(T) -> void
-  expr 92:21    SeqLitExpr     :: (Color | string)[]!
-  expr 92:22    DotVariantExpr :: Color
-  expr 92:28    StringLitExpr  :: string
+  expr 92:20    SeqLitExpr     :: (Color | string)[]!
+  expr 92:21    DotVariantExpr :: Color
+  expr 92:27    StringLitExpr  :: string
   expr 93:16    DotVariantExpr :: Color
   expr 93:5     CallExpr       :: void
   expr 93:5     FieldExpr      :: fn(Color | string) -> void

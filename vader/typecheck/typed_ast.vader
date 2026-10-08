@@ -614,11 +614,6 @@ export TypedProgram :: struct {
     /// they diverge at.
     local_annotation: MutableMap<i32, AST.TypeExpr>!
 
-    /// Local Symbol.id → the collection it was indexed out of (`top :: stack[i]`).
-    /// Same lever as a loop variable — the ELEMENT type — and the same reason the
-    /// reader cannot guess it: marking the local would be a strengthening.
-    local_init_index: MutableMap<i32, AST.Expr>!
-
     /// Const Symbol.id → its declaration, for the span of its written type. A module
     /// const IS reopenable now (a mutable one gets a writable global), so `annotate
     /// \`WORDS!\`` is actionable rather than a dead end.
@@ -706,11 +701,12 @@ export TypedProgram :: struct {
     /// its turn types it then (`settle_const_read`).
     const_walk: ConstWalk! = ConstWalk {}
 
-    /// A local that borrows what it was bound to (`m :: a`, `mark_binding_borrow`) →
-    /// that value : a deduced `!` that frees `a` frees `m`.
-    borrowed_from: MutableMap<i32, AST.Expr>! = MutableMap<i32, AST.Expr> {}
+    /// A local bound to a single name → the value it stands for (`m :: a`,
+    /// `s :: xs[0..<n]`), whatever its rights ; absent when the binding converts it
+    /// to an owned value. A deduced `!` follows it back (`levers_of`).
+    local_bound_to: MutableMap<i32, AST.Expr>! = MutableMap<i32, AST.Expr> {}
 
-    /// The deduction of parameters' `!` this check feeds (`param_inference.vader`),
+    /// The deduction of slots' `!` this check feeds (`param_inference.vader`),
     /// one for every module of the project ; null when nothing is deduced.
     param_inference: ParamInference! | null = null
 }
@@ -827,7 +823,6 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .local_init_source = MutableMap<i32, AST.Expr> {},
     .loop_var_iterable = MutableMap<i32, AST.Expr> {},
     .local_annotation = MutableMap<i32, AST.TypeExpr> {},
-    .local_init_index = MutableMap<i32, AST.Expr> {},
     .const_decls = MutableMap<i32, AST.ConstDecl> {},
     .bounded_dispatch_trait = MutableMap<usize, string> {},
     .bounded_dispatch_args = MutableMap<usize, Type[]> {},

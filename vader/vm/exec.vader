@@ -252,8 +252,8 @@ project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod:
     // when the current pc is inside it (`optimize = false` gives each source
     // local its own slot, so the window ≈ its lexical scope). This hides
     // not-yet-declared locals and the `v` of already-finished sibling loops.
-    first: i32[]!: [-1] * total_slots
-    last:  i32[]!: [-1] * total_slots
+    first: i32[]: [-1] * total_slots
+    last:  i32[]: [-1] * total_slots
     for pc in 0..<fn_body.body.len() {
         s :: slot_touched_by(fn_body.body[pc])
         if s >= 0 && usize(s) < total_slots {
@@ -262,7 +262,7 @@ project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod:
         }
     }
 
-    out: PauseVar[]!: []
+    out: PauseVar[]: []
     // Params live the whole frame — always shown, named from the signature
     // (`param_names`, empty on name-less paths → `arg<i>`).
     for p in 0..<param_count {
@@ -309,7 +309,7 @@ param_display_name :: fn(sig: bc.BcSignature, p: usize) -> string {
 // children. Depth-bounded (which also breaks cycles) ; arrays cap at
 // `DEBUG_MAX_ELEMS`.
 project_var :: fn(name: string, v: Value, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar {
-    children: PauseVar[]! = []
+    children: PauseVar[] = []
     if depth < DEBUG_MAX_DEPTH {
         if v is ArrayVal {
             shown :: if v.length > DEBUG_MAX_ELEMS { DEBUG_MAX_ELEMS } else { v.length }
@@ -327,8 +327,8 @@ project_var :: fn(name: string, v: Value, bc_mod: bc.BytecodeModule, depth: i32)
 // `BcStruct.fields` (falling back to `field<i>` if the entry isn't a struct or
 // is shorter than the value's field list).
 project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar[]! {
-    out: PauseVar[]!: []
-    names: string[]!: []
+    out: PauseVar[]: []
+    names: string[]: []
     if usize(s.type_id) < bc_mod.types.len() {
         entry :: bc_mod.types[usize(s.type_id)]
         if entry is bc.BcStruct {
@@ -452,7 +452,7 @@ build_main_args :: fn(
     host_argv: string[],
     string_array_type_id: i32,
 ) -> Value![] | Trap {
-    out: Value![]!: []
+    out: Value[]: []
     params :: entry.signature.params
     if params.len() == 0 {
         return out
@@ -518,8 +518,8 @@ export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
 export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
     idx :: state.fn_index_by_name[mangled]
     if !(idx is null) {
-        no_args: string[]!: []
-        capture: Value[]!: [zero_value()]
+        no_args: string[]: []
+        capture: Value[]: [zero_value()]
         outcome :: exec_entry(state, idx, no_args, capture, true, null)
         if outcome is Trap { return outcome }
         return ValueOk { .value = capture[0] }
@@ -627,7 +627,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
     }
     needed :: usize(length)
     arg_base :: frame.sp - needed
-    elements: Value![]!: [] * needed
+    elements: Value[]: [] * needed
     for element_index in 0..<needed {
         elements.push(peek_owned(frame, arg_base + element_index))
     }
@@ -658,7 +658,7 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
     }
     field_count :: type_decl.fields.len()
     arg_base :: frame.sp - field_count
-    fields: Value![]!: []
+    fields: Value[]: []
     for field_index in 0..<field_count {
         // Narrow-typed field ⇒ truncate to width, mirroring a C narrow struct
         // field ; the literal's field value comes straight off the stack with no
@@ -700,7 +700,7 @@ build_buffer :: fn(frame: Frame, handle_cell: i32[]) -> Trap | null {
             .message = "buffer.new size ${i32(size_unwrap)} is negative at pc=${frame.pc}",
         }
     }
-    bytes: u8[]!: [] * usize(size_unwrap)
+    bytes: u8[]: [] * usize(size_unwrap)
     for _ in 0..<usize(size_unwrap) {
         bytes.push(0)
     }
@@ -834,7 +834,7 @@ do_memory_copy :: fn(frame: Frame) -> Trap | null {
     if dst_off + n > dst_unwrap.bytes.len() {
         return Trap { .message = "memory_copy dest range [${dst_off}, ${dst_off + n}) exceeds ${dst_unwrap.bytes.len()} at pc=${frame.pc}" }
     }
-    snapshot: u8[]!: [] * n
+    snapshot: u8[]: [] * n
     for i in 0..<n {
         snapshot.push(src_unwrap.bytes[src_off + i])
     }

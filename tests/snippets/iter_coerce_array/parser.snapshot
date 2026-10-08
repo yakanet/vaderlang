@@ -311,20 +311,17 @@
               "name": "typed_iter_mut"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "GenericInstExpr",
-                "callee": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
                   "kind": "IdentExpr",
-                  "name": "Iterator"
-                },
-                "typeArgs": [
-                  {
-                    "kind": "IdentExpr",
-                    "name": "i32"
-                  }
-                ]
-              }
+                  "name": "i32"
+                }
+              ]
             },
             "value": {
               "kind": "SeqLitExpr",
@@ -356,20 +353,17 @@
               "name": "typed_iter_spaced"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "GenericInstExpr",
-                "callee": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
                   "kind": "IdentExpr",
-                  "name": "Iterator"
-                },
-                "typeArgs": [
-                  {
-                    "kind": "IdentExpr",
-                    "name": "i32"
-                  }
-                ]
-              }
+                  "name": "i32"
+                }
+              ]
             },
             "value": {
               "kind": "SeqLitExpr",

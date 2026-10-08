@@ -43,7 +43,7 @@ field_write :: fn() -> i32 {
 
 // Same for an element.
 index_write :: fn() -> i32 {
-    xs: i32[]! = [1, 2]
+    xs: i32[] = [1, 2]
     xs[0] = 5
     return xs[0]
 }

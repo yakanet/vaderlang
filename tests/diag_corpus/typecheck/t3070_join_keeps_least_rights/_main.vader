@@ -24,7 +24,7 @@ fresh :: fn() -> Cfg! = Cfg { .n = 1 }
 shared :: fn() -> Cfg = CFG
 
 main :: fn() -> i32 {
-    b1: Box<Cfg>!: Box<Cfg> { .v = CFG }
+    b1: Box<Cfg>: Box<Cfg> { .v = CFG }
     b2 :: wrap(Cfg { .n = 1 })
     joined :: if b1.v.n == 1 { b1 } else { b2 }
     get(joined).n = 5

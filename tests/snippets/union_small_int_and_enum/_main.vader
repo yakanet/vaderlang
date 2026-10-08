@@ -89,7 +89,7 @@ main :: fn(argv: string[]) -> i32 {
     println(show_byte(first))
     println(17.show_byte())
     println(show_cell(.Blue))
-    cells: Cell[]!: [.Red, "x"]
+    cells: Cell[]: [.Red, "x"]
     cells.push(.Green)
     cells[1] = .Blue
     for c in cells {

@@ -1,6 +1,7 @@
 // `await` drives its operand through `resume`, declared `self!` : a read-only
-// awaitable cannot be awaited — here a factory's unmarked return, and a slot
-// annotated without `!`. A factory returning `Async<i32>!` is accepted.
+// awaitable cannot be awaited — here a factory's unmarked return. A factory
+// returning `Async<i32>!` is accepted, and so is an annotated local, which takes the
+// `!` its `await` needs.
 module "snippet"
 
 Ready :: struct {

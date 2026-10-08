@@ -97,7 +97,7 @@ call_target :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> CallTarget | null {
     symbol :: combinator_callee_sym(ctx, call, receiver) ?? return null
     owner :: resolve_owner_typed(ctx, symbol.module) ?? return null
     decl :: owner.fn_decls[symbol.id] ?? return null
-    args: AST.Expr[]!: []
+    args: AST.Expr[]: []
     if callee is AST.FieldExpr {
         args.push(callee.target)
     }
@@ -127,7 +127,7 @@ fn_signature :: fn(owner: TypedProgram, callee: Symbol) -> FnType | null {
 // `decl`'s type parameters as the resolver bound them, in declaration order ;
 // null when one has no symbol.
 declared_type_params :: fn(decl: AST.FnDecl, owner: TypedProgram) -> Symbol[] | null {
-    out: Symbol[]!: []
+    out: Symbol[]: []
     for tp in decl.type_params {
         out.push(find_type_param_in_resolved(owner.resolved, tp.name, tp.span) ?? return null)
     }
@@ -139,11 +139,11 @@ declared_type_params :: fn(decl: AST.FnDecl, owner: TypedProgram) -> Symbol[] | 
 // null when one stays unbound.
 unify_type_args :: fn(ctx: FnLowerCtx, patterns: Type[], actuals: Type[], type_params: Symbol[]) -> Type[] | null {
     bindings :: MutableMap<i32, Type> {}
-    order: i32[]!: []
+    order: i32[]: []
     for k in 0..<patterns.len() {
         unify_params(patterns[k], actuals[k], bindings, order, ctx)
     }
-    out: Type[]!: []
+    out: Type[]: []
     for tp in type_params {
         out.push(bindings[tp.id] ?? return null)
     }
@@ -236,7 +236,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     // The non-self param is DATA (map's `f`, take's `n`) unless it has its own source
     // loop — `chain`'s `other`, which fuses as an extra source instead.
     arg_is_data :: decl.params.len() == 2 && param1_loop is null
-    extra_sources: GenSourceBinding[]!: []
+    extra_sources: GenSourceBinding[]: []
     if param1_loop is GenSourceLoop {
         other_expr :: fluent.fn_arg ?? return null
         other_src :: descend_chain(ctx, other_expr, true) ?? return null
@@ -273,7 +273,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
 
     // Minted last: a descent that gives up must leave no ids, clones or captures behind.
     instance :: new_inline_instance(ctx.project, callee_sym, decl, owner) ?? return null
-    cloned_extras: GenSourceBinding[]!: []
+    cloned_extras: GenSourceBinding[]: []
     for extra in extra_sources {
         cloned_extras.push(GenSourceBinding {
             ...extra,
@@ -333,8 +333,8 @@ extract_gen_source_loops :: fn(decl: AST.FnDecl) -> GenSourceLoop[] | null {
     body :: decl.body ?? return null
     if body.trailing != null { return null }
     if body.stmts.len() == 0 { return null }
-    loops: GenSourceLoop![]!: []
-    pending: AST.Stmt![]! = []
+    loops: GenSourceLoop[]: []
+    pending: AST.Stmt[] = []
     for stmt in body.stmts {
         matched :: match_source_loop(stmt, decl)
         if matched is GenSourceLoop {
@@ -422,8 +422,8 @@ gen_combo_subst :: fn(
 ) -> Substitution | null {
     if decl.type_params.len() == 0 { return new_substitution() }
     signature :: fn_signature(owner, callee_sym) ?? return null
-    patterns: Type[]!: []
-    actuals: Type[]!: []
+    patterns: Type[]: []
+    actuals: Type[]: []
     // The SOURCE element comes from the post-fusion concrete `source_elem`, not from
     // the receiver's (possibly erased) type: an erased head would bind `T = Any`. It
     // is unified with `self`'s element PATTERN, which need not be a bare `T` —
@@ -470,7 +470,7 @@ emit_fused_gen_combinator :: fn(
     // source loop routes its yields to the same consumer body.
     gen_ctx :: inline_gen_ctx(ctx, layer.decl, layer.owner, layer.subst, layer.instance, template, chain.span)
 
-    out: LoweredStmt![]!: []
+    out: LoweredStmt[]: []
     // The primary `self` loop, then each extra source loop (chain's `other`), fused
     // in body order — all binding into the shared sink.
     primary_binding :: GenSourceBinding {
@@ -510,7 +510,7 @@ fuse_source_loop :: fn(
         .user_body = resumable_body(frame, inner_lowered),
     }
     emitted :: emit_fused_chain(ctx, binding.source, outer_span, inner_template, recurse)
-    out: LoweredStmt![]!: []
+    out: LoweredStmt[]: []
     if binding.prelude.len() > 0 {
         prelude_expr: AST.Expr: AST.BlockExpr { .span = span, .stmts = binding.prelude, .trailing = null }
         prelude_lowered :: recurse(gen_ctx, prelude_expr)
@@ -583,8 +583,8 @@ gen_source_subst :: fn(
     if decl.type_params.len() == 0 {
         return new_substitution()
     }
-    patterns: Type[]!: []
-    actuals: Type[]!: []
+    patterns: Type[]: []
+    actuals: Type[]: []
     for k in 0..<target.args.len() {
         patterns.push(signature.params[k])
         actuals.push(default_if_free(ctx.types.expr_type(target.args[k])))

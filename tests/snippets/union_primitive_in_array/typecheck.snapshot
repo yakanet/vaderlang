@@ -12,8 +12,8 @@
   expr 12:54    IdentExpr      :: i32
   expr 12:67    StringLitExpr  :: string
   expr 12:75    IdentExpr      :: string
-  expr 15:21    SeqLitExpr     :: (i32 | string)[]!
-  expr 15:25    StringLitExpr  :: string
+  expr 15:20    SeqLitExpr     :: (i32 | string)[]!
+  expr 15:24    StringLitExpr  :: string
   expr 16:5     IdentExpr      :: (i32 | string)[]!
   expr 16:5     IndexExpr      :: i32 | string
   expr 17:5     CallExpr       :: void

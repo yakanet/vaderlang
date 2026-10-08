@@ -59,13 +59,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -176,13 +173,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -357,13 +351,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "string"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "string"
               }
             },
             "value": {
@@ -479,13 +470,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -645,13 +633,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -787,13 +772,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -947,13 +929,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -1100,13 +1079,10 @@
               "name": "row"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -1303,13 +1279,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "string"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "string"
               }
             },
             "value": {
@@ -1407,13 +1380,10 @@
               "name": "base"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -1450,13 +1420,10 @@
               "name": "v"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -1589,13 +1556,10 @@
               "name": "outer"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -1633,13 +1597,10 @@
                     "name": "inner"
                   },
                   "type": {
-                    "kind": "MutableTypeExpr",
-                    "inner": {
-                      "kind": "ArrayTypeExpr",
-                      "element": {
-                        "kind": "IdentExpr",
-                        "name": "i32"
-                      }
+                    "kind": "ArrayTypeExpr",
+                    "element": {
+                      "kind": "IdentExpr",
+                      "name": "i32"
                     }
                   },
                   "value": {
@@ -1863,13 +1824,10 @@
               "name": "bytes"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "u8"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "u8"
               }
             },
             "value": {
@@ -1952,13 +1910,10 @@
               "name": "shorts"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i16"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i16"
               }
             },
             "value": {
@@ -2041,13 +1996,10 @@
               "name": "floats"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "f32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "f32"
               }
             },
             "value": {
@@ -2644,13 +2596,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -2831,13 +2780,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -3005,13 +2951,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -3235,13 +3178,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -3370,13 +3310,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {

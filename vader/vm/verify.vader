@@ -44,7 +44,7 @@ export display_verify_error :: fn(e: VerifyError) -> string = "${e.message} at p
 ///                with `module.functions` — what a frame's stack is sized to.
 /// @error         a `VerifyError` naming the function, the pc and the first defect.
 export verify_module :: fn(module: bc.BytecodeModule) -> usize[]! | VerifyError {
-    depths: usize[]!: [] * module.functions.len()
+    depths: usize[]: [] * module.functions.len()
     for f in module.functions {
         found :: verify_function(module, f)
         if found is VerifyError {
@@ -61,7 +61,7 @@ export verify_module :: fn(module: bc.BytecodeModule) -> usize[]! | VerifyError 
 /// @param module  the module to verify.
 /// @return        the first defect of each failing function, in body order.
 export verify_all :: fn(module: bc.BytecodeModule) -> VerifyError[]! {
-    out: VerifyError[]!: []
+    out: VerifyError[]: []
     for f in module.functions {
         found :: verify_function(module, f)
         if found is VerifyError {
@@ -92,9 +92,9 @@ verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> usize | Ve
     }
     deepest: usize = 0
     results :: bc.bc_result_arity(f.signature)
-    depth: i64[]!: [-1] * n
+    depth: i64[]: [-1] * n
     depth[0] = 0
-    work: usize[]!: [0]
+    work: usize[]: [0]
     for work.len() > 0 {
         pc :: work.remove_last() ?? break
         d :: usize(depth[pc])

@@ -24,7 +24,7 @@ DISPLAYABLE_FILE_PREFIX :: "<displayable>:"
 ///
 /// @param program  one parsed file, before node ids are assigned.
 export with_displayable_impls :: fn(program: AST.Program) -> AST.Program! {
-    generated: AST.Decl![]!: []
+    generated: AST.Decl[]: []
     for d in program.decls {
         if d is AST.EnumDecl {
             decorator :: d.decorators.find((x) -> x.name == "displayable") ?? continue

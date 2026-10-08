@@ -40,7 +40,7 @@ export report_mixed_mutability :: fn(joined: Type, span: Span, diags: Diagnostic
 ///
 /// @param types  the branches' types, in source order.
 export join_branch_types :: fn(types: Type[]) -> Type {
-    repinned: Type[]!: []
+    repinned: Type[]: []
     for t in types {
         repinned.push(repin_free(t, types))
     }
@@ -92,7 +92,7 @@ export infer_if :: fn(
             return collapse_if_unresolved(joined, then_ty, else_ty)
         }
         is AST.IfElseIf    -> {
-            inner: AST.Expr!: eb.branch
+            inner: AST.Expr: eb.branch
             else_ty :: check_else_branch_expr(
                 inner, e.cond, expected, typed, diags, check_expr_fn)
             return collapse_if_unresolved(join_branch_types([then_ty, else_ty]), then_ty, else_ty)
@@ -205,7 +205,7 @@ or_leaves :: fn(cond: AST.Expr, typed: TypedProgram, out: IsNarrow[]) -> bool {
 ///               compound condition report to a sink, their operands having
 ///               been checked already.
 push_cond_narrows :: fn(cond: AST.Expr, truth: bool, typed: TypedProgram, diags: Diagnostic[]) -> PushedNarrow[]! {
-    pushed: PushedNarrow[]!: []
+    pushed: PushedNarrow[]: []
     push_cond_narrows_into(cond, truth, typed, diags, pushed)
     return pushed
 }
@@ -237,11 +237,11 @@ push_cond_narrows_into :: fn(
 // A true `||` narrows only when every operand tests the SAME slot : then to the
 // union of what they matched.
 push_or_true :: fn(cond: AST.Expr, typed: TypedProgram, pushed: PushedNarrow[]) -> void {
-    leaves: IsNarrow[]!: []
+    leaves: IsNarrow[]: []
     if !or_leaves(cond, typed, leaves) {
         return
     }
-    tys: Type[]!: []
+    tys: Type[]: []
     for n in leaves {
         if !same_slot(n, leaves[0]) {
             return
@@ -494,7 +494,7 @@ checked :: fn(src: string) -> TypedProgram! {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     result :: check_module(parsed.program, rm, factory, diags)
     return result.typed
 }
@@ -505,7 +505,7 @@ test_if_both_branches_int_returns_int :: fn() -> void {
     typed :: checked(src)
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     ty :: infer_if(ifx, mk_primitive("i32"), typed, diags, null, expr_if_check_stub)
     assert_eq(display_type(ty), "i32")
 }
@@ -516,7 +516,7 @@ test_if_without_else_yields_union_with_void :: fn() -> void {
     typed :: checked(src)
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     ty :: infer_if(ifx, null, typed, diags, null, expr_if_check_stub)
     assert_eq(display_type(ty), "void | {integer}")
 }
@@ -527,7 +527,7 @@ test_if_cond_not_bool_emits_T3019 :: fn() -> void {
     typed :: checked(src)
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     infer_if(ifx, null, typed, diags, null, expr_if_check_stub)
     found := false
     for d in diags { if d.code.id == "T3019" { found = true } }

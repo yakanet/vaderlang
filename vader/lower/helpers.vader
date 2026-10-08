@@ -53,11 +53,11 @@ lower_call_args :: fn(
     params: Type[],
     first_slot: usize,
 ) -> LoweredExpr![]! {
-    lowered: LoweredExpr![]!: []
+    lowered: LoweredExpr[]: []
     for arg in args {
         lowered.push(lower_expr(ctx, arg.value))
     }
-    out: LoweredExpr![]!: []
+    out: LoweredExpr[]: []
     for i in 0..<lowered.len() {
         slot :: first_slot + i
         if slot >= params.len() {
@@ -123,7 +123,7 @@ export wrap_as_block :: fn(expr: LoweredExpr, span: Span) -> LoweredBlock! {
 ///               as an `LoweredExprStmt` when one is present.
 export block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt![] {
     trailing :: block.trailing ?? return block.stmts
-    out: LoweredStmt![]!: []
+    out: LoweredStmt[]: []
     for stmt in block.stmts { out.push(stmt) }
     out.push(LoweredExprStmt { .span = span_of(trailing), .expr = trailing })
     return out
@@ -148,7 +148,7 @@ chain_all :: fn(span: Span, parts: LoweredExpr[], op: LoweredBinaryOp) -> Lowere
     if parts.len() == 0 {
         return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = op == .And }
     }
-    accumulator: LoweredExpr! = parts[0]
+    accumulator: LoweredExpr = parts[0]
     for i in 1..<parts.len() {
         accumulator = LoweredBinary {
             .span = span, .type = TY_BOOL, .op = op,
@@ -218,7 +218,7 @@ export cell_aware_let :: fn(
 // closure, so the env literal that writes a field and the lifted body that reads it
 // agree.
 env_slots :: fn(ctx: FnLowerCtx, captures: Capture[]) -> EnvSlot[] {
-    slots: EnvSlot[]!: []
+    slots: EnvSlot[]: []
     for i in 0..<captures.len() {
         symbol :: captures[i].symbol
         value_type: Type | null: if lives_in_cell(ctx, symbol.id) {
@@ -233,7 +233,7 @@ env_slots :: fn(ctx: FnLowerCtx, captures: Capture[]) -> EnvSlot[] {
 
 // The env struct's fields, one per slot ; a cell is an opaque ref.
 env_struct_fields :: fn(slots: EnvSlot[]) -> LoweredStructField[] {
-    fields: LoweredStructField[]!: []
+    fields: LoweredStructField[]: []
     for slot in slots {
         field_type :: slot.value_type ?? TY_UNRESOLVED
         fields.push(LoweredStructField { .name = slot.field, .type = field_type })
@@ -244,7 +244,7 @@ env_struct_fields :: fn(slots: EnvSlot[]) -> LoweredStructField[] {
 // The env literal's fields: each capture's value, or its cell, as the fn being
 // lowered right now reaches it.
 env_lit_fields :: fn(ctx: FnLowerCtx, span: Span, captures: Capture[], slots: EnvSlot[]) -> LoweredStructLitField![] {
-    fields: LoweredStructLitField![]!: []
+    fields: LoweredStructLitField[]: []
     for i in 0..<captures.len() {
         symbol :: captures[i].symbol
         value_type :: slots[i].value_type
@@ -313,7 +313,7 @@ env_field :: fn(lifted: LiftedFnContext, field: string, span: Span, type: Type) 
 ///                `prefix` is empty.
 export prepend_stmts_to_block :: fn(prefix: LoweredStmt[], block: LoweredBlock) -> LoweredBlock! {
     if prefix.len() == 0 { return block }
-    stmts: LoweredStmt![]!: []
+    stmts: LoweredStmt[]: []
     stmts.push_all(prefix)
     stmts.push_all(block.stmts)
     return LoweredBlock { ...block, .stmts = stmts }
@@ -509,8 +509,8 @@ import "std/testing"
 
 @test test_or_all_single_returns_input :: fn() -> void {
     span :: empty_span()
-    only: LoweredExpr!: LoweredBoolLit { .span = span, .type = TY_BOOL, .value = true }
-    parts: LoweredExpr![]!: []
+    only: LoweredExpr: LoweredBoolLit { .span = span, .type = TY_BOOL, .value = true }
+    parts: LoweredExpr[]: []
     parts.push(only)
     result :: or_all(span, parts)
     // single-element chain returns the input unchanged

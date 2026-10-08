@@ -73,7 +73,7 @@ organize_imports_apply :: fn(decls: AST.Decl[], ctx: ActionCtx) -> ActionResult 
 // The contiguous run of import decls at the head of `decls` (Vader files open
 // with their imports). Stops at the first non-import.
 import_run :: fn(decls: AST.Decl[]) -> AST.ImportDecl[] {
-    run: AST.ImportDecl[]!: []
+    run: AST.ImportDecl[]: []
     for di in 0..<decls.len() {
         d :: decls[di]
         if d is AST.ImportDecl {
@@ -137,8 +137,8 @@ ImportEntry :: struct {
 render_import_block :: fn(run: AST.ImportDecl[]) -> string {
     // Merge modifier lists by path ; collect namespace imports (dedup exact).
     modifiers :: MutableMap<string, AST.ImportName![]!> {}
-    modifier_paths: string[]!: []
-    ns_entries: ImportEntry![]!: []
+    modifier_paths: string[]: []
+    ns_entries: ImportEntry[]: []
     ns_seen :: MutableMap<string, bool> {}
 
     for i in 0..<run.len() {
@@ -172,7 +172,7 @@ render_import_block :: fn(run: AST.ImportDecl[]) -> string {
         }
     }
 
-    entries: ImportEntry![]!: []
+    entries: ImportEntry[]: []
     for pi in 0..<modifier_paths.len() {
         p :: modifier_paths[pi]
         names :: modifiers[p]
@@ -217,7 +217,7 @@ render_namespace_import :: fn(path: string, nn: AST.NamedNamespaceImport) -> str
 // Render each import name to text, de-duplicate, and sort ascending. Rendering
 // first lets a plain string sort order names then aliases (`A` < `A as X` < `B`).
 sorted_name_texts :: fn(names: AST.ImportName[]) -> string[] {
-    texts: string[]!: []
+    texts: string[]: []
     seen :: MutableMap<string, bool> {}
     for i in 0..<names.len() {
         t :: import_name_text(names[i])

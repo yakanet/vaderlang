@@ -46,7 +46,7 @@ export doubled :: fn(xs: i32[]) -> i32[]! = xs.map((x: i32) -> x * 2).collect()
 export total :: fn(xs: i32[]) -> i32 = drain(xs)
 
 export buffered :: fn(xs: i32[]) -> i32 {
-    buf: Iterator<i32>!: xs
+    buf: Iterator<i32>: xs
     return drain(buf)
 }
 

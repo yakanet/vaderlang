@@ -1330,7 +1330,7 @@ Top-level constants follow the same pattern but are restricted to compile-time e
 
 - **Mutable local never reassigned (`W0015`)**: a `:=` / `name: T =` local that no assignment ever rebinds earns a warning — the mutable form advertises a rebinding that does not happen. The fix is the immutable form on the same row of the table above (`n := 0` → `n :: 0`, `n: i32 = 0` → `n: i32: 0`). What counts as a rebinding is a **bare name as the whole assignment target**, compound assignments included: `x.f = 1` and `x[0] = 1` mutate what the name designates, which the immutable form already permits, so they do not justify a `:=`. A destructuring declaration carries one `:=` for every name it binds, so rebinding any one of them justifies it.
 
-- **Deduced parameter marker (`W0017`) and needless one (`W0018`)**: a `!` written on a parameter of a function with a body earns `W0017` when the body demands it — the compiler deduces it anyway, and the detail names the mutation — and `W0018` when nothing does. Both point at the `!` itself, and `vader fix <file>` removes them. See *A parameter's `!` is deduced from its body*.
+- **Deduced parameter marker (`W0017`) and needless one (`W0018`)**: a `!` written on a parameter of a function with a body, or on an annotated local, earns `W0017` when the body demands it — the compiler deduces it anyway, and the detail names the mutation — and `W0018` when nothing does. Both point at the `!` itself, and `vader fix <file>` removes them. See *A parameter's or an annotated local's `!` is deduced from its body*.
 - **Needless enum type prefix (`W0016`)**: writing `Enum.Variant` where the slot already pins that enum earns a warning — the name before the dot repeats what the context says, and the bare `.Variant` reads the same. The slots that pin are the ones the shorthand already resolves against: a typed return, a parameter, an annotated local or field, a match arm's BODY, an element of an array literal in a typed slot, and the other operand of an `==` / `!=`. A nullable slot (`Color | null`) pins just as well. A match PATTERN never triggers it — the qualified form does not parse there, the bare `.Variant` being the only spelling a pattern accepts. It stays silent wherever the prefix is load-bearing: an unannotated local (`c :: Color.Red` has nothing to infer from); a slot whose union carries two enums sharing the variant name, where the bare form resolves to the first that carries it; and **any argument of an overloaded call**, where the prefix is what selects the candidate — given `pick(c: Color)` and `pick(f: Fruit)`, `pick(Fruit.Red)` and `pick(.Red)` reach different functions, so advising the bare form there would change the call in silence. The qualified form remains legal everywhere; the warning only says it earns nothing here.
 
 ### Type inference
@@ -1891,7 +1891,7 @@ main :: fn() -> i32 {
 
 ### Read-only by default — `!` grants mutation
 
-Every **slot** a value is reached through is read-only unless its type says otherwise. A slot is anywhere a type is **written**: a **parameter**, a **struct field**, a **return type** (free function, trait or impl member, lambda alike), or an **annotated local**. Writing a field or element through a read-only slot, or calling a method that mutates it, is rejected. Appending `!` to the **type** grants mutation — and on a parameter of a function with a body, the compiler deduces it (see *A parameter's `!` is deduced from its body*):
+Every **slot** a value is reached through is read-only unless its type says otherwise. A slot is anywhere a type is **written**: a **parameter**, a **struct field**, a **return type** (free function, trait or impl member, lambda alike), or an **annotated local**. Writing a field or element through a read-only slot, or calling a method that mutates it, is rejected. Appending `!` to the **type** grants mutation — and on a parameter of a function with a body or an annotated local, the compiler deduces it (see *A parameter's or an annotated local's `!` is deduced from its body*):
 
 ```vader
 describe :: fn(c: Counter) -> string = "${c.label} = ${c.count}"   // reads only
@@ -1910,14 +1910,11 @@ Block :: struct {
 fresh :: fn() -> i32[]! = []    // the caller owns what it gets back, and may push
 ```
 
-An **annotated local is a slot like any other**, so `i32[]` means the same thing wherever it appears — the marker is what grants mutation. A local with **no annotation** keeps its inferred type: nothing was written, and a local is owned.
+An **annotated local is a slot like any other**, so `i32[]` means the same thing wherever it appears. The annotation gives the shape, and the body the rights: its `!` is deduced (see *A parameter's or an annotated local's `!` is deduced from its body*). A local with **no annotation** keeps its inferred type: nothing was written, and a local is owned.
 
 ```vader
-out: Stmt[]! = []     // annotated : the marker grants the push
+out: Stmt[] = []      // annotated : `push` makes it `Stmt[]!`
 out.push(s)           // OK
-
-frozen: Stmt[] = []
-// frozen.push(s)     // T3071 — an annotated slot is read-only by default
 
 inferred :: [s]       // no annotation : inferred, owned
 inferred.push(other)  // OK
@@ -1935,7 +1932,7 @@ p :: make()
 p.bump()           // T3071 — `p` holds the view `make` handed out
 ```
 
-#### A parameter's `!` is deduced from its body
+#### A parameter's or an annotated local's `!` is deduced from its body
 
 A parameter of a function with a body takes `!` at a level when the body mutates it there — writes through it, calls a `self!` member on it, stores it where a mutable value is expected — or hands it at that level to a parameter that takes `!`. The compiler deduces it over the whole program, through calls, so nothing is written:
 
@@ -1954,6 +1951,20 @@ fill(TABLE, 1, 2)   // T3072 — `fill` mutates `buf`, and `TABLE` is a module c
 
 The refusal lands on the caller that hands in what cannot be mutated, and it names why the callee mutates: the chain of calls down to the mutation. An editor shows a deduced `!` where it would be written, with that chain on hover.
 
+An **annotated local** is deduced the same way. Its annotation gives the shape the initializer cannot say — `[]` says nothing of its elements — and the body gives the rights:
+
+```vader
+names :: fn(items: Item[]) -> string[] {
+    out: string[]: []      // `out` : `string[]!`, it is pushed to
+    for item in items {
+        out.push(item.name)
+    }
+    return out
+}
+```
+
+What the local is bound to must grant what the body demands: `a: Point: make()` followed by `a.bump()` makes `a` a `Point!`, which `make()`'s read-only result cannot fill (T3077). An unannotated local is owned, and needs no `!` at all.
+
 It is deduced per level, as it is written (see *The marker is per LEVEL* below): `xs[0].n = 1` on `xs: Box[]` makes it `Box![]`, `xs.push(b)` makes it `Box[]!`. Under a spine the function grows the element is invariant, so a function handed a `Box![]!` to push into takes `Box![]!`.
 
 A contract has no body to deduce from, and keeps its written marker:
@@ -1962,7 +1973,7 @@ A contract has no body to deduce from, and keeps its written marker:
 - an `@extern` or intrinsic function;
 - a lambda's parameter, which takes its rights from the slot the lambda fills.
 
-A `!` written on a deduced parameter is kept, and warned about: `W0017` when the body demands it anyway, `W0018` when nothing does. `vader fix <file>` removes both. A `!` on a type with no interior is `T3075` there as anywhere, and gets no warning. An impl member is held to its trait whether its `!` is written or deduced: it may not mutate a receiver or a parameter the trait lends read-only (T3095).
+A `!` written on a deduced parameter or local is kept, and warned about: `W0017` when the body demands it anyway, `W0018` when nothing does. `vader fix <file>` removes both. A `!` on a type with no interior is `T3075` there as anywhere, and gets no warning. An impl member is held to its trait whether its `!` is written or deduced: it may not mutate a receiver or a parameter the trait lends read-only (T3095).
 
 #### The marker is per LEVEL
 
@@ -1996,15 +2007,15 @@ Writing `!` twice on one level is an error (P1030): `Cfg[]!!` says the same thin
 
 The assignability of an array does **not** descend into a nested array: `T[]![]` and `T[][]` are distinct element types, and arrays are invariant in their element. A builder that fills mutable inner arrays and hands them back read-only copies the outer spine into the promised type rather than propagating `T[]![]` to every consumer.
 
-Through a **read-only** array a value may always **drop** rights (`Cfg![]` fills a `Cfg[]` slot), never gain them. A `Cfg[]` handed to a `Cfg![]` slot is T3077 — the callee declared it may write through the elements, and they are not its to write. Through a **mutable** array the elements' rights must **match**: a `Cfg![]!` does not fill a `Cfg[]!` slot (T3001), because whoever holds the slot may push a read-only `Cfg` — a module const — that the array's owner then writes through as a `Cfg!`. An accumulator parameter therefore spells the elements its caller holds: `out: Stmt![]!`.
+Through a **read-only** array a value may always **drop** rights (`Cfg![]` fills a `Cfg[]` slot), never gain them. A `Cfg[]` handed to a `Cfg![]` slot is T3077 — the callee declared it may write through the elements, and they are not its to write. Through a **mutable** array the elements' rights must **match**: a `Cfg![]!` does not fill a `Cfg[]!` slot (T3001), because whoever holds the slot may push a read-only `Cfg` — a module const — that the array's owner then writes through as a `Cfg!`. An accumulator parameter therefore takes the elements its caller holds — `out: Stmt![]!` for a caller pushing into a `Stmt![]!` — and the deduction aligns them (see *A parameter's or an annotated local's `!` is deduced from its body*).
 
-A **generic** parameter binds the argument **with its rights**: `T` is whatever the call lends. So `sort<T>(arr: T[], …)` takes a `Cfg[]` (`T` is `Cfg`) and a `Cfg![]` (`T` is `Cfg!`) alike, and what comes back says the same — `peek(xs)` over a `Cfg[]` hands out a read-only `Cfg`, `wrap(p)` of a read-only `p` a `Box<Cfg>`, `xs.map(f).collect()` the elements `f` returns. Two `Cfg` stay one type whatever their bit, so no generic forks on it. Arguments that bind one `T` to the same type at different rights bind it to the rights they all hold, level by level and in any order: `pick(local, CFG)` binds `T = Cfg` and hands back a read-only `Cfg`, `pick(got, LIST)` a read-only `i32[]`. Each argument is then checked against that binding, so one that must keep its rights is refused — `put(rows, LIST)` with `rows: i32[]![]!` against `dst: T[]!` (T3001). A method-syntax call binds the same way, its receiver one of those arguments: `local.pick(CFG)` is `pick(local, CFG)`, and `rows.put(LIST)` is refused on `rows`. A free literal argument or receiver takes the type the call binds its parameter to: with `x: i64`, `pick(1, x)` and `1.pick(x)` are both `i64` calls. An explicit type argument keeps the rights it writes. Neither the slot a call's result flows into nor a fn's parameter type lowers a binding, since neither is a right an argument holds: `pts.find((p) -> p.y > 14)` keeps the elements' rights though `p` is read-only. Inside the body the element is a `T`, which grants no mutation of its own. Mutating through a `T` needs a mutable slot (`x: T!`) **and** a bound marked `!` (`T: Bump!`), since a call may bind `T` to a read-only type. That holds for every form that mutates: a bound's `self!` member, `for` over a `T: Iterator<U>`, `c[i] = v` through a `T: IndexSet<I, V>`, `await` on a `T: Async<U>` (T3071), an argument for a `!` parameter (T3072), a `Bump!` slot (T3077). A call binding `T: Bump!` to a type that grants no mutation — a module const, a read-only return, a `T` whose own bound is unmarked — is **T3006**; an explicit type argument is a written type, read-only unless marked, so it says `poke<Cfg!>(c)`, and `idt<Cfg>(CFG)` hands back a read-only `Cfg`.
+A **generic** parameter binds the argument **with its rights**: `T` is whatever the call lends. So `sort<T>(arr: T[], …)` takes a `Cfg[]` (`T` is `Cfg`) and a `Cfg![]` (`T` is `Cfg!`) alike, and what comes back says the same — `peek(xs)` over a `Cfg[]` hands out a read-only `Cfg`, `wrap(p)` of a read-only `p` a `Box<Cfg>`, `xs.map(f).collect()` the elements `f` returns. Two `Cfg` stay one type whatever their bit, so no generic forks on it. Arguments that bind one `T` to the same type at different rights bind it to the rights they all hold, level by level and in any order: `pick(local, CFG)` binds `T = Cfg` and hands back a read-only `Cfg`, `pick(got, LIST)` a read-only `i32[]`. Each argument is then checked against that binding, so one that must keep its rights is refused — `put(rows, LIST)` with `rows: i32[]![]!` against `dst: T[]!` (T3001). A method-syntax call binds the same way, its receiver one of those arguments: `local.pick(CFG)` is `pick(local, CFG)`, and `rows.put(LIST)` is refused on `rows`. A free literal argument or receiver takes the type the call binds its parameter to: with `x: i64`, `pick(1, x)` and `1.pick(x)` are both `i64` calls. An explicit type argument keeps the rights it writes. Neither the slot a call's result flows into nor a fn's parameter type lowers a binding, since neither is a right an argument holds: `pts.find((p) -> p.y > 14)` keeps the elements' rights though `p` is read-only. Inside the body the element is a `T`, which grants no mutation of its own. Mutating through a `T` needs a mutable slot (`x: T!`, deduced on a parameter) **and** a bound marked `!` (`T: Bump!`), since a call may bind `T` to a read-only type. That holds for every form that mutates: a bound's `self!` member, `for` over a `T: Iterator<U>`, `c[i] = v` through a `T: IndexSet<I, V>`, `await` on a `T: Async<U>` (T3071), an argument for a `!` parameter (T3072), a `Bump!` slot (T3077). A call binding `T: Bump!` to a type that grants no mutation — a module const, a read-only return, a `T` whose own bound is unmarked — is **T3006**; an explicit type argument is a written type, read-only unless marked, so it says `poke<Cfg!>(c)`, and `idt<Cfg>(CFG)` hands back a read-only `Cfg`.
 
 ```vader
-poke :: fn<T: Bump!>(x: T!) -> void {
-    x.bump()              // fine — the slot and the bound grant it
+poke :: fn<T: Bump!>(x: T) -> void {
+    x.bump()              // fine — the bound grants it, and `x` takes the `!`
 }
-poke_unmarked :: fn<T: Bump>(x: T!) -> void {
+poke_unmarked :: fn<T: Bump>(x: T) -> void {
     x.bump()              // T3071 — `T` may be bound to a read-only `Cfg`
 }
 poke(CFG)                 // T3006 — a module const grants no mutation
@@ -2013,11 +2024,12 @@ poke(CFG)                 // T3006 — a module const grants no mutation
 **A generic that stores its argument** says so. A bare `T` grants nothing to what the callee *does* with it, but says nothing about where it *puts* it: `push` writes nothing through its argument, but stores it in an array that hands it back writable. Such a parameter carries the marker on the type parameter — `push :: fn(self!, value: T!)` — and the argument must then be as mutable as `T` is bound to:
 
 ```vader
-held: Cfg![]!: []
-held.push(borrowed)       // T3072 — it would come back out as a mutable `Cfg`
-frozen: Cfg[]!: []
+held: Cfg[]: []
+held.push(borrowed)       // T3072 — `held` is a `Cfg![]!`, its elements written below,
+held[0].n = 1             // and `borrowed` would come back out as a mutable `Cfg`
+frozen: Cfg[]: []
 frozen.push(borrowed)     // fine — `T` is `Cfg`, frozen ; the marker asks nothing
-ints: i32[]!: []
+ints: i32[]: []
 ints.push(n)              // fine — a scalar has no level to grant
 ```
 
@@ -2056,7 +2068,7 @@ frozen :: fn(x: i32[] | string[]) -> usize {
 
 ```vader
 freeze :: fn(cfgs: Cfg[]) -> Cfg[]! {
-    out: Cfg[]! = []
+    out: Cfg[]: []
     for c in cfgs {
         out.push(Cfg { ...c, .retries = 0 })   // `c` is read-only ; the literal is not
     }

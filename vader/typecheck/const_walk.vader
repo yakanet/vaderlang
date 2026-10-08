@@ -137,14 +137,14 @@ DependencyFrame :: struct {
 // reads : a depth-first post-order, kept on an explicit stack so a long chain costs
 // no call depth. In a cycle, the read that closes it reports it (T3099).
 consts_in_dependency_order :: fn(root: AST.ConstDecl, typed: TypedProgram) -> AST.ConstDecl![] {
-    out: AST.ConstDecl![]!: []
+    out: AST.ConstDecl[]: []
     walk :: typed.const_walk
     if root.span.hash() in walk.states {
         return out
     }
     seen :: MutableSet<u64> {}
     _ :: seen.add(root.span.hash())
-    stack: DependencyFrame![]!: [frame_of(root, typed)]
+    stack: DependencyFrame[]: [frame_of(root, typed)]
     for stack.len() > 0 {
         top :: stack[stack.len() - 1]
         if top.next == top.reads.len() {
@@ -169,8 +169,8 @@ frame_of :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> DependencyFrame! =
 // and index reads, calls, literals and `??` ; a read under any other form is typed
 // on demand instead (`settle_const_read`).
 const_reads :: fn(e: AST.Expr, typed: TypedProgram) -> AST.ConstDecl![] {
-    out: AST.ConstDecl![]!: []
-    work: AST.Expr[]!: [e]
+    out: AST.ConstDecl[]: []
+    work: AST.Expr[]: [e]
     for work.len() > 0 {
         x :: work.remove_last() ?? break
         match x {

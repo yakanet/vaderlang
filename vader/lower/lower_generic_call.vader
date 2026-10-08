@@ -64,7 +64,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
             if sym_or_null is Symbol {
                 fn_sym :: follow_import_binding(ctx, sym_or_null)
                 if fn_sym.kind == .Fn {
-                    type_args: Type[]!: []
+                    type_args: Type[]: []
                     for ta in gi.type_args {
                         resolved :: ctx.types.type_expr_type(ta)
                         if resolved is UnresolvedType {
@@ -240,7 +240,7 @@ register_and_emit_generic_call :: fn(
     // the call drops. Mirrors the harvest in `lower_ufcs::harvest_ufcs_fn_instance`.
     mono_args :: instance_type_args(ctx, fn_sym, concrete_args)
     mangled :: register_fn_instance_mangle(ctx, fn_sym, mono_args)
-    lowered_args: LoweredExpr![]!: []
+    lowered_args: LoweredExpr[]: []
     for ca in call.args { lowered_args.push(lower_expr(ctx, ca.value)) }
     mono_sym :: Symbol {
         .id         = fn_sym.id,
@@ -266,7 +266,7 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
     // TypeParam symbol on the pattern side, record its concrete-side
     // counterpart. Repeated bindings of the same symbol must agree.
     bindings :: MutableMap<i32, Type> {}
-    order: i32[]!: []
+    order: i32[]: []
     n :: ft.params.len()
     if n > call.args.len() { return [] }
     for i in 0..<n {
@@ -281,7 +281,7 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
     // it the instance is keyed on a dangling `T` and materialisation fails with
     // the GATE B1 "unresolved callee" panic.
     unify_params(ft.return_type, default_if_free(ctx.types.expr_type(call)), bindings, order, ctx)
-    out: Type[]!: []
+    out: Type[]: []
     for id in order {
         v :: bindings[id]
         match v {

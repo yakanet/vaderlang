@@ -244,7 +244,7 @@ pick_index_member :: fn(
     if members.len() < 2 {
         return null
     }
-    sigs: Type[]!: []
+    sigs: Type[]: []
     for m in members {
         sigs.push(impl_member_type(m, receiver, typed))
     }

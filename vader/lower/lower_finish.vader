@@ -8,7 +8,7 @@ import "vader/resolver/symbol"
 // One `LoweredVtableEntry` per surviving impl member — the slot its `MonoEntry`
 // records (`(trait_key, method)`) for the receiver type of its `self`.
 collect_vtable_entries :: fn(project: LoweredProject) -> LoweredVtableEntry[] {
-    out: LoweredVtableEntry[]!: []
+    out: LoweredVtableEntry[]: []
     for [_, m] in project.modules {
         for d in m.decls {
             if d is LoweredFnDecl {

@@ -110,7 +110,7 @@
   expr 48:50    IdentExpr      :: fn(i32, i32) -> Pair
   expr 48:65    CallExpr       :: Pair
   expr 48:65    IdentExpr      :: fn(i32, i32) -> Pair
-  expr 53:20    SeqLitExpr     :: i32[]!
+  expr 53:19    SeqLitExpr     :: i32[]!
   expr 54:16    LambdaExpr     :: fn(i32) -> [i32, string]!
   expr 55:20    BinaryExpr     :: i32
   expr 55:20    IdentExpr      :: i32[]!

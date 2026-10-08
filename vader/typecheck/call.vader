@@ -147,7 +147,7 @@ pick_member_overload :: fn(
     candidates :: typed.overloaded_members[field.id] ?? return initial
     is_static :: typed.static_members[field.id] != null
     receiver :: typed.expr_types[field.target.id] ?? TY_UNRESOLVED
-    sigs: Type[]!: []
+    sigs: Type[]: []
     for m in candidates {
         sigs.push(if is_static { m.ty } else { impl_member_type(m, receiver, typed) })
     }
@@ -196,7 +196,7 @@ pick_member_index :: fn(
     // The pick reads the result's shape ; its rights are judged against the slot
     // once picked (`Iterator<Mon!>!` from an owned array fits an `Iterator<Mon>!`
     // conversion as surely as the call that follows reports it).
-    fits: usize[]!: []
+    fits: usize[]: []
     if expected != null {
         want :: strip_mutability(expected)
         for i in 0..<sigs.len() {
@@ -382,7 +382,7 @@ primary_overload_ft :: fn(callee: AST.Expr, typed: TypedProgram) -> Type | null 
 collect_overload_candidates :: fn(
     name: string, file: string, typed: TypedProgram,
 ) -> FnCandidate[] {
-    out: FnCandidate[]!: []
+    out: FnCandidate[]: []
     bucket :: typed.resolved.fn_overloads[name]
     if bucket !is null {
         for sym in bucket {
@@ -481,7 +481,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
     if c.args.len() == params.len() && in_parameter_order(params, c.args) {
         return null
     }
-    slots: (AST.CallArg | null)[]!: [null] * params.len()
+    slots: (AST.CallArg | null)[]: [null] * params.len()
     seen_named := false
     next_pos: usize = 0
     ok := true
@@ -532,7 +532,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
             }
         }
     }
-    out: AST.CallArg[]!: []
+    out: AST.CallArg[]: []
     for i in 0..<params.len() {
         slot :: slots[i]
         if slot is AST.CallArg {
@@ -714,7 +714,7 @@ ufcs_tail_params :: fn(fd: AST.FnDecl) -> AST.FnParam[] | null {
     if fd.params.len() == 0 {
         return null
     }
-    tail: AST.FnParam![]!: []
+    tail: AST.FnParam[]: []
     for i in 1..<fd.params.len() {
         tail.push(fd.params[i])
     }
@@ -777,7 +777,7 @@ report_unbound_type_args :: fn(
             return
         }
     }
-    unbound: Symbol[]!: []
+    unbound: Symbol[]: []
     for p in callee_ty.params {
         collect_unbound_type_params(p, bindings, unbound)
     }
@@ -804,7 +804,7 @@ callee_is_kind :: fn(c: AST.CallExpr, kind: SymbolKind, typed: TypedProgram) -> 
 
 // Whether `t` names a type parameter `bindings` has no entry for.
 mentions_unbound_type_param :: fn(t: Type, bindings: MutableMap<i32, Type>) -> bool {
-    unbound: Symbol[]!: []
+    unbound: Symbol[]: []
     collect_unbound_type_params(t, bindings, unbound)
     return unbound.len() > 0
 }
@@ -976,7 +976,7 @@ export infer_call :: fn(
         // (`fn<T>(x: T) -> T` called as `42.identity()`) still
         // substitute through the return type.
         seed_ufcs_bindings(c.callee, typed, bindings, held)
-        arg_types: Type[]!: []
+        arg_types: Type[]: []
         // Lambda arguments are checked LAST. Their param type may mention a
         // type-param that nothing has bound yet — one a later argument, or the
         // call's `expected`, resolves. Checking `() -> []` against an
@@ -1020,7 +1020,7 @@ export infer_call :: fn(
             // slot is bound already : the rounds could bind nothing, and nested
             // lambdas would be checked twice per level.
             if lambda_slot_unbound(c, callee_ty, bindings, n) {
-                scratch: Diagnostic[]!: []
+                scratch: Diagnostic[]: []
                 for 0..<n {
                     before :: bindings.len()
                     for i in 0..<n {
@@ -1656,7 +1656,7 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture! {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     if last is AST.FnDecl {
@@ -1666,7 +1666,7 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture! {
             }
             is AST.BlockExpr -> {
                 hit :: find_first_in_block(last.body, accept_call)
-                call: AST.CallExpr! | null = null
+                call: AST.CallExpr | null = null
                 if hit is AST.CallExpr {
                     call = hit
                 }
@@ -1699,7 +1699,7 @@ main :: fn() -> i32 { return add(1, 2) }
     match fx.call as c {
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
-            diags: Diagnostic[]!: []
+            diags: Diagnostic[]: []
             assert_eq(display_type(infer_call(c, null, fx.typed, diags, call_check_stub)), "i32")
             assert_eq(diags.len(), 0)
         }
@@ -1716,7 +1716,7 @@ main :: fn() -> i32 { return add(1) }
     match fx.call as c {
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
-            diags: Diagnostic[]!: []
+            diags: Diagnostic[]: []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             assert(diags.len() >= 1, "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3005")
@@ -1734,7 +1734,7 @@ main :: fn() -> i32 { return add(1, 2, 3) }
     match fx.call as c {
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
-            diags: Diagnostic[]!: []
+            diags: Diagnostic[]: []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             assert(diags.len() >= 1, "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3003")
@@ -1751,7 +1751,7 @@ f :: fn() -> i32 { return i32("hello") }
     match fx.call as c {
         is null         -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr -> {
-            diags: Diagnostic[]!: []
+            diags: Diagnostic[]: []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             found := false
             for d in diags {
@@ -1773,7 +1773,7 @@ f :: fn(a: i32) -> i64 { return i64(a) }
     match fx.call as c {
         is null         -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr -> {
-            diags: Diagnostic[]!: []
+            diags: Diagnostic[]: []
             assert_eq(display_type(infer_call(c, null, fx.typed, diags, call_check_stub)), "i64")
             found := false
             for d in diags {
@@ -1796,7 +1796,7 @@ main :: fn() -> i32 { return greet(1) }
     match fx.call as c {
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
-            diags: Diagnostic[]!: []
+            diags: Diagnostic[]: []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             // The omitted trailing param is filled from its default.
             assert_eq(c.args.len(), 2)
@@ -1814,7 +1814,7 @@ main :: fn() -> void { greet(42) }
     match fx.call as c {
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
-            diags: Diagnostic[]!: []
+            diags: Diagnostic[]: []
             infer_call(c, null, fx.typed, diags, call_check_stub)
             // FreeInt is not assignable to string ; T3001 fires.
             found := false
@@ -1861,7 +1861,7 @@ param_shape_slot :: fn(arg_ty: Type, param_ty: Type) -> Type =
     if type_param_at_top(arg_ty) { with_immutable(param_ty, true) } else { param_ty }
 
 arg_mutability_cleared_each :: fn(ts: Type[]) -> Type[] {
-    out: Type[]!: []
+    out: Type[]: []
     for t in ts { out.push(arg_mutability_cleared(t)) }
     return out
 }
@@ -1900,7 +1900,7 @@ reject_immutable_into_mutable_param :: fn(
     }
     value :: c.args[i].value
     what :: "it is passed to a parameter that mutates it"
-    if note_param_need(value, c.args[i].span, what, typed) {
+    if note_slot_need(value, c.args[i].span, what, typed) {
         return false
     }
     detail :: mutable_param_detail(c, callee_ty, i, typed)

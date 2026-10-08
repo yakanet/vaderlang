@@ -80,7 +80,7 @@ Two implements Stepper {
 }
 
 main :: fn() -> i32 {
-    a: i32[]!: [10, 20, 30]
+    a: i32[]: [10, 20, 30]
     a[slot(1)] += 1
     println("a = ${a[0]} ${a[1]} ${a[2]}")
 
@@ -88,7 +88,7 @@ main :: fn() -> i32 {
     holder.items[slot(0)] *= 7
     println("holder = ${holder.items[0]} ${holder.items[1]}")
 
-    rows: Row[]!: [Row { .cells = [0, 0] }, Row { .cells = [0, 0] }]
+    rows: Row[]: [Row { .cells = [0, 0] }, Row { .cells = [0, 0] }]
     rows[slot(1)].cells[slot(0)] += 5
     println("rows = ${rows[1].cells[0]}")
 
@@ -100,7 +100,7 @@ main :: fn() -> i32 {
     pick(shared).count += 3
     println("shared = ${shared.count}")
 
-    words: string[]!: ["a", "b"]
+    words: string[]: ["a", "b"]
     words[slot(1)] += "!"
     println("words = ${words[0]} ${words[1]}")
 

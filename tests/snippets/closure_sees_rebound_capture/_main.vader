@@ -36,7 +36,7 @@ main :: fn() -> i32 {
 
     // A range counter the body reassigns : each closure keeps its iteration's
     // cell, and sees the value the body left in it.
-    seen: (fn() -> i32)[]!: []
+    seen: (fn() -> i32)[]: []
     for i in 0..<3 {
         seen.push(() -> i)
         i = i * 10
@@ -46,7 +46,7 @@ main :: fn() -> i32 {
     }
 
     // An array element the body reassigns.
-    tagged: (fn() -> string)[]!: []
+    tagged: (fn() -> string)[]: []
     for word in ["a", "b"] {
         tagged.push(() -> word)
         word = word + "!"
@@ -56,7 +56,7 @@ main :: fn() -> i32 {
     }
 
     // A fused filter chain's element the body reassigns.
-    evens: (fn() -> i32)[]!: []
+    evens: (fn() -> i32)[]: []
     for z in (0..<5).filter(is_even) {
         evens.push(() -> z)
         z = z * 10

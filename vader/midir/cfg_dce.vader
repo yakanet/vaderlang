@@ -23,7 +23,7 @@ import "vader/resolver/symbol"
 export eliminate_dead_cfg :: fn(p: CFGProject) -> CFGProject! {
     new_modules :: MutableMap<string, CFGModule> {}
     for [module_id, m] in p.modules {
-        new_fns: CFGFunction![]!: []
+        new_fns: CFGFunction[]: []
         for f in m.functions { new_fns.push(optimise_function(f)) }
         new_modules[module_id] = CFGModule { ...m, .functions = new_fns }
     }
@@ -38,10 +38,10 @@ optimise_function :: fn(f: CFGFunction) -> CFGFunction! = compact_locals(fold_mo
 
 fold_moves :: fn(f: CFGFunction) -> CFGFunction! {
     use_count :: count_uses(f)
-    param_locals: MutableSet<LocalId>!: MutableSet<LocalId> {}
+    param_locals: MutableSet<LocalId>: MutableSet<LocalId> {}
     for p in f.params { param_locals.add(p.local) }
 
-    new_blocks: BasicBlock[]!: []
+    new_blocks: BasicBlock[]: []
     for b in f.blocks {
         new_blocks.push(BasicBlock {
             ...b,
@@ -55,7 +55,7 @@ fold_moves_in_block :: fn(
     b: BasicBlock, locals: CFGLocal[], use_count: MutableMap<LocalId, i32>,
     param_locals: MutableSet<LocalId>,
 ) -> Instruction[] {
-    folded: Instruction[]!: []
+    folded: Instruction[]: []
     for i in 0..<b.instructions.len() {
         ins :: b.instructions[i]
         if !(ins is InstrMove) { folded.push(ins)  continue }
@@ -79,7 +79,7 @@ fold_moves_in_block :: fn(
             // Reused mutable cell for the closure below — declared once, reset
             // per iteration (a fresh `[false]` per step would heap-allocate on
             // every backward step).
-            reads_cell: bool[]!: [false]
+            reads_cell: bool[]: [false]
             j: i64 = i64(folded.len()) - 1
             for j >= 0 {
                 cand :: folded[usize(j)]
@@ -119,7 +119,7 @@ fold_moves_in_block :: fn(
 
 compact_locals :: fn(f: CFGFunction) -> CFGFunction! {
     n :: f.locals.len()
-    referenced: bool[]!: [false] * n
+    referenced: bool[]: [false] * n
     // Params keep their slots regardless.
     for p in f.params { if usize(p.local) < n { referenced[usize(p.local)] = true } }
 
@@ -152,8 +152,8 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction! {
     if !dropped_any { return f }
 
     // Build remap + new locals.
-    remap: i32[]!: [] * n
-    new_locals: CFGLocal[]!: [] * n
+    remap: i32[]: [] * n
+    new_locals: CFGLocal[]: [] * n
     for i in 0..<n {
         if !referenced[i] { remap.push(-1)  continue }
         remap.push(i32(new_locals.len()))
@@ -161,7 +161,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction! {
     }
 
     // Remap params via the same map.
-    new_params: CFGParam[]!: [] * f.params.len()
+    new_params: CFGParam[]: [] * f.params.len()
     for p in f.params {
         new_params.push(CFGParam {
             .name = p.name, .symbol = p.symbol, .type = p.type,
@@ -170,9 +170,9 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction! {
     }
 
     // Drop pure instructions whose dst → -1 ; remap survivors.
-    new_blocks: BasicBlock[]!: [] * f.blocks.len()
+    new_blocks: BasicBlock[]: [] * f.blocks.len()
     for b in f.blocks {
-        out: Instruction[]!: [] * b.instructions.len()
+        out: Instruction[]: [] * b.instructions.len()
         for ins in b.instructions {
             d :: dst_of(ins)
             if d is LocalId {
@@ -204,7 +204,7 @@ remap_local_opt :: fn(m: i32[], l: LocalId | null) -> LocalId | null {
 }
 
 remap_locals :: fn(m: i32[], ls: LocalId[]) -> LocalId[] {
-    out: LocalId[]!: []
+    out: LocalId[]: []
     for l in ls { out.push(remap_local(m, l)) }
     return out
 }

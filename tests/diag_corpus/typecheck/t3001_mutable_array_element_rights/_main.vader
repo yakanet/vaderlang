@@ -14,7 +14,7 @@ fill :: fn(dst: Point[]) -> void {
 }
 
 refill :: fn(f: fn(Point[]!) -> void) -> i32 {
-    held: Point![]!: []
+    held: Point[]: []
     f(held)
     held[0].x = 9
     return ORIGIN.x

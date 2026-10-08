@@ -368,13 +368,10 @@
               "name": "nums"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -399,13 +396,10 @@
               "name": "words"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "string"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "string"
               }
             },
             "value": {

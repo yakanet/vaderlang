@@ -254,7 +254,7 @@ export BytecodeModule :: struct {
 /// @param module  the module whose pool and fn bodies are scanned.
 /// @return        one type_id per `module.data_pool` entry.
 export data_pool_type_ids :: fn(module: BytecodeModule) -> i32[] {
-    out: i32[]!: [0] * module.data_pool.len()
+    out: i32[]: [0] * module.data_pool.len()
     if out.len() == 0 {
         return out
     }

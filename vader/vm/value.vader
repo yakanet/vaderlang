@@ -52,7 +52,7 @@ export zero_value :: fn() -> Value! { return I32Val(0) }
 ///                 matched against `string[]` so the tag is moot).
 /// @return         an `ArrayVal` whose elements are `StringVal`s of `items`.
 export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal! {
-    elements: Value![]!: []
+    elements: Value[]: []
     for s in items { elements.push(StringVal(s)) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
@@ -326,7 +326,7 @@ export detach_array_view :: fn(a: ArrayVal) -> void {
     if a.raw == null && !is_array_view(a) {
         return
     }
-    fresh: Value![]!: [] * a.length
+    fresh: Value[]: [] * a.length
     for j in 0..<a.length {
         fresh.push(element_at(a, a.offset + j))
     }

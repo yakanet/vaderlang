@@ -49,7 +49,7 @@ now_unix_ms :: fn() -> i64
 
 @target(.Linux, .Darwin)
 now_unix_ms :: fn() -> i64 {
-    ts: i64[]! = [0, 0]
+    ts: i64[] = [0, 0]
     if sys_clock_gettime(CLOCK_REALTIME, ts) != 0 {
         return 0
     }
@@ -75,7 +75,7 @@ monotonic_ns :: fn() -> i64
 
 @target(.Linux, .Darwin)
 monotonic_ns :: fn() -> i64 {
-    ts: i64[]! = [0, 0]
+    ts: i64[] = [0, 0]
     if sys_clock_gettime(CLOCK_MONOTONIC, ts) != 0 {
         return 0
     }

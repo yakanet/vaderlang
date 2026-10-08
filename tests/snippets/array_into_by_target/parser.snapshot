@@ -681,20 +681,17 @@
               "name": "it"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "GenericInstExpr",
-                "callee": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Iterator"
+              },
+              "typeArgs": [
+                {
                   "kind": "IdentExpr",
-                  "name": "Iterator"
-                },
-                "typeArgs": [
-                  {
-                    "kind": "IdentExpr",
-                    "name": "Mon"
-                  }
-                ]
-              }
+                  "name": "Mon"
+                }
+              ]
             },
             "value": {
               "kind": "IdentExpr",

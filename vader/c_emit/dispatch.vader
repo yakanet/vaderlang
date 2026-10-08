@@ -93,7 +93,7 @@ dispatcher_parameters :: fn(sig: BcSignature) -> CParameter[] = boxed_parameters
 /// the bodies are emitted.
 emit_vtable_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     rows :: ctx.module.vtables
-    prototypes: CTopLevel[]!: []
+    prototypes: CTopLevel[]: []
     for row in rows {
         if row.entries.len() == 0 {
             continue
@@ -113,17 +113,17 @@ emit_vtable_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     rows :: ctx.module.vtables
     types :: ctx.module.types
-    dispatchers: CTopLevel[]!: []
+    dispatchers: CTopLevel[]: []
     for row in rows {
         if row.entries.len() == 0 { continue }
         sig :: vtable_sig_for_row(ctx, row)
-        cases: CCase[]!: []
+        cases: CCase[]: []
         // A distinct (newtype) over a primitive shares its backing's runtime
         // tag, so several entries can map to one tag (e.g. i32 + a distinct
         // BlockId/LocalId → tag 4). Emit one `case` per tag : the first (the
         // backing's, whose delegating impl is equivalent) wins. Without this
         // the C carries a `duplicate case value`.
-        seen_tags: i32[]!: []
+        seen_tags: i32[]: []
         for e in row.entries {
             if e.receiver_type_index in seen_tags {
                 continue
@@ -131,7 +131,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
             seen_tags.push(e.receiver_type_index)
             callee :: ctx.module.functions[usize(e.fn_index)]
             csig :: callee.signature
-            args: CExpression[]!: [coerce_expr(types, verbatim("recv"), .Any, csig.params[0])]
+            args: CExpression[]: [coerce_expr(types, verbatim("recv"), .Any, csig.params[0])]
             tail :: i32(csig.params.len()) - 1
             for i in 0..<tail {
                 args.push(coerce_expr(types, verbatim("a${i}"), .Any, csig.params[usize(i + 1)]))
@@ -159,7 +159,7 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
                 [verbatim(c_string_lit("vtable miss in ${row.key}"))],
             ),
         }
-        statements: CStatement[]!: [
+        statements: CStatement[]: [
             CSwitch {
                 .subject = CMember { .base = verbatim("recv"), .member = "tag" },
                 .cases = cases,

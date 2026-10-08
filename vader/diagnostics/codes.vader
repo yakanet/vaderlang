@@ -278,7 +278,7 @@ export WarningCode :: enum(CodeInfo) {
     MutableNeverReassigned      { .id = "W0015", .message = "local is declared mutable but never reassigned — declare it with `::`" },
     NeedlessEnumTypePrefix      { .id = "W0016", .message = "the enum name adds nothing here — the slot already pins it, so the bare variant reads the same" },
     DeducedMutabilityMarker     { .id = "W0017", .message = "the compiler deduces this `!` from the body — remove it" },
-    NeedlessMutabilityMarker    { .id = "W0018", .message = "nothing mutates this parameter at this level — remove the `!`" },
+    NeedlessMutabilityMarker    { .id = "W0018", .message = "nothing mutates this value at this level — remove the `!`" },
 }
 
 /// `H6xxx` — the build driver (`build.vader`) and the hooks it registers.

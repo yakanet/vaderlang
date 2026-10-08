@@ -236,8 +236,8 @@ attach_trailing_comments :: fn(text: string) -> string {
     if !(TRAILING_MARK in text) {
         return text
     }
-    codes: string[]!: []
-    notes: string[]!: []
+    codes: string[]: []
+    notes: string[]: []
     // Set once a comment had to stand alone : the rest of its batch follows it
     // on lines of their own, in source order.
     standalone := false
@@ -301,7 +301,7 @@ indent_width :: fn(line: string) -> usize {
 // fns produced by the `@comptime` const-sugar desugar. Every other decl passes
 // through in order.
 emittable_decls :: fn(decls: p.Decl[]) -> p.Decl[] {
-    out: p.Decl[]!: []
+    out: p.Decl[]: []
     for d in decls {
         if d is p.FnDecl {
             if d.comptime_synthetic { continue }
@@ -459,7 +459,7 @@ decls_in_same_group :: fn(prev: p.Decl, cur: p.Decl) -> bool {
 // decls all see the same width — the max name length in the group — so
 // every name in the group aligns to the same column.
 compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> usize[] {
-    out: usize[]!: []
+    out: usize[]: []
     i: usize = 0
     for i < decls.len() {
         if !decl_is_alignable(decls[i]) {
@@ -823,7 +823,7 @@ EnumVariantColumns :: struct {
 // adjacent lines — a blank line or a comment line ends it — and a variant
 // alone in its group pads nothing.
 enum_variant_columns :: fn(source: string, variants: p.EnumVariant[]) -> EnumVariantColumns[] {
-    out: EnumVariantColumns![]!: []
+    out: EnumVariantColumns[]: []
     i: usize = 0
     for i < variants.len() {
         end := i + 1
@@ -945,7 +945,7 @@ emit_trait_decl :: fn(self: Printer, d: p.TraitDecl) -> void {
 // consecutive signature-only fns with matching visibility and decorator
 // set share a group.
 compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> usize[] {
-    out: usize[]!: []
+    out: usize[]: []
     i: usize = 0
     for i < members.len() {
         m :: members[i]
@@ -1652,7 +1652,12 @@ emit_expr :: fn(self: Printer, e: p.Expr | null) -> void {
             // mutable slot read-only (round-trip corruption, mirror of `const`
             // above). The marker binds tighter than `|` / `&`, so a union or
             // intersection inner gets the same parenthesising as an array
-            // element : `(A | B)!` must round-trip verbatim.
+            // element : `(A | B)!` must round-trip verbatim. A deduced marker is
+            // no part of the source, and does not print.
+            if e.deduced {
+                self.emit_expr(e.inner)
+                return
+            }
             self.emit_array_or_union_element(e.inner)
             self.write("!")
         }
@@ -2145,7 +2150,7 @@ if_cond_width :: fn(s: p.Stmt, source: string) -> usize {
 // `if`s (a lookup table), the max condition width across the run ; 0 otherwise.
 // Mirrors the `::` decl-group width computation in `alignment_widths`.
 compute_if_align :: fn(stmts: p.Stmt[], source: string) -> usize[] {
-    out: usize[]!: []
+    out: usize[]: []
     i: usize = 0
     for i < stmts.len() {
         if !inline_if_stmt(stmts[i]) {

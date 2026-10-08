@@ -66,7 +66,7 @@ export check_file :: fn(
     selection: Selection | null = null,
 ) -> FileCheck {
     project :: load_project_with_overlay(entry_path, overlay, include_path_flags, selection)
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     result :: check_project_with_bodies(project, diags, dump_types)
     return FileCheck {
         .project = project,
@@ -127,7 +127,7 @@ export check_project_with_bodies :: fn(
     first_symbol :: project.factory.next
     for {
         project.factory.next = first_symbol
-        round: Diagnostic[]!: []
+        round: Diagnostic[]: []
         result :: check_project_round(project, round, dump_types, inference, core_seed, mod_index)
         if !settle_param_marks(inference, result.all_modules) {
             diags.push_all(round)
@@ -457,7 +457,7 @@ check_project_round :: fn(
     impls :: build_impl_registry(merge_module_program(entry_loaded.module.files).decls, entry_typed.resolved)
     // Every directly-imported non-stdlib module gets its own `## <path>`
     // section in the dump.
-    others: TypedProgram![]: collect_direct_imports(entry_loaded, project, per_module)
+    others: TypedProgram[]: collect_direct_imports(entry_loaded, project, per_module)
     return CheckResult {
         .typed = entry_typed,
         .impls = impls,
@@ -471,7 +471,7 @@ collect_direct_imports :: fn(
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram!>,
 ) -> TypedProgram![]! {
-    out: TypedProgram![]!: []
+    out: TypedProgram[]: []
     // The loader already resolved every import. A module imported as
     // `import "path"` declares `module "path"` (module-system invariant), so
     // map each loaded module's declared name to its id and look the import up
@@ -646,7 +646,7 @@ check_module_impl_coherence :: fn(
                 diags.push(resolver_error(.ConflictingImpl, decl.span, detail))
                 continue
             }
-            args: Type[]!: []
+            args: Type[]: []
             for ta in decl.trait_args {
                 args.push(type_from_expr(ta, tp.resolved, diag_sink()))
             }
@@ -875,7 +875,7 @@ imported_fn_sigs :: fn(
     tp: TypedProgram,
     per_module: MutableMap<string, TypedProgram!>,
 ) -> ImportedFnSig[] {
-    out: ImportedFnSig[]!: []
+    out: ImportedFnSig[]: []
     targets :: tp.import_targets
     if targets !is ImportTargetTable {
         return out
@@ -903,7 +903,7 @@ imported_fn_sigs :: fn(
 // param is un-annotated (only lambdas omit param types ; a named fn always has
 // them, so the null branch is a defensive skip).
 fn_signature_key :: fn(fd: AST.FnDecl, resolved: ResolvedModule) -> string | null {
-    params: Type[]!: []
+    params: Type[]: []
     for p in fd.params {
         pty :: p.ty ?? return null
         params.push(type_from_expr(pty, resolved, diag_sink()))
@@ -1026,12 +1026,12 @@ record_impl_bounds :: fn(
     if args.is_empty() || is_instance_receiver(for_ty) {
         return
     }
-    bounds: ArgBound[]!: []
+    bounds: ArgBound[]: []
     for i in 0..<args.len() {
         arg :: args[i]
         if arg is TypeParamType {
             bound :: resolved.type_param_bounds[arg.symbol.id] ?? continue
-            traits: TraitType[]!: []
+            traits: TraitType[]: []
             collect_bound_trait_types(bound, resolved, traits)
             bounds.push(ArgBound {
                 .position = i,
@@ -1092,7 +1092,7 @@ record_struct_bounds :: fn(
             continue
         }
         decl :: typed.struct_decls[sym.id] ?? continue
-        bounds: ArgBound[]!: []
+        bounds: ArgBound[]: []
         for i in 0..<decl.type_params.len() {
             tp :: decl.type_params[i]
             tp_sym :: typed.resolved.idents[tp.span.hash()] ?? continue
@@ -1149,7 +1149,7 @@ inherit_struct_bounds :: fn(
 with_struct_traits :: fn(
     own: TypeParamBound | null, name: string, inherited: TraitType[],
 ) -> TypeParamBound {
-    traits: TraitType[]!: []
+    traits: TraitType[]: []
     if own != null {
         traits.push_all(own.traits)
     }
@@ -1181,7 +1181,7 @@ record_type_param_bounds :: fn(
             continue
         }
         bound :: resolved.type_param_bounds[sym.id] ?? continue
-        traits: TraitType[]!: []
+        traits: TraitType[]: []
         collect_bound_trait_types(bound, resolved, traits)
         out[sym.id] = TypeParamBound { .name = sym.name, .traits = traits }
     }
@@ -1193,7 +1193,7 @@ record_type_param_bounds :: fn(
 /// @param resolved  the module that declares the type parameter.
 /// @param out       receives one key per trait, left to right.
 export collect_bound_traits :: fn(bound: AST.Expr, resolved: ResolvedModule, out: string[]) -> void {
-    traits: TraitType[]!: []
+    traits: TraitType[]: []
     collect_bound_trait_types(bound, resolved, traits)
     for t in traits {
         out.push(trait_key_of(t.symbol))
@@ -1492,7 +1492,7 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
 // (`Value :: I32Val | StringVal` above the distincts it names) ; what another
 // module declares is `settle_project_aliases`'.
 register_aliases :: fn(typed: TypedProgram, decls: AST.Decl[]) -> AST.Decl[] {
-    pending: AST.Decl[]!: []
+    pending: AST.Decl[]: []
     for decl in decls {
         if !register_alias_decl(decl, typed) {
             pending.push(decl)
@@ -1505,7 +1505,7 @@ register_aliases :: fn(typed: TypedProgram, decls: AST.Decl[]) -> AST.Decl[] {
 settle_pending_aliases :: fn(typed: TypedProgram, pending: AST.Decl[]) -> AST.Decl[] {
     rest := pending
     for rest.len() > 0 {
-        still: AST.Decl[]!: []
+        still: AST.Decl[]: []
         for decl in rest {
             if !register_alias_decl(decl, typed) {
                 still.push(decl)
@@ -1739,9 +1739,9 @@ merge_external_alias_types :: fn(
 /// module the trait lives in.
 cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram!>) -> void {
     // Pass 1 : collect every (trait_sym_id, decl, owner) tuple.
-    ids: i32[]!: []
-    decls: AST.TraitDecl[]!: []
-    owners: ResolvedModule[]!: []
+    ids: i32[]: []
+    decls: AST.TraitDecl[]: []
+    owners: ResolvedModule[]: []
     for [_, tp] in per_module {
         for [sym_id, d] in tp.trait_decls {
             o :: tp.trait_decl_owners[sym_id]
@@ -1768,8 +1768,8 @@ cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram!>) -
 /// Lets `lookup_callee_fn_decl` reach a callee declared in another module
 /// (`std/math.min` from an entry call site).
 cross_publish_fn_decls :: fn(per_module: MutableMap<string, TypedProgram!>) -> void {
-    ids: i32[]!: []
-    fdecls: AST.FnDecl[]!: []
+    ids: i32[]: []
+    fdecls: AST.FnDecl[]: []
     for [_, tp] in per_module {
         for [sym_id, d] in tp.fn_decls {
             ids.push(sym_id)
@@ -2893,7 +2893,7 @@ ufcs_method_type :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    rest: Type[]!: []
+    rest: Type[]: []
     for i in receiver_count(fd)..<fd.params.len() {
         rest.push(param_type(fd.params[i], for_ty, typed, diags))
     }
@@ -2920,7 +2920,7 @@ declare_impl_method_for_trait :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    params: Type[]!: []
+    params: Type[]: []
     for p in fd.params {
         pt :: param_type(p, for_ty, typed, diags)
         typed.param_types[p.span.hash()] = pt

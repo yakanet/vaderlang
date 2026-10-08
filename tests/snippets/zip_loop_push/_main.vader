@@ -8,7 +8,7 @@ import "std/io"
 import "std/iter"
 
 products :: fn(a: i32[], b: i32[]) -> i64[] {
-    out: i64[]!: []
+    out: i64[]: []
     for [x, y] in zip(a, b) {
         out.push(i64(x) * i64(y))
     }

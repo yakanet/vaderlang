@@ -98,16 +98,16 @@
                 snippet$Sq$Shape$unit :Sq!
               arg0:
                 int(3) :i32
-    let s: Sq! =
-      call :Sq!
+    let s: Sq =
+      call :Sq
         callee:
-          snippet$build__Sq :Sq!
+          snippet$build__Sq :Sq
         arg0:
           int(4) :i32
-    let r: Rect! =
-      call :Rect!
+    let r: Rect =
+      call :Rect
         callee:
-          snippet$build__Rect :Rect!
+          snippet$build__Rect :Rect
         arg0:
           int(2) :i32
     let shapes: Shape[]! =
@@ -383,18 +383,18 @@
         r:
           .cap_0 :i64
             __env_0 :__lambda_env_snippet_1!
-  fn snippet$build__Rect(n: i32) -> Rect!
+  fn snippet$build__Rect(n: i32) -> Rect
     ~>
-      call :Rect!
+      call :Rect
         callee:
-          snippet$Rect$Shape$unit :Rect!
+          snippet$Rect$Shape$unit :Rect
         arg0:
           n :i32
-  fn snippet$build__Sq(n: i32) -> Sq!
+  fn snippet$build__Sq(n: i32) -> Sq
     ~>
-      call :Sq!
+      call :Sq
         callee:
-          snippet$Sq$Shape$unit :Sq!
+          snippet$Sq$Shape$unit :Sq
         arg0:
           n :i32
   fn snippet$via_a__P() -> P

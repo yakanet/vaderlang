@@ -170,16 +170,13 @@
               "name": "thunks"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "FnTypeExpr",
-                  "params": [],
-                  "returnType": {
-                    "kind": "IdentExpr",
-                    "name": "void"
-                  }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "FnTypeExpr",
+                "params": [],
+                "returnType": {
+                  "kind": "IdentExpr",
+                  "name": "void"
                 }
               }
             },
@@ -384,16 +381,13 @@
               "name": "mapped"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "FnTypeExpr",
-                  "params": [],
-                  "returnType": {
-                    "kind": "IdentExpr",
-                    "name": "void"
-                  }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "FnTypeExpr",
+                "params": [],
+                "returnType": {
+                  "kind": "IdentExpr",
+                  "name": "void"
                 }
               }
             },

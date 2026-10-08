@@ -276,7 +276,7 @@ checked_bound :: fn(self: ResolveState, tp: AST.TypeParam, bound: AST.Expr) -> A
     }
     union :: union_in_bound(bound) ?? return bound
     variants :: AST.collect_bitor_variants(union)
-    others: AST.Expr[]!: []
+    others: AST.Expr[]: []
     for v in variants {
         // A bound spells `null` as a name, not as the literal.
         if v !is AST.IdentExpr || v.name != "null" {
@@ -539,7 +539,7 @@ walk_stmt :: fn(self: ResolveState, s: AST.Stmt) -> void {
 walk_let :: fn(self: ResolveState, s: AST.LetStmt) -> void {
     self.walk_opt_expr(s.ty)
     self.walk_expr(s.value)
-    bound: Symbol[]!: []
+    bound: Symbol[]: []
     self.bind_let_binding(s.binding, bound)
     if !s.mutable {
         for sym in bound {
@@ -621,7 +621,7 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
                 is AST.DestructureVar -> {
                     // A loop variable is declared by no operator, so it joins
                     // neither `immutable_locals` nor the W0015 candidates.
-                    scratch: Symbol[]!: []
+                    scratch: Symbol[]: []
                     self.bind_let_binding(nv.pattern, scratch)
                 }
                 is AST.DiscardVar     -> {}
@@ -695,7 +695,7 @@ report_unreassigned_mutables :: fn(self: ResolveState) -> void {
         if self.has_reassignment(d.syms) {
             continue
         }
-        names: string[]!: []
+        names: string[]: []
         for sym in d.syms {
             names.push(sym.name)
         }

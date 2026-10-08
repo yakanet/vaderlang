@@ -40,7 +40,7 @@ export OperandRef :: struct {
 /// @return    one entry per printed operand, up to the last index ; empty for an
 ///            op whose operands point at nothing.
 export operand_refs :: fn(op: Op) -> (OperandRef | null)[] {
-    refs: (OperandRef | null)[]!: []
+    refs: (OperandRef | null)[]: []
     write_op_refs(StringBuilder {}, refs, op)
     return refs
 }

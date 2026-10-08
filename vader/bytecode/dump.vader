@@ -505,23 +505,23 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
     jump_table  :: function_decl.jump_table
     // Per-active-scope stacks. Grow-only with `sp` cursor for the
     // logical top so closing a scope is a cheap decrement.
-    stack_labels:    string[]!: []
-    stack_opener_pc: i32[]!   : []
-    stack_is_loop:   bool[]!  : []
+    stack_labels:    string[]: []
+    stack_opener_pc: i32[]   : []
+    stack_is_loop:   bool[]  : []
     // Where each open scope's matching `End` sits. A non-loop `br` targets
     // `end_pc + 1`, so this is what turns a jump-table entry back into the
     // label that OWNS it — see the `Branch` case.
-    stack_end_pc:    i32[]!   : []
+    stack_end_pc:    i32[]   : []
     sp: usize = 0
     // Pending Branch/BranchIf whose target scope hasn't closed yet
     // (block / if / else falls through to its End). Drained when the
     // matching End is seen ; `branch_target_label[pc]` carries the
     // resolved label string.
-    pending_pc:    i32[]!   : []
-    pending_label: string[]!: []
+    pending_pc:    i32[]   : []
+    pending_label: string[]: []
     psp: usize = 0
     // pc → resolved label string (filled lazily for Branch/BranchIf).
-    branch_target_label: string[]!: []
+    branch_target_label: string[]: []
     n :: body.len()
     for init_label in 0..<n { branch_target_label.push("") }
 
@@ -618,7 +618,7 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
             continue
         }
         write_indent(sb, depth)
-        refs: (OperandRef | null)[]!: []
+        refs: (OperandRef | null)[]: []
         write_op_refs(sb, refs, op)
         if annotate {
             comment :: annotate_refs(module, function_decl, refs)
@@ -729,7 +729,7 @@ f64_const_operands :: fn(v: f64) -> string {
 /// @param out  the text being written.
 /// @param op   the op to print.
 export write_op :: fn(out: StringBuilder, op: Op) -> void {
-    refs: (OperandRef | null)[]!: []
+    refs: (OperandRef | null)[]: []
     write_op_refs(out, refs, op)
 }
 

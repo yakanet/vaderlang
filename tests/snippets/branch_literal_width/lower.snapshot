@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let out: u8[]! =
-      array :u8[]!
+    let out: u8[] =
+      array :u8[]
         int(65) :u8
     let last: u8 =
       if :u8
@@ -17,7 +17,7 @@
           ~>
             index :u8
               on:
-                out :u8[]!
+                out :u8[]
               ix:
                 sub :usize
                   l:
@@ -44,8 +44,8 @@
           else:
             ~>
               "if, byte or char: char" :string
-    let empty: u8[]! =
-      array :u8[]!
+    let empty: u8[] =
+      array :u8[]
     let first: u8 =
       if :u8
         cond:
@@ -58,7 +58,7 @@
           ~>
             index :u8
               on:
-                empty :u8[]!
+                empty :u8[]
               ix:
                 int(0) :i32
         else:
@@ -100,7 +100,7 @@
               ~>
                 index :u8
                   on:
-                    empty :u8[]!
+                    empty :u8[]
                   ix:
                     sub :usize
                       l:

@@ -156,7 +156,7 @@ union_dispatch_traits :: fn(
     method: string,
     typed: TypedProgram,
 ) -> TraitType[] {
-    out: TraitType[]!: []
+    out: TraitType[]: []
     for m in impl_candidates(typed, u.variants[0], "::${method}") {
         sym :: m.trait_symbol ?? continue
         if trait_key != "" && m.trait_key != trait_key {
@@ -208,19 +208,19 @@ union_trait_instance :: fn(u: UnionType, sym: Symbol, typed: TypedProgram) -> Tr
     }
     decl :: typed.trait_decls[sym.id] ?? return null
     owner :: typed.trait_decl_owners[sym.id] ?? typed.resolved
-    variants: Type[]!: []
-    per_variant: Type[][]!: []
+    variants: Type[]: []
+    per_variant: Type[][]: []
     for v in u.variants {
         variant :: strip_mutability(v)
         written :: resolve_struct_trait_args(v, key, typed) ?? NO_TYPES
-        at_variant: Type[]!: []
+        at_variant: Type[]: []
         for a in pad_trait_default_args(written, decl.type_params, owner) {
             at_variant.push(substitute_self(a, variant))
         }
         variants.push(variant)
         per_variant.push(at_variant)
     }
-    args: Type[]!: []
+    args: Type[]: []
     for i in 0..<per_variant[0].len() {
         args.push(shared_argument(variants, per_variant, i) ?? return null)
     }
@@ -309,7 +309,7 @@ union_dispatch_refusal :: fn(
         }
     }
     if traits.len() > 1 {
-        names: string[]!: []
+        names: string[]: []
         for t in traits {
             names.push("`${display_type(t)}`")
         }

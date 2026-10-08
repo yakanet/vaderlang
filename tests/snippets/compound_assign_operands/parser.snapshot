@@ -870,13 +870,10 @@
               "name": "a"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {
@@ -1206,13 +1203,10 @@
               "name": "rows"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "Row"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "Row"
               }
             },
             "value": {
@@ -1728,13 +1722,10 @@
               "name": "words"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "string"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "string"
               }
             },
             "value": {

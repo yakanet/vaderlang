@@ -2,7 +2,7 @@
 
 ## tests/snippets/array_union_literal_ok
   FnDecl         main                 :: fn() -> i32
-  expr 11:28    SeqLitExpr     :: (i32 | string)[]!
+  expr 11:27    SeqLitExpr     :: (i32 | string)[]!
   expr 12:13    StringLitExpr  :: string
   expr 12:5     CallExpr       :: void
   expr 12:5     FieldExpr      :: fn(i32 | string) -> void

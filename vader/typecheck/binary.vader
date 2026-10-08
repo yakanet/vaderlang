@@ -63,7 +63,7 @@ export infer_binary :: fn(
     // A short-circuit's right operand runs only on one outcome of the left : true
     // for `&&` (`a is T && a.f`), false for `||` (`a == null || a.f`). It sees
     // the narrowings that outcome implies.
-    pushed: PushedNarrow[]!: []
+    pushed: PushedNarrow[]: []
     if e.op == .And || e.op == .Or {
         push_cond_narrows_into(e.left, e.op == .And, typed, diag_sink(), pushed)
     }
@@ -362,7 +362,7 @@ pick_operator_member :: fn(
     if candidates.len() == 1 {
         return candidates[0]
     }
-    sigs: Type[]!: []
+    sigs: Type[]: []
     for m in candidates {
         sigs.push(substitute_self_in(m.ty, recv))
     }
@@ -1278,7 +1278,7 @@ expect_binary :: fn(src: string) -> ExpectedBinary {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
@@ -1306,7 +1306,7 @@ ExpectedBinary :: struct {
 
 synthetic_binary :: fn() -> AST.BinaryExpr! {
     sp :: empty_span()
-    int_lit: AST.Expr!: AST.IntLitExpr {
+    int_lit: AST.Expr: AST.IntLitExpr {
         .span = sp,
         .id = AST.UNASSIGNED_NODE_ID,
         .value = 0,
@@ -1323,7 +1323,7 @@ synthetic_binary :: fn() -> AST.BinaryExpr! {
 @test
 test_arith_int_returns_concrete :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> i32 { return a + b }")
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "i32")
     assert_eq(diags.len(), 0)
 }
@@ -1331,7 +1331,7 @@ test_arith_int_returns_concrete :: fn() -> void {
 @test
 test_arith_string_concat :: fn() -> void {
     eb :: expect_binary("""f :: fn(a: string, b: string) -> string { return a + b }""")
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     assert_eq(
         display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)),
         "string",
@@ -1341,14 +1341,14 @@ test_arith_string_concat :: fn() -> void {
 @test
 test_compare_returns_bool :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a < b }")
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "bool")
 }
 
 @test
 test_logical_requires_bool :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: bool) -> bool { return a && b }")
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags {
@@ -1364,7 +1364,7 @@ test_in_requires_contains :: fn() -> void {
     // `a in b` where `b : i32` has no `Contains` impl — a clean T3043, not a
     // stub that lowers to an `unreachable` trap (a runtime crash).
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a in b }")
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags {
@@ -1378,7 +1378,7 @@ test_in_requires_contains :: fn() -> void {
 @test
 test_arith_width_mismatch_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i64) -> i64 { return a + b }")
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags {
@@ -1392,7 +1392,7 @@ test_arith_width_mismatch_emits_T3017 :: fn() -> void {
 @test
 test_compare_width_mismatch_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i64) -> bool { return a < b }")
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags {
@@ -1406,7 +1406,7 @@ test_compare_width_mismatch_emits_T3017 :: fn() -> void {
 @test
 test_compare_cross_family_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: f64, b: i32) -> bool { return a < b }")
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags {
@@ -1420,7 +1420,7 @@ test_compare_cross_family_emits_T3017 :: fn() -> void {
 @test
 test_equality_width_mismatch_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: u32, b: i32) -> bool { return a == b }")
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags {
@@ -1435,7 +1435,7 @@ test_equality_width_mismatch_emits_T3017 :: fn() -> void {
 // backing, and two different representations are T3001.
 equality_diags :: fn(src: string) -> Diagnostic[] {
     eb :: expect_binary(src)
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     return diags
 }
@@ -1496,7 +1496,7 @@ test_equality_distinct_over_distinct_ok :: fn() -> void {
 @test
 test_equality_same_width_ok :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a == b }")
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "bool")
     assert_eq(diags.len(), 0)
 }
@@ -1509,7 +1509,7 @@ repeat_diagnostics :: fn(src: string) -> Diagnostic[] {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     check_module_with_bodies(parsed.program, rm, factory, diags)
     return diags
 }

@@ -70,9 +70,9 @@ areas :: fn(xs: Shape[]) -> i32 {
 
 main :: fn() -> i32 {
     println(Sq.unit(3).area())
-    s: Sq!: build(4)
-    r: Rect!: build(2)
-    shapes: Shape[]!: []
+    s: Sq: build(4)
+    r: Rect: build(2)
+    shapes: Shape[]: []
     shapes.push(s)
     shapes.push(r)
     println(areas(shapes))

@@ -53,7 +53,7 @@ export lower_defer :: fn(
         .origin  = synth_mono_entry(ctx, env_symbol),
     }
 
-    lifted_params: LoweredParam[]!: []
+    lifted_params: LoweredParam[]: []
     lifted_params.push(LoweredParam {
         .name = env_param_symbol.name, .symbol = env_param_symbol, .type = env_type,
     })
@@ -113,7 +113,7 @@ synth_body_block :: fn(defer_stmt: AST.DeferStmt) -> AST.BlockExpr {
     match defer_stmt.body as bb {
         is AST.DeferBlockBody -> { return bb.block }
         is AST.DeferStmtBody  -> {
-            stmts: AST.Stmt![]!: []
+            stmts: AST.Stmt[]: []
             stmts.push(bb.stmt)
             return AST.BlockExpr {
                 .span     = defer_stmt.span,

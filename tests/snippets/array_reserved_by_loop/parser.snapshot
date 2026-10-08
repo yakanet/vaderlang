@@ -309,13 +309,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i64"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i64"
               }
             },
             "value": {
@@ -429,13 +426,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i64"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i64"
               }
             },
             "value": {
@@ -557,13 +551,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i64"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i64"
               }
             },
             "value": {
@@ -697,13 +688,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i64"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i64"
               }
             },
             "value": {
@@ -812,13 +800,10 @@
               "name": "squares"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i64"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i64"
               }
             },
             "value": {
@@ -834,13 +819,10 @@
               "name": "doubles"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i64"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i64"
               }
             },
             "value": {
@@ -1062,13 +1044,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i64"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i64"
               }
             },
             "value": {
@@ -1199,13 +1178,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i64"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i64"
               }
             },
             "value": {
@@ -1338,13 +1314,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i64"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i64"
               }
             },
             "value": {

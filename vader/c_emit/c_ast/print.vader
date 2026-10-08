@@ -1091,7 +1091,7 @@ test_print_block_spells_a_switch :: fn() -> void {
 
 // `count` names, `name_number_0` onwards.
 names :: fn(count: i32) -> CExpression[]! {
-    out: CExpression[]!: []
+    out: CExpression[]: []
     for k in 0..<count {
         out.push(verbatim("name_number_${k}"))
     }
@@ -1159,7 +1159,7 @@ int x[] = {
 
 @test
 test_unit_text_puts_one_table_row_per_line :: fn() -> void {
-    rows: CExpression[]!: []
+    rows: CExpression[]: []
     for k in 0..<3 {
         rows.push(designated("[${k}]", initializer_list(names(2))))
     }

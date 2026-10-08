@@ -25,15 +25,15 @@ import "std/collections"
 /// @return     the same function, its terminators retargeted.
 skip_forwarding_blocks :: fn(fn_: CFGFunction) -> CFGFunction {
     n :: fn_.blocks.len()
-    entries: i32[]!: [0] * n
+    entries: i32[]: [0] * n
     for b in fn_.blocks {
         for s in successors_of(b) {
             entries[i32(s)] += 1
         }
     }
-    hop: i32[]!: [-1] * n
+    hop: i32[]: [-1] * n
     forwards := false
-    shared: BlockId[]!: []
+    shared: BlockId[]: []
     for b in fn_.blocks {
         t :: b.terminator
         if b.instructions.len() == 0 && t is TermBranch {
@@ -59,7 +59,7 @@ skip_forwarding_blocks :: fn(fn_: CFGFunction) -> CFGFunction {
     if !forwards {
         return fn_
     }
-    blocks: BasicBlock[]!: []
+    blocks: BasicBlock[]: []
     for b in fn_.blocks {
         blocks.push(BasicBlock { ...b, .terminator = retargeted(hop, b.terminator) })
     }

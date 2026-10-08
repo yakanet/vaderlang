@@ -36,7 +36,7 @@ relay :: fn<S: Sink<Cfg!>!>(s: S) -> void {
 main :: fn() -> i32 {
     h :: Holder { .c = Cfg { .n = 2 } }
     feed(h)
-    s: Sink<Cfg!>!: h
+    s: Sink<Cfg!>: h
     feed(s)
     relay(h)
     h.c.n = 9

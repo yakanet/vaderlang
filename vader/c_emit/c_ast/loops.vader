@@ -63,7 +63,7 @@ rewrite_block :: fn(block: CBlock, exits: string[]) -> void {
 // The labels reached by falling off a statement ending on `end_label` : that
 // label, and the block's `exits` when nothing follows the statement there.
 exits_after :: fn(end_label: string, exits: string[], falls_out: bool) -> string[] {
-    out: string[]!: []
+    out: string[]: []
     if end_label != "" {
         out.push(end_label)
     }
@@ -247,7 +247,7 @@ collect_clause_labels :: fn(body: CCaseStatement[], used: MutableSet<string>) ->
 // Drop the labels no `goto` names, then splice into `block` every bare scope —
 // no label, no declaration of its own — that only groups statements.
 tidy_block :: fn(block: CBlock, used: MutableSet<string>) -> void {
-    kept: CStatement[]!: []
+    kept: CStatement[]: []
     for statement in block.body {
         match statement {
             is CIf    -> {

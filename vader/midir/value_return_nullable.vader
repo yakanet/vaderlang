@@ -93,7 +93,7 @@ returns_fresh_composite :: fn(f: CFGFunction) -> NullableReturn | null {
             }
             continue
         }
-        types: Type[]!: []
+        types: Type[]: []
         for l in built.fields {
             if usize(l) >= f.locals.len() {
                 return null
@@ -142,7 +142,7 @@ return_source :: fn(instrs: Instruction[], returned: LocalId) -> ReturnSource | 
 
 // The declared results of a nullable return: the tag, then the fields.
 nullable_results :: fn(elements: Type[]) -> Type[] {
-    out: Type[]!: [TY_TAG]
+    out: Type[]: [TY_TAG]
     out.push_all(elements)
     return out
 }
@@ -161,9 +161,9 @@ rewrite_nullable_return :: fn(
         return b
     }
     built :: return_source(b.instructions, t.values[0]) ?? return b
-    instrs: Instruction[]!: []
+    instrs: Instruction[]: []
     instrs.push_all(b.instructions)
-    values: LocalId[]!: []
+    values: LocalId[]: []
     if built is ReturnsStruct {
         values.push(const_i32(instrs, locals, 1, t.span))
         values.push_all(built.fields)

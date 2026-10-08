@@ -1,7 +1,7 @@
 // A receiver is read-only by its TYPE as well as by its access path : a call to an
-// unmarked return, a value bound from one, a read-only field. T3071 on
-// `a.bump()`, `make().bump()` and `h.p.bump()` ; `fresh().bump()` and `h.q.bump()`
-// are accepted.
+// unmarked return, a read-only field. T3071 on `make().bump()` and `h.p.bump()` ;
+// `fresh().bump()` and `h.q.bump()` are accepted. A local bound from an unmarked
+// return takes the `!` its `bump` needs, so `make()` cannot fill it : T3077.
 module "snippet"
 
 export Point :: struct {

@@ -53,7 +53,7 @@ export op_doc :: fn(head: string) -> OpDoc | null {
 // The forms a heading names : every span it writes between backticks.
 heading_forms :: fn(heading: string) -> string[] {
     parts :: heading.split("`")
-    forms: string[]!: []
+    forms: string[]: []
     for i in 0..<parts.len() / 2 {
         forms.push(parts[2 * i + 1])
     }
@@ -62,7 +62,7 @@ heading_forms :: fn(heading: string) -> string[] {
 
 // The text under a heading : its lines up to the next heading of any level.
 entry_text :: fn(lines: string[], from: usize) -> string {
-    body: string[]!: []
+    body: string[]: []
     for i in from..<lines.len() {
         if lines[i].starts_with("#") {
             break

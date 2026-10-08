@@ -41,7 +41,7 @@ export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonVa
     ctx :: ActionCtx { .source = sf.content }
     li :: new_line_index(sf.content, state.position_encoding)
 
-    items: JsonValue[]!: []
+    items: JsonValue[]: []
     // Node-driven rewrites (match→if, if→match, UFCS) on the cursor's enclosing
     // expressions ; then file-level source actions (organize-imports), which
     // don't depend on the cursor sitting inside an expression.

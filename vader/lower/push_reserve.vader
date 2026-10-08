@@ -80,7 +80,7 @@ counted_loop_of :: fn(st: LoweredStmt) -> CountedLoop | null {
     if st !is LoweredLoop && st !is LoweredExprStmt {
         return null
     }
-    lets: LoweredLet[]!: []
+    lets: LoweredLet[]: []
     return counted_loop_in(st, lets)
 }
 

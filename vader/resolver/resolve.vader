@@ -152,9 +152,9 @@ export resolve_module_files :: fn(
 ) -> ResolvedModule! {
     builtins :: make_builtin_scope(factory)
     scopes :: MutableMap<string, FileScope> {}
-    programs: Program[]!: []
-    bindings: Symbol[]!: []
-    clashes: Diagnostic[]!: []
+    programs: Program[]: []
+    bindings: Symbol[]: []
+    clashes: Diagnostic[]: []
     for file in files {
         imports :: file_imports(collected, file.program.file)
         scopes[file.program.file] = FileScope {
@@ -236,7 +236,7 @@ export file_root_scope :: fn(
 // R2011 for each import binding of a file that takes the name of a module
 // declaration other than a fn, in whichever file the declaration sits.
 binding_clashes :: fn(collected: CollectedModule, imports: FileImports) -> Diagnostic[] {
-    out: Diagnostic[]!: []
+    out: Diagnostic[]: []
     for [name, binding] in imports.bindings {
         declared :: collected.symbols[name] ?? continue
         span :: binding.defined_at ?? continue

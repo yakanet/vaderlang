@@ -30,7 +30,7 @@ export check_block :: fn(
     // { return … }`) so subsequent stmts see the complement type.
     // Each entry holds the binding's sym_id + the static type to
     // restore on block exit (mirrors `pop_narrow` semantics).
-    divergent_narrows: DivergentNarrow[]!: []
+    divergent_narrows: DivergentNarrow[]: []
     // W0002 — track the first stmt past a divergent guard so we can
     // warn once per block.
     first_unreachable_span: Span | null = null
@@ -647,13 +647,18 @@ check_let :: fn(
     if s.ty !is null {
         // An ANNOTATED local takes the read-only default like every other written
         // slot, so `i32[]` means one thing wherever it appears : the marker is what
-        // grants mutation (`out: i32[]! = []`). An UNANNOTATED local keeps the
-        // inferred type — nothing was written, and a local is owned.
+        // grants mutation (`out: i32[]! = []`), deduced from the body
+        // (`register_local_slot`). An UNANNOTATED local keeps the inferred type —
+        // nothing was written, and a local is owned.
+        register_local_slot(s, typed)
         ann = apply_readonly_default(type_from_expr(s.ty, typed.resolved, diags), s.ty)
     } else if s.value is AST.LambdaExpr && s.binding is AST.SimpleBinding {
         register_local_fn(s.value, s.binding.name, typed)
     }
     got :: check_expr_fn(s.value, ann, typed, diags)
+    if ann != null && s.binding is AST.SimpleBinding {
+        note_fill_edge(s.binding.name_span, s.value, got, ann, s.span, typed)
+    }
     record_local_producer(s, typed)
     declared: Type = TY_UNRESOLVED
     match ann {
@@ -702,12 +707,13 @@ check_let :: fn(
     assign_binding_types(s.binding, declared, typed, diags)
     // `buf: Iterator<i32>!: xs` walks a fresh iterator : `buf` borrows nothing of `xs`.
     if !converts_to_owned(got, declared, typed) {
-        mark_binding_borrow(s.binding, s.value, typed)
+        record_binding_value(s.binding, s.value, typed)
     }
     record_empty_array_init(s, declared, typed)
 }
 
-// A local initialised FROM an immutable borrow keeps borrowing — `m := a` shares
+// Record the value a local bound to a single name stands for (`local_bound_to`), and
+// keep a local initialised FROM an immutable borrow borrowing — `m := a` shares
 // `a`'s reference, so letting `m` be owned would make the whole read-only default
 // decorative: `m[0] = 9` would reach the caller's array through a one-line detour.
 //
@@ -718,14 +724,14 @@ check_let :: fn(
 // Only a WHOLE-value rebind propagates. A tuple destructure takes elements APART,
 // and an element of an immutable aggregate is reached through the path predicate
 // already, so nothing is lost by not marking the leaves here.
-mark_binding_borrow :: fn(b: AST.LetBinding, value: AST.Expr, typed: TypedProgram) -> void {
-    if !expr_is_immutable(value, typed) {
+record_binding_value :: fn(b: AST.LetBinding, value: AST.Expr, typed: TypedProgram) -> void {
+    if b !is AST.SimpleBinding {
         return
     }
-    if b is AST.SimpleBinding {
-        sym :: typed.resolved.idents[b.name_span.hash()] ?? return
+    sym :: typed.resolved.idents[b.name_span.hash()] ?? return
+    typed.local_bound_to[sym.id] = value
+    if expr_is_immutable(value, typed) {
         typed.resolved.immutable_borrows[sym.id] = true
-        typed.borrowed_from[sym.id] = value
     }
 }
 
@@ -805,6 +811,9 @@ check_assign :: fn(
     // write retires the narrowing, per `invalidate_narrow_on_assign`), so the
     // assignability check must target the declaration, not the narrowed view.
     declared :: declared_lvalue_type(s.target, target_ty, typed)
+    if s.target is AST.IdentExpr {
+        note_fill_edge(s.target.span, s.value, value_ty, declared, s.span, typed)
+    }
     emit_assign_mismatch_if(value_ty, declared, s.span, s.value, typed, diags)
     // A write to a narrowed binding / field chain retires its stale
     // narrowings — see `narrow.vader::invalidate_narrow_on_assign`.
@@ -857,10 +866,13 @@ emit_assign_mismatch_if :: fn(
     value: AST.Expr,
     typed: TypedProgram,
     diags: Diagnostic[],
+    source: AST.Expr | null = null,
 ) -> void {
     if expected == null                           { return }
     if flows_into(got, expected, value.id, typed) { return }
-    if note_widening_need(value, got, expected, span, typed) { return }
+    // The value a destructuring writes is an element of its `source`, the lever.
+    lever :: if source != null { source } else { value }
+    if note_widening_need(lever, got, expected, span, typed) { return }
     // Both mutability families take the dedicated wording — "cannot assign A to a
     // slot of type B" says nothing when A and B differ only by a marker.
     bounds :: typed.type_param_bound_traits
@@ -927,19 +939,21 @@ check_destructuring_assign :: fn(
         for t in s.targets {
             match t {
                 is AST.PlaceTarget    -> {
-                    check_destructure_target(t.place, arr.element, typed, diags, check_expr_fn)
+                    check_destructure_target(
+                        t.place, arr.element, null, typed, diags, check_expr_fn,
+                    )
                 }
                 // The tail is a fresh array, so it is mutable whatever the source.
                 is AST.RestTarget     -> {
                     tail :: mk_array(arr.element, false)
-                    check_destructure_target(t.place, tail, typed, diags, check_expr_fn)
+                    check_destructure_target(t.place, tail, null, typed, diags, check_expr_fn)
                 }
                 is AST.WildcardTarget -> {}
             }
         }
         return
     }
-    slot_types: Type[]!: []
+    slot_types: Type[]: []
     for t in s.targets {
         match t {
             is AST.PlaceTarget    -> {
@@ -973,7 +987,8 @@ check_destructuring_assign :: fn(
     }
     for i in 0..<s.targets.len() {
         if s.targets[i] is AST.PlaceTarget as t {
-            check_destructure_target(t.place, elem_types[i], typed, diags, check_expr_fn)
+            source :: destructured_element(s.value, i)
+            check_destructure_target(t.place, elem_types[i], source, typed, diags, check_expr_fn)
         }
     }
 }
@@ -1008,7 +1023,7 @@ destructure_element_types :: fn(value_ty: Type, count: usize) -> Type[] | null {
     }
     arr :: array_backing(value_ty)
     if arr is ArrayType {
-        out: Type[]!: []
+        out: Type[]: []
         for _ in 0..<count {
             out.push(arr.element)
         }
@@ -1096,6 +1111,7 @@ array_write_slot :: fn(
 check_destructure_target :: fn(
     target: AST.Expr,
     elem_ty: Type,
+    source: AST.Expr | null,
     typed: TypedProgram,
     diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
@@ -1125,7 +1141,7 @@ check_destructure_target :: fn(
         slot :: index_write_slot(target, typed, diags, check_expr_fn) ?? return
         // The lowering types the element it writes by the target's own type.
         record_expr(typed, target, slot)
-        emit_assign_mismatch_if(elem_ty, slot, target.span, target, typed, diags)
+        emit_assign_mismatch_if(elem_ty, slot, target.span, target, typed, diags, source)
         return
     } else {
         diags.push(typecheck_error(
@@ -1134,7 +1150,19 @@ check_destructure_target :: fn(
         return
     }
     slot_ty :: check_expr_fn(target, elem_ty, typed, diags)
-    emit_assign_mismatch_if(elem_ty, slot_ty, target.span, target, typed, diags)
+    if source != null && target is AST.IdentExpr {
+        note_fill_edge(target.span, source, elem_ty, slot_ty, target.span, typed)
+    }
+    emit_assign_mismatch_if(elem_ty, slot_ty, target.span, target, typed, diags, source)
+}
+
+// The element of a destructured `value` that fills target `i`, when the source is a
+// literal that writes one ; null otherwise.
+destructured_element :: fn(value: AST.Expr, i: usize) -> AST.Expr | null {
+    if value is AST.SeqLitExpr && i < value.elements.len() {
+        return value.elements[i]
+    }
+    return null
 }
 
 is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
@@ -1181,7 +1209,7 @@ push_immutability_diag_for :: fn(
 }
 
 /// Report that `value` lacks the rights it needs here — T3042, T3070, T3071, T3072 —
-/// unless a `!` the next round deduces lifts the refusal (`note_param_need`). A lifted
+/// unless a `!` the next round deduces lifts the refusal (`note_slot_need`). A lifted
 /// refusal is reported by no round : the caller goes on as if allowed, and the next
 /// round checks the rest against the marked parameter.
 ///
@@ -1193,7 +1221,7 @@ refuse_rights :: fn(
     code: TypecheckCode, span: Span, detail: string, value: AST.Expr, what: string,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> bool {
-    if note_param_need(value, span, what, typed) {
+    if note_slot_need(value, span, what, typed) {
         return false
     }
     report_refusal(code, span, detail, value, typed, diags)
@@ -1201,7 +1229,7 @@ refuse_rights :: fn(
 }
 
 // Report a rights refusal no deduced `!` lifts — `refuse_rights`' second half, for a
-// caller whose detail is worth building only once `note_param_need` has said no.
+// caller whose detail is worth building only once `note_slot_need` has said no.
 report_refusal :: fn(
     code: TypecheckCode, span: Span, detail: string, value: AST.Expr, typed: TypedProgram,
     diags: Diagnostic[],
@@ -1258,12 +1286,6 @@ record_local_producer :: fn(s: AST.LetStmt, typed: TypedProgram) -> void {
         }
         if s.value is AST.CallExpr || s.value is AST.FieldExpr {
             typed.local_init_source[local_sym.id] = s.value
-            return
-        }
-        // `top :: stack[i]` — the local IS an element, so its lever is the
-        // collection's element type, exactly as for a loop variable.
-        if s.value is AST.IndexExpr as ix {
-            typed.local_init_index[local_sym.id] = ix.target
         }
     }
 }
@@ -1573,9 +1595,11 @@ iterable_behind :: fn(sym: Symbol, typed: TypedProgram, budget: i32) -> AST.Expr
     if direct !is null {
         return direct
     }
-    indexed :: typed.local_init_index[sym.id]
-    if indexed !is null {
-        return indexed
+    // `top :: stack[i]` — the local IS an element, so its lever is the collection's
+    // element type, exactly as for a loop variable.
+    bound :: typed.local_bound_to[sym.id]
+    if bound is AST.IndexExpr {
+        return bound.target
     }
     at :: sym.defined_at ?? return null
     scrut :: typed.narrow.binding_scrutinee[at.hash()] ?? return null
@@ -1825,7 +1849,7 @@ reject_index_write_receiver :: fn(
         )
     }
     if arr.immutable {
-        if note_param_need(receiver, receiver.span, "an element of it is written here", typed) {
+        if note_slot_need(receiver, receiver.span, "an element of it is written here", typed) {
             return false
         }
         detail :: "cannot mutate `${display_type(receiver_ty)}`"
@@ -2843,7 +2867,7 @@ stub_check_module :: fn(src: string) -> StubResult {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)
-    diags: Diagnostic[]!: []
+    diags: Diagnostic[]: []
     declare_module(parsed.program.decls, rm, typed, factory, diags)
     for decl in parsed.program.decls {
         if decl is AST.FnDecl {

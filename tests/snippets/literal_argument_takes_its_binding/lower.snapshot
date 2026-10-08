@@ -139,7 +139,7 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let local: Cfg! =
+    let local: Cfg =
       Cfg! {
         n: int(2) :i32
       }
@@ -173,7 +173,7 @@
                         callee:
                           snippet$pick__Cfg :Cfg
                         arg0:
-                          local :Cfg!
+                          local :Cfg
                         arg1:
                           CFG :Cfg
           assign
@@ -209,7 +209,7 @@
                         arg0:
                           CFG :Cfg
                         arg1:
-                          local :Cfg!
+                          local :Cfg
           assign
             target:
               __off_3 :usize
@@ -241,7 +241,7 @@
                         callee:
                           snippet$pick__Cfg :Cfg
                         arg0:
-                          local :Cfg!
+                          local :Cfg
                         arg1:
                           CFG :Cfg
           ~>

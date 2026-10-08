@@ -77,7 +77,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
                     span :: binary.span
                     lo_value :: lower_expr(ctx, range_lit.lower)
                     hi_value :: lower_expr(ctx, range_lit.upper)
-                    bounds: LoweredStmt![]!: []
+                    bounds: LoweredStmt[]: []
                     hoist :: !is_effect_free_read(hi_value)
                     lo :: if hoist {
                         bind_unless_stable(ctx, lo_value, "in_lo", span, bounds)
@@ -128,7 +128,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         }
         // `contains` takes the collection first: `x` is bound ahead of it unless
         // neither can change what the other reads.
-        prelude: LoweredStmt![]!: []
+        prelude: LoweredStmt[]: []
         element_value :: lower_expr(ctx, binary.left)
         coll :: lower_expr(ctx, binary.right)
         element :: if reads_independently(element_value, coll) {
@@ -136,7 +136,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         } else {
             bind_unless_stable(ctx, element_value, "in_x", binary.span, prelude)
         }
-        call: LoweredExpr!: if contains is string {
+        call: LoweredExpr: if contains is string {
             virtual_call(ctx, contains, METHOD_CONTAINS, coll, [element], TY_BOOL, binary.span)
         } else {
             LoweredCall {
@@ -187,7 +187,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     // `string + string` case (user-struct `Add` and `T`/`Any` receivers were
     // handled by `try_lower_op_overload` above).
     if binary.op == .Add && is_string_type(type) {
-        operands: LoweredExpr![]!: []
+        operands: LoweredExpr[]: []
         collect_concat_operands(ctx, binary.left, operands)
         collect_concat_operands(ctx, binary.right, operands)
         return lower_concat_chain(ctx, operands, binary.span)
@@ -268,7 +268,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
         if member is UfcsMember {
             lowered_left  :: lower_expr(ctx, binary.left)
             lowered_right :: lower_expr(ctx, binary.right)
-            call_args: LoweredExpr![]!: []
+            call_args: LoweredExpr[]: []
             call_args.push(lowered_left)
             call_args.push(lowered_right)
             if info.shape == .DirectCall {
@@ -381,7 +381,7 @@ lower_op_overload_via_vcall :: fn(
     ctx: FnLowerCtx, binary: BinaryExpr, type: Type, oti: OpTraitInfo,
 ) -> LoweredExpr! | null {
     lowered_left  :: lower_expr(ctx, binary.left)
-    args: LoweredExpr![]!: [lower_expr(ctx, binary.right)]
+    args: LoweredExpr[]: [lower_expr(ctx, binary.right)]
     // The call's own result : `compare`'s `i32`, `equals`' `bool`, else the
     // operator's (`Add`'s `Self`).
     result :: match oti.shape {

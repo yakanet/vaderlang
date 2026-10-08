@@ -301,7 +301,7 @@ export render_value_abi_report :: fn(
         return ""
     }
     structs :: index_struct_decls(project)
-    sites: ValueAbiSite[]!: []
+    sites: ValueAbiSite[]: []
     held_back: i64 = 0
     for [_, m] in project.modules {
         for d in m.decls {

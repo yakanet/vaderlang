@@ -40,7 +40,7 @@ guard_equals_slots :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) 
     for [_, m] in project.modules {
         // Pushed after the walk : a guard keeps its impl's slot, and must not be
         // guarded in turn.
-        guards: LoweredDecl![]!: []
+        guards: LoweredDecl[]: []
         for i in 0..<m.decls.len() {
             d :: m.decls[i]
             if d !is LoweredFnDecl {

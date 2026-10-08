@@ -134,14 +134,14 @@ export LoopJump :: struct {
 export build_index :: fn(uri: string, source: string, encoding: PositionEncoding) -> DocIndex {
     parsed :: parse_source(source, uri)
     cmap :: scan_comments(source)
-    entries: DeclEntry[]!: []
+    entries: DeclEntry[]: []
     for d in parsed.program.decls {
         if d !is ImportDecl {
             collect_decl(d, source, cmap, entries)
         }
     }
     collected :: Rs.collect_module_no_index(parsed.program, uri, SymbolFactory {})
-    imports: Rs.ImportInfo[]!: []
+    imports: Rs.ImportInfo[]: []
     namespace_aliases :: MutableMap<string, string> {}
     for [_, info] in collected.imports {
         // A namespace alias names the module itself : no imported name.
@@ -173,7 +173,7 @@ LjFrame :: struct { span: Span, binding: string | null, label: string | null }
 /// descended (a jump there can't target an enclosing loop) ; unresolved jumps
 /// (outside any loop, or a name matching nothing) are simply not recorded.
 collect_loop_jumps :: fn(decls: Decl[]) -> LoopJump[] {
-    out: LoopJump[]!: []
+    out: LoopJump[]: []
     for d in decls { lj_decl(d, out) }
     return out
 }
@@ -189,7 +189,7 @@ lj_decl :: fn(d: Decl, out: LoopJump[]) -> void {
 
 lj_fn_body :: fn(body: BlockExpr | null, out: LoopJump[]) -> void {
     if body is BlockExpr {
-        stack: LjFrame[]!: []
+        stack: LjFrame[]: []
         lj_block(body, stack, out)
     }
 }

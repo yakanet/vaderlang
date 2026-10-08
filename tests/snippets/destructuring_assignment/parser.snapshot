@@ -386,11 +386,8 @@
               "name": "box"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "IdentExpr",
-                "name": "Box"
-              }
+              "kind": "IdentExpr",
+              "name": "Box"
             },
             "value": {
               "kind": "StructLitExpr",
@@ -426,13 +423,10 @@
               "name": "arr"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
               }
             },
             "value": {

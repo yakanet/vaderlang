@@ -133,8 +133,8 @@ export ParsedArgs :: struct {
 ///               `true` / `false`, and per value outside a flag's `values` set.
 export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
     flags :: MutableMap<string, string> {}
-    positionals: string[]!: []
-    errors: string[]!: []
+    positionals: string[]: []
+    errors: string[]: []
 
     n :: args.len()
     i: usize = 0
@@ -251,7 +251,7 @@ accepts_value :: fn(spec: FlagSpec, value: string) -> bool {
 // Comma-separated accepted values, for an error message or a usage line. Empty
 // when the flag accepts any string.
 value_list :: fn(spec: FlagSpec) -> string {
-    names: string[]!: []
+    names: string[]: []
     for v in spec.values {
         names.push(v.name)
     }

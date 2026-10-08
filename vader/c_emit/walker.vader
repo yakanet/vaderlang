@@ -47,7 +47,7 @@ emit_functions :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 /// @param import_may_collect  per import, whether calling it can collect
 ///                            (`imports_may_collect`).
 compute_may_alloc :: fn(fns: BcFunction[], import_may_collect: bool[]) -> i32[] {
-    may_alloc: i32[]!: []
+    may_alloc: i32[]: []
     for fi in 0..<fns.len() {
         if fn_has_direct_alloc(fns[fi], import_may_collect) {
             may_alloc.push(i32(fi))
@@ -203,7 +203,7 @@ is_cache_safe :: fn(op: vm.Op) -> bool {
 // Drop cache entries whose array expression reads local `l<slot>` — it was
 // just reassigned, so any `_slotarr` bound from its old value is stale.
 drop_bound_for_local :: fn(s: FnState, slot: i32) -> void {
-    kept: BoundArray[]!: []
+    kept: BoundArray[]: []
     for bound in s.bound_arrays {
         if !mentions_local(bound.pointer, slot) {
             kept.push(bound)
@@ -308,9 +308,9 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
     // skip the whole shadow-stack apparatus.
     // Two root lists (T12): box roots (`vader_box_t*`, for `.Any` slots) and raw
     // roots (`void**`, for `.Ref` concrete-ref slots — scanned via scan_raw).
-    root_addrs: CExpression[]!: []
-    raw_root_addrs: CExpression[]!: []
-    atom_root_addrs: CExpression[]!: []
+    root_addrs: CExpression[]: []
+    raw_root_addrs: CExpression[]: []
+    atom_root_addrs: CExpression[]: []
     if !no_frame {
         params :: function.signature.params
         for i in 0..<params.len() {
@@ -325,7 +325,7 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
             }
         }
     }
-    prologue: CStatement[]!: []
+    prologue: CStatement[]: []
     emit_local_decls(function, prologue, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
     emit_temporary_declarations(
         slot_types,
@@ -352,7 +352,7 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
         // no-op) until its `StructNew` writes the real header + fields.
         nstack :: s.stack_storages.len()
         stack_expr :: if nstack > 0 { "gc_stack_objs" } else { "NULL" }
-        stack_addrs: CExpression[]!: []
+        stack_addrs: CExpression[]: []
         for ss in s.stack_storages {
             prologue.push(declaration(ss.cname, ss.storage, verbatim("{0}")))
             stack_addrs.push(cast("void*", address_of(verbatim(ss.storage))))
@@ -366,7 +366,7 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
         if natoms > 0 {
             prologue.push(array_declaration("vader_string_t*", "gc_atom_roots", atom_root_addrs))
         }
-        frame: CExpression[]!: [
+        frame: CExpression[]: [
             verbatim("vader_gc_top"),
             verbatim("${root_addrs.len()}u"),
             verbatim("${raw_root_addrs.len()}u"),
@@ -411,8 +411,8 @@ emit_local_decls :: fn(
 ) -> void {
     locals :: function.locals
     param_count :: function.signature.params.len()
-    vals: ValType[]!: []
-    names: string[]!: []
+    vals: ValType[]: []
+    names: string[]: []
     for i in 0..<locals.len() {
         if locals[i].val == .Void {
             continue
@@ -433,7 +433,7 @@ emit_temporary_declarations :: fn(
     atom_root_addrs: CExpression[],
     no_frame: bool,
 ) -> void {
-    names: string[]!: []
+    names: string[]: []
     for i in 0..<slot_types.len() {
         names.push("t${i}")
     }
@@ -462,7 +462,7 @@ emit_slot_decls :: fn(
     atom_root_addrs: CExpression[],
     no_frame: bool,
 ) -> void {
-    emitted: ValType[]!: []
+    emitted: ValType[]: []
     for i in 0..<vals.len() {
         val :: vals[i]
         if val in emitted {
@@ -504,7 +504,7 @@ emit_slot_decls :: fn(
                 }
             }
         } else {
-            group: CDeclarator[]!: []
+            group: CDeclarator[]: []
             for j in 0..<vals.len() {
                 if vals[j] == val {
                     if rooted {
@@ -992,7 +992,7 @@ emit_multi_return :: fn(s: FnState) -> void {
         unreachable(s, "unreachable return in ${s.function.name}")
         return
     }
-    stores: CAssign[]!: []
+    stores: CAssign[]: []
     for i in 0..<arity {
         // Popped from the top, so this is result `arity - 1 - i` — which is also
         // the order the assignments go out in.
@@ -1064,9 +1064,9 @@ ScopeInfo :: struct {
 /// live in `function.jump_table`, resolved against this table by
 /// `branch_target`.
 precompute_scopes :: fn(function: BcFunction) -> ScopeInfo[] {
-    scopes: ScopeInfo[]!: []
-    open_pc: i32[]! = []
-    open_kind: ScopeKind[]! = []
+    scopes: ScopeInfo[]: []
+    open_pc: i32[] = []
+    open_kind: ScopeKind[] = []
     body :: function.body
     for pc in 0..<body.len() {
         op :: body[pc]
@@ -1110,8 +1110,8 @@ BranchTargets :: struct {
 /// `br` / `br_if` targets (`function.jump_table` via `branch_target`), so a
 /// C label is emitted only where referenced (an unused label warns).
 precompute_branch_targets :: fn(function: BcFunction, scopes: ScopeInfo[]) -> BranchTargets {
-    continue_t: i32[]!: []
-    break_t: i32[]!: []
+    continue_t: i32[]: []
+    break_t: i32[]: []
     body :: function.body
     jump_table :: function.jump_table
     for pc in 0..<body.len() {
@@ -1316,7 +1316,7 @@ emit_call_to :: fn(s: FnState, callee_name: string, sig: BcSignature) -> void {
     n :: i32(sig.params.len())
     // Top-of-stack is the last argument, so pop into `args` back-to-front :
     // pop #k lands in slot `n-1-k`, restoring source order.
-    args: CExpression[]!: [verbatim("")] * usize(n)
+    args: CExpression[]: [verbatim("")] * usize(n)
     for k in 0..<n {
         v :: pop(s)
         slot :: n - 1 - k
@@ -1342,7 +1342,7 @@ emit_multi_call :: fn(
     s: FnState, callee_name: string, args: CExpression[], sig: BcSignature,
 ) -> void {
     results :: sig.results
-    temporaries: CTemporary[]!: []
+    temporaries: CTemporary[]: []
     for i in 0..<results.len() {
         temporary :: new_temporary(s, results[i])
         temporaries.push(temporary)
@@ -1385,7 +1385,7 @@ emit_call_result :: fn(s: FnState, call: CExpression, result: ValType) -> void {
 /// slot `count-1-k`. Shared by the erased-call sites (`call.indirect` args,
 /// `virtual.call` tail).
 pop_args_boxed :: fn(s: FnState, count: i32) -> CExpression[] {
-    args: CExpression[]!: [verbatim("")] * usize(count)
+    args: CExpression[]: [verbatim("")] * usize(count)
     for k in 0..<count {
         v :: pop(s)
         slot :: count - 1 - k
@@ -1494,7 +1494,7 @@ emit_call_indirect :: fn(s: FnState, op: vm.CallIndirect) -> void {
         args :: pop_args_boxed(s, n)
         fn_obj :: aux(s, "fnobj")
         declare(s, "vader_fn_t*", fn_obj, cast("vader_fn_t*", object_pointer_of(fn_val)))
-        call_args: CExpression[]!: [verbatim("${fn_obj}->env")]
+        call_args: CExpression[]: [verbatim("${fn_obj}->env")]
         call_args.push_all(args)
         erased :: call("((vader_fn_erased_sig_${n}_t) ${fn_obj}->code)", call_args)
         ret_val :: val_type_of_bc_type(types[usize(t.return_type)])
@@ -1532,7 +1532,7 @@ emit_virtual_call :: fn(s: FnState, op: vm.VirtualCall) -> void {
     // Receiver is on top, popped first ; the tail args sit below in source
     // order (`pop_args_boxed` restores it).
     recv :: pop(s)
-    all_args: CExpression[]!: [coerced_as(s, recv, .Any)]
+    all_args: CExpression[]: [coerced_as(s, recv, .Any)]
     all_args.push_all(pop_args_boxed(s, op.parameter_count - 1))
     sig :: vtable_sig_for_row(s.ctx, row)
     dispatch :: call(vtable_helper_name(op.vtable_key), all_args)
@@ -1558,7 +1558,7 @@ emit_fn_trampolines :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         return
     }
     n :: ctx.module.functions.len()
-    wrappers: CTopLevel[]!: []
+    wrappers: CTopLevel[]: []
     for i in 0..<n {
         if usage.fn_ref_type[i] >= 0 {
             emit_fn_ref_tramp(ctx, wrappers, i32(i), usage.fn_ref_type[i])
@@ -1589,8 +1589,8 @@ FnValueUsage :: struct {
 /// `make_closure` (need a lift wrapper). Indices are parallel to `fns`.
 scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
     n :: fns.len()
-    fn_ref_type: i32[]!: []
-    is_closure: bool[]!: []
+    fn_ref_type: i32[]: []
+    is_closure: bool[]: []
     for _ in 0..<n {
         fn_ref_type.push(-1)
         is_closure.push(false)
@@ -1628,7 +1628,7 @@ emit_closure_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         return
     }
     fns :: ctx.module.functions
-    declarations: CTopLevel[]!: []
+    declarations: CTopLevel[]: []
     for i in 0..<fns.len() {
         if usage.fn_ref_type[i] >= 0 {
             name :: fn_symbol_name(fns, i32(i))
@@ -1684,7 +1684,7 @@ emit_closure_lift :: fn(ctx: EmitCtx, items: CTopLevel[], fn_index: i32) -> void
     // The lifted fn's env param (param 0) is a concrete captured-env struct → a
     // raw `void*` (`.Ref`) under T12 ; pass `env` directly. When it's `.Any`
     // (erased), coerce widens it to a box via `vader_ref_box`.
-    arguments: CExpression[]!: [coerce_expr(ctx.module.types, verbatim("env"), .Ref, sig.params[0])]
+    arguments: CExpression[]: [coerce_expr(ctx.module.types, verbatim("env"), .Ref, sig.params[0])]
     arguments.push_all(lift_unbox_tail(sig.params))
     body :: CBlock { .body = [] }
     body.body.push_all(forward_boxed(cname, arguments, sig))
@@ -1717,7 +1717,7 @@ lift_signature :: fn(ctx: EmitCtx, name: string, signature: BcSignature) -> CSig
 /// Unbox `a0..a<n-1>` to the concrete `params` classes — the `fn.ref`
 /// trampoline's argument list (params map 1:1 to `a<j>`).
 tramp_unbox_args :: fn(params: ValType[]) -> CExpression[] {
-    arguments: CExpression[]!: []
+    arguments: CExpression[]: []
     for j in 0..<params.len() {
         arguments.push(unbox_expr(verbatim("a${j}"), params[j]))
     }
@@ -1727,7 +1727,7 @@ tramp_unbox_args :: fn(params: ValType[]) -> CExpression[] {
 /// Unbox the lift wrapper's tail `a0..` to `params[1..]` (param 0 is the env
 /// slot).
 lift_unbox_tail :: fn(params: ValType[]) -> CExpression[] {
-    arguments: CExpression[]!: []
+    arguments: CExpression[]: []
     for j in 1..<params.len() {
         arguments.push(unbox_expr(verbatim("a${j - 1}"), params[j]))
     }
@@ -1794,7 +1794,7 @@ emit_type_check :: fn(s: FnState, op: vm.TypeCheck) -> void {
             // `x is (A | B)` — a boxed value never carries a union's own tag, so
             // OR the per-variant checks (mirrors the VM's `union_matches`). This
             // makes `is <union>` correct on native, matching the VM.
-            parts: CExpression[]!: []
+            parts: CExpression[]: []
             for vid in target.variants {
                 parts.push(one_variant_check(s, tag_of(v), vid))
             }
@@ -1838,7 +1838,7 @@ tag_equals :: fn(tag: CExpression, type_id: i32) -> CExpression =
 // table (f32/f64 are representationally identical — see `one_variant_check`).
 // `0` (never matches) when the table has no float primitive.
 float_tag_check_expr :: fn(types: BcType[], tag_expr: CExpression) -> CExpression {
-    parts: CExpression[]!: []
+    parts: CExpression[]: []
     for i in 0..<types.len() {
         if types[i] is BcPrimitive as p {
             if is_float_val(p.val) {
@@ -1857,7 +1857,7 @@ float_tag_check_expr :: fn(types: BcType[], tag_expr: CExpression) -> CExpressio
 /// like `Error` carry their own tag) plus every struct implementing the trait
 /// (the module's `impl_table`).
 trait_check_expr :: fn(ctx: EmitCtx, tag_expr: CExpression, trait_name: string, ref_type_index: i32) -> CExpression {
-    parts: CExpression[]!: [CParenthesized { .inner = tag_equals(tag_expr, ref_type_index) }]
+    parts: CExpression[]: [CParenthesized { .inner = tag_equals(tag_expr, ref_type_index) }]
     for entry in ctx.module.impl_table {
         if entry.trait_name == trait_name {
             parts.push(CParenthesized { .inner = tag_equals(tag_expr, entry.struct_type_index) })
@@ -1901,7 +1901,7 @@ emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
         cname :: s.ctx.struct_c_names[usize(op.type_id)]
         n :: i32(t.fields.len())
         // Pop top-to-bottom : pop #k is the value for field `n-1-k`.
-        field_vals: CExpression[]!: [verbatim("")] * usize(n)
+        field_vals: CExpression[]: [verbatim("")] * usize(n)
         for k in 0..<n {
             v :: pop(s)
             fi :: n - 1 - k
@@ -2048,7 +2048,7 @@ push_struct_field :: fn(
 /// `[Any, usize]`), and the concrete layout an erased consumer receives from a
 /// concrete producer.
 find_layout_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
-    out: i32[]!: []
+    out: i32[]: []
     et :: types[usize(struct_idx)]
     if et is BcStruct {
         // Anonymous tuples carry no source symbol — they group by the reserved

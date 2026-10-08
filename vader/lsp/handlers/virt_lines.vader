@@ -39,7 +39,7 @@ word_under_cursor :: fn(li: LineIndex, params: JsonValue) -> VirtCursor | null {
 // its byte range in the document text.
 line_words :: fn(text: string, start: usize) -> Range<usize>[] {
     b :: text.bytes()
-    words: Range<usize>[]!: []
+    words: Range<usize>[]: []
     i := start
     for i < b.len() && !ends_code(b[i]) {
         if is_blank(b[i]) {

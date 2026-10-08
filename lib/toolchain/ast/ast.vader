@@ -93,7 +93,7 @@ export coalesce_fallback_expr :: fn(f: CoalesceFallback) -> Expr | null = match 
 /// For the walkers that visit a statement's sub-expressions and have no use for
 /// each element's kind.
 export assign_places :: fn(s: DestructureAssignStmt) -> Expr![] {
-    out: Expr![]!: []
+    out: Expr[]: []
     for t in s.targets {
         match t {
             is PlaceTarget | RestTarget -> { out.push(t.place) }
@@ -1208,9 +1208,12 @@ export ArrayTypeExpr :: struct {
 /// elements) are different types, and only a per-level marker can tell them
 /// apart.
 export MutableTypeExpr :: struct {
-    span:  Span
-    id:    usize = UNASSIGNED_NODE_ID
-    inner: TypeExpr!
+    span:     Span
+    id:       usize = UNASSIGNED_NODE_ID
+    inner:    TypeExpr!
+    /// Put there by the compiler, which deduced it from a body : the source does
+    /// not write it, so a printer leaves it out.
+    deduced:  bool = false
 }
 
 // ============================================================================
@@ -1273,7 +1276,7 @@ export param_is_mutable :: fn(p: FnParam) -> bool = p.mutable || type_expr_marks
 /// single-element list. Used by `vader/fmt` and `vader/typecheck` to
 /// avoid hand-rolling the same recursion on each side.
 export collect_bitor_variants :: fn(e: Expr) -> Expr[] {
-    out: Expr[]!: []
+    out: Expr[]: []
     append_bitor_variants(e, out)
     return out
 }

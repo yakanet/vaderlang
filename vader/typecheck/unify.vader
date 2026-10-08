@@ -293,7 +293,7 @@ export UnionLeftover :: struct {
 /// @return         the pairs to unify, in pattern order.
 export union_leftovers :: fn(pattern: Type[], actual: Type[]) -> UnionLeftover[] {
     used :: actual.len().filled(() -> false)
-    left_pattern: Type[]!: []
+    left_pattern: Type[]: []
     for pv in pattern {
         idx :: find_unused_equal(actual, used, pv)
         if idx >= 0 {
@@ -305,7 +305,7 @@ export union_leftovers :: fn(pattern: Type[], actual: Type[]) -> UnionLeftover[]
     if left_pattern.len() == 0 {
         return []
     }
-    left_actual: Type[]!: []
+    left_actual: Type[]: []
     for i in 0..<actual.len() {
         if !used[i] {
             left_actual.push(actual[i])
@@ -314,7 +314,7 @@ export union_leftovers :: fn(pattern: Type[], actual: Type[]) -> UnionLeftover[]
     if left_pattern.len() == 1 && left_pattern[0] is TypeParamType && left_actual.len() > 1 {
         return [UnionLeftover { .pattern = left_pattern[0], .actual = union_of(left_actual) }]
     }
-    out: UnionLeftover[]!: []
+    out: UnionLeftover[]: []
     for i in 0..<min(left_pattern.len(), left_actual.len()) {
         out.push(UnionLeftover { .pattern = left_pattern[i], .actual = left_actual[i] })
     }
@@ -394,7 +394,7 @@ substitute_fn_map :: fn(f: FnType, subst: MutableMap<i32, Type>) -> FnType =
     mk_fn_like(f, substitute_each_map(f.params, subst), substitute_map(f.return_type, subst))
 
 erase_each :: fn(types: Type[]) -> Type[] {
-    out: Type[]!: []
+    out: Type[]: []
     for t in types {
         out.push(erase_params_in(t))
     }
@@ -402,7 +402,7 @@ erase_each :: fn(types: Type[]) -> Type[] {
 }
 
 substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) -> Type[] {
-    out: Type[]!: []
+    out: Type[]: []
     for t in types { out.push(substitute_map(t, subst)) }
     return out
 }
@@ -413,7 +413,7 @@ import "std/string"
 import "std/testing"
 
 display_leftovers :: fn(pairs: UnionLeftover[]) -> string {
-    parts: string[]!: []
+    parts: string[]: []
     for p in pairs {
         parts.push("${display_type(p.pattern)} <- ${display_type(p.actual)}")
     }

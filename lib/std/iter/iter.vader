@@ -85,7 +85,7 @@ export last :: fn<T>(it: Iterator<T>) -> T | null {
 /// (`it.filter(p).map(f).collect()`) when a snapshot is required ;
 /// `for x in it` consumes directly without the intermediate array.
 export collect :: fn<T>(it: Iterator<T>) -> T[]! {
-    out: T[]!: []
+    out: T[]: []
     for x in it {
         out.push(x)
     }
@@ -155,7 +155,7 @@ export product :: fn<T: Mul & One>(self: Iterator<T>) -> T {
 /// without implementors). When `T[] implements Clone` lands, this free
 /// fn becomes the impl — `arr.clone()` resolves identically either way.
 export clone :: fn<T>(arr: T[]) -> T[]! {
-    out: T[]!: [] * arr.len()
+    out: T[]: [] * arr.len()
     out.push_all(arr)
     return out
 }
@@ -246,7 +246,7 @@ export chunked :: fn<T>(self: Iterator<T>, size: usize) -> Iterator<T[]> {
     }
     // Capped : a huge `size` over a short stream must not reserve it whole.
     reserve :: if size < CHUNK_RESERVE_CAP { size } else { CHUNK_RESERVE_CAP }
-    chunk: T[]! = [] * reserve
+    chunk: T[] = [] * reserve
     for x in self {
         chunk.push(x)
         if chunk.len() == size {
@@ -491,7 +491,7 @@ import "std/testing"
 }
 
 @test test_window :: fn() -> void {
-    windows: i32[][]!: []
+    windows: i32[][]: []
     for w in [1, 2, 3, 4, 5].window(3) {
         windows.push(w)
     }
@@ -502,14 +502,14 @@ import "std/testing"
     assert_eq(windows[2][2], 5)
 
     // no partial windows : size > len yields nothing
-    over: i32[][]!: []
+    over: i32[][]: []
     for w in [1, 2, 3].window(5) {
         over.push(w)
     }
     assert_eq(over.len(), 0)
 
     // size 0 yields nothing
-    zero: i32[][]!: []
+    zero: i32[][]: []
     for w in [1, 2, 3].window(0) {
         zero.push(w)
     }
@@ -517,7 +517,7 @@ import "std/testing"
 }
 
 @test test_chain :: fn() -> void {
-    out: i32[]!: []
+    out: i32[]: []
     for x in chain([1, 2], [3, 4, 5]) {
         out.push(x)
     }
@@ -527,8 +527,8 @@ import "std/testing"
 }
 
 @test test_indexed :: fn() -> void {
-    idxs: usize[]!: []
-    vals: string[]!: []
+    idxs: usize[]: []
+    vals: string[]: []
     for [s, i] in ["a", "b", "c"].indexed() {
         idxs.push(i)
         vals.push(s)

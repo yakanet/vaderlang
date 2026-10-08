@@ -182,7 +182,7 @@ lower_data_table :: fn(
     table_type :: mk_array(data, true)
     entry :: table_entry(decl, due, typed)
     fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, entry.subst, table_type)
-    elements: LoweredExpr![]!: []
+    elements: LoweredExpr[]: []
     for v in decl.variants {
         literal :: StructLitExpr {
             .span      = v.span,
@@ -205,7 +205,7 @@ lower_data_table :: fn(
 lower_value_table :: fn(decl: EnumDecl, due: EnumTable, typed: TypedProgram) -> LoweredConstDecl! {
     values :: due.enum_type.values
     element :: mk_primitive(value_element_width(values))
-    elements: LoweredExpr![]!: []
+    elements: LoweredExpr[]: []
     for value in values {
         elements.push(LoweredIntLit { .span = decl.span, .type = element, .value = value })
     }

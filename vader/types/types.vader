@@ -359,7 +359,7 @@ export declaration_key :: fn(sym: Symbol) -> string = "#${sym.id}"
 /// @return           the mangled fragment (e.g. `"std_string"`).
 export mangle_module_id :: fn(module_id: string) -> string {
     src :: module_id.bytes()
-    out: u8[]!: [] * src.len()
+    out: u8[]: [] * src.len()
     for b in src {
         if b == '/' || b == '.' {
             out.push('_')
@@ -489,7 +489,7 @@ export mk_fn_like :: fn(src: FnType, params: Type[], ret: Type) -> FnType {
     if !relays_any(src, params) {
         return FnType { .params = params, .params_mutable = src.params_mutable, .return_type = ret }
     }
-    marks: bool[]!: []
+    marks: bool[]: []
     for i in 0..<params.len() {
         marks.push(param_mutable_at(src, i) || relays_at(src, params, i))
     }
@@ -1142,7 +1142,7 @@ export boxes_as_representation :: fn(t: Type) -> bool = t is EnumType || t is Di
 /// @param args  the concrete type arguments.
 /// @return      `args` with every distinct collapsed to its backing.
 export strip_distinct_each :: fn(args: Type[]) -> Type[] {
-    out: Type[]!: []
+    out: Type[]: []
     for a in args { out.push(strip_distinct(a)) }
     return out
 }

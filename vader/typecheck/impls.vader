@@ -118,7 +118,7 @@ export impl_trait_symbol :: fn(decl: ImplDecl, resolved: ResolvedModule) -> Symb
 
 collect_impl :: fn(self: ImplRegistry, impl_: ImplDecl, resolved: ResolvedModule) -> void {
     trait_sym :: impl_trait_symbol(impl_, resolved) ?? return
-    scratch: Diagnostic[]!: []
+    scratch: Diagnostic[]: []
     for_type :: type_from_expr(impl_.for_type, resolved, scratch)
     target :: impl_base_key(for_type)
     trait_key :: trait_key_of(trait_sym)
@@ -165,7 +165,7 @@ push_entry :: fn(table: MutableMap<string, ImplEntry[]!>, key: string, entry: Im
 
 // Every type `receiver`'s arguments are built from.
 record_specialized_args :: fn(self: ImplRegistry, receiver: Type) -> void {
-    built_from: Type[]!: []
+    built_from: Type[]: []
     for arg in type_arguments(receiver) {
         for_each_type(arg, (sub) -> built_from.push(sub))
     }
@@ -263,8 +263,8 @@ export covering_first :: fn(entries: ImplEntry[], receiver: Type) -> ImplEntry[]
     if !any_instance_impl(entries) {
         return entries
     }
-    own: ImplEntry[]!: []
-    rest: ImplEntry[]!: []
+    own: ImplEntry[]: []
+    rest: ImplEntry[]: []
     for entry in entries {
         if !impl_covers(entry, receiver) {
             continue
@@ -278,7 +278,7 @@ export covering_first :: fn(entries: ImplEntry[], receiver: Type) -> ImplEntry[]
     if own.len() == 0 {
         return rest
     }
-    out: ImplEntry[]!: []
+    out: ImplEntry[]: []
     out.push_all(own)
     for entry in rest {
         if !hidden_by(own, entry, receiver) {
@@ -345,7 +345,7 @@ trait_args_at :: fn(entry: ImplEntry, receiver: Type) -> Type[] {
     }
     bindings :: MutableMap<i32, Type> {}
     unify_type_param(entry.for_type, receiver, bindings, null)
-    out: Type[]!: []
+    out: Type[]: []
     for a in entry.trait_args {
         out.push(substitute_map(a, bindings))
     }

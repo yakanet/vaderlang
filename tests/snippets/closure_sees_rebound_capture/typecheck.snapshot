@@ -31,7 +31,7 @@
   expr 35:22    IdentExpr      :: fn(i32) -> i32
   expr 35:5     CallExpr       :: void
   expr 35:5     IdentExpr      :: fn(T) -> void
-  expr 39:29    SeqLitExpr     :: (fn() -> i32)[]!
+  expr 39:28    SeqLitExpr     :: (fn() -> i32)[]!
   expr 40:14    RangeExpr      :: Range<i32>!
   expr 41:19    LambdaExpr     :: fn() -> i32
   expr 41:25    IdentExpr      :: i32
@@ -47,7 +47,7 @@
   expr 45:28    IdentExpr      :: fn() -> i32
   expr 45:9     CallExpr       :: void
   expr 45:9     IdentExpr      :: fn(T) -> void
-  expr 49:34    SeqLitExpr     :: (fn() -> string)[]!
+  expr 49:33    SeqLitExpr     :: (fn() -> string)[]!
   expr 50:17    SeqLitExpr     :: string[]!
   expr 50:18    StringLitExpr  :: string
   expr 50:23    StringLitExpr  :: string
@@ -66,7 +66,7 @@
   expr 55:28    IdentExpr      :: fn() -> string
   expr 55:9     CallExpr       :: void
   expr 55:9     IdentExpr      :: fn(T) -> void
-  expr 59:30    SeqLitExpr     :: (fn() -> i32)[]!
+  expr 59:29    SeqLitExpr     :: (fn() -> i32)[]!
   expr 60:15    CallExpr       :: __genstate_filter<i32>!
   expr 60:15    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 60:15    RangeExpr      :: Range<i32>!

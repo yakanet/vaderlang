@@ -59,7 +59,7 @@ export CommentMap :: struct {
 /// doesn't fool the scanner.
 /// @param source source code
 export scan_comments :: fn(source: string) -> CommentMap! {
-    out: Comment[]!: []
+    out: Comment[]: []
     sb :: source.bytes()
     n :: sb.len()
     i: usize = 0
@@ -258,7 +258,7 @@ export first_line_before :: fn(self: CommentMap, before: usize) -> i32 | null {
 // AST node so leading comments land at the right position.
 
 export take_before :: fn(self: CommentMap, before: usize) -> Comment[] {
-    out: Comment[]!: []
+    out: Comment[]: []
     for self.cursor < self.comments.len() {
         c :: self.comments[self.cursor]
         if c.offset >= before { break }
@@ -271,7 +271,7 @@ export take_before :: fn(self: CommentMap, before: usize) -> Comment[] {
 // Drain every remaining comment (used at end-of-file to flush trailing
 // comments after the last decl).
 export drain_remaining :: fn(self: CommentMap) -> Comment[] {
-    out: Comment[]!: []
+    out: Comment[]: []
     for self.cursor < self.comments.len() {
         out.push(self.comments[self.cursor])
         self.cursor = self.cursor + 1

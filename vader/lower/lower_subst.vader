@@ -77,13 +77,13 @@ build_fn_mixed_subst :: fn(
 any_leaves_of :: fn(t: Type) -> Type {
     if t is StructType {
         if t.args.is_empty() { return TY_ANY }
-        new_args: Type[]!: []
+        new_args: Type[]: []
         for a in t.args { new_args.push(any_leaves_of(a)) }
         return mk_struct(t.symbol, new_args, t.immutable)
     }
     if t is TraitType {
         if t.args.is_empty() { return TY_ANY }
-        new_args: Type[]!: []
+        new_args: Type[]: []
         for a in t.args { new_args.push(any_leaves_of(a)) }
         return TraitType { ...t, .args = new_args }
     }
@@ -98,7 +98,7 @@ any_leaves_of :: fn(t: Type) -> Type {
         // driven build, 136 distinct `MutableMap` shapes and a mangle 1 539
         // characters long (`MutableMap__i32__ArrayClear___ArrayCopy___…`), each
         // one materialised as its own struct decl. `Any | Any` is `Any`.
-        new_vars: Type[]!: []
+        new_vars: Type[]: []
         seen :: MutableSet<string> {}
         for v in t.variants {
             erased :: any_leaves_of(v)
@@ -111,7 +111,7 @@ any_leaves_of :: fn(t: Type) -> Type {
         return mk_union(new_vars)
     }
     if t is TupleType {
-        new_elems: Type[]!: []
+        new_elems: Type[]: []
         for el in t.elements { new_elems.push(any_leaves_of(el)) }
         return mk_tuple(new_elems, t.immutable)
     }
@@ -152,7 +152,7 @@ joined_unnamed :: fn(args: Type[], sep: string) -> string {
 }
 
 build_any_args_list :: fn(args: Type[]) -> Type[] {
-    out: Type[]!: []
+    out: Type[]: []
     for a in args { out.push(any_leaves_of(a)) }
     return out
 }
@@ -164,7 +164,7 @@ build_any_args_list :: fn(args: Type[]) -> Type[] {
 // — the two MUST agree arg-for-arg or a generic-struct box `vtable miss`es, so the
 // formula lives here once, not copied at each site.
 build_mixed_args_list :: fn(impls: ImplRegistry, args: Type[]) -> Type[] {
-    out: Type[]!: []
+    out: Type[]: []
     for a in args { out.push(keep_concrete_or_erase(impls, a)) }
     return out
 }
@@ -254,7 +254,7 @@ resolve_field_type :: fn(
         // alias. After the null check, `raw` already narrows to `Type`.
         if !(raw is UnresolvedType) { return raw }
     }
-    scratch: Diagnostic[]!: []
+    scratch: Diagnostic[]: []
     return type_from_expr(ty, owner_typed.resolved, scratch)
 }
 
@@ -348,7 +348,7 @@ build_impl_subst :: fn(
 /// symbol id ; matching by `(name, kind=TypeParam)` catches it
 /// regardless of whose `defined_at` the use sites carry.
 collect_impl_type_param_names :: fn(impl_decl: ImplDecl) -> string[] {
-    names: string[]!: []
+    names: string[]: []
     for tp in impl_decl.type_params { names.push(tp.name) }
     match impl_decl.for_type as gi {
         is GenericInstExpr -> {

@@ -25,9 +25,9 @@ AST :: import "toolchain/ast"
 
 /// Clone a BlockExpr, recursively substituting TypeParam idents.
 export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr! {
-    new_stmts: AST.Stmt![]!: []
+    new_stmts: AST.Stmt[]: []
     for s in b.stmts { new_stmts.push(substitute_stmt(s, subst)) }
-    new_trailing: AST.Expr! | null = null
+    new_trailing: AST.Expr | null = null
     if b.trailing !is null {
         new_trailing = substitute_expr_full(b.trailing, subst)
     }
@@ -92,7 +92,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr! {
 
         // Value-position composites : recurse children.
         is AST.CallExpr -> {
-            new_args: AST.CallArg![]!: []
+            new_args: AST.CallArg[]: []
             for a in e.args {
                 new_args.push(AST.CallArg {
                     .span = a.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -140,7 +140,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr! {
             }
         }
         is AST.IfExpr -> {
-            new_else: AST.IfElse! | null = null
+            new_else: AST.IfElse | null = null
             match e.else_branch as eb {
                 is null            -> {}
                 is AST.IfElseBlock -> {
@@ -167,9 +167,9 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr! {
             }
         }
         is AST.MatchExpr -> {
-            new_arms: AST.MatchArm![]!: []
+            new_arms: AST.MatchArm[]: []
             for a in e.arms {
-                new_guard: AST.Expr! | null = null
+                new_guard: AST.Expr | null = null
                 if a.guard !is null {
                     new_guard = substitute_expr_full(a.guard, subst)
                 }
@@ -192,7 +192,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr! {
         is AST.BlockExpr -> { return substitute_block(e, subst) }
 
         is AST.StructLitExpr -> {
-            new_items: (AST.StructLitField! | AST.StructLitSpread!)[]!: []
+            new_items: (AST.StructLitField | AST.StructLitSpread)[]: []
             for it in e.items {
                 match it {
                     is AST.StructLitField -> {
@@ -217,7 +217,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr! {
             }
         }
         is AST.SeqLitExpr -> {
-            new_elems: AST.Expr![]!: []
+            new_elems: AST.Expr[]: []
             for el in e.elements { new_elems.push(substitute_expr_full(el, subst)) }
             return AST.SeqLitExpr {
                 .span = e.span, .id = AST.UNASSIGNED_NODE_ID, .elements = new_elems,
@@ -244,7 +244,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr! {
             }
         }
         is AST.IntrinsicCallExpr -> {
-            new_args: AST.Expr![]!: []
+            new_args: AST.Expr[]: []
             for a in e.args { new_args.push(substitute_expr_full(a, subst)) }
             return AST.IntrinsicCallExpr {
                 .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
@@ -260,7 +260,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr! {
             }
         }
         is AST.StringLitExpr -> {
-            new_parts: AST.StringLitPart![]!: []
+            new_parts: AST.StringLitPart[]: []
             for pt in e.parts {
                 match pt {
                     is AST.StringLitText -> {
@@ -281,13 +281,13 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr! {
             }
         }
         is AST.LambdaExpr -> {
-            new_params: AST.FnParam![]!: []
+            new_params: AST.FnParam[]: []
             for pm in e.params {
-                new_pty: AST.TypeExpr! | null = null
+                new_pty: AST.TypeExpr | null = null
                 if pm.ty !is null {
                     new_pty = substitute_type_expr(pm.ty, subst)
                 }
-                new_default: AST.Expr! | null = null
+                new_default: AST.Expr | null = null
                 if pm.default_value !is null {
                     new_default = substitute_expr_full(pm.default_value, subst)
                 }
@@ -298,7 +298,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr! {
                     .decorators = pm.decorators,
                 })
             }
-            new_ret: AST.TypeExpr! | null = null
+            new_ret: AST.TypeExpr | null = null
             if e.return_type !is null {
                 new_ret = substitute_type_expr(e.return_type, subst)
             }
@@ -318,7 +318,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr! {
 export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt! {
     @partial match s {
         is AST.LetStmt               -> {
-            new_ty: AST.TypeExpr! | null = null
+            new_ty: AST.TypeExpr | null = null
             if s.ty !is null {
                 new_ty = substitute_type_expr(s.ty, subst)
             }
@@ -341,7 +341,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt! {
             }
         }
         is AST.ReturnStmt            -> {
-            new_value: AST.Expr! | null = null
+            new_value: AST.Expr | null = null
             if s.value !is null {
                 new_value = substitute_expr_full(s.value, subst)
             }
@@ -359,7 +359,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt! {
             }
         }
         is AST.DestructureAssignStmt -> {
-            targets: AST.AssignTarget![]!: []
+            targets: AST.AssignTarget[]: []
             for t in s.targets {
                 match t {
                     is AST.PlaceTarget    -> {
@@ -382,7 +382,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt! {
             }
         }
         is AST.ForStmt               -> {
-            new_form: AST.ForForm! = s.form
+            new_form: AST.ForForm = s.form
             match s.form as form {
                 is AST.WhileFor    -> {
                     new_form = AST.WhileFor { .cond = substitute_expr_full(form.cond, subst) }
@@ -438,7 +438,7 @@ clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding! {
             return AST.SimpleBinding { ...b, .id = AST.UNASSIGNED_NODE_ID }
         }
         is AST.TupleBinding -> {
-            new_elems: AST.LetBinding![]!: []
+            new_elems: AST.LetBinding[]: []
             for e in b.elements { new_elems.push(clone_let_binding(e)) }
             return AST.TupleBinding { .span = b.span, .id = AST.UNASSIGNED_NODE_ID, .elements = new_elems }
         }
@@ -458,7 +458,7 @@ clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding! {
 export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern! {
     @partial match p {
         is AST.IsPattern -> {
-            new_inner: AST.Pattern! | null = null
+            new_inner: AST.Pattern | null = null
             if p.inner !is null {
                 new_inner = substitute_pattern(p.inner, subst)
             }

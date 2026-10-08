@@ -311,7 +311,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
             return desc
         }
         own_bytes(frame_arr)
-        frame: u8[]!: []
+        frame: u8[]: []
         for i in 0..<frame_arr.length {
             b :: read_i64(frame_arr.elements[frame_arr.offset + i], at_pc, "ffi_call frame byte")
             if b is Trap { return b }
@@ -382,7 +382,7 @@ array_bytes :: fn(a: ArrayVal, count: usize, at_pc: i32, label: string) -> u8[] 
     if raw != null {
         return raw[a.offset..<a.offset + count]
     }
-    bs: u8[]!: []
+    bs: u8[]: []
     for i in 0..<count {
         b :: read_i64(a.elements[a.offset + i], at_pc, label)
         if b is Trap {
@@ -485,12 +485,12 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     // The call is described by DATA, not by its shape: one class per slot, then
     // a flat frame of eight-byte slots followed by whatever an ADDR slot points
     // into. `vader_ffi.h` owns the classes and the dispatch.
-    desc: u8[]!: [u8(FFI_VOID)]
-    slot_words: i64[]!: []
-    addr_slots: i64[]!: []
-    data: u8[]!: []
-    borrowed: LentArray[]!: []
-    lent_structs: LentStruct[]!: []
+    desc: u8[]: [u8(FFI_VOID)]
+    slot_words: i64[]: []
+    addr_slots: i64[]: []
+    data: u8[]: []
+    borrowed: LentArray[]: []
+    lent_structs: LentStruct[]: []
     for i in 0..<params.len() {
         v :: stack[arg_base + i]
         // Unreachable in practice — `exec` traps on `fn.addr` before the value
@@ -631,7 +631,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     for si in addr_slots {
         slot_words[usize(si)] = slot_words[usize(si)] + i64(base)
     }
-    frame: u8[]!: []
+    frame: u8[]: []
     for w in slot_words {
         push_little_endian(frame, w, 8)
     }

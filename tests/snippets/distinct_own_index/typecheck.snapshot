@@ -26,9 +26,9 @@
   expr 29:39    IdentExpr      :: type
   expr 29:43    IdentExpr      :: usize
   expr 35:39    UnaryExpr      :: i32
-  expr 39:17    CallExpr       :: Offset!
-  expr 39:17    IdentExpr      :: type
-  expr 39:24    SeqLitExpr     :: Offset!
+  expr 39:16    CallExpr       :: Offset!
+  expr 39:16    IdentExpr      :: type
+  expr 39:23    SeqLitExpr     :: Offset!
   expr 40:13    StringLitExpr  :: string
   expr 40:28    IdentExpr      :: Offset!
   expr 40:28    IndexExpr      :: i32
@@ -43,9 +43,9 @@
   expr 43:27    IndexExpr      :: i32
   expr 43:5     CallExpr       :: void
   expr 43:5     IdentExpr      :: fn(T) -> void
-  expr 44:14    CallExpr       :: Log!
-  expr 44:14    IdentExpr      :: type
-  expr 44:18    SeqLitExpr     :: Log!
+  expr 44:13    CallExpr       :: Log!
+  expr 44:13    IdentExpr      :: type
+  expr 44:17    SeqLitExpr     :: Log!
   expr 45:5     IdentExpr      :: Log!
   expr 45:5     IndexExpr      :: i32
   expr 46:5     BinaryExpr     :: i32

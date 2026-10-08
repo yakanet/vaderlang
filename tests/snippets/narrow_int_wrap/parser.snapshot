@@ -1455,20 +1455,17 @@
               "name": "cells"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "BinaryExpr",
-                  "op": "bitor",
-                  "left": {
-                    "kind": "IdentExpr",
-                    "name": "u8"
-                  },
-                  "right": {
-                    "kind": "IdentExpr",
-                    "name": "string"
-                  }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "BinaryExpr",
+                "op": "bitor",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "u8"
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "string"
                 }
               }
             },

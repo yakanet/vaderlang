@@ -43,7 +43,7 @@ export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonVal
     entry :: project.modules[project.entry] ?? return JsonArray { .items = [] }
     sf :: source_file_for_path(entry.module.files, file_path) ?? return JsonArray { .items = [] }
 
-    hints: JsonValue[]!: []
+    hints: JsonValue[]: []
     ctx :: HintCtx {
         .typed   = result.typed,
         .content = sf.content,
@@ -60,7 +60,7 @@ export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonVal
 // its cause as the tooltip.
 emit_deduced_marks :: fn(file: string, ctx: HintCtx, out: JsonValue[]) -> void {
     inference :: ctx.typed.param_inference ?? return
-    for mark in deduced_marks(inference, p -> p.param.span.start.file == file) {
+    for mark in deduced_marks(inference, p -> p.span.start.file == file) {
         line :: mark.at.line - 1
         character :: li_character(ctx.li, line, mark.at.offset)
         out.push(build_hint(line, character, "!", "deduced : ${mark.why}"))

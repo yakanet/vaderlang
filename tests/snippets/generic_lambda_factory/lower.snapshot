@@ -127,7 +127,7 @@
                 int(1) :usize
     return bad :i32
   fn snippet$main() -> i32
-    let lambda_rows: i32[]![]! =
+    let lambda_rows: i32[]![] =
       call :i32[]![]!
         callee:
           snippet$build__i32__ :i32[]![]!
@@ -139,7 +139,7 @@
       callee:
         fill :fn(i32[]![]) -> void
       arg0:
-        lambda_rows :i32[]![]!
+        lambda_rows :i32[]![]
     call :void
       callee:
         std_io$println__string :void
@@ -182,7 +182,7 @@
                       callee:
                         mismatches :fn(i32[][]) -> i32
                       arg0:
-                        lambda_rows :i32[]![]!
+                        lambda_rows :i32[]![]
           ~>
             call :string
               callee:
@@ -191,7 +191,7 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let named_rows: i32[]![]! =
+    let named_rows: i32[]![] =
       call :i32[]![]!
         callee:
           snippet$build__i32__ :i32[]![]!
@@ -203,7 +203,7 @@
       callee:
         fill :fn(i32[]![]) -> void
       arg0:
-        named_rows :i32[]![]!
+        named_rows :i32[]![]
     call :void
       callee:
         std_io$println__string :void
@@ -246,7 +246,7 @@
                       callee:
                         mismatches :fn(i32[][]) -> i32
                       arg0:
-                        named_rows :i32[]![]!
+                        named_rows :i32[]![]
           ~>
             call :string
               callee:

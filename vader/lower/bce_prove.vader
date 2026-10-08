@@ -315,7 +315,7 @@ bp_expr :: fn(e: LoweredExpr, pctx: BcePurityCtx) -> void {
 // fuses to two sequential source loops, and any N-way sequential fusion likewise);
 // each is proven independently, not just the last.
 bp_pair :: fn(b: LoweredBlock, pctx: BcePurityCtx) -> void {
-    pending_len: LoweredArrayLen! | null = null
+    pending_len: LoweredArrayLen | null = null
     for st in b.stmts {
         if st is LoweredLet {
             if st.value is LoweredArrayLen as al {

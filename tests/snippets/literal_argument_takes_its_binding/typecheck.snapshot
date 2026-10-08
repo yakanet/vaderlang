@@ -24,22 +24,22 @@
   expr 22:56    CallExpr       :: i64
   expr 22:56    IdentExpr      :: fn(T, T) -> T
   expr 22:65    IdentExpr      :: i64
-  expr 23:18    StructLitExpr  :: Cfg!
+  expr 23:17    StructLitExpr  :: Cfg!
   expr 24:13    StringLitExpr  :: string
   expr 24:16    CallExpr       :: Cfg
   expr 24:16    FieldExpr      :: fn(Cfg) -> Cfg
   expr 24:16    FieldExpr      :: i32
-  expr 24:16    IdentExpr      :: Cfg!
+  expr 24:16    IdentExpr      :: Cfg
   expr 24:27    IdentExpr      :: Cfg
   expr 24:37    CallExpr       :: Cfg
   expr 24:37    FieldExpr      :: fn(Cfg) -> Cfg
   expr 24:37    FieldExpr      :: i32
   expr 24:37    IdentExpr      :: Cfg
-  expr 24:46    IdentExpr      :: Cfg!
+  expr 24:46    IdentExpr      :: Cfg
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void
   expr 24:58    CallExpr       :: Cfg
   expr 24:58    FieldExpr      :: i32
   expr 24:58    IdentExpr      :: fn(T, T) -> T
-  expr 24:63    IdentExpr      :: Cfg!
+  expr 24:63    IdentExpr      :: Cfg
   expr 24:70    IdentExpr      :: Cfg

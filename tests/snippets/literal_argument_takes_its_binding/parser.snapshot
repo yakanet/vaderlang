@@ -322,11 +322,8 @@
               "name": "local"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "IdentExpr",
-                "name": "Cfg"
-              }
+              "kind": "IdentExpr",
+              "name": "Cfg"
             },
             "value": {
               "kind": "StructLitExpr",

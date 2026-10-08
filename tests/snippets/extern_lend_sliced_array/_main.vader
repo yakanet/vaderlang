@@ -23,13 +23,13 @@ churn :: fn(x: i32) -> void {
 @extern slice_fill :: fn(q: i32[]!, n: usize) -> void
 
 main :: fn() -> i32 {
-    ys: i32[]!: [5, 3, 9, 1, 7, 2, 8, 4]
+    ys: i32[]: [5, 3, 9, 1, 7, 2, 8, 4]
     early :: ys[2..<6]
     slice_set_cb(churn)
     slice_fill(ys, 8)
     println("early=${early[0]} ${early[1]} ${early[2]} ${early[3]}")
 
-    xs: i32[]!: [5, 3, 9, 1, 7, 2, 8, 4]
+    xs: i32[]: [5, 3, 9, 1, 7, 2, 8, 4]
     view :: xs[2..<6]
     slice_fill(xs, 8)
     println("view=${view[0]} ${view[1]} ${view[2]} ${view[3]}")

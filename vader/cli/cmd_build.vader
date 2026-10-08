@@ -357,8 +357,8 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
     // `DRIVER_CC_JOBS` at the driver's call site. A bound turns one wave into
     // ceil(n / cc_jobs) waves, each as long as its slowest unit, so it costs
     // some parallelism; that is why the user's own `--split` passes 0.
-    argvs: string[][]!: []
-    obj_files: string[]!: []
+    argvs: string[][]: []
+    obj_files: string[]: []
     for cf in c_files {
         obj :: "${cf}.o"
         obj_files.push(obj)
@@ -369,11 +369,11 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
     argvs.push(cc_compile_argv(cc, "${rt}/vader_runtime.c", rt_obj, rt, release, flavour))
 
     wave :: if cc_jobs > 0 { usize(cc_jobs) } else { argvs.len() }
-    results: (ProcessResult | ProcessError)[]!: []
+    results: (ProcessResult | ProcessError)[]: []
     start: usize = 0
     for start < argvs.len() {
         stop :: if start + wave < argvs.len() { start + wave } else { argvs.len() }
-        tasks: Async<ProcessResult | ProcessError>![]!: []
+        tasks: Async<ProcessResult | ProcessError>[]: []
         for k in start..<stop {
             tasks.push(spawn_async(argvs[k]))
         }
@@ -458,7 +458,7 @@ emit_c_for_targets :: fn(
     file: Path, out: Path, release: bool, include_path_flags: string[], targets: Target[],
     verify: bool,
 ) -> i32 {
-    mods: CfgBytecode[]!: []
+    mods: CfgBytecode[]: []
     for t in targets {
         b :: prepared_module(file, release, include_path_flags, t, verify) ?? return 1
         mods.push(b)
@@ -480,7 +480,7 @@ emit_c_for_targets :: fn(
     // line, which is what a first attempt produced: 39 files "differing" on
     // line 1 alone.
     header_name :: "${canonicalise(out).filename()}.split.h"
-    progs: CProgram[]!: []
+    progs: CProgram[]: []
     for i in 0..<targets.len() {
         // A literal a target holds but the universe does not means the pools were
         // unioned after something already emitted. Left unchecked it is a SILENT
@@ -613,7 +613,7 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
 // fragment — a union return would distribute the `!` marker onto the element
 // type, and an empty list is already the only invalid answer.
 parse_target_list :: fn(spec: string) -> Target[] {
-    out: Target[]!: []
+    out: Target[]: []
     for part in spec.split(",") {
         if part == "" {
             continue
@@ -636,8 +636,8 @@ parse_target_list :: fn(spec: string) -> Target[] {
 // Every non-empty literal any target uses, sorted. Sorted and not first-seen so
 // the ids are a property of the SET, not of the order the targets were given.
 union_of_string_pools :: fn(mods: CfgBytecode[]) -> string[] {
-    seen: MutableSet<string>!: MutableSet<string> {}
-    out: string[]!: []
+    seen: MutableSet<string>: MutableSet<string> {}
+    out: string[]: []
     for m in mods {
         for s in m.module.strings {
             if s != "" && !seen.contains(s) {
@@ -676,7 +676,7 @@ write_split_files :: fn(out: Path, prog: CProgram) -> i32 {
 // The `.c` files to compile : the globals TU + each function TU (the header is
 // included, not compiled).
 split_c_files :: fn(out: Path, unit_names: string[]) -> Path[] {
-    files: Path[]!: ["${out}.split.g.c".to_path()]
+    files: Path[]: ["${out}.split.g.c".to_path()]
     for n in unit_names {
         files.push(unit_path(out, "", n))
     }
@@ -731,7 +731,7 @@ ensure_target_dir :: fn(out: Path, target: string) -> i32 {
 cc_compile_argv :: fn(
     cc: string, src: string, obj: string, rt: string, release: bool, flavour: CcFlavour,
 ) -> string[] {
-    argv: string[]!: [cc]
+    argv: string[]: [cc]
     argv.push_all(cc_opt_flags(release))
     argv.push_all(lto_flags(flavour, release, false, 0))
     argv.push("-I")
@@ -775,7 +775,7 @@ cc_link_argv :: fn(
     cc: string, objs: string[], out: Path, ldflags: string, release: bool, flavour: CcFlavour,
     jobs: i32,
 ) -> string[] {
-    argv: string[]!: [cc]
+    argv: string[]: [cc]
     argv.push_all(lto_flags(flavour, release, true, jobs))
     argv.push_all(objs)
     push_ldflags(argv, ldflags)

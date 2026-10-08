@@ -86,7 +86,7 @@ declared_bindings :: fn(
     if cached != null {
         return cached
     }
-    found: Symbol[]!: []
+    found: Symbol[]: []
     for [_, symbol] in ensure_local_symbol_index(project, owner.resolved) {
         if !is_local_binding(symbol.kind) {
             continue

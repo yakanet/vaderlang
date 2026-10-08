@@ -40,7 +40,7 @@ export lower_match :: fn(
     scrut_type :: ctx.types.expr_type(expr.scrutinee)
     scrut_value :: recurse(ctx, expr.scrutinee)
 
-    stmts: LoweredStmt![]!: []
+    stmts: LoweredStmt[]: []
     // Scrutinee-temp elision : when the scrutinee already lowers to a direct
     // local/param read AND no arm carries a guard, reuse that slot instead of
     // spilling to a synthetic `__scrut` temp. Pattern predicates are pure, so
@@ -93,7 +93,7 @@ export lower_match :: fn(
     } else {
         "non-exhaustive match (T3013 should have caught this)"
     }
-    fallback: LoweredBlock!: wrap_block(expr.span, LoweredUnreachable {
+    fallback: LoweredBlock: wrap_block(expr.span, LoweredUnreachable {
         .span = expr.span, .type = result_type, .reason = fallback_reason,
     })
 
@@ -106,7 +106,7 @@ export lower_match :: fn(
         }
     }
 
-    chain: LoweredBlock! = fallback
+    chain: LoweredBlock = fallback
     cursor := arm_count
     for cursor > 0 {
         cursor = cursor - 1
@@ -152,7 +152,7 @@ lower_arm :: fn(
     ctx: FnLowerCtx, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
     recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr!,
 ) -> LoweredBlock! {
-    stmts: LoweredStmt![]!: []
+    stmts: LoweredStmt[]: []
     introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, stmts, arm.span)
     body :: recurse(ctx, arm.body)
     return LoweredBlock {
@@ -177,7 +177,7 @@ arm_predicate :: fn(
     // once the pattern predicate has confirmed the type. (`lower_arm`
     // re-introduces the same bindings in the arm body ; the second write
     // to the same slots is idempotent.)
-    binding_stmts: LoweredStmt![]!: []
+    binding_stmts: LoweredStmt[]: []
     introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, binding_stmts, arm.span)
     guard := recurse(ctx, arm.guard)
     if binding_stmts.len() > 0 {
@@ -256,7 +256,7 @@ pattern_predicate :: fn(
             // Disjunction of the alternatives' predicates : `p1 || p2 || …`.
             // A null sub-predicate (an always-true alternative) collapses the
             // whole or-pattern to always-true.
-            parts: LoweredExpr![]!: []
+            parts: LoweredExpr[]: []
             for sub in pattern.patterns {
                 sub_pred :: pattern_predicate(ctx, sub, target, target_type, span, recurse)
                 if sub_pred == null { return null }
@@ -273,7 +273,7 @@ struct_pattern_predicate :: fn(
     ctx: FnLowerCtx, pattern: StructPattern, target: LoweredExpr, span: Span,
     recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr!,
 ) -> LoweredExpr! | null {
-    tests: LoweredExpr![]!: []
+    tests: LoweredExpr[]: []
     for field in pattern.fields {
         if field.value is PatternLiteral as literal {
             value :: recurse(ctx, literal.value)
@@ -430,7 +430,7 @@ export resolve_pattern_type :: fn(ctx: FnLowerCtx, type_expr: TypeExpr) -> Type 
         // Resolve fresh from the AST, then apply the entry's substitution
         // so an erased generic-impl instance turns `is Wrap<T>` into
         // `is Wrap<Any>` instead of leaking the impl's TypeParam.
-        scratch: Diagnostic[]!: []
+        scratch: Diagnostic[]: []
         return ctx.types.apply(type_from_expr(type_expr, ctx.typed.resolved, scratch))
     }
     return from_table

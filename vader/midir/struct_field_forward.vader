@@ -39,7 +39,7 @@ import "std/collections"
 export struct_field_forward_project :: fn(p: CFGProject) -> CFGProject! {
     out :: MutableMap<string, CFGModule> {}
     for [id, m] in p.modules {
-        new_fns: CFGFunction![]!: []
+        new_fns: CFGFunction[]: []
         for f in m.functions {
             new_fns.push(forward_struct_fields_in_fn(f))
         }
@@ -74,7 +74,7 @@ forward_struct_fields_in_fn :: fn(fn_: CFGFunction) -> CFGFunction! {
         rewritten[i32(id)] = forward_block_with(fn_.blocks[usize(id)].instructions, entry)
         exits[i32(id)] = entry
     }
-    new_blocks: BasicBlock[]!: []
+    new_blocks: BasicBlock[]: []
     for b in fn_.blocks {
         done :: rewritten[i32(b.id)]
         if done == null {
@@ -110,7 +110,7 @@ join_of_predecessors :: fn(
     }
     for i in 1..<mine.len() {
         other :: exits[i32(mine[i])] ?? return MutableMap<i32, LocalId[]> {}
-        doomed: i32[]!: []
+        doomed: i32[]: []
         for [obj, fields] in fresh {
             theirs :: other[obj]
             if theirs == null {
@@ -131,7 +131,7 @@ join_of_predecessors :: fn(
 forward_block_with :: fn(
     instrs: Instruction[], built: MutableMap<i32, LocalId[]>,
 ) -> Instruction[] {
-    out: Instruction[]!: []
+    out: Instruction[]: []
     for ins in instrs {
         if built.len() > 0 {
             // The name now points elsewhere — as an object, or as one of the

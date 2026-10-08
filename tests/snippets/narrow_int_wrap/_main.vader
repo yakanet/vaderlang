@@ -43,7 +43,7 @@ main :: fn(argv: string[]) -> i32 {
     println("i8 of u8: ${i8(u8(n + 100))}")
     println("u16 of i8: ${u16(i8(n - 301))}")
     println(if u8(n) == 44 { "compared cast: cut" } else { "compared cast: wide" })
-    cells: (u8 | string)[]!: []
+    cells: (u8 | string)[]: []
     cells.push(u8(n))
     println("cast in a union: ${cells[0]}")
     return 0

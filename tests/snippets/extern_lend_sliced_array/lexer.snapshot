@@ -84,25 +84,24 @@
 [26:9-26:12 ] ident          "i32"
 [26:12-26:13] lbracket       "["
 [26:13-26:14] rbracket       "]"
-[26:14-26:15] bang           "!"
-[26:15-26:16] colon          ":"
-[26:17-26:18] lbracket       "["
-[26:18-26:19] int_literal    "5" =5n
-[26:19-26:20] comma          ","
-[26:21-26:22] int_literal    "3" =3n
-[26:22-26:23] comma          ","
-[26:24-26:25] int_literal    "9" =9n
-[26:25-26:26] comma          ","
-[26:27-26:28] int_literal    "1" =1n
-[26:28-26:29] comma          ","
-[26:30-26:31] int_literal    "7" =7n
-[26:31-26:32] comma          ","
-[26:33-26:34] int_literal    "2" =2n
-[26:34-26:35] comma          ","
-[26:36-26:37] int_literal    "8" =8n
-[26:37-26:38] comma          ","
-[26:39-26:40] int_literal    "4" =4n
-[26:40-26:41] rbracket       "]"
+[26:14-26:15] colon          ":"
+[26:16-26:17] lbracket       "["
+[26:17-26:18] int_literal    "5" =5n
+[26:18-26:19] comma          ","
+[26:20-26:21] int_literal    "3" =3n
+[26:21-26:22] comma          ","
+[26:23-26:24] int_literal    "9" =9n
+[26:24-26:25] comma          ","
+[26:26-26:27] int_literal    "1" =1n
+[26:27-26:28] comma          ","
+[26:29-26:30] int_literal    "7" =7n
+[26:30-26:31] comma          ","
+[26:32-26:33] int_literal    "2" =2n
+[26:33-26:34] comma          ","
+[26:35-26:36] int_literal    "8" =8n
+[26:36-26:37] comma          ","
+[26:38-26:39] int_literal    "4" =4n
+[26:39-26:40] rbracket       "]"
 [27:1-27:1  ] newline        "\n"
 [27:5-27:10 ] ident          "early"
 [27:11-27:13] decl_const     "::"
@@ -164,25 +163,24 @@
 [32:9-32:12 ] ident          "i32"
 [32:12-32:13] lbracket       "["
 [32:13-32:14] rbracket       "]"
-[32:14-32:15] bang           "!"
-[32:15-32:16] colon          ":"
-[32:17-32:18] lbracket       "["
-[32:18-32:19] int_literal    "5" =5n
-[32:19-32:20] comma          ","
-[32:21-32:22] int_literal    "3" =3n
-[32:22-32:23] comma          ","
-[32:24-32:25] int_literal    "9" =9n
-[32:25-32:26] comma          ","
-[32:27-32:28] int_literal    "1" =1n
-[32:28-32:29] comma          ","
-[32:30-32:31] int_literal    "7" =7n
-[32:31-32:32] comma          ","
-[32:33-32:34] int_literal    "2" =2n
-[32:34-32:35] comma          ","
-[32:36-32:37] int_literal    "8" =8n
-[32:37-32:38] comma          ","
-[32:39-32:40] int_literal    "4" =4n
-[32:40-32:41] rbracket       "]"
+[32:14-32:15] colon          ":"
+[32:16-32:17] lbracket       "["
+[32:17-32:18] int_literal    "5" =5n
+[32:18-32:19] comma          ","
+[32:20-32:21] int_literal    "3" =3n
+[32:21-32:22] comma          ","
+[32:23-32:24] int_literal    "9" =9n
+[32:24-32:25] comma          ","
+[32:26-32:27] int_literal    "1" =1n
+[32:27-32:28] comma          ","
+[32:29-32:30] int_literal    "7" =7n
+[32:30-32:31] comma          ","
+[32:32-32:33] int_literal    "2" =2n
+[32:33-32:34] comma          ","
+[32:35-32:36] int_literal    "8" =8n
+[32:36-32:37] comma          ","
+[32:38-32:39] int_literal    "4" =4n
+[32:39-32:40] rbracket       "]"
 [33:1-33:1  ] newline        "\n"
 [33:5-33:9  ] ident          "view"
 [33:10-33:12] decl_const     "::"

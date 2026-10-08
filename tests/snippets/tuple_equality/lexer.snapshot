@@ -372,11 +372,10 @@
 [53:12-53:15] ident          "i32"
 [53:15-53:16] lbracket       "["
 [53:16-53:17] rbracket       "]"
-[53:17-53:18] bang           "!"
-[53:18-53:19] colon          ":"
-[53:20-53:21] lbracket       "["
-[53:21-53:22] int_literal    "0" =0n
-[53:22-53:23] rbracket       "]"
+[53:17-53:18] colon          ":"
+[53:19-53:20] lbracket       "["
+[53:20-53:21] int_literal    "0" =0n
+[53:21-53:22] rbracket       "]"
 [54:1-54:1  ] newline        "\n"
 [54:5-54:12 ] ident          "counted"
 [54:13-54:15] decl_const     "::"

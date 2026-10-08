@@ -47,7 +47,7 @@ try_lower_value_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr! | 
         return null
     }
     span :: binary.span
-    stmts: LoweredStmt![]!: []
+    stmts: LoweredStmt[]: []
     left  :: bind_unless_stable(ctx, lower_expr(ctx, binary.left), "eq_l", span, stmts)
     right :: bind_unless_stable(ctx, lower_expr(ctx, binary.right), "eq_r", span, stmts)
     equal :: value_eq(ctx, left, left_ty, right, right_ty, span)
@@ -155,7 +155,7 @@ virtual_equals :: fn(
 field_conjunction :: fn(
     ctx: FnLowerCtx, left: LoweredExpr, right: LoweredExpr, ty: TupleType, span: Span,
 ) -> LoweredExpr! {
-    fields: LoweredExpr![]!: []
+    fields: LoweredExpr[]: []
     for i in 0..<ty.elements.len() {
         elem_ty :: ty.elements[i]
         l :: field_of(left, elem_ty, "_${i}", span)
@@ -184,10 +184,10 @@ variant_disjunction :: fn(
     right_ty: Type,
     span: Span,
 ) -> LoweredExpr! {
-    terms: LoweredExpr![]!: []
+    terms: LoweredExpr[]: []
     for l_variant in union_variants(left_ty) ?? [left_ty] {
         r_variant :: counterpart(right_ty, l_variant) ?? continue
-        parts: LoweredExpr![]!: []
+        parts: LoweredExpr[]: []
         holds_test(left, left_ty, l_variant, span, parts)
         holds_test(right, right_ty, r_variant, span, parts)
         if !is_null_type(l_variant) {

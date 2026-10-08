@@ -366,16 +366,13 @@
               "name": "seen"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "FnTypeExpr",
-                  "params": [],
-                  "returnType": {
-                    "kind": "IdentExpr",
-                    "name": "i32"
-                  }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "FnTypeExpr",
+                "params": [],
+                "returnType": {
+                  "kind": "IdentExpr",
+                  "name": "i32"
                 }
               }
             },
@@ -521,16 +518,13 @@
               "name": "tagged"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "FnTypeExpr",
-                  "params": [],
-                  "returnType": {
-                    "kind": "IdentExpr",
-                    "name": "string"
-                  }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "FnTypeExpr",
+                "params": [],
+                "returnType": {
+                  "kind": "IdentExpr",
+                  "name": "string"
                 }
               }
             },
@@ -692,16 +686,13 @@
               "name": "evens"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "FnTypeExpr",
-                  "params": [],
-                  "returnType": {
-                    "kind": "IdentExpr",
-                    "name": "i32"
-                  }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "FnTypeExpr",
+                "params": [],
+                "returnType": {
+                  "kind": "IdentExpr",
+                  "name": "i32"
                 }
               }
             },

@@ -31,7 +31,7 @@ stepper :: fn() -> Async<i32> {
 }
 
 main :: fn() -> i32 {
-    tasks: Async<i32>![]!: []
+    tasks: Async<i32>[]: []
     tasks.push(Probe { .until = 2 })
     for _ in 0..<3 {
         tasks.push(stepper())

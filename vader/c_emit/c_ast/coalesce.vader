@@ -69,8 +69,8 @@ export coalesce_temporaries :: fn(root: CBlock, temporaries: CTemporary[]) -> Va
     // Greedy interval packing, per ValType. Process temps in first-use order ;
     // reuse a slot whose current occupant ended strictly before this temp begins
     // (equal endpoints share a statement, so they overlap).
-    slot_types: ValType[]!: []
-    slot_end: i32[]!: []
+    slot_types: ValType[]: []
+    slot_end: i32[]: []
     for id in order_by_first(usage.first) {
         temporary :: temporaries[id]
         chosen: i32 = -1
@@ -95,7 +95,7 @@ export coalesce_temporaries :: fn(root: CBlock, temporaries: CTemporary[]) -> Va
 // Temp ids `0..<first.len()` that are used, ordered by first use (ties by id,
 // via the stable sort).
 order_by_first :: fn(first: i32[]) -> usize[] {
-    used: usize[]!: []
+    used: usize[]: []
     for id in 0..<first.len() {
         if first[id] >= 0 {
             used.push(id)
@@ -333,7 +333,7 @@ TestBody :: struct {
 
 // `count` temps of class `.Ref`, temp 1 of class `second`.
 test_body :: fn(count: i32, second: ValType) -> TestBody {
-    temporaries: CTemporary![]!: []
+    temporaries: CTemporary[]: []
     for id in 0..<count {
         temporaries.push(
             CTemporary { .id = id, .val = if id == 1 {

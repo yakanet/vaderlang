@@ -39,8 +39,8 @@ export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
     }
     if used.len() == ctx.imports.len() { return }
 
-    remap: i32[]!: []
-    kept: BcImport[]!: []
+    remap: i32[]: []
+    kept: BcImport[]: []
     for i in 0..<ctx.imports.len() {
         if used[i32(i)] is bool {
             remap.push(i32(kept.len()))
@@ -90,12 +90,12 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // Worklist over reachable fns ; pick up callees via call/fn.ref/
     // make_closure. Iterate to fixpoint — a vtable-rooted fn may
     // call other fns.
-    work: i32[]! = []
+    work: i32[] = []
     for [k, _] in reachable { work.push(k) }
     for work.len() > 0 {
         idx :: work[work.len() - 1]
         // pop
-        new_work: i32[]!: []
+        new_work: i32[]: []
         for w in 0..<work.len() - 1 {
             new_work.push(work[w])
         }
@@ -156,7 +156,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // Resolve each fn's canonical old index once : a folded duplicate maps to its
     // canonical, everything else to itself (empty-mangle fns — lambdas / closures
     // — are never deduped). Reused by the kept / remap passes below.
-    canon: i32[]!: []
+    canon: i32[]: []
     for ki in 0..<n {
         mangle :: ctx.functions[ki].name
         c := i32(ki)
@@ -172,14 +172,14 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // set is every fn (minus the folded duplicates) ; otherwise it's the
     // reachable set.
     new_idx_by_old :: MutableMap<i32, i32> {}
-    kept: BcFunction![]!: []
+    kept: BcFunction[]: []
     for j in 0..<n {
         if (keep_all || reachable[i32(j)] is bool) && canon[j] == i32(j) {
             new_idx_by_old[i32(j)] = i32(kept.len())
             kept.push(ctx.functions[j])
         }
     }
-    remap: i32[]!: []
+    remap: i32[]: []
     for r in 0..<n {
         target: i32 = -1
         if keep_all || reachable[i32(r)] is bool {
@@ -212,7 +212,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     }
 
     // Rewrite @export entries' fn_index in place via array rebuild.
-    new_exports: BcExport[]!: []
+    new_exports: BcExport[]: []
     for e in ctx.exports {
         new_idx :: remap[usize(e.fn_index)]
         if new_idx >= 0 {
@@ -279,7 +279,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
     reachable.add(0)   // null slot is load-bearing for the runtime
 
     // Visit transitively.
-    roots: i32[]!: []
+    roots: i32[]: []
     for fn_ in ctx.functions {
         roots.push_all(fn_.signature.result_types)
         for pt in fn_.signature.param_types { roots.push(pt) }
@@ -308,8 +308,8 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
 
     // Build remap table : surviving slots dense from 0.
     n :: ctx.types.len()
-    remap: i32[]!: []
-    kept: BcType[]!: []
+    remap: i32[]: []
+    kept: BcType[]: []
     for i in 0..<n {
         if i32(i) in reachable {
             remap.push(i32(kept.len()))
@@ -338,7 +338,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
         }
     }
     // Same for imports.
-    new_imports: BcImport[]!: []
+    new_imports: BcImport[]: []
     for imp in ctx.imports {
         new_imports.push(BcImport { ...imp, .signature = remap_signature(imp.signature, remap) })
     }

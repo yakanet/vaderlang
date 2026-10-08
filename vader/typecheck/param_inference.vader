@@ -1,27 +1,30 @@
-// vader/typecheck/param_inference — the `!` a parameter takes, deduced from what its
-// fn does with it.
+// vader/typecheck/param_inference — the `!` a slot takes, deduced from what its fn
+// does with it. A slot is a parameter of a fn with a body, or an annotated local.
 //
-// A parameter of a fn with a body is mutable at a level of its type when the body
-// mutates it there, or hands it at that level to a parameter that is. The compiler
-// deduces it in rounds over the whole project (`check_project_with_bodies`) :
+// A slot is mutable at a level of its type when the body mutates it there, or hands it
+// at that level to a slot that is. The compiler deduces it in rounds over the whole
+// project (`check_project_with_bodies`) :
 //
 //   1. `begin_param_inference` lists the parameters it deduces for and takes the `!`
-//      their source writes off the AST ;
-//   2. a round types the project. A rights refusal whose lever is such a parameter is
-//      a NEED (`note_param_need`, `note_widening_need`), and an argument rooted at one
-//      and handed to another is an EDGE (`note_arg_edge`, `note_receiver_edge`) ;
+//      their source writes off the AST ; a local, and a local fn's parameters, are
+//      listed when the first round reaches their binding (`register_local_slot`) ;
+//   2. a round types the project. A rights refusal whose lever is such a slot is a
+//      NEED (`note_slot_need`, `note_widening_need`), and a value rooted at one and
+//      handed to another — an argument, a value filling a local — is an EDGE
+//      (`note_arg_edge`, `note_receiver_edge`, `note_fill_edge`) ;
 //   3. `settle_param_marks` marks every level the needs, the written `!` and the edges
 //      close over, in the AST, so the next round reads them as written. A round that
 //      marks nothing new is the result, and `end_param_inference` closes the deduction.
 //
-// An edge is recorded only where it is exact — the argument's type is the parameter's
-// up to the `!`, with no conversion — so a level it marks is one a refusal would
-// demand. What it misses, the next round's refusals report : no round ends on a need
-// it could have met.
+// An edge is recorded only where it is exact — the value's type is the slot's up to
+// the `!`, with no conversion — so a level it marks is one a refusal would demand.
+// What it misses, the next round's refusals report : no round ends on a need it could
+// have met.
 
 module "vader/typecheck"
 
 import "std/collections"
+import "std/math"
 import "std/string_builder"
 AST :: import "toolchain/ast"
 import "toolchain/span"
@@ -37,12 +40,17 @@ import "vader/types"
 // `A | B | …`, in source order. A union carries no `!` of its own — its variants do.
 ELEMENT :: -1
 
-/// A parameter whose `!` is deduced, as the AST holds it.
-export InferableParam :: struct {
-    param: AST.FnParam!
+/// A slot whose `!` is deduced — a parameter, or an annotated local — as the AST
+/// holds it.
+export InferableSlot :: struct {
+    /// Where its type is written.
+    owner: AST.FnParam! | AST.LetStmt!
+    name: string
+    /// The parameter's span, or the local's name : its hash keys the slot.
+    span: Span
     /// The module declaring it : a level's type is read with that module's names.
     module: string
-    /// The fn it belongs to, as a cause names it.
+    /// The fn a parameter belongs to, as a cause names it ; "" for a local.
     fn_name: string
     /// The `!` its source writes at a deduced level.
     written: WrittenMark[]
@@ -80,12 +88,15 @@ export ArgEdge :: struct {
     root: u64 | null = null
     /// Array levels from the root down to the argument.
     elements: i32 = 0
+    /// The first level of the argument the root stands for (`SlotRoot.floor`).
+    floor: i32 = 0
     /// Array levels of the marked parameter above what the argument fills : 0 for a
     /// call's argument, which fills the parameter itself.
     from: i32 = 0
     /// The argument's type : what the callee's own levels stand for at the root.
     arg_ty: Type
     call: Span
+    /// The fn the argument is handed to, or the local the value fills.
     callee: string
 }
 
@@ -97,7 +108,7 @@ export RootedEdge :: struct {
 
 /// What the deduction knows, shared by every module of a round and kept across rounds.
 export ParamInference :: struct {
-    params: MutableMap<u64, InferableParam!>! = MutableMap<u64, InferableParam!> {}
+    slots: MutableMap<u64, InferableSlot!>! = MutableMap<u64, InferableSlot!> {}
     /// This round's needs, read into `needs` between rounds.
     pending: PendingNeed[]! = []
     /// Levels the rounds so far found a need at, by `level_key`.
@@ -172,14 +183,14 @@ register_fn_params :: fn(inference: ParamInference, fd: AST.FnDecl, module: stri
         return
     }
     for p in fd.params {
-        register_param(inference, p, fd.name, module, strip = true)
+        register_param(inference, p, fd.name, module)
     }
 }
 
 /// Deduce the `!` of a local fn's parameters (`f :: fn(x: T) { … }` in a body).
 ///
-/// Its written `!` stay : the AST walk that strips them before the first round sees
-/// top-level declarations only.
+/// Registered when the first round reaches the binding, before the lambda is typed :
+/// its written `!` come off then.
 ///
 /// @param lambda  the local fn's value.
 /// @param name    the local it is bound to.
@@ -187,37 +198,75 @@ register_local_fn :: fn(lambda: AST.LambdaExpr, name: string, typed: TypedProgra
     inference :: typed.param_inference ?? return
     for p in lambda.params {
         if p.ty != null {
-            register_param(inference, p, name, typed.resolved.path, strip = false)
+            register_param(inference, p, name, typed.resolved.path)
         }
     }
 }
 
-register_param :: fn(
-    inference: ParamInference, p: AST.FnParam, fn_name: string, module: string, strip: bool,
-) -> void {
-    key :: p.span.hash()
-    if key in inference.params {
+/// Deduce the `!` of an annotated local (`out: Stmt[]: []`) : its annotation gives the
+/// shape, the body the rights.
+///
+/// Registered when the first round reaches the binding, before its annotation is
+/// typed : its written `!` come off then.
+///
+/// @param s  the binding, annotated with a single name.
+register_local_slot :: fn(s: AST.LetStmt, typed: TypedProgram) -> void {
+    inference :: typed.param_inference ?? return
+    if s.binding !is AST.SimpleBinding {
         return
     }
-    written: WrittenMark[]!: []
-    if strip {
-        ty :: p.ty
-        if ty == null {
-            if p.mutable {
-                // `self!` : the name's span ends on the marker.
-                written.push(WrittenMark { .path = [], .bang = last_char(p.span) })
-                p.mutable = false
-            }
-        } else {
-            p.ty = strip_levels(ty, [], written)
-        }
+    ty :: s.ty ?? return
+    // The local's symbol is minted at its name : the key a read of it reaches.
+    at :: s.binding.name_span
+    if at.hash() in inference.slots {
+        return
     }
-    inference.params[key] = InferableParam {
-        .param = p,
+    written: WrittenMark[]: []
+    s.ty = strip_levels(ty, [], written)
+    inference.slots[at.hash()] = InferableSlot {
+        .owner = s,
+        .name = s.binding.name,
+        .span = at,
+        .module = typed.resolved.path,
+        .fn_name = "",
+        .written = written,
+    }
+}
+
+register_param :: fn(
+    inference: ParamInference, p: AST.FnParam, fn_name: string, module: string,
+) -> void {
+    key :: p.span.hash()
+    if key in inference.slots {
+        return
+    }
+    written: WrittenMark[]: []
+    ty :: p.ty
+    if ty == null {
+        if p.mutable {
+            // `self!` : the name's span ends on the marker.
+            written.push(WrittenMark { .path = [], .bang = last_char(p.span) })
+            p.mutable = false
+        }
+    } else {
+        p.ty = strip_levels(ty, [], written)
+    }
+    inference.slots[key] = InferableSlot {
+        .owner = p,
+        .name = p.name,
+        .span = p.span,
         .module = module,
         .fn_name = fn_name,
         .written = written,
     }
+}
+
+// The type a slot's source writes, its deduced `!` included. Two branches, one per
+// owner : a field common to a union's variants is read at a fixed offset, which the
+// two owners do not share.
+slot_type :: fn(slot: InferableSlot) -> AST.TypeExpr | null {
+    owner :: slot.owner
+    return if owner is AST.FnParam { owner.ty } else { owner.ty }
 }
 
 // `t` without the `!` it writes at a deducible level, each recorded in `written`.
@@ -276,10 +325,13 @@ last_char :: fn(s: Span) -> Span {
 
 // ---- during a round : needs -----------------------------------------------
 
-// A deduced parameter a value is reached from, and how many array levels down.
-ParamRoot :: struct {
+// A deduced slot a value is reached from, and how many array levels down.
+SlotRoot :: struct {
     key: u64
     elements: i32
+    /// The first level of the walked value the root stands for : above it, the value
+    /// is a fresh literal's (`[x]`).
+    floor: i32 = 0
     /// The type the root has where a field of it is read : reached through a field,
     /// the root is needed at its own level, as that type.
     holder: Type | null = null
@@ -310,7 +362,7 @@ export PendingNeed :: struct {
 /// @return       whether the refusal is ABSORBED : the need marks a level the AST
 ///               does not have yet, so this round runs again and the refusal need not
 ///               be reported.
-note_param_need :: fn(value: AST.Expr, span: Span, what: string, typed: TypedProgram) -> bool {
+note_slot_need :: fn(value: AST.Expr, span: Span, what: string, typed: TypedProgram) -> bool {
     inference :: typed.param_inference ?? return false
     want :: typed.expr_types[value.id] ?? return false
     cause :: MarkCause { .span = span, .what = what }
@@ -323,12 +375,12 @@ note_param_need :: fn(value: AST.Expr, span: Span, what: string, typed: TypedPro
 /// @param value     the value that failed to fit.
 /// @param got       its type.
 /// @param expected  the slot's type.
-/// @return          whether the mismatch is absorbed, as for `note_param_need`.
+/// @return          whether the mismatch is absorbed, as for `note_slot_need`.
 note_widening_need :: fn(
     value: AST.Expr, got: Type, expected: Type, span: Span, typed: TypedProgram,
 ) -> bool {
     inference :: typed.param_inference ?? return false
-    levels: LevelGap[]!: []
+    levels: LevelGap[]: []
     widening_levels(got, expected, 0, typed.type_param_bound_traits, levels)
     cause :: MarkCause { .span = span, .what = "it is stored where a mutable value is expected" }
     absorbed := false
@@ -365,7 +417,7 @@ note_gaining_need :: fn(
 // takes it is not marked yet. A root is a parameter of the fn being walked, so of this
 // module : its levels are read with `resolved`.
 note_needs :: fn(
-    inference: ParamInference, roots: ParamRoot[], want: Type, cause: MarkCause,
+    inference: ParamInference, roots: SlotRoot[], want: Type, cause: MarkCause,
     resolved: ResolvedModule,
 ) -> bool {
     fresh := false
@@ -373,8 +425,8 @@ note_needs :: fn(
         if root.elements < 0 {
             continue
         }
-        param :: inference.params[root.key] ?? continue
-        paths :: levels_for(param, root.elements, root.holder ?? want, resolved)
+        slot :: inference.slots[root.key] ?? continue
+        paths :: levels_for(slot, root.elements, root.holder ?? want, resolved)
         fresh = add_needs(inference, root.key, paths, cause) || fresh
     }
     return fresh
@@ -417,7 +469,7 @@ widening_levels :: fn(
     }
     if got is UnionType && expected is UnionType {
         for v in got.variants {
-            found: LevelGap[]!: []
+            found: LevelGap[]: []
             widening_levels(v, expected, elements, bounds, found)
             for gap in found {
                 // At the union's own level the value is the whole union.
@@ -467,12 +519,12 @@ LeverWalk :: struct {
     /// Whether a field leads to its struct. A need takes it : a field is as read-only
     /// as its struct. An edge does not : the field's declared levels are its own.
     fields: bool
-    roots: ParamRoot[]!
+    roots: SlotRoot[]!
 }
 
 // The deduced parameters `e`, `elements` array levels below it, is reached from
 // (`levers_of`). `fields` as for `LeverWalk`.
-roots_of :: fn(e: AST.Expr, elements: i32, fields: bool, typed: TypedProgram) -> ParamRoot[] {
+roots_of :: fn(e: AST.Expr, elements: i32, fields: bool, typed: TypedProgram) -> SlotRoot[] {
     walk :: LeverWalk {
         .typed = typed,
         .fields = fields,
@@ -483,7 +535,7 @@ roots_of :: fn(e: AST.Expr, elements: i32, fields: bool, typed: TypedProgram) ->
 }
 
 // The roots an edge from `e` follows.
-edge_roots_of :: fn(e: AST.Expr, typed: TypedProgram) -> ParamRoot[] = roots_of(e, 0, false, typed)
+edge_roots_of :: fn(e: AST.Expr, typed: TypedProgram) -> SlotRoot[] = roots_of(e, 0, false, typed)
 
 // The deduced parameters `e` is reached from, into `walk` : the parameter itself, an
 // element or a field of it, a conversion of it, a loop variable over it, a local bound
@@ -512,15 +564,24 @@ levers_of :: fn(e: AST.Expr, elements: i32, budget: i32, walk: LeverWalk) -> voi
                 levers_of(e.args[0].value, elements, budget - 1, walk)
             }
         }
-        // An element of a fresh literal is one level below it : at the literal's own
-        // level (`elements` 0 and below) the root is reached at a negative level, which
-        // only an edge can bring back up.
+        // An element of a fresh literal is one level below it, and the literal's own
+        // level is fresh : a need there has no root, and an edge reaches its elements'
+        // roots only from the walked value's level that stands for them (`floor`).
         is AST.SeqLitExpr -> {
+            if walk.fields && elements < 1 {
+                return
+            }
             literal_ty :: typed.expr_types[e.id] ?? return
-            if array_shape_in(literal_ty) != null {
-                for element in e.elements {
-                    levers_of(element, elements - 1, budget - 1, walk)
-                }
+            if array_shape_in(literal_ty) == null {
+                return
+            }
+            first :: walk.roots.len()
+            for element in e.elements {
+                levers_of(element, elements - 1, budget - 1, walk)
+            }
+            for i in first..<walk.roots.len() {
+                root :: walk.roots[i]
+                walk.roots[i] = SlotRoot { ...root, .floor = max(root.floor, 1 - elements) }
             }
         }
         is AST.NullCoalesceExpr -> {
@@ -572,7 +633,7 @@ field_levers :: fn(e: AST.FieldExpr, elements: i32, budget: i32, walk: LeverWalk
     for i in first..<walk.roots.len() {
         root :: walk.roots[i]
         if root.holder == null {
-            walk.roots[i] = ParamRoot { ...root, .holder = holder }
+            walk.roots[i] = SlotRoot { ...root, .holder = holder }
         }
     }
 }
@@ -596,11 +657,13 @@ ident_levers :: fn(e: AST.IdentExpr, elements: i32, budget: i32, walk: LeverWalk
     typed :: walk.typed
     sym :: typed.resolved.idents[e.span.hash()] ?? return
     at :: sym.defined_at ?? return
+    inference :: typed.param_inference ?? return
+    // A deduced slot is its own lever, whatever it was bound to.
+    if at.hash() in inference.slots {
+        walk.roots.push(SlotRoot { .key = at.hash(), .elements = elements })
+        return
+    }
     if sym.kind == .Param {
-        inference :: typed.param_inference ?? return
-        if at.hash() in inference.params {
-            walk.roots.push(ParamRoot { .key = at.hash(), .elements = elements })
-        }
         return
     }
     iterable :: typed.loop_var_iterable[sym.id]
@@ -611,30 +674,23 @@ ident_levers :: fn(e: AST.IdentExpr, elements: i32, budget: i32, walk: LeverWalk
         }
         return
     }
-    // The value a borrowing local was bound to says what it is of it — a slice, an
-    // element, a field — which the collection it was indexed out of does not.
-    bound_to :: typed.borrowed_from[sym.id]
+    bound_to :: typed.local_bound_to[sym.id]
     if bound_to != null {
         levers_of(bound_to, elements, budget - 1, walk)
-        return
-    }
-    indexed :: typed.local_init_index[sym.id]
-    if indexed != null {
-        levers_of(indexed, elements + 1, budget - 1, walk)
         return
     }
     scrutinee :: typed.narrow.binding_scrutinee[at.hash()] ?? return
     levers_of(scrutinee, elements, budget - 1, walk)
 }
 
-// The levels of `param`'s written type a need reaches : `elements` array levels down,
+// The levels of `slot`'s written type a need reaches : `elements` array levels down,
 // then the variant(s) of a union that `want` stands for. Empty when the type does not
 // spell that level out — an alias, a nominal type's argument — or it has no interior.
 levels_for :: fn(
-    param: InferableParam, elements: i32, want: Type, resolved: ResolvedModule,
+    slot: InferableSlot, elements: i32, want: Type, resolved: ResolvedModule,
 ) -> i32[][] {
-    out: i32[][]!: []
-    ty :: param.param.ty
+    out: i32[][]: []
+    ty :: slot_type(slot)
     if ty == null {
         if elements == 0 {
             out.push([])
@@ -692,13 +748,21 @@ note_arg_edge :: fn(
     c: AST.CallExpr, i: usize, arg_ty: Type, param_ty: Type, typed: TypedProgram,
 ) -> void {
     inference :: recording_edges(typed) ?? return
+    // A value has no level a mark could reach.
+    if is_value_only_type(arg_ty) {
+        return
+    }
     roots :: edge_roots_of(c.args[i].value, typed)
     if roots.len() == 0 && !has_mutable_element(arg_ty) {
         return
     }
     param :: param_for_arg(c, i, typed) ?? return
+    key :: param.span.hash()
+    if !(key in inference.slots) {
+        return
+    }
     if fits_shape(arg_ty, param_ty) && !converts_to_owned(arg_ty, param_ty, typed) {
-        add_arg_edges(inference, param.span.hash(), roots, arg_ty, c.span)
+        add_arg_edges(inference, key, roots, arg_ty, c.span)
     }
 }
 
@@ -727,11 +791,11 @@ note_receiver_edge :: fn(
     inference: ParamInference, decl: AST.FnDecl, e: AST.FieldExpr, recv_ty: Type,
     first_ty: Type | null, typed: TypedProgram,
 ) -> void {
-    if decl.params.len() == 0 {
+    if decl.params.len() == 0 || is_value_only_type(recv_ty) {
         return
     }
     key :: decl.params[0].span.hash()
-    if !(key in inference.params) {
+    if !(key in inference.slots) {
         return
     }
     roots :: edge_roots_of(e.target, typed)
@@ -743,16 +807,47 @@ note_receiver_edge :: fn(
     }
 }
 
-// The edges of an argument of type `arg_ty`, handed at `call` to the deduced parameter
-// `key`.
-add_arg_edges :: fn(
-    inference: ParamInference, key: u64, roots: ParamRoot[], arg_ty: Type, call: Span,
+/// Record that `value` fills the deduced local `name` — its initializer, or a value
+/// assigned to it : when the local is marked, the value's lever is too, as an
+/// argument's is for its parameter. Exact under the same terms.
+///
+/// @param name      the local's name, as written at the binding or the assignment.
+/// @param value_ty  the value's type.
+/// @param slot_ty   the local's declared type.
+/// @param at        the binding or the assignment.
+note_fill_edge :: fn(
+    name: Span, value: AST.Expr, value_ty: Type, slot_ty: Type, at: Span, typed: TypedProgram,
 ) -> void {
-    callee :: inference.params[key] ?? return
+    inference :: recording_edges(typed) ?? return
+    if is_value_only_type(value_ty) {
+        return
+    }
+    sym :: typed.resolved.idents[name.hash()] ?? return
+    defined :: sym.defined_at ?? return
+    key :: defined.hash()
+    slot :: inference.slots[key] ?? return
+    if slot.owner !is AST.LetStmt {
+        return
+    }
+    roots :: edge_roots_of(value, typed)
+    if roots.len() == 0 && !has_mutable_element(value_ty) {
+        return
+    }
+    if fits_shape(value_ty, slot_ty) && !converts_to_owned(value_ty, slot_ty, typed) {
+        add_arg_edges(inference, key, roots, value_ty, at)
+    }
+}
+
+// The edges of a value of type `arg_ty`, handed at `call` to the deduced slot `key` :
+// an argument to its parameter, or a value to the local it fills.
+add_arg_edges :: fn(
+    inference: ParamInference, key: u64, roots: SlotRoot[], arg_ty: Type, call: Span,
+) -> void {
+    slot :: inference.slots[key] ?? return
     edge :: ArgEdge {
         .arg_ty = arg_ty,
         .call = call,
-        .callee = callee.fn_name,
+        .callee = if slot.owner is AST.LetStmt { slot.name } else { slot.fn_name },
     }
     add_edges(inference, key, edge, roots)
 }
@@ -784,8 +879,8 @@ receiver_offset :: fn(c: AST.CallExpr, decl: AST.FnDecl, typed: TypedProgram) ->
 
 // `edge` from the parameter `key`, once per root of its argument — or once, rootless,
 // when it has none.
-add_edges :: fn(inference: ParamInference, key: u64, edge: ArgEdge, roots: ParamRoot[]) -> void {
-    edges: ArgEdge[]!: inference.edges[key] ?? []
+add_edges :: fn(inference: ParamInference, key: u64, edge: ArgEdge, roots: SlotRoot[]) -> void {
+    edges: ArgEdge[]: inference.edges[key] ?? []
     if roots.len() == 0 {
         edges.push(edge)
     }
@@ -794,6 +889,7 @@ add_edges :: fn(inference: ParamInference, key: u64, edge: ArgEdge, roots: Param
             ...edge,
             .root = root.key,
             .elements = root.elements,
+            .floor = root.floor,
         })
     }
     inference.edges[key] = edges
@@ -878,7 +974,7 @@ note_store_edge :: fn(
 // An edge from the element of each of `containers` to the roots of the value stored
 // there.
 store_edges :: fn(
-    inference: ParamInference, containers: ParamRoot[], value: AST.Expr, value_ty: Type,
+    inference: ParamInference, containers: SlotRoot[], value: AST.Expr, value_ty: Type,
     at: Span, typed: TypedProgram,
 ) -> void {
     if containers.len() == 0 {
@@ -926,12 +1022,12 @@ settle_param_marks :: fn(
     // The needs only grow and the edges are fixed : the closure holds every level
     // marked so far.
     seeds :: need_seeds(inference)
-    for [key, param] in inference.params {
-        for mark in param.written {
+    for [key, slot] in inference.slots {
+        for mark in slot.written {
             seeds.push(MarkedLevel {
                 .key = key,
                 .path = mark.path,
-                .cause = written_cause(param),
+                .cause = written_cause(slot),
             })
         }
     }
@@ -940,8 +1036,8 @@ settle_param_marks :: fn(
         if k in inference.marks {
             continue
         }
-        param :: inference.params[level.key] ?? continue
-        mark_param_level(param.param, level.path)
+        slot :: inference.slots[level.key] ?? continue
+        mark_slot_level(slot, level.path)
         inference.marks[k] = level
         grew = true
     }
@@ -953,9 +1049,9 @@ resolve_pending_needs :: fn(
     inference: ParamInference, modules: MutableMap<string, TypedProgram>,
 ) -> void {
     for need in inference.pending {
-        param :: inference.params[need.key] ?? continue
-        typed :: modules[param.module] ?? continue
-        paths :: levels_for(param, need.elements, need.want, typed.resolved)
+        slot :: inference.slots[need.key] ?? continue
+        typed :: modules[slot.module] ?? continue
+        paths :: levels_for(slot, need.elements, need.want, typed.resolved)
         _ :: add_needs(inference, need.key, paths, need.cause)
     }
     inference.pending = []
@@ -990,7 +1086,7 @@ deduced_levels :: fn(
 
 // The needs, as the seeds of a closure.
 need_seeds :: fn(inference: ParamInference) -> MarkedLevel[]! {
-    seeds: MarkedLevel[]!: []
+    seeds: MarkedLevel[]: []
     for [_, level] in inference.needs {
         seeds.push(level)
     }
@@ -1027,7 +1123,7 @@ closure_of :: fn(
         // grows takes them.
         for rooted in inference.by_root[level.key] ?? [] {
             spine :: i32(level.path.len()) - rooted.edge.elements - 1
-            if spine < 0 {
+            if spine < 0 || spine + 1 < rooted.edge.floor {
                 continue
             }
             element :: elements_path(spine + 1)
@@ -1062,7 +1158,7 @@ align_element :: fn(
         return
     }
     element :: type_at_level(edge.arg_ty, path) ?? return
-    if type_grants_mutation(element) || root_marked_at(edge, edge.elements + spine + 1, closed) {
+    if type_grants_mutation(element) || root_marked_at(edge, spine + 1, closed) {
         seeds.push(MarkedLevel {
             .key = level.key,
             .path = path,
@@ -1071,12 +1167,15 @@ align_element :: fn(
     }
 }
 
-// Whether the root of `edge` is marked `elements` array levels down.
+// Whether the root of `edge` is marked at the level standing for the argument's
+// level `arg_level`.
 root_marked_at :: fn(
-    edge: ArgEdge, elements: i32, closed: MutableMap<string, MarkedLevel>,
+    edge: ArgEdge, arg_level: i32, closed: MutableMap<string, MarkedLevel>,
 ) -> bool {
     root :: edge.root ?? return false
-    return elements >= 0 && level_key(root, elements_path(elements)) in closed
+    elements :: edge.elements + arg_level
+    return arg_level >= edge.floor && elements >= 0 &&
+        level_key(root, elements_path(elements)) in closed
 }
 
 handed_cause :: fn(edge: ArgEdge) -> MarkCause =
@@ -1092,18 +1191,21 @@ propagate :: fn(
     if edge.from > 0 && (!all_elements(level.path) || element_steps(level.path) < edge.from) {
         return
     }
-    root :: inference.params[root_key] ?? return
+    root :: inference.slots[root_key] ?? return
+    callee :: inference.slots[level.key] ?? return
     typed :: modules[root.module] ?? return
     below :: level.path[usize(edge.from)..<level.path.len()]
+    if element_steps(below) < edge.floor {
+        return
+    }
     elements :: edge.elements + element_steps(below)
-    if elements < 0 {
+    if elements < 0 || !fills_variants(edge.arg_ty, callee, level.path, edge.from, modules) {
         return
     }
     at_root :: type_at_level(edge.arg_ty, below)
     want :: if at_root != null {
         at_root
     } else {
-        callee :: inference.params[level.key] ?? return
         written_type_at(callee, level.path, modules) ?? return
     }
     paths :: levels_for(root, elements, want, typed.resolved)
@@ -1112,6 +1214,8 @@ propagate :: fn(
     }
     what :: if edge.from > 0 {
         "it is stored into an element that grants mutation"
+    } else if callee.owner is AST.LetStmt {
+        "it fills `${edge.callee}`, which is mutated"
     } else {
         "it is passed to `${edge.callee}`, which mutates it"
     }
@@ -1129,6 +1233,31 @@ propagate :: fn(
     }
 }
 
+// Whether a value of type `arg`, standing for the callee's level `path` from step
+// `from` down, fills each variant the path steps into : a value of one shape fills
+// one variant of the callee's written union, and a mark of another is none of its.
+fills_variants :: fn(
+    arg: Type, callee: InferableSlot, path: i32[], from: i32,
+    modules: MutableMap<string, TypedProgram>,
+) -> bool {
+    at := arg
+    for i in usize(from)..<path.len() {
+        if path[i] == ELEMENT {
+            arr :: array_shape_in(at) ?? return true
+            at = arr.element
+            continue
+        }
+        if at is UnionType {
+            return true
+        }
+        variant :: written_type_at(callee, path[0..<i + 1], modules) ?? return true
+        if !fits_shape(at, variant) {
+            return false
+        }
+    }
+    return true
+}
+
 // The type at `path` inside `t`, when the path steps through arrays alone : a variant
 // step names the callee's written union, which `t` need not order alike.
 type_at_level :: fn(t: Type, path: i32[]) -> Type | null {
@@ -1143,45 +1272,58 @@ type_at_level :: fn(t: Type, path: i32[]) -> Type | null {
     return at
 }
 
-// The type `param`'s written type names at `path`, read with its module's names.
+// The type `slot`'s written type names at `path`, read with its module's names.
 written_type_at :: fn(
-    param: InferableParam, path: i32[], modules: MutableMap<string, TypedProgram>,
+    slot: InferableSlot, path: i32[], modules: MutableMap<string, TypedProgram>,
 ) -> Type | null {
-    typed :: modules[param.module] ?? return null
-    written :: param.param.ty ?? return null
+    typed :: modules[slot.module] ?? return null
+    written :: slot_type(slot) ?? return null
     node :: node_at(written, path) ?? return null
     return type_from_expr(node, typed.resolved, [])
 }
 
-// Write the `!` of `path` into `p`'s type.
-mark_param_level :: fn(p: AST.FnParam, path: i32[]) -> void {
-    ty :: p.ty
-    if ty == null {
-        p.mutable = true
+// Write the `!` of `path` into the slot's type — on the name of a `self`, which has
+// none.
+mark_slot_level :: fn(slot: InferableSlot, path: i32[]) -> void {
+    owner :: slot.owner
+    // A `!` the source writes is put back as written : a printer keeps it.
+    deduced :: !is_written(slot, path)
+    if owner is AST.LetStmt {
+        written :: owner.ty ?? return
+        owner.ty = marked_at(written, path, 0, deduced)
         return
     }
-    p.ty = marked_at(ty, path, 0)
+    written :: owner.ty
+    if written == null {
+        owner.mutable = true
+        return
+    }
+    owner.ty = marked_at(written, path, 0, deduced)
 }
 
-marked_at :: fn(t: AST.TypeExpr, path: i32[], depth: usize) -> AST.TypeExpr! {
+marked_at :: fn(t: AST.TypeExpr, path: i32[], depth: usize, deduced: bool) -> AST.TypeExpr! {
     if t is AST.MutableTypeExpr {
         if depth < path.len() {
-            t.inner = marked_at(t.inner, path, depth)
+            t.inner = marked_at(t.inner, path, depth, deduced)
         }
         return t
     }
     if depth == path.len() {
-        return AST.MutableTypeExpr { .span = t.span, .inner = t }
+        return AST.MutableTypeExpr {
+            .span = t.span,
+            .inner = t,
+            .deduced = deduced,
+        }
     }
     step :: path[depth]
     if step == ELEMENT {
         if t is AST.ArrayTypeExpr {
-            t.element = marked_at(t.element, path, depth + 1)
+            t.element = marked_at(t.element, path, depth + 1, deduced)
         }
     } else if t is AST.BinaryExpr && t.op == .BitOr {
         _ :: rewrite_variants(t, 0, (v: AST.Expr!, k: i32) -> {
             if k == step {
-                return marked_at(v, path, depth + 1)
+                return marked_at(v, path, depth + 1, deduced)
             }
             return v
         })
@@ -1213,16 +1355,16 @@ end_param_inference :: fn(
 written_mark_warnings :: fn(
     inference: ParamInference, modules: MutableMap<string, TypedProgram>,
 ) -> Diagnostic[] {
-    out: Diagnostic[]!: []
+    out: Diagnostic[]: []
     if !writes_a_mark(inference) {
         return out
     }
     deduced :: deduced_levels(inference, modules)
-    for [key, param] in inference.params {
-        name :: param.param.name
-        for mark in param.written {
+    for [key, slot] in inference.slots {
+        name :: slot.name
+        for mark in slot.written {
             // A `!` on a type with no interior is T3075's, reported where it is written.
-            level_ty :: written_type_at(param, mark.path, modules)
+            level_ty :: written_type_at(slot, mark.path, modules)
             if level_ty != null && is_value_only_type(level_ty) {
                 continue
             }
@@ -1239,16 +1381,16 @@ written_mark_warnings :: fn(
 }
 
 writes_a_mark :: fn(inference: ParamInference) -> bool {
-    for [_, param] in inference.params {
-        if param.written.len() > 0 {
+    for [_, slot] in inference.slots {
+        if slot.written.len() > 0 {
             return true
         }
     }
     return false
 }
 
-written_cause :: fn(param: InferableParam) -> MarkCause =
-    MarkCause { .span = param.param.span, .what = "its source writes the `!`" }
+written_cause :: fn(slot: InferableSlot) -> MarkCause =
+    MarkCause { .span = slot.span, .what = "its source writes the `!`" }
 
 // ---- reading the marks ----------------------------------------------------
 
@@ -1260,40 +1402,43 @@ written_cause :: fn(param: InferableParam) -> MarkCause =
 deduced_mutation_why :: fn(p: AST.FnParam, typed: TypedProgram) -> string | null {
     inference :: typed.param_inference ?? return null
     key :: p.span.hash()
-    param :: inference.params[key] ?? return null
-    if is_written(param, []) {
+    slot :: inference.slots[key] ?? return null
+    if is_written(slot, []) {
         return null
     }
     level :: inference.marks[level_key(key, [])] ?? return null
-    return "`${param.fn_name}` mutates `${p.name}` : ${level_why(level, inference)}"
+    return "`${slot.fn_name}` mutates `${p.name}` : ${level_why(level, inference)}"
 }
 
-/// A deduced `!` of a parameter, as an editor shows it : where the marker would be
+/// A deduced `!` of a slot, as an editor shows it : where the marker would be
 /// written, and why the compiler puts it there.
 export DeducedMark :: struct {
-    param: AST.FnParam
+    /// The slot's name.
+    name: string
+    /// The slot's span : the parameter, or the local's name.
+    span: Span
     /// Just past the level's written type, where its `!` would go.
     at: Position
     why: string
 }
 
-/// Every `!` deduced on the parameters `keep` selects that their source does not
-/// write.
+/// Every `!` deduced on the slots `keep` selects that their source does not write.
 ///
-/// @param keep  whether a parameter's marks are wanted ; asked before their cause is
+/// @param keep  whether a slot's marks are wanted ; asked before their cause is
 ///              worded.
 export deduced_marks :: fn(
-    inference: ParamInference, keep: fn(InferableParam) -> bool,
+    inference: ParamInference, keep: fn(InferableSlot) -> bool,
 ) -> DeducedMark[] {
-    out: DeducedMark[]!: []
+    out: DeducedMark[]: []
     for [_, level] in inference.marks {
-        param :: inference.params[level.key] ?? continue
-        if !keep(param) || is_written(param, level.path) {
+        slot :: inference.slots[level.key] ?? continue
+        if !keep(slot) || is_written(slot, level.path) {
             continue
         }
-        at :: level_end(param.param, level.path) ?? continue
+        at :: level_end(slot, level.path) ?? continue
         out.push(DeducedMark {
-            .param = param.param,
+            .name = slot.name,
+            .span = slot.span,
             .at = at,
             .why = level_why(level, inference),
         })
@@ -1301,8 +1446,8 @@ export deduced_marks :: fn(
     return out
 }
 
-is_written :: fn(param: InferableParam, path: i32[]) -> bool {
-    for mark in param.written {
+is_written :: fn(slot: InferableSlot, path: i32[]) -> bool {
+    for mark in slot.written {
         if mark.path.content_equals(path) {
             return true
         }
@@ -1310,10 +1455,10 @@ is_written :: fn(param: InferableParam, path: i32[]) -> bool {
     return false
 }
 
-// Where the `!` of `path` would be written in `p` : past the level's type, or past
+// Where the `!` of `path` would be written in `slot` : past the level's type, or past
 // the name of a `self`.
-level_end :: fn(p: AST.FnParam, path: i32[]) -> Position | null {
-    written :: p.ty ?? return p.span.end
+level_end :: fn(slot: InferableSlot, path: i32[]) -> Position | null {
+    written :: slot_type(slot) ?? return slot.span.end
     node :: node_at(written, path) ?? return null
     // A deduced marker spans its level's type alone.
     return node.span.end
@@ -1348,8 +1493,9 @@ level_why :: fn(level: MarkedLevel, inference: ParamInference) -> string {
     for step in 0..<CAUSE_CHAIN_LIMIT {
         cause :: at.cause
         if step > 0 {
-            param :: inference.params[at.key] ?? break
-            sb.append(" ; in `${param.fn_name}`, ")
+            slot :: inference.slots[at.key] ?? break
+            // A local is filled in the fn the chain is already in.
+            sb.append(if slot.fn_name == "" { " ; " } else { " ; in `${slot.fn_name}`, " })
         }
         sb.append("${cause.what} at ${where_of(cause.span)}")
         if cause.via == "" {

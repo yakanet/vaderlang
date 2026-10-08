@@ -34,7 +34,7 @@ export predecessors_of :: fn(fn_: CFGFunction) -> BlockId[][] {
     // The inner lists must be mutable to be filled, the outer only read — and the
     // element is covariant into the read-only array the signature promises, so
     // `out` returns as-is.
-    out: BlockId[]![]: filled(fn_.blocks.len(), () -> [])
+    out: BlockId[][]: filled(fn_.blocks.len(), () -> [])
     for b in fn_.blocks {
         for succ in successors_of(b) { out[i32(succ)].push(b.id) }
     }
@@ -159,7 +159,7 @@ export natural_loop_bodies :: fn(
     out :: MutableMap<BlockId, MutableSet<BlockId>> {}
     for h in 0..<fn_.blocks.len() {
         h_id :: BlockId(h)
-        back_edge_sources: BlockId[]!: []
+        back_edge_sources: BlockId[]: []
         for p in preds[h] {
             if dominates(idom, h_id, p) {
                 back_edge_sources.push(p)
@@ -170,7 +170,7 @@ export natural_loop_bodies :: fn(
         }
         body :: MutableSet<BlockId> {}
         body.add(h_id)
-        stack: BlockId[]! = back_edge_sources.clone()
+        stack: BlockId[] = back_edge_sources.clone()
         for stack.len() > 0 {
             cur :: stack[stack.len() - 1]
             stack = stack[0..<stack.len() - 1]
@@ -215,11 +215,11 @@ export count_uses :: fn(fn_: CFGFunction) -> MutableMap<LocalId, i32> {
 /// predecessors before successors (forward flow) or successors
 /// before predecessors (backward).
 export reverse_postorder :: fn(fn_: CFGFunction) -> BlockId[] {
-    order: BlockId[]!: []
-    visited: bool[]!: [false] * fn_.blocks.len()
+    order: BlockId[]: []
+    visited: bool[]: [false] * fn_.blocks.len()
     walk_rpo(fn_, fn_.entry, visited, order)
     // Reverse in place.
-    out: BlockId[]!: [] * order.len()
+    out: BlockId[]: [] * order.len()
     i := order.len()
     for i > 0 {
         i = i - 1
@@ -234,7 +234,7 @@ export reverse_postorder :: fn(fn_: CFGFunction) -> BlockId[] {
 /// @param rpo  a function's blocks in reverse postorder.
 /// @param n    the function's block count.
 export rpo_positions :: fn(rpo: BlockId[], n: usize) -> i32[] {
-    positions: i32[]!: [-1] * n
+    positions: i32[]: [-1] * n
     for i in 0..<rpo.len() {
         positions[i32(rpo[i])] = i32(i)
     }
@@ -253,7 +253,7 @@ walk_rpo :: fn(fn_: CFGFunction, b: BlockId, visited: bool[], order: BlockId[]) 
 /// unreachable blocks return -1 — interpreted as "no known idom").
 export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
     n :: fn_.blocks.len()
-    idom: i32[]!: [-1] * n
+    idom: i32[]: [-1] * n
     idom[i32(fn_.entry)] = i32(fn_.entry)
     rpo :: reverse_postorder(fn_)
     changed := true
@@ -335,8 +335,8 @@ export Liveness :: struct {
 
 export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     n :: fn_.blocks.len()
-    use_: MutableSet<LocalId>[]!: [] * n
-    def_: MutableSet<LocalId>[]!: [] * n
+    use_: MutableSet<LocalId>[]: [] * n
+    def_: MutableSet<LocalId>[]: [] * n
     for i in 0..<n {
         b :: fn_.blocks[i]
         u :: MutableSet<LocalId> {}
@@ -360,11 +360,11 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
         def_.push(d)
     }
 
-    succs: BlockId[][]!: [] * n
+    succs: BlockId[][]: [] * n
     for b in fn_.blocks { succs.push(successors_of(b)) }
 
-    live_in:  MutableSet<LocalId>![]!: filled(n, () -> MutableSet<LocalId> {})
-    live_out: MutableSet<LocalId>![]!: filled(n, () -> MutableSet<LocalId> {})
+    live_in:  MutableSet<LocalId>[]: filled(n, () -> MutableSet<LocalId> {})
+    live_out: MutableSet<LocalId>[]: filled(n, () -> MutableSet<LocalId> {})
 
     // Double-buffered fixpoint : recompute each block's live_out / live_in into
     // two reusable SCRATCH sets (cleared each round), then SWAP a scratch with

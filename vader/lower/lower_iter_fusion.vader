@@ -126,7 +126,7 @@ try_lower_chain_fusion :: fn(
         .user_body      = user_body,
         .pattern        = lb.pattern,
     }
-    stmts: LoweredStmt![]!: []
+    stmts: LoweredStmt[]: []
     bound :: consumed ?? bind_chain_operands(ctx, chain, recurse, stmts)
     emitted :: emit_fused_chain(ctx, bound, for_stmt.span, body_template, recurse)
     stmts.push_all(exit_block(frame, for_stmt.span, emitted))
@@ -440,7 +440,7 @@ bind_layer_operands :: fn(
     src :: chain.source ?? return chain
     layer :: chain.gen_layer ?? return chain
     source :: bind_chain_operands(ctx, src, recurse, out)
-    extra_sources: GenSourceBinding[]!: []
+    extra_sources: GenSourceBinding[]: []
     for extra in layer.extra_sources {
         extra_source :: bind_chain_operands(ctx, extra.source, recurse, out)
         extra_sources.push(GenSourceBinding { ...extra, .source = extra_source })
@@ -509,7 +509,7 @@ emit_fused_opaque_iter :: fn(
     value_access :: step_value(shape, step_ref, span)
     bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, value_access, element_type, span)
 
-    body_stmts: LoweredStmt![]!: []
+    body_stmts: LoweredStmt[]: []
     body_stmts.push_all(bind_stmts)
     for s in template.user_body.stmts { body_stmts.push(s) }
     if template.user_body.trailing != null {
@@ -536,7 +536,7 @@ emit_fused_opaque_iter :: fn(
         },
         .step = [],
     }
-    out: LoweredStmt![]: [loop_stmt]
+    out: LoweredStmt[]: [loop_stmt]
     return out
 }
 
@@ -591,7 +591,7 @@ emit_fused_range :: fn(
             .inclusive = range_chain.inclusive,
         },
     }
-    out: LoweredStmt![]!: []
+    out: LoweredStmt[]: []
     out.push(counter_init)
     out.push(loop_stmt)
     return out
@@ -659,7 +659,7 @@ emit_fused_array :: fn(
         },
     }
 
-    out: LoweredStmt![]!: []
+    out: LoweredStmt[]: []
     out.push(len_let)
     out.push(idx_init)
     out.push(loop_stmt)

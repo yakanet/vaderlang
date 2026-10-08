@@ -54,7 +54,7 @@ Translation :: struct {
 ///                an op with no register form, or an operand past its encoding
 ///                (`pack_operands`).
 translate_module :: fn(module: bc.BytecodeModule, facts: FunctionTags[], debug: bool) -> RegModule | VerifyError {
-    functions: RegFunction[]!: [] * module.functions.len()
+    functions: RegFunction[]: [] * module.functions.len()
     for i in 0..<module.functions.len() {
         code :: translate_function(module, i32(i), facts[i], debug)
         if code is VerifyError {
@@ -72,8 +72,8 @@ translate_function :: fn(
     f :: module.functions[usize(index)]
     n :: f.body.len()
     slots :: f.signature.params.len() + f.locals.len()
-    consts: i64[]!: []
-    const_tags: StackTag[]!: []
+    consts: i64[]: []
+    const_tags: StackTag[]: []
     collect_constants(f, consts, const_tags)
     stack_base :: slots + consts.len()
     t :: Translation {
@@ -104,7 +104,7 @@ translate_function :: fn(
         .jumps    = [],
     }
     leader :: bc.mark_jump_targets(f.jump_table, n)
-    start: i64[]!: [0] * (n + 1)
+    start: i64[]: [0] * (n + 1)
     for pc in 0..<n {
         if leader[pc] {
             flush(t, pc)

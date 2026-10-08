@@ -84,11 +84,8 @@
                   "name": "out"
                 },
                 "type": {
-                  "kind": "MutableTypeExpr",
-                  "inner": {
-                    "kind": "IdentExpr",
-                    "name": "Histogram"
-                  }
+                  "kind": "IdentExpr",
+                  "name": "Histogram"
                 },
                 "value": {
                   "kind": "SeqLitExpr",
@@ -253,11 +250,8 @@
                   "name": "out"
                 },
                 "type": {
-                  "kind": "MutableTypeExpr",
-                  "inner": {
-                    "kind": "IdentExpr",
-                    "name": "Histogram"
-                  }
+                  "kind": "IdentExpr",
+                  "name": "Histogram"
                 },
                 "value": {
                   "kind": "SeqLitExpr",
@@ -404,11 +398,8 @@
               "name": "h"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "IdentExpr",
-                "name": "Histogram"
-              }
+              "kind": "IdentExpr",
+              "name": "Histogram"
             },
             "value": {
               "kind": "SeqLitExpr",

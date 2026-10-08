@@ -74,7 +74,7 @@ materialize_representative :: fn(
                 if decl.type_params.len() == 0 { return }
                 seen_reps.add(rep_mangled)
                 erase :: build_any_subst(decl, owner_typed)
-                fields: LoweredStructField[]!: []
+                fields: LoweredStructField[]: []
                 for f in decl.fields {
                     raw_ty :: resolve_field_type(f.ty, owner_typed, decl, inst.args)
                     fields.push(LoweredStructField {
@@ -228,7 +228,7 @@ materialize_struct_instance :: fn(
         // ref arg pre-erased), so only field types change.
         subst :: build_struct_subst(decl, inst.args, owner_typed)
         erase :: build_struct_mixed_subst(project_ctx.impls, decl, owner_typed, inst.args)
-        fields: LoweredStructField[]!: []
+        fields: LoweredStructField[]: []
         for f in decl.fields {
             raw_ty :: resolve_field_type(f.ty, owner_typed, decl, inst.args)
             field_ty :: substitute(raw_ty, erase)
@@ -279,7 +279,7 @@ close_over_field_shapes :: fn(
 ) -> void {
     materialized :: new_string_set()
     seen_pushed :: MutableMap<i32, StructType[]!> {}
-    worklist: StructType[]!: []
+    worklist: StructType[]: []
     collect :: (sub: Type) -> push_struct_shape(sub, worklist, seen_pushed)
     for [_, mod] in project.modules {
         for decl in mod.decls {
@@ -594,7 +594,7 @@ materialize_bound_trait_impls :: fn(
         if i >= inst.args.len() { break }
         bound :: impl_decl.type_params[i].bound ?? continue
         target :: impl_base_key(inst.args[i])
-        traits: string[]!: []
+        traits: string[]: []
         collect_bound_traits(bound, impl_typed.resolved, traits)
         for trait_key in traits {
             materialize_bound_impl(target, trait_key, project_ctx, project, loaded, typed, diags)

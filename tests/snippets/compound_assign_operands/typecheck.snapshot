@@ -22,9 +22,9 @@
   expr 101:25   IdentExpr      :: Counter!
   expr 101:5    CallExpr       :: void
   expr 101:5    IdentExpr      :: fn(T) -> void
-  expr 103:23   SeqLitExpr     :: string[]!
-  expr 103:24   StringLitExpr  :: string
-  expr 103:29   StringLitExpr  :: string
+  expr 103:22   SeqLitExpr     :: string[]!
+  expr 103:23   StringLitExpr  :: string
+  expr 103:28   StringLitExpr  :: string
   expr 104:11   CallExpr       :: usize
   expr 104:11   IdentExpr      :: fn(usize) -> usize
   expr 104:23   StringLitExpr  :: string
@@ -139,7 +139,7 @@
   expr 79888:17 IdentExpr      :: Two
   expr 79888:8  BinaryExpr     :: i32
   expr 79888:9  IndexExpr      :: i32
-  expr 83:16    SeqLitExpr     :: i32[]!
+  expr 83:15    SeqLitExpr     :: i32[]!
   expr 84:5     BinaryExpr     :: i32
   expr 84:5     IdentExpr      :: i32[]!
   expr 84:5     IndexExpr      :: i32
@@ -171,23 +171,23 @@
   expr 89:44    IndexExpr      :: i32
   expr 89:5     CallExpr       :: void
   expr 89:5     IdentExpr      :: fn(T) -> void
-  expr 91:19    SeqLitExpr     :: Row[]!
-  expr 91:20    StructLitExpr  :: Row!
-  expr 91:35    SeqLitExpr     :: i32[]!
-  expr 91:45    StructLitExpr  :: Row!
-  expr 91:60    SeqLitExpr     :: i32[]!
+  expr 91:18    SeqLitExpr     :: Row[]
+  expr 91:19    StructLitExpr  :: Row!
+  expr 91:34    SeqLitExpr     :: i32[]!
+  expr 91:44    StructLitExpr  :: Row!
+  expr 91:59    SeqLitExpr     :: i32[]!
   expr 92:10    CallExpr       :: usize
   expr 92:10    IdentExpr      :: fn(usize) -> usize
   expr 92:25    CallExpr       :: usize
   expr 92:25    IdentExpr      :: fn(usize) -> usize
   expr 92:5     BinaryExpr     :: i32
   expr 92:5     FieldExpr      :: i32[]!
-  expr 92:5     IdentExpr      :: Row[]!
+  expr 92:5     IdentExpr      :: Row[]
   expr 92:5     IndexExpr      :: Row
   expr 92:5     IndexExpr      :: i32
   expr 93:13    StringLitExpr  :: string
   expr 93:23    FieldExpr      :: i32[]!
-  expr 93:23    IdentExpr      :: Row[]!
+  expr 93:23    IdentExpr      :: Row[]
   expr 93:23    IndexExpr      :: Row
   expr 93:23    IndexExpr      :: i32
   expr 93:5     CallExpr       :: void

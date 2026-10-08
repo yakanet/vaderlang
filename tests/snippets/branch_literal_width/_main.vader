@@ -8,10 +8,10 @@ module "snippet"
 import "std/io"
 
 main :: fn() -> i32 {
-    out: u8[]!: [65]
+    out: u8[]: [65]
     last :: if out.len() > 0 { out[out.len() - 1] } else { '(' }
     println(if last != '(' { "if, byte or char: byte" } else { "if, byte or char: char" })
-    empty: u8[]!: []
+    empty: u8[]: []
     first :: if empty.len() > 0 { empty[0] } else { '(' }
     println(if first == '(' { "if, empty: char" } else { "if, empty: byte" })
     n :: empty.len()

@@ -35,8 +35,8 @@ main :: fn() -> i32 {
     a :: walk([10, 20, 30])
 
     // Let coercion — `walk` advances the iterator, so the slot says `!`.
-    typed_iter_mut: Iterator<i32>!: [1, 2, 3, 4]
-    typed_iter_spaced: Iterator<i32>! : [5, 6, 7]
+    typed_iter_mut: Iterator<i32>: [1, 2, 3, 4]
+    typed_iter_spaced: Iterator<i32> : [5, 6, 7]
     b :: walk(typed_iter_mut) + walk(typed_iter_spaced)
 
     // Return coercion: make_iter wraps its inner array on the way out.

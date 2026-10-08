@@ -193,18 +193,17 @@
 [39:5-39:6  ] ident          "o"
 [39:6-39:7  ] colon          ":"
 [39:8-39:14 ] ident          "Offset"
-[39:14-39:15] bang           "!"
-[39:15-39:16] colon          ":"
-[39:17-39:23] ident          "Offset"
-[39:23-39:24] lparen         "("
-[39:24-39:25] lbracket       "["
-[39:25-39:26] int_literal    "1" =1n
-[39:26-39:27] comma          ","
-[39:28-39:29] int_literal    "2" =2n
-[39:29-39:30] comma          ","
-[39:31-39:32] int_literal    "3" =3n
-[39:32-39:33] rbracket       "]"
-[39:33-39:34] rparen         ")"
+[39:14-39:15] colon          ":"
+[39:16-39:22] ident          "Offset"
+[39:22-39:23] lparen         "("
+[39:23-39:24] lbracket       "["
+[39:24-39:25] int_literal    "1" =1n
+[39:25-39:26] comma          ","
+[39:27-39:28] int_literal    "2" =2n
+[39:28-39:29] comma          ","
+[39:30-39:31] int_literal    "3" =3n
+[39:31-39:32] rbracket       "]"
+[39:32-39:33] rparen         ")"
 [40:1-40:1  ] newline        "\n"
 [40:5-40:12 ] ident          "println"
 [40:12-40:13] lparen         "("
@@ -255,18 +254,17 @@
 [44:5-44:6  ] ident          "l"
 [44:6-44:7  ] colon          ":"
 [44:8-44:11 ] ident          "Log"
-[44:11-44:12] bang           "!"
-[44:12-44:13] colon          ":"
-[44:14-44:17] ident          "Log"
-[44:17-44:18] lparen         "("
-[44:18-44:19] lbracket       "["
-[44:19-44:20] int_literal    "4" =4n
-[44:20-44:21] comma          ","
-[44:22-44:23] int_literal    "5" =5n
-[44:23-44:24] comma          ","
-[44:25-44:26] int_literal    "6" =6n
-[44:26-44:27] rbracket       "]"
-[44:27-44:28] rparen         ")"
+[44:11-44:12] colon          ":"
+[44:13-44:16] ident          "Log"
+[44:16-44:17] lparen         "("
+[44:17-44:18] lbracket       "["
+[44:18-44:19] int_literal    "4" =4n
+[44:19-44:20] comma          ","
+[44:21-44:22] int_literal    "5" =5n
+[44:22-44:23] comma          ","
+[44:24-44:25] int_literal    "6" =6n
+[44:25-44:26] rbracket       "]"
+[44:26-44:27] rparen         ")"
 [45:1-45:1  ] newline        "\n"
 [45:5-45:6  ] ident          "l"
 [45:6-45:7  ] lbracket       "["

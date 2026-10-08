@@ -25,7 +25,7 @@ show :: fn(label: string, xs: i64[]) -> void {
 }
 
 over_array :: fn(a: i32[]) -> i64[] {
-    out: i64[]!: []
+    out: i64[]: []
     for x in a {
         out.push(square(x))
     }
@@ -33,7 +33,7 @@ over_array :: fn(a: i32[]) -> i64[] {
 }
 
 over_range :: fn(lo: i32, hi: i32) -> i64[] {
-    out: i64[]!: []
+    out: i64[]: []
     for i in lo..<hi {
         out.push(square(i))
     }
@@ -41,7 +41,7 @@ over_range :: fn(lo: i32, hi: i32) -> i64[] {
 }
 
 over_inclusive :: fn(lo: i32, hi: i32) -> i64[] {
-    out: i64[]!: []
+    out: i64[]: []
     for i in lo..=hi {
         out.push(square(i))
     }
@@ -53,7 +53,7 @@ Bag :: struct {
 }
 
 over_field :: fn(bag: Bag) -> i64[] {
-    out: i64[]!: []
+    out: i64[]: []
     for x in bag.items {
         out.push(square(x))
     }
@@ -62,8 +62,8 @@ over_field :: fn(bag: Bag) -> i64[] {
 
 // Two arrays filled by one loop, a `let` between them and the loop.
 split :: fn(a: i32[]) -> i64 {
-    squares: i64[]!: []
-    doubles: i64[]!: []
+    squares: i64[]: []
+    doubles: i64[]: []
     offset :: 100
     for x in a {
         squares.push(square(x))
@@ -73,7 +73,7 @@ split :: fn(a: i32[]) -> i64 {
 }
 
 squares_later :: fn(a: i32[]) -> Async<i64[]> {
-    out: i64[]!: []
+    out: i64[]: []
     for x in a {
         out.push(square(x))
     }
@@ -83,7 +83,7 @@ squares_later :: fn(a: i32[]) -> Async<i64[]> {
 
 // Not reserved: the push is conditional.
 odd_squares :: fn(a: i32[]) -> i64[] {
-    out: i64[]!: []
+    out: i64[]: []
     for x in a {
         if odd(x) {
             out.push(square(x))
@@ -94,7 +94,7 @@ odd_squares :: fn(a: i32[]) -> i64[] {
 
 // Not reserved: the loop may stop early.
 until_big :: fn(a: i32[]) -> i64[] {
-    out: i64[]!: []
+    out: i64[]: []
     for x in a {
         if x > 3 {
             break

@@ -14,7 +14,7 @@ fill :: fn(dst: Point[]) -> void {
 }
 
 main :: fn() -> i32 {
-    held: Point![]!: []
+    held: Point[]: []
     slot: fn(Point![]!) -> void: fill
     slot(held)
     held[0].x = 9

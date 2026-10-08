@@ -61,11 +61,11 @@ forwarding_body :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction! {
     // `0..<params.len()` (`build.vader` writes them at entry), so the rest of the
     // original's table would arrive dead and cost `eliminate_dead_cfg` a full
     // re-emission of the function to drop again.
-    locals: CFGLocal[]!: []
+    locals: CFGLocal[]: []
     for i in 0..<f.params.len() {
         locals.push(f.locals[i])
     }
-    args: LocalId[]!: []
+    args: LocalId[]: []
     for prm in f.params {
         args.push(prm.local)
     }

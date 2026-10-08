@@ -227,7 +227,7 @@ dispatched_method_call :: fn(
     trait_key: string,
     type: Type,
 ) -> LoweredVirtualCall! {
-    args: LoweredExpr![]!: []
+    args: LoweredExpr[]: []
     for call_arg in call.args {
         args.push(lower_expr(ctx, call_arg.value))
     }
@@ -273,7 +273,7 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
         // lowered lazily (every non-entry module is), so without this its
         // body is never reserved and the call is unresolved at emit.
         register_nongeneric_imported_fn(ctx, member_symbol)
-        args: LoweredExpr![]!: []
+        args: LoweredExpr[]: []
         for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
         return LoweredCall {
             .span = call.span, .type = type,

@@ -36,12 +36,12 @@ Log implements Index<usize, i32> {
 }
 
 main :: fn() -> i32 {
-    o: Offset!: Offset([1, 2, 3])
+    o: Offset: Offset([1, 2, 3])
     println("offset read ${o[1]}")
     o[0] = 9
     c :: Cells(Grid { .w = 1 })
     println("cells read ${c[2]}")
-    l: Log!: Log([4, 5, 6])
+    l: Log: Log([4, 5, 6])
     l[0] = 7
     l[1] += 100
     [l[2]] = [42]

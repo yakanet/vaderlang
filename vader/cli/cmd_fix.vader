@@ -98,7 +98,7 @@ without_markers :: fn(source: string, offsets: usize[]) -> MarkerEdit {
             _ :: drop.add(offset)
         }
     }
-    out: u8[]!: []
+    out: u8[]: []
     for i in 0..<bytes.len() {
         if !(i in drop) {
             out.push(bytes[i])

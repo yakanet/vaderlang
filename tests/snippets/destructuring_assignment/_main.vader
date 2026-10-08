@@ -36,8 +36,8 @@ main :: fn() -> i32 {
     println("tuple:   n=${n} s=${s}")
 
     // Fields and indices are assignment targets like any other.
-    box: Box!: Box { .x = 1, .y = 2 }
-    arr: i32[]!: [0, 0]
+    box: Box: Box { .x = 1, .y = 2 }
+    arr: i32[]: [0, 0]
     [box.x, arr[1]] = [30, 40]
     println("mixed:   box.x=${box.x} arr[1]=${arr[1]}")
 

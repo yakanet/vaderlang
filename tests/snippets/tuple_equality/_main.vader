@@ -50,7 +50,7 @@ main :: fn() -> i32 {
     // 5. each operand is evaluated EXACTLY once — that is what the two
     //    temporaries buy, and nothing else here would notice if they went.
     //    Two calls for a 2-element tuple, not four.
-    calls: i32[]!: [0]
+    calls: i32[]: [0]
     counted :: (n: i32) -> {
         calls[0] = calls[0] + 1
         return [n, "e"]

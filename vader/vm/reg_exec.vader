@@ -115,7 +115,7 @@ reg_run :: fn(
     if args is Trap {
         return args
     }
-    session: DebugSession! | null: if debug != null {
+    session: DebugSession | null: if debug != null {
         DebugSession { .controller = debug, .last_line = -1, .step_mode = .Continue, .step_depth = 0 }
     } else {
         null
@@ -797,7 +797,7 @@ resolve_virtual :: fn(
         return Trap { .message = "virtual.call '${call.vtable_key}' : no impl for type ${type_id} at pc=${origin}" }
     }
     info :: primitive_impl_import(mangle, count)
-    args: Value![]!: []
+    args: Value[]: []
     for k in 0..<count {
         args.push(register_value(m, at + k))
     }
@@ -858,7 +858,7 @@ run_boxed :: fn(state: VmState, m: RegMachine, f: RegFunction, pc: usize, base: 
 // lands in `at`.
 call_import :: fn(state: VmState, m: RegMachine, index: i32, at: usize, origin: i32, is_comptime: bool) -> Trap | null {
     info :: state.bc.imports[usize(index)]
-    args: Value![]!: []
+    args: Value[]: []
     for i in 0..<info.signature.params.len() {
         args.push(register_value(m, at + i))
     }
@@ -912,7 +912,7 @@ run_defers :: fn(
     }
     first :: m.defer_count - usize(count)
     // Copied out: a thunk's own `defer`s reuse the slots above `first`.
-    batch: FnVal![]!: []
+    batch: FnVal[]: []
     for k in first..<m.defer_count {
         thunk :: defer_thunk(state, m.defers[k], origin, "defer.pop_exec")
         if thunk is Trap {
@@ -1005,13 +1005,13 @@ stop_at_line :: fn(state: VmState, m: RegMachine, session: DebugSession, f: RegF
 // The paused call stack, innermost frame first. A caller's pc is the op after its
 // call, so its line is the call site's.
 pause_context :: fn(state: VmState, m: RegMachine, reason: string, pc: usize, depth: usize) -> PauseCtx {
-    frames: PauseFrame[]!: []
+    frames: PauseFrame[]: []
     k := depth
     for k > 0 {
         k -= 1
         code :: m.frame_code[k]
         at :: if k == depth - 1 { pc } else { m.frame_return[k + 1] }
-        slots: Value[]!: []
+        slots: Value[]: []
         for s in 0..<code.slots {
             slots.push(register_value(m, m.frame_base[k] + s))
         }

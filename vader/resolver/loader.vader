@@ -149,7 +149,7 @@ export load_project_with_overlay :: fn(
         view
     }
     modules :: MutableMap<string, LoadedModule!> {}
-    loader_diags: Diagnostic[]!: []
+    loader_diags: Diagnostic[]: []
     roots :: search_roots(entry, include_path_flags, loader_diags)
     project_root :: roots.project_root
 
@@ -159,7 +159,7 @@ export load_project_with_overlay :: fn(
     // assignment — is driven solely by the import BFS in `drain_load_queue`, not
     // by discovery, so the self-compile is byte-identical regardless of how the
     // include-paths are sourced.
-    index: MutableMap<string, DiscoveredModule>!: MutableMap<string, DiscoveredModule> {}
+    index: MutableMap<string, DiscoveredModule>: MutableMap<string, DiscoveredModule> {}
 
     entry_module :: roots.entry
     match entry_module {
@@ -187,7 +187,7 @@ export load_project_with_overlay :: fn(
             // matches by construction.
             entry_resolved :: resolve_lazy(
                 entry_module.name, bases, index, loader_diags) ?? entry_module
-            queue: DiscoveredModule[]!: [entry_resolved]
+            queue: DiscoveredModule[]: [entry_resolved]
             core :: resolve_lazy("std/core", bases, index, loader_diags)
             match core {
                 is DiscoveredModule -> {
@@ -208,7 +208,7 @@ export load_project_with_overlay :: fn(
             match string_builder {
                 is DiscoveredModule -> {
                     if !has_module(modules, string_builder.folder) {
-                        sb_queue: DiscoveredModule[]!: [string_builder]
+                        sb_queue: DiscoveredModule[]: [string_builder]
                         drain_load_queue(sb_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target)
                     }
                 }
@@ -300,7 +300,7 @@ load_baked_target :: fn(
 ) -> void {
     std_target :: resolve_lazy("std/target", bases, index, diags) ?? return
     if !has_module(modules, std_target.folder) {
-        pre: DiscoveredModule[]!: [std_target]
+        pre: DiscoveredModule[]: [std_target]
         drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory, target)
     }
     // A COPY of the overlay: the parameter is read-only, and the baked source is
@@ -314,7 +314,7 @@ load_baked_target :: fn(
         .files = [BAKED_PATH],
         .origin = .Toolchain,
     }
-    queue: DiscoveredModule[]!: [baked]
+    queue: DiscoveredModule[]: [baked]
     drain_load_queue(queue, bases, modules, factory, index, diags, with_baked, node_factory, target)
 }
 
@@ -466,7 +466,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableM
     // into a consumer module (the `expand_tilde` return-array
     // miscompile). A global factory makes that collision impossible (mirrors
     // globally-unique Symbol ids).
-    out: SourceFile[]!: []
+    out: SourceFile[]: []
     for path in paths {
         content :: read_with_overlay(overlay, path)
         if content == "" { continue }
@@ -507,7 +507,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableM
 project_include_paths :: fn(
     project_root: string | null, manifest: Manifest, flag_paths: string[],
 ) -> IncludePath[] {
-    roots: IncludePath[]!: []
+    roots: IncludePath[]: []
     // A flag is probed exactly like a manifest entry — the marker decides, never
     // where the path came from. Hard-coding `.Build` here bought nothing (an
     // importer under `vader/` is already exempt from R2034 by NAME) and cost an

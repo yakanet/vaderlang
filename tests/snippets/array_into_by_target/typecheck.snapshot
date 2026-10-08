@@ -55,7 +55,7 @@
   expr 51:13    IdentExpr      :: Label
   expr 51:5     CallExpr       :: void
   expr 51:5     IdentExpr      :: fn(T) -> void
-  expr 52:25    IdentExpr      :: Mon[]
+  expr 52:24    IdentExpr      :: Mon[]
   expr 53:13    StringLitExpr  :: string
   expr 53:16    CallExpr       :: i32
   expr 53:16    FieldExpr      :: fn() -> i32

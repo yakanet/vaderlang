@@ -18,7 +18,7 @@ main :: fn() -> i32 {
     counts :: MutableMap<string, i32> {}
     total := 0
     for round in 0..<40 {
-        words: string[]!: []
+        words: string[]: []
         for i in 0..<100 {
             words.push("k${(i * 7 + round) % 80}")
         }

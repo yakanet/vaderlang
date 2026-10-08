@@ -74,13 +74,13 @@ shape_of :: fn(fn_: CFGFunction, preds: BlockId[][], idom: i32[]) -> StructureSh
     rpo :: reverse_postorder(fn_)
     rpo_index :: rpo_positions(rpo, n)
     loops :: natural_loop_bodies(fn_, preds, idom)
-    loop_header: bool[]!: [false] * n
+    loop_header: bool[]: [false] * n
     for [header, _] in loops {
         loop_header[i32(header)] = true
     }
     // An edge that does not go forward in reverse postorder must close a loop
     // its target heads; any other enters a loop past its header.
-    forward_preds: i32[]!: [0] * n
+    forward_preds: i32[]: [0] * n
     for b in rpo {
         for p in preds[i32(b)] {
             if rpo_index[i32(p)] < 0 {
@@ -98,7 +98,7 @@ shape_of :: fn(fn_: CFGFunction, preds: BlockId[][], idom: i32[]) -> StructureSh
     // Whether a loop header lies in each block's dominator subtree. A block
     // comes after its immediate dominator in reverse postorder, so walking it
     // backwards settles a subtree before its root.
-    holds_loop: bool[]!: [false] * n
+    holds_loop: bool[]: [false] * n
     for i in 0..<rpo.len() {
         b :: rpo[rpo.len() - 1 - i]
         holds_loop[i32(b)] = holds_loop[i32(b)] || loop_header[i32(b)]
@@ -106,12 +106,12 @@ shape_of :: fn(fn_: CFGFunction, preds: BlockId[][], idom: i32[]) -> StructureSh
             holds_loop[idom[i32(b)]] = true
         }
     }
-    merge: bool[]!: [false] * n
-    copied: bool[]!: [false] * n
-    merges: BlockId[]![]!: []
-    exits: BlockId[]![]!: []
+    merge: bool[]: [false] * n
+    copied: bool[]: [false] * n
+    merges: BlockId[][]: []
+    exits: BlockId[][]: []
     // The loop header each exit is emitted after, -1 for any other block.
-    exit_of: i32[]!: [-1] * n
+    exit_of: i32[]: [-1] * n
     for _ in 0..<n {
         merges.push([])
         exits.push([])

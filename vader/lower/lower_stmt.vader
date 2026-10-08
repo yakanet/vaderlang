@@ -29,7 +29,7 @@ export lower_block :: fn(
 ) -> LoweredBlock! {
     entry_depth :: ctx.blocks.len()
     ctx.blocks.push(new_block_ctx(is_fn_root, loop_id))
-    stmts: LoweredStmt![]!: []
+    stmts: LoweredStmt[]: []
     for stmt in block.stmts {
         if ctx.in_async {
             // ANF (async) : lower the stmt into a scratch buffer, then splice the
@@ -38,7 +38,7 @@ export lower_block :: fn(
             // await from being stolen by this block (an arm body) — it belongs to
             // the enclosing statement's drain, not ours.
             base :: ctx.pending_awaits.len()
-            stmt_out: LoweredStmt![]!: []
+            stmt_out: LoweredStmt[]: []
             lower_stmt_into(ctx, stmt, stmt_out)
             drain_pending_from(ctx, stmts, base)
             for s in stmt_out { stmts.push(s) }
@@ -75,7 +75,7 @@ export lower_block :: fn(
     block_type :: trailing_type(trailing)
     // Pop the BlockCtx by maintaining the stack depth
     // invariant so nested blocks see only their own defers.
-    new_blocks: BlockCtx[]!: []
+    new_blocks: BlockCtx[]: []
     for i in 0..<entry_depth {
         new_blocks.push(ctx.blocks[i])
     }
@@ -113,7 +113,7 @@ export guard_no_pending_await :: fn(ctx: FnLowerCtx, base: usize, span: Span) ->
     if !ctx.in_async { return }
     if ctx.pending_awaits.len() <= base { return }
     ctx.project.diags.push(lower_error(.AwaitInShortCircuit, span, ""))
-    scratch: LoweredStmt![]!: []
+    scratch: LoweredStmt[]: []
     drain_pending_from(ctx, scratch, base)
 }
 
@@ -178,7 +178,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
         }
         is ForStmt               -> { out.push(lower_for(ctx, stmt)) }
         is BreakStmt             -> {
-            drain: LoweredStmt![]!: []
+            drain: LoweredStmt[]: []
             drain_defers_to_loop(ctx, stmt.id, stmt.span, drain)
             exit :: lower_jump(ctx, stmt.id, stmt.label, true, stmt.span)
             if drain.len() > 0 {
@@ -189,7 +189,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
             }
         }
         is ContinueStmt          -> {
-            drain: LoweredStmt![]!: []
+            drain: LoweredStmt[]: []
             drain_defers_to_loop(ctx, stmt.id, stmt.span, drain)
             exit :: lower_jump(ctx, stmt.id, stmt.label, false, stmt.span)
             if drain.len() > 0 {
@@ -350,7 +350,7 @@ ensure_local_symbol_index :: fn(
 // `return`, after every defer pending up to the fn root.
 lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt! {
     span :: return_stmt.span
-    value: LoweredExpr! | null: if return_stmt.value == null {
+    value: LoweredExpr | null: if return_stmt.value == null {
         null
     } else {
         prepare_value_for_slot(ctx, lower_expr(ctx, return_stmt.value), ctx.return_type, span)
@@ -359,7 +359,7 @@ lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt! {
     if drain == null {
         return LoweredReturn { .span = span, .value = value }
     }
-    exit: LoweredStmt![]!: []
+    exit: LoweredStmt[]: []
     read :: evaluate_then_drain(ctx, value, drain, "result", exit)
     exit.push(LoweredReturn { .span = span, .value = read })
     return wrap_stmts(span, exit)
@@ -378,7 +378,7 @@ evaluate_then_drain :: fn(
     name: string,
     out: LoweredStmt[],
 ) -> LoweredExpr! | null {
-    read: LoweredExpr! | null = null
+    read: LoweredExpr | null = null
     if value != null {
         if is_void(type_of(value)) {
             out.push(LoweredExprStmt { .span = value.span, .expr = value })
@@ -555,13 +555,13 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) 
     // Save the prior binding so nested `@comptime for` over the same
     // name doesn't silently clobber an outer scope's substitution.
     prior :: ctx.comptime_bindings[binding_symbol.id]
-    unrolled: LoweredStmt![]!: []
+    unrolled: LoweredStmt[]: []
     // The unrolled loop leaves no loop behind: its `continue` leaves the copy of
     // the body it is in, its `break` all of them.
     ctx.jump_frames.push(JumpFrame {
         .loop_id = for_stmt.id, .breaks_land = false, .continue_lands = false,
     })
-    copies: LoweredBlock![]!: []
+    copies: LoweredBlock[]: []
     for elt in arr_lit.elements {
         ctx.comptime_bindings[binding_symbol.id] = elt
         copies.push(lower_block(ctx, for_stmt.body, false, for_stmt.id))

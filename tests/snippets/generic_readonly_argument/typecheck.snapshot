@@ -27,12 +27,12 @@
   expr 28:18    SeqLitExpr     :: Point[]
   expr 28:19    IdentExpr      :: Point
   expr 28:27    StructLitExpr  :: Point!
-  expr 29:22    CallExpr       :: __genstate_map<i32>!
-  expr 29:22    CallExpr       :: i32[]!
-  expr 29:22    FieldExpr      :: fn() -> i32[]!
-  expr 29:22    FieldExpr      :: fn(fn(Point) -> i32) -> Iterator<i32>
-  expr 29:22    IdentExpr      :: Point[]
-  expr 29:29    IdentExpr      :: fn(Point) -> i32
+  expr 29:21    CallExpr       :: __genstate_map<i32>!
+  expr 29:21    CallExpr       :: i32[]!
+  expr 29:21    FieldExpr      :: fn() -> i32[]!
+  expr 29:21    FieldExpr      :: fn(fn(Point) -> i32) -> Iterator<i32>
+  expr 29:21    IdentExpr      :: Point[]
+  expr 29:28    IdentExpr      :: fn(Point) -> i32
   expr 30:13    StringLitExpr  :: string
   expr 30:16    CallExpr       :: i32
   expr 30:16    IdentExpr      :: fn(T) -> i32
@@ -42,7 +42,7 @@
   expr 30:42    IdentExpr      :: Point
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn(T) -> void
-  expr 30:53    IdentExpr      :: i32[]!
+  expr 30:53    IdentExpr      :: i32[]
   expr 30:53    IndexExpr      :: i32
-  expr 30:67    IdentExpr      :: i32[]!
+  expr 30:67    IdentExpr      :: i32[]
   expr 30:67    IndexExpr      :: i32

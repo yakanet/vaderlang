@@ -12,7 +12,7 @@ Cell :: i32 | string
 show :: fn(c: Cell) -> string = if c is i32 { "int ${c}" } else { "text ${c}" }
 
 main :: fn() -> i32 {
-    cells: Cell[]!: [4, "four"]
+    cells: Cell[]: [4, "four"]
     cells[1] = 6
     cells.push(5)
     cells.push("five")

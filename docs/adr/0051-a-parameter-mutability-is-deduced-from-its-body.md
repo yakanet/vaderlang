@@ -109,14 +109,14 @@ with it.
 
 Still open:
 
-- **A local function keeps its written `!`.** Its markers are not removed before
-  the first round, and it gets no W0017 or W0018.
-- **The AST holds the deduced markers after the check.** A tool that prints a body
-  back to source would print a local function's deduced `!`. Today only the LSP's
-  `match_to_if` prints a body.
+- ~~**A local function keeps its written `!`.**~~ Closed by ADR 0052: its markers
+  come off when the first round reaches its binding.
+- ~~**The AST holds the deduced markers after the check.**~~ Closed by ADR 0052: a
+  deduced marker is flagged `deduced`, and the printer leaves it out.
 - **The second round costs a full typecheck.** Re-checking only the functions whose
   signatures changed would remove most of it.
-- **Returns, fields and locals are later phases.** For now their `!` stays written.
+- **Returns and fields are later phases.** For now their `!` stays written. Locals
+  are ADR 0052.
 - **The lever walk mirrors the read-only rule.** `levers_of` follows the access
   paths `walk_levels` judges — a field, an element, a conversion — but as a second
   walk. A gap between the two turns a needed written `!` into W0018. One walk that

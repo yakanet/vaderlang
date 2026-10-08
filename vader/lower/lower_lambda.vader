@@ -63,7 +63,7 @@ export lower_lambda :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr, block_lowerer
         .env_type = env_type,
         .captures = slots_by_symbol(captures, slots),
     }
-    lifted_params: LoweredParam[]!: [LoweredParam { .name = env_param_symbol.name, .symbol = env_param_symbol, .type = env_type }]
+    lifted_params: LoweredParam[]: [LoweredParam { .name = env_param_symbol.name, .symbol = env_param_symbol, .type = env_type }]
     lifted_params.push_all(own_params)
     lifted_decl :: lift_fn(lifted_ctx, lifted_symbol, lambda, lifted_params, block_lowerer)
     ctx.project.synth_decls.push(env_decl)
@@ -104,7 +104,7 @@ runtime_captures :: fn(ctx: FnLowerCtx, captures: Capture[]) -> Capture[] {
     if ctx.comptime_bindings.is_empty() {
         return captures
     }
-    runtime: Capture[]!: []
+    runtime: Capture[]: []
     for capture in captures {
         if ctx.comptime_bindings[capture.symbol.id] == null {
             runtime.push(capture)
@@ -115,7 +115,7 @@ runtime_captures :: fn(ctx: FnLowerCtx, captures: Capture[]) -> Capture[] {
 
 // The lambda's own params, in order — the lifted fn's params after its env.
 lambda_params :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> LoweredParam[] {
-    params: LoweredParam[]!: []
+    params: LoweredParam[]: []
     for ast_param in lambda.params {
         symbol :: find_param_symbol(ctx, ast_param)
         match symbol {

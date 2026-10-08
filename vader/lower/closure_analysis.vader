@@ -234,7 +234,7 @@ walk_stmt :: fn(
             // (an outer closure capturing through a defer body still needs the
             // binding in its own env).
             defer_scope :: empty_scope()
-            defer_captures: Capture[]!: []
+            defer_captures: Capture[]: []
             defer_seen :: MutableSet<i32> {}
             match stmt.body as deferred {
                 is AST.DeferStmtBody -> { walk_stmt(deferred.stmt, defer_scope, defer_captures, defer_seen, ctx) }
@@ -338,7 +338,7 @@ walk_expr :: fn(
             // (`cond.bind_as.span`). Without this the alias reads as a
             // free variable and a lambda around it captures a symbol the
             // enclosing fn has no local for : `tests/snippets/_diag_as_alias_scope`.
-            added: i32[]!: []
+            added: i32[]: []
             if expr.cond is AST.BinaryExpr as cond {
                 if cond.op == .Is {
                     add_bind_as(cond.bind_as, scope, ctx.symbol_index, added)
@@ -362,7 +362,7 @@ walk_expr :: fn(
             // `match e as x` binds ONE alias around every arm, minted at the
             // `x` token (`resolver/body.vader::walk_match`). Same hazard
             // as the `if` above, and it survives the whole arm loop.
-            match_added: i32[]!: []
+            match_added: i32[]: []
             add_bind_as(expr.bind_as, scope, ctx.symbol_index, match_added)
             for arm in expr.arms {
                 // An arm's pattern bindings are scoped to that arm : add them to
@@ -372,7 +372,7 @@ walk_expr :: fn(
                 // id in place. Locals declared in the arm BODY are not isolated —
                 // no more than for an `if` or a nested block above, and harmless:
                 // an ident only ever resolves to a binding lexically in scope.
-                added: i32[]!: []
+                added: i32[]: []
                 walk_pattern_for_bindings(arm.pattern, scope, ctx.symbol_index, added)
                 if arm.guard !is null {
                     walk_expr(arm.guard, scope, out_captures, out_seen, ctx)
@@ -573,7 +573,7 @@ process_lambda :: fn(
     outer_captures: Capture[] | null, outer_seen: MutableSet<i32> | null, ctx: WalkCtx,
 ) -> void {
     own_scope :: collect_owned_scope_for_params(lambda.params, ctx.symbol_index)
-    captures: Capture[]!: []
+    captures: Capture[]: []
     seen :: empty_scope()
     walk_body(lambda.body, own_scope, captures, seen, ctx)
 

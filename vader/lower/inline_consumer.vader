@@ -261,8 +261,8 @@ consumer_subst :: fn(
     if shape.type_params.len() == 0 {
         return subst
     }
-    patterns: Type[]!: []
-    actuals: Type[]!: []
+    patterns: Type[]: []
+    actuals: Type[]: []
     for k in 0..<args.len() {
         patterns.push(signature.params[k])
         actuals.push(default_if_free(ctx.types.expr_type(args[k])))
@@ -284,7 +284,7 @@ consumer_subst :: fn(
 
 // `{ <arguments, in parameter order>; [let result]; <body>; <result> }`.
 emit_inlined_consumer :: fn(ctx: FnLowerCtx, call: ConsumerCall, type: Type, span: Span) -> LoweredExpr! {
-    stmts: LoweredStmt![]!: []
+    stmts: LoweredStmt[]: []
     chain :: bind_consumer_arguments(ctx, call, stmts)
     decl :: call.target.decl
     body :: decl.body ?? panic("consumer: the callee has no body")
@@ -304,7 +304,7 @@ emit_inlined_consumer :: fn(ctx: FnLowerCtx, call: ConsumerCall, type: Type, spa
         return result_block(stmts, trailing, type, span)
     }
     // A `return` left the body early: every path assigns the result.
-    inner: LoweredStmt![]!: []
+    inner: LoweredStmt[]: []
     inner.push_all(lowered.stmts)
     if trailing != null {
         inner.push(assign_consumed(result, type, trailing, span))

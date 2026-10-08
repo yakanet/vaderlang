@@ -12,7 +12,7 @@ ORIGIN :: Cfg { .n = 1 }
 make :: fn<T>(f: fn() -> T) -> T = f()
 
 main :: fn() -> i32 {
-    x: Cfg!: make(() -> ORIGIN)
+    x: Cfg: make(() -> ORIGIN)
     x.n = 99
     return ORIGIN.n
 }

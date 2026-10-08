@@ -444,11 +444,8 @@
               "name": "o"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "IdentExpr",
-                "name": "Offset"
-              }
+              "kind": "IdentExpr",
+              "name": "Offset"
             },
             "value": {
               "kind": "CallExpr",
@@ -624,11 +621,8 @@
               "name": "l"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "IdentExpr",
-                "name": "Log"
-              }
+              "kind": "IdentExpr",
+              "name": "Log"
             },
             "value": {
               "kind": "CallExpr",

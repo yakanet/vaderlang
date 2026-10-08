@@ -22,7 +22,7 @@
   expr 29:11    CallExpr       :: Async<null>!
   expr 29:11    IdentExpr      :: fn(i64) -> Async<null>!
   expr 29:5     AwaitExpr      :: null
-  expr 34:28    SeqLitExpr     :: Async<i32>![]!
+  expr 34:26    SeqLitExpr     :: Async<i32>![]!
   expr 35:16    StructLitExpr  :: Probe!
   expr 35:5     CallExpr       :: void
   expr 35:5     FieldExpr      :: fn(Async<i32>!) -> void

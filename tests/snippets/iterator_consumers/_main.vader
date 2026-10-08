@@ -100,7 +100,7 @@ drained_twice :: fn(it: Iterator<i32>) -> i32 {
 }
 
 main :: fn() -> i32 {
-    a: i32[]!: []
+    a: i32[]: []
     for i in 0..<10 {
         a.push(i)
     }

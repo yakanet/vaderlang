@@ -20,7 +20,7 @@ DISPATCH_LABEL :: "dispatch$"
 // state. A jump written as a statement and a nested one both go through these.
 
 gb_continue_to :: fn(gb: GenBuild, frame: LoopFrame) -> LoweredStmt![]! {
-    out: LoweredStmt![]!: []
+    out: LoweredStmt[]: []
     out.push_all(frame.step)
     out.push(gb_set_state(gb, frame.header))
     return out
@@ -103,7 +103,7 @@ gb_reenter :: fn(gb: GenBuild, transition: LoweredStmt[]) -> LoweredStmt! {
 }
 
 gb_retarget_block :: fn(gb: GenBuild, b: LoweredBlock) -> LoweredBlock! {
-    stmts: LoweredStmt![]!: []
+    stmts: LoweredStmt[]: []
     for st in b.stmts {
         stmts.push(gb_retarget_stmt(gb, st))
     }
@@ -114,7 +114,7 @@ gb_retarget_opt :: fn(gb: GenBuild, e: LoweredExpr | null) -> LoweredExpr! | nul
     if e == null { null } else { gb_retarget_expr(gb, e) }
 
 gb_retarget_exprs :: fn(gb: GenBuild, es: LoweredExpr[]) -> LoweredExpr![]! {
-    out: LoweredExpr![]!: []
+    out: LoweredExpr[]: []
     for e in es {
         out.push(gb_retarget_expr(gb, e))
     }
@@ -153,7 +153,7 @@ gb_retarget_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr! = match e {
         .right = gb_retarget_expr(gb, e.right),
     }
     is LoweredStructLit -> {
-        fields: LoweredStructLitField![]!: []
+        fields: LoweredStructLitField[]: []
         for f in e.fields {
             fields.push(LoweredStructLitField { ...f, .value = gb_retarget_expr(gb, f.value) })
         }

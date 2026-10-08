@@ -17,6 +17,7 @@ import "std/path"
 import "std/string_builder"
 import "json"
 import "std/collections"
+import "toolchain/span"
 import "vader/typecheck"
 import "vader/types"
 import "vader/lsp/protocol"
@@ -64,11 +65,11 @@ deduced_note :: fn(state: ServerState, uri: string, decl: DeclEntry) -> string {
     // the loader's path — so the parameter is matched on its fn, its position in
     // the declaration and its file's name.
     decl_file :: to_path(at.start.file).filename()
-    in_decl :: (p: InferableParam) -> p.fn_name == decl.name && span_encloses(at, p.param.span) &&
-        to_path(p.param.span.start.file).filename() == decl_file
+    in_decl :: (p: InferableSlot) -> p.fn_name == decl.name && span_encloses(at, p.span) &&
+        to_path(p.span.start.file).filename() == decl_file
     sb :: StringBuilder {}
     for mark in deduced_marks(inference, in_decl) {
-        sb.append("\n- `${mark.param.name}` : `!` deduced — ${mark.why}")
+        sb.append("\n- `${mark.name}` : `!` deduced — ${mark.why}")
     }
     return sb.to_string()
 }
@@ -139,8 +140,8 @@ markdown_hover :: fn(body: string) -> JsonValue {
 format_vaderdoc :: fn(raw: string) -> string {
     if raw.bytes().len() == 0 { return raw }
     lines :: raw.split("\n")
-    body: string[]!: []
-    tags: string[]!: []
+    body: string[]: []
+    tags: string[]: []
     for ln in lines {
         rest :: ln.trim()
         // One byte view per trimmed line ; the @tag branches slice off it.
@@ -227,7 +228,7 @@ try_typed_hover :: fn(self: ServerState, uri: string, line: i32, character: i32)
     // (often `?` placeholder) declared type. Useful when the user
     // wrote `origin: ? | null :: index.span_at(...)` and wants the
     // LSP to surface what the typechecker resolved to.
-    deduced :: deduced_param_hover(result.typed, file_path, target_line, target_col)
+    deduced :: deduced_slot_hover(result.typed, file_path, target_line, target_col)
     if deduced != null {
         return deduced
     }
@@ -239,27 +240,33 @@ try_typed_hover :: fn(self: ServerState, uri: string, line: i32, character: i32)
     return type_hover(ty)
 }
 
-// A parameter whose `!` the compiler deduces, under the cursor : its type with the
-// deduced markers, and why each is there.
-deduced_param_hover :: fn(
+// A slot whose `!` the compiler deduces — a parameter, an annotated local — under the
+// cursor : its type with the deduced markers, and why each is there.
+deduced_slot_hover :: fn(
     typed: TypedProgram, file: string, line: i32, column: i32,
 ) -> JsonValue | null {
     inference :: typed.param_inference ?? return null
-    under_cursor :: (p: InferableParam) -> p.param.span.start.file == file &&
-        span_contains(p.param.span, line, column)
+    under_cursor :: (p: InferableSlot) -> p.span.start.file == file &&
+        span_contains(p.span, line, column)
     marks :: deduced_marks(inference, under_cursor)
     if marks.len() == 0 {
         return null
     }
-    p :: marks[0].param
-    ty :: typed.param_types[p.span.hash()]
-    shown :: if ty == null { p.name } else { "${p.name}: ${display_type(ty)}" }
+    first :: marks[0]
+    ty :: slot_type_of(typed, first.span)
+    shown :: if ty == null { first.name } else { "${first.name}: ${display_type(ty)}" }
     sb :: StringBuilder {}
     sb.append("```vader\n${shown}\n```\n")
     for mark in marks {
         sb.append("\n`!` deduced : ${mark.why}\n")
     }
     return markdown_hover(sb.to_string())
+}
+
+// The type a deduced slot has : a parameter's, or a local's.
+slot_type_of :: fn(typed: TypedProgram, span: Span) -> Type | null {
+    param :: typed.param_types[span.hash()]
+    return if param != null { param } else { typed.local_types[span.hash()] }
 }
 
 /// Wrap a `Type` in a markdown Hover payload : ```vader\n<type>\n```.

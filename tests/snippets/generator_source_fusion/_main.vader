@@ -81,7 +81,7 @@ main :: fn() -> i32 {
         total += x
     }
     println("loop fused: ${total}")
-    xs: i32[]!: [1, 2, 3, 4, 5]
+    xs: i32[]: [1, 2, 3, 4, 5]
     show("window fused", xs.window(3).map(sum_of).collect())
     lazy_window :: xs.window(3)
     show("window lazy", lazy_window.map(sum_of).collect())

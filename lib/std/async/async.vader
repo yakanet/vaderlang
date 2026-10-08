@@ -136,7 +136,7 @@ JoinAll<T> implements Async<T[]!> {
         if self.results.len() != n {
             return Suspended { .wake_at = next }
         }
-        out: T[]!: []
+        out: T[]: []
         for i in 0..<n {
             v :: self.results[i]
             if v != null { out.push(v) }

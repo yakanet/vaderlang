@@ -20,7 +20,7 @@ first :: fn<T>(a: T, b: T) -> T = a
 main :: fn() -> i32 {
     x: i64: 9000000000
     println("${pick(1, x)} ${1.pick(x)} ${x.pick(2)} ${first(3, x)}")
-    local: Cfg!: Cfg { .n = 2 }
+    local: Cfg: Cfg { .n = 2 }
     println("${local.pick(CFG).n} ${CFG.pick(local).n} ${pick(local, CFG).n}")
     return 0
 }

@@ -25,14 +25,14 @@ MAX_INLINED_OPS: usize: 16
 
 // `module` with every direct call to an inline leaf replaced by the leaf's body.
 inline_leaf_calls :: fn(module: bc.BytecodeModule) -> bc.BytecodeModule {
-    leaf: bool[]!: []
+    leaf: bool[]: []
     for f in module.functions {
         leaf.push(is_inline_leaf(f))
     }
     if !(true in leaf) {
         return module
     }
-    functions: bc.BcFunction[]!: []
+    functions: bc.BcFunction[]: []
     for i in 0..<module.functions.len() {
         functions.push(inline_into(module.functions, leaf, i))
     }
@@ -103,11 +103,11 @@ inline_into :: fn(functions: bc.BcFunction[], leaf: bool[], index: usize) -> bc.
     if !body.any_match((op) -> op is bc.Call && leaf[usize(op.function_index)]) {
         return caller
     }
-    out: bc.Op[]!: []
-    debug: (bc.DebugPos | null)[]!: []
-    source_pc: i32[]!: []
-    old_to_new: i32[]!: []
-    locals: bc.BcLocal[]!: []
+    out: bc.Op[]: []
+    debug: (bc.DebugPos | null)[]: []
+    source_pc: i32[]: []
+    old_to_new: i32[]: []
+    locals: bc.BcLocal[]: []
     locals.push_all(caller.locals)
     params :: i32(caller.signature.params.len())
     // An inlined body calls nothing, so two sites of one leaf never overlap: they

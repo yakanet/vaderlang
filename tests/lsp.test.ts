@@ -1077,6 +1077,36 @@ test("lsp: code action converts a 2-arm match to if/else", async () => {
   expect(fileEdits[0]!.newText).toContain("else");
 }, { timeout: MEDIUM_BUILD });
 
+const DEDUCED_LOCAL_SOURCE = `module "lsp_test"
+
+count :: fn(x: i32) -> i32 {
+    return match x {
+        0 -> {
+            seen: i32[]: []
+            seen.push(x)
+            kept: i32[]!: []
+            kept.push(x)
+            i32(seen.len() + kept.len())
+        }
+        _ -> 2
+    }
+}
+`;
+
+test("lsp: a rewrite prints the `!` the source writes, not those deduced", async () => {
+  // `seen` is deduced `i32[]!` : the typed AST the action rewrites carries the
+  // marker, which the source does not write. `kept` writes its own, which stays.
+  const results = await driveLsp(DEDUCED_LOCAL_SOURCE, [
+    { method: "textDocument/codeAction", position: { line: 3, character: 11 } },
+  ]);
+  const actions = results[0]!.result as CodeActionT[];
+  const conv = actions.find((a) => a.title === "Convert match to if");
+  expect(conv).toBeDefined();
+  const fileEdits = soleFileEdits(conv!.edit);
+  expect(fileEdits[0]!.newText).toContain("seen: i32[]: []");
+  expect(fileEdits[0]!.newText).toContain("kept: i32[]!: []");
+}, { timeout: MEDIUM_BUILD });
+
 const NULL_NARROW_SOURCE = `module "lsp_test"
 
 Node :: struct { v: i32 }

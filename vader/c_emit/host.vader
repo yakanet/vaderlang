@@ -31,10 +31,10 @@ emit_import_shims :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     if ctx.split {
         emit_mirrored_struct_typedefs(ctx, printer)
     }
-    extern_decls: CTopLevel[]!: []
-    seen_extern: string[]!: []
-    headers: string[]!: []
-    shims: CTopLevel[]!: []
+    extern_decls: CTopLevel[]: []
+    seen_extern: string[]: []
+    headers: string[]: []
+    shims: CTopLevel[]: []
     for i in 0..<ctx.module.imports.len() {
         imp :: ctx.module.imports[i]
         if imp.is_extern && !(imp.extern_name in seen_extern) {
@@ -53,7 +53,7 @@ emit_import_shims :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         }
         shims.push(import_shim(ctx, imp))
     }
-    includes: CTopLevel[]!: []
+    includes: CTopLevel[]: []
     for h in headers {
         includes.push(include_of(h))
     }
@@ -296,7 +296,7 @@ push_leaf_asserts :: fn(
 /// @param types  the module type table.
 /// @return       the asserts, empty when no struct mirrors a C type.
 c_struct_layout_asserts :: fn(types: BcType[], crossing: MutableSet<i32>) -> CTopLevel[] {
-    out: CTopLevel[]!: []
+    out: CTopLevel[]: []
     nested :: nested_member_mirrors(types)
     for type_index in 0..<types.len() {
         t :: types[type_index]
@@ -368,7 +368,7 @@ null_member :: fn(type: string, member: string) -> CExpression = pointer_member(
 /// `extern <ret> <name>(<params>);` for an `@extern` import — foreign ABI
 /// types (`string` → `const char*`), declared once per distinct symbol.
 extern_decl :: fn(imp: BcImport, types: BcType[]) -> CTopLevel {
-    parameters: CParameter[]!: []
+    parameters: CParameter[]: []
     for j in 0..<imp.signature.params.len() {
         parameters.push(CParameter { .type = extern_parameter_type(imp.signature, types, j) })
     }
@@ -717,11 +717,11 @@ size_as_address :: fn(size: CExpression) -> CExpression = cast("void*", cast("ui
 /// across the free was exactly the use-after-free this claimed to prevent.
 user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[]! {
     sig :: imp.signature
-    call_args: CExpression[]!: []
-    before: CStatement[]!: []
-    frees: CStatement[]!: []
-    write_backs: CStatement[]!: []
-    write_back_roots: CExpression[]!: []
+    call_args: CExpression[]: []
+    before: CStatement[]: []
+    frees: CStatement[]: []
+    write_backs: CStatement[]: []
+    write_back_roots: CExpression[]: []
     for j in 0..<sig.params.len() {
         a :: argument(j)
         if is_abi_array(types, sig.param_types[j]) {
@@ -805,7 +805,7 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[]! {
     // it, and carries any nested child with it: the parent's own ref slot is
     // updated in the same pass. A lent ARRAY is the other shape and is secured
     // in `vader_array_bytes` instead, because there C holds the address itself.
-    after: CStatement[]!: []
+    after: CStatement[]: []
     if write_back_roots.len() > 0 {
         count :: number(i64(write_back_roots.len()))
         before.push(array_declaration("void**", "__wb_roots", write_back_roots))

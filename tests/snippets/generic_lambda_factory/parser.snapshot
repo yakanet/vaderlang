@@ -70,13 +70,10 @@
               "name": "out"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "ArrayTypeExpr",
-                "element": {
-                  "kind": "IdentExpr",
-                  "name": "T"
-                }
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "T"
               }
             },
             "value": {
@@ -673,18 +670,12 @@
               "name": "lambda_rows"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
+              "kind": "ArrayTypeExpr",
+              "element": {
                 "kind": "ArrayTypeExpr",
                 "element": {
-                  "kind": "MutableTypeExpr",
-                  "inner": {
-                    "kind": "ArrayTypeExpr",
-                    "element": {
-                      "kind": "IdentExpr",
-                      "name": "i32"
-                    }
-                  }
+                  "kind": "IdentExpr",
+                  "name": "i32"
                 }
               }
             },
@@ -796,18 +787,12 @@
               "name": "named_rows"
             },
             "type": {
-              "kind": "MutableTypeExpr",
-              "inner": {
+              "kind": "ArrayTypeExpr",
+              "element": {
                 "kind": "ArrayTypeExpr",
                 "element": {
-                  "kind": "MutableTypeExpr",
-                  "inner": {
-                    "kind": "ArrayTypeExpr",
-                    "element": {
-                      "kind": "IdentExpr",
-                      "name": "i32"
-                    }
-                  }
+                  "kind": "IdentExpr",
+                  "name": "i32"
                 }
               }
             },

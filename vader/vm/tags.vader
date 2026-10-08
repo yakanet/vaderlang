@@ -94,7 +94,7 @@ TagContext :: struct {
 }
 
 new_tag_context :: fn(module: bc.BytecodeModule) -> TagContext {
-    types: u8[]!: [] * module.types.len()
+    types: u8[]: [] * module.types.len()
     for i in 0..<module.types.len() {
         types.push(type_tags(module.types, i32(i), 0))
     }
@@ -170,7 +170,7 @@ element_tags :: fn(ctx: TagContext, type_id: i32) -> u8 {
 /// @param depths  its result: the deepest stack of each function.
 infer_module_tags :: fn(module: bc.BytecodeModule, depths: usize[]) -> FunctionTags[]! {
     ctx :: new_tag_context(module)
-    out: FunctionTags[]!: [] * module.functions.len()
+    out: FunctionTags[]: [] * module.functions.len()
     for i in 0..<module.functions.len() {
         out.push(infer_function_tags(ctx, module.functions[i], depths[i]))
     }
@@ -193,7 +193,7 @@ infer_function_tags :: fn(ctx: TagContext, f: bc.BcFunction, deepest: usize) -> 
     params :: f.signature.params
     slots :: params.len() + f.locals.len()
     blocks :: new_blocks(ctx.module, f, slots + deepest)
-    start: u8[]!: [0] * blocks.width
+    start: u8[]: [0] * blocks.width
     for i in 0..<params.len() {
         start[i] = tags_of_val(params[i])
     }
@@ -201,7 +201,7 @@ infer_function_tags :: fn(ctx: TagContext, f: bc.BcFunction, deepest: usize) -> 
         start[i] = TAGS_NULL
     }
     merge_block(blocks, 0, 0, start)
-    state: u8[]!: [0] * blocks.width
+    state: u8[]: [0] * blocks.width
     for blocks.work.len() > 0 {
         b :: blocks.work.remove_last() ?? break
         blocks.queued[b] = false
@@ -234,7 +234,7 @@ Blocks :: struct {
 // fall through alone.
 new_blocks :: fn(module: bc.BytecodeModule, f: bc.BcFunction, width: usize) -> Blocks! {
     n :: f.body.len()
-    leader: bool[]!: [false] * n
+    leader: bool[]: [false] * n
     leader[0] = true
     for pc in 0..<n {
         e :: effect_of(module, f, f.body[pc]) ?? continue
@@ -248,8 +248,8 @@ new_blocks :: fn(module: bc.BytecodeModule, f: bc.BcFunction, width: usize) -> B
             leader[pc + 1] = true
         }
     }
-    leaders: usize[]!: []
-    block_at: i64[]!: [-1] * n
+    leaders: usize[]: []
+    block_at: i64[]: [-1] * n
     for pc in 0..<n {
         if leader[pc] {
             block_at[pc] = i64(leaders.len())
