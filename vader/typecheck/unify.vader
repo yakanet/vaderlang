@@ -349,7 +349,7 @@ export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
     @partial match t {
         is TypeParamType -> {
             repl :: subst[t.symbol.id] ?? return t
-            return repl
+            return instance_of(t, repl)
         }
         is ArrayType -> { return mk_array(substitute_map(t.element, subst), t.immutable) }
         is TupleType -> { return mk_tuple(substitute_each_map(t.elements, subst), t.immutable) }

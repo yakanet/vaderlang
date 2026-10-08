@@ -51,7 +51,7 @@ export substitute :: fn(t: Type, subst: Substitution) -> Type {
     @partial match t {
         is TypeParamType -> {
             replacement :: subst.type_params[t.symbol.id] ?? return t
-            return replacement
+            return instance_of(t, replacement)
         }
         is SelfType -> {
             if subst.self_type == null { return t }

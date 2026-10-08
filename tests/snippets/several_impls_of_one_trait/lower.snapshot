@@ -111,13 +111,13 @@
           s :string
         r:
           "bag" :string
-  fn snippet$Vec2$Make$make(x: f64) -> Vec2
+  fn snippet$Vec2$Make$make(x: f64) -> Vec2!
     ~>
       Vec2! {
         x: x :f64
         y: x :f64
       }
-  fn snippet$Vec2$Make$make$1(x: string) -> Vec2
+  fn snippet$Vec2$Make$make$1(x: string) -> Vec2!
     ~>
       Vec2! {
         x: float(42.0) :f64
@@ -613,16 +613,16 @@
                 __buf_3 :Buffer
               arg1:
                 __off_4 :usize
-    let m: Vec2 =
-      call :Vec2
+    let m: Vec2! =
+      call :Vec2!
         callee:
-          snippet$Vec2$Make$make :Vec2
+          snippet$Vec2$Make$make :Vec2!
         arg0:
           float(1.5) :f64
-    let n: Vec2 =
-      call :Vec2
+    let n: Vec2! =
+      call :Vec2!
         callee:
-          snippet$Vec2$Make$make$1 :Vec2
+          snippet$Vec2$Make$make$1 :Vec2!
         arg0:
           "s" :string
     call :void
@@ -638,7 +638,7 @@
                 std_core$f64$Display$to_string :string
               arg0:
                 .x :f64
-                  m :Vec2
+                  m :Vec2!
           arg1:
             " " :string
           arg2:
@@ -647,7 +647,7 @@
                 std_core$f64$Display$to_string :string
               arg0:
                 .x :f64
-                  n :Vec2
+                  n :Vec2!
           arg3:
             " " :string
           arg4:
@@ -655,7 +655,7 @@
               callee:
                 snippet$say_int__Vec2 :string
               arg0:
-                m :Vec2
+                m :Vec2!
           arg5:
             " " :string
           arg6:
@@ -663,7 +663,7 @@
               callee:
                 snippet$say_str__Vec2 :string
               arg0:
-                m :Vec2
+                m :Vec2!
     let mon: Mon! =
       Mon! {
         v: int(7) :i32
@@ -1276,20 +1276,20 @@
           v :Vec2!
         arg1:
           float(2.0) :f64
-  fn snippet$say_int__Vec2(x: Vec2) -> string
+  fn snippet$say_int__Vec2(x: Vec2!) -> string
     ~>
       call :string
         callee:
           snippet$Vec2$Describe$describe :string
         arg0:
-          x :Vec2
-  fn snippet$say_str__Vec2(x: Vec2) -> string
+          x :Vec2!
+  fn snippet$say_str__Vec2(x: Vec2!) -> string
     ~>
       call :string
         callee:
           snippet$Vec2$Describe$describe$1 :string
         arg0:
-          x :Vec2
+          x :Vec2!
   struct snippet$Wrap__Any { inner: Any }
   struct snippet$Pile__Any { top: Any }
   fn concat_3(p0: string, p1: string, p2: string) -> string

@@ -925,6 +925,8 @@ walk_lambda :: fn(self: ResolveState!, l: AST.LambdaExpr) -> void {
     for p in l.params {
         self.walk_opt_expr(p.ty)
         sym :: self.bind_local_checked(.Param, p.name, p.span)
+        // A lambda parameter without `!` is a read-only borrow, as a fn's is.
+        self.mark_param_borrow(p, sym)
         // Persist the param's Symbol in `idents` at its def-site (mirror
         // `walk_fn_decl`) so the lambda-lifter (`lambda_params`) recovers
         // it even when the body never references the param. Without this, an

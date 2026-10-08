@@ -57,14 +57,14 @@ export Hash :: trait {
 /// width plus `char` — concrete `+ 1` / codepoint-bump logic lives in each
 /// primitive's `Step` impl instead of being repeated per `Range<T>` impl.
 export Step :: trait {
-    step :: fn(self) -> Self
+    step :: fn(self) -> Self!
 }
 
 /// Explicit deep copy. `clone(x)` (free function) dispatches into this
 /// when `T: Clone` ; primitive types don't need it (value-typed by
 /// default).
 export Clone :: trait {
-    clone :: fn(self) -> Self
+    clone :: fn(self) -> Self!
 }
 
 /// Type-to-type conversion. Two surfaces :
@@ -105,7 +105,7 @@ export Rem :: trait<Rhs = Self, Out = Self> { rem :: fn(self, other: Rhs) -> Out
 /// member : called on the type, `T.zero()` in a body bounded by `T: Zero`.
 export Zero :: trait {
     /// The value `z` for which `z + x == x`.
-    zero :: fn() -> Self
+    zero :: fn() -> Self!
 }
 
 /// Whether `self` is its type's zero, compared with `==`.
@@ -117,7 +117,7 @@ export is_zero :: fn<T: Zero & Equals>(self: T) -> bool = self == T.zero()
 /// static member, like `Zero.zero`.
 export One :: trait {
     /// The value `u` for which `u * x == x`.
-    one :: fn() -> Self
+    one :: fn() -> Self!
 }
 
 /// Bit-level view of a float as its raw IEEE 754 integer pattern. This is NOT a

@@ -1,0 +1,17 @@
+// A `-> Self` member hands out a read-only view of `T`, which a generic cannot
+// return as its `T` : the caller would get it at its own rights. T3077 ; the
+// member writes `-> Self!` when its caller owns the value.
+module "snippet"
+
+Shape :: trait {
+    unit :: fn(scale: i32) -> Self
+    fresh :: fn(scale: i32) -> Self!
+}
+
+build :: fn<S: Shape>(n: i32) -> S = S.unit(n)
+
+build_owned :: fn<S: Shape>(n: i32) -> S = S.fresh(n)
+
+main :: fn() -> i32 {
+    return 0
+}

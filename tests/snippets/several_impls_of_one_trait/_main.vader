@@ -63,7 +63,7 @@ Bag implements Contains<string> {
 }
 
 Make :: trait<From> {
-    make :: fn(x: From) -> Self
+    make :: fn(x: From) -> Self!
 }
 
 Describe :: trait<T> {
@@ -72,11 +72,11 @@ Describe :: trait<T> {
 }
 
 Vec2 implements Make<f64> {
-    make :: fn(x: f64) -> Vec2 = Vec2 { .x = x, .y = x }
+    make :: fn(x: f64) -> Vec2! = Vec2 { .x = x, .y = x }
 }
 
 Vec2 implements Make<string> {
-    make :: fn(x: string) -> Vec2 = Vec2 { .x = 42.0, .y = 0.0 }
+    make :: fn(x: string) -> Vec2! = Vec2 { .x = 42.0, .y = 0.0 }
 }
 
 Vec2 implements Describe<i32> {

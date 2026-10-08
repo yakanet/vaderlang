@@ -89,7 +89,9 @@ export type_from_expr :: fn(
         // here and carried by the `Type` itself.
         is AST.MutableTypeExpr -> {
             inner :: type_from_expr(expr.inner, resolved, diags)
-            reject_marker_on_value_type(inner, expr.span, diags)
+            if written_inside(expr.inner.span, expr.span) {
+                reject_marker_on_value_type(inner, expr.span, diags)
+            }
             // A type that arrives ALREADY read-only is not un-frozen by a marker —
             // the stricter side wins. A belt: with `const` gone the surface cannot
             // write a frozen type under a `!` (and P1031 rejects the legacy
@@ -201,7 +203,7 @@ walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
         is TypeParamType -> {
             n :: min(params.len(), args.len())
             for i in 0..<n {
-                if params[i].name == t.symbol.name { return args[i] }
+                if params[i].name == t.symbol.name { return instance_of(t, args[i]) }
             }
             return t
         }
@@ -346,6 +348,13 @@ opt_or_void :: fn(
     if ret == null { return TY_VOID }
     return type_from_expr(ret, resolved, diags)
 }
+
+// Whether `inner` was written inside `outer`. A substitution puts the type a `T!` or a
+// `Self!` stands for under that marker (`i8 implements Step -> self + 1` reads
+// `Step.step :: fn(self) -> Self!` as `-> i8!`) : nobody wrote that `!` on it.
+written_inside :: fn(inner: Span, outer: Span) -> bool =
+    inner.start.file == outer.start.file && inner.start.offset >= outer.start.offset &&
+        inner.end.offset <= outer.end.offset
 
 // A `!` on a type with no interior is a no-op — `with_immutable` hands such a type
 // straight back — so `s :: string! = "hi"` used to read as a promise the compiler

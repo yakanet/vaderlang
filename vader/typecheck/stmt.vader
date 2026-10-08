@@ -1402,7 +1402,7 @@ mutation_fix_hint_within :: fn(value: AST.Expr, typed: TypedProgram, budget: i32
 // The lever of a value whose type is, or holds as a variant, a `T` whose bound
 // grants no mutation : the bound.
 bound_hint :: fn(ty: Type, typed: TypedProgram) -> string {
-    tp :: read_only_type_param(ty, typed.type_param_bound_traits) ?? return ""
+    tp :: unmarked_bound_type_param(ty, typed.type_param_bound_traits) ?? return ""
     name :: tp.symbol.name
     bound :: typed.resolved.type_param_bounds[tp.symbol.id]
     if bound == null {
@@ -1412,17 +1412,19 @@ bound_hint :: fn(ty: Type, typed: TypedProgram) -> string {
 }
 
 // `ty`, or its first variant, when it is a type parameter whose bound grants no
-// mutation.
-read_only_type_param :: fn(
+// mutation. A read-only view is skipped : its fix is `Self!` on the member that
+// handed it out, not the bound.
+unmarked_bound_type_param :: fn(
     ty: Type, bounds: MutableMap<i32, TypeParamBound>,
 ) -> TypeParamType | null {
-    if ty is TypeParamType && !bound_grants_mutation(ty, bounds) {
-        return ty
+    if ty is TypeParamType {
+        return if !ty.immutable && !bound_grants_mutation(ty, bounds) { ty } else { null }
     }
     if ty is UnionType {
         for v in ty.variants {
-            if v is TypeParamType && !bound_grants_mutation(v, bounds) {
-                return v
+            found :: unmarked_bound_type_param(v, bounds)
+            if found != null {
+                return found
             }
         }
     }
@@ -2496,10 +2498,7 @@ diag_sink_stmt :: fn() -> Diagnostic[]! { return [] }
 // slot it is subtracted from. Same rationale as `match_expr::pattern_type_of`.
 complement_narrowed_type :: fn(ty: AST.Expr, current: Type, typed: TypedProgram) -> Type {
     narrowed :: type_from_expr(ty, typed.resolved, diag_sink_stmt())
-    if !carries_mutability_bit(narrowed) { return narrowed }
-    return with_immutable(
-        narrowed, narrowing_immutability(current, narrowed, typed.type_param_bound_traits),
-    )
+    return narrowed_with_rights(narrowed, current, typed.type_param_bound_traits)
 }
 
 INDEX_WRITE_DETAIL :: "an index write mutates this receiver through `set_at`"

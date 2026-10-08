@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (2026-10-08).
+Accepted (2026-10-08). The type-parameter hole it left open is closed by 0050.
 
 ## Context
 
@@ -45,12 +45,5 @@ a frozen const to a callback that writes it.
 
 Still open:
 
-- **A type parameter cannot be read-only.** `with_immutable` leaves a `T` as it
-  is, so in `run<T: Visit & Bump!>(t: T!)` the callback's `x: T` takes its
-  bound's rights and `x.bump()` passes. An impl that hands the callback a module
-  const lets it write `.rodata`, which crashes natively. At `e007309a1` an impl
-  writing `fn(Self)` already did so; one writing `fn(Inner)` was refused by the
-  false T3095 and now does too. The same leak goes through a `-> Self` return
-  (`t.get().bump()`).
 - **A nested `Self` keeps its marker only once `SelfType` carries one**, as
   `Self!` written on the element.

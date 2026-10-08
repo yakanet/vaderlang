@@ -311,7 +311,13 @@ mutability_widens :: fn(
         return from is TraitType && any_widens(from.args, to.args, strict, true, bounds)
     }
     if to is UnionType && from !is UnionType {
+        if from is TypeParamType && view_widens_into_any(from, to.variants) {
+            return true
+        }
         return widens_into_trait_variant(from, to.variants, strict, bounds)
+    }
+    if from is TypeParamType {
+        return view_widens_into(from, to)
     }
     if from is StructType {
         if to is StructType {
@@ -450,6 +456,57 @@ widens_into_trait_variant :: fn(
     return false
 }
 
+// Whether `from`, a read-only view of a `T` — a `Self` lent read-only — would fill
+// that `T`, which stands at its instance's rights.
+view_widens_into :: fn(from: TypeParamType, to: Type) -> bool =
+    from.immutable && to is TypeParamType && to.symbol.id == from.symbol.id && !to.immutable
+
+view_widens_into_any :: fn(from: TypeParamType, variants: Type[]) -> bool {
+    for v in variants {
+        if view_widens_into(from, v) {
+            return true
+        }
+    }
+    return false
+}
+
+// Whether `arg` hands a read-only view of a `T` to a `slot` standing for that `T`.
+lends_view :: fn(arg: Type, slot: Type) -> bool {
+    if arg is UnionType {
+        for v in arg.variants {
+            if lends_view(v, slot) {
+                return true
+            }
+        }
+        return false
+    }
+    if arg !is TypeParamType {
+        return false
+    }
+    if slot is UnionType {
+        return view_widens_into_any(arg, slot.variants)
+    }
+    return view_widens_into(arg, slot)
+}
+
+// Whether a slot of type `t` may hand what fills it to a mutation : a type that may
+// grant one, or a `T` whose bound lets a body mutate through it. A `T` under an
+// unmarked bound is stored as it came, since nothing can mutate it there.
+slot_may_grant_mutation :: fn(t: Type, bounds: MutableMap<i32, TypeParamBound>) -> bool {
+    if t is TypeParamType {
+        return !t.immutable && bound_grants_mutation(t, bounds)
+    }
+    if t is UnionType {
+        for v in t.variants {
+            if slot_may_grant_mutation(v, bounds) {
+                return true
+            }
+        }
+        return false
+    }
+    return type_may_grant_mutation(t)
+}
+
 // `type_withholds_mutation`, with a type parameter judged through its bound : a `T`
 // grants mutation only when a trait of its bound is marked `!` (`T: Bump!`), since a
 // call may bind it to a read-only type otherwise. Without `bounds` a `T` withholds
@@ -459,16 +516,12 @@ withholds_mutation :: fn(t: Type, bounds: MutableMap<i32, TypeParamBound> | null
         return type_withholds_mutation(t)
     }
     if t is TypeParamType {
-        return !bound_grants_mutation(t, bounds)
+        return t.immutable || !bound_grants_mutation(t, bounds)
     }
     // `union_of` flattens, so a variant is never a union itself.
     if t is UnionType {
         for v in t.variants {
-            if v is TypeParamType {
-                if !bound_grants_mutation(v, bounds) {
-                    return true
-                }
-            } else if type_is_immutable(v) {
+            if withholds_mutation(v, bounds) {
                 return true
             }
         }

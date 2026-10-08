@@ -12,17 +12,17 @@
   StructDecl     Sq                   :: Sq!
   FnDecl         via_a                :: fn() -> T
   FnDecl         via_b                :: fn() -> T
-  expr 24:38    StructLitExpr  :: Sq!
-  expr 24:51    IdentExpr      :: i32
+  expr 24:39    StructLitExpr  :: Sq!
+  expr 24:52    IdentExpr      :: i32
   expr 25:31    BinaryExpr     :: i32
   expr 25:31    FieldExpr      :: i32
   expr 25:31    IdentExpr      :: Sq
   expr 25:43    FieldExpr      :: i32
   expr 25:43    IdentExpr      :: Sq
-  expr 34:38    StructLitExpr  :: Rect!
-  expr 34:50    IdentExpr      :: i32
-  expr 34:62    BinaryExpr     :: i32
-  expr 34:66    IdentExpr      :: i32
+  expr 34:39    StructLitExpr  :: Rect!
+  expr 34:51    IdentExpr      :: i32
+  expr 34:63    BinaryExpr     :: i32
+  expr 34:67    IdentExpr      :: i32
   expr 35:31    BinaryExpr     :: i32
   expr 35:31    FieldExpr      :: i32
   expr 35:31    IdentExpr      :: Rect
@@ -32,8 +32,8 @@
   expr 38:38    FieldExpr      :: fn(i32) -> S
   expr 38:38    IdentExpr      :: S
   expr 38:45    IdentExpr      :: i32
-  expr 53:28    StructLitExpr  :: P!
-  expr 57:28    StructLitExpr  :: P!
+  expr 53:29    StructLitExpr  :: P!
+  expr 57:29    StructLitExpr  :: P!
   expr 60:28    CallExpr       :: T
   expr 60:28    FieldExpr      :: fn() -> T
   expr 60:28    IdentExpr      :: T
@@ -47,10 +47,10 @@
   expr 66:9     BinaryExpr     :: i32
   expr 66:9     IdentExpr      :: i32
   expr 68:12    IdentExpr      :: i32
-  expr 72:13    CallExpr       :: Sq
+  expr 72:13    CallExpr       :: Sq!
   expr 72:13    CallExpr       :: i32
   expr 72:13    FieldExpr      :: fn() -> i32
-  expr 72:13    FieldExpr      :: fn(i32) -> Sq
+  expr 72:13    FieldExpr      :: fn(i32) -> Sq!
   expr 72:13    IdentExpr      :: Sq!
   expr 72:5     CallExpr       :: void
   expr 72:5     IdentExpr      :: fn(T) -> void
@@ -107,9 +107,9 @@
   expr 85:24    IdentExpr      :: P
   expr 85:5     CallExpr       :: void
   expr 85:5     IdentExpr      :: fn(T) -> void
-  expr 86:13    CallExpr       :: BigInt
+  expr 86:13    CallExpr       :: BigInt!
   expr 86:13    CallExpr       :: usize
-  expr 86:13    FieldExpr      :: fn() -> BigInt
+  expr 86:13    FieldExpr      :: fn() -> BigInt!
   expr 86:13    FieldExpr      :: fn() -> usize
   expr 86:13    IdentExpr      :: type
   expr 86:5     CallExpr       :: void

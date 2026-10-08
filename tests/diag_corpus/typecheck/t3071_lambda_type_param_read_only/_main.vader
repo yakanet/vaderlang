@@ -1,0 +1,18 @@
+// A lambda parameter not written `!` is read-only, a `T` one included, as a fn's
+// parameter is. T3071.
+module "snippet"
+
+Bump :: trait {
+    bump :: fn(self!) -> void
+}
+
+poke :: fn<T: Bump!>(x: T!) -> void {
+    f :: (y: T) -> {
+        y.bump()
+    }
+    f(x)
+}
+
+main :: fn() -> i32 {
+    return 0
+}

@@ -1868,7 +1868,10 @@ reject_immutable_into_mutable_param :: fn(
     // `Box![]` demands a mutable `Box` while a `Box[]` or an `i32[]` asks nothing.
     // An argument filling one variant of a union is held to that variant : `OTHER`
     // fills the read-only `Other` of `Cfg! | Other`.
-    if !type_may_grant_mutation(filled_variant(arg_ty, param_ty)) {
+    slot :: filled_variant(arg_ty, param_ty)
+    // A read-only view never fills its own `T`, whatever the bound : the caller may
+    // hold that `T` mutable.
+    if !lends_view(arg_ty, slot) && !slot_may_grant_mutation(slot, typed.type_param_bound_traits) {
         return
     }
     // An argument converted on its way in takes the rights of the `into` it goes

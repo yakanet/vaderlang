@@ -12,7 +12,7 @@ import "std/io"
 import "std/iter"
 
 Shape :: trait {
-    unit :: fn(scale: i32) -> Self
+    unit :: fn(scale: i32) -> Self!
     area :: fn(self) -> i32
 }
 
@@ -21,7 +21,7 @@ Sq :: struct {
 }
 
 Sq implements Shape {
-    unit :: fn(scale: i32) -> Self = Sq { .side = scale }
+    unit :: fn(scale: i32) -> Self! = Sq { .side = scale }
     area :: fn(self) -> i32 = self.side * self.side
 }
 
@@ -31,18 +31,18 @@ Rect :: struct {
 }
 
 Rect implements Shape {
-    unit :: fn(scale: i32) -> Self = Rect { .w = scale, .h = 2 * scale }
+    unit :: fn(scale: i32) -> Self! = Rect { .w = scale, .h = 2 * scale }
     area :: fn(self) -> i32 = self.w * self.h
 }
 
 build :: fn<S: Shape>(n: i32) -> S = S.unit(n)
 
 A :: trait {
-    make :: fn() -> Self
+    make :: fn() -> Self!
 }
 
 B :: trait {
-    make :: fn() -> Self
+    make :: fn() -> Self!
 }
 
 P :: struct {
@@ -50,11 +50,11 @@ P :: struct {
 }
 
 P implements A {
-    make :: fn() -> Self = P { .v = 1 }
+    make :: fn() -> Self! = P { .v = 1 }
 }
 
 P implements B {
-    make :: fn() -> Self = P { .v = 2 }
+    make :: fn() -> Self! = P { .v = 2 }
 }
 
 via_a :: fn<T: A>() -> T = T.make()

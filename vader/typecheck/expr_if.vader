@@ -281,11 +281,16 @@ pop_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram!) -> void {
 narrowed_with_scrutinee_immutability :: fn(
     narrowed: Type, scrut: AST.Expr, typed: TypedProgram,
 ) -> Type {
-    if !carries_mutability_bit(narrowed) { return narrowed }
-    base :: scrutinee_narrow_base(scrut, typed) ?? return narrowed
-    return with_immutable(
-        narrowed, narrowing_immutability(base, narrowed, typed.type_param_bound_traits),
-    )
+    base :: scrutinee_narrow_base(scrut, typed)
+    if base != null {
+        return narrowed_with_rights(narrowed, base, typed.type_param_bound_traits)
+    }
+    // A call narrows nothing, but its own type holds the view of a `T` an `as` binds.
+    if narrowed is TypeParamType {
+        own :: typed.expr_types[scrut.id] ?? return narrowed
+        return narrowed_with_rights(narrowed, own, typed.type_param_bound_traits)
+    }
+    return narrowed
 }
 
 // The flow-narrowed static type of an `is` scrutinee, for the two shapes that

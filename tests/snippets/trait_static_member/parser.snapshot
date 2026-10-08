@@ -46,8 +46,11 @@
             }
           ],
           "returnType": {
-            "kind": "IdentExpr",
-            "name": "Self"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Self"
+            }
           },
           "body": null,
           "decorators": []
@@ -120,8 +123,11 @@
             }
           ],
           "returnType": {
-            "kind": "IdentExpr",
-            "name": "Self"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Self"
+            }
           },
           "body": {
             "kind": "BlockExpr",
@@ -248,8 +254,11 @@
             }
           ],
           "returnType": {
-            "kind": "IdentExpr",
-            "name": "Self"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Self"
+            }
           },
           "body": {
             "kind": "BlockExpr",
@@ -409,8 +418,11 @@
           "typeParams": [],
           "params": [],
           "returnType": {
-            "kind": "IdentExpr",
-            "name": "Self"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Self"
+            }
           },
           "body": null,
           "decorators": []
@@ -432,8 +444,11 @@
           "typeParams": [],
           "params": [],
           "returnType": {
-            "kind": "IdentExpr",
-            "name": "Self"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Self"
+            }
           },
           "body": null,
           "decorators": []
@@ -476,8 +491,11 @@
           "typeParams": [],
           "params": [],
           "returnType": {
-            "kind": "IdentExpr",
-            "name": "Self"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Self"
+            }
           },
           "body": {
             "kind": "BlockExpr",
@@ -523,8 +541,11 @@
           "typeParams": [],
           "params": [],
           "returnType": {
-            "kind": "IdentExpr",
-            "name": "Self"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Self"
+            }
           },
           "body": {
             "kind": "BlockExpr",

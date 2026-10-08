@@ -162,6 +162,26 @@ export with_immutable :: fn(t: Type, immutable: bool) -> Type = match t {
      | NeverType | AnyType -> t
 }
 
+// What the type parameter `t` stands for once bound to `binding` : the binding
+// read-only when `t` is a read-only view, else the binding as it is.
+instance_of :: fn(t: TypeParamType, binding: Type) -> Type =
+    if t.immutable { with_immutable(binding, true) } else { binding }
+
+// `t` read-only : a read-only view of a type parameter, which `with_immutable`
+// leaves alone — a written `T`, or a lambda's, has the rights of what it stands for.
+read_only_of :: fn(t: Type) -> Type = if t is TypeParamType {
+    TypeParamType { ...t, .immutable = true }
+} else {
+    with_immutable(t, true)
+}
+
+// `t` mutable : a type parameter at the rights of what it stands for.
+mutable_of :: fn(t: Type) -> Type = if t is TypeParamType {
+    TypeParamType { ...t, .immutable = false }
+} else {
+    with_immutable(t, false)
+}
+
 with_immutable_each :: fn(variants: Type[], immutable: bool) -> Type[] {
     out: Type[]!: []
     for v in variants { out.push(with_immutable(v, immutable)) }
@@ -223,6 +243,17 @@ bound_rights :: fn(a: Type, b: Type, read_only_wins: bool) -> Type | null {
                     return a
                 }
                 return TraitType { ...a, .args = args, .immutable = immutable }
+            }
+        }
+        // A read-only view joined with its `T` : the side the rule keeps.
+        is TypeParamType -> {
+            if b is TypeParamType && b.symbol.id == a.symbol.id {
+                view :: if read_only_wins {
+                    a.immutable || b.immutable
+                } else {
+                    a.immutable && b.immutable
+                }
+                return if view == a.immutable { a } else { b }
             }
         }
         is DistinctType -> {
@@ -343,6 +374,9 @@ export desugared_param_type :: fn(t: Type, mutable: bool) -> Type {
 /// @param t        the lowered type.
 /// @param written  the type as written, or null when there is none.
 export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
+    if t is TypeParamType {
+        return type_param_default(t, written != null && is_self_marked(written))
+    }
     // A union carries no marker of its own — the bit is DISTRIBUTED over its
     // variants, each taking the marker of the written variant it came from
     // (`written_variant_for`). The variant's CHILDREN take the default too, exactly
@@ -352,6 +386,10 @@ export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Ty
         lowered_names :: nominal_names(t.variants)
         out: Type[]!: []
         for v in t.variants {
+            if v is TypeParamType {
+                out.push(type_param_default(v, any_self_marked(wv)))
+                continue
+            }
             w :: written_variant_for(wv, v, lowered_names)
             children :: readonly_children(v, AST.strip_mut_marker(w))
             out.push(with_immutable(children, w !is AST.MutableTypeExpr))
@@ -372,6 +410,25 @@ export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Ty
     // default.
     if type_is_immutable(t) { return readonly_children(t, written) }
     return with_immutable(readonly_children(t, written), true)
+}
+
+// A type parameter takes no default : a written `T` has the rights of what it stands
+// for. The read-only view `self_slot_type` puts for a `Self` stays one, unless that
+// `Self` is written `Self!`.
+type_param_default :: fn(t: TypeParamType, self_marked: bool) -> Type =
+    if t.immutable && self_marked { mutable_of(t) } else { t }
+
+// Whether `w` is `Self!`.
+is_self_marked :: fn(w: AST.TypeExpr) -> bool =
+    w is AST.MutableTypeExpr && w.inner is AST.IdentExpr && w.inner.name == "Self"
+
+any_self_marked :: fn(written: AST.TypeExpr[]) -> bool {
+    for w in written {
+        if is_self_marked(w) {
+            return true
+        }
+    }
+    return false
 }
 
 // The written variants of a union, or an empty list when there is no written form.
@@ -479,6 +536,39 @@ readonly_children :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
 /// grants what its bound does.
 ///
 /// @param bounds  the type-parameter bounds (`type_param_bound_traits`).
+/// `narrowed`, the type an `is` names, at the rights `scrutinee` held it with. A type
+/// parameter keeps what it stands for, unless the scrutinee held a read-only view of
+/// it, which narrowing keeps.
+///
+/// @param narrowed   the type written on the right of the `is`.
+/// @param scrutinee  the type of what is tested.
+export narrowed_with_rights :: fn(
+    narrowed: Type, scrutinee: Type, bounds: MutableMap<i32, TypeParamBound>,
+) -> Type {
+    if narrowed is TypeParamType {
+        return if holds_view_of(scrutinee, narrowed) { read_only_of(narrowed) } else { narrowed }
+    }
+    if !carries_mutability_bit(narrowed) {
+        return narrowed
+    }
+    return with_immutable(narrowed, narrowing_immutability(scrutinee, narrowed, bounds))
+}
+
+// Whether `t` is, or holds as a variant, a read-only view of `tp`.
+holds_view_of :: fn(t: Type, tp: TypeParamType) -> bool {
+    if t is TypeParamType {
+        return t.immutable && t.symbol.id == tp.symbol.id
+    }
+    if t is UnionType {
+        for v in t.variants {
+            if holds_view_of(v, tp) {
+                return true
+            }
+        }
+    }
+    return false
+}
+
 export narrowing_immutability :: fn(
     scrutinee: Type, narrowed: Type, bounds: MutableMap<i32, TypeParamBound>,
 ) -> bool {
@@ -1237,21 +1327,22 @@ literal_family_holds :: fn(got: Type, name: string) -> bool = match got {
 /// @param t  the type to reduce to its shape.
 /// @return   `t` itself when nothing inside it carries a mutability bit.
 export strip_mutability :: fn(t: Type) -> Type = match t {
-    is ArrayType    -> mk_array(strip_mutability(t.element), true)
-    is TupleType    -> mk_tuple(strip_mutability_each(t.elements), true)
-    is StructType   -> mk_struct(t.symbol, strip_mutability_each(t.args), true)
-    is TraitType    -> TraitType {
+    is TypeParamType -> if t.immutable { TypeParamType { ...t, .immutable = false } } else { t }
+    is ArrayType     -> mk_array(strip_mutability(t.element), true)
+    is TupleType     -> mk_tuple(strip_mutability_each(t.elements), true)
+    is StructType    -> mk_struct(t.symbol, strip_mutability_each(t.args), true)
+    is TraitType     -> TraitType {
         ...t,
         .args = strip_mutability_each(t.args),
         .immutable = true,
     }
-    is UnionType    -> mk_union(strip_mutability_each(t.variants))
-    is DistinctType -> if carries_mutability_bit(t) {
+    is UnionType     -> mk_union(strip_mutability_each(t.variants))
+    is DistinctType  -> if carries_mutability_bit(t) {
         mk_distinct(t.symbol, strip_mutability(t.backing))
     } else {
         t
     }
-    is FnType       -> FnType {
+    is FnType        -> FnType {
         .params         = strip_mutability_each(t.params),
         .params_mutable = t.params_mutable,
         .return_type    = strip_mutability(t.return_type),

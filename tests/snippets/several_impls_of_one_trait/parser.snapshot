@@ -882,8 +882,11 @@
             }
           ],
           "returnType": {
-            "kind": "IdentExpr",
-            "name": "Self"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Self"
+            }
           },
           "body": null,
           "decorators": []
@@ -1011,8 +1014,11 @@
             }
           ],
           "returnType": {
-            "kind": "IdentExpr",
-            "name": "Vec2"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Vec2"
+            }
           },
           "body": {
             "kind": "BlockExpr",
@@ -1081,8 +1087,11 @@
             }
           ],
           "returnType": {
-            "kind": "IdentExpr",
-            "name": "Vec2"
+            "kind": "MutableTypeExpr",
+            "inner": {
+              "kind": "IdentExpr",
+              "name": "Vec2"
+            }
           },
           "body": {
             "kind": "BlockExpr",

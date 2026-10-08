@@ -142,26 +142,26 @@
   expr 212:49   IdentExpr      :: Bag!
   expr 212:5    CallExpr       :: void
   expr 212:5    IdentExpr      :: fn(T) -> void
-  expr 213:10   CallExpr       :: Vec2
-  expr 213:10   FieldExpr      :: fn(f64) -> Vec2
+  expr 213:10   CallExpr       :: Vec2!
+  expr 213:10   FieldExpr      :: fn(f64) -> Vec2!
   expr 213:10   IdentExpr      :: Vec2!
-  expr 214:10   CallExpr       :: Vec2
-  expr 214:10   FieldExpr      :: fn(string) -> Vec2
+  expr 214:10   CallExpr       :: Vec2!
+  expr 214:10   FieldExpr      :: fn(string) -> Vec2!
   expr 214:10   IdentExpr      :: Vec2!
   expr 214:20   StringLitExpr  :: string
   expr 215:13   StringLitExpr  :: string
   expr 215:16   FieldExpr      :: f64
-  expr 215:16   IdentExpr      :: Vec2
+  expr 215:16   IdentExpr      :: Vec2!
   expr 215:23   FieldExpr      :: f64
-  expr 215:23   IdentExpr      :: Vec2
+  expr 215:23   IdentExpr      :: Vec2!
   expr 215:30   CallExpr       :: string
   expr 215:30   IdentExpr      :: fn(T) -> string
-  expr 215:38   IdentExpr      :: Vec2
+  expr 215:38   IdentExpr      :: Vec2!
   expr 215:44   CallExpr       :: string
   expr 215:44   IdentExpr      :: fn(T) -> string
   expr 215:5    CallExpr       :: void
   expr 215:5    IdentExpr      :: fn(T) -> void
-  expr 215:52   IdentExpr      :: Vec2
+  expr 215:52   IdentExpr      :: Vec2!
   expr 216:12   StructLitExpr  :: Mon!
   expr 217:13   CallExpr       :: Tag
   expr 217:13   FieldExpr      :: fn() -> Tag
@@ -279,10 +279,10 @@
   expr 62:47    BinaryExpr     :: bool
   expr 62:47    IdentExpr      :: string
   expr 62:52    StringLitExpr  :: string
-  expr 75:34    StructLitExpr  :: Vec2!
-  expr 75:46    IdentExpr      :: f64
-  expr 75:54    IdentExpr      :: f64
-  expr 79:37    StructLitExpr  :: Vec2!
+  expr 75:35    StructLitExpr  :: Vec2!
+  expr 75:47    IdentExpr      :: f64
+  expr 75:55    IdentExpr      :: f64
+  expr 79:38    StructLitExpr  :: Vec2!
   expr 83985:1  StringLitExpr  :: string
   expr 83985:4  CallExpr       :: string
   expr 83985:5  FieldExpr      :: fn() -> string

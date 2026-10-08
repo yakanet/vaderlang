@@ -13,7 +13,7 @@
   expr 12:24    FieldExpr      :: fn() -> u64
   expr 12:24    IdentExpr      :: T
   expr 12:41    CallExpr       :: bool
-  expr 12:41    FieldExpr      :: fn(T) -> bool
+  expr 12:41    FieldExpr      :: fn(readonly T) -> bool
   expr 12:41    IdentExpr      :: T
   expr 12:50    IdentExpr      :: T
   expr 12:9     IfExpr         :: void

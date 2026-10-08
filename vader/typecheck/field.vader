@@ -505,9 +505,12 @@ trait_type_member :: fn(
     typed: TypedProgram,
 ) -> TypeMember | null {
     decl :: trait_member_decl(trait_ty, name, typed) ?? return null
-    method :: try_trait_method(trait_ty, name, typed) ?? return null
+    // A type parameter reads each `Self` at the marker written on it : `-> Self`
+    // lends a read-only view of the `T`, as it lends a read-only `Cfg`.
+    self_ty :: if owner is TypeParamType { owner } else { null }
+    method :: try_trait_method(trait_ty, name, typed, self_ty) ?? return null
     return TypeMember {
-        .ty = substitute_self(method, owner),
+        .ty = if self_ty == null { substitute_self(method, owner) } else { method },
         .decl = decl,
         .trait_key = trait_key_of(trait_ty.symbol),
         .trait_args = trait_ty.args,
@@ -1187,7 +1190,7 @@ export substitute_by_name :: fn(
         is TypeParamType -> {
             for i in 0..<min(tps.len(), args.len()) {
                 if tps[i].name == t.symbol.name {
-                    return args[i]
+                    return instance_of(t, args[i])
                 }
             }
             return t
@@ -1293,7 +1296,7 @@ substitute_array_element :: fn(t: Type, element: Type) -> Type {
     // @partial: only TypeParam + the composite variants carry a param to rewrite;
     // scalars have no inner type → return as-is.
     @partial match t {
-        is TypeParamType -> { return element }
+        is TypeParamType -> { return instance_of(t, element) }
         is ArrayType -> { return mk_array(substitute_array_element(t.element, element), t.immutable) }
         is TupleType -> {
             els: Type[]!: []
@@ -1435,8 +1438,10 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
             ps: Type[]!: []
             for i in 0..<t.params.len() {
                 p :: t.params[i]
-                if p is SelfType {
-                    ps.push(with_immutable(self_ty, !param_mutable_at(t, i)))
+                if p is SelfType && param_mutable_at(t, i) {
+                    ps.push(mutable_of(self_ty))
+                } else if p is SelfType {
+                    ps.push(read_only_of(self_ty))
                 } else {
                     ps.push(substitute_self(p, self_ty))
                 }
@@ -1613,10 +1618,16 @@ type_from_expr_opt_in :: fn(e: AST.TypeExpr | null, resolved: ResolvedModule, se
 // A written type with `Self` read as `self_ty` BEFORE the read-only default : a
 // `SelfType` carries no marker of its own, so substituting after the default would
 // hand every `Self` the rights of `self_ty` as it comes. This way the written marker
-// decides — `Self` is the read-only `self_ty`, `Self!` the mutable one.
+// decides — `Self` is the read-only `self_ty`, `Self!` the mutable one. A type
+// parameter takes no default, so its `Self` goes in as a read-only view, which only
+// a written `Self!` lifts (`type_param_default`).
 self_slot_type :: fn(
     written: AST.TypeExpr, self_ty: Type, resolved: ResolvedModule, diags: Diagnostic[]!,
-) -> Type = apply_readonly_default(substitute_self(type_from_expr(written, resolved, diags), self_ty), written)
+) -> Type {
+    standing :: if self_ty is TypeParamType { read_only_of(self_ty) } else { self_ty }
+    substituted :: substitute_self(type_from_expr(written, resolved, diags), standing)
+    return apply_readonly_default(substituted, written)
+}
 
 UfcsResult :: struct {
     curried: Type

@@ -105,6 +105,9 @@ export TupleType :: struct {
 
 export TypeParamType :: struct {
     symbol: Symbol
+    /// Set on a read-only view of `T` : an unmarked `Self` reached through `T`
+    /// (`-> Self`, `fn(Self)`). A written `T` never carries it.
+    immutable: bool = false
 }
 
 export TypeMetaType :: struct {}
@@ -573,12 +576,13 @@ export mk_fn :: fn(params: Type[], return_type: Type) -> Type {
 /// where its bit lives : `strip_distinct` and the `*_backing` unwraps hand the
 /// backing out as it is, bit included.
 export type_is_immutable :: fn(t: Type) -> bool = match t {
-    is ArrayType    -> t.immutable
-    is StructType   -> t.immutable
-    is TupleType    -> t.immutable
-    is TraitType    -> t.immutable
-    is DistinctType -> type_is_immutable(t.backing)
-    is PrimitiveType | EnumType | UnionType | FnType | TypeParamType
+    is ArrayType     -> t.immutable
+    is StructType    -> t.immutable
+    is TupleType     -> t.immutable
+    is TraitType     -> t.immutable
+    is TypeParamType -> t.immutable
+    is DistinctType  -> type_is_immutable(t.backing)
+    is PrimitiveType | EnumType | UnionType | FnType
      | TypeMetaType | SelfType | UnresolvedType | FreeIntType | FreeFloatType
      | FreeCharType | NeverType | AnyType -> false
 }
@@ -703,7 +707,7 @@ export is_null_type :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "nu
 export display_type :: fn(t: Type) -> string {
     match t {
         is PrimitiveType  -> { return t.name }
-        is TypeParamType  -> { return t.symbol.name }
+        is TypeParamType  -> { if !t.immutable { return t.symbol.name } }
         is EnumType       -> { return t.symbol.name }
         is DistinctType   -> { if !type_grants_mutation(t) { return t.symbol.name } }
         is UnresolvedType -> { return "?" }
@@ -800,7 +804,12 @@ write_type_mut :: fn(sb: StringBuilder!, t: Type, show_mut: bool) -> void {
             sb.write_named_mut(t.symbol.name, t.args, show_mut)
             if show_mut && !t.immutable { sb.append_char('!') }
         }
-        is TypeParamType  -> { sb.append(t.symbol.name) }
+        is TypeParamType  -> {
+            // A read-only view has no spelling of its own : a written `T` is the
+            // type parameter itself.
+            if show_mut && t.immutable { sb.append("readonly ") }
+            sb.append(t.symbol.name)
+        }
         is TypeMetaType   -> { sb.append("type") }
         is SelfType       -> { sb.append("Self") }
         is UnresolvedType -> { sb.append("?") }
