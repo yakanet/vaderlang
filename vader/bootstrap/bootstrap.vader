@@ -202,7 +202,7 @@ CfgBytecode :: struct {
 // refuse a front-end error BEFORE the back end runs. It cannot cope with a
 // malformed AST: a declaration that failed to parse leaves a local with no type,
 // and `midir/emit` panics on it instead of the error being reported.
-cfg_bytecode_from :: fn(le: LoweredEntry!, file: string) -> CfgBytecode {
+cfg_bytecode_from :: fn(le: LoweredEntry, file: string) -> CfgBytecode {
     pruned :: prune_unreachable_fns(le.lowered, false)
     cfg :: build_cfg_project(pruned)
     dced :: eliminate_dead_cfg(cfg)
