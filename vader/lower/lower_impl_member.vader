@@ -350,6 +350,63 @@ bound_member :: fn(
     return member_named(ctx, entry, receiver, name)
 }
 
+/// Materialise the member `method` of `trait_key` for every array variant of
+/// `receiver`, a union a virtual call dispatches on : an array impl's member is
+/// built only for the elements a call names (`array_member_uses`), and a union's
+/// array reaches it through the vtable alone.
+///
+/// @param receiver   the virtual call's receiver type ; anything but a union is left.
+/// @param trait_key  the trait the call dispatches through.
+/// @param method     the member it calls.
+surface_array_variants :: fn(
+    ctx: FnLowerCtx!,
+    receiver: Type,
+    trait_key: string,
+    method: string,
+) -> void {
+    if receiver !is UnionType {
+        return
+    }
+    for v in receiver.variants {
+        if v is ArrayType {
+            _ :: resolve_impl_member(ctx, v, trait_key, method)
+        }
+    }
+}
+
+/// `receiver.method(args)` dispatched by the receiver's tag through `trait_key` : every
+/// primitive implementor enters the trait's vtable (`virtually_dispatched_traits`),
+/// and so does every array variant of a union receiver (`surface_array_variants`).
+///
+/// @param receiver     the lowered receiver ; a value of the trait, a union of its
+///                     implementors, an erased bounded `T`.
+/// @param type         the call's result type.
+/// @param param_types  the member's parameter types, which a scalar argument is
+///                     retagged for ; empty when every argument is already boxed or
+///                     concrete.
+virtual_call :: fn(
+    ctx: FnLowerCtx!,
+    trait_key: string,
+    method: string,
+    receiver: LoweredExpr!,
+    args: LoweredExpr![]!,
+    type: Type,
+    span: Span,
+    param_types: Type[] = [],
+) -> LoweredVirtualCall! {
+    ctx.project.virtually_dispatched_traits.add(trait_key)
+    surface_array_variants(ctx, type_of(receiver), trait_key, method)
+    return LoweredVirtualCall {
+        .span        = span,
+        .type        = type,
+        .trait_name  = trait_key,
+        .method      = method,
+        .receiver    = receiver,
+        .args        = args,
+        .param_types = param_types,
+    }
+}
+
 // The member `name` of `entry`, built for `receiver`.
 member_named :: fn(
     ctx: FnLowerCtx!,

@@ -387,23 +387,13 @@ shown_type :: fn(ctx: FnLowerCtx, source: Expr, lowered: LoweredExpr) -> Type {
 build_display_to_string_call :: fn(
     ctx: FnLowerCtx!, value: LoweredExpr!, source_type: Type, span: Span,
 ) -> LoweredExpr! {
-    string_type :: TY_STRING
-    no_args: LoweredExpr![]!: []
     direct :: try_direct_display_call(ctx, value, source_type, span)
     if direct != null { return direct }
-    // Erased Display dispatch (generic-`T` receiver) : record the trait so
-    // every primitive `Display` impl enters the vtable (the boxed tag picks
-    // the impl at runtime). See `virtually_dispatched_traits`.
-    ctx.project.virtually_dispatched_traits.add(core_trait_key(TRAIT_DISPLAY))
-    return LoweredVirtualCall {
-        .span        = span,
-        .type        = string_type,
-        .trait_name  = core_trait_key(TRAIT_DISPLAY),
-        .method      = METHOD_TO_STRING,
-        .receiver    = value,
-        .args        = no_args,
-        .param_types = [],
-    }
+    // Erased Display dispatch (generic-`T` receiver, union) : the boxed tag picks
+    // the impl at runtime.
+    no_args: LoweredExpr![]!: []
+    display :: core_trait_key(TRAIT_DISPLAY)
+    return virtual_call(ctx, display, METHOD_TO_STRING, value, no_args, TY_STRING, span)
 }
 
 // Look up `<source_type>.Display.to_string` statically. Returns a

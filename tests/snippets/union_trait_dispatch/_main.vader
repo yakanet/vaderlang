@@ -1,0 +1,149 @@
+module "snippet"
+
+import "std/collections"
+import "std/io"
+
+// A union every variant of which implements a trait dispatches the trait's members
+// through it, by the value's tag, as a value of the trait does : a method call, an
+// index read and write, `in` and an operator. A value of the trait reaches `in` and
+// the operators the same way. An array variant reaches its impl through the union
+// alone, and a primitive one its built-in impl (`i32 | Money` + 5).
+
+Shape :: trait {
+    area :: fn(self) -> f64
+}
+
+Sq :: struct {
+    s: f64
+}
+
+Circle :: struct {
+    r: f64
+}
+
+Sq implements Shape {
+    area :: fn(self) -> f64 = self.s * self.s
+}
+
+Circle implements Shape {
+    area :: fn(self) -> f64 = 3.0 * self.r * self.r
+}
+
+f64[] implements Shape {
+    area :: fn(self) -> f64 = 0.5
+}
+
+area_of :: fn(u: Sq | Circle | f64[]) -> f64 = u.area()
+
+Loud :: trait {
+    loud :: fn(self) -> string
+}
+
+i32 implements Loud {
+    loud :: fn(self) -> string = "INT ${self}"
+}
+
+string implements Loud {
+    loud :: fn(self) -> string = "STR ${self}"
+}
+
+shout :: fn(x: i32 | string) -> string = x.loud()
+
+Log :: struct {
+    lines: string[]!
+}
+
+Log implements IndexSet<string, i32> {
+    set_at :: fn(self!, k: string, v: i32) -> void {
+        self.lines.push("${k}=${v}")
+    }
+}
+
+put :: fn(target: MutableMap<string, i32>! | Log!) -> void {
+    target.set_at("k", 1)
+    target["j"] = 2
+}
+
+Tally :: struct {
+    counts: MutableMap<string, i32>!
+}
+
+Tally implements Index<string, i32> {
+    at :: fn(self, k: string) -> i32 = self.counts[k] ?? 0
+}
+
+Tally implements IndexSet<string, i32> {
+    set_at :: fn(self!, k: string, v: i32) -> void {
+        self.counts[k] = v * 10
+    }
+}
+
+Cell :: struct {
+    cells: i32[]!
+}
+
+Cell implements Index<string, i32> {
+    at :: fn(self, k: string) -> i32 = self.cells[0]
+}
+
+Cell implements IndexSet<string, i32> {
+    set_at :: fn(self!, k: string, v: i32) -> void {
+        self.cells[0] = v
+    }
+}
+
+bump :: fn(u: Tally! | Cell!) -> i32 {
+    u["a"] += 1
+    return u["a"]
+}
+
+Odd :: struct {
+    n: i64
+}
+
+Odd implements Contains<i64> {
+    contains :: fn(self, x: i64) -> bool = x % 2 == 1
+}
+
+holds :: fn(c: i64[] | Odd, k: i64) -> bool = k in c
+
+lacks :: fn(c: i64[] | Odd, k: i64) -> bool = k !in c
+
+holds_value :: fn(c: Contains<i64>, k: i64) -> bool = k in c
+
+Money :: struct {
+    c: i32
+}
+
+Money implements Add<i32> {
+    add :: fn(self, k: i32) -> Money = Money { .c = self.c + k }
+}
+
+Money implements Display {
+    to_string :: fn(self) -> string = "${self.c}c"
+}
+
+plus_five :: fn(a: i32 | Money) -> i32 | Money = a + 5
+
+plus_one :: fn(a: Add<i32>) -> string {
+    sum :: a + 1
+    return if sum is Money { "${sum}" } else { "?" }
+}
+
+main :: fn() -> i32 {
+    println("${area_of(Sq { .s = 2.0 })} ${area_of(Circle { .r = 1.0 })} ${area_of([1.0])}")
+    println("${shout(3)} ${shout("a")}")
+    m :: MutableMap<string, i32> {}
+    put(m)
+    l :: Log { .lines = [] }
+    put(l)
+    println("${m.len()} ${l.lines[1]}")
+    t :: Tally { .counts = MutableMap<string, i32> {} }
+    c :: Cell { .cells = [5] }
+    println("${bump(t)} ${bump(c)}")
+    xs: i64[]: [4, 8]
+    odd :: Odd { .n = 0 }
+    println("${holds(xs, 8)} ${holds(odd, 5)} ${lacks(xs, 5)} ${holds_value(odd, 4)}")
+    println("${plus_five(1)} ${plus_five(Money { .c = 1 })} ${plus_one(Money { .c = 2 })}")
+    return 0
+}

@@ -1,0 +1,31 @@
+// A union boxes an enum as its integer, so a call dispatched by the box's tag
+// would reach the integer's impl, not the enum's. T3086, at the member.
+module "snippet"
+
+Shape :: trait {
+    area :: fn(self) -> f64
+}
+
+Sq :: struct {
+    s: f64
+}
+
+Sq implements Shape {
+    area :: fn(self) -> f64 = self.s
+}
+
+Color :: enum {
+    Red
+    Blue
+}
+
+Color implements Shape {
+    area :: fn(self) -> f64 = 1.0
+}
+
+area_of :: fn(u: Sq | Color) -> f64 = u.area()
+
+main :: fn() -> i32 {
+    area :: area_of(Sq { .s = 1.0 })
+    return if area > 0.0 { 0 } else { 1 }
+}

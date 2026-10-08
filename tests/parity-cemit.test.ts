@@ -304,6 +304,9 @@ const C_PARITY = new Set<string>([
   // Several impls of one trait on one receiver : each use site runs the one its
   // own types pick.
   "several_impls_of_one_trait",
+  // A union of a trait's implementors, and a value of the trait, dispatch its
+  // members by their tag : method, index, `in`, operator.
+  "union_trait_dispatch",
   // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's
   // defer runs on teardown, the winner's at its own completion.
   "async_race",

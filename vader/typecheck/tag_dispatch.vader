@@ -1,0 +1,331 @@
+// vader/typecheck/tag_dispatch — a trait member reached through a receiver's tag.
+//
+// A value of a trait, and a union whose every variant implements the trait, call
+// its members at run time through the value's tag : `c.contains(k)`, `k in c`,
+// `u.area()`, `u + 5`, `u[k]`. A union and a trait value are one tagged box, so
+// nothing converts. The use site records the dispatch (`record_bounded_dispatch`)
+// on a union, and the lowering emits the virtual call. A dispatch by the tag
+// alone cannot serve every member nor every union, and those are refused here
+// rather than run through the wrong impl.
+
+module "vader/typecheck"
+
+import "std/iter"
+import "std/string"
+import "toolchain/span"
+import "vader/diagnostics"
+import "vader/resolver/symbol"
+import "vader/types"
+
+/// The member `method` a use site reaches on the union `u` through a trait every
+/// variant implements, `Self` standing for `u` ; null when no such trait declares
+/// it, or the member is generic (no vtable row names one instance of it). A use the
+/// dispatch cannot serve is reported, and its member returned marked `refused`, so
+/// the use site reports nothing more.
+///
+/// @param u          the receiver.
+/// @param trait_key  the trait the use site goes through (`Contains` for `in`), or
+///                   "" for a method call, which any trait declaring `method` serves.
+/// @param method     the member's name.
+/// @param span       where a refusal is reported.
+/// @error            T3032 when two traits offer `method` to every variant.
+/// @error            T3097 when a variant implements the trait more than once.
+/// @error            T3086 when a variant is boxed as its representation : an enum
+///                   or a distinct implementing the trait itself, an array of either.
+/// @error            T3098 as `trait_value_member`.
+union_trait_member :: fn(
+    u: UnionType,
+    trait_key: string,
+    method: string,
+    span: Span,
+    typed: TypedProgram,
+    diags: Diagnostic[]!,
+) -> TypeMember | null {
+    traits :: union_dispatch_traits(u, trait_key, method, typed)
+    if traits.len() == 0 {
+        return null
+    }
+    found :: tag_member(traits[0], u, method, typed) ?? return null
+    refusal :: union_dispatch_refusal(u, traits, found, span, typed) ?? return found.member
+    diags.push(refusal)
+    return TypeMember { ...found.member, .refused = true }
+}
+
+/// The member `name` an operator on a value of the trait `recv` dispatches by its tag,
+/// `Self` standing for the trait ; null when the trait declares none, or a generic
+/// one. A member the dispatch cannot serve is reported, and returned marked
+/// `refused`. The method form `c.m()` keeps typing through `trait_type_member`.
+///
+/// @param recv  the receiver's trait.
+/// @param name  the member's name.
+/// @param span  where a refusal is reported.
+/// @error       T3098 when the member takes another `Self`, which another
+///              implementor may fill, or returns one inside another type, which the
+///              dispatch cannot box for every implementor.
+trait_value_member :: fn(
+    recv: TraitType,
+    name: string,
+    span: Span,
+    typed: TypedProgram,
+    diags: Diagnostic[]!,
+) -> TypeMember | null {
+    found :: tag_member(recv, recv, name, typed) ?? return null
+    if found.self_hazard == "" {
+        return found.member
+    }
+    detail :: "${found.self_hazard} implementor"
+    diags.push(typecheck_error(.SelfMemberDispatchedByTag, span, detail))
+    return TypeMember { ...found.member, .refused = true }
+}
+
+// A trait member as a dispatch by the receiver's tag reaches it.
+TagMember :: struct {
+    member: TypeMember
+    /// Why the member cannot be dispatched by the tag whatever the receiver — it
+    /// takes another `Self`, or returns one inside another type — as the start of a
+    /// detail ending in what may differ (`variant`, `implementor`) ; "" when it can.
+    self_hazard: string = ""
+}
+
+// The member `name` of `trait_ty` called on `owner` by its tag : `Self` read as
+// `owner`, read-only unless the member writes `Self!`, as on a concrete receiver.
+// Null when the trait declares none, or a generic one.
+tag_member :: fn(
+    trait_ty: TraitType,
+    owner: Type,
+    name: string,
+    typed: TypedProgram,
+) -> TagMember | null {
+    decl :: trait_member_decl(trait_ty, name, typed) ?? return null
+    if decl.type_params.len() > 0 {
+        return null
+    }
+    sig :: try_trait_method(trait_ty, name, typed) ?? return null
+    member :: TypeMember {
+        .ty         = substitute_self(sig, apply_readonly_default(owner, null)),
+        .decl       = decl,
+        .trait_key  = trait_key_of(trait_ty.symbol),
+        .trait_args = trait_ty.args,
+    }
+    // An `Equals` slot checks its other operand's type before the impl runs
+    // (`guard_equals`) : another type answers `false`.
+    guarded :: member.trait_key == core_trait_key(TRAIT_EQUALS)
+    // A struct is a tagged reference in a container as in a box ; any other
+    // implementor a trait value may hold is not.
+    references :: owner is UnionType && owner.variants.all_match((v) -> v is StructType)
+    hazard :: self_hazard(name, sig, guarded, references)
+    return TagMember { .member = member, .self_hazard = hazard }
+}
+
+// The start of a T3098 detail when the signature `sig` (`Self` unsubstituted) cannot
+// be dispatched by the receiver's tag, else "". A `Self` parameter may be filled by
+// another type than the receiver's, unless the slot is `guarded` ; a `Self` inside
+// the result (`Self[]`, `[Self, i32]`) is built by one impl for its own type, unboxed
+// unless every implementor is a `reference`. `Self` and `Self | null` hand back the
+// receiver's own box.
+self_hazard :: fn(name: string, sig: Type, guarded: bool, references: bool) -> string {
+    if sig !is FnType {
+        return ""
+    }
+    if !guarded && sig.params.any_match((p) -> any_type(p, (t) -> t is SelfType)) {
+        return "`${name}` takes another `Self`, which may be another"
+    }
+    if !references && nests_self(sig.return_type) {
+        return "`${name}` returns `Self` inside another type, built for one"
+    }
+    return ""
+}
+
+nests_self :: fn(t: Type) -> bool {
+    if t is SelfType {
+        return false
+    }
+    if t is UnionType {
+        return t.variants.any_match((v) -> nests_self(v))
+    }
+    return any_type(t, (s) -> s is SelfType)
+}
+
+// The trait instances a member `method` of the union `u` can dispatch through : each
+// trait declaring it that every variant implements at arguments they agree on
+// (`MutableMap<string, i32>! | Log!` reaches `IndexSet<string, i32>`). More than one
+// leaves a method call ambiguous ; a fixed `trait_key` gives at most one.
+union_dispatch_traits :: fn(
+    u: UnionType,
+    trait_key: string,
+    method: string,
+    typed: TypedProgram,
+) -> TraitType[] {
+    out: TraitType[]!: []
+    for m in impl_candidates(typed, u.variants[0], "::${method}") {
+        sym :: m.trait_symbol ?? continue
+        if trait_key != "" && m.trait_key != trait_key {
+            continue
+        }
+        if out.any_match((t) -> t.symbol.id == sym.id) {
+            continue
+        }
+        if !array_members_have_bodies(u, m.trait_key, method, typed) {
+            continue
+        }
+        found :: union_trait_instance(u, sym, typed) ?? continue
+        out.push(found)
+    }
+    return out
+}
+
+// Whether every array variant of `u` has a body for `method` of `trait_key` : an
+// `@intrinsic` array member (`ArrayOps.push`) is an op emitted at its call site,
+// with no function a vtable row could name.
+array_members_have_bodies :: fn(
+    u: UnionType,
+    trait_key: string,
+    method: string,
+    typed: TypedProgram,
+) -> bool {
+    for v in u.variants {
+        if v !is ArrayType {
+            continue
+        }
+        for m in trait_members(typed, v, trait_key, method) {
+            decl :: m.decl ?? return false
+            if decl.body == null {
+                return false
+            }
+        }
+    }
+    return true
+}
+
+// The instance of the trait `sym` every variant of `u` implements, argument by
+// argument : a type they all take (`Add<i32, …>`), or `Self` where each takes itself
+// (`Out = Self` : `i32` for `i32`, `Money` for `Money`). Null when a variant does not
+// implement it, or the variants' arguments differ otherwise.
+union_trait_instance :: fn(u: UnionType, sym: Symbol, typed: TypedProgram) -> TraitType | null {
+    key :: trait_key_of(sym)
+    if !u.variants.all_match((v) -> struct_implements_trait(v, key, typed)) {
+        return null
+    }
+    decl :: typed.trait_decls[sym.id] ?? return null
+    owner :: typed.trait_decl_owners[sym.id] ?? typed.resolved
+    variants: Type[]!: []
+    per_variant: Type[][]!: []
+    for v in u.variants {
+        variant :: strip_mutability(v)
+        written :: resolve_struct_trait_args(v, key, typed) ?? NO_TYPES
+        at_variant: Type[]!: []
+        for a in pad_trait_default_args(written, decl.type_params, owner) {
+            at_variant.push(substitute_self(a, variant))
+        }
+        variants.push(variant)
+        per_variant.push(at_variant)
+    }
+    args: Type[]!: []
+    for i in 0..<per_variant[0].len() {
+        args.push(shared_argument(variants, per_variant, i) ?? return null)
+    }
+    return TraitType {
+        .symbol    = sym,
+        .args      = args,
+        .immutable = true,
+    }
+}
+
+NO_TYPES: Type[]: []
+
+// The argument at `i` every variant's instance agrees on : one type, or each
+// variant itself, which the union reads as `Self`.
+shared_argument :: fn(variants: Type[], per_variant: Type[][], i: usize) -> Type | null {
+    first :: per_variant[0][i]
+    same := true
+    itself := true
+    for j in 0..<per_variant.len() {
+        if per_variant[j].len() <= i {
+            return null
+        }
+        a :: per_variant[j][i]
+        same = same && equals_type(a, first)
+        itself = itself && equals_type(a, variants[j])
+    }
+    if same {
+        return first
+    }
+    return if itself { TY_SELF } else { null }
+}
+
+/// The first variant of `u` a box would carry as its representation : an enum (its
+/// integer) or a distinct (its backing) implementing `trait_key` itself, whose
+/// dispatch would reach the representation's impl ; or an array of an enum or a
+/// distinct, which takes the representation's array type and so shares its
+/// vtable rows. Null when every variant keeps its own.
+///
+/// @param u          the union.
+/// @param trait_key  the trait the box dispatches through.
+variant_without_identity :: fn(
+    u: UnionType,
+    trait_key: string,
+    typed: TypedProgram,
+) -> Symbol | null {
+    for variant in u.variants {
+        if variant is ArrayType {
+            element :: lift_enum_placeholder(innermost_element(variant), typed)
+            if boxes_as_representation(element) {
+                return nominal_symbol(element)
+            }
+            continue
+        }
+        real :: lift_enum_placeholder(variant, typed)
+        if boxes_as_representation(real) && struct_implements_trait(real, trait_key, typed) {
+            return nominal_symbol(real)
+        }
+    }
+    return null
+}
+
+innermost_element :: fn(t: Type) -> Type =
+    if t is ArrayType { innermost_element(t.element) } else { t }
+
+// The symbol of an enum or a distinct.
+nominal_symbol :: fn(t: Type) -> Symbol | null {
+    if t is EnumType {
+        return t.symbol
+    }
+    return if t is DistinctType { t.symbol } else { null }
+}
+
+// The diagnostic a dispatch of `found` by the tag of a `u` cannot serve, or null.
+union_dispatch_refusal :: fn(
+    u: UnionType,
+    traits: TraitType[],
+    found: TagMember,
+    span: Span,
+    typed: TypedProgram,
+) -> Diagnostic | null {
+    method :: found.member.decl.name
+    trait_key :: found.member.trait_key
+    for v in u.variants {
+        if implements_more_than_once(v, trait_key, typed) {
+            return several_impls_error(v, trait_key, "a call on a union", span)
+        }
+    }
+    if traits.len() > 1 {
+        names: string[]!: []
+        for t in traits {
+            names.push("`${display_type(t)}`")
+        }
+        detail :: "`${method}` on `${shown(u)}` : ${names.join(", ")} all offer it"
+        return typecheck_error(.AmbiguousOverload, span, detail)
+    }
+    boxed :: variant_without_identity(u, trait_key, typed)
+    if boxed != null {
+        detail :: "a `${boxed.name}` is boxed as its representation ; narrow `${shown(u)}` first"
+        return typecheck_error(.UnionLosesVariantIdentity, span, detail)
+    }
+    if found.self_hazard != "" {
+        detail :: "${found.self_hazard} variant ; narrow `${shown(u)}` first"
+        return typecheck_error(.SelfMemberDispatchedByTag, span, detail)
+    }
+    return null
+}
+
+shown :: fn(u: UnionType) -> string = display_type(strip_mutability(u))

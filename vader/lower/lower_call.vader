@@ -186,38 +186,16 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
             // `ufcs_receiver_types[id]` iff it resolved free-fn UFCS ; a genuine
             // trait method leaves it null → the vcall below still fires.
             if !(ctx.typed.ufcs_receiver_types[callee_field.id] is null) { return null }
-            args: LoweredExpr![]!: []
-            for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
-            // Record the dispatched trait so every primitive implementor is
-            // surfaced into the vtable — see `virtually_dispatched_traits`.
             trait_key :: trait_key_of(receiver_ty.symbol)
-            ctx.project.virtually_dispatched_traits.add(trait_key)
-            return LoweredVirtualCall {
-                .span = call.span, .type = type,
-                .trait_name = trait_key, .method = callee_field.field,
-                .receiver = receiver, .args = args,
-                .param_types = param_types_of(ctx.types.expr_type(call.callee)),
-            }
+            return dispatched_method_call(ctx, call, callee_field, receiver, trait_key, type)
         }
-        // TypeParam-bounded receiver erased to Any : typer recorded
-        // the resolving trait's key in `bounded_dispatch_trait` ; route
-        // through the runtime vtable so the boxed value's tag picks
-        // the right impl at runtime.
-        if receiver_ty is AnyType {
-            trait_name :: ctx.typed.bounded_dispatch_trait[callee_field.id]
-            if trait_name is string {
-                args: LoweredExpr![]!: []
-                for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
-                // Erased bounded-trait receiver : surface every primitive
-                // implementor of `tname` — see `virtually_dispatched_traits`.
-                ctx.project.virtually_dispatched_traits.add(trait_name)
-                return LoweredVirtualCall {
-                    .span = call.span, .type = type,
-                    .trait_name = trait_name, .method = callee_field.field,
-                    .receiver = receiver, .args = args,
-                    .param_types = param_types_of(ctx.types.expr_type(call.callee)),
-                }
-            }
+        // TypeParam-bounded receiver erased to Any, or a union of the trait's
+        // implementors : typer recorded the resolving trait's key in
+        // `bounded_dispatch_trait` ; route through the runtime vtable so the
+        // boxed value's tag picks the right impl at runtime.
+        trait_key :: dispatched_trait(ctx, receiver_ty, callee_field.id)
+        if trait_key != null {
+            return dispatched_method_call(ctx, call, callee_field, receiver, trait_key, type)
         }
         // Concrete primitive or enum receiver with a bounded-trait method : a
         // generic instance concretised on a primitive K (e.g. `key.equals(other)`
@@ -237,6 +215,24 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx!, call: CallExpr, type: Type) -> Lo
         }
     }
     return null
+}
+
+// `call`, whose callee is `field` on `receiver`, as a virtual call through
+// `trait_key`.
+dispatched_method_call :: fn(
+    ctx: FnLowerCtx!,
+    call: CallExpr,
+    field: FieldExpr,
+    receiver: LoweredExpr!,
+    trait_key: string,
+    type: Type,
+) -> LoweredVirtualCall! {
+    args: LoweredExpr![]!: []
+    for call_arg in call.args {
+        args.push(lower_expr(ctx, call_arg.value))
+    }
+    param_types :: param_types_of(ctx.types.expr_type(call.callee))
+    return virtual_call(ctx, trait_key, field.field, receiver, args, type, call.span, param_types)
 }
 
 // Detect `<namespace_ident>.<member>(args)`. The target ident's

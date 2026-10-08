@@ -147,17 +147,8 @@ equals_call :: fn(
 virtual_equals :: fn(
     ctx: FnLowerCtx!, left: LoweredExpr!, right: LoweredExpr!, span: Span,
 ) -> LoweredExpr! {
-    equals_key :: core_trait_key(TRAIT_EQUALS)
-    ctx.project.virtually_dispatched_traits.add(equals_key)
-    return LoweredVirtualCall {
-        .span = span,
-        .type = TY_BOOL,
-        .trait_name = equals_key,
-        .method = METHOD_EQUALS,
-        .receiver = left,
-        .args = [right],
-        .param_types = [],
-    }
+    equals :: core_trait_key(TRAIT_EQUALS)
+    return virtual_call(ctx, equals, METHOD_EQUALS, left, [right], TY_BOOL, span)
 }
 
 // `left == right` folded over the fields of `ty`.

@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (2026-10-07). Closes two of the items 0041 left open.
+Accepted (2026-10-07). Closes two of the items 0041 left open. Its two open
+items are closed by 0047.
 
 ## Context
 

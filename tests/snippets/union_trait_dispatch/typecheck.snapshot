@@ -1,0 +1,190 @@
+# Typecheck
+
+## tests/snippets/union_trait_dispatch
+  FnDecl         area_of              :: fn(Circle | f64[] | Sq) -> f64
+  FnDecl         bump                 :: fn(Cell! | Tally!) -> i32
+  StructDecl     Cell                 :: Cell!
+  StructDecl     Circle               :: Circle!
+  FnDecl         holds                :: fn(i64[] | Odd, i64) -> bool
+  FnDecl         holds_value          :: fn(Contains<i64>, i64) -> bool
+  FnDecl         lacks                :: fn(i64[] | Odd, i64) -> bool
+  StructDecl     Log                  :: Log!
+  TraitDecl      Loud                 :: Loud!
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Money                :: Money!
+  StructDecl     Odd                  :: Odd!
+  FnDecl         plus_five            :: fn(i32 | Money) -> i32 | Money
+  FnDecl         plus_one             :: fn(Add<i32>) -> string
+  FnDecl         put                  :: fn(Log! | MutableMap<string, i32>!) -> void
+  TraitDecl      Shape                :: Shape!
+  FnDecl         shout                :: fn(i32 | string) -> string
+  StructDecl     Sq                   :: Sq!
+  StructDecl     Tally                :: Tally!
+  expr 105:44   BinaryExpr     :: bool
+  expr 105:44   BinaryExpr     :: i64
+  expr 105:44   IdentExpr      :: i64
+  expr 108:47   BinaryExpr     :: bool
+  expr 108:47   IdentExpr      :: i64
+  expr 108:52   IdentExpr      :: i64[] | Odd
+  expr 110:47   BinaryExpr     :: bool
+  expr 110:47   IdentExpr      :: i64
+  expr 110:53   IdentExpr      :: i64[] | Odd
+  expr 112:55   BinaryExpr     :: bool
+  expr 112:55   IdentExpr      :: i64
+  expr 112:60   IdentExpr      :: Contains<i64>
+  expr 119:40   StructLitExpr  :: Money!
+  expr 119:53   BinaryExpr     :: i32
+  expr 119:53   FieldExpr      :: i32
+  expr 119:53   IdentExpr      :: Money
+  expr 119:62   IdentExpr      :: i32
+  expr 123:39   StringLitExpr  :: string
+  expr 123:42   FieldExpr      :: i32
+  expr 123:42   IdentExpr      :: Money
+  expr 126:50   BinaryExpr     :: i32 | Money
+  expr 126:50   IdentExpr      :: i32 | Money
+  expr 129:12   BinaryExpr     :: Add<i32>
+  expr 129:12   IdentExpr      :: Add<i32>
+  expr 130:12   IfExpr         :: string
+  expr 130:15   BinaryExpr     :: bool
+  expr 130:15   IdentExpr      :: Add<i32>
+  expr 130:22   IdentExpr      :: Money!
+  expr 130:30   StringLitExpr  :: string
+  expr 130:33   IdentExpr      :: Money
+  expr 130:48   StringLitExpr  :: string
+  expr 134:13   StringLitExpr  :: string
+  expr 134:16   CallExpr       :: f64
+  expr 134:16   IdentExpr      :: fn(Circle | f64[] | Sq) -> f64
+  expr 134:24   StructLitExpr  :: Sq!
+  expr 134:44   CallExpr       :: f64
+  expr 134:44   IdentExpr      :: fn(Circle | f64[] | Sq) -> f64
+  expr 134:5    CallExpr       :: void
+  expr 134:5    IdentExpr      :: fn(T) -> void
+  expr 134:52   StructLitExpr  :: Circle!
+  expr 134:76   CallExpr       :: f64
+  expr 134:76   IdentExpr      :: fn(Circle | f64[] | Sq) -> f64
+  expr 134:84   SeqLitExpr     :: f64[]
+  expr 135:13   StringLitExpr  :: string
+  expr 135:16   CallExpr       :: string
+  expr 135:16   IdentExpr      :: fn(i32 | string) -> string
+  expr 135:28   CallExpr       :: string
+  expr 135:28   IdentExpr      :: fn(i32 | string) -> string
+  expr 135:34   StringLitExpr  :: string
+  expr 135:5    CallExpr       :: void
+  expr 135:5    IdentExpr      :: fn(T) -> void
+  expr 136:10   StructLitExpr  :: MutableMap<string, i32>!
+  expr 137:5    CallExpr       :: void
+  expr 137:5    IdentExpr      :: fn(Log! | MutableMap<string, i32>!) -> void
+  expr 137:9    IdentExpr      :: MutableMap<string, i32>!
+  expr 138:10   StructLitExpr  :: Log!
+  expr 138:25   SeqLitExpr     :: string[]!
+  expr 139:5    CallExpr       :: void
+  expr 139:5    IdentExpr      :: fn(Log! | MutableMap<string, i32>!) -> void
+  expr 139:9    IdentExpr      :: Log!
+  expr 140:13   StringLitExpr  :: string
+  expr 140:16   CallExpr       :: usize
+  expr 140:16   FieldExpr      :: fn() -> usize
+  expr 140:16   IdentExpr      :: MutableMap<string, i32>!
+  expr 140:27   FieldExpr      :: string[]!
+  expr 140:27   IdentExpr      :: Log!
+  expr 140:27   IndexExpr      :: string
+  expr 140:5    CallExpr       :: void
+  expr 140:5    IdentExpr      :: fn(T) -> void
+  expr 141:10   StructLitExpr  :: Tally!
+  expr 141:28   StructLitExpr  :: MutableMap<string, i32>!
+  expr 142:10   StructLitExpr  :: Cell!
+  expr 142:26   SeqLitExpr     :: i32[]!
+  expr 143:13   StringLitExpr  :: string
+  expr 143:16   CallExpr       :: i32
+  expr 143:16   IdentExpr      :: fn(Cell! | Tally!) -> i32
+  expr 143:21   IdentExpr      :: Tally!
+  expr 143:27   CallExpr       :: i32
+  expr 143:27   IdentExpr      :: fn(Cell! | Tally!) -> i32
+  expr 143:32   IdentExpr      :: Cell!
+  expr 143:5    CallExpr       :: void
+  expr 143:5    IdentExpr      :: fn(T) -> void
+  expr 144:16   SeqLitExpr     :: i64[]
+  expr 145:12   StructLitExpr  :: Odd!
+  expr 146:13   StringLitExpr  :: string
+  expr 146:16   CallExpr       :: bool
+  expr 146:16   IdentExpr      :: fn(i64[] | Odd, i64) -> bool
+  expr 146:22   IdentExpr      :: i64[]
+  expr 146:32   CallExpr       :: bool
+  expr 146:32   IdentExpr      :: fn(i64[] | Odd, i64) -> bool
+  expr 146:38   IdentExpr      :: Odd!
+  expr 146:49   CallExpr       :: bool
+  expr 146:49   IdentExpr      :: fn(i64[] | Odd, i64) -> bool
+  expr 146:5    CallExpr       :: void
+  expr 146:5    IdentExpr      :: fn(T) -> void
+  expr 146:55   IdentExpr      :: i64[]
+  expr 146:65   CallExpr       :: bool
+  expr 146:65   IdentExpr      :: fn(Contains<i64>, i64) -> bool
+  expr 146:77   IdentExpr      :: Odd!
+  expr 147:13   StringLitExpr  :: string
+  expr 147:16   CallExpr       :: i32 | Money
+  expr 147:16   IdentExpr      :: fn(i32 | Money) -> i32 | Money
+  expr 147:32   CallExpr       :: i32 | Money
+  expr 147:32   IdentExpr      :: fn(i32 | Money) -> i32 | Money
+  expr 147:42   StructLitExpr  :: Money!
+  expr 147:5    CallExpr       :: void
+  expr 147:5    IdentExpr      :: fn(T) -> void
+  expr 147:63   CallExpr       :: string
+  expr 147:63   IdentExpr      :: fn(Add<i32>) -> string
+  expr 147:72   StructLitExpr  :: Money!
+  expr 25:31    BinaryExpr     :: f64
+  expr 25:31    FieldExpr      :: f64
+  expr 25:31    IdentExpr      :: Sq
+  expr 25:40    FieldExpr      :: f64
+  expr 25:40    IdentExpr      :: Sq
+  expr 29:31    BinaryExpr     :: f64
+  expr 29:31    BinaryExpr     :: f64
+  expr 29:37    FieldExpr      :: f64
+  expr 29:37    IdentExpr      :: Circle
+  expr 29:46    FieldExpr      :: f64
+  expr 29:46    IdentExpr      :: Circle
+  expr 36:48    CallExpr       :: f64
+  expr 36:48    FieldExpr      :: fn() -> f64
+  expr 36:48    IdentExpr      :: Circle | f64[] | Sq
+  expr 43:34    StringLitExpr  :: string
+  expr 43:41    IdentExpr      :: i32
+  expr 47:34    StringLitExpr  :: string
+  expr 47:41    IdentExpr      :: string
+  expr 50:42    CallExpr       :: string
+  expr 50:42    FieldExpr      :: fn() -> string
+  expr 50:42    IdentExpr      :: i32 | string
+  expr 58:25    StringLitExpr  :: string
+  expr 58:28    IdentExpr      :: string
+  expr 58:33    IdentExpr      :: i32
+  expr 58:9     CallExpr       :: void
+  expr 58:9     FieldExpr      :: fn(string) -> void
+  expr 58:9     FieldExpr      :: string[]!
+  expr 58:9     IdentExpr      :: Log!
+  expr 63:19    StringLitExpr  :: string
+  expr 63:5     CallExpr       :: void
+  expr 63:5     FieldExpr      :: fn(string, i32) -> void
+  expr 63:5     IdentExpr      :: Log! | MutableMap<string, i32>!
+  expr 64:12    StringLitExpr  :: string
+  expr 64:5     IdentExpr      :: Log! | MutableMap<string, i32>!
+  expr 72:40    FieldExpr      :: MutableMap<string, i32>!
+  expr 72:40    IdentExpr      :: Tally
+  expr 72:40    IndexExpr      :: i32 | null
+  expr 72:40    NullCoalesceExpr :: i32
+  expr 72:52    IdentExpr      :: string
+  expr 77:21    IdentExpr      :: string
+  expr 77:26    BinaryExpr     :: i32
+  expr 77:26    IdentExpr      :: i32
+  expr 77:9     FieldExpr      :: MutableMap<string, i32>!
+  expr 77:9     IdentExpr      :: Tally!
+  expr 86:40    FieldExpr      :: i32[]!
+  expr 86:40    IdentExpr      :: Cell
+  expr 86:40    IndexExpr      :: i32
+  expr 91:25    IdentExpr      :: i32
+  expr 91:9     FieldExpr      :: i32[]!
+  expr 91:9     IdentExpr      :: Cell!
+  expr 91:9     IndexExpr      :: i32
+  expr 96:5     BinaryExpr     :: i32
+  expr 96:5     IdentExpr      :: Cell! | Tally!
+  expr 96:5     IndexExpr      :: i32
+  expr 96:7     StringLitExpr  :: string
+  expr 97:12    IdentExpr      :: Cell! | Tally!
+  expr 97:12    IndexExpr      :: i32
+  expr 97:14    StringLitExpr  :: string

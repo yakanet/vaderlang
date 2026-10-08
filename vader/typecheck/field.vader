@@ -69,7 +69,7 @@ export infer_field :: fn(
         repin_free_ufcs_receiver(target_ty, e, typed, diags, check_expr_fn)
         return candidate
     }
-    candidate = try_trait_method_dispatch(target_ty, e, typed, diags)
+    candidate = try_dispatched_method(target_ty, e, typed, diags)
     if candidate !is null {
         return candidate
     }
@@ -295,22 +295,57 @@ try_typeparam_bound_method :: fn(
         return null
     }
     member :: type_member(target_ty, e.field, typed) ?? return null
-    if rejects_static_member(member.decl, e, typed, diags) {
-        return TY_UNRESOLVED
+    ty :: settle_dispatched_member(member, e, target_ty, typed, diags)
+    if ty is UnresolvedType {
+        return ty
     }
-    // `x: T` is read-only like any written type : a bound's `self!` member needs `x: T!`,
-    // and a bound marked `!` (`value_is_read_only`).
-    reject_mutating_method_on_immutable(
-        ImplMethod { .ty = member.ty, .self_mutable = has_mutable_self(member.decl) },
-        e, target_ty, typed, diags,
-    )
     // Record the trait carrying `e.field` so the lower can emit
     // `vcall <trait_key>.method` once the receiver gets erased to Any
     // post-monomorphization.
     record_bounded_dispatch(typed, e.id, member.trait_key, member.trait_args)
     keep_instances_concrete(typed)
+    return ty
+}
+
+// The type of `e`, a call of `member` on `target_ty`, a receiver dispatching
+// through the member's trait : a static member is called on a type (T3091), and a
+// `self!` one needs a receiver that grants mutation (T3071) — `x: T`, `c: Bump` and
+// `u: A | B` are read-only like any written type.
+settle_dispatched_member :: fn(
+    member: TypeMember,
+    e: AST.FieldExpr,
+    target_ty: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[]!,
+) -> Type {
+    if rejects_static_member(member.decl, e, typed, diags) {
+        return TY_UNRESOLVED
+    }
+    reject_mutating_method_on_immutable(
+        ImplMethod { .ty = member.ty, .self_mutable = has_mutable_self(member.decl) },
+        e, target_ty, typed, diags,
+    )
     return member.ty
 }
+
+// The member `name` an operator reaches on a receiver dispatching through a trait at
+// run time : a bounded `T`'s, a trait value's (`trait_value_member`), or the one a
+// union's variants share (`union_trait_member`, through `trait_key`).
+dispatched_member :: fn(
+    recv: Type,
+    trait_key: string,
+    name: string,
+    span: Span,
+    typed: TypedProgram,
+    diags: Diagnostic[]!,
+) -> TypeMember | null =
+    // @partial: only these three receivers dispatch through a trait at run time.
+    @partial match recv {
+        is TypeParamType -> type_member(recv, name, typed)
+        is TraitType     -> trait_value_member(recv, name, span, typed, diags)
+        is UnionType     -> union_trait_member(recv, trait_key, name, span, typed, diags)
+        _                -> null
+    }
 
 /// Records that the use site `node_id` dispatches through its bound's trait
 /// `trait_key` at `args` (`bounded_dispatch_trait`, `bounded_dispatch_args`).
@@ -344,6 +379,9 @@ TypeMember :: struct {
     trait_key: string
     /// The trait's arguments : the bound's for a type parameter, the impl's else.
     trait_args: Type[] = []
+    /// A union's dispatch through the trait was refused, and reported
+    /// (`union_trait_member`) : the use site says nothing more about it.
+    refused: bool = false
 }
 
 /// `Type.member` on a static trait member — `T.zero()` with `T: Zero`,
@@ -649,25 +687,34 @@ union_member_for_free :: fn(
     return member
 }
 
-try_trait_method_dispatch :: fn(
+// `c.m()` on a value of a trait, and `u.area()` on a union every variant of which
+// implements the trait declaring the member (`tag_dispatch`) : dispatched through
+// the trait by the value's tag. The lowering reads the union's trait from the
+// recorded dispatch ; a trait value names its own.
+try_dispatched_method :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
-    typed: TypedProgram,
+    typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> Type | null {
-    if target_ty !is TraitType {
+    if target_ty !is TraitType && target_ty !is UnionType {
         return null
     }
-    member :: trait_type_member(target_ty, target_ty, e.field, typed) ?? return null
-    if rejects_static_member(member.decl, e, typed, diags) {
-        return TY_UNRESOLVED
+    if target_ty is TraitType {
+        member :: trait_type_member(target_ty, target_ty, e.field, typed) ?? return null
+        return settle_dispatched_member(member, e, target_ty, typed, diags)
     }
-    // `c: Bump` is read-only like any written type : a `self!` member needs `c: Bump!`.
-    reject_mutating_method_on_immutable(
-        ImplMethod { .ty = member.ty, .self_mutable = has_mutable_self(member.decl) },
-        e, target_ty, typed, diags,
-    )
-    return member.ty
+    // A union's member taken as a value has no instance to name : left to the field
+    // forms.
+    if target_ty !is UnionType || typed.callee_field_id != e.id {
+        return null
+    }
+    member :: union_trait_member(target_ty, "", e.field, e.field_span, typed, diags) ?? return null
+    ty :: settle_dispatched_member(member, e, target_ty, typed, diags)
+    if ty !is UnresolvedType {
+        record_bounded_dispatch(typed, e.id, member.trait_key, member.trait_args)
+    }
+    return ty
 }
 
 // Struct that implements a trait carrying a same-named method WITH a default body

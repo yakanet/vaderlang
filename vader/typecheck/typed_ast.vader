@@ -217,6 +217,10 @@ export ImplMethod :: struct {
     /// (`Add<f64>`, `Add<Vec2>`).
     trait_key:    string = ""
     trait_args:   Type[] = []
+    /// That trait's declaration — `trait_key` is its `trait_key_of` — ; null for a
+    /// method no impl declares. A union receiver dispatches through it
+    /// (`union_dispatch_traits`).
+    trait_symbol: Symbol | null = null
     /// The impl is written for a type naming its own parameters (`Wrapper<T>`,
     /// `T[]`) : its member types are substituted at each receiver, and its bounds
     /// checked there.
@@ -622,12 +626,15 @@ export TypedProgram :: struct {
 
     /// FieldExpr.id → the resolved trait's `trait_key`. Populated when a
     /// `x.method()` call dispatches via a TypeParam bound (`T: Hash`
-    /// resolves `.hash` through the Hash trait), or reaches an enum's built-in
+    /// resolves `.hash` through the Hash trait), through a trait every variant of a
+    /// union receiver implements (`tag_dispatch`), or reaches an enum's built-in
     /// `Equals`. The lower consumes this to emit `vcall std/core.Hash.hash` on
-    /// erased-to-Any receivers instead of a direct field-call to an unresolved
-    /// member, and the comparison itself on an enum or primitive receiver.
+    /// erased-to-Any and union receivers instead of a direct field-call to an
+    /// unresolved member, and the comparison itself on an enum or primitive receiver.
     /// IndexExpr.id → `Index` / `IndexSet` when `x[k]` dispatches through the trait
-    /// (`dispatched_index_args`) : a bounded `T`, a trait value.
+    /// (`dispatched_index_args`), BinaryExpr.id → the operator's trait (`in`,
+    /// arithmetic, comparison) : a bounded `T`, a trait value, a union of its
+    /// implementors.
     bounded_dispatch_trait: MutableMap<usize, string>!
 
     /// Node id → the arguments of the bound's trait a `bounded_dispatch_trait` entry

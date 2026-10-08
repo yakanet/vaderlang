@@ -1,0 +1,984 @@
+# Lower
+
+## snippet
+  struct snippet$Sq { s: f64 }
+  struct snippet$Circle { r: f64 }
+  fn snippet$Sq$Shape$area(self: Sq!) -> f64
+    ~>
+      mul :f64
+        l:
+          .s :f64
+            self :Sq
+        r:
+          .s :f64
+            self :Sq
+  fn snippet$Circle$Shape$area(self: Circle!) -> f64
+    ~>
+      mul :f64
+        l:
+          mul :f64
+            l:
+              float(3.0) :f64
+            r:
+              .r :f64
+                self :Circle
+        r:
+          .r :f64
+            self :Circle
+  fn snippet$area_of(u: Circle | f64[] | Sq) -> f64
+    ~>
+      vcall snippet$Shape.area :f64
+        recv:
+          u :Circle | f64[] | Sq
+  fn snippet$i32$Loud$loud(self: i32) -> string
+    ~>
+      block :string
+        let __buf_0: Buffer =
+          call :Buffer
+            callee:
+              new_byte_buffer :Buffer
+            arg0:
+              int(24) :usize
+        let __off_1: usize = int(0) :usize
+        assign
+          target:
+            __off_1 :usize
+          value:
+            call :usize
+              callee:
+                write_string_at :usize
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+              arg2:
+                "INT " :string
+        assign
+          target:
+            __off_1 :usize
+          value:
+            call :usize
+              callee:
+                write_int :usize
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+              arg2:
+                cast → i64
+                  self :i32
+        ~>
+          call :string
+            callee:
+              finish_buffer :string
+            arg0:
+              __buf_0 :Buffer
+            arg1:
+              __off_1 :usize
+  fn snippet$string$Loud$loud(self: string) -> string
+    ~>
+      call :string
+        callee:
+          concat_2 :string
+        arg0:
+          "STR " :string
+        arg1:
+          self :string
+  fn snippet$shout(x: i32 | string) -> string
+    ~>
+      vcall snippet$Loud.loud :string
+        recv:
+          x :i32 | string
+  struct snippet$Log { lines: string[]! }
+  fn snippet$Log$IndexSet$set_at(self: Log!, k: string, v: i32) -> void
+    ~>
+      LoweredArrayPush
+  fn snippet$put(target: Log! | MutableMap<string, i32>!) -> void
+    vcall std_core$IndexSet.set_at :void
+      recv:
+        target :Log! | MutableMap<string, i32>!
+      arg0:
+        "k" :string
+      arg1:
+        int(1) :i32
+    vcall std_core$IndexSet.set_at :void
+      recv:
+        target :Log! | MutableMap<string, i32>!
+      arg0:
+        "j" :string
+      arg1:
+        int(2) :i32
+  struct snippet$Tally { counts: MutableMap<string, i32>! }
+  fn snippet$Tally$Index$at(self: Tally!, k: string) -> i32
+    ~>
+      block :i32
+        let __coalesce_0: i32 | null =
+          call :i32 | null
+            callee:
+              std_collections$MutableMap$Index$at__string__i32 :i32 | null
+            arg0:
+              .counts :MutableMap<string, i32>!
+                self :Tally
+            arg1:
+              k :string
+        ~>
+          if :i32
+            cond:
+              is null :bool
+                __coalesce_0 :i32 | null
+            then:
+              ~>
+                int(0) :i32
+            else:
+              ~>
+                cast → i32
+                  __coalesce_0 :i32 | null
+  fn snippet$Tally$IndexSet$set_at(self: Tally!, k: string, v: i32) -> void
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
+      arg0:
+        .counts :MutableMap<string, i32>!
+          self :Tally!
+      arg1:
+        k :string
+      arg2:
+        mul :i32
+          l:
+            v :i32
+          r:
+            int(10) :i32
+  struct snippet$Cell { cells: i32[]! }
+  fn snippet$Cell$Index$at(self: Cell!, k: string) -> i32
+    ~>
+      index :i32
+        on:
+          .cells :i32[]!
+            self :Cell
+        ix:
+          int(0) :i32
+  fn snippet$Cell$IndexSet$set_at(self: Cell!, k: string, v: i32) -> void
+    assign
+      target:
+        index :i32
+          on:
+            .cells :i32[]!
+              self :Cell!
+          ix:
+            int(0) :i32
+      value:
+        v :i32
+  fn snippet$bump(u: Cell! | Tally!) -> i32
+    vcall std_core$IndexSet.set_at :void
+      recv:
+        u :Cell! | Tally!
+      arg0:
+        "a" :string
+      arg1:
+        add :i32
+          l:
+            vcall std_core$Index.at :i32
+              recv:
+                u :Cell! | Tally!
+              arg0:
+                "a" :string
+          r:
+            int(1) :i32
+    return
+      vcall std_core$Index.at :i32
+        recv:
+          u :Cell! | Tally!
+        arg0:
+          "a" :string
+  struct snippet$Odd { n: i64 }
+  fn snippet$Odd$Contains$contains(self: Odd!, x: i64) -> bool
+    ~>
+      eq :bool
+        l:
+          mod :i64
+            l:
+              x :i64
+            r:
+              int(2) :i64
+        r:
+          int(1) :i64
+  fn snippet$holds(c: i64[] | Odd, k: i64) -> bool
+    ~>
+      vcall std_core$Contains.contains :bool
+        recv:
+          c :i64[] | Odd
+        arg0:
+          k :i64
+  fn snippet$lacks(c: i64[] | Odd, k: i64) -> bool
+    ~>
+      not :bool
+        vcall std_core$Contains.contains :bool
+          recv:
+            c :i64[] | Odd
+          arg0:
+            k :i64
+  fn snippet$holds_value(c: Contains<i64>, k: i64) -> bool
+    ~>
+      vcall std_core$Contains.contains :bool
+        recv:
+          c :Contains<i64>
+        arg0:
+          k :i64
+  struct snippet$Money { c: i32 }
+  fn snippet$Money$Add$add(self: Money!, k: i32) -> Money
+    ~>
+      Money! {
+        c:
+          add :i32
+            l:
+              .c :i32
+                self :Money
+            r:
+              k :i32
+      }
+  fn snippet$Money$Display$to_string(self: Money!) -> string
+    ~>
+      block :string
+        let __buf_0: Buffer =
+          call :Buffer
+            callee:
+              new_byte_buffer :Buffer
+            arg0:
+              int(21) :usize
+        let __off_1: usize = int(0) :usize
+        assign
+          target:
+            __off_1 :usize
+          value:
+            call :usize
+              callee:
+                write_int :usize
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+              arg2:
+                cast → i64
+                  .c :i32
+                    self :Money
+        assign
+          target:
+            __off_1 :usize
+          value:
+            call :usize
+              callee:
+                write_string_at :usize
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+              arg2:
+                "c" :string
+        ~>
+          call :string
+            callee:
+              finish_buffer :string
+            arg0:
+              __buf_0 :Buffer
+            arg1:
+              __off_1 :usize
+  fn snippet$plus_five(a: i32 | Money) -> i32 | Money
+    ~>
+      vcall std_core$Add.add :i32 | Money
+        recv:
+          a :i32 | Money
+        arg0:
+          int(5) :i32
+  fn snippet$plus_one(a: Add<i32>) -> string
+    let sum: Add<i32> =
+      vcall std_core$Add.add :Add<i32>
+        recv:
+          a :Add<i32>
+        arg0:
+          int(1) :i32
+    return
+      if :string
+        cond:
+          is Money! :bool
+            sum :Add<i32>
+        then:
+          ~>
+            call :string
+              callee:
+                snippet$Money$Display$to_string :string
+              arg0:
+                sum :Money
+        else:
+          ~>
+            "?" :string
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat_5 :string
+          arg0:
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                call :f64
+                  callee:
+                    area_of :fn(Circle | f64[] | Sq) -> f64
+                  arg0:
+                    Sq! {
+                      s: float(2.0) :f64
+                    }
+          arg1:
+            " " :string
+          arg2:
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                call :f64
+                  callee:
+                    area_of :fn(Circle | f64[] | Sq) -> f64
+                  arg0:
+                    Circle! {
+                      r: float(1.0) :f64
+                    }
+          arg3:
+            " " :string
+          arg4:
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                call :f64
+                  callee:
+                    area_of :fn(Circle | f64[] | Sq) -> f64
+                  arg0:
+                    array :f64[]
+                      float(1.0) :f64
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat_3 :string
+          arg0:
+            call :string
+              callee:
+                shout :fn(i32 | string) -> string
+              arg0:
+                int(3) :i32
+          arg1:
+            " " :string
+          arg2:
+            call :string
+              callee:
+                shout :fn(i32 | string) -> string
+              arg0:
+                "a" :string
+    let m: MutableMap<string, i32>! =
+      MutableMap<string, i32>! {
+        ekeys:
+          array :string[]!
+        evals:
+          array :i32[]!
+        index:
+          array :i32[]!
+        mask: int(0) :usize
+        size: int(0) :usize
+        tombs: int(0) :usize
+      }
+    call :void
+      callee:
+        put :fn(Log! | MutableMap<string, i32>!) -> void
+      arg0:
+        m :MutableMap<string, i32>!
+    let l: Log! =
+      Log! {
+        lines:
+          array :string[]!
+      }
+    call :void
+      callee:
+        put :fn(Log! | MutableMap<string, i32>!) -> void
+      arg0:
+        l :Log!
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __p_0: string =
+            index :string
+              on:
+                .lines :string[]!
+                  l :Log!
+              ix:
+                int(1) :i32
+          let __buf_1: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                add :usize
+                  l:
+                    int(21) :usize
+                  r:
+                    call :usize
+                      callee:
+                        byte_len :usize
+                      arg0:
+                        __p_0 :string
+          let __off_2: usize = int(0) :usize
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  cast → u64
+                    call :usize
+                      callee:
+                        std_collections$len__string__i32 :usize
+                      arg0:
+                        m :MutableMap<string, i32>!
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  __p_0 :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_1 :Buffer
+              arg1:
+                __off_2 :usize
+    let t: Tally! =
+      Tally! {
+        counts:
+          MutableMap<string, i32>! {
+            ekeys:
+              array :string[]!
+            evals:
+              array :i32[]!
+            index:
+              array :i32[]!
+            mask: int(0) :usize
+            size: int(0) :usize
+            tombs: int(0) :usize
+          }
+      }
+    let c: Cell! =
+      Cell! {
+        cells:
+          array :i32[]!
+            int(5) :i32
+      }
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_3: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(41) :usize
+          let __off_4: usize = int(0) :usize
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        bump :fn(Cell! | Tally!) -> i32
+                      arg0:
+                        t :Tally!
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        bump :fn(Cell! | Tally!) -> i32
+                      arg0:
+                        c :Cell!
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_3 :Buffer
+              arg1:
+                __off_4 :usize
+    let xs: i64[] =
+      array :i64[]
+        int(4) :i64
+        int(8) :i64
+    let odd: Odd! =
+      Odd! {
+        n: int(0) :i64
+      }
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_5: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(23) :usize
+          let __off_6: usize = int(0) :usize
+          assign
+            target:
+              __off_6 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_5 :Buffer
+                arg1:
+                  __off_6 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      holds :fn(i64[] | Odd, i64) -> bool
+                    arg0:
+                      xs :i64[]
+                    arg1:
+                      int(8) :i64
+          assign
+            target:
+              __off_6 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_5 :Buffer
+                arg1:
+                  __off_6 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_6 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_5 :Buffer
+                arg1:
+                  __off_6 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      holds :fn(i64[] | Odd, i64) -> bool
+                    arg0:
+                      odd :Odd!
+                    arg1:
+                      int(5) :i64
+          assign
+            target:
+              __off_6 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_5 :Buffer
+                arg1:
+                  __off_6 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_6 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_5 :Buffer
+                arg1:
+                  __off_6 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      lacks :fn(i64[] | Odd, i64) -> bool
+                    arg0:
+                      xs :i64[]
+                    arg1:
+                      int(5) :i64
+          assign
+            target:
+              __off_6 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_5 :Buffer
+                arg1:
+                  __off_6 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_6 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_5 :Buffer
+                arg1:
+                  __off_6 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      holds_value :fn(Contains<i64>, i64) -> bool
+                    arg0:
+                      odd :Odd!
+                    arg1:
+                      int(4) :i64
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_5 :Buffer
+              arg1:
+                __off_6 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat_5 :string
+          arg0:
+            vcall std_core$Display.to_string :string
+              recv:
+                call :i32 | Money
+                  callee:
+                    plus_five :fn(i32 | Money) -> i32 | Money
+                  arg0:
+                    int(1) :i32
+          arg1:
+            " " :string
+          arg2:
+            vcall std_core$Display.to_string :string
+              recv:
+                call :i32 | Money
+                  callee:
+                    plus_five :fn(i32 | Money) -> i32 | Money
+                  arg0:
+                    Money! {
+                      c: int(1) :i32
+                    }
+          arg3:
+            " " :string
+          arg4:
+            call :string
+              callee:
+                plus_one :fn(Add<i32>) -> string
+              arg0:
+                Money! {
+                  c: int(2) :i32
+                }
+    return int(0) :i32
+  fn snippet$[]$Shape$area__f64(self: f64[]!) -> f64
+    ~>
+      float(0.5) :f64
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize
+  fn concat_5(p0: string, p1: string, p2: string, p3: string, p4: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let c2: usize =
+      add :usize
+        l:
+          c1 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p2 :string
+    let c3: usize =
+      add :usize
+        l:
+          c2 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p3 :string
+    let c4: usize =
+      add :usize
+        l:
+          c3 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p4 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c4 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c1 :usize
+      arg2:
+        p2 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c2 :usize
+      arg2:
+        p3 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c3 :usize
+      arg2:
+        p4 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c4 :usize
+  fn concat_3(p0: string, p1: string, p2: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let c2: usize =
+      add :usize
+        l:
+          c1 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p2 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c2 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c1 :usize
+      arg2:
+        p2 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c2 :usize

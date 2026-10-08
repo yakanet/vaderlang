@@ -6,44 +6,47 @@
   FnDecl         inside_branch        :: fn() -> i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         on_field             :: fn() -> i32
-  expr 11:18    IdentExpr      :: string
-  expr 11:5     IfExpr         :: void
-  expr 11:8     BinaryExpr     :: bool
-  expr 11:8     IdentExpr      :: i32 | string
-  expr 12:14    StringLitExpr  :: string
-  expr 12:5     IdentExpr      :: i32
-  expr 13:12    BinaryExpr     :: ?
-  expr 13:12    IdentExpr      :: i32 | string
-  expr 18:18    IdentExpr      :: i32
-  expr 18:5     IfExpr         :: void
-  expr 18:8     BinaryExpr     :: bool
-  expr 18:8     IdentExpr      :: i32 | string
-  expr 19:18    StringLitExpr  :: string
-  expr 19:9     IdentExpr      :: i32
-  expr 20:16    BinaryExpr     :: ?
-  expr 20:16    IdentExpr      :: i32 | string
-  expr 28:13    StructLitExpr  :: Desk!
-  expr 29:24    IdentExpr      :: string
-  expr 29:5     IfExpr         :: void
-  expr 29:8     BinaryExpr     :: bool
-  expr 29:8     FieldExpr      :: i32 | string
-  expr 29:8     IdentExpr      :: Desk!
-  expr 30:20    StringLitExpr  :: string
-  expr 30:5     FieldExpr      :: i32
-  expr 30:5     IdentExpr      :: Desk!
-  expr 31:12    BinaryExpr     :: ?
-  expr 31:12    FieldExpr      :: i32 | string
-  expr 31:12    IdentExpr      :: Desk!
-  expr 35:12    BinaryExpr     :: i32
-  expr 35:12    BinaryExpr     :: i32
-  expr 35:12    CallExpr       :: i32
-  expr 35:12    IdentExpr      :: fn() -> i32
-  expr 35:28    CallExpr       :: i32
-  expr 35:28    IdentExpr      :: fn() -> i32
-  expr 35:46    CallExpr       :: i32
-  expr 35:46    IdentExpr      :: fn() -> i32
+  expr 12:18    IdentExpr      :: string
+  expr 12:5     IfExpr         :: void
+  expr 12:8     BinaryExpr     :: bool
+  expr 12:8     IdentExpr      :: i32 | string
+  expr 13:14    StringLitExpr  :: string
+  expr 13:5     IdentExpr      :: i32
+  expr 14:12    BinaryExpr     :: i32 | string
+  expr 14:12    IdentExpr      :: i32 | string
+  expr 19:18    IdentExpr      :: i32
+  expr 19:5     IfExpr         :: void
+  expr 19:8     BinaryExpr     :: bool
+  expr 19:8     IdentExpr      :: i32 | string
+  expr 20:18    StringLitExpr  :: string
+  expr 20:9     IdentExpr      :: i32
+  expr 21:16    BinaryExpr     :: i32 | string
+  expr 21:16    IdentExpr      :: i32 | string
+  expr 29:13    StructLitExpr  :: Desk!
+  expr 30:24    IdentExpr      :: string
+  expr 30:5     IfExpr         :: void
+  expr 30:8     BinaryExpr     :: bool
+  expr 30:8     FieldExpr      :: i32 | string
+  expr 30:8     IdentExpr      :: Desk!
+  expr 31:20    StringLitExpr  :: string
+  expr 31:5     FieldExpr      :: i32
+  expr 31:5     IdentExpr      :: Desk!
+  expr 32:12    BinaryExpr     :: i32 | string
+  expr 32:12    FieldExpr      :: i32 | string
+  expr 32:12    IdentExpr      :: Desk!
+  expr 36:12    BinaryExpr     :: i32
+  expr 36:12    BinaryExpr     :: i32
+  expr 36:12    CallExpr       :: i32
+  expr 36:12    IdentExpr      :: fn() -> i32
+  expr 36:28    CallExpr       :: i32
+  expr 36:28    IdentExpr      :: fn() -> i32
+  expr 36:46    CallExpr       :: i32
+  expr 36:46    IdentExpr      :: fn() -> i32
 
 # Diagnostics
-[13:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and i32
-[20:16] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and i32
-[31:12] error[T3017] operator not defined for these operand types: operator not defined for i32 | string and i32
+[14:5] error[T3020] function body returns a value incompatible with its declared return type: expected i32, got i32 | string
+[14:21] error[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `add` takes another `Self`, which may be another variant ; narrow `i32 | string` first
+[21:9] error[T3020] function body returns a value incompatible with its declared return type: expected i32, got i32 | string
+[21:25] error[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `add` takes another `Self`, which may be another variant ; narrow `i32 | string` first
+[32:5] error[T3020] function body returns a value incompatible with its declared return type: expected i32, got i32 | string
+[32:27] error[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `add` takes another `Self`, which may be another variant ; narrow `i32 | string` first

@@ -123,7 +123,7 @@ export TypecheckCode :: enum(CodeInfo) {
     BodyFallsOffEnd                 { .id = "T3083", .message = "not every path through the body returns a value" },
     EnumDataNotStruct               { .id = "T3084", .message = "enum variant data must be a struct" },
     VariantDataWithoutEnumData      { .id = "T3085", .message = "variant data on an enum whose header declares none" },
-    UnionEnumNotInterpolable        { .id = "T3086", .message = "a union holding an enum cannot be interpolated" },
+    UnionLosesVariantIdentity       { .id = "T3086", .message = "a union holding an enum or a distinct cannot dispatch through a trait" },
     IsTestOnSharedInstance          { .id = "T3087", .message = "an `is` test cannot tell apart the instances of a generic that share one body" },
     NotIterable                     { .id = "T3088", .message = "value is not iterable" },
     AmbiguousLiteralInUnion         { .id = "T3089", .message = "literal could take several members of the union" },
@@ -135,6 +135,7 @@ export TypecheckCode :: enum(CodeInfo) {
     ImplMemberSignatureDiffers      { .id = "T3095", .message = "an impl member must have its trait method's signature" },
     ConstValueReachesMutableLevel   { .id = "T3096", .message = "a constant value cannot hold a mutable level" },
     TraitImplementedSeveralTimes    { .id = "T3097", .message = "a type implementing a trait more than once cannot fill it here" },
+    SelfMemberDispatchedByTag       { .id = "T3098", .message = "a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

@@ -226,20 +226,18 @@ lower_index :: fn(ctx: FnLowerCtx!, expr: IndexExpr, type: Type) -> LoweredExpr!
             }
         }
     }
-    // A receiver dispatching through `Index` (a bounded `T`, a trait value) : the
+    // A receiver dispatching through `Index` (a bounded `T`, a trait value, a union
+    // of its implementors) : the
     // typer recorded the dispatch on this index expr — emit a virtual
     // `Index.at(c, i)` call so the receiver's runtime tag picks the impl, mirroring
     // the `c.at(i)` method form (`try_lower_virtual_call`). The entry only says the
     // index dispatches : in `c[i] op= v` one node is read AND written, so it may
     // name `IndexSet`.
     if ctx.typed.bounded_dispatch_trait[expr.id] != null {
-        ctx.project.virtually_dispatched_traits.add(core_trait_key(TRAIT_INDEX))
-        return LoweredVirtualCall {
-            .span = expr.span, .type = type,
-            .trait_name = core_trait_key(TRAIT_INDEX), .method = METHOD_AT,
-            .receiver = lower_expr(ctx, expr.target),
-            .args = [lower_expr(ctx, expr.index)], .param_types = [],
-        }
+        receiver :: lower_expr(ctx, expr.target)
+        index :: lower_expr(ctx, expr.index)
+        index_trait :: core_trait_key(TRAIT_INDEX)
+        return virtual_call(ctx, index_trait, METHOD_AT, receiver, [index], type, expr.span)
     }
     // Index trait routing (`index_route`, shared with the typecheck) : `s[i]` on a
     // `string`, a user struct or a distinct with its own `Index<I, T>` impl rewrites
@@ -392,23 +390,19 @@ try_lower_index_set_assign :: fn(
     @partial match target {
         is IndexExpr -> {
             // A receiver dispatching through `IndexSet` (a bounded `T`, a trait
-            // value) : the typer recorded the dispatch on this index expr
+            // value, a union of its implementors) : the typer recorded the dispatch
+            // on this index expr
             // (`dispatched_index_args`) — emit a virtual
             // `IndexSet.set_at(c, i, v)` call (erased receiver, runtime tag picks
             // the impl), mirroring the read-side `Index.at` vcall in `lower_index`.
             // As there, the entry only says the index dispatches : `c[i] op= v`
             // reads the same node, which may have recorded `Index` last.
             if ctx.typed.bounded_dispatch_trait[target.id] != null {
-                ctx.project.virtually_dispatched_traits.add(core_trait_key(TRAIT_INDEX_SET))
-                return LoweredExprStmt {
-                    .span = span,
-                    .expr = LoweredVirtualCall {
-                        .span = span, .type = TY_VOID,
-                        .trait_name = core_trait_key(TRAIT_INDEX_SET), .method = METHOD_SET_AT,
-                        .receiver = lower_expr(ctx, target.target),
-                        .args = [lower_expr(ctx, target.index), value], .param_types = [],
-                    },
-                }
+                receiver :: lower_expr(ctx, target.target)
+                args: LoweredExpr![]!: [lower_expr(ctx, target.index), value]
+                index_set :: core_trait_key(TRAIT_INDEX_SET)
+                call :: virtual_call(ctx, index_set, METHOD_SET_AT, receiver, args, TY_VOID, span)
+                return LoweredExprStmt { .span = span, .expr = call }
             }
             target_type :: ctx.types.expr_type(target.target)
             // An array store is `lower_assign_target`'s (`index_route`).

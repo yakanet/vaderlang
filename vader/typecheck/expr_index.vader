@@ -16,10 +16,15 @@ export infer_index :: fn(
 ) -> Type {
     target :: check_expr_fn(e.target, null, typed, diags)
     index_trait :: core_trait_key(TRAIT_INDEX)
+    dispatched :: dispatched_index_args(e, target, index_trait, typed, diags)
     // Pin a free-literal index key to the key type K so `m[9000000000]` on a
     // `MutableMap<i64, _>` doesn't default to i32 and silently truncate. `null` for
     // arrays/strings — the index there is just an integer.
-    key_ty :: index_key_expected(target, index_trait, typed)
+    key_ty :: if dispatched != null {
+        dispatched[0]
+    } else {
+        index_key_expected(target, index_trait, typed)
+    }
     index :: check_expr_fn(e.index, key_ty, typed, diags)
     if target is UnresolvedType { return TY_UNRESOLVED }
     // `"hello"[1]` — codepoint indexing on string returns char.
@@ -44,7 +49,6 @@ export infer_index :: fn(
         // onto the very buffer that was frozen.
         return mk_array(arr_view.element, arr_view.immutable)
     }
-    dispatched :: dispatched_index_args(e, target, index_trait, typed)
     if dispatched != null {
         reject_index_key(e.index, index, key_ty, typed, diags)
         return dispatched[1]
@@ -97,16 +101,29 @@ reject_index_key :: fn(
 
 /// The `trait_key` arguments (`Index<I, T>`, `IndexSet<I, V>`) of a receiver that
 /// dispatches `x[i]` through the trait at run time — a type parameter bounded by it,
-/// a value of the trait itself — exactly like the method form (`c.at(i)`,
-/// `c.set_at(i, v)`). The dispatch is recorded on `e`, so the lowering emits a
-/// virtual call on the receiver. Null for any other receiver.
+/// a value of the trait itself, a union every variant of which implements it —
+/// exactly like the method form (`c.at(i)`, `c.set_at(i, v)`). The dispatch is
+/// recorded on `e`, so the lowering emits a virtual call on the receiver. Null for
+/// any other receiver.
 ///
 /// @param e          the index expression.
 /// @param target     its receiver's type.
 /// @param trait_key  `Index` for a read, `IndexSet` for a write.
+/// @error            as `union_trait_member`, on a union.
 dispatched_index_args :: fn(
-    e: AST.IndexExpr, target: Type, trait_key: string, typed: TypedProgram!,
+    e: AST.IndexExpr,
+    target: Type,
+    trait_key: string,
+    typed: TypedProgram!,
+    diags: Diagnostic[]!,
 ) -> Type[] | null {
+    if target is UnionType {
+        method :: index_method(trait_key)
+        span :: e.target.span
+        member :: union_trait_member(target, trait_key, method, span, typed, diags) ?? return null
+        record_bounded_dispatch(typed, e.id, trait_key, member.trait_args)
+        return member.trait_args
+    }
     args :: trait_dispatch_args(target, trait_key, typed) ?? return null
     record_bounded_dispatch(typed, e.id, trait_key, args)
     if target is TypeParamType {
@@ -125,6 +142,10 @@ trait_dispatch_args :: fn(target: Type, trait_key: string, typed: TypedProgram) 
     if target is TraitType && trait_key_of(target.symbol) == trait_key && target.args.len() >= 2 {
         return target.args
     }
+    if target is UnionType {
+        traits :: union_dispatch_traits(target, trait_key, index_method(trait_key), typed)
+        return if traits.len() == 0 { null } else { traits[0].args }
+    }
     return null
 }
 
@@ -141,8 +162,9 @@ export IndexRoute :: enum {
 /// The route `target[i]` takes for `trait_key` : `Index` for a read, `IndexSet` for
 /// a write. The one decision the typecheck and both lowerings read, so they never
 /// dispatch one `x[i]` two ways. A type's own impl of the trait wins over the array
-/// it may be backed by, trait by trait. A bounded type parameter and a trait value are
-/// `None` here : they dispatch through the trait (`dispatched_index_args`).
+/// it may be backed by, trait by trait. A bounded type parameter, a trait value and a
+/// union of the trait's implementors are `None` here : they dispatch through the
+/// trait (`dispatched_index_args`).
 ///
 /// @param target     the indexed value's type.
 /// @param trait_key  `Index` for a read, `IndexSet` for a write.
@@ -181,15 +203,11 @@ export bounded_trait_args :: fn(bound: AST.Expr, trait_key: string, typed: Typed
     return null
 }
 
-/// The key type K `target[k]` takes through `trait_key` — the trait's of a receiver
-/// dispatching through it, else its own impl's — or null for an array or a string,
-/// which take an integer, and a receiver with neither. It pins a free-literal key
-/// and judges any other (`reject_index_key`).
+/// The key type K `target[k]` takes through its own impl of `trait_key`, or null for
+/// an array or a string, which take an integer, and a receiver with none. A receiver
+/// dispatching through the trait takes the trait's key (`dispatched_index_args`).
+/// It pins a free-literal key and judges any other (`reject_index_key`).
 index_key_expected :: fn(target: Type, trait_key: string, typed: TypedProgram) -> Type | null {
-    dispatched :: trait_dispatch_args(target, trait_key, typed)
-    if dispatched != null {
-        return dispatched[0]
-    }
     // Several impls take several keys : the key picks one (`pick_index_member`).
     if trait_members(typed, target, trait_key, index_method(trait_key)).len() > 1 {
         return null

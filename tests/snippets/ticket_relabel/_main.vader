@@ -2,7 +2,8 @@
 // written binding / field chain (typecheck `invalidate_narrow_on_assign`).
 // Each fn below re-labels a numeric ticket as a string after a guard
 // narrowed it to i32 — the arithmetic on the stale narrow must be
-// rejected (T3017 on the union), not silently compiled against i32.
+// rejected on the union (T3098 : `add` takes another `Self`, which the
+// `string` variant would fill), not silently compiled against i32.
 
 module "snippet"
 

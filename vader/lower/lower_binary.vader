@@ -114,44 +114,41 @@ lower_binary :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) -> LoweredE
         // primitive ones (`Range<T> implements Contains<T>` via the
         // intrinsic decl in std/core).
         coll_type :: ctx.types.expr_type(binary.right)
-        // The `Contains` impl the element picked, when several offer it.
-        picks :: ctx.typed.picked_impl_members
-        picked :: use_site_member(ctx, picks, binary.id, coll_type, METHOD_CONTAINS)
-        direct :: if picked != null {
-            picked
+        // A collection dispatching through `Contains` at run time — a value of the
+        // trait, a union of its implementors, an erased bounded `T` — has no impl to
+        // call : its tag picks one.
+        dispatched :: dispatched_trait(ctx, coll_type, binary.id)
+        contains: string | UfcsMember | null: if dispatched != null {
+            dispatched
         } else {
-            find_impl_member_for(ctx, coll_type, METHOD_CONTAINS)
+            contains_member(ctx, binary.id, coll_type)
         }
-        // Array-backed distinct : retry `Contains` on the backing array (the
-        // `T[] implements Contains` blanket) — mirrors check_in's aliased fallback.
-        member :: if direct is UfcsMember {
-            direct
+        if contains == null {
+            return stub(binary.span, type, "`in` / `not in` lowering deferred")
+        }
+        // `contains` takes the collection first: `x` is bound ahead of it unless
+        // neither can change what the other reads.
+        prelude: LoweredStmt![]!: []
+        element_value :: lower_expr(ctx, binary.left)
+        coll :: lower_expr(ctx, binary.right)
+        element :: if reads_independently(element_value, coll) {
+            element_value
         } else {
-            back :: array_backing(coll_type)
-            if back != null { find_impl_member_for(ctx, back, METHOD_CONTAINS) } else { direct }
+            bind_unless_stable(ctx, element_value, "in_x", binary.span, prelude)
         }
-        if member is UfcsMember {
-            // `contains` takes the collection first: `x` is bound ahead of it unless
-            // neither can change what the other reads.
-            prelude: LoweredStmt![]!: []
-            element_value :: lower_expr(ctx, binary.left)
-            coll :: lower_expr(ctx, binary.right)
-            element :: if reads_independently(element_value, coll) {
-                element_value
-            } else {
-                bind_unless_stable(ctx, element_value, "in_x", binary.span, prelude)
-            }
-            call :: LoweredCall {
+        call: LoweredExpr!: if contains is string {
+            virtual_call(ctx, contains, METHOD_CONTAINS, coll, [element], TY_BOOL, binary.span)
+        } else {
+            LoweredCall {
                 .span = binary.span, .type = TY_BOOL,
                 .callee = LoweredIdent {
-                    .span = binary.span, .type = TY_BOOL, .symbol = member.symbol,
+                    .span = binary.span, .type = TY_BOOL, .symbol = contains.symbol,
                 },
                 .args = [coll, element],
             }
-            test :: maybe_negate(call, binary.op == .NotIn, binary.span)
-            return with_prelude(prelude, test, binary.span)
         }
-        return stub(binary.span, type, "`in` / `not in` lowering deferred")
+        test :: maybe_negate(call, binary.op == .NotIn, binary.span)
+        return with_prelude(prelude, test, binary.span)
     }
     // `<union>` `==` / `!=` `null` reduces to a tag-only `LoweredTypeCheck`.
     // The C/VM emit can't compare two `vader_box_t` directly anyway and
@@ -252,15 +249,17 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx!, binary: BinaryExpr, type: Type) ->
     info :: op_trait_method(binary.op) ?? return null
     if info is OpTraitInfo {
         left_ty :: ctx.types.expr_type(binary.left)
-        // TypeParam-bound + erased Any receivers route through
-        // virtual dispatch — the boxed value's tag picks the right
-        // impl at runtime. Same shape as the FieldExpr path in
-        // `try_lower_virtual_call`, just driven from a BinaryOp.
+        // TypeParam-bound and erased Any receivers, a value of the operator's
+        // trait and a union of its implementors route through virtual
+        // dispatch — the boxed value's tag picks the right impl at runtime.
+        // Same shape as the FieldExpr path in `try_lower_virtual_call`, just
+        // driven from a BinaryOp.
         // For Eq, the call's value IS the bool result. For Neq we
         // wrap in `not`. For Lt/Lte/Gt/Gte, we keep the outer
         // BinaryOp with the call as left + `0` as right (compare
         // returns i32).
-        if left_ty is TypeParamType || left_ty is AnyType {
+        through_trait :: dispatched_trait(ctx, left_ty, binary.id) != null
+        if left_ty is TypeParamType || left_ty is AnyType || through_trait {
             return lower_op_overload_via_vcall(ctx, binary, type, info)
         }
         left_name :: type_surface_name(left_ty)
@@ -345,42 +344,68 @@ operator_member :: fn(
     return operator_member(ctx, t.backing, info, node_id)
 }
 
-// Emit `a op b` as a virtual call (the receiver is TypeParam-bound or
-// erased to Any). Shape mirrors the field-expr vcall path : Eq /
-// Comparable share the dispatch + outer-op patterns from `op_trait_method`.
+// The `Contains` member `x in coll` calls on a concrete `coll_type` : the impl the
+// element picked when several offer it, else its own, else — on an array-backed
+// distinct — its backing array's (the `T[] implements Contains` blanket), as
+// `check_in` falls back.
+contains_member :: fn(ctx: FnLowerCtx!, node_id: usize, coll_type: Type) -> UfcsMember | null {
+    picks :: ctx.typed.picked_impl_members
+    picked :: use_site_member(ctx, picks, node_id, coll_type, METHOD_CONTAINS)
+    if picked != null {
+        return picked
+    }
+    own :: find_impl_member_for(ctx, coll_type, METHOD_CONTAINS)
+    if own != null {
+        return own
+    }
+    back :: array_backing(coll_type) ?? return null
+    return find_impl_member_for(ctx, back, METHOD_CONTAINS)
+}
+
+// The trait a binary's receiver of type `t` dispatches through at run time, as the
+// typecheck recorded it on `node_id` : a value of the trait, a union of its
+// implementors, a bounded `T` erased to `Any`. Null for a concrete receiver, whose
+// impl is called directly.
+dispatched_trait :: fn(ctx: FnLowerCtx, t: Type, node_id: usize) -> string | null =
+    if t is TraitType || t is UnionType || t is AnyType {
+        ctx.typed.bounded_dispatch_trait[node_id]
+    } else {
+        null
+    }
+
+// Emit `a op b` as a virtual call (the receiver is TypeParam-bound, erased to Any,
+// a value of the operator's trait or a union of its implementors). Shape mirrors
+// the field-expr vcall path : Eq / Comparable share the dispatch + outer-op
+// patterns from `op_trait_method`.
 lower_op_overload_via_vcall :: fn(
     ctx: FnLowerCtx!, binary: BinaryExpr, type: Type, oti: OpTraitInfo,
 ) -> LoweredExpr! | null {
     lowered_left  :: lower_expr(ctx, binary.left)
-    lowered_right :: lower_expr(ctx, binary.right)
-    args: LoweredExpr![]!: []
-    args.push(lowered_right)
-    // Erased op-trait dispatch (`T`/`Any` operand) : surface every primitive
-    // implementor of the op-trait — see `virtually_dispatched_traits`.
-    ctx.project.virtually_dispatched_traits.add(oti.trait_key)
-    call :: LoweredVirtualCall {
-        .span = binary.span,
-        .type = if oti.shape == .CompareCmp { mk_primitive("i32") } else { TY_BOOL },
-        .trait_name = oti.trait_key, .method = oti.method_name,
-        .receiver = lowered_left, .args = args, .param_types = [],
+    args: LoweredExpr![]!: [lower_expr(ctx, binary.right)]
+    // The call's own result : `compare`'s `i32`, `equals`' `bool`, else the
+    // operator's (`Add`'s `Self`).
+    result :: match oti.shape {
+        .DirectCall -> type
+        .NotCall    -> TY_BOOL
+        .CompareCmp -> mk_primitive("i32")
     }
-    if oti.shape == .DirectCall {
-        return call
-    }
-    if oti.shape == .NotCall {
-        return LoweredUnary {
+    method :: oti.method_name
+    call :: virtual_call(ctx, oti.trait_key, method, lowered_left, args, result, binary.span)
+    return match oti.shape {
+        .DirectCall -> call
+        .NotCall    -> LoweredUnary {
             .span = binary.span, .type = TY_BOOL,
             .op = .Not, .operand = call,
         }
-    }
-    // CompareCmp : preserve the BinaryOp on (compare-call, 0).
-    return LoweredBinary {
-        .span = binary.span, .type = TY_BOOL,
-        .op    = lower_binary_op(binary.op),
-        .left  = call,
-        .right = LoweredIntLit {
-            .span = binary.span, .type = mk_primitive("i32"), .value = 0,
-        },
+        // Preserve the BinaryOp on (compare-call, 0).
+        .CompareCmp -> LoweredBinary {
+            .span = binary.span, .type = TY_BOOL,
+            .op    = lower_binary_op(binary.op),
+            .left  = call,
+            .right = LoweredIntLit {
+                .span = binary.span, .type = mk_primitive("i32"), .value = 0,
+            },
+        }
     }
 }
 

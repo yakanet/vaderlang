@@ -181,7 +181,7 @@ check_arith :: fn(
         return numeric_result(e, left, right, diags)
     }
     op_label :: "operator ${method_name}"
-    bounded :: check_bounded_operator(
+    bounded :: check_dispatched_operator(
         left,
         right,
         arith_trait(e.op),
@@ -397,7 +397,9 @@ operator_rhs :: fn(member: ImplMethod, recv: Type) -> Type | null {
 /// trait — `a + b` with `T: Add`, `a < b` with `T: Comparable` — typed as the
 /// bound method `a.add(b)` would be. The enclosing fn keeps concrete instances,
 /// as for a bounded method call, so the lowerer finds the impl after
-/// substitution. Null when `recv` is not such a parameter.
+/// substitution. A value of the trait itself and a union every variant of which
+/// implements it dispatch the same way, through the trait at run time
+/// (`tag_dispatch`). Null when `recv` is none of these.
 ///
 /// @param recv         the receiver operand's type : the left one, the right one for `in`.
 /// @param operand      the other operand's type, checked against the method's `other`.
@@ -409,7 +411,8 @@ operator_rhs :: fn(member: ImplMethod, recv: Type) -> Type | null {
 /// @param span         the other operand, where a mismatch is reported.
 /// @return             the method specialised at `recv`.
 /// @error              T3017 when the other operand does not fit the method's `other`.
-check_bounded_operator :: fn(
+/// @error              as `union_trait_member`, on a union `recv`.
+check_dispatched_operator :: fn(
     recv: Type,
     operand: Type,
     trait_name: string,
@@ -420,11 +423,9 @@ check_bounded_operator :: fn(
     typed: TypedProgram!,
     diags: Diagnostic[]!,
 ) -> FnType | null {
-    if recv !is TypeParamType {
-        return null
-    }
-    member :: type_member(recv, method_name, typed) ?? return null
-    if member.trait_key != core_trait_key(trait_name) {
+    trait_key :: core_trait_key(trait_name)
+    member :: dispatched_member(recv, trait_key, method_name, span, typed, diags)
+    if member == null || member.trait_key != trait_key {
         return null
     }
     record_bounded_dispatch(typed, node_id, member.trait_key, member.trait_args)
@@ -432,8 +433,12 @@ check_bounded_operator :: fn(
     if specialised !is FnType {
         return null
     }
-    keep_instances_concrete(typed)
-    if specialised.params.len() > 0 && !is_assignable(operand, specialised.params[0]) {
+    if recv is TypeParamType {
+        keep_instances_concrete(typed)
+    }
+    fits :: specialised.params.len() == 0 || is_assignable(operand, specialised.params[0])
+    // A refused union dispatch is already reported.
+    if !fits && !member.refused {
         push_operand_mismatch(recv, operand, specialised.params[0], op_label, span, diags)
     }
     return specialised
@@ -522,7 +527,7 @@ check_compare :: fn(
         numeric_result(e, left, right, diags)
         return TY_BOOL
     }
-    if check_bounded_operator(
+    if check_dispatched_operator(
         left,
         right,
         TRAIT_COMPARABLE,
@@ -613,8 +618,9 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram!,
         )
         return TY_BOOL
     }
-    // A container type parameter whose bound names `Contains` (`C: Contains<i32>`).
-    if check_bounded_operator(
+    // A container dispatching through `Contains` at run time : a type parameter
+    // bounded by it (`C: Contains<i32>`), a value of it, a union of its implementors.
+    if check_dispatched_operator(
         right,
         left,
         TRAIT_CONTAINS,

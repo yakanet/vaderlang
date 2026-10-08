@@ -1,0 +1,11 @@
+// `a < b` on two values of `Comparable` dispatches `compare` by `a`'s tag : `b` may
+// hold another implementor, which that impl would read as its own type. T3098, at
+// the operator.
+module "snippet"
+
+before :: fn(a: Comparable, b: Comparable) -> bool = a < b
+
+main :: fn() -> i32 {
+    early :: before("a", "b")
+    return if early { 0 } else { 1 }
+}

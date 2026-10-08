@@ -2636,6 +2636,7 @@ record_impl_members :: fn(
             .impl_key = decl.span.hash(),
             .trait_key = trait_key,
             .trait_args = trait_args,
+            .trait_symbol = trait_sym,
             .generic = type_contains_type_param(for_ty),
         }
         add_impl_method(typed, "${impl_type_key(for_ty)}::${m.name}", entry)
