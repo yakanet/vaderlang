@@ -312,6 +312,8 @@ const C_PARITY = new Set<string>([
   "const_read_before_its_declaration",
   // Consts nothing reads : their baked structs keep their type-table slots.
   "const_never_read",
+  // A field default whose lambda builds its own struct : the inner literal calls a thunk.
+  "field_default_builds_its_struct",
   // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's
   // defer runs on teardown, the winner's at its own completion.
   "async_race",

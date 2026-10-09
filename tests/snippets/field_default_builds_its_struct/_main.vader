@@ -1,0 +1,20 @@
+module "snippet"
+
+import "std/io"
+
+// A default that builds a literal of its own struct, under a lambda : the lambda
+// runs only when called, so each `Node {}` takes one more level only on demand. The
+// literal inside the lambda reaches the default it sits in, and calls a thunk of it
+// instead of expanding it again.
+
+Node :: struct {
+    depth: i32 = 0
+    child: fn(i32) -> Node = (d: i32) -> Node { .depth = d }
+}
+
+main :: fn() -> i32 {
+    root :: Node {}
+    grandchild :: root.child(1).child(2)
+    println("${root.depth} ${grandchild.depth}")
+    return 0
+}

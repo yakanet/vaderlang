@@ -76,6 +76,20 @@ drain_synth_window :: fn(
     }
 }
 
+/// Push every project-global synthesised decl (`concat_N`, field-default thunks)
+/// into the entry module, once. Called after the lowering fixpoint converges (every
+/// synthesised decl collected) and before DCE/emit so the calls resolve. The entry module
+/// is always present + fully kept, giving the shared decls a stable home regardless
+/// of which module's body first triggered the synthesis.
+///
+/// @param project_ctx  carries the collected `entry_decls`.
+/// @param project      the lowered project ; the entry module gains the decls.
+drain_entry_decls :: fn(project_ctx: LowerProjectCtx, project: LoweredProject) -> void {
+    for decl in project_ctx.entry_decls {
+        push_to_module(project, project.entry, decl)
+    }
+}
+
 // `drain_synth_window` over the open window `[start, now)` — the common case
 // for a site that captured `start` immediately before lowering one body and
 // drains right after, when no other body lowered in between. The generic

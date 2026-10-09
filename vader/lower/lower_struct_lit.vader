@@ -251,7 +251,9 @@ build_struct_lit_fields :: fn(
             if field_decl.default != null {
                 out.push(LoweredStructLitField {
                     .name = field_decl.name,
-                    .value = lower_field_value(default_ctx, field_decl.default, field_type, field_decl.span),
+                    .value = lower_field_default(
+                        default_ctx, st, field_decl, field_decl.default, field_type,
+                    ),
                 })
             }
         } else {

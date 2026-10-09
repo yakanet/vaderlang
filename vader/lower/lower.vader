@@ -229,12 +229,12 @@ lower_project_impl :: fn(
     // e.g. `MutableSet<i32>`'s erased `inner: MutableMap<Any, bool>` —
     // otherwise the bytecode interner mints an orphan `ref` for them.
     close_over_field_shapes(loaded, typed, project_ctx, project)
-    // Place the synthesised `concat_N` decls into the entry module — ONCE,
-    // unconditionally. They are project-global cached fns, so they can't ride
-    // the per-window `synth_decls` drain (a deduped generic instance's window is
-    // skipped, which would strand a `concat_N` first synthesised inside it).
-    // Runs after the fixpoint so every arity is known. See `lower_concat.vader`.
-    drain_concat_decls(project_ctx, project)
+    // Place the project-global synthesised decls (`concat_N`, field-default
+    // thunks) into the entry module — ONCE, unconditionally. They can't ride the
+    // per-window `synth_decls` drain (a deduped generic instance's window is
+    // skipped, which would strand one first synthesised inside it). Runs after
+    // the fixpoint so every synthesised decl is collected.
+    drain_entry_decls(project_ctx, project)
     // Drain per-fn lower diagnostics pushed to `project_ctx.diags`
     // (e.g. M5001 from `lower_for_in`) into the caller-owned sink so
     // they reach `# Diagnostics` in the CLI dump.

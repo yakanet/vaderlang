@@ -175,13 +175,19 @@ export LowerProjectCtx :: struct {
     /// inline bloat at the call sites) and replaces the hand-written
     /// `concat2/3/4` + the >4 StringBuilder cliff.
     concat_fn_syms:      MutableMap<i32, Symbol>!
-    /// The synthesised `concat_N` decls themselves, in synthesis order. A
-    /// project-GLOBAL cached decl can't ride the per-window `synth_decls` sink
-    /// (whose erasure-dedupe drop semantics assume per-site lambdas — a
-    /// `concat_N` first synthesised inside a deduped generic instance would be
-    /// stranded). They are collected here and drained ONCE, unconditionally,
-    /// into the entry module after the lowering fixpoint (`drain_concat_decls`).
-    concat_decls:        LoweredFnDecl![]!
+    /// Project-global synthesised decls — the `concat_N` fns, the field-default
+    /// thunks and what their bodies lifted — in synthesis order. A project-GLOBAL
+    /// cached decl can't ride the per-window `synth_decls` sink (whose
+    /// erasure-dedupe drop semantics assume per-site lambdas — one first synthesised
+    /// inside a deduped generic instance would be stranded). They are collected here
+    /// and drained ONCE, unconditionally, into the entry module after the lowering
+    /// fixpoint (`drain_entry_decls`).
+    entry_decls:         LoweredDecl![]!
+    /// Field-default thunks, by name (`lower_field_default.vader`).
+    default_thunks:      MutableMap<string, DefaultThunk>! = MutableMap<string, DefaultThunk> {}
+    /// The defaults being lowered in place right now, by their field's span hash :
+    /// a literal reaching one of them again calls its thunk.
+    expanding_defaults:  MutableSet<u64>! = MutableSet<u64> {}
     /// Enum symbol id → the synthetic read-only const holding that enum's
     /// variant data, one slot per rank. Minted at the first read
     /// (`enum_table_const`) so every read shares one symbol.
@@ -411,7 +417,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .generic_recv_cursor = 0,
         .synth_decls         = [],
         .concat_fn_syms      = MutableMap<i32, Symbol> {},
-        .concat_decls        = [],
+        .entry_decls         = [],
         .enum_data_consts    = MutableMap<i32, Symbol> {},
         .enum_value_consts   = MutableMap<i32, Symbol> {},
         .enum_table_order    = [],
