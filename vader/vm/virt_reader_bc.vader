@@ -1177,12 +1177,8 @@ bc_value_to_vm :: fn(v: bc.BcDataValue, types: bc.BcType[]) -> Value! {
 // the wrong one fails every `is` test. A `.virt`-parsed table resolves because each
 // struct's `symbol_id` is its own index (`parse_type_decl_bc`).
 type_id_for_symbol :: fn(types: bc.BcType[], symbol_id: i32) -> i32 {
-    for i in 0..<types.len() {
-        if types[i] is bc.BcStruct as s {
-            if s.symbol_id == symbol_id { return i32(i) }
-        }
-    }
-    return 0
+    index :: bc.struct_symbol_type_index(types, symbol_id)
+    return if index < 0 { 0 } else { index }
 }
 
 // Reinterpret an element's raw `u64` bit pattern per its `ArrayKind`. Mirrors

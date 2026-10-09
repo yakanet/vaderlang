@@ -1,0 +1,33 @@
+module "snippet"
+
+import "std/io"
+
+// Consts nothing reads still bake into the data pool : a struct, an array of
+// structs, a nested array, a struct holding a struct. Their struct types must
+// survive the type-table prune, which only sees what live fns name.
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+Segment :: struct {
+    from: Point
+    to: Point
+}
+
+ORIGIN :: Point { .x = 0, .y = 0 }
+
+CORNERS :: [Point { .x = 1, .y = 1 }, Point { .x = 2, .y = 2 }]
+
+GRID :: [[Point { .x = 3, .y = 3 }]]
+
+DIAGONAL :: Segment {
+    .from = Point { .x = 0, .y = 0 },
+    .to = Point { .x = 4, .y = 4 },
+}
+
+main :: fn() -> i32 {
+    println("built")
+    return 0
+}

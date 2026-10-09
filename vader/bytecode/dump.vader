@@ -198,16 +198,6 @@ write_data_value :: fn(
 // union, `i32 | string`), since the reader splits the line on spaces.
 type_name_token :: fn(name: string) -> string = if " " in name { quote_string(name) } else { name }
 
-// Type-table index of the struct declared by `symbol_id`, or -1 when none is.
-struct_symbol_type_index :: fn(types: BcType[], symbol_id: i32) -> i32 {
-    for i in 0..<types.len() {
-        if types[i] is BcStruct as s {
-            if s.symbol_id == symbol_id { return i32(i) }
-        }
-    }
-    return -1
-}
-
 // Little-endian hex of a single bit pattern at the kind's natural width.
 data_value_hex :: fn(kind: ArrayKind, bits: u64) -> string {
     esz :: usize(array_kind_element_size(kind))

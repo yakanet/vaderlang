@@ -1,0 +1,31 @@
+# Typecheck
+
+## tests/snippets/const_never_read
+  ConstDecl      CORNERS              :: Point[]
+  ConstDecl      DIAGONAL             :: Segment
+  ConstDecl      GRID                 :: Point[][]
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      ORIGIN               :: Point
+  StructDecl     Point                :: Point!
+  StructDecl     Segment              :: Segment!
+  expr 19:11    StructLitExpr  :: Point!
+  expr 21:12    SeqLitExpr     :: Point![]!
+  expr 21:13    StructLitExpr  :: Point!
+  expr 21:39    StructLitExpr  :: Point!
+  expr 23:10    SeqLitExpr     :: Point![]!
+  expr 23:11    StructLitExpr  :: Point!
+  expr 23:9     SeqLitExpr     :: Point![]![]!
+  expr 25:13    StructLitExpr  :: Segment!
+  expr 26:13    StructLitExpr  :: Point!
+  expr 27:11    StructLitExpr  :: Point!
+  expr 31:13    StringLitExpr  :: string
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
+
+# Diagnostics
+[9:1] warning[W0007] declaration is never used in its module: `Point` is never used
+[14:1] warning[W0007] declaration is never used in its module: `Segment` is never used
+[19:1] warning[W0007] declaration is never used in its module: `ORIGIN` is never used
+[21:1] warning[W0007] declaration is never used in its module: `CORNERS` is never used
+[23:1] warning[W0007] declaration is never used in its module: `GRID` is never used
+[25:1] warning[W0007] declaration is never used in its module: `DIAGONAL` is never used

@@ -463,6 +463,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             root_idx :: resolve_fn_index(ve.fn_symbol, ctx)
             if root_idx >= 0 { vtable_roots.push(root_idx) }
         }
+        pin_baked_struct_types(cfg.data_pool, ctx)
         prune_unused_functions(ctx, vtable_roots, opts.keep_mangles)
         prune_unused_imports(ctx)
         prune_unused_types(ctx)
@@ -677,6 +678,39 @@ intern_data_value_strings :: fn(v: BcDataValue, ctx: EmitterCtx) -> void {
         for f in v.fields { intern_data_value_strings(f, ctx) }
     } else if v is BcValArray {
         for e in v.elements { intern_data_value_strings(e, ctx) }
+    }
+}
+
+// A baked struct names its type by symbol id alone : when no live fn reads the
+// const, nothing else roots that slot, and `prune_unused_types` would drop the type
+// c_emit takes the static's C struct and header tag from.
+pin_baked_struct_types :: fn(data_pool: BcDataEntry[], ctx: EmitterCtx) -> void {
+    symbol_ids :: MutableSet<i32> {}
+    for entry in data_pool {
+        if entry is BcAggregateData {
+            for v in entry.elements {
+                collect_baked_symbols(v, symbol_ids)
+            }
+        }
+    }
+    for symbol_id in symbol_ids {
+        index :: struct_symbol_type_index(ctx.types, symbol_id)
+        if index >= 0 {
+            ctx.pinned_types.push(index)
+        }
+    }
+}
+
+collect_baked_symbols :: fn(v: BcDataValue, out: MutableSet<i32>) -> void {
+    if v is BcValStruct {
+        _ :: out.add(v.symbol_id)
+        for f in v.fields {
+            collect_baked_symbols(f, out)
+        }
+    } else if v is BcValArray {
+        for e in v.elements {
+            collect_baked_symbols(e, out)
+        }
     }
 }
 

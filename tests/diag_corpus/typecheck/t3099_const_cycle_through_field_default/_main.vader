@@ -1,0 +1,13 @@
+// A struct literal that leaves a field out takes its default, so a const built from
+// one reads what the default reads : here the const itself. T3099, at the literal.
+module "snippet"
+
+Counter :: struct {
+    start: i32 = FIRST
+}
+
+FIRST :: Counter {}.start
+
+main :: fn() -> i32 {
+    return FIRST
+}

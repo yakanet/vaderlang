@@ -84,10 +84,8 @@ export check_struct_items :: fn(
             }
         }
     }
-    // T3037 — required fields without defaults must be provided when no
-    // `...spread` covers them.
-    if decl is AST.StructDecl {
-        if !has_spread { check_missing_fields(span, st, decl, provided, diags) }
+    if decl is AST.StructDecl && !has_spread {
+        check_omitted_fields(span, st, decl, provided, typed, diags)
     }
     return st
 }
@@ -138,14 +136,22 @@ check_field :: fn(
 }
 
 
-check_missing_fields :: fn(
+// The fields a literal without `...spread` leaves out : T3037 for a required one,
+// and the default of the others lands in the literal (`settle_default_reads`).
+check_omitted_fields :: fn(
     span: Span, st: StructType, decl: AST.StructDecl,
-    provided: string[], diags: Diagnostic[],
+    provided: string[], typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     missing: string[]: []
     for sf in decl.fields {
-        if sf.default is null {
-            if !contains_name(provided, sf.name) { missing.push("`${sf.name}`") }
+        if contains_name(provided, sf.name) {
+            continue
+        }
+        default :: sf.default
+        if default == null {
+            missing.push("`${sf.name}`")
+        } else {
+            settle_default_reads(default, span, typed)
         }
     }
     if missing.len() == 0 { return }

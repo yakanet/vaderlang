@@ -926,12 +926,11 @@ element_storage_kind :: fn(elements: BcDataValue[]) -> ArrayKind {
 // always declared in the same module — so a miss is an upstream bug, not a
 // degraded-to-primitive-0 silent corruption.
 type_id_for_struct_symbol :: fn(types: BcType[], symbol_id: i32) -> i32 {
-    for i in 0..<types.len() {
-        if types[i] is BcStruct as s {
-            if s.symbol_id == symbol_id { return i32(i) }
-        }
+    index :: struct_symbol_type_index(types, symbol_id)
+    if index < 0 {
+        panic("c_emit: baked struct symbol_id ${symbol_id} not in the module type table")
     }
-    panic("c_emit: baked struct symbol_id ${symbol_id} not in the module type table")
+    return index
 }
 
 // Type-table index of a `BcStruct` by display name, or 0 (nested-array element).

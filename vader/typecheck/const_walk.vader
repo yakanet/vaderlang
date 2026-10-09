@@ -57,16 +57,39 @@ settle_const :: fn(cd: AST.ConstDecl, typed: TypedProgram, deferred: bool = fals
     walk.states[key] = .Typed
 }
 
-// Type the module const `sym` at a read of it, unless the walk already has : a read
-// before the const's turn — a const declared further down, a fn read before a const
-// it calls into — would otherwise see no type. The value is typed as at module
-// level, the reading fn's state set aside. A read inside the const's own value,
-// directly or through other consts, is a cycle : T3099.
+// Type the module const `sym` at a read of it (`settle_decl_read`).
 settle_const_read :: fn(sym: Symbol, span: Span, typed: TypedProgram) -> void {
+    cd :: walk_decl_of(sym, typed) ?? return
+    settle_decl_read(cd, span, typed)
+}
+
+// Settle the consts a field default reads, at a literal (`span`) that leaves the
+// field out : the default's value lands in the literal, so a const being typed
+// through it reads them — `D :: Q {}.n` with `Q :: struct { n: i32 = D }` is a
+// cycle (T3099). Outside a const's value, nothing needs them before their turn.
+settle_default_reads :: fn(default: AST.Expr, span: Span, typed: TypedProgram) -> void {
+    if typed.const_walk.typing.len() == 0 {
+        return
+    }
+    for cd in const_reads(default, typed) {
+        settle_decl_read(cd, span, typed)
+    }
+}
+
+// The walk's declaration of the module const `sym`.
+walk_decl_of :: fn(sym: Symbol, typed: TypedProgram) -> AST.ConstDecl! | null {
+    declared :: typed.const_decls[sym.id] ?? return null
+    return typed.const_walk.decls[declared.span.hash()]
+}
+
+// Type the const `cd` at a read of it, unless the walk already has : a read before
+// the const's turn — a const declared further down, a fn read before a const it
+// calls into — would otherwise see no type. The value is typed as at module level,
+// the reading fn's state set aside. A read inside the const's own value, directly
+// or through other consts, is a cycle : T3099.
+settle_decl_read :: fn(cd: AST.ConstDecl, span: Span, typed: TypedProgram) -> void {
     walk :: typed.const_walk
-    declared :: typed.const_decls[sym.id] ?? return
-    key :: declared.span.hash()
-    cd :: walk.decls[key] ?? return
+    key :: cd.span.hash()
     // A read inside a fn body runs once every const is set : it needs only the
     // const's type, which an annotation writes.
     deferred :: typed.current_fn_ctx != null
@@ -77,7 +100,7 @@ settle_const_read :: fn(sym: Symbol, span: Span, typed: TypedProgram) -> void {
     if state != null {
         if state == .Typing && closes_reported_cycle(key, cd, walk) {
             walk.states[key] = .CycleReported
-            detail :: "`${sym.name}` is read while its own value is typed"
+            detail :: "`${cd.name}` is read while its own value is typed"
             walk.diags.push(typecheck_error(.ConstDependsOnItself, span, detail))
         }
         return
@@ -179,8 +202,7 @@ const_reads :: fn(e: AST.Expr, typed: TypedProgram) -> AST.ConstDecl![] {
                 if sym.kind != .Const {
                     continue
                 }
-                declared :: typed.const_decls[sym.id] ?? continue
-                found :: typed.const_walk.decls[declared.span.hash()] ?? continue
+                found :: walk_decl_of(sym, typed) ?? continue
                 out.push(found)
             }
             is AST.BinaryExpr -> {

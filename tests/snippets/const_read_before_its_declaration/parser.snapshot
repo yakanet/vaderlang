@@ -124,6 +124,28 @@
                           },
                           "field": "n"
                         }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IndexExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "BUILT"
+                            },
+                            "index": {
+                              "kind": "IntLitExpr",
+                              "value": "0n"
+                            }
+                          },
+                          "field": "n"
+                        }
                       }
                     ]
                   },
@@ -356,6 +378,57 @@
                 "kind": "IdentExpr",
                 "name": "n"
               }
+            }
+          ]
+        }
+      },
+      "decorators": [],
+      "isExpressionBodied": true
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "BUILT",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "CallExpr",
+        "callee": {
+          "kind": "IdentExpr",
+          "name": "build"
+        },
+        "args": []
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "build",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": null,
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "SeqLitExpr",
+          "elements": [
+            {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "IdentExpr",
+                "name": "Inner"
+              },
+              "items": [
+                {
+                  "kind": "field",
+                  "name": "n",
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "9n"
+                  }
+                }
+              ]
             }
           ]
         }

@@ -13,7 +13,7 @@
               callee:
                 new_byte_buffer :Buffer
               arg0:
-                int(83) :usize
+                int(104) :usize
           let __off_1: usize = int(0) :usize
           assign
             target:
@@ -121,6 +121,38 @@
                           MADE_LIST :Inner[]
                         ix:
                           int(0) :i32
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    .n :i32
+                      index :Inner
+                        on:
+                          BUILT :Inner[]
+                        ix:
+                          int(0) :i32
           ~>
             call :string
               callee:
@@ -161,6 +193,16 @@
       Inner! {
         n: n :i32
       }
+  const snippet$BUILT: Inner[] =
+    call :Inner![]!
+      callee:
+        build :fn() -> Inner![]!
+  fn snippet$build() -> Inner![]!
+    ~>
+      array :Inner![]!
+        Inner! {
+          n: int(9) :i32
+        }
   fn snippet$Inner$Visit$visit(self: Inner!, f: fn(Inner) -> void) -> void
     ~>
       call :void

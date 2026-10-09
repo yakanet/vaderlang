@@ -310,6 +310,8 @@ const C_PARITY = new Set<string>([
   // Consts read before their declaration, by a const and by a fn ; a `fn(Self)`
   // callback an impl writes with its own read-only type.
   "const_read_before_its_declaration",
+  // Consts nothing reads : their baked structs keep their type-table slots.
+  "const_never_read",
   // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's
   // defer runs on teardown, the winner's at its own completion.
   "async_race",

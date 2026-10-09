@@ -2985,7 +2985,10 @@ param_type :: fn(
 
 check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
     sym :: lookup_sym_by_name_orch(typed.resolved, cd.name) ?? return
-    annot :: typed.decl_types[sym.id]
+    // Only a written type is the expected type. An unannotated const's entry is what
+    // an earlier walk inferred — a return-only walk types it before the expression-
+    // bodied fns it calls have their return, and would pin it to `?`.
+    annot :: if cd.ty == null { null } else { typed.decl_types[sym.id] }
     if is_type_expr(cd.value, typed.resolved) {
         if annot is null {
             typed.decl_types[sym.id] = TY_TYPE
