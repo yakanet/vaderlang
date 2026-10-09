@@ -454,9 +454,9 @@ static uint64_t std_core_bits64(void* l0, int32_t l1) {
 
 vader_string_t std_core_bool_Display_to_string(bool l0) {
     if (l0) {
-        return 2337u;
+        return 2341u;
     }
-    return 1630u;
+    return 1633u;
 }
 
 vader_string_t std_core_char_Display_to_string(uint32_t l0) {
@@ -1346,12 +1346,12 @@ static vader_string_t std_core_format_f32(float l0) {
     l1 = (uint32_t) (int32_t) t0;
     if (l1 == INT32_C(255)) {
         if (l3 != INT32_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 1997u; }
+            { vader_gc_top = gc_frame.prev; return 2000u; }
         }
         if (l2) {
             { vader_gc_top = gc_frame.prev; return 298u; }
         }
-        { vader_gc_top = gc_frame.prev; return 1808u; }
+        { vader_gc_top = gc_frame.prev; return 1811u; }
     }
     if (l1 == INT32_C(0)) {
         if (l3 == INT32_C(0)) {
@@ -1392,12 +1392,12 @@ static vader_string_t std_core_format_f64(double l0) {
     l1 = (uint64_t) (int64_t) t0;
     if (l1 == INT64_C(2047)) {
         if (l3 != INT64_C(0)) {
-            { vader_gc_top = gc_frame.prev; return 1997u; }
+            { vader_gc_top = gc_frame.prev; return 2000u; }
         }
         if (l2) {
             { vader_gc_top = gc_frame.prev; return 298u; }
         }
-        { vader_gc_top = gc_frame.prev; return 1808u; }
+        { vader_gc_top = gc_frame.prev; return 1811u; }
     }
     if (l1 == INT64_C(0)) {
         if (l3 == INT64_C(0)) {
@@ -1934,7 +1934,7 @@ void* std_core_new_byte_buffer(size_t l0) {
 }
 
 vader_string_t std_core_null_Display_to_string(vader_box_t l0) {
-    return 2029u;
+    return 2032u;
 }
 
 vader_box_t std_core_parse_f64(vader_string_t l0) {
@@ -2914,10 +2914,10 @@ void* std_core_utf8_encode(uint32_t l0) {
 size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     size_t t0;
     if (!(l2)) {
-        t0 = std_core_write_string_at(l0, l1, 1630u);
+        t0 = std_core_write_string_at(l0, l1, 1633u);
         return t0;
     }
-    t0 = std_core_write_string_at(l0, l1, 2337u);
+    t0 = std_core_write_string_at(l0, l1, 2341u);
     return t0;
 }
 

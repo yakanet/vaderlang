@@ -75,6 +75,21 @@ void* std_iter_clone__Symbol(void* l0) {
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+void* std_iter_clone__bool(void* l0) {
+    void* l1 = NULL;
+    size_t l2;
+    void** gc_raw_roots[2] = { &l0, &l1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    vader_array_t* _a0_arr = vader_array_new(9u, 0u, 12u, 238u);
+    l1 = (void*) _a0_arr;
+    l2 = ((vader_array_t*) l0)->length;
+    vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l1, (size_t) l2);
+    l1 = (void*) _a1_arr;
+    vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l0);
+    { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
 void* std_iter_clone__i32(void* l0) {
     void* l1 = NULL;
     size_t l2;

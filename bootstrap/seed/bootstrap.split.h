@@ -6949,6 +6949,7 @@ void* std_iter_clone__Diagnostic(void* l0);
 void* std_iter_clone__GenericInstance(void* l0);
 void* std_iter_clone__PendingFnInstance(void* l0);
 void* std_iter_clone__Symbol(void* l0);
+void* std_iter_clone__bool(void* l0);
 void* std_iter_clone__i32(void* l0);
 void* std_iter_clone__string(void* l0);
 void* std_iter_clone__usize(void* l0);
@@ -7132,7 +7133,7 @@ vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2633u
+#define VADER_COMPTIME_ATOM_COUNT 2637u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
