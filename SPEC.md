@@ -2949,7 +2949,8 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | Decorator | Target | Purpose |
 |-----------|--------|---------|
 | `@comptime` | fn / value | Forces compile-time evaluation |
-| `@c_pointer` | a parameter of an `@extern` fn | The callee receives the parameter's ADDRESS, not its value. No argument — the `!` on the type says whether C writes through it. `T3079` anywhere else. See §13 |
+| `@c_pointer` | a parameter of an `@extern` fn | The callee receives the parameter's ADDRESS, not its value. No argument — `@c_out` says whether C writes through it. `T3079` anywhere else. See §13 |
+| `@c_out` | a parameter of an `@extern` fn | C writes through the parameter — an array, or a `@c_struct` crossing with `@c_pointer`. No argument. `T3079` anywhere else, or on a type C cannot write into. See §13 |
 | `@c_header("<header.h>")` | an `@extern` fn | Includes the header and does NOT synthesise a prototype, so `cc` checks the call against the real declaration. Exclusive with the synthesised prototype for that symbol. See §13 |
 | `@c_struct("struct name")` | struct decl | Declares which C type the struct mirrors, so it may cross as an address. See §13 |
 | `@extern`, `@extern("symbol")`, or `@extern("module", "symbol")` | fn (no body) | Declares a user-supplied FFI symbol — see §13 |
@@ -3020,21 +3021,33 @@ The shim spills the argument to a stack temporary and hands over its address;
 **no pointer type ever enters Vader**. The temporary lives for the call and no
 longer.
 
-`@c_pointer` takes **no argument**: the direction is already carried by the `!`
-on the type. Without one the callee only reads through the pointer and the
-declaration emits `const T*`; with one it writes through it and emits `T*`.
-
-**A SCALAR out-parameter is not expressible today.** The `!` that would ask for
-one is `T3075` — `i32` has no interior to mutate — so a scalar `@c_pointer` is
-always read-only, and what C writes into the shim's temporary is discarded with
-it, silently. Lend a **one-element array** instead: `written: u32[]!` reads back
-on both backends, and is what `WriteFile`'s `lpNumberOfBytesWritten` uses in
-`lib/system/windows`. Every `T*` out-param — `getsockname`'s `socklen_t*`,
-`sqlite3_open`'s `sqlite3**` — takes that shape.
+`@c_pointer` takes **no argument**. A scalar crosses read-only (`const T*`); to
+read one back, see `@c_out`.
 
 It is accepted **only on an `@extern` declaration** — on a fn Vader compiles a
-body for, an address has no meaning. Any other decorator on a parameter, an
-argument to `@c_pointer`, or `@c_pointer` outside an `@extern`, is `T3079`.
+body for, an address has no meaning. Any decorator on a parameter other than
+`@c_pointer` and `@c_out`, an argument to either, or either outside an `@extern`,
+is `T3079`.
+
+### `@c_out` — C writes through the parameter
+
+```vader
+@extern("read")
+sys_read :: fn(fd: i32, @c_out buf: u8[], count: usize) -> i64
+```
+
+Without `@c_out`, C only reads what it is lent: an array crosses as `const void*`,
+a `@c_struct` mirror is filled before the call and not read back. With it, an array
+crosses as `void*` and C writes into its buffer in place; a mirror is filled, then
+copied back after the call. The argument must grant mutation, as any argument of a
+parameter that mutates: a module constant is refused.
+
+`@c_out` needs something C can write into — an array, or a mirror crossing with
+`@c_pointer`. On a scalar or a `string` it is `T3079`: what C writes into the
+shim's temporary dies with it at the return. To read a scalar back, lend a
+**one-element array**: `@c_out written: u32[]` reads back on both backends, the
+shape `WriteFile`'s `lpNumberOfBytesWritten` takes. Every `T*` out-param —
+`getsockname`'s `socklen_t*`, `sqlite3_open`'s `sqlite3**` — takes that shape.
 
 ### `@c_header` — letting the header own the prototype
 
@@ -3046,7 +3059,7 @@ compiler refuses — `clock_gettime` against `<time.h>`, `WriteFile` against
 ```vader
 @c_header("<time.h>")
 @extern("clock_gettime")
-sys_clock_gettime :: fn(clock_id: i32, ts: i64[]!) -> i32
+sys_clock_gettime :: fn(clock_id: i32, @c_out ts: i64[]) -> i32
 ```
 
 The two are exclusive **per symbol**: with `@c_header`, no prototype is emitted,
@@ -3074,15 +3087,15 @@ A Vader struct may mirror a C one, and then cross as an ADDRESS:
 @c_struct("div_t")
 Div :: struct { quot: i32, rem: i32 }
 
-@extern fill_div :: fn(@c_pointer d: Div!, quot: i32, rem: i32) -> void
+@extern fill_div :: fn(@c_pointer @c_out d: Div, quot: i32, rem: i32) -> void
 ```
 
 The parameter must carry `@c_pointer`; a `@c_struct` type without it is
 `T3050` ("crosses as an address — mark the parameter `@c_pointer`"). The shim
 declares a REAL C struct and marshals **field by field, by name**, so `cc`
 computes every offset from the actual header and checks every field's type —
-nothing here assumes a layout. `!` picks the direction: without it C reads what
-Vader holds, with it the shim copies back what C wrote.
+nothing here assumes a layout. `@c_out` picks the direction: without it C reads
+what Vader holds, with it the shim copies back what C wrote.
 
 The emitted C also carries `_Static_assert` lines: each mirrored field's width
 against the C field of that name, each field's signedness, each field's OFFSET
@@ -3216,7 +3229,7 @@ Plus, on top of the scalars:
 | a **nullable foreign pointer** (`CPointer \| null`) | both | one of the two union shapes with an ABI; C has no other nullable scalar |
 | a **nullable string** (`string \| null`) | RESULT only | how a callee says "absent" rather than "empty"; the atom is borrowed, as above |
 | **`isize(p)` / `usize(p)` on a `CPointer`** | reading only | a foreign sentinel that is not NULL — `INVALID_HANDLE_VALUE`, `MAP_FAILED`, both `-1` — is invisible to `CPointer \| null`, which narrows on zero alone. Reading the pointer as a pointer-width integer is the only way to test one. Narrower targets (`u8(p)`, `i32(p)`) are `T3010`: they would drop address bits, as is `f64(p)`. The reverse — `CPointer(42)`, fabricating a pointer — stays `T3010`, and nothing needs it: a sentinel is RETURNED and compared, never passed |
-| an **array of scalars** | ARGUMENT only | crosses as ONE bare pointer; a length, when the callee wants one, is a parameter of its own. C cannot fabricate a Vader array, so an array RETURN is rejected. `!` decides `void*` vs `const void*`, and what C writes reads back |
+| an **array of scalars** | ARGUMENT only | crosses as ONE bare pointer; a length, when the callee wants one, is a parameter of its own. C cannot fabricate a Vader array, so an array RETURN is rejected. `@c_out` decides `void*` vs `const void*`, and what C writes reads back |
 | a **`@c_struct`** | ARGUMENT only, with `@c_pointer` | see above; both backends, with the offset caveat noted there |
 
 | a **function type** | ARGUMENT only | a callback — see below; native backend only |

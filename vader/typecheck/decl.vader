@@ -478,24 +478,15 @@ declares_c_header :: fn(d: AST.FnDecl) -> bool {
 ///
 /// @param pm  the parameter.
 /// @return    whether it crosses as an address.
-param_has_c_pointer :: fn(pm: AST.FnParam) -> bool {
-    for d in pm.decorators {
-        if d.name == "c_pointer" {
-            return true
-        }
-    }
-    return false
-}
+param_has_c_pointer :: fn(pm: AST.FnParam) -> bool = AST.decorators_have(pm.decorators, "c_pointer")
 
 /// Check the decorators written on each of `decl`'s parameters.
 ///
-/// `@c_pointer` is the only one a parameter may carry, and only on an `@extern`
-/// declaration: it says the foreign callee receives the parameter's ADDRESS
-/// rather than its value, which has no meaning for a Vader-bodied fn.
-///
-/// Direction is NOT part of the decorator — the `!` already carries it. Without
-/// one, C reads through the pointer and the caller supplies the value; with one,
-/// C writes through it.
+/// `@c_pointer` and `@c_out` are the only ones a parameter may carry, and only on
+/// an `@extern` declaration. `@c_pointer` says the foreign callee receives the
+/// parameter's ADDRESS rather than its value ; `@c_out` says C writes through the
+/// parameter — without it, C only reads. Neither means anything for a fn Vader
+/// compiles a body for.
 ///
 /// @param decl       the fn whose parameters to check.
 /// @param is_extern  whether the declaration carries `@extern`.
@@ -503,18 +494,18 @@ param_has_c_pointer :: fn(pm: AST.FnParam) -> bool {
 validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagnostic[]) -> void {
     for pm in decl.params {
         for d in pm.decorators {
-            if d.name != "c_pointer" {
+            if d.name != "c_pointer" && d.name != "c_out" {
                 diags.push(typecheck_error(
                     .InvalidParameterDecorator, pm.span,
-                    "`@${d.name}` cannot decorate a parameter — only `@c_pointer` can"))
+                    "`@${d.name}` cannot decorate a parameter — only `@c_pointer` and `@c_out` can"))
             } else if !is_extern {
                 diags.push(typecheck_error(
                     .InvalidParameterDecorator, pm.span,
-                    "`@c_pointer` only means something on an `@extern` declaration"))
+                    "`@${d.name}` only means something on an `@extern` declaration"))
             } else if d.args.len() != 0 {
                 diags.push(typecheck_error(
                     .InvalidParameterDecorator, pm.span,
-                    "`@c_pointer` takes no argument — the `!` on the type says whether C writes"))
+                    "`@${d.name}` takes no argument"))
             }
         }
     }
@@ -646,6 +637,19 @@ validate_extern :: fn(
                     .InvalidExternDecl,
                     decl.params[i].span,
                     "`@c_struct` type `${display_type(pt)}` crosses as an address — mark the parameter `@c_pointer`",
+                ),
+            )
+            continue
+        }
+        // C writes back through an array's buffer (a mirror is copied back, above) ;
+        // into a scalar's temporary it writes for nothing, the temporary dying at
+        // the return.
+        if AST.decorators_have(decl.params[i].decorators, "c_out") && array_backing(pt) == null {
+            diags.push(
+                typecheck_error(
+                    .InvalidParameterDecorator,
+                    decl.params[i].span,
+                    "`@c_out` needs an array or a `@c_struct` for C to write into, got `${display_type(pt)}` — to read a scalar back, lend a one-element array",
                 ),
             )
             continue
@@ -1035,7 +1039,14 @@ declare_fn_param :: fn(
         )
         return TY_UNRESOLVED
     }
-    resolved_ty :: apply_readonly_default(type_from_expr(ty, resolved, diags), ty)
+    written :: apply_readonly_default(type_from_expr(ty, resolved, diags), ty)
+    // `@c_out` : C writes through the parameter, so the argument must grant what a
+    // written `!` would ask of it.
+    resolved_ty :: if AST.decorators_have(p.decorators, "c_out") {
+        with_immutable(written, false)
+    } else {
+        written
+    }
     typed.param_types[p.span.hash()] = resolved_ty
     // The parameter's written type is what a mutability-LEVEL mismatch has to point
     // at — `xs: Box[]` needs `Box![]`, and `annotate `xs!`` would suggest `Box[]!`,

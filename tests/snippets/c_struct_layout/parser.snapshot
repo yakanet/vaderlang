@@ -117,17 +117,18 @@
         {
           "name": "d",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "Div"
-            }
+            "kind": "IdentExpr",
+            "name": "Div"
           },
           "defaultValue": null,
           "variadic": false,
           "decorators": [
             {
               "name": "c_pointer",
+              "args": []
+            },
+            {
+              "name": "c_out",
               "args": []
             }
           ]

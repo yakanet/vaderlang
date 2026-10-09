@@ -56,17 +56,18 @@
         {
           "name": "tv",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "TimeVal"
-            }
+            "kind": "IdentExpr",
+            "name": "TimeVal"
           },
           "defaultValue": null,
           "variadic": false,
           "decorators": [
             {
               "name": "c_pointer",
+              "args": []
+            },
+            {
+              "name": "c_out",
               "args": []
             }
           ]

@@ -394,7 +394,7 @@ extern_parameter_type :: fn(sig: BcSignature, types: BcType[], j: usize) -> stri
         // the callee wants one, is an ordinary declared parameter — so the
         // declaration transcribes the C prototype one-to-one, and a callee
         // wanting a NUL-terminated `LPCWSTR` gets exactly one argument.
-        // `!` decides `void*` vs `const void*`, through
+        // `@c_out` decides `void*` vs `const void*`, through
         // `BcSignature.param_mutable`.
         return pointer_to("void", mutable)
     }
@@ -498,12 +498,7 @@ is_abi_nullable_string :: fn(types: BcType[], type_index: i32) -> bool {
     return has_null && has_str
 }
 
-/// Whether parameter `j` of `sig` was written with a `!`.
-///
-/// Absent vector → reported mutable, which is the SAFE direction : passing a
-/// `void*` where the callee declares `const void*` is legal C, the converse is
-/// not. Paths that build a signature without the vector (`.virt` reload, synth
-/// wrappers) therefore keep today's behaviour.
+/// Whether C writes through parameter `j` of `sig` — the parameter carries `@c_out`.
 ///
 /// @param sig  the import's signature.
 /// @param j    the parameter index.
@@ -756,12 +751,11 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[]! {
             // the RIGHT value for an unnamed member, but it is a defined one, and
             // a wrong answer beats undefined behaviour.
             before.push(declaration(mirror, "p${j}", initializer_list([number(0)])))
-            // Filled BEFORE the call either way. `!` grants mutation; it does not
+            // Filled BEFORE the call either way. `@c_out` says C writes; it does not
             // say the value is meaningless on entry, and a C parameter is often
             // IN-OUT — `poll` reads `fd` and `events` to decide what to watch and
             // writes `revents`. Filling a pure-out parameter costs one copy the
-            // callee overwrites; NOT filling an in-out one hands C a zeroed struct,
-            // which is what made `poll` watch nothing.
+            // callee overwrites; NOT filling an in-out one hands C a zeroed struct.
             push_member_copies(types, fields, spilled, object, true, before, 0)
             if param_is_mutable(sig, j) {
                 // And it travels back after the call (see `write_backs` below).

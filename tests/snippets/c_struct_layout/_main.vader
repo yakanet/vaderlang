@@ -20,7 +20,7 @@ Div :: struct {
 @c_header("<stdlib.h>")
 @extern("abs") c_abs :: fn(x: i32) -> i32
 
-@extern fill_div :: fn(@c_pointer d: Div!, quot: i32, rem: i32) -> void
+@extern fill_div :: fn(@c_pointer @c_out d: Div, quot: i32, rem: i32) -> void
 
 main :: fn() -> i32 {
     d :: Div { .quot = 0, .rem = 0 }

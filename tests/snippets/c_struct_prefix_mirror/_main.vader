@@ -24,7 +24,7 @@ TimeVal :: struct {
 
 @c_header("<sys/time.h>")
 @extern("gettimeofday")
-sys_gettimeofday :: fn(@c_pointer tv: TimeVal!, tz: CPointer | null) -> i32
+sys_gettimeofday :: fn(@c_pointer @c_out tv: TimeVal, tz: CPointer | null) -> i32
 
 main :: fn() -> i32 {
     tv :: TimeVal { .tv_sec = 0 }

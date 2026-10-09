@@ -435,7 +435,7 @@ params_mutable_of :: fn(ps: AST.FnParam[]) -> bool[] {
     any_mutable := false
     out: bool[]: []
     for p in ps {
-        m :: AST.param_is_mutable(p)
+        m :: AST.param_is_mutable(p) || AST.decorators_have(p.decorators, "c_out")
         if m { any_mutable = true }
         out.push(m)
     }

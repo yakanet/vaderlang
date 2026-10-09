@@ -1,0 +1,10 @@
+// `@c_out` on a scalar crossing as an address — T3079.
+//
+// C writes into the shim's stack temporary, which dies at the return: nothing
+// reaches Vader. Only an array's buffer or a `@c_struct` mirror can carry C's
+// writes back.
+module "snippet"
+
+@extern write_count :: fn(@c_pointer @c_out n: u32) -> void
+
+main :: fn() -> i32 { return 0 }

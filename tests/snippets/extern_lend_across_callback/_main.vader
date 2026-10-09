@@ -23,8 +23,8 @@ churn :: fn(x: i32) -> void {
 }
 
 @extern lend_set_cb :: fn(cb: fn(i32) -> void) -> void
-@extern lend_fill_array :: fn(q: i32[]!, n: usize) -> void
-@extern lend_fill_div :: fn(@c_pointer d: Div!) -> void
+@extern lend_fill_array :: fn(@c_out q: i32[], n: usize) -> void
+@extern lend_fill_div :: fn(@c_pointer @c_out d: Div) -> void
 
 @c_header("<stdlib.h>")
 @extern("abs") c_abs :: fn(x: i32) -> i32

@@ -102,17 +102,20 @@
         {
           "name": "q",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "i32"
             }
           },
           "defaultValue": null,
-          "variadic": false
+          "variadic": false,
+          "decorators": [
+            {
+              "name": "c_out",
+              "args": []
+            }
+          ]
         },
         {
           "name": "n",

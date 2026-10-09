@@ -65,17 +65,18 @@
         {
           "name": "p",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "Pair"
-            }
+            "kind": "IdentExpr",
+            "name": "Pair"
           },
           "defaultValue": null,
           "variadic": false,
           "decorators": [
             {
               "name": "c_pointer",
+              "args": []
+            },
+            {
+              "name": "c_out",
               "args": []
             }
           ]

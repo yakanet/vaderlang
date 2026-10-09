@@ -1922,13 +1922,16 @@ filled_variant :: fn(arg_ty: Type, param_ty: Type) -> Type {
     return param_ty
 }
 
-// Why parameter `i` grants mutation : its `!`, or a type parameter this call binds
-// to a type granting it — a mark the declaration does not carry.
+// Why parameter `i` grants mutation : its `!`, `@c_out`, or a type parameter this call
+// binds to a type granting it — a mark the declaration does not carry.
 mutable_param_detail :: fn(
     c: AST.CallExpr, callee_ty: FnType, i: usize, typed: TypedProgram,
 ) -> string {
     declared :: "the parameter is declared `!` — the callee may mutate it"
     param :: param_for_arg(c, i, typed) ?? return declared
+    if AST.decorators_have(param.decorators, "c_out") {
+        return "the parameter is `@c_out` — C writes through it"
+    }
     deduced :: deduced_mutation_why(param, typed)
     if deduced != null {
         return deduced

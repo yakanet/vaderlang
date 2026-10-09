@@ -144,17 +144,20 @@
         {
           "name": "q",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "i32"
             }
           },
           "defaultValue": null,
-          "variadic": false
+          "variadic": false,
+          "decorators": [
+            {
+              "name": "c_out",
+              "args": []
+            }
+          ]
         },
         {
           "name": "n",
@@ -187,17 +190,18 @@
         {
           "name": "d",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "Div"
-            }
+            "kind": "IdentExpr",
+            "name": "Div"
           },
           "defaultValue": null,
           "variadic": false,
           "decorators": [
             {
               "name": "c_pointer",
+              "args": []
+            },
+            {
+              "name": "c_out",
               "args": []
             }
           ]

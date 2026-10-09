@@ -628,14 +628,14 @@ reject_target_decorator :: fn(p: Parser, decorators: Decorator[], what: string) 
     }
 }
 
-// `@c_pointer` belongs on a PARAMETER and `@c_struct` on a struct. Written on a
-// declaration they reach neither check and do nothing — the same silent no-op
-// `reject_target_decorator` exists to prevent.
+// `@c_pointer` and `@c_out` belong on a PARAMETER and `@c_struct` on a struct.
+// Written on a declaration they reach neither check and do nothing — the same
+// silent no-op `reject_target_decorator` exists to prevent.
 reject_c_decorators :: fn(p: Parser, decorators: Decorator[], what: string) -> void {
     for d in decorators {
-        if d.name == "c_pointer" {
+        if d.name == "c_pointer" || d.name == "c_out" {
             p.error(.UnknownDecoratorPlacement, d.span,
-                "`@c_pointer` decorates a PARAMETER of an `@extern` ; it does not apply to ${what}")
+                "`@${d.name}` decorates a PARAMETER of an `@extern` ; it does not apply to ${what}")
         }
         if d.name == "c_struct" {
             p.error(.UnknownDecoratorPlacement, d.span,
