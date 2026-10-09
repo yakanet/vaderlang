@@ -137,6 +137,7 @@ export TypecheckCode :: enum(CodeInfo) {
     TraitImplementedSeveralTimes    { .id = "T3097", .message = "a type implementing a trait more than once cannot fill it here" },
     SelfMemberDispatchedByTag       { .id = "T3098", .message = "a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag" },
     ConstDependsOnItself            { .id = "T3099", .message = "a constant cannot depend on its own value" },
+    FieldDefaultsFillEachOther      { .id = "T3100", .message = "field defaults cannot fill each other in" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

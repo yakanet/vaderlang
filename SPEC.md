@@ -961,6 +961,8 @@ s3 :: Settings { .name = "tight", .timeout = 5 }        // debug=false
 
 Omitting a field that has neither a default nor a spread source raises `T3037`.
 
+Since a default is evaluated at each literal that omits its field, the struct literals it holds fill in their own omitted fields in turn. Defaults whose literals fill one another in would never stop — `A :: struct { b: B = B {} }` with `B :: struct { a: A = A {} }` — and are `T3100`. A const built from a literal reads what the defaults it fills in read, so `D :: Q {}.n` with `Q :: struct { n: i32 = D }` is `T3099`.
+
 #### Spread (functional update)
 
 `{ ...other, .field = v }` copies every field of `other` and overrides the listed ones. The spread source is evaluated **once** (bound to a synthetic local) regardless of how many fields inherit from it. Multiple spreads are allowed; the last one wins for any field not explicitly named.

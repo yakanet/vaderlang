@@ -1,0 +1,17 @@
+// A default that builds a struct literal fills in that literal's own omitted fields :
+// here each default builds the other's struct, so filling them in never stops. T3100,
+// at the default that closes the cycle.
+module "snippet"
+
+Leaf :: struct {
+    branch: Branch = Branch {}
+}
+
+Branch :: struct {
+    depth: i32 = 1
+    leaf: Leaf = Leaf {}
+}
+
+main :: fn() -> i32 {
+    return Leaf {}.branch.depth
+}

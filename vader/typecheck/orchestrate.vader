@@ -2510,9 +2510,13 @@ export walk_bodies :: fn(
             is AST.ImportDecl    -> {}
         }
     }
+    fill :: DefaultFill {}
     for decl in decls {
         if decl is AST.StructDecl {
             check_field_defaults(decl, typed, diags)
+            if mode == .Full {
+                reject_default_cycle(decl, fill, typed, diags)
+            }
         }
     }
 }

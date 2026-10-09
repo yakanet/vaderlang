@@ -1,0 +1,18 @@
+// The literal a default builds fills in its own omitted fields, so a const built from
+// the outer literal reads what the inner default reads : here the const itself.
+// T3099, at the outer literal.
+module "snippet"
+
+Inner :: struct {
+    start: i32 = FIRST
+}
+
+Outer :: struct {
+    inner: Inner = Inner {}
+}
+
+FIRST :: Outer {}.inner.start
+
+main :: fn() -> i32 {
+    return FIRST
+}

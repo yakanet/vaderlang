@@ -63,19 +63,6 @@ settle_const_read :: fn(sym: Symbol, span: Span, typed: TypedProgram) -> void {
     settle_decl_read(cd, span, typed)
 }
 
-// Settle the consts a field default reads, at a literal (`span`) that leaves the
-// field out : the default's value lands in the literal, so a const being typed
-// through it reads them — `D :: Q {}.n` with `Q :: struct { n: i32 = D }` is a
-// cycle (T3099). Outside a const's value, nothing needs them before their turn.
-settle_default_reads :: fn(default: AST.Expr, span: Span, typed: TypedProgram) -> void {
-    if typed.const_walk.typing.len() == 0 {
-        return
-    }
-    for cd in const_reads(default, typed) {
-        settle_decl_read(cd, span, typed)
-    }
-}
-
 // The walk's declaration of the module const `sym`.
 walk_decl_of :: fn(sym: Symbol, typed: TypedProgram) -> AST.ConstDecl! | null {
     declared :: typed.const_decls[sym.id] ?? return null
@@ -188,11 +175,21 @@ consts_in_dependency_order :: fn(root: AST.ConstDecl, typed: TypedProgram) -> AS
 frame_of :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> DependencyFrame! =
     DependencyFrame { .decl = decl, .reads = const_reads(decl.value, typed) }
 
-// The consts of this walk the value `e` names directly — through operators, field
-// and index reads, calls, literals and `??` ; a read under any other form is typed
-// on demand instead (`settle_const_read`).
-const_reads :: fn(e: AST.Expr, typed: TypedProgram) -> AST.ConstDecl![] {
-    out: AST.ConstDecl[]: []
+// The consts of this walk the value `e` names directly (`value_reads`).
+const_reads :: fn(e: AST.Expr, typed: TypedProgram) -> AST.ConstDecl![] =
+    value_reads(e, typed).consts
+
+// What a value names directly, through operators, field and index reads, calls,
+// literals and `??` : the consts of this walk, and the struct literals, whose
+// omitted fields take their defaults (`field_defaults.vader`). A read under any
+// other form is typed on demand instead (`settle_const_read`).
+ValueReads :: struct {
+    consts: AST.ConstDecl![]! = []
+    literals: AST.StructLitExpr[]! = []
+}
+
+value_reads :: fn(e: AST.Expr, typed: TypedProgram) -> ValueReads {
+    out :: ValueReads {}
     work: AST.Expr[]: [e]
     for work.len() > 0 {
         x :: work.remove_last() ?? break
@@ -203,7 +200,7 @@ const_reads :: fn(e: AST.Expr, typed: TypedProgram) -> AST.ConstDecl![] {
                     continue
                 }
                 found :: walk_decl_of(sym, typed) ?? continue
-                out.push(found)
+                out.consts.push(found)
             }
             is AST.BinaryExpr -> {
                 work.push(x.left)
@@ -223,6 +220,7 @@ const_reads :: fn(e: AST.Expr, typed: TypedProgram) -> AST.ConstDecl![] {
             }
             is AST.SeqLitExpr -> { work.push_all(x.elements) }
             is AST.StructLitExpr -> {
+                out.literals.push(x)
                 for item in x.items {
                     if item is AST.StructLitField {
                         work.push(item.value)
