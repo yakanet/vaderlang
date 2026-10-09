@@ -939,24 +939,44 @@ has_mutable_element :: fn(t: Type) -> bool {
     return type_grants_mutation(arr.element) || has_mutable_element(arr.element)
 }
 
-/// Record that a method call stores its argument `i` into an element of its receiver :
-/// a parameter marked `!` whose type is the receiver's element type, as `push`'s
-/// `value: T!` under `self: T[]`.
+/// Record that a method call on an array stores what its argument `i` holds into an
+/// element of its receiver. The receiver binds the member's `T` : a parameter that is
+/// `T` under k arrays takes the receiver's element rights at the argument's levels k
+/// down, as `push_all`'s `other: T[]` ; at k = 0, only a parameter that grants
+/// mutation demands them, as `push`'s `value: T!`.
 note_element_store :: fn(c: AST.CallExpr, i: usize, arg_ty: Type, typed: TypedProgram) -> void {
     inference :: recording_edges(typed) ?? return
     if c.callee !is AST.FieldExpr {
         return
     }
-    receiver :: c.callee.target
-    containers :: edge_roots_of(receiver, typed)
-    if containers.len() == 0 {
+    member :: typed.chosen_impl_methods[c.callee.id] ?? return
+    signature :: member.ty
+    if signature !is FnType || i >= signature.params.len() {
         return
     }
+    depth :: type_param_depth(signature.params[i]) ?? return
+    if depth == 0 && !param_mutable_at(signature, i) {
+        return
+    }
+    receiver :: c.callee.target
     recv_ty :: typed.expr_types[receiver.id] ?? return
     arr :: array_shape_in(recv_ty) ?? return
-    if fits_shape(arg_ty, arr.element) {
-        store_edges(inference, containers, c.args[i].value, arg_ty, c.args[i].span, typed)
+    stored_ty :: type_at_level(arg_ty, elements_path(depth)) ?? return
+    if !fits_shape(stored_ty, arr.element) {
+        return
     }
+    containers :: edge_roots_of(receiver, typed)
+    store_edges(inference, containers, c.args[i].value, stored_ty, depth, c.args[i].span, typed)
+}
+
+// How many arrays down `t` is a type parameter ; null when it is none.
+type_param_depth :: fn(t: Type) -> i32 | null {
+    if t is TypeParamType {
+        return 0
+    }
+    arr :: array_shape_in(t) ?? return null
+    below :: type_param_depth(arr.element) ?? return null
+    return below + 1
 }
 
 /// Record that `value` is stored into an element of `container` : when the container's
@@ -968,19 +988,19 @@ note_store_edge :: fn(
     container: AST.Expr, value: AST.Expr, value_ty: Type, at: Span, typed: TypedProgram,
 ) -> void {
     inference :: recording_edges(typed) ?? return
-    store_edges(inference, edge_roots_of(container, typed), value, value_ty, at, typed)
+    store_edges(inference, edge_roots_of(container, typed), value, value_ty, 0, at, typed)
 }
 
-// An edge from the element of each of `containers` to the roots of the value stored
-// there.
+// An edge from the element of each of `containers` to the roots of what is stored
+// there : `value`'s levels `depth` arrays down, of type `stored_ty`.
 store_edges :: fn(
-    inference: ParamInference, containers: SlotRoot[], value: AST.Expr, value_ty: Type,
-    at: Span, typed: TypedProgram,
+    inference: ParamInference, containers: SlotRoot[], value: AST.Expr, stored_ty: Type,
+    depth: i32, at: Span, typed: TypedProgram,
 ) -> void {
     if containers.len() == 0 {
         return
     }
-    stored :: edge_roots_of(value, typed)
+    stored :: roots_of(value, depth, false, typed)
     if stored.len() == 0 {
         return
     }
@@ -990,7 +1010,7 @@ store_edges :: fn(
         }
         edge :: ArgEdge {
             .from = container.elements + 1,
-            .arg_ty = value_ty,
+            .arg_ty = stored_ty,
             .call = at,
             .callee = "",
         }

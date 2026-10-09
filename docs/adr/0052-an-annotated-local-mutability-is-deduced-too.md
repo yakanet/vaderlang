@@ -64,10 +64,22 @@ Measured on 2026-10-09 against `6244ec385`, on the self-check:
 - `vader fix` removes 1 481 `!` from the compiler tree, plus about 90 from other
   entry points (bootstrap, `lib/` libraries, `@target` bodies, benchmarks,
   examples). Built twice from the fixed tree, stage 1 and stage 2 emit the same C.
-- **Three rounds instead of two.** Two calls of `push_all(self!, other: T[])` pass
-  an array whose elements must match the receiver's once the receiver's are
-  marked: no signature says so, so no edge carries it, and a third round finds it.
-- **Typecheck time** goes from about 1 140 ms to about 1 650 ms — the third round.
+- **Typecheck time** goes from about 1 140 ms to about 1 160 ms; still two rounds.
+
+### Stores through a type parameter
+
+A first version took three rounds. Three locals were filled by
+`out.push_all(xs)` and then returned as `T![]`: the return marks `out`'s element
+in round 1, and `push_all :: fn(self!, other: T[])` then binds `T` to that
+element, so `xs`'s elements must grant mutation too — which only round 2's
+refusal found.
+
+On an array, a member's `T` is bound by the receiver alone: every `T` of its
+signature becomes the receiver's element. A parameter that is `T` under k arrays
+therefore stores the argument's levels k down into the receiver's element, and an
+edge records it. That edge is read from the member's declared signature, not from
+the shape of the substituted one. At k = 0, only a parameter that grants mutation
+demands the element's rights, as `push`'s `value: T!`.
 
 Nine diagnostic fixtures used an annotated local's written `!` as the slot that
 demanded mutation; once deduced, nothing demanded it. They now mutate through the
@@ -75,8 +87,11 @@ local, so the `!` is demanded by the body.
 
 Still open:
 
-- **A type parameter pinned by a mutable receiver** (`push_all`) has no edge, and
-  costs a round.
+- **Type-parameter coupling beyond an array's members.** A generic fn whose `T` is
+  bound by several arguments under a mutable level (`fn<T>(dst: T[]!, src: T[])`)
+  links their rights, and so does an argument with another: no edge carries it,
+  and a round finds it. A deduced callee's invariance is itself a mark, so the edge
+  would have to wait for it.
 - **The rounds re-check everything.** Re-checking only the functions a new mark
   reaches would make the extra rounds cheap.
 - A written `!` that only a later round would find needed — a value filling a

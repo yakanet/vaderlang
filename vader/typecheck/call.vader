@@ -1875,10 +1875,10 @@ reject_immutable_into_mutable_param :: fn(
 ) -> bool {
     param_ty :: callee_ty.params[i]
     note_arg_edge(c, i, arg_ty, param_ty, typed)
+    note_element_store(c, i, arg_ty, typed)
     if !param_mutable_at(callee_ty, i) {
         return false
     }
-    note_element_store(c, i, arg_ty, typed)
     // A `!` on a type parameter promises as much mutation as `T` is bound to, and
     // no more: `push :: fn(self!, value: T!)` stores `value` in the receiver, so a
     // `Box![]` demands a mutable `Box` while a `Box[]` or an `i32[]` asks nothing.

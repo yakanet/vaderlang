@@ -67,8 +67,9 @@ from one round to the next.
   grows. The closure therefore aligns the callee's element with the argument's,
   whether the argument's type writes that `!` or its root's mark does.
 - **Stores into an element:** an edge one level up connects the container's
-  element to the stored value. This covers `xs[i] = v`, and a `!` parameter typed
-  as the receiver's element (`push`).
+  element to the stored value. This covers `xs[i] = v`, a `!` parameter typed as
+  the receiver's element (`push`), and a parameter typed as that element under k
+  arrays, whose argument's levels k down are what is stored (`push_all`, ADR 0052).
 - **Through a field:** a field is as read-only as its struct and as its declared
   type. A refused value read through a field of a parameter is therefore a need on
   the parameter's own level only where the field's declared type does not withhold
