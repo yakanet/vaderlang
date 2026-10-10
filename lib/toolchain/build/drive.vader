@@ -222,7 +222,8 @@ emit_one :: fn(
     } else {
         strip_input_suffix(entry).as_string()
     }
-    return link_native(c, Path(binary), cc, release, ldflags, runtime_root_of(ctx))
+    quote_dir :: quote_include_dir(entry)
+    return link_native(c, Path(binary), cc, release, ldflags, runtime_root_of(ctx), quote_dir)
 }
 
 // ---- producing output -----------------------------------------------------

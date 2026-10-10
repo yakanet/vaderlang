@@ -3077,9 +3077,11 @@ settle a conflict: it is the ONLY check that the declaration matches the real
 function, since a bare `@extern` synthesises its prototype FROM the Vader
 signature and nothing ever compares the two.
 
-A quoted header resolves relative to the source: the generated translation units
-are written beside the `.vader` file, so `@c_header("\"my_header.h\"")` finds a
-header sitting next to it. Anywhere else needs `--cflags="-I<dir>"`.
+A quoted header resolves against the entry file's directory, wherever `--out`
+writes the generated C: the build hands that directory to `cc` as `-iquote`. So
+`@c_header("\"my_header.h\"")` finds a header sitting next to the entry, and
+`"\"include/my.h\""` one below it; a header installed in a system location takes
+angle brackets.
 
 ### `@c_struct` — mirroring a C struct
 

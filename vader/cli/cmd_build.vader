@@ -320,7 +320,7 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
     // diagnostics through `flush_build_diags` — but the LINK is shared with
     // `vader/pipeline`, so the two cannot drift on flags.
     c_src :: emit_c_for_input(file, release, include_path_flags, target, verify) ?? return 1
-    return link_native(c_src, out, cc, release, ldflags, "")
+    return link_native(c_src, out, cc, release, ldflags, "", quote_include_dir(file))
 }
 
 // ----------------------------------------------------------- split build
@@ -359,14 +359,16 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
     // some parallelism; that is why the user's own `--split` passes 0.
     argvs: string[][]: []
     obj_files: string[]: []
+    quote_dir :: quote_include_dir(file)
     for cf in c_files {
         obj :: "${cf}.o"
         obj_files.push(obj)
-        argvs.push(cc_compile_argv(cc, cf.as_string(), obj, rt, release, flavour))
+        argvs.push(cc_compile_argv(cc, cf.as_string(), obj, rt, release, flavour, quote_dir))
     }
     rt_obj :: "${out}.split.runtime.o"
     obj_files.push(rt_obj)
-    argvs.push(cc_compile_argv(cc, "${rt}/vader_runtime.c", rt_obj, rt, release, flavour))
+    rt_src :: "${rt}/vader_runtime.c"
+    argvs.push(cc_compile_argv(cc, rt_src, rt_obj, rt, release, flavour, quote_dir))
 
     wave :: if cc_jobs > 0 { usize(cc_jobs) } else { argvs.len() }
     results: (ProcessResult | ProcessError)[]: []
@@ -725,17 +727,21 @@ ensure_target_dir :: fn(out: Path, target: string) -> i32 {
 }
 
 // `cc -c <src> -o <obj>` for one split TU (or the runtime). Same optimisation
-// flags as the monolithic `cc_argv`, plus `-I <runtime>` so `#include "vader.h"`
-// and the co-located split header resolve. One of these runs per object, in
-// parallel.
+// flags and includes (`push_include_flags`) as the monolithic `cc_argv`. One of
+// these runs per object, in parallel.
 cc_compile_argv :: fn(
-    cc: string, src: string, obj: string, rt: string, release: bool, flavour: CcFlavour,
+    cc: string,
+    src: string,
+    obj: string,
+    rt: string,
+    release: bool,
+    flavour: CcFlavour,
+    quote_dir: string,
 ) -> string[] {
     argv: string[]: [cc]
     argv.push_all(cc_opt_flags(release))
     argv.push_all(lto_flags(flavour, release, false, 0))
-    argv.push("-I")
-    argv.push(rt)
+    push_include_flags(argv, rt, quote_dir)
     argv.push("-c")
     argv.push(src)
     argv.push("-o")

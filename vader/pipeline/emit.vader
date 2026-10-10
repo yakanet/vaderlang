@@ -179,23 +179,61 @@ export push_ldflags :: fn(argv: string[], ldflags: string) -> void {
     }
 }
 
+/// The directory a quoted `@c_header("\"my.h\"")` resolves against: the entry
+/// file's. The generated C is written beside `--out`, not always beside the
+/// source, so `cc` is handed this directory as `-iquote`.
+///
+/// @param entry  the file the build was asked for.
+export quote_include_dir :: fn(entry: Path) -> string {
+    dir :: canonicalise(entry).parent().as_string()
+    if dir == "" {
+        return "."
+    }
+    return dir
+}
+
+/// Push the include flags every `cc` compile of emitted code takes.
+///
+/// Shared by BOTH compile paths, the mono `cc_argv` here and the split
+/// `cc_compile_argv` in `vader/cli`. `-I <rt>` reaches `vader.h`. `-iquote <rt>`
+/// comes before `quote_dir`: a quoted include searches the `-iquote` list first,
+/// so a `vader.h` beside the entry would otherwise stand in for the runtime's.
+///
+/// @param argv       the command line being built, appended to in place.
+/// @param rt         the directory holding `vader.h`.
+/// @param quote_dir  where a quoted `@c_header` resolves (`quote_include_dir`).
+export push_include_flags :: fn(argv: string[], rt: string, quote_dir: string) -> void {
+    argv.push("-I")
+    argv.push(rt)
+    argv.push("-iquote")
+    argv.push(rt)
+    argv.push("-iquote")
+    argv.push(quote_dir)
+}
+
 /// Assemble the `cc` command line for a native link.
 ///
-/// Runtime include, the emitted unit, the runtime unit, opt flags, user
-/// `ldflags`, then `-o <out> -lm`. `-lm` satisfies the runtime's `floor` /
-/// `fmod` on glibc and is a no-op elsewhere.
+/// Opt flags, includes (`push_include_flags`), the emitted unit, the runtime
+/// unit, user `ldflags`, then `-o <out> -lm`. `-lm` satisfies the runtime's
+/// `floor` / `fmod` on glibc and is a no-op elsewhere.
 /// @param runtime_root  directory holding `vader_runtime.c` + `vader.h`, or ""
 ///                      to probe beside the running executable. A build DRIVER
 ///                      must pass it: the driver binary lives under the
 ///                      project's `build/`, so the probe would look there.
+/// @param quote_dir     where a quoted `@c_header` resolves (`quote_include_dir`).
 export cc_argv :: fn(
-    cc: string, c_file: string, out: Path, release: bool, ldflags: string, runtime_root: string,
+    cc: string,
+    c_file: string,
+    out: Path,
+    release: bool,
+    ldflags: string,
+    runtime_root: string,
+    quote_dir: string,
 ) -> string[] {
     argv: string[]: [cc]
     argv.push_all(cc_opt_flags(release))
     rt :: if runtime_root == "" { runtime_c_root() } else { runtime_root }
-    argv.push("-I")
-    argv.push(rt)
+    push_include_flags(argv, rt, quote_dir)
     argv.push(c_file)
     argv.push("${rt}/vader_runtime.c")
     push_ldflags(argv, ldflags)
@@ -241,21 +279,29 @@ export default_cc :: fn() -> string {
 /// runtime include, `ldflags`, `-lm`. The generated `.c` is KEPT on failure and
 /// named in the message, so the user can inspect what was actually produced.
 ///
-/// @param c        the emitted C source.
-/// @param out      binary to produce ; the C lands at `<out>.c`.
-/// @param release  passed to the opt flags.
-/// @param cc       C compiler to invoke.
-/// @param ldflags  raw linker flags, appended verbatim.
-/// @return         0 on success, 1 when the C could not be written or `cc`
-///                 failed. `cc`'s own stderr is forwarded as-is.
+/// @param c             the emitted C source.
+/// @param out           binary to produce ; the C lands at `<out>.c`.
+/// @param cc            C compiler to invoke.
+/// @param release       passed to the opt flags.
+/// @param ldflags       raw linker flags, appended verbatim.
+/// @param runtime_root  see `cc_argv`.
+/// @param quote_dir     where a quoted `@c_header` resolves (`quote_include_dir`).
+/// @return              0 on success, 1 when the C could not be written or `cc`
+///                      failed. `cc`'s own stderr is forwarded as-is.
 export link_native :: fn(
-    c: string, out: Path, cc: string, release: bool, ldflags: string, runtime_root: string,
+    c: string,
+    out: Path,
+    cc: string,
+    release: bool,
+    ldflags: string,
+    runtime_root: string,
+    quote_dir: string,
 ) -> i32 {
     c_file :: "${out}.c".to_path()
     if write_out(c_file, c) != 0 {
         return 1
     }
-    res :: spawn(cc_argv(cc, c_file.as_string(), out, release, ldflags, runtime_root))
+    res :: spawn(cc_argv(cc, c_file.as_string(), out, release, ldflags, runtime_root, quote_dir))
     if res is ProcessError {
         eprintln("vader build: ${res.message()}")
         eprintln("(generated C kept at ${c_file})")
@@ -330,6 +376,12 @@ export c_source_of :: fn(cfg: CfgBytecode, release: bool) -> string =
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test
+test_quote_include_dir_is_the_entry_directory :: fn() -> void {
+    assert_eq(quote_include_dir("src/app/main.vader".to_path()), "src/app")
+    assert_eq(quote_include_dir("main.vader".to_path()), ".")
+}
 
 @test
 test_cc_opt_flags_wrap_signed_arithmetic :: fn() -> void {

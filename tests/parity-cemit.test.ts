@@ -561,7 +561,9 @@ for (const s of scenarios) {
     writeFileSync(cFile, dump.stdout);
 
     const build = Bun.spawn([
-      CC, "-std=c11", "-O0", "-fwrapv", "-I", RUNTIME_ROOT,
+      // The include flags `vader build` passes (`push_include_flags`): a quoted
+      // `@c_header` resolves beside the snippet's `_main.vader`.
+      CC, "-std=c11", "-O0", "-fwrapv", "-I", RUNTIME_ROOT, "-iquote", RUNTIME_ROOT, "-iquote", s.dir,
       cFile, join(RUNTIME_ROOT, "vader_runtime.c"),
       // `@extern` snippets carry their foreign symbols in helper `.c`
       // files next to `_main.vader` — compile them into the binary.
