@@ -658,7 +658,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 
 ### Signed overflow
 
-`a + b` that overflows **panics in debug, wraps in release**. Behavior not configurable in MVP.
+Signed integer arithmetic **wraps** (two's complement), on every backend and in every mode: `a: i32: 2147483647` then `a + 1` is `-2147483648` under `vader run`, from a debug build and from a release one alike. The native backend compiles with `-fwrapv`, so the C compiler never assumes an overflow away. There is no overflow check; a narrowing cast truncates (§Casts).
 
 ### Strings
 
@@ -1353,7 +1353,7 @@ Top-level constants follow the same pattern but are restricted to compile-time e
 ```vader
 x: i32 = 42
 y: i64 = i64(x)            // widening cast, safe
-z: u8  = u8(x)             // narrowing cast, panics in debug if overflow
+z: u8  = u8(x)             // narrowing cast, keeps the low bits (300 -> 44)
 ```
 
 **`char` ↔ integer**: `char` is a `u32` codepoint at the wire level, so casts between `char` and any integer type (`i32`, `u32`, `i64`, `u64`, `usize`, …) are allowed and reinterpret the bits with a tag change. Casts between `char` and float types are rejected — go through an integer first.

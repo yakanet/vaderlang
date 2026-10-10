@@ -88,7 +88,7 @@ async function check(s: { name: string; dir: string; mainPath: string }): Promis
   await Bun.write(cFile, cSource);
 
   const buildProc = Bun.spawn([
-    "cc", "-std=c11", "-O0", "-g", "-I", RUNTIME_ROOT,
+    "cc", "-std=c11", "-O0", "-g", "-fwrapv", "-I", RUNTIME_ROOT,
     cFile, join(RUNTIME_ROOT, "vader_runtime.c"), "-o", binFile, "-lm",
   ], { stderr: "pipe", stdout: "pipe" });
   const buildErr = await new Response(buildProc.stderr).text();

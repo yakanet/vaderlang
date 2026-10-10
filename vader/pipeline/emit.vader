@@ -35,12 +35,19 @@ import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as def
 /// Beside the executable first (the `dist/` bundle layout), then the invocation
 /// directory — the same sidecar probe the stdlib resolution uses.
 export runtime_c_root :: fn() = resolve_sidecar("runtime/c", "vader.h")
-/// Optimisation flags for the C compiler.
+/// The flags every C compile of emitted code takes, by build mode.
 ///
 /// Release adds `-falign-functions=64`, measured as worth it on this codebase;
-/// debug keeps `-O0 -g` so a `#line`-carrying build is steppable.
-export cc_opt_flags :: fn(release: bool) -> string[] =
-    if release { ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64"] } else { ["-std=c11", "-O0", "-g"] }
+/// debug keeps `-O0 -g` so a `#line`-carrying build is steppable. Both carry
+/// `-fwrapv`: signed arithmetic wraps, as on the VM (SPEC §Signed overflow), where
+/// C leaves an overflow undefined and a compiler assumes none happens, gcc even at
+/// `-O0`. The emitter computes some `u32` / `u64` arithmetic on signed C
+/// temporaries, so unsigned wrapping depends on the flag too.
+export cc_opt_flags :: fn(release: bool) -> string[] = if release {
+    ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64", "-fwrapv"]
+} else {
+    ["-std=c11", "-O0", "-g", "-fwrapv"]
+}
 
 /// Which C toolchain `cc` is, since the two that matter spell link-time
 /// optimisation differently.
@@ -323,6 +330,12 @@ export c_source_of :: fn(cfg: CfgBytecode, release: bool) -> string =
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test
+test_cc_opt_flags_wrap_signed_arithmetic :: fn() -> void {
+    assert("-fwrapv" in cc_opt_flags(true), "a release build wraps signed overflow")
+    assert("-fwrapv" in cc_opt_flags(false), "a debug build wraps signed overflow")
+}
 
 @test
 test_lto_flags_gcc_link_names_its_job_count :: fn() -> void {

@@ -338,6 +338,8 @@ const C_PARITY = new Set<string>([
   // read, stored or not; native output == vm.snapshot keeps the backends from
   // drifting on it.
   "narrow_int_wrap",
+  // `i32` / `i64` arithmetic wraps past the maximum (release: `signed_overflow_release.test.ts`).
+  "signed_overflow_wraps",
   // Generic call whose type-param is bound only by the call's expected type,
   // with a lambda factory argument. Native is the oracle that matters here: the
   // erased-vs-packed element mismatch this guards against was invisible in the
@@ -559,7 +561,7 @@ for (const s of scenarios) {
     writeFileSync(cFile, dump.stdout);
 
     const build = Bun.spawn([
-      CC, "-std=c11", "-O0", "-I", RUNTIME_ROOT,
+      CC, "-std=c11", "-O0", "-fwrapv", "-I", RUNTIME_ROOT,
       cFile, join(RUNTIME_ROOT, "vader_runtime.c"),
       // `@extern` snippets carry their foreign symbols in helper `.c`
       // files next to `_main.vader` — compile them into the binary.

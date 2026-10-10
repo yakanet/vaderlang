@@ -10,26 +10,11 @@
 import { expect, test } from "bun:test";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { LONG_BUILD, runCli } from "./cli-bin.ts";
+import { LONG_BUILD, haveCc, runCli } from "./cli-bin.ts";
 
 const SNIPPET = "tests/snippets/panic_runs_defers/_main.vader";
 // Innermost frame's defer first (refund), then the caller's (release hold).
 const EXPECTED_STDOUT = "reserve inventory\ncharging 500\nrefund 500\nrelease hold\n";
-
-// The compiler the CLI would invoke on THIS host, mirroring
-// `vader/pipeline/emit.vader::default_cc`. Probing `cc` on Windows skipped the native
-// half on the platform that most needs it — and did not even skip cleanly, since
-// `spawn` THROWS on a missing program rather than exiting non-zero.
-const HOST_CC = process.env.CC || (process.platform === "win32" ? "gcc" : "cc");
-
-async function haveCc(): Promise<boolean> {
-  try {
-    const proc = Bun.spawn([HOST_CC, "--version"], { stdout: "ignore", stderr: "ignore" });
-    return (await proc.exited) === 0;
-  } catch {
-    return false;
-  }
-}
 
 test("panic runs pending defers on the VM before aborting", async () => {
   const { stdout, exit } = await runCli(["run", SNIPPET]);

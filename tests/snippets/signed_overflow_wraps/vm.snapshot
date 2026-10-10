@@ -1,0 +1,11 @@
+# stdout
+i32 sum: -2147483648
+i32 product: -2
+i32 negated minimum: -2147483648
+i32 grows at the maximum: false
+i32 grows below it: true
+i32 steps to the wrap: 3
+i64 sum: -9223372036854775808
+i64 grows at the maximum: false
+# exit
+0

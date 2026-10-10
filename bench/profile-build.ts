@@ -177,7 +177,7 @@ function main(): void {
     const out = join(tmp, "selfcompile.bin");
     const ccBin = process.env.CC ?? "cc";
     const cc = runTimed(
-      [ccBin, "-O0", "-std=c11", "-I", join(REPO, "runtime/c"), cPath,
+      [ccBin, "-O0", "-std=c11", "-fwrapv", "-I", join(REPO, "runtime/c"), cPath,
        join(REPO, "runtime/c/vader_runtime.c"), "-o", out, "-lm"],
       {},
       null,

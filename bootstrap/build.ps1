@@ -29,7 +29,7 @@ Set-Location (Split-Path -Parent $PSScriptRoot)
 $ccCmd = Get-Command $CC -ErrorAction SilentlyContinue
 if ($null -eq $ccCmd) { throw "C compiler '$CC' not found on PATH (use -CC ...)" }
 $ccAbs = $ccCmd.Source
-$stage0cflags = if ($env:STAGE0_CFLAGS) { $env:STAGE0_CFLAGS } else { '-O1' }
+$stage0cflags = @($(if ($env:STAGE0_CFLAGS) { $env:STAGE0_CFLAGS } else { '-O1' }), '-fwrapv')
 $ccJobs = if ($env:CC_JOBS -match '^[1-9][0-9]*$') { [int]$env:CC_JOBS } else { [Environment]::ProcessorCount }
 $runtime = "runtime\c\vader_runtime.c"
 
@@ -171,7 +171,7 @@ function CcLinkParallel($flags, $objDirRel, $outFile, $units, $what, $ldflags, $
 
 # stage1 carries the release flags, not stage0's cheap ones -- see
 # docs/adr/0004-bootstrap-stages-share-the-release-flags.md.
-$stage1Cflags = @('-std=c11', '-O3', '-DNDEBUG', '-falign-functions=64') + (LtoCompileFlags)
+$stage1Cflags = @('-std=c11', '-O3', '-DNDEBUG', '-falign-functions=64', '-fwrapv') + (LtoCompileFlags)
 $stage1Ldflags = LtoLinkFlags
 
 Step "[1/3] Building stage0 (bootstrap compiler, from the seed)  [$ccAbs $stage0cflags, $hostTarget, -j$ccJobs]"

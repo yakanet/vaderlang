@@ -20,6 +20,22 @@ export const exePath = (base: string) => `${base}${EXE_SUFFIX}`;
 
 export const CLI_BIN = exePath("build/vader");
 
+// The compiler the CLI would invoke on THIS host, mirroring
+// `vader/pipeline/emit.vader::default_cc`. Probing `cc` on Windows skipped the native
+// half on the platform that most needs it, and did not even skip cleanly, since
+// `spawn` THROWS on a missing program rather than exiting non-zero.
+export const HOST_CC = process.env.CC || (process.platform === "win32" ? "gcc" : "cc");
+
+/// Whether `HOST_CC` runs, for the tests whose native half needs a C toolchain.
+export async function haveCc(): Promise<boolean> {
+  try {
+    const proc = Bun.spawn([HOST_CC, "--version"], { stdout: "ignore", stderr: "ignore" });
+    return (await proc.exited) === 0;
+  } catch {
+    return false;
+  }
+}
+
 // Per-test timeout budgets shared across the CLI / VM / format suites.
 export const MEDIUM_BUILD = 30_000;
 export const LONG_BUILD = 120_000;

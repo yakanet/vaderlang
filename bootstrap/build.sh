@@ -33,7 +33,7 @@ if [ -z "$CC_ABS" ]; then
   # compiler says nothing about the seed.
   exit 2
 fi
-STAGE0_CFLAGS="${STAGE0_CFLAGS:--O1}"
+STAGE0_CFLAGS="${STAGE0_CFLAGS:--O1} -fwrapv"
 runtime="runtime/c/vader_runtime.c"
 
 # Arena sizing is RAM-proportional (runtime/c/vader_runtime.c::vader_gc_init —
@@ -64,7 +64,7 @@ case "$CC_JOBS" in ''|*[!0-9]*|0) CC_JOBS=$(cc_jobs) ;; esac
 # compiler in the loop yet to ask. Keep the two in step: the flags, the toolchain
 # probe, the import limit and GCC's explicit LTRANS job count all live there.
 release_cflags() {
-    echo "-std=c11 -O3 -DNDEBUG -falign-functions=64"
+    echo "-std=c11 -O3 -DNDEBUG -falign-functions=64 -fwrapv"
 }
 
 cc_flavour() {
