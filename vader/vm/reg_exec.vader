@@ -480,29 +480,28 @@ reg_call :: fn(
                 }
             }
             .GetElement | .LoadSlot -> {
-                failed :: get_element(m, base, operand_a(w), operand_b(w), operand_c(w), f, pc, op == .LoadSlot)
-                if failed != null {
-                    return failed
+                if !try_get_element(m, base, operand_a(w), operand_b(w), operand_c(w)) {
+                    return element_trap(m, base, operand_b(w), operand_c(w), f, pc, op)
                 }
             }
             .SetElement | .StoreSlot -> {
-                failed :: set_element(m, base, operand_a(w), operand_b(w), operand_c(w), f, pc, op == .StoreSlot)
-                if failed != null {
-                    return failed
+                if !try_set_element(m, base, operand_a(w), operand_b(w), operand_c(w)) {
+                    failed :: set_element(
+                        m, base, operand_a(w), operand_b(w), operand_c(w), f, pc, op,
+                    )
+                    if failed != null {
+                        return failed
+                    }
                 }
             }
             .Length -> {
-                array :: array_in(m, base + usize(operand_b(w)), f, pc, "array.len")
-                if array is Trap {
-                    return array
-                }
+                at :: base + usize(operand_b(w))
+                array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, "array.len")
                 set_i32(bits, tags, base, operand_a(w), i32(array.length))
             }
             .Append -> {
-                array :: array_in(m, base + usize(operand_a(w)), f, pc, "array.push")
-                if array is Trap {
-                    return array
-                }
+                at :: base + usize(operand_a(w))
+                array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, "array.push")
                 // Tested here as well: `detach_array_view` sets up its GC frame before
                 // its own test, and almost no array pushed to is a view.
                 if array.raw != null || is_array_view(array) {
@@ -656,15 +655,21 @@ reg_call :: fn(
     }
 }
 
-// The array register `at` holds, writable — the in-place ops grow or overwrite the
-// very object the register holds.
-array_in :: fn(m: RegMachine, at: usize, f: RegFunction, pc: usize, label: string) -> ArrayVal! | Trap! {
+// The array register `at` holds, writable (the in-place ops grow or overwrite the
+// very object the register holds), or null when it holds something else. Allocates
+// nothing, so a caller on a hot path takes no GC frame for it.
+array_at :: fn(m: RegMachine, at: usize) -> ArrayVal! | null {
     if m.tags[at] == .Ref {
         v :: m.refs[at]
         if v is ArrayVal {
             return v
         }
     }
+    return null
+}
+
+// The trap for an array op whose receiver register `at` holds no array.
+receiver_trap :: fn(m: RegMachine, at: usize, f: RegFunction, pc: usize, label: string) -> Trap {
     got :: describe_value_tag(register_value(m, at))
     return Trap { .message = "${label} receiver at pc=${f.origin[pc]}: expected array, got ${got}" }
 }
@@ -684,48 +689,89 @@ set_field :: fn(m: RegMachine, base: usize, obj: i32, value: i32, field: i32, f:
     return if failed is Trap { failed } else { null }
 }
 
-// `slot` for a `load_slot*`, which traps under its own name.
-get_element :: fn(
-    m: RegMachine, base: usize, dst: i32, array_reg: i32, index_reg: i32, f: RegFunction, pc: usize, slot: bool,
-) -> Trap | null {
-    label :: if slot { "load_slot" } else { "array.get" }
+// Read an element into register `dst`, allocating nothing so it takes no GC frame.
+// False when the register holds no array or the index is out of bounds, with nothing
+// written: the caller then builds the trap (`element_trap`).
+try_get_element :: fn(
+    m: RegMachine, base: usize, dst: i32, array_reg: i32, index_reg: i32,
+) -> bool {
+    array :: array_at(m, base + usize(array_reg)) ?? return false
     index :: i32(m.bits[base + usize(index_reg)])
-    array :: array_in(m, base + usize(array_reg), f, pc, label)
-    if array is Trap {
-        return array
-    }
     if index < 0 || usize(index) >= array.length {
-        return Trap { .message = "${label} index ${index} out of bounds (len=${array.length}) at pc=${f.origin[pc]}" }
+        return false
     }
     raw :: array.raw
     if raw != null {
         set_i32(m.bits, m.tags, base, dst, i32(raw[array.offset + usize(index)]))
-        return null
+        return true
     }
     set_register(m, base + usize(dst), array.elements[array.offset + usize(index)])
+    return true
+}
+
+// Write an element, allocating nothing so it takes no GC frame. False when the
+// register holds no array, the index is out of bounds or the array reads raw bytes it
+// must own first, with nothing written: the caller then runs `set_element`.
+try_set_element :: fn(
+    m: RegMachine, base: usize, array_reg: i32, index_reg: i32, value: i32,
+) -> bool {
+    array :: array_at(m, base + usize(array_reg)) ?? return false
+    index :: i32(m.bits[base + usize(index_reg)])
+    if index < 0 || usize(index) >= array.length || array.raw != null {
+        return false
+    }
+    array.elements[array.offset + usize(index)] = register_value(m, base + usize(value))
+    return true
+}
+
+// The trap of the element op `op` that `try_get_element` or `try_set_element` refused
+// for its receiver or its index; any other refusal reads as an out-of-bounds index.
+element_trap :: fn(
+    m: RegMachine,
+    base: usize,
+    array_reg: i32,
+    index_reg: i32,
+    f: RegFunction,
+    pc: usize,
+    op: RegOp,
+) -> Trap {
+    label :: element_label(op)
+    at :: base + usize(array_reg)
+    array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, label)
+    index :: i32(m.bits[base + usize(index_reg)])
+    origin :: f.origin[pc]
+    return Trap { .message = "${label} index ${index} out of bounds (len=${array.length}) at pc=${origin}" }
+}
+
+// An element write `try_set_element` refused: the trap, or a write into an array that
+// reads raw bytes, which owns them first.
+set_element :: fn(
+    m: RegMachine,
+    base: usize,
+    array_reg: i32,
+    index_reg: i32,
+    value: i32,
+    f: RegFunction,
+    pc: usize,
+    op: RegOp,
+) -> Trap | null {
+    at :: base + usize(array_reg)
+    array :: array_at(m, at) ?? return element_trap(m, base, array_reg, index_reg, f, pc, op)
+    index :: i32(m.bits[base + usize(index_reg)])
+    if index < 0 || usize(index) >= array.length {
+        return element_trap(m, base, array_reg, index_reg, f, pc, op)
+    }
+    own_bytes(array)
+    array.elements[array.offset + usize(index)] = register_value(m, base + usize(value))
     return null
 }
 
-// `slot` for a `store_slot*`, which traps under its own name.
-set_element :: fn(
-    m: RegMachine, base: usize, array_reg: i32, index_reg: i32, value: i32, f: RegFunction, pc: usize, slot: bool,
-) -> Trap | null {
-    label :: if slot { "store_slot" } else { "array.set" }
-    index :: i32(m.bits[base + usize(index_reg)])
-    array :: array_in(m, base + usize(array_reg), f, pc, label)
-    if array is Trap {
-        return array
-    }
-    if index < 0 || usize(index) >= array.length {
-        return Trap { .message = "${label} index ${index} out of bounds (len=${array.length}) at pc=${f.origin[pc]}" }
-    }
-    // Tested here as well: `own_bytes` sets up its GC frame before its own test, and
-    // almost no array holds raw bytes.
-    if array.raw != null {
-        own_bytes(array)
-    }
-    array.elements[array.offset + usize(index)] = register_value(m, base + usize(value))
-    return null
+// The name an element op traps under: a `load_slot*` or `store_slot*` has its own.
+element_label :: fn(op: RegOp) -> string {
+    if op == .LoadSlot   { return "load_slot" }
+    if op == .StoreSlot  { return "store_slot" }
+    if op == .SetElement { return "array.set" }
+    return "array.get"
 }
 
 // Truncate register `at` to a narrow width, as `narrow_mask` does: only an integer
@@ -1088,4 +1134,71 @@ set_bool :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: boo
     at :: base + usize(register)
     bits[at] = if v { 1 } else { 0 }
     tags[at] = .Bool
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// A module whose `main` runs `ops`, its local 0 an `i32[]` holding `[1, 2, 3]`.
+array_module :: fn(ops: string[]) -> bc.BytecodeModule | null {
+    setup :: [
+        "local a ref", "i32.const 1", "i32.const 2", "i32.const 3", "array.new 1 3", "local.set 0",
+    ]
+    body := ""
+    for op in setup + ops {
+        body = "${body}  ${op}\n"
+    }
+    header :: "module demo\ntype 0 primitive i32\ntype 1 array 0\nfn 0 main () -> i32\n"
+    parsed :: parse_virt_bc("${header}${body}end\nexport main 0\n")
+    if parsed is VirtParseError {
+        assert(false, "the test module parses: ${parsed.reason}")
+        return null
+    }
+    return parsed
+}
+
+// The message `module` traps with, or "" when it runs to its end.
+trap_message :: fn(module: bc.BytecodeModule) -> string {
+    state :: prepare(module)
+    if state is VerifyError {
+        assert(false, "the test module verifies: ${display_verify_error(state)}")
+        return ""
+    }
+    result :: exec(state, [])
+    if result is Trap {
+        return result.message
+    }
+    return ""
+}
+
+@test
+test_array_element_reads_within_bounds :: fn() -> void {
+    module :: array_module(["local.get 0", "i32.const 1", "load_slot_i32", "return"]) ?? return
+    assert_eq(exec_value(module), 2)
+}
+
+@test
+test_array_element_write_reads_back :: fn() -> void {
+    module :: array_module([
+        "local.get 0", "i32.const 2", "i32.const 9", "store_slot_i32",
+        "local.get 0", "i32.const 2", "load_slot_i32", "return",
+    ]) ?? return
+    assert_eq(exec_value(module), 9)
+}
+
+@test
+test_array_element_read_out_of_bounds_traps :: fn() -> void {
+    module :: array_module(["local.get 0", "i32.const 5", "load_slot_i32", "return"]) ?? return
+    expected :: "load_slot index 5 out of bounds (len=3)"
+    assert(expected in trap_message(module), "a[5] traps")
+}
+
+@test
+test_array_element_write_out_of_bounds_traps :: fn() -> void {
+    module :: array_module([
+        "local.get 0", "i32.const 5", "i32.const 9", "store_slot_i32", "i32.const 0", "return",
+    ]) ?? return
+    expected :: "store_slot index 5 out of bounds (len=3)"
+    assert(expected in trap_message(module), "a[5] = 9 traps")
 }
