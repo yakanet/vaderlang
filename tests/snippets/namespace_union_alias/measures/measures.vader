@@ -1,0 +1,9 @@
+// Measures module for the namespace_union_alias snippet: an alias naming, through
+// a namespace import, an alias that itself names a namespace member. It settles
+// only once `kinds.Shape` has.
+module "snippet/measures"
+
+k :: import "snippet/kinds"
+
+/// A shape, or a bare length.
+export Measure :: k.Shape | i32

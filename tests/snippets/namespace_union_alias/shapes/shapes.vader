@@ -1,0 +1,5 @@
+// Shapes module for the namespace_union_alias snippet.
+module "snippet/shapes"
+
+/// A circle, by radius.
+export Circle :: struct { r: i32 }

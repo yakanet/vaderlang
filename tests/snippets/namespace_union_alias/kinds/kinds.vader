@@ -1,0 +1,11 @@
+// Kinds module for the namespace_union_alias snippet: exports a union alias
+// that names a member of another module through a namespace import.
+module "snippet/kinds"
+
+sh :: import "snippet/shapes"
+
+/// A square, by side.
+export Square :: struct { side: i32 }
+
+/// Either shape.
+export Shape :: sh.Circle | Square

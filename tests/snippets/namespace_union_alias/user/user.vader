@@ -1,0 +1,8 @@
+// User module for the namespace_union_alias snippet: names the alias `kinds`
+// exports through a wildcard import.
+module "snippet/user"
+
+import "snippet/kinds"
+
+/// Area of either shape.
+export area :: fn(s: Shape) -> i32 = if s is Square { s.side * s.side } else { 3 * s.r * s.r }

@@ -340,6 +340,9 @@ const C_PARITY = new Set<string>([
   "narrow_int_wrap",
   // `i32` / `i64` arithmetic wraps past the maximum (release: `signed_overflow_release.test.ts`).
   "signed_overflow_wraps",
+  // A union alias naming a member through a namespace import, declared before and
+  // after the signatures that use it.
+  "namespace_union_alias",
   // Generic call whose type-param is bound only by the call's expected type,
   // with a lambda factory argument. Native is the oracle that matters here: the
   // erased-vs-packed element mismatch this guards against was invisible in the

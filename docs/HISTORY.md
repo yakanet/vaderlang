@@ -383,6 +383,9 @@ Done items lifted out of otherwise-in-progress Phase 3 subsections (`TODO.md` ke
 Long-form write-ups of completed "next up" items. Their one-line summary stays in
 `TODO.md`.
 
+### A union alias through a namespace member read as a bitwise `|` (done 2026-10-10)
+`Shape :: sh.Circle | Square` was typed as a value: T3017 on the `|`, then T3002 at every signature naming `Shape`; the wildcard-import form compiled. `is_type_expr` (`vader/typecheck/orchestrate.vader`) knew a bare name but not a namespace member, and the members of a namespace import are only listed after the first alias pass. It now recognises `Ns.Member` from `namespace_member_types`, and every module's member tables are filled before any module declares its signatures (`settle_namespace_member_aliases`): the consts the first pass left pending are retried, and the tables rebuilt until a round settles nothing, so neither declaration order nor module order matters, nor an alias naming another such alias. Pinned by `tests/snippets/namespace_union_alias/`, whose alias is exported and used from two other modules.
+
 ### A quoted `@c_header` was not found once `--out` pointed elsewhere (done 2026-10-10)
 SPEC said a quoted header resolves next to the source because the generated C is written beside the `.vader` file; with `--out` elsewhere it was not, and `cc` failed with `'my.h' file not found`. The build now hands the entry file's directory to `cc` as `-iquote`, in the split and the single-unit builds and from a build driver (`quote_include_dir`, `vader/pipeline/emit.vader`). SPEC also named a `--cflags` escape hatch that never existed; it now says a header below the entry is named by its relative path, a system one takes angle brackets. Pinned by `tests/c_header_quoted.test.ts`.
 

@@ -1,0 +1,64 @@
+# Typecheck
+
+## tests/snippets/namespace_union_alias
+  ConstDecl      Later                :: type
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         perimeter            :: fn(Circle | Square) -> i32
+  expr 16:36    IfExpr         :: i32
+  expr 16:39    BinaryExpr     :: bool
+  expr 16:39    IdentExpr      :: Circle | Square
+  expr 16:55    BinaryExpr     :: i32
+  expr 16:59    FieldExpr      :: i32
+  expr 16:59    IdentExpr      :: Square
+  expr 16:75    BinaryExpr     :: i32
+  expr 16:79    FieldExpr      :: i32
+  expr 16:79    IdentExpr      :: Circle
+  expr 21:24    SeqLitExpr     :: (Circle | Square)[]
+  expr 21:25    StructLitExpr  :: Square!
+  expr 21:49    StructLitExpr  :: Circle!
+  expr 22:14    IdentExpr      :: (Circle | Square)[]
+  expr 23:17    StringLitExpr  :: string
+  expr 23:25    CallExpr       :: i32
+  expr 23:25    FieldExpr      :: fn(Circle | Square) -> i32
+  expr 23:32    IdentExpr      :: Circle | Square
+  expr 23:48    CallExpr       :: i32
+  expr 23:48    IdentExpr      :: fn(Circle | Square) -> i32
+  expr 23:58    IdentExpr      :: Circle | Square
+  expr 23:9     CallExpr       :: void
+  expr 23:9     IdentExpr      :: fn(T) -> void
+  expr 26:13    IdentExpr      :: i32
+  expr 26:5     IfExpr         :: void
+  expr 26:8     BinaryExpr     :: bool
+  expr 26:8     IdentExpr      :: Circle | i32 | Square
+  expr 27:17    StringLitExpr  :: string
+  expr 27:28    IdentExpr      :: i32
+  expr 27:9     CallExpr       :: void
+  expr 27:9     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/namespace_union_alias/kinds
+  ConstDecl      Shape                :: type
+  StructDecl     Square               :: Square!
+
+## tests/snippets/namespace_union_alias/measures
+  ConstDecl      Measure              :: type
+
+## tests/snippets/namespace_union_alias/shapes
+  StructDecl     Circle               :: Circle!
+
+## tests/snippets/namespace_union_alias/user
+  FnDecl         area                 :: fn(Circle | Square) -> i32
+  expr 8:38     IfExpr         :: i32
+  expr 8:41     BinaryExpr     :: bool
+  expr 8:41     IdentExpr      :: Circle | Square
+  expr 8:46     IdentExpr      :: Square!
+  expr 8:55     BinaryExpr     :: i32
+  expr 8:55     FieldExpr      :: i32
+  expr 8:55     IdentExpr      :: Square
+  expr 8:64     FieldExpr      :: i32
+  expr 8:64     IdentExpr      :: Square
+  expr 8:80     BinaryExpr     :: i32
+  expr 8:80     BinaryExpr     :: i32
+  expr 8:84     FieldExpr      :: i32
+  expr 8:84     IdentExpr      :: Circle
+  expr 8:90     FieldExpr      :: i32
+  expr 8:90     IdentExpr      :: Circle

@@ -1,0 +1,30 @@
+// A union alias may name a member through a namespace import: `Shape ::
+// sh.Circle | Square` (in `kinds`) is a type, not a bitwise `|` of two values.
+// It was T3017, and every signature naming it T3002. It holds wherever the alias
+// is used: from its own module, through a namespace import (`k.Shape`), through a
+// wildcard one (`user`), when declared below the fn that takes it (`Later`), and
+// named in turn by another such alias (`measures.Measure`).
+
+module "snippet"
+
+import "std/io"
+k :: import "snippet/kinds"
+ms :: import "snippet/measures"
+sh :: import "snippet/shapes"
+u :: import "snippet/user"
+
+perimeter :: fn(s: Later) -> i32 = if s is k.Square { 4 * s.side } else { 6 * s.r }
+
+Later :: k.Square | sh.Circle
+
+main :: fn() -> i32 {
+    shapes: k.Shape[]: [k.Square { .side = 2 }, sh.Circle { .r = 1 }]
+    for s in shapes {
+        println("area ${u.area(s)} perimeter ${perimeter(s)}")
+    }
+    m: ms.Measure: 7
+    if m is i32 {
+        println("measure ${m}")
+    }
+    return 0
+}

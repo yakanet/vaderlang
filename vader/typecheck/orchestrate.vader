@@ -206,7 +206,7 @@ check_project_round :: fn(
             unsettled[id] = register_aliases(other_typed, decls)
         }
     }
-    settle_project_aliases(per_module, unsettled)
+    _ :: settle_project_aliases(per_module, unsettled)
     merge_external_alias_types(entry_typed, per_module)
     // Make every module's enums resolvable cross-module before any fn
     // signature is lowered — so a `d: parser.Visibility` param resolves to
@@ -217,7 +217,9 @@ check_project_round :: fn(
     // alias lookups (`Pet` from `./types`) follow ImportBinding to
     // the real symbol during fn-signature lowering below.
     wire_targets :: wire_imports(project)
-    entry_typed.import_targets = wire_targets
+    for [_, typed] in per_module {
+        typed.import_targets = wire_targets
+    }
     populate_resolver_imports(entry_typed)
     populate_resolver_imports_for_others(entry_typed, project, per_module)
     // R2018 orphan-rule pre-resolve check (project-level — needs the
@@ -247,31 +249,12 @@ check_project_round :: fn(
             )
         }
     }
-    // Pre-populate `namespace_member_types` from each target module's
-    // exported types so `type_from_expr`'s FieldExpr arm can resolve
-    // `P.Decl` in fn-signature type positions (which run during
-    // `declare_module` below — before `populate_external_types`
-    // builds `namespace_exports`).
-    // Memoise each target module's exported member map + private-name set by
-    // `mod_id` across the whole prepopulate phase : a module namespace-imported
-    // by N others (`Ty :: import "vader/types"`) would otherwise rebuild the
-    // identical, importer-independent table N times. The cached value is correct
-    // whenever built — it's a pure function of `mod_id` (reads only the target's
-    // `collected.symbols`, fixed from load, and its own `alias_types`, settled by
-    // `register_aliases` above). The cache stays phase-local (not persisted)
-    // because its single consumer re-keys the result into
-    // `resolved.namespace_member_types` (`sym_id`-keyed) — nothing queries it by
-    // `mod_id` afterward. Sharing one instance across importers is safe : the
-    // inner maps are read-only downstream (`type_expr.vader::namespace_member_type`).
-    namespace_member_cache :: MutableMap<string, MutableMap<string, Type>> {}
-    namespace_private_cache :: MutableMap<string, MutableMap<string, bool>> {}
-    prepopulate_namespace_member_types(
-        entry_typed,
-        project,
-        per_module,
-        namespace_member_cache,
-        namespace_private_cache,
-    )
+    // Pre-populate every module's `namespace_member_types` so `type_from_expr`'s
+    // FieldExpr arm can resolve `P.Decl` in fn-signature type positions (which run
+    // during `declare_module` below, before `populate_external_types` builds
+    // `namespace_exports`), and settle the aliases that name such a member.
+    settle_namespace_member_aliases(project, per_module, unsettled)
+    merge_external_alias_types(entry_typed, per_module)
     // Phase B : declare every decl (fn signatures, struct types, etc.)
     // across ALL files of the module. decl_types is Symbol.id-keyed and
     // the span-keyed tables (param_types / type_expr_types) are now
@@ -285,37 +268,21 @@ check_project_round :: fn(
         project.factory,
         diags,
     )
-    // For every imported module, prepopulate its `namespace_member_types`
-    // (mirroring the entry's prepop above) BEFORE its own `declare_module`.
-    // The whole-program lowerer lowers imported bodies too, so a signature
-    // whose param/return is a namespace-qualified imported type
-    // (`d: p.TraitDecl`) must resolve here — otherwise `type_from_expr` reads
-    // an empty table and the param degrades to `?` (→ field-gets drop to
-    // `Drop;Return` in emit). prepop needs `import_targets` (= wire_targets) ;
-    // the later body-check loop re-sets it idempotently. Each module's prepop
-    // is self-contained (reads the target's exports from `collected.symbols` +
-    // `alias_types`, not from any module's `declare_module`), so interleaving
-    // prepop with declare is safe.
+    // Declare every imported module too: the whole-program lowerer lowers imported
+    // bodies, so a signature whose param/return is a namespace-qualified imported
+    // type (`d: p.TraitDecl`) must resolve here, from the member tables filled
+    // above; otherwise the param degrades to `?` (→ field-gets drop to
+    // `Drop;Return` in emit).
     for [id, other] in project.modules {
         if id == project.entry {
             continue
         }
         other_typed :: per_module[id] ?? continue
-        other_typed.import_targets = wire_targets
-        prepopulate_namespace_member_types(
-            other_typed,
-            project,
-            per_module,
-            namespace_member_cache,
-            namespace_private_cache,
-        )
         // Merge cross-module alias/union types into this import too (the entry
-        // got this at top via `merge_external_alias_types`). A signature param
-        // typed by an imported union/alias (`got: Type`, `sh: Shape`) resolves
-        // via `resolved.alias_types`, which only holds the module's OWN aliases
-        // until merged — without this, the param degrades to `?` (→ field-gets
-        // and `is T as a` binds collapse). `register_aliases` already ran for
-        // every module above, so all sources are available.
+        // got this above). A signature param typed by an imported union/alias
+        // (`got: Type`, `sh: Shape`) resolves via `resolved.alias_types`, which
+        // only holds the module's OWN aliases until merged; without this, the
+        // param degrades to `?` (→ field-gets and `is T as a` binds collapse).
         merge_external_alias_types(other_typed, per_module)
         declare_module(
             merge_module_program(other.module.files).decls,
@@ -421,9 +388,9 @@ check_project_round :: fn(
             continue
         }
         other_typed :: per_module[id] ?? continue
-        // `import_targets` and `namespace_member_types` were both set for this
-        // module before its `declare_module` (the loop above, mirroring the
-        // entry) and persist — no need to re-set / rebuild them here.
+        // `import_targets` and `namespace_member_types` were both set for every
+        // module before any `declare_module` (`settle_namespace_member_aliases`)
+        // and persist: no need to re-set or rebuild them here.
         populate_resolver_imports(other_typed)
         populate_external_types(other_typed, project, per_module)
         // The pre-settle populate (so settle's own UFCS sees cross-module
@@ -1541,10 +1508,11 @@ register_alias_decl :: fn(decl: AST.Decl, typed: TypedProgram) -> bool {
 // An alias naming another module's types (`Reading :: Celsius | Label`, the
 // members imported) settles only once that module's aliases are visible: merge
 // every module's tables into each one still unsettled and retry, until a round
-// registers nothing.
+// registers nothing. True when anything settled.
 settle_project_aliases :: fn(
     per_module: MutableMap<string, TypedProgram!>, unsettled: MutableMap<string, AST.Decl[]>,
-) -> void {
+) -> bool {
+    settled_any := false
     for {
         progressed := false
         for id in unsettled.keys() {
@@ -1558,12 +1526,63 @@ settle_project_aliases :: fn(
             if rest.len() < pending.len() {
                 unsettled[id] = rest
                 progressed = true
+                settled_any = true
             }
         }
         if !progressed {
+            return settled_any
+        }
+    }
+}
+
+// Fill every module's `namespace_member_types`, then retry the consts Phase A left
+// pending: one whose type names a namespace member (`Shape :: sh.Circle | Square`)
+// could not register before those tables existed. A newly settled alias is itself
+// a member another module may name, so the tables are rebuilt until a round
+// settles nothing. Runs before any `declare_module`, so neither the order of the
+// declarations nor that of the modules matters.
+settle_namespace_member_aliases :: fn(
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram!>,
+    unsettled: MutableMap<string, AST.Decl[]>,
+) -> void {
+    // A target's private-name set depends on its collected symbols alone; its
+    // member map also on its `alias_types`, so it is rebuilt each round. Both are
+    // shared by all the target's importers and read-only downstream
+    // (`type_expr.vader::namespace_member_type`).
+    private_cache :: MutableMap<string, MutableMap<string, bool>> {}
+    for {
+        member_cache :: MutableMap<string, MutableMap<string, Type>> {}
+        for [_, typed] in per_module {
+            prepopulate_namespace_member_types(typed, project, per_module, member_cache, private_cache)
+        }
+        // The retry merges every module's aliases into each pending one: skip it
+        // when no pending decl can settle, which is every project without such an
+        // alias.
+        if !can_settle_now(per_module, unsettled) || !settle_project_aliases(per_module, unsettled) {
             return
         }
     }
+}
+
+// Whether a pending decl may settle now that the member tables are filled: a const
+// that reads as a type, or a type alias still unresolved. A const that does not
+// read as a type yet can only settle after one of those does.
+can_settle_now :: fn(
+    per_module: MutableMap<string, TypedProgram!>, unsettled: MutableMap<string, AST.Decl[]>,
+) -> bool {
+    for [id, pending] in unsettled {
+        typed :: per_module[id] ?? continue
+        for decl in pending {
+            if decl is AST.TypeAliasDecl {
+                return true
+            }
+            if decl is AST.ConstDecl && is_type_expr(decl.value, typed.resolved) {
+                return true
+            }
+        }
+    }
+    return false
 }
 
 // Compute every enum's `EnumType` across all files of all modules (Phase A)
@@ -1665,6 +1684,11 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
 /// `register_aliases` fills to a fixed point within a module — a chain of any
 /// depth, in any declaration order. A member imported from another module is only
 /// seen by the later writers, which walk in source order.
+///
+/// `Ns.Member` names a type when `Ns` is a namespace import whose target exports a
+/// type by that name (`namespace_member_types`). Those tables are filled after
+/// `register_aliases`; `settle_namespace_member_aliases` retries the consts left
+/// pending once they are.
 export is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.IdentExpr {
         if primitive_from_name(e.name) !is null {
@@ -1675,6 +1699,14 @@ export is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
             return true
         }
         return resolved.alias_types[sym.id] !is null
+    }
+    if e is AST.FieldExpr {
+        if e.target !is AST.IdentExpr {
+            return false
+        }
+        namespace :: resolved.idents[e.target.span.hash()] ?? return false
+        members :: resolved.namespace_member_types[namespace.id] ?? return false
+        return members[e.field] !is null
     }
     if e is AST.BinaryExpr {
         if e.op == .BitOr {
@@ -2306,36 +2338,34 @@ build_namespace_export_decls :: fn(
     return out
 }
 
-/// Pre-populate `entry_typed.resolved.namespace_member_types` from
-/// each target module's `collected.symbols` + `alias_types`. Runs
-/// BEFORE `declare_module` so fn signatures referencing `P.Decl` in
-/// type position resolve correctly. The full `namespace_exports`
-/// table (built later from `decl_types`) is only used for
-/// value-position field access via `field.vader::try_namespace_field`.
-/// Called for the entry AND for every imported module (each before its own
-/// `declare_module`) — the whole-program lowerer lowers imported bodies too,
-/// so their fn signatures can reference `P.Decl` namespace-qualified types
-/// that must resolve here instead of degrading to `?`. Plain (non-namespace)
-/// imports still resolve via `imports_to` + `alias_types` and don't need this.
+/// Pre-populate `typed.resolved.namespace_member_types` from each target
+/// module's `collected.symbols` + `alias_types`. Runs BEFORE any `declare_module`
+/// (`settle_namespace_member_aliases`) so fn signatures referencing `P.Decl` in
+/// type position resolve correctly. The full `namespace_exports` table (built
+/// later from `decl_types`) is only used for value-position field access via
+/// `field.vader::try_namespace_field`. Called for every module: the
+/// whole-program lowerer lowers imported bodies too, so their fn signatures can
+/// reference `P.Decl` namespace-qualified types that must resolve here instead
+/// of degrading to `?`. Plain (non-namespace) imports still resolve via
+/// `imports_to` + `alias_types` and don't need this.
 ///
-/// `member_cache` / `private_cache` are keyed by target `mod_id` and shared
-/// across every call this phase makes, so a module namespace-imported by N
-/// others has its (importer-independent) member map + private-name set built
-/// once, not N times.
+/// `member_cache` / `private_cache` are keyed by target `mod_id` and shared by
+/// the calls of one round, so a module namespace-imported by N others has its
+/// (importer-independent) member map + private-name set built once, not N times.
 prepopulate_namespace_member_types :: fn(
-    entry_typed: TypedProgram,
+    typed: TypedProgram,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram!>,
     member_cache: MutableMap<string, MutableMap<string, Type>>,
     private_cache: MutableMap<string, MutableMap<string, bool>>,
 ) -> void {
-    targets :: entry_typed.import_targets ?? return
+    targets :: typed.import_targets ?? return
     for [sym_id, mod_id] in targets.namespace_targets {
         members :: build_namespace_type_members(mod_id, project, per_module, member_cache)
-        entry_typed.resolved.namespace_member_types[sym_id] = members
+        typed.resolved.namespace_member_types[sym_id] = members
         // Companion set of the target's PRIVATE member names, so a `P.private`
         // access can be told apart from a genuinely-absent member and fire R2008.
-        entry_typed.resolved.namespace_private_members[sym_id] = build_namespace_private_names(
+        typed.resolved.namespace_private_members[sym_id] = build_namespace_private_names(
             mod_id,
             project,
             private_cache,
