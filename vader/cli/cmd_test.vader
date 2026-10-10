@@ -79,11 +79,17 @@ cmd_test :: fn(args: string[]) -> i32 {
         files_with_tests += 1
         println(rep)
         mangles :: fresh.map((t) -> t.mangled).collect()
+        cfg_diags: Diagnostic[]: []
         module :: cfg_to_bytecode(
             pruned, module_name_from_file(rep),
             // `vader test` runs bytecode in the VM, which never reads `debug`.
             EmitOptions { .optimize = true, .keep_mangles = mangles, .want_debug = false },
+            cfg_diags,
         )
+        if !flush_build_diags([], cfg_diags) {
+            total_fail += 1
+            continue
+        }
         state :: prepare(module)
         if state is VerifyError {
             eprintln("vader test: ${display_verify_error(state)}")

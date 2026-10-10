@@ -204,14 +204,15 @@ CfgBytecode :: struct {
 // and `midir/emit` panics on it instead of the error being reported.
 cfg_bytecode_from :: fn(le: LoweredEntry, file: string) -> CfgBytecode {
     pruned :: prune_unreachable_fns(le.lowered, false)
-    cfg :: build_cfg_project(pruned)
+    cfg_diags: Diagnostic[]: []
+    cfg :: build_cfg_project(pruned, cfg_diags)
     dced :: eliminate_dead_cfg(cfg)
     escaped :: annotate_escape(dced).project
     module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
     return CfgBytecode {
         .entry       = le.entry,
         .pre_diags   = le.pre_diags,
-        .lower_diags = le.lower_diags,
+        .lower_diags = le.lower_diags + cfg_diags,
         .module      = module,
     }
 }

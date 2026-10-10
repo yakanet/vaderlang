@@ -138,9 +138,11 @@ import "vader/comptime"
 /// Top-level entry — walk the lowered project, emit one `CFGModule` per
 /// lowered module.
 ///
-/// @param lp  the lowered project from the lowerer pass.
-/// @return    a fresh `CFGProject` with one entry per non-stdlib module.
-export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[] = []) -> CFGProject! {
+/// @param lp     the lowered project from the lowerer pass.
+/// @param diags  accumulator for what the build reports: an identifier it cannot
+///               place (M5007), with an `unreachable` put in its place.
+/// @return       a fresh `CFGProject` with one entry per lowered module.
+export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]) -> CFGProject! {
     ctx :: new_project_ctx(lp, diags)
     modules :: MutableMap<string, CFGModule> {}
     for [module_id, m] in lp.modules {

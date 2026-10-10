@@ -57,17 +57,17 @@ run_source :: fn(file: Path, host_argv: string[]) -> i32 {
     // the lowered IR carries its own `Type`s, so emit never revisits the
     // typed-AST tables.
     le :: lower_to_entry(file)
+    prepared :: prepare_cfg_bytecode_from(le, file, false)
+    module :: prepared.module
     // Report errors and bail before executing, as `build` does : `lower_to_entry`
     // returns an empty lowered project on a front-end error (it won't lower a
     // rejected program), which would otherwise reach the VM as a "no entry
-    // function" trap that buries the real diagnostic ; and a lowering error puts
-    // an `unreachable` where it could not lower, which would cut the function
+    // function" trap that buries the real diagnostic ; and a lowering or CFG error
+    // puts an `unreachable` where it could not lower, which would cut the function
     // short with nothing said.
-    if !flush_build_diags(le.pre_diags, le.lower_diags) {
+    if !flush_build_diags(prepared.pre_diags, prepared.lower_diags) {
         return 1
     }
-    pruned :: prune_unreachable_fns(le.lowered, false)
-    module :: cfg_to_bytecode(pruned, module_name_from_file(file), default_emit_options())
     // Feed the in-hand `BytecodeModule` straight to the VM — no `.virt` text
     // round-trip. The former `dump_bytecode → parse_virt_bc` hop was both
     // pointless overhead and lossy (dump_bytecode drops the data pool).

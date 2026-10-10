@@ -119,11 +119,6 @@ export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] 
     return out
 }
 
-// CFG → `BytecodeModule` : the shared optimise-and-emit tail every real emit
-// path runs. Build the CFG, then DCE + escape annotation + the array-load-forward
-// opt, then bytecode emit. A new CFG optimisation pass is wired in HERE, once —
-// not at each call site. The phase brackets are inert unless `$VADER_PROFILE`, so
-// the non-profiled callers pay nothing.
 /// CFG → `BytecodeModule`: the optimise-and-emit tail every real emit path runs.
 ///
 /// Build the CFG, then DCE, escape annotation and the array-load-forward opt,
@@ -133,10 +128,12 @@ export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] 
 /// @param pruned  lowered project, already pruned of unreachable fns.
 /// @param name    bytecode module name (see `module_name_from_file`).
 /// @param opts    emit options — `want_debug` gates the per-op debug table.
-/// @param diags   accumulator for the verifier findings ; left untouched
-///                when `opts.verify` is false, which is every default build.
+/// @param diags   accumulator for what the CFG build reports (an identifier it
+///                cannot place, M5007) and, under `opts.verify`, the verifier
+///                findings. Required: a caller that dropped it would run a
+///                program whose broken function was silently cut short.
 export cfg_to_bytecode :: fn(
-    pruned: LoweredProject, name: string, opts: EmitOptions, diags: Diagnostic[] = [],
+    pruned: LoweredProject, name: string, opts: EmitOptions, diags: Diagnostic[],
 ) -> BytecodeModule {
     Prof.prof_begin(Prof.PHASE_CFG_BUILD)
     cfg :: build_cfg_project(pruned, diags)
@@ -305,16 +302,16 @@ export prepare_cfg_bytecode_from :: fn(
     Prof.prof_end(Prof.PHASE_PRUNE)
     // The prune rewrites the decl set, so it gets its own check: a dropped
     // decl something still references is what `I7002` / `I7010` look for.
-    verify_diags: Diagnostic[]: []
-    if verify { verify_lowered(pruned, "prune_unreachable_fns", verify_diags) }
+    back_end_diags: Diagnostic[]: []
+    if verify { verify_lowered(pruned, "prune_unreachable_fns", back_end_diags) }
     // `want_debug` populates the per-op `debug` table only when the emitted C
     // will keep `#line` (non-release c-emit / `dump --stage=c`) ; the VM /
     // bytecode-dump callers pass false to skip the per-op DebugPos alloc.
     opts :: EmitOptions {
         .optimize = true, .keep_mangles = [], .want_debug = want_debug, .verify = verify,
     }
-    module :: cfg_to_bytecode(pruned, module_name_from_file(file), opts, verify_diags)
-    lower_diags :: le.lower_diags + verify_diags
+    module :: cfg_to_bytecode(pruned, module_name_from_file(file), opts, back_end_diags)
+    lower_diags :: le.lower_diags + back_end_diags
     return CfgBytecode {
         .entry       = le.entry,
         .pre_diags   = le.pre_diags,

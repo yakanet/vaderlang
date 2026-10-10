@@ -107,7 +107,7 @@ stage_to_bytecode :: fn(
     }
     lowered :: lower_project_staged(loaded, typed, evaluated, eager_modules, diags)
     pruned :: prune_unreachable_fns(lowered, false)
-    cfg :: build_cfg_project(pruned)
+    cfg :: build_cfg_project(pruned, diags)
     dced :: eliminate_dead_cfg(cfg)
     escaped :: annotate_escape(dced).project
     return emit_bytecode_from_cfg(escaped, "comptime", default_emit_options())
