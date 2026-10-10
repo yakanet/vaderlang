@@ -5,7 +5,7 @@ import "std/io"
 // Each arm reads the scrutinee narrowed in place to its variant: `a.x` in the
 // `is P` arm is a typed field load, not a read through the union box. Arms
 // used to need an `as` binder to get there, and that binder once lowered to
-// `unreachable`; the form is gone (P1036), the narrowing it provided is not.
+// `unreachable`; the form is gone (P1037), the narrowing it provided is not.
 P :: struct { x: i32 }
 Q :: struct { y: string }
 

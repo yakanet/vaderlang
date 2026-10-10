@@ -1775,7 +1775,7 @@ reject_arm_binding :: fn(p: Parser) -> void {
     name_tok :: p.expect(.Ident, "binding name after `as`")
     if name_tok.kind == .Ident {
         p.error(
-            .ArmBindingNotInHeader, p.span_of(as_tok, name_tok),
+            .PatternBindsName, p.span_of(as_tok, name_tok),
             "name the scrutinee in the header: `match … as ${name_tok.text}`",
         )
     }
@@ -3691,6 +3691,9 @@ parse_match_arm :: fn(p: Parser) -> MatchArm! {
             p.skip_newlines()
             alts.push(p.parse_pattern())
         }
+        for alt in alts {
+            p.reject_alternative_bindings(alt)
+        }
         pattern = OrPattern { .span = p.span_of(start, p.peek_at(-1)), .patterns = alts }
     }
     guard: Expr | null = null
@@ -3731,6 +3734,27 @@ parse_lambda :: fn(p: Parser) -> LambdaExpr! {
 // ============================================================================
 // Patterns
 // ============================================================================
+
+// A struct pattern in an alternative may constrain a field but not bind it: the arm
+// could not tell which alternative supplied the name.
+reject_alternative_bindings :: fn(p: Parser, alt: Pattern) -> void {
+    if alt !is IsPattern {
+        return
+    }
+    inner :: alt.inner
+    if inner !is StructPattern {
+        return
+    }
+    for f in inner.fields {
+        if f.value is PatternBinding {
+            p.error(
+                .PatternBindsName, f.value.span,
+                "an alternative binds nothing: test `is A | B` and read `.${f.name}` " +
+                    "through the scrutinee, or split the arm",
+            )
+        }
+    }
+}
 
 parse_pattern :: fn(p: Parser) -> Pattern! {
     t :: p.peek()
@@ -3820,8 +3844,8 @@ parse_pattern :: fn(p: Parser) -> Pattern! {
 }
 
 // `[a, b] ->` destructured a tuple in the pattern. The type test is
-// `is [T, U]` and the destructure is a `let` in the arm, so the form is
-// diagnosed and skipped to its `]` — its elements would each report again.
+// `is [T, U]` and the destructure a declaration in the arm (`[a, b] :: x`), so the
+// form is diagnosed and skipped to its `]`, or its elements would each report again.
 reject_tuple_pattern :: fn(p: Parser) -> WildcardPattern! {
     start :: p.advance()  // `[`
     depth := 1

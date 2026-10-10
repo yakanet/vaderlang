@@ -174,7 +174,7 @@ export ParserCode :: enum(CodeInfo) {
     DecoratorArgumentCount            { .id = "P1032", .message = "wrong number of decorator arguments" },
     DecoratorArgumentForm             { .id = "P1033", .message = "decorator argument has the wrong form" },
     CompoundAssignToPattern           { .id = "P1035", .message = "compound assignment needs a single target" },
-    ArmBindingNotInHeader             { .id = "P1036", .message = "a match arm cannot bind with `as`" },
+    // P1036 retired: `is T as x ->` is P1037, since it binds a name.
     PatternBindsName                  { .id = "P1037", .message = "a match pattern cannot bind a name" },
     RestNotLast                       { .id = "P1038", .message = "`...rest` must be the last element" },
 }

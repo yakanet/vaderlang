@@ -1,0 +1,12 @@
+module "snippet"
+
+// An alternative binds nothing: the arm could not say which one bound the name.
+// `is A | B` tests both types, and the arm reads the field through the scrutinee.
+A :: struct { x: i32 }
+B :: struct { x: i32 }
+
+describe :: fn(v: A | B) -> i32 = match v {
+    is A { x } | is B { x } -> x
+}
+
+main :: fn() -> i32 = describe(A { .x = 0 })

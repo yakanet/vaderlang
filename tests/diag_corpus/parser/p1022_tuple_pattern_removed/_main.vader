@@ -1,6 +1,6 @@
 module "snippet"
 
-// A match arm does not destructure: `is [T, U]` tests the type, and a `let`
+// A match arm does not destructure: `is [T, U]` tests the type, and a declaration
 // in the arm destructures what it narrowed.
 first :: fn(p: [i32, string] | null) -> i32 {
     return match p {
