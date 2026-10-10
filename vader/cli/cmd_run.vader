@@ -57,13 +57,13 @@ run_source :: fn(file: Path, host_argv: string[]) -> i32 {
     // the lowered IR carries its own `Type`s, so emit never revisits the
     // typed-AST tables.
     le :: lower_to_entry(file)
-    // Report front-end errors and bail before executing : `lower_to_entry`
+    // Report errors and bail before executing, as `build` does : `lower_to_entry`
     // returns an empty lowered project on a front-end error (it won't lower a
     // rejected program), which would otherwise reach the VM as a "no entry
-    // function" trap that buries the real diagnostic. Gate on `pre_diags` only
-    // ([] for the lower bag) — a lower-stage diagnostic leaves runnable
-    // bytecode, so the program still executes, as it did before.
-    if !flush_build_diags(le.pre_diags, []) {
+    // function" trap that buries the real diagnostic ; and a lowering error puts
+    // an `unreachable` where it could not lower, which would cut the function
+    // short with nothing said.
+    if !flush_build_diags(le.pre_diags, le.lower_diags) {
         return 1
     }
     pruned :: prune_unreachable_fns(le.lowered, false)

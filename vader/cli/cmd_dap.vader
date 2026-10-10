@@ -44,8 +44,9 @@ compile_for_dap :: fn(program: string) -> DapProgram {
     // this refactor); wrap once here so the body speaks `Path` like the rest.
     path :: program.to_path()
     le :: lower_to_entry(path)
-    if any_error_diag(le.pre_diags) {
-        rendered :: merge_diagnostics(le.pre_diags, le.lower_diags).dump_diagnostics_with_file()
+    diags :: merge_diagnostics(le.pre_diags, le.lower_diags)
+    if any_error_diag(diags) {
+        rendered :: diags.dump_diagnostics_with_file()
         return DapProgram { .state = null, .entry_index = -1, .error = rendered }
     }
     pruned :: prune_unreachable_fns(le.lowered, false)
