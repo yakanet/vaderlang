@@ -1448,7 +1448,7 @@ zero :: fn<T: Add>(x: T) -> T {
 }
 ```
 
-The same holds for `pick(x, 0)` where `pick` takes two `T`, for `f(2.5)` through a parameter `f: fn(T) -> T`, for `x > 0` with `T: Comparable`, and for `x == 0` with `T: Equals`. A call through a fn-typed parameter binds none of the enclosing fn's type parameters; a local holding a generic fn (`g :: identity`) still binds its own at each call.
+The same holds for `pick(x, 0)` where `pick` takes two `T`, for `f(2.5)` through a parameter `f: fn(T) -> T`, for `x > 0` with `T: Comparable`, and for `x == 0` with `T: Equals`. Inside a generic fn or impl, its own type parameters are fixed: a call in the body binds none of them, and its arguments check against them as written. So `keep("s")` on a local `keep :: (y: T) -> …` is T3001, and so is `t.visit((y: Inner) -> …)` with `T: Visit`. A callee's own type parameters are still bound at each call (`g :: identity`), and a receiver or a type name still binds an impl's at the instance it names (`other.put(4)` on a `Box<i32>`, `Bag.make(5)`, inside that type's impl).
 
 Matching an argument against a signature that nothing has instantiated yet is a different question, where a type parameter is still free: choosing an overload, choosing the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>!`), and checking the fields of a generic struct literal written without type arguments (`Box { .value = [4, 5] }`). A free literal still needs a type to land on, and such a literal binds none: `Box { .value = 0 }` is T3001 — write `Box<i32> { .value = 0 }`.
 

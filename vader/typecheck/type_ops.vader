@@ -163,9 +163,18 @@ export with_immutable :: fn(t: Type, immutable: bool) -> Type = match t {
 }
 
 // What the type parameter `t` stands for once bound to `binding` : the binding
-// read-only when `t` is a read-only view, else the binding as it is.
-instance_of :: fn(t: TypeParamType, binding: Type) -> Type =
-    if t.immutable { with_immutable(binding, true) } else { binding }
+// read-only when `t` is a read-only view, else the binding as it is. Bound to
+// itself (`hold_type_params_in_scope`), `t` stays as written, read-only view
+// included : `with_immutable` would leave the bare `T` it was bound to.
+instance_of :: fn(t: TypeParamType, binding: Type) -> Type {
+    if binding is TypeParamType && binding.symbol.id == t.symbol.id {
+        return t
+    }
+    if t.immutable {
+        return with_immutable(binding, true)
+    }
+    return binding
+}
 
 // `t` read-only : a read-only view of a type parameter, which `with_immutable`
 // leaves alone — a written `T`, or a lambda's, has the rights of what it stands for.

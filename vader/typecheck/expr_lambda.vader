@@ -37,6 +37,7 @@ export infer_lambda :: fn(
     // those instances concrete from the lambda body is the enclosing fn's to keep.
     if typed.current_fn_ctx is FnContext as enclosing {
         ctx.fn_id = enclosing.fn_id
+        ctx.type_params_in_scope = enclosing.type_params_in_scope
     }
     // Mirror `check_fn_body`: push the lambda's ctx onto the global
     // stack so nested `if` / `match` arms (which `check_return` reaches

@@ -195,6 +195,30 @@ impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
     return false
 }
 
+/// The symbol ids of `impl_`'s type parameters : its `implements<…>`, and the
+/// fresh names its `for_type`'s arguments bind when it writes none
+/// (`Stack<T> implements Trait<T>`). Empty for a concrete impl.
+///
+/// @param impl_     the impl declaration.
+/// @param resolved  the module that declares it, whose `idents` bind the names.
+/// @return          the ids, explicit parameters first.
+export impl_type_param_ids :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> i32[]! {
+    ids: i32[]: []
+    for tp in impl_.type_params {
+        sym :: resolved.idents[tp.span.hash()] ?? continue
+        ids.push(sym.id)
+    }
+    if impl_.for_type is GenericInstExpr as gi {
+        for ta in gi.type_args {
+            bound :: resolved.idents[ta.span.hash()] ?? continue
+            if bound.kind == .TypeParam && bound.id !in ids {
+                ids.push(bound.id)
+            }
+        }
+    }
+    return ids
+}
+
 // ---- query API ------------------------------------------------------------
 
 NO_IMPLS: ImplEntry[]: []

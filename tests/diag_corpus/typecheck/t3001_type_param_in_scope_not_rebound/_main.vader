@@ -1,0 +1,66 @@
+// Inside a generic fn or impl, its type parameters are fixed : a call in the body
+// binds none of them from its arguments or its slot, whatever the callee: a trait
+// member through a bounded `T`, a local lambda, a trait value, a sibling member.
+// Each check would otherwise hold for one `T` only. T3001 at each argument or slot.
+module "snippet"
+
+Inner :: struct {
+    n: i32
+}
+
+Visit :: trait {
+    visit :: fn(self, f: fn(Self) -> void) -> void
+    make :: fn() -> Self
+}
+
+Inner implements Visit {
+    visit :: fn(self, f: fn(Self) -> void) -> void {
+        f(self)
+    }
+    make :: fn() -> Inner = Inner { .n = 1 }
+}
+
+through_bound :: fn<T: Visit>(t: T) -> i32 {
+    t.visit((y: Inner) -> {})
+    made: Inner: T.make()
+    return made.n
+}
+
+through_lambda :: fn<T>(xs: T[], v: T) -> void {
+    keep :: (y: T) -> {
+        xs.push(y)
+    }
+    keep(v)
+    keep("other")
+}
+
+Sink :: trait<E> {
+    put :: fn(self, e: E) -> void
+    put_twice :: fn(self, e: E) -> void
+}
+
+through_trait_value :: fn<T>(s: Sink<T>, v: T) -> void {
+    s.put(v)
+    s.put(5)
+}
+
+Bag :: struct<T> {
+    items: T[]!
+}
+
+Bag<T> implements<T> Sink<T> {
+    put :: fn(self, e: T) -> void {
+        self.items.push(e)
+    }
+    put_twice :: fn(self, e: T) -> void {
+        self.put(e)
+        self.put(5)
+    }
+}
+
+main :: fn() -> i32 {
+    ints: i32[]: []
+    through_lambda(ints, 1)
+    through_trait_value(Bag<i32> { .items = [] }, 2)
+    return through_bound(Inner { .n = 7 })
+}

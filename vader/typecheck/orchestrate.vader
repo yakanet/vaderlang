@@ -2527,8 +2527,9 @@ export walk_bodies :: fn(
                 // (`register_impl_metadata`) so forward references resolve ;
                 // only the member bodies remain to walk here.
                 typed.enclosing_impl = decl.span.hash()
+                impl_type_params :: impl_type_param_ids(decl, typed.resolved)
                 for m in decl.members {
-                    walk_fn_body(m, typed, diags, mode)
+                    walk_fn_body(m, typed, diags, mode, impl_type_params)
                 }
                 typed.enclosing_impl = 0
             }
@@ -2723,6 +2724,7 @@ walk_fn_body :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     mode: WalkMode,
+    impl_type_params: i32[] = [],
 ) -> void {
     // SAM short-impl synthetics carry no real body to type ; skip them.
     // Default-method clones are also `materialized` but DO need typing —
@@ -2746,7 +2748,7 @@ walk_fn_body :: fn(
     // no error).
     if mode == .ReturnsOnly && !needs_return_inference(fd) { return }
     if fd.body is AST.BlockExpr as body {
-        check_fn_body(fd, body, typed, diags, check_expr)
+        check_fn_body(fd, body, typed, diags, check_expr, impl_type_params)
     }
 }
 

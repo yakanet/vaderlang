@@ -394,7 +394,9 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
     self.walk_decorators(d.decorators)
     self.scope.push()
     for tp in d.type_params {
-        self.declare_type_param(tp)
+        // Recorded at the decl site, as a fn's are (`walk_fn_decl`) : the typecheck
+        // recovers the impl's type parameters from it.
+        self.idents[tp.span.hash()] = self.declare_type_param(tp)
     }
     // Auto-bind type params from `for_type` when the impl head
     // omits the explicit `[T]` block (e.g. `Stack<T> implements

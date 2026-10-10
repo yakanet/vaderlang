@@ -750,7 +750,7 @@ report_unbound_type_args :: fn(
     if checked_arg_count != callee_ty.params.len() {
         return
     }
-    // Calling a fn-VALUE (a param / local / pattern binding whose type happens
+    // Calling a fn-VALUE (a local or pattern binding whose type happens
     // to mention type-params, e.g. `f: fn(T) -> U[]` inside a generic body):
     // there is nothing to infer and no syntax to pass a type argument through.
     if callee_is_kind(c, .Local, typed) || callee_is_kind(c, .Binding, typed) {
@@ -791,6 +791,49 @@ report_unbound_type_args :: fn(
             ),
         )
     }
+}
+
+// Hold each type parameter in scope (`FnContext.type_params_in_scope`) that
+// `callee_ty` names and nothing bound yet to itself, and add it to `held`. A static
+// member called on a type name (`Bag.make(5)`) binds that type's parameters at each
+// call, as a receiver would, even inside the type's own impl.
+hold_type_params_in_scope :: fn(
+    c: AST.CallExpr,
+    callee_ty: FnType,
+    typed: TypedProgram,
+    bindings: MutableMap<i32, Type>,
+    held: MutableSet<i32> | null,
+) -> MutableSet<i32> | null {
+    ctx :: typed.current_fn_ctx ?? return held
+    if ctx.type_params_in_scope.len() == 0 || calls_static_member_on_type_name(c, typed) {
+        return held
+    }
+    named: Symbol[]: []
+    collect_unbound_type_params(callee_ty, bindings, named)
+    out := held
+    for sym in named {
+        if sym.id in ctx.type_params_in_scope {
+            bindings[sym.id] = TypeParamType { .symbol = sym }
+            out = with_held(out, sym.id)
+        }
+    }
+    return out
+}
+
+// `held` with `id` added, created for the first one.
+with_held :: fn(held: MutableSet<i32> | null, id: i32) -> MutableSet<i32> {
+    out :: held ?? MutableSet<i32> {}
+    out.add(id)
+    return out
+}
+
+// Whether `c` calls a static member on a named type rather than on a type parameter.
+calls_static_member_on_type_name :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
+    if c.callee !is AST.FieldExpr {
+        return false
+    }
+    member :: typed.static_members[c.callee.id] ?? return false
+    return member.owner !is TypeParamType
 }
 
 // Whether `c` calls a name that resolves to a symbol of `kind`.
@@ -956,13 +999,8 @@ export infer_call :: fn(
     // Resolved once here, applied at each return below — args are still
     // type-checked first so a bad argument to `todo(...)` is still flagged.
     diverges :: callee_is_no_return(c.callee, typed)
-    // A fn-typed PARAMETER names the enclosing fn's type parameters (`f: fn(T) -> T`
-    // inside `fn<T>`) : they are fixed for the body, so the call binds none of them
-    // and its arguments check against them as written. A local may hold a generic
-    // fn (`g :: identity`), whose own parameters the call still binds.
-    is_generic :: fn_has_type_params(callee_ty) && !callee_is_kind(c, .Param, typed)
     n :: min(c.args.len(), callee_ty.params.len())
-    if is_generic {
+    if fn_has_type_params(callee_ty) {
         bindings :: MutableMap<i32, Type> {}
         // Explicit type args `f<i64>(…)` : seed bindings from the
         // callee's `<…>` BEFORE arg-checking so each param substitutes
@@ -970,12 +1008,15 @@ export infer_call :: fn(
         // `9000000000` → i64) instead of defaulting to i32 and
         // truncating. Authoritative — seeded first so arg-unify can't
         // loosen it.
-        held :: seed_explicit_type_args(c.callee, typed, bindings, diags)
+        held := seed_explicit_type_args(c.callee, typed, bindings, diags)
         // UFCS dispatch : seed bindings from the receiver's type so
         // type-params bound by the (curried-away) first param
         // (`fn<T>(x: T) -> T` called as `42.identity()`) still
         // substitute through the return type.
         seed_ufcs_bindings(c.callee, typed, bindings, held)
+        // After the receiver, which still binds an impl's own parameters at the
+        // instance it names (`other.m()` with `other: Box<i32>` inside `Box<T>`'s).
+        held = hold_type_params_in_scope(c, callee_ty, typed, bindings, held)
         arg_types: Type[]: []
         // Lambda arguments are checked LAST. Their param type may mention a
         // type-param that nothing has bound yet — one a later argument, or the
@@ -1005,7 +1046,7 @@ export infer_call :: fn(
         // outer's still-unbound `Iterator<T>`, and binding to it would carry
         // that foreign type-param into the result instead of a concrete type.
         if expected != null && !type_contains_type_param(expected) {
-            unify_type_param(callee_ty.return_type, expected, bindings, null, lowers_rights = false)
+            unify_type_param(callee_ty.return_type, expected, bindings, held, lowers_rights = false)
         }
         if has_lambda {
             // Run the deferred lambdas to a FIXPOINT, not once : within the

@@ -32,8 +32,10 @@ is_free_numeric :: fn(t: Type) -> bool {
 /// argument giving the same type with fewer rights lowers them
 /// (`least_permissive`), so `pick(local, CFG)` cannot hand back a mutable `CFG`.
 ///
-/// @param held           the type parameters an explicit `<…>` bound : their
-///                       rights are written, and stand. Null holds none.
+/// @param held           the type parameters whose binding stands, rights
+///                       included : bound by an explicit `<…>`, or fixed for the
+///                       enclosing body (`hold_type_params_in_scope`). Null
+///                       holds none.
 /// @param lowers_rights  whether `arg_type`'s rights are ones an argument holds.
 ///                       False for the call's expected type, whose rights are the
 ///                       slot's, and inside a fn type's parameters, whose rights
@@ -71,6 +73,11 @@ export unify_type_param :: fn(
             // elements hands back read-only elements.
             existing :: out[param_type.symbol.id]
             if existing is null { out[param_type.symbol.id] = arg_type  return }
+            // A held binding stands, whatever the argument : the rules below would
+            // otherwise replace a type parameter held to itself.
+            if held != null && param_type.symbol.id in held {
+                return
+            }
             // Tighten Free* bindings when a later arg pins the same
             // type-param to a concrete numeric. Lets
             // `fold([1,2,3], 1, (a, b) -> a + b)` re-bind U from
@@ -94,9 +101,6 @@ export unify_type_param :: fn(
                 }
             }
             if existing === arg_type || !lowers_rights {
-                return
-            }
-            if held != null && param_type.symbol.id in held {
                 return
             }
             out[param_type.symbol.id] = least_permissive(existing, arg_type) ?? return
