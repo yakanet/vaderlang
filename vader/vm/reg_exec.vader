@@ -37,6 +37,8 @@ RegMachine :: struct {
     defer_count: usize
     /// The debugger driving the run, or `null`.
     debug: DebugSession! | null
+    /// What a `.Null` register reads as, built once so the read allocates nothing.
+    null_value: Value! = NullVal {}
 }
 
 // A debugger's state across the stops of one run.
@@ -66,7 +68,7 @@ register_value :: fn(m: RegMachine, at: usize) -> Value! = match m.tags[at] {
     .F64  -> F64Val(u64(m.bits[at]).from_bits())
     .Bool -> BoolVal(m.bits[at] != 0)
     .Char -> CharVal(char(u32(m.bits[at])))
-    .Null -> NullVal {}
+    .Null -> m.null_value
 }
 
 // Write a boxed value into register `at`.
@@ -501,7 +503,11 @@ reg_call :: fn(
                 if array is Trap {
                     return array
                 }
-                detach_array_view(array)
+                // Tested here as well: `detach_array_view` sets up its GC frame before
+                // its own test, and almost no array pushed to is a view.
+                if array.raw != null || is_array_view(array) {
+                    detach_array_view(array)
+                }
                 array.elements.push(register_value(m, base + usize(operand_b(w))))
                 array.length = array.length + 1
             }
@@ -713,7 +719,11 @@ set_element :: fn(
     if index < 0 || usize(index) >= array.length {
         return Trap { .message = "${label} index ${index} out of bounds (len=${array.length}) at pc=${f.origin[pc]}" }
     }
-    own_bytes(array)
+    // Tested here as well: `own_bytes` sets up its GC frame before its own test, and
+    // almost no array holds raw bytes.
+    if array.raw != null {
+        own_bytes(array)
+    }
     array.elements[array.offset + usize(index)] = register_value(m, base + usize(value))
     return null
 }

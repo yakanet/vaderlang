@@ -67,8 +67,9 @@ Frame :: struct {
 StackTag :: enum(u8) { I32, I64, F64, Bool, Char, Null, Ref }
 
 /// What a `.Null` slot reads back as, shared by every read. A slot that STORES a null
-/// (a grown refs column, an element, a field) takes a fresh `NullVal {}` instead :
-/// those slots are `Value!`, and a module const is read-only.
+/// (a grown refs column, an element, a field) takes a `NullVal` it owns instead,
+/// `RegMachine.null_value` or a fresh `NullVal {}`: those slots are `Value!`, and a
+/// module const is read-only.
 NULL_VALUE :: NullVal {}
 
 /// True when `t` marks a value `read_i32` accepts (i32 / char / i64 carriers).
