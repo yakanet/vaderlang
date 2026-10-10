@@ -19,7 +19,7 @@
   },
   "primes": {
     "vader-native": {
-      "minMs": 22.997541999999157,
+      "minMs": 23.4,
       "checksum": "primes N=1000000 count=78498 sum=37550402023"
     },
     "bun-ts": {
@@ -109,7 +109,7 @@
   },
   "arr_rw": {
     "vader-native": {
-      "minMs": 34.54979099999764,
+      "minMs": 55.2,
       "checksum": "arr_rw 5172428800000"
     },
     "bun-ts": {
