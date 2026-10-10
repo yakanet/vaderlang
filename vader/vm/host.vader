@@ -798,10 +798,8 @@ mirrored_struct_fields :: fn(types: bc.BcType[], param_types: i32[], i: usize) -
 }
 
 /// A mirrored field's own value class, for the sign of the read-back.
-field_val_type :: fn(types: bc.BcType[], f: bc.BcField) -> bc.ValType {
-    v :: bc.c_field_val_type(f, types) ?? return .I64
-    return v
-}
+field_val_type :: fn(types: bc.BcType[], f: bc.BcField) -> bc.ValType =
+    bc.c_field_val_type(f, types) ?? .I64
 
 /// Read a mirrored struct back out of the frame block, descending into a nested
 /// mirror. The mirror image of `serialise_mirror`, and it must stay one: a field
