@@ -923,7 +923,9 @@ static bool __lambda_snippet_1(int32_t l0);
 static vader_box_t snippet_upto_1(vader_string_t l0);
 static void* snippet___genstate_upto_1_Iterator_next(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
+static int32_t std_core_i32_Step_step(int32_t l0);
 static void* std_core_Range_Iterator_next__i32(void* l0);
+static size_t std_core_usize_Step_step(size_t l0);
 static void* std_core_Range_Iterator_next__usize(void* l0);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
@@ -931,8 +933,6 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2);
 static vader_string_t std_core_f64_Display_to_string(double l0);
-static int32_t std_core_i32_Step_step(int32_t l0);
-static size_t std_core_usize_Step_step(size_t l0);
 static vader_string_t std_core_format_f64(double l0);
 static void* std_core_d2d(uint64_t l0, uint64_t l1);
 static vader_string_t std_core_render(uint64_t l0, int32_t l1, bool l2);
@@ -1690,6 +1690,11 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static int32_t std_core_i32_Step_step(int32_t l0) {
+#line 338 "lib/std/core/primitives.vader"
+    return (l0 + INT32_C(1));
+}
+
 static void* std_core_Range_Iterator_next__i32(void* l0) {
     bool l1;
     int32_t l2, l3;
@@ -1736,6 +1741,11 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
     _a1_obj->f__1 = (uint8_t) 1;
     t2 = (void*) _a1_obj;
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static size_t std_core_usize_Step_step(size_t l0) {
+#line 345 "lib/std/core/primitives.vader"
+    return (size_t) (int64_t) (l0 + INT64_C(1));
 }
 
 static void* std_core_Range_Iterator_next__usize(void* l0) {
@@ -1948,18 +1958,6 @@ static vader_string_t std_core_f64_Display_to_string(double l0) {
 #line 247 "lib/std/core/primitives.vader"
     t0 = std_core_format_f64(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static int32_t std_core_i32_Step_step(int32_t l0) {
-#line 338 "lib/std/core/primitives.vader"
-    return (l0 + INT32_C(1));
-    return (l0 + INT32_C(1));
-}
-
-static size_t std_core_usize_Step_step(size_t l0) {
-#line 345 "lib/std/core/primitives.vader"
-    return (size_t) (int64_t) (l0 + INT64_C(1));
-    return (size_t) (int64_t) (l0 + INT64_C(1));
 }
 
 static vader_string_t std_core_format_f64(double l0) {

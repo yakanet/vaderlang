@@ -83,8 +83,8 @@ impl 32 std_core$Contains
 impl 32 std_core$Into
 impl 33 std_core$Iterator
 vtable std_core$Iterator.next 6 15
-vtable std_core$Iterator.next 10 17
-vtable std_core$Iterator.next 12 18
+vtable std_core$Iterator.next 10 18
+vtable std_core$Iterator.next 12 20
 vtable std_core$Iterator.next 21 28
 vtable std_core$Iterator.next 25 29
 vtable std_core$Iterator.next 29 30
@@ -159,14 +159,14 @@ fn 3 snippet$range_continue_and_break () -> void
         i32.eq
         br_if $L0
         i64.const 26
-        call 19   ; std_core$new_byte_buffer
+        call 21   ; std_core$new_byte_buffer
         local.set 2   ; __buf_0
         i64.const 0
         local.set 3   ; __off_1
         local.get 2   ; __buf_0
         local.get 3   ; __off_1
         string.const 1   ; "range "
-        call 21   ; std_core$write_string_at
+        call 23   ; std_core$write_string_at
         local.set 3   ; __off_1
         local.get 1   ; i
         i32.to_i64
@@ -174,11 +174,11 @@ fn 3 snippet$range_continue_and_break () -> void
         local.get 2   ; __buf_0
         local.get 3   ; __off_1
         local.get 4   ; $cast_24
-        call 22   ; std_core$write_int
+        call 24   ; std_core$write_int
         local.set 3   ; __off_1
         local.get 2   ; __buf_0
         local.get 3   ; __off_1
-        call 20   ; std_core$finish_buffer
+        call 22   ; std_core$finish_buffer
         call 27   ; std_io$println__string
         local.get 1   ; i
         i32.const 1
@@ -252,14 +252,14 @@ fn 4 snippet$chain_continue_and_break () -> void
           return
         end $L5
         i64.const 26
-        call 19   ; std_core$new_byte_buffer
+        call 21   ; std_core$new_byte_buffer
         local.set 5   ; __buf_0
         i64.const 0
         local.set 6   ; __off_1
         local.get 5   ; __buf_0
         local.get 6   ; __off_1
         string.const 3   ; "chain "
-        call 21   ; std_core$write_string_at
+        call 23   ; std_core$write_string_at
         local.set 6   ; __off_1
         local.get 4   ; x
         i32.to_i64
@@ -267,11 +267,11 @@ fn 4 snippet$chain_continue_and_break () -> void
         local.get 5   ; __buf_0
         local.get 6   ; __off_1
         local.get 7   ; $cast_38
-        call 22   ; std_core$write_int
+        call 24   ; std_core$write_int
         local.set 6   ; __off_1
         local.get 5   ; __buf_0
         local.get 6   ; __off_1
-        call 20   ; std_core$finish_buffer
+        call 22   ; std_core$finish_buffer
         call 27   ; std_io$println__string
         local.get 3   ; __fuse_i_4
         i64.const 1
@@ -344,14 +344,14 @@ fn 5 snippet$continue_in_argument () -> void
     end $L1
   end $L0
   i64.const 35
-  call 19   ; std_core$new_byte_buffer
+  call 21   ; std_core$new_byte_buffer
   local.set 5   ; __buf_1
   i64.const 0
   local.set 6   ; __off_2
   local.get 5   ; __buf_1
   local.get 6   ; __off_2
   string.const 5   ; "argument total "
-  call 21   ; std_core$write_string_at
+  call 23   ; std_core$write_string_at
   local.set 6   ; __off_2
   local.get 0   ; total
   i32.to_i64
@@ -359,11 +359,11 @@ fn 5 snippet$continue_in_argument () -> void
   local.get 5   ; __buf_1
   local.get 6   ; __off_2
   local.get 7   ; $cast_31
-  call 22   ; std_core$write_int
+  call 24   ; std_core$write_int
   local.set 6   ; __off_2
   local.get 5   ; __buf_1
   local.get 6   ; __off_2
-  call 20   ; std_core$finish_buffer
+  call 22   ; std_core$finish_buffer
   call 27   ; std_io$println__string
   return
 end
@@ -423,14 +423,14 @@ fn 6 snippet$continue_in_match () -> void
           br $L1
         end $L4
         i64.const 26
-        call 19   ; std_core$new_byte_buffer
+        call 21   ; std_core$new_byte_buffer
         local.set 5   ; __buf_4
         i64.const 0
         local.set 6   ; __off_5
         local.get 5   ; __buf_4
         local.get 6   ; __off_5
         string.const 7   ; "match "
-        call 21   ; std_core$write_string_at
+        call 23   ; std_core$write_string_at
         local.set 6   ; __off_5
         local.get 4   ; x
         i32.to_i64
@@ -438,11 +438,11 @@ fn 6 snippet$continue_in_match () -> void
         local.get 5   ; __buf_4
         local.get 6   ; __off_5
         local.get 7   ; $cast_34
-        call 22   ; std_core$write_int
+        call 24   ; std_core$write_int
         local.set 6   ; __off_5
         local.get 5   ; __buf_4
         local.get 6   ; __off_5
-        call 20   ; std_core$finish_buffer
+        call 22   ; std_core$finish_buffer
         call 27   ; std_io$println__string
         local.get 3   ; __for_i_2
         i64.const 1
@@ -499,14 +499,14 @@ fn 7 snippet$fused_range_continue () -> void
           br $L1
         end $L4
         i64.const 32
-        call 19   ; std_core$new_byte_buffer
+        call 21   ; std_core$new_byte_buffer
         local.set 3   ; __buf_0
         i64.const 0
         local.set 4   ; __off_1
         local.get 3   ; __buf_0
         local.get 4   ; __off_1
         string.const 9   ; "fused range "
-        call 21   ; std_core$write_string_at
+        call 23   ; std_core$write_string_at
         local.set 4   ; __off_1
         local.get 2   ; x
         i32.to_i64
@@ -514,11 +514,11 @@ fn 7 snippet$fused_range_continue () -> void
         local.get 3   ; __buf_0
         local.get 4   ; __off_1
         local.get 5   ; $cast_28
-        call 22   ; std_core$write_int
+        call 24   ; std_core$write_int
         local.set 4   ; __off_1
         local.get 3   ; __buf_0
         local.get 4   ; __off_1
-        call 20   ; std_core$finish_buffer
+        call 22   ; std_core$finish_buffer
         call 27   ; std_io$println__string
         local.get 1   ; x
         i32.const 1
@@ -578,14 +578,14 @@ fn 8 snippet$continue_outer () -> void
               br $L1
             end $L6
             i64.const 47
-            call 19   ; std_core$new_byte_buffer
+            call 21   ; std_core$new_byte_buffer
             local.set 3   ; __buf_0
             i64.const 0
             local.set 4   ; __off_1
             local.get 3   ; __buf_0
             local.get 4   ; __off_1
             string.const 11   ; "outer "
-            call 21   ; std_core$write_string_at
+            call 23   ; std_core$write_string_at
             local.set 4   ; __off_1
             local.get 1   ; i
             i32.to_i64
@@ -593,12 +593,12 @@ fn 8 snippet$continue_outer () -> void
             local.get 3   ; __buf_0
             local.get 4   ; __off_1
             local.get 5   ; $cast_26
-            call 22   ; std_core$write_int
+            call 24   ; std_core$write_int
             local.set 4   ; __off_1
             local.get 3   ; __buf_0
             local.get 4   ; __off_1
             string.const 12   ; ","
-            call 21   ; std_core$write_string_at
+            call 23   ; std_core$write_string_at
             local.set 4   ; __off_1
             local.get 2   ; j
             i32.to_i64
@@ -606,11 +606,11 @@ fn 8 snippet$continue_outer () -> void
             local.get 3   ; __buf_0
             local.get 4   ; __off_1
             local.get 6   ; $cast_30
-            call 22   ; std_core$write_int
+            call 24   ; std_core$write_int
             local.set 4   ; __off_1
             local.get 3   ; __buf_0
             local.get 4   ; __off_1
-            call 20   ; std_core$finish_buffer
+            call 22   ; std_core$finish_buffer
             call 27   ; std_io$println__string
             local.get 2   ; j
             i32.const 1
@@ -699,14 +699,14 @@ fn 9 snippet$labelled_and_named () -> void
             br $L0
           end $L5
           i64.const 50
-          call 19   ; std_core$new_byte_buffer
+          call 21   ; std_core$new_byte_buffer
           local.set 8   ; __buf_6
           i64.const 0
           local.set 9   ; __off_7
           local.get 8   ; __buf_6
           local.get 9   ; __off_7
           string.const 13   ; "labelled "
-          call 21   ; std_core$write_string_at
+          call 23   ; std_core$write_string_at
           local.set 9   ; __off_7
           local.get 3   ; r
           i32.to_i64
@@ -714,12 +714,12 @@ fn 9 snippet$labelled_and_named () -> void
           local.get 8   ; __buf_6
           local.get 9   ; __off_7
           local.get 10   ; $cast_39
-          call 22   ; std_core$write_int
+          call 24   ; std_core$write_int
           local.set 9   ; __off_7
           local.get 8   ; __buf_6
           local.get 9   ; __off_7
           string.const 12   ; ","
-          call 21   ; std_core$write_string_at
+          call 23   ; std_core$write_string_at
           local.set 9   ; __off_7
           local.get 7   ; c
           i32.to_i64
@@ -727,11 +727,11 @@ fn 9 snippet$labelled_and_named () -> void
           local.get 8   ; __buf_6
           local.get 9   ; __off_7
           local.get 11   ; $cast_43
-          call 22   ; std_core$write_int
+          call 24   ; std_core$write_int
           local.set 9   ; __off_7
           local.get 8   ; __buf_6
           local.get 9   ; __off_7
-          call 20   ; std_core$finish_buffer
+          call 22   ; std_core$finish_buffer
           call 27   ; std_io$println__string
           local.get 6   ; __for_i_5
           i64.const 1
@@ -778,14 +778,14 @@ fn 10 snippet$continue_with_defer () -> void
         br $L0
       end $L2
       i64.const 25
-      call 19   ; std_core$new_byte_buffer
+      call 21   ; std_core$new_byte_buffer
       local.set 1   ; __buf_1
       i64.const 0
       local.set 2   ; __off_2
       local.get 1   ; __buf_1
       local.get 2   ; __off_2
       string.const 14   ; "body "
-      call 21   ; std_core$write_string_at
+      call 23   ; std_core$write_string_at
       local.set 2   ; __off_2
       local.get 0   ; i
       i32.to_i64
@@ -793,11 +793,11 @@ fn 10 snippet$continue_with_defer () -> void
       local.get 1   ; __buf_1
       local.get 2   ; __off_2
       local.get 3   ; $cast_17
-      call 22   ; std_core$write_int
+      call 24   ; std_core$write_int
       local.set 2   ; __off_2
       local.get 1   ; __buf_1
       local.get 2   ; __off_2
-      call 20   ; std_core$finish_buffer
+      call 22   ; std_core$finish_buffer
       call 27   ; std_io$println__string
       defer.pop_exec 1
       local.get 0   ; i
@@ -841,14 +841,14 @@ fn 12 snippet$generator_continue () -> void
       ref.cast 1   ; i32
       local.set 2   ; x
       i64.const 30
-      call 19   ; std_core$new_byte_buffer
+      call 21   ; std_core$new_byte_buffer
       local.set 3   ; __buf_2
       i64.const 0
       local.set 4   ; __off_3
       local.get 3   ; __buf_2
       local.get 4   ; __off_3
       string.const 15   ; "generator "
-      call 21   ; std_core$write_string_at
+      call 23   ; std_core$write_string_at
       local.set 4   ; __off_3
       local.get 2   ; x
       i32.to_i64
@@ -856,11 +856,11 @@ fn 12 snippet$generator_continue () -> void
       local.get 3   ; __buf_2
       local.get 4   ; __off_3
       local.get 5   ; $cast_18
-      call 22   ; std_core$write_int
+      call 24   ; std_core$write_int
       local.set 4   ; __off_3
       local.get 3   ; __buf_2
       local.get 4   ; __off_3
-      call 20   ; std_core$finish_buffer
+      call 22   ; std_core$finish_buffer
       call 27   ; std_io$println__string
       br $L0
     end $L1
@@ -886,14 +886,14 @@ fn 14 __defer_snippet_0 (ref) -> void
   local __off_1 usize
   local $cast_9 i64
   i64.const 26
-  call 19   ; std_core$new_byte_buffer
+  call 21   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 16   ; "defer "
-  call 21   ; std_core$write_string_at
+  call 23   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 5 0   ; arg 0 __defer_env_snippet_1.cap_0
   ref.cast 1   ; i32
@@ -902,11 +902,11 @@ fn 14 __defer_snippet_0 (ref) -> void
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $cast_9
-  call 22   ; std_core$write_int
+  call 24   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 20   ; std_core$finish_buffer
+  call 22   ; std_core$finish_buffer
   call 27   ; std_io$println__string
   return
 end
@@ -1094,7 +1094,14 @@ fn 16 concat_2 (string,string) -> string
   return
 end
 
-fn 17 std_core$Range$Iterator$next__i32 (ref) -> ref
+fn 17 std_core$i32$Step$step (i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.add
+  return
+end
+
+fn 18 std_core$Range$Iterator$next__i32 (ref) -> ref
   local done bool
   local $field_3 i32
   local $field_4 i32
@@ -1131,7 +1138,7 @@ fn 17 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 2   ; $field_3
     local.field 0 10 3   ; arg 0 std_core$Range__i32.cursor
     ref.cast 1   ; i32
-    call 23   ; std_core$i32$Step$step
+    call 17   ; std_core$i32$Step$step
     local.set 3   ; $field_4
     local.get 0   ; arg 0
     local.get 3   ; $field_4
@@ -1148,7 +1155,14 @@ fn 17 std_core$Range$Iterator$next__i32 (ref) -> ref
   return
 end
 
-fn 18 std_core$Range$Iterator$next__usize (ref) -> ref
+fn 19 std_core$usize$Step$step (usize) -> usize
+  local.get 0   ; arg 0
+  i64.const 1
+  i64.add
+  return
+end
+
+fn 20 std_core$Range$Iterator$next__usize (ref) -> ref
   local done bool
   local $field_3 usize
   local $field_4 usize
@@ -1185,7 +1199,7 @@ fn 18 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 2   ; $field_3
     local.field 0 12 3   ; arg 0 std_core$Range__usize.cursor
     ref.cast 13   ; usize
-    call 24   ; std_core$usize$Step$step
+    call 19   ; std_core$usize$Step$step
     local.set 3   ; $field_4
     local.get 0   ; arg 0
     local.get 3   ; $field_4
@@ -1202,20 +1216,20 @@ fn 18 std_core$Range$Iterator$next__usize (ref) -> ref
   return
 end
 
-fn 19 std_core$new_byte_buffer (usize) -> ref
+fn 21 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 20 std_core$finish_buffer (ref,usize) -> string
+fn 22 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 21 std_core$write_string_at (ref,usize,string) -> usize
+fn 23 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -1230,7 +1244,7 @@ fn 21 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 22 std_core$write_int (ref,usize,i64) -> usize
+fn 24 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -1343,28 +1357,6 @@ fn 22 std_core$write_int (ref,usize,i64) -> usize
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
-  i64.add
-  return
-end
-
-fn 23 std_core$i32$Step$step (i32) -> i32
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.add
-  return
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.add
-  return
-end
-
-fn 24 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; arg 0
-  i64.const 1
-  i64.add
-  return
-  local.get 0   ; arg 0
-  i64.const 1
   i64.add
   return
 end

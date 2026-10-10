@@ -24,8 +24,8 @@ impl 10 std_core$Iterator
 impl 14 std_core$Iterator
 vtable snippet$Greeter.greet 1 0
 vtable snippet$Doubler.doubled 2 1
-vtable std_core$Iterator.next 6 6
-vtable std_core$Iterator.next 10 7
+vtable std_core$Iterator.next 6 7
+vtable std_core$Iterator.next 10 9
 vtable std_core$Iterator.next 14 12
 export main 2
 
@@ -56,7 +56,7 @@ fn 2 snippet$main () -> i32
   i32.const 20
   i32.const 30
   array.new 13 3   ; i32[]
-  call 8   ; std_core$[]$Into$into__i32
+  call 10   ; std_core$[]$Into$into__i32
   call 3   ; snippet$count__i32
   local.set 1   ; b
   struct.new 1   ; snippet$Hello
@@ -118,7 +118,14 @@ fn 5 snippet$twice__i32 (any) -> i32
   return
 end
 
-fn 6 std_core$Range$Iterator$next__i32 (ref) -> ref
+fn 6 std_core$i32$Step$step (i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.add
+  return
+end
+
+fn 7 std_core$Range$Iterator$next__i32 (ref) -> ref
   local done bool
   local $field_3 i32
   local $field_4 i32
@@ -155,7 +162,7 @@ fn 6 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 2   ; $field_3
     local.field 0 6 3   ; arg 0 std_core$Range__i32.cursor
     ref.cast 2   ; i32
-    call 9   ; std_core$i32$Step$step
+    call 6   ; std_core$i32$Step$step
     local.set 3   ; $field_4
     local.get 0   ; arg 0
     local.get 3   ; $field_4
@@ -172,7 +179,14 @@ fn 6 std_core$Range$Iterator$next__i32 (ref) -> ref
   return
 end
 
-fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
+fn 8 std_core$usize$Step$step (usize) -> usize
+  local.get 0   ; arg 0
+  i64.const 1
+  i64.add
+  return
+end
+
+fn 9 std_core$Range$Iterator$next__usize (ref) -> ref
   local done bool
   local $field_3 usize
   local $field_4 usize
@@ -209,7 +223,7 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 2   ; $field_3
     local.field 0 10 3   ; arg 0 std_core$Range__usize.cursor
     ref.cast 11   ; usize
-    call 10   ; std_core$usize$Step$step
+    call 8   ; std_core$usize$Step$step
     local.set 3   ; $field_4
     local.get 0   ; arg 0
     local.get 3   ; $field_4
@@ -226,31 +240,9 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
   return
 end
 
-fn 8 std_core$[]$Into$into__i32 (ref) -> any
+fn 10 std_core$[]$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 11   ; std_core$array_iter__i32
-  return
-end
-
-fn 9 std_core$i32$Step$step (i32) -> i32
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.add
-  return
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.add
-  return
-end
-
-fn 10 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; arg 0
-  i64.const 1
-  i64.add
-  return
-  local.get 0   ; arg 0
-  i64.const 1
-  i64.add
   return
 end
 

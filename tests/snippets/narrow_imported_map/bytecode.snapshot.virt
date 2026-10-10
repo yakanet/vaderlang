@@ -85,7 +85,7 @@ fn 0 snippet$main () -> i32
   if $L1 void
   else
     i64.const 20
-    call 2   ; std_core$new_byte_buffer
+    call 3   ; std_core$new_byte_buffer
     local.set 0   ; $arr_0
     i64.const 0
     local.set 4   ; __off_1
@@ -98,11 +98,11 @@ fn 0 snippet$main () -> i32
     local.get 0   ; $arr_0
     local.get 4   ; __off_1
     local.get 5   ; $cast_26
-    call 4   ; std_core$write_int
+    call 5   ; std_core$write_int
     local.set 4   ; __off_1
     local.get 0   ; $arr_0
     local.get 4   ; __off_1
-    call 3   ; std_core$finish_buffer
+    call 4   ; std_core$finish_buffer
     call 8   ; std_io$println__string
     return.lit i32.const 0
   end $L1
@@ -140,20 +140,26 @@ fn 1 concat_2 (string,string) -> string
   return
 end
 
-fn 2 std_core$new_byte_buffer (usize) -> ref
+fn 2 std_core$i32$Hash$hash (i32) -> u64
+  local.get 0   ; arg 0
+  i32.to_i64
+  return
+end
+
+fn 3 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 3 std_core$finish_buffer (ref,usize) -> string
+fn 4 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 4 std_core$write_int (ref,usize,i64) -> usize
+fn 5 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -267,15 +273,6 @@ fn 4 std_core$write_int (ref,usize,i64) -> usize
   local.get 1   ; arg 1
   local.get 6   ; total
   i64.add
-  return
-end
-
-fn 5 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; arg 0
-  i32.to_i64
-  return
-  local.get 0   ; arg 0
-  i32.to_i64
   return
 end
 
@@ -498,7 +495,7 @@ fn 14 std_collections$rehash__i32__Any (ref,usize) -> void
       local.field 0 11 0   ; arg 0 std_collections$MutableMap__i32__Any.ekeys
       local.get 4   ; e
       load_slot_i32
-      call 5   ; std_core$i32$Hash$hash
+      call 2   ; std_core$i32$Hash$hash
       local.tee 6   ; perturb
       local.get 3   ; __for_discard_0
       call 11   ; std_collections$first_slot
@@ -658,7 +655,7 @@ fn 16 std_collections$put__i32__Any (ref,i32,any) -> void
     call 14   ; std_collections$rehash__i32__Any
   end $L0
   local.get 1   ; arg 1
-  call 5   ; std_core$i32$Hash$hash
+  call 2   ; std_core$i32$Hash$hash
   local.set 6   ; perturb
   local.field 0 11 3   ; arg 0 std_collections$MutableMap__i32__Any.mask
   ref.cast 5   ; usize
@@ -791,7 +788,7 @@ fn 17 std_collections$get__i32__Any (ref,i32) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 5   ; std_core$i32$Hash$hash
+  call 2   ; std_core$i32$Hash$hash
   local.set 2   ; perturb
   local.field 0 11 3   ; arg 0 std_collections$MutableMap__i32__Any.mask
   ref.cast 5   ; usize

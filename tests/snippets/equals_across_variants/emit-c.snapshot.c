@@ -71,6 +71,7 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static bool snippet_Point_Equals_equals_guard(void* l0, vader_box_t l1);
 static bool snippet_Label_Equals_equals_guard(void* l0, vader_box_t l1);
+static uint64_t std_core_i32_Hash_hash(int32_t l0);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
@@ -79,7 +80,6 @@ static bool std_core____Contains_contains__Label___Point(void* l0, vader_box_t l
 static bool std_core____Contains_contains__f64___string(void* l0, vader_box_t l1);
 static uint64_t std_core_i8_Hash_hash(int8_t l0);
 static uint64_t std_core_i16_Hash_hash(int16_t l0);
-static uint64_t std_core_i32_Hash_hash(int32_t l0);
 static uint64_t std_core_i64_Hash_hash(int64_t l0);
 static uint64_t std_core_isize_Hash_hash(ptrdiff_t l0);
 static uint64_t std_core_u8_Hash_hash(uint8_t l0);
@@ -446,6 +446,11 @@ static bool snippet_Label_Equals_equals_guard(void* l0, vader_box_t l1) {
     return false;
 }
 
+static uint64_t std_core_i32_Hash_hash(int32_t l0) {
+#line 286 "lib/std/core/primitives.vader"
+    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
+}
+
 static void* std_core_new_byte_buffer(size_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
@@ -588,12 +593,6 @@ static uint64_t std_core_i8_Hash_hash(int8_t l0) {
 static uint64_t std_core_i16_Hash_hash(int16_t l0) {
 #line 285 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (int16_t) l0);
-}
-
-static uint64_t std_core_i32_Hash_hash(int32_t l0) {
-#line 286 "lib/std/core/primitives.vader"
-    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
-    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
 }
 
 static uint64_t std_core_i64_Hash_hash(int64_t l0) {

@@ -14,12 +14,6 @@ Open (`[ ]`) and in-progress (`[~]`) items keep the full context needed to act o
 
 ## Priority — next up
 
-- [ ] **The trait default-method materialiser emits each body twice** (found 2026-09-21 while writing the IR verifiers). `dump --stage=dced-ast --module=std/core examples/hello/hello.vader` shows two identical `std_core$i32$Step$step` decls; every `Step` impl a program's ranges reach duplicates this way (`{i32,usize}$Step$step` for hello).
-
-  Harmless today — the CFG DCE prunes them before bytecode — but not benign in shape. Both carry `origin.symbol = null`, so `midir/emit.vader:324-334` resolves both through the same `function_index_by_mangle` slot and `emit_cfg_function_body` runs **twice on one slot**, appending locals and body, while the first reserved slot stays empty. A duplicate that survived the prune would ship that.
-
-  A `verify_lowered` check for this was written and withdrawn (`I7010`, removed before landing): it is a true positive that fires 24× on hello world, so it cannot ship until the materialiser stops producing the duplicates. Fix the producer, then the check is one function.
-
 - [ ] **An expression-bodied fn whose body is `f(x) ?? Enum.Variant` aborts stage1, naming a DIFFERENT function** (found 2026-09-03, reproduced twice). Writing `vader/vm/host.vader::field_val_type` as `= bc.c_field_val_type(f, types) ?? bc.ValType.I64` makes stage0 abort with `midir/emit: no field \`element\` on \`?\` in 'vader_vm$dispatch_extern'`. The brace form of the same function compiles. Deterministic: reverted and re-applied, same message both times.
 
   **`dispatch_extern` is the CALLER**, and its `b.element` is the only `.element` in it — so a type that should be `LentArray` reads as `?` there. That the failure lands in the caller rather than in the edited fn points at the post-lowering single-expression inliner splicing the `??` body into its call sites, but that is a hypothesis, not a diagnosis. Three reductions failed to reproduce it standalone (same-module two-file, namespace alias, single file), so the shape needs something the small cases lack — start from the real file rather than from a snippet.
@@ -115,37 +109,6 @@ Open (`[ ]`) and in-progress (`[~]`) items keep the full context needed to act o
   ⚠️ Not to be confused with a correctness matter: the chain is correct today, and `@partial` / T3013 exhaustiveness is unaffected either way.
 
   **The general form of the same work** is decision-tree compilation (Maranget): sharing tests across arms instead of re-testing the scrutinee per arm. Only worth it if the measurement above shows the chain costs something.
-
-- [ ] **Null-narrowing crosses `&&` but not `||`** (found 2026-08-28, writing `vader/resolver/target_select.vader`). The two short-circuit operators are treated asymmetrically, and only one of them is right:
-
-  ```vader
-  f :: fn(xs: i32[] | null) -> i32 {
-      if xs != null && xs.len() == 0 { return 1 }   // compiles
-      if xs == null || xs.len() == 0 { return 1 }   // T3008
-      return 0
-  }
-  ```
-
-  `T3008: no 'len' overload accepts a receiver of type 'i32[] | null' — narrow the union with if/match first`. But it IS narrowed: in `a || b`, `b` is only evaluated when `a` is FALSE, so after `xs == null` the remaining case is `xs != null` — precisely the fact `&&` already exploits in the mirror position. Whatever computes the narrowing for the right operand of `&&` needs the negated form for `||`.
-
-  Cost of not having it: every `if x == null || <use x>` guard — the natural way to write an early return over two conditions — has to be split into two statements. Cheap to work around, invisible until you hit it, and the diagnostic points at the code rather than at the gap.
-
-  ⚠️ Note for whoever reproduces this: the SEED's compiler does not have T3008 here and **panics in midir/emit** instead (`no field 'len' on 'null | Os[]'`), so a `bootstrap/build.sh` failure on this shape looks like a lowering bug rather than a missing narrowing. Same defect, two eras.
-
-- [ ] **`"${Enum.Variant}"` interpolates the ORDINAL, not the `Display` form** (found 2026-08-28, while writing `std/target`). An enum's `implements Display` is honoured everywhere except in an interpolation of a **qualified literal**, where the value falls back to its integer discriminant. Measured on a six-line repro:
-
-  ```vader
-  E :: enum(u8) { A, B }
-  E implements Display -> match self { .A -> "aaa" ; .B -> "bbb" }
-
-  "${E.B}"                    // → "1"    ← the bug
-  x :: E.B ; "${x}"           // → "bbb"
-  "${E.B.to_string()}"        // → "bbb"
-  "" + E.B.to_string()        // → "bbb"
-  e: E = .B ; "${e}"          // → "bbb"
-  ```
-
-  So the impl resolves and the interpolation machinery works; only the path taken by a *qualified enum literal in interpolation position* skips it. Narrowed further on a real Windows guest (2026-08-28): `"${current_os()}"` — an interpolated CALL returning an enum — prints `windows` correctly, so the defect is not about enums in interpolation at all. It is specifically the qualified literal, which is the one form the compiler can see is an enum before any expression is evaluated. Everything that first binds the value — a local, an annotation, an argument — is correct, which is what makes this hard to notice: it needs a literal written inline, and the wrong answer is a plausible-looking number rather than a crash. Suspect the same `${int}` byte-buffer fast path that the interpolation perf work added (`perf_byte_buffer_interpolation`): an enum is an `i32` at runtime, so a shape test that asks "is this an integer?" before asking "does it implement Display?" would produce exactly this. `lib/std/target/target.vader`'s tests call `to_string()` explicitly and say why, so they do not encode the bug as expected behaviour.
 
 - [ ] **Warn on unused imports** (added 2026-06-07). An imported name that's never referenced in the file earns a compilation warning (new W-code). Covers both import forms : `import "path" { Name1, Name2 }` — each destructured name must be used at least once — and the namespace form `xx :: import "path"` — the binding `xx` must be referenced at least once (e.g. `xx.Member`), else the whole import is dead. Emit one warning per unused name, pointing at its import-list span. Update `SPEC.md` (imports section) in the same commit.
   - **Attempted 2026-06-17, reverted — blocked on reference-tracking.** First cut scanned `resolved.idents` (span→Symbol) for `ImportBinding`-kind values to build the "used" set, emitting W0006 for every unreferenced import binding in `resolved.symbols`. Minimal snippets passed (an unused `eprintln` flagged, a used `println` not — across value position, let-binding RHS, and type position). But on the real tree it **systematically false-positives** : `vader/lexer/keywords.vader` (40 LoC, **zero own imports**) reported 16 W0006 — they were `vader/lexer`'s **sibling-file** imports, whose uses the resolver never recorded because **its body walker is structurally `files[0]`-only** (closed since — `docs/HISTORY.md`, "Harden multi-file module support"). Worse, single-file `vader/cli/main.vader` reported 24 W0006 for top-of-file imports that are obviously used (`keys`, `values`, `resolve_module`, …) — so `resolved.idents` is **not a reliable record of every use** even within one file (some expr/type positions never land there ; root not fully pinned). **Conclusion :** a sound W0006 needs comprehensive, **symbol-id-keyed** (not span-hashed) reference tracking that covers *every* file of a (folder) module and *every* reference position. That was the same gap as **"Harden multi-file module support"** (the `files[0]`-only body walker, now closed — `docs/HISTORY.md`, "Harden multi-file module support"). Retry on top of it, or as a dedicated full-AST name-collection walk (params/return/fields/alias-RHS/const-types/all bodies, across all files) — not by scanning `resolved.idents`. Reverted cleanly (no W0006 in the tree).

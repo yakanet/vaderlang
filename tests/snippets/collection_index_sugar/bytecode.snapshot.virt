@@ -90,14 +90,14 @@ fn 0 snippet$main () -> i32
   type_check 1   ; i32
   if $L0 void
     i64.const 22
-    call 2   ; std_core$new_byte_buffer
+    call 3   ; std_core$new_byte_buffer
     local.set 1   ; $arr_1
     i64.const 0
     local.set 5   ; __off_2
     local.get 1   ; $arr_1
     local.get 5   ; __off_2
     string.const 2   ; "a="
-    call 4   ; std_core$write_string_at
+    call 5   ; std_core$write_string_at
     local.set 5   ; __off_2
     local.get 4   ; v
     ref.cast 1   ; i32
@@ -106,11 +106,11 @@ fn 0 snippet$main () -> i32
     local.get 1   ; $arr_1
     local.get 5   ; __off_2
     local.get 6   ; $cast_27
-    call 5   ; std_core$write_int
+    call 6   ; std_core$write_int
     local.set 5   ; __off_2
     local.get 1   ; $arr_1
     local.get 5   ; __off_2
-    call 3   ; std_core$finish_buffer
+    call 4   ; std_core$finish_buffer
     call 9   ; std_io$println__string
   else
     local.get 3   ; __scrut_0
@@ -224,20 +224,26 @@ fn 1 concat_2 (string,string) -> string
   return
 end
 
-fn 2 std_core$new_byte_buffer (usize) -> ref
+fn 2 std_core$i32$Hash$hash (i32) -> u64
+  local.get 0   ; arg 0
+  i32.to_i64
+  return
+end
+
+fn 3 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 3 std_core$finish_buffer (ref,usize) -> string
+fn 4 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 4 std_core$write_string_at (ref,usize,string) -> usize
+fn 5 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -252,7 +258,7 @@ fn 4 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 5 std_core$write_int (ref,usize,i64) -> usize
+fn 6 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -366,15 +372,6 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
   local.get 1   ; arg 1
   local.get 6   ; total
   i64.add
-  return
-end
-
-fn 6 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; arg 0
-  i32.to_i64
-  return
-  local.get 0   ; arg 0
-  i32.to_i64
   return
 end
 
@@ -668,7 +665,7 @@ fn 20 std_collections$rehash__i32__bool (ref,usize) -> void
       local.field 0 11 0   ; arg 0 std_collections$MutableMap__i32__bool.ekeys
       local.get 4   ; e
       load_slot_i32
-      call 6   ; std_core$i32$Hash$hash
+      call 2   ; std_core$i32$Hash$hash
       local.tee 6   ; perturb
       local.get 3   ; __for_discard_0
       call 16   ; std_collections$first_slot
@@ -970,7 +967,7 @@ fn 24 std_collections$put__i32__bool (ref,i32,bool) -> void
     call 20   ; std_collections$rehash__i32__bool
   end $L0
   local.get 1   ; arg 1
-  call 6   ; std_core$i32$Hash$hash
+  call 2   ; std_core$i32$Hash$hash
   local.set 6   ; perturb
   local.field 0 11 3   ; arg 0 std_collections$MutableMap__i32__bool.mask
   ref.cast 6   ; usize
@@ -1363,7 +1360,7 @@ fn 27 std_collections$contains_key__i32__bool (ref,i32) -> bool
     return.lit bool.const false
   end $L0
   local.get 1   ; arg 1
-  call 6   ; std_core$i32$Hash$hash
+  call 2   ; std_core$i32$Hash$hash
   local.set 2   ; perturb
   local.field 0 11 3   ; arg 0 std_collections$MutableMap__i32__bool.mask
   ref.cast 6   ; usize

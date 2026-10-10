@@ -105,10 +105,9 @@ surface_stdlib_impl_externs :: fn(
         // unconditionally would intern unused signature types and shift the
         // type table for unrelated snippets.
         if !project_ctx.referenced_impl_mangles.contains(mangled) && !vtable_gate { continue }
-        // Dedupe against the generic-impl materialiser (and re-entrant calls).
-        dedupe_key :: "surfaced::${mangled}"
-        if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
-        project_ctx.materialized_impl_keys.add(dedupe_key)
+        if !claim_impl_member(project_ctx, mangled) {
+            continue
+        }
         types :: make_entry_types(typed, new_substitution())
         params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
         return_type :: return_type_of(member, types)

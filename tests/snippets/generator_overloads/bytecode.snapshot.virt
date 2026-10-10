@@ -96,8 +96,8 @@ impl 41 std_core$Into
 impl 42 std_core$Iterator
 vtable std_core$Iterator.next 5 2
 vtable std_core$Iterator.next 8 6
-vtable std_core$Iterator.next 14 8
-vtable std_core$Iterator.next 15 9
+vtable std_core$Iterator.next 14 9
+vtable std_core$Iterator.next 15 11
 vtable std_core$Iterator.next 24 38
 vtable std_core$Iterator.next 30 42
 vtable std_core$Iterator.next 34 43
@@ -141,14 +141,14 @@ fn 1 snippet$main () -> i32
       local.get 0   ; i
       local.set 1   ; x
       i64.const 26
-      call 10   ; std_core$new_byte_buffer
+      call 12   ; std_core$new_byte_buffer
       local.set 2   ; __buf_0
       i64.const 0
       local.set 3   ; __off_1
       local.get 2   ; __buf_0
       local.get 3   ; __off_1
       string.const 1   ; "fused "
-      call 12   ; std_core$write_string_at
+      call 14   ; std_core$write_string_at
       local.set 3   ; __off_1
       local.get 1   ; x
       i32.to_i64
@@ -156,11 +156,11 @@ fn 1 snippet$main () -> i32
       local.get 2   ; __buf_0
       local.get 3   ; __off_1
       local.get 4   ; $cast_13
-      call 13   ; std_core$write_int
+      call 15   ; std_core$write_int
       local.set 3   ; __off_1
       local.get 2   ; __buf_0
       local.get 3   ; __off_1
-      call 11   ; std_core$finish_buffer
+      call 13   ; std_core$finish_buffer
       call 41   ; std_io$println__string
       local.get 0   ; i
       i32.const 1
@@ -188,14 +188,14 @@ fn 1 snippet$main () -> i32
       i64.const 20
       local.get 9   ; $call_28
       i64.add
-      call 10   ; std_core$new_byte_buffer
+      call 12   ; std_core$new_byte_buffer
       local.set 2   ; __buf_0
       i64.const 0
       local.set 10   ; __off_2
       local.get 2   ; __buf_0
       local.get 10   ; __off_2
       local.get 8   ; __p_0
-      call 12   ; std_core$write_string_at
+      call 14   ; std_core$write_string_at
       local.set 10   ; __off_2
       local.get 3   ; __off_1
       usize.to_i64
@@ -203,11 +203,11 @@ fn 1 snippet$main () -> i32
       local.get 2   ; __buf_0
       local.get 10   ; __off_2
       local.get 11   ; $cast_35
-      call 14   ; std_core$write_unsigned
+      call 16   ; std_core$write_unsigned
       local.set 10   ; __off_2
       local.get 2   ; __buf_0
       local.get 10   ; __off_2
-      call 11   ; std_core$finish_buffer
+      call 13   ; std_core$finish_buffer
       local.set 7   ; w
       string.const 1   ; "fused "
       local.get 7   ; w
@@ -228,7 +228,7 @@ fn 1 snippet$main () -> i32
     f64.le
     if $L5 void
       local.get 12   ; x
-      call 15   ; std_core$f64$Display$to_string
+      call 17   ; std_core$f64$Display$to_string
       local.set 5   ; s
       string.const 1   ; "fused "
       local.get 5   ; s
@@ -284,14 +284,14 @@ fn 1 snippet$main () -> i32
       ref.cast 1   ; i32
       local.set 0   ; i
       i64.const 25
-      call 10   ; std_core$new_byte_buffer
+      call 12   ; std_core$new_byte_buffer
       local.set 15   ; __step_3
       i64.const 0
       local.set 3   ; __off_1
       local.get 15   ; __step_3
       local.get 3   ; __off_1
       string.const 4   ; "lazy "
-      call 12   ; std_core$write_string_at
+      call 14   ; std_core$write_string_at
       local.set 3   ; __off_1
       local.get 0   ; i
       i32.to_i64
@@ -299,11 +299,11 @@ fn 1 snippet$main () -> i32
       local.get 15   ; __step_3
       local.get 3   ; __off_1
       local.get 4   ; $cast_13
-      call 13   ; std_core$write_int
+      call 15   ; std_core$write_int
       local.set 3   ; __off_1
       local.get 15   ; __step_3
       local.get 3   ; __off_1
-      call 11   ; std_core$finish_buffer
+      call 13   ; std_core$finish_buffer
       call 41   ; std_io$println__string
       br $L8
     end $L9
@@ -321,7 +321,7 @@ fn 1 snippet$main () -> i32
     else
       local.field 2 25 0   ; __buf_0 __Tuple_f64_u8_c1a5f9fe._0
       ref.cast 18   ; f64
-      call 15   ; std_core$f64$Display$to_string
+      call 17   ; std_core$f64$Display$to_string
       local.set 5   ; s
       string.const 4   ; "lazy "
       local.get 5   ; s
@@ -351,14 +351,14 @@ fn 1 snippet$main () -> i32
       i64.const 20
       local.get 9   ; $call_28
       i64.add
-      call 10   ; std_core$new_byte_buffer
+      call 12   ; std_core$new_byte_buffer
       local.set 15   ; __step_3
       i64.const 0
       local.set 10   ; __off_2
       local.get 15   ; __step_3
       local.get 10   ; __off_2
       local.get 7   ; w
-      call 12   ; std_core$write_string_at
+      call 14   ; std_core$write_string_at
       local.set 10   ; __off_2
       local.get 3   ; __off_1
       usize.to_i64
@@ -366,11 +366,11 @@ fn 1 snippet$main () -> i32
       local.get 15   ; __step_3
       local.get 10   ; __off_2
       local.get 11   ; $cast_35
-      call 14   ; std_core$write_unsigned
+      call 16   ; std_core$write_unsigned
       local.set 10   ; __off_2
       local.get 15   ; __step_3
       local.get 10   ; __off_2
-      call 11   ; std_core$finish_buffer
+      call 13   ; std_core$finish_buffer
       call 3   ; __lambda_snippet_0
       local.set 16   ; x
       local.get 13   ; halves
@@ -386,7 +386,7 @@ fn 1 snippet$main () -> i32
   local.get 13   ; halves
   local.set 2   ; __buf_0
   i64.const 41
-  call 10   ; std_core$new_byte_buffer
+  call 12   ; std_core$new_byte_buffer
   local.set 13   ; halves
   i64.const 0
   local.set 3   ; __off_1
@@ -397,12 +397,12 @@ fn 1 snippet$main () -> i32
   local.get 13   ; halves
   local.get 3   ; __off_1
   local.get 11   ; $cast_35
-  call 14   ; std_core$write_unsigned
+  call 16   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 13   ; halves
   local.get 3   ; __off_1
   string.const 6   ; " "
-  call 12   ; std_core$write_string_at
+  call 14   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   i32.const 0
@@ -412,14 +412,14 @@ fn 1 snippet$main () -> i32
   local.get 13   ; halves
   local.get 3   ; __off_1
   local.get 11   ; $cast_35
-  call 14   ; std_core$write_unsigned
+  call 16   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 13   ; halves
   local.get 3   ; __off_1
-  call 11   ; std_core$finish_buffer
+  call 13   ; std_core$finish_buffer
   call 41   ; std_io$println__string
   i64.const 20
-  call 10   ; std_core$new_byte_buffer
+  call 12   ; std_core$new_byte_buffer
   local.set 2   ; __buf_0
   i64.const 0
   local.set 3   ; __off_1
@@ -453,11 +453,11 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   local.get 11   ; $cast_35
-  call 14   ; std_core$write_unsigned
+  call 16   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  call 11   ; std_core$finish_buffer
+  call 13   ; std_core$finish_buffer
   call 41   ; std_io$println__string
   string.const 7   ; "k"
   local.set 5   ; s
@@ -478,14 +478,14 @@ fn 1 snippet$main () -> i32
       i64.const 20
       local.get 9   ; $call_28
       i64.add
-      call 10   ; std_core$new_byte_buffer
+      call 12   ; std_core$new_byte_buffer
       local.set 2   ; __buf_0
       i64.const 0
       local.set 10   ; __off_2
       local.get 2   ; __buf_0
       local.get 10   ; __off_2
       local.get 8   ; __p_0
-      call 12   ; std_core$write_string_at
+      call 14   ; std_core$write_string_at
       local.set 10   ; __off_2
       local.get 3   ; __off_1
       usize.to_i64
@@ -493,11 +493,11 @@ fn 1 snippet$main () -> i32
       local.get 2   ; __buf_0
       local.get 10   ; __off_2
       local.get 11   ; $cast_35
-      call 14   ; std_core$write_unsigned
+      call 16   ; std_core$write_unsigned
       local.set 10   ; __off_2
       local.get 2   ; __buf_0
       local.get 10   ; __off_2
-      call 11   ; std_core$finish_buffer
+      call 13   ; std_core$finish_buffer
       local.set 7   ; w
       string.const 8   ; "ufcs "
       local.get 7   ; w
@@ -757,7 +757,7 @@ fn 6 snippet$__genstate_upto_1$Iterator$next (ref) -> ref
             i64.const 20
             local.get 5   ; $call_31
             i64.add
-            call 10   ; std_core$new_byte_buffer
+            call 12   ; std_core$new_byte_buffer
             local.set 6   ; $call_33
             local.get 0   ; arg 0
             local.get 6   ; $call_33
@@ -776,7 +776,7 @@ fn 6 snippet$__genstate_upto_1$Iterator$next (ref) -> ref
             local.get 7   ; $field_35
             local.get 8   ; $field_36
             local.get 9   ; $field_37
-            call 12   ; std_core$write_string_at
+            call 14   ; std_core$write_string_at
             local.set 10   ; $call_38
             local.get 0   ; arg 0
             local.get 10   ; $call_38
@@ -793,7 +793,7 @@ fn 6 snippet$__genstate_upto_1$Iterator$next (ref) -> ref
             local.get 11   ; $field_39
             local.get 12   ; $field_40
             local.get 13   ; $cast_42
-            call 14   ; std_core$write_unsigned
+            call 16   ; std_core$write_unsigned
             local.set 14   ; $call_43
             local.get 0   ; arg 0
             local.get 14   ; $call_43
@@ -805,7 +805,7 @@ fn 6 snippet$__genstate_upto_1$Iterator$next (ref) -> ref
             local.set 16   ; $field_45
             local.get 15   ; $field_44
             local.get 16   ; $field_45
-            call 11   ; std_core$finish_buffer
+            call 13   ; std_core$finish_buffer
             i32.const 0
             struct.new 9   ; __Tuple_string_u8_b910c566
             return
@@ -870,7 +870,14 @@ fn 7 concat_2 (string,string) -> string
   return
 end
 
-fn 8 std_core$Range$Iterator$next__i32 (ref) -> ref
+fn 8 std_core$i32$Step$step (i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.add
+  return
+end
+
+fn 9 std_core$Range$Iterator$next__i32 (ref) -> ref
   local done bool
   local $field_3 i32
   local $field_4 i32
@@ -907,7 +914,7 @@ fn 8 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 2   ; $field_3
     local.field 0 14 3   ; arg 0 std_core$Range__i32.cursor
     ref.cast 1   ; i32
-    call 16   ; std_core$i32$Step$step
+    call 8   ; std_core$i32$Step$step
     local.set 3   ; $field_4
     local.get 0   ; arg 0
     local.get 3   ; $field_4
@@ -924,7 +931,14 @@ fn 8 std_core$Range$Iterator$next__i32 (ref) -> ref
   return
 end
 
-fn 9 std_core$Range$Iterator$next__usize (ref) -> ref
+fn 10 std_core$usize$Step$step (usize) -> usize
+  local.get 0   ; arg 0
+  i64.const 1
+  i64.add
+  return
+end
+
+fn 11 std_core$Range$Iterator$next__usize (ref) -> ref
   local done bool
   local $field_3 usize
   local $field_4 usize
@@ -961,7 +975,7 @@ fn 9 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 2   ; $field_3
     local.field 0 15 3   ; arg 0 std_core$Range__usize.cursor
     ref.cast 10   ; usize
-    call 17   ; std_core$usize$Step$step
+    call 10   ; std_core$usize$Step$step
     local.set 3   ; $field_4
     local.get 0   ; arg 0
     local.get 3   ; $field_4
@@ -978,20 +992,20 @@ fn 9 std_core$Range$Iterator$next__usize (ref) -> ref
   return
 end
 
-fn 10 std_core$new_byte_buffer (usize) -> ref
+fn 12 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 11 std_core$finish_buffer (ref,usize) -> string
+fn 13 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 12 std_core$write_string_at (ref,usize,string) -> usize
+fn 14 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -1006,7 +1020,7 @@ fn 12 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 13 std_core$write_int (ref,usize,i64) -> usize
+fn 15 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -1123,7 +1137,7 @@ fn 13 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 14 std_core$write_unsigned (ref,usize,u64) -> usize
+fn 16 std_core$write_unsigned (ref,usize,u64) -> usize
   local ndigits usize
   local m u64
   local i usize
@@ -1205,31 +1219,9 @@ fn 14 std_core$write_unsigned (ref,usize,u64) -> usize
   return
 end
 
-fn 15 std_core$f64$Display$to_string (f64) -> string
+fn 17 std_core$f64$Display$to_string (f64) -> string
   local.get 0   ; arg 0
   call 18   ; std_core$format_f64
-  return
-end
-
-fn 16 std_core$i32$Step$step (i32) -> i32
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.add
-  return
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.add
-  return
-end
-
-fn 17 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; arg 0
-  i64.const 1
-  i64.add
-  return
-  local.get 0   ; arg 0
-  i64.const 1
-  i64.add
   return
 end
 
@@ -2438,7 +2430,7 @@ fn 29 std_core$write_decimal (ref,usize,u64,i32) -> usize
     local.get 0   ; arg 0
     local.get 6   ; $add_15
     local.get 11   ; $cast_63
-    call 14   ; std_core$write_unsigned
+    call 16   ; std_core$write_unsigned
     return
   end $L8
   local.get 4   ; k
@@ -2447,7 +2439,7 @@ fn 29 std_core$write_decimal (ref,usize,u64,i32) -> usize
   local.get 0   ; arg 0
   local.get 6   ; $add_15
   local.get 11   ; $cast_63
-  call 14   ; std_core$write_unsigned
+  call 16   ; std_core$write_unsigned
   return
 end
 

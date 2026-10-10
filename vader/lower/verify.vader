@@ -35,6 +35,7 @@ import "vader/diagnostics"
 /// @param diags    accumulator ; violations are pushed as `I7xxx` errors.
 export verify_lowered :: fn(project: LoweredProject, after: string, diags: Diagnostic[]) -> void {
     verify_no_coroutine_markers(project, after, diags)
+    verify_functions_defined_once(project, after, diags)
 }
 
 // ---- checks ---------------------------------------------------------------
@@ -59,6 +60,27 @@ verify_no_coroutine_markers :: fn(
                         "after `${after}`: an `await` marker survives in `${owner}` — the coroutine transform did not consume it"))
                 }
             })
+        }
+    }
+}
+
+// I7012: one function mangle given a body twice. Downstream both copies resolve
+// to one function slot, which then receives both bodies, the second dead behind
+// the first `return`. Reported against the second body.
+verify_functions_defined_once :: fn(
+    project: LoweredProject, after: string, diags: Diagnostic[],
+) -> void {
+    seen :: MutableSet<string> {}
+    for [_module_id, m] in project.modules {
+        for d in m.decls {
+            if d !is LoweredFnDecl {
+                continue
+            }
+            body :: d.body ?? continue
+            if !seen.add(d.mangled) {
+                diags.push(internal_error(.FunctionDefinedTwice, body.span,
+                    "after `${after}`: `${d.mangled}` has a second body"))
+            }
         }
     }
 }
@@ -124,10 +146,16 @@ captured_let_project :: fn(value: LoweredExpr) -> LoweredProject {
         .span = empty_span(), .name = "x", .symbol = bce_test_sym(1, "x"), .type = TY_BOOL,
         .value = value,
     }
+    return one_module_project([bce_test_fn(bce_test_sym(2, "f"), bce_test_block([binding]))])
+}
+
+// A project whose only module, `m`, holds `decls`.
+one_module_project :: fn(decls: LoweredDecl[]) -> LoweredProject {
     project :: new_lowered_project()
     project.modules["m"] = LoweredModule {
-        .module_id = "m", .display_path = "m",
-        .decls = [bce_test_fn(bce_test_sym(2, "f"), bce_test_block([binding]))],
+        .module_id = "m",
+        .display_path = "m",
+        .decls = decls,
     }
     return project
 }
@@ -139,6 +167,18 @@ captured_one :: fn() -> MutableSet<i32> {
 }
 
 bare :: fn() -> LoweredExpr! = LoweredBoolLit { .span = empty_span(), .type = TY_BOOL, .value = true }
+
+@test
+test_verify_functions_defined_once_reports_the_second_body :: fn() -> void {
+    f :: bce_test_sym(2, "f")
+    first :: bce_test_fn(f, bce_test_block([]))
+    second :: bce_test_fn(f, bce_test_block([]))
+    project :: one_module_project([first, second])
+    diags: Diagnostic[]: []
+    verify_functions_defined_once(project, "test", diags)
+    assert_eq(diags.len(), 1)
+    assert_eq(diags[0].code.id, "I7012")
+}
 
 @test
 test_verify_captured_cells_bare_value :: fn() -> void {

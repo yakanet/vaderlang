@@ -56,13 +56,13 @@ static bool snippet_i_gt(int32_t l0, int32_t l1);
 static bool snippet_i_ge(int32_t l0, int32_t l1);
 static bool std_core_Range_Contains_contains__i32(void* l0, int32_t l1);
 static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1);
+static int32_t std_core_i32_Step_step(int32_t l0);
 static void* std_core_Range_Iterator_next__i32(void* l0);
 static bool std_core_Range_Contains_contains__usize(void* l0, size_t l1);
 static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1);
+static size_t std_core_usize_Step_step(size_t l0);
 static void* std_core_Range_Iterator_next__usize(void* l0);
 static int32_t std_core_three_way(bool l0, bool l1);
-static int32_t std_core_i32_Step_step(int32_t l0);
-static size_t std_core_usize_Step_step(size_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -200,6 +200,11 @@ static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
     return t0;
 }
 
+static int32_t std_core_i32_Step_step(int32_t l0) {
+#line 338 "lib/std/core/primitives.vader"
+    return (l0 + INT32_C(1));
+}
+
 static void* std_core_Range_Iterator_next__i32(void* l0) {
     bool l1;
     int32_t l2, l3;
@@ -278,6 +283,11 @@ static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1) {
     return t0;
 }
 
+static size_t std_core_usize_Step_step(size_t l0) {
+#line 345 "lib/std/core/primitives.vader"
+    return (size_t) (int64_t) (l0 + INT64_C(1));
+}
+
 static void* std_core_Range_Iterator_next__usize(void* l0) {
     bool l1;
     size_t l2, l3;
@@ -339,18 +349,6 @@ static int32_t std_core_three_way(bool l0, bool l1) {
         l2 = INT32_C(0);
     }
     return l2;
-}
-
-static int32_t std_core_i32_Step_step(int32_t l0) {
-#line 338 "lib/std/core/primitives.vader"
-    return (l0 + INT32_C(1));
-    return (l0 + INT32_C(1));
-}
-
-static size_t std_core_usize_Step_step(size_t l0) {
-#line 345 "lib/std/core/primitives.vader"
-    return (size_t) (int64_t) (l0 + INT64_C(1));
-    return (size_t) (int64_t) (l0 + INT64_C(1));
 }
 
 int main(int argc, char** argv) {

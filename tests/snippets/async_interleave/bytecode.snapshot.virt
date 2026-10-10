@@ -139,19 +139,19 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       i64.const 34
       local.get 2   ; $call_18
       i64.add
-      call 7   ; std_core$new_byte_buffer
+      call 8   ; std_core$new_byte_buffer
       local.set 3   ; __buf_2
       i64.const 0
       local.set 4   ; __off_3
       local.get 3   ; __buf_2
       local.get 4   ; __off_3
       local.get 1   ; __p_1
-      call 9   ; std_core$write_string_at
+      call 10   ; std_core$write_string_at
       local.set 4   ; __off_3
       local.get 3   ; __buf_2
       local.get 4   ; __off_3
       string.const 0   ; ": end (slept "
-      call 9   ; std_core$write_string_at
+      call 10   ; std_core$write_string_at
       local.set 4   ; __off_3
       local.field 0 5 1   ; arg 0 __asyncstate_snippet_0.s1
       ref.cast 2   ; i64
@@ -159,16 +159,16 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
       local.get 3   ; __buf_2
       local.get 4   ; __off_3
       local.get 5   ; $field_27
-      call 10   ; std_core$write_int
+      call 11   ; std_core$write_int
       local.set 4   ; __off_3
       local.get 3   ; __buf_2
       local.get 4   ; __off_3
       string.const 1   ; ")"
-      call 9   ; std_core$write_string_at
+      call 10   ; std_core$write_string_at
       local.set 4   ; __off_3
       local.get 3   ; __buf_2
       local.get 4   ; __off_3
-      call 8   ; std_core$finish_buffer
+      call 9   ; std_core$finish_buffer
       call 14   ; std_io$println__string
       local.get 0   ; arg 0
       i32.const 1
@@ -415,20 +415,26 @@ fn 6 concat_2 (string,string) -> string
   return
 end
 
-fn 7 std_core$new_byte_buffer (usize) -> ref
+fn 7 std_core$usize$Hash$hash (usize) -> u64
+  local.get 0   ; arg 0
+  usize.to_i64
+  return
+end
+
+fn 8 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 8 std_core$finish_buffer (ref,usize) -> string
+fn 9 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 9 std_core$write_string_at (ref,usize,string) -> usize
+fn 10 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -443,7 +449,7 @@ fn 9 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 10 std_core$write_int (ref,usize,i64) -> usize
+fn 11 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -557,15 +563,6 @@ fn 10 std_core$write_int (ref,usize,i64) -> usize
   local.get 1   ; arg 1
   local.get 6   ; total
   i64.add
-  return
-end
-
-fn 11 std_core$usize$Hash$hash (usize) -> u64
-  local.get 0   ; arg 0
-  usize.to_i64
-  return
-  local.get 0   ; arg 0
-  usize.to_i64
   return
 end
 
@@ -1081,7 +1078,7 @@ fn 30 std_collections$rehash__usize__i32 (ref,usize) -> void
       local.field 0 25 0   ; arg 0 std_collections$MutableMap__usize__i32.ekeys
       local.get 4   ; e
       load_slot_i64
-      call 11   ; std_core$usize$Hash$hash
+      call 7   ; std_core$usize$Hash$hash
       local.tee 6   ; perturb
       local.get 3   ; __for_discard_0
       call 27   ; std_collections$first_slot
@@ -1241,7 +1238,7 @@ fn 32 std_collections$put__usize__i32 (ref,usize,i32) -> void
     call 30   ; std_collections$rehash__usize__i32
   end $L0
   local.get 1   ; arg 1
-  call 11   ; std_core$usize$Hash$hash
+  call 7   ; std_core$usize$Hash$hash
   local.set 6   ; perturb
   local.field 0 25 3   ; arg 0 std_collections$MutableMap__usize__i32.mask
   ref.cast 15   ; usize
@@ -1374,7 +1371,7 @@ fn 33 std_collections$get__usize__i32 (ref,usize) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 11   ; std_core$usize$Hash$hash
+  call 7   ; std_core$usize$Hash$hash
   local.set 2   ; perturb
   local.field 0 25 3   ; arg 0 std_collections$MutableMap__usize__i32.mask
   ref.cast 15   ; usize

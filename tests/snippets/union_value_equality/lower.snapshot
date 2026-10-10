@@ -1311,15 +1311,6 @@
         arg0:
           .value :Any
             other :Box<Any>
-  fn snippet$Point$Equals$equals(self: Point!, other: Point) -> bool
-    ~>
-      eq :bool
-        l:
-          .x :i32
-            self :Point
-        r:
-          .x :i32
-            other :Point
   fn snippet$same_opt__Point(a: Any | null, b: Any) -> bool
     ~>
       and :bool

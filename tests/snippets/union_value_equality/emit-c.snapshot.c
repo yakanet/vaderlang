@@ -62,11 +62,11 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 6u
 
+static bool snippet_Point_Equals_equals(void* l0, void* l1);
 static bool snippet_Label_Equals_equals(void* l0, void* l1);
 static bool snippet_Pair_Equals_equals(void* l0, void* l1);
 static int32_t snippet_main(void);
 static bool snippet_Box_Equals_equals__Any(void* l0, void* l1);
-static bool snippet_Point_Equals_equals(void* l0, void* l1);
 static bool snippet_same_opt__Point(vader_box_t l0, vader_box_t l1);
 static bool snippet_same_pair__Point(void* l0, void* l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
@@ -184,6 +184,14 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 
 /* vtable forwards */
 static bool vader_vt_std_core_Equals__equals(vader_box_t recv, vader_box_t a0);
+
+static bool snippet_Point_Equals_equals(void* l0, void* l1) {
+    int32_t l2, l3;
+#line 19 "tests/snippets/union_value_equality/_main.vader"
+    l2 = ((vader_struct_snippet_Point_t*) l0)->f_x;
+    l3 = ((vader_struct_snippet_Point_t*) l1)->f_x;
+    return l2 == l3;
+}
 
 static bool snippet_Label_Equals_equals(void* l0, void* l1) {
     vader_string_t l2, l3;
@@ -711,17 +719,6 @@ static bool snippet_Box_Equals_equals__Any(void* l0, void* l1) {
     l2 = ((vader_struct_snippet_Box__Any_t*) l0)->f_value;
     t0 = vader_vt_std_core_Equals__equals(l2, ((vader_struct_snippet_Box__Any_t*) l1)->f_value);
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static bool snippet_Point_Equals_equals(void* l0, void* l1) {
-    int32_t l2, l3;
-#line 19 "tests/snippets/union_value_equality/_main.vader"
-    l2 = ((vader_struct_snippet_Point_t*) l0)->f_x;
-    l3 = ((vader_struct_snippet_Point_t*) l1)->f_x;
-    return l2 == l3;
-    l2 = ((vader_struct_snippet_Point_t*) l0)->f_x;
-    l3 = ((vader_struct_snippet_Point_t*) l1)->f_x;
-    return l2 == l3;
 }
 
 static bool snippet_same_opt__Point(vader_box_t l0, vader_box_t l1) {

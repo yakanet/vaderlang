@@ -943,6 +943,7 @@ static double snippet____Shape_area__f64(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_5(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
+static uint64_t std_core_i32_Hash_hash(int32_t l0);
 static bool std_core_Range_Contains_contains__i32(void* l0, int32_t l1);
 static bool std_core_Range_Contains_contains__usize(void* l0, size_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
@@ -968,7 +969,6 @@ static vader_string_t std_core_string_Display_to_string(vader_string_t l0);
 static vader_string_t std_core_null_Display_to_string(vader_box_t l0);
 static vader_string_t std_core_f32_Display_to_string(float l0);
 static vader_string_t std_core_f64_Display_to_string(double l0);
-static uint64_t std_core_i32_Hash_hash(int32_t l0);
 static vader_string_t std_core_string_Add_add(vader_string_t l0, vader_string_t l1);
 static vader_string_t std_core_format_signed(int64_t l0);
 static vader_string_t std_core_format_unsigned(uint64_t l0);
@@ -1778,6 +1778,11 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static uint64_t std_core_i32_Hash_hash(int32_t l0) {
+#line 286 "lib/std/core/primitives.vader"
+    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
+}
+
 static bool std_core_Range_Contains_contains__i32(void* l0, int32_t l1) {
     int32_t l2, l3;
     bool t0;
@@ -2160,12 +2165,6 @@ static vader_string_t std_core_f64_Display_to_string(double l0) {
 #line 247 "lib/std/core/primitives.vader"
     t0 = std_core_format_f64(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
-static uint64_t std_core_i32_Hash_hash(int32_t l0) {
-#line 286 "lib/std/core/primitives.vader"
-    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
-    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
 }
 
 static vader_string_t std_core_string_Add_add(vader_string_t l0, vader_string_t l1) {

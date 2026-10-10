@@ -1209,24 +1209,6 @@
             self :Wrap<Vec2>
         arg1:
           float(2.0) :f64
-  fn snippet$Vec2$Mul$mul(self: Vec2!, k: f64) -> Vec2
-    ~>
-      Vec2! {
-        x:
-          mul :f64
-            l:
-              .x :f64
-                self :Vec2
-            r:
-              k :f64
-        y:
-          mul :f64
-            l:
-              .y :f64
-                self :Vec2
-            r:
-              k :f64
-      }
   fn snippet$Wrap$Show$show__snippet_Vec2(self: Wrap<Vec2>!) -> string
     ~>
       call :string
@@ -1235,24 +1217,6 @@
         arg0:
           .inner :Vec2
             self :Wrap<Vec2>
-  fn snippet$Vec2$Describe$tag(self: Vec2!) -> string
-    ~>
-      "int" :string
-  fn snippet$Vec2$Describe$describe(self: Vec2!) -> string
-    ~>
-      call :string
-        callee:
-          concat_3 :string
-        arg0:
-          "<" :string
-        arg1:
-          call :string
-            callee:
-              snippet$Vec2$Describe$tag :string
-            arg0:
-              self :Vec2
-        arg2:
-          ">" :string
   struct snippet$Pile__i32 { top: i32 }
   fn snippet$Pile$Add$add__i32(self: Pile<i32>!, o: Pile<i32>) -> Pile<i32>
     ~>

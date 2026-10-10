@@ -73,6 +73,8 @@ static int32_t snippet_main(void);
 static bool snippet_less__string(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_4(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3);
+static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1);
+static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
@@ -81,14 +83,12 @@ static size_t std_core_write_bool(void* l0, size_t l1, bool l2);
 static int32_t std_core_three_way(bool l0, bool l1);
 static int32_t std_core_i8_Comparable_compare(int8_t l0, int8_t l1);
 static int32_t std_core_i16_Comparable_compare(int16_t l0, int16_t l1);
-static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1);
 static int32_t std_core_i64_Comparable_compare(int64_t l0, int64_t l1);
 static int32_t std_core_isize_Comparable_compare(ptrdiff_t l0, ptrdiff_t l1);
 static int32_t std_core_u8_Comparable_compare(uint8_t l0, uint8_t l1);
 static int32_t std_core_u16_Comparable_compare(uint16_t l0, uint16_t l1);
 static int32_t std_core_u32_Comparable_compare(uint32_t l0, uint32_t l1);
 static int32_t std_core_u64_Comparable_compare(uint64_t l0, uint64_t l1);
-static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1);
 static int32_t std_core_char_Comparable_compare(uint32_t l0, uint32_t l1);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
@@ -331,6 +331,26 @@ static vader_string_t concat_4(vader_string_t l0, vader_string_t l1, vader_strin
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
+    bool l2, l3;
+    int32_t t0;
+#line 316 "lib/std/core/primitives.vader"
+    l2 = (l0 < l1);
+    l3 = (l0 > l1);
+    t0 = std_core_three_way(l2, l3);
+    return t0;
+}
+
+static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1) {
+    bool l2, l3;
+    int32_t t0;
+#line 323 "lib/std/core/primitives.vader"
+    l2 = (l0 < l1);
+    l3 = (l0 > l1);
+    t0 = std_core_three_way(l2, l3);
+    return t0;
+}
+
 static void* std_core_new_byte_buffer(size_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
@@ -482,20 +502,6 @@ static int32_t std_core_i16_Comparable_compare(int16_t l0, int16_t l1) {
     return t0;
 }
 
-static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
-    bool l2, l3;
-    int32_t t0;
-#line 316 "lib/std/core/primitives.vader"
-    l2 = (l0 < l1);
-    l3 = (l0 > l1);
-    t0 = std_core_three_way(l2, l3);
-    return t0;
-    l2 = (l0 < l1);
-    l3 = (l0 > l1);
-    t0 = std_core_three_way(l2, l3);
-    return t0;
-}
-
 static int32_t std_core_i64_Comparable_compare(int64_t l0, int64_t l1) {
     bool l2, l3;
     int32_t t0;
@@ -550,20 +556,6 @@ static int32_t std_core_u64_Comparable_compare(uint64_t l0, uint64_t l1) {
     bool l2, l3;
     int32_t t0;
 #line 322 "lib/std/core/primitives.vader"
-    l2 = (l0 < l1);
-    l3 = (l0 > l1);
-    t0 = std_core_three_way(l2, l3);
-    return t0;
-}
-
-static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1) {
-    bool l2, l3;
-    int32_t t0;
-#line 323 "lib/std/core/primitives.vader"
-    l2 = (l0 < l1);
-    l3 = (l0 > l1);
-    t0 = std_core_three_way(l2, l3);
-    return t0;
     l2 = (l0 < l1);
     l3 = (l0 > l1);
     t0 = std_core_three_way(l2, l3);

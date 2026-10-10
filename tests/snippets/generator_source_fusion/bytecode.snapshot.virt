@@ -105,8 +105,8 @@ impl 49 std_core$Into
 impl 50 std_core$Iterator
 vtable std_core$Iterator.next 8 8
 vtable std_core$Iterator.next 11 9
-vtable std_core$Iterator.next 24 14
-vtable std_core$Iterator.next 25 15
+vtable std_core$Iterator.next 24 15
+vtable std_core$Iterator.next 25 17
 vtable std_core$Iterator.next 35 31
 vtable std_core$Iterator.next 38 32
 vtable std_core$Iterator.next 42 33
@@ -247,19 +247,19 @@ fn 6 snippet$show (string,ref) -> void
       i64.const 21
       local.get 8   ; $call_15
       i64.add
-      call 16   ; std_core$new_byte_buffer
+      call 18   ; std_core$new_byte_buffer
       local.set 9   ; __buf_4
       i64.const 0
       local.set 10   ; __off_5
       local.get 9   ; __buf_4
       local.get 10   ; __off_5
       local.get 7   ; __p_3
-      call 18   ; std_core$write_string_at
+      call 20   ; std_core$write_string_at
       local.set 10   ; __off_5
       local.get 9   ; __buf_4
       local.get 10   ; __off_5
       string.const 1   ; " "
-      call 18   ; std_core$write_string_at
+      call 20   ; std_core$write_string_at
       local.set 10   ; __off_5
       local.get 6   ; x
       i32.to_i64
@@ -267,11 +267,11 @@ fn 6 snippet$show (string,ref) -> void
       local.get 9   ; __buf_4
       local.get 10   ; __off_5
       local.get 11   ; $cast_24
-      call 19   ; std_core$write_int
+      call 21   ; std_core$write_int
       local.set 10   ; __off_5
       local.get 9   ; __buf_4
       local.get 10   ; __off_5
-      call 17   ; std_core$finish_buffer
+      call 19   ; std_core$finish_buffer
       local.set 2   ; out
       local.get 5   ; __for_i_2
       i64.const 1
@@ -1142,14 +1142,14 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
       local.get 1   ; $field_13
       struct.set 15 19   ; __asyncstate_snippet_2.s19
       i64.const 33
-      call 16   ; std_core$new_byte_buffer
+      call 18   ; std_core$new_byte_buffer
       local.set 2   ; __buf_17
       i64.const 0
       local.set 3   ; __off_18
       local.get 2   ; __buf_17
       local.get 3   ; __off_18
       string.const 2   ; "async fused: "
-      call 18   ; std_core$write_string_at
+      call 20   ; std_core$write_string_at
       local.set 3   ; __off_18
       local.field 0 15 19   ; arg 0 __asyncstate_snippet_2.s19
       ref.cast 1   ; i32
@@ -1158,21 +1158,21 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
       local.get 2   ; __buf_17
       local.get 3   ; __off_18
       local.get 4   ; $cast_22
-      call 19   ; std_core$write_int
+      call 21   ; std_core$write_int
       local.set 3   ; __off_18
       local.get 2   ; __buf_17
       local.get 3   ; __off_18
-      call 17   ; std_core$finish_buffer
+      call 19   ; std_core$finish_buffer
       call 29   ; std_io$println__string
       i64.const 36
-      call 16   ; std_core$new_byte_buffer
+      call 18   ; std_core$new_byte_buffer
       local.set 5   ; __buf_19
       i64.const 0
       local.set 6   ; __off_20
       local.get 5   ; __buf_19
       local.get 6   ; __off_20
       string.const 3   ; "comptime fused: "
-      call 18   ; std_core$write_string_at
+      call 20   ; std_core$write_string_at
       local.set 6   ; __off_20
       i64.const 3
       usize.to_i64
@@ -1180,11 +1180,11 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
       local.get 5   ; __buf_19
       local.get 6   ; __off_20
       local.get 7   ; $cast_33
-      call 20   ; std_core$write_unsigned
+      call 22   ; std_core$write_unsigned
       local.set 6   ; __off_20
       local.get 5   ; __buf_19
       local.get 6   ; __off_20
-      call 17   ; std_core$finish_buffer
+      call 19   ; std_core$finish_buffer
       call 29   ; std_io$println__string
       local.get 0   ; arg 0
       i32.const 1
@@ -1235,14 +1235,14 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
           i32.eq
           if $L7 void
             i64.const 32
-            call 16   ; std_core$new_byte_buffer
+            call 18   ; std_core$new_byte_buffer
             local.set 11   ; __buf_12
             i64.const 0
             local.set 12   ; __off_13
             local.get 11   ; __buf_12
             local.get 12   ; __off_13
             string.const 4   ; "loop fused: "
-            call 18   ; std_core$write_string_at
+            call 20   ; std_core$write_string_at
             local.set 12   ; __off_13
             local.field 0 15 8   ; arg 0 __asyncstate_snippet_2.s8
             ref.cast 1   ; i32
@@ -1251,11 +1251,11 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
             local.get 11   ; __buf_12
             local.get 12   ; __off_13
             local.get 13   ; $cast_65
-            call 19   ; std_core$write_int
+            call 21   ; std_core$write_int
             local.set 12   ; __off_13
             local.get 11   ; __buf_12
             local.get 12   ; __off_13
-            call 17   ; std_core$finish_buffer
+            call 19   ; std_core$finish_buffer
             call 29   ; std_io$println__string
             i32.const 1
             i32.const 2
@@ -1932,14 +1932,14 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                           local.get 56   ; out
                                                                           call 6   ; snippet$show
                                                                           i64.const 39
-                                                                          call 16   ; std_core$new_byte_buffer
+                                                                          call 18   ; std_core$new_byte_buffer
                                                                           local.set 60   ; __buf_3
                                                                           i64.const 0
                                                                           local.set 61   ; __off_4
                                                                           local.get 60   ; __buf_3
                                                                           local.get 61   ; __off_4
                                                                           string.const 9   ; "odd squares fused: "
-                                                                          call 18   ; std_core$write_string_at
+                                                                          call 20   ; std_core$write_string_at
                                                                           local.set 61   ; __off_4
                                                                           i64.const 0
                                                                           local.set 62   ; total
@@ -1973,11 +1973,11 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                           local.get 60   ; __buf_3
                                                                           local.get 61   ; __off_4
                                                                           local.get 64   ; $cast_392
-                                                                          call 20   ; std_core$write_unsigned
+                                                                          call 22   ; std_core$write_unsigned
                                                                           local.set 61   ; __off_4
                                                                           local.get 60   ; __buf_3
                                                                           local.get 61   ; __off_4
-                                                                          call 17   ; std_core$finish_buffer
+                                                                          call 19   ; std_core$finish_buffer
                                                                           call 29   ; std_io$println__string
                                                                           i32.const 6
                                                                           call 1   ; snippet$squares
@@ -1986,14 +1986,14 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                           local.get 65   ; $call_396
                                                                           struct.set 15 1   ; __asyncstate_snippet_2.s1
                                                                           i64.const 38
-                                                                          call 16   ; std_core$new_byte_buffer
+                                                                          call 18   ; std_core$new_byte_buffer
                                                                           local.set 66   ; __buf_6
                                                                           i64.const 0
                                                                           local.set 67   ; __off_7
                                                                           local.get 66   ; __buf_6
                                                                           local.get 67   ; __off_7
                                                                           string.const 10   ; "odd squares lazy: "
-                                                                          call 18   ; std_core$write_string_at
+                                                                          call 20   ; std_core$write_string_at
                                                                           local.set 67   ; __off_7
                                                                           local.field 0 15 1   ; arg 0 __asyncstate_snippet_2.s1
                                                                           local.set 69   ; __iter_0
@@ -2026,11 +2026,11 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                           local.get 66   ; __buf_6
                                                                           local.get 67   ; __off_7
                                                                           local.get 71   ; $cast_422
-                                                                          call 20   ; std_core$write_unsigned
+                                                                          call 22   ; std_core$write_unsigned
                                                                           local.set 67   ; __off_7
                                                                           local.get 66   ; __buf_6
                                                                           local.get 67   ; __off_7
-                                                                          call 17   ; std_core$finish_buffer
+                                                                          call 19   ; std_core$finish_buffer
                                                                           call 29   ; std_io$println__string
                                                                           local.get 0   ; arg 0
                                                                           i32.const 10
@@ -2110,14 +2110,14 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                           local.get 82   ; $field_443
                                                                           struct.set 15 2   ; __asyncstate_snippet_2.s2
                                                                           i64.const 32
-                                                                          call 16   ; std_core$new_byte_buffer
+                                                                          call 18   ; std_core$new_byte_buffer
                                                                           local.set 83   ; __buf_10
                                                                           i64.const 0
                                                                           local.set 84   ; __off_11
                                                                           local.get 83   ; __buf_10
                                                                           local.get 84   ; __off_11
                                                                           string.const 11   ; "find fused: "
-                                                                          call 18   ; std_core$write_string_at
+                                                                          call 20   ; std_core$write_string_at
                                                                           local.set 84   ; __off_11
                                                                           local.field 0 15 2   ; arg 0 __asyncstate_snippet_2.s2
                                                                           local.tee 85   ; __coalesce_9
@@ -2137,11 +2137,11 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                           local.get 83   ; __buf_10
                                                                           local.get 84   ; __off_11
                                                                           local.get 87   ; $cast_458
-                                                                          call 19   ; std_core$write_int
+                                                                          call 21   ; std_core$write_int
                                                                           local.set 84   ; __off_11
                                                                           local.get 83   ; __buf_10
                                                                           local.get 84   ; __off_11
-                                                                          call 17   ; std_core$finish_buffer
+                                                                          call 19   ; std_core$finish_buffer
                                                                           call 29   ; std_io$println__string
                                                                           local.get 0   ; arg 0
                                                                           i32.const 0
@@ -2217,7 +2217,14 @@ fn 13 concat_2 (string,string) -> string
   return
 end
 
-fn 14 std_core$Range$Iterator$next__i32 (ref) -> ref
+fn 14 std_core$i32$Step$step (i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.add
+  return
+end
+
+fn 15 std_core$Range$Iterator$next__i32 (ref) -> ref
   local done bool
   local $field_3 i32
   local $field_4 i32
@@ -2254,7 +2261,7 @@ fn 14 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 2   ; $field_3
     local.field 0 24 3   ; arg 0 std_core$Range__i32.cursor
     ref.cast 1   ; i32
-    call 21   ; std_core$i32$Step$step
+    call 14   ; std_core$i32$Step$step
     local.set 3   ; $field_4
     local.get 0   ; arg 0
     local.get 3   ; $field_4
@@ -2271,7 +2278,14 @@ fn 14 std_core$Range$Iterator$next__i32 (ref) -> ref
   return
 end
 
-fn 15 std_core$Range$Iterator$next__usize (ref) -> ref
+fn 16 std_core$usize$Step$step (usize) -> usize
+  local.get 0   ; arg 0
+  i64.const 1
+  i64.add
+  return
+end
+
+fn 17 std_core$Range$Iterator$next__usize (ref) -> ref
   local done bool
   local $field_3 usize
   local $field_4 usize
@@ -2308,7 +2322,7 @@ fn 15 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 2   ; $field_3
     local.field 0 25 3   ; arg 0 std_core$Range__usize.cursor
     ref.cast 26   ; usize
-    call 22   ; std_core$usize$Step$step
+    call 16   ; std_core$usize$Step$step
     local.set 3   ; $field_4
     local.get 0   ; arg 0
     local.get 3   ; $field_4
@@ -2325,20 +2339,20 @@ fn 15 std_core$Range$Iterator$next__usize (ref) -> ref
   return
 end
 
-fn 16 std_core$new_byte_buffer (usize) -> ref
+fn 18 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 17 std_core$finish_buffer (ref,usize) -> string
+fn 19 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 18 std_core$write_string_at (ref,usize,string) -> usize
+fn 20 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -2353,7 +2367,7 @@ fn 18 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 19 std_core$write_int (ref,usize,i64) -> usize
+fn 21 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -2470,7 +2484,7 @@ fn 19 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 20 std_core$write_unsigned (ref,usize,u64) -> usize
+fn 22 std_core$write_unsigned (ref,usize,u64) -> usize
   local ndigits usize
   local m u64
   local i usize
@@ -2548,28 +2562,6 @@ fn 20 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L3
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  i64.add
-  return
-end
-
-fn 21 std_core$i32$Step$step (i32) -> i32
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.add
-  return
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.add
-  return
-end
-
-fn 22 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; arg 0
-  i64.const 1
-  i64.add
-  return
-  local.get 0   ; arg 0
-  i64.const 1
   i64.add
   return
 end

@@ -48,15 +48,7 @@
   struct snippet$Wrap__Cat { value: Any }
   fn snippet$Wrap$Display$to_string__Any(self: Wrap<Any>!) -> string
     return "wrapped" :string
-  fn snippet$Cat$Tag$tag(self: Cat!) -> string
-    return
-      .name :string
-        self :Cat
   struct snippet$Wrap__Dog { value: Any }
-  fn snippet$Dog$Tag$tag(self: Dog!) -> string
-    return
-      .name :string
-        self :Dog
   struct snippet$Wrap__Any { value: Any }
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

@@ -87,14 +87,14 @@ fn 2 snippet$main () -> i32
   i32.const 42
   call 17   ; std_collections$MutableMap$IndexSet$set_at__i64__i32
   i64.const 37
-  call 5   ; std_core$new_byte_buffer
+  call 7   ; std_core$new_byte_buffer
   local.set 1   ; $arr_1
   i64.const 0
   local.set 3   ; __off_1
   local.get 1   ; $arr_1
   local.get 3   ; __off_1
   string.const 0   ; "face1 read-key:  "
-  call 7   ; std_core$write_string_at
+  call 9   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 0   ; $arr_0
   i64.const 9000000000
@@ -105,11 +105,11 @@ fn 2 snippet$main () -> i32
   local.get 1   ; $arr_1
   local.get 3   ; __off_1
   local.get 4   ; $cast_21
-  call 8   ; std_core$write_int
+  call 10   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 1   ; $arr_1
   local.get 3   ; __off_1
-  call 6   ; std_core$finish_buffer
+  call 8   ; std_core$finish_buffer
   call 13   ; std_io$println__string
   array.new 14 0   ; i32[]
   local.set 0   ; $arr_0
@@ -129,14 +129,14 @@ fn 2 snippet$main () -> i32
   i64.const 9000000000
   call 15   ; std_collections$MutableMap$IndexSet$set_at__i32__i64
   i64.const 37
-  call 5   ; std_core$new_byte_buffer
+  call 7   ; std_core$new_byte_buffer
   local.set 1   ; $arr_1
   i64.const 0
   local.set 3   ; __off_1
   local.get 1   ; $arr_1
   local.get 3   ; __off_1
   string.const 1   ; "face2 set-value: "
-  call 7   ; std_core$write_string_at
+  call 9   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 0   ; $arr_0
   i32.const 1
@@ -146,11 +146,11 @@ fn 2 snippet$main () -> i32
   local.get 1   ; $arr_1
   local.get 3   ; __off_1
   local.get 4   ; $cast_21
-  call 8   ; std_core$write_int
+  call 10   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 1   ; $arr_1
   local.get 3   ; __off_1
-  call 6   ; std_core$finish_buffer
+  call 8   ; std_core$finish_buffer
   call 13   ; std_io$println__string
   array.new 15 0   ; i64[]
   local.set 0   ; $arr_0
@@ -170,14 +170,14 @@ fn 2 snippet$main () -> i32
   i32.const 7
   call 17   ; std_collections$MutableMap$IndexSet$set_at__i64__i32
   i64.const 37
-  call 5   ; std_core$new_byte_buffer
+  call 7   ; std_core$new_byte_buffer
   local.set 1   ; $arr_1
   i64.const 0
   local.set 3   ; __off_1
   local.get 1   ; $arr_1
   local.get 3   ; __off_1
   string.const 2   ; "face2 set-key:   "
-  call 7   ; std_core$write_string_at
+  call 9   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 0   ; $arr_0
   i64.const 9000000000
@@ -188,33 +188,33 @@ fn 2 snippet$main () -> i32
   local.get 1   ; $arr_1
   local.get 3   ; __off_1
   local.get 4   ; $cast_21
-  call 8   ; std_core$write_int
+  call 10   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 1   ; $arr_1
   local.get 3   ; __off_1
-  call 6   ; std_core$finish_buffer
+  call 8   ; std_core$finish_buffer
   call 13   ; std_io$println__string
   i64.const 9000000000
   call 3   ; snippet$takes__i64
   local.set 4   ; $cast_21
   i64.const 37
-  call 5   ; std_core$new_byte_buffer
+  call 7   ; std_core$new_byte_buffer
   local.set 0   ; $arr_0
   i64.const 0
   local.set 3   ; __off_1
   local.get 0   ; $arr_0
   local.get 3   ; __off_1
   string.const 3   ; "face3 explicit:  "
-  call 7   ; std_core$write_string_at
+  call 9   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 0   ; $arr_0
   local.get 3   ; __off_1
   local.get 4   ; $cast_21
-  call 8   ; std_core$write_int
+  call 10   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 0   ; $arr_0
   local.get 3   ; __off_1
-  call 6   ; std_core$finish_buffer
+  call 8   ; std_core$finish_buffer
   call 13   ; std_io$println__string
   return.lit i32.const 0
 end
@@ -253,20 +253,32 @@ fn 4 concat_2 (string,string) -> string
   return
 end
 
-fn 5 std_core$new_byte_buffer (usize) -> ref
+fn 5 std_core$i32$Hash$hash (i32) -> u64
+  local.get 0   ; arg 0
+  i32.to_i64
+  return
+end
+
+fn 6 std_core$i64$Hash$hash (i64) -> u64
+  local.get 0   ; arg 0
+  i64.to_i64
+  return
+end
+
+fn 7 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 6 std_core$finish_buffer (ref,usize) -> string
+fn 8 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 7 std_core$write_string_at (ref,usize,string) -> usize
+fn 9 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -281,7 +293,7 @@ fn 7 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 8 std_core$write_int (ref,usize,i64) -> usize
+fn 10 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -395,24 +407,6 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
   local.get 1   ; arg 1
   local.get 6   ; total
   i64.add
-  return
-end
-
-fn 9 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0   ; arg 0
-  i32.to_i64
-  return
-  local.get 0   ; arg 0
-  i32.to_i64
-  return
-end
-
-fn 10 std_core$i64$Hash$hash (i64) -> u64
-  local.get 0   ; arg 0
-  i64.to_i64
-  return
-  local.get 0   ; arg 0
-  i64.to_i64
   return
 end
 
@@ -692,7 +686,7 @@ fn 22 std_collections$rehash__i32__i64 (ref,usize) -> void
       local.field 0 12 0   ; arg 0 std_collections$MutableMap__i32__i64.ekeys
       local.get 4   ; e
       load_slot_i32
-      call 9   ; std_core$i32$Hash$hash
+      call 5   ; std_core$i32$Hash$hash
       local.tee 6   ; perturb
       local.get 3   ; __for_discard_0
       call 18   ; std_collections$first_slot
@@ -790,7 +784,7 @@ fn 23 std_collections$rehash__i64__i32 (ref,usize) -> void
       local.field 0 13 0   ; arg 0 std_collections$MutableMap__i64__i32.ekeys
       local.get 4   ; e
       load_slot_i64
-      call 10   ; std_core$i64$Hash$hash
+      call 6   ; std_core$i64$Hash$hash
       local.tee 6   ; perturb
       local.get 3   ; __for_discard_0
       call 18   ; std_collections$first_slot
@@ -993,7 +987,7 @@ fn 26 std_collections$put__i32__i64 (ref,i32,i64) -> void
     call 22   ; std_collections$rehash__i32__i64
   end $L0
   local.get 1   ; arg 1
-  call 9   ; std_core$i32$Hash$hash
+  call 5   ; std_core$i32$Hash$hash
   local.set 6   ; perturb
   local.field 0 12 3   ; arg 0 std_collections$MutableMap__i32__i64.mask
   ref.cast 8   ; usize
@@ -1178,7 +1172,7 @@ fn 27 std_collections$put__i64__i32 (ref,i64,i32) -> void
     call 23   ; std_collections$rehash__i64__i32
   end $L0
   local.get 1   ; arg 1
-  call 10   ; std_core$i64$Hash$hash
+  call 6   ; std_core$i64$Hash$hash
   local.set 6   ; perturb
   local.field 0 13 3   ; arg 0 std_collections$MutableMap__i64__i32.mask
   ref.cast 8   ; usize
@@ -1311,7 +1305,7 @@ fn 28 std_collections$get__i32__i64 (ref,i32) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 9   ; std_core$i32$Hash$hash
+  call 5   ; std_core$i32$Hash$hash
   local.set 2   ; perturb
   local.field 0 12 3   ; arg 0 std_collections$MutableMap__i32__i64.mask
   ref.cast 8   ; usize
@@ -1384,7 +1378,7 @@ fn 29 std_collections$get__i64__i32 (ref,i64) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 10   ; std_core$i64$Hash$hash
+  call 6   ; std_core$i64$Hash$hash
   local.set 2   ; perturb
   local.field 0 13 3   ; arg 0 std_collections$MutableMap__i64__i32.mask
   ref.cast 8   ; usize

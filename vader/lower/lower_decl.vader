@@ -29,6 +29,12 @@ lower_impl_members :: fn(
     for m in members { project_ctx.synth_decls.push(m) }
 }
 
+// Claim the single emission of the non-generic impl member `mangled`; false when
+// another path already lowered it. Every path that lowers such a member claims it
+// here first, or the function ends up with two bodies in one slot downstream.
+claim_impl_member :: fn(project_ctx: LowerProjectCtx, mangled: string) -> bool =
+    project_ctx.materialized_impl_keys.add("impl_member::${mangled}")
+
 /// Return the lowered fn-decl for each member of `impl_decl`, in
 /// source order. Yielding the list (instead of pushing to
 /// `project_ctx.synth_decls`) lets the caller interleave the members
@@ -45,14 +51,16 @@ lower_impl_member_list :: fn(
     if impl_decl.for_type is GenericInstExpr { return out }
     if strip_mut_marker(impl_decl.for_type) is ArrayTypeExpr { return out }
     self_type :: lower_for_type(impl_decl, typed)
-    base_mangle :: "${mangle_module_id(typed.resolved.display_path)}$${impl_decl.trait_name}"
     for member in impl_decl.members {
         if member.type_params.len() > 0 { continue }
+        mangled :: impl_member_mangled(impl_decl, member, typed, project_ctx.impls)
+        if !claim_impl_member(project_ctx, mangled) {
+            continue
+        }
         subst :: new_substitution()
         types :: make_entry_types(typed, subst)
         params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
         return_type :: return_type_of(member, types)
-        mangled :: impl_member_mangled(impl_decl, member, typed, project_ctx.impls)
         entry :: synth_impl_entry(member, typed, mangled, impl_trait_key(project_ctx, impl_decl))
         body :: lower_fn_body(member, typed, project_ctx, entry, subst, return_type)
         out.push(LoweredFnDecl {

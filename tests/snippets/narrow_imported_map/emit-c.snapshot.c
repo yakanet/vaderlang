@@ -52,10 +52,10 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 static int32_t snippet_main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
+static uint64_t std_core_i32_Hash_hash(int32_t l0);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
-static uint64_t std_core_i32_Hash_hash(int32_t l0);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__string(vader_string_t l0);
@@ -246,6 +246,11 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static uint64_t std_core_i32_Hash_hash(int32_t l0) {
+#line 286 "lib/std/core/primitives.vader"
+    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
+}
+
 static void* std_core_new_byte_buffer(size_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
@@ -338,12 +343,6 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     }
 #line 147 "lib/std/core/primitives.vader"
     return (size_t) (int64_t) (l1 + l6);
-}
-
-static uint64_t std_core_i32_Hash_hash(int32_t l0) {
-#line 286 "lib/std/core/primitives.vader"
-    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
-    return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
 }
 
 static void std_io_write(uint8_t l0, vader_string_t l1) {

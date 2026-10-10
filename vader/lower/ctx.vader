@@ -277,7 +277,8 @@ export LowerProjectCtx :: struct {
     /// (erased) body ; later instances see the key and skip emission.
     /// All call sites end up routing through trait virtual dispatch,
     /// which picks the single surviving body regardless of the original
-    /// instance's concrete args.
+    /// instance's concrete args. Also holds `"impl_member::<mangle>"`, the
+    /// claim on a non-generic impl member (`claim_impl_member`).
     materialized_impl_keys: MutableSet<string>!
 
     /// Mangles of every monomorphized struct decl `materialize_struct_instance`

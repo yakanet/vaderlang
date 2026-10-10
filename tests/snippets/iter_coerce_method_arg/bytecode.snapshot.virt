@@ -68,8 +68,8 @@ impl 28 std_core$Iterator
 impl 31 std_core$Contains
 impl 31 std_core$Into
 impl 32 std_core$Iterator
-vtable std_core$Iterator.next 5 3
-vtable std_core$Iterator.next 9 4
+vtable std_core$Iterator.next 5 4
+vtable std_core$Iterator.next 9 6
 vtable std_core$Iterator.next 15 13
 vtable std_core$Iterator.next 20 17
 vtable std_core$Iterator.next 24 18
@@ -132,19 +132,19 @@ fn 1 snippet$main () -> i32
   array.new 14 2   ; i32[]
   local.set 1   ; ys
   i64.const 51
-  call 5   ; std_core$new_byte_buffer
+  call 7   ; std_core$new_byte_buffer
   local.set 2   ; __buf_4
   i64.const 0
   local.set 3   ; __off_5
   local.get 2   ; __buf_4
   local.get 3   ; __off_5
   string.const 0   ; "free="
-  call 7   ; std_core$write_string_at
+  call 9   ; std_core$write_string_at
   local.set 3   ; __off_5
   local.get 0   ; xs
   local.set 4   ; __fuse_arr_0
   local.get 1   ; ys
-  call 9   ; std_core$[]$Into$into__i32
+  call 11   ; std_core$[]$Into$into__i32
   local.set 5   ; b
   i32.const 0
   local.set 6   ; total
@@ -198,17 +198,17 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_4
   local.get 3   ; __off_5
   local.get 10   ; $cast_40
-  call 8   ; std_core$write_int
+  call 10   ; std_core$write_int
   local.set 3   ; __off_5
   local.get 2   ; __buf_4
   local.get 3   ; __off_5
   string.const 1   ; " ufcs="
-  call 7   ; std_core$write_string_at
+  call 9   ; std_core$write_string_at
   local.set 3   ; __off_5
   local.get 0   ; xs
   local.set 4   ; __fuse_arr_0
   local.get 1   ; ys
-  call 9   ; std_core$[]$Into$into__i32
+  call 11   ; std_core$[]$Into$into__i32
   local.set 5   ; b
   i32.const 0
   local.set 6   ; total
@@ -262,27 +262,27 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_4
   local.get 3   ; __off_5
   local.get 10   ; $cast_40
-  call 8   ; std_core$write_int
+  call 10   ; std_core$write_int
   local.set 3   ; __off_5
   local.get 2   ; __buf_4
   local.get 3   ; __off_5
-  call 6   ; std_core$finish_buffer
+  call 8   ; std_core$finish_buffer
   call 16   ; std_io$println__string
   i32.const 100
   struct.new 1   ; snippet$Tally
   local.set 1   ; ys
   i64.const 36
-  call 5   ; std_core$new_byte_buffer
+  call 7   ; std_core$new_byte_buffer
   local.set 2   ; __buf_4
   i64.const 0
   local.set 3   ; __off_5
   local.get 2   ; __buf_4
   local.get 3   ; __off_5
   string.const 2   ; "member="
-  call 7   ; std_core$write_string_at
+  call 9   ; std_core$write_string_at
   local.set 3   ; __off_5
   local.get 0   ; xs
-  call 9   ; std_core$[]$Into$into__i32
+  call 11   ; std_core$[]$Into$into__i32
   local.set 5   ; b
   local.get 1   ; ys
   local.get 5   ; b
@@ -292,16 +292,16 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_4
   local.get 3   ; __off_5
   local.get 10   ; $cast_40
-  call 8   ; std_core$write_int
+  call 10   ; std_core$write_int
   local.set 3   ; __off_5
   local.get 2   ; __buf_4
   local.get 3   ; __off_5
   string.const 3   ; " want=106"
-  call 7   ; std_core$write_string_at
+  call 9   ; std_core$write_string_at
   local.set 3   ; __off_5
   local.get 2   ; __buf_4
   local.get 3   ; __off_5
-  call 6   ; std_core$finish_buffer
+  call 8   ; std_core$finish_buffer
   call 16   ; std_io$println__string
   return.lit i32.const 0
 end
@@ -335,7 +335,14 @@ fn 2 concat_2 (string,string) -> string
   return
 end
 
-fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
+fn 3 std_core$i32$Step$step (i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.add
+  return
+end
+
+fn 4 std_core$Range$Iterator$next__i32 (ref) -> ref
   local done bool
   local $field_3 i32
   local $field_4 i32
@@ -372,7 +379,7 @@ fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 2   ; $field_3
     local.field 0 5 3   ; arg 0 std_core$Range__i32.cursor
     ref.cast 3   ; i32
-    call 10   ; std_core$i32$Step$step
+    call 3   ; std_core$i32$Step$step
     local.set 3   ; $field_4
     local.get 0   ; arg 0
     local.get 3   ; $field_4
@@ -389,7 +396,14 @@ fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
   return
 end
 
-fn 4 std_core$Range$Iterator$next__usize (ref) -> ref
+fn 5 std_core$usize$Step$step (usize) -> usize
+  local.get 0   ; arg 0
+  i64.const 1
+  i64.add
+  return
+end
+
+fn 6 std_core$Range$Iterator$next__usize (ref) -> ref
   local done bool
   local $field_3 usize
   local $field_4 usize
@@ -426,7 +440,7 @@ fn 4 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 2   ; $field_3
     local.field 0 9 3   ; arg 0 std_core$Range__usize.cursor
     ref.cast 10   ; usize
-    call 11   ; std_core$usize$Step$step
+    call 5   ; std_core$usize$Step$step
     local.set 3   ; $field_4
     local.get 0   ; arg 0
     local.get 3   ; $field_4
@@ -443,20 +457,20 @@ fn 4 std_core$Range$Iterator$next__usize (ref) -> ref
   return
 end
 
-fn 5 std_core$new_byte_buffer (usize) -> ref
+fn 7 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 6 std_core$finish_buffer (ref,usize) -> string
+fn 8 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 7 std_core$write_string_at (ref,usize,string) -> usize
+fn 9 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -471,7 +485,7 @@ fn 7 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 8 std_core$write_int (ref,usize,i64) -> usize
+fn 10 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -588,31 +602,9 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 9 std_core$[]$Into$into__i32 (ref) -> any
+fn 11 std_core$[]$Into$into__i32 (ref) -> any
   local.get 0   ; arg 0
   call 12   ; std_core$array_iter__i32
-  return
-end
-
-fn 10 std_core$i32$Step$step (i32) -> i32
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.add
-  return
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.add
-  return
-end
-
-fn 11 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; arg 0
-  i64.const 1
-  i64.add
-  return
-  local.get 0   ; arg 0
-  i64.const 1
-  i64.add
   return
 end
 
