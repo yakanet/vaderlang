@@ -47,7 +47,7 @@
               r:
                 int(1) :usize
     return
-      [Histogram!, u32]! {
+      [Histogram, u32]! {
         _0: out :Histogram!
         _1:
           mod :u32

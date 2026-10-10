@@ -15,7 +15,7 @@
   expr 23:50    SeqLitExpr     :: [i32, string]!
   expr 23:51    IdentExpr      :: i32
   expr 23:54    IdentExpr      :: string
-  expr 24:41    SeqLitExpr     :: [i32, Tagged!]!
+  expr 24:41    SeqLitExpr     :: [i32, Tagged]!
   expr 24:42    IdentExpr      :: i32
   expr 24:45    StructLitExpr  :: Tagged!
   expr 24:59    IdentExpr      :: i32

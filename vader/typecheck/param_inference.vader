@@ -212,12 +212,13 @@ register_local_fn :: fn(lambda: AST.LambdaExpr, name: string, typed: TypedProgra
 /// @param s  the binding, annotated with a single name.
 register_local_slot :: fn(s: AST.LetStmt, typed: TypedProgram) -> void {
     inference :: typed.param_inference ?? return
-    if s.binding !is AST.SimpleBinding {
+    binding :: s.binding
+    if binding !is AST.SimpleBinding {
         return
     }
     ty :: s.ty ?? return
     // The local's symbol is minted at its name : the key a read of it reaches.
-    at :: s.binding.name_span
+    at :: binding.name_span
     if at.hash() in inference.slots {
         return
     }
@@ -225,7 +226,7 @@ register_local_slot :: fn(s: AST.LetStmt, typed: TypedProgram) -> void {
     s.ty = strip_levels(ty, [], written)
     inference.slots[at.hash()] = InferableSlot {
         .owner = s,
-        .name = s.binding.name,
+        .name = binding.name,
         .span = at,
         .module = typed.resolved.path,
         .fn_name = "",
@@ -946,10 +947,11 @@ has_mutable_element :: fn(t: Type) -> bool {
 /// mutation demands them, as `push`'s `value: T!`.
 note_element_store :: fn(c: AST.CallExpr, i: usize, arg_ty: Type, typed: TypedProgram) -> void {
     inference :: recording_edges(typed) ?? return
-    if c.callee !is AST.FieldExpr {
+    callee :: c.callee
+    if callee !is AST.FieldExpr {
         return
     }
-    member :: typed.chosen_impl_methods[c.callee.id] ?? return
+    member :: typed.chosen_impl_methods[callee.id] ?? return
     signature :: member.ty
     if signature !is FnType || i >= signature.params.len() {
         return
@@ -958,7 +960,7 @@ note_element_store :: fn(c: AST.CallExpr, i: usize, arg_ty: Type, typed: TypedPr
     if depth == 0 && !param_mutable_at(signature, i) {
         return
     }
-    receiver :: c.callee.target
+    receiver :: callee.target
     recv_ty :: typed.expr_types[receiver.id] ?? return
     arr :: array_shape_in(recv_ty) ?? return
     stored_ty :: type_at_level(arg_ty, elements_path(depth)) ?? return

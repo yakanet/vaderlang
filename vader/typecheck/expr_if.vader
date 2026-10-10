@@ -224,6 +224,11 @@ push_cond_narrows_into :: fn(
         if cond.op == .And || cond.op == .Or {
             if (cond.op == .And) == truth {
                 push_cond_narrows_into(cond.left, truth, typed, diag_sink(), pushed)
+                // The right operand runs after the left one's test : a call in
+                // it may falsify what that test established.
+                if cond.id in typed.narrow.calling_right_operands {
+                    retire_narrowings_across_call(typed)
+                }
                 push_cond_narrows_into(cond.right, truth, typed, diag_sink(), pushed)
             } else if cond.op == .Or {
                 push_or_true(cond, typed, pushed)

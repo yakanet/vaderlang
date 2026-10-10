@@ -19,7 +19,7 @@
       }
   fn snippet$tagged(n: i32) -> [i32, Tagged]
     ~>
-      [i32, Tagged!]! {
+      [i32, Tagged]! {
         _0: n :i32
         _1:
           Tagged! {

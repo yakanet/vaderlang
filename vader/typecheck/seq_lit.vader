@@ -111,7 +111,26 @@ infer_against_tuple :: fn(
             elem_types.push(got)
         }
     }
+    // A fresh literal is built straight into the slot's element types, so when
+    // every element fits its slot it takes the slot's tuple type, as an array
+    // literal does (`infer_against_array`) : the invariant tuple rule
+    // (`is_assignable_tuple`) then accepts the init.
+    if fits_tuple_slots(elem_types, tup) {
+        return mk_tuple(tup.elements, false)
+    }
     return mk_tuple(elem_types, false)
+}
+
+// Whether every element type fits its slot of `tup`, none of which names a type
+// parameter : generic inference pins those from the elements.
+fits_tuple_slots :: fn(elem_types: Type[], tup: TupleType) -> bool {
+    for i in 0..<elem_types.len() {
+        slot :: tup.elements[i]
+        if type_contains_type_param(slot) || !is_assignable(elem_types[i], slot) {
+            return false
+        }
+    }
+    return true
 }
 
 infer_against_array :: fn(

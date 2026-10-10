@@ -92,13 +92,15 @@ export format_field_head :: fn(source: string, f: p.StructField) -> string {
 export format_variant_head :: fn(source: string, v: p.EnumVariant) -> string {
     h :: head_printer(source)
     h.write(v.name)
-    if v.data !is null {
+    data :: v.data
+    if data !is null {
         h.write(" ")
-        h.emit_comma_list(v.data, "{", "}", true, true, emit_struct_lit_item)
+        h.emit_comma_list(data, "{", "}", true, true, emit_struct_lit_item)
     }
-    if v.value_span is Span {
+    value_span :: v.value_span
+    if value_span is Span {
         h.write(" = ")
-        h.write(h.source_slice(v.value_span))
+        h.write(h.source_slice(value_span))
     }
     return cut_head(h.finish(), HEAD_VALUE_MAX)
 }

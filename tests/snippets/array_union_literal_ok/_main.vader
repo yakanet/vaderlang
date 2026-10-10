@@ -1,8 +1,10 @@
 // A fresh array literal is materialised directly into the target's element
 // representation, so it may initialise a wider union-typed slot — this stays
 // valid (the literal adopts the target element type; no reference aliasing).
-// A `const` covariant view of an i32[] is also sound (no writes through it).
-// Guards the T2 mutable-array-invariance fix against over-rejection.
+// A read-only covariant view is sound when it reads the slots the source wrote
+// (no writes through it) : boxed `string` slots read as boxed `string | null`.
+// Guards the mutable-array invariance and the slot-layout rule against
+// over-rejection.
 module "snippet"
 
 import "std/io"
@@ -15,8 +17,8 @@ main :: fn() -> i32 {
         else if x is i32 as n { println("int ${n}") }
     }
 
-    a: i32[]: [10, 20]
-    view: (i32 | string)[]: a
-    if view[0] is i32 as n { println("view0 ${n}") }
+    names: string[]: ["ten", "twenty"]
+    view: (string | null)[]: names
+    if view[0] is string as n { println("view0 ${n}") }
     return 0
 }

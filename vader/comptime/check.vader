@@ -127,10 +127,11 @@ evaluate_module_decls :: fn(
             if !(result.diag is null) { diags.push(result.diag) }
             continue
         }
-        if result.value !is null {
+        value :: result.value
+        if value !is null {
             symbol :: lookup_const_symbol(decl, typed)
             if !(symbol is null) {
-                program.comptime_decls[symbol.id] = result.value
+                program.comptime_decls[symbol.id] = value
             }
         }
         if result.diag !is null {

@@ -63,13 +63,13 @@ export evaluate_call_expr :: fn(
     }
     for i in 0..<expr.args.len() {
         arg_result :: evaluate_expr(expr.args[i].value, context)
-        if arg_result.value is null { return arg_result }
+        arg :: arg_result.value ?? return arg_result
         param :: fn_decl.params[i]
         param_sym :: context.typed.resolved.idents[param.span.hash()]
         if param_sym is null {
             return vm_required(expr.span, "CallExpr (param sym unresolved)")
         }
-        bindings[param_sym.id] = arg_result.value
+        bindings[param_sym.id] = arg
     }
     // Carry the caller's depth so the recursion guard also bounds cyclic
     // comptime fn calls (a fresh `bindings`, but the same depth budget).
@@ -84,17 +84,15 @@ is_primitive_int_name :: fn(name: string) -> bool = is_int_name(name)
 evaluate_fn_body :: fn(
     fn_decl: AST.FnDecl, context: ComptimeContext, call_span: Span,
 ) -> EvalResult {
-    if fn_decl.body is null {
-        return vm_required(call_span, "CallExpr (callee has no body)")
-    }
-    body :: fn_decl.body
-    if !(body.trailing is null) {
+    body :: fn_decl.body ?? return vm_required(call_span, "CallExpr (callee has no body)")
+    trailing :: body.trailing
+    if trailing !is null {
         // Sound ONLY with no preceding statements : earlier bindings and early
         // `return`s would be silently dropped, and a self-contained trailing
         // would bake a wrong value. `lift_trailing_return` (parser) puts the
         // final `return <e>` here, so any other statement must route via the VM.
         if body.stmts.len() == 0 {
-            return evaluate_expr(body.trailing, context)
+            return evaluate_expr(trailing, context)
         }
         return vm_required(call_span, "CallExpr (block has statements before trailing)")
     }

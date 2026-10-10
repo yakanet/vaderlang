@@ -247,7 +247,8 @@ emit_rewritten_block :: fn(
             forwarded_symbol(ins.callee, shape.forward_to)
         }
         instrs.push(InstrCall { ...ins, .dsts = fields, .callee = callee })
-        if shape.rebuilt == null {
+        rebuilt :: shape.rebuilt
+        if rebuilt == null {
             // The object is rebuilt on the spot. A caller that only destructures
             // it leaves the `struct.new` unread — DCE removes it, and nothing was
             // allocated. A caller that keeps the object pays what it already paid.
@@ -288,7 +289,7 @@ emit_rewritten_block :: fn(
             .span = b.span,
         })
         extra.push(absent_arm(ins, dst, absent_id, join_id, b.span))
-        extra.push(present_arm(ins, dst, fields, shape.rebuilt, present_id, join_id, b.span))
+        extra.push(present_arm(ins, dst, fields, rebuilt, present_id, join_id, b.span))
         current = join_id
         instrs = []
     }

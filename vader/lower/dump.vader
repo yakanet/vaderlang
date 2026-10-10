@@ -94,9 +94,10 @@ emit_block :: fn(lines: string[], block: LoweredBlock, indent: string) -> void {
     for stmt in block.stmts {
         emit_stmt(lines, stmt, indent)
     }
-    if block.trailing !is null {
+    trailing :: block.trailing
+    if trailing !is null {
         lines.push("${indent}~>")
-        emit_expr(lines, block.trailing, "${indent}  ")
+        emit_expr(lines, trailing, "${indent}  ")
     }
 }
 
@@ -129,16 +130,15 @@ emit_stmt :: fn(lines: string[], stmt: LoweredStmt, indent: string) -> void {
             emit_expr(lines, stmt.expr, indent)
         }
         is LoweredReturn -> {
-            match stmt.value {
+            match stmt.value as value {
                 is null -> { lines.push("${indent}return") }
                 _ -> {
-                    inline_value :: expr_inline(stmt.value)
-                    match inline_value {
-                        is string -> { lines.push("${indent}return ${inline_value}") }
-                        is null -> {
-                            lines.push("${indent}return")
-                            emit_expr(lines, stmt.value, "${indent}  ")
-                        }
+                    inline_value :: expr_inline(value)
+                    if inline_value is string {
+                        lines.push("${indent}return ${inline_value}")
+                    } else {
+                        lines.push("${indent}return")
+                        emit_expr(lines, value, "${indent}  ")
                     }
                 }
             }

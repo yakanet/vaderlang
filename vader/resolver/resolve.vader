@@ -57,6 +57,10 @@ export ResolvedModule :: struct {
     /// Locals and parameters no assignment rebinds (see `ResolvedFile`). Empty
     /// for a module that was not body-walked, which claims nothing.
     rebind_free: MutableSet<i32> = MutableSet<i32> {}
+    /// Per `for` statement, the locals its body rebinds (see `ResolvedFile`).
+    loop_rebinds: MutableMap<u64, MutableSet<i32>> = MutableMap<u64, MutableSet<i32>> {}
+    /// Locals a lambda rebinds while declared outside it (see `ResolvedFile`).
+    closure_rebound: MutableSet<i32> = MutableSet<i32> {}
     /// `fn_overloads[name]` carries every Symbol minted for a given
     /// fn name — only one of which lands in `symbols`. The typecheck
     /// dump iterates this to surface every overload.
@@ -178,6 +182,8 @@ export resolve_module_files :: fn(
         .immutable_locals = resolved.immutable_locals,
         .immutable_borrows = resolved.immutable_borrows,
         .rebind_free      = resolved.rebind_free,
+        .loop_rebinds     = resolved.loop_rebinds,
+        .closure_rebound  = resolved.closure_rebound,
         .fn_overloads     = collected.fn_overloads,
         .imports_to       = MutableMap<i32, Symbol> {},
         .alias_types      = MutableMap<i32, Type> {},

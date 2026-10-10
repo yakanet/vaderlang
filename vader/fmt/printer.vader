@@ -856,20 +856,19 @@ variant_last_line :: fn(v: p.EnumVariant) -> i32 {
     if v.value_span is Span {
         return v.value_span.end.line
     }
-    if v.data !is null && v.data.len() > 0 {
-        return v.data[v.data.len() - 1].span.end.line
+    data :: v.data
+    if data !is null && data.len() > 0 {
+        return data[data.len() - 1].span.end.line
     }
     return v.span.end.line
 }
 
 // Single-line width of a variant's `{ … }` block ; `0` without one.
 variant_block_width :: fn(source: string, v: p.EnumVariant) -> usize {
-    if v.data is null {
-        return 0
-    }
+    data :: v.data ?? return 0
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
-    sub.emit_comma_list(v.data, "{", "}", true, true, emit_struct_lit_item)
+    sub.emit_comma_list(data, "{", "}", true, true, emit_struct_lit_item)
     return sub.finish().bytes().len()
 }
 
@@ -883,15 +882,17 @@ emit_enum_variant :: fn(self: Printer, v: p.EnumVariant, columns: EnumVariantCol
         return
     }
     self.write_padding(self.column, start + columns.name)
-    if v.data !is null {
+    data :: v.data
+    if data !is null {
         self.write(" ")
-        self.emit_comma_list(v.data, "{", "}", true, true, emit_struct_lit_item)
+        self.emit_comma_list(data, "{", "}", true, true, emit_struct_lit_item)
     }
-    if v.value_span is Span {
+    value_span :: v.value_span
+    if value_span is Span {
         block :: if columns.block > 0 { columns.block + 1 } else { 0 }
         self.write_padding(self.column, start + columns.name + block)
         self.write(" = ")
-        self.write(self.source_slice(v.value_span))
+        self.write(self.source_slice(value_span))
     }
 }
 
@@ -1857,9 +1858,10 @@ emit_binary :: fn(self: Printer, x: p.BinaryExpr) -> void {
     // `is T as <ident>` — only meaningful for `op == .Is` ; reproduce
     // the optional binding when present so the formatter is round-trip
     // stable.
-    if x.bind_as is p.AsBinding {
+    bind_as :: x.bind_as
+    if bind_as is p.AsBinding {
         self.write(" as ")
-        self.write(x.bind_as.name)
+        self.write(bind_as.name)
     }
 }
 
@@ -2043,9 +2045,10 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
     if x.unreachable { self.write("@unreachable ") }
     self.write("match ")
     self.emit_condition(x.scrutinee)
-    if x.bind_as is p.AsBinding {
+    bind_as :: x.bind_as
+    if bind_as is p.AsBinding {
         self.write(" as ")
-        self.write(x.bind_as.name)
+        self.write(bind_as.name)
     }
     self.write(" {")
     self.depth = self.depth + 1

@@ -265,8 +265,8 @@ build_body_stmts :: fn(bind_stmts: LoweredStmt[], user_body: LoweredBlock) -> Lo
     out: LoweredStmt[]: []
     out.push_all(bind_stmts)
     for stmt in user_body.stmts { out.push(stmt) }
-    if user_body.trailing is null { return out }
-    out.push(LoweredExprStmt { .span = span_of(user_body.trailing), .expr = user_body.trailing })
+    trailing :: user_body.trailing ?? return out
+    out.push(LoweredExprStmt { .span = span_of(trailing), .expr = trailing })
     return out
 }
 

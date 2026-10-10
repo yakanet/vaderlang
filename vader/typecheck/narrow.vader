@@ -21,6 +21,12 @@
 // `narrow_for_*` readers treat an entry from an older generation as absent.
 // A fresh `is` / null test after the assignment pushes at the new
 // generation and narrows normally.
+//
+// The same generations retire what other code may change behind the walk: a
+// call (and an `await`, a `yield`) may write any object it reaches, a loop's
+// next iteration runs after the body's writes, and a field write may go through
+// an alias. See `retire_narrowings_across_call` and
+// `retire_narrowings_entering_loop`.
 
 module "vader/typecheck"
 
@@ -39,7 +45,7 @@ export NarrowSlot :: struct {
     gen: i32
 }
 
-/// The five tables that make up flow-sensitive narrowing, carried together on
+/// The tables that make up flow-sensitive narrowing, carried together on
 /// `TypedProgram.narrow`.
 ///
 /// They are one machine, not five side-tables: an entry in `bindings` counts as
@@ -71,6 +77,14 @@ export NarrowState :: struct {
 
     /// Kill generation per field-chain slot; mirrors `kill_gens` for `fields`.
     field_kill_gens: MutableMap<string, i32>! = MutableMap<string, i32> {}
+
+    /// How many calls `retire_narrowings_across_call` has counted, so a caller can
+    /// tell whether checking an expression ran one.
+    calls: i32 = 0
+
+    /// `&&` / `||` nodes whose right operand ran a call : what the left operand
+    /// narrowed does not hold past it.
+    calling_right_operands: MutableSet<usize>! = MutableSet<usize> {}
 
     /// `as` binding (`if e is T as x`, `match e as x`) DECLARATION-span hash →
     /// the scrutinee. One hop
@@ -247,7 +261,9 @@ export push_field_narrow :: fn(typed: TypedProgram, key: string, narrowed: Type)
 /// `narrow_for_field` lookups fall through to the field's then-current
 /// static type. See `pop_narrow` for why removal (not overwrite) matters.
 export pop_field_narrow :: fn(typed: TypedProgram, key: string, prev: NarrowSlot | null) -> void {
-    if prev == null {
+    // A `prev` from an older generation is dead : dropping it, rather than
+    // restoring it, keeps the table empty once a call has retired everything.
+    if prev == null || prev.gen != cur_field_narrow_gen(typed, key) {
         typed.narrow.fields.remove(key)
         return
     }
@@ -279,11 +295,11 @@ export narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type)
 ///     chains *deeper* than the written field (`x.f.g…`) retire
 ///     unconditionally, the slot now holds a fresh object.
 ///
-/// An `IndexExpr` LHS (`a[i] = v`, `a[i].f = v`) never designates a
-/// tracked slot — `field_chain_key` only walks `FieldExpr` chains rooted
-/// at a plain ident — so it needs no handling here. Aliasing writes
-/// (`y.f = v` where `y` aliases `x`, mutations inside callees) are out
-/// of scope, matching the rest of the narrowing model.
+/// An `IndexExpr` LHS (`a[i] = v`) never designates a tracked slot :
+/// `field_chain_key` only walks `FieldExpr` chains rooted at a plain ident.
+/// A field write may go through an alias (`y.f = v` where `y` is `x`, or
+/// `a[i].f = v`), so it also retires every other chain through a field of
+/// that name. Writes inside a callee are retired at the call.
 ///
 /// @param target    the assignment's LHS expression.
 /// @param value_ty  the checked type of the RHS.
@@ -314,17 +330,14 @@ export invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed
             return
         }
         key :: field_chain_key(target, typed)
+        retire_chains_through_field(typed, target.field, key)
         if key == "" {
             return
         }
         cur :: typed.narrow.fields[key]
-        if cur != null {
-            g :: cur_field_narrow_gen(typed, key)
-            if cur.gen == g && !is_assignable(value_ty, cur.ty) {
-                typed.narrow.field_kill_gens[key] = g + 1
-            }
+        if cur != null && cur.gen == cur_field_narrow_gen(typed, key) && !is_assignable(value_ty, cur.ty) {
+            retire_field_chain(typed, key)
         }
-        retire_field_chains_under(typed, "${key}#")
     }
 }
 
@@ -340,7 +353,92 @@ retire_field_chains_under :: fn(typed: TypedProgram, prefix: string) -> void {
     }
     for [k, _] in typed.narrow.fields {
         if starts_with(k, prefix) {
-            typed.narrow.field_kill_gens[k] = cur_field_narrow_gen(typed, k) + 1
+            retire_field_chain(typed, k)
         }
+    }
+}
+
+// Bump every tracked chain but `except` that reads a field named `field` at
+// some level : the written object may be the one such a chain goes through. The
+// chains under `except` itself read `field` too.
+retire_chains_through_field :: fn(typed: TypedProgram, field: string, except: string) -> void {
+    last :: "#${field}"
+    inner :: "${last}#"
+    for [k, _] in typed.narrow.fields {
+        if k != except && (inner in k || k.ends_with(last)) {
+            retire_field_chain(typed, k)
+        }
+    }
+}
+
+// Retire every tracked chain. They are all dead, so the table empties too, and
+// the readers' `is_empty()` fast paths hold again.
+retire_all_field_chains :: fn(typed: TypedProgram) -> void {
+    if typed.narrow.fields.is_empty() {
+        return
+    }
+    for [k, _] in typed.narrow.fields {
+        retire_field_chain(typed, k)
+    }
+    typed.narrow.fields.clear()
+}
+
+// Bump `key`'s kill generation, retiring its entry and every stacked `prev`.
+retire_field_chain :: fn(typed: TypedProgram, key: string) -> void {
+    typed.narrow.field_kill_gens[key] = cur_field_narrow_gen(typed, key) + 1
+}
+
+// ---- what a call or a loop may change -------------------------------------
+
+/// Retire the narrowings a call may falsify. A call can write any object its
+/// arguments, an alias or a module reach, and nothing here tracks which, so
+/// every field chain goes; a binding goes only when a lambda rebinds it, since
+/// the call may run that lambda. An `await` or a `yield` lets other code run
+/// before the body resumes, so it counts as a call. An implicit call (an
+/// operator's impl, an interpolation's `Display`) takes its receiver read-only
+/// and is not counted.
+///
+/// @param typed  the program's typing tables.
+export retire_narrowings_across_call :: fn(typed: TypedProgram) -> void {
+    typed.narrow.calls += 1
+    retire_all_field_chains(typed)
+    for [sym_id, _] in typed.narrow.bindings {
+        if sym_id in typed.resolved.closure_rebound {
+            retire_binding(typed, sym_id)
+        }
+    }
+}
+
+/// Retire, on entering `loop`, the narrowings its next iteration may find
+/// false: the body runs again after its own writes, so a write placed after a
+/// read reaches that read on the next pass. What a call may change goes, and so
+/// does every binding the body rebinds.
+///
+/// @param loop   the loop being entered.
+/// @param typed  the program's typing tables.
+export retire_narrowings_entering_loop :: fn(loop: AST.ForStmt, typed: TypedProgram) -> void {
+    retire_narrowings_across_call(typed)
+    rebinds :: typed.resolved.loop_rebinds[loop.span.hash()] ?? return
+    for sym_id in rebinds {
+        retire_binding(typed, sym_id)
+    }
+}
+
+/// Record that the right operand of the `&&` / `||` node `id` ran a call, when
+/// `typed.narrow.calls` moved past `calls_before` while it was checked.
+///
+/// @param typed         the program's typing tables.
+/// @param id            the `&&` / `||` node.
+/// @param calls_before  `typed.narrow.calls` before its right operand was checked.
+export note_right_operand_calls :: fn(typed: TypedProgram, id: usize, calls_before: i32) -> void {
+    if typed.narrow.calls != calls_before {
+        _ :: typed.narrow.calling_right_operands.add(id)
+    }
+}
+
+// Bump `sym_id`'s kill generation when it carries a narrowing.
+retire_binding :: fn(typed: TypedProgram, sym_id: i32) -> void {
+    if sym_id in typed.narrow.bindings {
+        typed.narrow.kill_gens[sym_id] = cur_narrow_gen(typed, sym_id) + 1
     }
 }

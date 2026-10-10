@@ -217,25 +217,35 @@
             "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
-              "name": "a"
+              "name": "names"
             },
             "type": {
               "kind": "ArrayTypeExpr",
               "element": {
                 "kind": "IdentExpr",
-                "name": "i32"
+                "name": "string"
               }
             },
             "value": {
               "kind": "SeqLitExpr",
               "elements": [
                 {
-                  "kind": "IntLitExpr",
-                  "value": "10n"
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "ten"
+                    }
+                  ]
                 },
                 {
-                  "kind": "IntLitExpr",
-                  "value": "20n"
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "twenty"
+                    }
+                  ]
                 }
               ]
             }
@@ -254,17 +264,17 @@
                 "op": "bitor",
                 "left": {
                   "kind": "IdentExpr",
-                  "name": "i32"
+                  "name": "string"
                 },
                 "right": {
                   "kind": "IdentExpr",
-                  "name": "string"
+                  "name": "null"
                 }
               }
             },
             "value": {
               "kind": "IdentExpr",
-              "name": "a"
+              "name": "names"
             }
           },
           {
@@ -287,7 +297,7 @@
                 },
                 "right": {
                   "kind": "IdentExpr",
-                  "name": "i32"
+                  "name": "string"
                 },
                 "bindAs": "n"
               },

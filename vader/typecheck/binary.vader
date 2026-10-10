@@ -67,7 +67,9 @@ export infer_binary :: fn(
     if e.op == .And || e.op == .Or {
         push_cond_narrows_into(e.left, e.op == .And, typed, diag_sink(), pushed)
     }
+    calls_before :: typed.narrow.calls
     right := check_expr_fn(e.right, right_ctx, typed, diags)
+    note_right_operand_calls(typed, e.id, calls_before)
     pop_narrows(pushed, typed)
     // Symmetric repin : a free literal operand adopts the CONCRETE counterpart's
     // type first (so `4 * i` with `i: i32` stays i32, not the outer expected),

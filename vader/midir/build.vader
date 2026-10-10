@@ -671,10 +671,11 @@ build_loop :: fn(fn_ctx: FnCtx, s: LoweredLoop) -> void {
     }
 
     fn_ctx.current = header_id
-    if s.cond !is null {
+    cond :: s.cond
+    if cond !is null {
         body_id :: new_block(fn_ctx, s.body.span)
-        split :: operand_edges(s.cond).on_true < 2
-        if !branch_on_cond(fn_ctx, s.cond, body_id, exit_id, split).on_true {
+        split :: operand_edges(cond).on_true < 2
+        if !branch_on_cond(fn_ctx, cond, body_id, exit_id, split).on_true {
             terminate(fn_ctx, TermBranch { .target = exit_id, .span = s.span })
         }
         fn_ctx.current = body_id

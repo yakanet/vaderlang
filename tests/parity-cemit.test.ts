@@ -514,6 +514,9 @@ const C_PARITY = new Set<string>([
   // `x is U` on a generic fn's own type parameter: natively the shared body compared
   // the `ref _` tag (false where the VM said true).
   "generic_is_type_param",
+  // A read-only covariant array view: natively an `i32[]` read as `(i32 | string)[]`
+  // took its raw words for boxes; the view kept here reads boxes as boxes.
+  "array_union_literal_ok",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

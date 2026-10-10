@@ -52,7 +52,8 @@ pick_overload :: fn(
     diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
-    if c.callee !is AST.IdentExpr {
+    callee :: c.callee
+    if callee !is AST.IdentExpr {
         return initial
     }
     // A call through a LOCAL binding (param / local / pattern binding) invokes a
@@ -64,7 +65,7 @@ pick_overload :: fn(
     // foreign fn-type (seen self-hosting : std/sort's comparator call picking
     // up vader_comptime's `compare`, breaking the later `call.indirect`). Only
     // a bare free-fn reference (Fn kind) carries overloads worth resolving.
-    callee_sym :: typed.resolved.idents[c.callee.span.hash()]
+    callee_sym :: typed.resolved.idents[callee.span.hash()]
     if callee_sym is Symbol {
         match callee_sym.kind {
             .Param   -> {
@@ -79,8 +80,8 @@ pick_overload :: fn(
             _        -> {}
         }
     }
-    name :: c.callee.name
-    candidates :: collect_overload_candidates(name, c.callee.span.start.file, typed)
+    name :: callee.name
+    candidates :: collect_overload_candidates(name, callee.span.start.file, typed)
     if candidates.len() < 2 {
         return initial
     }
@@ -90,7 +91,7 @@ pick_overload :: fn(
     arg0_ty :: check_expr_fn(c.args[0].value, null, typed, [])
     // The resolver bound `c.callee` to a primary overload ; its
     // signature is what a non-overloaded display would show.
-    primary_ft :: primary_overload_ft(c.callee, typed)
+    primary_ft :: primary_overload_ft(callee, typed)
     // Among candidates whose first param accepts arg0, pick the one with the
     // highest `overload_rank`. Eligibility is unchanged : only the
     // `is_assignable` gate below. Ties keep the first declared, unless
@@ -123,7 +124,7 @@ pick_overload :: fn(
         return initial
     }
     if rival != null {
-        diags.push(ambiguous_overload_error(c.callee.name, arg0_ty, best, rival, c.callee.span))
+        diags.push(ambiguous_overload_error(callee.name, arg0_ty, best, rival, callee.span))
     }
     return commit_overload_pick(best, c, typed, primary_ft)
 }
@@ -1332,6 +1333,12 @@ converts_by_name :: fn(c: AST.CallExpr, callee_ty: Type, typed: TypedProgram) ->
     return names_symbol_of_kind(c.callee, .Struct, typed)
 }
 
+// Whether `c`, once checked, was a conversion `T(x)`, which runs no user code.
+is_checked_conversion :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
+    callee_ty :: typed.expr_types[c.callee.id] ?? return false
+    return converts_by_name(c, callee_ty, typed)
+}
+
 /// `T(x)` where `T` is a type-name — the call-syntax cast (the parser emits a
 /// `CallExpr` here, not a `CastExpr`). Type-checks the value and returns the
 /// target type — the read-only data itself for `Data(variant)` — emitting
@@ -1455,15 +1462,16 @@ ufcs_generic_signature :: fn(callee: AST.Expr, callee_ty: Type, typed: TypedProg
 reject_ufcs_receiver_at_instance :: fn(
     c: AST.CallExpr, bindings: MutableMap<i32, Type>, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    if c.callee !is AST.FieldExpr {
+    callee :: c.callee
+    if callee !is AST.FieldExpr {
         return
     }
-    chosen :: generic_ufcs_callee(c.callee, typed) ?? return
+    chosen :: generic_ufcs_callee(callee, typed) ?? return
     first :: chosen.ty.params[0]
     if mentions_unbound_type_param(first, bindings) {
         return
     }
-    receiver_ty :: typed.expr_types[c.callee.target.id] ?? return
+    receiver_ty :: typed.expr_types[callee.target.id] ?? return
     want :: substitute_map(first, bindings)
     // A receiver widening into a trait parameter fits through its impl, which the
     // method access checked — or converts into it, as an array into an `Iterator`.
@@ -1474,7 +1482,7 @@ reject_ufcs_receiver_at_instance :: fn(
         return
     }
     push_level_mismatch(
-        receiver_ty, want, c.callee.target.span, .TypeMismatch, c.callee.target, typed, diags,
+        receiver_ty, want, callee.target.span, .TypeMismatch, callee.target, typed, diags,
     )
 }
 
@@ -1508,17 +1516,18 @@ repin_free_ufcs_receiver_at_instance :: fn(
     typed: TypedProgram,
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
-    if c.callee !is AST.FieldExpr {
+    callee :: c.callee
+    if callee !is AST.FieldExpr {
         return
     }
-    chosen :: generic_ufcs_callee(c.callee, typed) ?? return
-    receiver_ty :: typed.expr_types[c.callee.target.id] ?? return
+    chosen :: generic_ufcs_callee(callee, typed) ?? return
+    receiver_ty :: typed.expr_types[callee.target.id] ?? return
     if receiver_ty !is FreeIntType && receiver_ty !is FreeFloatType {
         return
     }
     want :: substitute_map(chosen.ty.params[0], bindings)
     if want is PrimitiveType {
-        _ :: check_expr_fn(c.callee.target, want, typed, [])
+        _ :: check_expr_fn(callee.target, want, typed, [])
     }
 }
 

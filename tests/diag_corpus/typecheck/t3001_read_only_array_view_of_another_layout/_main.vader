@@ -1,0 +1,36 @@
+// A read-only array view must read the buffer its source wrote. An `i32[]`
+// stores raw words, a `Circle[]` or a `([i32, i32] | null)[]` raw references
+// (a tuple is a heap object), while a view over a union holding a non-reference
+// reads boxes : T3001 at each argument. A view over a union of references and
+// `null`, or over a boxed source, reads the slots as they are and is accepted.
+// A tuple's fields are read with no test at all, so its elements are invariant.
+module "snippet"
+
+Circle :: struct {
+    r: f64
+}
+
+count_mixed :: fn(xs: (i32 | string)[]) -> usize = xs.len()
+
+count_shapes :: fn(xs: (Circle | string)[]) -> usize = xs.len()
+
+count_nullable :: fn(xs: (Circle | null)[]) -> usize = xs.len()
+
+count_strings :: fn(xs: (string | null)[]) -> usize = xs.len()
+
+count_pairs :: fn(xs: ([i32, i32] | null | string)[]) -> usize = xs.len()
+
+second :: fn(p: [i32 | string, i32]) -> i32 {
+    [_, b] :: p
+    return b
+}
+
+main :: fn() -> i32 {
+    nums: i32[]: [1, 2, 3]
+    circles: Circle[]: [Circle { .r = 1.0 }]
+    names: string[]: ["a"]
+    pairs: ([i32, i32] | null)[]: [[1, 2], null]
+    pair: [i32, i32]: [1, 2]
+    total :: count_mixed(nums) + count_shapes(circles) + count_nullable(circles) + count_strings(names)
+    return i32(total + count_pairs(pairs)) + second(pair)
+}

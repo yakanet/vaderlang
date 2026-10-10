@@ -168,7 +168,7 @@ arm_predicate :: fn(
     span :: arm.pattern.span
     scrut_ident :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
     core :: pattern_predicate(ctx, arm.pattern, scrut_ident, scrut_type, span, recurse)
-    if arm.guard == null { return core }
+    arm_guard :: arm.guard ?? return core
     // The guard may read the pattern's bindings (`is P { x } if x > 0`),
     // which `lower_arm` only introduces inside the arm body — evaluated
     // AFTER the predicate. Materialise the bindings in a block wrapping
@@ -179,10 +179,10 @@ arm_predicate :: fn(
     // to the same slots is idempotent.)
     binding_stmts: LoweredStmt[]: []
     introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, binding_stmts, arm.span)
-    guard := recurse(ctx, arm.guard)
+    guard := recurse(ctx, arm_guard)
     if binding_stmts.len() > 0 {
         guard = LoweredBlock {
-            .span = arm.guard.span, .type = TY_BOOL,
+            .span = arm_guard.span, .type = TY_BOOL,
             .stmts = binding_stmts, .trailing = guard,
         }
     }

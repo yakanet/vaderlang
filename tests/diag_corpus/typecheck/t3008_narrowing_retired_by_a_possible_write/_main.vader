@@ -1,0 +1,92 @@
+// A narrowing holds only while nothing can have changed what it tested. A call
+// may write any object it reaches, so it retires every field narrowing, and the
+// local narrowings a lambda rebinds. A loop's next iteration runs after its body,
+// so a narrowing made before the loop retires for what the body may write. A
+// field write may go through an alias. T3008 at each read of the stale field.
+module "snippet"
+
+Circle :: struct {
+    r: f64
+}
+
+Square :: struct {
+    side: i64
+}
+
+Holder :: struct {
+    s: Circle | Square
+}
+
+reset :: fn(h: Holder) -> void {
+    h.s = Square { .side = 7 }
+}
+
+across_call :: fn(a: Holder) -> f64 {
+    if a.s is Circle {
+        reset(a)
+        return a.s.r
+    }
+    return 0.0
+}
+
+call_in_condition :: fn(a: Holder) -> f64 {
+    if a.s is Circle && a.s.r > 0.0 && touch(a) {
+        return a.s.r
+    }
+    return 0.0
+}
+
+touch :: fn(h: Holder) -> bool {
+    reset(h)
+    return true
+}
+
+through_alias :: fn(a: Holder) -> f64 {
+    b :: a
+    if a.s is Circle {
+        b.s = Square { .side = 7 }
+        return a.s.r
+    }
+    return 0.0
+}
+
+next_iteration :: fn(a: Holder) -> f64 {
+    total := 0.0
+    if a.s is Circle {
+        for _ in 0..<2 {
+            total += a.s.r
+            a.s = Square { .side = 7 }
+        }
+    }
+    return total
+}
+
+rebound_in_loop :: fn() -> f64 {
+    x: Circle | Square = Circle { .r = 1.5 }
+    total := 0.0
+    if x is Circle {
+        for _ in 0..<2 {
+            total += x.r
+            x = Square { .side = 7 }
+        }
+    }
+    return total
+}
+
+rebound_by_lambda :: fn() -> f64 {
+    x: Circle | Square = Circle { .r = 1.5 }
+    flip :: () -> {
+        x = Square { .side = 7 }
+    }
+    if x is Circle {
+        flip()
+        return x.r
+    }
+    return 0.0
+}
+
+main :: fn() -> i32 {
+    a :: Holder { .s = Circle { .r = 1.5 } }
+    total :: across_call(a) + call_in_condition(a) + through_alias(a) + next_iteration(a)
+    return i32(total + rebound_in_loop() + rebound_by_lambda())
+}

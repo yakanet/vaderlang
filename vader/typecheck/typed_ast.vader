@@ -331,11 +331,11 @@ export TypedProgram :: struct {
     /// `record_impl_members`.
     impl_methods: MutableMap<string, ImplMethod[]!>!
 
-    /// Flow-sensitive narrowing state — the five tables `narrow.vader` owns.
+    /// Flow-sensitive narrowing state : the tables `narrow.vader` owns.
     /// Grouped because they are one machine: an entry in `bindings` is only
     /// live while its generation in `kill_gens` still matches, so a reader
     /// that consults one without the other is wrong. See `NarrowState`.
-    narrow: NarrowState
+    narrow: NarrowState!
 
     /// AST kind label for each entry in `expr_types`, keyed by the
     /// same `Expr.id`. Populated alongside `expr_types` from

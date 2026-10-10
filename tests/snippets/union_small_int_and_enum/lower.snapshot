@@ -488,7 +488,7 @@
           arg0:
             LoweredCellGet
     let pair: [string | u8, i32] =
-      [u8, i32]! {
+      [string | u8, i32]! {
         _0: int(16) :u8
         _1: int(1) :i32
       }

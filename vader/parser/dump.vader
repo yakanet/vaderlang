@@ -121,12 +121,10 @@ write_program :: fn(sb: StringBuilder, prog: Program, level: i32) -> void {
     sb.kind_entry(level + 1, "Program")
     // The `module` field is suppressed when null so pre-migration files
     // (still in tolerant mode) keep their existing AST dump unchanged.
-    match prog.module {
-        is null       -> { }
-        is ModuleDecl -> {
-            sb.entry(false, level + 1, "module")
-            sb.write_module_decl(prog.module, level + 1)
-        }
+    module_decl :: prog.module
+    if module_decl != null {
+        sb.entry(false, level + 1, "module")
+        sb.write_module_decl(module_decl, level + 1)
     }
     sb.entry(false, level + 1, "decls")
     sb.write_decls(prog.decls, level + 1)
@@ -888,9 +886,10 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.entry(false, level + 1, "right")
             sb.write_expr(e.right, level + 1)
             // `bindAs` only emitted when present (optional on BinaryExpr).
-            if e.bind_as is AsBinding {
+            bind_as :: e.bind_as
+            if bind_as is AsBinding {
                 sb.entry(false, level + 1, "bindAs")
-                sb.write_string(e.bind_as.name)
+                sb.write_string(bind_as.name)
             }
             sb.close_obj(level)
         }
@@ -938,9 +937,10 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
                 sb.entry(false, level + 1, "unreachable")
                 sb.append("true")
             }
-            if e.bind_as is AsBinding {
+            bind_as :: e.bind_as
+            if bind_as is AsBinding {
                 sb.entry(false, level + 1, "bindAs")
-                sb.write_string(e.bind_as.name)
+                sb.write_string(bind_as.name)
             }
             sb.close_obj(level)
         }

@@ -377,6 +377,15 @@ The two operators are duals: a conjunction's **true** side applies each operand'
 
 These rules compose at any depth, through `!` as well: `!c` narrows what `c` narrows on the opposite side, and each operand of `&&` / `||` is itself a condition. So `if (y is A || y is B) && p { … }` sees `y` as `A | B`, and `if !(y is A || y is B) { … }` sees it as what neither matched.
 
+**A narrowing lasts while nothing can have changed what it tested.** A write to the narrowed name or field retires it unless the value still fits (§ reassignment above). Beyond that:
+
+- A **call** may write any object it reaches, through its arguments, an alias or a closure, so it retires every narrowing of a field (`a.s`, `self.items`) and the narrowing of a local that some lambda rebinds. A write through a user `IndexSet` (`m[k] = v`) runs its `set_at` and is one; a conversion `T(x)` is not. An `await` and a `yield` let other code run before the body resumes, and count as calls. A narrowing of a local that nothing else rebinds survives them.
+- A narrowing made **before a loop** does not hold inside it for what an earlier iteration may have changed: every field narrowing, and every local the body rebinds. The iterable of a `for x in e` is read once, before the first iteration, and still sees it.
+- A **field write** through any path (`b.s = v`, `xs[i].s = v`) retires every narrowing that goes through a field of that name, since `b` may be `a`.
+- In `a && b` (and the false side of `a || b`), a call in `b` retires what `a` narrowed, for the narrowed block as for the rest of `b`.
+
+The usual remedy is to bind the field to a local before testing it, `s :: a.s` then `if s is Circle { reset(a); s.r }`: the local keeps the value that was tested.
+
 ### Statement separators
 
 Inside a block, statements are separated by `NEWLINE` tokens (emitted per the rules below). Vader does **not** accept `;` as a statement separator.
@@ -699,7 +708,7 @@ read(mut_arr)             // OK — mutable passes for read-only
 read([4, 5, 6])           // OK — fresh array passes
 ```
 
-**Element variance**: the element type is **covariant** into a read-only target but **invariant** into a mutable one. Because arrays are reference-aliased (`b := a` shares the buffer), a mutable `(i32 | string)[]!` does **not** accept an `i32[]!` — a write `b[0] = "x"` through the wider alias would store a string into the shared i32 buffer (T3001 on the binding / T3063 on a reassignment). A fresh **literal** is exempt: it is materialised directly at the target element type, so `xs: (i32 | string)[] = [1, 2, 3]` builds a union array (not a covariant widening of an existing reference) and compiles.
+**Element variance**: the element type is **covariant** into a read-only target but **invariant** into a mutable one. Covariance also needs the view to read the slots the source wrote: an array of primitives stores raw values, an array of structs (or of a union of structs and `null`) raw references, and an array whose element is `string` or a union holding a non-reference stores boxes. A read-only view over references or boxes reads either; a view over boxes reads only boxes; a view over a primitive reads only its own type. A tuple is a heap object here, like a struct. So `Circle[]` passes as a read-only `(Circle | null)[]` and `string[]` as a read-only `(string | null)[]`, but `i32[]` does not pass as a read-only `(i32 | string)[]`, nor `Circle[]` as a read-only `(Circle | string)[]` (T3001). Because arrays are reference-aliased (`b := a` shares the buffer), a mutable `(i32 | string)[]!` does **not** accept an `i32[]!`: a write `b[0] = "x"` through the wider alias would store a string into the shared i32 buffer (T3001 on the binding / T3063 on a reassignment). A fresh **literal** is exempt: it is materialised directly at the target element type, so `xs: (i32 | string)[] = [1, 2, 3]` builds a union array (not a covariant widening of an existing reference) and compiles.
 
 **In a union**: an array variant is a valid member anywhere in a type union, not only as the first — `string | u8[]` and `A | T[]! | B` both parse. The marker attaches to the variant it follows, never to the union.
 
@@ -814,6 +823,7 @@ println(pair.1)      // "answer"
   - `[1, "x"]` → tuple (heterogeneous, no annotation).
   - With an annotation, the annotation wins: `xs: int[] = [1, 2, 3]` is array; `p: [int, string] = [1, "x"]` is tuple.
 - **Tuples are not arrays**: `[i32, i32]` is not assignable to `i32[]` even though every element type unifies.
+- **Element types are invariant.** A tuple's fields are laid out by their types and read with no test, so `[i32, i32]` does not pass as `[i32 | string, i32]` (T3001): the raw `i32` would be read as a union. A fresh literal is built straight into the slot's element types instead, so `p: [i32 | string, i32]: [1, 2]` compiles.
 - **`==` compares the elements, not the references.** A tuple carries no identity to observe — it cannot be mutated (`t[0] = x` is `T3008`) and a fresh one is built at each construction — so `a == b` is rewritten field by field. Two tuples with equal contents are equal whether or not they are the same object, and `a != b` negates the whole comparison. Each element compares as it would on its own: a nested tuple recurses, a struct goes through its `Equals` impl, a union by variant, a bounded type parameter through `Equals`. A **distinct newtype over a tuple** (`Pair :: [i32, i32]`) compares through its backing unless it implements `Equals` itself.
 - **A tuple is only as comparable as its elements.** An element with no working `==` — an array, a struct without an `Equals` impl, a function value, a trait value, or a type parameter whose bound does not name `Equals` — is `T3043`, reported against the **element's** type, which is what needs the impl. The two operands must have the *same* type, not merely the same arity: `[i32, string] == [string, i32]` and a nested arity mismatch are both `T3001`.
 

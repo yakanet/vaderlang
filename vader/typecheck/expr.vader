@@ -185,7 +185,13 @@ infer_expr :: fn(
         is AST.BlockExpr -> { return check_block(expr, expected, typed, diags, null, check_expr) }
         is AST.IfExpr -> { return infer_if(expr, expected, typed, diags, null, check_expr) }
         is AST.MatchExpr -> { return infer_match(expr, expected, typed, diags, null, check_expr) }
-        is AST.CallExpr -> { return infer_call(expr, expected, typed, diags, check_expr) }
+        is AST.CallExpr -> {
+            called :: infer_call(expr, expected, typed, diags, check_expr)
+            if !is_checked_conversion(expr, typed) {
+                retire_narrowings_across_call(typed)
+            }
+            return called
+        }
         is AST.BinaryExpr -> { return infer_binary(expr, expected, typed, diags, check_expr) }
         is AST.NullCoalesceExpr -> { return infer_null_coalesce(expr, expected, typed, diags, check_expr) }
         is AST.FieldExpr -> { return infer_field(expr, expected, typed, diags, check_expr) }
@@ -197,7 +203,11 @@ infer_expr :: fn(
         is AST.RangeExpr -> { return infer_range(expr, typed, diags, check_expr) }
         is AST.DotVariantExpr -> { return infer_dot_variant(expr, expected, typed, diags) }
         is AST.LambdaExpr -> { return infer_lambda(expr, expected, typed, diags, check_expr) }
-        is AST.AwaitExpr -> { return infer_await(expr, typed, diags, check_expr) }
+        is AST.AwaitExpr -> {
+            awaited :: infer_await(expr, typed, diags, check_expr)
+            retire_narrowings_across_call(typed)
+            return awaited
+        }
         is AST.IntrinsicCallExpr -> { return infer_intrinsic(expr, typed, diags, check_expr) }
         is AST.GenericInstExpr -> { return infer_generic_inst(expr, typed, diags, check_expr) }
         is AST.ArrayTypeExpr -> { return infer_array_type_value(expr, typed, diags) }

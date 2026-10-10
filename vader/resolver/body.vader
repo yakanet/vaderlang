@@ -59,6 +59,15 @@ export ResolvedFile :: struct {
     /// loop variable, which the loop itself advances. A symbol missing here may be
     /// rebound, so an empty set claims nothing.
     rebind_free: MutableSet<i32>
+    /// Per `for` statement (keyed by its span's hash), the locals and parameters
+    /// an assignment in its body rebinds. A narrowing made before the loop does
+    /// not hold inside it for these: the next iteration reads them after the
+    /// rebind.
+    loop_rebinds: MutableMap<u64, MutableSet<i32>>
+    /// Locals and parameters a lambda rebinds while they are declared outside
+    /// it. Any call may run that lambda, so a narrowing of one does not survive
+    /// a call.
+    closure_rebound: MutableSet<i32>
     /// `Symbol.id → bound TypeExpr` for every TypeParam minted with
     /// an explicit `T: Trait` clause. Lets downstream consumers
     /// dispatch trait methods on bounded type parameters.
@@ -125,6 +134,8 @@ export resolve_module_programs :: fn(
         .immutable_locals = state.immutable_locals,
         .immutable_borrows = state.immutable_borrows,
         .rebind_free = state.rebind_free_locals(),
+        .loop_rebinds = state.loop_rebinds,
+        .closure_rebound = state.closure_rebound,
         .type_param_bounds = state.type_param_bounds,
         .diags = state.diags,
     }
@@ -152,6 +163,15 @@ ResolveState :: struct {
     reassigned:       MutableSet<i32>!
     /// Every local and parameter the walk declared, for `rebind_free_locals`.
     declared_locals:  i32[]! = []
+    /// The rebinds made inside the `for` statements being walked, in walk order,
+    /// so each loop reads the ones its body made. Emptied when the outermost ends.
+    rebind_log:       i32[]! = []
+    loop_depth:       i32 = 0
+    loop_rebinds:     MutableMap<u64, MutableSet<i32>>! = MutableMap<u64, MutableSet<i32>> {}
+    /// The scope's frame count when the walk entered the innermost enclosing
+    /// lambda : a name bound below it is declared outside. Null outside any lambda.
+    lambda_frame:     i32 | null = null
+    closure_rebound:  MutableSet<i32>! = MutableSet<i32> {}
     diags:            Diagnostic[]!
     scope:            Scope!
     module_path:      string
@@ -633,8 +653,21 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
         // Neither header form binds a name; only `for x in …` does.
         is AST.InfiniteFor | AST.WhileFor -> {}
     }
+    first_rebind :: self.rebind_log.len()
+    self.loop_depth += 1
     self.walk_block(s.body)
+    self.loop_depth -= 1
     self.scope.pop()
+    if self.rebind_log.len() > first_rebind {
+        rebinds :: MutableSet<i32> {}
+        for i in first_rebind..<self.rebind_log.len() {
+            rebinds.add(self.rebind_log[i])
+        }
+        self.loop_rebinds[s.span.hash()] = rebinds
+    }
+    if self.loop_depth == 0 {
+        self.rebind_log.clear()
+    }
 }
 
 // ---- W0015 : a `:=` nothing reassigns -------------------------------------
@@ -648,7 +681,8 @@ MutableDecl :: struct {
     span: Span
 }
 
-// Record what an assignment target rebinds, for W0015.
+// Record what an assignment target rebinds : for W0015, for the loops around it
+// (`loop_rebinds`) and for the lambda it sits in (`closure_rebound`).
 //
 // A bare name as the WHOLE target is the form that rebinds it; `x.f = 1` and
 // `x[0] = 1` mutate what `x` designates, which a `::` local allows, so counting
@@ -660,10 +694,22 @@ MutableDecl :: struct {
 note_rebind :: fn(self: ResolveState, target: AST.Expr) -> void {
     if target is AST.IdentExpr {
         sym :: self.idents[target.span.hash()] ?? return
+        _ :: self.reassigned.add(sym.id)
+        if self.loop_depth > 0 {
+            self.rebind_log.push(sym.id)
+        }
         // `add` reports whether the id was new; as the `if`'s last expression a
         // bare call would make this `void` body return `bool | void`.
-        _ :: self.reassigned.add(sym.id)
+        if self.declared_outside_lambda(target.name) {
+            _ :: self.closure_rebound.add(sym.id)
+        }
     }
+}
+
+// Whether the walk is inside a lambda that did not declare `name`.
+declared_outside_lambda :: fn(self: ResolveState, name: string) -> bool {
+    frame :: self.lambda_frame ?? return false
+    return self.scope.lookup_frame_index(name) < frame
 }
 
 // Where W0015 points: the whole `[a, b]` for a destructure, since the warning's
@@ -924,6 +970,8 @@ bind_pattern :: fn(self: ResolveState, p: AST.Pattern) -> void {
 }
 
 walk_lambda :: fn(self: ResolveState, l: AST.LambdaExpr) -> void {
+    enclosing_lambda_frame :: self.lambda_frame
+    self.lambda_frame = self.scope.frame_count()
     self.scope.push()
     for p in l.params {
         self.walk_opt_expr(p.ty)
@@ -941,6 +989,7 @@ walk_lambda :: fn(self: ResolveState, l: AST.LambdaExpr) -> void {
     self.walk_opt_expr(l.return_type)
     self.walk_block(l.body)
     self.scope.pop()
+    self.lambda_frame = enclosing_lambda_frame
 }
 
 walk_struct_lit :: fn(self: ResolveState, s: AST.StructLitExpr) -> void {

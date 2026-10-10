@@ -278,9 +278,9 @@ lower_fn_body :: fn(
     fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
     entry: MonoEntry, subst: Substitution, return_type: Type,
 ) -> LoweredBlock! | null {
-    if fn_decl.body == null { return null }
+    body :: fn_decl.body ?? return null
     fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type)
-    block :: lower_block(fn_ctx, fn_decl.body, true, null)
+    block :: lower_block(fn_ctx, body, true, null)
     return promote_cell_params(fn_ctx, fn_decl.params, block)
 }
 

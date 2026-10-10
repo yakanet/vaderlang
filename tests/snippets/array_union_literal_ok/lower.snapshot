@@ -108,74 +108,38 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    let a: i32[] =
-      array :i32[]
-        int(10) :i32
-        int(20) :i32
-    let view: (i32 | string)[] = a :i32[]
+    let names: string[] =
+      array :string[]
+        "ten" :string
+        "twenty" :string
+    let view: (null | string)[] = names :string[]
     if :void
       cond:
-        is i32 :bool
-          index :i32 | string
+        is string :bool
+          index :null | string
             on:
-              view :(i32 | string)[]
+              view :(null | string)[]
             ix:
               int(0) :i32
       then:
-        let n: i32 =
-          cast → i32
-            index :i32 | string
+        let n: string =
+          cast → string
+            index :null | string
               on:
-                view :(i32 | string)[]
+                view :(null | string)[]
               ix:
                 int(0) :i32
         call :void
           callee:
             std_io$println__string :void
           arg0:
-            block :string
-              let __buf_5: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(26) :usize
-              let __off_6: usize = int(0) :usize
-              assign
-                target:
-                  __off_6 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_5 :Buffer
-                    arg1:
-                      __off_6 :usize
-                    arg2:
-                      "view0 " :string
-              assign
-                target:
-                  __off_6 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_int :usize
-                    arg0:
-                      __buf_5 :Buffer
-                    arg1:
-                      __off_6 :usize
-                    arg2:
-                      cast → i64
-                        n :i32
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_5 :Buffer
-                  arg1:
-                    __off_6 :usize
+            call :string
+              callee:
+                concat_2 :string
+              arg0:
+                "view0 " :string
+              arg1:
+                n :string
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

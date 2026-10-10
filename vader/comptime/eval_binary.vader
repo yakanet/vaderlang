@@ -26,9 +26,9 @@ export evaluate_binary_expr :: fn(
     recurse: fn(AST.Expr, ComptimeContext!) -> EvalResult,
 ) -> EvalResult {
     left_result :: recurse(expr.left, context)
-    if left_result.value is null { return left_result }
+    left :: left_result.value ?? return left_result
     right_result :: recurse(expr.right, context)
-    if right_result.value is null { return right_result }
+    right :: right_result.value ?? return right_result
     // Width of the node's resolved type — drives the fixed-width wrap so a
     // comptime fold matches the runtime's i32 / i64 wrapping instead of the
     // unbounded-i64 tree-walk (audit CT1). Empty string ⇒ unknown / non-integer:
@@ -38,19 +38,19 @@ export evaluate_binary_expr :: fn(
     // masks to 5 bits (int64_t to 6), so `1 << 33` runs as `1 << 1`. Without
     // this the i64 tree-walk shift would compute `1 << 33` then wrap to 0.
     right_value :: if expr.op == .Shl || expr.op == .Shr {
-        mask_shift_amount(right_result.value, rname)
+        mask_shift_amount(right, rname)
     } else {
-        right_result.value
+        right
     }
     // `==` on a union compares by variant : two values of different kinds are
     // unequal, two `null`s equal ; `compare` answers two values of one kind.
     if expr.op == .Eq || expr.op == .Neq {
-        apart :: !same_kind(left_result.value, right_value)
-        if (apart || left_result.value is NullValue) && has_union_operand(context, expr) {
+        apart :: !same_kind(left, right_value)
+        if (apart || left is NullValue) && has_union_operand(context, expr) {
             return ok(bool_value(apart == (expr.op == .Neq)))
         }
     }
-    combined :: combine_binary(expr, left_result.value, right_value)
+    combined :: combine_binary(expr, left, right_value)
     return normalize_int_result(combined, rname)
 }
 
@@ -107,12 +107,12 @@ export evaluate_unary_expr :: fn(
     recurse: fn(AST.Expr, ComptimeContext!) -> EvalResult,
 ) -> EvalResult {
     inner :: recurse(expr.operand, context)
-    if inner.value is null { return inner }
+    operand :: inner.value ?? return inner
     rname :: resolved_int_name(context, expr.id)
     combined :: match expr.op {
-        .Neg    -> unary_neg(expr, inner.value)
-        .Not    -> unary_not(expr, inner.value)
-        .BitNot -> unary_bit_not(expr, inner.value)
+        .Neg    -> unary_neg(expr, operand)
+        .Not    -> unary_not(expr, operand)
+        .BitNot -> unary_bit_not(expr, operand)
     }
     return normalize_int_result(combined, rname)
 }

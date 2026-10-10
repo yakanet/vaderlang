@@ -135,13 +135,14 @@ export infer_match :: fn(
                 prev_field = push_field_narrow(typed, scrut_field_key, arm_narrow)
             }
         }
-        if arm.guard !is null {
-            got :: check_expr_fn(arm.guard, TY_BOOL, typed, diags)
+        guard :: arm.guard
+        if guard !is null {
+            got :: check_expr_fn(guard, TY_BOOL, typed, diags)
             if !is_assignable(got, TY_BOOL) {
                 diags.push(
                     typecheck_error(
                         .ConditionMustBeBool,
-                        arm.guard.span,
+                        guard.span,
                         "match-arm guard must be `bool`, got ${display_type(got)}",
                     ),
                 )
