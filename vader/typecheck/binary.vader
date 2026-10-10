@@ -54,7 +54,7 @@ export infer_binary :: fn(
         }
         reject_marker_in_is_test(e.right, diags)
         check_is_overlap(e, left, rhs_ty, diags)
-        reject_shared_instance_is_test(rhs_ty, e.right.span, diags)
+        check_is_test_target(rhs_ty, e.right.span, typed, diags)
         return TY_BOOL
     }
     // Right-side bidirectional context : when left is a concrete numeric,
@@ -901,24 +901,58 @@ reject_marker_in_is_test :: fn(tested: AST.TypeExpr, diags: Diagnostic[]) -> voi
 // struct with a type argument that erases (`Box<Foo>`, `Pair<i32, Foo>`) is
 // served by one body shared with every other such instance, and a value that
 // body builds carries the shared tag whatever it was built for — so no tag
-// compare can tell `Box<Foo>` from `Box<Bar>`. A type parameter is refused too:
-// the instances that bind it to a reference share a body the same way, and the
-// check cannot wait for them. T3087.
-reject_shared_instance_is_test :: fn(tested: Type, span: Span, diags: Diagnostic[]) -> void {
+// compare can tell `Box<Foo>` from `Box<Bar>`. A type parameter as a struct's
+// argument is refused too : the instances that bind it to a reference share a body
+// the same way. T3087. A type parameter tested itself (`x is U`, `is U[]`) reads
+// what the instance binds it to : the fn keeps concrete instances
+// (`fn_observes_type_params`), and an impl member, which keeps no body per
+// instance, refuses it (T3087).
+check_is_test_target :: fn(tested: Type, span: Span, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    observes := false
     for variant in union_variants(tested) ?? [tested] {
         if variant is StructType {
-            for arg in variant.args {
-                if is_shared_type_argument(arg) {
-                    instance :: display_type(variant)
-                    argument :: display_type(arg)
-                    diags.push(typecheck_error(
-                        .IsTestOnSharedInstance, span,
-                        "`${instance}` has the type argument `${argument}`, which erases ; "
-                            + "test the field that holds it instead (`x.value is ${argument}`)"))
-                    return
-                }
+            if refuses_shared_argument(variant, span, diags) {
+                return
             }
+        } else if type_contains_type_param(variant) {
+            observes = true
         }
+    }
+    if observes {
+        observe_type_param_test(tested, span, typed, diags)
+    }
+}
+
+// T3087 when the generic struct instance `variant` has a type argument that
+// erases. True when reported.
+refuses_shared_argument :: fn(variant: StructType, span: Span, diags: Diagnostic[]) -> bool {
+    for arg in variant.args {
+        if is_shared_type_argument(arg) {
+            instance :: display_type(variant)
+            argument :: display_type(arg)
+            diags.push(typecheck_error(
+                .IsTestOnSharedInstance, span,
+                "`${instance}` has the type argument `${argument}`, which erases ; "
+                    + "test the field that holds it instead (`x.value is ${argument}`)"))
+            return true
+        }
+    }
+    return false
+}
+
+// Mark the fn whose body tests `tested`, a type parameter, as observing it ; T3087
+// inside an impl member.
+observe_type_param_test :: fn(tested: Type, span: Span, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    if typed.enclosing_impl != 0 {
+        diags.push(typecheck_error(
+            .IsTestOnSharedInstance, span,
+            "`${display_type(tested)}` names a type parameter, and an impl member keeps "
+                + "no body per instance ; dispatch through a trait instead"))
+        return
+    }
+    ctx :: typed.current_fn_ctx ?? return
+    if ctx.fn_id != 0 {
+        typed.fn_observes_type_params[ctx.fn_id] = true
     }
 }
 

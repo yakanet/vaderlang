@@ -353,7 +353,8 @@ InstanceFlavor :: enum { Mono, Mixed, Erased }
 fn_instance_flavor :: fn(
     impls: ImplRegistry, fn_decl: FnDecl, owner_typed: TypedProgram, type_args: Type[],
 ) -> InstanceFlavor {
-    if owner_typed.fn_needs_concrete_instances[fn_decl.id] is bool {
+    if owner_typed.fn_needs_concrete_instances[fn_decl.id] is bool
+        || owner_typed.fn_observes_type_params[fn_decl.id] is bool {
         return .Mono
     }
     if owner_typed.fn_display_dispatches[fn_decl.id] is bool

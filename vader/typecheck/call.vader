@@ -836,6 +836,47 @@ calls_static_member_on_type_name :: fn(c: AST.CallExpr, typed: TypedProgram) -> 
     return member.owner !is TypeParamType
 }
 
+// Record that the body being checked hands its own type parameters to the fn `c`
+// calls (`type_param_forwards`) : should that fn observe them, the body keeps
+// concrete instances too (`propagate_type_param_observation`).
+note_type_param_forward :: fn(
+    c: AST.CallExpr, bindings: MutableMap<i32, Type>, typed: TypedProgram,
+) -> void {
+    ctx :: typed.current_fn_ctx ?? return
+    if ctx.fn_id == 0 || !binds_a_type_param(bindings) {
+        return
+    }
+    callee :: called_fn_ref(c, typed) ?? return
+    forwards :: typed.type_param_forwards[ctx.fn_id]
+    if forwards != null {
+        forwards.push(callee)
+        return
+    }
+    typed.type_param_forwards[ctx.fn_id] = [callee]
+}
+
+// Whether a call bound some type parameter to a type naming one in turn : inside a
+// generic body, one of the body's own.
+binds_a_type_param :: fn(bindings: MutableMap<i32, Type>) -> bool {
+    for [_, bound] in bindings {
+        if type_contains_type_param(bound) {
+            return true
+        }
+    }
+    return false
+}
+
+// The fn declaration `c` runs : the overload or UFCS pick, else the one its
+// callee names (`resolve_callee_fn`). Null for a fn value.
+called_fn_ref :: fn(c: AST.CallExpr, typed: TypedProgram) -> FnDeclRef | null {
+    picked :: typed.chosen_fns[c.callee.id]
+    if picked != null {
+        decl :: picked.decl ?? return null
+        return FnDeclRef { .module = picked.symbol.module, .decl = decl }
+    }
+    return resolve_callee_fn(c.callee, typed)
+}
+
 // Whether `c` calls a name that resolves to a symbol of `kind`.
 callee_is_kind :: fn(c: AST.CallExpr, kind: SymbolKind, typed: TypedProgram) -> bool {
     if c.callee !is AST.IdentExpr {
@@ -1123,6 +1164,7 @@ export infer_call :: fn(
             v :: bindings[k] ?? continue
             bindings[k] = default_if_free(v)
         }
+        note_type_param_forward(c, bindings, typed)
         // A method-form callee reads as the call binds it, receiver and arguments
         // together, not as the receiver alone did (`local.pick(CFG)` reads
         // `fn(Cfg) -> Cfg`, `cfg.wrap("s")` reads `fn(string) -> string`) : what
@@ -1514,6 +1556,12 @@ has_bounded_type_param :: fn(decl: AST.FnDecl) -> bool {
 /// @param typed   the module the call sits in.
 /// @return        the `FnDecl`, or null when the callee is no named fn.
 export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
+    found :: resolve_callee_fn(callee, typed) ?? return null
+    return found.decl
+}
+
+// `lookup_callee_fn_decl`'s declaration, with the module that declares it.
+resolve_callee_fn :: fn(callee: AST.Expr, typed: TypedProgram) -> FnDeclRef | null {
     // See through an explicit `f<…>` instantiation to the underlying
     // ident, so `f<i64>(…)` finds its decl too.
     base: AST.Expr = callee
@@ -1528,7 +1576,8 @@ export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST
     if base is AST.FieldExpr {
         mod_id :: namespace_call_mod_id(base, typed) ?? return null
         by_name :: typed.namespace_export_decls[mod_id] ?? return null
-        return by_name[base.field]
+        member :: by_name[base.field] ?? return null
+        return FnDeclRef { .module = mod_id, .decl = member }
     }
     if base !is AST.IdentExpr {
         return null
@@ -1536,7 +1585,7 @@ export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST
     sym :: typed.resolved.idents[base.span.hash()] ?? return null
     redirected :: redirect_import_typed(sym, typed)
     decl :: typed.fn_decls[redirected.id] ?? return null
-    return decl
+    return FnDeclRef { .module = redirected.module, .decl = decl }
 }
 
 // True when the callee fn carries `@no_return` (`panic` / `todo` /

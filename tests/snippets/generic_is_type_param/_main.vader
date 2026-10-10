@@ -1,0 +1,38 @@
+// A generic body may test one of its own type parameters (`x is U`) : its instances
+// stay concrete, so the test reads what each instance binds `U` to. So does every
+// generic fn that hands that body its own type parameters. Type arguments key an
+// instance in declaration order, whatever order the parameters appear in.
+module "snippet"
+
+import "std/io"
+
+Circle :: struct {
+    r: i32
+}
+
+Square :: struct {
+    s: i32
+}
+
+is_a :: fn<U, T>(x: T) -> bool = x is U
+
+kind :: fn<U, T>(x: T) -> string = match x {
+    is U -> "yes"
+    _    -> "no"
+}
+
+same_kind :: fn<T, V>(x: V, sample: T) -> bool = x is T
+
+relay :: fn<T, V>(x: V, sample: T) -> bool = same_kind(x, sample)
+
+relay_twice :: fn<T, V>(x: V, sample: T) -> bool = relay(x, sample)
+
+main :: fn() -> i32 {
+    sq: Circle | Square: Square { .s = 2 }
+    println("${is_a<Circle, Circle | Square>(sq)} ${is_a<Square, Circle | Square>(sq)}")
+    println("${kind<Circle, Circle | Square>(sq)} ${kind<Square, Circle | Square>(sq)}")
+    println("${same_kind(sq, Circle { .r = 0 })} ${same_kind(sq, Square { .s = 0 })}")
+    println("${relay(sq, Circle { .r = 0 })} ${relay(sq, Square { .s = 0 })}")
+    println("${relay_twice(sq, Circle { .r = 0 })} ${relay_twice(sq, Square { .s = 0 })}")
+    return 0
+}

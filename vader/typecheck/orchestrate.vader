@@ -132,9 +132,35 @@ export check_project_with_bodies :: fn(
         if !settle_param_marks(inference, result.all_modules) {
             diags.push_all(round)
             diags.push_all(end_param_inference(inference, result.all_modules))
+            propagate_type_param_observation(result.all_modules)
             return result
         }
     }
+}
+
+// A generic fn that hands its own type parameters to one observing them
+// (`fn_observes_type_params`) observes them too : with erased instances it would
+// hand `Any`. Marks every such caller, across modules, to a fixed point.
+propagate_type_param_observation :: fn(modules: MutableMap<string, TypedProgram>) -> void {
+    changed := true
+    for changed {
+        changed = false
+        for [_, typed] in modules {
+            for [caller, callees] in typed.type_param_forwards {
+                if caller !in typed.fn_observes_type_params
+                    && callees.any_match((callee) -> observes_type_params(modules, callee)) {
+                    typed.fn_observes_type_params[caller] = true
+                    changed = true
+                }
+            }
+        }
+    }
+}
+
+// Whether the fn `callee` names observes its type parameters.
+observes_type_params :: fn(modules: MutableMap<string, TypedProgram>, callee: FnDeclRef) -> bool {
+    owner :: modules[callee.module] ?? return false
+    return callee.decl.id in owner.fn_observes_type_params
 }
 
 // One round of `check_project_with_bodies`, feeding `inference`.

@@ -511,6 +511,9 @@ const C_PARITY = new Set<string>([
   // A UFCS call in a generic body resolved per instance, against the concrete
   // receiver.
   "ufcs_generic_receiver",
+  // `x is U` on a generic fn's own type parameter: natively the shared body compared
+  // the `ref _` tag (false where the VM said true).
+  "generic_is_type_param",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

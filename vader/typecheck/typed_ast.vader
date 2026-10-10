@@ -95,6 +95,13 @@ export BoundedImpl :: struct {
     bounds: ArgBound[]
 }
 
+/// A fn declaration with the module declaring it : node ids repeat across modules,
+/// so a declaration alone does not name a fn.
+export FnDeclRef :: struct {
+    module: string
+    decl:   AST.FnDecl
+}
+
 /// One fn a call to its name may resolve to — an overload declared here, or one
 /// a file's wildcard imports put in unqualified scope.
 ///
@@ -646,6 +653,19 @@ export TypedProgram :: struct {
     /// `Any`. Keyed by node id (not name) so overloaded generics don't collide.
     fn_needs_concrete_instances: MutableMap<usize, bool>!
 
+    /// Generic fn AST-node id → true when its body tests a type parameter at run
+    /// time (`x is U`), or hands its own to a fn that does
+    /// (`propagate_type_param_observation`) : its instances stay concrete
+    /// (`fn_instance_flavor`). Apart from `fn_needs_concrete_instances`, whose
+    /// trait dispatch an erased caller reaches through the value's tag : only an
+    /// observation climbs to the callers.
+    fn_observes_type_params: MutableMap<usize, bool>!
+
+    /// Generic fn AST-node id → the fns its body calls with one of its own type
+    /// parameters among the call's type arguments : the edges
+    /// `propagate_type_param_observation` follows.
+    type_param_forwards: MutableMap<usize, FnDeclRef[]!>!
+
     /// Generic fn AST-node id → true when its body interpolates a value whose
     /// type mentions a type-param, so renders it through a `Display` dispatched
     /// on it. Read by the lowerer's instance flavor : an enum or a distinct
@@ -827,6 +847,8 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .bounded_dispatch_trait = MutableMap<usize, string> {},
     .bounded_dispatch_args = MutableMap<usize, Type[]> {},
     .fn_needs_concrete_instances = MutableMap<usize, bool> {},
+    .fn_observes_type_params = MutableMap<usize, bool> {},
+    .type_param_forwards = MutableMap<usize, FnDeclRef[]!> {},
     .fn_display_dispatches = MutableMap<usize, bool> {},
     .overload_result_callees = MutableMap<usize, bool> {},
     .enum_data_reads = MutableMap<usize, bool> {},

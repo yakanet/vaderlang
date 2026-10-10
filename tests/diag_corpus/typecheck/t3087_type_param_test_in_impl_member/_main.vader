@@ -1,0 +1,21 @@
+// A generic fn keeps concrete instances when its body tests a type parameter, but
+// an impl member keeps no body per instance : the test cannot read what `T` is
+// bound to. T3087, at the tested type.
+module "snippet"
+
+Box :: struct<T> {
+    value: T
+}
+
+Probe :: trait {
+    probe :: fn(self) -> bool
+}
+
+Box<T> implements<T> Probe {
+    probe :: fn(self) -> bool = self.value is T
+}
+
+main :: fn() -> i32 {
+    b :: Box<i32> { .value = 1 }
+    return if b.probe() { 0 } else { 1 }
+}

@@ -142,7 +142,7 @@ emit_generic_fn_call :: fn(
     // the generic shape) with the call arg's inferred concrete type. Each unique
     // TypeParam symbol in the fn's signature contributes one entry to
     // `concrete_args` in source-declared order.
-    concrete_args :: instance_type_args(ctx, fn_sym, infer_type_args(ft, call, ctx))
+    concrete_args :: instance_type_args(ctx, fn_sym, infer_type_args(ft, call, ctx, fn_sym))
     if !all_concrete(concrete_args) { return null }
     // Register the instance for materialisation at the end of `lower_project` and
     // take the mangle it settles on. Everything about the name is derived inside,
@@ -260,7 +260,7 @@ register_and_emit_generic_call :: fn(
     }
 }
 
-infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
+infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx, fn_sym: Symbol) -> Type[] {
     // For each fn-param's generic shape, walk it and the matching
     // call-arg's concrete type in lock-step. The first time we see a
     // TypeParam symbol on the pattern side, record its concrete-side
@@ -282,7 +282,7 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
     // the GATE B1 "unresolved callee" panic.
     unify_params(ft.return_type, default_if_free(ctx.types.expr_type(call)), bindings, order, ctx)
     out: Type[]: []
-    for id in order {
+    for id in declared_order(ctx, fn_sym, order) {
         v :: bindings[id]
         match v {
             is null -> {}
@@ -295,6 +295,28 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
         }
     }
     return out
+}
+
+// The type parameters a call bound (`order`, by first appearance) in `fn_sym`'s
+// declaration order : the order its instances bind type arguments in
+// (`build_fn_concrete_subst`), so `fn<T, V>(x: V, s: T)` keys on `[T, V]`. `order`
+// as it is when the declaration is out of reach or declares one the call left
+// unbound.
+declared_order :: fn(ctx: FnLowerCtx, fn_sym: Symbol, order: i32[]) -> i32[] {
+    if order.len() < 2 {
+        return order
+    }
+    owner :: resolve_owner_typed(ctx, fn_sym.module) ?? return order
+    decl :: owner.fn_decls[fn_sym.id] ?? return order
+    declared :: declared_type_params(decl, owner) ?? return order
+    ids: i32[]: []
+    for tp in declared {
+        if tp.id !in order {
+            return order
+        }
+        ids.push(tp.id)
+    }
+    return ids
 }
 
 unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type>, order: i32[], ctx: FnLowerCtx) -> void {

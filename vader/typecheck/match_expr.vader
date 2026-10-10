@@ -172,7 +172,7 @@ export infer_match :: fn(
         match arm.pattern as pattern {
             is AST.IsPattern          -> {
                 matched :: pattern_type_of(pattern.ty, remaining, typed, scratch_diags())
-                reject_shared_instance_is_test(matched, pattern.span, diags)
+                check_is_test_target(matched, pattern.span, typed, diags)
                 if is_overlap_checkable(scrut_ty) && is_overlap_checkable(matched) {
                     if !types_overlap(scrut_ty, matched) {
                         diags.push(
@@ -246,7 +246,7 @@ export infer_match :: fn(
                 for sub in pattern.patterns {
                     if sub is AST.IsPattern {
                         tested :: pattern_type_of(sub.ty, remaining, typed, scratch_diags())
-                        reject_shared_instance_is_test(tested, sub.span, diags)
+                        check_is_test_target(tested, sub.span, typed, diags)
                     }
                 }
                 // Each alternative consumes its own variant — enum variants add

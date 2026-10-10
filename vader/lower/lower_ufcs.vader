@@ -381,7 +381,7 @@ harvest_ufcs_fn_instance :: fn(
             unify_params(fn_ty.params[i], concrete, bindings, order, ctx)
         }
         concrete_args: Type[]: []
-        for id in order {
+        for id in declared_order(ctx, fn_sym, order) {
             v :: bindings[id]
             match v {
                 is null -> { return null }
