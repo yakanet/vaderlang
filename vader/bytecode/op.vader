@@ -418,7 +418,7 @@ export TypeCheck :: struct { type_id: i32 }
 
 /// Push a `TypeVal { type_id }` — the runtime reification of a `type`
 /// value. Emitted when a `TypeMeta`-typed ident reaches value position
-/// (`@type_of(x)`, `let m : type = i32`, etc.). Layer 4 §1.19 B.1.
+/// (`@type_of(x)`, `let m : type = i32`, etc.).
 export TypeConst :: struct { type_id: i32 }
 
 /// Pop a closure (fn ref + env) and append it to the current frame's

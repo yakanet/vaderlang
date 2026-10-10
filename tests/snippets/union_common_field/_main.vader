@@ -1,4 +1,4 @@
-// Common-field access on a discriminated union (§1.18d). When every
+// Common-field access on a discriminated union. When every
 // variant of a union carries a field with the same name, the typechecker
 // allows direct `.field` access without an outer `match`. The lowerer
 // synthesises a variant-dispatch cascade (`if e is V1 { e.f } else if

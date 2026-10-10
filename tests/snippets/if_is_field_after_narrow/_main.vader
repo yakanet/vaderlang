@@ -1,10 +1,9 @@
 // `if v is HeapStruct { v.field }` must narrow `v` *and* propagate the
-// narrowed type to subsequent field reads — historically (TODO §1.13e)
-// the typecheck recorded the narrowed type but the lower/c-emit
-// pipeline kept reading `v` through the union box, producing C that
-// trapped on `vader_unreachable` or compared `vader_box_eq(0, n)`
-// instead of doing a typed field load. The workaround was a `match` with a
-// fresh binding for the narrowed value.
+// narrowed type to subsequent field reads. Historically the typecheck
+// recorded the narrowed type but the lower/c-emit pipeline kept reading
+// `v` through the union box, producing C that trapped on `vader_unreachable`
+// or compared `vader_box_eq(0, n)` instead of doing a typed field load. The
+// workaround was a `match` with a fresh binding for the narrowed value.
 //
 // Regression : exercise the natural `if`-chain form on a multi-field
 // heap struct (avoids the inline-variant escape hatch where the value
@@ -25,8 +24,8 @@ ArrayVal :: struct {
 IntVal :: struct { value: i32 }
 Value  :: StructVal | ArrayVal | IntVal
 
-// Multiple early-return `is`-chain — the historical struct_typeid_matches
-// shape from §1.13e.
+// Multiple early-return `is`-chain, the historical `struct_typeid_matches`
+// shape.
 type_id_of :: fn(v: Value) -> i32 {
     if v is StructVal { return v.type_id }
     if v is ArrayVal  { return v.type_id }

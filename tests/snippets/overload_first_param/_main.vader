@@ -1,4 +1,4 @@
-// Function overloading by first-param type (TODO §1.18c). Two free fns
+// Function overloading by first-param type (SPEC *Function overloading*). Two free fns
 // share the name `describe` and dispatch on the receiver, both via direct
 // call and UFCS. Also covers stdlib `min` / `max` / `abs` which now ship
 // i32 + f64 overloads — free integer literals default to i32 so the

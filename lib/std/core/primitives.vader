@@ -251,7 +251,7 @@ f64 implements Display -> format_f64(self)
 // Distinct from the numeric `u64(x)` / `f64(b)` casts (which convert the VALUE).
 // `@intrinsic` → the `F64ToBits` / `BitsToF64` opcodes (a `union` cast in C, no
 // runtime symbol). Foundation for the pure-Vader shortest-double formatter
-// (§1.13) and the S2-deferred `LoadF64` byte codec.
+// and the S2-deferred `LoadF64` byte codec.
 
 @intrinsic f64 implements FloatBits     // → F64ToBits
 @intrinsic u64 implements BitsFloat     // → BitsToF64

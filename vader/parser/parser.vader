@@ -1319,11 +1319,8 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam![] {
     out: TypeParam[]: []
     p.skip_newlines()
     for !p.check(.RParen) && !p.check(.Eof) {
-        // Each iteration parses one (possibly $-prefixed) type-param. After
-        // the first iteration we require a leading `,` ; we detect this via
-        // the parser position rather than a `!first` flag (the lowerer +
-        // bytecode runtime trip on a `!bool` op in this hot path — see
-        // TODO §1.13c).
+        // Each iteration parses one (possibly $-prefixed) type-param; every one
+        // after the first must be led by a `,`.
         if out.len() > 0 {
             if p.match_kind(.Comma) == null { break }
             p.skip_newlines()

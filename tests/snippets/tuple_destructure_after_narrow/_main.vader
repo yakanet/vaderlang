@@ -1,6 +1,6 @@
 // `if pair is null { return ... }` must narrow `pair` from
 // `[T, U] | null` to `[T, U]` so the trailing `[a, b] :: pair`
-// tuple destructure compiles. Historically (TODO §1.13e) the narrow
+// tuple destructure compiles. Historically the narrow
 // flow reached the binding but the destructure-pattern path didn't
 // consult the narrowing map ; vader/vm/parser.vader carried a
 // 3-call-site `IntPair :: struct { first, second }` workaround.

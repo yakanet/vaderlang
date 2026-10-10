@@ -65,8 +65,7 @@ export tan :: fn(x: f64) -> f64
 //
 // `min` / `max` / `clamp` ship in `i32` / `usize` / `f64` flavours, `abs`
 // in `i32` + `f64` (unsigned types can't be negative). All dispatched via
-// first-param-type overloading (cf. SPEC §6 *Function overloading* and the
-// TODO §1.18c entry).
+// first-param-type overloading (SPEC *Function overloading*).
 
 /// Smaller of two `f64`s. `min(NaN, x) == NaN` (NaN propagates).
 export min :: fn(a: f64, b: f64) = if a < b { a } else { b }
