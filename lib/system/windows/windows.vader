@@ -45,7 +45,7 @@ export get_active_processor_count :: fn(group: u16) -> u32
 /// @param module  `null` for the running executable.
 @c_header("<windows.h>")
 @extern("kernel32", "GetModuleFileNameW")
-export get_module_file_name :: fn(module: CPointer | null, buf: u16[]!, size: u32) -> u32
+export get_module_file_name :: fn(module: CPointer | null, @c_out buf: u16[], size: u32) -> u32
 
 /// `GetCurrentDirectoryW`. Writes the working directory into `buf` and returns
 /// its length; 0 on failure, or a length >= `size` when `buf` is too small.
@@ -54,7 +54,7 @@ export get_module_file_name :: fn(module: CPointer | null, buf: u16[]!, size: u3
 /// @param buf   receives the path, NUL-terminated.
 @c_header("<windows.h>")
 @extern("kernel32", "GetCurrentDirectoryW")
-export get_current_directory :: fn(size: u32, buf: u16[]!) -> u32
+export get_current_directory :: fn(size: u32, @c_out buf: u16[]) -> u32
 
 /// `GetTempPathW`. Writes the temp directory, trailing backslash included, into
 /// `buf`. Returns its length, 0 on failure, or a length >= `size` when `buf` is
@@ -65,7 +65,7 @@ export get_current_directory :: fn(size: u32, buf: u16[]!) -> u32
 /// @return      UTF-16 units written, excluding the NUL.
 @c_header("<windows.h>")
 @extern("kernel32", "GetTempPathW")
-export get_temp_path :: fn(size: u32, buf: u16[]!) -> u32
+export get_temp_path :: fn(size: u32, @c_out buf: u16[]) -> u32
 
 /// `CreateDirectoryW`. False on failure, `ERROR_ALREADY_EXISTS` included — the
 /// caller re-tests the path rather than reading `GetLastError`.
@@ -140,7 +140,7 @@ export ERROR_ALREADY_EXISTS: u32: 183
 @c_header("<windows.h>")
 @extern("kernel32", "WriteFile")
 export write_file :: fn(h: Handle, buf: u8[], count: u32,
-                        written: u32[]!, overlapped: CPointer | null) -> bool
+                        @c_out written: u32[], overlapped: CPointer | null) -> bool
 
 
 // ---- UTF-8 <-> UTF-16 -----------------------------------------------------
@@ -161,7 +161,7 @@ export CP_UTF8: u32 : 65001
 @c_header("<windows.h>")
 @extern("kernel32", "MultiByteToWideChar")
 export multi_byte_to_wide_char :: fn(code_page: u32, flags: u32, src: string, src_len: i32,
-                                     dst: u16[]!, dst_len: i32) -> i32
+                                     @c_out dst: u16[], dst_len: i32) -> i32
 
 /// `WideCharToMultiByte`. The two trailing `lpDefaultChar` / `lpUsedDefaultChar`
 /// arguments must be null for `CP_UTF8`; Windows fails the call otherwise.
@@ -172,7 +172,7 @@ export multi_byte_to_wide_char :: fn(code_page: u32, flags: u32, src: string, sr
 @c_header("<windows.h>")
 @extern("kernel32", "WideCharToMultiByte")
 export wide_char_to_multi_byte :: fn(code_page: u32, flags: u32, src: u16[], src_len: i32,
-                                     dst: u8[]!, dst_len: i32,
+                                     @c_out dst: u8[], dst_len: i32,
                                      default_char: CPointer | null,
                                      used_default: CPointer | null) -> i32
 
@@ -240,7 +240,7 @@ export FIND_DATA_BYTES: usize: 1024
 /// @return         a search handle.
 @c_header("<windows.h>")
 @extern("kernel32", "FindFirstFileW")
-export find_first_file :: fn(pattern: u16[], data: u8[]!) -> Handle
+export find_first_file :: fn(pattern: u16[], @c_out data: u8[]) -> Handle
 
 /// `FindNextFileW`. False once the search is exhausted.
 ///
@@ -248,7 +248,7 @@ export find_first_file :: fn(pattern: u16[], data: u8[]!) -> Handle
 /// @param data    the same buffer, refilled.
 @c_header("<windows.h>")
 @extern("kernel32", "FindNextFileW")
-export find_next_file :: fn(handle: Handle, data: u8[]!) -> bool
+export find_next_file :: fn(handle: Handle, @c_out data: u8[]) -> bool
 
 /// `FindClose`. Pairs with `find_first_file`.
 ///
@@ -303,7 +303,10 @@ export ScreenBufferInfo :: struct {
 /// on screen.
 @c_header("<windows.h>")
 @extern("kernel32", "GetConsoleScreenBufferInfo")
-export get_console_screen_buffer_info :: fn(h: Handle, @c_pointer info: ScreenBufferInfo!) -> bool
+export get_console_screen_buffer_info :: fn(
+    h: Handle,
+    @c_pointer @c_out info: ScreenBufferInfo,
+) -> bool
 
 /// `PeekNamedPipe`. Reports how many bytes are readable WITHOUT consuming them.
 ///
@@ -319,7 +322,7 @@ export get_console_screen_buffer_info :: fn(h: Handle, @c_pointer info: ScreenBu
 @c_header("<windows.h>")
 @extern("kernel32", "PeekNamedPipe")
 export peek_named_pipe :: fn(h: Handle, buf: CPointer | null, size: u32,
-                             read: CPointer | null, available: u32[]!,
+                             read: CPointer | null, @c_out available: u32[],
                              message: CPointer | null) -> bool
 
 /// `Sleep`. Milliseconds, and it is the only wait Win32 offers without a handle.
@@ -407,7 +410,7 @@ export ProcessInformation :: struct {
 /// @param size       suggested buffer size; 0 for the default.
 @c_header("<windows.h>")
 @extern("kernel32", "CreatePipe")
-export create_pipe :: fn(read_end: usize[]!, write_end: usize[]!,
+export create_pipe :: fn(@c_out read_end: usize[], @c_out write_end: usize[],
                          @c_pointer attrs: SecurityAttributes, size: u32) -> bool
 
 /// The `i`-th pointer-sized word of a lent buffer, as a handle.
@@ -454,12 +457,12 @@ export set_handle_information :: fn(h: Handle, mask: u32, flags: u32) -> bool
 /// @param info          filled with the child's handles and ids.
 @c_header("<windows.h>")
 @extern("kernel32", "CreateProcessA")
-export create_process :: fn(application: CPointer | null, command_line: u8[]!,
+export create_process :: fn(application: CPointer | null, @c_out command_line: u8[],
                             proc_attrs: CPointer | null, thread_attrs: CPointer | null,
                             inherit: bool, flags: u32,
                             environment: CPointer | null, directory: CPointer | null,
                             @c_pointer startup: StartupInfo,
-                            @c_pointer info: ProcessInformation!) -> bool
+                            @c_pointer @c_out info: ProcessInformation) -> bool
 
 /// `WaitForSingleObject`. `WAIT_OBJECT_0` once the process has exited.
 ///
@@ -475,7 +478,7 @@ export wait_for_single_object :: fn(h: Handle, timeout_ms: u32) -> u32
 /// @param code  a one-element array receiving the status.
 @c_header("<windows.h>")
 @extern("kernel32", "GetExitCodeProcess")
-export get_exit_code_process :: fn(h: Handle, code: u32[]!) -> bool
+export get_exit_code_process :: fn(h: Handle, @c_out code: u32[]) -> bool
 
 /// `TerminateProcess`.
 ///
@@ -503,7 +506,7 @@ export ENABLE_VIRTUAL_TERMINAL_PROCESSING: u32 : 0x0004
 /// @param mode  receives the current mode; a one-element array so it reads back.
 @c_header("<windows.h>")
 @extern("kernel32", "GetConsoleMode")
-export get_console_mode :: fn(h: Handle, mode: u32[]!) -> bool
+export get_console_mode :: fn(h: Handle, @c_out mode: u32[]) -> bool
 
 /// `SetConsoleMode`. False on failure — an old console refusing a mode bit it
 /// does not know, which is what tells a caller ANSI is unavailable.
@@ -519,7 +522,7 @@ export set_console_mode :: fn(h: Handle, mode: u32) -> bool
 /// @param overlapped  always null: this is the synchronous form.
 @c_header("<windows.h>")
 @extern("kernel32", "ReadFile")
-export read_file :: fn(h: Handle, buf: u8[]!, count: u32, read: u32[]!,
+export read_file :: fn(h: Handle, @c_out buf: u8[], count: u32, @c_out read: u32[],
                        overlapped: CPointer | null) -> bool
 
 /// `CloseHandle`. False on failure, which a caller that is done with the file
@@ -536,14 +539,14 @@ export close_handle :: fn(h: Handle) -> bool
 /// `GetSystemTimePreciseAsFileTime`. Fills `ft` with 100-ns ticks since 1601.
 @c_header("<windows.h>")
 @extern("kernel32", "GetSystemTimePreciseAsFileTime")
-export get_system_time_precise_as_file_time :: fn(ft: i64[]!) -> void
+export get_system_time_precise_as_file_time :: fn(@c_out ft: i64[]) -> void
 
 /// `QueryPerformanceCounter`. Fills `counter`; false on failure.
 @c_header("<windows.h>")
 @extern("kernel32", "QueryPerformanceCounter")
-export query_performance_counter :: fn(counter: i64[]!) -> bool
+export query_performance_counter :: fn(@c_out counter: i64[]) -> bool
 
 /// `QueryPerformanceFrequency`. Fills `freq` with counts per second; false on failure.
 @c_header("<windows.h>")
 @extern("kernel32", "QueryPerformanceFrequency")
-export query_performance_frequency :: fn(freq: i64[]!) -> bool
+export query_performance_frequency :: fn(@c_out freq: i64[]) -> bool

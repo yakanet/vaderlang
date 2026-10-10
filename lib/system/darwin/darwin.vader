@@ -9,15 +9,14 @@ module "system/darwin"
 /// `_NSGetExecutablePath` (`<mach-o/dyld.h>`). 0 on success, non-zero when
 /// `buf` was too small.
 ///
-/// ⚠️ C writes the NEEDED capacity back through `size` and Vader never sees it:
-/// a scalar `@c_pointer` cannot be an out-parameter — the `!` that would ask for
-/// one is `T3075`, and the shim's temporary dies at the return. A caller wanting
-/// to retry at the right size must lend a one-element array instead. The one
-/// caller does not: it starts at 4096, four times `PATH_MAX` on Darwin, and
-/// treats failure as "give up".
+/// ⚠️ C writes the NEEDED capacity back through `size` and Vader never sees it: a
+/// scalar `@c_pointer` cannot be an out-parameter (`@c_out` on one is `T3079`), the
+/// shim's temporary dying at the return. A caller wanting to retry at the right size
+/// must lend a one-element array instead. The one caller does not: it starts at
+/// 4096, four times `PATH_MAX` on Darwin, and treats failure as "give up".
 ///
 /// Darwin's answer to `/proc/self/exe`. The path it gives may be relative or
 /// carry symlinks, so callers pass it through `realpath`.
 @c_header("<mach-o/dyld.h>")
 @extern("_NSGetExecutablePath")
-export ns_get_executable_path :: fn(buf: u8[]!, @c_pointer size: u32) -> i32
+export ns_get_executable_path :: fn(@c_out buf: u8[], @c_pointer size: u32) -> i32
