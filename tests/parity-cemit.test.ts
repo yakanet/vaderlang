@@ -343,6 +343,8 @@ const C_PARITY = new Set<string>([
   // A union alias naming a member through a namespace import, declared before and
   // after the signatures that use it.
   "namespace_union_alias",
+  // Guards narrowing one binding in a nested block stay in that block.
+  "guard_narrowing_stays_in_block",
   // Generic call whose type-param is bound only by the call's expected type,
   // with a lambda factory argument. Native is the oracle that matters here: the
   // erased-vs-packed element mismatch this guards against was invisible in the

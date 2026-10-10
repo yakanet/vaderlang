@@ -383,6 +383,9 @@ Done items lifted out of otherwise-in-progress Phase 3 subsections (`TODO.md` ke
 Long-form write-ups of completed "next up" items. Their one-line summary stays in
 `TODO.md`.
 
+### A type subtraction outlived its branch, false T3040 (done 2026-10-10)
+Several divergent guards on one binding inside a nested block (`if b is A { return }`, then `B`, then `C`) leaked out of it: the block restored the narrowings first to last, so the binding kept what a later guard had found, and a sibling block's `b is A` was refused as a test that can never match. `check_block` (`vader/typecheck/stmt.vader`) now restores them in reverse through the same `pop_narrows` the `if` paths use, and its `DivergentNarrow` record gave way to their `PushedNarrow`. Pinned by `tests/snippets/guard_narrowing_stays_in_block/`.
+
 ### A union alias through a namespace member read as a bitwise `|` (done 2026-10-10)
 `Shape :: sh.Circle | Square` was typed as a value: T3017 on the `|`, then T3002 at every signature naming `Shape`; the wildcard-import form compiled. `is_type_expr` (`vader/typecheck/orchestrate.vader`) knew a bare name but not a namespace member, and the members of a namespace import are only listed after the first alias pass. It now recognises `Ns.Member` from `namespace_member_types`, and every module's member tables are filled before any module declares its signatures (`settle_namespace_member_aliases`): the consts the first pass left pending are retried, and the tables rebuilt until a round settles nothing, so neither declaration order nor module order matters, nor an alias naming another such alias. Pinned by `tests/snippets/namespace_union_alias/`, whose alias is exported and used from two other modules.
 

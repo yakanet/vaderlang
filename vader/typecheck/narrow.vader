@@ -112,11 +112,6 @@ export push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> Na
 /// `settle_external_expr_bodied_returns`, which runs before a module's
 /// imports are wired and so sees `?` for `m[k]`-bound locals — must not
 /// outlive its scope and poison the authoritative re-walk.
-///
-/// Takes no `static_ty`: it had one for symmetry with the restore machinery that
-/// threads the type through `IsNarrow` / `DivergentNarrow`, but this function
-/// never read it — and a parameter nothing reads is a signature that lies about
-/// what the call needs.
 export pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: NarrowSlot | null) -> void {
     if prev == null {
         _ :: typed.narrow.bindings.remove(sym_id)

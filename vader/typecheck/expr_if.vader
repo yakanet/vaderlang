@@ -148,8 +148,9 @@ IsNarrow :: struct {
     field_key: string = ""
 }
 
-// One pushed narrowing, recorded so a scope (a `&&` right operand, a
-// then-block) can unwind it.
+// One pushed narrowing, recorded so a scope (a `&&` right operand, a then-block,
+// the rest of a block after a divergent guard) can unwind it. `field_key` is `""`
+// for a binding, else the `${sym_id}.${field}` slot `narrowed_fields` keys on.
 PushedNarrow :: struct {
     sym_id:    i32
     field_key: string
@@ -231,7 +232,8 @@ push_cond_narrows_into :: fn(
         }
     }
     leaf :: detect_is_narrow(cond, typed, diags) ?? return
-    pushed.push(push_one_narrow(typed, leaf, if truth { leaf.then_ty } else { leaf.else_ty }))
+    side_ty :: if truth { leaf.then_ty } else { leaf.else_ty }
+    pushed.push(push_one_narrow(typed, leaf.sym_id, leaf.field_key, side_ty))
 }
 
 // A true `||` narrows only when every operand tests the SAME slot : then to the
@@ -248,21 +250,23 @@ push_or_true :: fn(cond: AST.Expr, typed: TypedProgram, pushed: PushedNarrow[]) 
         }
         tys.push(positive_of(n))
     }
-    pushed.push(push_one_narrow(typed, leaves[0], union_of(tys)))
+    pushed.push(push_one_narrow(typed, leaves[0].sym_id, leaves[0].field_key, union_of(tys)))
 }
 
 // Narrow one slot to `ty`, returning the record that unwinds it. A `field_key` of
 // `""` addresses the binding itself, anything else a field chain under it.
-push_one_narrow :: fn(typed: TypedProgram, n: IsNarrow, ty: Type) -> PushedNarrow {
-    if n.field_key == "" {
+push_one_narrow :: fn(
+    typed: TypedProgram, sym_id: i32, field_key: string, ty: Type,
+) -> PushedNarrow {
+    if field_key == "" {
         return PushedNarrow {
-            .sym_id = n.sym_id, .field_key = "", .prev = push_narrow(typed, n.sym_id, ty),
+            .sym_id = sym_id, .field_key = "", .prev = push_narrow(typed, sym_id, ty),
         }
     }
     return PushedNarrow {
-        .sym_id    = n.sym_id,
-        .field_key = n.field_key,
-        .prev      = push_field_narrow(typed, n.field_key, ty),
+        .sym_id    = sym_id,
+        .field_key = field_key,
+        .prev      = push_field_narrow(typed, field_key, ty),
     }
 }
 

@@ -1,0 +1,50 @@
+// A divergent guard (`if b is A { return … }`) narrows `b` for the rest of its
+// block only. Several guards on the same binding inside a nested block used to
+// leak: the block restored them first to last, leaving what a later guard found,
+// so the sibling block's `b is A` was refused as a test that can never match
+// (T3040). Each block here exhausts or narrows `b`, and the next one still sees
+// the whole union.
+
+module "snippet"
+
+import "std/io"
+
+A :: struct { x: i32 }
+B :: struct { y: i32 }
+C :: struct { z: i32 }
+U :: A | B | C
+
+pick :: fn(a: U, b: U) -> i32 {
+    if a is A {
+        if b is A {
+            return a.x + b.x
+        }
+        if b is B {
+            return a.x + b.y
+        }
+        if b is C {
+            return a.x + b.z
+        }
+    }
+    if a is B {
+        if b is A {
+            return a.y + b.x
+        }
+        if b is B {
+            return a.y + b.y
+        }
+    }
+    if b is C {
+        return b.z
+    }
+    return -1
+}
+
+main :: fn() -> i32 {
+    println("${pick(A { .x = 1 }, C { .z = 2 })}")
+    println("${pick(B { .y = 10 }, A { .x = 5 })}")
+    println("${pick(B { .y = 10 }, B { .y = 6 })}")
+    println("${pick(C { .z = 0 }, C { .z = 9 })}")
+    println("${pick(C { .z = 0 }, A { .x = 9 })}")
+    return 0
+}
