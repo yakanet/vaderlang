@@ -310,8 +310,10 @@ const C_PARITY = new Set<string>([
   // Consts read before their declaration, by a const and by a fn ; a `fn(Self)`
   // callback an impl writes with its own read-only type.
   "const_read_before_its_declaration",
-  // Consts nothing reads : their baked structs keep their type-table slots.
+  // Consts nothing reads : their data-pool entries are pruned with their types.
   "const_never_read",
+  // A const read under a trait type : its baked structs keep their types.
+  "const_trait_array",
   // A field default whose lambda builds its own struct : the inner literal calls a thunk.
   "field_default_builds_its_struct",
   // race (4c-2): first awaitable to settle wins, losers cancelled — the loser's

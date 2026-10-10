@@ -1,7 +1,7 @@
 // vader/bytecode/dce — late EmitterCtx-level prunes.
 //
 // Hosts `prune_unused_imports` / `prune_unused_functions` /
-// `prune_unused_types`. (There is no `prune_unused_vtables` peer pass :
+// `prune_unused_data` / `prune_unused_types`. (There is no `prune_unused_vtables` peer pass :
 // vtable rows are reachability-filtered when they're
 // built — `vader/midir/emit.vader::build_vtables_from_entries` only emits a
 // row whose `(trait, method)` key a surviving `virtual.call` references, and
@@ -59,6 +59,47 @@ export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
         }
     }
     ctx.imports = kept
+}
+
+/// Drop the data-pool entries no `data.const` op reads (a const nothing reads
+/// still bakes one) and rewrite the surviving ops to the compacted indices. Runs
+/// after `prune_unused_functions`, so a read in a dropped fn keeps nothing, and
+/// before `prune_unused_types`, so a dropped entry's types go with it.
+///
+/// @param ctx        the emit context ; its fn bodies' `data.const` ops are rewritten.
+/// @param data_pool  the module's data pool.
+/// @return           the entries some op reads, in their original order.
+export prune_unused_data :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> BcDataEntry[] {
+    used :: MutableSet<i32> {}
+    for fn_ in ctx.functions {
+        for op in fn_.body {
+            if op is DataConst {
+                _ :: used.add(op.pool_index)
+            }
+        }
+    }
+    if used.len() == data_pool.len() {
+        return data_pool
+    }
+    remap: i32[]: []
+    kept: BcDataEntry[]: []
+    for i in 0..<data_pool.len() {
+        if i32(i) in used {
+            remap.push(i32(kept.len()))
+            kept.push(data_pool[i])
+        } else {
+            remap.push(-1)
+        }
+    }
+    for fn_ in ctx.functions {
+        for j in 0..<fn_.body.len() {
+            op :: fn_.body[j]
+            if op is DataConst {
+                fn_.body[j] = DataConst { ...op, .pool_index = remap[usize(op.pool_index)] }
+            }
+        }
+    }
+    return kept
 }
 
 // ============================================================================

@@ -376,6 +376,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             }
         }
     }
+    data_pool := cfg.data_pool
     // Pass 3 — bytecode peephole + DCE, gated by `opts.optimize`.
     if opts.optimize {
         for i in 0..<ctx.functions.len() {
@@ -436,7 +437,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             ctx.functions[i] = with_peephole_out(ctx.functions[i], strip_self_copies(ctx.functions[i]))
         }
         // Pass 4 — whole-program prunes on the EmitterCtx.
-        // Order matters : functions → imports → types so each pass's root
+        // Order matters : functions → imports → data → types so each pass's root
         // set reflects the previous pass's drops. (There is no separate
         // vtable-prune pass : vtable rows are reachability-filtered when
         // built — see `build_vtables_from_entries` — and the `used_vt_keys`
@@ -463,9 +464,10 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             root_idx :: resolve_fn_index(ve.fn_symbol, ctx)
             if root_idx >= 0 { vtable_roots.push(root_idx) }
         }
-        pin_baked_struct_types(cfg.data_pool, ctx)
         prune_unused_functions(ctx, vtable_roots, opts.keep_mangles)
         prune_unused_imports(ctx)
+        data_pool = prune_unused_data(ctx, data_pool)
+        pin_baked_struct_types(data_pool, ctx)
         prune_unused_types(ctx)
         // The table is final from here. Anything downstream that needs a type
         // must LOOK IT UP; minting one now produces a slot the prune can no
@@ -484,7 +486,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         .name       = module_name,
         .types      = ctx.types,
         .strings    = ctx.strings,
-        .data_pool  = cfg.data_pool,
+        .data_pool  = data_pool,
         .functions  = ctx.functions,
         .imports    = ctx.imports,
         .exports    = ctx.exports,
@@ -681,9 +683,10 @@ intern_data_value_strings :: fn(v: BcDataValue, ctx: EmitterCtx) -> void {
     }
 }
 
-// A baked struct names its type by symbol id alone : when no live fn reads the
-// const, nothing else roots that slot, and `prune_unused_types` would drop the type
-// c_emit takes the static's C struct and header tag from.
+// A baked struct names its type by symbol id alone, and the `data.const` that reads
+// its entry may root no more than a `ref` (`SHAPES: Shape[]` types under a trait) :
+// pin each one, or `prune_unused_types` would drop the type c_emit takes the
+// static's C struct and header tag from.
 pin_baked_struct_types :: fn(data_pool: BcDataEntry[], ctx: EmitterCtx) -> void {
     symbol_ids :: MutableSet<i32> {}
     for entry in data_pool {

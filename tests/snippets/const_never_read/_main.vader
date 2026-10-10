@@ -2,9 +2,9 @@ module "snippet"
 
 import "std/io"
 
-// Consts nothing reads still bake into the data pool : a struct, an array of
-// structs, a nested array, a struct holding a struct. Their struct types must
-// survive the type-table prune, which only sees what live fns name.
+// Consts nothing reads, baked into the data pool : a struct, an array of structs, a
+// nested array, a struct holding a struct. The bytecode prune drops their entries
+// with the struct types only they named, so the native emit never looks one up.
 
 Point :: struct {
     x: i32

@@ -4,20 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct vader_struct_snippet_Point_t vader_struct_snippet_Point_t;
-typedef struct vader_struct_snippet_Segment_t vader_struct_snippet_Segment_t;
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 
-struct vader_struct_snippet_Point_t {
-    vader_obj_header_t header;
-    int32_t f_x;
-    int32_t f_y;
-};
-struct vader_struct_snippet_Segment_t {
-    vader_obj_header_t header;
-    void* f_from;
-    void* f_to;
-};
 struct vader_struct_std_core_Buffer_t {
     vader_obj_header_t header;
 };
@@ -32,70 +20,6 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 2u
 
-/* Comptime data pool — read-only arrays in `.rodata`.
- * Out-of-arena pointers are immortal to the GC (it never copies /
- * relocates them), so `data.const` boxes a zero-copy view. */
-static const struct vader_struct_snippet_Point_t vader_data_0_e0 = {
-    { 3u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(0), (int32_t) UINT64_C(0),
-};
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 0u, { 0u, 0u, 0u },
-    { { 3u, 0u, { .obj = (void*) (struct vader_struct_snippet_Point_t*) &vader_data_0_e0 } } },
-};
-static const vader_array_t vader_data_0 = {
-    { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
-};
-static const struct vader_struct_snippet_Point_t vader_data_1_e0 = {
-    { 3u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(1), (int32_t) UINT64_C(1),
-};
-static const struct vader_struct_snippet_Point_t vader_data_1_e1 = {
-    { 3u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(2), (int32_t) UINT64_C(2),
-};
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 0u, { 0u, 0u, 0u },
-    {
-        { 3u, 0u, { .obj = (void*) (struct vader_struct_snippet_Point_t*) &vader_data_1_e0 } },
-        { 3u, 0u, { .obj = (void*) (struct vader_struct_snippet_Point_t*) &vader_data_1_e1 } },
-    },
-};
-static const vader_array_t vader_data_1 = {
-    { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
-};
-static const struct vader_struct_snippet_Point_t vader_data_2_e0_x0 = {
-    { 3u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(3), (int32_t) UINT64_C(3),
-};
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_2_e0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 0u, { 0u, 0u, 0u },
-    { { 3u, 0u, { .obj = (void*) (struct vader_struct_snippet_Point_t*) &vader_data_2_e0_x0 } } },
-};
-static const vader_array_t vader_data_2_e0 = {
-    { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_2_e0_buf,
-};
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_2_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 0u, { 0u, 0u, 0u },
-    { { 0u, 0u, { .obj = (void*) (vader_array_t*) &vader_data_2_e0 } } },
-};
-static const vader_array_t vader_data_2 = {
-    { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
-};
-static const struct vader_struct_snippet_Point_t vader_data_3_e0_f0 = {
-    { 3u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(0), (int32_t) UINT64_C(0),
-};
-static const struct vader_struct_snippet_Point_t vader_data_3_e0_f1 = {
-    { 3u, 0u, 0u, 0u, NULL }, (int32_t) UINT64_C(4), (int32_t) UINT64_C(4),
-};
-static const struct vader_struct_snippet_Segment_t vader_data_3_e0 = {
-    { 4u, 0u, 0u, 0u, NULL }, (void*) (struct vader_struct_snippet_Point_t*) &vader_data_3_e0_f0,
-    (void*) (struct vader_struct_snippet_Point_t*) &vader_data_3_e0_f1,
-};
-static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_3_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, 0u, { 0u, 0u, 0u },
-    { { 4u, 0u, { .obj = (void*) (struct vader_struct_snippet_Segment_t*) &vader_data_3_e0 } } },
-};
-static const vader_array_t vader_data_3 = {
-    { 0u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_3_buf,
-};
-
 static int32_t snippet_main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void std_io_write(uint8_t l0, vader_string_t l1);
@@ -106,32 +30,22 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[11] = {
+const vader_type_info_t vader_type_info_table[9] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 16 },
-    [3] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Point_t),
-        .slot_size = 8,
-    },
-    [4] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Segment_t),
-        .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Segment_t, f_from), offsetof(vader_struct_snippet_Segment_t, f_to) },
-        .ref_count = 2,
-    },
-    [5] = { .slot_size = 1 },
-    [6] = { .slot_size = 8 },
-    [7] = {
+    [3] = { .slot_size = 1 },
+    [4] = { .slot_size = 8 },
+    [5] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [8] = {
+    [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
-    [10] = { .slot_size = 8 },
+    [8] = { .slot_size = 8 },
 };
-const size_t vader_type_info_count = 11;
+const size_t vader_type_info_count = 9;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
@@ -141,7 +55,7 @@ static size_t vader_host_std_core_byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 5u);
+    return (void*) vader_string_bytes_view(a0, 5u, 3u);
 }
 
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) {
