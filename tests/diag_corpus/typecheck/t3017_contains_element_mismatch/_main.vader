@@ -1,0 +1,23 @@
+// T3017: the element of `x in c` is the `value` of `c`'s `contains`, as in
+// `c.contains(x)`: an `i64` on a `Range<i32>`, an `i32 | null` on a literal range
+// or array or on an `i32[]`, a distinct on an array of its backing, does not fit it.
+module "snippet"
+
+Meters :: i64
+
+export wider :: fn(n: i64) -> bool {
+    r :: 0..=9
+    return n in r
+}
+
+export maybe_in_range :: fn(n: i32 | null) -> bool = n in 0..=9
+
+export maybe_in_literal :: fn(n: i32 | null) -> bool = n in [1, 2]
+
+export maybe_in_array :: fn(n: i32 | null, xs: i32[]) -> bool = n in xs
+
+export meters_in :: fn(m: Meters, xs: i64[]) -> bool = m in xs
+
+main :: fn() -> i32 {
+    return 0
+}

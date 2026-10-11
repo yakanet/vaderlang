@@ -57,9 +57,7 @@ export infer_binary :: fn(
         check_is_test_target(rhs_ty, e.right.span, typed, diags)
         return TY_BOOL
     }
-    // Right-side bidirectional context : when left is a concrete numeric,
-    // narrow free numeric literals on the right (`size + 1` → `1: usize`).
-    right_ctx :: numeric_propagation(e.op, left)
+    right_ctx :: right_operand_context(e, left, typed)
     // A short-circuit's right operand runs only on one outcome of the left : true
     // for `&&` (`a is T && a.f`), false for `||` (`a == null || a.f`). It sees
     // the narrowings that outcome implies.
@@ -77,6 +75,14 @@ export infer_binary :: fn(
     // bounds-checking a char literal at its pin.
     left = repin_operand(e.left, left, right, typed, diags, check_expr_fn)
     right = repin_operand(e.right, right, left, typed, diags, check_expr_fn)
+    // `x in c` : a free element takes `c`'s, `4_000_000_000 in r` an `i64` on a
+    // `Range<i64>`.
+    if classify(e.op) == .In && is_free_numeric(left) {
+        element :: contained_element(right, typed)
+        if element != null {
+            left = repin_operand(e.left, left, element, typed, diags, check_expr_fn)
+        }
+    }
     // Only when BOTH operands are still free does the outer `expected` decide the
     // width — `x: u32 = 1 << 31` pins both `1` and `31` to u32.
     oc :: op_expected_ctx(e.op, expected)
@@ -611,13 +617,14 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
     if candidates.len() > 0 {
         // Several `Contains` impls (`Contains<i32>`, `Contains<string>`) : the
         // element picks one.
-        _ :: pick_operator_member(candidates, right, left, e, typed, diags)
+        chosen :: pick_operator_member(candidates, right, left, e, typed, diags)
         // The impl may bound its argument : `T[] implements<T: Equals> Contains<T>`
         // holds for no element type outside the bound.
         _ :: reject_unmet_impl_bounds(
             right, core_trait_key(TRAIT_CONTAINS), .OperatorTraitNotImplemented, e.span,
             typed, diags,
         )
+        check_contains_element(e, left, right, chosen, typed, diags)
         return TY_BOOL
     }
     // A container dispatching through `Contains` at run time : a type parameter
@@ -642,6 +649,47 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
     push_trait_missing(e, right, TRAIT_CONTAINS, typed, diags)
     return TY_BOOL
 }
+
+// The `value` of `c`'s one `contains`, null when `c` has several or none.
+contained_element :: fn(c: Type, typed: TypedProgram) -> Type | null {
+    candidates :: trait_members(typed, c, core_trait_key(TRAIT_CONTAINS), METHOD_CONTAINS)
+    if candidates.len() != 1 {
+        return null
+    }
+    return contains_value(c, candidates[0], typed)
+}
+
+// The `value` `member`, a `contains`, takes on `c`, as `c.contains(x)` types it: a
+// generic impl's parameters bound to `c`'s arguments.
+contains_value :: fn(c: Type, member: ImplMethod, typed: TypedProgram) -> Type | null {
+    method :: impl_member_type(member, c, typed)
+    if method !is FnType || method.params.len() != 1 || method.params[0] is TypeParamType {
+        return null
+    }
+    return method.params[0]
+}
+
+// The element of `x in c` is the `value` of `c`'s `contains`: `n in r` with
+// `n: i64` on a `Range<i32>` is T3017, as `r.contains(n)` is.
+check_contains_element :: fn(
+    e: AST.BinaryExpr,
+    left: Type,
+    right: Type,
+    chosen: ImplMethod,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    want :: contains_value(right, chosen, typed) ?? return
+    if is_assignable(left, want) || fits_through_backing(e, left, want) {
+        return
+    }
+    push_operand_mismatch(right, left, want, "operator in", e.left.span, diags)
+}
+
+// A literal range or array on the right took the backing of a distinct element
+// for its own (`right_operand_context`), so the element fits it: `m in 0..=9`.
+fits_through_backing :: fn(e: AST.BinaryExpr, left: Type, want: Type) -> bool =
+    e.right is AST.RangeExpr | AST.SeqLitExpr && is_assignable(strip_distinct(left), want)
 
 /// `a == b` / `a != b`. Compatibility of the two operands is enforced so a
 /// mismatched pair is a clean diagnostic rather than a lowering-time
@@ -1080,6 +1128,24 @@ classify :: fn(op: AST.BinaryOp) -> OpKind = match op {
     .AddWrap -> .Integral
     .SubWrap -> .Integral
     .MulWrap -> .Integral
+}
+
+// The type the right operand is checked against: `left`'s for a numeric operator
+// (`numeric_propagation`), so a free literal adopts it (`size + 1` → `1: usize`);
+// for `x in` a literal range or array, a container of `x`'s type, so a free bound
+// or element takes it. A distinct `x` lends its backing, as `<` does to a literal.
+right_operand_context :: fn(e: AST.BinaryExpr, left: Type, typed: TypedProgram) -> Type | null {
+    if classify(e.op) != .In {
+        return numeric_propagation(e.op, left)
+    }
+    element :: strip_distinct(left)
+    if e.right is AST.RangeExpr {
+        return range_of(element, typed)
+    }
+    if e.right !is AST.SeqLitExpr || !is_pinned_element(element) {
+        return null
+    }
+    return mk_array(element, false)
 }
 
 // When left is a concrete numeric and the op propagates context, return

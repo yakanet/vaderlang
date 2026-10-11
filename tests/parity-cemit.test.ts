@@ -524,6 +524,9 @@ const C_PARITY = new Set<string>([
   // A range pattern's bounds at the scrutinee's type, a union's variant tested
   // first.
   "match_range_pattern_bounds",
+  // `x in lo..=hi` with bounds at the type of `x`, and a free element at the
+  // container's.
+  "in_range_element",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

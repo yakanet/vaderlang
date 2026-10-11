@@ -54,7 +54,7 @@
           arg0:
             vowels :u8[]
           arg1:
-            char(0x65)
+            int(101) :u8
       then:
         call :void
           callee:
@@ -70,7 +70,7 @@
             arg0:
               vowels :u8[]
             arg1:
-              char(0x7a)
+              int(122) :u8
       then:
         call :void
           callee:

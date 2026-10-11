@@ -1,0 +1,12 @@
+// T3043: a literal range takes the element's type, and `Range<T>` implements
+// `Contains<T>` only for `T: Comparable & Step`: neither a `string` nor an `f64`
+// range has an `in`.
+module "snippet"
+
+export initial :: fn(s: string) -> bool = s in "a"..="m"
+
+export unit :: fn(f: f64) -> bool = f in 0.0..=1.0
+
+main :: fn() -> i32 {
+    return 0
+}

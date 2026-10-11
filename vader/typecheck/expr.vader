@@ -202,7 +202,7 @@ infer_expr :: fn(
         is AST.UnaryExpr -> { return infer_unary(expr, expected, typed, diags, check_expr) }
         is AST.IndexExpr -> { return infer_index(expr, typed, diags, check_expr) }
         is AST.CastExpr -> { return infer_cast(expr, typed, diags, check_expr) }
-        is AST.RangeExpr -> { return infer_range(expr, typed, diags, check_expr) }
+        is AST.RangeExpr -> { return infer_range(expr, expected, typed, diags, check_expr) }
         is AST.DotVariantExpr -> { return infer_dot_variant(expr, expected, typed, diags) }
         is AST.LambdaExpr -> { return infer_lambda(expr, expected, typed, diags, check_expr) }
         is AST.AwaitExpr -> {

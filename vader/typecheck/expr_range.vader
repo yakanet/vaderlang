@@ -1,11 +1,8 @@
-// vader/typecheck/expr_range — RangeExpr inference (`a..b`, `a..<b`).
+// vader/typecheck/expr_range — RangeExpr inference (`a..<b`, `a..=b`).
 //
-// MVP: type the bounds, then return `Range<T>` where T is the lower
-// bound's concrete primitive (i32 if both bounds are FreeInt). The
-// full Range struct from `std/core` requires resolver-side core
-// lookup ; until that ships here we return `Range` as an
-// `UnresolvedType` — downstream still iterates correctly because
-// `for x in 0..10` doesn't consult expr_types for the range itself.
+// A range types as `Range<T>`, the `std/core` struct. `T` comes from the slot
+// when it expects a `Range<T>` (`r: Range<i64>: …`, `x in lo..=hi`), from the
+// bounds otherwise.
 
 module "vader/typecheck"
 
@@ -15,10 +12,67 @@ AST :: import "toolchain/ast"
 
 /// Type-check a range. Resolves to `Range<T>` when `std/core::Range`
 /// is loaded (auto-loaded by `loader.vader`), otherwise Unresolved.
-/// `T` is picked from the lower bound's concrete type ; when both
-/// bounds are FreeInt the upper bound is probed.
+///
+/// @param expected  the slot's type : an expected `Range<T>` gives `T`, each bound
+///                  checked against it, as `x in lo..=hi` does with `x`'s type ;
+///                  otherwise `T` is picked from the bounds.
+/// @error           T3066 when a literal bound does not fit the expected element.
+/// @error           T3001 when a bound is of another type than the expected element.
 export infer_range :: fn(
-    e: AST.RangeExpr, typed: TypedProgram, diags: Diagnostic[],
+    e: AST.RangeExpr,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> Type {
+    element :: range_element(expected, typed)
+    if element == null {
+        return infer_range_from_bounds(e, typed, diags, check_expr_fn)
+    }
+    lower :: check_expr_fn(e.lower, element, typed, diags)
+    upper :: check_expr_fn(e.upper, element, typed, diags)
+    emit_mismatch_if(lower, element, e.lower.span, null, .TypeMismatch, typed, diags)
+    emit_mismatch_if(upper, element, e.upper.span, null, .TypeMismatch, typed, diags)
+    return range_of(element, typed)
+}
+
+/// `Range<element>`, or Unresolved while `std/core::Range` is not loaded.
+///
+/// @param element  the bounds' type.
+range_of :: fn(element: Type, typed: TypedProgram) -> Type {
+    // `range_symbol` is the well-known `std/core::Range` symbol, populated once
+    // from core by the orchestrator ; a `RangeExpr` (`0..10`) is synthesised
+    // without a source span, so it resolves via this slot, not `idents`.
+    range_sym :: typed.range_symbol ?? return TY_UNRESOLVED
+    return mk_struct(range_sym, [element], immutable = false)
+}
+
+// The `T` of an expected `Range<T>` when the bounds can take it
+// (`is_pinned_element`).
+range_element :: fn(expected: Type | null, typed: TypedProgram) -> Type | null {
+    range_sym :: typed.range_symbol ?? return null
+    if expected !is StructType || expected.symbol.id != range_sym.id || expected.args.len() != 1 {
+        return null
+    }
+    element :: expected.args[0]
+    if !is_pinned_element(element) {
+        return null
+    }
+    return element
+}
+
+/// Whether the literals of a container — a range's bounds, an array's elements —
+/// can take `t` from the slot: a concrete type, not a union, whose variant a
+/// literal alone cannot pick.
+///
+/// @param t  the element the slot expects.
+is_pinned_element :: fn(t: Type) -> bool =
+    !is_free_numeric(t) && t !is UnionType | UnresolvedType | NeverType | TypeParamType
+
+infer_range_from_bounds :: fn(
+    e: AST.RangeExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     lower :: check_expr_fn(e.lower, null, typed, diags)
@@ -33,27 +87,22 @@ export infer_range :: fn(
     } else {
         check_expr_fn(e.upper, element, typed, diags)
     }
-    // `range_symbol` is the well-known `std/core::Range` symbol, populated once
-    // from core by the orchestrator ; a `RangeExpr` (`0..10`) is synthesised
-    // without a source span, so it resolves via this slot, not `idents`.
-    range_sym :: typed.range_symbol ?? return TY_UNRESOLVED
-    return mk_struct(range_sym, [element], immutable = false)
+    return range_of(element, typed)
 }
 
 pick_bound_or_default :: fn(t: Type) -> Type {
     // @partial: a range bound is only ever a free-int / free-char literal or an
     // integer / char primitive; every other type kind defaults to i32.
     @partial match t {
-        is FreeIntType -> { return mk_primitive("i32") }
-        is FreeCharType -> { return mk_primitive("char") }
+        is FreeIntType   -> { return mk_primitive("i32") }
+        is FreeCharType  -> { return mk_primitive("char") }
         is PrimitiveType -> {
             if is_int_name(t.name) { return t }
-            if t.name == "char" { return t }
+            if t.name == "char"    { return t }
             return mk_primitive("i32")
         }
-        _ -> { return mk_primitive("i32") }
+        _                -> { return mk_primitive("i32") }
     }
 }
 
 import "vader/resolver/symbol"
-

@@ -10,7 +10,6 @@ type 7 array 4
 type 8 struct std_core$Buffer {  }
 type 9 primitive void
 type 10 primitive isize
-type 11 primitive char
 string 0 "7 is prime"
 string 1 "4 is not prime"
 string 2 "aeiou"
@@ -49,14 +48,14 @@ fn 0 snippet$main () -> i32
   string.const 2   ; "aeiou"
   call.import 1   ; std_core$bytes
   local.tee 0   ; primes
-  char.const 101
+  i32.const 101
   call 3   ; std_core$[]$Contains$contains__u8
   if $L2 void
     string.const 3   ; "e is vowel"
     call 6   ; std_io$println__string
   end $L2
   local.get 0   ; primes
-  char.const 122
+  i32.const 122
   call 3   ; std_core$[]$Contains$contains__u8
   if $L3 void
     return.lit i32.const 0
