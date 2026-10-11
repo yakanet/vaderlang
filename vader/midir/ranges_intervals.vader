@@ -1,0 +1,391 @@
+// vader/midir/ranges_intervals — the integer intervals the range analysis computes.
+//
+// An interval end may be open: below every `i64` for a lower end, past every
+// `i64` for an upper one. Arithmetic on the ends opens them rather than
+// wrapping, so an interval never holds fewer values than the computation it
+// stands for. The interval of a local is read within the local's type: an open
+// upper end on a `u64` stops at `u64.max`, which no `i64` reaches.
+
+module "vader/midir"
+
+import "vader/integer"
+import "vader/types"
+
+// ---- intervals ------------------------------------------------------------
+
+/// The integers from `lo` to `hi`, both included. An open end also holds the
+/// extreme `i64` on its side, so that a join or a meet is `min` / `max` on the
+/// values and `||` / `&&` on the flags, and two equal intervals are equal field
+/// by field.
+Interval :: struct {
+    lo: i64
+    hi: i64
+    /// Below every `i64`; `lo` is then `I64_MIN`.
+    lo_open: bool = false
+    /// Past every `i64`; `hi` is then `I64_MAX`.
+    hi_open: bool = false
+}
+
+/// Every integer.
+ANY_INTEGER :: Interval {
+    .lo = I64_MIN,
+    .hi = I64_MAX,
+    .lo_open = true,
+    .hi_open = true,
+}
+
+ZERO :: Interval { .lo = 0, .hi = 0 }
+
+/// The interval `lo..=hi`.
+interval :: fn(lo: i64, hi: i64) -> Interval = Interval { .lo = lo, .hi = hi }
+
+// The interval from `lo` to `hi`, an absent end open.
+interval_from_ends :: fn(lo: i64 | null, hi: i64 | null) -> Interval = Interval {
+    .lo = lo ?? I64_MIN,
+    .hi = hi ?? I64_MAX,
+    .lo_open = lo == null,
+    .hi_open = hi == null,
+}
+
+/// The values of the integer type `t`, a distinct over one included.
+///
+/// @return  null for a type that is no integer.
+type_interval :: fn(t: Type) -> Interval | null {
+    p :: scalar_backing(t) ?? return null
+    meta :: primitive_meta(p.name) ?? return null
+    if !meta.is_int {
+        return null
+    }
+    bits :: meta.size * 8
+    if meta.is_signed {
+        return signed_interval(bits)
+    }
+    return unsigned_interval(bits)
+}
+
+// `u64` and `usize` reach past `i64.max`: their upper end opens.
+unsigned_interval :: fn(bits: i64) -> Interval {
+    if bits == 64 {
+        return Interval {
+            .lo = 0,
+            .hi = I64_MAX,
+            .hi_open = true,
+        }
+    }
+    return interval(0, (1 << bits) - 1)
+}
+
+signed_interval :: fn(bits: i64) -> Interval {
+    if bits == 64 {
+        return interval(I64_MIN, I64_MAX)
+    }
+    half :: 1 << (bits - 1)
+    return interval(-half, half - 1)
+}
+
+/// The values a constant of the integer type `t` holds.
+///
+/// @param bits  the constant as midir carries it: its value, or for a `u64`
+///              past `i64.max`, its bits.
+/// @param t     its type.
+constant_interval :: fn(bits: i64, t: Type) -> Interval {
+    whole :: type_interval(t) ?? return interval(bits, bits)
+    if bits < 0 && whole.hi_open {
+        return Interval {
+            .lo = I64_MAX,
+            .hi = I64_MAX,
+            .hi_open = true,
+        }
+    }
+    return interval(bits, bits)
+}
+
+/// Whether every value of `a` is a value of `outer`.
+interval_within :: fn(a: Interval, outer: Interval) -> bool =
+    a.lo >= outer.lo && (outer.lo_open || !a.lo_open) &&
+        a.hi <= outer.hi && (outer.hi_open || !a.hi_open)
+
+/// Whether `a` and `b` hold the same integers.
+same_interval :: fn(a: Interval, b: Interval) -> bool =
+    a.lo == b.lo && a.hi == b.hi && a.lo_open == b.lo_open && a.hi_open == b.hi_open
+
+/// The smallest interval holding both `a` and `b`: what a value is after a join
+/// of two paths.
+interval_join :: fn(a: Interval, b: Interval) -> Interval = Interval {
+    .lo = lesser(a.lo, b.lo),
+    .hi = greater(a.hi, b.hi),
+    .lo_open = a.lo_open || b.lo_open,
+    .hi_open = a.hi_open || b.hi_open,
+}
+
+/// The integers both `a` and `b` hold: what a value is once a test proved both.
+///
+/// @return  null when they share none.
+interval_meet :: fn(a: Interval, b: Interval) -> Interval | null {
+    lo :: greater(a.lo, b.lo)
+    hi :: lesser(a.hi, b.hi)
+    if lo > hi {
+        return null
+    }
+    return Interval {
+        .lo = lo,
+        .hi = hi,
+        .lo_open = a.lo_open && b.lo_open,
+        .hi_open = a.hi_open && b.hi_open,
+    }
+}
+
+lesser :: fn(a: i64, b: i64) -> i64 {
+    if a <= b {
+        return a
+    }
+    return b
+}
+
+greater :: fn(a: i64, b: i64) -> i64 {
+    if a >= b {
+        return a
+    }
+    return b
+}
+
+// ---- arithmetic -----------------------------------------------------------
+
+/// `a + b` over the integers, unwrapped: an end that leaves `i64` opens.
+interval_add :: fn(a: Interval, b: Interval) -> Interval = interval_from_ends(
+    end_sum(a.lo, a.lo_open, b.lo, b.lo_open),
+    end_sum(a.hi, a.hi_open, b.hi, b.hi_open),
+)
+
+/// `a - b` over the integers, unwrapped.
+interval_sub :: fn(a: Interval, b: Interval) -> Interval = interval_from_ends(
+    end_difference(a.lo, a.lo_open, b.hi, b.hi_open),
+    end_difference(a.hi, a.hi_open, b.lo, b.lo_open),
+)
+
+/// `-a` over the integers.
+interval_negate :: fn(a: Interval) -> Interval = interval_sub(ZERO, a)
+
+/// `a * b` over the integers: the span of its four corner products, every integer
+/// when an end is open or a corner leaves `i64`.
+interval_mul :: fn(a: Interval, b: Interval) -> Interval {
+    if a.lo_open || a.hi_open || b.lo_open || b.hi_open {
+        return ANY_INTEGER
+    }
+    p1 :: checked_mul(64, false, a.lo, b.lo) ?? return ANY_INTEGER
+    p2 :: checked_mul(64, false, a.lo, b.hi) ?? return ANY_INTEGER
+    p3 :: checked_mul(64, false, a.hi, b.lo) ?? return ANY_INTEGER
+    p4 :: checked_mul(64, false, a.hi, b.hi) ?? return ANY_INTEGER
+    return interval(
+        lesser(lesser(p1, p2), lesser(p3, p4)),
+        greater(greater(p1, p2), greater(p3, p4)),
+    )
+}
+
+// `x + y` for two ends on one side: null, the end open, when either is or the
+// sum leaves `i64`.
+end_sum :: fn(x: i64, x_open: bool, y: i64, y_open: bool) -> i64 | null {
+    if x_open || y_open {
+        return null
+    }
+    return checked_add(64, false, x, y)
+}
+
+// `x - y` for an end `x` and an end `y` of the other side, null as `end_sum`.
+end_difference :: fn(x: i64, x_open: bool, y: i64, y_open: bool) -> i64 | null {
+    if x_open || y_open {
+        return null
+    }
+    return checked_sub(64, false, x, y)
+}
+
+/// What a wrapping operation or a cast holds, from its exact result: `exact`
+/// when all of it fits the type, the whole type otherwise, since a value then
+/// wrapped. An open end never fits: the type's own open end stops at
+/// `u64.max`, the result's does not.
+///
+/// @param exact  the result's values over the integers.
+/// @param t      the values of the result's type.
+interval_wrapped :: fn(exact: Interval, t: Interval) -> Interval {
+    if !exact.lo_open && !exact.hi_open && interval_within(exact, t) {
+        return exact
+    }
+    return t
+}
+
+/// What a checked operation holds once it did not stop, from its exact result:
+/// the values of `exact` its type holds, the operation stopping on the others.
+///
+/// @param exact  the result's values over the integers.
+/// @param t      the values of the result's type.
+/// @return       the whole type when no value fits, the operation then always
+///               stopping.
+interval_checked :: fn(exact: Interval, t: Interval) -> Interval =
+    interval_meet(exact, t) ?? t
+
+/// `new` widened against `old`, what a loop header held the round before: an end
+/// that moved out jumps to the next of `thresholds` past it, or opens, so the
+/// header settles within as many rounds as there are thresholds.
+///
+/// @param old         the header's interval the round before.
+/// @param new         its interval this round, a superset of `old`.
+/// @param thresholds  the values worth stopping at, ascending.
+interval_widen :: fn(old: Interval, new: Interval, thresholds: i64[]) -> Interval =
+    interval_from_ends(
+        widen_lower(old, new, thresholds),
+        widen_upper(old, new, thresholds),
+    )
+
+widen_lower :: fn(old: Interval, new: Interval, thresholds: i64[]) -> i64 | null {
+    if new.lo_open {
+        return null
+    }
+    if new.lo >= old.lo {
+        return new.lo
+    }
+    out: i64 | null = null
+    for t in thresholds {
+        if t <= new.lo {
+            out = t
+        }
+    }
+    return out
+}
+
+widen_upper :: fn(old: Interval, new: Interval, thresholds: i64[]) -> i64 | null {
+    if new.hi_open {
+        return null
+    }
+    if new.hi <= old.hi {
+        return new.hi
+    }
+    for t in thresholds {
+        if t >= new.hi {
+            return t
+        }
+    }
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_type_interval_widths :: fn() -> void {
+    u8_iv :: type_interval(mk_primitive("u8")) ?? ANY_INTEGER
+    assert(same_interval(u8_iv, interval(0, 255)), "u8")
+    i8_iv :: type_interval(mk_primitive("i8")) ?? ANY_INTEGER
+    assert(same_interval(i8_iv, interval(-128, 127)), "i8")
+    i64_iv :: type_interval(mk_primitive("i64")) ?? ANY_INTEGER
+    assert(same_interval(i64_iv, interval(I64_MIN, I64_MAX)), "i64")
+    usize_iv :: type_interval(mk_primitive("usize")) ?? ANY_INTEGER
+    assert(same_interval(usize_iv, unsigned_interval(64)), "usize")
+    assert(usize_iv.hi_open && !usize_iv.lo_open && usize_iv.lo == 0, "usize ends")
+    assert(type_interval(mk_primitive("char")) == null, "char is no integer")
+}
+
+@test
+test_constant_interval_u64_past_i64 :: fn() -> void {
+    u64_type :: mk_primitive("u64")
+    assert(same_interval(constant_interval(7, u64_type), interval(7, 7)), "small")
+    past :: constant_interval(-1, u64_type)
+    assert(past.hi_open && !past.lo_open && past.lo == I64_MAX, "u64.max")
+    i64_type :: mk_primitive("i64")
+    assert(same_interval(constant_interval(-1, i64_type), interval(-1, -1)), "signed")
+}
+
+@test
+test_interval_join_meet_within :: fn() -> void {
+    a :: interval(0, 5)
+    b :: interval(3, 9)
+    assert(same_interval(interval_join(a, b), interval(0, 9)), "join")
+    met :: interval_meet(a, b) ?? ANY_INTEGER
+    assert(same_interval(met, interval(3, 5)), "meet")
+    assert(interval_meet(interval(0, 1), interval(2, 3)) == null, "disjoint")
+    assert(interval_within(interval(1, 2), a), "within")
+    assert(!interval_within(b, a), "not within")
+    assert(interval_within(a, ANY_INTEGER), "within any")
+}
+
+@test
+test_interval_open_ends_against_i64 :: fn() -> void {
+    whole_i64 :: interval(I64_MIN, I64_MAX)
+    assert(interval_within(whole_i64, ANY_INTEGER), "i64 within any")
+    assert(!interval_within(ANY_INTEGER, whole_i64), "any is past i64")
+    joined :: interval_join(whole_i64, ANY_INTEGER)
+    assert(same_interval(joined, ANY_INTEGER), "join opens")
+    met :: interval_meet(whole_i64, ANY_INTEGER) ?? ANY_INTEGER
+    assert(same_interval(met, whole_i64), "meet closes")
+}
+
+@test
+test_interval_add_opens_past_i64 :: fn() -> void {
+    assert(same_interval(interval_add(interval(0, 9), interval(1, 1)), interval(1, 10)), "shift")
+    past :: interval_add(interval(0, I64_MAX), interval(1, 1))
+    assert(past.hi_open && past.lo == 1, "upper end opens past i64.max")
+    under :: interval_sub(interval(I64_MIN, 0), interval(1, 1))
+    assert(under.lo_open && under.hi == -1, "lower end opens below i64.min")
+}
+
+@test
+test_interval_sub_reaches_i64_max :: fn() -> void {
+    diff :: interval_sub(interval(-5, -1), interval(I64_MIN, 0))
+    assert(same_interval(diff, interval(-5, I64_MAX)), "-1 - i64.min is i64.max")
+}
+
+@test
+test_interval_negate_least_i64 :: fn() -> void {
+    n :: interval_negate(interval(I64_MIN, 5))
+    assert(n.hi_open && n.lo == -5, "-i64.min opens")
+}
+
+@test
+test_interval_mul_corners :: fn() -> void {
+    assert(
+        same_interval(interval_mul(interval(-2, 3), interval(4, 5)), interval(-10, 15)),
+        "corners",
+    )
+    big :: interval_mul(interval(0, I64_MAX), interval(2, 2))
+    assert(same_interval(big, ANY_INTEGER), "overflowing corner")
+}
+
+@test
+test_interval_wrapped :: fn() -> void {
+    u8_iv :: interval(0, 255)
+    assert(same_interval(interval_wrapped(interval(1, 10), u8_iv), interval(1, 10)), "fits")
+    assert(same_interval(interval_wrapped(interval(250, 260), u8_iv), u8_iv), "wraps")
+    u64_iv :: unsigned_interval(64)
+    plus_one :: interval_add(u64_iv, interval(1, 1))
+    assert(same_interval(interval_wrapped(plus_one, u64_iv), u64_iv), "u64.max + 1 wraps")
+}
+
+@test
+test_interval_checked_keeps_what_fits :: fn() -> void {
+    i32_iv :: interval(-2_147_483_648, 2_147_483_647)
+    stepped :: interval_add(interval(0, 2_147_483_647), interval(2, 2))
+    kept :: interval_checked(stepped, i32_iv)
+    assert(same_interval(kept, interval(2, 2_147_483_647)), "the values that did not stop")
+    u64_iv :: unsigned_interval(64)
+    plus_one :: interval_checked(interval_add(u64_iv, interval(1, 1)), u64_iv)
+    assert(plus_one.lo == 1 && plus_one.hi_open, "u64 + 1 is at least 1")
+}
+
+@test
+test_interval_widen_thresholds :: fn() -> void {
+    thresholds: i64[]: [-100, -10, 10, 100]
+    first :: interval_widen(interval(0, 0), interval(0, 1), thresholds)
+    assert(same_interval(first, interval(0, 10)), "up to the first threshold")
+    second :: interval_widen(first, interval(0, 11), thresholds)
+    assert(same_interval(second, interval(0, 100)), "up to the next")
+    last :: interval_widen(second, interval(0, 101), thresholds)
+    assert(last.hi_open && last.lo == 0, "up past the last threshold")
+    down :: interval_widen(interval(0, 0), interval(-1, 0), thresholds)
+    assert(same_interval(down, interval(-10, 0)), "down to the first threshold")
+    bottom :: interval_widen(interval(-100, 0), interval(-101, 0), thresholds)
+    assert(bottom.lo_open && bottom.hi == 0, "down past the last threshold")
+    assert(
+        same_interval(interval_widen(first, interval(0, 5), thresholds), interval(0, 5)),
+        "no growth",
+    )
+}
