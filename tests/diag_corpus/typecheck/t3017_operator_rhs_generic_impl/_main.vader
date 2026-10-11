@@ -1,0 +1,21 @@
+// T3017: an operator's right operand meets the impl's `other` with the impl's
+// parameters bound to the left operand's arguments, as a method call types it:
+// `T[] implements<T> Add<T[]>` on an `i32[]` takes an `i32[]`, not a `string[]`.
+module "snippet"
+
+export Pair :: struct<T> {
+    a: T
+    b: T
+}
+
+Pair<T> implements<T> Add<Pair<T>> {
+    add :: fn(self, other: Pair<T>) -> Pair<T> = Pair<T> { .a = self.a, .b = other.b }
+}
+
+export mixed :: fn(a: i32[], b: string[]) -> i32[] = a + b
+
+export pairs :: fn(p: Pair<i32>, q: Pair<string>) -> Pair<i32> = p + q
+
+main :: fn() -> i32 {
+    return 0
+}

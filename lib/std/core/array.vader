@@ -47,11 +47,8 @@ export ArrayOps :: trait<T> {
 /// time — build with `push_all` when that matters.
 ///
 /// The result is immutable (`Out` is `Self`), even though it is a fresh allocation
-/// nobody else holds. Declaring `Add<T[], T[]!>` to hand back a writable buffer
-/// does not work today: the marker is lost rebuilding the operator's result type,
-/// so `x: T[]! = a + b` still reports `expected T[]!, got T[]`. Build with an
-/// explicit `T[]!` and `push_all` when you need to keep appending; `+` is for
-/// producing a value, not a work buffer.
+/// nobody else holds: `+` is for producing a value, not a work buffer. Build with
+/// an explicit `T[]!` and `push_all` when you need to keep appending.
 // Tests for `+` do NOT live in this file, unlike everything else here: using the
 // impl from inside `std/core` itself trips GATE B1 at materialisation
 // (`unresolved callee 'std_core$[]$Add$add__i32'`). Any other module resolves it
