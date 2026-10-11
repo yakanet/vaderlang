@@ -281,9 +281,11 @@ lower_field_value :: fn(
 // slot while the `.name` labels look safe. This binds the order to the decl,
 // exactly like user literals go through `build_struct_lit_fields`.
 //
-// Panics on a missing struct decl or a declared field with no provided value —
-// both are compiler invariants for a synthesised build (fail loud, never a
-// silent wrong-slot write).
+// A field the site does not provide takes its declared default, as in a user
+// literal, so a defaulted field can join a core struct without its synthesising
+// site naming it. Panics on a missing struct decl or a declared field with
+// neither a value nor a default — both are compiler invariants for a
+// synthesised build (fail loud, never a silent wrong-slot write).
 build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLitField[], span: Span) -> LoweredExpr! {
     st :: struct_backing(type)
     if st == null {
@@ -296,10 +298,22 @@ build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLi
     ordered: LoweredStructLitField[]: []
     for field_decl in decl.fields {
         provided :: find_lowered_field(fields, field_decl.name)
-        if provided == null {
+        if provided != null {
+            ordered.push(provided)
+            continue
+        }
+        default :: field_decl.default
+        if default == null {
             panic("build_core_struct_lit: missing field `${field_decl.name}` for ${st.symbol.name}")
         }
-        ordered.push(provided)
+        default_ctx :: ctx_in_owning_module(ctx, st.symbol.module, decl, st.args)
+        field_type :: resolve_pattern_type(ctx, field_decl.ty)
+        ordered.push(
+            LoweredStructLitField {
+                .name = field_decl.name,
+                .value = lower_field_default(default_ctx, st, field_decl, default, field_type),
+            },
+        )
     }
     return LoweredStructLit { .span = span, .type = type, .fields = ordered }
 }
