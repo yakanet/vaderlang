@@ -38,7 +38,7 @@ vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0) {
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
         l5 = vader_host_std_core_byte_len(t1);
-        t2 = (l1 + l5);
+        t2 = vader_chk_add(usize, l1, l5);
         l1 = (size_t) (int64_t) t2;
         t2 = (l4 + INT64_C(1));
         l4 = (size_t) (int64_t) t2;
@@ -56,7 +56,7 @@ vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0) {
         l7 = t0.payload.s;
         vader_buffer_write_string((vader_buffer_t*) l2, (size_t) l3, l7);
         l8 = vader_host_std_core_byte_len(l7);
-        t2 = (l3 + l8);
+        t2 = vader_chk_add(usize, l3, l8);
         l3 = (size_t) (int64_t) t2;
         t2 = (l5 + INT64_C(1));
         l5 = (size_t) (int64_t) t2;

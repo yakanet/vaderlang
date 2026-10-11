@@ -288,15 +288,6 @@ vader_fn_t vader_fn_static_vader_comptime_op_mod = {
     { 218u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_vader_comptime_op_mod, NULL,
 };
 
-vader_box_t vader_fn_tramp_vader_comptime_op_div(void* env, vader_box_t a0, vader_box_t a1) {
-    (void) env;
-    return vader_box_i64(247u, vader_comptime_op_div(((int64_t) a0.payload.i), ((int64_t) a1.payload.i)));
-}
-
-vader_fn_t vader_fn_static_vader_comptime_op_div = {
-    { 218u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_vader_comptime_op_div, NULL,
-};
-
 vader_box_t vader_fn_tramp___lambda_vader_comptime_1(void* env, vader_box_t a0, vader_box_t a1) {
     (void) env;
     return vader_box_bool(241u, __lambda_vader_comptime_1(a0.payload.s, a1.payload.s));
@@ -533,13 +524,13 @@ vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv) {
         case 240u: return std_core_f64_Display_to_string(((double) recv.payload.f));
         case 438u: return std_string_builder_StringBuilder_Display_to_string(recv.payload.obj);
         case 532u: return toolchain_span_Span_Display_to_string(recv.payload.obj);
-        case 1100u: return vader_vm_FnVal_Display_to_string(recv.payload.obj);
-        case 1107u: return vader_vm_NullVal_Display_to_string(recv.payload.obj);
-        case 1099u: return vader_vm_ErrorVal_Display_to_string(recv.payload.obj);
-        case 1124u: return vader_vm_TypeVal_Display_to_string(recv.payload.obj);
-        case 1108u: return vader_vm_ObjVal_Display_to_string(recv.payload.obj);
-        case 1120u: return vader_vm_StructVal_Display_to_string(recv.payload.obj);
-        case 1095u: return vader_vm_ArrayVal_Display_to_string(recv.payload.obj);
+        case 1103u: return vader_vm_FnVal_Display_to_string(recv.payload.obj);
+        case 1110u: return vader_vm_NullVal_Display_to_string(recv.payload.obj);
+        case 1102u: return vader_vm_ErrorVal_Display_to_string(recv.payload.obj);
+        case 1127u: return vader_vm_TypeVal_Display_to_string(recv.payload.obj);
+        case 1111u: return vader_vm_ObjVal_Display_to_string(recv.payload.obj);
+        case 1123u: return vader_vm_StructVal_Display_to_string(recv.payload.obj);
+        case 1098u: return vader_vm_ArrayVal_Display_to_string(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Display.to_string");
     }
     vader_unreachable("vtable miss in std_core$Display.to_string");
