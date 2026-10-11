@@ -77,7 +77,6 @@
   expr 41:46    FieldExpr      :: fn() -> i32 | null
   expr 41:46    IdentExpr      :: Iterator<i32>!
   expr 41:46    NullCoalesceExpr :: i32
-  expr 41:58    UnaryExpr      :: i32
   expr 43:48    CallExpr       :: bool
   expr 43:48    FieldExpr      :: fn() -> bool
   expr 43:48    IdentExpr      :: Iterator<i32>!
@@ -147,7 +146,6 @@
   expr 79:36    NullCoalesceExpr :: i32
   expr 79:5     CallExpr       :: void
   expr 79:5     IdentExpr      :: fn(T) -> void
-  expr 79:53    UnaryExpr      :: i32
   expr 80:13    StringLitExpr  :: string
   expr 80:34    CallExpr       :: __genstate_upto<i32>!
   expr 80:34    CallExpr       :: usize
@@ -169,7 +167,6 @@
   expr 81:41    IdentExpr      :: fn(i32) -> i32
   expr 81:5     CallExpr       :: void
   expr 81:5     IdentExpr      :: fn(T) -> void
-  expr 81:56    UnaryExpr      :: i32
   expr 82:13    StringLitExpr  :: string
   expr 82:28    CallExpr       :: __genstate_zip<[i32, i32]>!
   expr 82:28    CallExpr       :: usize

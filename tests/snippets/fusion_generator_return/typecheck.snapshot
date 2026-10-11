@@ -189,7 +189,6 @@
   expr 64:14    CallExpr       :: __genstate_until_negative<i32>!
   expr 64:14    FieldExpr      :: fn() -> Iterator<i32>
   expr 64:14    SeqLitExpr     :: i32[]!
-  expr 64:21    UnaryExpr      :: {integer}
   expr 65:17    BinaryExpr     :: string
   expr 65:17    IdentExpr      :: string
   expr 65:25    StringLitExpr  :: string
@@ -199,7 +198,6 @@
   expr 68:11    CallExpr       :: __genstate_until_negative<i32>!
   expr 68:11    FieldExpr      :: fn() -> Iterator<i32>
   expr 68:11    SeqLitExpr     :: i32[]!
-  expr 68:18    UnaryExpr      :: {integer}
   expr 69:14    IdentExpr      :: __genstate_until_negative<i32>!
   expr 70:16    BinaryExpr     :: string
   expr 70:16    IdentExpr      :: string

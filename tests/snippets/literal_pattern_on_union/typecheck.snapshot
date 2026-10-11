@@ -90,7 +90,6 @@
   expr 88:5     IdentExpr      :: fn(T) -> void
   expr 88:51    CallExpr       :: string
   expr 88:51    IdentExpr      :: fn(i64 | string) -> string
-  expr 89:25    UnaryExpr      :: f64
   expr 90:13    StringLitExpr  :: string
   expr 90:16    CallExpr       :: string
   expr 90:16    IdentExpr      :: fn(f64 | string) -> string

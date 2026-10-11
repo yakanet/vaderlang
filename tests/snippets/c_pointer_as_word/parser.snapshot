@@ -226,12 +226,8 @@
                               ]
                             },
                             "right": {
-                              "kind": "UnaryExpr",
-                              "op": "neg",
-                              "operand": {
-                                "kind": "IntLitExpr",
-                                "value": "1n"
-                              }
+                              "kind": "IntLitExpr",
+                              "value": "-1n"
                             }
                           }
                         }

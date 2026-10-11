@@ -66,6 +66,15 @@ test_roundtrip_preserves_await_parens :: fn() -> void {
 }
 
 @test
+test_fmt_keeps_a_negation_of_a_number :: fn() -> void {
+    // Without the parens, the `-` would reparse as part of the literal.
+    fmt_keeps("a :: -(5)", "-(5)")
+    fmt_keeps("b :: -(5).abs()", "-(5.abs())")
+    fmt_keeps("c :: -(5.0).to_string()", "-(5.0.to_string())")
+    fmt_keeps("d :: -5.abs()", "-5.abs()")
+}
+
+@test
 test_fmt_keeps_line_break_before_operator :: fn() -> void {
     fmt_keeps("s :: fn() -> i32 = 1\n    + 2", "= 1\n    + 2")
     fmt_keeps("f :: fn(x: i32 | null) -> i32 = x\n    ?? 0", "x\n    ?? 0")

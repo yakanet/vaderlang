@@ -132,7 +132,6 @@
   expr 72:13    StringLitExpr  :: string
   expr 72:28    IdentExpr      :: i32 | null
   expr 72:28    NullCoalesceExpr :: i32
-  expr 72:37    UnaryExpr      :: i32
   expr 72:5     CallExpr       :: void
   expr 72:5     IdentExpr      :: fn(T) -> void
   expr 74:14    CallExpr       :: __genstate_map<i32>!

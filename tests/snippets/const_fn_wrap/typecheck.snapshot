@@ -22,7 +22,6 @@
   expr 38:36    FieldExpr      :: i32
   expr 38:36    IdentExpr      :: Spec<i32>
   expr 38:9     IfExpr         :: void
-  expr 40:12    UnaryExpr      :: i32
   expr 44:13    StringLitExpr  :: string
   expr 44:22    CallExpr       :: i32
   expr 44:22    IdentExpr      :: fn(string) -> i32

@@ -399,7 +399,7 @@ static int32_t snippet_main(void) {
     t1 = concat_5(l1, 17u, l2, 17u, l3);
     std_io_println__string(t1);
 #line 89 "tests/snippets/literal_pattern_on_union/_main.vader"
-    l4 = -(0.0);
+    l4 = -0.0;
 #line 90 "tests/snippets/literal_pattern_on_union/_main.vader"
     t0 = vader_box_f64(6u, l4);
     l1 = snippet_describe_float(t0);

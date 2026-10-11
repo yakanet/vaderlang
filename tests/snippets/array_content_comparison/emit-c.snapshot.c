@@ -169,7 +169,6 @@ static int32_t snippet_main(void) {
     void* l5 = NULL;
     size_t l3;
     bool l4;
-    double l6;
     vader_string_t t0 = 0;
     void** gc_raw_roots[4] = { &l0, &l1, &l2, &l5 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
@@ -308,8 +307,6 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_bool(l1, l3, l4);
     t0 = std_core_finish_buffer(l1, l3);
     std_io_println__string(t0);
-#line 28 "tests/snippets/array_content_comparison/_main.vader"
-    l6 = -(0.0);
 #line 29 "tests/snippets/array_content_comparison/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 19);
     l3 = (size_t) 0;
@@ -318,7 +315,7 @@ static int32_t snippet_main(void) {
     ((double*) _a16_arr->buf->slots)[_a16_arr->offset + 0u] = (double) 0.0;
     l1 = (void*) _a16_arr;
     vader_array_t* _a17_arr = vader_array_new(11u, 1u, 10u, 12u);
-    ((double*) _a17_arr->buf->slots)[_a17_arr->offset + 0u] = (double) l6;
+    ((double*) _a17_arr->buf->slots)[_a17_arr->offset + 0u] = (double) -0.0;
     l2 = (void*) _a17_arr;
     l4 = std_core_content_equals__f64(l1, l2);
     l3 = std_core_write_bool(l0, l3, l4);

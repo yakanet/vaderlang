@@ -598,7 +598,7 @@ static int32_t snippet_main(void) {
 #line 73 "tests/snippets/union_value_equality/_main.vader"
     l4 = vader_box_f64(23u, 0.0);
 #line 74 "tests/snippets/union_value_equality/_main.vader"
-    l5 = vader_box_f64(23u, -(0.0));
+    l5 = vader_box_f64(23u, -0.0);
 #line 75 "tests/snippets/union_value_equality/_main.vader"
     l7 = std_core_new_byte_buffer((size_t) 11);
     l8 = (size_t) 0;

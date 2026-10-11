@@ -12,7 +12,6 @@
   expr 25:8     BinaryExpr     :: bool
   expr 25:8     FieldExpr      :: Inner | null
   expr 25:8     IdentExpr      :: Wrapper
-  expr 26:12    UnaryExpr      :: i32
   expr 30:13    StringLitExpr  :: string
   expr 30:20    CallExpr       :: i32
   expr 30:20    IdentExpr      :: fn(Wrapper) -> i32

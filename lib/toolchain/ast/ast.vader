@@ -714,17 +714,44 @@ export DeferBody :: DeferStmtBody | DeferBlockBody
 export IntLitExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
-    // Unsigned magnitude, full u64 range (the snapshot format renders the
-    // value as a decimal string with the trailing `n` so 0..u64.MAX all
-    // round-trip losslessly). Negative
-    // literals are wrapped by the parser in `UnaryExpr.neg`.
+    /// Unsigned magnitude, full u64 range (the snapshot format renders the
+    /// value as a decimal string with the trailing `n` so 0..u64.MAX all
+    /// round-trip losslessly).
     value:  u64
+    /// A `-` written against the literal: the parser reads `-5` as one value,
+    /// so `-128` is checked as the least `i8` rather than as the negation of a
+    /// `128` no `i8` holds, and `-5.to_string()` is `"-5"`. `-(5)` and `- 5`
+    /// stay negations.
+    negative: bool = false
+}
+
+/// The value of an integer literal as an `i64`: a magnitude past `i64` as its
+/// bits, the least `i64` from its magnitude 2^63.
+///
+/// @param literal  the literal.
+export int_literal_value :: fn(literal: IntLitExpr) -> i64 {
+    if literal.negative {
+        return 0 -% i64(literal.value)
+    }
+    return i64(literal.value)
+}
+
+/// An integer literal in decimal, signed as written: `-128`, `300`.
+///
+/// @param literal  the literal.
+export int_literal_text :: fn(literal: IntLitExpr) -> string {
+    if literal.negative {
+        return "-${literal.value}"
+    }
+    return "${literal.value}"
 }
 
 /// A float literal.
 export FloatLitExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
+    /// Signed as written: the parser reads a `-` against the literal into it
+    /// (`IntLitExpr.negative`).
     value:  f64
 }
 

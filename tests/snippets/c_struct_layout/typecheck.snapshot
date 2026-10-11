@@ -7,7 +7,6 @@
   FnDecl         main                 :: fn() -> i32
   expr 26:10    StructLitExpr  :: Div!
   expr 27:14    IdentExpr      :: Div!
-  expr 27:17    UnaryExpr      :: i32
   expr 27:5     CallExpr       :: void
   expr 27:5     IdentExpr      :: fn(Div!, i32, i32) -> void
   expr 28:13    StringLitExpr  :: string

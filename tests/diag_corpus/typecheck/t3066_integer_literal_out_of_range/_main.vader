@@ -1,0 +1,15 @@
+// An integer literal must fit the type it lands in, checked at its exact bounds:
+// `-128` is one literal and fits an `i8`, `128` does not. A binding whose whole
+// value is a literal must fit the `i32` it defaults to.
+module "snippet"
+
+export LEAST: i8: -128
+export PAST_MAX: i8: 128
+export PAST_MIN: i8: -129
+export TOO_WIDE: i32: 2147483648
+export NEGATIVE_UNSIGNED: u32: -1
+export DEFAULTED         :: 9000000000
+
+main :: fn() -> i32 {
+    return 0
+}

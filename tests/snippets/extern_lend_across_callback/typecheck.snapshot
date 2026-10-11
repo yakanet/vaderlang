@@ -43,4 +43,3 @@
   expr 47:46    IdentExpr      :: fn(i32) -> i32
   expr 47:5     CallExpr       :: void
   expr 47:5     IdentExpr      :: fn(T) -> void
-  expr 47:52    UnaryExpr      :: i32

@@ -40,12 +40,8 @@
           },
           "visibility": "public",
           "default": {
-            "kind": "UnaryExpr",
-            "op": "neg",
-            "operand": {
-              "kind": "IntLitExpr",
-              "value": "1n"
-            }
+            "kind": "IntLitExpr",
+            "value": "-1n"
           }
         }
       ],
@@ -204,12 +200,8 @@
               "name": "isize"
             },
             "value": {
-              "kind": "UnaryExpr",
-              "op": "neg",
-              "operand": {
-                "kind": "IntLitExpr",
-                "value": "50n"
-              }
+              "kind": "IntLitExpr",
+              "value": "-50n"
             }
           },
           {
@@ -520,12 +512,8 @@
               "name": "isize"
             },
             "value": {
-              "kind": "UnaryExpr",
-              "op": "neg",
-              "operand": {
-                "kind": "IntLitExpr",
-                "value": "100n"
-              }
+              "kind": "IntLitExpr",
+              "value": "-100n"
             }
           },
           {

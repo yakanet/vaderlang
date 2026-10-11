@@ -93,7 +93,6 @@
   expr 53:18    IfExpr         :: i32
   expr 53:21    BinaryExpr     :: bool
   expr 53:21    IdentExpr      :: i32
-  expr 54:20    UnaryExpr      :: {integer}
   expr 55:22    RangeExpr      :: Range<i32>!
   expr 55:26    IdentExpr      :: i32
   expr 56:17    IfExpr         :: void
@@ -110,7 +109,6 @@
   expr 60:21    IdentExpr      :: i32
   expr 60:27    IdentExpr      :: i32
   expr 64:13    IdentExpr      :: i32
-  expr 66:13    UnaryExpr      :: {integer}
   expr 68:15    IdentExpr      :: i32
   expr 74:14    RangeExpr      :: Range<i32>!
   expr 74:18    IdentExpr      :: i32
@@ -135,7 +133,6 @@
   expr 84:22    IdentExpr      :: i32
   expr 84:30    IdentExpr      :: i32
   expr 85:16    IdentExpr      :: i32
-  expr 87:12    UnaryExpr      :: i32
   expr 93:10    CallExpr       :: __genstate_evens<i32>!
   expr 93:10    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 94:14    IdentExpr      :: __genstate_evens<i32>!

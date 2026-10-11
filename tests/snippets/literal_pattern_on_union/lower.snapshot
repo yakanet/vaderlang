@@ -285,9 +285,7 @@
                 describe :fn(i64 | string) -> string
               arg0:
                 int(7) :i64
-    let negative_zero: f64 =
-      neg :f64
-        float(0.0) :f64
+    let negative_zero: f64 = float(-0.0) :f64
     call :void
       callee:
         std_io$println__string :void

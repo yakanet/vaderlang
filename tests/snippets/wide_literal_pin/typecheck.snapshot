@@ -6,12 +6,10 @@
   FnDecl         unwrap               :: fn(i32 | null) -> i32
   FnDecl         unwrap_i64           :: fn(i64 | null) -> i64
   expr 27:29    IdentExpr      :: T
-  expr 30:27    UnaryExpr      :: i32
   expr 30:5     IfExpr         :: void
   expr 30:8     BinaryExpr     :: bool
   expr 30:8     IdentExpr      :: i32 | null
   expr 31:12    IdentExpr      :: i32
-  expr 35:27    UnaryExpr      :: i64
   expr 35:5     IfExpr         :: void
   expr 35:8     BinaryExpr     :: bool
   expr 35:8     IdentExpr      :: i64 | null

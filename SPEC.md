@@ -366,7 +366,7 @@ From tightest to loosest. Higher levels bind more tightly. Non-assoc operators f
 | 13    | `??` (null-coalescing)                 | left (non-chaining) |
 | 14    | `=` (statement-level only)             | n/a            |
 
-Type casts (`Type(expr)`) are parsed as primary call expressions and naturally sit at level 1. The `is Type` form used in `match` arms binds at the comparison level. `!is Type` is a parser-level sugar that desugars to `!(x is Type)`; the flow-narrower handles the wrapping `!` to flip then/else, and `as <ident>` is rejected after `!is` since the binding has no meaningful lifetime when the type check is negated.
+Type casts (`Type(expr)`) are parsed as primary call expressions and naturally sit at level 1. A `-` written against a number literal, with nothing in between, where an operand is expected, is not the level-2 prefix operator but part of the literal, so a postfix applies to the negative value: `-5.to_string()` is `"-5"` and `-5.abs()` is `5`, while `-x.abs()`, `-(5).abs()` and `- 5.abs()` negate the call (§Default integer). After an operand, `-` is the subtraction: `a -5` is `a - 5`. The `is Type` form used in `match` arms binds at the comparison level. `!is Type` is a parser-level sugar that desugars to `!(x is Type)`; the flow-narrower handles the wrapping `!` to flip then/else, and `as <ident>` is rejected after `!is` since the binding has no meaningful lifetime when the type check is negated.
 
 `is` checks the runtime *struct-tag* of the value. A **union on the right-hand side is a membership test**: `x is A | B` — and equally `x is MyUnion` for a `MyUnion :: A | B` alias — is true when `x`'s tag is one of that union's members, and narrows `x` to it in the then-branch. So given `U :: A | B | C` and `AB :: A | B`, a value of type `U` holding a `B` satisfies `v is AB`, and inside that branch `v` may be passed where an `AB` is expected. A test that *cannot* match — the right-hand side shares no values with the scrutinee's type, e.g. `v is D` on a `v: A | B` — is the error `T3040`, not a warning.
 
@@ -583,9 +583,11 @@ lowering boundary).
 
 ### Default integer
 
-A literal integer with no concrete context **infers to `i32`** (`x := 42` ⇒ `x: i32`).
+A literal integer with no concrete context **infers to `i32`** (`x := 42` ⇒ `x: i32`). A binding whose whole value is such a literal must fit it: `big :: 9000000000` is **T3066**, write the type (`big: i64: 9000000000`).
 
-When a literal **does** land in a concrete integer context, it is **bounds-checked against that type** at compile time — exactly like a char literal (§Char). An out-of-range magnitude (`x: i32 = 9000000000`, `x: u8 = 300`) and a negative literal in an unsigned slot (`z: u32 = -1`) are rejected with **T3066**; there is no silent truncation or wraparound. Widen the target or the literal explicitly (`x: i64 = 9000000000`).
+A `-` written against a number literal where an operand is expected makes one negative literal, integer or float: `-128` is a value, not the negation of `128`, and a postfix applies to it (`-5.to_string()` is `"-5"`). `-(128)`, `- 128` and `-x` stay negations.
+
+When a literal **does** land in a concrete integer context, it is **bounds-checked against that type** at compile time, exactly like a char literal (§Char). An out-of-range value (`x: i32 = 9000000000`, `x: u8 = 300`, `x: i8 = 128`, `x: i8 = -129`) and a negative literal in an unsigned slot (`z: u32 = -1`) are rejected with **T3066**; there is no silent truncation or wraparound, and `x: i8 = -128` holds the least `i8`. Widen the target or the literal explicitly (`x: i64 = 9000000000`).
 
 A literal landing in a **union** takes one of its members: the family's default (`i32` for an integer, `f64` for a float, `char` for a char literal) when the union has it, else the union's **only** member of that family — `5` passed to `u8 | string` is a `u8`, `2.5` into `f32 | string` an `f32`. With several candidates and no default among them (`5` into `u8 | i16 | string`) the literal is ambiguous and rejected with **T3089**; convert it explicitly (`u8(5)`). A literal UFCS receiver whose function takes a union first (`5.show()`) follows the same rule. The chosen member is then bounds-checked as above.
 
@@ -674,7 +676,7 @@ A constant the compiler folds follows the same rule: an overflow while evaluatin
 
 The **wrapping operators** `+%`, `-%` and `*%` (and `+%=`, `-%=`, `*%=`) wrap in every mode: integer operands only (`T3017` otherwise, and no trait overloads them), the result wrapping around the operands' width, an 8- or 16-bit one included: so `250 +% 10` is `4` on a `u8`, at run time as when a constant folds. They are the form for arithmetic meant to wrap (a hash, a PRNG, a checksum): `h *%= 16_777_619`. There is no wrapping negation: write `0 -% x`.
 
-A negative integer literal is one value, so `x: i64: -9_223_372_036_854_775_808` holds the least `i64` rather than negating a magnitude past its range. Division by zero traps in every mode (§Lowered AST); a narrowing cast truncates and a shift never traps (§Casts).
+A negative integer literal is one value (§Default integer), so `x: i64: -9_223_372_036_854_775_808` holds the least `i64` rather than negating a magnitude past its range. Division by zero traps in every mode (§Lowered AST); a narrowing cast truncates and a shift never traps (§Casts).
 
 ### Strings
 

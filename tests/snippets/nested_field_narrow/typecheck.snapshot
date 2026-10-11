@@ -14,7 +14,6 @@
   expr 17:20    FieldExpr      :: Inner
   expr 17:20    FieldExpr      :: i32
   expr 17:20    IdentExpr      :: Outer
-  expr 23:38    UnaryExpr      :: i32
   expr 23:5     IfExpr         :: void
   expr 23:8     BinaryExpr     :: bool
   expr 23:8     FieldExpr      :: Inner

@@ -87,14 +87,13 @@ fn 1 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local and_res bool
+  local $cast_22 f64
   local $cast_23 f64
-  local $cast_24 f64
   local and_res bool
+  local $cast_33 string
   local $cast_34 string
-  local $cast_35 string
   local __buf_2 ref
-  f64.const 0.0 0
-  f64.neg
+  f64.const -0.0 9223372036854775808
   local.set 0   ; nz
   f64.const 0.0 0
   f64.const 0.0 0
@@ -133,12 +132,12 @@ fn 1 snippet$main () -> i32
   if $L1 void
     local.get 2   ; u
     ref.cast 2   ; f64
-    local.set 8   ; $cast_23
+    local.set 8   ; $cast_22
     local.get 3   ; w
     ref.cast 2   ; f64
-    local.set 9   ; $cast_24
-    local.get 8   ; $cast_23
-    local.get 9   ; $cast_24
+    local.set 9   ; $cast_23
+    local.get 8   ; $cast_22
+    local.get 9   ; $cast_23
     f64.eq
     local.set 7   ; and_res
   else
@@ -164,12 +163,12 @@ fn 1 snippet$main () -> i32
     if $L4 void
       local.get 2   ; u
       ref.cast 3   ; string
-      local.set 11   ; $cast_34
+      local.set 11   ; $cast_33
       local.get 3   ; w
       ref.cast 3   ; string
-      local.set 12   ; $cast_35
-      local.get 11   ; $cast_34
-      local.get 12   ; $cast_35
+      local.set 12   ; $cast_34
+      local.get 11   ; $cast_33
+      local.get 12   ; $cast_34
       string.eq
       local.set 10   ; and_res
     else
@@ -203,12 +202,12 @@ fn 1 snippet$main () -> i32
   if $L6 void
     local.get 2   ; u
     ref.cast 2   ; f64
-    local.set 8   ; $cast_23
+    local.set 8   ; $cast_22
     local.get 3   ; w
     ref.cast 2   ; f64
-    local.set 9   ; $cast_24
-    local.get 8   ; $cast_23
-    local.get 9   ; $cast_24
+    local.set 9   ; $cast_23
+    local.get 8   ; $cast_22
+    local.get 9   ; $cast_23
     f64.eq
     local.set 7   ; and_res
   else
@@ -234,12 +233,12 @@ fn 1 snippet$main () -> i32
     if $L9 void
       local.get 2   ; u
       ref.cast 3   ; string
-      local.set 11   ; $cast_34
+      local.set 11   ; $cast_33
       local.get 3   ; w
       ref.cast 3   ; string
-      local.set 12   ; $cast_35
-      local.get 11   ; $cast_34
-      local.get 12   ; $cast_35
+      local.set 12   ; $cast_34
+      local.get 11   ; $cast_33
+      local.get 12   ; $cast_34
       string.eq
       local.set 10   ; and_res
     else
@@ -276,12 +275,12 @@ fn 1 snippet$main () -> i32
   if $L11 void
     local.get 4   ; n
     ref.cast 2   ; f64
-    local.set 8   ; $cast_23
+    local.set 8   ; $cast_22
     local.get 4   ; n
     ref.cast 2   ; f64
-    local.set 9   ; $cast_24
-    local.get 8   ; $cast_23
-    local.get 9   ; $cast_24
+    local.set 9   ; $cast_23
+    local.get 8   ; $cast_22
+    local.get 9   ; $cast_23
     f64.eq
     local.set 7   ; and_res
   else
@@ -307,12 +306,12 @@ fn 1 snippet$main () -> i32
     if $L14 void
       local.get 4   ; n
       ref.cast 3   ; string
-      local.set 11   ; $cast_34
+      local.set 11   ; $cast_33
       local.get 4   ; n
       ref.cast 3   ; string
-      local.set 12   ; $cast_35
-      local.get 11   ; $cast_34
-      local.get 12   ; $cast_35
+      local.set 12   ; $cast_34
+      local.get 11   ; $cast_33
+      local.get 12   ; $cast_34
       string.eq
       local.set 10   ; and_res
     else
@@ -346,12 +345,12 @@ fn 1 snippet$main () -> i32
   if $L16 void
     local.get 4   ; n
     ref.cast 2   ; f64
-    local.set 8   ; $cast_23
+    local.set 8   ; $cast_22
     local.get 4   ; n
     ref.cast 2   ; f64
-    local.set 9   ; $cast_24
-    local.get 8   ; $cast_23
-    local.get 9   ; $cast_24
+    local.set 9   ; $cast_23
+    local.get 8   ; $cast_22
+    local.get 9   ; $cast_23
     f64.eq
     local.set 7   ; and_res
   else
@@ -377,12 +376,12 @@ fn 1 snippet$main () -> i32
     if $L19 void
       local.get 4   ; n
       ref.cast 3   ; string
-      local.set 11   ; $cast_34
+      local.set 11   ; $cast_33
       local.get 4   ; n
       ref.cast 3   ; string
-      local.set 12   ; $cast_35
-      local.get 11   ; $cast_34
-      local.get 12   ; $cast_35
+      local.set 12   ; $cast_34
+      local.get 11   ; $cast_33
+      local.get 12   ; $cast_34
       string.eq
       local.set 10   ; and_res
     else
@@ -447,14 +446,14 @@ fn 1 snippet$main () -> i32
   call 28   ; std_io$println__string
   local.get 2   ; u
   call 0   ; snippet$pick
-  local.set 11   ; $cast_34
+  local.set 11   ; $cast_33
   local.get 4   ; n
   call 0   ; snippet$pick
-  local.set 12   ; $cast_35
+  local.set 12   ; $cast_34
   string.const 5   ; "match    : "
-  local.get 11   ; $cast_34
+  local.get 11   ; $cast_33
   string.const 3   ; " "
-  local.get 12   ; $cast_35
+  local.get 12   ; $cast_34
   call 4   ; concat_4
   call 28   ; std_io$println__string
   i64.const 34

@@ -365,12 +365,8 @@
                             {
                               "name": null,
                               "value": {
-                                "kind": "UnaryExpr",
-                                "op": "neg",
-                                "operand": {
-                                  "kind": "IntLitExpr",
-                                  "value": "1n"
-                                }
+                                "kind": "IntLitExpr",
+                                "value": "-1n"
                               },
                               "spread": false
                             }
@@ -494,12 +490,8 @@
                             {
                               "name": null,
                               "value": {
-                                "kind": "UnaryExpr",
-                                "op": "neg",
-                                "operand": {
-                                  "kind": "IntLitExpr",
-                                  "value": "1n"
-                                }
+                                "kind": "IntLitExpr",
+                                "value": "-1n"
                               },
                               "spread": false
                             }

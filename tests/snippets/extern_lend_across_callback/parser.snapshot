@@ -616,12 +616,8 @@
                             {
                               "name": null,
                               "value": {
-                                "kind": "UnaryExpr",
-                                "op": "neg",
-                                "operand": {
-                                  "kind": "IntLitExpr",
-                                  "value": "5n"
-                                }
+                                "kind": "IntLitExpr",
+                                "value": "-5n"
                               },
                               "spread": false
                             }

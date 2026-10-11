@@ -231,12 +231,8 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "UnaryExpr",
-                    "op": "neg",
-                    "operand": {
-                      "kind": "IntLitExpr",
-                      "value": "7n"
-                    }
+                    "kind": "IntLitExpr",
+                    "value": "-7n"
                   },
                   "spread": false
                 },

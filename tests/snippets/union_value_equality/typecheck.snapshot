@@ -151,7 +151,6 @@
   expr 70:5     IdentExpr      :: fn(T) -> void
   expr 71:12    BinaryExpr     :: {float}
   expr 72:21    IdentExpr      :: f64
-  expr 74:21    UnaryExpr      :: f64
   expr 75:13    StringLitExpr  :: string
   expr 75:16    BinaryExpr     :: bool
   expr 75:16    IdentExpr      :: f64 | null

@@ -20,7 +20,6 @@
   expr 25:10    FieldExpr      :: fn() -> i32 | Suspended
   expr 25:10    IdentExpr      :: Async<i32>!
   expr 26:13    IdentExpr      :: Suspended!
-  expr 26:32    UnaryExpr      :: i32
   expr 26:5     IfExpr         :: void
   expr 26:8     BinaryExpr     :: bool
   expr 26:8     IdentExpr      :: i32 | Suspended

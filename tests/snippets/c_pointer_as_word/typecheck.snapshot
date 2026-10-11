@@ -18,7 +18,6 @@
   expr 24:44    IdentExpr      :: CPointer
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void
-  expr 24:50    UnaryExpr      :: isize
   expr 25:13    StringLitExpr  :: string
   expr 25:29    BinaryExpr     :: bool
   expr 25:29    CallExpr       :: usize

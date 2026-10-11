@@ -8,7 +8,6 @@
   FnDecl         main                 :: fn() -> i32
   ConstDecl      Shape                :: type
   expr 25:18    IdentExpr      :: null
-  expr 25:32    UnaryExpr      :: i32
   expr 25:5     IfExpr         :: void
   expr 25:8     BinaryExpr     :: bool
   expr 25:8     FieldExpr      :: Block | null

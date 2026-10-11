@@ -9,7 +9,6 @@
   expr 24:13    CallExpr       :: [i32, i32] | null
   expr 24:13    IdentExpr      :: fn(bool) -> [i32, i32] | null
   expr 25:16    IdentExpr      :: null
-  expr 25:30    UnaryExpr      :: i32
   expr 25:5     IfExpr         :: void
   expr 25:8     BinaryExpr     :: bool
   expr 25:8     IdentExpr      :: [i32, i32] | null

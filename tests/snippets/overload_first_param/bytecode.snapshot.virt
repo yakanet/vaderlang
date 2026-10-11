@@ -174,8 +174,7 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __off_1
   call 5   ; std_core$finish_buffer
   call 31   ; std_io$println__string
-  f64.const 7.5 4620130267728707584
-  f64.neg
+  f64.const -7.5 13843502304583483392
   call 36   ; std_math$abs
   call 9   ; std_core$f64$Display$to_string
   local.set 4   ; $call_27

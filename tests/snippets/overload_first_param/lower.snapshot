@@ -300,8 +300,7 @@
                   callee:
                     abs :fn(f64) -> f64
                   arg0:
-                    neg :f64
-                      float(7.5) :f64
+                    float(-7.5) :f64
     call :void
       callee:
         std_io$println__string :void

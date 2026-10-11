@@ -39,7 +39,6 @@
   expr 30:16    FieldExpr      :: string
   expr 30:16    IdentExpr      :: C
   expr 32:12    StringLitExpr  :: string
-  expr 36:102   UnaryExpr      :: i32
   expr 36:13    StringLitExpr  :: string
   expr 36:16    CallExpr       :: bool
   expr 36:16    IdentExpr      :: fn(null | P) -> bool

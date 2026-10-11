@@ -91,12 +91,8 @@
         "kind": "BlockExpr",
         "stmts": [],
         "trailing": {
-          "kind": "UnaryExpr",
-          "op": "neg",
-          "operand": {
-            "kind": "IntLitExpr",
-            "value": "1n"
-          }
+          "kind": "IntLitExpr",
+          "value": "-1n"
         }
       },
       "decorators": [],

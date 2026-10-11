@@ -48,19 +48,16 @@
   expr 32:13    StringLitExpr  :: string
   expr 32:32    CallExpr       :: i32
   expr 32:32    IdentExpr      :: fn(i32, i32) -> i32
-  expr 32:36    UnaryExpr      :: i32
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(T) -> void
   expr 33:13    StringLitExpr  :: string
   expr 33:32    CallExpr       :: i32
   expr 33:32    IdentExpr      :: fn(i32) -> i32
-  expr 33:36    UnaryExpr      :: i32
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(T) -> void
   expr 34:13    StringLitExpr  :: string
   expr 34:32    CallExpr       :: f64
   expr 34:32    IdentExpr      :: fn(f64) -> f64
-  expr 34:36    UnaryExpr      :: f64
   expr 34:5     CallExpr       :: void
   expr 34:5     IdentExpr      :: fn(T) -> void
   expr 35:13    StringLitExpr  :: string

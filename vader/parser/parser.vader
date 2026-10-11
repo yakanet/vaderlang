@@ -1518,7 +1518,8 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
             // don't validate here. A rejected literal leaves `value` null :
             // the variant takes the next implicit index.
             if val is u64 {
-                value = if minus_tok == null { i64(val) } else { -i64(val) }
+                literal :: IntLitExpr { .span = lit_tok.span, .value = val, .negative = minus_tok != null }
+                value = int_literal_value(literal)
             }
             value_span = p.span_of(minus_tok ?? lit_tok, lit_tok)
         }
@@ -3025,21 +3026,46 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr! {
     return left
 }
 
+// The number literal of the token `t`, an `IntLit` or a `FloatLit`, spanning
+// `span`, negative when a `-` is written against it.
+number_literal :: fn(t: Token, span: Span, negative: bool) -> Expr! {
+    val :: t.value
+    if t.kind == .FloatLit {
+        magnitude: f64 = 0.0
+        if val is f64 {
+            magnitude = val
+        }
+        if negative {
+            return FloatLitExpr { .span = span, .value = -magnitude }
+        }
+        return FloatLitExpr { .span = span, .value = magnitude }
+    }
+    magnitude: u64 = 0
+    if val is u64 {
+        magnitude = val
+    }
+    return IntLitExpr { .span = span, .value = magnitude, .negative = negative }
+}
+
+// Whether `t` is a number literal token.
+is_number_token :: fn(t: Token) -> bool = t.kind == .IntLit || t.kind == .FloatLit
+
 parse_prefix :: fn(p: Parser) -> Expr! {
     t :: p.peek()
-    if t.kind == .IntLit {
+    if is_number_token(t) {
         p.advance()
-        v: u64 = 0
-        val :: t.value
-        if val is u64 { v = val }
-        return IntLitExpr { .span = t.span, .value = v }
+        return number_literal(t, t.span, false)
     }
-    if t.kind == .FloatLit {
-        p.advance()
-        v: f64 = 0.0
-        val :: t.value
-        if val is f64 { v = val }
-        return FloatLitExpr { .span = t.span, .value = v }
+    // A `-` written against a number is part of the literal, so a postfix applies
+    // to the negative value: `-5.to_string()` is `"-5"`, `-5.abs()` is 5. `-(5)`,
+    // `- 5` and `-x.abs()` stay negations.
+    if t.kind == .Minus {
+        number :: p.peek_at(1)
+        if is_number_token(number) && number.span.start.offset == t.span.end.offset {
+            p.advance()
+            p.advance()
+            return number_literal(number, Span { .start = t.span.start, .end = number.span.end }, true)
+        }
     }
     if t.kind == .CharLit {
         p.advance()

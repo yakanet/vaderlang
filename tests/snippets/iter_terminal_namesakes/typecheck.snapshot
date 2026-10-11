@@ -6,7 +6,6 @@
   FnDecl         count                :: fn(Iterator<i32>) -> usize
   FnDecl         find                 :: fn(Iterator<i32>, fn(i32) -> bool) -> i32
   FnDecl         main                 :: fn() -> i32
-  expr 10:63    UnaryExpr      :: i32
   expr 12:45    SeqLitExpr     :: i32[]
   expr 16:11    SeqLitExpr     :: i32[]!
   expr 17:13    StringLitExpr  :: string

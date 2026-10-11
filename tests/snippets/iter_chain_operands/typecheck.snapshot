@@ -222,7 +222,6 @@
   expr 71:32    IdentExpr      :: i32
   expr 71:9     CallExpr       :: void
   expr 71:9     IdentExpr      :: fn(T) -> void
-  expr 73:14    UnaryExpr      :: {integer}
   expr 74:13    StringLitExpr  :: string
   expr 74:21    BinaryExpr     :: bool
   expr 74:21    IdentExpr      :: i32

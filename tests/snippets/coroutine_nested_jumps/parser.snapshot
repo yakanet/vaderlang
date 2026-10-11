@@ -718,12 +718,8 @@
                           },
                           "type": null,
                           "value": {
-                            "kind": "UnaryExpr",
-                            "op": "neg",
-                            "operand": {
-                              "kind": "IntLitExpr",
-                              "value": "1n"
-                            }
+                            "kind": "IntLitExpr",
+                            "value": "-1n"
                           }
                         },
                         {
@@ -852,12 +848,8 @@
                       "kind": "BlockExpr",
                       "stmts": [],
                       "trailing": {
-                        "kind": "UnaryExpr",
-                        "op": "neg",
-                        "operand": {
-                          "kind": "IntLitExpr",
-                          "value": "1n"
-                        }
+                        "kind": "IntLitExpr",
+                        "value": "-1n"
                       }
                     }
                   }
@@ -1167,12 +1159,8 @@
           {
             "kind": "ReturnStmt",
             "value": {
-              "kind": "UnaryExpr",
-              "op": "neg",
-              "operand": {
-                "kind": "IntLitExpr",
-                "value": "1n"
-              }
+              "kind": "IntLitExpr",
+              "value": "-1n"
             }
           }
         ],

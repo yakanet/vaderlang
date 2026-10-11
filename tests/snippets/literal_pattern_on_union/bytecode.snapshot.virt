@@ -268,10 +268,10 @@ fn 8 snippet$main () -> i32
   local $call_5 string
   local $call_8 string
   local negative_zero f64
-  local $call_62 string
+  local $call_61 string
   local __buf_0 ref
   local __off_1 usize
-  local $eq_72 bool
+  local $eq_71 bool
   i64.const 5
   local.tee 0   ; five
   retag 4   ; i64
@@ -292,8 +292,7 @@ fn 8 snippet$main () -> i32
   local.get 3   ; $call_8
   call 9   ; concat_5
   call 20   ; std_io$println__string
-  f64.const 0.0 0
-  f64.neg
+  f64.const -0.0 9223372036854775808
   local.tee 4   ; negative_zero
   retag 6   ; f64
   call 2   ; snippet$describe_float
@@ -384,14 +383,14 @@ fn 8 snippet$main () -> i32
   string.const 20   ; "b"
   retag 1   ; string
   call 7   ; snippet$shape
-  local.set 5   ; $call_62
+  local.set 5   ; $call_61
   local.get 1   ; $call_2
   string.const 16   ; " "
   local.get 2   ; $call_5
   string.const 16   ; " "
   local.get 3   ; $call_8
   string.const 16   ; " "
-  local.get 5   ; $call_62
+  local.get 5   ; $call_61
   call 11   ; concat_7
   call 20   ; std_io$println__string
   i64.const 11
@@ -404,10 +403,10 @@ fn 8 snippet$main () -> i32
   string.const 1   ; "a"
   retag 1   ; string
   ref.eq
-  local.set 8   ; $eq_72
+  local.set 8   ; $eq_71
   local.get 6   ; __buf_0
   local.get 7   ; __off_1
-  local.get 8   ; $eq_72
+  local.get 8   ; $eq_71
   call 16   ; std_core$write_bool
   local.set 7   ; __off_1
   local.get 6   ; __buf_0
@@ -420,10 +419,10 @@ fn 8 snippet$main () -> i32
   i64.const 5
   retag 4   ; i64
   ref.eq
-  local.set 8   ; $eq_72
+  local.set 8   ; $eq_71
   local.get 6   ; __buf_0
   local.get 7   ; __off_1
-  local.get 8   ; $eq_72
+  local.get 8   ; $eq_71
   call 16   ; std_core$write_bool
   local.set 7   ; __off_1
   local.get 6   ; __buf_0

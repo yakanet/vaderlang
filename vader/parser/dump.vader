@@ -57,14 +57,8 @@ write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
 }
 
-// Bigint rendering : quoted decimal with a trailing `n`. Two variants :
-// `u64` for IntLitExpr (full unsigned
-// magnitude — negative literals are carried by an outer UnaryExpr.neg) ;
-// `i64` for EnumVariant.value (signed repr — variants can be negative).
-write_bigint :: fn(sb: StringBuilder, v: u64) -> void {
-    sb.append("\"${v}n\"")
-}
-
+// Bigint rendering : quoted decimal with a trailing `n`, for EnumVariant.value
+// (signed repr — variants can be negative) as for an `IntLitExpr`.
 write_signed_bigint :: fn(sb: StringBuilder, v: i64) -> void {
     sb.append("\"${v}n\"")
 }
@@ -781,7 +775,7 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.open_obj()
             sb.kind_entry(level + 1, "IntLitExpr")
             sb.entry(false, level + 1, "value")
-            sb.write_bigint(e.value)
+            sb.append("\"${int_literal_text(e)}n\"")
             sb.close_obj(level)
         }
         is FloatLitExpr -> {

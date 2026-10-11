@@ -57,19 +57,16 @@
   expr 38:16    IndexExpr      :: i32 | null
   expr 38:16    NullCoalesceExpr :: i32
   expr 38:25    DotVariantExpr :: Color
-  expr 38:34    UnaryExpr      :: i32
   expr 38:40    IdentExpr      :: MutableMap<Color, i32>!
   expr 38:40    IndexExpr      :: i32 | null
   expr 38:40    NullCoalesceExpr :: i32
   expr 38:49    DotVariantExpr :: Color
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
-  expr 38:60    UnaryExpr      :: i32
   expr 38:66    IdentExpr      :: MutableMap<Color, i32>!
   expr 38:66    IndexExpr      :: i32 | null
   expr 38:66    NullCoalesceExpr :: i32
   expr 38:75    DotVariantExpr :: Color
-  expr 38:85    UnaryExpr      :: i32
   expr 40:18    StructLitExpr  :: MutableMap<HttpStatus, string>!
   expr 41:15    DotVariantExpr :: HttpStatus
   expr 41:28    StringLitExpr  :: string

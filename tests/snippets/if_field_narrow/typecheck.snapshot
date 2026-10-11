@@ -25,7 +25,6 @@
   expr 23:17    StringLitExpr  :: string
   expr 23:9     CallExpr       :: void
   expr 23:9     IdentExpr      :: fn(T) -> void
-  expr 29:33    UnaryExpr      :: i32
   expr 29:5     IfExpr         :: void
   expr 29:8     BinaryExpr     :: bool
   expr 29:8     FieldExpr      :: i32[] | null

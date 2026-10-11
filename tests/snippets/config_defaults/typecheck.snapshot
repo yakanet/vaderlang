@@ -26,7 +26,6 @@
   expr 24:18    NullCoalesceExpr :: i32
   expr 24:26    IdentExpr      :: string
   expr 25:16    IdentExpr      :: i32
-  expr 27:12    UnaryExpr      :: i32
   expr 33:14    IdentExpr      :: string[]
   expr 34:18    CallExpr       :: i32 | null
   expr 34:18    IdentExpr      :: fn(string) -> i32 | null
@@ -39,7 +38,6 @@
   expr 41:12    IdentExpr      :: fn(string) -> i32 | null
   expr 41:12    NullCoalesceExpr :: i32
   expr 41:20    IdentExpr      :: string
-  expr 41:35    UnaryExpr      :: i32
   expr 47:14    IdentExpr      :: string[]
   expr 48:20    CallExpr       :: i32 | null
   expr 48:20    IdentExpr      :: fn(string) -> i32 | null

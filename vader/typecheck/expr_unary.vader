@@ -18,7 +18,7 @@ export infer_unary :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     // `-x` / `~x` over a Free* literal propagate the enclosing `expected`
-    // through so `i64(-250)` types the `-` as i64. `!x` stays bool, no
+    // through so `i64(-(250))` types the `-` as i64. `!x` stays bool, no
     // narrowing helpful.
     operand_hint: Type | null = null
     if e.op != .Not { operand_hint = expected }

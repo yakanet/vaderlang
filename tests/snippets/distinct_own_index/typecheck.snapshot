@@ -25,7 +25,6 @@
   expr 29:39    CallExpr       :: i32
   expr 29:39    IdentExpr      :: type
   expr 29:43    IdentExpr      :: usize
-  expr 35:39    UnaryExpr      :: i32
   expr 39:16    CallExpr       :: Offset!
   expr 39:16    IdentExpr      :: type
   expr 39:23    SeqLitExpr     :: Offset!

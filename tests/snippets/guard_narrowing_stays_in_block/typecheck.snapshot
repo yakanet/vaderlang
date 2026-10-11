@@ -66,7 +66,6 @@
   expr 37:8     IdentExpr      :: A | B | C
   expr 38:16    FieldExpr      :: i32
   expr 38:16    IdentExpr      :: C
-  expr 40:12    UnaryExpr      :: i32
   expr 44:13    StringLitExpr  :: string
   expr 44:16    CallExpr       :: i32
   expr 44:16    IdentExpr      :: fn(A | B | C, A | B | C) -> i32

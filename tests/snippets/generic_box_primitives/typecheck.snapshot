@@ -12,12 +12,10 @@
   expr 21:13    StructLitExpr  :: Box<f32>!
   expr 22:13    StructLitExpr  :: Box<f64>!
   expr 23:13    StructLitExpr  :: Box<i16>!
-  expr 23:32    UnaryExpr      :: i16
   expr 24:13    StructLitExpr  :: Box<u16>!
   expr 25:13    StructLitExpr  :: Box<i64>!
   expr 26:13    StructLitExpr  :: Box<usize>!
   expr 27:13    StructLitExpr  :: Box<i32>!
-  expr 27:32    UnaryExpr      :: i32
   expr 28:13    StructLitExpr  :: Box<string>!
   expr 28:32    StringLitExpr  :: string
   expr 31:13    StringLitExpr  :: string

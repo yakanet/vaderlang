@@ -182,7 +182,7 @@ static int32_t snippet_main(void) {
     };
     vader_gc_top = &gc_frame;
 #line 23 "tests/snippets/float_ieee_equality/_main.vader"
-    l0 = -(0.0);
+    l0 = -0.0;
 #line 24 "tests/snippets/float_ieee_equality/_main.vader"
     l1 = 0.0 / 0.0;
 #line 25 "tests/snippets/float_ieee_equality/_main.vader"

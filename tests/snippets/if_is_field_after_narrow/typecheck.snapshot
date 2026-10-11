@@ -20,7 +20,6 @@
   expr 31:5     IfExpr         :: void
   expr 31:8     BinaryExpr     :: bool
   expr 31:8     IdentExpr      :: ArrayVal | IntVal
-  expr 32:12    UnaryExpr      :: i32
   expr 37:13    IdentExpr      :: ArrayVal!
   expr 37:31    FieldExpr      :: i32[]
   expr 37:31    IdentExpr      :: ArrayVal
@@ -28,7 +27,6 @@
   expr 37:5     IfExpr         :: void
   expr 37:8     BinaryExpr     :: bool
   expr 37:8     IdentExpr      :: ArrayVal | IntVal | StructVal
-  expr 38:12    UnaryExpr      :: i32
   expr 42:15    StructLitExpr  :: StructVal!
   expr 42:53    SeqLitExpr     :: i32[]
   expr 43:15    StructLitExpr  :: ArrayVal!

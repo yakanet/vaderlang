@@ -388,13 +388,11 @@
   expr 308:43   SeqLitExpr     :: i32[]
   expr 308:5    CallExpr       :: void
   expr 308:5    IdentExpr      :: fn(T) -> void
-  expr 308:50   UnaryExpr      :: i32
   expr 308:64   CallExpr       :: i32[]!
   expr 308:64   CallExpr       :: usize
   expr 308:64   FieldExpr      :: fn() -> usize
   expr 308:64   IdentExpr      :: fn(i32[]) -> i32[]!
   expr 308:74   SeqLitExpr     :: i32[]
-  expr 308:81   UnaryExpr      :: i32
   expr 309:13   StringLitExpr  :: string
   expr 309:29   CallExpr       :: i32
   expr 309:29   IdentExpr      :: fn(i32[]) -> i32
@@ -404,7 +402,6 @@
   expr 309:56   CallExpr       :: i32
   expr 309:56   IdentExpr      :: fn(i32[]) -> i32
   expr 309:69   SeqLitExpr     :: i32[]
-  expr 309:73   UnaryExpr      :: i32
   expr 30:14    RangeExpr      :: Range<i32>!
   expr 30:18    IdentExpr      :: i32
   expr 310:13   StringLitExpr  :: string
@@ -541,7 +538,6 @@
   expr 53:13    CallExpr       :: void
   expr 53:13    FieldExpr      :: fn(i32) -> void
   expr 53:13    IdentExpr      :: i32[]!
-  expr 53:22    UnaryExpr      :: i32
   expr 56:12    IdentExpr      :: i32[]!
   expr 62:17    SeqLitExpr     :: i32[]!
   expr 63:14    RangeExpr      :: Range<i32>!
@@ -574,7 +570,6 @@
   expr 90:12    BinaryExpr     :: bool
   expr 90:12    IdentExpr      :: i32
   expr 90:9     IfExpr         :: void
-  expr 91:20    UnaryExpr      :: i32
   expr 93:18    IdentExpr      :: i32
   expr 93:9     CallExpr       :: void
   expr 93:9     FieldExpr      :: fn(i32) -> void

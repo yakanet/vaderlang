@@ -21,7 +21,6 @@
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
   expr 20:8     IdentExpr      :: V02
-  expr 21:12    UnaryExpr      :: i32
   expr 27:13    IdentExpr      :: V01!
   expr 27:31    BinaryExpr     :: i32
   expr 27:31    FieldExpr      :: i32

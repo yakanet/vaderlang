@@ -149,11 +149,6 @@ export evaluate_unary_expr :: fn(
     inner :: recurse(expr.operand, context)
     operand :: inner.value ?? return inner
     rname :: resolved_int_name(context, expr.id)
-    // A negative literal is one value: its magnitude alone may lie past the type
-    // (`-9_223_372_036_854_775_808`), where a checked negation stops.
-    if expr.op == .Neg && expr.operand is AST.IntLitExpr && operand is IntValue {
-        return normalize_int_result(ok(int_val_typed(0 -% operand.value, operand.type_name)), rname)
-    }
     combined :: match expr.op {
         .Neg    -> unary_neg(expr, operand, rname)
         .Not    -> unary_not(expr, operand)

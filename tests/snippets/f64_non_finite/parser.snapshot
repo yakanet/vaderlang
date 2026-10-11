@@ -48,12 +48,8 @@
         "kind": "BinaryExpr",
         "op": "mul",
         "left": {
-          "kind": "UnaryExpr",
-          "op": "neg",
-          "operand": {
-            "kind": "FloatLitExpr",
-            "value": 1e+308
-          }
+          "kind": "FloatLitExpr",
+          "value": -1e+308
         },
         "right": {
           "kind": "FloatLitExpr",

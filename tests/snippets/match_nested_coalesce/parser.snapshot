@@ -266,12 +266,8 @@
               },
               "guard": null,
               "body": {
-                "kind": "UnaryExpr",
-                "op": "neg",
-                "operand": {
-                  "kind": "IntLitExpr",
-                  "value": "1n"
-                }
+                "kind": "IntLitExpr",
+                "value": "-1n"
               }
             }
           ]
@@ -358,12 +354,8 @@
                 }
               },
               "body": {
-                "kind": "UnaryExpr",
-                "op": "neg",
-                "operand": {
-                  "kind": "IntLitExpr",
-                  "value": "1n"
-                }
+                "kind": "IntLitExpr",
+                "value": "-1n"
               }
             },
             {
@@ -755,12 +747,8 @@
                       {
                         "name": null,
                         "value": {
-                          "kind": "UnaryExpr",
-                          "op": "neg",
-                          "operand": {
-                            "kind": "IntLitExpr",
-                            "value": "8n"
-                          }
+                          "kind": "IntLitExpr",
+                          "value": "-8n"
                         },
                         "spread": false
                       }

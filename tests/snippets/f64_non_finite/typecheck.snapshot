@@ -6,7 +6,6 @@
   ConstDecl      NOT_A_NUM            :: f64
   ConstDecl      POS_INF              :: f64
   expr 10:15    BinaryExpr     :: f64
-  expr 10:15    UnaryExpr      :: f64
   expr 11:17    BinaryExpr     :: f64
   expr 14:12    SeqLitExpr     :: f64[]!
   expr 14:13    IdentExpr      :: f64

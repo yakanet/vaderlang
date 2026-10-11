@@ -401,7 +401,6 @@
   expr 40:16    IdentExpr      :: i64
   expr 40:9     IfExpr         :: void
   expr 41:20    IdentExpr      :: i64
-  expr 44:12    UnaryExpr      :: i64
   expr 49:14    IdentExpr      :: Iterator<string>!
   expr 50:12    BinaryExpr     :: bool
   expr 50:12    IdentExpr      :: string

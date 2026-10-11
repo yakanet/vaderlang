@@ -6,9 +6,6 @@
   FnDecl         min_i32              :: fn() -> i64
   FnDecl         near                 :: fn() -> i64
   FnDecl         over                 :: fn() -> i64
-  expr 16:26    UnaryExpr      :: i64
-  expr 17:26    UnaryExpr      :: i64
-  expr 18:26    UnaryExpr      :: i64
   expr 22:13    StringLitExpr  :: string
   expr 22:20    CallExpr       :: i64
   expr 22:20    IdentExpr      :: fn() -> i64

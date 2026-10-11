@@ -52,7 +52,7 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr! {
     }
     type :: ctx.types.expr_type(expr)
     match expr {
-        is IntLitExpr    -> { return LoweredIntLit { .span = expr.span, .type = default_if_free(type), .value = i64(expr.value) } }
+        is IntLitExpr    -> { return LoweredIntLit { .span = expr.span, .type = default_if_free(type), .value = int_literal_value(expr) } }
         is FloatLitExpr  -> { return LoweredFloatLit { .span = expr.span, .type = default_if_free(type), .value = expr.value } }
         is BoolLitExpr   -> { return LoweredBoolLit { .span = expr.span, .type = TY_BOOL, .value = expr.value } }
         is NullLitExpr   -> { return LoweredNullLit { .span = expr.span, .type = TY_NULL } }
@@ -117,16 +117,6 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr! {
         }
         is IndexExpr -> { return lower_index(ctx, expr, type) }
         is UnaryExpr -> {
-            // A negative literal is one value: its magnitude alone may lie past the
-            // type (`-9_223_372_036_854_775_808`), where a checked negation stops.
-            operand :: expr.operand
-            if expr.op == .Neg && operand is IntLitExpr {
-                return LoweredIntLit {
-                    .span  = expr.span,
-                    .type  = default_if_free(type),
-                    .value = 0 -% i64(operand.value),
-                }
-            }
             return LoweredUnary {
                 .span = expr.span, .type = type,
                 .op = lower_unary_op(expr.op),

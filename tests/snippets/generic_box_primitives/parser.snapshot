@@ -304,12 +304,8 @@
                   "kind": "field",
                   "name": "v",
                   "value": {
-                    "kind": "UnaryExpr",
-                    "op": "neg",
-                    "operand": {
-                      "kind": "IntLitExpr",
-                      "value": "1000n"
-                    }
+                    "kind": "IntLitExpr",
+                    "value": "-1000n"
                   }
                 }
               ]
@@ -448,12 +444,8 @@
                   "kind": "field",
                   "name": "v",
                   "value": {
-                    "kind": "UnaryExpr",
-                    "op": "neg",
-                    "operand": {
-                      "kind": "IntLitExpr",
-                      "value": "7n"
-                    }
+                    "kind": "IntLitExpr",
+                    "value": "-7n"
                   }
                 }
               ]

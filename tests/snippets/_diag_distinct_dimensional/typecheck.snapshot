@@ -31,7 +31,6 @@
   expr 25:12    BinaryExpr     :: bool
   expr 25:12    IdentExpr      :: i64
   expr 25:16    IdentExpr      :: i64
-  expr 25:27    UnaryExpr      :: i32
   expr 25:9     IfExpr         :: void
   expr 26:12    BinaryExpr     :: bool
   expr 26:12    IdentExpr      :: i64
@@ -53,4 +52,3 @@
   expr 35:5     IfExpr         :: void
   expr 35:8     BinaryExpr     :: bool
   expr 35:8     IdentExpr      :: Instant
-  expr 36:12    UnaryExpr      :: i32

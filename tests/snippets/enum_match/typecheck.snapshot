@@ -68,7 +68,6 @@
   expr 43:5     IdentExpr      :: fn(T) -> void
   expr 46:10    CallExpr       :: Severity
   expr 46:10    IdentExpr      :: fn(i32) -> Severity
-  expr 46:19    UnaryExpr      :: i32
   expr 47:11    IdentExpr      :: Severity
   expr 47:5     MatchExpr      :: void
   expr 48:21    CallExpr       :: void

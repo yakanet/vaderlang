@@ -11,13 +11,12 @@ import "std/string_builder"
 import "vader/diagnostics"
 AST :: import "toolchain/ast"
 
-/// Evaluate an `IntLitExpr`. The parser stores the unsigned magnitude
-/// (negatives wrap a `UnaryExpr.Neg` around a positive lit), and the
-/// suffix (`i32`, `usize`, …) drives the value's `type_name`. Default
-/// is `i32` to match the typechecker's free-int defaulting.
+/// Evaluate an `IntLitExpr`, signed as written (`AST.int_literal_value`). Its
+/// `type_name` defaults to `i32`, as the typechecker defaults a free int.
 /// @param literal  the literal node.
 /// @return         the wrapped int value.
-export evaluate_int_lit :: fn(literal: AST.IntLitExpr) -> EvalResult = ok(int_val(i64(literal.value)))
+export evaluate_int_lit :: fn(literal: AST.IntLitExpr) -> EvalResult =
+    ok(int_val(AST.int_literal_value(literal)))
 
 /// Evaluate a `FloatLitExpr` — always a free `f64` value (no suffix form).
 /// @param literal  the literal node.

@@ -13,7 +13,6 @@
   expr 19:12    IdentExpr      :: Money
   expr 19:26    FieldExpr      :: i32
   expr 19:26    IdentExpr      :: Money
-  expr 19:48    UnaryExpr      :: i32
   expr 19:9     IfExpr         :: void
   expr 20:12    BinaryExpr     :: bool
   expr 20:12    FieldExpr      :: i32

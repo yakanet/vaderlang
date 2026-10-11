@@ -477,9 +477,7 @@
                 __buf_8 :Buffer
               arg1:
                 __off_9 :usize
-    let negative_zero: f64 =
-      neg :f64
-        float(0.0) :f64
+    let negative_zero: f64 = float(-0.0) :f64
     call :void
       callee:
         std_io$println__string :void

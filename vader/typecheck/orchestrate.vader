@@ -3064,7 +3064,7 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
         return
     }
     got :: check_expr(cd.value, annot, typed, diags)
-    final :: annot ?? auto_freeze_module_const(default_if_free(got))
+    final :: annot ?? auto_freeze_module_const(defaulted_binding_type(cd.value, got, diags))
     typed.decl_types[sym.id] = final
     reject_const_reaching_mutable_level(cd, got, typed, diags)
 }

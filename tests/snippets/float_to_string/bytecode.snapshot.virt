@@ -34,20 +34,13 @@ impl 10 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local $unop_20 f64
-  local $unop_22 f64
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $call_39 string
-  local $call_44 string
-  local $call_58 string
-  f64.const 0.0 0
-  f64.neg
-  local.set 0   ; $unop_20
-  f64.const 2.5 4612811918334230528
-  f64.neg
-  local.set 1   ; $unop_22
+  local $call_37 string
+  local $call_42 string
+  local inf f64
+  local $call_56 string
   f64.const 0.0 0
   f64.const 1.0 4607182418800017408
   f64.const 3.0 4613937818241073152
@@ -67,65 +60,65 @@ fn 0 snippet$main () -> i32
   f64.const 6.022e+23 4962933069378480659
   f64.const 5e-324 1
   f64.const 1.7976931348623157e+308 9218868437227405311
-  local.get 0   ; $unop_20
-  local.get 1   ; $unop_22
+  f64.const -0.0 9223372036854775808
+  f64.const -2.5 13836183955189006336
   array.new 14 21   ; f64[]
-  local.tee 2   ; __for_arr_0
+  local.tee 0   ; __for_arr_0
   array.len
-  local.set 3   ; __for_len_1
+  local.set 1   ; __for_len_1
   i64.const 0
-  local.set 4   ; __for_i_2
+  local.set 2   ; __for_i_2
   loop $L0 void
-    local.get 4   ; __for_i_2
-    local.get 3   ; __for_len_1
+    local.get 2   ; __for_i_2
+    local.get 1   ; __for_len_1
     u64.lt
     if $L1 void
-      local.get 2   ; __for_arr_0
-      local.get 4   ; __for_i_2
+      local.get 0   ; __for_arr_0
+      local.get 2   ; __for_i_2
       load_slot_f64
       call 4   ; std_core$f64$Display$to_string
       call 27   ; std_io$println__string
-      local.get 4   ; __for_i_2
+      local.get 2   ; __for_i_2
       i64.const 1
       i64.add
-      local.set 4   ; __for_i_2
+      local.set 2   ; __for_i_2
       br $L0
     end $L1
   end $L0
   f64.const 3.141592653589793 4614256656552045848
   call 4   ; std_core$f64$Display$to_string
-  local.set 5   ; $call_39
+  local.set 3   ; $call_37
   f64.const 2.5e-8 4493141015233605448
   f64.const 1.0 4607182418800017408
   f64.mul
   call 4   ; std_core$f64$Display$to_string
-  local.set 6   ; $call_44
+  local.set 4   ; $call_42
   string.const 0   ; "pi = "
-  local.get 5   ; $call_39
+  local.get 3   ; $call_37
   string.const 1   ; ", sci = "
-  local.get 6   ; $call_44
+  local.get 4   ; $call_42
   call 1   ; concat_4
   call 27   ; std_io$println__string
   f64.const 1.0 4607182418800017408
   f64.const 0.0 0
   f64.div
-  local.tee 0   ; $unop_20
+  local.tee 5   ; inf
   call 4   ; std_core$f64$Display$to_string
-  local.set 5   ; $call_39
-  local.get 0   ; $unop_20
+  local.set 3   ; $call_37
+  local.get 5   ; inf
   f64.neg
   call 4   ; std_core$f64$Display$to_string
-  local.set 6   ; $call_44
+  local.set 4   ; $call_42
   f64.const 0.0 0
   f64.const 0.0 0
   f64.div
   call 4   ; std_core$f64$Display$to_string
-  local.set 7   ; $call_58
-  local.get 5   ; $call_39
+  local.set 6   ; $call_56
+  local.get 3   ; $call_37
   string.const 2   ; " "
-  local.get 6   ; $call_44
+  local.get 4   ; $call_42
   string.const 2   ; " "
-  local.get 7   ; $call_58
+  local.get 6   ; $call_56
   call 2   ; concat_5
   call 27   ; std_io$println__string
   return.lit i32.const 0

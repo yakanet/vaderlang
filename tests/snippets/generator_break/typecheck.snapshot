@@ -9,7 +9,6 @@
   expr 15:14    CallExpr       :: __genstate_positives_until_big<i32>!
   expr 15:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
   expr 15:34    SeqLitExpr     :: i32[]
-  expr 15:35    UnaryExpr      :: i32
   expr 15:53    CallExpr       :: void
   expr 15:53    IdentExpr      :: fn(T) -> void
   expr 15:61    StringLitExpr  :: string

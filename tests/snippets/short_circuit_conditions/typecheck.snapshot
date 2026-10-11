@@ -163,7 +163,6 @@
   expr 54:8     BinaryExpr     :: bool
   expr 54:8     BinaryExpr     :: bool
   expr 54:8     IdentExpr      :: i32 | null
-  expr 55:16    UnaryExpr      :: i32
   expr 57:10    BinaryExpr     :: bool
   expr 57:10    IdentExpr      :: i32
   expr 57:20    BinaryExpr     :: bool
@@ -213,7 +212,6 @@
   expr 80:16    IdentExpr      :: fn(i32 | null, i32) -> i32
   expr 80:34    CallExpr       :: i32
   expr 80:34    IdentExpr      :: fn(i32 | null, i32) -> i32
-  expr 80:43    UnaryExpr      :: i32
   expr 80:5     CallExpr       :: void
   expr 80:5     IdentExpr      :: fn(T) -> void
   expr 80:50    CallExpr       :: i32
@@ -232,5 +230,4 @@
   expr 82:59    IdentExpr      :: fn(i32 | null, bool) -> i32
   expr 82:80    CallExpr       :: i32
   expr 82:80    IdentExpr      :: fn(i32 | null, bool) -> i32
-  expr 82:88    UnaryExpr      :: i32
   expr 82:9     StringLitExpr  :: string

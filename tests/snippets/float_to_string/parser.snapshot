@@ -121,20 +121,12 @@
                   "value": 1.7976931348623157e+308
                 },
                 {
-                  "kind": "UnaryExpr",
-                  "op": "neg",
-                  "operand": {
-                    "kind": "FloatLitExpr",
-                    "value": 0
-                  }
+                  "kind": "FloatLitExpr",
+                  "value": 0
                 },
                 {
-                  "kind": "UnaryExpr",
-                  "op": "neg",
-                  "operand": {
-                    "kind": "FloatLitExpr",
-                    "value": 2.5
-                  }
+                  "kind": "FloatLitExpr",
+                  "value": -2.5
                 }
               ]
             }

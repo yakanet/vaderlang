@@ -1307,12 +1307,8 @@
                   {
                     "kind": "ReturnStmt",
                     "value": {
-                      "kind": "UnaryExpr",
-                      "op": "neg",
-                      "operand": {
-                        "kind": "IntLitExpr",
-                        "value": "1n"
-                      }
+                      "kind": "IntLitExpr",
+                      "value": "-1n"
                     }
                   }
                 ],
@@ -1913,12 +1909,8 @@
                             {
                               "name": null,
                               "value": {
-                                "kind": "UnaryExpr",
-                                "op": "neg",
-                                "operand": {
-                                  "kind": "IntLitExpr",
-                                  "value": "1n"
-                                }
+                                "kind": "IntLitExpr",
+                                "value": "-1n"
                               },
                               "spread": false
                             }
@@ -2148,12 +2140,8 @@
                             {
                               "name": null,
                               "value": {
-                                "kind": "UnaryExpr",
-                                "op": "neg",
-                                "operand": {
-                                  "kind": "IntLitExpr",
-                                  "value": "3n"
-                                }
+                                "kind": "IntLitExpr",
+                                "value": "-3n"
                               },
                               "spread": false
                             },

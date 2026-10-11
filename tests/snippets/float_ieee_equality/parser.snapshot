@@ -201,12 +201,8 @@
               "name": "f64"
             },
             "value": {
-              "kind": "UnaryExpr",
-              "op": "neg",
-              "operand": {
-                "kind": "FloatLitExpr",
-                "value": 0
-              }
+              "kind": "FloatLitExpr",
+              "value": 0
             }
           },
           {

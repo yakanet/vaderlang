@@ -22,7 +22,6 @@
   expr 23:24    CallExpr       :: i64
   expr 23:24    IdentExpr      :: type
   expr 23:28    IdentExpr      :: Money
-  expr 23:44    UnaryExpr      :: i32
   expr 23:9     IfExpr         :: void
   expr 24:12    BinaryExpr     :: bool
   expr 24:12    CallExpr       :: i64

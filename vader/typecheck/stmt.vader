@@ -673,13 +673,12 @@ check_let :: fn(
     }
     record_local_producer(s, typed)
     declared: Type = TY_UNRESOLVED
-    match ann {
-        is null -> { declared = default_if_free(got) }
-        _       -> {
-            declared = ann
-            if !flows_into(got, ann, s.value.id, typed) {
-                push_level_mismatch(got, ann, s.span, .TypeMismatch, s.value, typed, diags)
-            }
+    if ann == null {
+        declared = defaulted_binding_type(s.value, got, diags)
+    } else {
+        declared = ann
+        if !flows_into(got, ann, s.value.id, typed) {
+            push_level_mismatch(got, ann, s.span, .TypeMismatch, s.value, typed, diags)
         }
     }
     // Layer 5b — `t :: <type-expr>` inside a fn body is an in-fn type

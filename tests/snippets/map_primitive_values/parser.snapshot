@@ -1020,12 +1020,8 @@
               }
             },
             "value": {
-              "kind": "UnaryExpr",
-              "op": "neg",
-              "operand": {
-                "kind": "IntLitExpr",
-                "value": "1000n"
-              }
+              "kind": "IntLitExpr",
+              "value": "-1000n"
             }
           },
           {

@@ -124,8 +124,8 @@ fn 3 snippet$main () -> i32
   local and_res bool
   local n3 any
   local and_res bool
+  local $cast_331 f64
   local $cast_332 f64
-  local $cast_333 f64
   i32.const 1
   struct.new 1   ; snippet$Point
   local.set 0   ; p
@@ -907,8 +907,7 @@ fn 3 snippet$main () -> i32
   f64.const 0.0 0
   retag 23   ; f64
   local.set 4   ; s2
-  f64.const 0.0 0
-  f64.neg
+  f64.const -0.0 9223372036854775808
   retag 23   ; f64
   local.set 5   ; s3
   i64.const 11
@@ -930,12 +929,12 @@ fn 3 snippet$main () -> i32
   if $L39 void
     local.get 3   ; s1
     ref.cast 23   ; f64
-    local.set 15   ; $cast_332
+    local.set 15   ; $cast_331
     local.get 3   ; s1
     ref.cast 23   ; f64
-    local.set 16   ; $cast_333
-    local.get 15   ; $cast_332
-    local.get 16   ; $cast_333
+    local.set 16   ; $cast_332
+    local.get 15   ; $cast_331
+    local.get 16   ; $cast_332
     f64.eq
     local.set 9   ; and_res
   else
@@ -984,12 +983,12 @@ fn 3 snippet$main () -> i32
   if $L43 void
     local.get 4   ; s2
     ref.cast 23   ; f64
-    local.set 15   ; $cast_332
+    local.set 15   ; $cast_331
     local.get 5   ; s3
     ref.cast 23   ; f64
-    local.set 16   ; $cast_333
-    local.get 15   ; $cast_332
-    local.get 16   ; $cast_333
+    local.set 16   ; $cast_332
+    local.get 15   ; $cast_331
+    local.get 16   ; $cast_332
     f64.eq
     local.set 9   ; and_res
   else

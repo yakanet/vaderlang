@@ -330,7 +330,7 @@ c_variadic_fixed_of :: fn(decorators: Decorator[]) -> i32 {
         if d.name == "c_variadic" && d.args.len() == 1 {
             a :: d.args[0]
             if a is IntLitExpr {
-                return i32(a.value)
+                return i32(int_literal_value(a))
             }
         }
     }

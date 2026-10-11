@@ -12,7 +12,6 @@
   expr 17:56    IdentExpr      :: f64 | string
   expr 18:12    StringLitExpr  :: string
   expr 19:12    StringLitExpr  :: string
-  expr 23:14    UnaryExpr      :: f64
   expr 24:15    BinaryExpr     :: f64
   expr 25:22    IdentExpr      :: f64
   expr 27:22    IdentExpr      :: f64

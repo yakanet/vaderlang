@@ -493,12 +493,8 @@
                                     "kind": "field",
                                     "name": "a",
                                     "value": {
-                                      "kind": "UnaryExpr",
-                                      "op": "neg",
-                                      "operand": {
-                                        "kind": "IntLitExpr",
-                                        "value": "1n"
-                                      }
+                                      "kind": "IntLitExpr",
+                                      "value": "-1n"
                                     }
                                   }
                                 ]

@@ -1836,14 +1836,35 @@ emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
     // A binary operand binds looser than the unary, so it must be parenthesised
     // to preserve precedence — `!(a || b)`, `-(a + b)` — otherwise the re-emitted
     // source reparses as `(!a) || b`. (The `!is` sugar above already handled the
-    // one binary case that needs no parens.)
-    if x.operand is p.BinaryExpr || x.operand is p.NullCoalesceExpr {
+    // one binary case that needs no parens.) A negation of an operand that starts
+    // with a number keeps them too: `-5` and `-5.abs()` would reparse with the `-`
+    // inside the literal.
+    negated_number :: x.op == .Neg && starts_with_number(x.operand)
+    if x.operand is p.BinaryExpr || x.operand is p.NullCoalesceExpr || negated_number {
         self.write("(")
         self.emit_expr(x.operand)
         self.write(")")
     } else {
         self.emit_expr(x.operand)
     }
+}
+
+// Whether `e` prints starting with a number literal: the literal itself, or a
+// postfix chain on one (`5.abs()`, `5.0.to_string()[0]`).
+starts_with_number :: fn(e: p.Expr) -> bool {
+    if e is p.IntLitExpr || e is p.FloatLitExpr {
+        return true
+    }
+    if e is p.FieldExpr {
+        return starts_with_number(e.target)
+    }
+    if e is p.CallExpr {
+        return starts_with_number(e.callee)
+    }
+    if e is p.IndexExpr {
+        return starts_with_number(e.target)
+    }
+    return false
 }
 
 emit_binary :: fn(self: Printer, x: p.BinaryExpr) -> void {

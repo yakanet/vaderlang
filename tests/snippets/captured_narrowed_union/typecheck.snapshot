@@ -26,7 +26,6 @@
   expr 22:43    FieldExpr      :: i32
   expr 22:43    IdentExpr      :: Point
   expr 24:12    LambdaExpr     :: fn() -> i32
-  expr 24:33    UnaryExpr      :: i32
   expr 28:13    StringLitExpr  :: string
   expr 28:16    CallExpr       :: fn() -> i32
   expr 28:16    CallExpr       :: i32

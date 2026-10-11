@@ -31,7 +31,6 @@
   expr 31:9     IfExpr         :: void
   expr 32:20    FieldExpr      :: i32
   expr 32:20    IdentExpr      :: Refused
-  expr 36:12    UnaryExpr      :: i32
   expr 41:13    IdentExpr      :: Err!
   expr 41:20    BinaryExpr     :: bool
   expr 41:20    IdentExpr      :: string

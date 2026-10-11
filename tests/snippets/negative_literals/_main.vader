@@ -1,0 +1,30 @@
+// A `-` written against a number literal is part of it: `-5` is one value, a
+// postfix applies to the negative value (`-5.to_string()` is `"-5"`), and `-128`
+// is the least `i8`. `-(5)`, `-(5).abs()` and `-x` stay negations, and a `-`
+// after an operand is a subtraction (`a -5`).
+module "snippet"
+
+import "std/io"
+import "std/math"
+
+LEAST: i8: -128
+MIN: i64: -9_223_372_036_854_775_808
+
+sign :: fn(n: i32) -> string = match n {
+    -1 -> "minus one"
+    0  -> "zero"
+    _  -> "other"
+}
+
+main :: fn() -> i32 {
+    a :: 5
+    println("${a} ${-5} ${5.0} ${-5.0} ${-5.to_string()} ${-5.0.to_string()}")
+    x :: 7
+    println("${-(5)} ${-x} ${a -5} ${a - -5} ${-(-5)} ${-(5.0)} ${-(5).abs()} ${-5.abs()}")
+    total := 0
+    for i in -2..<2 {
+        total += i
+    }
+    println("${total} ${[-1, -2][1]} ${sign(-1)} ${sign(-2)} ${LEAST} ${MIN}")
+    return 0
+}

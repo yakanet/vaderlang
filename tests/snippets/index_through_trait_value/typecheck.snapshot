@@ -26,7 +26,6 @@
   expr 27:68    IndexExpr      :: i32 | null
   expr 27:68    NullCoalesceExpr :: i32
   expr 27:74    IdentExpr      :: string
-  expr 27:82    UnaryExpr      :: i32
   expr 30:14    IdentExpr      :: C
   expr 30:14    IndexExpr      :: i32
   expr 30:16    StringLitExpr  :: string
@@ -102,13 +101,11 @@
   expr 54:16    IndexExpr      :: i32 | null
   expr 54:16    NullCoalesceExpr :: i32
   expr 54:21    IdentExpr      :: i64
-  expr 54:27    UnaryExpr      :: i32
   expr 54:33    IdentExpr      :: MutableMap<i64, i32>!
   expr 54:33    IndexExpr      :: i32 | null
   expr 54:33    NullCoalesceExpr :: i32
   expr 54:38    BinaryExpr     :: i64
   expr 54:38    IdentExpr      :: i64
-  expr 54:48    UnaryExpr      :: i32
   expr 54:5     CallExpr       :: void
   expr 54:5     IdentExpr      :: fn(T) -> void
   expr 54:54    CallExpr       :: usize

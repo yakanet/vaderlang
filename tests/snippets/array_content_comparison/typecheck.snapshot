@@ -70,7 +70,6 @@
   expr 27:52    SeqLitExpr     :: Point![]
   expr 27:53    StructLitExpr  :: Point!
   expr 27:71    StructLitExpr  :: Point!
-  expr 28:25    UnaryExpr      :: f64
   expr 29:13    StringLitExpr  :: string
   expr 29:30    CallExpr       :: bool
   expr 29:30    FieldExpr      :: fn(f64[]) -> bool
