@@ -222,10 +222,25 @@
               int(0) :usize
     block :void
       let i: i32 = lo :i32
-      loop while (<…>)
+      let __more_turns_0: bool =
+        lte :bool
+          l:
+            i :i32
+          r:
+            hi :i32
+      loop while (__more_turns_0 :bool)
         ~>
           LoweredArrayPush cached
       step
+        assign
+          target:
+            __more_turns_0 :bool
+          value:
+            lt :bool
+              l:
+                i :i32
+              r:
+                hi :i32
         assign
           target:
             i :i32

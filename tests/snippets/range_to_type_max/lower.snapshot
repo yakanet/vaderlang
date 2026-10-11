@@ -1,0 +1,593 @@
+# Lower
+
+## snippet
+  fn snippet$turns_to_max() -> i32
+    let n: i32 = int(0) :i32
+    block :void
+      let b: u8 =
+        cast → u8
+          int(250) :u8
+      let __more_turns_0: bool =
+        lte :bool
+          l:
+            b :u8
+          r:
+            int(255) :u8
+      loop while (__more_turns_0 :bool)
+        assign
+          target:
+            n :i32
+          value:
+            add_checked :i32
+              l:
+                n :i32
+              r:
+                int(1) :i32
+      step
+        assign
+          target:
+            __more_turns_0 :bool
+          value:
+            lt :bool
+              l:
+                b :u8
+              r:
+                int(255) :u8
+        assign
+          target:
+            b :u8
+          value:
+            add :u8
+              l:
+                b :u8
+              r:
+                int(1) :u8
+    return n :i32
+  fn snippet$whole_byte_range() -> i32
+    let n: i32 = int(0) :i32
+    block :void
+      let b: u8 =
+        cast → u8
+          int(0) :u8
+      let __more_turns_0: bool =
+        lte :bool
+          l:
+            b :u8
+          r:
+            int(255) :u8
+      loop while (__more_turns_0 :bool)
+        assign
+          target:
+            n :i32
+          value:
+            add_checked :i32
+              l:
+                n :i32
+              r:
+                int(1) :i32
+      step
+        assign
+          target:
+            __more_turns_0 :bool
+          value:
+            lt :bool
+              l:
+                b :u8
+              r:
+                int(255) :u8
+        assign
+          target:
+            b :u8
+          value:
+            add :u8
+              l:
+                b :u8
+              r:
+                int(1) :u8
+    return n :i32
+  fn snippet$whole_signed_range() -> i32
+    let n: i32 = int(0) :i32
+    block :void
+      let b: i8 =
+        cast → i8
+          int(-128) :i8
+      let __more_turns_0: bool =
+        lte :bool
+          l:
+            b :i8
+          r:
+            int(127) :i8
+      loop while (__more_turns_0 :bool)
+        if :void
+          cond:
+            eq :bool
+              l:
+                b :i8
+              r:
+                int(127) :i8
+          then:
+            continue
+        assign
+          target:
+            n :i32
+          value:
+            add_checked :i32
+              l:
+                n :i32
+              r:
+                int(1) :i32
+      step
+        assign
+          target:
+            __more_turns_0 :bool
+          value:
+            lt :bool
+              l:
+                b :i8
+              r:
+                int(127) :i8
+        assign
+          target:
+            b :i8
+          value:
+            add :i8
+              l:
+                b :i8
+              r:
+                int(1) :i8
+    return n :i32
+  fn snippet$wide_to_max() -> i32
+    let n: i32 = int(0) :i32
+    block :void
+      let v: u64 =
+        cast → u64
+          int(18446744073709551610) :u64
+      let __more_turns_0: bool =
+        lte :bool
+          l:
+            v :u64
+          r:
+            int(18446744073709551615) :u64
+      loop while (__more_turns_0 :bool)
+        assign
+          target:
+            n :i32
+          value:
+            add_checked :i32
+              l:
+                n :i32
+              r:
+                int(1) :i32
+      step
+        assign
+          target:
+            __more_turns_0 :bool
+          value:
+            lt :bool
+              l:
+                v :u64
+              r:
+                int(18446744073709551615) :u64
+        assign
+          target:
+            v :u64
+          value:
+            add :u64
+              l:
+                v :u64
+              r:
+                int(1) :u64
+    return n :i32
+  fn snippet$up_to(hi: u8) -> i32
+    let n: i32 = int(0) :i32
+    block :void
+      let b: u8 =
+        cast → u8
+          int(250) :u8
+      let __more_turns_0: bool =
+        lte :bool
+          l:
+            b :u8
+          r:
+            hi :u8
+      loop while (__more_turns_0 :bool)
+        assign
+          target:
+            n :i32
+          value:
+            add_checked :i32
+              l:
+                n :i32
+              r:
+                int(1) :i32
+      step
+        assign
+          target:
+            __more_turns_0 :bool
+          value:
+            lt :bool
+              l:
+                b :u8
+              r:
+                hi :u8
+        assign
+          target:
+            b :u8
+          value:
+            add :u8
+              l:
+                b :u8
+              r:
+                int(1) :u8
+    return n :i32
+  fn snippet$fused_to_max() -> i32
+    let n: i32 = int(0) :i32
+    block :void
+      let __fuse_lo_0: u8 =
+        cast → u8
+          int(250) :u8
+      let __fuse_hi_1: u8 =
+        cast → u8
+          int(255) :u8
+      let pred: fn(u8) -> bool = __lambda_snippet_0 :fn(u8) -> bool
+      let x: u8 = __fuse_lo_0 :u8
+      let __more_turns_2: bool =
+        lte :bool
+          l:
+            x :u8
+          r:
+            __fuse_hi_1 :u8
+      loop while (__more_turns_2 :bool)
+        ~>
+          if :void
+            cond:
+              call :bool
+                callee:
+                  __lambda_snippet_0 :fn(u8) -> bool
+                arg0:
+                  x :u8
+            then:
+              let b: u8 = x :u8
+              assign
+                target:
+                  n :i32
+                value:
+                  add_checked :i32
+                    l:
+                      n :i32
+                    r:
+                      int(1) :i32
+      step
+        assign
+          target:
+            __more_turns_2 :bool
+          value:
+            lt :bool
+              l:
+                x :u8
+              r:
+                __fuse_hi_1 :u8
+        assign
+          target:
+            x :u8
+          value:
+            add :u8
+              l:
+                x :u8
+              r:
+                int(1) :u8
+    return n :i32
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(83) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        turns_to_max :fn() -> i32
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        whole_byte_range :fn() -> i32
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        whole_signed_range :fn() -> i32
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        wide_to_max :fn() -> i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(83) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        up_to :fn(u8) -> i32
+                      arg0:
+                        int(255) :u8
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        up_to :fn(u8) -> i32
+                      arg0:
+                        int(252) :u8
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        up_to :fn(u8) -> i32
+                      arg0:
+                        int(10) :u8
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  " " :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        fused_to_max :fn() -> i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
+    return int(0) :i32
+  fn __lambda_snippet_0(b: u8) -> bool
+    ~>
+      eq :bool
+        l:
+          mod :u8
+            l:
+              b :u8
+            r:
+              int(2) :u8
+        r:
+          int(0) :u8
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

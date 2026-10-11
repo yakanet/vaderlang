@@ -249,7 +249,8 @@ fn 5 snippet$over_inclusive (i32,i32) -> ref
   local $arr_2 ref
   local if_res usize
   local i i32
-  local $call_14 i64
+  local __more_turns_0 bool
+  local $call_15 i64
   array.new 5 0   ; i64[]
   local.set 2   ; $arr_2
   local.get 0   ; arg 0
@@ -272,18 +273,23 @@ fn 5 snippet$over_inclusive (i32,i32) -> ref
   array.repeat
   local.set 2   ; $arr_2
   local.get 0   ; arg 0
-  local.set 4   ; i
+  local.tee 4   ; i
+  local.get 1   ; arg 1
+  i32.le
+  local.set 5   ; __more_turns_0
   loop $L1 void
-    local.get 4   ; i
-    local.get 1   ; arg 1
-    i32.le
+    local.get 5   ; __more_turns_0
     if $L2 void
       local.get 4   ; i
       call 0   ; snippet$square
-      local.set 5   ; $call_14
+      local.set 6   ; $call_15
       local.get 2   ; $arr_2
-      local.get 5   ; $call_14
+      local.get 6   ; $call_15
       array.push 2 2   ; i64 $arr_2
+      local.get 4   ; i
+      local.get 1   ; arg 1
+      i32.lt
+      local.set 5   ; __more_turns_0
       local.get 4   ; i
       i32.const 1
       i32.add

@@ -1,0 +1,80 @@
+# Typecheck
+
+## tests/snippets/range_to_type_max
+  FnDecl         fused_to_max         :: fn() -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         turns_to_max         :: fn() -> i32
+  FnDecl         up_to                :: fn(u8) -> i32
+  FnDecl         whole_byte_range     :: fn() -> i32
+  FnDecl         whole_signed_range   :: fn() -> i32
+  FnDecl         wide_to_max          :: fn() -> i32
+  expr 13:14    CallExpr       :: u8
+  expr 13:14    IdentExpr      :: type
+  expr 13:14    RangeExpr      :: Range<u8>!
+  expr 14:9     BinaryExpr     :: i32
+  expr 14:9     IdentExpr      :: i32
+  expr 16:12    IdentExpr      :: i32
+  expr 21:14    CallExpr       :: u8
+  expr 21:14    IdentExpr      :: type
+  expr 21:14    RangeExpr      :: Range<u8>!
+  expr 22:9     BinaryExpr     :: i32
+  expr 22:9     IdentExpr      :: i32
+  expr 24:12    IdentExpr      :: i32
+  expr 29:14    CallExpr       :: i8
+  expr 29:14    IdentExpr      :: type
+  expr 29:14    RangeExpr      :: Range<i8>!
+  expr 30:12    BinaryExpr     :: bool
+  expr 30:12    IdentExpr      :: i8
+  expr 30:9     IfExpr         :: void
+  expr 33:9     BinaryExpr     :: i32
+  expr 33:9     IdentExpr      :: i32
+  expr 35:12    IdentExpr      :: i32
+  expr 40:14    CallExpr       :: u64
+  expr 40:14    IdentExpr      :: type
+  expr 40:14    RangeExpr      :: Range<u64>!
+  expr 41:9     BinaryExpr     :: i32
+  expr 41:9     IdentExpr      :: i32
+  expr 43:12    IdentExpr      :: i32
+  expr 48:14    CallExpr       :: u8
+  expr 48:14    IdentExpr      :: type
+  expr 48:14    RangeExpr      :: Range<u8>!
+  expr 48:24    IdentExpr      :: u8
+  expr 49:9     BinaryExpr     :: i32
+  expr 49:9     IdentExpr      :: i32
+  expr 51:12    IdentExpr      :: i32
+  expr 56:15    CallExpr       :: __genstate_filter<u8>!
+  expr 56:15    CallExpr       :: u8
+  expr 56:15    FieldExpr      :: fn(fn(u8) -> bool) -> Iterator<u8>
+  expr 56:15    IdentExpr      :: type
+  expr 56:15    RangeExpr      :: Range<u8>!
+  expr 56:25    CallExpr       :: u8
+  expr 56:25    IdentExpr      :: type
+  expr 56:41    LambdaExpr     :: fn(u8) -> bool
+  expr 56:52    BinaryExpr     :: bool
+  expr 56:52    BinaryExpr     :: u8
+  expr 56:52    IdentExpr      :: u8
+  expr 57:9     BinaryExpr     :: i32
+  expr 57:9     IdentExpr      :: i32
+  expr 59:12    IdentExpr      :: i32
+  expr 63:13    StringLitExpr  :: string
+  expr 63:16    CallExpr       :: i32
+  expr 63:16    IdentExpr      :: fn() -> i32
+  expr 63:34    CallExpr       :: i32
+  expr 63:34    IdentExpr      :: fn() -> i32
+  expr 63:5     CallExpr       :: void
+  expr 63:5     IdentExpr      :: fn(T) -> void
+  expr 63:56    CallExpr       :: i32
+  expr 63:56    IdentExpr      :: fn() -> i32
+  expr 63:80    CallExpr       :: i32
+  expr 63:80    IdentExpr      :: fn() -> i32
+  expr 64:13    StringLitExpr  :: string
+  expr 64:16    CallExpr       :: i32
+  expr 64:16    IdentExpr      :: fn(u8) -> i32
+  expr 64:30    CallExpr       :: i32
+  expr 64:30    IdentExpr      :: fn(u8) -> i32
+  expr 64:44    CallExpr       :: i32
+  expr 64:44    IdentExpr      :: fn(u8) -> i32
+  expr 64:5     CallExpr       :: void
+  expr 64:5     IdentExpr      :: fn(T) -> void
+  expr 64:57    CallExpr       :: i32
+  expr 64:57    IdentExpr      :: fn() -> i32

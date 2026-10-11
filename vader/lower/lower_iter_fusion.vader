@@ -564,26 +564,19 @@ emit_fused_range :: fn(
     counter_ref :: LoweredIdent {
         .span = span, .type = int_type, .symbol = counter_symbol,
     }
-    op :: cmp_op_for_inclusive(range_chain.inclusive)
-    cond :: LoweredBinary {
-        .span = span, .type = TY_BOOL, .op = op, .left = counter_ref, .right = hi,
-    }
-    inc_stmt :: LoweredAssign {
-        .span = span, .target = counter_ref,
-        .value = LoweredBinary {
-            .span = span, .type = int_type, .op = .Add,
-            .left = counter_ref,
-            .right = LoweredIntLit { .span = span, .type = int_type, .value = 1 },
-        },
-    }
+    out: LoweredStmt[]: [counter_init]
+    control :: range_loop_control(ctx, counter_ref, hi, range_chain.inclusive, span, out)
 
     range_body :: if !in_cell { template.user_body } else {
         bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, counter_ref, int_type, span)
         prepend_stmts_to_block(bind_stmts, template.user_body)
     }
     loop_stmt :: LoweredLoop {
-        .span = outer_span, .label = null, .cond = cond, .body = range_body,
-        .step = [inc_stmt],
+        .span = outer_span,
+        .label = null,
+        .cond = control.cond,
+        .body = range_body,
+        .step = control.step,
         .turns = LoopTurns {
             .counter = counter_symbol,
             .start = lo,
@@ -591,8 +584,6 @@ emit_fused_range :: fn(
             .inclusive = range_chain.inclusive,
         },
     }
-    out: LoweredStmt[]: []
-    out.push(counter_init)
     out.push(loop_stmt)
     return out
 }

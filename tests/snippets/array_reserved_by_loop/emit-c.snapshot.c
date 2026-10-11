@@ -407,7 +407,8 @@ static void* snippet_over_inclusive(int32_t l0, int32_t l1) {
     void* l2 = NULL;
     size_t l3;
     int32_t l4;
-    int64_t l5;
+    bool l5;
+    int64_t l6;
     int64_t t0;
     void** gc_raw_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
@@ -425,35 +426,37 @@ static void* snippet_over_inclusive(int32_t l0, int32_t l1) {
     l2 = (void*) _a1_arr;
 #line 45 "tests/snippets/array_reserved_by_loop/_main.vader"
     l4 = l0;
-    vader_array_t* _pc23_hdr = (vader_array_t*) l2;
-    size_t _pc23_len = _pc23_hdr->length;
-    size_t _pc23_cap = (_pc23_hdr->offset == 0 && !vader_array_is_borrowed(_pc23_hdr) && _pc23_hdr->length >= _pc23_hdr->buf->length) ? _pc23_hdr->capacity : (size_t) 0;
-    void* _pc23_slots = _pc23_hdr->buf->slots;
+    l5 = (l4 <= l1);
+    vader_array_t* _pc26_hdr = (vader_array_t*) l2;
+    size_t _pc26_len = _pc26_hdr->length;
+    size_t _pc26_cap = (_pc26_hdr->offset == 0 && !vader_array_is_borrowed(_pc26_hdr) && _pc26_hdr->length >= _pc26_hdr->buf->length) ? _pc26_hdr->capacity : (size_t) 0;
+    void* _pc26_slots = _pc26_hdr->buf->slots;
     for (;;) {
-        if ((l4 <= l1)) {
+        if (l5) {
 #line 46 "tests/snippets/array_reserved_by_loop/_main.vader"
-            l5 = snippet_square(l4);
-            if (VADER_LIKELY(_pc23_len < _pc23_cap)) {
-                ((int64_t*) _pc23_slots)[_pc23_len] = (int64_t) (l5);
-                _pc23_len += 1;
+            l6 = snippet_square(l4);
+            if (VADER_LIKELY(_pc26_len < _pc26_cap)) {
+                ((int64_t*) _pc26_slots)[_pc26_len] = (int64_t) (l6);
+                _pc26_len += 1;
             } else {
-                _pc23_hdr->length = _pc23_len;
-                if (_pc23_hdr->buf->length < _pc23_len) {
-                    _pc23_hdr->buf->length = _pc23_len;
+                _pc26_hdr->length = _pc26_len;
+                if (_pc26_hdr->buf->length < _pc26_len) {
+                    _pc26_hdr->buf->length = _pc26_len;
                 }
-                vader_array_push_i64((vader_array_t*) l2, l5);
-                _pc23_hdr = (vader_array_t*) l2;
-                _pc23_len = _pc23_hdr->length;
-                _pc23_cap = (_pc23_hdr->offset == 0 && !vader_array_is_borrowed(_pc23_hdr) && _pc23_hdr->length >= _pc23_hdr->buf->length) ? _pc23_hdr->capacity : (size_t) 0;
-                _pc23_slots = _pc23_hdr->buf->slots;
+                vader_array_push_i64((vader_array_t*) l2, l6);
+                _pc26_hdr = (vader_array_t*) l2;
+                _pc26_len = _pc26_hdr->length;
+                _pc26_cap = (_pc26_hdr->offset == 0 && !vader_array_is_borrowed(_pc26_hdr) && _pc26_hdr->length >= _pc26_hdr->buf->length) ? _pc26_hdr->capacity : (size_t) 0;
+                _pc26_slots = _pc26_hdr->buf->slots;
             }
 #line 45 "tests/snippets/array_reserved_by_loop/_main.vader"
+            l5 = (l4 < l1);
             l4 = (l4 + INT32_C(1));
             continue;
         }
-        _pc23_hdr->length = _pc23_len;
-        if (_pc23_hdr->buf->length < _pc23_len) {
-            _pc23_hdr->buf->length = _pc23_len;
+        _pc26_hdr->length = _pc26_len;
+        if (_pc26_hdr->buf->length < _pc26_len) {
+            _pc26_hdr->buf->length = _pc26_len;
         }
         break;
     }

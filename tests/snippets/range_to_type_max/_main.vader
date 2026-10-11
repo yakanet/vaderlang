@@ -1,0 +1,66 @@
+// A counted loop over an inclusive range stops after the turn on its upper bound,
+// even when that bound is the largest value of the counter's type: stepping past
+// it would wrap, and `250..=255` over a `u8` would start again from 0. The same
+// holds for the whole range of a type, a bound only known at run time, a
+// `continue` on the last turn, and a fused iterator chain over a range.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+turns_to_max :: fn() -> i32 {
+    n := 0
+    for b in u8(250)..=255 {
+        n += 1
+    }
+    return n
+}
+
+whole_byte_range :: fn() -> i32 {
+    n := 0
+    for b in u8(0)..=255 {
+        n += 1
+    }
+    return n
+}
+
+whole_signed_range :: fn() -> i32 {
+    n := 0
+    for b in i8(-128)..=127 {
+        if b == 127 {
+            continue
+        }
+        n += 1
+    }
+    return n
+}
+
+wide_to_max :: fn() -> i32 {
+    n := 0
+    for v in u64(18_446_744_073_709_551_610)..=18_446_744_073_709_551_615 {
+        n += 1
+    }
+    return n
+}
+
+up_to :: fn(hi: u8) -> i32 {
+    n := 0
+    for b in u8(250)..=hi {
+        n += 1
+    }
+    return n
+}
+
+fused_to_max :: fn() -> i32 {
+    n := 0
+    for b in (u8(250)..=u8(255)).filter((b: u8) -> b % 2 == 0) {
+        n += 1
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    println("${turns_to_max()} ${whole_byte_range()} ${whole_signed_range()} ${wide_to_max()}")
+    println("${up_to(255)} ${up_to(252)} ${up_to(10)} ${fused_to_max()}")
+    return 0
+}

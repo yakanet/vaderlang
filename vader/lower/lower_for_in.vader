@@ -24,6 +24,7 @@ module "vader/lower"
 
 import "std/collections"
 import "vader/diagnostics"
+import "vader/integer"
 AST :: import "toolchain/ast"
 import "vader/resolver/symbol"
 import "vader/typecheck"
@@ -841,25 +842,13 @@ try_lower_for_in_int_range :: fn(
         bind_to_local(ctx, hi_raw, bound_type, "for_hi", span, hoist_stmts)
     }
 
-    op :: cmp_op_for_inclusive(range.inclusive)
-    cond :: LoweredBinary {
-        .span = span, .type = TY_BOOL, .op = op,
-        .left = counter_ref, .right = hi,
-    }
-    inc_stmt :: LoweredAssign {
-        .span = span, .target = counter_ref,
-        .value = LoweredBinary {
-            .span = span, .type = bound_type, .op = .Add,
-            .left = counter_ref,
-            .right = LoweredIntLit {
-                .span = span, .type = bound_type, .value = 1,
-            },
-        },
-    }
+    control :: range_loop_control(ctx, counter_ref, hi, range.inclusive, span, hoist_stmts)
     loop_stmt :: LoweredLoop {
-        .span = span, .label = resolve_loop_label(ctx, for_stmt), .cond = cond,
+        .span = span,
+        .label = resolve_loop_label(ctx, for_stmt),
+        .cond = control.cond,
         .body = user_body,
-        .step = [inc_stmt],
+        .step = control.step,
         .turns = LoopTurns {
             .counter = counter_symbol,
             .start = lo,
@@ -913,6 +902,77 @@ is_integer_type :: fn(t: Type) -> bool {
 cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {
     if inclusive { return .Lte }
     return .Lt
+}
+
+// The test and the step of a counted loop over `lo..<hi` / `lo..=hi`.
+RangeLoopControl :: struct {
+    cond: LoweredExpr!
+    step: LoweredStmt![]
+}
+
+// An inclusive range whose `hi` may be the counter type's maximum cannot test
+// `counter <= hi` again after its last turn: stepping past the maximum wraps, and
+// the test would hold (`for b in 250..=255` over a `u8`). It tests a flag instead,
+// set ahead of the loop and by each step from `counter` before the increment ; a
+// body that moves `counter` past `hi` still stops. `prelude` receives the flag's
+// `let`, after `counter` and `hi` are bound.
+range_loop_control :: fn(
+    ctx: FnLowerCtx,
+    counter: LoweredIdent,
+    hi: LoweredExpr,
+    inclusive: bool,
+    span: Span,
+    prelude: LoweredStmt[],
+) -> RangeLoopControl {
+    increment :: LoweredAssign {
+        .span = span,
+        .target = counter,
+        .value = LoweredBinary {
+            .span = span,
+            .type = counter.type,
+            .op = .Add,
+            .left = counter,
+            .right = LoweredIntLit { .span = span, .type = counter.type, .value = 1 },
+        },
+    }
+    test :: compare_counter(counter, cmp_op_for_inclusive(inclusive), hi, span)
+    if !inclusive || !may_be_type_max(hi, counter.type) {
+        return RangeLoopControl { .cond = test, .step = [increment] }
+    }
+    more :: bind_to_local(ctx, test, TY_BOOL, "more_turns", span, prelude)
+    next_turn :: LoweredAssign {
+        .span = span,
+        .target = more,
+        .value = compare_counter(counter, .Lt, hi, span),
+    }
+    return RangeLoopControl { .cond = more, .step = [next_turn, increment] }
+}
+
+compare_counter :: fn(
+    counter: LoweredIdent,
+    op: LoweredBinaryOp,
+    hi: LoweredExpr,
+    span: Span,
+) -> LoweredExpr! = LoweredBinary {
+    .span = span,
+    .type = TY_BOOL,
+    .op = op,
+    .left = counter,
+    .right = hi,
+}
+
+// Whether `hi` may be the largest value of the integer type `t`, the one a
+// literal `hi + 1` overflows. A `char` counter steps on 32 bits, past the last
+// codepoint.
+may_be_type_max :: fn(hi: LoweredExpr, t: Type) -> bool {
+    if t !is PrimitiveType || !is_int_name(t.name) {
+        return false
+    }
+    if hi !is LoweredIntLit {
+        return true
+    }
+    bits :: primitive_size(t.name) * 8
+    return checked_add(bits, is_unsigned_int_name(t.name), hi.value, 1) == null
 }
 
 // `for entry in m` over `MutableMap<K, V>` / `for v in s` over
