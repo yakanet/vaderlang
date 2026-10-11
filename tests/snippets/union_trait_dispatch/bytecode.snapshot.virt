@@ -27,9 +27,9 @@ type 24 ref std_core$Add
 type 25 array 7
 type 26 array 6
 type 27 primitive u64
-type 28 struct std_core$Range__i32 { start:6,end:6,inclusive:18,cursor:6 }
+type 28 struct std_core$Range__i32 { start:6,end:6,inclusive:18,done:18,cursor:6 }
 type 29 primitive u8
-type 30 struct std_core$Range__usize { start:31,end:31,inclusive:18,cursor:31 }
+type 30 struct std_core$Range__usize { start:31,end:31,inclusive:18,done:18,cursor:31 }
 type 31 primitive usize
 type 32 struct std_core$Buffer {  }
 type 33 primitive i8

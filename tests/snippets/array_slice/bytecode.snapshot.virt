@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 primitive string
-type 3 struct std_core$Range__i32 { start:1,end:1,inclusive:4,cursor:1 }
+type 3 struct std_core$Range__i32 { start:1,end:1,inclusive:4,done:4,cursor:1 }
 type 4 primitive bool
 type 5 primitive u8
 type 6 primitive usize
@@ -203,6 +203,7 @@ fn 0 snippet$main () -> i32
   end $L2
   i32.const 2
   i32.const 5
+  bool.const false
   bool.const false
   i32.const 2
   struct.new_stack 3   ; std_core$Range__i32

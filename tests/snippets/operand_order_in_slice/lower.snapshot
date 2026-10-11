@@ -32,6 +32,7 @@
         start: lo :usize
         end: hi :usize
         inclusive: false
+        done: false
         cursor: lo :usize
       }
   fn snippet$main() -> i32

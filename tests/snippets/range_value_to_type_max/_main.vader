@@ -1,0 +1,48 @@
+// A `Range` value iterated through its `Iterator` impl stops after handing out its
+// upper bound, even the largest value of its type: stepping past it would leave
+// the type. The whole range of a type, an empty range and a `char` range stop
+// too, and the range still contains its bound once iterated.
+module "snippet"
+
+import "std/io"
+
+turns :: fn(r: Range<u8>) -> i32 {
+    n := 0
+    for b in r {
+        n += 1
+    }
+    return n
+}
+
+signed_turns :: fn(r: Range<i8>) -> i32 {
+    n := 0
+    for b in r {
+        n += 1
+    }
+    return n
+}
+
+wide_turns :: fn(r: Range<u64>) -> i32 {
+    n := 0
+    for v in r {
+        n += 1
+    }
+    return n
+}
+
+letters :: fn(r: Range<char>) -> string {
+    out := ""
+    for c in r {
+        out = out + "${c}"
+    }
+    return out
+}
+
+main :: fn() -> i32 {
+    to_max: Range<u8>: 250..=255
+    println("${turns(to_max)} ${turns(0..=255)} ${turns(5..=4)} ${turns(250..<255)}")
+    println("${signed_turns(-128..=127)}")
+    println("${wide_turns(18_446_744_073_709_551_613..=18_446_744_073_709_551_615)}")
+    println("${letters('x'..='z')} ${255 in to_max} ${250 in to_max}")
+    return 0
+}

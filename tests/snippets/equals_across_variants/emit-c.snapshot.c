@@ -508,7 +508,7 @@ static bool std_core____Contains_contains__Label___Point(void* l0, vader_box_t l
     vader_box_t l5;
     bool t0;
     int64_t t1;
-#line 333 "lib/std/core/core.vader"
+#line 340 "lib/std/core/core.vader"
     l2 = l0;
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
@@ -516,7 +516,7 @@ static bool std_core____Contains_contains__Label___Point(void* l0, vader_box_t l
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         l5 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
-#line 334 "lib/std/core/core.vader"
+#line 341 "lib/std/core/core.vader"
         if (l5.tag == 4u) {
             if (l1.tag == 4u) {
                 l6 = l5.payload.obj;
@@ -537,11 +537,11 @@ static bool std_core____Contains_contains__Label___Point(void* l0, vader_box_t l
                 }
             }
         }
-#line 333 "lib/std/core/core.vader"
+#line 340 "lib/std/core/core.vader"
         t1 = (l4 + INT64_C(1));
         l4 = (size_t) (int64_t) t1;
     }
-#line 336 "lib/std/core/core.vader"
+#line 343 "lib/std/core/core.vader"
     return false;
 }
 
@@ -552,7 +552,7 @@ static bool std_core____Contains_contains__f64___string(void* l0, vader_box_t l1
     double l6, l7;
     vader_string_t l8, l9;
     int64_t t0;
-#line 333 "lib/std/core/core.vader"
+#line 340 "lib/std/core/core.vader"
     l2 = l0;
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
@@ -560,7 +560,7 @@ static bool std_core____Contains_contains__f64___string(void* l0, vader_box_t l1
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         l5 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l4];
-#line 334 "lib/std/core/core.vader"
+#line 341 "lib/std/core/core.vader"
         if ((l5.tag == 15u || l5.tag == 23u)) {
             if ((l1.tag == 15u || l1.tag == 23u)) {
                 l6 = ((double) l5.payload.f);
@@ -579,11 +579,11 @@ static bool std_core____Contains_contains__f64___string(void* l0, vader_box_t l1
                 }
             }
         }
-#line 333 "lib/std/core/core.vader"
+#line 340 "lib/std/core/core.vader"
         t0 = (l4 + INT64_C(1));
         l4 = (size_t) (int64_t) t0;
     }
-#line 336 "lib/std/core/core.vader"
+#line 343 "lib/std/core/core.vader"
     return false;
 }
 

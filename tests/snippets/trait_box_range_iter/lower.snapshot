@@ -21,6 +21,7 @@
             start: int(0) :i32
             end: int(5) :i32
             inclusive: false
+            done: false
             cursor: int(0) :i32
           }
     let b: i32 =

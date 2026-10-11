@@ -261,11 +261,14 @@ export Field :: struct {
 /// Range produced by `0..<n` / `0..=n` and `'a'..='z'`. Generic over the
 /// bound type so integer ranges (every signed / unsigned width plus
 /// `usize` / `isize`) and char ranges share a single struct. The `cursor`
-/// field is advanced by each `step` call via implicit struct-ref mutation.
+/// field is advanced by each `next` call via implicit struct-ref mutation.
 export Range :: struct<T> {
     start:     T
     end:       T
     inclusive: bool
+    /// Set once an inclusive range has handed out `end`. Its cursor stays there:
+    /// a step past `end` may leave `T` (past `255` in a `u8`).
+    done:      bool = false
     cursor:    T
 }
 
@@ -288,13 +291,17 @@ Range<T> implements<T: Comparable & Step> Contains<T> {
 
 Range<T> implements<T: Comparable & Step> Iterator<T> {
     next :: fn(self) -> [T, Continuation] {
-        done :: if (self.inclusive) { self.cursor > self.end }
+        over :: if (self.inclusive) { self.done || self.cursor > self.end }
                 else                 { self.cursor >= self.end }
         // The cursor doubles as the stop filler: it is a `T` already at hand, so
         // nothing has to be manufactured for a type that only promises ordering.
-        if (done) { return [self.cursor, .Stop] }
+        if (over) { return [self.cursor, .Stop] }
         v :: self.cursor
-        self.cursor = self.cursor.step()
+        if (self.inclusive && v >= self.end) {
+            self.done = true
+        } else {
+            self.cursor = self.cursor.step()
+        }
         return [v, .Continue]
     }
 }

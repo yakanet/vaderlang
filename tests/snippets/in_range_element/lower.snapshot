@@ -59,6 +59,7 @@
                 start: int(0) :i64
                 end: int(9) :i64
                 inclusive: true
+                done: false
                 cursor: int(0) :i64
               }
             arg1:
@@ -73,6 +74,7 @@
                   start: int(10) :i64
                   end: int(20) :i64
                   inclusive: false
+                  done: false
                   cursor: int(10) :i64
                 }
               arg1:
@@ -117,6 +119,7 @@
         start: int(0) :i64
         end: int(5000000000) :i64
         inclusive: false
+        done: false
         cursor: int(0) :i64
       }
     let xs: i64[] =

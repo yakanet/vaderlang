@@ -52,6 +52,7 @@
         start: int(0) :i32
         end: int(10) :i32
         inclusive: false
+        done: false
         cursor: int(0) :i32
       }
     let arr: i32[]! =

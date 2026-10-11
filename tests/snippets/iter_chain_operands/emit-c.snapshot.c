@@ -22,6 +22,7 @@ struct vader_struct_std_core_Range__i32_t {
     int32_t f_start;
     int32_t f_end;
     bool f_inclusive;
+    bool f_done;
     int32_t f_cursor;
 };
 struct vader_struct_std_core_Buffer_t {
@@ -803,6 +804,7 @@ static int32_t snippet_main(void) {
     _a28_obj->f_start = l11;
     _a28_obj->f_end = l17;
     _a28_obj->f_inclusive = false;
+    _a28_obj->f_done = false;
     _a28_obj->f_cursor = l11;
     l0 = (void*) _a28_obj;
 #line 62 "tests/snippets/iter_chain_operands/_main.vader"
@@ -922,35 +924,57 @@ static int32_t std_core_i32_Step_step(int32_t l0) {
 static void std_core_Range_Iterator_next__i32_v(void* l0, int32_t* __o0, uint8_t* __o1) {
     bool l1;
     int32_t l2, l3;
+    uint8_t l4;
     bool t0;
     int32_t t1;
-#line 291 "lib/std/core/core.vader"
+#line 294 "lib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_inclusive;
     if (t0) {
-        l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
-        l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
-        l1 = (l2 > l3);
-#line 292 "lib/std/core/core.vader"
+        t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_done;
+        if (t0) {
+            l1 = true;
+        } else {
+            l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
+            l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
+            l1 = (l2 > l3);
+        }
+#line 295 "lib/std/core/core.vader"
     } else {
         l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
         l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
         l1 = (l2 >= l3);
-#line 291 "lib/std/core/core.vader"
+#line 294 "lib/std/core/core.vader"
     }
-#line 295 "lib/std/core/core.vader"
-    if (!(l1)) {
-#line 296 "lib/std/core/core.vader"
-        l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
-#line 297 "lib/std/core/core.vader"
-        t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
-        l3 = std_core_i32_Step_step(t1);
-        ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor = l3;
 #line 298 "lib/std/core/core.vader"
-        *__o1 = (uint8_t) 0; *__o0 = l2; return;
-#line 295 "lib/std/core/core.vader"
+    if (l1) {
+        t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
+        *__o1 = (uint8_t) 1; *__o0 = t1; return;
     }
+#line 299 "lib/std/core/core.vader"
+    l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
+#line 300 "lib/std/core/core.vader"
+    t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_inclusive;
+    if (t0) {
+        l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
+        l1 = (l2 >= l3);
+    } else {
+        l1 = false;
+    }
+    if (l1) {
+#line 301 "lib/std/core/core.vader"
+        ((vader_struct_std_core_Range__i32_t*) l0)->f_done = true;
+#line 305 "lib/std/core/core.vader"
+        l4 = (uint8_t) 0;
+        *__o1 = l4; *__o0 = l2; return;
+#line 300 "lib/std/core/core.vader"
+    }
+#line 303 "lib/std/core/core.vader"
     t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
-    *__o1 = (uint8_t) 1; *__o0 = t1; return;
+    l3 = std_core_i32_Step_step(t1);
+    ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor = l3;
+#line 305 "lib/std/core/core.vader"
+    l4 = (uint8_t) 0;
+    *__o1 = l4; *__o0 = l2; return;
 }
 
 static void* std_core_new_byte_buffer(size_t l0) {

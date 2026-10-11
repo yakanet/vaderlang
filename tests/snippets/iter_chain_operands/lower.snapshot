@@ -1334,6 +1334,7 @@
                 arg1:
                   int(2) :i32
             inclusive: false
+            done: false
             cursor: __range_lo_47 :i32
           }
     block :void

@@ -272,6 +272,7 @@
         start: int(2) :i32
         end: int(5) :i32
         inclusive: false
+        done: false
         cursor: int(2) :i32
       }
     let s3: i32[] =

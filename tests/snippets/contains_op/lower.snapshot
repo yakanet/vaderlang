@@ -48,6 +48,7 @@
               start: int(0) :i32
               end: int(10) :i32
               inclusive: false
+              done: false
               cursor: int(0) :i32
             }
           arg1:
@@ -69,6 +70,7 @@
                 start: int(0) :i32
                 end: int(10) :i32
                 inclusive: false
+                done: false
                 cursor: int(0) :i32
               }
             arg1:
@@ -89,6 +91,7 @@
               start: int(0) :i32
               end: int(10) :i32
               inclusive: true
+              done: false
               cursor: int(0) :i32
             }
           arg1:

@@ -529,6 +529,8 @@ const C_PARITY = new Set<string>([
   "in_range_element",
   // An inclusive counted loop up to its type's maximum stops instead of wrapping.
   "range_to_type_max",
+  // A `Range` value iterated up to its type's maximum stops instead of trapping.
+  "range_value_to_type_max",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

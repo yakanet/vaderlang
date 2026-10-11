@@ -3,7 +3,7 @@ type 0 primitive null
 type 1 primitive string
 type 2 primitive i32
 type 3 array 2
-type 4 struct std_core$Range__usize { start:8,end:8,inclusive:6,cursor:8 }
+type 4 struct std_core$Range__usize { start:8,end:8,inclusive:6,done:6,cursor:8 }
 type 5 primitive u64
 type 6 primitive bool
 type 7 primitive u8
@@ -65,6 +65,7 @@ fn 2 snippet$window (string) -> ref
   i64.const 1
   local.tee 1   ; lo
   i64.const 3
+  bool.const false
   bool.const false
   local.get 1   ; lo
   struct.new 4   ; std_core$Range__usize

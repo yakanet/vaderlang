@@ -126,6 +126,7 @@
               start: int(0) :i32
               end: int(4) :i32
               inclusive: false
+              done: false
               cursor: int(0) :i32
             }
     call :void
@@ -140,6 +141,7 @@
               start: int(0) :i32
               end: int(5) :i32
               inclusive: false
+              done: false
               cursor: int(0) :i32
             }
     call :void
@@ -154,6 +156,7 @@
               start: int(0) :i32
               end: int(7) :i32
               inclusive: false
+              done: false
               cursor: int(0) :i32
             }
     return int(0) :i32
