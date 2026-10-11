@@ -1,0 +1,66 @@
+// A range pattern's bounds take the scrutinee's type: over an `i64` they reach
+// past `i32` and below zero, over a `u8` a char bound and an integer bound both
+// land as bytes, over a distinct they are its backing's. Over a union they take
+// the integer or `char` variant, which the arm tests before ordering it, whether
+// or not an arm above took the rest.
+module "snippet"
+
+import "std/io"
+
+Meters :: i64
+
+wide :: fn(n: i64) -> i32 = match n {
+    -6_000_000_000..<-5_000_000_000 -> 1
+    5_000_000_000..=6_000_000_000   -> 2
+    _                               -> 3
+}
+
+byte :: fn(b: u8) -> i32 = match b {
+    'a'..='z' -> 1
+    200..=255 -> 2
+    _         -> 3
+}
+
+// @partial: the range covers no whole variant.
+digit :: fn(n: i32 | null) -> i32 = @partial match n {
+    is null -> 0
+    0..=9   -> 1
+    _       -> 2
+}
+
+// @partial: the ranges cover no whole variant.
+mixed :: fn(x: i64 | string) -> i32 = @partial match x {
+    -5..<0    -> 1
+    0..=9     -> 2
+    is string -> 3
+    _         -> 4
+}
+
+// @partial: the range covers no whole variant.
+letter :: fn(c: char | null) -> i32 = @partial match c {
+    'a'..='z' -> 1
+    _         -> 2
+}
+
+short :: fn(m: Meters) -> i32 = match m {
+    0..=9                         -> 1
+    5_000_000_000..=6_000_000_000 -> 2
+    _                             -> 3
+}
+
+// @partial: the range covers no whole variant.
+maybe :: fn(m: Meters | null) -> i32 = @partial match m {
+    0..=9 -> 1
+    _     -> 2
+}
+
+main :: fn() -> i32 {
+    println("${wide(-5_500_000_000)} ${wide(5_500_000_000)} ${wide(1_500_000_000)} ${wide(-1)}")
+    println("${byte('q')} ${byte(255)} ${byte(100)}")
+    println("${digit(null)} ${digit(3)} ${digit(30)} ${digit(-1)}")
+    println("${mixed(-3)} ${mixed(4)} ${mixed("x")} ${mixed(5_000_000_000)}")
+    println("${letter('q')} ${letter('Q')} ${letter(null)}")
+    println("${short(Meters(5))} ${short(Meters(5_500_000_000))} ${short(Meters(50))}")
+    println("${maybe(Meters(3))} ${maybe(null)} ${maybe(Meters(30))}")
+    return 0
+}

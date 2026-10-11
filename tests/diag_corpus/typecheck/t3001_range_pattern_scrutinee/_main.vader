@@ -1,0 +1,30 @@
+// T3001: a range pattern orders an integer or a `char`, the scrutinee or one of
+// its variants, against bounds of that type. A string, a union holding no integer
+// and a bound of another type are refused.
+module "snippet"
+
+export initial :: fn(s: string) -> i32 = match s {
+    "a"..="m" -> 1
+    _         -> 2
+}
+
+// @partial: the range covers no whole variant.
+export ratio :: fn(x: f64 | string) -> i32 = @partial match x {
+    0.0..=1.0 -> 1
+    _         -> 2
+}
+
+// @partial: the range covers no whole variant.
+export word :: fn(x: i32 | string) -> i32 = @partial match x {
+    "a"..="m" -> 1
+    _         -> 2
+}
+
+export half :: fn(n: i32) -> i32 = match n {
+    0.5..=1.5 -> 1
+    _         -> 2
+}
+
+main :: fn() -> i32 {
+    return 0
+}

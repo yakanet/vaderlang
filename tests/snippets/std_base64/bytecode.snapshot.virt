@@ -1446,11 +1446,11 @@ fn 15 base64$decode_byte (u8) -> i32
   local if_res i32
   local and_res bool
   local.get 0   ; arg 0
-  char.const 65
+  i32.const 65
   u32.ge
   if $L0 void
     local.get 0   ; arg 0
-    char.const 90
+    i32.const 90
     u32.le
     local.set 2   ; and_res
   else
@@ -1467,11 +1467,11 @@ fn 15 base64$decode_byte (u8) -> i32
     return
   end $L1
   local.get 0   ; arg 0
-  char.const 97
+  i32.const 97
   u32.ge
   if $L2 void
     local.get 0   ; arg 0
-    char.const 122
+    i32.const 122
     u32.le
     local.set 2   ; and_res
   else
@@ -1489,11 +1489,11 @@ fn 15 base64$decode_byte (u8) -> i32
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
-    char.const 48
+    i32.const 48
     u32.ge
     if $L4 void
       local.get 0   ; arg 0
-      char.const 57
+      i32.const 57
       u32.le
       local.set 2   ; and_res
     else

@@ -1,6 +1,7 @@
 // An integer literal must fit the type it lands in, checked at its exact bounds:
 // `-128` is one literal and fits an `i8`, `128` does not. A binding whose whole
-// value is a literal must fit the `i32` it defaults to.
+// value is a literal must fit the `i32` it defaults to, and a range pattern's
+// bounds the scrutinee's type.
 module "snippet"
 
 export LEAST: i8: -128
@@ -9,6 +10,12 @@ export PAST_MIN: i8: -129
 export TOO_WIDE: i32: 2147483648
 export NEGATIVE_UNSIGNED: u32: -1
 export DEFAULTED         :: 9000000000
+
+export bucket :: fn(b: u8) -> i32 = match b {
+    -1..=3  -> 1
+    4..=300 -> 2
+    _       -> 3
+}
 
 main :: fn() -> i32 {
     return 0

@@ -519,8 +519,11 @@ const C_PARITY = new Set<string>([
   "array_union_literal_ok",
   // `+%` / `-%` / `*%` at every width, run time and folded constants alike.
   "wrapping_operators",
-  // A `-` right before a number literal belongs to it, postfixes included.
+  // A `-` written against a number literal belongs to it, postfixes included.
   "negative_literals",
+  // A range pattern's bounds at the scrutinee's type, a union's variant tested
+  // first.
+  "match_range_pattern_bounds",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

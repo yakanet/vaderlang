@@ -235,22 +235,35 @@ pattern_predicate :: fn(
         is RangePattern -> {
             // `target >= lower && target <(=) upper`. `target` is the pre-bound
             // scrutinee temp — reusing it twice is the same shape the tuple /
-            // struct predicates already rely on.
+            // struct predicates already rely on. Over a union the bounds carry
+            // the variant they order, tested first : `target is i32 &&
+            // i32(target) >= lower && …`.
             lo :: recurse(ctx, pattern.lower)
             hi :: recurse(ctx, pattern.upper)
-            lo_ok :: LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = .Gte,
-                .left = target, .right = lo,
-            }
+            ordered :: type_of(lo)
+            value :: narrow_target(target, target_type, ordered, span)
             hi_op :: if pattern.inclusive { LoweredBinaryOp.Lte } else { LoweredBinaryOp.Lt }
-            hi_ok :: LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = hi_op,
-                .left = target, .right = hi,
-            }
-            return LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = .And,
-                .left = lo_ok, .right = hi_ok,
-            }
+            parts: LoweredExpr[]: []
+            holds_test(target, target_type, ordered, span, parts)
+            parts.push(
+                LoweredBinary {
+                    .span = span,
+                    .type = TY_BOOL,
+                    .op = .Gte,
+                    .left = value,
+                    .right = lo,
+                },
+            )
+            parts.push(
+                LoweredBinary {
+                    .span = span,
+                    .type = TY_BOOL,
+                    .op = hi_op,
+                    .left = value,
+                    .right = hi,
+                },
+            )
+            return and_all(span, parts)
         }
         is OrPattern -> {
             // Disjunction of the alternatives' predicates : `p1 || p2 || …`.

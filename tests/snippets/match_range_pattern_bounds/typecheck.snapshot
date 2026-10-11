@@ -1,0 +1,106 @@
+# Typecheck
+
+## tests/snippets/match_range_pattern_bounds
+  FnDecl         byte                 :: fn(u8) -> i32
+  FnDecl         digit                :: fn(i32 | null) -> i32
+  FnDecl         letter               :: fn(char | null) -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         maybe                :: fn(Meters | null) -> i32
+  ConstDecl      Meters               :: type
+  FnDecl         mixed                :: fn(i64 | string) -> i32
+  FnDecl         short                :: fn(Meters) -> i32
+  FnDecl         wide                 :: fn(i64) -> i32
+  expr 12:29    MatchExpr      :: i32
+  expr 12:35    IdentExpr      :: i64
+  expr 18:28    MatchExpr      :: i32
+  expr 18:34    IdentExpr      :: u8
+  expr 25:46    MatchExpr      :: i32
+  expr 25:52    IdentExpr      :: i32 | null
+  expr 32:48    MatchExpr      :: i32
+  expr 32:54    IdentExpr      :: i64 | string
+  expr 40:48    MatchExpr      :: i32
+  expr 40:54    IdentExpr      :: char | null
+  expr 45:33    MatchExpr      :: i32
+  expr 45:39    IdentExpr      :: Meters
+  expr 52:49    MatchExpr      :: i32
+  expr 52:55    IdentExpr      :: Meters | null
+  expr 58:13    StringLitExpr  :: string
+  expr 58:16    CallExpr       :: i32
+  expr 58:16    IdentExpr      :: fn(i64) -> i32
+  expr 58:40    CallExpr       :: i32
+  expr 58:40    IdentExpr      :: fn(i64) -> i32
+  expr 58:5     CallExpr       :: void
+  expr 58:5     IdentExpr      :: fn(T) -> void
+  expr 58:63    CallExpr       :: i32
+  expr 58:63    IdentExpr      :: fn(i64) -> i32
+  expr 58:86    CallExpr       :: i32
+  expr 58:86    IdentExpr      :: fn(i64) -> i32
+  expr 59:13    StringLitExpr  :: string
+  expr 59:16    CallExpr       :: i32
+  expr 59:16    IdentExpr      :: fn(u8) -> i32
+  expr 59:29    CallExpr       :: i32
+  expr 59:29    IdentExpr      :: fn(u8) -> i32
+  expr 59:42    CallExpr       :: i32
+  expr 59:42    IdentExpr      :: fn(u8) -> i32
+  expr 59:5     CallExpr       :: void
+  expr 59:5     IdentExpr      :: fn(T) -> void
+  expr 60:13    StringLitExpr  :: string
+  expr 60:16    CallExpr       :: i32
+  expr 60:16    IdentExpr      :: fn(i32 | null) -> i32
+  expr 60:31    CallExpr       :: i32
+  expr 60:31    IdentExpr      :: fn(i32 | null) -> i32
+  expr 60:43    CallExpr       :: i32
+  expr 60:43    IdentExpr      :: fn(i32 | null) -> i32
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(T) -> void
+  expr 60:56    CallExpr       :: i32
+  expr 60:56    IdentExpr      :: fn(i32 | null) -> i32
+  expr 61:13    StringLitExpr  :: string
+  expr 61:16    CallExpr       :: i32
+  expr 61:16    IdentExpr      :: fn(i64 | string) -> i32
+  expr 61:29    CallExpr       :: i32
+  expr 61:29    IdentExpr      :: fn(i64 | string) -> i32
+  expr 61:41    CallExpr       :: i32
+  expr 61:41    IdentExpr      :: fn(i64 | string) -> i32
+  expr 61:47    StringLitExpr  :: string
+  expr 61:5     CallExpr       :: void
+  expr 61:5     IdentExpr      :: fn(T) -> void
+  expr 61:55    CallExpr       :: i32
+  expr 61:55    IdentExpr      :: fn(i64 | string) -> i32
+  expr 62:13    StringLitExpr  :: string
+  expr 62:16    CallExpr       :: i32
+  expr 62:16    IdentExpr      :: fn(char | null) -> i32
+  expr 62:31    CallExpr       :: i32
+  expr 62:31    IdentExpr      :: fn(char | null) -> i32
+  expr 62:46    CallExpr       :: i32
+  expr 62:46    IdentExpr      :: fn(char | null) -> i32
+  expr 62:5     CallExpr       :: void
+  expr 62:5     IdentExpr      :: fn(T) -> void
+  expr 63:13    StringLitExpr  :: string
+  expr 63:16    CallExpr       :: i32
+  expr 63:16    IdentExpr      :: fn(Meters) -> i32
+  expr 63:22    CallExpr       :: Meters
+  expr 63:22    IdentExpr      :: type
+  expr 63:36    CallExpr       :: i32
+  expr 63:36    IdentExpr      :: fn(Meters) -> i32
+  expr 63:42    CallExpr       :: Meters
+  expr 63:42    IdentExpr      :: type
+  expr 63:5     CallExpr       :: void
+  expr 63:5     IdentExpr      :: fn(T) -> void
+  expr 63:68    CallExpr       :: i32
+  expr 63:68    IdentExpr      :: fn(Meters) -> i32
+  expr 63:74    CallExpr       :: Meters
+  expr 63:74    IdentExpr      :: type
+  expr 64:13    StringLitExpr  :: string
+  expr 64:16    CallExpr       :: i32
+  expr 64:16    IdentExpr      :: fn(Meters | null) -> i32
+  expr 64:22    CallExpr       :: Meters
+  expr 64:22    IdentExpr      :: type
+  expr 64:36    CallExpr       :: i32
+  expr 64:36    IdentExpr      :: fn(Meters | null) -> i32
+  expr 64:5     CallExpr       :: void
+  expr 64:5     IdentExpr      :: fn(T) -> void
+  expr 64:51    CallExpr       :: i32
+  expr 64:51    IdentExpr      :: fn(Meters | null) -> i32
+  expr 64:57    CallExpr       :: Meters
+  expr 64:57    IdentExpr      :: type

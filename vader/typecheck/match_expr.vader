@@ -15,9 +15,9 @@ AST :: import "toolchain/ast"
 // Type-check the literal / range bound expressions embedded directly in a
 // pattern, an or-pattern's alternatives included ; every other pattern kind carries
 // none. A literal is checked as `compared == literal` (`check_pattern_literal`)
-// against `rest`, what the arms above leave of `scrut`. Range bounds are checked
-// in isolation (`null` expected), so a bound whose type mismatches the scrutinee
-// passes.
+// and a range's bounds as the operands `compared` is ordered against
+// (`check_range_pattern`), both against `rest`, what the arms above leave of
+// `scrut`.
 check_pattern_bound_exprs :: fn(
     pat: AST.Pattern,
     compared: AST.Expr,
@@ -32,8 +32,7 @@ check_pattern_bound_exprs :: fn(
             check_pattern_literal(pat.value, compared, scrut, rest, typed, diags, check_expr_fn)
         }
         is AST.RangePattern -> {
-            _ :: check_expr_fn(pat.lower, null, typed, diags)
-            _ :: check_expr_fn(pat.upper, null, typed, diags)
+            check_range_pattern(pat, scrut, rest, typed, diags, check_expr_fn)
         }
         is AST.OrPattern -> {
             for sub in pat.patterns {
@@ -539,6 +538,117 @@ check_pattern_literal :: fn(
     }
     _ :: check_equality(comparison, rest, got, typed, diags)
 }
+
+// A range pattern matches when `lower <= scrutinee <=(<) upper` holds, so each
+// bound is repinned as an ordering operand is, to `rest`, what the arms above
+// leave of `scrut`, a distinct read as its backing as `<` reads it. Both bounds
+// are recorded at one integer or `char` type, the scrutinee's or one of its
+// variants: the lowerer reads the variant to test from the lower bound's type.
+check_range_pattern :: fn(
+    pat: AST.RangePattern,
+    scrut: Type,
+    rest: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> void {
+    lower :: check_expr_fn(pat.lower, null, typed, diags)
+    upper :: check_expr_fn(pat.upper, null, typed, diags)
+    written :: range_target(scrut, rest)
+    target :: strip_distinct(written)
+    if !offers_range(target) {
+        report_range_scrutinee(pat, lower, upper, scrut, written, typed, diags, check_expr_fn)
+        return
+    }
+    low :: repin_operand(pat.lower, lower, target, typed, diags, check_expr_fn)
+    high :: repin_operand(pat.upper, upper, target, typed, diags, check_expr_fn)
+    ordered :: range_variant(target, low)
+    if ordered == null {
+        variants :: "an integer or `char` variant of `${display_type(written)}`"
+        diags.push(
+            typecheck_error(
+                .TypeMismatch,
+                pat.lower.span,
+                "a range orders ${variants}, got `${display_type(low)}`",
+            ),
+        )
+        return
+    }
+    emit_mismatch_if(low, ordered, pat.lower.span, null, .TypeMismatch, typed, diags)
+    emit_mismatch_if(high, ordered, pat.upper.span, null, .TypeMismatch, typed, diags)
+}
+
+// A range over `written` with no integer or `char` to order. When the arms above
+// took the scrutinee's, the arm can no longer match (W0014), as a literal whose
+// variant they took; the bounds still land on that variant for the lowerer.
+// Otherwise the scrutinee has none (T3001).
+report_range_scrutinee :: fn(
+    pat: AST.RangePattern,
+    lower: Type,
+    upper: Type,
+    scrut: Type,
+    written: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> void {
+    whole_target :: strip_distinct(scrut)
+    if !offers_range(whole_target) {
+        diags.push(
+            typecheck_error(
+                .TypeMismatch,
+                pat.span,
+                "a range pattern matches an integer or a `char`, got `${display_type(written)}`",
+            ),
+        )
+        return
+    }
+    whole :: repin_operand(pat.lower, lower, whole_target, typed, diags, check_expr_fn)
+    _ :: repin_operand(pat.upper, upper, whole_target, typed, diags, check_expr_fn)
+    diags.push(
+        warning(
+            .UnreachableMatchArm,
+            pat.span,
+            "every `${display_type(whole)}` is matched by an earlier arm",
+        ),
+    )
+}
+
+// What a range pattern's bounds meet: what the arms above leave of the
+// scrutinee, or the whole of it once they left nothing (the arm is then W0014).
+range_target :: fn(scrut: Type, rest: Type) -> Type {
+    if rest is NeverType {
+        return scrut
+    }
+    return rest
+}
+
+// Whether a range can match a value of `t`: `t` is an integer or a `char`, or a
+// union holding one.
+offers_range :: fn(t: Type) -> bool {
+    for v in union_variants(t) ?? [t] {
+        if v is UnresolvedType || is_integer_or_char(v) {
+            return true
+        }
+    }
+    return false
+}
+
+// The type a range over `target` orders: `target` itself, or over a union the
+// integer or `char` variant its lower bound `low` lands on.
+range_variant :: fn(target: Type, low: Type) -> Type | null {
+    if target !is UnionType {
+        return target
+    }
+    v :: counterpart(target, low) ?? return null
+    if is_integer_or_char(v) {
+        return v
+    }
+    return null
+}
+
+is_integer_or_char :: fn(t: Type) -> bool =
+    t is PrimitiveType && (is_int_name(t.name) || t.name == "char")
 
 scratch_diags :: fn() -> Diagnostic[]! { return [] }
 
