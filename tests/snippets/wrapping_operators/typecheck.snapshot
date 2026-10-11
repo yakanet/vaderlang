@@ -1,0 +1,89 @@
+# Typecheck
+
+## tests/snippets/wrapping_operators
+  ConstDecl      I32_TOP              :: i32
+  ConstDecl      I8_SUM               :: i8
+  FnDecl         main                 :: fn(string[]) -> i32
+  ConstDecl      U16_PRODUCT          :: u16
+  ConstDecl      U32_BELOW            :: u32
+  ConstDecl      U8_SUM               :: u8
+  expr 10:13    BinaryExpr     :: i8
+  expr 11:19    BinaryExpr     :: u16
+  expr 12:17    BinaryExpr     :: u32
+  expr 16:12    CallExpr       :: i32
+  expr 16:12    IdentExpr      :: type
+  expr 16:16    CallExpr       :: usize
+  expr 16:16    FieldExpr      :: fn() -> usize
+  expr 16:16    IdentExpr      :: string[]
+  expr 18:13    StringLitExpr  :: string
+  expr 18:20    BinaryExpr     :: i32
+  expr 18:20    IdentExpr      :: i32
+  expr 18:27    IdentExpr      :: i32
+  expr 18:34    IdentExpr      :: i32
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 20:13    StringLitExpr  :: string
+  expr 20:19    BinaryExpr     :: u8
+  expr 20:19    IdentExpr      :: u8
+  expr 20:27    CallExpr       :: u8
+  expr 20:27    IdentExpr      :: type
+  expr 20:30    BinaryExpr     :: i32
+  expr 20:30    IdentExpr      :: i32
+  expr 20:42    IdentExpr      :: u8
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 22:13    StringLitExpr  :: string
+  expr 22:19    BinaryExpr     :: i8
+  expr 22:19    IdentExpr      :: i8
+  expr 22:28    CallExpr       :: i8
+  expr 22:28    IdentExpr      :: type
+  expr 22:31    BinaryExpr     :: i32
+  expr 22:31    IdentExpr      :: i32
+  expr 22:43    IdentExpr      :: i8
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 24:13    StringLitExpr  :: string
+  expr 24:20    BinaryExpr     :: u16
+  expr 24:20    IdentExpr      :: u16
+  expr 24:28    IdentExpr      :: u16
+  expr 24:36    IdentExpr      :: u16
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 26:13    StringLitExpr  :: string
+  expr 26:20    BinaryExpr     :: u32
+  expr 26:20    IdentExpr      :: u32
+  expr 26:28    CallExpr       :: u32
+  expr 26:28    IdentExpr      :: type
+  expr 26:32    IdentExpr      :: i32
+  expr 26:40    IdentExpr      :: u32
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 28:13    StringLitExpr  :: string
+  expr 28:20    BinaryExpr     :: u64
+  expr 28:20    IdentExpr      :: u64
+  expr 28:32    BinaryExpr     :: u64
+  expr 28:32    IdentExpr      :: u64
+  expr 28:39    CallExpr       :: u64
+  expr 28:39    IdentExpr      :: type
+  expr 28:43    IdentExpr      :: i32
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 30:13    CallExpr       :: i64
+  expr 30:13    IdentExpr      :: type
+  expr 30:17    IdentExpr      :: i32
+  expr 30:5     BinaryExpr     :: i64
+  expr 30:5     IdentExpr      :: i64
+  expr 31:5     BinaryExpr     :: i64
+  expr 31:5     IdentExpr      :: i64
+  expr 32:13    StringLitExpr  :: string
+  expr 32:20    IdentExpr      :: i64
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 34:5     BinaryExpr     :: u32
+  expr 34:5     IdentExpr      :: u32
+  expr 35:13    StringLitExpr  :: string
+  expr 35:25    IdentExpr      :: u32
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 8:15     BinaryExpr     :: i32
+  expr 9:13     BinaryExpr     :: u8

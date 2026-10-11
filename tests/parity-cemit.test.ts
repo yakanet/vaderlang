@@ -517,6 +517,8 @@ const C_PARITY = new Set<string>([
   // A read-only covariant array view: natively an `i32[]` read as `(i32 | string)[]`
   // took its raw words for boxes; the view kept here reads boxes as boxes.
   "array_union_literal_ok",
+  // `+%` / `-%` / `*%` at every width, run time and folded constants alike.
+  "wrapping_operators",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

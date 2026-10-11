@@ -124,11 +124,12 @@ classify_token :: fn(t: Token) -> i32 = match t.kind {
 
     // Operators + interpolation delimiters.
     .InterpOpen | .InterpClose
-        | .Plus | .Minus | .Star | .Slash | .Percent
+        | .Plus | .Minus | .Star | .Slash | .Percent | .PlusPercent | .MinusPercent | .StarPercent
         | .Amp | .Pipe | .Caret | .Tilde | .Shl | .Shr
         | .Eq | .Neq | .Same | .NotSame | .Lt | .Lte | .Gt | .Gte
         | .AndAnd | .OrOr | .Bang | .QuestionQuestion
         | .Assign | .PlusAssign | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign
+        | .PlusPercentAssign | .MinusPercentAssign | .StarPercentAssign
         | .DeclConst | .DeclVar | .RangeExcl | .RangeIncl
         | .Arrow | .FatArrow -> i32(TokenType.Operator)
 

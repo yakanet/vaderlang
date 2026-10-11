@@ -319,6 +319,7 @@ STRING_BEGIN  STRING_PART("foo ")  INTERP_OPEN  <expression tokens>  INTERP_CLOS
 
 ```
 Arithmetic   : + - * / %
+Wrapping     : +% -% *%  (integers only : the result wraps around the operand's width)
 Bitwise      : & | ^ ~ << >>
 Comparison   : == != < <= > >=
 Identity     : === !==   (same object; references only — §Equality, *Identity*)
@@ -327,7 +328,7 @@ Membership   : in   (sugar for `right.contains(left)`)
 Type test    : is Type   (in `match` arms and in `if`/`else` conditions ; narrows the scrutinee)
               !is Type   (negated form, parsed as `bang` + `kw_is` ; desugars to `!(x is Type)`)
 Logical      : && || !
-Assignment   : =  (also compound : += -= *= /= %=, each `lhs op= rhs` meaning `lhs = lhs op rhs`, `lhs` evaluated once)
+Assignment   : =  (also compound : += -= *= /= %= +%= -%= *%=, each `lhs op= rhs` meaning `lhs = lhs op rhs`, `lhs` evaluated once)
 Declaration  : x :: value           (immutable, type inferred)
                x := value           (mutable,   type inferred)
                x: T : value         (immutable, typed)
@@ -352,8 +353,8 @@ From tightest to loosest. Higher levels bind more tightly. Non-assoc operators f
 |-------|----------------------------------------|----------------|
 | 1     | postfix `.`, `[]`, `()`                | left           |
 | 2     | prefix `-`, `!`, `~`                   | right          |
-| 3     | `*`, `/`, `%`                          | left           |
-| 4     | `+`, `-`                               | left           |
+| 3     | `*`, `/`, `%`, `*%`                    | left           |
+| 4     | `+`, `-`, `+%`, `-%`                   | left           |
 | 5     | `<<`, `>>`                             | left           |
 | 6     | `&`                                    | left           |
 | 7     | `^`                                    | left           |
@@ -404,7 +405,7 @@ A newline terminates a statement. No `;` is required. The lexer emits a `NEWLINE
 2. **After a binary or unary operator** that is still pending an operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `===`, `!==`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `??`, `..<`, `..=`, and the spread `...`. (A newline after `!` is **not** absorbed.)
 3. **After a comma** `,`.
 4. **After a token that expects a right-hand side**: `=`, `:`, `->`, `=>`, the binding operators `::` / `:=`, and the compound-assignments `+=` `-=` `*=` `/=` `%=`.
-5. **Before a leading operator that has no prefix form** — when the next line *opens* with `+`, `*`, `/`, `%`, `^`, `??`, `==`, `!=`, `===`, `!==`, `<`, `<=`, `<<`, `>`, `>=`, `>>`, `&&`, `||`, `&` or `|`, the newline before it is absorbed so the operator continues the previous expression. None of these has a prefix / unary meaning, so a line starting with one is unambiguously a continuation — in a `{ }` block too, where nothing else holds the expression open: a leading `+` continues a sum or a concatenation, `??` a fallback, `&&` / `||` a condition, `&` / `|` a type intersection / union. `//` comment lines between the two are looked past. A compound assignment (`+=`, `*=`, `/=`, `%=`) is **not** a continuation. Operators that *do* have a prefix form — `-`, `~`, `!`, `.` — are excluded, so they never silently join the previous line.
+5. **Before a leading operator that has no prefix form**: when the next line *opens* with `+`, `*`, `/`, `%`, `+%`, `-%`, `*%`, `^`, `??`, `==`, `!=`, `===`, `!==`, `<`, `<=`, `<<`, `>`, `>=`, `>>`, `&&`, `||`, `&` or `|`, the newline before it is absorbed so the operator continues the previous expression. None of these has a prefix / unary meaning, so a line starting with one is unambiguously a continuation — in a `{ }` block too, where nothing else holds the expression open: a leading `+` continues a sum or a concatenation, `??` a fallback, `&&` / `||` a condition, `&` / `|` a type intersection / union. `//` comment lines between the two are looked past. A compound assignment (`+=`, `*=`, `/=`, `%=`, `+%=`, …) is **not** a continuation. Operators that *do* have a prefix form — `-`, `~`, `!`, `.` — are excluded, so they never silently join the previous line.
 
 There is **no backslash-continuation** (`\` at end of line is not special). If you need to break a long expression, use one of the five cases above (typically wrap in parentheses, or break after — or before — a binary operator).
 
@@ -668,6 +669,8 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 ### Signed overflow
 
 Signed integer arithmetic **wraps** (two's complement), on every backend and in every mode: `a: i32: 2147483647` then `a + 1` is `-2147483648` under `vader run`, from a debug build and from a release one alike. The native backend compiles with `-fwrapv`, so the C compiler never assumes an overflow away. There is no overflow check; a narrowing cast truncates (§Casts).
+
+The **wrapping operators** `+%`, `-%` and `*%` (and `+%=`, `-%=`, `*%=`) spell the wrap: integer operands only (`T3017` otherwise, and no trait overloads them), the result wrapping around the operands' width, an 8- or 16-bit one included: so `250 +% 10` is `4` on a `u8`, at run time as when a constant folds. They are the form for arithmetic meant to wrap (a hash, a PRNG, a checksum): `h *%= 16_777_619`.
 
 ### Strings
 

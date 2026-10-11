@@ -347,7 +347,7 @@
         },
         {
           "name": "keyword.operator.assignment.compound.vader",
-          "match": "\\+=|-=|\\*=|/=|%="
+          "match": "\\+%=|-%=|\\*%=|\\+=|-=|\\*=|/=|%="
         },
         {
           "name": "keyword.operator.assignment.vader",
@@ -359,7 +359,7 @@
         },
         {
           "name": "keyword.operator.arithmetic.vader",
-          "match": "\\+|-|\\*|/|%"
+          "match": "\\+%|-%|\\*%|\\+|-|\\*|/|%"
         },
         {
           "name": "keyword.operator.try.vader",

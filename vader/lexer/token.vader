@@ -40,6 +40,9 @@ export TokenKind :: enum(u8) {
 
     // Operators
     Plus, Minus, Star, Slash, Percent,
+    PlusPercent,   // +%  (wrapping)
+    MinusPercent,  // -%  (wrapping)
+    StarPercent,   // *%  (wrapping)
     Amp, Pipe, Caret, Tilde, Shl, Shr,
     Eq, Neq, Lt, Lte, Gt, Gte,
     Same,          // ===
@@ -52,6 +55,9 @@ export TokenKind :: enum(u8) {
     StarAssign,    // *=
     SlashAssign,   // /=
     PercentAssign, // %=
+    PlusPercentAssign,  // +%=
+    MinusPercentAssign, // -%=
+    StarPercentAssign,  // *%=
     DeclConst,     // ::
     DeclVar,       // :=
     RangeExcl,     // ..<

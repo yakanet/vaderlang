@@ -1,0 +1,37 @@
+// `+%`, `-%` and `*%` wrap around their integer's width, at run time and when a
+// constant folds, and so do their compound forms. An 8- or 16-bit constant folds
+// to the value its width holds, as the run time narrows it.
+module "snippet"
+
+import "std/io"
+
+I32_TOP: i32: 2_147_483_647 +% 1
+U8_SUM: u8: 250 +% 10
+I8_SUM: i8: 120 +% 10
+U16_PRODUCT: u16: 300 *% 300
+U32_BELOW: u32: 0 -% 1
+
+main :: fn(argv: string[]) -> i32 {
+    // Read from the arguments, so the operations below run instead of folding.
+    one :: i32(argv.len())
+    top: i32: 2_147_483_647
+    println("i32 ${top +% one} ${I32_TOP}")
+    byte: u8: 250
+    println("u8 ${byte +% u8(one + 9)} ${U8_SUM}")
+    small: i8: 120
+    println("i8 ${small +% i8(one + 9)} ${I8_SUM}")
+    wide: u16: 300
+    println("u16 ${wide *% wide} ${U16_PRODUCT}")
+    zero: u32: 0
+    println("u32 ${zero -% u32(one)} ${U32_BELOW}")
+    big: u64: 0xFFFF_FFFF_FFFF_FFFF
+    println("u64 ${big *% 2} ${big +% u64(one)}")
+    acc: i64 = 9_223_372_036_854_775_807
+    acc +%= i64(one)
+    acc -%= 2
+    println("i64 ${acc}")
+    h: u32 = 2_166_136_261
+    h *%= 16_777_619
+    println("u32 hash ${h}")
+    return 0
+}

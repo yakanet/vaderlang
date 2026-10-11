@@ -1343,7 +1343,7 @@ emit_assign_stmt :: fn(self: Printer, s: p.AssignStmt) -> void {
 // assignment, or `null` so the caller renders the plain `=`.
 compound_assign_symbol :: fn(s: p.AssignStmt) -> string | null {
     op :: p.compound_assign_op(s) ?? return null
-    return "${binary_op_symbol(op)}="
+    return "${p.binary_op_symbol(op)}="
 }
 
 emit_return_stmt :: fn(self: Printer, s: p.ReturnStmt) -> void {
@@ -1832,7 +1832,7 @@ emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
             _               -> {}
         }
     }
-    self.write(unary_op_symbol(x.op))
+    self.write(p.unary_op_symbol(x.op))
     // A binary operand binds looser than the unary, so it must be parenthesised
     // to preserve precedence — `!(a || b)`, `-(a + b)` — otherwise the re-emitted
     // source reparses as `(!a) || b`. (The `!is` sugar above already handled the
@@ -1847,7 +1847,7 @@ emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
 }
 
 emit_binary :: fn(self: Printer, x: p.BinaryExpr) -> void {
-    symbol :: binary_op_symbol(x.op)
+    symbol :: p.binary_op_symbol(x.op)
     place :: self.operator_place(symbol, x.left.span.end, x.right.span.start)
     self.emit_binary_operand(x.left, x.op, true)
     self.write_operator(place, symbol, x.right.span.start)
@@ -1945,9 +1945,12 @@ binary_precedence :: fn(op: p.BinaryOp) -> i32 = match op {
     .Shr    -> 8
     .Add    -> 9
     .Sub    -> 9
+    .AddWrap -> 9
+    .SubWrap -> 9
     .Mul    -> 10
     .Div    -> 10
     .Mod    -> 10
+    .MulWrap -> 10
 }
 
 // Non-associative binary ops (parser bp 20, `non_assoc = true`) — a chained

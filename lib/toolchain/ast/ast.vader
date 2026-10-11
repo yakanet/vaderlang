@@ -596,11 +596,14 @@ export compound_assign_op :: fn(s: AssignStmt) -> BinaryOp | null {
     return null
 }
 
-/// Whether `op` is one of the five arithmetic operators — `+` `-` `*` `/` `%`,
-/// the ones a compound assignment spells.
+/// Whether `op` is an arithmetic operator a compound assignment spells : `+` `-`
+/// `*` `/` `%`, and the wrapping `+%` `-%` `*%`.
 /// @param op  the operator.
-export is_arith_op :: fn(op: BinaryOp) -> bool =
-    op == .Add || op == .Sub || op == .Mul || op == .Div || op == .Mod
+export is_arith_op :: fn(op: BinaryOp) -> bool = match op {
+    .Add | .Sub | .Mul | .Div | .Mod | .AddWrap | .SubWrap | .MulWrap -> true
+    .Shl | .Shr | .BitAnd | .BitOr | .BitXor | .And | .Or -> false
+    .Eq | .Neq | .Lt | .Lte | .Gt | .Gte | .Is | .In | .NotIn | .Same | .NotSame -> false
+}
 
 /// An expression evaluated for its effect, its value discarded.
 export ExprStmt :: struct {
@@ -857,6 +860,48 @@ export BinaryOp :: enum(u8) {
     Is, In, NotIn,
     /// `===` / `!==` : the same object, not an equal value.
     Same, NotSame,
+    /// `+%` / `-%` / `*%` : integer arithmetic that wraps around its width.
+    AddWrap, SubWrap, MulWrap,
+}
+
+/// The operator as the source spells it, `"+"` for `Add` : what a diagnostic quotes
+/// and the formatter prints.
+/// @param op  the operator.
+export binary_op_symbol :: fn(op: BinaryOp) -> string = match op {
+    .Add     -> "+"
+    .Sub     -> "-"
+    .Mul     -> "*"
+    .Div     -> "/"
+    .Mod     -> "%"
+    .Shl     -> "<<"
+    .Shr     -> ">>"
+    .BitAnd  -> "&"
+    .BitOr   -> "|"
+    .BitXor  -> "^"
+    .And     -> "&&"
+    .Or      -> "||"
+    .Eq      -> "=="
+    .Neq     -> "!="
+    .Lt      -> "<"
+    .Lte     -> "<="
+    .Gt      -> ">"
+    .Gte     -> ">="
+    .Is      -> "is"
+    .In      -> "in"
+    .NotIn   -> "!in"
+    .Same    -> "==="
+    .NotSame -> "!=="
+    .AddWrap -> "+%"
+    .SubWrap -> "-%"
+    .MulWrap -> "*%"
+}
+
+/// The operator as the source spells it, `"-"` for `Neg`.
+/// @param op  the operator.
+export unary_op_symbol :: fn(op: UnaryOp) -> string = match op {
+    .Neg    -> "-"
+    .Not    -> "!"
+    .BitNot -> "~"
 }
 
 /// The `as <name>` of `if e is T as x` and `match e as x`.

@@ -1,0 +1,23 @@
+// `+%`, `-%` and `*%` wrap around an integer's width : a float, a string or any
+// other non-integer operand is T3017, a struct implementing `Add` included, since
+// no trait overloads them.
+module "snippet"
+
+Money :: struct {
+    cents: i64
+}
+
+Money implements Add {
+    add :: fn(self, other: Money) -> Money = Money { .cents = self.cents + other.cents }
+}
+
+main :: fn() -> i32 {
+    x: f64: 1.5
+    y :: x +% 2.0
+    s :: "a" *% "b"
+    n: i32: 3
+    m :: n -% 1.0
+    price :: Money { .cents = 5 }
+    total :: price +% price
+    return n
+}

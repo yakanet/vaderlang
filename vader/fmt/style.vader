@@ -1,4 +1,4 @@
-// vader/fmt/style — formatting constants + op-symbol tables.
+// vader/fmt/style — formatting constants.
 //
 // No config flags in v1 : every value here is the single canonical choice.
 // Style mirrors the existing stdlib (sampled from `stdlib/std/core.vader`,
@@ -6,8 +6,6 @@
 // operator spacing, normalized trailing commas in multi-line lists.
 
 module "vader/fmt"
-
-import "toolchain/ast"
 
 // Visual indent width (4 spaces). Tabs are deliberately not on the table.
 export INDENT :: "    "
@@ -18,40 +16,3 @@ export MAX_LINE :: 100
 
 export NL :: "\n"
 
-// Binary-op surface symbols. The enum order in `BinaryOp` (vader/parser/ast.vader)
-// is the contract — keep this table in sync.
-export binary_op_symbol :: fn(op: BinaryOp) -> string {
-    match op {
-        .Add    -> "+"
-        .Sub    -> "-"
-        .Mul    -> "*"
-        .Div    -> "/"
-        .Mod    -> "%"
-        .Shl    -> "<<"
-        .Shr    -> ">>"
-        .BitAnd -> "&"
-        .BitOr  -> "|"
-        .BitXor -> "^"
-        .And    -> "&&"
-        .Or     -> "||"
-        .Eq     -> "=="
-        .Neq    -> "!="
-        .Lt     -> "<"
-        .Lte    -> "<="
-        .Gt     -> ">"
-        .Gte    -> ">="
-        .Is     -> "is"
-        .In     -> "in"
-        .NotIn  -> "!in"
-        .Same   -> "==="
-        .NotSame -> "!=="
-    }
-}
-
-export unary_op_symbol :: fn(op: UnaryOp) -> string {
-    match op {
-        .Neg    -> "-"
-        .Not    -> "!"
-        .BitNot -> "~"
-    }
-}

@@ -1412,4 +1412,7 @@ binary_op_name :: fn(op: BinaryOp) = match op {
     .Is     -> "is"
     .In     -> "in"
     .NotIn  -> "not_in"
+    .AddWrap -> "add_wrap"
+    .SubWrap -> "sub_wrap"
+    .MulWrap -> "mul_wrap"
 }

@@ -88,7 +88,7 @@ export infer_binary :: fn(
         .Arith    -> { check_arith(e, left, right, typed, diags) }
         .Compare  -> { check_compare(e, left, right, typed, diags) }
         .Logical  -> { check_logical(e, left, right, diags) }
-        .Bitwise  -> { check_bitwise(e, left, right, typed, diags) }
+        .Integral -> { check_integral(e, left, right, typed, diags) }
         .Equality -> { check_equality(e, left, right, typed, diags) }
         .Identity -> { check_identity(e, left, right, diags) }
         .Is       -> { TY_BOOL }
@@ -471,7 +471,7 @@ push_operand_mismatch :: fn(
 /// backing check rejects a still-distinct other operand) and re-runs the op-class
 /// `recheck`. Returns `null` when neither operand is distinct — the caller then
 /// emits its normal "not defined" / "trait missing" diagnostic. Shared by
-/// check_arith / check_compare / check_bitwise / check_in. A distinct that DOES
+/// check_arith / check_compare / check_integral / check_in. A distinct that DOES
 /// define the operator returned before reaching the fallback, so `instant + 5` /
 /// `instant < 5` still error on the impl's Rhs check rather than falling through.
 distinct_op_fallback :: fn(
@@ -1023,7 +1023,7 @@ check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnosti
     return TY_BOOL
 }
 
-check_bitwise :: fn(
+check_integral :: fn(
     e: AST.BinaryExpr,
     left: Type,
     right: Type,
@@ -1037,7 +1037,7 @@ check_bitwise :: fn(
         return left
     }
     if !is_integer(left) || !is_integer(right) {
-        fb :: distinct_op_fallback(e, left, right, typed, diags, check_bitwise)
+        fb :: distinct_op_fallback(e, left, right, typed, diags, check_integral)
         if fb != null {
             return fb
         }
@@ -1049,7 +1049,9 @@ check_bitwise :: fn(
 
 // ---- helpers --------------------------------------------------------------
 
-OpKind :: enum(u8) { Arith, Compare, Equality, Identity, Logical, Bitwise, Is, In }
+// `Integral` takes integer operands only : the bitwise operators, the shifts and
+// the wrapping arithmetic.
+OpKind :: enum(u8) { Arith, Compare, Equality, Identity, Logical, Integral, Is, In }
 
 classify :: fn(op: AST.BinaryOp) -> OpKind = match op {
     .Add    -> .Arith
@@ -1065,16 +1067,19 @@ classify :: fn(op: AST.BinaryOp) -> OpKind = match op {
     .Neq    -> .Equality
     .And    -> .Logical
     .Or     -> .Logical
-    .BitAnd -> .Bitwise
-    .BitOr  -> .Bitwise
-    .BitXor -> .Bitwise
-    .Shl    -> .Bitwise
-    .Shr    -> .Bitwise
+    .BitAnd -> .Integral
+    .BitOr  -> .Integral
+    .BitXor -> .Integral
+    .Shl    -> .Integral
+    .Shr    -> .Integral
     .Is     -> .Is
     .In     -> .In
     .NotIn  -> .In
     .Same    -> .Identity
     .NotSame -> .Identity
+    .AddWrap -> .Integral
+    .SubWrap -> .Integral
+    .MulWrap -> .Integral
 }
 
 // When left is a concrete numeric and the op propagates context, return
@@ -1087,11 +1092,11 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
         .Equality -> true
         .Identity -> false
         .Logical  -> false
-        .Bitwise  -> true
+        .Integral -> true
         .Is       -> false
         .In       -> false
     }
-    // Bitwise / shift propagate the concrete LEFT to the RIGHT so a bare
+    // The integral operators propagate the concrete LEFT to the RIGHT so a bare
     // shift amount / mask repins (`u32(b) >> 4`, `mask & 0xFF`).
 
     if !propagates                                                     { return null }
@@ -1108,7 +1113,7 @@ is_enum_like :: fn(t: Type) -> bool {
     return false
 }
 
-// The outer `expected` as an operand context — only for Arith / Bitwise, where
+// The outer `expected` as an operand context, only for Arith / Integral, where
 // the result type equals the operand type, so a concrete numeric `expected`
 // flows into free literal leaves (`x: u32 = 1 << 31`). Compare / Equality
 // produce `bool`, so their operands are coerced by the symmetric repin instead.
@@ -1118,7 +1123,7 @@ op_expected_ctx :: fn(op: AST.BinaryOp, expected: Type | null) -> Type | null {
     }
     width_carrying :: match classify(op) {
         .Arith    -> true
-        .Bitwise  -> true
+        .Integral -> true
         .Compare  -> false
         .Equality -> false
         .Identity -> false
@@ -1263,7 +1268,7 @@ push_op_undefined :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagn
         typecheck_error(
             .OperatorNotDefined,
             e.span,
-            "operator not defined for ${display_type(left)} and ${display_type(right)}",
+            "`${AST.binary_op_symbol(e.op)}` is not defined for `${display_type(left)}` and `${display_type(right)}`",
         ),
     )
 }

@@ -95,6 +95,9 @@ combine_binary :: fn(expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeV
     .NotIn  -> vm_required(expr.span, "BinaryOp.NotIn")
     .Same    -> vm_required(expr.span, "BinaryOp.Same")
     .NotSame -> vm_required(expr.span, "BinaryOp.NotSame")
+    .AddWrap -> arithmetic_int(expr, left, right, op_add)
+    .SubWrap -> arithmetic_int(expr, left, right, op_sub)
+    .MulWrap -> arithmetic_int(expr, left, right, op_mul)
 }
 
 /// Evaluate a `UnaryExpr` (`-x`, `!x`, `~x`).
@@ -124,23 +127,41 @@ export evaluate_unary_expr :: fn(
 // comparisons, string from concat) pass through, as do unknown / 64-bit widths
 // — a missing or `i64`/`u64`/`isize`/`usize` width is NEVER truncated.
 normalize_int_result :: fn(r: EvalResult, rname: string) -> EvalResult {
-    if r.value is IntValue as iv { return ok(int_val_typed(wrap_to_width(iv.value, rname), iv.type_name)) }
+    if r.value is IntValue as iv {
+        return ok(int_val_typed(wrap_to_width(iv.value, rname), result_type_name(iv, rname)))
+    }
     return r
 }
 
-// Wrap an i64 to the given primitive width. Every sub-64 width is stored (like
-// the runtime) in a 32-bit slot, so `i8`..`u32` all wrap at 32 bits with sign
-// extension ; the 64-bit widths and any unrecognised name stay full-width.
-wrap_to_width :: fn(v: i64, type_name: string) -> i64 = match type_name {
-    "i8" | "u8" | "i16" | "u16" | "i32" | "u32" -> sign_extend_32(v)
-    _                                           -> v
+// The node's resolved width names the result, else the operand's own type does.
+result_type_name :: fn(iv: IntValue, rname: string) -> string {
+    if rname != "" {
+        return rname
+    }
+    return iv.type_name
 }
 
-// Truncate to the low 32 bits, then sign-extend bit 31 into the upper half so
-// the stored i64 carries the same value the runtime's signed 32-bit slot would.
-sign_extend_32 :: fn(v: i64) -> i64 {
-    low :: v & 0xFFFF_FFFF
-    if (low & 0x8000_0000) != 0 { return low - 0x1_0000_0000 }
+// Wrap an i64 to the given primitive width, keeping the value in that type's
+// range so a comparison, a division or a shift folds as it runs. A `u64` above
+// `i64` cannot be held this way and stays as its bits.
+wrap_to_width :: fn(v: i64, type_name: string) -> i64 = match type_name {
+    "i8"  -> sign_extend(v, 8)
+    "u8"  -> v & 0xFF
+    "i16" -> sign_extend(v, 16)
+    "u16" -> v & 0xFFFF
+    "i32" -> sign_extend(v, 32)
+    "u32" -> v & 0xFFFF_FFFF
+    _     -> v
+}
+
+// Truncate to the low `bits`, then sign-extend the top one into the upper half,
+// as a signed slot of that width holds the value.
+sign_extend :: fn(v: i64, bits: i64) -> i64 {
+    span: i64: 1 << bits
+    low :: v & (span - 1)
+    if low & (span >> 1) != 0 {
+        return low - span
+    }
     return low
 }
 

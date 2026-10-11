@@ -82,10 +82,12 @@ suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
     // `T ::\n    A | B | C` — `.DeclConst` / `.DeclVar` let the RHS of a `::` /
     // `:=` binding wrap onto the next line, mirroring the pipe / arrow
     // continuation so multi-line union declarations read cleanly.
-    .Plus | .Minus | .Star | .Slash | .Percent | .Amp | .Pipe | .Caret
+    .Plus | .Minus | .Star | .Slash | .Percent | .PlusPercent | .MinusPercent | .StarPercent
+        | .Amp | .Pipe | .Caret
         | .Shl | .Shr | .Eq | .Neq | .Same | .NotSame | .Lt | .Lte | .Gt | .Gte | .AndAnd
         | .OrOr | .QuestionQuestion | .RangeExcl | .RangeIncl | .DotDotDot | .Assign | .PlusAssign
-        | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign | .Colon
+        | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign | .PlusPercentAssign
+        | .MinusPercentAssign | .StarPercentAssign | .Colon
         | .Arrow | .FatArrow | .Comma | .DeclConst | .DeclVar -> true
     _ -> false
 }
@@ -99,7 +101,8 @@ suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
 // @partial: only the infix-only operators continue a line; every other token → false.
 continues_previous_line :: fn(k: TokenKind) = @partial match k {
     .Plus | .Star | .Slash | .Percent | .Caret | .QuestionQuestion | .Eq | .Neq | .Same
-        | .NotSame | .Lt | .Lte | .Shl | .Gt | .Gte | .Shr | .AndAnd | .OrOr | .Amp | .Pipe -> true
+        | .NotSame | .Lt | .Lte | .Shl | .Gt | .Gte | .Shr | .AndAnd | .OrOr | .Amp | .Pipe
+        | .PlusPercent | .MinusPercent | .StarPercent -> true
     _ -> false
 }
 
@@ -718,6 +721,18 @@ try_lex_operator :: fn(l: Lexer) -> bool {
     if c2 == '=' && l.peek_at(2) == '=' {
         if c == '=' { return l.emit_and_advance(.Same, "===") }
         if c == '!' { return l.emit_and_advance(.NotSame, "!==") }
+    }
+
+    // Wrapping arithmetic, ahead of the `+=` / `+` it starts with : `+%=` then `+%`.
+    if c2 == '%' {
+        if l.peek_at(2) == '=' {
+            if c == '+' { return l.emit_and_advance(.PlusPercentAssign, "+%=") }
+            if c == '-' { return l.emit_and_advance(.MinusPercentAssign, "-%=") }
+            if c == '*' { return l.emit_and_advance(.StarPercentAssign, "*%=") }
+        }
+        if c == '+' { return l.emit_and_advance(.PlusPercent, "+%") }
+        if c == '-' { return l.emit_and_advance(.MinusPercent, "-%") }
+        if c == '*' { return l.emit_and_advance(.StarPercent, "*%") }
     }
 
     // Two-char ops.

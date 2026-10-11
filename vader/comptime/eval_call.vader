@@ -43,7 +43,9 @@ export evaluate_call_expr :: fn(
             arg_result :: evaluate_expr(expr.args[0].value, context)
             if arg_result.value is null { return arg_result }
             av :: arg_result.value
-            if av is IntValue { return ok(IntValue { .value = av.value, .type_name = callee.name }) }
+            if av is IntValue {
+                return ok(IntValue { .value = wrap_to_width(av.value, callee.name), .type_name = callee.name })
+            }
         }
     }
     callee_sym :: context.typed.resolved.idents[callee.span.hash()]

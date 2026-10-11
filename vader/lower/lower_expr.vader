@@ -859,4 +859,9 @@ lower_binary_op :: fn(op: BinaryOp) -> LoweredBinaryOp = match op {
     // comparison, which on two references compares the references.
     .Same    -> .Eq
     .NotSame -> .Neq
+    // The wrapping forms take the same operations as `+` / `-` / `*`, which wrap
+    // too (SPEC § Signed overflow).
+    .AddWrap -> .Add
+    .SubWrap -> .Sub
+    .MulWrap -> .Mul
 }

@@ -2246,6 +2246,9 @@ compound_op :: fn(k: TokenKind) = @partial match k {
     .StarAssign    -> CompoundOpResult { .matched = true, .op = .Mul }
     .SlashAssign   -> CompoundOpResult { .matched = true, .op = .Div }
     .PercentAssign -> CompoundOpResult { .matched = true, .op = .Mod }
+    .PlusPercentAssign  -> CompoundOpResult { .matched = true, .op = .AddWrap }
+    .MinusPercentAssign -> CompoundOpResult { .matched = true, .op = .SubWrap }
+    .StarPercentAssign  -> CompoundOpResult { .matched = true, .op = .MulWrap }
     _              -> CompoundOpResult { .matched = false, .op = .Add }
 }
 
@@ -2693,6 +2696,9 @@ infix_for :: fn(k: TokenKind) = match k {
     .Star      -> InfixOpDescr { .has = true, .left_bp = 90, .right_bp = 91, .op = .Mul,    .non_assoc = false }
     .Slash     -> InfixOpDescr { .has = true, .left_bp = 90, .right_bp = 91, .op = .Div,    .non_assoc = false }
     .Percent   -> InfixOpDescr { .has = true, .left_bp = 90, .right_bp = 91, .op = .Mod,    .non_assoc = false }
+    .PlusPercent  -> InfixOpDescr { .has = true, .left_bp = 80, .right_bp = 81, .op = .AddWrap, .non_assoc = false }
+    .MinusPercent -> InfixOpDescr { .has = true, .left_bp = 80, .right_bp = 81, .op = .SubWrap, .non_assoc = false }
+    .StarPercent  -> InfixOpDescr { .has = true, .left_bp = 90, .right_bp = 91, .op = .MulWrap, .non_assoc = false }
     .Eof          -> no_infix()
     .Newline      -> no_infix()
     .Ident        -> no_infix()
@@ -2714,6 +2720,9 @@ infix_for :: fn(k: TokenKind) = match k {
     .StarAssign   -> no_infix()
     .SlashAssign  -> no_infix()
     .PercentAssign -> no_infix()
+    .PlusPercentAssign  -> no_infix()
+    .MinusPercentAssign -> no_infix()
+    .StarPercentAssign  -> no_infix()
     .DeclConst    -> no_infix()
     .DeclVar      -> no_infix()
     .Arrow        -> no_infix()
@@ -2776,6 +2785,9 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .Star         -> -1
     .Slash        -> -1
     .Percent      -> -1
+    .PlusPercent  -> -1
+    .MinusPercent -> -1
+    .StarPercent  -> -1
     .Amp          -> -1
     .Pipe         -> -1
     .Caret        -> -1
@@ -2800,6 +2812,9 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .StarAssign   -> -1
     .SlashAssign  -> -1
     .PercentAssign -> -1
+    .PlusPercentAssign  -> -1
+    .MinusPercentAssign -> -1
+    .StarPercentAssign  -> -1
     .DeclConst    -> -1
     .DeclVar      -> -1
     .RangeExcl    -> -1
@@ -3396,6 +3411,7 @@ is_angle_scan_bailout :: fn(k: TokenKind) -> bool {
     if k == .Assign { return true }
     if k == .PlusAssign || k == .MinusAssign { return true }
     if k == .StarAssign || k == .SlashAssign || k == .PercentAssign { return true }
+    if k == .PlusPercentAssign || k == .MinusPercentAssign || k == .StarPercentAssign { return true }
     if k == .Gte || k == .Lte || k == .Eq || k == .Neq { return true }
     if k == .Same || k == .NotSame { return true }
     if k == .KwIf || k == .KwElse || k == .KwMatch || k == .KwIs { return true }

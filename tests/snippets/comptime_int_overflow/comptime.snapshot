@@ -1,7 +1,7 @@
 # Comptime
 
 ## tests/snippets/comptime_int_overflow
-  @comptime  BIG                  = 6000000000_i32
+  @comptime  BIG                  = 6000000000_i64
   @comptime  GT0                  = false
   @comptime  SHL                  = 2_i32
   @comptime  SUM                  = -294967296_i32
