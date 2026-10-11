@@ -400,7 +400,7 @@ fn 5 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -409,7 +409,7 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
   local m u64
   local i usize
   local $cast_26 u8
-  local $add_27 u8
+  local $add_checked_27 u8
   local.get 2   ; arg 2
   i64.const 0
   i64.eq
@@ -420,7 +420,7 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    i64.add
+    usize.checked_add
     return
   end $L0
   i64.const 0
@@ -434,7 +434,7 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L2 void
       local.get 3   ; ndigits
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 3   ; ndigits
       local.get 4   ; m
       i64.const 10
@@ -445,7 +445,7 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L1
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  i64.add
+  usize.checked_add
   local.set 5   ; i
   loop $L3 void
     local.get 2   ; arg 2
@@ -454,7 +454,7 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L4 void
       local.get 5   ; i
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.set 5   ; i
       local.get 2   ; arg 2
       i64.const 10
@@ -465,13 +465,11 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
       local.set 6   ; $cast_26
       i32.const 48
       local.get 6   ; $cast_26
-      i32.add
-      i32.const 255
-      i32.bitand
-      local.set 7   ; $add_27
+      u8.checked_add
+      local.set 7   ; $add_checked_27
       local.get 0   ; arg 0
       local.get 5   ; i
-      local.get 7   ; $add_27
+      local.get 7   ; $add_checked_27
       store_u8
       local.get 2   ; arg 2
       i64.const 10
@@ -482,7 +480,7 @@ fn 6 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L3
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -736,7 +734,7 @@ fn 10 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      i64.add
+      usize.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -935,7 +933,7 @@ fn 14 std_io$without_trailing_sep (string) -> string
   local i usize
   local __for_hi_0 usize
   local last usize
-  local $sub_21 usize
+  local $sub_checked_21 usize
   local.get 0   ; arg 0
   call.import 3   ; std_core$bytes
   local.set 1   ; b
@@ -955,9 +953,9 @@ fn 14 std_io$without_trailing_sep (string) -> string
         local.get 1   ; b
         array.len
         i64.const 1
-        i64.sub
+        usize.checked_sub
         local.get 3   ; i
-        i64.sub
+        usize.checked_sub
         local.tee 5   ; last
         i64.const 0
         i64.eq
@@ -971,10 +969,10 @@ fn 14 std_io$without_trailing_sep (string) -> string
         br_if $L0
         local.get 5   ; last
         i64.const 1
-        i64.sub
-        local.set 6   ; $sub_21
+        usize.checked_sub
+        local.set 6   ; $sub_checked_21
         local.get 1   ; b
-        local.get 6   ; $sub_21
+        local.get 6   ; $sub_checked_21
         array.get 8   ; u8[]
         ref.cast 4   ; u8
         i32.const 58
@@ -982,7 +980,7 @@ fn 14 std_io$without_trailing_sep (string) -> string
         br_if $L0
         local.get 2   ; trailing
         i64.const 1
-        i64.add
+        usize.checked_add
         local.set 2   ; trailing
         local.get 3   ; i
         i64.const 1
@@ -1000,7 +998,7 @@ fn 14 std_io$without_trailing_sep (string) -> string
     local.get 1   ; b
     array.len
     local.get 2   ; trailing
-    i64.sub
+    usize.checked_sub
     local.set 2   ; trailing
     local.get 1   ; b
     i64.const 0
@@ -1208,11 +1206,11 @@ fn 18 images_ppm$encode (ref) -> any
   local.set 6   ; $cast_28
   local.get 5   ; $cast_26
   local.get 6   ; $cast_28
-  i64.mul
+  usize.checked_mul
   i64.const 3
-  i64.mul
+  usize.checked_mul
   local.get 3   ; __off_1
-  i64.mul
+  usize.checked_mul
   local.set 3   ; __off_1
   local.field 0 14 3   ; arg 0 images_ppm$Ppm.pixels
   array.len
@@ -1287,7 +1285,7 @@ fn 18 images_ppm$encode (ref) -> any
     local.set 10   ; $len_83
     local.get 6   ; $cast_28
     local.get 10   ; $len_83
-    i64.add
+    usize.checked_add
     local.set 6   ; $cast_28
     local.get 9   ; $arr_80
     local.get 6   ; $cast_28
@@ -1520,7 +1518,7 @@ fn 19 images_ppm$decode (ref) -> any
   local.field 5 19 1   ; mv images_ppm$ScanInt.pos
   ref.cast 5   ; usize
   i64.const 1
-  i64.add
+  usize.checked_add
   local.set 2   ; p0
   local.field 5 19 0   ; mv images_ppm$ScanInt.value
   ref.cast 18   ; u32
@@ -1536,16 +1534,16 @@ fn 19 images_ppm$decode (ref) -> any
   local.set 10   ; $cast_84
   local.get 9   ; $cast_82
   local.get 10   ; $cast_84
-  i64.mul
+  usize.checked_mul
   i64.const 3
-  i64.mul
+  usize.checked_mul
   local.get 8   ; $len_64
-  i64.mul
+  usize.checked_mul
   local.set 8   ; $len_64
   local.get 0   ; arg 0
   array.len
   local.get 2   ; p0
-  i64.sub
+  usize.checked_sub
   local.tee 9   ; $cast_82
   local.get 8   ; $len_64
   i64.ne
@@ -1670,7 +1668,7 @@ fn 21 images_ppm$skip_ws (ref,usize) -> usize
               end $L6
               local.get 3   ; p
               i64.const 1
-              i64.add
+              usize.checked_add
               local.set 3   ; p
               br $L4
             end $L5
@@ -1687,7 +1685,7 @@ fn 21 images_ppm$skip_ws (ref,usize) -> usize
       end $L7
       local.get 3   ; p
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 3   ; p
       br $L0
     end $L1
@@ -1730,14 +1728,12 @@ fn 22 images_ppm$scan_uint (ref,usize) -> ref
         array.get 8   ; u8[]
         ref.cast 4   ; u8
         i32.const 48
-        i32.sub
-        i32.const 255
-        i32.bitand
+        u8.checked_sub
         u8.to_i32
         local.set 5   ; d
         i32.const -1
         local.get 5   ; d
-        i32.sub
+        u32.checked_sub
         i32.const 10
         u32.div
         local.set 6   ; $div_20
@@ -1753,13 +1749,13 @@ fn 22 images_ppm$scan_uint (ref,usize) -> ref
         end $L4
         local.get 4   ; v
         i32.const 10
-        i32.mul
+        u32.checked_mul
         local.get 5   ; d
-        i32.add
+        u32.checked_add
         local.set 4   ; v
         local.get 3   ; p
         i64.const 1
-        i64.add
+        usize.checked_add
         local.set 3   ; p
         br $L1
       end $L2

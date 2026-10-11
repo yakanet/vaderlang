@@ -150,9 +150,9 @@
                 s :Circle | Square
             then:
               ~>
-                mul :i32
+                mul_checked :i32
                   l:
-                    mul :i32
+                    mul_checked :i32
                       l:
                         .radius :i32
                           cast → Circle
@@ -171,7 +171,7 @@
                       s :Circle | Square
                   then:
                     ~>
-                      mul :i32
+                      mul_checked :i32
                         l:
                           .side :i32
                             cast → Square

@@ -156,7 +156,7 @@ opcode, never hoisted into a local across an allocation/safepoint.
 **The frontend stays pointer-free** (your constraint). These opcodes are *not*
 surfaced in the Vader language. The stdlib works against an abstract `Buffer`
 type whose handful of primitive methods are `@intrinsic`-lowered to these
-opcodes — the same mechanism that maps `i32 + i32` to `I32Add`. stdlib authors
+opcodes — the same mechanism that maps `a.add(b)` on an `i32` to a checked add. stdlib authors
 and users write safe Vader ; only the lowerer emits memory opcodes. `rawptr` +
 `@extern` remain the separate **off-heap** FFI path, never into a GC object.
 

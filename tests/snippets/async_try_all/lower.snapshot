@@ -78,7 +78,7 @@
                 value:
                   int(-1) :i32
               return
-                mul :i32
+                mul_checked :i32
                   l:
                     cast → i32
                       .s1 :i64

@@ -14,7 +14,7 @@ end
 fn 1 snippet$inc (i32) -> i32
   local.get 0   ; arg 0
   i32.const 1
-  i32.add
+  i32.checked_add
   return
 end
 

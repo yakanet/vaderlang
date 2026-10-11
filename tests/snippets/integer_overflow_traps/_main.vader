@@ -1,0 +1,25 @@
+// `+`, `-`, `*` and a unary `-` on an integer stop the run when the result leaves
+// its type, on the VM and from a debug build ; a release build wraps
+// (`tests/integer_overflow.test.ts`). Each type is checked at its own bounds: a
+// `u8` stops past 255 although it computes on 32 bits. The method form checks as
+// the operator does. The values that must not fold come from `argv`.
+module "snippet"
+
+import "std/io"
+
+main :: fn(argv: string[]) -> i32 {
+    one :: i32(argv.len())
+    byte: u8: 254
+    println("u8 in range: ${byte + u8(one)}")
+    println("u8 method in range: ${byte.add(u8(one))}")
+    index: usize: 0
+    println("usize in range: ${index + usize(one) - 1}")
+    small: i8: -127
+    println("i8 in range: ${small - i8(one)}")
+    top: i32: 2_147_483_646
+    println("i32 in range: ${top + one}")
+    wide: i64: 9_223_372_036_854_775_806
+    println("i64 in range: ${-(wide + i64(one))}")
+    println("i32 past its maximum: ${top + one + one}")
+    return 0
+}

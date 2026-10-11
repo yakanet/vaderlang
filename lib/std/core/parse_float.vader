@@ -124,7 +124,7 @@ pf_product :: fn(q: i32, w: u64) -> [u64, u64] {
     lo: u64 = lo0
     if (hi & 0x1FF) == 0x1FF {
         [sp_hi, _sp_lo] :: umul128(w, POW5_128[idx + 1])
-        lo = lo + sp_hi
+        lo = lo +% sp_hi
         if sp_hi > lo { hi = hi + 1 }
     }
     return [hi, lo]

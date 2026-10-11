@@ -191,7 +191,7 @@
         .size :i32
           self :Stack<i32>!
       value:
-        add :i32
+        add_checked :i32
           l:
             .size :i32
               self :Stack<i32>!
@@ -203,7 +203,7 @@
         .size :i32
           self :Stack<i32>!
       value:
-        sub :i32
+        sub_checked :i32
           l:
             .size :i32
               self :Stack<i32>!

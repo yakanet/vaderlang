@@ -1,0 +1,123 @@
+// vader/bytecode/checked_arith — what a checked integer op computes on VM cells.
+//
+// `CheckedArith` and `CheckedNeg` (`op.vader`) stop the run when the exact
+// result leaves the operand's integer class. The VM runs them through these
+// functions (`vader/vm`), and the bytecode folder folds a constant pair only when
+// they give a result (`emit.vader::try_fold_arith`). When an op overflows is
+// `vader/integer`'s answer ; this file maps the classes and the cells onto it.
+//
+// A cell is how the VM holds a value: a class narrower than 64 bits sits
+// sign-extended from its low 32 bits (a `u32` included), a 64-bit one is its
+// bits.
+
+module "vader/bytecode"
+
+import "vader/integer"
+
+/// The result of `op` on `a` and `b`, two cells of the integer class `kind`, or
+/// `null` when the exact result leaves `kind`.
+///
+/// @param op    the operation.
+/// @param kind  an integer class (`is_integer_val`).
+/// @param a     the left operand.
+/// @param b     the right operand.
+/// @return      the result cell, or `null` on overflow.
+export checked_arith :: fn(op: CheckedOp, kind: ValType, a: i64, b: i64) -> i64 | null {
+    bits :: integer_bits(kind)
+    unsigned :: is_unsigned_val(kind)
+    x :: cell_value(kind, a)
+    y :: cell_value(kind, b)
+    result :: integer_op(op, bits, unsigned, x, y) ?? return null
+    return value_cell(kind, result)
+}
+
+/// The negation of `a`, a cell of the integer class `kind`, or `null` when it
+/// leaves `kind`: the least value of a signed class, any nonzero value of an
+/// unsigned one.
+///
+/// @param kind  an integer class (`is_integer_val`).
+/// @param a     the operand.
+/// @return      the result cell, or `null` on overflow.
+export checked_neg :: fn(kind: ValType, a: i64) -> i64 | null {
+    bits :: integer_bits(kind)
+    value :: cell_value(kind, a)
+    negated :: checked_negation(bits, is_unsigned_val(kind), value) ?? return null
+    return value_cell(kind, negated)
+}
+
+/// The message a `CheckedArith` stops the run with: `u8.add overflow`.
+///
+/// @param kind  the op's integer class.
+/// @param op    the operation.
+export checked_overflow_message :: fn(kind: ValType, op: CheckedOp) =
+    "${val_type_name(kind)}.${checked_op_name(op)} overflow"
+
+/// The message a `CheckedNeg` stops the run with: `i8.neg overflow`.
+///
+/// @param kind  the op's integer class.
+export checked_neg_message :: fn(kind: ValType) = "${val_type_name(kind)}.neg overflow"
+
+/// The operation's name in the op's text form and its trap message: `add`.
+///
+/// @param op  the operation.
+export checked_op_name :: fn(op: CheckedOp) -> string = match op {
+    .Add -> "add"
+    .Sub -> "sub"
+    .Mul -> "mul"
+}
+
+integer_op :: fn(op: CheckedOp, bits: i64, unsigned: bool, x: i64, y: i64) -> i64 | null =
+    match op {
+        .Add -> checked_add(bits, unsigned, x, y)
+        .Sub -> checked_sub(bits, unsigned, x, y)
+        .Mul -> checked_mul(bits, unsigned, x, y)
+    }
+
+// The width of an integer class.
+integer_bits :: fn(kind: ValType) -> i64 = i64(size_of_val_type(kind)) * 8
+
+// The value a cell of the integer class `kind` holds.
+cell_value :: fn(kind: ValType, cell: i64) -> i64 {
+    if is_64_bit_int_val(kind) {
+        return cell
+    }
+    if kind == .U32 {
+        return cell & 0xFFFF_FFFF
+    }
+    return i64(i32(cell))
+}
+
+// The cell of `v`, a value of the integer class `kind`.
+value_cell :: fn(kind: ValType, v: i64) -> i64 {
+    if kind == .U32 {
+        return i64(i32(v))
+    }
+    return v
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_checked_arith_u32_cells :: fn() -> void {
+    // 0xFFFF_FFFF sits as the cell -1.
+    assert(checked_arith(.Add, .U32, -1, 1) == null, "u32 max + 1")
+    assert_eq(checked_arith(.Add, .U32, 0x7FFF_FFFF, 1) ?? 0, -2_147_483_648)
+    assert(checked_arith(.Mul, .U32, -1, -1) == null, "u32 max * max")
+    assert_eq(checked_arith(.Mul, .U32, 65_536, 65_535) ?? 0, -65_536)
+}
+
+@test
+test_checked_arith_classes :: fn() -> void {
+    assert(checked_arith(.Add, .U8, 250, 10) == null, "u8 250 + 10")
+    assert(checked_arith(.Sub, .Usize, 0, 1) == null, "usize 0 - 1")
+    assert_eq(checked_arith(.Sub, .Isize, 0, 1) ?? 0, -1)
+    assert(checked_neg(.I8, -128) == null, "i8 -(-128)")
+}
+
+@test
+test_checked_overflow_message :: fn() -> void {
+    assert_eq(checked_overflow_message(.U8, .Add), "u8.add overflow")
+    assert_eq(checked_neg_message(.Isize), "isize.neg overflow")
+}

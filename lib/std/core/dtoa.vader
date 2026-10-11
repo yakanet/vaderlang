@@ -74,26 +74,26 @@ mul_shift_all_64 :: fn(m2: u64, mul0: u64, mul1: u64, j: i32, mm_shift: u64) -> 
     m :: m2 << 1
     [tmp, lo]  :: umul128(m, mul0)
     [hi0, lo1] :: umul128(m, mul1)
-    mid :: tmp + lo1
+    mid :: tmp +% lo1
     hi  :: hi0 + b2u(mid < tmp)
 
-    lo2  :: lo + mul0
-    mid2 :: mid + mul1 + b2u(lo2 < lo)
+    lo2  :: lo +% mul0
+    mid2 :: mid +% mul1 +% b2u(lo2 < lo)
     hi2  :: hi + b2u(mid2 < mid)
     vp :: shiftright128(mid2, hi2, u64(j - 64 - 1))
 
     vm: u64 = 0
     if mm_shift == 1 {
-        lo3  :: lo - mul0
-        mid3 :: mid - mul1 - b2u(lo3 > lo)
+        lo3  :: lo -% mul0
+        mid3 :: mid -% mul1 -% b2u(lo3 > lo)
         hi3  :: hi - b2u(mid3 > mid)
         vm = shiftright128(mid3, hi3, u64(j - 64 - 1))
     } else {
-        lo3  :: lo + lo
-        mid3 :: mid + mid + b2u(lo3 < lo)
+        lo3  :: lo +% lo
+        mid3 :: mid +% mid +% b2u(lo3 < lo)
         hi3  :: hi + hi + b2u(mid3 < mid)
-        lo4  :: lo3 - mul0
-        mid4 :: mid3 - mul1 - b2u(lo4 > lo3)
+        lo4  :: lo3 -% mul0
+        mid4 :: mid3 -% mul1 -% b2u(lo4 > lo3)
         hi4  :: hi3 - b2u(mid4 > mid3)
         vm = shiftright128(mid4, hi4, u64(j - 64))
     }
@@ -108,7 +108,7 @@ pow5_factor :: fn(value_in: u64) -> i32 {
     value := value_in
     count: i32 = 0
     for {
-        value = value * m_inv_5
+        value = value *% m_inv_5
         if value > n_div_5 { break }
         count = count + 1
     }

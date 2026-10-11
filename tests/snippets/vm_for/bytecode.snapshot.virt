@@ -17,11 +17,11 @@ fn 0 snippet$main () -> i32
     if $L1 void
       local.get 0   ; sum
       local.get 1   ; i
-      i32.add
+      i32.checked_add
       local.set 0   ; sum
       local.get 1   ; i
       i32.const 1
-      i32.add
+      i32.checked_add
       local.set 1   ; i
       br $L0
     end $L1

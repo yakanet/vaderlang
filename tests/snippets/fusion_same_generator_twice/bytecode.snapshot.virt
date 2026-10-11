@@ -142,14 +142,14 @@ export main 19
 fn 0 snippet$inc (i32) -> i32
   local.get 0   ; arg 0
   i32.const 1
-  i32.add
+  i32.checked_add
   return
 end
 
 fn 1 snippet$twice (i32) -> i32
   local.get 0   ; arg 0
   i32.const 2
-  i32.mul
+  i32.checked_mul
   return
 end
 
@@ -373,7 +373,7 @@ fn 7 snippet$filter_filter () -> void
         if $L3 void
           local.get 0   ; fused
           i64.const 1
-          i64.add
+          usize.checked_add
           local.set 0   ; fused
         end $L3
       end $L2
@@ -418,7 +418,7 @@ fn 7 snippet$filter_filter () -> void
     else
       local.get 4   ; x
       i32.const 1
-      i32.add
+      i32.checked_add
       local.set 4   ; x
       br $L4
     end $L5
@@ -516,18 +516,18 @@ fn 8 snippet$take_take () -> void
           if $L4 void
             local.get 3   ; total
             i64.const 1
-            i64.add
+            usize.checked_add
             local.set 3   ; total
             local.get 4   ; i
             i64.const 1
-            i64.add
+            usize.checked_add
             local.tee 4   ; i
             local.get 2   ; n
             u64.ge
             br_if $L2
             local.get 5   ; i
             i64.const 1
-            i64.add
+            usize.checked_add
             local.tee 5   ; i
             local.get 0   ; fused
             u64.ge
@@ -570,7 +570,7 @@ fn 8 snippet$take_take () -> void
     else
       local.get 8   ; lazy
       i32.const 1
-      i32.add
+      i32.checked_add
       local.set 8   ; lazy
       br $L5
     end $L6
@@ -665,17 +665,17 @@ fn 9 snippet$skip_skip () -> void
         if $L3 void
           local.get 0   ; fused
           i64.const 1
-          i64.add
+          usize.checked_add
           local.set 0   ; fused
         end $L3
         local.get 2   ; i
         i64.const 1
-        i64.add
+        usize.checked_add
         local.set 2   ; i
       end $L2
       local.get 3   ; i
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 3   ; i
       local.get 5   ; __fuse_i_1
       i64.const 1
@@ -710,7 +710,7 @@ fn 9 snippet$skip_skip () -> void
     else
       local.get 6   ; x
       i32.const 1
-      i32.add
+      i32.checked_add
       local.set 6   ; x
       br $L4
     end $L5
@@ -797,7 +797,7 @@ fn 10 snippet$chain_of_maps () -> void
       local.set 7   ; v
       local.get 2   ; fused
       local.get 7   ; v
-      i32.add
+      i32.checked_add
       local.set 2   ; fused
       local.get 6   ; __fuse_i_3
       i64.const 1
@@ -823,7 +823,7 @@ fn 10 snippet$chain_of_maps () -> void
       local.set 7   ; v
       local.get 2   ; fused
       local.get 7   ; v
-      i32.add
+      i32.checked_add
       local.set 2   ; fused
       local.get 6   ; __fuse_i_3
       i64.const 1
@@ -870,7 +870,7 @@ fn 10 snippet$chain_of_maps () -> void
       local.set 9   ; v
       local.get 7   ; v
       local.get 9   ; v
-      i32.add
+      i32.checked_add
       local.set 7   ; v
       br $L4
     end $L5
@@ -944,9 +944,9 @@ fn 11 snippet$user_stage_twice () -> void
       local.get 3   ; __fuse_i_4
       load_slot_i32
       i32.const 10
-      i32.mul
+      i32.checked_mul
       i32.const 3
-      i32.mul
+      i32.checked_mul
       local.set 4   ; v
       i64.const 21
       call 33   ; std_core$new_byte_buffer
@@ -1069,7 +1069,7 @@ fn 12 snippet$nested_same_generator () -> void
         if $L3 void
           local.get 0   ; fused
           i32.const 1
-          i32.add
+          i32.checked_add
           local.tee 0   ; fused
           i32.const 20
           i32.gt
@@ -1143,7 +1143,7 @@ fn 12 snippet$nested_same_generator () -> void
         else
           local.get 1   ; i
           i32.const 1
-          i32.add
+          i32.checked_add
           local.set 1   ; i
           br $L7
         end $L8
@@ -1258,7 +1258,7 @@ fn 13 snippet$nested_take () -> void
                 if $L7 void
                   local.get 0   ; fused
                   i32.const 1
-                  i32.add
+                  i32.checked_add
                   local.tee 0   ; fused
                   i32.const 20
                   i32.gt
@@ -1294,7 +1294,7 @@ fn 13 snippet$nested_take () -> void
                   end $L8
                   local.get 7   ; i
                   i64.const 1
-                  i64.add
+                  usize.checked_add
                   local.tee 7   ; i
                   local.get 6   ; n
                   u64.ge
@@ -1310,7 +1310,7 @@ fn 13 snippet$nested_take () -> void
           end $L4
           local.get 3   ; i
           i64.const 1
-          i64.add
+          usize.checked_add
           local.tee 3   ; i
           local.get 2   ; n
           u64.ge
@@ -1360,7 +1360,7 @@ fn 13 snippet$nested_take () -> void
         else
           local.get 13   ; lazy
           i32.const 1
-          i32.add
+          i32.checked_add
           local.set 13   ; lazy
           br $L11
         end $L12
@@ -1444,7 +1444,7 @@ fn 14 snippet$chars_filter_filter () -> void
         if $L3 void
           local.get 1   ; fused
           i64.const 1
-          i64.add
+          usize.checked_add
           local.set 1   ; fused
         end $L3
       end $L2
@@ -1478,7 +1478,7 @@ fn 14 snippet$chars_filter_filter () -> void
     else
       local.get 4   ; lazy
       i32.const 1
-      i32.add
+      i32.checked_add
       local.set 4   ; lazy
       br $L4
     end $L5
@@ -1561,7 +1561,7 @@ fn 15 snippet$sum_map_map_lazy () -> i32
       local.set 4   ; v
       local.get 0   ; total
       local.get 4   ; v
-      i32.add
+      i32.checked_add
       local.set 0   ; total
       br $L0
     end $L1
@@ -1666,13 +1666,13 @@ fn 18 snippet$break_outer_loop_named_like_generator_loop () -> void
                 if $L7 void
                   local.get 3   ; i
                   i32.const 10
-                  i32.mul
+                  i32.checked_mul
                   local.get 4   ; j
-                  i32.add
+                  i32.checked_add
                   local.set 5   ; v
                   local.get 1   ; rounds
                   i32.const 1
-                  i32.add
+                  i32.checked_add
                   local.tee 1   ; rounds
                   i32.const 20
                   i32.gt
@@ -1965,7 +1965,7 @@ fn 20 snippet$__genstate_scale$Iterator$next (ref) -> ref
                   local.set 2   ; $field_34
                   local.get 1   ; $field_33
                   local.get 2   ; $field_34
-                  i32.mul
+                  i32.checked_mul
                   i32.const 0
                   struct.new 6   ; __Tuple_i32_u8_99ae0d29
                   return
@@ -2186,7 +2186,7 @@ end
 fn 26 snippet$__genstate_grid$Iterator$next (ref) -> ref
   local $add_22 i32
   local $add_41 i32
-  local $mul_65 i32
+  local $mul_checked_65 i32
   local $field_66 i32
   loop $L0 void
     local.field 0 10 2   ; arg 0 snippet$__genstate_grid.state
@@ -2337,14 +2337,14 @@ fn 26 snippet$__genstate_grid$Iterator$next (ref) -> ref
                         local.field 0 10 0   ; arg 0 snippet$__genstate_grid.s0
                         ref.cast 1   ; i32
                         i32.const 10
-                        i32.mul
-                        local.set 3   ; $mul_65
+                        i32.checked_mul
+                        local.set 3   ; $mul_checked_65
                         local.field 0 10 1   ; arg 0 snippet$__genstate_grid.s1
                         ref.cast 1   ; i32
                         local.set 4   ; $field_66
-                        local.get 3   ; $mul_65
+                        local.get 3   ; $mul_checked_65
                         local.get 4   ; $field_66
-                        i32.add
+                        i32.checked_add
                         i32.const 0
                         struct.new 6   ; __Tuple_i32_u8_99ae0d29
                         return
@@ -2477,7 +2477,7 @@ end
 fn 29 std_core$i32$Step$step (i32) -> i32
   local.get 0   ; arg 0
   i32.const 1
-  i32.add
+  i32.checked_add
   return
 end
 
@@ -2538,7 +2538,7 @@ end
 fn 31 std_core$usize$Step$step (usize) -> usize
   local.get 0   ; arg 0
   i64.const 1
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -2620,7 +2620,7 @@ fn 35 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -2630,7 +2630,7 @@ fn 36 std_core$write_int (ref,usize,i64) -> usize
   local m i64
   local total usize
   local $cast_36 u8
-  local $add_37 u8
+  local $add_checked_37 u8
   local.get 2   ; arg 2
   i64.const 0
   i64.eq
@@ -2641,7 +2641,7 @@ fn 36 std_core$write_int (ref,usize,i64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    i64.add
+    usize.checked_add
     return
   end $L0
   local.get 2   ; arg 2
@@ -2653,7 +2653,7 @@ fn 36 std_core$write_int (ref,usize,i64) -> usize
   i64.gt
   if $L1 void
     local.get 2   ; arg 2
-    i64.neg
+    i64.checked_neg
     local.set 2   ; arg 2
   end $L1
   i64.const 0
@@ -2667,7 +2667,7 @@ fn 36 std_core$write_int (ref,usize,i64) -> usize
     if $L3 void
       local.get 4   ; ndigits
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 4   ; ndigits
       local.get 5   ; m
       i64.const 10
@@ -2680,7 +2680,7 @@ fn 36 std_core$write_int (ref,usize,i64) -> usize
   if $L4 void
     local.get 4   ; ndigits
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 6   ; total
   else
     local.get 4   ; ndigits
@@ -2688,7 +2688,7 @@ fn 36 std_core$write_int (ref,usize,i64) -> usize
   end $L4
   local.get 1   ; arg 1
   local.get 6   ; total
-  i64.add
+  usize.checked_add
   local.set 4   ; ndigits
   loop $L5 void
     local.get 2   ; arg 2
@@ -2697,25 +2697,23 @@ fn 36 std_core$write_int (ref,usize,i64) -> usize
     if $L6 void
       local.get 4   ; ndigits
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.set 4   ; ndigits
       local.get 2   ; arg 2
       i64.const 10
       i64.rem
-      i64.neg
+      i64.checked_neg
       i64.to_i32
       i32.const 255
       i32.bitand
       local.set 7   ; $cast_36
       i32.const 48
       local.get 7   ; $cast_36
-      i32.add
-      i32.const 255
-      i32.bitand
-      local.set 8   ; $add_37
+      u8.checked_add
+      local.set 8   ; $add_checked_37
       local.get 0   ; arg 0
       local.get 4   ; ndigits
-      local.get 8   ; $add_37
+      local.get 8   ; $add_checked_37
       store_u8
       local.get 2   ; arg 2
       i64.const 10
@@ -2732,12 +2730,12 @@ fn 36 std_core$write_int (ref,usize,i64) -> usize
     store_u8
     local.get 1   ; arg 1
     local.get 6   ; total
-    i64.add
+    usize.checked_add
     return
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -2746,7 +2744,7 @@ fn 37 std_core$write_unsigned (ref,usize,u64) -> usize
   local m u64
   local i usize
   local $cast_26 u8
-  local $add_27 u8
+  local $add_checked_27 u8
   local.get 2   ; arg 2
   i64.const 0
   i64.eq
@@ -2757,7 +2755,7 @@ fn 37 std_core$write_unsigned (ref,usize,u64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    i64.add
+    usize.checked_add
     return
   end $L0
   i64.const 0
@@ -2771,7 +2769,7 @@ fn 37 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L2 void
       local.get 3   ; ndigits
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 3   ; ndigits
       local.get 4   ; m
       i64.const 10
@@ -2782,7 +2780,7 @@ fn 37 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L1
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  i64.add
+  usize.checked_add
   local.set 5   ; i
   loop $L3 void
     local.get 2   ; arg 2
@@ -2791,7 +2789,7 @@ fn 37 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L4 void
       local.get 5   ; i
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.set 5   ; i
       local.get 2   ; arg 2
       i64.const 10
@@ -2802,13 +2800,11 @@ fn 37 std_core$write_unsigned (ref,usize,u64) -> usize
       local.set 6   ; $cast_26
       i32.const 48
       local.get 6   ; $cast_26
-      i32.add
-      i32.const 255
-      i32.bitand
-      local.set 7   ; $add_27
+      u8.checked_add
+      local.set 7   ; $add_checked_27
       local.get 0   ; arg 0
       local.get 5   ; i
-      local.get 7   ; $add_27
+      local.get 7   ; $add_checked_27
       store_u8
       local.get 2   ; arg 2
       i64.const 10
@@ -2819,7 +2815,7 @@ fn 37 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L3
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -3004,7 +3000,7 @@ fn 41 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      i64.add
+      usize.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -4024,7 +4020,7 @@ end
 fn 53 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> ref
   local $field_40 usize
   local $field_41 usize
-  local $add_50 usize
+  local $add_checked_50 usize
   local $field_63 i32
   local $vcall_78 ref
   local $field_83 any
@@ -4143,10 +4139,10 @@ fn 53 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> ref
                         local.field 0 31 2   ; arg 0 std_iter$__gen_state_std_iter_2.s2
                         ref.cast 15   ; usize
                         i64.const 1
-                        i64.add
-                        local.set 3   ; $add_50
+                        usize.checked_add
+                        local.set 3   ; $add_checked_50
                         local.get 0   ; arg 0
-                        local.get 3   ; $add_50
+                        local.get 3   ; $add_checked_50
                         struct.set 31 2   ; std_iter$__gen_state_std_iter_2.s2
                         local.get 0   ; arg 0
                         i32.const 9
@@ -4327,7 +4323,7 @@ fn 54 std_iter$skip__i32 (any,usize) -> any
 end
 
 fn 55 std_iter$__gen_state_std_iter_3$Iterator$next (ref) -> ref
-  local $add_30 usize
+  local $add_checked_30 usize
   local $field_46 usize
   local $field_47 usize
   local $field_55 i32
@@ -4397,10 +4393,10 @@ fn 55 std_iter$__gen_state_std_iter_3$Iterator$next (ref) -> ref
                 local.field 0 32 2   ; arg 0 std_iter$__gen_state_std_iter_3.s2
                 ref.cast 15   ; usize
                 i64.const 1
-                i64.add
-                local.set 1   ; $add_30
+                usize.checked_add
+                local.set 1   ; $add_checked_30
                 local.get 0   ; arg 0
-                local.get 1   ; $add_30
+                local.get 1   ; $add_checked_30
                 struct.set 32 2   ; std_iter$__gen_state_std_iter_3.s2
                 local.get 0   ; arg 0
                 i32.const 3
@@ -4606,7 +4602,7 @@ fn 58 std_string$StringChars$Iterator$next$v (ref) -> (char,u8)
     local.field 0 33 1   ; arg 0 std_string$StringChars.cursor
     ref.cast 15   ; usize
     local.get 1   ; $field_1
-    i64.add
+    usize.checked_add
     local.set 1   ; $field_1
     local.get 0   ; arg 0
     local.get 1   ; $field_1
@@ -4637,7 +4633,7 @@ end
 fn 60 std_string$utf8_decode (ref,usize) -> char
   local n usize
   local b u8
-  local $add_21 usize
+  local $add_checked_21 usize
   local b1 u8
   local $shl_28 u32
   local $bitand_31 u32
@@ -4667,7 +4663,7 @@ fn 60 std_string$utf8_decode (ref,usize) -> char
   end $L1
   local.get 2   ; n
   local.get 1   ; arg 1
-  i64.sub
+  usize.checked_sub
   local.set 2   ; n
   local.get 3   ; b
   i32.const 224
@@ -4680,10 +4676,10 @@ fn 60 std_string$utf8_decode (ref,usize) -> char
     else
       local.get 1   ; arg 1
       i64.const 1
-      i64.add
-      local.set 4   ; $add_21
+      usize.checked_add
+      local.set 4   ; $add_checked_21
       local.get 0   ; arg 0
-      local.get 4   ; $add_21
+      local.get 4   ; $add_checked_21
       array.get 21   ; u8[]
       ref.cast 7   ; u8
       local.set 5   ; b1
@@ -4701,7 +4697,7 @@ fn 60 std_string$utf8_decode (ref,usize) -> char
       local.set 7   ; $bitand_31
       local.get 6   ; $shl_28
       local.get 7   ; $bitand_31
-      i32.add
+      u32.checked_add
       u32.to_char
       return
     end $L3
@@ -4720,19 +4716,19 @@ fn 60 std_string$utf8_decode (ref,usize) -> char
     else
       local.get 1   ; arg 1
       i64.const 1
-      i64.add
-      local.set 4   ; $add_21
+      usize.checked_add
+      local.set 4   ; $add_checked_21
       local.get 0   ; arg 0
-      local.get 4   ; $add_21
+      local.get 4   ; $add_checked_21
       array.get 21   ; u8[]
       ref.cast 7   ; u8
       local.set 5   ; b1
       local.get 1   ; arg 1
       i64.const 2
-      i64.add
-      local.set 4   ; $add_21
+      usize.checked_add
+      local.set 4   ; $add_checked_21
       local.get 0   ; arg 0
-      local.get 4   ; $add_21
+      local.get 4   ; $add_checked_21
       array.get 21   ; u8[]
       ref.cast 7   ; u8
       local.set 8   ; b2
@@ -4752,7 +4748,7 @@ fn 60 std_string$utf8_decode (ref,usize) -> char
       local.set 7   ; $bitand_31
       local.get 6   ; $shl_28
       local.get 7   ; $bitand_31
-      i32.add
+      u32.checked_add
       local.set 6   ; $shl_28
       local.get 8   ; b2
       u8.to_i32
@@ -4761,7 +4757,7 @@ fn 60 std_string$utf8_decode (ref,usize) -> char
       local.set 7   ; $bitand_31
       local.get 6   ; $shl_28
       local.get 7   ; $bitand_31
-      i32.add
+      u32.checked_add
       u32.to_char
       return
     end $L5
@@ -4776,7 +4772,7 @@ fn 60 std_string$utf8_decode (ref,usize) -> char
   else
     local.get 1   ; arg 1
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 2   ; n
     local.get 0   ; arg 0
     local.get 2   ; n
@@ -4785,7 +4781,7 @@ fn 60 std_string$utf8_decode (ref,usize) -> char
     local.set 5   ; b1
     local.get 1   ; arg 1
     i64.const 2
-    i64.add
+    usize.checked_add
     local.set 2   ; n
     local.get 0   ; arg 0
     local.get 2   ; n
@@ -4794,7 +4790,7 @@ fn 60 std_string$utf8_decode (ref,usize) -> char
     local.set 8   ; b2
     local.get 1   ; arg 1
     i64.const 3
-    i64.add
+    usize.checked_add
     local.set 2   ; n
     local.get 0   ; arg 0
     local.get 2   ; n
@@ -4817,7 +4813,7 @@ fn 60 std_string$utf8_decode (ref,usize) -> char
     local.set 7   ; $bitand_31
     local.get 6   ; $shl_28
     local.get 7   ; $bitand_31
-    i32.add
+    u32.checked_add
     local.set 6   ; $shl_28
     local.get 8   ; b2
     u8.to_i32
@@ -4828,7 +4824,7 @@ fn 60 std_string$utf8_decode (ref,usize) -> char
     local.set 7   ; $bitand_31
     local.get 6   ; $shl_28
     local.get 7   ; $bitand_31
-    i32.add
+    u32.checked_add
     local.set 6   ; $shl_28
     local.get 9   ; b3
     u8.to_i32
@@ -4837,7 +4833,7 @@ fn 60 std_string$utf8_decode (ref,usize) -> char
     local.set 7   ; $bitand_31
     local.get 6   ; $shl_28
     local.get 7   ; $bitand_31
-    i32.add
+    u32.checked_add
     u32.to_char
     return
   end $L6

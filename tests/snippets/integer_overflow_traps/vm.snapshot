@@ -1,0 +1,11 @@
+# stdout
+u8 in range: 255
+u8 method in range: 255
+usize in range: 0
+i8 in range: -128
+i32 in range: 2147483647
+i64 in range: -9223372036854775807
+# stderr
+vader vm: i32.add overflow at pc=193
+# exit
+1

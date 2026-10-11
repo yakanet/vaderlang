@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$tenfold(v: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           v :i32
         r:

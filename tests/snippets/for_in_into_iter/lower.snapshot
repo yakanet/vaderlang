@@ -25,7 +25,7 @@
           target:
             arr_total :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 arr_total :i32
               r:
@@ -171,7 +171,7 @@
           target:
             map_total :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 map_total :i32
               r:
@@ -293,7 +293,7 @@
           target:
             set_total :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 set_total :i32
               r:
@@ -378,7 +378,7 @@
               target:
                 chars :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     chars :i32
                   r:

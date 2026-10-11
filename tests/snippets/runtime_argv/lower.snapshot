@@ -40,7 +40,7 @@
                   __off_1 :usize
                 arg2:
                   cast → u64
-                    sub :usize
+                    sub_checked :usize
                       l:
                         LoweredArrayLen
                       r:

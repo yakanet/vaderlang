@@ -27,6 +27,6 @@ fn 1 snippet$main () -> i32
   local.set 2   ; $field_5
   local.get 1   ; $field_4
   local.get 2   ; $field_5
-  i32.add
+  i32.checked_add
   return
 end

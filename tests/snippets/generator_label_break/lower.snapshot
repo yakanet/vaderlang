@@ -320,9 +320,9 @@
                                                   return
                                                     [i32, Continuation]! {
                                                       _0:
-                                                        add :i32
+                                                        add_checked :i32
                                                           l:
-                                                            mul :i32
+                                                            mul_checked :i32
                                                               l:
                                                                 .s0 :i32
                                                                   __self_0 :__genstate_gen!

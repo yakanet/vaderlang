@@ -138,7 +138,7 @@
             .cap_1 :i32
               __env_1 :__lambda_env_snippet_7!
           r:
-            sub :i32
+            sub_checked :i32
               l:
                 .cap_1 :i32
                   __env_1 :__lambda_env_snippet_7!

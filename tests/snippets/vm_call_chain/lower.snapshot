@@ -3,14 +3,14 @@
 ## snippet
   fn snippet$inner(n: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           n :i32
         r:
           int(100) :i32
   fn snippet$middle(n: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           call :i32
             callee:
@@ -21,7 +21,7 @@
           int(10) :i32
   fn snippet$outer(n: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           call :i32
             callee:

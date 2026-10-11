@@ -6,7 +6,7 @@
       [i32, i32]! {
         _0: x :i32
         _1:
-          add :i32
+          add_checked :i32
             l:
               x :i32
             r:
@@ -187,11 +187,11 @@
               arg1:
                 __off_5 :usize
     return
-      add :i32
+      add_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
-              add :i32
+              add_checked :i32
                 l:
                   a :i32
                 r:

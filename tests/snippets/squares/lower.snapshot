@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$square(n: i32) -> i32
     return
-      mul :i32
+      mul_checked :i32
         l:
           n :i32
         r:

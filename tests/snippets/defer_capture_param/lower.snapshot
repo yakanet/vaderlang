@@ -252,7 +252,7 @@
           .cap_0 :Counter!
             __env_0 :__defer_env_snippet_3!
       value:
-        add :i64
+        add_checked :i64
           l:
             .hits :i64
               .cap_0 :Counter!

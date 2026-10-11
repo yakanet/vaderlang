@@ -6,7 +6,7 @@
 // pointers. The handful of `@intrinsic` methods here lower directly to the
 // generic memory opcodes (`object_new` / `load_*` / `store_*` / `memory_copy`,
 // see `vader/bytecode/intrinsics.vader::intrinsic_op_for_mangled`), exactly the
-// way `i32 + i32` lowers to `I32Add`. Each opcode carries a `(GC-handle,
+// way `a.add(b)` on an `i32` lowers to a checked add. Each opcode carries a `(GC-handle,
 // byte-offset)` pair, never a machine address — the frontend stays pointer-free.
 //
 // Everything here is deliberately UNEXPORTED except the `Buffer` type itself :

@@ -3,9 +3,9 @@
 ## snippet
   fn snippet$Offset$Index$at(self: Offset!, i: usize) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
-          mul :i32
+          mul_checked :i32
             l:
               cast → i32
                 LoweredArrayLen
@@ -93,7 +93,7 @@
   struct snippet$Grid { w: i32 }
   fn snippet$Cells$Index$at(self: Cells!, i: usize) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           cast → i32
             i :usize
@@ -101,8 +101,7 @@
           int(10) :i32
   fn snippet$Log$Index$at(self: Log!, i: usize) -> i32
     ~>
-      neg :i32
-        int(1) :i32
+      int(-1) :i32
   fn snippet$main() -> i32
     let o: Offset! =
       cast → Offset!
@@ -253,7 +252,7 @@
           ix:
             int(1) :usize
       value:
-        add :i32
+        add_checked :i32
           l:
             call :i32
               callee:

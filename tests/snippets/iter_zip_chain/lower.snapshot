@@ -492,7 +492,7 @@
           target:
             i :usize
           value:
-            add :usize
+            add_checked :usize
               l:
                 i :usize
               r:
@@ -595,7 +595,7 @@
     ~>
       array :i32[]
         x :i32
-        mul :i32
+        mul_checked :i32
           l:
             x :i32
           r:

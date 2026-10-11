@@ -5,7 +5,7 @@
   struct snippet$B { y: i32 }
   fn snippet$inc(self: A) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           .x :i32
             self :A
@@ -13,7 +13,7 @@
           int(1) :i32
   fn snippet$inc_1(self: B) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           .y :i32
             self :B
@@ -107,7 +107,7 @@
     return int(0) :i32
   fn snippet$inc_1(self: B) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           .y :i32
             self :B

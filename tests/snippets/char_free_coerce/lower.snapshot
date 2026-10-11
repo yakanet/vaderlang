@@ -74,7 +74,7 @@
           arg0:
             "u32 top bit" :string
     let delta: u8 =
-      sub :u8
+      sub_checked :u8
         l:
           index :u8
             on:

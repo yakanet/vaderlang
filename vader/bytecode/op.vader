@@ -167,6 +167,8 @@ export Op :: Unreachable
     | ArrayRemoveLast
     | ArrayClear
     | FnAddr
+    | CheckedArith
+    | CheckedNeg
 
 /// Trap unconditionally — the bytecode reached a point the compiler proved
 /// (or asserted, via `@unreachable match`) can never execute. Carries a
@@ -222,6 +224,32 @@ export FnRef :: struct { function_index: i32, type_id: i32 }
 /// for one that NAMES a function: a closure has no address of its own, which
 /// `typecheck/call::reject_indirect_callbacks` enforces.
 export FnAddr :: struct { function_index: i32 }
+
+/// Integer `+`, `-` or `*` that stops the run when the exact result leaves
+/// `kind`. Pops two operands of `kind`, pushes the result.
+///
+/// What `+`, `-` and `*` written in source lower to. `I32Add` and the other
+/// plain integer ops wrap: they serve `+%`, `-%`, `*%` and the arithmetic the
+/// compiler synthesises. `checked_arith` (`checked_arith.vader`) is the
+/// reference ; the native backend checks outside `--release` and wraps in it
+/// (`vader_chk_add` and its kin, `runtime/c/vader.h`).
+export CheckedArith :: struct {
+    /// An integer class (`is_integer_val`): floats keep `F64Add` and its kin.
+    /// First, as in `CheckedNeg`, so either op reads it at one position.
+    kind: ValType
+    op: CheckedOp
+}
+
+/// The operation of a `CheckedArith`.
+export CheckedOp :: enum {
+    Add,
+    Sub,
+    Mul,
+}
+
+/// Integer negation that stops the run when the result leaves `kind`: the
+/// least value of a signed class, any nonzero value of an unsigned one.
+export CheckedNeg :: struct { kind: ValType }
 
 /// Build a closure : pop an `env` value (typically a `StructVal`
 /// carrying each capture's value or cell) and push a `FnVal { function_index, env }`.

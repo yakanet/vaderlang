@@ -313,7 +313,7 @@
                 arg1:
                   __off_7 :usize
                 arg2:
-                  add :i64
+                  add_checked :i64
                     l:
                       b :i64
                     r:

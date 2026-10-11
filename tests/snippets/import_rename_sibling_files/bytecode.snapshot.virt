@@ -36,14 +36,14 @@ fn 0 snippet$main () -> i32
   i32.const 3
   call 2   ; snippet$twice
   i32.const 6
-  i32.sub
+  i32.checked_sub
   return
 end
 
 fn 1 snippet$tidy (i32) -> i32
   local.get 0   ; arg 0
   i32.const 2
-  i32.mul
+  i32.checked_mul
   return
 end
 
@@ -151,7 +151,7 @@ fn 6 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      i64.add
+      usize.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -195,7 +195,7 @@ fn 9 std_string$trim (string) -> string
   local sb ref
   local n usize
   local lo usize
-  local $sub_15 usize
+  local $sub_checked_15 usize
   local.get 0   ; arg 0
   call.import 2   ; std_core$bytes
   local.tee 1   ; sb
@@ -220,7 +220,7 @@ fn 9 std_string$trim (string) -> string
         end $L3
         local.get 3   ; lo
         i64.const 1
-        i64.add
+        usize.checked_add
         local.set 3   ; lo
         br $L1
       end $L2
@@ -234,10 +234,10 @@ fn 9 std_string$trim (string) -> string
       if $L6 void
         local.get 2   ; n
         i64.const 1
-        i64.sub
-        local.set 4   ; $sub_15
+        usize.checked_sub
+        local.set 4   ; $sub_checked_15
         local.get 1   ; sb
-        local.get 4   ; $sub_15
+        local.get 4   ; $sub_checked_15
         array.get 6   ; u8[]
         ref.cast 4   ; u8
         call 10   ; std_string$is_white_byte
@@ -247,7 +247,7 @@ fn 9 std_string$trim (string) -> string
         end $L7
         local.get 2   ; n
         i64.const 1
-        i64.sub
+        usize.checked_sub
         local.set 2   ; n
         br $L5
       end $L6

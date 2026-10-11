@@ -4,7 +4,7 @@
   struct snippet$Point { x: i32 }
   fn snippet$through_param(p: Point) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           call :i32
             callee:
@@ -21,7 +21,7 @@
                   p :Point
   fn snippet$double(p: Point) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           .x :i32
             p :Point

@@ -26,15 +26,15 @@ static int32_t snippet_main(void) {
 #line 16 "tests/snippets/scalar_control/_main.vader"
         if (l1 == INT32_C(3)) {
 #line 17 "tests/snippets/scalar_control/_main.vader"
-            l0 = (l0 + INT32_C(100));
+            l0 = vader_chk_add(i32, l0, INT32_C(100));
 #line 16 "tests/snippets/scalar_control/_main.vader"
 #line 19 "tests/snippets/scalar_control/_main.vader"
         } else {
-            l0 = (l0 + l1);
+            l0 = vader_chk_add(i32, l0, l1);
 #line 16 "tests/snippets/scalar_control/_main.vader"
         }
 #line 21 "tests/snippets/scalar_control/_main.vader"
-        l1 = (l1 + INT32_C(1));
+        l1 = vader_chk_add(i32, l1, INT32_C(1));
 #line 15 "tests/snippets/scalar_control/_main.vader"
     }
 #line 23 "tests/snippets/scalar_control/_main.vader"

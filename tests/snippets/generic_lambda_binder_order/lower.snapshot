@@ -137,7 +137,7 @@
           target:
             total :usize
           value:
-            add :usize
+            add_checked :usize
               l:
                 total :usize
               r:

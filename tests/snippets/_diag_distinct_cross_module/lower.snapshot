@@ -39,7 +39,7 @@
   fn snippet_units$Instant$Sub$sub(self: Instant, other: Instant) -> Duration
     ~>
       cast → Duration
-        sub :i64
+        sub_checked :i64
           l:
             cast → i64
               self :Instant

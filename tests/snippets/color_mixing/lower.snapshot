@@ -8,7 +8,7 @@
         r:
           div :i32
             l:
-              add :i32
+              add_checked :i32
                 l:
                   .r :i32
                     self :Color
@@ -20,7 +20,7 @@
         g:
           div :i32
             l:
-              add :i32
+              add_checked :i32
                 l:
                   .g :i32
                     self :Color
@@ -32,7 +32,7 @@
         b:
           div :i32
             l:
-              add :i32
+              add_checked :i32
                 l:
                   .b :i32
                     self :Color
@@ -254,7 +254,7 @@
                   __off_6 :usize
                 arg2:
                   cast → i64
-                    add :i32
+                    add_checked :i32
                       l:
                         x :i32
                       r:

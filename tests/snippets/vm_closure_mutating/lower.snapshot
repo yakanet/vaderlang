@@ -33,11 +33,11 @@
         arg0:
           inc :__lambda_env_snippet_1!
     return
-      add :i32
+      add_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
-              add :i32
+              add_checked :i32
                 l:
                   a :i32
                 r:

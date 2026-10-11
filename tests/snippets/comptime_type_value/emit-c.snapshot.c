@@ -148,7 +148,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 217 "lib/std/io/io.vader"
             t0 = ((int64_t) (int32_t) l8);
             l9 = (size_t) (int64_t) t0;
-            t0 = (l3 + l9);
+            t0 = vader_chk_add(usize, l3, l9);
             l3 = (size_t) (int64_t) t0;
 #line 208 "lib/std/io/io.vader"
             continue;

@@ -6,7 +6,7 @@ export main 1
 fn 0 snippet$add (i32,i32) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.add
+  i32.checked_add
   return
 end
 

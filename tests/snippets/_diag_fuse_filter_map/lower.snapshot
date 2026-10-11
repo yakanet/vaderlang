@@ -14,7 +14,7 @@
           int(0) :i32
   fn main$square_i64(x: i32) -> i64
     ~>
-      mul :i64
+      mul_checked :i64
         l:
           cast → i64
             x :i32
@@ -48,7 +48,7 @@
                 target:
                   total :i64
                 value:
-                  add :i64
+                  add_checked :i64
                     l:
                       total :i64
                     r:

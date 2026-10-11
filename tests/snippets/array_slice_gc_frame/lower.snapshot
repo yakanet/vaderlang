@@ -21,9 +21,9 @@
           target:
             acc :i32
           value:
-            add :i32
+            add_checked :i32
               l:
-                add :i32
+                add_checked :i32
                   l:
                     acc :i32
                   r:
@@ -64,11 +64,11 @@
         arg1:
           arr :i32[]
     let expected: i32 =
-      mul :{integer}
+      mul_checked :{integer}
         l:
           int(5000) :i32
         r:
-          add :{integer}
+          add_checked :{integer}
             l:
               int(7) :i32
             r:

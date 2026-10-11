@@ -13,7 +13,7 @@
           cast → V01!
             x :V01 | V02
         return
-          add :i32
+          add_checked :i32
             l:
               .f :i32
                 a :V01
@@ -28,15 +28,13 @@
           cast → V02
             x :V01 | V02
         return
-          add :i32
+          add_checked :i32
             l:
               .f :i32
                 b :V02
             r:
               int(100) :i32
-    return
-      neg :i32
-        int(1) :i32
+    return int(-1) :i32
   fn snippet$post_narrow(x: V01 | V02) -> i32
     if :void
       cond:
@@ -47,7 +45,7 @@
           cast → V01!
             x :V01 | V02
         return
-          add :i32
+          add_checked :i32
             l:
               .f :i32
                 a :V01

@@ -1,0 +1,186 @@
+// vader/integer — fixed-width integer arithmetic, exact or refused.
+//
+// The one definition of when `+`, `-`, `*` and unary `-` overflow an integer
+// type: the VM's checked ops (`vader/bytecode/checked_arith.vader`) and the
+// comptime evaluator (`vader/comptime/eval_binary.vader`) both answer through it,
+// and the native helpers in `runtime/c/vader.h` must agree with it.
+//
+// An integer type is its width in bits (8, 16, 32 or 64) and its signedness. A
+// value sits in an `i64` as itself, a `u64` past `i64` as its bits.
+
+module "vader/integer"
+
+I64_MIN: i64: -9_223_372_036_854_775_808
+
+U32_MAX: i64: 0xFFFF_FFFF
+
+/// `a + b` in the integer type of `bits` bits, unsigned when `unsigned`.
+///
+/// @param bits      8, 16, 32 or 64.
+/// @param unsigned  whether the type is unsigned.
+/// @param a         a value of the type.
+/// @param b         a value of the type.
+/// @return          the sum, or `null` when it leaves the type.
+export checked_add :: fn(bits: i64, unsigned: bool, a: i64, b: i64) -> i64 | null {
+    if bits == 64 && unsigned {
+        sum :: u64(a) +% u64(b)
+        if sum < u64(a) {
+            return null
+        }
+        return i64(sum)
+    }
+    if bits == 64 {
+        sum :: a +% b
+        // Two operands of one sign, a sum of the other.
+        if (a ^ sum) & (b ^ sum) < 0 {
+            return null
+        }
+        return sum
+    }
+    return within(bits, unsigned, a + b)
+}
+
+/// `a - b` in the integer type of `bits` bits, unsigned when `unsigned`.
+///
+/// @param bits      8, 16, 32 or 64.
+/// @param unsigned  whether the type is unsigned.
+/// @param a         a value of the type.
+/// @param b         a value of the type.
+/// @return          the difference, or `null` when it leaves the type.
+export checked_sub :: fn(bits: i64, unsigned: bool, a: i64, b: i64) -> i64 | null {
+    if bits == 64 && unsigned {
+        if u64(a) < u64(b) {
+            return null
+        }
+        return a -% b
+    }
+    if bits == 64 {
+        difference :: a -% b
+        // Operands of opposite signs, a difference of the subtrahend's sign.
+        if (a ^ b) & (a ^ difference) < 0 {
+            return null
+        }
+        return difference
+    }
+    return within(bits, unsigned, a - b)
+}
+
+/// `a * b` in the integer type of `bits` bits, unsigned when `unsigned`.
+///
+/// @param bits      8, 16, 32 or 64.
+/// @param unsigned  whether the type is unsigned.
+/// @param a         a value of the type.
+/// @param b         a value of the type.
+/// @return          the product, or `null` when it leaves the type.
+export checked_mul :: fn(bits: i64, unsigned: bool, a: i64, b: i64) -> i64 | null {
+    if bits == 64 && unsigned {
+        product :: u64(a) *% u64(b)
+        if a != 0 && product / u64(a) != u64(b) {
+            return null
+        }
+        return i64(product)
+    }
+    if bits == 64 {
+        if a == -1 {
+            return checked_negation(64, false, b)
+        }
+        product :: a *% b
+        if a != 0 && product / a != b {
+            return null
+        }
+        return product
+    }
+    // The one product of two values narrower than 64 bits that passes `i64`.
+    if unsigned && bits == 32 && a != 0 && b > U32_MAX / a {
+        return null
+    }
+    return within(bits, unsigned, a * b)
+}
+
+/// `-a` in the integer type of `bits` bits, unsigned when `unsigned`.
+///
+/// @param bits      8, 16, 32 or 64.
+/// @param unsigned  whether the type is unsigned.
+/// @param a         a value of the type.
+/// @return          the negation, or `null` when it leaves the type: the least
+///                  value of a signed type, any nonzero value of an unsigned one.
+export checked_negation :: fn(bits: i64, unsigned: bool, a: i64) -> i64 | null {
+    if unsigned {
+        if a != 0 {
+            return null
+        }
+        return 0
+    }
+    if bits == 64 {
+        if a == I64_MIN {
+            return null
+        }
+        return -a
+    }
+    return within(bits, false, -a)
+}
+
+// `v`, an exact result for a type narrower than 64 bits, or `null` when the type
+// does not hold it.
+within :: fn(bits: i64, unsigned: bool, v: i64) -> i64 | null {
+    if unsigned {
+        if v < 0 || v >= 1 << bits {
+            return null
+        }
+        return v
+    }
+    half :: 1 << (bits - 1)
+    if v < -half || v >= half {
+        return null
+    }
+    return v
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_checked_add_narrow :: fn() -> void {
+    assert(checked_add(8, true, 250, 10) == null, "u8 250 + 10")
+    assert_eq(checked_add(8, true, 250, 5) ?? -1, 255)
+    assert(checked_add(32, false, 2_147_483_647, 1) == null, "i32 max + 1")
+    assert_eq(checked_add(32, true, 0x7FFF_FFFF, 1) ?? 0, 0x8000_0000)
+    assert(checked_add(32, true, 0xFFFF_FFFF, 1) == null, "u32 max + 1")
+}
+
+@test
+test_checked_sub_narrow :: fn() -> void {
+    assert(checked_sub(8, true, 3, 4) == null, "u8 3 - 4")
+    assert(checked_sub(32, false, -2_147_483_648, 1) == null, "i32 min - 1")
+    assert_eq(checked_sub(32, false, -2_147_483_647, 1) ?? 0, -2_147_483_648)
+}
+
+@test
+test_checked_mul_narrow :: fn() -> void {
+    assert(checked_mul(8, false, -64, 2) != null, "i8 -64 * 2 is -128")
+    assert(checked_mul(8, false, 64, 2) == null, "i8 64 * 2")
+    assert(checked_mul(16, true, 256, 256) == null, "u16 256 * 256")
+    assert(checked_mul(32, true, 0xFFFF_FFFF, 0xFFFF_FFFF) == null, "u32 max * max")
+    assert_eq(checked_mul(32, true, 65_536, 65_535) ?? 0, 0xFFFF_0000)
+}
+
+@test
+test_checked_64_bit :: fn() -> void {
+    assert(checked_add(64, false, 9_223_372_036_854_775_807, 1) == null, "i64 max + 1")
+    assert(checked_sub(64, false, I64_MIN, 1) == null, "i64 min - 1")
+    assert(checked_mul(64, false, -1, I64_MIN) == null, "i64 -1 * min")
+    assert(checked_mul(64, false, 3_037_000_500, 3_037_000_500) == null, "i64 square past max")
+    assert(checked_sub(64, true, 0, 1) == null, "u64 0 - 1")
+    assert(checked_add(64, true, -1, 1) == null, "u64 max + 1")
+    assert_eq(checked_mul(64, true, 1 << 32, 1 << 31) ?? 0, I64_MIN)
+}
+
+@test
+test_checked_negation :: fn() -> void {
+    assert(checked_negation(8, false, -128) == null, "i8 -(-128)")
+    assert_eq(checked_negation(8, false, 127) ?? 0, -127)
+    assert(checked_negation(64, false, I64_MIN) == null, "i64 -min")
+    assert(checked_negation(8, true, 1) == null, "u8 -1")
+    assert_eq(checked_negation(64, true, 0) ?? -1, 0)
+}

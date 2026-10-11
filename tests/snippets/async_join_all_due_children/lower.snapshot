@@ -11,7 +11,7 @@
           ix:
             int(0) :i32
       value:
-        add :i64
+        add_checked :i64
           l:
             index :i64
               on:

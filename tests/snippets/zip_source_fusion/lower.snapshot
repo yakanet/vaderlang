@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$product(p: [i32, i32]) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           ._0 :i32
             p :[i32, i32]
@@ -341,7 +341,7 @@
                                   target:
                                     total :usize
                                   value:
-                                    add :usize
+                                    add_checked :usize
                                       l:
                                         total :usize
                                       r:
@@ -451,7 +451,7 @@
                                       target:
                                         total :usize
                                       value:
-                                        add :usize
+                                        add_checked :usize
                                           l:
                                             total :usize
                                           r:
@@ -536,7 +536,7 @@
                       target:
                         i :usize
                       value:
-                        add :usize
+                        add_checked :usize
                           l:
                             i :usize
                           r:
@@ -899,7 +899,7 @@
                 target:
                   total :i32
                 value:
-                  add :i32
+                  add_checked :i32
                     l:
                       total :i32
                     r:
@@ -1115,7 +1115,7 @@
             target:
               i :usize
             value:
-              add :usize
+              add_checked :usize
                 l:
                   i :usize
                 r:
@@ -1211,7 +1211,7 @@
                               target:
                                 total :usize
                               value:
-                                add :usize
+                                add_checked :usize
                                   l:
                                     total :usize
                                   r:

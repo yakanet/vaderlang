@@ -5,11 +5,11 @@
     let a: i32 = int(7) :i32
     let b: i32 = int(5) :i32
     return
-      sub :i32
+      sub_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
-              mul :i32
+              mul_checked :i32
                 l:
                   a :i32
                 r:

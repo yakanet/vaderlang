@@ -63,8 +63,7 @@
                           cast → isize
                             p :CPointer
                         r:
-                          neg :isize
-                            int(1) :isize
+                          int(-1) :isize
           ~>
             call :string
               callee:

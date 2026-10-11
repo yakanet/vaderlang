@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$l_add(a: i64, b: i64) -> i64
     ~>
-      add :i64
+      add_checked :i64
         l:
           a :i64
         r:
@@ -95,7 +95,7 @@
           b :u64
   fn snippet$f_add(a: f64, b: f64) -> f64
     ~>
-      add :f64
+      add_checked :f64
         l:
           a :f64
         r:

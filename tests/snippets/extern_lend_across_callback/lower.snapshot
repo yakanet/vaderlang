@@ -53,7 +53,7 @@
                     ix:
                       i :i32
                 r:
-                  add :i32
+                  add_checked :i32
                     l:
                       int(1000) :i32
                     r:
@@ -228,8 +228,7 @@
                       callee:
                         c_abs :fn(i32) -> i32
                       arg0:
-                        neg :i32
-                          int(5) :i32
+                        int(-5) :i32
           ~>
             call :string
               callee:

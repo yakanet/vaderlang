@@ -6,7 +6,7 @@
     ~>
       V! {
         x:
-          add :i32
+          add_checked :i32
             l:
               .x :i32
                 self :V
@@ -16,7 +16,7 @@
       }
   fn snippet$V$Comparable$compare(self: V!, other: V) -> i32
     ~>
-      sub :i32
+      sub_checked :i32
         l:
           .x :i32
             self :V
@@ -222,7 +222,7 @@
           target:
             s :f64
           value:
-            add :f64
+            add_checked :f64
               l:
                 s :f64
               r:
@@ -268,7 +268,7 @@
           target:
             s :i64
           value:
-            add :i64
+            add_checked :i64
               l:
                 s :i64
               r:
@@ -405,7 +405,7 @@
                 target:
                   n :i32
                 value:
-                  add :i32
+                  add_checked :i32
                     l:
                       n :i32
                     r:

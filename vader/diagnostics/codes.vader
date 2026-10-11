@@ -245,6 +245,7 @@ export ComptimeCode :: enum(CodeInfo) {
     InstanceDiscoveryDidNotConverge { .id = "C4014", .message = "generic instance discovery did not converge" },
     AssertFailed                    { .id = "C4015", .message = "compile-time assertion failed" },
     ImpureHostAtComptime            { .id = "C4016", .message = "impure host call at comptime" },
+    IntegerOverflow                 { .id = "C4017", .message = "integer overflow in a constant expression" },
 }
 
 // M-codes belong to the MIR-lowering pass (AST -> Lowered IR) ; once

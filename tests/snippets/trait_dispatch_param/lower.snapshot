@@ -13,7 +13,7 @@
         n :u64
   fn snippet$hash_twice__i32(x: i32) -> u64
     return
-      add :u64
+      add_checked :u64
         l:
           call :u64
             callee:

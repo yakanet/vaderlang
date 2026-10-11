@@ -513,7 +513,7 @@
                                       return
                                         [i32, Continuation]! {
                                           _0:
-                                            add :i32
+                                            add_checked :i32
                                               l:
                                                 .s5 :i32
                                                   __self_6 :__genstate_pairs!

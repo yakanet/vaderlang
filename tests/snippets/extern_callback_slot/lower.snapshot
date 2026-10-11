@@ -6,7 +6,7 @@
       callee:
         collect :fn() -> void
     return
-      add :i32
+      add_checked :i32
         l:
           x :i32
         r:
@@ -22,7 +22,7 @@
           target:
             total :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 total :i32
               r:

@@ -98,11 +98,11 @@ fn 1 snippet$main () -> i32
   local $arr_55 ref
   local __coalesce_6 any
   local if_res i32
-  local $cast_78 i64
+  local $cast_77 i64
   local __p_13 string
   local __p_14 string
-  local $call_135 usize
-  local $cast_149 u64
+  local $call_132 usize
+  local $cast_146 u64
   i32.const 1
   local.set 0   ; c
   i64.const 17
@@ -254,8 +254,7 @@ fn 1 snippet$main () -> i32
   local.tee 6   ; __coalesce_6
   type_check 0   ; null
   if $L0 void
-    i32.const 1
-    i32.neg
+    i32.const -1
     local.set 7   ; if_res
   else
     local.get 6   ; __coalesce_6
@@ -264,10 +263,10 @@ fn 1 snippet$main () -> i32
   end $L0
   local.get 7   ; if_res
   i32.to_i64
-  local.set 8   ; $cast_78
+  local.set 8   ; $cast_77
   local.get 4   ; $arr_54
   local.get 2   ; __off_1
-  local.get 8   ; $cast_78
+  local.get 8   ; $cast_77
   call 7   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 4   ; $arr_54
@@ -281,8 +280,7 @@ fn 1 snippet$main () -> i32
   local.tee 6   ; __coalesce_6
   type_check 0   ; null
   if $L1 void
-    i32.const 1
-    i32.neg
+    i32.const -1
     local.set 7   ; if_res
   else
     local.get 6   ; __coalesce_6
@@ -291,10 +289,10 @@ fn 1 snippet$main () -> i32
   end $L1
   local.get 7   ; if_res
   i32.to_i64
-  local.set 8   ; $cast_78
+  local.set 8   ; $cast_77
   local.get 4   ; $arr_54
   local.get 2   ; __off_1
-  local.get 8   ; $cast_78
+  local.get 8   ; $cast_77
   call 7   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 4   ; $arr_54
@@ -308,8 +306,7 @@ fn 1 snippet$main () -> i32
   local.tee 6   ; __coalesce_6
   type_check 0   ; null
   if $L2 void
-    i32.const 1
-    i32.neg
+    i32.const -1
     local.set 7   ; if_res
   else
     local.get 6   ; __coalesce_6
@@ -318,10 +315,10 @@ fn 1 snippet$main () -> i32
   end $L2
   local.get 7   ; if_res
   i32.to_i64
-  local.set 8   ; $cast_78
+  local.set 8   ; $cast_77
   local.get 4   ; $arr_54
   local.get 2   ; __off_1
-  local.get 8   ; $cast_78
+  local.get 8   ; $cast_77
   call 7   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 4   ; $arr_54
@@ -384,9 +381,9 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 10   ; __p_14
   call.import 0   ; std_core$byte_len
-  local.set 11   ; $call_135
+  local.set 11   ; $call_132
   local.get 2   ; __off_1
-  local.get 11   ; $call_135
+  local.get 11   ; $call_132
   i64.add
   local.set 2   ; __off_1
   i64.const 22
@@ -419,10 +416,10 @@ fn 1 snippet$main () -> i32
   local.get 1   ; __buf_0
   call 51   ; std_collections$len__snippet_HttpStatus__string
   usize.to_i64
-  local.set 12   ; $cast_149
+  local.set 12   ; $cast_146
   local.get 4   ; $arr_54
   local.get 2   ; __off_1
-  local.get 12   ; $cast_149
+  local.get 12   ; $cast_146
   call 8   ; std_core$write_unsigned
   local.set 2   ; __off_1
   local.get 4   ; $arr_54
@@ -523,7 +520,7 @@ fn 6 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -533,7 +530,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
   local m i64
   local total usize
   local $cast_36 u8
-  local $add_37 u8
+  local $add_checked_37 u8
   local.get 2   ; arg 2
   i64.const 0
   i64.eq
@@ -544,7 +541,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    i64.add
+    usize.checked_add
     return
   end $L0
   local.get 2   ; arg 2
@@ -556,7 +553,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
   i64.gt
   if $L1 void
     local.get 2   ; arg 2
-    i64.neg
+    i64.checked_neg
     local.set 2   ; arg 2
   end $L1
   i64.const 0
@@ -570,7 +567,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     if $L3 void
       local.get 4   ; ndigits
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 4   ; ndigits
       local.get 5   ; m
       i64.const 10
@@ -583,7 +580,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
   if $L4 void
     local.get 4   ; ndigits
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 6   ; total
   else
     local.get 4   ; ndigits
@@ -591,7 +588,7 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
   end $L4
   local.get 1   ; arg 1
   local.get 6   ; total
-  i64.add
+  usize.checked_add
   local.set 4   ; ndigits
   loop $L5 void
     local.get 2   ; arg 2
@@ -600,25 +597,23 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     if $L6 void
       local.get 4   ; ndigits
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.set 4   ; ndigits
       local.get 2   ; arg 2
       i64.const 10
       i64.rem
-      i64.neg
+      i64.checked_neg
       i64.to_i32
       i32.const 255
       i32.bitand
       local.set 7   ; $cast_36
       i32.const 48
       local.get 7   ; $cast_36
-      i32.add
-      i32.const 255
-      i32.bitand
-      local.set 8   ; $add_37
+      u8.checked_add
+      local.set 8   ; $add_checked_37
       local.get 0   ; arg 0
       local.get 4   ; ndigits
-      local.get 8   ; $add_37
+      local.get 8   ; $add_checked_37
       store_u8
       local.get 2   ; arg 2
       i64.const 10
@@ -635,12 +630,12 @@ fn 7 std_core$write_int (ref,usize,i64) -> usize
     store_u8
     local.get 1   ; arg 1
     local.get 6   ; total
-    i64.add
+    usize.checked_add
     return
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -649,7 +644,7 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
   local m u64
   local i usize
   local $cast_26 u8
-  local $add_27 u8
+  local $add_checked_27 u8
   local.get 2   ; arg 2
   i64.const 0
   i64.eq
@@ -660,7 +655,7 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    i64.add
+    usize.checked_add
     return
   end $L0
   i64.const 0
@@ -674,7 +669,7 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L2 void
       local.get 3   ; ndigits
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 3   ; ndigits
       local.get 4   ; m
       i64.const 10
@@ -685,7 +680,7 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L1
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  i64.add
+  usize.checked_add
   local.set 5   ; i
   loop $L3 void
     local.get 2   ; arg 2
@@ -694,7 +689,7 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L4 void
       local.get 5   ; i
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.set 5   ; i
       local.get 2   ; arg 2
       i64.const 10
@@ -705,13 +700,11 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
       local.set 6   ; $cast_26
       i32.const 48
       local.get 6   ; $cast_26
-      i32.add
-      i32.const 255
-      i32.bitand
-      local.set 7   ; $add_27
+      u8.checked_add
+      local.set 7   ; $add_checked_27
       local.get 0   ; arg 0
       local.get 5   ; i
-      local.get 7   ; $add_27
+      local.get 7   ; $add_checked_27
       store_u8
       local.get 2   ; arg 2
       i64.const 10
@@ -722,7 +715,7 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L3
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -1215,7 +1208,7 @@ fn 43 std_collections$rehash__Any__i32 (ref,usize) -> void
   end $L0
   local.get 1   ; arg 1
   i64.const 1
-  i64.sub
+  usize.checked_sub
   local.set 3   ; __for_discard_0
   i64.const 0
   local.set 4   ; e
@@ -1256,7 +1249,7 @@ fn 43 std_collections$rehash__Any__i32 (ref,usize) -> void
       end $L4
       local.get 4   ; e
       i64.const 1
-      i64.add
+      usize.checked_add
       usize.to_i32
       local.set 8   ; $cast_33
       local.get 2   ; fresh
@@ -1313,7 +1306,7 @@ fn 44 std_collections$rehash__snippet_HttpStatus__string (ref,usize) -> void
   end $L0
   local.get 1   ; arg 1
   i64.const 1
-  i64.sub
+  usize.checked_sub
   local.set 3   ; __for_discard_0
   i64.const 0
   local.set 4   ; e
@@ -1354,7 +1347,7 @@ fn 44 std_collections$rehash__snippet_HttpStatus__string (ref,usize) -> void
       end $L4
       local.get 4   ; e
       i64.const 1
-      i64.add
+      usize.checked_add
       usize.to_i32
       local.set 8   ; $cast_33
       local.get 2   ; fresh
@@ -1469,12 +1462,12 @@ end
 fn 47 std_collections$put__Any__i32 (ref,any,i32) -> void
   local $field_3 usize
   local $field_4 usize
-  local $mul_24 usize
+  local $mul_checked_24 usize
   local perturb u64
   local first_tomb i64
-  local $idx_54 any
-  local $field_70 ref
-  local $cast_74 i32
+  local $idx_53 any
+  local $field_69 ref
+  local $cast_73 i32
   local.get 0   ; arg 0
   call 41   ; std_collections$ensure_index__Any__i32
   local.field 0 21 4   ; arg 0 std_collections$MutableMap__Any__i32.size
@@ -1485,18 +1478,18 @@ fn 47 std_collections$put__Any__i32 (ref,any,i32) -> void
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
-  i64.add
+  usize.checked_add
   i64.const 1
-  i64.add
+  usize.checked_add
   i64.const 4
-  i64.mul
+  usize.checked_mul
   local.set 3   ; $field_3
   local.field 0 21 3   ; arg 0 std_collections$MutableMap__Any__i32.mask
   ref.cast 7   ; usize
   i64.const 1
-  i64.add
+  usize.checked_add
   i64.const 3
-  i64.mul
+  usize.checked_mul
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -1508,21 +1501,21 @@ fn 47 std_collections$put__Any__i32 (ref,any,i32) -> void
       local.field 0 21 4   ; arg 0 std_collections$MutableMap__Any__i32.size
       ref.cast 7   ; usize
       i64.const 1
-      i64.add
+      usize.checked_add
       i64.const 4
-      i64.mul
+      usize.checked_mul
       local.set 4   ; $field_4
       local.get 3   ; $field_3
       i64.const 3
-      i64.mul
-      local.set 5   ; $mul_24
+      usize.checked_mul
+      local.set 5   ; $mul_checked_24
       local.get 4   ; $field_4
-      local.get 5   ; $mul_24
+      local.get 5   ; $mul_checked_24
       u64.gt
       if $L2 void
         local.get 3   ; $field_3
         i64.const 2
-        i64.mul
+        usize.checked_mul
         local.set 3   ; $field_3
         br $L1
       end $L2
@@ -1541,8 +1534,7 @@ fn 47 std_collections$put__Any__i32 (ref,any,i32) -> void
   local.get 3   ; $field_3
   call 39   ; std_collections$first_slot
   local.set 3   ; $field_3
-  i64.const 1
-  i64.neg
+  i64.const -1
   local.set 7   ; first_tomb
   loop $L3 void
     local.field 0 21 2   ; arg 0 std_collections$MutableMap__Any__i32.index
@@ -1571,14 +1563,14 @@ fn 47 std_collections$put__Any__i32 (ref,any,i32) -> void
         load_slot_i32
         i32.to_i64
         i64.const 1
-        i64.sub
+        usize.checked_sub
         local.set 4   ; $field_4
         local.field 0 21 0   ; arg 0 std_collections$MutableMap__Any__i32.ekeys
         local.get 4   ; $field_4
         array.get 26   ; ref[]
-        local.set 8   ; $idx_54
+        local.set 8   ; $idx_53
         local.get 1   ; arg 1
-        local.get 8   ; $idx_54
+        local.get 8   ; $idx_53
         virtual.call 2 std_core$Equals.equals
         if $L7 void
           local.field 0 21 1   ; arg 0 std_collections$MutableMap__Any__i32.evals
@@ -1594,10 +1586,10 @@ fn 47 std_collections$put__Any__i32 (ref,any,i32) -> void
       local.set 6   ; perturb
       local.field 0 21 3   ; arg 0 std_collections$MutableMap__Any__i32.mask
       ref.cast 7   ; usize
-      local.set 5   ; $mul_24
+      local.set 5   ; $mul_checked_24
       local.get 3   ; $field_3
       local.get 6   ; perturb
-      local.get 5   ; $mul_24
+      local.get 5   ; $mul_checked_24
       call 40   ; std_collections$next_slot
       local.set 3   ; $field_3
       br $L3
@@ -1621,7 +1613,7 @@ fn 47 std_collections$put__Any__i32 (ref,any,i32) -> void
     local.field 0 21 5   ; arg 0 std_collections$MutableMap__Any__i32.tombs
     ref.cast 7   ; usize
     i64.const 1
-    i64.sub
+    usize.checked_sub
     local.set 3   ; $field_3
     local.get 0   ; arg 0
     local.get 3   ; $field_3
@@ -1632,21 +1624,21 @@ fn 47 std_collections$put__Any__i32 (ref,any,i32) -> void
   local.get 2   ; arg 2
   call 45   ; std_collections$write_entry__Any__i32
   local.field 0 21 2   ; arg 0 std_collections$MutableMap__Any__i32.index
-  local.set 9   ; $field_70
+  local.set 9   ; $field_69
   local.field 0 21 4   ; arg 0 std_collections$MutableMap__Any__i32.size
   ref.cast 7   ; usize
   i64.const 1
-  i64.add
+  usize.checked_add
   usize.to_i32
-  local.set 10   ; $cast_74
-  local.get 9   ; $field_70
+  local.set 10   ; $cast_73
+  local.get 9   ; $field_69
   local.get 4   ; $field_4
-  local.get 10   ; $cast_74
+  local.get 10   ; $cast_73
   store_slot_i32
   local.field 0 21 4   ; arg 0 std_collections$MutableMap__Any__i32.size
   ref.cast 7   ; usize
   i64.const 1
-  i64.add
+  usize.checked_add
   local.set 3   ; $field_3
   local.get 0   ; arg 0
   local.get 3   ; $field_3
@@ -1657,11 +1649,11 @@ end
 fn 48 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
   local $field_3 usize
   local $field_4 usize
-  local $mul_24 usize
+  local $mul_checked_24 usize
   local perturb u64
   local first_tomb i64
-  local $field_70 ref
-  local $cast_74 i32
+  local $field_69 ref
+  local $cast_73 i32
   local.get 0   ; arg 0
   call 42   ; std_collections$ensure_index__snippet_HttpStatus__string
   local.field 0 23 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
@@ -1672,18 +1664,18 @@ fn 48 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
-  i64.add
+  usize.checked_add
   i64.const 1
-  i64.add
+  usize.checked_add
   i64.const 4
-  i64.mul
+  usize.checked_mul
   local.set 3   ; $field_3
   local.field 0 23 3   ; arg 0 std_collections$MutableMap__HttpStatus__string.mask
   ref.cast 7   ; usize
   i64.const 1
-  i64.add
+  usize.checked_add
   i64.const 3
-  i64.mul
+  usize.checked_mul
   local.set 4   ; $field_4
   local.get 3   ; $field_3
   local.get 4   ; $field_4
@@ -1695,21 +1687,21 @@ fn 48 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
       local.field 0 23 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
       ref.cast 7   ; usize
       i64.const 1
-      i64.add
+      usize.checked_add
       i64.const 4
-      i64.mul
+      usize.checked_mul
       local.set 4   ; $field_4
       local.get 3   ; $field_3
       i64.const 3
-      i64.mul
-      local.set 5   ; $mul_24
+      usize.checked_mul
+      local.set 5   ; $mul_checked_24
       local.get 4   ; $field_4
-      local.get 5   ; $mul_24
+      local.get 5   ; $mul_checked_24
       u64.gt
       if $L2 void
         local.get 3   ; $field_3
         i64.const 2
-        i64.mul
+        usize.checked_mul
         local.set 3   ; $field_3
         br $L1
       end $L2
@@ -1728,8 +1720,7 @@ fn 48 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
   local.get 3   ; $field_3
   call 39   ; std_collections$first_slot
   local.set 3   ; $field_3
-  i64.const 1
-  i64.neg
+  i64.const -1
   local.set 7   ; first_tomb
   loop $L3 void
     local.field 0 23 2   ; arg 0 std_collections$MutableMap__HttpStatus__string.index
@@ -1758,7 +1749,7 @@ fn 48 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
         load_slot_i32
         i32.to_i64
         i64.const 1
-        i64.sub
+        usize.checked_sub
         local.set 4   ; $field_4
         local.field 0 23 0   ; arg 0 std_collections$MutableMap__HttpStatus__string.ekeys
         local.get 4   ; $field_4
@@ -1779,10 +1770,10 @@ fn 48 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
       local.set 6   ; perturb
       local.field 0 23 3   ; arg 0 std_collections$MutableMap__HttpStatus__string.mask
       ref.cast 7   ; usize
-      local.set 5   ; $mul_24
+      local.set 5   ; $mul_checked_24
       local.get 3   ; $field_3
       local.get 6   ; perturb
-      local.get 5   ; $mul_24
+      local.get 5   ; $mul_checked_24
       call 40   ; std_collections$next_slot
       local.set 3   ; $field_3
       br $L3
@@ -1806,7 +1797,7 @@ fn 48 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
     local.field 0 23 5   ; arg 0 std_collections$MutableMap__HttpStatus__string.tombs
     ref.cast 7   ; usize
     i64.const 1
-    i64.sub
+    usize.checked_sub
     local.set 3   ; $field_3
     local.get 0   ; arg 0
     local.get 3   ; $field_3
@@ -1817,21 +1808,21 @@ fn 48 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> void
   local.get 2   ; arg 2
   call 46   ; std_collections$write_entry__snippet_HttpStatus__string
   local.field 0 23 2   ; arg 0 std_collections$MutableMap__HttpStatus__string.index
-  local.set 8   ; $field_70
+  local.set 8   ; $field_69
   local.field 0 23 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
   ref.cast 7   ; usize
   i64.const 1
-  i64.add
+  usize.checked_add
   usize.to_i32
-  local.set 9   ; $cast_74
-  local.get 8   ; $field_70
+  local.set 9   ; $cast_73
+  local.get 8   ; $field_69
   local.get 4   ; $field_4
-  local.get 9   ; $cast_74
+  local.get 9   ; $cast_73
   store_slot_i32
   local.field 0 23 4   ; arg 0 std_collections$MutableMap__HttpStatus__string.size
   ref.cast 7   ; usize
   i64.const 1
-  i64.add
+  usize.checked_add
   local.set 3   ; $field_3
   local.get 0   ; arg 0
   local.get 3   ; $field_3
@@ -1880,7 +1871,7 @@ fn 49 std_collections$get__Any__i32 (ref,any) -> any
         load_slot_i32
         i32.to_i64
         i64.const 1
-        i64.sub
+        usize.checked_sub
         local.set 4   ; ei
         local.field 0 21 0   ; arg 0 std_collections$MutableMap__Any__i32.ekeys
         local.get 4   ; ei
@@ -1955,7 +1946,7 @@ fn 50 std_collections$get__snippet_HttpStatus__string (ref,u8) -> any
         load_slot_i32
         i32.to_i64
         i64.const 1
-        i64.sub
+        usize.checked_sub
         local.set 4   ; ei
         local.field 0 23 0   ; arg 0 std_collections$MutableMap__HttpStatus__string.ekeys
         local.get 4   ; ei
@@ -2043,7 +2034,7 @@ fn 52 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      i64.add
+      usize.checked_add
       local.set 3   ; sent
       br $L0
     end $L1

@@ -15,9 +15,7 @@
           .tag :i32
             .opt :Inner
               b :Box
-    return
-      neg :i32
-        int(1) :i32
+    return int(-1) :i32
   fn snippet$main() -> i32
     let hit: i32 =
       call :i32

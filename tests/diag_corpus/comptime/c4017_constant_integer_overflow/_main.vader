@@ -1,0 +1,12 @@
+// A `+`, `-` or `*` whose result leaves its integer type stops a comptime
+// evaluation, as it would stop the run ; `+%` folds by wrapping instead.
+module "snippet"
+
+WRAPPED: u8: 250 +% 10
+
+@comptime
+TOO_MUCH: u8: 250 + 10
+
+main :: fn() -> i32 {
+    return i32(TOO_MUCH) + i32(WRAPPED)
+}

@@ -89,6 +89,27 @@ RegOp :: enum(i32) {
     AndBool
     OrBool
     NotBool
+    // Checked `+` / `-` / `*` / negation (`CheckedArith`, `CheckedNeg`): r[a] <- r[b]
+    // op r[c], or stop the run when the result leaves the integer type `kinds` gives
+    // the op. The `I32`, `I64` and `U64` forms pass their type as a constant, which
+    // the C compiler folds through `checked_arith`, so the check costs next to
+    // nothing ; `I64` also serves `isize`, `U64` serves `usize`, and a trap names the
+    // type `kinds` holds. The others decode it from `kinds` on every run.
+    AddCheckedI32
+    SubCheckedI32
+    MulCheckedI32
+    NegCheckedI32
+    AddCheckedI64
+    SubCheckedI64
+    MulCheckedI64
+    NegCheckedI64
+    AddCheckedU64
+    SubCheckedU64
+    MulCheckedU64
+    AddChecked
+    SubChecked
+    MulChecked
+    NegChecked
     // r[a] <- r[b] as an i32 ; as an i64, sign- or zero-extended (`ToI64U`).
     ToI32
     ToI64
@@ -173,6 +194,8 @@ RegFunction :: struct {
     words:     i64[]!
     /// Original pc of each op, for trap messages.
     origin:    i32[]!
+    /// The integer type of each checked op, `.Void` for the other ops.
+    kinds:     bc.ValType[]!
     /// The function's scalar constants, loaded into the registers from `slots`
     /// when a frame starts.
     consts:    i64[]!

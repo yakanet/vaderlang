@@ -19,29 +19,29 @@
     let name: string = "i32" :string
     return
       cast → i32
-        add :usize
+        add_checked :usize
           l:
-            add :usize
+            add_checked :usize
               l:
-                add :usize
+                add_checked :usize
                   l:
-                    add :usize
+                    add_checked :usize
                       l:
-                        add :usize
+                        add_checked :usize
                           l:
-                            add :usize
+                            add_checked :usize
                               l:
-                                add :usize
+                                add_checked :usize
                                   l:
-                                    add :usize
+                                    add_checked :usize
                                       l:
-                                        add :usize
+                                        add_checked :usize
                                           l:
-                                            add :usize
+                                            add_checked :usize
                                               l:
-                                                add :usize
+                                                add_checked :usize
                                                   l:
-                                                    add :usize
+                                                    add_checked :usize
                                                       l:
                                                         s8 :usize
                                                       r:

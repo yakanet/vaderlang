@@ -33,7 +33,7 @@
           target:
             seen :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 seen :i32
               r:
@@ -47,7 +47,7 @@
               target:
                 nulls :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     nulls :i32
                   r:
@@ -57,7 +57,7 @@
           target:
             sum :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 sum :i32
               r:
@@ -206,7 +206,7 @@
               target:
                 gseen :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     gseen :i32
                   r:
@@ -220,7 +220,7 @@
                   target:
                     gnulls :i32
                   value:
-                    add :i32
+                    add_checked :i32
                       l:
                         gnulls :i32
                       r:
@@ -230,7 +230,7 @@
               target:
                 gsum :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     gsum :i32
                   r:
@@ -338,9 +338,9 @@
               arg1:
                 __off_8 :usize
     return
-      add :i32
+      add_checked :i32
         l:
-          mul :i32
+          mul_checked :i32
             l:
               seen :i32
             r:

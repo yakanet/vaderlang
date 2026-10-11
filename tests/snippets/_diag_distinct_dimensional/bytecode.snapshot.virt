@@ -13,7 +13,7 @@ fn 0 snippet$Instant$Sub$sub (i64,i64) -> i64
   local.set 3   ; $cast_3
   local.get 2   ; $cast_2
   local.get 3   ; $cast_3
-  i64.sub
+  i64.checked_sub
   return
 end
 
@@ -28,9 +28,7 @@ fn 1 snippet$Instant$Comparable$compare (i64,i64) -> i32
   local.get 3   ; b
   i64.lt
   if $L0 void
-    i32.const 1
-    i32.neg
-    return
+    return.lit i32.const -1
   end $L0
   local.get 2   ; a
   local.get 3   ; b
@@ -60,9 +58,7 @@ fn 2 snippet$main () -> i32
   i32.lt
   if $L0 void
   else
-    i32.const 1
-    i32.neg
-    return
+    return.lit i32.const -1
   end $L0
   local.get 2   ; d
   i64.to_i32

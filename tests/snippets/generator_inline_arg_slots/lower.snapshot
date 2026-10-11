@@ -359,7 +359,7 @@
                           __off_11 :usize
             else:
               let v: i64 =
-                add :i64
+                add_checked :i64
                   l:
                     cast → i64
                       d :i64 | null

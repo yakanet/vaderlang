@@ -113,11 +113,11 @@
                       int(3) :i32
   fn snippet$main() -> i32
     let c: i32 =
-      add :i32
+      add_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
-              add :i32
+              add_checked :i32
                 l:
                   call :i32
                     callee:
@@ -125,7 +125,7 @@
                     arg0:
                       char(0x35)
                 r:
-                  mul :i32
+                  mul_checked :i32
                     l:
                       call :i32
                         callee:
@@ -135,7 +135,7 @@
                     r:
                       int(10) :i32
             r:
-              mul :i32
+              mul_checked :i32
                 l:
                   call :i32
                     callee:
@@ -145,7 +145,7 @@
                 r:
                   int(100) :i32
         r:
-          mul :i32
+          mul_checked :i32
             l:
               call :i32
                 callee:
@@ -155,11 +155,11 @@
             r:
               int(1000) :i32
     let b: i32 =
-      add :i32
+      add_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
-              add :i32
+              add_checked :i32
                 l:
                   call :i32
                     callee:
@@ -167,7 +167,7 @@
                     arg0:
                       int(9) :i32
                 r:
-                  mul :i32
+                  mul_checked :i32
                     l:
                       call :i32
                         callee:
@@ -177,7 +177,7 @@
                     r:
                       int(10) :i32
             r:
-              mul :i32
+              mul_checked :i32
                 l:
                   call :i32
                     callee:
@@ -187,7 +187,7 @@
                 r:
                   int(100) :i32
         r:
-          mul :i32
+          mul_checked :i32
             l:
               call :i32
                 callee:
@@ -197,7 +197,7 @@
             r:
               int(1000) :i32
     return
-      add :i32
+      add_checked :i32
         l:
           c :i32
         r:

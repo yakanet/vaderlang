@@ -249,8 +249,20 @@ Pop a type value, push its size in bytes as a `usize`.
 ## Integers
 
 `i32.*` carries every integer type up to 32 bits wide, `i64.*` the 64-bit ones, and
-arithmetic wraps at 32 or 64 bits. Where signedness matters, the `u32.*` / `u64.*` forms
+arithmetic wraps at 32 or 64 bits: it serves `+%`, `-%`, `*%` and the arithmetic the
+compiler synthesises. `+`, `-` and `*` written in source lower to the checked forms,
+which name their exact type. Where signedness matters, the `u32.*` / `u64.*` forms
 compare, divide and shift as unsigned.
+
+### `<type>.checked_add` `<type>.checked_sub` `<type>.checked_mul`
+Pop two integers of `<type>` (left, right); push `left + right`, `left - right` or
+`left * right`. Traps when the result leaves `<type>`: `u8.checked_add`,
+`usize.checked_sub`, … A native release build wraps instead.
+
+### `<type>.checked_neg`
+Pop an integer of `<type>`, push its negation. Traps when the result leaves `<type>`:
+the least value of a signed type, any nonzero value of an unsigned one. A native
+release build wraps instead.
 
 ### `i32.add` `i64.add`
 Pop two integers (left, right); push `left + right`.

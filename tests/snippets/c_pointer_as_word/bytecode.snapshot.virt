@@ -28,10 +28,8 @@ fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
   local and_res bool
-  local $cast_14 isize
-  local $unop_16 isize
-  local $cast_28 usize
-  local $cast_30 usize
+  local $cast_27 usize
+  local $cast_29 usize
   i64.const 16
   call.import 0   ; snippet$c_malloc
   local.set 0   ; p
@@ -52,12 +50,7 @@ fn 0 snippet$main () -> i32
   if $L0 void
     local.get 0   ; p
     ref.cast 10   ; isize
-    local.set 4   ; $cast_14
-    i64.const 1
-    i64.neg
-    local.set 5   ; $unop_16
-    local.get 4   ; $cast_14
-    local.get 5   ; $unop_16
+    i64.const -1
     i64.ne
     local.set 3   ; and_res
   else
@@ -85,13 +78,13 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; p
   ref.cast 3   ; usize
-  local.set 6   ; $cast_28
+  local.set 4   ; $cast_27
   local.get 0   ; p
   ref.cast 10   ; isize
   isize.to_i64
-  local.set 7   ; $cast_30
-  local.get 6   ; $cast_28
-  local.get 7   ; $cast_30
+  local.set 5   ; $cast_29
+  local.get 4   ; $cast_27
+  local.get 5   ; $cast_29
   i64.eq
   local.set 3   ; and_res
   local.get 1   ; __buf_0
@@ -161,7 +154,7 @@ fn 4 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -230,7 +223,7 @@ fn 6 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      i64.add
+      usize.checked_add
       local.set 3   ; sent
       br $L0
     end $L1

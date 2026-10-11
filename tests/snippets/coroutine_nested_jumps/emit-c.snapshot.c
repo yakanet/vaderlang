@@ -1248,7 +1248,7 @@ static void* snippet___genstate_stop_at_three_Iterator_next(void* l0) {
 }
 
 static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
-    int32_t l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12;
+    int32_t l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11;
     int32_t t0, t2;
     void* t1 = NULL;
     void** gc_raw_roots[2] = { &l0, &t1 };
@@ -1307,16 +1307,15 @@ static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
 #line 53 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         if ((t0 > INT32_C(0))) {
 #line 54 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                            l5 = -(INT32_C(1));
-                            ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s3 = l5;
+                            ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s3 = INT32_C(-1);
 #line 55 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4 = INT32_C(0);
                             for (;;) {
 #line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                l6 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
-                                l7 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s0;
+                                l5 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
+                                l6 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s0;
 #line 55 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                if ((l6 < l7)) {
+                                if ((l5 < l6)) {
 #line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1;
 #line 56 "tests/snippets/coroutine_nested_jumps/_main.vader"
@@ -1324,27 +1323,27 @@ static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
 #line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                         t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1;
 #line 52 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                        l8 = (t0 + INT32_C(1));
-                                        ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1 = l8;
+                                        l7 = (t0 + INT32_C(1));
+                                        ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1 = l7;
 #line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                         ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_state = INT32_C(2);
                                         goto loop_0;
 #line 56 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     }
 #line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                    l9 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
-                                    l10 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1;
+                                    l8 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
+                                    l9 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1;
 #line 59 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                    if ((l9 > l10)) {
+                                    if ((l8 > l9)) {
 #line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                         t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
 #line 59 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                         t2 = vader_mod_i32(t0, INT32_C(2));
                                         if (t2 == INT32_C(1)) {
 #line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                            l11 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
+                                            l10 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
 #line 60 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                            ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s3 = l11;
+                                            ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s3 = l10;
 #line 61 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                             break;
 #line 59 "tests/snippets/coroutine_nested_jumps/_main.vader"
@@ -1353,8 +1352,8 @@ static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
 #line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
 #line 55 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                    l12 = (t0 + INT32_C(1));
-                                    ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4 = l12;
+                                    l11 = (t0 + INT32_C(1));
+                                    ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4 = l11;
                                     continue;
                                 }
                                 break;
@@ -1364,7 +1363,7 @@ static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
 #line 53 "tests/snippets/coroutine_nested_jumps/_main.vader"
 #line 66 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         } else {
-                            l4 = -(INT32_C(1));
+                            l4 = INT32_C(-1);
 #line 53 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         }
                         ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s2 = l4;
@@ -1456,7 +1455,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
 #line 76 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     }
                     l5 = ((int32_t) l4.payload.i);
-                    l7 = (l3 + l5);
+                    l7 = vader_chk_add(i32, l3, l5);
                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1 = l7;
 #line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s2;
@@ -1525,11 +1524,11 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
     void* l12 = NULL;
     void* l15 = NULL;
     int32_t t0;
-    vader_box_t t1 = vader_box_null();
-    size_t t2;
-    int64_t t3;
+    size_t t1;
+    int64_t t2;
+    vader_box_t t3 = vader_box_null();
     void* t4 = NULL;
-    vader_box_t* gc_roots[4] = { &l4, &l9, &l11, &t1 };
+    vader_box_t* gc_roots[4] = { &l4, &l9, &l11, &t3 };
     void** gc_raw_roots[4] = { &l0, &l12, &l15, &t4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -1545,8 +1544,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
             ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(-1);
 #line 87 "tests/snippets/coroutine_nested_jumps/_main.vader"
 #line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
-            t1 = vader_box_i32(1u, -(INT32_C(1)));
-            { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+            { vader_box_t __vret = vader_box_i32(1u, INT32_C(-1)); vader_gc_top = gc_frame.prev; return __vret; }
         }
         t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
         if (t0 == INT32_C(2)) {
@@ -1570,10 +1568,10 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
             } else {
                 t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
                 if (t0 == INT32_C(4)) {
-                    t2 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4;
+                    t1 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4;
 #line 82 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                    t3 = (t2 + INT64_C(1));
-                    l3 = (size_t) (int64_t) t3;
+                    t2 = (t1 + INT64_C(1));
+                    l3 = (size_t) (int64_t) t2;
                     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4 = l3;
 #line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(3);
@@ -1582,8 +1580,8 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                     if (t0 == INT32_C(5)) {
                         ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(-1);
                         t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s7;
-                        t1 = vader_box_i32(1u, t0);
-                        { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+                        t3 = vader_box_i32(1u, t0);
+                        { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                     }
                     t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
                     if (t0 == INT32_C(6)) {
@@ -1604,10 +1602,10 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
 #line 84 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         if (((vader_struct___asyncstate_snippet_1_t*) l0)->f_s8.tag == 0u) {
 #line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                            t2 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4;
+                            t1 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4;
 #line 82 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                            t3 = (t2 + INT64_C(1));
-                            l8 = (size_t) (int64_t) t3;
+                            t2 = (t1 + INT64_C(1));
+                            l8 = (size_t) (int64_t) t2;
                             ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4 = l8;
 #line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(3);
@@ -1635,9 +1633,9 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                             t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
                             if (t0 == INT32_C(8)) {
 #line 83 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                t1 = std_async_sleep(INT64_C(0));
+                                t3 = std_async_sleep(INT64_C(0));
 #line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                l11 = t1;
+                                l11 = t3;
                                 ((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited = l11;
                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_1_t*) l0);
                                 ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(7);
@@ -2330,8 +2328,10 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 }
 
 static int32_t std_core_i32_Step_step(int32_t l0) {
+    int32_t t0;
 #line 338 "lib/std/core/primitives.vader"
-    return (l0 + INT32_C(1));
+    t0 = vader_chk_add(i32, l0, INT32_C(1));
+    return t0;
 }
 
 static void* std_core_Range_Iterator_next__i32(void* l0) {
@@ -2383,8 +2383,10 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
 }
 
 static size_t std_core_usize_Step_step(size_t l0) {
+    int64_t t0;
 #line 345 "lib/std/core/primitives.vader"
-    return (size_t) (int64_t) (l0 + INT64_C(1));
+    t0 = vader_chk_add(usize, l0, INT64_C(1));
+    return (size_t) (int64_t) t0;
 }
 
 static void* std_core_Range_Iterator_next__usize(void* l0) {
@@ -2460,11 +2462,13 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
+    int64_t t0;
 #line 121 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
 #line 122 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
-    return (size_t) (int64_t) (l1 + l3);
+    t0 = vader_chk_add(usize, l1, l3);
+    return (size_t) (int64_t) t0;
 }
 
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
@@ -2472,21 +2476,22 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     size_t l4, l6;
     int64_t l5;
     uint8_t l7, l8;
-    int64_t t0;
-    int32_t t1;
+    int64_t t0, t1;
+    int32_t t2;
 #line 127 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
 #line 128 "lib/std/core/primitives.vader"
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
 #line 129 "lib/std/core/primitives.vader"
-        return (size_t) (int64_t) (l1 + INT64_C(1));
+        t0 = vader_chk_add(usize, l1, INT64_C(1));
+        return (size_t) (int64_t) t0;
 #line 127 "lib/std/core/primitives.vader"
     }
 #line 131 "lib/std/core/primitives.vader"
     l3 = (l2 < INT64_C(0));
 #line 132 "lib/std/core/primitives.vader"
     if ((l2 > INT64_C(0))) {
-        l2 = -(l2);
+        l2 = vader_chk_neg(i64, l2);
     }
 #line 133 "lib/std/core/primitives.vader"
     l4 = (size_t) 0;
@@ -2495,7 +2500,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 135 "lib/std/core/primitives.vader"
     while (l5 != INT64_C(0)) {
 #line 136 "lib/std/core/primitives.vader"
-        t0 = (l4 + INT64_C(1));
+        t0 = vader_chk_add(usize, l4, INT64_C(1));
         l4 = (size_t) (int64_t) t0;
 #line 137 "lib/std/core/primitives.vader"
         l5 = vader_div_i64(l5, INT64_C(10));
@@ -2503,25 +2508,26 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     }
 #line 139 "lib/std/core/primitives.vader"
     if (l3) {
-        t0 = (l4 + INT64_C(1));
+        t0 = vader_chk_add(usize, l4, INT64_C(1));
         l6 = (size_t) (int64_t) t0;
     } else {
         l6 = l4;
     }
 #line 140 "lib/std/core/primitives.vader"
-    t0 = (l1 + l6);
+    t0 = vader_chk_add(usize, l1, l6);
     l4 = (size_t) (int64_t) t0;
 #line 141 "lib/std/core/primitives.vader"
     while (l2 != INT64_C(0)) {
 #line 142 "lib/std/core/primitives.vader"
-        t0 = (l4 - INT64_C(1));
+        t0 = vader_chk_sub(usize, l4, INT64_C(1));
         l4 = (size_t) (int64_t) t0;
 #line 143 "lib/std/core/primitives.vader"
         t0 = vader_mod_i64(l2, INT64_C(10));
-        t1 = (((int32_t) (int64_t) -(t0)) & INT32_C(255));
-        l7 = (uint8_t) (int32_t) t1;
-        t1 = ((INT32_C(48) + l7) & INT32_C(255));
-        l8 = (uint8_t) (int32_t) t1;
+        t1 = vader_chk_neg(i64, t0);
+        t2 = (((int32_t) (int64_t) t1) & INT32_C(255));
+        l7 = (uint8_t) (int32_t) t2;
+        t2 = vader_chk_add(u8, INT32_C(48), l7);
+        l8 = (uint8_t) (int32_t) t2;
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) l8);
 #line 144 "lib/std/core/primitives.vader"
         l2 = vader_div_i64(l2, INT64_C(10));
@@ -2531,11 +2537,13 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     if (l3) {
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(45));
 #line 147 "lib/std/core/primitives.vader"
-        return (size_t) (int64_t) (l1 + l6);
+        t0 = vader_chk_add(usize, l1, l6);
+        return (size_t) (int64_t) t0;
 #line 146 "lib/std/core/primitives.vader"
     }
 #line 147 "lib/std/core/primitives.vader"
-    return (size_t) (int64_t) (l1 + l6);
+    t0 = vader_chk_add(usize, l1, l6);
+    return (size_t) (int64_t) t0;
 }
 
 static vader_box_t std_async_sleep(int64_t l0) {
@@ -2579,7 +2587,7 @@ static vader_box_t std_async_Sleep_Async_resume(void* l0) {
 #line 41 "lib/std/async/async.vader"
         l1 = vader_host_std_runtime_sched_now();
         l2 = ((vader_struct_std_async_Sleep_t*) l0)->f_ms;
-        l1 = (l1 + l2);
+        l1 = vader_chk_add(i64, l1, l2);
         ((vader_struct_std_async_Sleep_t*) l0)->f_deadline = l1;
 #line 42 "lib/std/async/async.vader"
         t1 = ((vader_struct_std_async_Sleep_t*) l0)->f_deadline;
@@ -2669,7 +2677,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 217 "lib/std/io/io.vader"
             t0 = ((int64_t) (int32_t) l8);
             l9 = (size_t) (int64_t) t0;
-            t0 = (l3 + l9);
+            t0 = vader_chk_add(usize, l3, l9);
             l3 = (size_t) (int64_t) t0;
 #line 208 "lib/std/io/io.vader"
             continue;

@@ -27,6 +27,7 @@ static int32_t snippet_main(void) {
     void* l0 = NULL;
     int32_t l1, l2;
     size_t t0;
+    int32_t t1;
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -50,13 +51,14 @@ static int32_t snippet_main(void) {
     l1 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(0)];
     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT32_C(1))
     l2 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(1)];
-    l1 = (l1 + l2);
+    l1 = vader_chk_add(i32, l1, l2);
     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT32_C(3))
     l2 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(3)];
-    l1 = (l1 + l2);
+    l1 = vader_chk_add(i32, l1, l2);
     t0 = ((vader_array_t*) l0)->length;
     l2 = ((int32_t) (size_t) t0);
-    { int32_t __vret = (l1 + l2); vader_gc_top = gc_frame.prev; return __vret; }
+    t1 = vader_chk_add(i32, l1, l2);
+    { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 int main(int argc, char** argv) {

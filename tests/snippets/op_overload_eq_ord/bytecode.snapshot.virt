@@ -55,9 +55,7 @@ fn 1 snippet$Money$Comparable$compare (ref,ref) -> i32
   local.get 3   ; $field_3
   i32.lt
   if $L0 void
-    i32.const 1
-    i32.neg
-    return
+    return.lit i32.const -1
   end $L0
   local.field 0 1 0   ; arg 0 snippet$Money.amount
   ref.cast 3   ; i32
@@ -258,7 +256,7 @@ fn 6 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -327,7 +325,7 @@ fn 8 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      i64.add
+      usize.checked_add
       local.set 3   ; sent
       br $L0
     end $L1

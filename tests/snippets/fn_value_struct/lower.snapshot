@@ -4,7 +4,7 @@
   struct snippet$Op { op: fn(i32, i32) -> i32 }
   fn snippet$mul(a: i32, b: i32) -> i32
     return
-      mul :i32
+      mul_checked :i32
         l:
           a :i32
         r:

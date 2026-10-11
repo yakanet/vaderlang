@@ -336,8 +336,7 @@
                               __coalesce_6 :i32 | null
                           then:
                             ~>
-                              neg :i32
-                                int(1) :i32
+                              int(-1) :i32
                           else:
                             ~>
                               cast → i32
@@ -384,8 +383,7 @@
                               __coalesce_7 :i32 | null
                           then:
                             ~>
-                              neg :i32
-                                int(1) :i32
+                              int(-1) :i32
                           else:
                             ~>
                               cast → i32
@@ -432,8 +430,7 @@
                               __coalesce_8 :i32 | null
                           then:
                             ~>
-                              neg :i32
-                                int(1) :i32
+                              int(-1) :i32
                           else:
                             ~>
                               cast → i32

@@ -22,7 +22,7 @@ fn 0 snippet$main () -> i32
   local.set 2   ; $idx_8
   local.get 1   ; $idx_6
   local.get 2   ; $idx_8
-  i32.add
+  i32.checked_add
   local.set 1   ; $idx_6
   local.get 0   ; arr
   i32.const 2
@@ -30,6 +30,6 @@ fn 0 snippet$main () -> i32
   local.set 2   ; $idx_8
   local.get 1   ; $idx_6
   local.get 2   ; $idx_8
-  i32.add
+  i32.checked_add
   return
 end

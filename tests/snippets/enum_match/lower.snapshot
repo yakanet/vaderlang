@@ -255,8 +255,7 @@
         callee:
           classify :fn(i32) -> Severity
         arg0:
-          neg :i32
-            int(5) :i32
+          int(-5) :i32
     block :void
       ~>
         if :void

@@ -78,16 +78,22 @@ const size_t vader_type_info_count = 9;
 
 static int32_t snippet_tee_reuse(int32_t l0) {
     int32_t l1;
+    int32_t t0;
 #line 10 "tests/snippets/scalar_locals/_main.vader"
-    l1 = (l0 + INT32_C(1));
+    l1 = vader_chk_add(i32, l0, INT32_C(1));
 #line 11 "tests/snippets/scalar_locals/_main.vader"
-    return (l1 + l1);
+    t0 = vader_chk_add(i32, l1, l1);
+    return t0;
 }
 
 static int32_t snippet_fold_chain(int32_t l0, int32_t l1) {
+    int32_t t0, t1;
 #line 17 "tests/snippets/scalar_locals/_main.vader"
+    t0 = vader_chk_add(i32, l0, l1);
 #line 18 "tests/snippets/scalar_locals/_main.vader"
-    return (((l0 + l1) * INT32_C(2)) - l0);
+    t1 = vader_chk_mul(i32, t0, INT32_C(2));
+    t0 = vader_chk_sub(i32, t1, l0);
+    return t0;
 }
 
 static bool std_core_Range_Contains_contains__i32(void* l0, int32_t l1) {
@@ -121,8 +127,10 @@ static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
 }
 
 static int32_t std_core_i32_Step_step(int32_t l0) {
+    int32_t t0;
 #line 338 "lib/std/core/primitives.vader"
-    return (l0 + INT32_C(1));
+    t0 = vader_chk_add(i32, l0, INT32_C(1));
+    return t0;
 }
 
 static void* std_core_Range_Iterator_next__i32(void* l0) {
@@ -204,8 +212,10 @@ static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1) {
 }
 
 static size_t std_core_usize_Step_step(size_t l0) {
+    int64_t t0;
 #line 345 "lib/std/core/primitives.vader"
-    return (size_t) (int64_t) (l0 + INT64_C(1));
+    t0 = vader_chk_add(usize, l0, INT64_C(1));
+    return (size_t) (int64_t) t0;
 }
 
 static void* std_core_Range_Iterator_next__usize(void* l0) {
@@ -260,7 +270,7 @@ static int32_t std_core_three_way(bool l0, bool l1) {
     int32_t l2;
 #line 312 "lib/std/core/primitives.vader"
     if (l0) {
-        l2 = -(INT32_C(1));
+        l2 = INT32_C(-1);
         return l2;
     }
     if (l1) {

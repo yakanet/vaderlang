@@ -82,9 +82,7 @@
           .items :i32[] | null
             b :Bag
       then:
-        return
-          neg :i32
-            int(1) :i32
+        return int(-1) :i32
     return
       call :i32
         callee:

@@ -419,7 +419,7 @@ fn 2 snippet$main () -> i32
         call 14   ; std_io$println__string
         local.get 3   ; __off_1
         i64.const 1
-        i64.add
+        usize.checked_add
         local.set 3   ; __off_1
         br $L3
       end $L4
@@ -721,7 +721,7 @@ fn 7 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -730,7 +730,7 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
   local m u64
   local i usize
   local $cast_26 u8
-  local $add_27 u8
+  local $add_checked_27 u8
   local.get 2   ; arg 2
   i64.const 0
   i64.eq
@@ -741,7 +741,7 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    i64.add
+    usize.checked_add
     return
   end $L0
   i64.const 0
@@ -755,7 +755,7 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L2 void
       local.get 3   ; ndigits
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 3   ; ndigits
       local.get 4   ; m
       i64.const 10
@@ -766,7 +766,7 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L1
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  i64.add
+  usize.checked_add
   local.set 5   ; i
   loop $L3 void
     local.get 2   ; arg 2
@@ -775,7 +775,7 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L4 void
       local.get 5   ; i
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.set 5   ; i
       local.get 2   ; arg 2
       i64.const 10
@@ -786,13 +786,11 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
       local.set 6   ; $cast_26
       i32.const 48
       local.get 6   ; $cast_26
-      i32.add
-      i32.const 255
-      i32.bitand
-      local.set 7   ; $add_27
+      u8.checked_add
+      local.set 7   ; $add_checked_27
       local.get 0   ; arg 0
       local.get 5   ; i
-      local.get 7   ; $add_27
+      local.get 7   ; $add_checked_27
       store_u8
       local.get 2   ; arg 2
       i64.const 10
@@ -803,7 +801,7 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L3
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -1052,7 +1050,7 @@ fn 12 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      i64.add
+      usize.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -1152,7 +1150,7 @@ fn 16 regex$find (ref,string) -> any
       local.set 7   ; $call_15
       local.get 3   ; start
       local.get 7   ; $call_15
-      i64.add
+      usize.checked_add
       local.set 3   ; start
       br $L0
     end $L1
@@ -1229,7 +1227,7 @@ fn 17 regex$compile (string) -> any
     local.field 1 17 3   ; $call_1 regex$Parser.next_group_id
     ref.cast 8   ; usize
     i64.const 1
-    i64.sub
+    usize.checked_sub
     local.set 6   ; $len_17
     local.get 3   ; $struct_10
     local.get 6   ; $len_17
@@ -1322,7 +1320,7 @@ fn 18 regex$find_all (ref,string) -> ref
           local.set 9   ; $call_19
           local.get 4   ; start
           local.get 9   ; $call_19
-          i64.add
+          usize.checked_add
           local.set 4   ; start
         else
           local.get 6   ; m
@@ -1349,7 +1347,7 @@ fn 18 regex$find_all (ref,string) -> ref
       local.set 11   ; $call_25
       local.get 4   ; start
       local.get 11   ; $call_25
-      i64.add
+      usize.checked_add
       local.set 4   ; start
       br $L0
     end $L1
@@ -1453,7 +1451,7 @@ fn 19 regex$replace_all (ref,string,string) -> string
 end
 
 fn 20 regex$run_vm (ref,ref,usize,bool) -> any
-  local $add_7 usize
+  local $add_checked_7 usize
   local current ref
   local next ref
   local $arr_15 ref
@@ -1471,20 +1469,20 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
   local inst any
   local $len_55 usize
   local $field_58 char
-  local $add_62 usize
+  local $add_checked_62 usize
   local $field_63 ref
-  local $add_64 usize
-  local $add_66 usize
+  local $add_checked_64 usize
+  local $add_checked_66 usize
   local $len_68 usize
-  local $add_74 usize
+  local $add_checked_74 usize
   local $field_75 ref
-  local $add_76 usize
-  local $add_78 usize
+  local $add_checked_76 usize
+  local $add_checked_78 usize
   local $len_80 usize
-  local $add_86 usize
+  local $add_checked_86 usize
   local $field_87 ref
-  local $add_88 usize
-  local $add_90 usize
+  local $add_checked_88 usize
+  local $add_checked_90 usize
   local or_res bool
   local $len_95 usize
   local if_res usize
@@ -1495,12 +1493,12 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
   local.field 0 2 1   ; arg 0 regex$Pattern.group_count
   ref.cast 8   ; usize
   i64.const 1
-  i64.add
-  local.set 4   ; $add_7
+  usize.checked_add
+  local.set 4   ; $add_checked_7
   i64.const 2
-  local.get 4   ; $add_7
-  i64.mul
-  local.set 4   ; $add_7
+  local.get 4   ; $add_checked_7
+  usize.checked_mul
+  local.set 4   ; $add_checked_7
   array.new 20 0   ; regex$Thread[]
   local.set 5   ; current
   array.new 20 0   ; regex$Thread[]
@@ -1519,7 +1517,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
   local.set 8   ; $len_17
   i64.const -1
   array.new 22 1   ; usize[]
-  local.get 4   ; $add_7
+  local.get 4   ; $add_checked_7
   array.repeat
   local.set 9   ; seed_groups
   local.get 5   ; current
@@ -1534,13 +1532,13 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
   null.const
   local.set 10   ; matched
   local.get 2   ; arg 2
-  local.set 4   ; $add_7
+  local.set 4   ; $add_checked_7
   block $L0 void
     loop $L1 void
       local.get 1   ; arg 1
       array.len
       local.set 11   ; $len_30
-      local.get 4   ; $add_7
+      local.get 4   ; $add_checked_7
       local.get 11   ; $len_30
       u64.le
       if $L2 void
@@ -1551,12 +1549,12 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
         local.get 1   ; arg 1
         array.len
         local.set 14   ; $len_36
-        local.get 4   ; $add_7
+        local.get 4   ; $add_checked_7
         local.get 14   ; $len_36
         u64.lt
         if $L3 void
           local.get 1   ; arg 1
-          local.get 4   ; $add_7
+          local.get 4   ; $add_checked_7
           call 48   ; std_string$utf8_decode_len
           local.set 42   ; $call_elem_136
           local.set 12   ; c_at_pos
@@ -1591,7 +1589,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
               local.get 1   ; arg 1
               array.len
               local.set 20   ; $len_55
-              local.get 4   ; $add_7
+              local.get 4   ; $add_checked_7
               local.get 20   ; $len_55
               u64.lt
               if $L7 void
@@ -1607,26 +1605,26 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
                   local.field 9 21 0   ; seed_groups regex$Thread.pc
                   ref.cast 8   ; usize
                   i64.const 1
-                  i64.add
-                  local.set 22   ; $add_62
+                  usize.checked_add
+                  local.set 22   ; $add_checked_62
                   local.field 9 21 1   ; seed_groups regex$Thread.groups
                   local.set 23   ; $field_63
-                  local.get 4   ; $add_7
+                  local.get 4   ; $add_checked_7
                   local.get 13   ; bytes_consumed
-                  i64.add
-                  local.set 24   ; $add_64
+                  usize.checked_add
+                  local.set 24   ; $add_checked_64
                   local.get 8   ; $len_17
                   i64.const 1
-                  i64.add
-                  local.set 25   ; $add_66
+                  usize.checked_add
+                  local.set 25   ; $add_checked_66
                   local.get 6   ; next
-                  local.get 22   ; $add_62
+                  local.get 22   ; $add_checked_62
                   local.get 23   ; $field_63
                   local.get 0   ; arg 0
                   local.get 1   ; arg 1
-                  local.get 24   ; $add_64
+                  local.get 24   ; $add_checked_64
                   local.get 7   ; $arr_15
-                  local.get 25   ; $add_66
+                  local.get 25   ; $add_checked_66
                   call 25   ; regex$add_thread
                 end $L8
               end $L7
@@ -1637,7 +1635,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
                 local.get 1   ; arg 1
                 array.len
                 local.set 26   ; $len_68
-                local.get 4   ; $add_7
+                local.get 4   ; $add_checked_7
                 local.get 26   ; $len_68
                 u64.lt
                 if $L10 void
@@ -1648,26 +1646,26 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
                     local.field 9 21 0   ; seed_groups regex$Thread.pc
                     ref.cast 8   ; usize
                     i64.const 1
-                    i64.add
-                    local.set 27   ; $add_74
+                    usize.checked_add
+                    local.set 27   ; $add_checked_74
                     local.field 9 21 1   ; seed_groups regex$Thread.groups
                     local.set 28   ; $field_75
-                    local.get 4   ; $add_7
+                    local.get 4   ; $add_checked_7
                     local.get 13   ; bytes_consumed
-                    i64.add
-                    local.set 29   ; $add_76
+                    usize.checked_add
+                    local.set 29   ; $add_checked_76
                     local.get 8   ; $len_17
                     i64.const 1
-                    i64.add
-                    local.set 30   ; $add_78
+                    usize.checked_add
+                    local.set 30   ; $add_checked_78
                     local.get 6   ; next
-                    local.get 27   ; $add_74
+                    local.get 27   ; $add_checked_74
                     local.get 28   ; $field_75
                     local.get 0   ; arg 0
                     local.get 1   ; arg 1
-                    local.get 29   ; $add_76
+                    local.get 29   ; $add_checked_76
                     local.get 7   ; $arr_15
-                    local.get 30   ; $add_78
+                    local.get 30   ; $add_checked_78
                     call 25   ; regex$add_thread
                   end $L11
                 end $L10
@@ -1678,7 +1676,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
                   local.get 1   ; arg 1
                   array.len
                   local.set 31   ; $len_80
-                  local.get 4   ; $add_7
+                  local.get 4   ; $add_checked_7
                   local.get 31   ; $len_80
                   u64.lt
                   if $L13 void
@@ -1690,26 +1688,26 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
                       local.field 9 21 0   ; seed_groups regex$Thread.pc
                       ref.cast 8   ; usize
                       i64.const 1
-                      i64.add
-                      local.set 32   ; $add_86
+                      usize.checked_add
+                      local.set 32   ; $add_checked_86
                       local.field 9 21 1   ; seed_groups regex$Thread.groups
                       local.set 33   ; $field_87
-                      local.get 4   ; $add_7
+                      local.get 4   ; $add_checked_7
                       local.get 13   ; bytes_consumed
-                      i64.add
-                      local.set 34   ; $add_88
+                      usize.checked_add
+                      local.set 34   ; $add_checked_88
                       local.get 8   ; $len_17
                       i64.const 1
-                      i64.add
-                      local.set 35   ; $add_90
+                      usize.checked_add
+                      local.set 35   ; $add_checked_90
                       local.get 6   ; next
-                      local.get 32   ; $add_86
+                      local.get 32   ; $add_checked_86
                       local.get 33   ; $field_87
                       local.get 0   ; arg 0
                       local.get 1   ; arg 1
-                      local.get 34   ; $add_88
+                      local.get 34   ; $add_checked_88
                       local.get 7   ; $arr_15
-                      local.get 35   ; $add_90
+                      local.get 35   ; $add_checked_90
                       call 25   ; regex$add_thread
                     end $L14
                   end $L13
@@ -1726,7 +1724,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
                       local.get 1   ; arg 1
                       array.len
                       local.set 37   ; $len_95
-                      local.get 4   ; $add_7
+                      local.get 4   ; $add_checked_7
                       local.get 37   ; $len_95
                       i64.eq
                       local.set 36   ; or_res
@@ -1756,11 +1754,11 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
                         local.field 9 21 1   ; seed_groups regex$Thread.groups
                         i32.const 1
                         load_slot_i64
-                        local.get 4   ; $add_7
+                        local.get 4   ; $add_checked_7
                         call 26   ; regex$resolve_slot
                         local.set 39   ; if_res
                       else
-                        local.get 4   ; $add_7
+                        local.get 4   ; $add_checked_7
                         local.set 39   ; if_res
                       end $L19
                       local.get 9   ; seed_groups
@@ -1813,7 +1811,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
             end $L6
             local.get 15   ; t_idx
             i64.const 1
-            i64.add
+            usize.checked_add
             local.set 15   ; t_idx
             br $L4
           end $L5
@@ -1821,7 +1819,7 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
         local.get 1   ; arg 1
         array.len
         local.set 41   ; $len_126
-        local.get 4   ; $add_7
+        local.get 4   ; $add_checked_7
         local.get 41   ; $len_126
         i64.eq
         br_if $L0
@@ -1831,17 +1829,17 @@ fn 20 regex$run_vm (ref,ref,usize,bool) -> any
         local.set 6   ; next
         local.get 8   ; $len_17
         i64.const 1
-        i64.add
+        usize.checked_add
         local.set 8   ; $len_17
         local.get 5   ; current
         array.len
         i64.const 0
         i64.eq
         br_if $L0
-        local.get 4   ; $add_7
+        local.get 4   ; $add_checked_7
         local.get 13   ; bytes_consumed
-        i64.add
-        local.set 4   ; $add_7
+        usize.checked_add
+        local.set 4   ; $add_checked_7
         br $L1
       end $L2
     end $L1
@@ -1879,7 +1877,7 @@ fn 23 regex$parse_alternation (ref) -> any
   local branch_offsets ref
   local $field_23 ref
   local $field_35 usize
-  local $add_41 usize
+  local $add_checked_41 usize
   local next_start usize
   local $field_49 ref
   local $len_51 usize
@@ -1992,10 +1990,10 @@ fn 23 regex$parse_alternation (ref) -> any
         local.field 0 17 1   ; arg 0 regex$Parser.cursor
         ref.cast 8   ; usize
         i64.const 1
-        i64.add
-        local.set 9   ; $add_41
+        usize.checked_add
+        local.set 9   ; $add_checked_41
         local.get 0   ; arg 0
-        local.get 9   ; $add_41
+        local.get 9   ; $add_checked_41
         struct.set 17 1   ; regex$Parser.cursor
         local.field 0 17 2   ; arg 0 regex$Parser.insts
         array.len
@@ -2042,7 +2040,7 @@ fn 23 regex$parse_alternation (ref) -> any
   local.get 6   ; branch_offsets
   array.len
   i64.const 1
-  i64.sub
+  usize.checked_sub
   local.set 3   ; $field_8
   array.new 22 0   ; usize[]
   local.set 7   ; $field_23
@@ -2050,7 +2048,7 @@ fn 23 regex$parse_alternation (ref) -> any
   local.set 4   ; $len_10
   local.get 3   ; $field_8
   i64.const 1
-  i64.sub
+  usize.checked_sub
   local.set 8   ; $field_35
   loop $L8 void
     local.get 4   ; $len_10
@@ -2059,7 +2057,7 @@ fn 23 regex$parse_alternation (ref) -> any
     if $L9 void
       local.field 0 17 2   ; arg 0 regex$Parser.insts
       array.len
-      local.set 9   ; $add_41
+      local.set 9   ; $add_checked_41
       local.field 0 17 2   ; arg 0 regex$Parser.insts
       local.set 11   ; $field_49
       i64.const 0
@@ -2080,7 +2078,7 @@ fn 23 regex$parse_alternation (ref) -> any
       local.set 12   ; $len_51
       local.get 4   ; $len_10
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 14   ; $len_53
       local.get 6   ; branch_offsets
       local.get 14   ; $len_53
@@ -2116,7 +2114,7 @@ fn 23 regex$parse_alternation (ref) -> any
       struct.new 34   ; regex$InstSplit
       local.set 22   ; $struct_93
       local.get 21   ; $field_92
-      local.get 9   ; $add_41
+      local.get 9   ; $add_checked_41
       local.get 22   ; $struct_93
       array.set 25   ; union[]
       local.get 4   ; $len_10
@@ -2128,7 +2126,7 @@ fn 23 regex$parse_alternation (ref) -> any
   end $L8
   local.get 3   ; $field_8
   i64.const 1
-  i64.sub
+  usize.checked_sub
   local.set 3   ; $field_8
   local.field 0 17 2   ; arg 0 regex$Parser.insts
   local.set 11   ; $field_49
@@ -2138,7 +2136,7 @@ fn 23 regex$parse_alternation (ref) -> any
   local.set 4   ; $len_10
   local.get 3   ; $field_8
   i64.const 1
-  i64.add
+  usize.checked_add
   local.set 3   ; $field_8
   local.get 6   ; branch_offsets
   local.get 3   ; $field_8
@@ -2189,7 +2187,7 @@ end
 fn 24 regex$expand_replacement (ref,ref,ref) -> void
   local n usize
   local i usize
-  local $add_16 usize
+  local $add_checked_16 usize
   local d u8
   local gi usize
   local $len_28 usize
@@ -2216,16 +2214,16 @@ fn 24 regex$expand_replacement (ref,ref,ref) -> void
       if $L2 void
         local.get 4   ; i
         i64.const 1
-        i64.add
+        usize.checked_add
         local.get 3   ; n
         u64.lt
         if $L3 void
           local.get 4   ; i
           i64.const 1
-          i64.add
-          local.set 5   ; $add_16
+          usize.checked_add
+          local.set 5   ; $add_checked_16
           local.get 1   ; arg 1
-          local.get 5   ; $add_16
+          local.get 5   ; $add_checked_16
           array.get 11   ; u8[]
           ref.cast 7   ; u8
           local.tee 6   ; d
@@ -2238,9 +2236,7 @@ fn 24 regex$expand_replacement (ref,ref,ref) -> void
             if $L5 void
               local.get 6   ; d
               i32.const 48
-              i32.sub
-              i32.const 255
-              i32.bitand
+              u8.checked_sub
               u8.to_i64
               local.set 7   ; gi
               local.field 2 13 2   ; arg 2 regex$Match.groups
@@ -2261,7 +2257,7 @@ fn 24 regex$expand_replacement (ref,ref,ref) -> void
               end $L6
               local.get 4   ; i
               i64.const 2
-              i64.add
+              usize.checked_add
               local.set 4   ; i
               br $L0
             end $L5
@@ -2280,7 +2276,7 @@ fn 24 regex$expand_replacement (ref,ref,ref) -> void
       call 52   ; std_string_builder$append_char
       local.get 4   ; i
       local.get 11   ; w
-      i64.add
+      usize.checked_add
       local.set 4   ; i
       br $L0
     end $L1
@@ -2290,7 +2286,7 @@ end
 
 fn 25 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
   local stack ref
-  local $sub_16 usize
+  local $sub_checked_16 usize
   local item ref
   local pc usize
   local groups ref
@@ -2319,10 +2315,10 @@ fn 25 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
       local.get 8   ; stack
       array.len
       i64.const 1
-      i64.sub
-      local.set 9   ; $sub_16
+      usize.checked_sub
+      local.set 9   ; $sub_checked_16
       local.get 8   ; stack
-      local.get 9   ; $sub_16
+      local.get 9   ; $sub_checked_16
       array.get 41   ; regex$WorkItem[]
       local.set 10   ; item
       local.get 8   ; stack
@@ -2405,7 +2401,7 @@ fn 25 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
           store_slot_i64
           local.get 11   ; pc
           i64.const 1
-          i64.add
+          usize.checked_add
           local.get 17   ; g
           struct.new 39   ; regex$WorkItem
           local.set 19   ; $struct_47
@@ -2422,7 +2418,7 @@ fn 25 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
             if $L7 void
               local.get 11   ; pc
               i64.const 1
-              i64.add
+              usize.checked_add
               local.get 12   ; groups
               struct.new 39   ; regex$WorkItem
               local.set 20   ; $struct_53
@@ -2443,7 +2439,7 @@ fn 25 regex$add_thread (ref,usize,ref,ref,ref,usize,ref,usize) -> void
               if $L9 void
                 local.get 11   ; pc
                 i64.const 1
-                i64.add
+                usize.checked_add
                 local.get 12   ; groups
                 struct.new 39   ; regex$WorkItem
                 local.set 22   ; $struct_59
@@ -2493,10 +2489,10 @@ fn 27 regex$captured_groups (ref,ref) -> ref
   local out ref
   local i usize
   local $field_12 ref
-  local $mul_14 usize
+  local $mul_checked_14 usize
   local lo_slot usize
   local $field_17 ref
-  local $add_21 usize
+  local $add_checked_21 usize
   local hi_slot usize
   local or_res bool
   local $call_32 string
@@ -2518,22 +2514,22 @@ fn 27 regex$captured_groups (ref,ref) -> ref
       local.set 5   ; $field_12
       i64.const 2
       local.get 4   ; i
-      i64.mul
-      local.set 6   ; $mul_14
+      usize.checked_mul
+      local.set 6   ; $mul_checked_14
       local.get 5   ; $field_12
-      local.get 6   ; $mul_14
+      local.get 6   ; $mul_checked_14
       load_slot_i64
       local.set 7   ; lo_slot
       local.field 0 21 1   ; arg 0 regex$Thread.groups
       local.set 8   ; $field_17
       i64.const 2
       local.get 4   ; i
-      i64.mul
+      usize.checked_mul
       i64.const 1
-      i64.add
-      local.set 9   ; $add_21
+      usize.checked_add
+      local.set 9   ; $add_checked_21
       local.get 8   ; $field_17
-      local.get 9   ; $add_21
+      local.get 9   ; $add_checked_21
       load_slot_i64
       local.set 10   ; hi_slot
       local.get 7   ; lo_slot
@@ -2749,15 +2745,15 @@ fn 33 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
   local shift usize
   local i usize
   local inst any
-  local $add_15 usize
-  local $add_18 usize
+  local $add_checked_15 usize
+  local $add_checked_18 usize
   local $struct_19 ref
   local $struct_24 ref
   local $cast_25 any
   local.get 0   ; arg 0
   array.len
   local.get 4   ; arg 4
-  i64.sub
+  usize.checked_sub
   local.set 5   ; shift
   local.get 2   ; arg 2
   local.set 6   ; i
@@ -2777,17 +2773,17 @@ fn 33 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
         struct.get 34 0   ; regex$InstSplit.a
         ref.cast 8   ; usize
         local.get 5   ; shift
-        i64.add
-        local.set 8   ; $add_15
+        usize.checked_add
+        local.set 8   ; $add_checked_15
         local.get 7   ; inst
         ref.cast 34   ; regex$InstSplit
         struct.get 34 1   ; regex$InstSplit.b
         ref.cast 8   ; usize
         local.get 5   ; shift
-        i64.add
-        local.set 9   ; $add_18
-        local.get 8   ; $add_15
-        local.get 9   ; $add_18
+        usize.checked_add
+        local.set 9   ; $add_checked_18
+        local.get 8   ; $add_checked_15
+        local.get 9   ; $add_checked_18
         struct.new 34   ; regex$InstSplit
         local.set 10   ; $struct_19
         local.get 0   ; arg 0
@@ -2802,7 +2798,7 @@ fn 33 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
           struct.get 31 0   ; regex$InstJump.target
           ref.cast 8   ; usize
           local.get 5   ; shift
-          i64.add
+          usize.checked_add
           struct.new 31   ; regex$InstJump
           local.set 11   ; $struct_24
           local.get 0   ; arg 0
@@ -2873,7 +2869,7 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 3   ; $field_8
     local.get 0   ; arg 0
     local.get 3   ; $field_8
@@ -2890,7 +2886,7 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 3   ; $field_8
     local.get 0   ; arg 0
     local.get 3   ; $field_8
@@ -2907,7 +2903,7 @@ fn 34 regex$parse_atom_with_quantifier (ref) -> any
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 3   ; $field_8
     local.get 0   ; arg 0
     local.get 3   ; $field_8
@@ -2976,7 +2972,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.field 0 17 4   ; arg 0 regex$Parser.depth
     ref.cast 8   ; usize
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 1   ; $field_1
     local.get 0   ; arg 0
     local.get 1   ; $field_1
@@ -3024,7 +3020,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 1   ; $field_1
     local.get 0   ; arg 0
     local.get 1   ; $field_1
@@ -3035,7 +3031,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.field 0 17 3   ; arg 0 regex$Parser.next_group_id
     ref.cast 8   ; usize
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 2   ; $len_3
     local.get 0   ; arg 0
     local.get 2   ; $len_3
@@ -3044,7 +3040,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.set 3   ; $field_8
     i64.const 2
     local.get 1   ; $field_1
-    i64.mul
+    usize.checked_mul
     struct.new 33   ; regex$InstSave
     local.set 7   ; $struct_46
     local.get 3   ; $field_8
@@ -3091,7 +3087,7 @@ fn 35 regex$parse_atom (ref) -> any
       local.field 0 17 1   ; arg 0 regex$Parser.cursor
       ref.cast 8   ; usize
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 2   ; $len_3
       local.get 0   ; arg 0
       local.get 2   ; $len_3
@@ -3099,7 +3095,7 @@ fn 35 regex$parse_atom (ref) -> any
       local.field 0 17 4   ; arg 0 regex$Parser.depth
       ref.cast 8   ; usize
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.set 2   ; $len_3
       local.get 0   ; arg 0
       local.get 2   ; $len_3
@@ -3108,9 +3104,9 @@ fn 35 regex$parse_atom (ref) -> any
       local.set 3   ; $field_8
       i64.const 2
       local.get 1   ; $field_1
-      i64.mul
+      usize.checked_mul
       i64.const 1
-      i64.add
+      usize.checked_add
       struct.new 33   ; regex$InstSave
       local.set 7   ; $struct_46
       local.get 3   ; $field_8
@@ -3133,7 +3129,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 1   ; $field_1
     local.get 0   ; arg 0
     local.get 1   ; $field_1
@@ -3154,7 +3150,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 1   ; $field_1
     local.get 0   ; arg 0
     local.get 1   ; $field_1
@@ -3175,7 +3171,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 1   ; $field_1
     local.get 0   ; arg 0
     local.get 1   ; $field_1
@@ -3217,7 +3213,7 @@ fn 35 regex$parse_atom (ref) -> any
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
     local.get 1   ; $field_1
-    i64.add
+    usize.checked_add
     local.set 1   ; $field_1
     local.get 0   ; arg 0
     local.get 1   ; $field_1
@@ -3364,7 +3360,7 @@ fn 38 regex$apply_optional (ref,usize) -> void
   local.set 4   ; $call_8
   local.get 1   ; arg 1
   i64.const 1
-  i64.add
+  usize.checked_add
   i64.const 0
   struct.new 34   ; regex$InstSplit
   local.set 5   ; $struct_13
@@ -3384,7 +3380,7 @@ fn 38 regex$apply_optional (ref,usize) -> void
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   i64.const 1
-  i64.add
+  usize.checked_add
   local.get 3   ; $len_4
   struct.new 34   ; regex$InstSplit
   local.set 4   ; $call_8
@@ -3398,7 +3394,7 @@ end
 fn 39 regex$apply_counted (ref,usize) -> any
   local $field_2 ref
   local $field_3 usize
-  local $add_12 usize
+  local $add_checked_12 usize
   local n_outcome any
   local m usize
   local has_comma bool
@@ -3430,10 +3426,10 @@ fn 39 regex$apply_counted (ref,usize) -> any
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
   i64.const 1
-  i64.add
-  local.set 4   ; $add_12
+  usize.checked_add
+  local.set 4   ; $add_checked_12
   local.get 0   ; arg 0
-  local.get 4   ; $add_12
+  local.get 4   ; $add_checked_12
   struct.set 17 1   ; regex$Parser.cursor
   local.get 0   ; arg 0
   call 43   ; regex$parse_decimal_usize
@@ -3446,7 +3442,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
   end $L1
   local.get 5   ; n_outcome
   ref.cast 8   ; usize
-  local.tee 4   ; $add_12
+  local.tee 4   ; $add_checked_12
   local.set 6   ; m
   bool.const false
   local.set 7   ; has_comma
@@ -3477,7 +3473,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
       local.field 0 17 1   ; arg 0 regex$Parser.cursor
       ref.cast 8   ; usize
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 9   ; $field_24
       local.get 0   ; arg 0
       local.get 9   ; $field_24
@@ -3560,7 +3556,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
   i64.const 1
-  i64.add
+  usize.checked_add
   local.set 9   ; $field_24
   local.get 0   ; arg 0
   local.get 9   ; $field_24
@@ -3568,7 +3564,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
   local.get 8   ; has_upper
   if $L9 void
     local.get 6   ; m
-    local.get 4   ; $add_12
+    local.get 4   ; $add_checked_12
     u64.lt
     if $L10 void
       string.const 71   ; "invalid {n,m}: max is smaller than min"
@@ -3577,7 +3573,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
       return
     end $L10
   end $L9
-  local.get 4   ; $add_12
+  local.get 4   ; $add_checked_12
   i64.const 1000
   u64.gt
   if $L11 void
@@ -3637,7 +3633,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
   local.set 9   ; $field_24
   loop $L13 void
     local.get 9   ; $field_24
-    local.get 4   ; $add_12
+    local.get 4   ; $add_checked_12
     u64.lt
     if $L14 void
       local.field 0 17 2   ; arg 0 regex$Parser.insts
@@ -3654,18 +3650,18 @@ fn 39 regex$apply_counted (ref,usize) -> any
   local.get 8   ; has_upper
   if $L15 void
     local.get 6   ; m
-    local.get 4   ; $add_12
-    i64.sub
-    local.set 4   ; $add_12
+    local.get 4   ; $add_checked_12
+    usize.checked_sub
+    local.set 4   ; $add_checked_12
     array.new 22 0   ; usize[]
-    local.get 4   ; $add_12
+    local.get 4   ; $add_checked_12
     array.repeat
     local.set 13   ; $call_95
     i64.const 0
     local.set 6   ; m
     loop $L16 void
       local.get 6   ; m
-      local.get 4   ; $add_12
+      local.get 4   ; $add_checked_12
       u64.lt
       if $L17 void
         local.field 0 17 2   ; arg 0 regex$Parser.insts
@@ -3696,7 +3692,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
     end $L16
     local.field 0 17 2   ; arg 0 regex$Parser.insts
     array.len
-    local.set 4   ; $add_12
+    local.set 4   ; $add_checked_12
     i64.const 0
     local.set 6   ; m
     local.get 13   ; $call_95
@@ -3715,8 +3711,8 @@ fn 39 regex$apply_counted (ref,usize) -> any
         local.set 14   ; $field_113
         local.get 10   ; $len_26
         i64.const 1
-        i64.add
-        local.get 4   ; $add_12
+        usize.checked_add
+        local.get 4   ; $add_checked_12
         struct.new 34   ; regex$InstSplit
         local.set 15   ; $struct_116
         local.get 14   ; $field_113
@@ -3735,7 +3731,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
     if $L20 void
       local.field 0 17 2   ; arg 0 regex$Parser.insts
       array.len
-      local.set 4   ; $add_12
+      local.set 4   ; $add_checked_12
       local.field 0 17 2   ; arg 0 regex$Parser.insts
       local.set 13   ; $call_95
       i64.const 0
@@ -3754,7 +3750,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
       call 42   ; regex$push_atom_rebased
       local.field 0 17 2   ; arg 0 regex$Parser.insts
       local.set 2   ; $field_2
-      local.get 4   ; $add_12
+      local.get 4   ; $add_checked_12
       struct.new 31   ; regex$InstJump
       local.set 13   ; $call_95
       local.get 2   ; $field_2
@@ -3770,7 +3766,7 @@ fn 39 regex$apply_counted (ref,usize) -> any
       struct.new 34   ; regex$InstSplit
       local.set 13   ; $call_95
       local.get 2   ; $field_2
-      local.get 4   ; $add_12
+      local.get 4   ; $add_checked_12
       local.get 13   ; $call_95
       array.set 25   ; union[]
     end $L20
@@ -3787,27 +3783,27 @@ fn 39 regex$apply_counted (ref,usize) -> any
   call 5   ; std_core$new_byte_buffer
   local.set 2   ; $field_2
   i64.const 0
-  local.set 4   ; $add_12
+  local.set 4   ; $add_checked_12
   local.get 2   ; $field_2
-  local.get 4   ; $add_12
+  local.get 4   ; $add_checked_12
   string.const 73   ; "compiled pattern exceeds "
   call 7   ; std_core$write_string_at
-  local.set 4   ; $add_12
+  local.set 4   ; $add_checked_12
   i64.const 100000
   usize.to_i64
   local.set 12   ; $cast_85
   local.get 2   ; $field_2
-  local.get 4   ; $add_12
+  local.get 4   ; $add_checked_12
   local.get 12   ; $cast_85
   call 8   ; std_core$write_unsigned
-  local.set 4   ; $add_12
+  local.set 4   ; $add_checked_12
   local.get 2   ; $field_2
-  local.get 4   ; $add_12
+  local.get 4   ; $add_checked_12
   string.const 74   ; " instructions"
   call 7   ; std_core$write_string_at
-  local.set 4   ; $add_12
+  local.set 4   ; $add_checked_12
   local.get 2   ; $field_2
-  local.get 4   ; $add_12
+  local.get 4   ; $add_checked_12
   call 6   ; std_core$finish_buffer
   local.get 3   ; $field_3
   struct.new 15   ; regex$RegexError
@@ -3816,7 +3812,7 @@ end
 
 fn 40 regex$parse_char_class (ref) -> any
   local start_pos usize
-  local $add_5 usize
+  local $add_checked_5 usize
   local negated bool
   local $len_10 usize
   local $field_12 ref
@@ -3830,11 +3826,11 @@ fn 40 regex$parse_char_class (ref) -> any
   local $field_42 ref
   local $field_43 usize
   local and_res bool
-  local $add_51 usize
+  local $add_checked_51 usize
   local $len_53 usize
   local $field_56 ref
-  local $add_59 usize
-  local $add_66 usize
+  local $add_checked_59 usize
+  local $add_checked_66 usize
   local hi_c any
   local $cast_71 char
   local $cast_72 char
@@ -3848,20 +3844,20 @@ fn 40 regex$parse_char_class (ref) -> any
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
   i64.const 1
-  i64.add
-  local.set 2   ; $add_5
+  usize.checked_add
+  local.set 2   ; $add_checked_5
   local.get 0   ; arg 0
-  local.get 2   ; $add_5
+  local.get 2   ; $add_checked_5
   struct.set 17 1   ; regex$Parser.cursor
   bool.const false
   local.set 3   ; negated
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
-  local.set 2   ; $add_5
+  local.set 2   ; $add_checked_5
   local.field 0 17 0   ; arg 0 regex$Parser.bytes
   array.len
   local.set 4   ; $len_10
-  local.get 2   ; $add_5
+  local.get 2   ; $add_checked_5
   local.get 4   ; $len_10
   u64.lt
   if $L0 void
@@ -3869,9 +3865,9 @@ fn 40 regex$parse_char_class (ref) -> any
     local.set 5   ; $field_12
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
-    local.set 2   ; $add_5
+    local.set 2   ; $add_checked_5
     local.get 5   ; $field_12
-    local.get 2   ; $add_5
+    local.get 2   ; $add_checked_5
     array.get 11   ; u8[]
     ref.cast 7   ; u8
     i32.const 94
@@ -3882,10 +3878,10 @@ fn 40 regex$parse_char_class (ref) -> any
       local.field 0 17 1   ; arg 0 regex$Parser.cursor
       ref.cast 8   ; usize
       i64.const 1
-      i64.add
-      local.set 2   ; $add_5
+      usize.checked_add
+      local.set 2   ; $add_checked_5
       local.get 0   ; arg 0
-      local.get 2   ; $add_5
+      local.get 2   ; $add_checked_5
       struct.set 17 1   ; regex$Parser.cursor
     end $L1
   end $L0
@@ -3895,11 +3891,11 @@ fn 40 regex$parse_char_class (ref) -> any
     loop $L3 void
       local.field 0 17 1   ; arg 0 regex$Parser.cursor
       ref.cast 8   ; usize
-      local.set 2   ; $add_5
+      local.set 2   ; $add_checked_5
       local.field 0 17 0   ; arg 0 regex$Parser.bytes
       array.len
       local.set 4   ; $len_10
-      local.get 2   ; $add_5
+      local.get 2   ; $add_checked_5
       local.get 4   ; $len_10
       u64.lt
       if $L4 void
@@ -3958,12 +3954,12 @@ fn 40 regex$parse_char_class (ref) -> any
           local.field 0 17 1   ; arg 0 regex$Parser.cursor
           ref.cast 8   ; usize
           i64.const 1
-          i64.add
-          local.set 16   ; $add_51
+          usize.checked_add
+          local.set 16   ; $add_checked_51
           local.field 0 17 0   ; arg 0 regex$Parser.bytes
           array.len
           local.set 17   ; $len_53
-          local.get 16   ; $add_51
+          local.get 16   ; $add_checked_51
           local.get 17   ; $len_53
           u64.lt
           local.set 15   ; and_res
@@ -3978,10 +3974,10 @@ fn 40 regex$parse_char_class (ref) -> any
           local.field 0 17 1   ; arg 0 regex$Parser.cursor
           ref.cast 8   ; usize
           i64.const 1
-          i64.add
-          local.set 19   ; $add_59
+          usize.checked_add
+          local.set 19   ; $add_checked_59
           local.get 18   ; $field_56
-          local.get 19   ; $add_59
+          local.get 19   ; $add_checked_59
           array.get 11   ; u8[]
           ref.cast 7   ; u8
           i32.const 93
@@ -3996,10 +3992,10 @@ fn 40 regex$parse_char_class (ref) -> any
           local.field 0 17 1   ; arg 0 regex$Parser.cursor
           ref.cast 8   ; usize
           i64.const 1
-          i64.add
-          local.set 20   ; $add_66
+          usize.checked_add
+          local.set 20   ; $add_checked_66
           local.get 0   ; arg 0
-          local.get 20   ; $add_66
+          local.get 20   ; $add_checked_66
           struct.set 17 1   ; regex$Parser.cursor
           local.get 0   ; arg 0
           call 44   ; regex$read_class_char
@@ -4044,11 +4040,11 @@ fn 40 regex$parse_char_class (ref) -> any
   end $L2
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
-  local.set 2   ; $add_5
+  local.set 2   ; $add_checked_5
   local.field 0 17 0   ; arg 0 regex$Parser.bytes
   array.len
   local.set 4   ; $len_10
-  local.get 2   ; $add_5
+  local.get 2   ; $add_checked_5
   local.get 4   ; $len_10
   u64.ge
   if $L12 void
@@ -4056,10 +4052,10 @@ fn 40 regex$parse_char_class (ref) -> any
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
     i64.const 1
-    i64.add
-    local.set 2   ; $add_5
+    usize.checked_add
+    local.set 2   ; $add_checked_5
     local.get 0   ; arg 0
-    local.get 2   ; $add_5
+    local.get 2   ; $add_checked_5
     struct.set 17 1   ; regex$Parser.cursor
     local.field 0 17 2   ; arg 0 regex$Parser.insts
     local.set 6   ; $field_27
@@ -4079,7 +4075,7 @@ fn 40 regex$parse_char_class (ref) -> any
 end
 
 fn 41 regex$parse_escape (ref) -> any
-  local $add_3 usize
+  local $add_checked_3 usize
   local $len_6 usize
   local $field_11 ref
   local e u8
@@ -4089,26 +4085,26 @@ fn 41 regex$parse_escape (ref) -> any
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
   i64.const 1
-  i64.add
-  local.set 1   ; $add_3
+  usize.checked_add
+  local.set 1   ; $add_checked_3
   local.get 0   ; arg 0
-  local.get 1   ; $add_3
+  local.get 1   ; $add_checked_3
   struct.set 17 1   ; regex$Parser.cursor
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
-  local.set 1   ; $add_3
+  local.set 1   ; $add_checked_3
   local.field 0 17 0   ; arg 0 regex$Parser.bytes
   array.len
   local.set 2   ; $len_6
-  local.get 1   ; $add_3
+  local.get 1   ; $add_checked_3
   local.get 2   ; $len_6
   u64.ge
   if $L0 void
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
-    local.set 1   ; $add_3
+    local.set 1   ; $add_checked_3
     string.const 76   ; "trailing backslash"
-    local.get 1   ; $add_3
+    local.get 1   ; $add_checked_3
     struct.new 15   ; regex$RegexError
     return
   end $L0
@@ -4116,19 +4112,19 @@ fn 41 regex$parse_escape (ref) -> any
   local.set 3   ; $field_11
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
-  local.set 1   ; $add_3
+  local.set 1   ; $add_checked_3
   local.get 3   ; $field_11
-  local.get 1   ; $add_3
+  local.get 1   ; $add_checked_3
   array.get 11   ; u8[]
   ref.cast 7   ; u8
   local.set 4   ; e
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
   i64.const 1
-  i64.add
-  local.set 1   ; $add_3
+  usize.checked_add
+  local.set 1   ; $add_checked_3
   local.get 0   ; arg 0
-  local.get 1   ; $add_3
+  local.get 1   ; $add_checked_3
   struct.set 17 1   ; regex$Parser.cursor
   local.get 4   ; e
   i32.const 110
@@ -4305,11 +4301,11 @@ fn 43 regex$parse_decimal_usize (ref) -> any
   local $field_29 usize
   local $field_33 ref
   local $field_34 usize
-  local $mul_39 usize
+  local $mul_checked_39 usize
   local $field_40 ref
   local $field_41 usize
   local $cast_45 usize
-  local $add_49 usize
+  local $add_checked_49 usize
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
   local.set 1   ; $field_1
@@ -4410,8 +4406,8 @@ fn 43 regex$parse_decimal_usize (ref) -> any
         end $L7
         local.get 1   ; $field_1
         i64.const 10
-        i64.mul
-        local.set 9   ; $mul_39
+        usize.checked_mul
+        local.set 9   ; $mul_checked_39
         local.field 0 17 0   ; arg 0 regex$Parser.bytes
         local.set 10   ; $field_40
         local.field 0 17 1   ; arg 0 regex$Parser.cursor
@@ -4422,22 +4418,20 @@ fn 43 regex$parse_decimal_usize (ref) -> any
         array.get 11   ; u8[]
         ref.cast 7   ; u8
         i32.const 48
-        i32.sub
-        i32.const 255
-        i32.bitand
+        u8.checked_sub
         u8.to_i64
         local.set 12   ; $cast_45
-        local.get 9   ; $mul_39
+        local.get 9   ; $mul_checked_39
         local.get 12   ; $cast_45
-        i64.add
+        usize.checked_add
         local.set 1   ; $field_1
         local.field 0 17 1   ; arg 0 regex$Parser.cursor
         ref.cast 8   ; usize
         i64.const 1
-        i64.add
-        local.set 13   ; $add_49
+        usize.checked_add
+        local.set 13   ; $add_checked_49
         local.get 0   ; arg 0
-        local.get 13   ; $add_49
+        local.get 13   ; $add_checked_49
         struct.set 17 1   ; regex$Parser.cursor
         br $L4
       end $L5
@@ -4503,7 +4497,7 @@ fn 44 regex$read_class_char (ref) -> any
     local.field 0 17 1   ; arg 0 regex$Parser.cursor
     ref.cast 8   ; usize
     local.get 6   ; $field_43
-    i64.add
+    usize.checked_add
     local.set 6   ; $field_43
     local.get 0   ; arg 0
     local.get 6   ; $field_43
@@ -4515,7 +4509,7 @@ fn 44 regex$read_class_char (ref) -> any
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
   i64.const 1
-  i64.add
+  usize.checked_add
   local.set 1   ; $field_1
   local.get 0   ; arg 0
   local.get 1   ; $field_1
@@ -4551,7 +4545,7 @@ fn 44 regex$read_class_char (ref) -> any
   local.field 0 17 1   ; arg 0 regex$Parser.cursor
   ref.cast 8   ; usize
   i64.const 1
-  i64.add
+  usize.checked_add
   local.set 1   ; $field_1
   local.get 0   ; arg 0
   local.get 1   ; $field_1
@@ -4649,7 +4643,7 @@ end
 fn 47 std_string$utf8_decode (ref,usize) -> char
   local n usize
   local b u8
-  local $add_21 usize
+  local $add_checked_21 usize
   local b1 u8
   local $shl_28 u32
   local $bitand_31 u32
@@ -4679,7 +4673,7 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
   end $L1
   local.get 2   ; n
   local.get 1   ; arg 1
-  i64.sub
+  usize.checked_sub
   local.set 2   ; n
   local.get 3   ; b
   i32.const 224
@@ -4692,10 +4686,10 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     else
       local.get 1   ; arg 1
       i64.const 1
-      i64.add
-      local.set 4   ; $add_21
+      usize.checked_add
+      local.set 4   ; $add_checked_21
       local.get 0   ; arg 0
-      local.get 4   ; $add_21
+      local.get 4   ; $add_checked_21
       array.get 11   ; u8[]
       ref.cast 7   ; u8
       local.set 5   ; b1
@@ -4713,7 +4707,7 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
       local.set 7   ; $bitand_31
       local.get 6   ; $shl_28
       local.get 7   ; $bitand_31
-      i32.add
+      u32.checked_add
       u32.to_char
       return
     end $L3
@@ -4732,19 +4726,19 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     else
       local.get 1   ; arg 1
       i64.const 1
-      i64.add
-      local.set 4   ; $add_21
+      usize.checked_add
+      local.set 4   ; $add_checked_21
       local.get 0   ; arg 0
-      local.get 4   ; $add_21
+      local.get 4   ; $add_checked_21
       array.get 11   ; u8[]
       ref.cast 7   ; u8
       local.set 5   ; b1
       local.get 1   ; arg 1
       i64.const 2
-      i64.add
-      local.set 4   ; $add_21
+      usize.checked_add
+      local.set 4   ; $add_checked_21
       local.get 0   ; arg 0
-      local.get 4   ; $add_21
+      local.get 4   ; $add_checked_21
       array.get 11   ; u8[]
       ref.cast 7   ; u8
       local.set 8   ; b2
@@ -4764,7 +4758,7 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
       local.set 7   ; $bitand_31
       local.get 6   ; $shl_28
       local.get 7   ; $bitand_31
-      i32.add
+      u32.checked_add
       local.set 6   ; $shl_28
       local.get 8   ; b2
       u8.to_i32
@@ -4773,7 +4767,7 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
       local.set 7   ; $bitand_31
       local.get 6   ; $shl_28
       local.get 7   ; $bitand_31
-      i32.add
+      u32.checked_add
       u32.to_char
       return
     end $L5
@@ -4788,7 +4782,7 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
   else
     local.get 1   ; arg 1
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 2   ; n
     local.get 0   ; arg 0
     local.get 2   ; n
@@ -4797,7 +4791,7 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     local.set 5   ; b1
     local.get 1   ; arg 1
     i64.const 2
-    i64.add
+    usize.checked_add
     local.set 2   ; n
     local.get 0   ; arg 0
     local.get 2   ; n
@@ -4806,7 +4800,7 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     local.set 8   ; b2
     local.get 1   ; arg 1
     i64.const 3
-    i64.add
+    usize.checked_add
     local.set 2   ; n
     local.get 0   ; arg 0
     local.get 2   ; n
@@ -4829,7 +4823,7 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     local.set 7   ; $bitand_31
     local.get 6   ; $shl_28
     local.get 7   ; $bitand_31
-    i32.add
+    u32.checked_add
     local.set 6   ; $shl_28
     local.get 8   ; b2
     u8.to_i32
@@ -4840,7 +4834,7 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     local.set 7   ; $bitand_31
     local.get 6   ; $shl_28
     local.get 7   ; $bitand_31
-    i32.add
+    u32.checked_add
     local.set 6   ; $shl_28
     local.get 9   ; b3
     u8.to_i32
@@ -4849,7 +4843,7 @@ fn 47 std_string$utf8_decode (ref,usize) -> char
     local.set 7   ; $bitand_31
     local.get 6   ; $shl_28
     local.get 7   ; $bitand_31
-    i32.add
+    u32.checked_add
     u32.to_char
     return
   end $L6
@@ -4981,7 +4975,7 @@ fn 53 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       local.set 5   ; $call_23
       local.get 1   ; n
       local.get 5   ; $call_23
-      i64.add
+      usize.checked_add
       local.set 1   ; n
       local.get 4   ; __for_i_2
       i64.const 1
@@ -5020,7 +5014,7 @@ fn 53 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       local.set 8   ; $call_40
       local.get 3   ; __for_len_1
       local.get 8   ; $call_40
-      i64.add
+      usize.checked_add
       local.set 3   ; __for_len_1
       local.get 5   ; $call_23
       i64.const 1

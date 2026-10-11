@@ -476,14 +476,14 @@
                 __off_1 :usize
   fn __lambda_snippet_6(n: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           n :i32
         r:
           int(10) :i32
   fn __lambda_snippet_7(n: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           n :i32
         r:
@@ -491,7 +491,7 @@
   struct __lambda_env_snippet_11 { cap_0: i32 }
   fn __lambda_snippet_10(__env_0: __lambda_env_snippet_11!) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           .cap_0 :i32
             __env_0 :__lambda_env_snippet_11!
@@ -514,7 +514,7 @@
   struct __lambda_env_snippet_15 { cap_0: i32 }
   fn __lambda_snippet_14(__env_0: __lambda_env_snippet_15!) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           .cap_0 :i32
             __env_0 :__lambda_env_snippet_15!

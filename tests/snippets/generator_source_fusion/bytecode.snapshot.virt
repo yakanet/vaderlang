@@ -147,7 +147,7 @@ end
 fn 3 snippet$double (i32) -> i32
   local.get 0   ; arg 0
   i32.const 2
-  i32.mul
+  i32.checked_mul
   return
 end
 
@@ -176,7 +176,7 @@ fn 4 snippet$sum_of (ref) -> i32
       local.set 5   ; x
       local.get 1   ; total
       local.get 5   ; x
-      i32.add
+      i32.checked_add
       local.set 1   ; total
       local.get 4   ; __for_i_2
       i64.const 1
@@ -346,7 +346,7 @@ fn 8 snippet$__genstate_pairs_until$Iterator$next (ref) -> ref
   local $field_13 i32
   local $add_22 i32
   local $add_41 i32
-  local $mul_49 i32
+  local $mul_checked_49 i32
   local $field_50 i32
   local $field_84 i32
   local $field_85 i32
@@ -467,16 +467,16 @@ fn 8 snippet$__genstate_pairs_until$Iterator$next (ref) -> ref
                   local.field 0 8 2   ; arg 0 snippet$__genstate_pairs_until.s2
                   ref.cast 1   ; i32
                   i32.const 10
-                  i32.mul
-                  local.set 5   ; $mul_49
+                  i32.checked_mul
+                  local.set 5   ; $mul_checked_49
                   local.field 0 8 3   ; arg 0 snippet$__genstate_pairs_until.s3
                   ref.cast 1   ; i32
                   local.set 6   ; $field_50
-                  local.get 5   ; $mul_49
+                  local.get 5   ; $mul_checked_49
                   local.get 6   ; $field_50
-                  i32.add
+                  i32.checked_add
                   i32.const 1
-                  i32.add
+                  i32.checked_add
                   i32.const 0
                   struct.new 9   ; __Tuple_i32_u8_99ae0d29
                   return
@@ -504,7 +504,7 @@ fn 8 snippet$__genstate_pairs_until$Iterator$next (ref) -> ref
                     local.field 0 8 2   ; arg 0 snippet$__genstate_pairs_until.s2
                     ref.cast 1   ; i32
                     i32.const 10
-                    i32.mul
+                    i32.checked_mul
                     i32.const 0
                     struct.new 9   ; __Tuple_i32_u8_99ae0d29
                     return
@@ -668,7 +668,7 @@ fn 9 snippet$__genstate_squares$Iterator$next (ref) -> ref
             local.set 5   ; $field_29
             local.get 4   ; $field_28
             local.get 5   ; $field_29
-            i32.mul
+            i32.checked_mul
             i32.const 0
             struct.new 9   ; __Tuple_i32_u8_99ae0d29
             return
@@ -704,7 +704,7 @@ fn 10 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local i i32
   local $field_52 i32
   local $field_53 i32
-  local $add_54 i32
+  local $add_checked_54 i32
   local __resumed_3 any
   local $cast_64 null
   local $cast_71 any
@@ -712,7 +712,7 @@ fn 10 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local $field_81 ref
   local $field_89 i32
   local $field_90 i32
-  local $mul_91 i32
+  local $mul_checked_91 i32
   local $field_101 i32
   local $fn_ref_102 ref
   block $L0 void
@@ -804,10 +804,10 @@ fn 10 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                 local.set 6   ; $field_53
                 local.get 5   ; $field_52
                 local.get 6   ; $field_53
-                i32.add
-                local.set 7   ; $add_54
+                i32.checked_add
+                local.set 7   ; $add_checked_54
                 local.get 0   ; arg 0
-                local.get 7   ; $add_54
+                local.get 7   ; $add_checked_54
                 struct.set 12 1   ; __asyncstate_snippet_0.s1
                 local.get 0   ; arg 0
                 i32.const 5
@@ -901,10 +901,10 @@ fn 10 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                           local.set 14   ; $field_90
                           local.get 13   ; $field_89
                           local.get 14   ; $field_90
-                          i32.mul
-                          local.set 15   ; $mul_91
+                          i32.checked_mul
+                          local.set 15   ; $mul_checked_91
                           local.get 0   ; arg 0
-                          local.get 15   ; $mul_91
+                          local.get 15   ; $mul_checked_91
                           struct.set 12 5   ; __asyncstate_snippet_0.s5
                           local.get 0   ; arg 0
                           i32.const 10
@@ -993,7 +993,7 @@ fn 10 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
     if $L20 void
       local.get 3   ; total
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 3   ; total
       local.get 4   ; i
       i32.const 1
@@ -1007,7 +1007,7 @@ fn 10 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local.set 2   ; n
   local.get 1   ; $field_9
   local.get 2   ; n
-  i32.add
+  i32.checked_add
   retag 1   ; i32
   return
 end
@@ -1041,7 +1041,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
   local count usize
   local and_res bool
   local start usize
-  local $add_98 usize
+  local $add_checked_98 usize
   local x i32
   local $call_107 ref
   local out ref
@@ -1054,16 +1054,16 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
   local $add_174 i32
   local $field_179 i32
   local $field_180 i32
-  local $add_181 i32
-  local $mul_220 i32
+  local $add_checked_181 i32
+  local $mul_checked_220 i32
   local $field_221 i32
-  local $add_224 i32
+  local $add_checked_224 i32
   local $field_225 ref
   local $call_ind_227 i32
   local $field_237 i32
   local $field_238 i32
-  local $add_239 i32
-  local $mul_278 i32
+  local $add_checked_239 i32
+  local $mul_checked_278 i32
   local $field_279 ref
   local $call_ind_281 i32
   local $field_294 i32
@@ -1097,7 +1097,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
   local $field_430 i32
   local $field_432 i32
   local $field_433 i32
-  local $mul_434 i32
+  local $mul_checked_434 i32
   local $field_435 ref
   local $field_438 i32
   local $add_441 i32
@@ -1106,7 +1106,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
   local __off_11 usize
   local __coalesce_9 any
   local if_res i32
-  local $cast_458 i64
+  local $cast_457 i64
   loop $L0 void
     local.field 0 15 21   ; arg 0 __asyncstate_snippet_2.state
     ref.cast 1   ; i32
@@ -1292,9 +1292,9 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
             if $L9 void
               local.get 18   ; n
               local.get 16   ; size
-              i64.sub
+              usize.checked_sub
               i64.const 1
-              i64.add
+              usize.checked_add
               local.set 19   ; count
             else
               i32.const 0
@@ -1309,11 +1309,11 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
               if $L11 void
                 local.get 21   ; start
                 local.get 16   ; size
-                i64.add
-                local.set 22   ; $add_98
+                usize.checked_add
+                local.set 22   ; $add_checked_98
                 local.get 15   ; self
                 local.get 21   ; start
-                local.get 22   ; $add_98
+                local.get 22   ; $add_checked_98
                 array.slice 4   ; i32[]
                 call 4   ; snippet$sum_of
                 local.set 23   ; x
@@ -1501,10 +1501,10 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                 local.set 34   ; $field_180
                                 local.get 33   ; $field_179
                                 local.get 34   ; $field_180
-                                i32.add
-                                local.set 35   ; $add_181
+                                i32.checked_add
+                                local.set 35   ; $add_checked_181
                                 local.get 0   ; arg 0
-                                local.get 35   ; $add_181
+                                local.get 35   ; $add_checked_181
                                 struct.set 15 8   ; __asyncstate_snippet_2.s8
                                 local.get 0   ; arg 0
                                 i32.const 14
@@ -1592,19 +1592,19 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                               local.field 0 15 12   ; arg 0 __asyncstate_snippet_2.s12
                                               ref.cast 1   ; i32
                                               i32.const 10
-                                              i32.mul
-                                              local.set 36   ; $mul_220
+                                              i32.checked_mul
+                                              local.set 36   ; $mul_checked_220
                                               local.field 0 15 15   ; arg 0 __asyncstate_snippet_2.s15
                                               ref.cast 1   ; i32
                                               local.set 37   ; $field_221
-                                              local.get 36   ; $mul_220
+                                              local.get 36   ; $mul_checked_220
                                               local.get 37   ; $field_221
-                                              i32.add
+                                              i32.checked_add
                                               i32.const 1
-                                              i32.add
-                                              local.set 38   ; $add_224
+                                              i32.checked_add
+                                              local.set 38   ; $add_checked_224
                                               local.get 0   ; arg 0
-                                              local.get 38   ; $add_224
+                                              local.get 38   ; $add_checked_224
                                               struct.set 15 13   ; __asyncstate_snippet_2.s13
                                               local.field 0 15 11   ; arg 0 __asyncstate_snippet_2.s11
                                               local.set 39   ; $field_225
@@ -1645,10 +1645,10 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                   local.set 42   ; $field_238
                                                   local.get 41   ; $field_237
                                                   local.get 42   ; $field_238
-                                                  i32.add
-                                                  local.set 43   ; $add_239
+                                                  i32.checked_add
+                                                  local.set 43   ; $add_checked_239
                                                   local.get 0   ; arg 0
-                                                  local.get 43   ; $add_239
+                                                  local.get 43   ; $add_checked_239
                                                   struct.set 15 8   ; __asyncstate_snippet_2.s8
                                                   local.get 0   ; arg 0
                                                   i32.const 23
@@ -1736,10 +1736,10 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                 local.field 0 15 12   ; arg 0 __asyncstate_snippet_2.s12
                                                                 ref.cast 1   ; i32
                                                                 i32.const 10
-                                                                i32.mul
-                                                                local.set 44   ; $mul_278
+                                                                i32.checked_mul
+                                                                local.set 44   ; $mul_checked_278
                                                                 local.get 0   ; arg 0
-                                                                local.get 44   ; $mul_278
+                                                                local.get 44   ; $mul_checked_278
                                                                 struct.set 15 13   ; __asyncstate_snippet_2.s13
                                                                 local.field 0 15 11   ; arg 0 __asyncstate_snippet_2.s11
                                                                 local.set 45   ; $field_279
@@ -1855,7 +1855,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                                 br_if $L53
                                                                                 local.get 51   ; i
                                                                                 i32.const 10
-                                                                                i32.mul
+                                                                                i32.checked_mul
                                                                                 call 3   ; snippet$double
                                                                                 local.set 52   ; x
                                                                                 local.get 50   ; out
@@ -1870,11 +1870,11 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                                   if $L57 void
                                                                                     local.get 51   ; i
                                                                                     i32.const 10
-                                                                                    i32.mul
+                                                                                    i32.checked_mul
                                                                                     local.get 53   ; j
-                                                                                    i32.add
+                                                                                    i32.checked_add
                                                                                     i32.const 1
-                                                                                    i32.add
+                                                                                    i32.checked_add
                                                                                     call 3   ; snippet$double
                                                                                     local.set 54   ; x
                                                                                     local.get 50   ; out
@@ -1952,12 +1952,12 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                             if $L61 void
                                                                               local.get 63   ; i
                                                                               local.get 63   ; i
-                                                                              i32.mul
+                                                                              i32.checked_mul
                                                                               call 2   ; snippet$odd
                                                                               if $L62 void
                                                                                 local.get 62   ; total
                                                                                 i64.const 1
-                                                                                i64.add
+                                                                                usize.checked_add
                                                                                 local.set 62   ; total
                                                                               end $L62
                                                                               local.get 63   ; i
@@ -2014,7 +2014,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                               if $L65 void
                                                                                 local.get 68   ; total
                                                                                 i64.const 1
-                                                                                i64.add
+                                                                                usize.checked_add
                                                                                 local.set 68   ; total
                                                                               end $L65
                                                                               br $L63
@@ -2068,10 +2068,10 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                                 local.set 77   ; $field_433
                                                                                 local.get 76   ; $field_432
                                                                                 local.get 77   ; $field_433
-                                                                                i32.mul
-                                                                                local.set 78   ; $mul_434
+                                                                                i32.checked_mul
+                                                                                local.set 78   ; $mul_checked_434
                                                                                 local.get 0   ; arg 0
-                                                                                local.get 78   ; $mul_434
+                                                                                local.get 78   ; $mul_checked_434
                                                                                 struct.set 15 7   ; __asyncstate_snippet_2.s7
                                                                                 local.field 0 15 4   ; arg 0 __asyncstate_snippet_2.s4
                                                                                 local.set 79   ; $field_435
@@ -2123,8 +2123,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                           local.tee 85   ; __coalesce_9
                                                                           type_check 0   ; null
                                                                           if $L70 void
-                                                                            i32.const 1
-                                                                            i32.neg
+                                                                            i32.const -1
                                                                             local.set 86   ; if_res
                                                                           else
                                                                             local.get 85   ; __coalesce_9
@@ -2133,10 +2132,10 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                           end $L70
                                                                           local.get 86   ; if_res
                                                                           i32.to_i64
-                                                                          local.set 87   ; $cast_458
+                                                                          local.set 87   ; $cast_457
                                                                           local.get 83   ; __buf_10
                                                                           local.get 84   ; __off_11
-                                                                          local.get 87   ; $cast_458
+                                                                          local.get 87   ; $cast_457
                                                                           call 21   ; std_core$write_int
                                                                           local.set 84   ; __off_11
                                                                           local.get 83   ; __buf_10
@@ -2220,7 +2219,7 @@ end
 fn 14 std_core$i32$Step$step (i32) -> i32
   local.get 0   ; arg 0
   i32.const 1
-  i32.add
+  i32.checked_add
   return
 end
 
@@ -2281,7 +2280,7 @@ end
 fn 16 std_core$usize$Step$step (usize) -> usize
   local.get 0   ; arg 0
   i64.const 1
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -2363,7 +2362,7 @@ fn 20 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -2373,7 +2372,7 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
   local m i64
   local total usize
   local $cast_36 u8
-  local $add_37 u8
+  local $add_checked_37 u8
   local.get 2   ; arg 2
   i64.const 0
   i64.eq
@@ -2384,7 +2383,7 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    i64.add
+    usize.checked_add
     return
   end $L0
   local.get 2   ; arg 2
@@ -2396,7 +2395,7 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
   i64.gt
   if $L1 void
     local.get 2   ; arg 2
-    i64.neg
+    i64.checked_neg
     local.set 2   ; arg 2
   end $L1
   i64.const 0
@@ -2410,7 +2409,7 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
     if $L3 void
       local.get 4   ; ndigits
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 4   ; ndigits
       local.get 5   ; m
       i64.const 10
@@ -2423,7 +2422,7 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
   if $L4 void
     local.get 4   ; ndigits
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 6   ; total
   else
     local.get 4   ; ndigits
@@ -2431,7 +2430,7 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
   end $L4
   local.get 1   ; arg 1
   local.get 6   ; total
-  i64.add
+  usize.checked_add
   local.set 4   ; ndigits
   loop $L5 void
     local.get 2   ; arg 2
@@ -2440,25 +2439,23 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
     if $L6 void
       local.get 4   ; ndigits
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.set 4   ; ndigits
       local.get 2   ; arg 2
       i64.const 10
       i64.rem
-      i64.neg
+      i64.checked_neg
       i64.to_i32
       i32.const 255
       i32.bitand
       local.set 7   ; $cast_36
       i32.const 48
       local.get 7   ; $cast_36
-      i32.add
-      i32.const 255
-      i32.bitand
-      local.set 8   ; $add_37
+      u8.checked_add
+      local.set 8   ; $add_checked_37
       local.get 0   ; arg 0
       local.get 4   ; ndigits
-      local.get 8   ; $add_37
+      local.get 8   ; $add_checked_37
       store_u8
       local.get 2   ; arg 2
       i64.const 10
@@ -2475,12 +2472,12 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
     store_u8
     local.get 1   ; arg 1
     local.get 6   ; total
-    i64.add
+    usize.checked_add
     return
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -2489,7 +2486,7 @@ fn 22 std_core$write_unsigned (ref,usize,u64) -> usize
   local m u64
   local i usize
   local $cast_26 u8
-  local $add_27 u8
+  local $add_checked_27 u8
   local.get 2   ; arg 2
   i64.const 0
   i64.eq
@@ -2500,7 +2497,7 @@ fn 22 std_core$write_unsigned (ref,usize,u64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    i64.add
+    usize.checked_add
     return
   end $L0
   i64.const 0
@@ -2514,7 +2511,7 @@ fn 22 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L2 void
       local.get 3   ; ndigits
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 3   ; ndigits
       local.get 4   ; m
       i64.const 10
@@ -2525,7 +2522,7 @@ fn 22 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L1
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  i64.add
+  usize.checked_add
   local.set 5   ; i
   loop $L3 void
     local.get 2   ; arg 2
@@ -2534,7 +2531,7 @@ fn 22 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L4 void
       local.get 5   ; i
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.set 5   ; i
       local.get 2   ; arg 2
       i64.const 10
@@ -2545,13 +2542,11 @@ fn 22 std_core$write_unsigned (ref,usize,u64) -> usize
       local.set 6   ; $cast_26
       i32.const 48
       local.get 6   ; $cast_26
-      i32.add
-      i32.const 255
-      i32.bitand
-      local.set 7   ; $add_27
+      u8.checked_add
+      local.set 7   ; $add_checked_27
       local.get 0   ; arg 0
       local.get 5   ; i
-      local.get 7   ; $add_27
+      local.get 7   ; $add_checked_27
       store_u8
       local.get 2   ; arg 2
       i64.const 10
@@ -2562,7 +2557,7 @@ fn 22 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L3
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -2597,7 +2592,7 @@ fn 25 std_async$Sleep$Async$resume (ref) -> any
     local.set 2   ; $field_4
     local.get 1   ; $call_3
     local.get 2   ; $field_4
-    i64.add
+    i64.checked_add
     local.set 1   ; $call_3
     local.get 0   ; arg 0
     local.get 1   ; $call_3
@@ -2697,7 +2692,7 @@ fn 27 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      i64.add
+      usize.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -2756,7 +2751,7 @@ fn 31 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
   local $field_29 usize
   local $field_30 usize
   local $field_31 usize
-  local $add_32 usize
+  local $add_checked_32 usize
   local $len_45 usize
   local if_res usize
   local and_res bool
@@ -2847,11 +2842,11 @@ fn 31 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
             local.set 7   ; $field_31
             local.get 6   ; $field_30
             local.get 7   ; $field_31
-            i64.add
-            local.set 8   ; $add_32
+            usize.checked_add
+            local.set 8   ; $add_checked_32
             local.get 4   ; $field_28
             local.get 5   ; $field_29
-            local.get 8   ; $add_32
+            local.get 8   ; $add_checked_32
             array.slice 4   ; i32[]
             i32.const 0
             struct.new 36   ; __Tuple_Array_i32_u8_0f73abee
@@ -2917,9 +2912,9 @@ fn 31 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
               local.set 15   ; $field_56
               local.get 14   ; $field_55
               local.get 15   ; $field_56
-              i64.sub
+              usize.checked_sub
               i64.const 1
-              i64.add
+              usize.checked_add
               local.set 10   ; if_res
             else
               i32.const 0

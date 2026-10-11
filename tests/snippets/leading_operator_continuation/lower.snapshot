@@ -178,9 +178,9 @@
           arg1:
             int(5) :usize
     let total: i32 =
-      add :{integer}
+      add_checked :{integer}
         l:
-          mul :{integer}
+          mul_checked :{integer}
             l:
               int(2) :i32
             r:

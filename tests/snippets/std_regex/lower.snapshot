@@ -486,7 +486,7 @@
             target:
               i :usize
             value:
-              add :usize
+              add_checked :usize
                 l:
                   i :usize
                 r:

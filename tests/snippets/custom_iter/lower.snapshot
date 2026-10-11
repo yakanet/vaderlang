@@ -25,7 +25,7 @@
         .current :i32
           self :Countdown!
       value:
-        sub :i32
+        sub_checked :i32
           l:
             .current :i32
               self :Countdown!

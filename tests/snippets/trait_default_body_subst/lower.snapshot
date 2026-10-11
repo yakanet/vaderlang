@@ -12,7 +12,7 @@
     ~>
       Box! {
         v:
-          add :i32
+          add_checked :i32
             l:
               call :i32
                 callee:
@@ -24,7 +24,7 @@
       }
   fn snippet$A$Widget$wide(self: A!) -> i64
     ~>
-      mul :i64
+      mul_checked :i64
         l:
           cast → i64
             call :i32
@@ -91,7 +91,7 @@
             snippet$A$Widget$base :i32
           arg0:
             self :A
-        add :i32
+        add_checked :i32
           l:
             call :i32
               callee:
@@ -123,7 +123,7 @@
     ~>
       Box! {
         v:
-          add :i32
+          add_checked :i32
             l:
               call :i32
                 callee:
@@ -135,7 +135,7 @@
       }
   fn snippet$B$Widget$wide(self: B!) -> i64
     ~>
-      mul :i64
+      mul_checked :i64
         l:
           cast → i64
             call :i32
@@ -202,7 +202,7 @@
             snippet$B$Widget$base :i32
           arg0:
             self :B
-        add :i32
+        add_checked :i32
           l:
             call :i32
               callee:

@@ -15,7 +15,7 @@
   expr 20:29    IdentExpr      :: i32
   expr 20:44    BinaryExpr     :: i32
   expr 20:44    IdentExpr      :: i32
-  expr 20:48    IdentExpr      :: i32
+  expr 20:49    IdentExpr      :: i32
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(T) -> void
   expr 21:13    StringLitExpr  :: string
@@ -23,9 +23,9 @@
   expr 21:45    BinaryExpr     :: bool
   expr 21:45    BinaryExpr     :: i32
   expr 21:45    IdentExpr      :: i32
-  expr 21:49    IdentExpr      :: i32
   expr 21:5     CallExpr       :: void
   expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 21:50    IdentExpr      :: i32
   expr 22:13    StringLitExpr  :: string
   expr 22:29    IdentExpr      :: i32
   expr 22:44    BinaryExpr     :: i32

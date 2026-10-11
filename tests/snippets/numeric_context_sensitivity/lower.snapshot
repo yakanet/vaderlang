@@ -11,9 +11,7 @@
     let f16: u16 = int(65000) :u16
     let g32: u32 = int(4000000000) :u32
     let h64: u64 = int(18446744073700000000) :u64
-    let isz: isize =
-      neg :isize
-        int(50) :isize
+    let isz: isize = int(-50) :isize
     let usz: usize = int(42) :usize
     call :void
       callee:
@@ -304,25 +302,25 @@
               arg1:
                 __off_1 :usize
     let isz2: isize =
-      add :isize
+      add_checked :isize
         l:
           isz :isize
         r:
           int(1) :isize
     let usz2: usize =
-      add :usize
+      add_checked :usize
         l:
           usz :usize
         r:
           int(1) :usize
     let d64_2: i64 =
-      add :i64
+      add_checked :i64
         l:
           d64 :i64
         r:
           int(1) :i64
     let h64_2: u64 =
-      add :u64
+      add_checked :u64
         l:
           h64 :u64
         r:
@@ -453,11 +451,9 @@
                 __buf_2 :Buffer
               arg1:
                 __off_3 :usize
-    let neg: isize =
-      neg :isize
-        int(100) :isize
+    let neg: isize = int(-100) :isize
     let neg2: isize =
-      sub :isize
+      sub_checked :isize
         l:
           neg :isize
         r:
@@ -539,9 +535,7 @@
     let c: Counter! =
       Counter! {
         n: int(0) :usize
-        delta:
-          neg :isize
-            int(1) :isize
+        delta: int(-1) :isize
       }
     call :void
       callee:
@@ -661,7 +655,7 @@
         lo:
           int(0) :usize
         hi:
-          sub :usize
+          sub_checked :usize
             l:
               n :usize
             r:

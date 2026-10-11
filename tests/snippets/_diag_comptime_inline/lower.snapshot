@@ -25,7 +25,7 @@
       r :u32[]!
   fn snippet$build_answer() -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           int(41) :i32
         r:

@@ -6,7 +6,7 @@
     return
       Vec! {
         x:
-          add :i32
+          add_checked :i32
             l:
               .x :i32
                 self :Vec
@@ -14,7 +14,7 @@
               .x :i32
                 other :Vec
         y:
-          add :i32
+          add_checked :i32
             l:
               .y :i32
                 self :Vec
@@ -26,7 +26,7 @@
     return
       Vec! {
         x:
-          sub :i32
+          sub_checked :i32
             l:
               .x :i32
                 self :Vec
@@ -34,7 +34,7 @@
               .x :i32
                 other :Vec
         y:
-          sub :i32
+          sub_checked :i32
             l:
               .y :i32
                 self :Vec
@@ -46,7 +46,7 @@
     return
       Vec! {
         x:
-          mul :i32
+          mul_checked :i32
             l:
               .x :i32
                 self :Vec
@@ -54,7 +54,7 @@
               .x :i32
                 other :Vec
         y:
-          mul :i32
+          mul_checked :i32
             l:
               .y :i32
                 self :Vec

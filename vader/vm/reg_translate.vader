@@ -83,6 +83,7 @@ translate_function :: fn(
             .ops       = [],
             .words     = [],
             .origin    = [],
+            .kinds     = [],
             .consts    = consts,
             .const_tags = const_tags,
             .values    = [],
@@ -158,6 +159,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
         lhs :: operand(t, 2)
         dst :: pop_to(t, 2)
         emit(t, pc, binary, dst, lhs, rhs)
+        note_checked_kind(t, op)
         push_register(t, dst)
         t.retarget = i64(t.code.ops.len() - 1)
         return true
@@ -167,6 +169,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
         src :: operand(t, 1)
         dst :: pop_to(t, 1)
         emit(t, pc, unary, dst, src, 0)
+        note_checked_kind(t, op)
         push_register(t, dst)
         t.retarget = i64(t.code.ops.len() - 1)
         return true
@@ -460,7 +463,56 @@ binary_op :: fn(op: bc.Op, ft: FunctionTags, pc: usize) -> RegOp | null {
         is bc.BoolNe -> if operands_within(ft, pc, TAGS_BOOL) { .NeBool } else { null }
         is bc.BoolAnd -> if operands_within(ft, pc, TAGS_BOOL) { .AndBool } else { null }
         is bc.BoolOr -> if operands_within(ft, pc, TAGS_BOOL) { .OrBool } else { null }
+        is bc.CheckedArith -> checked_register_op(op)
         _ -> null
+    }
+}
+
+// The register op of a checked `+` / `-` / `*`.
+checked_register_op :: fn(op: bc.CheckedArith) -> RegOp {
+    if op.kind == .I32 {
+        return match op.op {
+            .Add -> .AddCheckedI32
+            .Sub -> .SubCheckedI32
+            .Mul -> .MulCheckedI32
+        }
+    }
+    if op.kind == .I64 || op.kind == .Isize {
+        return match op.op {
+            .Add -> .AddCheckedI64
+            .Sub -> .SubCheckedI64
+            .Mul -> .MulCheckedI64
+        }
+    }
+    if bc.is_u64_class(op.kind) {
+        return match op.op {
+            .Add -> .AddCheckedU64
+            .Sub -> .SubCheckedU64
+            .Mul -> .MulCheckedU64
+        }
+    }
+    return match op.op {
+        .Add -> .AddChecked
+        .Sub -> .SubChecked
+        .Mul -> .MulChecked
+    }
+}
+
+// The register op of a checked negation.
+checked_neg_register_op :: fn(kind: bc.ValType) -> RegOp {
+    if kind == .I32 {
+        return .NegCheckedI32
+    }
+    if kind == .I64 || kind == .Isize {
+        return .NegCheckedI64
+    }
+    return .NegChecked
+}
+
+// Record the integer type of a checked op on the register op just emitted for it.
+note_checked_kind :: fn(t: Translation, op: bc.Op) -> void {
+    if op is bc.CheckedArith | bc.CheckedNeg {
+        t.code.kinds[t.code.kinds.len() - 1] = op.kind
     }
 }
 
@@ -474,6 +526,7 @@ unary_op :: fn(op: bc.Op, ft: FunctionTags, pc: usize) -> RegOp | null {
         is bc.I64Neg -> .NegI64
         is bc.I64BitNot -> .NotI64
         is bc.F64Neg -> .NegF64
+        is bc.CheckedNeg -> checked_neg_register_op(op.kind)
         is bc.BoolNot -> if tags_within(stack_tags(ft, pc, 1), TAGS_BOOL) { .NotBool } else { null }
         is bc.Convert -> {
             if !tags_within(stack_tags(ft, pc, 1), integral) {
@@ -499,6 +552,7 @@ emit :: fn(t: Translation, pc: usize, op: RegOp, a: i32, b: i32, c: i32) -> void
     t.operands.push(b)
     t.operands.push(c)
     t.code.origin.push(if pc < t.source_pc.len() { t.source_pc[pc] } else { i32(pc) })
+    t.code.kinds.push(.Void)
 }
 
 // Emit a jump whose `a` is patched to the op translating `target`.
@@ -567,6 +621,7 @@ operand_of :: fn(t: Translation, k: usize, i: usize) -> i32 = t.operands[3 * k +
 drop_last_op :: fn(t: Translation) -> void {
     t.code.ops.remove_last()
     t.code.origin.remove_last()
+    t.code.kinds.remove_last()
     for 0..<3 {
         t.operands.remove_last()
     }

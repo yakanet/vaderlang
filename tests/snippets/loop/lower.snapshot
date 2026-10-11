@@ -9,7 +9,7 @@
         target:
           sum :i32
         value:
-          add :i32
+          add_checked :i32
             l:
               sum :i32
             r:
@@ -18,7 +18,7 @@
         target:
           i :i32
         value:
-          add :i32
+          add_checked :i32
             l:
               i :i32
             r:

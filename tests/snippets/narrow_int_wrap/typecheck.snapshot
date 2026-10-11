@@ -5,7 +5,7 @@
   FnDecl         main                 :: fn(string[]) -> i32
   expr 10:36    BinaryExpr     :: u8
   expr 10:36    IdentExpr      :: u8
-  expr 10:40    IdentExpr      :: u8
+  expr 10:41    IdentExpr      :: u8
   expr 13:10    CallExpr       :: u8
   expr 13:10    IdentExpr      :: type
   expr 13:13    BinaryExpr     :: usize
@@ -15,13 +15,13 @@
   expr 15:13    StringLitExpr  :: string
   expr 15:24    BinaryExpr     :: u8
   expr 15:24    IdentExpr      :: u8
-  expr 15:28    IdentExpr      :: u8
+  expr 15:29    IdentExpr      :: u8
   expr 15:5     CallExpr       :: void
   expr 15:5     IdentExpr      :: fn(T) -> void
   expr 16:13    StringLitExpr  :: string
   expr 16:31    BinaryExpr     :: u8
   expr 16:31    IdentExpr      :: u8
-  expr 16:35    IdentExpr      :: u8
+  expr 16:36    IdentExpr      :: u8
   expr 16:5     CallExpr       :: void
   expr 16:5     IdentExpr      :: fn(T) -> void
   expr 17:13    StringLitExpr  :: string
@@ -43,11 +43,11 @@
   expr 20:16    BinaryExpr     :: bool
   expr 20:16    BinaryExpr     :: u8
   expr 20:16    IdentExpr      :: u8
-  expr 20:20    IdentExpr      :: u8
-  expr 20:30    StringLitExpr  :: string
+  expr 20:21    IdentExpr      :: u8
+  expr 20:31    StringLitExpr  :: string
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(T) -> void
-  expr 20:59    StringLitExpr  :: string
+  expr 20:60    StringLitExpr  :: string
   expr 22:5     BinaryExpr     :: u8
   expr 22:5     IdentExpr      :: u8
   expr 23:13    StringLitExpr  :: string
@@ -73,9 +73,9 @@
   expr 26:5     CallExpr       :: void
   expr 26:5     IdentExpr      :: fn(T) -> void
   expr 27:13    StringLitExpr  :: string
-  expr 27:29    UnaryExpr      :: i8
-  expr 27:31    BinaryExpr     :: i8
-  expr 27:31    IdentExpr      :: i8
+  expr 27:29    BinaryExpr     :: i8
+  expr 27:35    BinaryExpr     :: i8
+  expr 27:35    IdentExpr      :: i8
   expr 27:5     CallExpr       :: void
   expr 27:5     IdentExpr      :: fn(T) -> void
   expr 28:12    BinaryExpr     :: i8
@@ -83,12 +83,12 @@
   expr 29:13    StringLitExpr  :: string
   expr 29:29    BinaryExpr     :: i8
   expr 29:29    IdentExpr      :: i8
-  expr 29:35    CallExpr       :: i8
-  expr 29:35    IdentExpr      :: type
-  expr 29:38    BinaryExpr     :: usize
-  expr 29:38    CallExpr       :: usize
-  expr 29:38    FieldExpr      :: fn() -> usize
-  expr 29:38    IdentExpr      :: string[]
+  expr 29:36    BinaryExpr     :: i8
+  expr 29:36    CallExpr       :: i8
+  expr 29:36    IdentExpr      :: type
+  expr 29:39    CallExpr       :: usize
+  expr 29:39    FieldExpr      :: fn() -> usize
+  expr 29:39    IdentExpr      :: string[]
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(T) -> void
   expr 30:10    CallExpr       :: u16

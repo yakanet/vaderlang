@@ -24,9 +24,9 @@ fn 0 snippet$main () -> i32
   local.set 2   ; n3
   local.get 0   ; n1
   local.get 1   ; n2
-  i32.add
+  i32.checked_add
   local.get 2   ; n3
-  i32.add
+  i32.checked_add
   return
 end
 
@@ -40,7 +40,7 @@ fn 1 snippet$both_equal__i32 (i32,i32,i32) -> i32
   if $L0 void
     local.get 3   ; n
     i32.const 1
-    i32.add
+    i32.checked_add
     local.set 3   ; n
   end $L0
   local.get 0   ; arg 0
@@ -49,7 +49,7 @@ fn 1 snippet$both_equal__i32 (i32,i32,i32) -> i32
   if $L1 void
     local.get 3   ; n
     i32.const 10
-    i32.add
+    i32.checked_add
     local.set 3   ; n
   end $L1
   local.get 1   ; arg 1
@@ -58,7 +58,7 @@ fn 1 snippet$both_equal__i32 (i32,i32,i32) -> i32
   if $L2 void
     local.get 3   ; n
     i32.const 100
-    i32.add
+    i32.checked_add
     local.tee 3   ; n
     return
   end $L2

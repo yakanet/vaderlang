@@ -11,7 +11,7 @@
           c :Counter
   fn snippet$Counter$Bump$bump(self: Counter!) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           .n :i32
             self :Counter

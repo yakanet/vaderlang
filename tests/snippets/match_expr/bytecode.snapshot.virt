@@ -121,7 +121,7 @@ end
 fn 3 std_core$i32$Step$step (i32) -> i32
   local.get 0   ; arg 0
   i32.const 1
-  i32.add
+  i32.checked_add
   return
 end
 
@@ -232,7 +232,7 @@ end
 fn 7 std_core$usize$Step$step (usize) -> usize
   local.get 0   ; arg 0
   i64.const 1
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -294,8 +294,7 @@ fn 9 std_core$three_way (bool,bool) -> i32
   local if_res i32
   local.get 0   ; arg 0
   if $L0 void
-    i32.const 1
-    i32.neg
+    i32.const -1
     local.tee 2   ; if_res
     return
   end $L0

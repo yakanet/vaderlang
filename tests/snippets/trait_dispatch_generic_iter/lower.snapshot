@@ -34,7 +34,7 @@
               target:
                 sum :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     sum :i32
                   r:
@@ -180,7 +180,7 @@
         .remaining :i32
           self :Repeat<i32>!
       value:
-        sub :i32
+        sub_checked :i32
           l:
             .remaining :i32
               self :Repeat<i32>!

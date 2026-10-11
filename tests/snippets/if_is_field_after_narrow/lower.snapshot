@@ -23,9 +23,7 @@
           .type_id :i32
             cast → ArrayVal
               v :ArrayVal | IntVal | StructVal
-    return
-      neg :i32
-        int(1) :i32
+    return int(-1) :i32
   fn snippet$first_item(v: ArrayVal | IntVal | StructVal) -> i32
     if :void
       cond:
@@ -40,9 +38,7 @@
                   v :ArrayVal | IntVal | StructVal
             ix:
               int(0) :i32
-    return
-      neg :i32
-        int(1) :i32
+    return int(-1) :i32
   fn snippet$main() -> i32
     let s: ArrayVal | IntVal | StructVal =
       StructVal! {

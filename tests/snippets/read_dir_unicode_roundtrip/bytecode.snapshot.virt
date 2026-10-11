@@ -318,7 +318,7 @@ fn 5 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -673,7 +673,7 @@ fn 13 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      i64.add
+      usize.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -872,7 +872,7 @@ fn 17 std_io$without_trailing_sep (string) -> string
   local i usize
   local __for_hi_0 usize
   local last usize
-  local $sub_21 usize
+  local $sub_checked_21 usize
   local.get 0   ; arg 0
   call.import 3   ; std_core$bytes
   local.set 1   ; b
@@ -892,9 +892,9 @@ fn 17 std_io$without_trailing_sep (string) -> string
         local.get 1   ; b
         array.len
         i64.const 1
-        i64.sub
+        usize.checked_sub
         local.get 3   ; i
-        i64.sub
+        usize.checked_sub
         local.tee 5   ; last
         i64.const 0
         i64.eq
@@ -908,10 +908,10 @@ fn 17 std_io$without_trailing_sep (string) -> string
         br_if $L0
         local.get 5   ; last
         i64.const 1
-        i64.sub
-        local.set 6   ; $sub_21
+        usize.checked_sub
+        local.set 6   ; $sub_checked_21
         local.get 1   ; b
-        local.get 6   ; $sub_21
+        local.get 6   ; $sub_checked_21
         array.get 7   ; u8[]
         ref.cast 4   ; u8
         i32.const 58
@@ -919,7 +919,7 @@ fn 17 std_io$without_trailing_sep (string) -> string
         br_if $L0
         local.get 2   ; trailing
         i64.const 1
-        i64.add
+        usize.checked_add
         local.set 2   ; trailing
         local.get 3   ; i
         i64.const 1
@@ -937,7 +937,7 @@ fn 17 std_io$without_trailing_sep (string) -> string
     local.get 1   ; b
     array.len
     local.get 2   ; trailing
-    i64.sub
+    usize.checked_sub
     local.set 2   ; trailing
     local.get 1   ; b
     i64.const 0

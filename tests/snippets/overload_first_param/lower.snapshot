@@ -220,8 +220,7 @@
                       callee:
                         max :i32
                       arg0:
-                        neg :i32
-                          int(2) :i32
+                        int(-2) :i32
                       arg1:
                         int(8) :i32
           ~>
@@ -274,8 +273,7 @@
                       callee:
                         abs :i32
                       arg0:
-                        neg :i32
-                          int(7) :i32
+                        int(-7) :i32
           ~>
             call :string
               callee:

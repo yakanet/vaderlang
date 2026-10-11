@@ -34,6 +34,6 @@ fn 3 snippet_units$Instant$Sub$sub (i64,i64) -> i64
   local.set 3   ; $cast_3
   local.get 2   ; $cast_2
   local.get 3   ; $cast_3
-  i64.sub
+  i64.checked_sub
   return
 end

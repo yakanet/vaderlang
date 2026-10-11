@@ -423,6 +423,9 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
 /// @param suffix  the verb tail (`add`, `shl`, `neg`, ...).
 /// @return        the matching op, or `null` for an unrecognised suffix.
 int_op_for :: fn(width: string, suffix: string) -> bc.Op | null {
+    if suffix.starts_with("checked_") {
+        return checked_op_for(width, suffix.trim_prefix("checked_"))
+    }
     is_wide :: width == "i64" || width == "u64"
     // Unsigned widths route compare / div / rem to dedicated U32*/U64*
     // ops so values with the high bit set don't read as negative. add /
@@ -491,6 +494,16 @@ int_op_for :: fn(width: string, suffix: string) -> bc.Op | null {
         if is_unsigned { return bc.I32ShrU {} }
         return bc.I32Shr {}
     }
+    return null
+}
+
+// `<width>.checked_<name>`: the checked op on the exact integer type `width`.
+checked_op_for :: fn(width: string, name: string) -> bc.Op | null {
+    kind :: bc.parse_val_type(width) ?? return null
+    if name == "add" { return bc.CheckedArith { .kind = kind, .op = .Add } }
+    if name == "sub" { return bc.CheckedArith { .kind = kind, .op = .Sub } }
+    if name == "mul" { return bc.CheckedArith { .kind = kind, .op = .Mul } }
+    if name == "neg" { return bc.CheckedNeg { .kind = kind } }
     return null
 }
 

@@ -32,9 +32,9 @@ mask64 :: fn(x: u64) -> u64 = x & 0xFFFF_FFFF_FFFF_FFFF
 // Constants from the original SplitMix64 paper. Each call advances
 // the input by GOLDEN_GAMMA and applies an avalanche mix.
 splitmix64 :: fn(seed: u64) -> u64 {
-    z := mask64(seed + 0x9E3779B97F4A7C15)
-    z = mask64((z ^ (z >> 30)) * 0xBF58476D1CE4E5B9)
-    z = mask64((z ^ (z >> 27)) * 0x94D049BB133111EB)
+    z := mask64(seed +% 0x9E3779B97F4A7C15)
+    z = mask64((z ^ (z >> 30)) *% 0xBF58476D1CE4E5B9)
+    z = mask64((z ^ (z >> 27)) *% 0x94D049BB133111EB)
     return z ^ (z >> 31)
 }
 
@@ -61,8 +61,8 @@ export new_from_clock :: fn() -> Rng = new_seeded(u64(i64(monotonic())))
 /// Draw the next u64. The full 64 bits are uniformly distributed.
 /// Advances the RNG state.
 export next_u64 :: fn(self: Rng) -> u64 {
-    sum    :: mask64(self.s0 + self.s1)
-    result :: mask64(rotl(sum, 17) + self.s0)
+    sum    :: mask64(self.s0 +% self.s1)
+    result :: mask64(rotl(sum, 17) +% self.s0)
     t      :: self.s1 ^ self.s0
     self.s0 = rotl(self.s0, 49) ^ t ^ mask64(t << 21)
     self.s1 = rotl(t, 28)
@@ -85,13 +85,13 @@ export next_bool :: fn(self: Rng) -> bool = (self.next_u64() >> 63) == 1
 /// modulo bias when `(hi - lo)` doesn't divide `2^32`.
 export range_i32 :: fn(self: Rng, lo: i32, hi: i32) -> i32 {
     if hi <= lo { return lo }
-    span :: u32(hi - lo)
+    span :: u32(hi -% lo)
     limit :: 0xFFFFFFFF - (0xFFFFFFFF % span)
     x: u32 = self.next_u32()
     for x > limit {
         x = self.next_u32()
     }
-    return lo + i32(x % span)
+    return lo +% i32(x % span)
 }
 
 /// Uniform u32 in the half-open range `[lo, hi)`. A degenerate range

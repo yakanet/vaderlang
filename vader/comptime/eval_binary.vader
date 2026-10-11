@@ -7,7 +7,9 @@
 
 module "vader/comptime"
 
+import "toolchain/span"
 import "vader/diagnostics"
+import "vader/integer"
 import "vader/types"
 AST :: import "toolchain/ast"
 
@@ -29,10 +31,10 @@ export evaluate_binary_expr :: fn(
     left :: left_result.value ?? return left_result
     right_result :: recurse(expr.right, context)
     right :: right_result.value ?? return right_result
-    // Width of the node's resolved type — drives the fixed-width wrap so a
-    // comptime fold matches the runtime's i32 / i64 wrapping instead of the
-    // unbounded-i64 tree-walk (audit CT1). Empty string ⇒ unknown / non-integer:
-    // never truncate (wide dtoa / crypto tables must keep full 64-bit precision).
+    // Width of the node's resolved type: the type `+`, `-` and `*` are checked
+    // against, and the width the wrapping and bitwise operators wrap at, so a
+    // comptime fold matches the run time. Empty string: unknown / non-integer,
+    // never truncated (wide dtoa / crypto tables must keep full 64-bit precision).
     rname :: resolved_int_name(context, expr.id)
     // The shift amount is masked to the width first : native `<<` on `int32_t`
     // masks to 5 bits (int64_t to 6), so `1 << 33` runs as `1 << 1`. Without
@@ -50,8 +52,41 @@ export evaluate_binary_expr :: fn(
             return ok(bool_value(apart == (expr.op == .Neq)))
         }
     }
-    combined :: combine_binary(expr, left, right_value)
+    combined :: combine_binary(expr, left, right_value, rname)
     return normalize_int_result(combined, rname)
+}
+
+// `+`, `-` or `*` on two integers, checked at the width it folds at: an overflow
+// is an error, as it would stop the run.
+checked_int :: fn(expr: AST.BinaryExpr, left: IntValue, right: IntValue, rname: string) -> EvalResult {
+    type_name :: result_type_name(left, rname)
+    bits :: int_bits_of(type_name)
+    value :: checked_int_op(expr.op, bits, is_unsigned_int_name(type_name), left.value, right.value)
+    return checked_result(expr.span, value, type_name)
+}
+
+// `op`, which is `+`, `-` or `*`, in the integer type of `bits` bits.
+checked_int_op :: fn(op: AST.BinaryOp, bits: i64, unsigned: bool, x: i64, y: i64) -> i64 | null {
+    if op == .Add { return checked_add(bits, unsigned, x, y) }
+    if op == .Sub { return checked_sub(bits, unsigned, x, y) }
+    return checked_mul(bits, unsigned, x, y)
+}
+
+// The folded value of a checked operation, or the overflow it ran into.
+checked_result :: fn(span: Span, value: i64 | null, type_name: string) -> EvalResult {
+    if value == null {
+        return fail(comptime_error(.IntegerOverflow, span, "the result leaves `${type_name}`"))
+    }
+    return ok(int_val_typed(value, type_name))
+}
+
+// The width of the integer type `type_name` ; 64 bits for an unknown one, which
+// folds unbounded at `i64` rather than at a guessed width.
+int_bits_of :: fn(type_name: string) -> i64 {
+    if is_int_name(type_name) {
+        return primitive_size(type_name) * 8
+    }
+    return 64
 }
 
 has_union_operand :: fn(context: ComptimeContext, expr: AST.BinaryExpr) -> bool =
@@ -71,11 +106,13 @@ same_kind :: fn(left: ComptimeValue, right: ComptimeValue) -> bool = match left 
     is TypeValue   -> right is TypeValue
 }
 
-combine_binary :: fn(expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue) -> EvalResult = match expr.op {
-    .Add    -> arithmetic_or_concat(expr, left, right, op_add)
-    .Sub    -> arithmetic(expr, left, right, op_sub)
-    .Mul    -> arithmetic(expr, left, right, op_mul)
-    .Div    -> int_div_check(expr, left, right, op_div)
+combine_binary :: fn(
+    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue, rname: string,
+) -> EvalResult = match expr.op {
+    .Add    -> arithmetic_or_concat(expr, left, right, rname)
+    .Sub    -> arithmetic(expr, left, right, rname)
+    .Mul    -> arithmetic(expr, left, right, rname)
+    .Div    -> int_div_check(expr, left, right, rname)
     .Mod    -> int_mod_check(expr, left, right, op_mod)
     .Shl    -> arithmetic_int(expr, left, right, op_shl)
     .Shr    -> arithmetic_int(expr, left, right, op_shr)
@@ -112,8 +149,13 @@ export evaluate_unary_expr :: fn(
     inner :: recurse(expr.operand, context)
     operand :: inner.value ?? return inner
     rname :: resolved_int_name(context, expr.id)
+    // A negative literal is one value: its magnitude alone may lie past the type
+    // (`-9_223_372_036_854_775_808`), where a checked negation stops.
+    if expr.op == .Neg && expr.operand is AST.IntLitExpr && operand is IntValue {
+        return normalize_int_result(ok(int_val_typed(0 -% operand.value, operand.type_name)), rname)
+    }
     combined :: match expr.op {
-        .Neg    -> unary_neg(expr, operand)
+        .Neg    -> unary_neg(expr, operand, rname)
         .Not    -> unary_not(expr, operand)
         .BitNot -> unary_bit_not(expr, operand)
     }
@@ -195,34 +237,28 @@ resolved_int_name :: fn(context: ComptimeContext, expr_id: usize) -> string {
 // the dedicated wrapper. Other arith ops go through `arithmetic` which
 // rejects strings with `C4007`.
 arithmetic_or_concat :: fn(
-    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
-    int_op: fn(i64, i64) -> i64,
+    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue, rname: string,
 ) -> EvalResult {
     if left is StringValue {
         if right is StringValue { return ok(string_val("${left.value}${right.value}")) }
         return type_mismatch(expr, "string + non-string")
     }
-    return arithmetic(expr, left, right, int_op)
+    return arithmetic(expr, left, right, rname)
 }
 
+// `+`, `-`, `*` or `/` on two numbers: on integers, the first three checked
+// (`checked_int`) and a quotient as the run time computes it ; IEEE on floats.
 arithmetic :: fn(
-    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
-    int_op: fn(i64, i64) -> i64,
+    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue, rname: string,
 ) -> EvalResult {
-    match left {
-        is IntValue -> {
-            match right {
-                is IntValue -> { return ok(int_val_typed(int_op(left.value, right.value), left.type_name)) }
-                _ -> {}
-            }
+    if left is IntValue && right is IntValue {
+        if expr.op == .Div {
+            return ok(int_val_typed(op_div(left.value, right.value), left.type_name))
         }
-        is FloatValue -> {
-            match right {
-                is FloatValue -> { return ok(float_val_typed(float_arith(expr.op, left.value, right.value), left.type_name)) }
-                _ -> {}
-            }
-        }
-        _ -> {}
+        return checked_int(expr, left, right, rname)
+    }
+    if left is FloatValue && right is FloatValue {
+        return ok(float_val_typed(float_arith(expr.op, left.value, right.value), left.type_name))
     }
     return type_mismatch(expr, "operand kinds disagree for arithmetic op")
 }
@@ -247,13 +283,12 @@ arithmetic_int :: fn(
 // SIGFPE on x86_64, which is host-platform UB the evaluator can't
 // otherwise observe.
 int_div_check :: fn(
-    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
-    int_op: fn(i64, i64) -> i64,
+    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue, rname: string,
 ) -> EvalResult {
     if right is IntValue {
         if right.value == 0 { return division_by_zero(expr, "/") }
     }
-    return arithmetic(expr, left, right, int_op)
+    return arithmetic(expr, left, right, rname)
 }
 
 int_mod_check :: fn(
@@ -365,10 +400,15 @@ bool_value :: fn(b: bool) -> ComptimeValue {
 
 // ---- unary helpers --------------------------------------------------------
 
-unary_neg :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
+unary_neg :: fn(expr: AST.UnaryExpr, inner: ComptimeValue, rname: string) -> EvalResult {
     // @partial: only Int / Float negate; every other value kind is a type mismatch.
     @partial match inner {
-        is IntValue   -> { return ok(int_val_typed(-inner.value, inner.type_name)) }
+        is IntValue   -> {
+            type_name :: result_type_name(inner, rname)
+            bits :: int_bits_of(type_name)
+            negated :: checked_negation(bits, is_unsigned_int_name(type_name), inner.value)
+            return checked_result(expr.span, negated, type_name)
+        }
         is FloatValue -> { return ok(float_val_typed(-inner.value, inner.type_name)) }
         _             -> { return unary_type_mismatch(expr, "`-` requires numeric") }
     }
@@ -406,9 +446,9 @@ unary_type_mismatch :: fn(expr: AST.UnaryExpr, detail: string) -> EvalResult {
 
 // ---- per-op closures ------------------------------------------------------
 
-op_add     :: fn(left: i64, right: i64) -> i64 { return left + right }
-op_sub     :: fn(left: i64, right: i64) -> i64 { return left - right }
-op_mul     :: fn(left: i64, right: i64) -> i64 { return left * right }
+op_add     :: fn(left: i64, right: i64) -> i64 { return left +% right }
+op_sub     :: fn(left: i64, right: i64) -> i64 { return left -% right }
+op_mul     :: fn(left: i64, right: i64) -> i64 { return left *% right }
 op_div     :: fn(left: i64, right: i64) -> i64 { return left / right }
 op_mod     :: fn(left: i64, right: i64) -> i64 { return left % right }
 op_shl     :: fn(left: i64, right: i64) -> i64 { return left << right }

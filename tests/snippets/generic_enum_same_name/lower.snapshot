@@ -166,8 +166,7 @@
                             __coalesce_2 :i64 | null
                         then:
                           ~>
-                            neg :i64
-                              int(1) :i64
+                            int(-1) :i64
                         else:
                           ~>
                             cast → i64
@@ -213,8 +212,7 @@
                             __coalesce_3 :i64 | null
                         then:
                           ~>
-                            neg :i64
-                              int(1) :i64
+                            int(-1) :i64
                         else:
                           ~>
                             cast → i64
@@ -260,8 +258,7 @@
                             __coalesce_4 :i64 | null
                         then:
                           ~>
-                            neg :i64
-                              int(1) :i64
+                            int(-1) :i64
                         else:
                           ~>
                             cast → i64

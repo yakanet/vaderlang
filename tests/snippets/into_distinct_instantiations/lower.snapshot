@@ -64,7 +64,7 @@
         b :Box<string>
   fn snippet$take_int(b: Box<i32>) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           .value :i32
             b :Box<i32>

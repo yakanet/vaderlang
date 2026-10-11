@@ -8,14 +8,14 @@
         self :UserId
   fn snippet$double(n: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           n :i32
         r:
           n :i32
   fn snippet$double_1(n: f64) -> f64
     return
-      add :f64
+      add_checked :f64
         l:
           n :f64
         r:
@@ -24,7 +24,7 @@
     return int(100) :i32
   fn snippet$preferred_1(n: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           n :i32
         r:

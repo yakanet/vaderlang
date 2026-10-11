@@ -764,6 +764,8 @@ write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> 
         is VirtualCall              -> out.append("virtual.call ${op.parameter_count} ${op.vtable_key}")
         is FnRef                    -> printed(out, refs, "fn.ref", [refer(.Function, op.function_index), refer(.Type, op.type_id)])
         is FnAddr                   -> printed(out, refs, "fn.addr", [refer(.Function, op.function_index)])
+        is CheckedArith             -> out.append("${val_type_name(op.kind)}.checked_${checked_op_name(op.op)}")
+        is CheckedNeg               -> out.append("${val_type_name(op.kind)}.checked_neg")
         is MakeClosure              -> printed(out, refs, "make_closure", [
             refer(.Function, op.function_index), refer(.Type, op.env_type_id),
         ])

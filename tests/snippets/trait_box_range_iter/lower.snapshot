@@ -6,7 +6,7 @@
     return int(100) :i32
   fn snippet$i32$Doubler$doubled(self: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           self :i32
         r:
@@ -50,11 +50,11 @@
         arg0:
           int(7) :Doubler<i32>
     return
-      add :i32
+      add_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
-              add :i32
+              add_checked :i32
                 l:
                   a :i32
                 r:
@@ -93,7 +93,7 @@
               target:
                 n :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     n :i32
                   r:

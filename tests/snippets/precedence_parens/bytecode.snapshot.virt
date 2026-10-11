@@ -43,18 +43,18 @@ fn 0 snippet$main () -> i32
     local.set 2   ; r3
     local.get 1   ; r1
     local.get 0   ; a
-    i32.add
+    i32.checked_add
     local.get 2   ; r3
-    i32.add
+    i32.checked_add
     return
   end $L2
   i32.const 0
   local.set 2   ; r3
   local.get 1   ; r1
   local.get 0   ; a
-  i32.add
+  i32.checked_add
   local.get 2   ; r3
-  i32.add
+  i32.checked_add
   return
 end
 

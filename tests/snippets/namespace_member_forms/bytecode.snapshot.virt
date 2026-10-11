@@ -28,6 +28,6 @@ end
 fn 1 snippet_helper$triple (i32) -> i32
   local.get 0   ; arg 0
   i32.const 3
-  i32.mul
+  i32.checked_mul
   return
 end

@@ -346,28 +346,28 @@
     return int(0) :i32
   fn __lambda_snippet_0(x: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           x :i32
         r:
           int(1) :i32
   fn __lambda_snippet_1(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
           int(2) :i32
   fn __lambda_snippet_2(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
           x :i32
   fn __lambda_snippet_3(a: i32, b: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           a :i32
         r:
@@ -377,13 +377,13 @@
       int(42) :i32
   fn __lambda_snippet_5(x: i32) -> i32
     let tmp: i32 =
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
           x :i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           tmp :i32
         r:

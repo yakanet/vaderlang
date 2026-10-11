@@ -188,7 +188,7 @@
                   target:
                     total :usize
                   value:
-                    add :usize
+                    add_checked :usize
                       l:
                         total :usize
                       r:
@@ -226,7 +226,7 @@
                   target:
                     n :i32
                   value:
-                    add :i32
+                    add_checked :i32
                       l:
                         n :i32
                       r:
@@ -308,7 +308,7 @@
                   target:
                     s :i32
                   value:
-                    add :i32
+                    add_checked :i32
                       l:
                         s :i32
                       r:

@@ -13,14 +13,14 @@
         .x :i32
           p :Point!
       value:
-        add :i32
+        add_checked :i32
           l:
             .x :i32
               p :Point!
           r:
             int(10) :i32
     return
-      add :i32
+      add_checked :i32
         l:
           .x :i32
             p :Point!

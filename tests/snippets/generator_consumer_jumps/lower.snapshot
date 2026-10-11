@@ -389,7 +389,7 @@
               target:
                 rounds :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     rounds :i32
                   r:
@@ -468,7 +468,7 @@
             target:
               i :i32
             value:
-              add :i32
+              add_checked :i32
                 l:
                   i :i32
                 r:
@@ -490,9 +490,9 @@
               let b: i32 = int(0) :i32
               loop while (<…>)
                 let p: i32 =
-                  add :i32
+                  add_checked :i32
                     l:
-                      mul :i32
+                      mul_checked :i32
                         l:
                           a :i32
                         r:
@@ -587,7 +587,7 @@
       }
   fn snippet$bump(x: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           x :i32
         r:
@@ -1272,7 +1272,7 @@
                       .s1 :i32
                         __self_0 :__genstate_by_twos!
                     value:
-                      add :i32
+                      add_checked :i32
                         l:
                           .s1 :i32
                             __self_0 :__genstate_by_twos!
@@ -1522,9 +1522,9 @@
                                       return
                                         [i32, Continuation]! {
                                           _0:
-                                            add :i32
+                                            add_checked :i32
                                               l:
-                                                mul :i32
+                                                mul_checked :i32
                                                   l:
                                                     .s0 :i32
                                                       __self_0 :__genstate_pairs!

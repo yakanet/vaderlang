@@ -660,8 +660,7 @@
                               __coalesce_30 :i32 | null
                           then:
                             ~>
-                              neg :i32
-                                int(1) :i32
+                              int(-1) :i32
                           else:
                             ~>
                               cast → i32

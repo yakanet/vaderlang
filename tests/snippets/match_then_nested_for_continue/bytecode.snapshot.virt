@@ -69,7 +69,7 @@ fn 0 snippet$run (any,bool,bool) -> i32
           end $L6
           local.get 4   ; base
           i32.const 1
-          i32.add
+          i32.checked_add
           local.set 4   ; base
           local.get 6   ; __for_i_2
           i64.const 1

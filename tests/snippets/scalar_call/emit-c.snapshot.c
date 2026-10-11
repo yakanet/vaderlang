@@ -18,13 +18,17 @@ const vader_type_info_t vader_type_info_table[2] = { [1] = { .slot_size = 4 } };
 const size_t vader_type_info_count = 2;
 
 static int32_t snippet_add(int32_t l0, int32_t l1) {
+    int32_t t0;
 #line 11 "tests/snippets/scalar_call/_main.vader"
-    return (l0 + l1);
+    t0 = vader_chk_add(i32, l0, l1);
+    return t0;
 }
 
 static int32_t snippet_square(int32_t l0) {
+    int32_t t0;
 #line 13 "tests/snippets/scalar_call/_main.vader"
-    return (l0 * l0);
+    t0 = vader_chk_mul(i32, l0, l0);
+    return t0;
 }
 
 static int32_t snippet_main(void) {

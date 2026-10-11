@@ -32,7 +32,7 @@ fn 0 snippet$sum_ids (ref) -> i32
       local.set 5   ; $cast_12
       local.get 1   ; total
       local.get 5   ; $cast_12
-      i32.add
+      i32.checked_add
       local.set 1   ; total
       local.get 4   ; __for_i_2
       i64.const 1
@@ -61,22 +61,19 @@ end
 
 fn 2 snippet$main () -> i32
   local ids ref
-  local $unop_9 i32
+  local present i32
   i64.const 10
   i64.const 20
   array.new 1 2   ; i64[]
   local.set 0   ; ids
-  i32.const 1
-  i32.neg
-  local.set 1   ; $unop_9
   i64.const 12
   retag 2   ; i64
-  local.get 1   ; $unop_9
+  i32.const -1
   call 1   ; snippet$unwrap_or
-  local.set 1   ; $unop_9
+  local.set 1   ; present
   local.get 0   ; ids
   call 0   ; snippet$sum_ids
-  local.get 1   ; $unop_9
-  i32.add
+  local.get 1   ; present
+  i32.checked_add
   return
 end

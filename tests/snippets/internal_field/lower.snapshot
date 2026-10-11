@@ -8,7 +8,7 @@
         .count :i32
           c :Counter!
       value:
-        add :i32
+        add_checked :i32
           l:
             .count :i32
               c :Counter!

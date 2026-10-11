@@ -80,7 +80,7 @@
               target:
                 s :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     s :i32
                   r:
@@ -159,7 +159,7 @@
               target:
                 s :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     s :i32
                   r:
@@ -254,7 +254,7 @@
               target:
                 s :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     s :i32
                   r:
@@ -301,7 +301,7 @@
               target:
                 s :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     s :i32
                   r:
@@ -460,13 +460,13 @@
               arg1:
                 __off_19 :usize
     return
-      add :i32
+      add_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
-              add :i32
+              add_checked :i32
                 l:
-                  add :i32
+                  add_checked :i32
                     l:
                       s1 :i32
                     r:
@@ -479,7 +479,7 @@
           s4 :i32
   fn __lambda_snippet_0(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
@@ -497,7 +497,7 @@
           int(0) :i32
   fn __lambda_snippet_2(acc: i32, x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           acc :i32
         r:

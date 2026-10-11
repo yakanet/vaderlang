@@ -12,7 +12,7 @@
       then:
         return int(1) :i32
     return
-      mul :i32
+      mul_checked :i32
         l:
           n :i32
         r:
@@ -20,7 +20,7 @@
             callee:
               factorial :fn(i32) -> i32
             arg0:
-              sub :i32
+              sub_checked :i32
                 l:
                   n :i32
                 r:

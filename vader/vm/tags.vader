@@ -389,6 +389,7 @@ pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = matc
      | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.RefEq | bc.RefNe -> TAGS_BOOL
     is bc.CharConst -> TAGS_CHAR
     is bc.NullConst -> TAGS_NULL
+    is bc.CheckedArith | bc.CheckedNeg -> integer_tags(op.kind)
     is bc.StringConst | bc.DataConst | bc.TypeConst | bc.FnRef | bc.FnAddr | bc.MakeClosure
      | bc.StructNew | bc.ArrayNew | bc.ArrayRepeat | bc.ArraySlice | bc.StringSliceCodepoints
      | bc.BufferNew | bc.BufferToString -> TAGS_REF
@@ -442,6 +443,8 @@ accepted_tags :: fn(op: bc.Op, back: usize) -> u8 | null = match op {
     is bc.F64Add | bc.F64Sub | bc.F64Mul | bc.F64Div | bc.F64Eq | bc.F64Ne | bc.F64Lt | bc.F64Le
      | bc.F64Gt | bc.F64Ge -> TAGS_F64
     is bc.F64Neg -> if back == 1 { TAGS_F64 } else { null }
+    is bc.CheckedArith -> integer_operand_tags(op.kind)
+    is bc.CheckedNeg -> if back == 1 { integer_operand_tags(op.kind) } else { null }
     is bc.ArrayGet | bc.LoadSlotI32 | bc.LoadSlotI64
      | bc.LoadSlotF64 -> if back == 1 { TAGS_I32_OPERAND } else { null }
     is bc.ArraySet | bc.StoreSlotI32 | bc.StoreSlotI64
@@ -460,6 +463,22 @@ accepted_tags :: fn(op: bc.Op, back: usize) -> u8 | null = match op {
      | bc.BufferToString | bc.BufferWriteString | bc.F64ToBits | bc.BitsToF64 | bc.F32ToBits
      | bc.BitsToF32 | bc.ArrayRepeat | bc.ArrayPushAll | bc.ArrayCopy | bc.ArrayRemoveLast
      | bc.ArrayClear | bc.FnAddr -> null
+}
+
+// The tag a value of the integer class `kind` sits under.
+integer_tags :: fn(kind: bc.ValType) -> u8 {
+    if bc.is_64_bit_int_val(kind) {
+        return TAGS_I64
+    }
+    return TAGS_I32
+}
+
+// What an arm reading an operand of the integer class `kind` accepts.
+integer_operand_tags :: fn(kind: bc.ValType) -> u8 {
+    if bc.is_64_bit_int_val(kind) {
+        return TAGS_I64_OPERAND
+    }
+    return TAGS_I32_OPERAND
 }
 
 /// Refuse `module` when some arm could meet an operand tag it does not accept.

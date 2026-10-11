@@ -46,12 +46,13 @@ static int32_t snippet_main(void) {
     l0 = (void*) _a1_obj;
 #line 15 "tests/snippets/struct_point/_main.vader"
     t0 = ((vader_struct_snippet_Point_t*) l0)->f_x;
-    l1 = (t0 + INT32_C(10));
+    l1 = vader_chk_add(i32, t0, INT32_C(10));
     ((vader_struct_snippet_Point_t*) l0)->f_x = l1;
 #line 16 "tests/snippets/struct_point/_main.vader"
     l1 = ((vader_struct_snippet_Point_t*) l0)->f_x;
     l2 = ((vader_struct_snippet_Point_t*) l0)->f_y;
-    { int32_t __vret = (l1 + l2); vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = vader_chk_add(i32, l1, l2);
+    { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 int main(int argc, char** argv) {

@@ -83,7 +83,7 @@ first_slot :: fn(h: u64, mask: usize) -> usize = usize(h) & mask
 // bits before each step, which brings the high bits into play; once it reaches 0,
 // `5 * s + 1` visits every slot of a power-of-two table. Every walk of the index
 // takes exactly this sequence, or a key stops being found.
-next_slot :: fn(s: usize, perturb: u64, mask: usize) -> usize = (s * 5 + usize(perturb) + 1) & mask
+next_slot :: fn(s: usize, perturb: u64, mask: usize) -> usize = (s *% 5 +% usize(perturb) +% 1) & mask
 
 // Lazy-initialise the index on first insert. No-op once allocated, so cheap to
 // call from every mutating entry point. Mirrors the old `ensure_buckets`.

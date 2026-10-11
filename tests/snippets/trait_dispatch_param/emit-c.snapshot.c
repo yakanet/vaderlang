@@ -30,10 +30,12 @@ static int32_t snippet_main(void) {
 
 static uint64_t snippet_hash_twice__i32(int32_t l0) {
     uint64_t l1, l2;
+    int64_t t0;
 #line 7 "tests/snippets/trait_dispatch_param/_main.vader"
     l1 = std_core_i32_Hash_hash(l0);
     l2 = std_core_i32_Hash_hash(l0);
-    return (uint64_t) (int64_t) (l1 + l2);
+    t0 = vader_chk_add(u64, l1, l2);
+    return (uint64_t) (int64_t) t0;
 }
 
 static uint64_t std_core_i32_Hash_hash(int32_t l0) {

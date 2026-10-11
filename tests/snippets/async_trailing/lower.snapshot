@@ -36,9 +36,7 @@
         is Suspended! :bool
           r :i32 | Suspended
       then:
-        return
-          neg :i32
-            int(1) :i32
+        return int(-1) :i32
     return
       cast → i32
         r :i32 | Suspended
@@ -307,12 +305,12 @@
                 value:
                   int(-1) :i32
               return
-                add :i32
+                add_checked :i32
                   l:
                     .s0 :i32
                       __self_2 :__asyncstate_snippet_1!
                   r:
-                    mul :i32
+                    mul_checked :i32
                       l:
                         .s1 :i32
                           __self_2 :__asyncstate_snippet_1!

@@ -4,7 +4,7 @@
   struct default_type_param$N { v: i32 }
   fn default_type_param$N$Adder$add_to(self: N!, other: N) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           .v :i32
             self :N
@@ -13,7 +13,7 @@
             other :N
   fn default_type_param$N$Adder$twice(self: N!, other: N) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           call :i32
             callee:
@@ -37,7 +37,7 @@
         self :Tick
   fn default_type_param$Tick$Counter$bumped(self: Tick!) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           call :i32
             callee:

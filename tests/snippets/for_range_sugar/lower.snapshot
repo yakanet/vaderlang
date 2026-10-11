@@ -10,7 +10,7 @@
           target:
             count :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 count :i32
               r:
@@ -80,7 +80,7 @@
           target:
             sum :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 sum :i32
               r:
@@ -153,7 +153,7 @@
               target:
                 cells :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     cells :i32
                   r:
@@ -233,7 +233,7 @@
           target:
             accum :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 accum :i32
               r:

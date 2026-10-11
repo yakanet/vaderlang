@@ -6,14 +6,14 @@
     ~>
       Vec2! {
         x:
-          mul :f64
+          mul_checked :f64
             l:
               .x :f64
                 self :Vec2
             r:
               k :f64
         y:
-          mul :f64
+          mul_checked :f64
             l:
               .y :f64
                 self :Vec2
@@ -24,7 +24,7 @@
     ~>
       Vec2! {
         x:
-          mul :f64
+          mul_checked :f64
             l:
               .x :f64
                 self :Vec2
@@ -32,7 +32,7 @@
               .x :f64
                 o :Vec2
         y:
-          mul :f64
+          mul_checked :f64
             l:
               .y :f64
                 self :Vec2
@@ -215,7 +215,7 @@
     ~>
       Tag! {
         n:
-          add :i32
+          add_checked :i32
             l:
               int(100) :i32
             r:
@@ -296,7 +296,7 @@
         .n :i32
           self :Counter!
       value:
-        add :i32
+        add_checked :i32
           l:
             .n :i32
               self :Counter!
@@ -1106,7 +1106,7 @@
                   __off_19 :usize
                 arg2:
                   cast → i64
-                    add :i32
+                    add_checked :i32
                       l:
                         i :i32
                       r:
@@ -1184,7 +1184,7 @@
                           __off_23 :usize
                         arg2:
                           cast → i64
-                            add :i32
+                            add_checked :i32
                               l:
                                 k :i32
                               r:

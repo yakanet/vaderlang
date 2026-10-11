@@ -90,14 +90,14 @@ fn 1 snippet$main () -> i32
       local.set 6   ; x
       local.get 0   ; seen
       i32.const 1
-      i32.add
+      i32.checked_add
       local.set 0   ; seen
       local.get 6   ; x
       type_check 0   ; null
       if $L2 void
         local.get 1   ; nulls
         i32.const 1
-        i32.add
+        i32.checked_add
         local.set 1   ; nulls
         local.get 5   ; __for_i_2
         i64.const 1
@@ -110,7 +110,7 @@ fn 1 snippet$main () -> i32
       local.set 7   ; $cast_28
       local.get 2   ; sum
       local.get 7   ; $cast_28
-      i32.add
+      i32.checked_add
       local.set 2   ; sum
       local.get 5   ; __for_i_2
       i64.const 1
@@ -188,14 +188,14 @@ fn 1 snippet$main () -> i32
       local.set 10   ; y
       local.get 2   ; sum
       i32.const 1
-      i32.add
+      i32.checked_add
       local.set 2   ; sum
       local.get 10   ; y
       type_check 0   ; null
       if $L5 void
         local.get 7   ; $cast_28
         i32.const 1
-        i32.add
+        i32.checked_add
         local.set 7   ; $cast_28
         br $L3
       end $L5
@@ -204,7 +204,7 @@ fn 1 snippet$main () -> i32
       local.set 11   ; $cast_71
       local.get 9   ; gsum
       local.get 11   ; $cast_71
-      i32.add
+      i32.checked_add
       local.set 9   ; gsum
       br $L3
     end $L4
@@ -259,9 +259,9 @@ fn 1 snippet$main () -> i32
   call 14   ; std_io$println__string
   local.get 0   ; seen
   i32.const 10
-  i32.mul
+  i32.checked_mul
   local.get 1   ; nulls
-  i32.add
+  i32.checked_add
   return
 end
 
@@ -388,7 +388,7 @@ end
 fn 4 std_core$i32$Step$step (i32) -> i32
   local.get 0   ; arg 0
   i32.const 1
-  i32.add
+  i32.checked_add
   return
 end
 
@@ -449,7 +449,7 @@ end
 fn 6 std_core$usize$Step$step (usize) -> usize
   local.get 0   ; arg 0
   i64.const 1
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -531,7 +531,7 @@ fn 10 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -541,7 +541,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
   local m i64
   local total usize
   local $cast_36 u8
-  local $add_37 u8
+  local $add_checked_37 u8
   local.get 2   ; arg 2
   i64.const 0
   i64.eq
@@ -552,7 +552,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    i64.add
+    usize.checked_add
     return
   end $L0
   local.get 2   ; arg 2
@@ -564,7 +564,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
   i64.gt
   if $L1 void
     local.get 2   ; arg 2
-    i64.neg
+    i64.checked_neg
     local.set 2   ; arg 2
   end $L1
   i64.const 0
@@ -578,7 +578,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
     if $L3 void
       local.get 4   ; ndigits
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 4   ; ndigits
       local.get 5   ; m
       i64.const 10
@@ -591,7 +591,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
   if $L4 void
     local.get 4   ; ndigits
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 6   ; total
   else
     local.get 4   ; ndigits
@@ -599,7 +599,7 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
   end $L4
   local.get 1   ; arg 1
   local.get 6   ; total
-  i64.add
+  usize.checked_add
   local.set 4   ; ndigits
   loop $L5 void
     local.get 2   ; arg 2
@@ -608,25 +608,23 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
     if $L6 void
       local.get 4   ; ndigits
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.set 4   ; ndigits
       local.get 2   ; arg 2
       i64.const 10
       i64.rem
-      i64.neg
+      i64.checked_neg
       i64.to_i32
       i32.const 255
       i32.bitand
       local.set 7   ; $cast_36
       i32.const 48
       local.get 7   ; $cast_36
-      i32.add
-      i32.const 255
-      i32.bitand
-      local.set 8   ; $add_37
+      u8.checked_add
+      local.set 8   ; $add_checked_37
       local.get 0   ; arg 0
       local.get 4   ; ndigits
-      local.get 8   ; $add_37
+      local.get 8   ; $add_checked_37
       store_u8
       local.get 2   ; arg 2
       i64.const 10
@@ -643,12 +641,12 @@ fn 11 std_core$write_int (ref,usize,i64) -> usize
     store_u8
     local.get 1   ; arg 1
     local.get 6   ; total
-    i64.add
+    usize.checked_add
     return
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -700,7 +698,7 @@ fn 12 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      i64.add
+      usize.checked_add
       local.set 3   ; sent
       br $L0
     end $L1

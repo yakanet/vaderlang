@@ -934,14 +934,13 @@ fn 14 snippet$__genstate_first_odd_above$Iterator$next (ref) -> ref
   local $field_13 i32
   local $add_22 i32
   local if_res i32
-  local $unop_39 i32
+  local $field_40 i32
   local $field_41 i32
-  local $field_42 i32
-  local $add_49 i32
+  local $add_48 i32
+  local $field_50 i32
   local $field_51 i32
-  local $field_52 i32
-  local $field_59 i32
-  local $add_62 i32
+  local $field_58 i32
+  local $add_61 i32
   loop $L0 void
     local.field 0 12 5   ; arg 0 snippet$__genstate_first_odd_above.state
     ref.cast 1   ; i32
@@ -1027,11 +1026,8 @@ fn 14 snippet$__genstate_first_odd_above$Iterator$next (ref) -> ref
             i32.const 0
             i32.gt
             if $L8 void
-              i32.const 1
-              i32.neg
-              local.set 5   ; $unop_39
               local.get 0   ; arg 0
-              local.get 5   ; $unop_39
+              i32.const -1
               struct.set 12 3   ; snippet$__genstate_first_odd_above.s3
               local.get 0   ; arg 0
               i32.const 0
@@ -1040,12 +1036,12 @@ fn 14 snippet$__genstate_first_odd_above$Iterator$next (ref) -> ref
                 loop $L10 void
                   local.field 0 12 4   ; arg 0 snippet$__genstate_first_odd_above.s4
                   ref.cast 1   ; i32
-                  local.set 6   ; $field_41
+                  local.set 5   ; $field_40
                   local.field 0 12 0   ; arg 0 snippet$__genstate_first_odd_above.s0
                   ref.cast 1   ; i32
-                  local.set 7   ; $field_42
+                  local.set 6   ; $field_41
+                  local.get 5   ; $field_40
                   local.get 6   ; $field_41
-                  local.get 7   ; $field_42
                   i32.lt
                   if $L11 void
                     local.field 0 12 1   ; arg 0 snippet$__genstate_first_odd_above.s1
@@ -1057,9 +1053,9 @@ fn 14 snippet$__genstate_first_odd_above$Iterator$next (ref) -> ref
                       ref.cast 1   ; i32
                       i32.const 1
                       i32.add
-                      local.set 8   ; $add_49
+                      local.set 7   ; $add_48
                       local.get 0   ; arg 0
-                      local.get 8   ; $add_49
+                      local.get 7   ; $add_48
                       struct.set 12 1   ; snippet$__genstate_first_odd_above.s1
                       local.get 0   ; arg 0
                       i32.const 2
@@ -1068,12 +1064,12 @@ fn 14 snippet$__genstate_first_odd_above$Iterator$next (ref) -> ref
                     end $L12
                     local.field 0 12 4   ; arg 0 snippet$__genstate_first_odd_above.s4
                     ref.cast 1   ; i32
-                    local.set 9   ; $field_51
+                    local.set 8   ; $field_50
                     local.field 0 12 1   ; arg 0 snippet$__genstate_first_odd_above.s1
                     ref.cast 1   ; i32
-                    local.set 10   ; $field_52
+                    local.set 9   ; $field_51
+                    local.get 8   ; $field_50
                     local.get 9   ; $field_51
-                    local.get 10   ; $field_52
                     i32.gt
                     if $L13 void
                       local.field 0 12 4   ; arg 0 snippet$__genstate_first_odd_above.s4
@@ -1085,9 +1081,9 @@ fn 14 snippet$__genstate_first_odd_above$Iterator$next (ref) -> ref
                       if $L14 void
                         local.field 0 12 4   ; arg 0 snippet$__genstate_first_odd_above.s4
                         ref.cast 1   ; i32
-                        local.set 11   ; $field_59
+                        local.set 10   ; $field_58
                         local.get 0   ; arg 0
-                        local.get 11   ; $field_59
+                        local.get 10   ; $field_58
                         struct.set 12 3   ; snippet$__genstate_first_odd_above.s3
                         br $L9
                       end $L14
@@ -1096,9 +1092,9 @@ fn 14 snippet$__genstate_first_odd_above$Iterator$next (ref) -> ref
                     ref.cast 1   ; i32
                     i32.const 1
                     i32.add
-                    local.set 12   ; $add_62
+                    local.set 11   ; $add_61
                     local.get 0   ; arg 0
-                    local.get 12   ; $add_62
+                    local.get 11   ; $add_61
                     struct.set 12 4   ; snippet$__genstate_first_odd_above.s4
                     br $L10
                   end $L11
@@ -1108,8 +1104,7 @@ fn 14 snippet$__genstate_first_odd_above$Iterator$next (ref) -> ref
               ref.cast 1   ; i32
               local.set 4   ; if_res
             else
-              i32.const 1
-              i32.neg
+              i32.const -1
               local.set 4   ; if_res
             end $L8
             local.get 0   ; arg 0
@@ -1151,7 +1146,7 @@ fn 15 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   local __coalesce_1 any
   local if_res i32
   local $add_34 i32
-  local $add_37 i32
+  local $add_checked_37 i32
   local $add_40 i32
   local __resumed_3 any
   local $cast_50 null
@@ -1245,10 +1240,10 @@ fn 15 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
           local.set 5   ; if_res
           local.get 3   ; $field_26
           local.get 5   ; if_res
-          i32.add
-          local.set 7   ; $add_37
+          i32.checked_add
+          local.set 7   ; $add_checked_37
           local.get 0   ; arg 0
-          local.get 7   ; $add_37
+          local.get 7   ; $add_checked_37
           struct.set 13 1   ; __asyncstate_snippet_0.s1
           local.field 0 13 2   ; arg 0 __asyncstate_snippet_0.s2
           ref.cast 1   ; i32
@@ -1340,22 +1335,22 @@ fn 15 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
 end
 
 fn 16 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
+  local $field_17 usize
   local $field_18 usize
-  local $field_19 usize
-  local $add_28 usize
+  local $add_27 usize
   local if_res any
+  local $field_39 i32
   local $field_40 i32
-  local $field_41 i32
   local if_res i32
-  local $add_50 usize
+  local $add_49 usize
   local __resumed_6 any
-  local $cast_63 null
-  local $cast_70 any
-  local $field_75 ref
-  local $field_76 usize
-  local $idx_77 i32
-  local $field_82 ref
-  local $len_84 usize
+  local $cast_62 null
+  local $cast_69 any
+  local $field_74 ref
+  local $field_75 usize
+  local $idx_76 i32
+  local $field_81 ref
+  local $len_83 usize
   loop $L0 void
     local.field 0 16 10   ; arg 0 __asyncstate_snippet_1.state
     ref.cast 1   ; i32
@@ -1375,8 +1370,7 @@ fn 16 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
       local.get 0   ; arg 0
       i32.const -1
       struct.set 16 10   ; __asyncstate_snippet_1.state
-      i32.const 1
-      i32.neg
+      i32.const -1
       retag 1   ; i32
       return
     end $L2
@@ -1396,12 +1390,12 @@ fn 16 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
       if $L4 void
         local.field 0 16 4   ; arg 0 __asyncstate_snippet_1.s4
         ref.cast 20   ; usize
-        local.set 1   ; $field_18
+        local.set 1   ; $field_17
         local.field 0 16 3   ; arg 0 __asyncstate_snippet_1.s3
         ref.cast 20   ; usize
-        local.set 2   ; $field_19
-        local.get 1   ; $field_18
-        local.get 2   ; $field_19
+        local.set 2   ; $field_18
+        local.get 1   ; $field_17
+        local.get 2   ; $field_18
         u64.lt
         if $L5 void
           local.get 0   ; arg 0
@@ -1422,9 +1416,9 @@ fn 16 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
           ref.cast 20   ; usize
           i64.const 1
           i64.add
-          local.set 3   ; $add_28
+          local.set 3   ; $add_27
           local.get 0   ; arg 0
-          local.get 3   ; $add_28
+          local.get 3   ; $add_27
           struct.set 16 4   ; __asyncstate_snippet_1.s4
           local.get 0   ; arg 0
           i32.const 3
@@ -1450,12 +1444,12 @@ fn 16 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
           if $L8 void
             local.field 0 16 5   ; arg 0 __asyncstate_snippet_1.s5
             ref.cast 1   ; i32
-            local.set 5   ; $field_40
+            local.set 5   ; $field_39
             local.field 0 16 1   ; arg 0 __asyncstate_snippet_1.s1
             ref.cast 1   ; i32
-            local.set 6   ; $field_41
-            local.get 5   ; $field_40
-            local.get 6   ; $field_41
+            local.set 6   ; $field_40
+            local.get 5   ; $field_39
+            local.get 6   ; $field_40
             i32.gt
             if $L9 void
               local.field 0 16 5   ; arg 0 __asyncstate_snippet_1.s5
@@ -1476,9 +1470,9 @@ fn 16 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
               ref.cast 20   ; usize
               i64.const 1
               i64.add
-              local.set 8   ; $add_50
+              local.set 8   ; $add_49
               local.get 0   ; arg 0
-              local.get 8   ; $add_50
+              local.get 8   ; $add_49
               struct.set 16 4   ; __asyncstate_snippet_1.s4
               local.get 0   ; arg 0
               i32.const 3
@@ -1511,9 +1505,9 @@ fn 16 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
               end $L12
               local.get 9   ; __resumed_6
               ref.cast 0   ; null
-              local.set 10   ; $cast_63
+              local.set 10   ; $cast_62
               local.get 0   ; arg 0
-              local.get 10   ; $cast_63
+              local.get 10   ; $cast_62
               struct.set 16 6   ; __asyncstate_snippet_1.s6
               local.get 0   ; arg 0
               i32.const 6
@@ -1526,9 +1520,9 @@ fn 16 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
               if $L13 void
                 i64.const 0
                 call 27   ; std_async$sleep
-                local.set 11   ; $cast_70
+                local.set 11   ; $cast_69
                 local.get 0   ; arg 0
-                local.get 11   ; $cast_70
+                local.get 11   ; $cast_69
                 struct.set 16 9   ; __asyncstate_snippet_1.awaited
                 local.get 0   ; arg 0
                 i32.const 7
@@ -1540,16 +1534,16 @@ fn 16 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                 i32.eq
                 if $L14 void
                   local.field 0 16 2   ; arg 0 __asyncstate_snippet_1.s2
-                  local.set 12   ; $field_75
+                  local.set 12   ; $field_74
                   local.field 0 16 4   ; arg 0 __asyncstate_snippet_1.s4
                   ref.cast 20   ; usize
-                  local.set 13   ; $field_76
-                  local.get 12   ; $field_75
-                  local.get 13   ; $field_76
+                  local.set 13   ; $field_75
+                  local.get 12   ; $field_74
+                  local.get 13   ; $field_75
                   load_slot_i32
-                  local.set 14   ; $idx_77
+                  local.set 14   ; $idx_76
                   local.get 0   ; arg 0
-                  local.get 14   ; $idx_77
+                  local.get 14   ; $idx_76
                   struct.set 16 5   ; __asyncstate_snippet_1.s5
                   local.get 0   ; arg 0
                   i32.const 8
@@ -1566,15 +1560,15 @@ fn 16 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
                     return
                   end $L15
                   local.field 0 16 0   ; arg 0 __asyncstate_snippet_1.s0
-                  local.set 15   ; $field_82
+                  local.set 15   ; $field_81
                   local.get 0   ; arg 0
-                  local.get 15   ; $field_82
+                  local.get 15   ; $field_81
                   struct.set 16 2   ; __asyncstate_snippet_1.s2
                   local.field 0 16 2   ; arg 0 __asyncstate_snippet_1.s2
                   array.len
-                  local.set 16   ; $len_84
+                  local.set 16   ; $len_83
                   local.get 0   ; arg 0
-                  local.get 16   ; $len_84
+                  local.get 16   ; $len_83
                   struct.set 16 3   ; __asyncstate_snippet_1.s3
                   local.get 0   ; arg 0
                   i64.const 0
@@ -2655,7 +2649,7 @@ end
 fn 19 std_core$i32$Step$step (i32) -> i32
   local.get 0   ; arg 0
   i32.const 1
-  i32.add
+  i32.checked_add
   return
 end
 
@@ -2716,7 +2710,7 @@ end
 fn 21 std_core$usize$Step$step (usize) -> usize
   local.get 0   ; arg 0
   i64.const 1
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -2798,7 +2792,7 @@ fn 25 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -2808,7 +2802,7 @@ fn 26 std_core$write_int (ref,usize,i64) -> usize
   local m i64
   local total usize
   local $cast_36 u8
-  local $add_37 u8
+  local $add_checked_37 u8
   local.get 2   ; arg 2
   i64.const 0
   i64.eq
@@ -2819,7 +2813,7 @@ fn 26 std_core$write_int (ref,usize,i64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    i64.add
+    usize.checked_add
     return
   end $L0
   local.get 2   ; arg 2
@@ -2831,7 +2825,7 @@ fn 26 std_core$write_int (ref,usize,i64) -> usize
   i64.gt
   if $L1 void
     local.get 2   ; arg 2
-    i64.neg
+    i64.checked_neg
     local.set 2   ; arg 2
   end $L1
   i64.const 0
@@ -2845,7 +2839,7 @@ fn 26 std_core$write_int (ref,usize,i64) -> usize
     if $L3 void
       local.get 4   ; ndigits
       i64.const 1
-      i64.add
+      usize.checked_add
       local.set 4   ; ndigits
       local.get 5   ; m
       i64.const 10
@@ -2858,7 +2852,7 @@ fn 26 std_core$write_int (ref,usize,i64) -> usize
   if $L4 void
     local.get 4   ; ndigits
     i64.const 1
-    i64.add
+    usize.checked_add
     local.set 6   ; total
   else
     local.get 4   ; ndigits
@@ -2866,7 +2860,7 @@ fn 26 std_core$write_int (ref,usize,i64) -> usize
   end $L4
   local.get 1   ; arg 1
   local.get 6   ; total
-  i64.add
+  usize.checked_add
   local.set 4   ; ndigits
   loop $L5 void
     local.get 2   ; arg 2
@@ -2875,25 +2869,23 @@ fn 26 std_core$write_int (ref,usize,i64) -> usize
     if $L6 void
       local.get 4   ; ndigits
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.set 4   ; ndigits
       local.get 2   ; arg 2
       i64.const 10
       i64.rem
-      i64.neg
+      i64.checked_neg
       i64.to_i32
       i32.const 255
       i32.bitand
       local.set 7   ; $cast_36
       i32.const 48
       local.get 7   ; $cast_36
-      i32.add
-      i32.const 255
-      i32.bitand
-      local.set 8   ; $add_37
+      u8.checked_add
+      local.set 8   ; $add_checked_37
       local.get 0   ; arg 0
       local.get 4   ; ndigits
-      local.get 8   ; $add_37
+      local.get 8   ; $add_checked_37
       store_u8
       local.get 2   ; arg 2
       i64.const 10
@@ -2910,12 +2902,12 @@ fn 26 std_core$write_int (ref,usize,i64) -> usize
     store_u8
     local.get 1   ; arg 1
     local.get 6   ; total
-    i64.add
+    usize.checked_add
     return
   end $L7
   local.get 1   ; arg 1
   local.get 6   ; total
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -2950,7 +2942,7 @@ fn 29 std_async$Sleep$Async$resume (ref) -> any
     local.set 2   ; $field_4
     local.get 1   ; $call_3
     local.get 2   ; $field_4
-    i64.add
+    i64.checked_add
     local.set 1   ; $call_3
     local.get 0   ; arg 0
     local.get 1   ; $call_3
@@ -3050,7 +3042,7 @@ fn 31 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      i64.add
+      usize.checked_add
       local.set 3   ; sent
       br $L0
     end $L1

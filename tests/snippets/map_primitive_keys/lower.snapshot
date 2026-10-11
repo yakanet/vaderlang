@@ -26,7 +26,7 @@
             cast → u8
               i :i32
           arg2:
-            mul :i32
+            mul_checked :i32
               l:
                 i :i32
               r:
@@ -119,8 +119,7 @@
                         cast → u8
                           int(7) :u8
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           assign
             target:
               __off_1 :usize
@@ -156,8 +155,7 @@
                         cast → u8
                           int(19) :u8
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           assign
             target:
               __off_1 :usize
@@ -193,8 +191,7 @@
                         cast → u8
                           int(200) :u8
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           ~>
             call :string
               callee:
@@ -289,8 +286,7 @@
                         cast → u16
                           int(50000) :u16
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           assign
             target:
               __off_3 :usize
@@ -326,8 +322,7 @@
                         cast → u16
                           int(12345) :u16
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           assign
             target:
               __off_3 :usize
@@ -363,8 +358,7 @@
                         cast → u16
                           int(7) :u16
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           ~>
             call :string
               callee:
@@ -391,8 +385,7 @@
       arg0:
         mi16 :MutableMap<i16, i32>!
       arg1:
-        neg :i16
-          int(1000) :i16
+        int(-1000) :i16
       arg2:
         int(11) :i32
     call :void
@@ -410,8 +403,7 @@
       arg0:
         mi16 :MutableMap<i16, i32>!
       arg1:
-        neg :i16
-          int(1) :i16
+        int(-1) :i16
       arg2:
         int(33) :i32
     call :void
@@ -459,11 +451,9 @@
                         mi16 :MutableMap<i16, i32>!
                       arg1:
                         cast → i16
-                          neg :i16
-                            int(1000) :i16
+                          int(-1000) :i16
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           assign
             target:
               __off_5 :usize
@@ -499,8 +489,7 @@
                         cast → i16
                           int(1000) :i16
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           assign
             target:
               __off_5 :usize
@@ -534,11 +523,9 @@
                         mi16 :MutableMap<i16, i32>!
                       arg1:
                         cast → i16
-                          neg :i16
-                            int(1) :i16
+                          int(-1) :i16
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           ~>
             call :string
               callee:
@@ -632,8 +619,7 @@
                       arg1:
                         char(0x61)
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           assign
             target:
               __off_7 :usize
@@ -668,8 +654,7 @@
                       arg1:
                         char(0x5a)
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           assign
             target:
               __off_7 :usize
@@ -704,8 +689,7 @@
                       arg1:
                         char(0xe9)
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           assign
             target:
               __off_7 :usize
@@ -740,8 +724,7 @@
                       arg1:
                         char(0x71)
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           ~>
             call :string
               callee:
@@ -763,9 +746,7 @@
         tombs: int(0) :usize
       }
     let kbig: i64 = int(9000000000) :i64
-    let knegbig: i64 =
-      neg :i64
-        int(9000000000) :i64
+    let knegbig: i64 = int(-9000000000) :i64
     call :void
       callee:
         std_collections$MutableMap$IndexSet$set_at__i64__i32 :void
@@ -830,8 +811,7 @@
                       arg1:
                         kbig :i64
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           assign
             target:
               __off_9 :usize
@@ -866,8 +846,7 @@
                       arg1:
                         knegbig :i64
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           ~>
             call :string
               callee:
@@ -900,7 +879,7 @@
             cast → usize
               j :i32
           arg2:
-            add :i32
+            add_checked :i32
               l:
                 j :i32
               r:
@@ -993,8 +972,7 @@
                         cast → usize
                           int(0) :usize
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           assign
             target:
               __off_11 :usize
@@ -1030,8 +1008,7 @@
                         cast → usize
                           int(39) :usize
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           assign
             target:
               __off_11 :usize
@@ -1067,8 +1044,7 @@
                         cast → usize
                           int(99) :usize
                       arg2:
-                        neg :i32
-                          int(1) :i32
+                        int(-1) :i32
           ~>
             call :string
               callee:

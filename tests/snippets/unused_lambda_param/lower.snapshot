@@ -94,7 +94,7 @@
     return int(7) :i32
   fn __lambda_snippet_1(v: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           v :i32
         r:

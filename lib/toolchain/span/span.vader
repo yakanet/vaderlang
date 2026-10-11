@@ -52,13 +52,13 @@ export Span :: struct {
 /// The key goes through `span_key_mix`, a bijection: keys stay distinct (the
 /// typed-ast side-tables use them as identities) and every bit reaches the low ones.
 Span implements Hash -> span_key_mix(
-    self.start.file.hash() * 1000003 + (u64(self.start.line) << 32) + u64(self.start.column),
+    self.start.file.hash() *% 1000003 +% (u64(self.start.line) << 32) +% u64(self.start.column),
 )
 
 // The fmix64 finaliser of MurmurHash3.
 span_key_mix :: fn(k: u64) -> u64 {
-    a :: (k ^ (k >> 33)) * 0xff51afd7ed558ccd
-    b :: (a ^ (a >> 33)) * 0xc4ceb9fe1a85ec53
+    a :: (k ^ (k >> 33)) *% 0xff51afd7ed558ccd
+    b :: (a ^ (a >> 33)) *% 0xc4ceb9fe1a85ec53
     return b ^ (b >> 33)
 }
 

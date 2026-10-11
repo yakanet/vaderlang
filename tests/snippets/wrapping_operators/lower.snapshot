@@ -138,7 +138,7 @@
                         byte :u8
                       r:
                         cast → u8
-                          add :i32
+                          add_checked :i32
                             l:
                               one :i32
                             r:
@@ -222,7 +222,7 @@
                         small :i8
                       r:
                         cast → i8
-                          add :i32
+                          add_checked :i32
                             l:
                               one :i32
                             r:

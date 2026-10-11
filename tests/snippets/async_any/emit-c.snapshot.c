@@ -770,7 +770,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 217 "lib/std/io/io.vader"
             t0 = ((int64_t) (int32_t) l8);
             l9 = (size_t) (int64_t) t0;
-            t0 = (l3 + l9);
+            t0 = vader_chk_add(usize, l3, l9);
             l3 = (size_t) (int64_t) t0;
 #line 208 "lib/std/io/io.vader"
             continue;
@@ -868,7 +868,7 @@ static vader_box_t std_async_JoinAny_Async_resume__string__Any(void* l0) {
                     ((int64_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l4] = (int64_t) INT64_C(9223372036854775807);
 #line 285 "lib/std/async/async.vader"
                     t3 = ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_failed;
-                    t0 = (t3 + INT64_C(1));
+                    t0 = vader_chk_add(usize, t3, INT64_C(1));
                     l9 = (size_t) (int64_t) t0;
                     ((vader_struct_std_async_JoinAny__string__Any_t*) l0)->f_failed = l9;
 #line 286 "lib/std/async/async.vader"
@@ -1011,7 +1011,7 @@ static vader_box_t std_async_Sleep_Async_resume(void* l0) {
 #line 41 "lib/std/async/async.vader"
         l1 = vader_host_std_runtime_sched_now();
         l2 = ((vader_struct_std_async_Sleep_t*) l0)->f_ms;
-        l1 = (l1 + l2);
+        l1 = vader_chk_add(i64, l1, l2);
         ((vader_struct_std_async_Sleep_t*) l0)->f_deadline = l1;
 #line 42 "lib/std/async/async.vader"
         t1 = ((vader_struct_std_async_Sleep_t*) l0)->f_deadline;

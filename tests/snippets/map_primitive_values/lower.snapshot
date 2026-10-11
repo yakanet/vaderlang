@@ -498,8 +498,7 @@
       arg1:
         "neg" :string
       arg2:
-        neg :i16
-          int(1000) :i16
+        int(-1000) :i16
     let vn: i16 | null =
       call :i16 | null
         callee:

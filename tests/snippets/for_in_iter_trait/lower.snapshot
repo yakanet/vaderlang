@@ -28,7 +28,7 @@
               target:
                 total :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     total :i32
                   r:
@@ -87,7 +87,7 @@
                       target:
                         total :usize
                       value:
-                        add :usize
+                        add_checked :usize
                           l:
                             total :usize
                           r:
@@ -105,7 +105,7 @@
               target:
                 total :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     total :i32
                   r:
@@ -145,7 +145,7 @@
               target:
                 total :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     total :i32
                   r:

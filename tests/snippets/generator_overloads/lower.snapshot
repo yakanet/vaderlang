@@ -192,7 +192,7 @@
           target:
             x :f64
           value:
-            add :f64
+            add_checked :f64
               l:
                 x :f64
               r:
@@ -551,7 +551,7 @@
                                   target:
                                     total :usize
                                   value:
-                                    add :usize
+                                    add_checked :usize
                                       l:
                                         total :usize
                                       r:
@@ -1424,7 +1424,7 @@
                       .s1 :f64
                         __self_0 :__genstate_upto!
                     value:
-                      add :f64
+                      add_checked :f64
                         l:
                           .s1 :f64
                             __self_0 :__genstate_upto!

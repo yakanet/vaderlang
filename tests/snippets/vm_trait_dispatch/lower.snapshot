@@ -75,27 +75,27 @@
         arg0:
           cc :Cat | Wrapper<i32>
     return
-      add :i32
+      add_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
-              add :i32
+              add_checked :i32
                 l:
                   dog_result :i32
                 r:
-                  mul :i32
+                  mul_checked :i32
                     l:
                       cat_result :i32
                     r:
                       int(2) :i32
             r:
-              mul :i32
+              mul_checked :i32
                 l:
                   wrap_result :i32
                 r:
                   int(4) :i32
         r:
-          mul :i32
+          mul_checked :i32
             l:
               cat_wrap_result :i32
             r:

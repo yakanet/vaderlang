@@ -171,7 +171,7 @@
     return int(0) :i32
   fn __lambda_snippet_0(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:

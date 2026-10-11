@@ -193,9 +193,9 @@ reg_call :: fn(
                 bits[to] = bits[from]
                 tags[to] = tags[from]
             }
-            .AddI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) + i32_of(bits, base, operand_c(w))) }
-            .SubI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) - i32_of(bits, base, operand_c(w))) }
-            .MulI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) * i32_of(bits, base, operand_c(w))) }
+            .AddI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) +% i32_of(bits, base, operand_c(w))) }
+            .SubI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) -% i32_of(bits, base, operand_c(w))) }
+            .MulI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w)) *% i32_of(bits, base, operand_c(w))) }
             .DivI32 -> {
                 d :: i32_of(bits, base, operand_c(w))
                 if d == 0 {
@@ -219,7 +219,7 @@ reg_call :: fn(
                 lhs :: u32(i32_of(bits, base, operand_b(w)))
                 set_i32(bits, tags, base, operand_a(w), i32(lhs >> u32(i32_of(bits, base, operand_c(w)))))
             }
-            .NegI32 -> { set_i32(bits, tags, base, operand_a(w), -i32_of(bits, base, operand_b(w))) }
+            .NegI32 -> { set_i32(bits, tags, base, operand_a(w), 0 -% i32_of(bits, base, operand_b(w))) }
             .NotI32 -> { set_i32(bits, tags, base, operand_a(w), ~i32_of(bits, base, operand_b(w))) }
             .DivU32 -> {
                 d :: i32_of(bits, base, operand_c(w))
@@ -245,9 +245,9 @@ reg_call :: fn(
             .LeU32 -> { set_bool(bits, tags, base, operand_a(w), u32_of(bits, base, operand_b(w)) <= u32_of(bits, base, operand_c(w))) }
             .GtU32 -> { set_bool(bits, tags, base, operand_a(w), u32_of(bits, base, operand_b(w)) > u32_of(bits, base, operand_c(w))) }
             .GeU32 -> { set_bool(bits, tags, base, operand_a(w), u32_of(bits, base, operand_b(w)) >= u32_of(bits, base, operand_c(w))) }
-            .AddI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) + bits_of(bits, base, operand_c(w))) }
-            .SubI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) - bits_of(bits, base, operand_c(w))) }
-            .MulI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) * bits_of(bits, base, operand_c(w))) }
+            .AddI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) +% bits_of(bits, base, operand_c(w))) }
+            .SubI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) -% bits_of(bits, base, operand_c(w))) }
+            .MulI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) *% bits_of(bits, base, operand_c(w))) }
             .DivI64 -> {
                 d :: bits_of(bits, base, operand_c(w))
                 if d == 0 {
@@ -270,7 +270,7 @@ reg_call :: fn(
             .ShrUI64 -> {
                 set_i64(bits, tags, base, operand_a(w), i64(u64(bits_of(bits, base, operand_b(w))) >> u64(bits_of(bits, base, operand_c(w)))))
             }
-            .NegI64 -> { set_i64(bits, tags, base, operand_a(w), -bits_of(bits, base, operand_b(w))) }
+            .NegI64 -> { set_i64(bits, tags, base, operand_a(w), 0 -% bits_of(bits, base, operand_b(w))) }
             .NotI64 -> { set_i64(bits, tags, base, operand_a(w), ~bits_of(bits, base, operand_b(w))) }
             .DivU64 -> {
                 d :: bits_of(bits, base, operand_c(w))
@@ -312,6 +312,70 @@ reg_call :: fn(
             .AndBool -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) != 0 && bits_of(bits, base, operand_c(w)) != 0) }
             .OrBool  -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) != 0 || bits_of(bits, base, operand_c(w)) != 0) }
             .NotBool -> { set_bool(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w)) == 0) }
+            .AddCheckedI32 -> {
+                sum :: checked_registers(.Add, .I32, bits, base, w) ?? return checked_trap(f.kinds[pc], .Add, f, pc)
+                set_i32(bits, tags, base, operand_a(w), i32(sum))
+            }
+            .SubCheckedI32 -> {
+                difference :: checked_registers(.Sub, .I32, bits, base, w) ?? return checked_trap(f.kinds[pc], .Sub, f, pc)
+                set_i32(bits, tags, base, operand_a(w), i32(difference))
+            }
+            .MulCheckedI32 -> {
+                product :: checked_registers(.Mul, .I32, bits, base, w) ?? return checked_trap(f.kinds[pc], .Mul, f, pc)
+                set_i32(bits, tags, base, operand_a(w), i32(product))
+            }
+            .NegCheckedI32 -> {
+                negated :: bc.checked_neg(.I32, bits_of(bits, base, operand_b(w))) ?? return checked_neg_trap(f.kinds[pc], f, pc)
+                set_i32(bits, tags, base, operand_a(w), i32(negated))
+            }
+            .AddCheckedI64 -> {
+                sum :: checked_registers(.Add, .I64, bits, base, w) ?? return checked_trap(f.kinds[pc], .Add, f, pc)
+                set_i64(bits, tags, base, operand_a(w), sum)
+            }
+            .SubCheckedI64 -> {
+                difference :: checked_registers(.Sub, .I64, bits, base, w) ?? return checked_trap(f.kinds[pc], .Sub, f, pc)
+                set_i64(bits, tags, base, operand_a(w), difference)
+            }
+            .MulCheckedI64 -> {
+                product :: checked_registers(.Mul, .I64, bits, base, w) ?? return checked_trap(f.kinds[pc], .Mul, f, pc)
+                set_i64(bits, tags, base, operand_a(w), product)
+            }
+            .NegCheckedI64 -> {
+                negated :: bc.checked_neg(.I64, bits_of(bits, base, operand_b(w))) ?? return checked_neg_trap(f.kinds[pc], f, pc)
+                set_i64(bits, tags, base, operand_a(w), negated)
+            }
+            .AddCheckedU64 -> {
+                sum :: checked_registers(.Add, .U64, bits, base, w) ?? return checked_trap(f.kinds[pc], .Add, f, pc)
+                set_i64(bits, tags, base, operand_a(w), sum)
+            }
+            .SubCheckedU64 -> {
+                difference :: checked_registers(.Sub, .U64, bits, base, w) ?? return checked_trap(f.kinds[pc], .Sub, f, pc)
+                set_i64(bits, tags, base, operand_a(w), difference)
+            }
+            .MulCheckedU64 -> {
+                product :: checked_registers(.Mul, .U64, bits, base, w) ?? return checked_trap(f.kinds[pc], .Mul, f, pc)
+                set_i64(bits, tags, base, operand_a(w), product)
+            }
+            .AddChecked -> {
+                kind :: f.kinds[pc]
+                sum :: checked_registers(.Add, kind, bits, base, w) ?? return checked_trap(kind, .Add, f, pc)
+                set_integer(bits, tags, base, operand_a(w), kind, sum)
+            }
+            .SubChecked -> {
+                kind :: f.kinds[pc]
+                difference :: checked_registers(.Sub, kind, bits, base, w) ?? return checked_trap(kind, .Sub, f, pc)
+                set_integer(bits, tags, base, operand_a(w), kind, difference)
+            }
+            .MulChecked -> {
+                kind :: f.kinds[pc]
+                product :: checked_registers(.Mul, kind, bits, base, w) ?? return checked_trap(kind, .Mul, f, pc)
+                set_integer(bits, tags, base, operand_a(w), kind, product)
+            }
+            .NegChecked -> {
+                kind :: f.kinds[pc]
+                negated :: bc.checked_neg(kind, bits_of(bits, base, operand_b(w))) ?? return checked_neg_trap(kind, f, pc)
+                set_integer(bits, tags, base, operand_a(w), kind, negated)
+            }
             .ToI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w))) }
             .ToI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w))) }
             .ToI64U -> {
@@ -1104,6 +1168,20 @@ finish_run :: fn(m: RegMachine, has_value: bool, capture: Value[] | null) -> VmR
 
 bits_of :: fn(bits: i64[], base: usize, register: i32) = bits[base + usize(register)]
 
+// `op` on r[b] and r[c] read as the integer class `kind` (`checked_arith`).
+checked_registers :: fn(op: bc.CheckedOp, kind: bc.ValType, bits: i64[], base: usize, w: i64) -> i64 | null =
+    bc.checked_arith(op, kind, bits_of(bits, base, operand_b(w)), bits_of(bits, base, operand_c(w)))
+
+// The trap of a checked `op` on a `kind` at `pc`.
+checked_trap :: fn(kind: bc.ValType, op: bc.CheckedOp, f: RegFunction, pc: usize) = Trap {
+    .message = "${bc.checked_overflow_message(kind, op)} at pc=${f.origin[pc]}",
+}
+
+// The trap of a checked negation on a `kind` at `pc`.
+checked_neg_trap :: fn(kind: bc.ValType, f: RegFunction, pc: usize) = Trap {
+    .message = "${bc.checked_neg_message(kind)} at pc=${f.origin[pc]}",
+}
+
 i32_of :: fn(bits: i64[], base: usize, register: i32) = i32(bits[base + usize(register)])
 
 u64_of :: fn(bits: i64[], base: usize, register: i32) = u64(bits[base + usize(register)])
@@ -1122,6 +1200,15 @@ set_i64 :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: i64)
     at :: base + usize(register)
     bits[at] = v
     tags[at] = .I64
+}
+
+// r[register] <- `v`, the result of a checked op on a `kind`, under that kind's tag.
+set_integer :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, kind: bc.ValType, v: i64) -> void {
+    if bc.is_64_bit_int_val(kind) {
+        set_i64(bits, tags, base, register, v)
+    } else {
+        set_i32(bits, tags, base, register, i32(v))
+    }
 }
 
 set_f64 :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: f64) -> void {

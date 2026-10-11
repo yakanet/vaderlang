@@ -17,9 +17,9 @@
       value:
         int(99) :i32
     return
-      add :i32
+      add_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
               index :i32
                 on:

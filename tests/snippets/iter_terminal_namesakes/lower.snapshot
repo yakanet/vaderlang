@@ -3,8 +3,7 @@
 ## snippet
   fn snippet$find(it: Iterator<i32>, pred: fn(i32) -> bool) -> i32
     ~>
-      neg :i32
-        int(1) :i32
+      int(-1) :i32
   fn snippet$any_match(it: Iterator<i32>, pred: fn(i32) -> bool) -> bool
     ~>
       false
@@ -256,14 +255,14 @@
     return int(0) :i32
   fn __lambda_snippet_0(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
           int(2) :i32
   fn __lambda_snippet_1(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
@@ -277,7 +276,7 @@
           int(2) :i32
   fn __lambda_snippet_3(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
@@ -291,14 +290,14 @@
           int(2) :i32
   fn __lambda_snippet_5(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
           int(2) :i32
   fn __lambda_snippet_6(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
@@ -312,28 +311,28 @@
           int(0) :i32
   fn __lambda_snippet_8(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
           int(2) :i32
   fn __lambda_snippet_9(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
           int(2) :i32
   fn __lambda_snippet_10(x: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           x :i32
         r:
           int(1) :i32
   fn __lambda_snippet_11(x: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           x :i32
         r:

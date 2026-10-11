@@ -91,18 +91,24 @@ const vader_type_info_t vader_type_info_table[9] = {
 const size_t vader_type_info_count = 9;
 
 static int32_t snippet_i_add(int32_t l0, int32_t l1) {
+    int32_t t0;
 #line 8 "tests/snippets/scalar_arith/_main.vader"
-    return (l0 + l1);
+    t0 = vader_chk_add(i32, l0, l1);
+    return t0;
 }
 
 static int32_t snippet_i_sub(int32_t l0, int32_t l1) {
+    int32_t t0;
 #line 9 "tests/snippets/scalar_arith/_main.vader"
-    return (l0 - l1);
+    t0 = vader_chk_sub(i32, l0, l1);
+    return t0;
 }
 
 static int32_t snippet_i_mul(int32_t l0, int32_t l1) {
+    int32_t t0;
 #line 10 "tests/snippets/scalar_arith/_main.vader"
-    return (l0 * l1);
+    t0 = vader_chk_mul(i32, l0, l1);
+    return t0;
 }
 
 static int32_t snippet_i_band(int32_t l0, int32_t l1) {
@@ -131,8 +137,10 @@ static int32_t snippet_i_shr(int32_t l0, int32_t l1) {
 }
 
 static int32_t snippet_i_neg(int32_t l0) {
+    int32_t t0;
 #line 16 "tests/snippets/scalar_arith/_main.vader"
-    return -(l0);
+    t0 = vader_chk_neg(i32, l0);
+    return t0;
 }
 
 static int32_t snippet_i_bnot(int32_t l0) {
@@ -201,8 +209,10 @@ static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
 }
 
 static int32_t std_core_i32_Step_step(int32_t l0) {
+    int32_t t0;
 #line 338 "lib/std/core/primitives.vader"
-    return (l0 + INT32_C(1));
+    t0 = vader_chk_add(i32, l0, INT32_C(1));
+    return t0;
 }
 
 static void* std_core_Range_Iterator_next__i32(void* l0) {
@@ -284,8 +294,10 @@ static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1) {
 }
 
 static size_t std_core_usize_Step_step(size_t l0) {
+    int64_t t0;
 #line 345 "lib/std/core/primitives.vader"
-    return (size_t) (int64_t) (l0 + INT64_C(1));
+    t0 = vader_chk_add(usize, l0, INT64_C(1));
+    return (size_t) (int64_t) t0;
 }
 
 static void* std_core_Range_Iterator_next__usize(void* l0) {
@@ -340,7 +352,7 @@ static int32_t std_core_three_way(bool l0, bool l1) {
     int32_t l2;
 #line 312 "lib/std/core/primitives.vader"
     if (l0) {
-        l2 = -(INT32_C(1));
+        l2 = INT32_C(-1);
         return l2;
     }
     if (l1) {

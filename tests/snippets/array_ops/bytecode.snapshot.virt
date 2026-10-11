@@ -29,7 +29,7 @@ fn 0 snippet$main () -> i32
   local.set 2   ; $idx_11
   local.get 1   ; $idx_9
   local.get 2   ; $idx_11
-  i32.add
+  i32.checked_add
   local.set 1   ; $idx_9
   local.get 0   ; xs
   i32.const 3
@@ -37,7 +37,7 @@ fn 0 snippet$main () -> i32
   local.set 2   ; $idx_11
   local.get 1   ; $idx_9
   local.get 2   ; $idx_11
-  i32.add
+  i32.checked_add
   local.set 1   ; $idx_9
   local.get 0   ; xs
   array.len
@@ -45,6 +45,6 @@ fn 0 snippet$main () -> i32
   local.set 2   ; $idx_11
   local.get 1   ; $idx_9
   local.get 2   ; $idx_11
-  i32.add
+  i32.checked_add
   return
 end

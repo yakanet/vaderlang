@@ -41,7 +41,7 @@
             target:
               first :i32
             value:
-              add :i32
+              add_checked :i32
                 l:
                   first :i32
                 r:
@@ -80,7 +80,7 @@
             target:
               first :i32
             value:
-              add :i32
+              add_checked :i32
                 l:
                   first :i32
                 r:
@@ -184,7 +184,7 @@
             target:
               second :i32
             value:
-              add :i32
+              add_checked :i32
                 l:
                   second :i32
                 r:
@@ -223,7 +223,7 @@
             target:
               second :i32
             value:
-              add :i32
+              add_checked :i32
                 l:
                   second :i32
                 r:
@@ -327,7 +327,7 @@
             target:
               labelled :i32
             value:
-              add :i32
+              add_checked :i32
                 l:
                   labelled :i32
                 r:
@@ -366,7 +366,7 @@
             target:
               labelled :i32
             value:
-              add :i32
+              add_checked :i32
                 l:
                   labelled :i32
                 r:
@@ -477,7 +477,7 @@
           target:
             kept :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 kept :i32
               r:
@@ -524,7 +524,7 @@
           target:
             kept :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 kept :i32
               r:
@@ -618,7 +618,7 @@
           target:
             whole :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 whole :i32
               r:
@@ -648,7 +648,7 @@
           target:
             whole :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 whole :i32
               r:
@@ -756,7 +756,7 @@
           target:
             mapped :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 mapped :i32
               r:
@@ -871,7 +871,7 @@
               target:
                 nested :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     nested :i32
                   r:
@@ -932,7 +932,7 @@
               target:
                 nested :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     nested :i32
                   r:
@@ -1020,7 +1020,7 @@
     return int(0) :i32
   fn __lambda_snippet_0(v: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           v :i32
         r:

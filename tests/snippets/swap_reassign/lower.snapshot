@@ -95,7 +95,7 @@
       let i: i32 = int(0) :i32
       loop while (<…>)
         let c: i32 =
-          add :i32
+          add_checked :i32
             l:
               f0 :i32
             r:
@@ -320,7 +320,7 @@
       let i: i32 = int(0) :i32
       loop while (<…>)
         let g: u64 =
-          add :u64
+          add_checked :u64
             l:
               g0 :u64
             r:

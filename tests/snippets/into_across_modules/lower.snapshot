@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$take(x: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           x :i32
         r:

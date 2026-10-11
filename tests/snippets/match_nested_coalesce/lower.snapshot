@@ -156,15 +156,14 @@
                                   int(29) :i32
                         then:
                           ~>
-                            sub :i32
+                            sub_checked :i32
                               l:
                                 n :i32
                               r:
                                 int(20) :i32
                         else:
                           ~>
-                            neg :i32
-                              int(1) :i32
+                            int(-1) :i32
   fn snippet$sign(n: i32) -> i32
     ~>
       block :i32
@@ -201,14 +200,13 @@
                             int(0) :i32
                   then:
                     ~>
-                      neg :i32
-                        int(1) :i32
+                      int(-1) :i32
                   else:
                     ~>
                       int(0) :i32
   fn snippet$main() -> i32
     let total: i32 =
-      mul :i32
+      mul_checked :i32
         l:
           call :i32
             callee:
@@ -221,11 +219,11 @@
       target:
         total :i32
       value:
-        add :i32
+        add_checked :i32
           l:
             total :i32
           r:
-            mul :i32
+            mul_checked :i32
               l:
                 call :i32
                   callee:
@@ -238,11 +236,11 @@
       target:
         total :i32
       value:
-        add :i32
+        add_checked :i32
           l:
             total :i32
           r:
-            mul :i32
+            mul_checked :i32
               l:
                 call :i32
                   callee:
@@ -255,11 +253,11 @@
       target:
         total :i32
       value:
-        add :i32
+        add_checked :i32
           l:
             total :i32
           r:
-            mul :i32
+            mul_checked :i32
               l:
                 call :i32
                   callee:
@@ -272,11 +270,11 @@
       target:
         total :i32
       value:
-        add :i32
+        add_checked :i32
           l:
             total :i32
           r:
-            mul :i32
+            mul_checked :i32
               l:
                 call :i32
                   callee:
@@ -289,11 +287,11 @@
       target:
         total :i32
       value:
-        add :i32
+        add_checked :i32
           l:
             total :i32
           r:
-            mul :i32
+            mul_checked :i32
               l:
                 call :i32
                   callee:
@@ -306,11 +304,11 @@
       target:
         total :i32
       value:
-        add :i32
+        add_checked :i32
           l:
             total :i32
           r:
-            mul :i32
+            mul_checked :i32
               l:
                 call :i32
                   callee:
@@ -323,11 +321,11 @@
       target:
         total :i32
       value:
-        add :i32
+        add_checked :i32
           l:
             total :i32
           r:
-            mul :i32
+            mul_checked :i32
               l:
                 call :i32
                   callee:
@@ -340,13 +338,13 @@
       target:
         total :i32
       value:
-        add :i32
+        add_checked :i32
           l:
             total :i32
           r:
-            add :i32
+            add_checked :i32
               l:
-                add :i32
+                add_checked :i32
                   l:
                     call :i32
                       callee:
@@ -358,8 +356,7 @@
                       callee:
                         sign :fn(i32) -> i32
                       arg0:
-                        neg :i32
-                          int(8) :i32
+                        int(-8) :i32
               r:
                 call :i32
                   callee:

@@ -3,7 +3,7 @@
 ## main
   fn main$double(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
@@ -24,7 +24,7 @@
           target:
             total :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 total :i32
               r:

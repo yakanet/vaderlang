@@ -12,7 +12,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; $call_1
   local.get 0   ; $call_0
   local.get 1   ; $call_1
-  i32.add
+  i32.checked_add
   return
 end
 

@@ -451,8 +451,7 @@
           ix:
             int(0) :i32
       value:
-        neg :i32
-          int(2) :i32
+        int(-2) :i32
     call :void
       callee:
         std_io$println__string :void

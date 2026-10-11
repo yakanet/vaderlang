@@ -35,7 +35,7 @@
           callee:
             fourth :fn() -> string
     return
-      sub :i32
+      sub_checked :i32
         l:
           call :i32
             callee:
@@ -46,7 +46,7 @@
           int(6) :i32
   fn snippet$tidy(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:

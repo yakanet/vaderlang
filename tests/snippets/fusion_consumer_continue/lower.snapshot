@@ -99,7 +99,7 @@
           target:
             i :usize
           value:
-            add :usize
+            add_checked :usize
               l:
                 i :usize
               r:
@@ -271,7 +271,7 @@
               target:
                 fused :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     fused :i32
                   r:
@@ -289,7 +289,7 @@
             target:
               i :usize
             value:
-              add :usize
+              add_checked :usize
                 l:
                   i :usize
                 r:
@@ -356,7 +356,7 @@
               target:
                 lazy :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     lazy :i32
                   r:
@@ -522,7 +522,7 @@
                           arg1:
                             __off_1 :usize
           let v: i32 =
-            add :i32
+            add_checked :i32
               l:
                 i :i32
               r:
@@ -1194,7 +1194,7 @@
                   target:
                     fused :i32
                   value:
-                    add :i32
+                    add_checked :i32
                       l:
                         fused :i32
                       r:
@@ -1214,7 +1214,7 @@
             target:
               i :usize
             value:
-              add :usize
+              add_checked :usize
                 l:
                   i :usize
                 r:
@@ -1296,7 +1296,7 @@
                   target:
                     lazy :i32
                   value:
-                    add :i32
+                    add_checked :i32
                       l:
                         lazy :i32
                       r:
@@ -1443,7 +1443,7 @@
                 target:
                   fused :i32
                 value:
-                  add :i32
+                  add_checked :i32
                     l:
                       fused :i32
                     r:
@@ -1453,7 +1453,7 @@
               target:
                 i :usize
               value:
-                add :usize
+                add_checked :usize
                   l:
                     i :usize
                   r:
@@ -1509,7 +1509,7 @@
               target:
                 lazy :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     lazy :i32
                   r:
@@ -1593,14 +1593,14 @@
   fn snippet$spread(x: i32) -> i32[]
     ~>
       array :i32[]
-        mul :i32
+        mul_checked :i32
           l:
             int(10) :i32
           r:
             x :i32
-        add :i32
+        add_checked :i32
           l:
-            mul :i32
+            mul_checked :i32
               l:
                 int(10) :i32
               r:
@@ -1722,7 +1722,7 @@
             target:
               i :usize
             value:
-              add :usize
+              add_checked :usize
                 l:
                   i :usize
                 r:
@@ -2016,7 +2016,7 @@
           target:
             i :usize
           value:
-            add :usize
+            add_checked :usize
               l:
                 i :usize
               r:
@@ -2240,7 +2240,7 @@
                 target:
                   fused :i32
                 value:
-                  add :i32
+                  add_checked :i32
                     l:
                       fused :i32
                     r:
@@ -2314,7 +2314,7 @@
               target:
                 lazy :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     lazy :i32
                   r:
@@ -2429,7 +2429,7 @@
           target:
             fused :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 fused :i32
               r:
@@ -2468,7 +2468,7 @@
           target:
             fused :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 fused :i32
               r:
@@ -2538,7 +2538,7 @@
               target:
                 lazy :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     lazy :i32
                   r:
@@ -2677,11 +2677,11 @@
                 target:
                   fused :i32
                 value:
-                  add :i32
+                  add_checked :i32
                     l:
                       fused :i32
                     r:
-                      mul :i32
+                      mul_checked :i32
                         l:
                           x :i32
                         r:
@@ -2754,11 +2754,11 @@
                 target:
                   fused :i32
                 value:
-                  add :i32
+                  add_checked :i32
                     l:
                       fused :i32
                     r:
-                      mul :i32
+                      mul_checked :i32
                         l:
                           x :i32
                         r:
@@ -2861,11 +2861,11 @@
                   target:
                     lazy :i32
                   value:
-                    add :i32
+                    add_checked :i32
                       l:
                         lazy :i32
                       r:
-                        mul :i32
+                        mul_checked :i32
                           l:
                             x :i32
                           r:
@@ -3114,7 +3114,7 @@
                           return
                             [i32, Continuation]! {
                               _0:
-                                add :i32
+                                add_checked :i32
                                   l:
                                     .s0 :i32
                                       __self_0 :__genstate_twice_per_round!
@@ -3677,7 +3677,7 @@
                               .s3 :usize
                                 __self_6 :__asyncstate_snippet_0!
                             value:
-                              add :usize
+                              add_checked :usize
                                 l:
                                   .s3 :usize
                                     __self_6 :__asyncstate_snippet_0!
@@ -3715,7 +3715,7 @@
                                   .s1 :i32
                                     __self_6 :__asyncstate_snippet_0!
                                 value:
-                                  add :i32
+                                  add_checked :i32
                                     l:
                                       .s1 :i32
                                         __self_6 :__asyncstate_snippet_0!
@@ -4150,7 +4150,7 @@
                                           .s1 :i32
                                             __self_5 :__asyncstate_snippet_1!
                                         value:
-                                          add :i32
+                                          add_checked :i32
                                             l:
                                               .s1 :i32
                                                 __self_5 :__asyncstate_snippet_1!

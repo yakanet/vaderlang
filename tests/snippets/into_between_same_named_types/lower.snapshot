@@ -108,7 +108,7 @@
     ~>
       Length! {
         metres:
-          add :i32
+          add_checked :i32
             l:
               .feet :i32
                 self :Length

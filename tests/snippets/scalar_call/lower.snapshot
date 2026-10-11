@@ -3,14 +3,14 @@
 ## snippet
   fn snippet$add(a: i32, b: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           a :i32
         r:
           b :i32
   fn snippet$square(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:

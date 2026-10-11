@@ -79,9 +79,11 @@ static int32_t snippet_main(void) {
 
 static int32_t __lambda_snippet_0(void* l0, int32_t l1) {
     int32_t l2;
+    int32_t t0;
 #line 10 "tests/snippets/closure_callback/_main.vader"
     l2 = ((vader_struct___lambda_env_snippet_1_t*) l0)->f_cap_0;
-    return (l1 + l2);
+    t0 = vader_chk_add(i32, l1, l2);
+    return t0;
 }
 
 int main(int argc, char** argv) {

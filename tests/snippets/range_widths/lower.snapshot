@@ -11,7 +11,7 @@
           target:
             su :u64
           value:
-            add :u64
+            add_checked :u64
               l:
                 su :u64
               r:
@@ -81,7 +81,7 @@
           target:
             si :i64
           value:
-            add :i64
+            add_checked :i64
               l:
                 si :i64
               r:
@@ -151,7 +151,7 @@
           target:
             sis :isize
           value:
-            add :isize
+            add_checked :isize
               l:
                 sis :isize
               r:
@@ -224,7 +224,7 @@
           target:
             sb :u32
           value:
-            add :u32
+            add_checked :u32
               l:
                 sb :u32
               r:
@@ -300,7 +300,7 @@
           target:
             sh :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 sh :i32
               r:

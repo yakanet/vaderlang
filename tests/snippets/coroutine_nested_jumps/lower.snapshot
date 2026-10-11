@@ -1183,8 +1183,7 @@
                                           .s3 :i32
                                             __self_0 :__genstate_first_odd_above!
                                         value:
-                                          neg :{integer}
-                                            int(1) :i32
+                                          int(-1) :i32
                                       block :void
                                         assign
                                           target:
@@ -1270,8 +1269,7 @@
                                           __self_0 :__genstate_first_odd_above!
                                     else:
                                       ~>
-                                        neg :{integer}
-                                          int(1) :i32
+                                        int(-1) :i32
                               assign
                                 target:
                                   .state :i32
@@ -1409,7 +1407,7 @@
                               .s1 :i32
                                 __self_2 :__asyncstate_snippet_0!
                             value:
-                              add :i32
+                              add_checked :i32
                                 l:
                                   .s1 :i32
                                     __self_2 :__asyncstate_snippet_0!
@@ -1635,9 +1633,7 @@
                     __self_5 :__asyncstate_snippet_1!
                 value:
                   int(-1) :i32
-              return
-                neg :i32
-                  int(1) :i32
+              return int(-1) :i32
             else:
               if :void
                 cond:

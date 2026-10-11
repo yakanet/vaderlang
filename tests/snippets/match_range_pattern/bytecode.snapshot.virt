@@ -114,70 +114,70 @@ end
 
 fn 2 snippet$main () -> i32
   local $call_1 i32
-  local $mul_5 i32
-  local $mul_23 i32
+  local $mul_checked_5 i32
+  local $mul_checked_23 i32
   char.const 53
   call 0   ; snippet$classify
   local.set 0   ; $call_1
   char.const 113
   call 0   ; snippet$classify
   i32.const 10
-  i32.mul
-  local.set 1   ; $mul_5
+  i32.checked_mul
+  local.set 1   ; $mul_checked_5
   local.get 0   ; $call_1
-  local.get 1   ; $mul_5
-  i32.add
+  local.get 1   ; $mul_checked_5
+  i32.checked_add
   local.set 0   ; $call_1
   char.const 81
   call 0   ; snippet$classify
   i32.const 100
-  i32.mul
-  local.set 1   ; $mul_5
+  i32.checked_mul
+  local.set 1   ; $mul_checked_5
   local.get 0   ; $call_1
-  local.get 1   ; $mul_5
-  i32.add
+  local.get 1   ; $mul_checked_5
+  i32.checked_add
   local.set 0   ; $call_1
   char.const 43
   call 0   ; snippet$classify
   i32.const 1000
-  i32.mul
-  local.set 1   ; $mul_5
+  i32.checked_mul
+  local.set 1   ; $mul_checked_5
   local.get 0   ; $call_1
-  local.get 1   ; $mul_5
-  i32.add
+  local.get 1   ; $mul_checked_5
+  i32.checked_add
   local.set 0   ; $call_1
   i32.const 9
   call 1   ; snippet$bucket
-  local.set 1   ; $mul_5
+  local.set 1   ; $mul_checked_5
   i32.const 10
   call 1   ; snippet$bucket
   i32.const 10
-  i32.mul
-  local.set 2   ; $mul_23
-  local.get 1   ; $mul_5
-  local.get 2   ; $mul_23
-  i32.add
-  local.set 1   ; $mul_5
+  i32.checked_mul
+  local.set 2   ; $mul_checked_23
+  local.get 1   ; $mul_checked_5
+  local.get 2   ; $mul_checked_23
+  i32.checked_add
+  local.set 1   ; $mul_checked_5
   i32.const 99
   call 1   ; snippet$bucket
   i32.const 100
-  i32.mul
-  local.set 2   ; $mul_23
-  local.get 1   ; $mul_5
-  local.get 2   ; $mul_23
-  i32.add
-  local.set 1   ; $mul_5
+  i32.checked_mul
+  local.set 2   ; $mul_checked_23
+  local.get 1   ; $mul_checked_5
+  local.get 2   ; $mul_checked_23
+  i32.checked_add
+  local.set 1   ; $mul_checked_5
   i32.const 100
   call 1   ; snippet$bucket
   i32.const 1000
-  i32.mul
-  local.set 2   ; $mul_23
-  local.get 1   ; $mul_5
-  local.get 2   ; $mul_23
-  i32.add
-  local.set 1   ; $mul_5
+  i32.checked_mul
+  local.set 2   ; $mul_checked_23
+  local.get 1   ; $mul_checked_5
+  local.get 2   ; $mul_checked_23
+  i32.checked_add
+  local.set 1   ; $mul_checked_5
   local.get 0   ; $call_1
-  local.get 1   ; $mul_5
-  i32.add
+  local.get 1   ; $mul_checked_5
+  i32.checked_add
   return
 end

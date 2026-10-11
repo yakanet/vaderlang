@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$square(x: i32) -> i64
     ~>
-      mul :i64
+      mul_checked :i64
         l:
           cast → i64
             x :i32
@@ -305,13 +305,13 @@
               r:
                 int(1) :usize
     return
-      add :i64
+      add_checked :i64
         l:
           index :i64
             on:
               squares :i64[]!
             ix:
-              sub :usize
+              sub_checked :usize
                 l:
                   LoweredArrayLen
                 r:

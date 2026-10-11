@@ -95,10 +95,12 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 
 static int32_t snippet_Rgb_Comparable_compare(void* l0, void* l1) {
     int32_t l2, l3;
+    int32_t t0;
 #line 15 "tests/snippets/distinct_orders_as_backing/_main.vader"
     l2 = ((vader_struct_snippet_Rgb_t*) l0)->f_r;
     l3 = ((vader_struct_snippet_Rgb_t*) l1)->f_r;
-    return (l2 - l3);
+    t0 = vader_chk_sub(i32, l2, l3);
+    return t0;
 }
 
 static int32_t snippet_main(void) {
@@ -213,11 +215,13 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
+    int64_t t0;
 #line 121 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
 #line 122 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
-    return (size_t) (int64_t) (l1 + l3);
+    t0 = vader_chk_add(usize, l1, l3);
+    return (size_t) (int64_t) t0;
 }
 
 static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
@@ -270,7 +274,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 217 "lib/std/io/io.vader"
             t0 = ((int64_t) (int32_t) l8);
             l9 = (size_t) (int64_t) t0;
-            t0 = (l3 + l9);
+            t0 = vader_chk_add(usize, l3, l9);
             l3 = (size_t) (int64_t) t0;
 #line 208 "lib/std/io/io.vader"
             continue;

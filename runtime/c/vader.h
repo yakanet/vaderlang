@@ -751,6 +751,61 @@ static inline uint64_t vader_mod_u64(uint64_t a, uint64_t b) {
     return a % b;
 }
 
+/* Checked integer arithmetic. The C-emit backend routes every `+`, `-`, `*` and
+ * unary `-` the program wrote on an integer through these (`CheckedArith` /
+ * `CheckedNeg`), as `vader_chk_add(<type>, a, b)`, so a result that leaves its
+ * type stops the run with the VM's message (`vader/integer/integer.vader` is the
+ * reference). `--release` passes -DNDEBUG: they then wrap at the type's width, as
+ * `+%` does. Operands and result ride in the stack class: `int32_t` for a type up
+ * to 32 bits (a `u32` as its bits), `int64_t` beyond. The release forms must stay
+ * macros (docs/adr/0054). */
+#ifndef NDEBUG
+#define VADER_CHK(kind, ctype, carrier, verb, builtin)                              \
+    static inline carrier vader_chk_##verb##_##kind(carrier a, carrier b) {         \
+        ctype r;                                                                    \
+        if (builtin((ctype)a, (ctype)b, &r)) vader_trap(#kind "." #verb " overflow"); \
+        return (carrier)r;                                                          \
+    }
+#define VADER_CHK_ALL(kind, ctype, carrier)                                         \
+    VADER_CHK(kind, ctype, carrier, add, __builtin_add_overflow)                    \
+    VADER_CHK(kind, ctype, carrier, sub, __builtin_sub_overflow)                    \
+    VADER_CHK(kind, ctype, carrier, mul, __builtin_mul_overflow)                    \
+    static inline carrier vader_chk_neg_##kind(carrier a) {                         \
+        ctype r;                                                                    \
+        if (__builtin_sub_overflow((ctype)0, (ctype)a, &r)) vader_trap(#kind ".neg overflow"); \
+        return (carrier)r;                                                          \
+    }
+VADER_CHK_ALL(i8, int8_t, int32_t)
+VADER_CHK_ALL(u8, uint8_t, int32_t)
+VADER_CHK_ALL(i16, int16_t, int32_t)
+VADER_CHK_ALL(u16, uint16_t, int32_t)
+VADER_CHK_ALL(i32, int32_t, int32_t)
+VADER_CHK_ALL(u32, uint32_t, int32_t)
+VADER_CHK_ALL(i64, int64_t, int64_t)
+VADER_CHK_ALL(isize, int64_t, int64_t)
+VADER_CHK_ALL(u64, uint64_t, int64_t)
+VADER_CHK_ALL(usize, uint64_t, int64_t)
+#define vader_chk_add(kind, a, b) vader_chk_add_##kind(a, b)
+#define vader_chk_sub(kind, a, b) vader_chk_sub_##kind(a, b)
+#define vader_chk_mul(kind, a, b) vader_chk_mul_##kind(a, b)
+#define vader_chk_neg(kind, a)    vader_chk_neg_##kind(a)
+#else
+#define VADER_WRAP_i8(a, sym, b)    ((int32_t)(int8_t)((uint32_t)(a) sym (uint32_t)(b)))
+#define VADER_WRAP_u8(a, sym, b)    ((int32_t)(uint8_t)((uint32_t)(a) sym (uint32_t)(b)))
+#define VADER_WRAP_i16(a, sym, b)   ((int32_t)(int16_t)((uint32_t)(a) sym (uint32_t)(b)))
+#define VADER_WRAP_u16(a, sym, b)   ((int32_t)(uint16_t)((uint32_t)(a) sym (uint32_t)(b)))
+#define VADER_WRAP_i32(a, sym, b)   ((int32_t)((uint32_t)(a) sym (uint32_t)(b)))
+#define VADER_WRAP_u32(a, sym, b)   ((int32_t)((uint32_t)(a) sym (uint32_t)(b)))
+#define VADER_WRAP_i64(a, sym, b)   ((int64_t)((uint64_t)(a) sym (uint64_t)(b)))
+#define VADER_WRAP_isize(a, sym, b) ((int64_t)((uint64_t)(a) sym (uint64_t)(b)))
+#define VADER_WRAP_u64(a, sym, b)   ((int64_t)((uint64_t)(a) sym (uint64_t)(b)))
+#define VADER_WRAP_usize(a, sym, b) ((int64_t)((uint64_t)(a) sym (uint64_t)(b)))
+#define vader_chk_add(kind, a, b) VADER_WRAP_##kind(a, +, b)
+#define vader_chk_sub(kind, a, b) VADER_WRAP_##kind(a, -, b)
+#define vader_chk_mul(kind, a, b) VADER_WRAP_##kind(a, *, b)
+#define vader_chk_neg(kind, a)    VADER_WRAP_##kind(0, -, a)
+#endif
+
 /* `object_new(size)` : allocate a zeroed `size`-byte buffer. The size is a
  * runtime stack value, so the GC reads it back off `byte_count` rather than
  * the (static) type-info table. No in-flight GC reference to root — the size

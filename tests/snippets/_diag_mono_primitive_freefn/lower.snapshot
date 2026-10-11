@@ -29,7 +29,7 @@
         arg0:
           pts :Point![]!
     return
-      add :i32
+      add_checked :i32
         l:
           s :i32
         r:

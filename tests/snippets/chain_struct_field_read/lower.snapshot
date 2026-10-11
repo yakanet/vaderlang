@@ -946,7 +946,7 @@
           .name :string
             it :Rec
         value:
-          mul :i32
+          mul_checked :i32
             l:
               .value :i32
                 it :Rec

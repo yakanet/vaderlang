@@ -535,7 +535,7 @@
   struct __lambda_env_snippet_3 { cap_0: ? }
   fn __lambda_snippet_2(__env_0: __lambda_env_snippet_3!, x: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           x :i32
         r:

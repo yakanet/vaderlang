@@ -47,6 +47,7 @@ static void* snippet_make(int32_t l0, int32_t l1) {
 static int32_t snippet_main(void) {
     void* l0 = NULL;
     int32_t l1, l2;
+    int32_t t0;
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -55,7 +56,8 @@ static int32_t snippet_main(void) {
 #line 18 "tests/snippets/struct_heap/_main.vader"
     l1 = ((vader_struct_snippet_Point_t*) l0)->f_x;
     l2 = ((vader_struct_snippet_Point_t*) l0)->f_y;
-    { int32_t __vret = (l1 + l2); vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = vader_chk_add(i32, l1, l2);
+    { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 int main(int argc, char** argv) {

@@ -105,7 +105,7 @@
           target:
             total :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 total :i32
               r:
@@ -164,7 +164,7 @@
           target:
             total :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 total :i32
               r:
@@ -177,7 +177,7 @@
           target:
             i :usize
           value:
-            add :usize
+            add_checked :usize
               l:
                 i :usize
               r:
@@ -308,7 +308,7 @@
             target:
               total :i32
             value:
-              add :i32
+              add_checked :i32
                 l:
                   total :i32
                 r:
@@ -370,7 +370,7 @@
           target:
             total :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 total :i32
               r:
@@ -437,7 +437,7 @@
               target:
                 total :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     total :i32
                   r:
@@ -910,9 +910,9 @@
   struct __lambda_env_snippet_1 { cap_0: i32, cap_1: i32 }
   fn __lambda_snippet_0(__env_1: __lambda_env_snippet_1!) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
-          mul :i32
+          mul_checked :i32
             l:
               .cap_0 :i32
                 __env_1 :__lambda_env_snippet_1!
@@ -995,7 +995,7 @@
   struct __lambda_env_snippet_5 { cap_0: i32, cap_1: i32 }
   fn __lambda_snippet_4(__env_4: __lambda_env_snippet_5!) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           .cap_0 :i32
             __env_4 :__lambda_env_snippet_5!
@@ -1005,7 +1005,7 @@
   struct __lambda_env_snippet_7 { cap_0: i32, cap_1: usize }
   fn __lambda_snippet_6(__env_1: __lambda_env_snippet_7!) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           .cap_0 :i32
             __env_1 :__lambda_env_snippet_7!
@@ -1016,9 +1016,9 @@
   struct __lambda_env_snippet_9 { cap_0: i32, cap_1: i32[]! }
   fn __lambda_snippet_8(__env_2: __lambda_env_snippet_9!) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
-          mul :i32
+          mul_checked :i32
             l:
               .cap_0 :i32
                 __env_2 :__lambda_env_snippet_9!
@@ -1030,9 +1030,9 @@
   struct __lambda_env_snippet_11 { cap_0: ?, cap_1: i32 }
   fn __lambda_snippet_10(__env_1: __lambda_env_snippet_11!) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
-          mul :i32
+          mul_checked :i32
             l:
               LoweredCellGet
             r:
@@ -1048,7 +1048,7 @@
   struct __lambda_env_snippet_15 { cap_0: i32 }
   fn __lambda_snippet_14(__env_0: __lambda_env_snippet_15!, x: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           x :i32
         r:
@@ -1228,7 +1228,7 @@
   struct __lambda_env_snippet_17 { cap_0: i32 }
   fn __lambda_snippet_16(__env_0: __lambda_env_snippet_17!, x: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           x :i32
         r:
@@ -1237,7 +1237,7 @@
   struct __lambda_env_snippet_19 { cap_0: i32 }
   fn __lambda_snippet_18(__env_0: __lambda_env_snippet_19!, x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
@@ -1521,7 +1521,7 @@
   struct __lambda_env_snippet_21 { cap_0: i32 }
   fn __lambda_snippet_20(__env_0: __lambda_env_snippet_21!, x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:
@@ -1530,7 +1530,7 @@
   struct __lambda_env_snippet_23 { cap_0: i32, cap_1: usize }
   fn __lambda_snippet_22(__env_4: __lambda_env_snippet_23!) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           .cap_0 :i32
             __env_4 :__lambda_env_snippet_23!

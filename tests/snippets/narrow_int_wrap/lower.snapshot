@@ -11,7 +11,7 @@
   fn snippet$main(argv: string[]) -> i32
     let a: u8 =
       cast → u8
-        add :usize
+        add_checked :usize
           l:
             LoweredArrayLen
           r:
@@ -402,7 +402,7 @@
                 __off_13 :usize
     let s: i8 =
       cast → i8
-        add :usize
+        add_checked :usize
           l:
             LoweredArrayLen
           r:
@@ -496,12 +496,15 @@
                   __off_17 :usize
                 arg2:
                   cast → i64
-                    neg :i8
-                      add :i8
-                        l:
-                          s :i8
-                        r:
-                          int(1) :i8
+                    sub :i8
+                      l:
+                        int(0) :i8
+                      r:
+                        add :i8
+                          l:
+                            s :i8
+                          r:
+                            int(1) :i8
           ~>
             call :string
               callee:
@@ -558,12 +561,12 @@
                       l:
                         min :i8
                       r:
-                        cast → i8
-                          sub :usize
-                            l:
+                        sub_checked :i8
+                          l:
+                            cast → i8
                               LoweredArrayLen
-                            r:
-                              int(2) :usize
+                          r:
+                            int(2) :i8
           ~>
             call :string
               callee:
@@ -574,7 +577,7 @@
                 __off_19 :usize
     let h: u16 =
       cast → u16
-        add :usize
+        add_checked :usize
           l:
             LoweredArrayLen
           r:
@@ -631,7 +634,7 @@
               arg1:
                 __off_21 :usize
     let n: i32 =
-      add :i32
+      add_checked :i32
         l:
           cast → i32
             LoweredArrayLen
@@ -822,7 +825,7 @@
                 arg2:
                   cast → u64
                     cast → u16
-                      add :i32
+                      add_checked :i32
                         l:
                           n :i32
                         r:
@@ -874,7 +877,7 @@
                 arg2:
                   cast → i64
                     cast → i16
-                      add :i32
+                      add_checked :i32
                         l:
                           n :i32
                         r:
@@ -888,7 +891,7 @@
               arg1:
                 __off_31 :usize
     let wide: i64 =
-      add :i64
+      add_checked :i64
         l:
           cast → i64
             n :i32
@@ -1030,7 +1033,7 @@
                   cast → i64
                     cast → i8
                       cast → u8
-                        add :i32
+                        add_checked :i32
                           l:
                             n :i32
                           r:
@@ -1083,7 +1086,7 @@
                   cast → u64
                     cast → u16
                       cast → i8
-                        sub :i32
+                        sub_checked :i32
                           l:
                             n :i32
                           r:

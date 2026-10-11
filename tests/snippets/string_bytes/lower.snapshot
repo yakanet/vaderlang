@@ -31,7 +31,7 @@
           target:
             sum :u32
           value:
-            add :u32
+            add_checked :u32
               l:
                 sum :u32
               r:

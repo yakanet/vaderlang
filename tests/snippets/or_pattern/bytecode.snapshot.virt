@@ -140,21 +140,21 @@ fn 3 snippet$main () -> i32
   end $L1
   local.get 0   ; go
   local.get 1   ; stop
-  i32.add
+  i32.checked_add
   local.set 0   ; go
   i32.const 6
   call 1   ; snippet$points
   local.set 1   ; stop
   local.get 0   ; go
   local.get 1   ; stop
-  i32.add
+  i32.checked_add
   local.set 0   ; go
   i32.const 3
   call 1   ; snippet$points
   local.set 1   ; stop
   local.get 0   ; go
   local.get 1   ; stop
-  i32.add
+  i32.checked_add
   local.set 0   ; go
   bool.const true
   retag 2   ; bool
@@ -162,7 +162,7 @@ fn 3 snippet$main () -> i32
   local.set 1   ; stop
   local.get 0   ; go
   local.get 1   ; stop
-  i32.add
+  i32.checked_add
   local.set 0   ; go
   string.const 0   ; "x"
   retag 5   ; string
@@ -170,6 +170,6 @@ fn 3 snippet$main () -> i32
   local.set 1   ; stop
   local.get 0   ; go
   local.get 1   ; stop
-  i32.add
+  i32.checked_add
   return
 end

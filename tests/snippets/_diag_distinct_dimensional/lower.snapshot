@@ -4,7 +4,7 @@
   fn snippet$Instant$Sub$sub(self: Instant, other: Instant) -> Duration
     ~>
       cast → Duration
-        sub :i64
+        sub_checked :i64
           l:
             cast → i64
               self :Instant
@@ -14,7 +14,7 @@
   fn snippet$Duration$Add$add(self: Duration, other: Duration) -> Duration
     ~>
       cast → Duration
-        add :i64
+        add_checked :i64
           l:
             cast → i64
               self :Duration
@@ -36,9 +36,7 @@
           r:
             b :i64
       then:
-        return
-          neg :i32
-            int(1) :i32
+        return int(-1) :i32
     if :void
       cond:
         gt :bool
@@ -82,6 +80,4 @@
           cast → i32
             cast → i64
               d :Duration
-    return
-      neg :i32
-        int(1) :i32
+    return int(-1) :i32

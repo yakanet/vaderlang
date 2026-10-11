@@ -16,7 +16,7 @@
               b :A | B | C
           then:
             return
-              add :i32
+              add_checked :i32
                 l:
                   .x :i32
                     cast → A
@@ -31,7 +31,7 @@
               b :A | B | C
           then:
             return
-              add :i32
+              add_checked :i32
                 l:
                   .x :i32
                     cast → A
@@ -46,7 +46,7 @@
               b :A | B | C
           then:
             return
-              add :i32
+              add_checked :i32
                 l:
                   .x :i32
                     cast → A
@@ -66,7 +66,7 @@
               b :A | B | C
           then:
             return
-              add :i32
+              add_checked :i32
                 l:
                   .y :i32
                     cast → B
@@ -81,7 +81,7 @@
               b :A | B | C
           then:
             return
-              add :i32
+              add_checked :i32
                 l:
                   .y :i32
                     cast → B
@@ -99,9 +99,7 @@
           .z :i32
             cast → C
               b :A | B | C
-    return
-      neg :i32
-        int(1) :i32
+    return int(-1) :i32
   fn snippet$main() -> i32
     call :void
       callee:

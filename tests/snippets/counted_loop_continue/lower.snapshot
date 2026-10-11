@@ -5,7 +5,7 @@
     int(20) :i32
   fn snippet$inc(x: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           x :i32
         r:
@@ -41,7 +41,7 @@
           target:
             rounds :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 rounds :i32
               r:
@@ -168,7 +168,7 @@
             target:
               rounds :i32
             value:
-              add :i32
+              add_checked :i32
                 l:
                   rounds :i32
                 r:
@@ -272,7 +272,7 @@
           target:
             rounds :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 rounds :i32
               r:
@@ -295,7 +295,7 @@
           target:
             total :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 total :i32
               r:
@@ -404,7 +404,7 @@
           target:
             rounds :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 rounds :i32
               r:
@@ -519,7 +519,7 @@
           target:
             rounds :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 rounds :i32
               r:
@@ -620,7 +620,7 @@
               target:
                 rounds :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     rounds :i32
                   r:

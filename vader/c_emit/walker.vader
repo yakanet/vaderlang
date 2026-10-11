@@ -184,6 +184,7 @@ is_cache_safe :: fn(op: vm.Op) -> bool {
     if op is vm.NullConst | vm.StringConst | vm.DataConst | vm.TypeConst | vm.SizeOfType | vm.FnRef | vm.FnAddr                 { return true }
     if op is vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Neg                                             { return true }
     if op is vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg                                             { return true }
+    if op is vm.CheckedArith | vm.CheckedNeg                                                                                   { return true }
     if op is vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg                                                         { return true }
     if op is vm.U32Div | vm.U32Mod | vm.U64Div | vm.U64Mod                                                                     { return true }
     if op is vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32BitNot | vm.I32Shl | vm.I32Shr | vm.I32ShrU                     { return true }
@@ -225,7 +226,7 @@ op_may_collect :: fn(op: vm.Op, import_may_collect: bool[]) -> bool = match op {
     is vm.StructNew -> !op.stack
     is vm.CallImport -> import_may_collect[usize(op.index)]
     is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure | vm.CallIndirect | vm.VirtualCall | vm.FnAddr -> true
-    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Retag | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.StringCompare | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear -> false
+    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Retag | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.StringCompare | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear | vm.CheckedArith | vm.CheckedNeg -> false
 }
 
 /// One C function definition. Walks the bytecode body op by op into `s.root`,
@@ -583,6 +584,8 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.Unreachable           -> unreachable(s, op.reason)
         is vm.Convert               -> emit_convert(s, convert_target_val(op.target), op.from_name)
         is vm.SizeOfType            -> emit_size_of_type(s)
+        is vm.CheckedArith          -> emit_checked_arith(s, op)
+        is vm.CheckedNeg            -> emit_checked_neg(s, op)
         is vm.I32Add                -> push_binop(s, .Add, .I32)
         is vm.I32Sub                -> push_binop(s, .Subtract, .I32)
         is vm.I32Mul                -> push_binop(s, .Multiply, .I32)
@@ -874,6 +877,40 @@ push_eager :: fn(s: FnState, op: CBinaryOperator, val: ValType) -> void {
     } else {
         push_into_temporary(s, call(helper, [dividend, divisor]), val)
     }
+}
+
+/// A checked `+` / `-` / `*` (`CheckedArith`) : `vader_chk_<op>(<kind>, l, r)`
+/// (`runtime/c/vader.h`), which stops the run on overflow outside `--release`
+/// and wraps in it. Materialised into a temp like `push_eager`, so the check runs
+/// at its op whether or not the result is read. Operands and result ride in the
+/// stack class of `kind`.
+emit_checked_arith :: fn(s: FnState, op: vm.CheckedArith) -> void {
+    class :: stack_class_of(op.kind)
+    right :: pop(s)
+    left :: pop(s)
+    arguments :: [
+        verbatim(vm.val_type_name(op.kind)),
+        operand_as(s, left, class),
+        operand_as(s, right, class),
+    ]
+    push_into_temporary(s, call("vader_chk_${vm.checked_op_name(op.op)}", arguments), class)
+}
+
+/// A checked negation (`CheckedNeg`) : `vader_chk_neg(<kind>, v)`, as
+/// `emit_checked_arith`.
+emit_checked_neg :: fn(s: FnState, op: vm.CheckedNeg) -> void {
+    class :: stack_class_of(op.kind)
+    v :: pop(s)
+    arguments :: [verbatim(vm.val_type_name(op.kind)), operand_as(s, v, class)]
+    push_into_temporary(s, call("vader_chk_neg", arguments), class)
+}
+
+// The stack class an integer of class `kind` rides in.
+stack_class_of :: fn(kind: ValType) -> ValType {
+    if vm.is_64_bit_int_val(kind) {
+        return .I64
+    }
+    return .I32
 }
 
 /// Runtime guard-helper name for an integer `div` / `mod`, or `null` for a

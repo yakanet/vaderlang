@@ -3,21 +3,21 @@
 ## snippet
   fn snippet$i_add(a: i32, b: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           a :i32
         r:
           b :i32
   fn snippet$i_sub(a: i32, b: i32) -> i32
     ~>
-      sub :i32
+      sub_checked :i32
         l:
           a :i32
         r:
           b :i32
   fn snippet$i_mul(a: i32, b: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           a :i32
         r:

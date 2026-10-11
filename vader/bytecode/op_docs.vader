@@ -15,6 +15,9 @@ OPS_REFERENCE :: @file("ops.md")
 // The one entry every conversion shares : `usize.to_i32`, `i64.to_f64`, …
 CONVERSION_KEY :: "<from>.to_<to>"
 
+// What a checked op's exact type is written as in its entry : `<type>.checked_add`.
+CHECKED_TYPE :: "<type>"
+
 /// One entry of the op reference.
 export OpDoc :: struct {
     /// The forms the entry documents, as its heading writes them
@@ -26,7 +29,8 @@ export OpDoc :: struct {
 
 /// The reference entry for `head`, the first word of a `.virt` line — an op or
 /// a directive. Every conversion (`usize.to_i32`) finds the `<from>.to_<to>`
-/// entry.
+/// entry, every checked op the entry of its operation (`u8.checked_add` finds
+/// `<type>.checked_add`).
 ///
 /// @param head  the line's first word.
 /// @return      the entry, or null when the reference documents no such word.
@@ -36,7 +40,7 @@ export OpDoc :: struct {
 ///       println(doc.text)
 ///   }
 export op_doc :: fn(head: string) -> OpDoc | null {
-    key :: if ".to_" in head { CONVERSION_KEY } else { head }
+    key :: doc_key(head)
     lines :: OPS_REFERENCE.split("\n")
     for i in 0..<lines.len() {
         if !lines[i].starts_with("### ") {
@@ -48,6 +52,17 @@ export op_doc :: fn(head: string) -> OpDoc | null {
         }
     }
     return null
+}
+
+// The first word of the form whose entry documents `head`.
+doc_key :: fn(head: string) -> string {
+    if ".to_" in head {
+        return CONVERSION_KEY
+    }
+    if ".checked_" in head {
+        return "${CHECKED_TYPE}.${head.split(".")[1]}"
+    }
+    return head
 }
 
 // The forms a heading names : every span it writes between backticks.
@@ -105,6 +120,16 @@ test_op_doc_conversion :: fn() -> void {
         return
     }
     assert_eq(doc.forms.join(" "), CONVERSION_KEY)
+}
+
+@test
+test_op_doc_checked_op :: fn() -> void {
+    doc :: op_doc("usize.checked_sub")
+    if doc == null {
+        assert(false, "a checked op is documented")
+        return
+    }
+    assert_eq(doc.forms[1], "<type>.checked_sub")
 }
 
 @test

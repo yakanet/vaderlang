@@ -85,22 +85,22 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
 }
 
 // Add / Sub / Mul / Div for any numeric primitive, resolved through op_select's
-// `arith_op` / `div_op` — the SAME authority the operator path uses, so the
+// `checked_arith_op` / `div_op` — the SAME authority the operator path uses, so the
 // method mangle can never drift from `a + b`'s op. Covers every width (the
 // narrow ints i8/i16/u8/u16/u32 + isize/usize and f32, which the explicit arms
 // above never listed) ; `div_op` keeps u32/u64 division unsigned.
 primitive_arith_op :: fn(mangled: string) -> Op | null {
     add :: strip_core_member(mangled, r"$Add$add")
     if add != null && is_numeric_name(add) {
-        return arith_op(val_type_of_primitive_name(add), "add")
+        return checked_arith_op(val_type_of_primitive_name(add), .Add)
     }
     sub :: strip_core_member(mangled, r"$Sub$sub")
     if sub != null && is_numeric_name(sub) {
-        return arith_op(val_type_of_primitive_name(sub), "sub")
+        return checked_arith_op(val_type_of_primitive_name(sub), .Sub)
     }
     mul :: strip_core_member(mangled, r"$Mul$mul")
     if mul != null && is_numeric_name(mul) {
-        return arith_op(val_type_of_primitive_name(mul), "mul")
+        return checked_arith_op(val_type_of_primitive_name(mul), .Mul)
     }
     div :: strip_core_member(mangled, r"$Div$div")
     if div != null && is_numeric_name(div) {
@@ -163,18 +163,17 @@ import "std/testing"
 
 @test test_intrinsic_op_for_mangled_i32_add :: fn() -> void {
     op :: intrinsic_op_for_mangled(r"std_core$i32$Add$add")
-    match op {
-        is I32Add -> {}
-        _         -> assert_eq("expected I32Add", "")
-    }
+    assert(op is CheckedArith && op.op == .Add && op.kind == .I32, "i32 add → checked i32 add")
 }
 
 @test test_narrow_and_unsigned_arith_map_correctly :: fn() -> void {
     // Widening + unsigned-aware Div must match the operator path (op_select).
     assert(intrinsic_op_for_mangled(r"std_core$u8$Div$div") is U32Div, "u8 div → U32Div")
     assert(intrinsic_op_for_mangled(r"std_core$u64$Div$div") is U64Div, "u64 div → U64Div")
-    assert(intrinsic_op_for_mangled(r"std_core$i8$Add$add") is I32Add, "i8 add → I32Add")
-    assert(intrinsic_op_for_mangled(r"std_core$usize$Add$add") is I64Add, "usize add → I64Add")
+    i8_add :: intrinsic_op_for_mangled(r"std_core$i8$Add$add")
+    assert(i8_add is CheckedArith && i8_add.kind == .I8, "i8 add → checked i8 add")
+    usize_add :: intrinsic_op_for_mangled(r"std_core$usize$Add$add")
+    assert(usize_add is CheckedArith && usize_add.kind == .Usize, "usize add → checked usize add")
     assert(intrinsic_op_for_mangled(r"std_core$f32$Mul$mul") is F64Mul, "f32 mul → F64Mul")
     assert(intrinsic_op_for_mangled(r"std_core$f32$Equals$equals") is F64Eq, "f32 equals → F64Eq")
     assert(intrinsic_op_for_mangled(r"std_core$u8$Equals$equals") is I32Eq, "u8 equals → I32Eq")

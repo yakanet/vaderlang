@@ -3,14 +3,14 @@
 ## snippet
   fn snippet$add(a: i32, b: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           a :i32
         r:
           b :i32
   fn snippet$sum_doubles(a: f64, b: f64) -> f64
     ~>
-      add :f64
+      add_checked :f64
         l:
           a :f64
         r:

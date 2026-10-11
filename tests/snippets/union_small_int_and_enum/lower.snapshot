@@ -222,7 +222,7 @@
           arg0:
             b :u8
     let n: i32 =
-      add :i32
+      add_checked :i32
         l:
           cast → i32
             LoweredArrayLen
@@ -427,7 +427,7 @@
               callee:
                 pick :fn(i32) -> string | u8
               arg0:
-                sub :i32
+                sub_checked :i32
                   l:
                     cast → i32
                       LoweredArrayLen

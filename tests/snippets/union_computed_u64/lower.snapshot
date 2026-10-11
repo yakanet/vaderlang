@@ -17,9 +17,9 @@
             msg: "zero" :string
           }
     return
-      add :u64
+      add_checked :u64
         l:
-          mul :u64
+          mul_checked :u64
             l:
               factor :u64
             r:
@@ -59,9 +59,7 @@
                   then:
                     ~>
                       block :void
-                        return
-                          neg :i32
-                            int(1) :i32
+                        return int(-1) :i32
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :never

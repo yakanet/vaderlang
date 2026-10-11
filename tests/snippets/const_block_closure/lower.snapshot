@@ -88,7 +88,7 @@
   struct __lambda_env_snippet_1 { cap_0: i32 }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, n: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           .cap_0 :i32
             __env_0 :__lambda_env_snippet_1!

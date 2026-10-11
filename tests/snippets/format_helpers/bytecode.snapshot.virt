@@ -269,7 +269,7 @@ fn 5 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -511,7 +511,7 @@ fn 8 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      i64.add
+      usize.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -668,7 +668,7 @@ fn 14 std_numbers$to_hex (u64) -> string
   local sb ref
   local n usize
   local k usize
-  local $sub_24 usize
+  local $sub_checked_24 usize
   local.get 0   ; arg 0
   i64.const 0
   i64.eq
@@ -716,12 +716,12 @@ fn 14 std_numbers$to_hex (u64) -> string
     if $L4 void
       local.get 6   ; n
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.get 7   ; k
-      i64.sub
-      local.set 8   ; $sub_24
+      usize.checked_sub
+      local.set 8   ; $sub_checked_24
       local.get 1   ; rev
-      local.get 8   ; $sub_24
+      local.get 8   ; $sub_checked_24
       load_slot_i32
       local.set 4   ; $call_12
       local.get 5   ; sb
@@ -746,7 +746,7 @@ fn 15 std_numbers$to_bin (u64) -> string
   local sb ref
   local n usize
   local k usize
-  local $sub_27 usize
+  local $sub_checked_27 usize
   local $idx_28 char
   local.get 0   ; arg 0
   i64.const 0
@@ -801,12 +801,12 @@ fn 15 std_numbers$to_bin (u64) -> string
     if $L5 void
       local.get 5   ; n
       i64.const 1
-      i64.sub
+      usize.checked_sub
       local.get 6   ; k
-      i64.sub
-      local.set 7   ; $sub_27
+      usize.checked_sub
+      local.set 7   ; $sub_checked_27
       local.get 1   ; rev
-      local.get 7   ; $sub_27
+      local.get 7   ; $sub_checked_27
       load_slot_i32
       local.set 8   ; $idx_28
       local.get 4   ; sb
@@ -836,9 +836,9 @@ fn 16 std_numbers$hex_digit (u64) -> char
     local.set 1   ; $cast_4
     i32.const 97
     local.get 1   ; $cast_4
-    i32.add
+    u32.checked_add
     i32.const 10
-    i32.sub
+    u32.checked_sub
     u32.to_char
     return
   end $L0
@@ -847,7 +847,7 @@ fn 16 std_numbers$hex_digit (u64) -> char
   local.set 1   ; $cast_4
   i32.const 48
   local.get 1   ; $cast_4
-  i32.add
+  u32.checked_add
   u32.to_char
   return
 end
@@ -922,7 +922,7 @@ fn 19 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       local.set 5   ; $call_23
       local.get 1   ; n
       local.get 5   ; $call_23
-      i64.add
+      usize.checked_add
       local.set 1   ; n
       local.get 4   ; __for_i_2
       i64.const 1
@@ -961,7 +961,7 @@ fn 19 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       local.set 8   ; $call_40
       local.get 3   ; __for_len_1
       local.get 8   ; $call_40
-      i64.add
+      usize.checked_add
       local.set 3   ; __for_len_1
       local.get 5   ; $call_23
       i64.const 1

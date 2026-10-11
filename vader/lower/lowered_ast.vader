@@ -454,8 +454,10 @@ export LoweredIndex :: struct {
 }
 
 /// Canonical unary operator kinds the lowerer emits. `neg` covers both
-/// `-x` for integer and float receivers ; `not` is logical, `bitnot` is
-/// `~` over integer widths.
+/// `-x` for integer and float receivers, and on an integer stops the run when
+/// the result leaves its type (`CheckedNeg`): nothing synthesises a negation,
+/// and the language has no wrapping one (`0 -% x`). `not` is logical, `bitnot`
+/// is `~` over integer widths.
 export LoweredUnaryOp :: enum(u8) {
     Neg,
     Not,
@@ -472,6 +474,12 @@ export LoweredUnary :: struct {
 /// Canonical binary operator kinds. `and` / `or` are short-circuited at
 /// emit time ; every comparison op returns `bool` even for chained typed
 /// operands.
+///
+/// `add` / `sub` / `mul` wrap: they serve `+%` / `-%` / `*%` and the arithmetic
+/// the lowerer synthesises (loop counters, offsets, sizes), which the compiler
+/// keeps in range. `add_checked` / `sub_checked` / `mul_checked` are the `+` /
+/// `-` / `*` the program wrote, chosen by `lower_binary_op` alone: on integers
+/// they stop the run when the result leaves its type (`CheckedArith`).
 export LoweredBinaryOp :: enum(u8) {
     Add,
     Sub,
@@ -493,6 +501,9 @@ export LoweredBinaryOp :: enum(u8) {
     Lte,
     Gt,
     Gte,
+    AddChecked,
+    SubChecked,
+    MulChecked,
 }
 
 export LoweredBinary :: struct {

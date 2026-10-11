@@ -5,7 +5,7 @@
   struct snippet$Circle { r: f64 }
   fn snippet$Sq$Shape$area(self: Sq!) -> f64
     ~>
-      mul :f64
+      mul_checked :f64
         l:
           .s :f64
             self :Sq
@@ -14,9 +14,9 @@
             self :Sq
   fn snippet$Circle$Shape$area(self: Circle!) -> f64
     ~>
-      mul :f64
+      mul_checked :f64
         l:
-          mul :f64
+          mul_checked :f64
             l:
               float(3.0) :f64
             r:
@@ -143,7 +143,7 @@
       arg1:
         k :string
       arg2:
-        mul :i32
+        mul_checked :i32
           l:
             v :i32
           r:
@@ -175,7 +175,7 @@
       arg0:
         "a" :string
       arg1:
-        add :i32
+        add_checked :i32
           l:
             vcall std_core$Index.at :i32
               recv:
@@ -229,7 +229,7 @@
     ~>
       Money! {
         c:
-          add :i32
+          add_checked :i32
             l:
               .c :i32
                 self :Money

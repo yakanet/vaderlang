@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     let n: usize = int(10) :usize
     let m: usize =
-      add :usize
+      add_checked :usize
         l:
           n :usize
         r:

@@ -19,7 +19,7 @@
               on:
                 out :u8[]
               ix:
-                sub :usize
+                sub_checked :usize
                   l:
                     LoweredArrayLen
                   r:
@@ -102,7 +102,7 @@
                   on:
                     empty :u8[]
                   ix:
-                    sub :usize
+                    sub_checked :usize
                       l:
                         n :usize
                       r:
@@ -178,7 +178,7 @@
                 arg1:
                   __off_1 :usize
                 arg2:
-                  add :i64
+                  add_checked :i64
                     l:
                       wide :i64
                     r:

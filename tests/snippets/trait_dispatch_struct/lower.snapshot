@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$i32$Tagger$tag(self: i32) -> i32
     return
-      mul :i32
+      mul_checked :i32
         l:
           self :i32
         r:
@@ -17,7 +17,7 @@
           int(7) :i32
   fn snippet$apply_tag__i32(x: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           call :i32
             callee:

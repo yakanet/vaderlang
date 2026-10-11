@@ -15,7 +15,7 @@
             int(1) :i32
         else:
           ~>
-            mul :i32
+            mul_checked :i32
               l:
                 n :i32
               r:
@@ -23,7 +23,7 @@
                   callee:
                     fact :fn(i32) -> i32
                   arg0:
-                    sub :i32
+                    sub_checked :i32
                       l:
                         n :i32
                       r:
@@ -42,13 +42,13 @@
             n :i32
         else:
           ~>
-            add :i32
+            add_checked :i32
               l:
                 call :i32
                   callee:
                     fib :fn(i32) -> i32
                   arg0:
-                    sub :i32
+                    sub_checked :i32
                       l:
                         n :i32
                       r:
@@ -58,7 +58,7 @@
                   callee:
                     fib :fn(i32) -> i32
                   arg0:
-                    sub :i32
+                    sub_checked :i32
                       l:
                         n :i32
                       r:

@@ -7,9 +7,7 @@
         is null :bool
           v :i32 | null
       then:
-        return
-          neg :i32
-            int(1) :i32
+        return int(-1) :i32
     return
       cast → i32
         v :i32 | null
@@ -19,9 +17,7 @@
         is null :bool
           v :i64 | null
       then:
-        return
-          neg :i64
-            int(1) :i64
+        return int(-1) :i64
     return
       cast → i64
         v :i64 | null

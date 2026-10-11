@@ -1,7 +1,7 @@
-// Signed overflow wraps in a release build, as on the VM. The
+// The wrapping operators wrap in a release build, as on the VM. The
 // `signed_overflow_wraps` snippet pins the VM in its `vm.snapshot`, and the C-emit
 // parity suite runs its C at -O0. This file builds it with `--release` and compares
-// the two: without `-fwrapv`, clang at -O3 folds `x + 1 > x` to `true` and turns the
+// the two: without `-fwrapv`, clang at -O3 folds `x +% 1 > x` to `true` and turns the
 // snippet's loop into an endless one.
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
@@ -12,7 +12,7 @@ import { formatRun } from "./snapshot.ts";
 
 const SNIPPET_DIR = "tests/snippets/signed_overflow_wraps";
 
-test("a release build wraps signed overflow like the VM", async () => {
+test("a release build wraps the wrapping operators like the VM", async () => {
   if (!(await haveCc())) return;
   const bin = join(tmpdir(), `vader-signed-overflow-${process.pid}${EXE_SUFFIX}`);
   const build = await runCli(

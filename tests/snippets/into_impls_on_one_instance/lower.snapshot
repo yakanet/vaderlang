@@ -243,7 +243,7 @@
     ~>
       Tag! {
         n:
-          add :i32
+          add_checked :i32
             l:
               int(100) :i32
             r:
@@ -303,7 +303,7 @@
     ~>
       Tag! {
         n:
-          add :i32
+          add_checked :i32
             l:
               int(200) :i32
             r:

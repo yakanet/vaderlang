@@ -104,8 +104,10 @@ const vader_type_info_t vader_type_info_table[14] = {
 const size_t vader_type_info_count = 14;
 
 static int64_t snippet_l_add(int64_t l0, int64_t l1) {
+    int64_t t0;
 #line 9 "tests/snippets/scalar_wide/_main.vader"
-    return (l0 + l1);
+    t0 = vader_chk_add(i64, l0, l1);
+    return t0;
 }
 
 static int64_t snippet_l_div(int64_t l0, int64_t l1) {
@@ -138,8 +140,10 @@ static bool snippet_l_lt(int64_t l0, int64_t l1) {
 }
 
 static int64_t snippet_l_neg(int64_t l0) {
+    int64_t t0;
 #line 15 "tests/snippets/scalar_wide/_main.vader"
-    return -(l0);
+    t0 = vader_chk_neg(i64, l0);
+    return t0;
 }
 
 static int64_t snippet_l_bnot(int64_t l0) {
@@ -268,8 +272,10 @@ static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
 }
 
 static int32_t std_core_i32_Step_step(int32_t l0) {
+    int32_t t0;
 #line 338 "lib/std/core/primitives.vader"
-    return (l0 + INT32_C(1));
+    t0 = vader_chk_add(i32, l0, INT32_C(1));
+    return t0;
 }
 
 static void* std_core_Range_Iterator_next__i32(void* l0) {
@@ -351,8 +357,10 @@ static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1) {
 }
 
 static size_t std_core_usize_Step_step(size_t l0) {
+    int64_t t0;
 #line 345 "lib/std/core/primitives.vader"
-    return (size_t) (int64_t) (l0 + INT64_C(1));
+    t0 = vader_chk_add(usize, l0, INT64_C(1));
+    return (size_t) (int64_t) t0;
 }
 
 static void* std_core_Range_Iterator_next__usize(void* l0) {
@@ -407,7 +415,7 @@ static int32_t std_core_three_way(bool l0, bool l1) {
     int32_t l2;
 #line 312 "lib/std/core/primitives.vader"
     if (l0) {
-        l2 = -(INT32_C(1));
+        l2 = INT32_C(-1);
         return l2;
     }
     if (l1) {

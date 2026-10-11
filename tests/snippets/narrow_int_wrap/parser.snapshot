@@ -48,7 +48,7 @@
         "stmts": [],
         "trailing": {
           "kind": "BinaryExpr",
-          "op": "add",
+          "op": "add_wrap",
           "left": {
             "kind": "IdentExpr",
             "name": "a"
@@ -168,7 +168,7 @@
                         "kind": "interp",
                         "expr": {
                           "kind": "BinaryExpr",
-                          "op": "add",
+                          "op": "add_wrap",
                           "left": {
                             "kind": "IdentExpr",
                             "name": "a"
@@ -208,7 +208,7 @@
                         "kind": "interp",
                         "expr": {
                           "kind": "BinaryExpr",
-                          "op": "sub",
+                          "op": "sub_wrap",
                           "left": {
                             "kind": "IdentExpr",
                             "name": "b"
@@ -248,7 +248,7 @@
                         "kind": "interp",
                         "expr": {
                           "kind": "BinaryExpr",
-                          "op": "mul",
+                          "op": "mul_wrap",
                           "left": {
                             "kind": "IdentExpr",
                             "name": "a"
@@ -360,7 +360,7 @@
                       "op": "eq",
                       "left": {
                         "kind": "BinaryExpr",
-                        "op": "add",
+                        "op": "add_wrap",
                         "left": {
                           "kind": "IdentExpr",
                           "name": "a"
@@ -431,7 +431,7 @@
             },
             "value": {
               "kind": "BinaryExpr",
-              "op": "add",
+              "op": "add_wrap",
               "left": {
                 "kind": "IdentExpr",
                 "name": "c"
@@ -591,7 +591,7 @@
                         "kind": "interp",
                         "expr": {
                           "kind": "BinaryExpr",
-                          "op": "add",
+                          "op": "add_wrap",
                           "left": {
                             "kind": "IdentExpr",
                             "name": "s"
@@ -630,11 +630,15 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "UnaryExpr",
-                          "op": "neg",
-                          "operand": {
+                          "kind": "BinaryExpr",
+                          "op": "sub_wrap",
+                          "left": {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          },
+                          "right": {
                             "kind": "BinaryExpr",
-                            "op": "add",
+                            "op": "add_wrap",
                             "left": {
                               "kind": "IdentExpr",
                               "name": "s"
@@ -663,7 +667,7 @@
             "type": null,
             "value": {
               "kind": "BinaryExpr",
-              "op": "add",
+              "op": "add_wrap",
               "left": {
                 "kind": "IdentExpr",
                 "name": "s"
@@ -702,18 +706,18 @@
                             "name": "min"
                           },
                           "right": {
-                            "kind": "CallExpr",
-                            "callee": {
-                              "kind": "IdentExpr",
-                              "name": "i8"
-                            },
-                            "args": [
-                              {
-                                "name": null,
-                                "value": {
-                                  "kind": "BinaryExpr",
-                                  "op": "sub",
-                                  "left": {
+                            "kind": "BinaryExpr",
+                            "op": "sub",
+                            "left": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "IdentExpr",
+                                "name": "i8"
+                              },
+                              "args": [
+                                {
+                                  "name": null,
+                                  "value": {
                                     "kind": "CallExpr",
                                     "callee": {
                                       "kind": "FieldExpr",
@@ -725,14 +729,14 @@
                                     },
                                     "args": []
                                   },
-                                  "right": {
-                                    "kind": "IntLitExpr",
-                                    "value": "2n"
-                                  }
-                                },
-                                "spread": false
-                              }
-                            ]
+                                  "spread": false
+                                }
+                              ]
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "2n"
+                            }
                           }
                         }
                       }
@@ -807,7 +811,7 @@
                         "kind": "interp",
                         "expr": {
                           "kind": "BinaryExpr",
-                          "op": "add",
+                          "op": "add_wrap",
                           "left": {
                             "kind": "IdentExpr",
                             "name": "h"

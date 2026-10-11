@@ -8,9 +8,9 @@
         int(2) :i32
         int(3) :i32
     return
-      add :i32
+      add_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
               index :i32
                 on:

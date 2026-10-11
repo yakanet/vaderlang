@@ -24,9 +24,7 @@
       }
     let bi16: Box<i16>! =
       Box<i16>! {
-        v:
-          neg :i16
-            int(1000) :i16
+        v: int(-1000) :i16
       }
     let bu16: Box<u16>! =
       Box<u16>! {
@@ -42,9 +40,7 @@
       }
     let bi32: Box<i32>! =
       Box<i32>! {
-        v:
-          neg :i32
-            int(7) :i32
+        v: int(-7) :i32
       }
     let bs: Box<string>! =
       Box<string>! {

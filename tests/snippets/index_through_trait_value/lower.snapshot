@@ -37,8 +37,7 @@
                 __coalesce_0 :i32 | null
             then:
               ~>
-                neg :i32
-                  int(1) :i32
+                int(-1) :i32
             else:
               ~>
                 cast → i32
@@ -466,8 +465,7 @@
                               __coalesce_9 :i32 | null
                           then:
                             ~>
-                              neg :i32
-                                int(1) :i32
+                              int(-1) :i32
                           else:
                             ~>
                               cast → i32
@@ -506,7 +504,7 @@
                           arg0:
                             wide :MutableMap<i64, i32>!
                           arg1:
-                            add :i64
+                            add_checked :i64
                               l:
                                 k :i64
                               r:
@@ -518,8 +516,7 @@
                               __coalesce_10 :i32 | null
                           then:
                             ~>
-                              neg :i32
-                                int(1) :i32
+                              int(-1) :i32
                           else:
                             ~>
                               cast → i32

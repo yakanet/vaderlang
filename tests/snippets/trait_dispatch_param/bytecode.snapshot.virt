@@ -22,7 +22,7 @@ fn 1 snippet$hash_twice__i32 (i32) -> u64
   local.set 2   ; $call_2
   local.get 1   ; $call_1
   local.get 2   ; $call_2
-  i64.add
+  u64.checked_add
   return
 end
 

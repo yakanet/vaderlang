@@ -14,17 +14,17 @@
           name :string
   fn snippet$combine(a: i32, b: i32, c: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
-              mul :i32
+              mul_checked :i32
                 l:
                   a :i32
                 r:
                   int(100) :i32
             r:
-              mul :i32
+              mul_checked :i32
                 l:
                   b :i32
                 r:
@@ -35,9 +35,9 @@
     return a :i32
   fn snippet$pick_1(a: i32, b: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
-          mul :i32
+          mul_checked :i32
             l:
               a :i32
             r:
@@ -47,9 +47,9 @@
   struct snippet$Box { v: i32 }
   fn snippet$scale(self: Box, by: i32, plus: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
-          mul :i32
+          mul_checked :i32
             l:
               .v :i32
                 self :Box
@@ -107,14 +107,14 @@
         arg2:
           int(1) :i32
     return
-      add :i32
+      add_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
-              add :i32
+              add_checked :i32
                 l:
                   cast → i32
-                    add :usize
+                    add_checked :usize
                       l:
                         call :usize
                           callee:
@@ -135,9 +135,9 @@
           u :i32
   fn snippet$pick_1(a: i32, b: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
-          mul :i32
+          mul_checked :i32
             l:
               a :i32
             r:

@@ -9,7 +9,9 @@
 // `u16`, `u32`) collapse onto the `I32X` op family ; the wider
 // 64-bit widths (`i64`, `u64`, `isize`, `usize`) use `I64X`. The
 // VM aliases every integer width to `I32Val` / `I64Val` accordingly
-// (see `op.vader` comments on the I32 / I64 op blocks).
+// (see `op.vader` comments on the I32 / I64 op blocks). The checked
+// ops (`CheckedArith`, `CheckedNeg`) keep the exact type instead: it
+// is the range they check.
 //
 // Unsigned ops : when the comparison or division would mis-sign on
 // the I32 / I64 path (e.g. SHA-256 round constants with the high bit
@@ -39,36 +41,39 @@ import "vader/lower"
 ///             typecheck-time numeric promotions).
 /// @return     the concrete op to push.
 export binary_op_for :: fn(op: LoweredBinaryOp, lhs: ValType) -> Op = match op {
-    .Add    -> arith_op(lhs, "add")
-    .Sub    -> arith_op(lhs, "sub")
-    .Mul    -> arith_op(lhs, "mul")
-    .Div    -> div_op(lhs)
-    .Mod    -> mod_op(lhs)
-    .Shl    -> shl_op(lhs)
-    .Shr    -> shr_op(lhs)
-    .BitAnd -> bit_op(lhs, "and")
-    .BitOr  -> bit_op(lhs, "or")
-    .BitXor -> bit_op(lhs, "xor")
-    .And    -> BoolAnd {}
-    .Or     -> BoolOr {}
-    .Eq     -> cmp_eq(lhs)
-    .Neq    -> cmp_ne(lhs)
-    .Lt     -> cmp_lt(lhs)
-    .Lte    -> cmp_le(lhs)
-    .Gt     -> cmp_gt(lhs)
-    .Gte    -> cmp_ge(lhs)
+    .Add        -> arith_op(lhs, "add")
+    .Sub        -> arith_op(lhs, "sub")
+    .Mul        -> arith_op(lhs, "mul")
+    .AddChecked -> checked_arith_op(lhs, .Add)
+    .SubChecked -> checked_arith_op(lhs, .Sub)
+    .MulChecked -> checked_arith_op(lhs, .Mul)
+    .Div        -> div_op(lhs)
+    .Mod        -> mod_op(lhs)
+    .Shl        -> shl_op(lhs)
+    .Shr        -> shr_op(lhs)
+    .BitAnd     -> bit_op(lhs, "and")
+    .BitOr      -> bit_op(lhs, "or")
+    .BitXor     -> bit_op(lhs, "xor")
+    .And        -> BoolAnd {}
+    .Or         -> BoolOr {}
+    .Eq         -> cmp_eq(lhs)
+    .Neq        -> cmp_ne(lhs)
+    .Lt         -> cmp_lt(lhs)
+    .Lte        -> cmp_le(lhs)
+    .Gt         -> cmp_gt(lhs)
+    .Gte        -> cmp_ge(lhs)
 }
 
 /// Pick the bytecode op for a `LoweredUnaryOp` over an operand of
 /// class `operand`. `Not` always resolves to `BoolNot` (the lowerer
-/// guarantees a bool-typed operand) ; `Neg` / `BitNot` route through
-/// the integer / float family helpers.
+/// guarantees a bool-typed operand) ; `Neg` is a `CheckedNeg` on an
+/// integer, `BitNot` routes through the integer family helpers.
 ///
 /// @param op       the source-level unary operator.
 /// @param operand  the operand stack class.
 /// @return         the concrete op to push.
 export unary_op_for :: fn(op: LoweredUnaryOp, operand: ValType) -> Op = match op {
-    .Neg    -> neg_op(operand)
+    .Neg    -> checked_neg_op(operand)
     .Not    -> BoolNot {}
     .BitNot -> bitnot_op(operand)
 }
@@ -94,6 +99,28 @@ arith_op :: fn(lhs: ValType, op: string) -> Op {
     if op == "sub" { return I32Sub {} }
     if op == "mul" { return I32Mul {} }
     return I32Div {}
+}
+
+/// The op of `+`, `-` or `*` over operands of class `lhs`: a `CheckedArith` on
+/// integers, the float op otherwise. A method call (`a.add(b)`) takes it too
+/// (`intrinsics.vader`), so it stops where the operator does.
+///
+/// @param lhs  the operand stack class.
+/// @param op   the operation.
+export checked_arith_op :: fn(lhs: ValType, op: CheckedOp) -> Op {
+    if is_integer_val(lhs) {
+        return CheckedArith { .kind = lhs, .op = op }
+    }
+    return arith_op(lhs, checked_op_name(op))
+}
+
+// The op of `-x` over an operand of class `operand`: a `CheckedNeg` on integers,
+// the float op otherwise.
+checked_neg_op :: fn(operand: ValType) -> Op {
+    if is_integer_val(operand) {
+        return CheckedNeg { .kind = operand }
+    }
+    return neg_op(operand)
 }
 
 // Division is unsigned-aware : u32 / u64 widths route through `U32Div`
@@ -312,16 +339,31 @@ export slot_load_op_for :: fn(elem: ValType, bounds_safe: bool) -> Op | null {
 
 import "std/testing"
 
-@test test_add_i32 :: fn() -> void {
+@test test_add_wrap_i32 :: fn() -> void {
     op :: binary_op_for(.Add, .I32)
     if op is I32Add { return }
     assert_eq("expected I32Add", "")
 }
 
-@test test_add_i64 :: fn() -> void {
+@test test_add_wrap_i64 :: fn() -> void {
     op :: binary_op_for(.Add, .I64)
     if op is I64Add { return }
     assert_eq("expected I64Add", "")
+}
+
+@test test_add_u8_is_checked :: fn() -> void {
+    op :: binary_op_for(.AddChecked, .U8)
+    assert(op is CheckedArith && op.op == .Add && op.kind == .U8, "u8 + is a checked add on u8")
+}
+
+@test test_add_f64_is_not_checked :: fn() -> void {
+    op :: binary_op_for(.AddChecked, .F64)
+    assert(op is F64Add, "f64 + is F64Add")
+}
+
+@test test_neg_isize_is_checked :: fn() -> void {
+    op :: unary_op_for(.Neg, .Isize)
+    assert(op is CheckedNeg && op.kind == .Isize, "isize - is a checked neg on isize")
 }
 
 @test test_div_unsigned_uses_u32div :: fn() -> void {

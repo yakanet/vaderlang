@@ -640,11 +640,13 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
+    int64_t t0;
 #line 121 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
 #line 122 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
-    return (size_t) (int64_t) (l1 + l3);
+    t0 = vader_chk_add(usize, l1, l3);
+    return (size_t) (int64_t) t0;
 }
 
 static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
@@ -786,7 +788,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 217 "lib/std/io/io.vader"
             t0 = ((int64_t) (int32_t) l8);
             l9 = (size_t) (int64_t) t0;
-            t0 = (l3 + l9);
+            t0 = vader_chk_add(usize, l3, l9);
             l3 = (size_t) (int64_t) t0;
 #line 208 "lib/std/io/io.vader"
             continue;
@@ -870,7 +872,7 @@ static vader_string_t std_string_to_lower(vader_string_t l0) {
         l7 = ((uint32_t) (uint32_t) t3);
         std_string_builder_append_char(l1, l7);
 #line 415 "lib/std/string/string.vader"
-        t4 = (l4 + l6);
+        t4 = vader_chk_add(usize, l4, l6);
         l4 = (size_t) (int64_t) t4;
 #line 411 "lib/std/string/string.vader"
     }
@@ -900,7 +902,7 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
         l2 = false;
     }
     if (l2) {
-        t0 = (l0 + INT32_C(32));
+        t0 = vader_chk_add(u32, l0, INT32_C(32));
         l1 = (uint32_t) (int32_t) t0;
 #line 373 "lib/std/string/string.vader"
         return l1;
@@ -913,7 +915,7 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
         l2 = false;
     }
     if (l2) {
-        t0 = (l0 + INT32_C(32));
+        t0 = vader_chk_add(u32, l0, INT32_C(32));
         l1 = (uint32_t) (int32_t) t0;
 #line 376 "lib/std/string/string.vader"
     } else {
@@ -923,7 +925,7 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
             l2 = false;
         }
         if (l2) {
-            t0 = (l0 + INT32_C(32));
+            t0 = vader_chk_add(u32, l0, INT32_C(32));
             l1 = (uint32_t) (int32_t) t0;
 #line 377 "lib/std/string/string.vader"
         } else if (l0 == INT32_C(376)) {
@@ -968,14 +970,14 @@ static uint32_t std_string_utf8_decode(void* l0, size_t l1) {
         return ((uint32_t) 65533);
     }
 #line 79 "lib/std/string/unicode.vader"
-    t2 = (l2 - l1);
+    t2 = vader_chk_sub(usize, l2, l1);
     l2 = (size_t) (int64_t) t2;
 #line 80 "lib/std/string/unicode.vader"
     if ((l3 < INT32_C(224))) {
 #line 81 "lib/std/string/unicode.vader"
         if (!((l2 < INT64_C(2)))) {
 #line 82 "lib/std/string/unicode.vader"
-            t2 = (l1 + INT64_C(1));
+            t2 = vader_chk_add(usize, l1, INT64_C(1));
             l4 = (size_t) (int64_t) t2;
             vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
             VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
@@ -987,7 +989,8 @@ static uint32_t std_string_utf8_decode(void* l0, size_t l1) {
             l6 = (uint32_t) (int32_t) t3;
             t3 = (((int32_t) (uint8_t) l5) & INT32_C(63));
             l7 = (uint32_t) (int32_t) t3;
-            return ((uint32_t) (int32_t) (l6 + l7));
+            t3 = vader_chk_add(u32, l6, l7);
+            return ((uint32_t) (int32_t) t3);
 #line 81 "lib/std/string/unicode.vader"
         }
         return ((uint32_t) 0);
@@ -998,7 +1001,7 @@ static uint32_t std_string_utf8_decode(void* l0, size_t l1) {
 #line 86 "lib/std/string/unicode.vader"
         if (!((l2 < INT64_C(3)))) {
 #line 87 "lib/std/string/unicode.vader"
-            t2 = (l1 + INT64_C(1));
+            t2 = vader_chk_add(usize, l1, INT64_C(1));
             l4 = (size_t) (int64_t) t2;
             vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
@@ -1006,7 +1009,7 @@ static uint32_t std_string_utf8_decode(void* l0, size_t l1) {
             t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l4, 13u);
             l5 = ((uint8_t) t0.payload.i);
 #line 88 "lib/std/string/unicode.vader"
-            t2 = (l1 + INT64_C(2));
+            t2 = vader_chk_add(usize, l1, INT64_C(2));
             l4 = (size_t) (int64_t) t2;
             VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
             t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l4, 13u);
@@ -1016,11 +1019,12 @@ static uint32_t std_string_utf8_decode(void* l0, size_t l1) {
             l6 = (uint32_t) (int32_t) t3;
             t3 = ((((int32_t) (uint8_t) l5) & INT32_C(63)) << INT32_C(6));
             l7 = (uint32_t) (int32_t) t3;
-            t3 = (l6 + l7);
+            t3 = vader_chk_add(u32, l6, l7);
             l6 = (uint32_t) (int32_t) t3;
             t3 = (((int32_t) (uint8_t) l8) & INT32_C(63));
             l7 = (uint32_t) (int32_t) t3;
-            return ((uint32_t) (int32_t) (l6 + l7));
+            t3 = vader_chk_add(u32, l6, l7);
+            return ((uint32_t) (int32_t) t3);
 #line 86 "lib/std/string/unicode.vader"
         }
         return ((uint32_t) 0);
@@ -1029,7 +1033,7 @@ static uint32_t std_string_utf8_decode(void* l0, size_t l1) {
 #line 91 "lib/std/string/unicode.vader"
     if (!((l2 < INT64_C(4)))) {
 #line 92 "lib/std/string/unicode.vader"
-        t2 = (l1 + INT64_C(1));
+        t2 = vader_chk_add(usize, l1, INT64_C(1));
         l2 = (size_t) (int64_t) t2;
         vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
@@ -1037,13 +1041,13 @@ static uint32_t std_string_utf8_decode(void* l0, size_t l1) {
         t0 = vader_array_read_u8(_a3_slotarr, _a3_slotarr->offset + (size_t) l2, 13u);
         l5 = ((uint8_t) t0.payload.i);
 #line 93 "lib/std/string/unicode.vader"
-        t2 = (l1 + INT64_C(2));
+        t2 = vader_chk_add(usize, l1, INT64_C(2));
         l2 = (size_t) (int64_t) t2;
         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l2)
         t0 = vader_array_read_u8(_a3_slotarr, _a3_slotarr->offset + (size_t) l2, 13u);
         l8 = ((uint8_t) t0.payload.i);
 #line 94 "lib/std/string/unicode.vader"
-        t2 = (l1 + INT64_C(3));
+        t2 = vader_chk_add(usize, l1, INT64_C(3));
         l2 = (size_t) (int64_t) t2;
         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l2)
         t0 = vader_array_read_u8(_a3_slotarr, _a3_slotarr->offset + (size_t) l2, 13u);
@@ -1053,15 +1057,16 @@ static uint32_t std_string_utf8_decode(void* l0, size_t l1) {
         l6 = (uint32_t) (int32_t) t3;
         t3 = ((((int32_t) (uint8_t) l5) & INT32_C(63)) << INT32_C(12));
         l7 = (uint32_t) (int32_t) t3;
-        t3 = (l6 + l7);
+        t3 = vader_chk_add(u32, l6, l7);
         l6 = (uint32_t) (int32_t) t3;
         t3 = ((((int32_t) (uint8_t) l8) & INT32_C(63)) << INT32_C(6));
         l7 = (uint32_t) (int32_t) t3;
-        t3 = (l6 + l7);
+        t3 = vader_chk_add(u32, l6, l7);
         l6 = (uint32_t) (int32_t) t3;
         t3 = (((int32_t) (uint8_t) l9) & INT32_C(63));
         l7 = (uint32_t) (int32_t) t3;
-        return ((uint32_t) (int32_t) (l6 + l7));
+        t3 = vader_chk_add(u32, l6, l7);
+        return ((uint32_t) (int32_t) t3);
 #line 91 "lib/std/string/unicode.vader"
     }
     return ((uint32_t) 0);
@@ -1161,7 +1166,7 @@ static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l
         t1 = t0.payload.s;
 #line 86 "lib/std/string_builder/string_builder.vader"
         l5 = vader_host_std_core_byte_len(t1);
-        t2 = (l1 + l5);
+        t2 = vader_chk_add(usize, l1, l5);
         l1 = (size_t) (int64_t) t2;
 #line 85 "lib/std/string_builder/string_builder.vader"
         t2 = (l4 + INT64_C(1));
@@ -1185,7 +1190,7 @@ static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l
         vader_buffer_write_string((vader_buffer_t*) l2, (size_t) l3, l7);
 #line 92 "lib/std/string_builder/string_builder.vader"
         l8 = vader_host_std_core_byte_len(l7);
-        t2 = (l3 + l8);
+        t2 = vader_chk_add(usize, l3, l8);
         l3 = (size_t) (int64_t) t2;
 #line 90 "lib/std/string_builder/string_builder.vader"
         t2 = (l5 + INT64_C(1));

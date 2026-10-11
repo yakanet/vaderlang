@@ -145,7 +145,7 @@
                     target:
                       total :i32
                     value:
-                      add :i32
+                      add_checked :i32
                         l:
                           total :i32
                         r:
@@ -165,7 +165,7 @@
                     arg1:
                       w :string
                     arg2:
-                      add :i32
+                      add_checked :i32
                         l:
                           block :i32
                             let __coalesce_7: i32 | null =

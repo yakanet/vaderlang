@@ -42,7 +42,7 @@
           "op": "gt",
           "left": {
             "kind": "BinaryExpr",
-            "op": "add",
+            "op": "add_wrap",
             "left": {
               "kind": "IdentExpr",
               "name": "x"
@@ -89,7 +89,7 @@
           "op": "gt",
           "left": {
             "kind": "BinaryExpr",
-            "op": "add",
+            "op": "add_wrap",
             "left": {
               "kind": "IdentExpr",
               "name": "x"
@@ -198,7 +198,7 @@
                         "kind": "interp",
                         "expr": {
                           "kind": "BinaryExpr",
-                          "op": "add",
+                          "op": "add_wrap",
                           "left": {
                             "kind": "IdentExpr",
                             "name": "top"
@@ -238,7 +238,7 @@
                         "kind": "interp",
                         "expr": {
                           "kind": "BinaryExpr",
-                          "op": "mul",
+                          "op": "mul_wrap",
                           "left": {
                             "kind": "IdentExpr",
                             "name": "top"
@@ -277,11 +277,15 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "UnaryExpr",
-                          "op": "neg",
-                          "operand": {
+                          "kind": "BinaryExpr",
+                          "op": "sub_wrap",
+                          "left": {
+                            "kind": "IntLitExpr",
+                            "value": "0n"
+                          },
+                          "right": {
                             "kind": "BinaryExpr",
-                            "op": "add",
+                            "op": "add_wrap",
                             "left": {
                               "kind": "IdentExpr",
                               "name": "top"
@@ -461,7 +465,7 @@
                   },
                   "value": {
                     "kind": "BinaryExpr",
-                    "op": "add",
+                    "op": "add_wrap",
                     "left": {
                       "kind": "IdentExpr",
                       "name": "i"
@@ -592,7 +596,7 @@
                         "kind": "interp",
                         "expr": {
                           "kind": "BinaryExpr",
-                          "op": "add",
+                          "op": "add_wrap",
                           "left": {
                             "kind": "IdentExpr",
                             "name": "wide_top"

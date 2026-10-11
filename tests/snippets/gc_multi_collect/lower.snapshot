@@ -18,7 +18,7 @@
         target:
           i :i32
         value:
-          add :i32
+          add_checked :i32
             l:
               i :i32
             r:
@@ -41,7 +41,7 @@
         callee:
           collections :fn() -> i32
     let diff: i32 =
-      sub :i32
+      sub_checked :i32
         l:
           c2 :i32
         r:
@@ -134,7 +134,7 @@
                             target:
                               sum :i32
                             value:
-                              add :i32
+                              add_checked :i32
                                 l:
                                   sum :i32
                                 r:
@@ -154,7 +154,7 @@
     let expected: i32 =
       div :{integer}
         l:
-          mul :{integer}
+          mul_checked :{integer}
             l:
               int(50) :i32
             r:

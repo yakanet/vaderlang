@@ -5,7 +5,7 @@
     ~>
       Ready<i32>! {
         v:
-          add :i32
+          add_checked :i32
             l:
               x :i32
             r:
@@ -75,7 +75,7 @@
                 value:
                   int(-1) :i32
               return
-                add :i32
+                add_checked :i32
                   l:
                     .s2 :i32
                       __self_1 :__asyncstate_snippet_0!

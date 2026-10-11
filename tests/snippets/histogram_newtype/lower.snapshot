@@ -362,7 +362,7 @@
           target:
             total :u32
           value:
-            add :u32
+            add_checked :u32
               l:
                 total :u32
               r:
@@ -441,7 +441,7 @@
                 arg1:
                   __off_11 :usize
                 arg2:
-                  add :i64
+                  add_checked :i64
                     l:
                       a :Celsius
                     r:
@@ -471,7 +471,7 @@
                 arg1:
                   __off_11 :usize
                 arg2:
-                  sub :i64
+                  sub_checked :i64
                     l:
                       a :Celsius
                     r:

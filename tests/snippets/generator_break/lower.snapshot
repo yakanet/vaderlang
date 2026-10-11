@@ -15,8 +15,7 @@
     block :void
       let __fuse_arr_2: i32[] =
         array :i32[]
-          neg :i32
-            int(1) :i32
+          int(-1) :i32
           int(7) :i32
           int(200) :i32
           int(9) :i32

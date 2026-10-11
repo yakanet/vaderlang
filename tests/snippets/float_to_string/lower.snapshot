@@ -82,7 +82,7 @@
               callee:
                 std_core$f64$Display$to_string :string
               arg0:
-                mul :{float}
+                mul_checked :{float}
                   l:
                     float(2.5e-8) :f64
                   r:

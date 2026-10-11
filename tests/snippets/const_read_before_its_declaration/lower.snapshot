@@ -173,7 +173,7 @@
     array :Inner[]!
       ONE :Inner
   const snippet$TOTAL: i32 =
-    add :i32
+    add_checked :i32
       l:
         .n :i32
           ONE :Inner

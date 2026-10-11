@@ -116,7 +116,7 @@
           target:
             i :usize
           value:
-            add :usize
+            add_checked :usize
               l:
                 i :usize
               r:
@@ -519,7 +519,7 @@
                             __off_18 :usize
                           arg2:
                             cast → i64
-                              add :i32
+                              add_checked :i32
                                 l:
                                   x :i32
                                 r:
@@ -611,7 +611,7 @@
                           __off_25 :usize
                         arg2:
                           cast → i64
-                            mul :i32
+                            mul_checked :i32
                               l:
                                 x :i32
                               r:

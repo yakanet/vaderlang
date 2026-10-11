@@ -57,9 +57,9 @@
           ~>
             int(0) :i32
     return
-      add :i32
+      add_checked :i32
         l:
-          add :i32
+          add_checked :i32
             l:
               r1 :i32
             r:

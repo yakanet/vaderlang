@@ -87,9 +87,7 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    return
-      neg :i32
-        int(1) :i32
+    return int(-1) :i32
   fn snippet$sum_prefix(keys: string[]) -> i32
     let total: i32 = int(0) :i32
     block :void
@@ -108,7 +106,7 @@
           target:
             total :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 total :i32
               r:
@@ -158,9 +156,7 @@
               is null :bool
                 __coalesce_0 :i32 | null
             then:
-              return
-                neg :i32
-                  int(1) :i32
+              return int(-1) :i32
               ~>
                 unreachable("`??` fallback diverges") :i32
             else:
@@ -201,7 +197,7 @@
                         target:
                           missing :i32
                         value:
-                          add :i32
+                          add_checked :i32
                             l:
                               missing :i32
                             r:
@@ -634,7 +630,7 @@
               arg1:
                 __off_9 :usize
     let scaled: i32 =
-      add :i32
+      add_checked :i32
         l:
           block :i32
             let __coalesce_10: i32 | null =

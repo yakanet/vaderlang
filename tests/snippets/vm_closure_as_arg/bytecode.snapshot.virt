@@ -28,6 +28,6 @@ fn 2 __lambda_snippet_0 (ref,i32) -> i32
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   local.get 2   ; $field_2
-  i32.add
+  i32.checked_add
   return
 end

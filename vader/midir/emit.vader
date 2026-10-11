@@ -1470,22 +1470,21 @@ fits_in :: fn(from: ValType, to: ValType) -> bool = match to {
 
 // Whether `op` on two values of the class `class` can give one outside it. A
 // bitwise op, a shift right and a remainder stay within; a signed quotient
-// leaves it only as `-128 / -1`.
+// leaves it only as `-128 / -1`; a checked `+` / `-` / `*` stops the run instead.
 binary_leaves_width :: fn(op: LoweredBinaryOp, class: ValType) -> bool =
     is_narrow_valtype(class) && match op {
         .Add | .Sub | .Mul | .Shl -> true
         .Div                      -> !is_unsigned_val(class)
-        .Mod | .Shr | .BitAnd | .BitOr | .BitXor | .And | .Or | .Eq | .Neq | .Lt | .Lte | .Gt
-         | .Gte -> false
+        .AddChecked | .SubChecked | .MulChecked | .Mod | .Shr | .BitAnd | .BitOr | .BitXor | .And
+         | .Or | .Eq | .Neq | .Lt | .Lte | .Gt | .Gte -> false
     }
 
 // Whether `op` on a value of the class `class` can give one outside it: a
-// negation always can, a complement only of an unsigned value.
+// complement of an unsigned value can ; a negation stops the run instead.
 unary_leaves_width :: fn(op: LoweredUnaryOp, class: ValType) -> bool =
     is_narrow_valtype(class) && match op {
-        .Neg    -> true
-        .BitNot -> is_unsigned_val(class)
-        .Not    -> false
+        .BitNot     -> is_unsigned_val(class)
+        .Neg | .Not -> false
     }
 
 /// True when `v` is a numeric / char ValType that can flow through

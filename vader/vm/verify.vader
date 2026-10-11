@@ -208,6 +208,8 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
         is bc.ArrayNew   -> if op.length >= 0 { effect(usize(op.length), 1) } else { null }
         is bc.TypeConst  -> if in_range(op.type_id, module.types.len()) { effect(0, 1) } else { null }
         is bc.TypeCheck  -> if in_range(op.type_id, module.types.len()) { effect(1, 1) } else { null }
+        is bc.CheckedArith -> if bc.is_integer_val(op.kind) { effect(2, 1) } else { null }
+        is bc.CheckedNeg   -> if bc.is_integer_val(op.kind) { effect(1, 1) } else { null }
         is bc.I32Const | bc.NullConst | bc.BoolConst | bc.CharConst | bc.F64Const
          | bc.I64Const -> effect(0, 1)
         is bc.StructGet | bc.ArrayLen | bc.RefCast | bc.Retag | bc.Convert

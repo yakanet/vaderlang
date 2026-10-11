@@ -8,14 +8,14 @@ export main 2
 fn 0 snippet$inc (i32) -> i32
   local.get 0   ; arg 0
   i32.const 1
-  i32.add
+  i32.checked_add
   return
 end
 
 fn 1 snippet$double (i32) -> i32
   local.get 0   ; arg 0
   i32.const 2
-  i32.mul
+  i32.checked_mul
   return
 end
 
@@ -49,6 +49,6 @@ fn 2 snippet$main () -> i32
   local.set 3   ; $call_ind_11
   local.get 2   ; $call_ind_7
   local.get 3   ; $call_ind_11
-  i32.add
+  i32.checked_add
   return
 end

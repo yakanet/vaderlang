@@ -756,7 +756,7 @@
                                 target:
                                   total :usize
                                 value:
-                                  add :usize
+                                  add_checked :usize
                                     l:
                                       total :usize
                                     r:
@@ -862,7 +862,7 @@
                               target:
                                 total :usize
                               value:
-                                add :usize
+                                add_checked :usize
                                   l:
                                     total :usize
                                   r:
@@ -871,7 +871,7 @@
                               target:
                                 i :usize
                               value:
-                                add :usize
+                                add_checked :usize
                                   l:
                                     i :usize
                                   r:
@@ -1131,7 +1131,7 @@
                             target:
                               total :usize
                             value:
-                              add :usize
+                              add_checked :usize
                                 l:
                                   total :usize
                                 r:
@@ -1550,9 +1550,7 @@
                 i :i32
               r:
                 int(1) :i32
-    let below: i32 =
-      neg :{integer}
-        int(1) :i32
+    let below: i32 = int(-1) :i32
     call :void
       callee:
         std_io$println__string :void
@@ -1633,7 +1631,7 @@
   struct __lambda_env_snippet_1 { cap_0: i32 }
   fn __lambda_snippet_0(__env_2: __lambda_env_snippet_1!, x: i32) -> i32
     ~>
-      add :i32
+      add_checked :i32
         l:
           x :i32
         r:

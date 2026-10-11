@@ -37,7 +37,7 @@
 ## snippet/helper
   fn snippet_helper$triple(x: i32) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           x :i32
         r:

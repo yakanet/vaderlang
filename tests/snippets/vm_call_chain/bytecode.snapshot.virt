@@ -6,7 +6,7 @@ export main 3
 fn 0 snippet$inner (i32) -> i32
   local.get 0   ; arg 0
   i32.const 100
-  i32.add
+  i32.checked_add
   return
 end
 
@@ -14,7 +14,7 @@ fn 1 snippet$middle (i32) -> i32
   local.get 0   ; arg 0
   call 0   ; snippet$inner
   i32.const 10
-  i32.add
+  i32.checked_add
   return
 end
 
@@ -22,7 +22,7 @@ fn 2 snippet$outer (i32) -> i32
   local.get 0   ; arg 0
   call 1   ; snippet$middle
   i32.const 1
-  i32.add
+  i32.checked_add
   return
 end
 

@@ -9,7 +9,7 @@
       }
   fn snippet$Sq$Shape$area(self: Sq!) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           .side :i32
             self :Sq
@@ -22,7 +22,7 @@
       Rect! {
         w: scale :i32
         h:
-          mul :i32
+          mul_checked :i32
             l:
               int(2) :i32
             r:
@@ -30,7 +30,7 @@
       }
   fn snippet$Rect$Shape$area(self: Rect!) -> i32
     ~>
-      mul :i32
+      mul_checked :i32
         l:
           .w :i32
             self :Rect
@@ -66,7 +66,7 @@
           target:
             t :i32
           value:
-            add :i32
+            add_checked :i32
               l:
                 t :i32
               r:
@@ -159,7 +159,7 @@
                 target:
                   s :i64
                 value:
-                  add :i64
+                  add_checked :i64
                     l:
                       s :i64
                     r:
@@ -204,7 +204,7 @@
                 target:
                   s :f64
                 value:
-                  add :f64
+                  add_checked :f64
                     l:
                       s :f64
                     r:
@@ -233,9 +233,9 @@
       callee:
         std_io$println__i32 :void
       arg0:
-        add :i32
+        add_checked :i32
           l:
-            mul :i32
+            mul_checked :i32
               l:
                 .v :i32
                   a :P
@@ -278,7 +278,7 @@
                 target:
                   p :i32
                 value:
-                  mul :i32
+                  mul_checked :i32
                     l:
                       p :i32
                     r:
@@ -323,7 +323,7 @@
                 target:
                   p :f64
                 value:
-                  mul :f64
+                  mul_checked :f64
                     l:
                       p :f64
                     r:
@@ -376,7 +376,7 @@
   struct __lambda_env_snippet_1 { cap_0: i64 }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, x: i32) -> i64
     ~>
-      add :i64
+      add_checked :i64
         l:
           cast → i64
             x :i32

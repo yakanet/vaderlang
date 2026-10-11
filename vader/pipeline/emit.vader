@@ -38,11 +38,13 @@ export runtime_c_root :: fn() = resolve_sidecar("runtime/c", "vader.h")
 /// The flags every C compile of emitted code takes, by build mode.
 ///
 /// Release adds `-falign-functions=64`, measured as worth it on this codebase;
-/// debug keeps `-O0 -g` so a `#line`-carrying build is steppable. Both carry
-/// `-fwrapv`: signed arithmetic wraps, as on the VM (SPEC §Signed overflow), where
-/// C leaves an overflow undefined and a compiler assumes none happens, gcc even at
-/// `-O0`. The emitter computes some `u32` / `u64` arithmetic on signed C
-/// temporaries, so unsigned wrapping depends on the flag too.
+/// debug keeps `-O0 -g` so a `#line`-carrying build is steppable. Release alone
+/// defines `NDEBUG`, which turns the checked arithmetic of `runtime/c/vader.h` from
+/// stopping the run into wrapping (SPEC §Integer overflow). Both carry `-fwrapv`:
+/// the wrapping operators and the arithmetic the compiler synthesises lower to the
+/// C operator on a signed type, where C leaves an overflow undefined and a compiler
+/// assumes none happens, gcc even at `-O0`. The emitter computes some `u32` / `u64`
+/// arithmetic on signed C temporaries, so unsigned wrapping depends on the flag too.
 export cc_opt_flags :: fn(release: bool) -> string[] = if release {
     ["-std=c11", "-O3", "-DNDEBUG", "-falign-functions=64", "-fwrapv"]
 } else {
@@ -385,8 +387,14 @@ test_quote_include_dir_is_the_entry_directory :: fn() -> void {
 
 @test
 test_cc_opt_flags_wrap_signed_arithmetic :: fn() -> void {
-    assert("-fwrapv" in cc_opt_flags(true), "a release build wraps signed overflow")
-    assert("-fwrapv" in cc_opt_flags(false), "a debug build wraps signed overflow")
+    assert("-fwrapv" in cc_opt_flags(true), "a release build wraps the wrapping operators")
+    assert("-fwrapv" in cc_opt_flags(false), "a debug build wraps the wrapping operators")
+}
+
+@test
+test_cc_opt_flags_check_overflow_outside_release :: fn() -> void {
+    assert("-DNDEBUG" in cc_opt_flags(true), "a release build wraps a checked operation")
+    assert(!("-DNDEBUG" in cc_opt_flags(false)), "a debug build checks it")
 }
 
 @test

@@ -31,6 +31,6 @@ end
 fn 1 snippet_helper$scale_two (i32) -> i32
   local.get 0   ; arg 0
   i32.const 2
-  i32.mul
+  i32.checked_mul
   return
 end

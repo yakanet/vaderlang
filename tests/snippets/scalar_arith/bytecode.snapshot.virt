@@ -16,21 +16,21 @@ impl 6 std_core$Iterator
 fn 0 snippet$i_add (i32,i32) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.add
+  i32.checked_add
   return
 end
 
 fn 1 snippet$i_sub (i32,i32) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.sub
+  i32.checked_sub
   return
 end
 
 fn 2 snippet$i_mul (i32,i32) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  i32.mul
+  i32.checked_mul
   return
 end
 
@@ -71,7 +71,7 @@ end
 
 fn 8 snippet$i_neg (i32) -> i32
   local.get 0   ; arg 0
-  i32.neg
+  i32.checked_neg
   return
 end
 
@@ -176,7 +176,7 @@ end
 fn 18 std_core$i32$Step$step (i32) -> i32
   local.get 0   ; arg 0
   i32.const 1
-  i32.add
+  i32.checked_add
   return
 end
 
@@ -287,7 +287,7 @@ end
 fn 22 std_core$usize$Step$step (usize) -> usize
   local.get 0   ; arg 0
   i64.const 1
-  i64.add
+  usize.checked_add
   return
 end
 
@@ -349,8 +349,7 @@ fn 24 std_core$three_way (bool,bool) -> i32
   local if_res i32
   local.get 0   ; arg 0
   if $L0 void
-    i32.const 1
-    i32.neg
+    i32.const -1
     local.tee 2   ; if_res
     return
   end $L0

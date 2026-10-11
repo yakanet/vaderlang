@@ -64,7 +64,7 @@
               target:
                 bad :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     bad :i32
                   r:
@@ -84,9 +84,9 @@
                         ix:
                           j :usize
                     r:
-                      add :i32
+                      add_checked :i32
                         l:
-                          mul :i32
+                          mul_checked :i32
                             l:
                               cast → i32
                                 i :usize
@@ -100,7 +100,7 @@
                     target:
                       bad :i32
                     value:
-                      add :i32
+                      add_checked :i32
                         l:
                           bad :i32
                         r:

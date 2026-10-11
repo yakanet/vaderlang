@@ -11,26 +11,20 @@
         is Meta! :bool
           t :FnLike | Meta | Other | Unres
       then:
-        return
-          neg :i32
-            int(1) :i32
+        return int(-1) :i32
     if :void
       cond:
         is Unres! :bool
           t :FnLike | Meta | Other | Unres
       then:
-        return
-          neg :i32
-            int(2) :i32
+        return int(-2) :i32
     if :void
       cond:
         not :bool
           is FnLike! :bool
             t :FnLike | Meta | Other | Unres
       then:
-        return
-          neg :i32
-            int(3) :i32
+        return int(-3) :i32
     return
       .params :i32
         cast → FnLike

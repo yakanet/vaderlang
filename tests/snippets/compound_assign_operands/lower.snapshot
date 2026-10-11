@@ -156,7 +156,7 @@
             ix:
               __place_operand_0 :usize
         value:
-          add :i32
+          add_checked :i32
             l:
               index :i32
                 on:
@@ -190,7 +190,7 @@
             ix:
               __place_operand_0 :usize
         value:
-          add :i32
+          add_checked :i32
             l:
               index :i32
                 on:
@@ -335,7 +335,7 @@
             ix:
               __place_operand_3 :usize
         value:
-          mul :i32
+          mul_checked :i32
             l:
               index :i32
                 on:
@@ -469,7 +469,7 @@
             ix:
               __place_operand_7 :usize
         value:
-          add :i32
+          add_checked :i32
             l:
               index :i32
                 on:
@@ -568,7 +568,7 @@
           .count :i32
             __place_operand_10 :Counter!
         value:
-          add :i32
+          add_checked :i32
             l:
               .count :i32
                 __place_operand_10 :Counter!
@@ -643,7 +643,7 @@
           .count :i32
             __place_operand_13 :Counter!
         value:
-          add :i32
+          add_checked :i32
             l:
               .count :i32
                 __place_operand_13 :Counter!
@@ -773,7 +773,7 @@
         arg1:
           __place_operand_17 :usize
         arg2:
-          sub :i32
+          sub_checked :i32
             l:
               call :i32
                 callee:
@@ -914,7 +914,7 @@
             ix:
               __place_operand_23 :usize
         value:
-          add :i32
+          add_checked :i32
             l:
               index :i32
                 on:
@@ -1109,7 +1109,7 @@
               arg0:
                 int(2) :usize
       value:
-        add :i32
+        add_checked :i32
           l:
             index :i32
               on:
@@ -1192,7 +1192,7 @@
         arg0:
           __place_operand_0 :usize
         arg1:
-          add :i32
+          add_checked :i32
             l:
               vcall std_core$Index.at :i32
                 recv:

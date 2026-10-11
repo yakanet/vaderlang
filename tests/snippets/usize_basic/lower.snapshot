@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$add(a: usize, b: usize) -> usize
     return
-      add :usize
+      add_checked :usize
         l:
           a :usize
         r:

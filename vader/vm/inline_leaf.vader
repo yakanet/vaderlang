@@ -9,7 +9,9 @@
 // the tag inference vouch for the rewritten code.
 //
 // An inlined body holds no op that can call or trap: a call would put a frame
-// back, and a trap would report a pc inside the caller. Every op of the rewritten
+// back, and a trap would report a pc inside the caller. Checked arithmetic is the
+// exception: barring it would keep the call on nearly every leaf that computes,
+// and its overflow trap names the op and its type. Every op of the rewritten
 // body keeps the pc `vader dump` shows (`BcFunction.source_pc`). `prepare_debug`
 // inlines nothing, so every call stays a frame the debugger can step into. Native
 // code never sees this: `cc` inlines on its own.
@@ -68,11 +70,13 @@ is_inline_leaf :: fn(f: bc.BcFunction) -> bool {
     return true
 }
 
-// An op an inlined body may hold: it neither branches, calls nor traps.
+// An op an inlined body may hold: it neither branches, calls nor traps, checked
+// arithmetic aside.
 inlinable_op :: fn(op: bc.Op) -> bool {
     // @partial: an allowlist ; every other op keeps the call.
     return @partial match op {
         is bc.LocalGet | bc.LocalSet | bc.LocalTee | bc.Drop -> true
+        is bc.CheckedArith | bc.CheckedNeg -> true
         is bc.I32Const | bc.I64Const | bc.F64Const | bc.BoolConst | bc.CharConst | bc.NullConst -> true
         is bc.Convert -> true
         is bc.I32Add | bc.I32Sub | bc.I32Mul | bc.I32Neg | bc.I32BitNot | bc.I32BitAnd -> true
@@ -167,11 +171,11 @@ inline_into :: fn(functions: bc.BcFunction[], leaf: bool[], index: usize) -> bc.
 
 import "std/testing"
 
-// `fn 0 square`, a straight-line leaf, `fn 1 halve`, which divides, `fn 2 stale`,
-// which reads a local before writing it, and a `main` running `main_body` ; `null`
-// once the parse failed the test.
+// `fn 0 square`, a straight-line leaf whose multiply is checked, `fn 1 halve`, which
+// divides, `fn 2 stale`, which reads a local before writing it, and a `main` running
+// `main_body` ; `null` once the parse failed the test.
 leaf_module :: fn(main_body: string) -> bc.BytecodeModule | null {
-    square :: "fn 0 square (i32) -> i32\n  local.get 0\n  local.get 0\n  i32.mul\n  return\nend\n"
+    square :: "fn 0 square (i32) -> i32\n  local.get 0\n  local.get 0\n  i32.checked_mul\n  return\nend\n"
     halve :: "fn 1 halve (i32) -> i32\n  local.get 0\n  i32.const 2\n  i32.div\n  return\nend\n"
     stale :: "fn 2 stale (i32) -> i32\n  local acc i32\n  local.get 1\n  drop\n  local.get 0\n  return\nend\n"
     main :: "fn 3 main () -> i32\n${main_body}end\nexport main 3\n"
@@ -191,6 +195,20 @@ test_inline_leaf_replaces_a_call_with_the_leaf_body :: fn() -> void {
     module :: inline_leaf_calls(parsed)
     assert(!has_call(module.functions[3]), "the call to `square` is gone")
     assert_eq(exec_value(module), 49)
+}
+
+@test
+test_inline_leaf_keeps_the_overflow_trap_of_a_checked_op :: fn() -> void {
+    parsed :: leaf_module("  i32.const 65536\n  call 0\n  return\n") ?? return
+    module :: inline_leaf_calls(parsed)
+    assert(!has_call(module.functions[3]), "a checked multiply does not keep the call")
+    state :: prepare(module)
+    if state is VerifyError {
+        assert(false, "rejected by the verifier: ${display_verify_error(state)}")
+        return
+    }
+    result :: exec(state, [])
+    assert(result is Trap && "i32.mul overflow" in result.message, "the inlined multiply stops")
 }
 
 @test

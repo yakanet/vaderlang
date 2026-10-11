@@ -35,7 +35,7 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 0   ; pass
         i32.const 1
-        i32.add
+        i32.checked_add
         local.set 0   ; pass
       end $L2
     end $L1
@@ -63,7 +63,7 @@ fn 0 snippet$main () -> i32
       if $L5 void
         local.get 0   ; pass
         i32.const 1
-        i32.add
+        i32.checked_add
         local.set 0   ; pass
       end $L5
     end $L4
@@ -104,7 +104,7 @@ fn 0 snippet$main () -> i32
           if $L10 void
             local.get 0   ; pass
             i32.const 1
-            i32.add
+            i32.checked_add
             local.set 0   ; pass
           end $L10
         end $L9
@@ -121,7 +121,7 @@ fn 0 snippet$main () -> i32
   if $L11 void
     local.get 0   ; pass
     i32.const 1
-    i32.add
+    i32.checked_add
     local.set 0   ; pass
   end $L11
   i32.const 0
@@ -160,7 +160,7 @@ fn 0 snippet$main () -> i32
       if $L16 void
         local.get 0   ; pass
         i32.const 1
-        i32.add
+        i32.checked_add
         local.set 0   ; pass
       end $L16
     end $L15
@@ -202,7 +202,7 @@ fn 0 snippet$main () -> i32
         if $L20 void
           local.get 0   ; pass
           i32.const 1
-          i32.add
+          i32.checked_add
           local.set 0   ; pass
         end $L20
       end $L19
@@ -245,7 +245,7 @@ fn 0 snippet$main () -> i32
           if $L25 void
             local.get 0   ; pass
             i32.const 1
-            i32.add
+            i32.checked_add
             local.set 0   ; pass
           end $L25
         end $L24
@@ -298,7 +298,7 @@ fn 0 snippet$main () -> i32
           if $L30 void
             local.get 0   ; pass
             i32.const 1
-            i32.add
+            i32.checked_add
             local.set 0   ; pass
           end $L30
         end $L29
@@ -342,7 +342,7 @@ fn 0 snippet$main () -> i32
         if $L34 void
           local.get 0   ; pass
           i32.const 1
-          i32.add
+          i32.checked_add
           local.set 0   ; pass
         end $L34
       end $L33
@@ -375,7 +375,7 @@ fn 0 snippet$main () -> i32
         if $L38 void
           local.get 0   ; pass
           i32.const 1
-          i32.add
+          i32.checked_add
           local.set 0   ; pass
         end $L38
       end $L37
@@ -387,7 +387,7 @@ fn 0 snippet$main () -> i32
   if $L39 void
     local.get 0   ; pass
     i32.const 1
-    i32.add
+    i32.checked_add
     local.set 0   ; pass
   end $L39
   i32.const 1
@@ -413,7 +413,7 @@ fn 0 snippet$main () -> i32
     if $L41 void
       local.get 0   ; pass
       i32.const 1
-      i32.add
+      i32.checked_add
       local.tee 0   ; pass
       return
     end $L41

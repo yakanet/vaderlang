@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$add(a: i32, b: i32) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           a :i32
         r:

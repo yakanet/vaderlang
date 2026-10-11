@@ -1,34 +1,34 @@
-// Signed arithmetic wraps on both backends: an `i32` or an `i64` past its maximum
-// comes back at its minimum, so `x + 1 > x` is false at the maximum. The native
-// backend compiles with `-fwrapv`; without it, an optimising C compiler folds that
-// comparison to `true`, assuming no overflow happens. The values that must not
-// fold come from `argv`.
+// The wrapping operators wrap on both backends: an `i32` or an `i64` past its
+// maximum comes back at its minimum, so `x +% 1 > x` is false at the maximum. They
+// lower to the C operator on a signed type, so the native backend compiles with
+// `-fwrapv`; without it, an optimising C compiler folds that comparison to `true`,
+// assuming no overflow happens. The values that must not fold come from `argv`.
 
 module "snippet"
 
 import "std/io"
 
-grows :: fn(x: i32) -> bool = x + 1 > x
+grows :: fn(x: i32) -> bool = x +% 1 > x
 
-grows_wide :: fn(x: i64) -> bool = x + 1 > x
+grows_wide :: fn(x: i64) -> bool = x +% 1 > x
 
 main :: fn(argv: string[]) -> i32 {
     top :: i32(argv.len()) + 2147483646
-    println("i32 sum: ${top + 1}")
-    println("i32 product: ${top * 2}")
-    println("i32 negated minimum: ${-(top + 1)}")
+    println("i32 sum: ${top +% 1}")
+    println("i32 product: ${top *% 2}")
+    println("i32 negated minimum: ${0 -% (top +% 1)}")
     println("i32 grows at the maximum: ${grows(top)}")
     println("i32 grows below it: ${grows(top - 1)}")
     count := 0
     i := top - 2
     for i > 0 {
-        i += 1
+        i +%= 1
         count += 1
     }
     println("i32 steps to the wrap: ${count}")
 
     wide_top :: i64(argv.len()) + 9223372036854775806
-    println("i64 sum: ${wide_top + 1}")
+    println("i64 sum: ${wide_top +% 1}")
     println("i64 grows at the maximum: ${grows_wide(wide_top)}")
     return 0
 }

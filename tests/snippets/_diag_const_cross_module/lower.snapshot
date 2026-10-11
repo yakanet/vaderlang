@@ -19,7 +19,7 @@
           callee:
             std_core$f64$Display$to_string :string
           arg0:
-            mul :f64
+            mul_checked :f64
               l:
                 float(3.141592653589793) :f64
               r:

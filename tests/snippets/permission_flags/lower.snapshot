@@ -221,7 +221,7 @@
                   __off_11 :usize
                 arg2:
                   cast → u64
-                    add :u32
+                    add_checked :u32
                       l:
                         r :Permissions
                       r:

@@ -20,7 +20,7 @@
                 int(0) :i32
             else:
               ~>
-                add :i32
+                add_checked :i32
                   l:
                     .flag :i32
                       .inner :Inner
@@ -35,9 +35,7 @@
             .inner :Inner
               o :Outer
       then:
-        return
-          neg :i32
-            int(1) :i32
+        return int(-1) :i32
     return
       .flag :i32
         .inner :Inner

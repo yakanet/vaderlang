@@ -18,8 +18,7 @@
       arg0:
         d :Div!
       arg1:
-        neg :i32
-          int(7) :i32
+        int(-7) :i32
       arg2:
         int(3) :i32
     call :void

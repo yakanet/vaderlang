@@ -235,7 +235,7 @@
   struct __lambda_env_snippet_1 { cap_0: ? }
   fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> i32
     return
-      mul :i32
+      mul_checked :i32
         l:
           cast → i32
             LoweredCellGet
@@ -244,7 +244,7 @@
   struct __lambda_env_snippet_3 { cap_0: ? }
   fn __lambda_snippet_2(__env_1: __lambda_env_snippet_3!) -> i32
     return
-      add :i32
+      add_checked :i32
         l:
           .x :i32
             cast → Point

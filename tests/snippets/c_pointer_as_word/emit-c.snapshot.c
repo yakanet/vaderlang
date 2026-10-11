@@ -90,14 +90,13 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 static int32_t snippet_main(void) {
     void* l0;
     void* l1 = NULL;
-    size_t l2, l6, l7;
+    size_t l2, l4, l5;
     bool l3;
-    ptrdiff_t l4, l5;
     ptrdiff_t t0;
-    int64_t t1;
-    vader_string_t t2 = 0;
+    vader_string_t t1 = 0;
+    int64_t t2;
     void** gc_raw_roots[1] = { &l1 };
-    vader_string_t* gc_atom_roots[1] = { &t2 };
+    vader_string_t* gc_atom_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
@@ -110,28 +109,26 @@ static int32_t snippet_main(void) {
     l2 = std_core_write_string_at(l1, l2, 1u);
     t0 = (ptrdiff_t) (void*) l0;
     if (t0 != INT64_C(0)) {
-        l4 = (ptrdiff_t) (void*) l0;
-        t1 = -(INT64_C(1));
-        l5 = (ptrdiff_t) (int64_t) t1;
-        l3 = l4 != l5;
+        t0 = (ptrdiff_t) (void*) l0;
+        l3 = t0 != INT64_C(-1);
     } else {
         l3 = false;
     }
     l2 = std_core_write_bool(l1, l2, l3);
-    t2 = std_core_finish_buffer(l1, l2);
-    std_io_println__string(t2);
+    t1 = std_core_finish_buffer(l1, l2);
+    std_io_println__string(t1);
 #line 25 "tests/snippets/c_pointer_as_word/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 18);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 2u);
-    l6 = (size_t) (void*) l0;
+    l4 = (size_t) (void*) l0;
     t0 = (ptrdiff_t) (void*) l0;
-    t1 = ((int64_t) (ptrdiff_t) t0);
-    l7 = (size_t) (int64_t) t1;
-    l3 = l6 == l7;
+    t2 = ((int64_t) (ptrdiff_t) t0);
+    l5 = (size_t) (int64_t) t2;
+    l3 = l4 == l5;
     l2 = std_core_write_bool(l1, l2, l3);
-    t2 = std_core_finish_buffer(l1, l2);
-    std_io_println__string(t2);
+    t1 = std_core_finish_buffer(l1, l2);
+    std_io_println__string(t1);
 #line 26 "tests/snippets/c_pointer_as_word/_main.vader"
     vader_host_snippet_c_free(l0);
 #line 27 "tests/snippets/c_pointer_as_word/_main.vader"
@@ -185,11 +182,13 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
+    int64_t t0;
 #line 121 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
 #line 122 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
-    return (size_t) (int64_t) (l1 + l3);
+    t0 = vader_chk_add(usize, l1, l3);
+    return (size_t) (int64_t) t0;
 }
 
 static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
@@ -242,7 +241,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 217 "lib/std/io/io.vader"
             t0 = ((int64_t) (int32_t) l8);
             l9 = (size_t) (int64_t) t0;
-            t0 = (l3 + l9);
+            t0 = vader_chk_add(usize, l3, l9);
             l3 = (size_t) (int64_t) t0;
 #line 208 "lib/std/io/io.vader"
             continue;

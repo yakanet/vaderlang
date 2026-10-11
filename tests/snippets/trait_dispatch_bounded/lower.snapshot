@@ -141,7 +141,7 @@
                 target:
                   n :i32
                 value:
-                  add :i32
+                  add_checked :i32
                     l:
                       n :i32
                     r:
@@ -200,7 +200,7 @@
                 target:
                   n :i32
                 value:
-                  add :i32
+                  add_checked :i32
                     l:
                       n :i32
                     r:

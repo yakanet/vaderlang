@@ -449,6 +449,7 @@ TypelessOp :: Unreachable | I32Const | LocalGet | LocalSet | LocalTee | StringCo
     | LoadSlotI32 | LoadSlotI64 | LoadSlotF64 | StoreSlotI32 | StoreSlotI64 | StoreSlotF64
     | MemoryCopy | BufferToString | BufferWriteString | F64ToBits | BitsToF64 | F32ToBits
     | BitsToF32 | ArrayRepeat | ArrayPushAll | ArrayCopy | ArrayRemoveLast | ArrayClear | FnAddr
+    | CheckedArith | CheckedNeg
 
 /// Recursive reachability walk on the type table. Composite types
 /// (struct / union / array / fn) extend the visit through their

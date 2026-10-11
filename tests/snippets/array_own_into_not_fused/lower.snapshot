@@ -61,7 +61,7 @@
               target:
                 n :i32
               value:
-                add :i32
+                add_checked :i32
                   l:
                     n :i32
                   r:
@@ -210,7 +210,7 @@
                 target:
                   sum :i32
                 value:
-                  add :i32
+                  add_checked :i32
                     l:
                       sum :i32
                     r:
@@ -365,7 +365,7 @@
                               _0:
                                 Mon! {
                                   v:
-                                    mul :i32
+                                    mul_checked :i32
                                       l:
                                         .v :i32
                                           .s4 :Mon
@@ -791,7 +791,7 @@
                               _0:
                                 Pt! {
                                   x:
-                                    add :i32
+                                    add_checked :i32
                                       l:
                                         .x :i32
                                           .s4 :Pt
