@@ -62,18 +62,19 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     }
     if binary.op == .In || binary.op == .NotIn {
         // Fast-path : `x in lo..=hi` / `x in lo..<hi` over a LITERAL range with a
-        // primitive, side-effect-free `x` → inline `lo <= x && x <= hi` (or `< hi`),
-        // bypassing the `Range` heap allocation + `contains` call. The hot case is
-        // the char predicates (`c in 'a'..='z'`) — otherwise a fresh `Range` is
-        // built per call just to bounds-check (2.3M+ allocs/self-compile). `x` is
-        // re-lowered (not a shared IR node) so the ident loads twice ; restricting
-        // to IdentExpr keeps that duplication side-effect-free. The bounds are
+        // scalar (a primitive, or a distinct over one), side-effect-free `x` →
+        // inline `lo <= x && x <= hi` (or `< hi`), bypassing the `Range` heap
+        // allocation + `contains` call. The hot case is the char predicates
+        // (`c in 'a'..='z'`), which would otherwise build a fresh `Range` per call
+        // just to bounds-check. `x` is re-lowered (not a shared IR node) so the
+        // ident loads twice ; restricting to IdentExpr keeps that duplication
+        // side-effect-free. The bounds are
         // evaluated once each, `lo` first, as the `Range` would be : an `hi` that
         // does work is bound ahead — the `&&` may short-circuit past it — and
         // `lo` then ahead of it.
         if binary.right is RangeExpr as range_lit {
             if binary.left is IdentExpr {
-                if ctx.types.expr_type(binary.left) is PrimitiveType {
+                if scalar_backing(ctx.types.expr_type(binary.left)) != null {
                     span :: binary.span
                     lo_value :: lower_expr(ctx, range_lit.lower)
                     hi_value :: lower_expr(ctx, range_lit.upper)

@@ -78,7 +78,7 @@ export infer_binary :: fn(
     // `x in c` : a free element takes `c`'s, `4_000_000_000 in r` an `i64` on a
     // `Range<i64>`.
     if classify(e.op) == .In && is_free_numeric(left) {
-        element :: contained_element(right, typed)
+        element :: contained_element(right, e.right.span, typed)
         if element != null {
             left = repin_operand(e.left, left, element, typed, diags, check_expr_fn)
         }
@@ -662,19 +662,33 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
     return TY_BOOL
 }
 
-// The `value` of `c`'s one `contains`, null when `c` has several or none.
-contained_element :: fn(c: Type, typed: TypedProgram) -> Type | null {
-    candidates :: trait_members(typed, c, core_trait_key(TRAIT_CONTAINS), METHOD_CONTAINS)
-    if candidates.len() != 1 {
+// The `value` of `c`'s one `contains`, its impl's or, for a `c` dispatching
+// through `Contains` at run time (`dispatched_member`), its trait's ; null when `c`
+// has several or none.
+contained_element :: fn(c: Type, span: Span, typed: TypedProgram) -> Type | null {
+    key :: core_trait_key(TRAIT_CONTAINS)
+    candidates :: trait_members(typed, c, key, METHOD_CONTAINS)
+    if candidates.len() == 1 {
+        return contains_value(c, candidates[0], typed)
+    }
+    if candidates.len() > 1 {
         return null
     }
-    return contains_value(c, candidates[0], typed)
+    member :: dispatched_member(c, key, METHOD_CONTAINS, span, typed, diag_sink()) ?? return null
+    if member.trait_key != key {
+        return null
+    }
+    return contains_param(member.ty)
 }
 
 // The `value` `member`, a `contains`, takes on `c`, as `c.contains(x)` types it: a
 // generic impl's parameters bound to `c`'s arguments.
-contains_value :: fn(c: Type, member: ImplMethod, typed: TypedProgram) -> Type | null {
-    method :: impl_member_type(member, c, typed)
+contains_value :: fn(c: Type, member: ImplMethod, typed: TypedProgram) -> Type | null =
+    contains_param(impl_member_type(member, c, typed))
+
+// The one `value` a `contains` signature takes ; null for another arity or a type
+// parameter.
+contains_param :: fn(method: Type) -> Type | null {
     if method !is FnType || method.params.len() != 1 || method.params[0] is TypeParamType {
         return null
     }

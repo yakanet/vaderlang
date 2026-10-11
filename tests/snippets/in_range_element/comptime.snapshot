@@ -5,6 +5,7 @@
 
 ## generic instances
   __genstate_array_iter<T>
+  ArrayOps<T>
   Into<Target>
   Add<Rhs, Out>
   Sub<Rhs, Out>
@@ -13,6 +14,7 @@
   Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>
+  Contains<i64>
   Contains<T>
   Iterator<T>
   Iterator<T>
@@ -25,4 +27,3 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayOps<T>

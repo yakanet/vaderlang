@@ -1,7 +1,8 @@
 // `x in lo..=hi` types a literal range's bounds as `x`: over an `i64` they reach
 // past `i32`, over a `u8` a char bound lands as a byte, over a distinct they are
 // its backing's. A literal array takes the element's type the same way. A free
-// element takes the container's type, an `i64` on a `Range<i64>` or an `i64[]`.
+// element takes the container's type, an `i64` on a `Range<i64>` or an `i64[]`,
+// and the trait's on a container dispatching through `Contains`.
 module "snippet"
 
 import "std/io"
@@ -16,6 +17,18 @@ near :: fn(m: Meters) -> bool = m in 0..=9 && m !in 10..<20
 
 blank :: fn(b: u8) -> bool = b in [' ', '\t']
 
+Bag :: struct {
+    items: i64[]
+}
+
+Bag implements Contains<i64> {
+    contains :: fn(self, value: i64) -> bool = value in self.items
+}
+
+has_big :: fn<C: Contains<i64>>(c: C) -> bool = 4_000_000_000 in c
+
+has_big_value :: fn(c: Contains<i64>) -> bool = 4_000_000_000 in c
+
 listed :: fn(n: usize, m: Meters) -> bool = n in [1, 2] && m in [3, 4]
 
 main :: fn() -> i32 {
@@ -25,6 +38,8 @@ main :: fn() -> i32 {
     println("${byte('q')} ${byte(255)} ${byte(100)}")
     println("${near(Meters(5))} ${near(Meters(15))}")
     println("${blank(' ')} ${blank('x')} ${listed(2, Meters(3))} ${listed(3, Meters(3))}")
+    bag :: Bag { .items = [4_000_000_000, 7] }
+    println("${has_big(bag)} ${has_big_value(bag)}")
     println("${4_000_000_000 in r} ${6_000_000_000 in r} ${5_000_000_000 in xs} ${7 in xs}")
     return 0
 }
