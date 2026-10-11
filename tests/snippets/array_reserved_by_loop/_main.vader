@@ -2,9 +2,10 @@
 // loop's trip count (`[] * n`, see the lower snapshot) — a hand-written loop over
 // an array, a field or a range (inclusive too), and a `collect` over a chain
 // alike; several arrays filled by one loop, past a `let` in between, and in an
-// async fn. A range that runs no turn reserves nothing. A conditional push, or a
-// loop that may leave early, keeps the plain empty array. Every case prints what
-// it built.
+// async fn. A narrow signed range whose span passes the type's positive half
+// reserves its true count. A range that runs no turn reserves nothing. A
+// conditional push, or a loop that may leave early, keeps the plain empty array.
+// Every case prints what it built.
 
 module "snippet"
 
@@ -46,6 +47,15 @@ over_inclusive :: fn(lo: i32, hi: i32) -> i64[] {
         out.push(square(i))
     }
     return out
+}
+
+// `-100..<100` over an `i8`: 200 turns, more than an `i8` holds.
+span_count :: fn(lo: i8, hi: i8) -> usize {
+    out: i8[]: []
+    for b in lo..<hi {
+        out.push(b)
+    }
+    return out.len()
 }
 
 Bag :: struct {
@@ -117,6 +127,7 @@ main :: fn() -> i32 {
     show("empty array", over_array(empty))
     show("inclusive", over_inclusive(1, 3))
     show("empty inclusive", over_inclusive(3, 1))
+    println("narrow signed: ${span_count(-100, 100)}")
     show("field", over_field(Bag { .items = [3, 4] }))
     println("split: ${split(a)}")
     later :: await squares_later(a)

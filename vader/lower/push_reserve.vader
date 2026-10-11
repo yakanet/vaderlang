@@ -159,7 +159,10 @@ is_push_onto :: fn(e: LoweredExpr, out: Symbol) -> bool =
 // ---- the trip count ---------------------------------------------------------
 
 // How many turns the loop runs, as a `usize`: `bound - start` (one more when the
-// bound is reached), or 0 for a range whose bound sits below its start.
+// bound is reached), or 0 for a range whose bound sits below its start. The
+// difference is a wrapping `usize` one, exact under the `start <= bound` guard: in
+// the counter's own type it may not fit (`-100..<100` over an `i8`). Two literal
+// bounds wrap too, the count being a hint: a span past `i64` reserves nothing.
 trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr! {
     start :: turns.start
     bound :: turns.bound
@@ -169,17 +172,10 @@ trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr! {
         return bound
     }
     if start is LoweredIntLit && bound is LoweredIntLit {
-        count :: bound.value - start.value + extra
+        count :: bound.value -% start.value +% extra
         return usize_lit(if count > 0 { count } else { 0 }, span)
     }
-    difference :: LoweredBinary {
-        .span = span,
-        .type = type_of(bound),
-        .op = .Sub,
-        .left = bound,
-        .right = start,
-    }
-    turned :: cast_to_usize(difference, span)
+    turned :: usize_difference(bound, start, span)
     in_range :: LoweredBinary {
         .span = span,
         .type = TY_BOOL,
@@ -193,6 +189,19 @@ trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr! {
         .cond = in_range,
         .then_block = wrap_as_block(if inclusive { plus_one(turned, span) } else { turned }, span),
         .else_block = wrap_as_block(usize_lit(0, span), span),
+    }
+}
+
+usize_difference :: fn(bound: LoweredExpr, start: LoweredExpr, span: Span) -> LoweredExpr! {
+    if is_int_lit(start, 0) {
+        return cast_to_usize(bound, span)
+    }
+    return LoweredBinary {
+        .span = span,
+        .type = mk_primitive("usize"),
+        .op = .Sub,
+        .left = cast_to_usize(bound, span),
+        .right = cast_to_usize(start, span),
     }
 }
 

@@ -15,11 +15,7 @@
           then:
             ~>
               cast → usize
-                sub :i32
-                  l:
-                    n :i32
-                  r:
-                    int(0) :i32
+                n :i32
           else:
             ~>
               int(0) :usize
@@ -120,11 +116,7 @@
           then:
             ~>
               cast → usize
-                sub :i32
-                  l:
-                    n :i32
-                  r:
-                    int(0) :i32
+                n :i32
           else:
             ~>
               int(0) :usize
@@ -158,11 +150,7 @@
           then:
             ~>
               cast → usize
-                sub :i32
-                  l:
-                    n :i32
-                  r:
-                    int(0) :i32
+                n :i32
           else:
             ~>
               int(0) :usize
@@ -361,11 +349,7 @@
           then:
             ~>
               cast → usize
-                sub :i32
-                  l:
-                    n :i32
-                  r:
-                    int(0) :i32
+                n :i32
           else:
             ~>
               int(0) :usize
@@ -434,11 +418,7 @@
           then:
             ~>
               cast → usize
-                sub :i32
-                  l:
-                    n :i32
-                  r:
-                    int(0) :i32
+                n :i32
           else:
             ~>
               int(0) :usize
@@ -458,11 +438,7 @@
               then:
                 ~>
                   cast → usize
-                    sub :i32
-                      l:
-                        n :i32
-                      r:
-                        int(0) :i32
+                    n :i32
               else:
                 ~>
                   int(0) :usize
@@ -523,11 +499,7 @@
           then:
             ~>
               cast → usize
-                sub :i32
-                  l:
-                    n :i32
-                  r:
-                    int(0) :i32
+                n :i32
           else:
             ~>
               int(0) :usize
@@ -559,11 +531,7 @@
           then:
             ~>
               cast → usize
-                sub :i32
-                  l:
-                    n :i32
-                  r:
-                    int(0) :i32
+                n :i32
           else:
             ~>
               int(0) :usize
@@ -595,11 +563,7 @@
           then:
             ~>
               cast → usize
-                sub :i32
-                  l:
-                    n :i32
-                  r:
-                    int(0) :i32
+                n :i32
           else:
             ~>
               int(0) :usize
@@ -859,11 +823,7 @@
           then:
             ~>
               cast → usize
-                sub :i32
-                  l:
-                    n :i32
-                  r:
-                    int(0) :i32
+                n :i32
           else:
             ~>
               int(0) :usize
@@ -914,11 +874,7 @@
           then:
             ~>
               cast → usize
-                sub :i32
-                  l:
-                    n :i32
-                  r:
-                    int(0) :i32
+                n :i32
           else:
             ~>
               int(0) :usize
@@ -963,11 +919,7 @@
           then:
             ~>
               cast → usize
-                sub :i32
-                  l:
-                    n :i32
-                  r:
-                    int(0) :i32
+                n :i32
           else:
             ~>
               int(0) :usize
@@ -1035,11 +987,7 @@
           then:
             ~>
               cast → usize
-                sub :i32
-                  l:
-                    n :i32
-                  r:
-                    int(0) :i32
+                n :i32
           else:
             ~>
               int(0) :usize
@@ -1137,11 +1085,7 @@
               then:
                 ~>
                   cast → usize
-                    sub :i32
-                      l:
-                        n :i32
-                      r:
-                        int(0) :i32
+                    n :i32
               else:
                 ~>
                   int(0) :usize

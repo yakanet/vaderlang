@@ -142,6 +142,7 @@
   Async<T>
   Async<T>
   Range<i32>
+  Range<i8>
   Range<usize>
   Range<T>
   Range<T>
