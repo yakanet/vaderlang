@@ -583,7 +583,7 @@ lowering boundary).
 
 ### Default integer
 
-A literal integer with no concrete context **infers to `i32`** (`x := 42` ⇒ `x: i32`). A binding whose whole value is such a literal must fit it: `big :: 9000000000` is **T3066**, write the type (`big: i64: 9000000000`).
+A literal integer with no concrete context **infers to `i32`** (`x := 42` ⇒ `x: i32`), and must fit it wherever it sits: `big :: 9000000000`, `[9000000000]` and `9000000000 + 1` are **T3066**; write the type (`big: i64: 9000000000`) or give the literal a context (`n + 9000000000` with `n: i64`).
 
 A `-` written against a number literal where an operand is expected makes one negative literal, integer or float: `-128` is a value, not the negation of `128`, and a postfix applies to it (`-5.to_string()` is `"-5"`). `-(128)`, `- 128` and `-x` stay negations.
 

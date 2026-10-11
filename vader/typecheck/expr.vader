@@ -55,7 +55,8 @@ export check_expr :: fn(
     // A free integer literal pinned to a concrete integer width must fit it —
     // `x: i32 = 9000000000`, `x: u8 = 300` and `z: u32 = -1` are rejected here,
     // where both the value and the pinned type are known (mirrors the char bounds
-    // check above).
+    // check above). One left free lowers at its default unless a later context
+    // repins it: past that default it waits for the end of the walk.
     if expr is AST.IntLitExpr {
         if final is PrimitiveType {
             if is_int_name(final.name) && !int_fits(expr.value, expr.negative, final.name) {
@@ -63,23 +64,32 @@ export check_expr :: fn(
                     "`${AST.int_literal_text(expr)}` does not fit in `${final.name}`"))
             }
         }
+        if final is FreeIntType {
+            defaulted :: default_if_free(final)
+            if defaulted is PrimitiveType && !int_fits(expr.value, expr.negative, defaulted.name) {
+                typed.literals_past_default[expr.id] = expr
+            }
+        }
     }
     record_expr(typed, expr, final)
     return final
 }
 
-// The type a binding without annotation takes from its value's type `got`:
-// `got` with a free literal type defaulted. T3066 when the value is an integer
-// literal that does not fit its default (`big :: 9_000_000_000`).
-defaulted_binding_type :: fn(value: AST.Expr, got: Type, diags: Diagnostic[]) -> Type {
-    defaulted :: default_if_free(got)
-    if got is FreeIntType && value is AST.IntLitExpr && defaulted is PrimitiveType {
-        if !int_fits(value.value, value.negative, defaulted.name) {
-            diags.push(typecheck_error(.IntegerLiteralOutOfRange, value.span,
-                "`${AST.int_literal_text(value)}` does not fit in `${defaulted.name}`, the type it defaults to"))
+// T3066 for each literal past its default still free once the module's bodies are
+// typed: no context pinned it, so it lowers at the `i32` it defaults to, wherever
+// it sits (`big :: 9_000_000_000`, `[9_000_000_000]`, `9_000_000_000 + 1`). A
+// literal a later context repinned has its concrete type recorded by then.
+report_literals_past_default :: fn(typed: TypedProgram, diags: Diagnostic[]) -> void {
+    for [id, literal] in typed.literals_past_default {
+        recorded :: typed.expr_types[id] ?? continue
+        if recorded !is FreeIntType {
+            continue
         }
+        text :: AST.int_literal_text(literal)
+        name :: display_type(default_if_free(recorded))
+        detail :: "`${text}` does not fit in `${name}`, the type it defaults to"
+        diags.push(typecheck_error(.IntegerLiteralOutOfRange, literal.span, detail))
     }
-    return defaulted
 }
 
 // A free literal against a union with several candidate members and no default

@@ -474,6 +474,11 @@ export TypedProgram :: struct {
     /// The lowerer calls it instead of resolving the member by name.
     picked_impl_members: MutableMap<usize, ImplMethod>!
 
+    /// Integer literal id → a literal `check_expr` left free that does not fit the
+    /// `i32` it defaults to: T3066 unless a later context repins it
+    /// (`report_literals_past_default`).
+    literals_past_default: MutableMap<usize, AST.IntLitExpr>!
+
     /// `IndexExpr` id → the `set_at` an index write picked among several `IndexSet`
     /// impls ; apart from `picked_impl_members`, because `m[k] += v` reads and writes
     /// through one `IndexExpr`.
@@ -824,6 +829,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .chosen_impl_methods = MutableMap<usize, ImplMethod> {},
     .overloaded_members = MutableMap<usize, ImplMethod[]> {},
     .picked_impl_members = MutableMap<usize, ImplMethod> {},
+    .literals_past_default = MutableMap<usize, AST.IntLitExpr> {},
     .picked_index_writes = MutableMap<usize, ImplMethod> {},
     .static_members = MutableMap<usize, StaticMember> {},
     .type_param_bound_traits = MutableMap<i32, TypeParamBound> {},

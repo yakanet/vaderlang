@@ -1463,6 +1463,7 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
     typed.chosen_impl_methods = MutableMap<usize, ImplMethod> {}
     typed.overloaded_members = MutableMap<usize, ImplMethod[]> {}
     typed.picked_impl_members = MutableMap<usize, ImplMethod> {}
+    typed.literals_past_default = MutableMap<usize, AST.IntLitExpr> {}
     typed.picked_index_writes = MutableMap<usize, ImplMethod> {}
     typed.static_members = MutableMap<usize, StaticMember> {}
     typed.callee_field_id = AST.UNASSIGNED_NODE_ID
@@ -2500,7 +2501,8 @@ export WalkMode :: enum(u8) {
 /// extern / abstract decls (no body). For ConstDecls without an
 /// annotation, types the value expression and back-fills the const's
 /// declared type (post `default_if_free`) so `IdentExpr` lookups
-/// against it return a concrete type.
+/// against it return a concrete type. A `Full` walk ends with the free
+/// literals past their default (`report_literals_past_default`).
 export walk_bodies :: fn(
     decls: AST.Decl[],
     typed: TypedProgram,
@@ -2575,6 +2577,9 @@ export walk_bodies :: fn(
                 reject_default_cycle(decl, fill, typed, diags)
             }
         }
+    }
+    if mode == .Full {
+        report_literals_past_default(typed, diags)
     }
 }
 
@@ -3064,7 +3069,7 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
         return
     }
     got :: check_expr(cd.value, annot, typed, diags)
-    final :: annot ?? auto_freeze_module_const(defaulted_binding_type(cd.value, got, diags))
+    final :: annot ?? auto_freeze_module_const(default_if_free(got))
     typed.decl_types[sym.id] = final
     reject_const_reaching_mutable_level(cd, got, typed, diags)
 }
