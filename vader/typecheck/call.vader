@@ -1374,17 +1374,18 @@ cast_call_target :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     target :: type_from_expr(c.callee, typed.resolved, diags)
+    // The cast itself calls nothing ; an `into` it runs is its value's site.
+    site: Callee = BUILTIN_CALLEE
     if c.args.len() != 1 {
         diags.push(typecheck_error(.WrongArgCount, c.span,
             "a cast to `${display_type(target)}` takes one value, got ${c.args.len()}"))
+        site = ERRONEOUS_CALLEE
     }
     result: Type = target
     // Pass the cast target as expected for each arg so a Free* literal
     // (or `-Free*` unary) narrows into the target's primitive shape —
     // `i64(-250)` types the `-250` as `i64`, not `{integer}`.
     expected :: cast_operand_expected(target)
-    // The cast itself calls nothing ; an `into` it runs is its value's site.
-    record_call_site(typed, c, cast_site_callee(c))
     for arg in c.args {
         src :: check_expr_fn(arg.value, expected, typed, diags)
         // Variant data is constant : reading it hands back a read-only value.
@@ -1399,7 +1400,7 @@ cast_call_target :: fn(
                     "cannot cast ${display_type(src)} to ${display_type(target)}",
                 ),
             )
-            record_call_site(typed, c, ERRONEOUS_CALLEE)
+            site = ERRONEOUS_CALLEE
         } else {
             note_cast_into(typed, arg.value, src, target)
             if type_withholds_mutation(src) {
@@ -1408,15 +1409,8 @@ cast_call_target :: fn(
             }
         }
     }
+    record_call_site(typed, c, site)
     return result
-}
-
-// A cast takes one value ; any other count is reported.
-cast_site_callee :: fn(c: AST.CallExpr) -> Callee {
-    if c.args.len() == 1 {
-        return BUILTIN_CALLEE
-    }
-    return ERRONEOUS_CALLEE
 }
 
 // File the `into` a cast `T(x)` runs on `value`, as `emit_value_cast` decides it :
