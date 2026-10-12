@@ -53,3 +53,235 @@
                               else:
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat_7 :string
+          arg0:
+            call :string
+              callee:
+                classify :fn(i32 | null | string) -> string
+              arg0:
+                int(5) :i32
+          arg1:
+            " " :string
+          arg2:
+            call :string
+              callee:
+                classify :fn(i32 | null | string) -> string
+              arg0:
+                int(-1) :i32
+          arg3:
+            " " :string
+          arg4:
+            call :string
+              callee:
+                classify :fn(i32 | null | string) -> string
+              arg0:
+                "hi" :string
+          arg5:
+            " " :string
+          arg6:
+            call :string
+              callee:
+                classify :fn(i32 | null | string) -> string
+              arg0:
+                null
+    return int(0) :i32
+  fn concat_7(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string, p6: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let c2: usize =
+      add :usize
+        l:
+          c1 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p2 :string
+    let c3: usize =
+      add :usize
+        l:
+          c2 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p3 :string
+    let c4: usize =
+      add :usize
+        l:
+          c3 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p4 :string
+    let c5: usize =
+      add :usize
+        l:
+          c4 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p5 :string
+    let c6: usize =
+      add :usize
+        l:
+          c5 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p6 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c6 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c1 :usize
+      arg2:
+        p2 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c2 :usize
+      arg2:
+        p3 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c3 :usize
+      arg2:
+        p4 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c4 :usize
+      arg2:
+        p5 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c5 :usize
+      arg2:
+        p6 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c6 :usize
+  fn concat_2(p0: string, p1: string) -> string
+    let c0: usize =
+      call :usize
+        callee:
+          byte_len :usize
+        arg0:
+          p0 :string
+    let c1: usize =
+      add :usize
+        l:
+          c0 :usize
+        r:
+          call :usize
+            callee:
+              byte_len :usize
+            arg0:
+              p1 :string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          std_core$usize$BufferAlloc$new_buffer :Buffer
+        arg0:
+          c1 :usize
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        int(0) :usize
+      arg2:
+        p0 :string
+    call :void
+      callee:
+        std_core$Buffer$ByteAccess$write_string :void
+      arg0:
+        buf :Buffer
+      arg1:
+        c0 :usize
+      arg2:
+        p1 :string
+    ~>
+      call :string
+        callee:
+          std_core$Buffer$ByteAccess$intern_string :string
+        arg0:
+          buf :Buffer
+        arg1:
+          c1 :usize

@@ -1,5 +1,7 @@
 module "snippet"
 
+import "std/io"
+
 export classify :: fn(n: i32) -> string {
     return if (n > 0) {
         "positive"
@@ -8,4 +10,9 @@ export classify :: fn(n: i32) -> string {
     } else {
         "zero"
     }
+}
+
+main :: fn() -> i32 {
+    println("${classify(5)} ${classify(-5)} ${classify(0)}")
+    return 0
 }

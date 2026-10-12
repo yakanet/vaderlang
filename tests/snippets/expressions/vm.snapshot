@@ -1,1 +1,4 @@
-# no main function
+# stdout
+7 9 2 true true false 1 3 30 1 42
+# exit
+0

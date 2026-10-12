@@ -1,5 +1,7 @@
 module "snippet"
 
+import "std/io"
+
 export mixed_loops :: fn(start: i32) -> i32 {
     n := 0
 
@@ -24,4 +26,9 @@ export mixed_loops :: fn(start: i32) -> i32 {
     }
 
     return n
+}
+
+main :: fn() -> i32 {
+    println("${mixed_loops(0)} ${mixed_loops(7)} ${mixed_loops(10)}")
+    return 0
 }

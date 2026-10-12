@@ -2,5 +2,12 @@
 
 ## tests/snippets/trait_impl
   TraitDecl      Display              :: Display!
+  FnDecl         main                 :: fn() -> i32
   StructDecl     Point                :: Point!
-  expr 14:16    StringLitExpr  :: string
+  expr 16:16    StringLitExpr  :: string
+  expr 21:10    StructLitExpr  :: Point!
+  expr 22:13    CallExpr       :: string
+  expr 22:13    FieldExpr      :: fn() -> string
+  expr 22:13    IdentExpr      :: Point!
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void

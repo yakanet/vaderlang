@@ -13,7 +13,15 @@ export const CONFIG_FILE = "_config.json";
 /** The emitted-C golden. The `.c` extension is what makes an editor open it as C. */
 export const C_SNAPSHOT = "emit-c.snapshot.c";
 
-export const VM_ERROR_PREFIXES = ["# pipeline error", "# compile errors", "# no main function", "# runtime error"] as const;
+/** What a `vm.snapshot` starts with when its snippet must not compile; the
+ *  errors follow, one per line. Every other `vm.snapshot` is a run's output. */
+export const COMPILE_ERRORS = "# compile errors";
+
+/** Whether the snippet in `dir` must not compile: its `vm.snapshot` lists errors. */
+export function expectsCompileErrors(dir: string): boolean {
+  const path = join(dir, "vm.snapshot");
+  return existsSync(path) && readFileSync(path, "utf8").startsWith(COMPILE_ERRORS);
+}
 /** What a stage snapshot starts with when the CLI failed to produce that stage. */
 export const CLI_FAILED_PREFIX = "# vader CLI failed";
 

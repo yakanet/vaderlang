@@ -1,27 +1,22 @@
-// VM parity — Vader CLI's bytecode interpreter vs the TS VM's `vm.snapshot`.
+// VM parity: every snippet's `vm.snapshot` is checked against the Vader VM.
 //
-// Each snippet that produces a `bytecode.snapshot.virt` (the `.virt` text-IR
-// dump emitted by the bytecode phase in `tests/snapshot.test.ts`) is fed
-// directly to the Vader CLI (`./build/vader run`). The captured stdout +
-// stderr + exit are formatted via `formatRun` and compared to the same
-// `vm.snapshot` the TS VM is checked against — both VMs share one oracle.
+// - A run snapshot is compared with `./build/vader run` on the snippet's
+//   `bytecode.snapshot.virt`, or on bytecode built from source when the snippet
+//   has none or is listed in `VADER_SELF_EMIT`. The output goes through
+//   `formatRun`, as the native run in `parity-cemit.test.ts` does.
+// - A `# compile errors` snapshot is compared with the errors `vader check`
+//   reports, and the check must fail.
 //
-// Vader-VM coverage grows sprint by sprint (docs/SELFHOST_VM.md). The VM
-// implements `bool.*`, `null.const`, `virtual.call`, `type_check` (verified
-// in `vader/vm/exec.vader`) ; snippets still trap or diverge for narrower
-// reasons — host imports beyond `std_io$write` (no host-fn registry),
-// panic-unwind defers, and `virtual.call` whose receiver is an *erased*
-// type (`ref _`) for which the vtable lookup finds no impl (the mode-a
-// erasure gap — fixed by monomorphising/devirtualising in the Vader emit,
-// tracked in the §9 audit). Those are listed in `KNOWN_DIVERGENT` and
-// skipped — entries should be removed as the gaps close.
+// A snippet whose VM run is known to be wrong is listed in `KNOWN_DIVERGENT`
+// with its reason; one with a `helper.c` is skipped, its foreign symbols living
+// only in a native binary.
 
 import { test } from "bun:test";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
+import { COMPILE_ERRORS, type Scenario, expectsCompileErrors, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
@@ -275,20 +270,6 @@ const VADER_SELF_EMIT = new Set<string>([
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
-  // A8 single-track defer — panic-unwind not yet wired in the Vader self-
-  // host VM ; `defer.push` / `defer.pop_exec` (normal exits) work but a
-  // trapped op exits via the regular `Trap` path without draining the
-  // frame's defer-stack. Tracked alongside the C-emit setjmp/longjmp
-  // chantier in TODO §3.8.
-  "defer_on_panic",
-  // `defer_in_lambda` exposes a distinct, deeper gap surfaced once the
-  // MIDIR path started emitting `defer.push` : a defer thunk *inside a
-  // lambda* that captures an outer-lambda-captured var (`defer
-  // println("...${x}")` where `x` is itself `__env.cap_N`) fails to
-  // resolve `x` during the thunk's closure build, truncating the lambda
-  // body with `unreachable ; unresolved ident x`. Nested-capture chain
-  // through the defer thunk — tracked in TODO §3.8.
-  "defer_in_lambda",
   // No bytecode to run : the compiler panics (GATE B1) on a `for` over an
   // `if` whose `else` branch is an array literal, typed as a tuple — the
   // snippet pins the wrong output until it is fixed. Tracked in TODO
@@ -296,6 +277,37 @@ const KNOWN_DIVERGENT = new Set<string>([
   "_diag_for_in_if_branch_literal",
 
 ]);
+
+// The error lines `vader check` reports, as a `vm.snapshot` lists them:
+// `[CODE] message: detail`, in the order the compiler emits them.
+function compileErrorLines(output: string): string[] {
+  return output.split("\n").flatMap((line) => {
+    const m = line.match(/^\[[^\]]*\] error\[([A-Z][0-9]+)\] (.*)$/);
+    return m ? [`[${m[1]}] ${m[2]}`] : [];
+  });
+}
+
+// Build `s` from source and run Vader's own bytecode, against `vm.snapshot`.
+// `build --emit=bytecode-text`, NOT `dump --stage=bytecode`: this oracle needs
+// the whole linked image, every function it calls included. The dump is a VIEW
+// of one module and is free to narrow; the build is what runs.
+function testFromSource(s: Scenario): void {
+  test.concurrent(`vader-vm-self: ${s.name}`, async () => {
+    const tmp = join(tmpdir(), `vader-self-${s.name}.virt`);
+    const built = await runCli(["build", "--emit=bytecode-text", "-o", tmp, s.mainPath]);
+    if (built.exit !== 0) throw new Error(`bytecode-text emit failed: ${built.stderr}`);
+    const { stdout, stderr, exit } = await runCli(["run", tmp]);
+    const actual = formatRun(stdout, stderr, exit);
+    const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
+    if (!cmp.ok) {
+      throw new Error(
+        `vader-vm-self mismatch: ${s.name}\n` +
+        `  snap: ${cmp.snapPath}\n\n` +
+        snapshotDiff(cmp.snapPath, cmp.expected, actual),
+      );
+    }
+  }, { timeout: MEDIUM_BUILD });
+}
 
 const scenarios = listSnippets("tests/snippets");
 
@@ -307,19 +319,29 @@ for (const s of scenarios) {
   // Self-emit snippets : compile with Vader, run Vader's OWN bytecode (not
   // the committed TS `.virt`), and compare to the same `vm.snapshot` oracle.
   if (VADER_SELF_EMIT.has(s.name)) {
-    test.concurrent(`vader-vm-self: ${s.name}`, async () => {
-      // `build --emit=bytecode-text`, NOT `dump --stage=bytecode`: this oracle
-      // needs the whole linked image, every function it calls included. The dump
-      // is a VIEW of one module and is free to narrow; the build is what runs.
-      const tmp = join(tmpdir(), `vader-self-${s.name}.virt`);
-      const built = await runCli(["build", "--emit=bytecode-text", "-o", tmp, s.mainPath]);
-      if (built.exit !== 0) throw new Error(`bytecode-text emit failed: ${built.stderr}`);
-      const { stdout, stderr, exit } = await runCli(["run", tmp]);
-      const actual = formatRun(stdout, stderr, exit);
+    testFromSource(s);
+    continue;
+  }
+  // A snippet that must not compile: its `vm.snapshot` lists the errors, and the
+  // compiler has to report exactly those and fail. A snippet that compiles, or
+  // whose errors change, fails here.
+  if (expectsCompileErrors(s.dir)) {
+    test.concurrent(`vader-vm-compile-errors: ${s.name}`, async () => {
+      const { stdout, stderr, exit } = await runCli(["check", s.mainPath]);
+      const lines = compileErrorLines(`${stdout}\n${stderr}`);
+      // Checked before the comparison, so `test:update` cannot record an empty
+      // list and keep a snippet that now compiles out of every run.
+      if (lines.length === 0 || exit !== 1) {
+        throw new Error(
+          `${s.name}: \`vader check\` reported ${lines.length} error(s) and exited ${exit}; ` +
+          `a snippet that compiles records its run in vm.snapshot instead\n${stdout}${stderr}`,
+        );
+      }
+      const actual = `${COMPILE_ERRORS}\n${lines.join("\n")}\n`;
       const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
       if (!cmp.ok) {
         throw new Error(
-          `vader-vm-self mismatch: ${s.name}\n` +
+          `vader-vm compile errors mismatch: ${s.name}\n` +
           `  snap: ${cmp.snapPath}\n\n` +
           snapshotDiff(cmp.snapPath, cmp.expected, actual),
         );
@@ -352,22 +374,13 @@ for (const s of scenarios) {
   }
   const virtPath = `${s.dir}/bytecode.snapshot.virt`;
   if (!existsSync(virtPath)) {
-    // No bytecode emitted — typically compile-error tests. Skip.
-    continue;
-  }
-  const vmSnapPath = `${s.dir}/vm.snapshot`;
-  if (existsSync(vmSnapPath)) {
-    const vmSnap = readFileSync(vmSnapPath, "utf8");
-    // Compile-error tests : bytecode phase still emits a `.virt`
-    // (typecheck failures don't halt the pipeline before bytecode),
-    // but the snippet is a diagnostic test — the TS VM never runs it.
-    // Skip cleanly rather than report a spurious parity failure.
-    if (vmSnap.startsWith("# compile errors")
-        || vmSnap.startsWith("# pipeline error")
-        || vmSnap.startsWith("# internal error")
-        || vmSnap.startsWith("# no main function")) {
-      continue;
+    // Its stage snapshots stop before bytecode (`_config.json`). A run oracle
+    // is still checked, from source; without one, the stage snapshots are the
+    // whole test.
+    if (existsSync(`${s.dir}/vm.snapshot`)) {
+      testFromSource(s);
     }
+    continue;
   }
   test.concurrent(`vader-vm: ${s.name}`, async () => {
     const runVirt = await virtForHost(s.name, s.mainPath, virtPath);

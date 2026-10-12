@@ -1,5 +1,12 @@
 module "snippet"
 
+import "std/io"
+
 export greet :: fn(name: string, age: i32) -> string {
     return "Hello, ${name}! You are ${age} years old."
+}
+
+main :: fn() -> i32 {
+    println(greet("Ada", 36))
+    return 0
 }

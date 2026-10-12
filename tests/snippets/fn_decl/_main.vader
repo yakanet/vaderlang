@@ -1,5 +1,7 @@
 module "snippet"
 
+import "std/io"
+
 export add :: fn(a: i32, b: i32) -> i32 {
     return a + b
 }
@@ -10,3 +12,8 @@ export greet :: fn(name: string, prefix: string = "Hello") -> string {
 
 @extern
 export host_log :: fn(level: i32, msg: string) -> void
+
+main :: fn() -> i32 {
+    println("${add(2, 3)} ${greet("Ada")} ${greet("Ada", "Hi")}")
+    return 0
+}

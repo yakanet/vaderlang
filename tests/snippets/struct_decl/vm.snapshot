@@ -1,1 +1,4 @@
-# no main function
+# stdout
+1.5 -2.0 3 3
+# exit
+0

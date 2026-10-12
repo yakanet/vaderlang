@@ -1,2 +1,3 @@
 # compile errors
-[T3042] cannot mutate an immutable array: cannot mutate `const i32[]` — declared with `const`
+[T3042] cannot mutate an immutable array: cannot mutate `i32[]` — `DIGITS` is frozen by the module-const default at tests/snippets/const_array_bad/_main.vader:9:1 : give it a marked type (`DIGITS: T[]!: …`)
+[T3072] this argument is immutable, but its parameter grants mutation: `write_through_param` mutates `a` : an element of it is written here at tests/snippets/const_array_bad/_main.vader:12:5 — `DIGITS` is frozen by the module-const default at tests/snippets/const_array_bad/_main.vader:9:1 : give it a marked type (`DIGITS: T[]!: …`)

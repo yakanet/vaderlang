@@ -1,9 +1,9 @@
-// Layer 8e — orphan rule (light). The current module owns neither
-// `Foo` (defined in lib_a) nor `Bar` (defined in lib_b), so trying
-// to bridge them here is an orphan impl. R2018 fires at the
-// `implements` line. Primitive receivers are exempt — `i32 implements
-// SomeTrait` is allowed even when neither side is local, since Vader
-// has no newtype-pattern infrastructure to recover the use case.
+// The orphan rule (R2018) must reject this impl: this module owns neither `Foo`
+// (lib_a) nor `Bar` (lib_b). The committed output is WRONG. The trait `Bar` is
+// reached through a plain wildcard import, which the rule's trait lookup does
+// not see, so the impl is accepted and the program runs. The `r2018_*` fixtures
+// under `tests/diag_corpus/resolver/` pin the rule with the trait imported under
+// a new name.
 
 module "snippet"
 

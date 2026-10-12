@@ -101,6 +101,27 @@
           "args": []
         }
       ]
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "IntLitExpr",
+          "value": "0n"
+        }
+      },
+      "decorators": [],
+      "isExpressionBodied": true
     }
   ]
 }

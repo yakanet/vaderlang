@@ -5,5 +5,5 @@
 [P1010] non-associative operator chained: chained ``==``
 [R2006] unresolved identifier: `c`
 [R2006] unresolved identifier: `x`
-[T3017] operator not defined for these operand types: add between {integer} and null
+[T3017] operator not defined for these operand types: `+` is not defined for `{integer}` and `null`
 [P1003] expected an expression: got `+`

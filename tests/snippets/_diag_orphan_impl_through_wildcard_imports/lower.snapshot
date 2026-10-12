@@ -1,0 +1,14 @@
+# Lower
+
+## snippet
+  fn snippet$Foo$Bar$baz(self: Foo!) -> i32
+    return
+      .value :i32
+        self :Foo
+  fn snippet$main() -> i32
+    return int(0) :i32
+
+## snippet/lib_a
+  struct snippet_lib_a$Foo { value: i32 }
+
+## snippet/lib_b

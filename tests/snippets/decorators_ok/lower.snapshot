@@ -12,3 +12,6 @@
           int(0) :i32
         arg1:
           int(0) :i32
+  fn snippet$main() -> i32
+    ~>
+      int(0) :i32

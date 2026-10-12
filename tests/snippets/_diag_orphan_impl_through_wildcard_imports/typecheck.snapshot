@@ -1,0 +1,12 @@
+# Typecheck
+
+## tests/snippets/_diag_orphan_impl_through_wildcard_imports
+  FnDecl         main                 :: fn() -> i32
+  expr 15:16    FieldExpr      :: i32
+  expr 15:16    IdentExpr      :: Foo
+
+## tests/snippets/_diag_orphan_impl_through_wildcard_imports/lib_a
+  StructDecl     Foo                  :: Foo!
+
+## tests/snippets/_diag_orphan_impl_through_wildcard_imports/lib_b
+  TraitDecl      Bar                  :: Bar!

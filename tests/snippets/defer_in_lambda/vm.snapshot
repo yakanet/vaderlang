@@ -5,5 +5,7 @@ lambda inner cleanup
 --- now panic case ---
 about to boom
 panic defer in lambda saw captured-x
-# runtime error
-vm: division by zero (at __lambda_12+22 @ tests/snippets/defer_in_lambda/_main.vader:18:16)
+# stderr
+vader vm: i32.div by zero at pc=22
+# exit
+1

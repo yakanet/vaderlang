@@ -1,5 +1,7 @@
 module "snippet"
 
+import "std/io"
+
 export Display :: trait {
     to_string :: fn(self) -> string
 }
@@ -13,4 +15,10 @@ Point implements Display {
     to_string :: fn(self) -> string {
         return "point"
     }
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 0.0, .y = 0.0 }
+    println(p.to_string())
+    return 0
 }

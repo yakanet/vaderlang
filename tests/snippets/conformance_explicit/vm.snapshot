@@ -1,2 +1,2 @@
 # compile errors
-[T3006] trait not satisfied: `Vec3` does not implement `Add` (required by type parameter `T` of `double`)
+[T3006] trait not satisfied: type parameter `T` of `double` requires `Add`, and `Vec3!` does not implement it

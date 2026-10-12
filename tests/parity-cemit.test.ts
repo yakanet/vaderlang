@@ -15,10 +15,10 @@
 import { test, expect } from "bun:test";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 import { EXE_SUFFIX, LONG_BUILD, runCli } from "./cli-bin.ts";
-import { C_SNAPSHOT, SNAPSHOT_TARGET, VM_ERROR_PREFIXES, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
+import { C_SNAPSHOT, SNAPSHOT_TARGET, expectsCompileErrors, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
@@ -39,16 +39,13 @@ const CC_AVAILABLE = await (async () => {
 // (see the plan's §9). T0 : the constant-return path.
 const C_PARITY = new Set<string>([
   "return_42",
-  // T1 scalar core : params + local.get + i32 binop + non-lit return.
-  // No main (library) → the compile/run oracle skips the run, the
-  // snapshot + cc-compile oracles still apply.
+  // T1 scalar core : params, an i32 binop, a default argument.
   "fn_decl",
-  // T1b : local.set / local.tee, the prelude (local + temp decls),
-  // operand materialisation, i32 add/sub/mul.
+  // T1b : locals read twice or folded into a later expression, i32
+  // add/sub/mul.
   "scalar_locals",
   // T1c : the rest of the i32 expr family — cmp (eq/ne/lt/le/gt/ge),
-  // bitwise (and/or/xor), shifts (shl/shr), unary (neg/bitnot). Temp-free
-  // (expression-bodied single-op fns) so byte-parity holds vs TS.
+  // bitwise (and/or/xor), shifts (shl/shr), unary (neg/bitnot).
   "scalar_arith",
   // T1d : i64 / u32 / u64 / f64 families, eager integer + f64 div/rem,
   // bool.not, i32<->i64 / i32<->char conversions.
@@ -134,7 +131,7 @@ const C_PARITY = new Set<string>([
   //   for_loop      — `break` out of an infinite `for {}` (a Loop) + `continue`
   //                   → generalized branch resolution (break past a Loop/If end,
   //                   not just a Block). Would hit the unresolved-target todo
-  //                   before the fix. (Library snippet : compile oracle only.)
+  //                   before the fix.
   //   if_null_narrow — break / continue in divergent null-narrow branches.
   "for_loop",
   "if_null_narrow",
@@ -542,6 +539,17 @@ const C_PARITY = new Set<string>([
   // An enum with variant data crosses `@extern` as its written value, through a
   // function that converts the rank, a call through a fn value included.
   "extern_enum_data_param",
+  // Declaration-shape snippets whose `main` runs what they declare.
+  "decorators_ok",
+  "expressions",
+  "if_branches",
+  "interp_display",
+  "interp_string",
+  "match_expr",
+  "numerics",
+  "strings",
+  "struct_decl",
+  "trait_impl",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.
@@ -622,14 +630,13 @@ for (const s of scenarios) {
       clearTimeout(killTimer);
     }
 
-    let expected: string;
-    try {
-      expected = await Bun.file(join(s.dir, "vm.snapshot")).text();
-    } catch {
-      return;
+    // A `C_PARITY` entry is listed to be run: a `vm.snapshot` that records no run
+    // fails here instead of turning the comparison into a skip.
+    const snapPath = join(s.dir, "vm.snapshot");
+    if (!existsSync(snapPath) || expectsCompileErrors(s.dir)) {
+      throw new Error(`c-emit-run: ${s.name} is in C_PARITY but its vm.snapshot records no run`);
     }
-    if (VM_ERROR_PREFIXES.some((p) => expected.startsWith(p))) return;
-    if (expected.includes("# runtime error\n")) return;
+    const expected = readFileSync(snapPath, "utf8");
 
     const actual = formatRun(stdout, stderr, runExit);
     if (actual !== expected) {

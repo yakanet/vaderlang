@@ -4,7 +4,21 @@
   FnDecl         add                  :: fn(i32, i32) -> i32
   FnDecl         greet                :: fn(string, string) -> string
   FnDecl         host_log             :: fn(i32, string) -> void
-  expr 4:12     BinaryExpr     :: i32
-  expr 4:12     IdentExpr      :: i32
-  expr 4:16     IdentExpr      :: i32
-  expr 8:12     IdentExpr      :: string
+  FnDecl         main                 :: fn() -> i32
+  expr 10:12    IdentExpr      :: string
+  expr 17:13    StringLitExpr  :: string
+  expr 17:16    CallExpr       :: i32
+  expr 17:16    IdentExpr      :: fn(i32, i32) -> i32
+  expr 17:29    CallExpr       :: string
+  expr 17:29    IdentExpr      :: fn(string, string) -> string
+  expr 17:35    StringLitExpr  :: string
+  expr 17:45    CallExpr       :: string
+  expr 17:45    IdentExpr      :: fn(string, string) -> string
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 17:51    StringLitExpr  :: string
+  expr 17:58    StringLitExpr  :: string
+  expr 6:12     BinaryExpr     :: i32
+  expr 6:12     IdentExpr      :: i32
+  expr 6:16     IdentExpr      :: i32
+  expr 9:51     StringLitExpr  :: string

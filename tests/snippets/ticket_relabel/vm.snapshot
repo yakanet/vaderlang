@@ -1,4 +1,7 @@
 # compile errors
-[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
-[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
-[T3017] operator not defined for these operand types: operator not defined for i32 | string and {integer}
+[T3020] function body returns a value incompatible with its declared return type: expected i32, got i32 | string
+[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `add` takes another `Self`, which may be another variant ; narrow `i32 | string` first
+[T3020] function body returns a value incompatible with its declared return type: expected i32, got i32 | string
+[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `add` takes another `Self`, which may be another variant ; narrow `i32 | string` first
+[T3020] function body returns a value incompatible with its declared return type: expected i32, got i32 | string
+[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `add` takes another `Self`, which may be another variant ; narrow `i32 | string` first

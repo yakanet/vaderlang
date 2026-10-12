@@ -7,3 +7,7 @@ export log :: fn(ptr: i32, len: i32)
 export test_log :: fn() {
     log(0, 0)
 }
+
+// `log` binds `console_log` of library `env`, which no native build links, so
+// `main` does not call it: running shows the decorated declarations build.
+main :: fn() -> i32 = 0

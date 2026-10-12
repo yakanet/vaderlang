@@ -1,1 +1,8 @@
-# no main function
+# stdout
+[hello] [a
+b	c] [C:\Users\path] [line one
+line two
+]
+5 5 13 18
+# exit
+0

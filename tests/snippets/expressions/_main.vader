@@ -1,10 +1,12 @@
 module "snippet"
 
+import "std/io"
+
 export add :: fn(x: i32, y: i32) -> i32 {
     return x + y
 }
 
-export demo :: fn() -> i32 {
+export demo :: fn() -> string {
     a :: 1 + 2 * 3
     b :: (1 + 2) * 3
     c :: -a + b
@@ -16,5 +18,10 @@ export demo :: fn() -> i32 {
     i :: add(x = 10, y = 20)
     cond :: true
     j :: if (cond) { 1 } else { 2 }
-    return a
+    return "${a} ${b} ${c} ${d} ${9 in e} ${10 in e} ${f} ${h} ${i} ${j}"
+}
+
+main :: fn() -> i32 {
+    println("${demo()} ${add(2, 40)}")
+    return 0
 }

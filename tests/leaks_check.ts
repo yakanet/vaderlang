@@ -12,7 +12,7 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { EXE_SUFFIX, hermeticEnv } from "./cli-bin.ts";
-import { VM_ERROR_PREFIXES, listSnippets } from "./snapshot.ts";
+import { COMPILE_ERRORS, listSnippets } from "./snapshot.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
 const VADER_BIN = resolve(import.meta.dir, "../build/vader");
@@ -62,7 +62,7 @@ async function check(s: { name: string; dir: string; mainPath: string }): Promis
   // so a non-zero `dump` exit on them counts as a skip, not an emit failure.
   let expected: string | undefined;
   try { expected = await Bun.file(join(s.dir, "vm.snapshot")).text(); } catch {}
-  const isErrorSnap = expected !== undefined && VM_ERROR_PREFIXES.some((p) => expected!.startsWith(p));
+  const isErrorSnap = expected !== undefined && expected.startsWith(COMPILE_ERRORS);
 
   // Emit C with the Vader self-compiled compiler (./build/vader), NOT the TS
   // pipeline. `dump --stage=c` writes the generated C source to stdout.

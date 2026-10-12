@@ -1,5 +1,7 @@
 module "snippet"
 
+import "std/io"
+
 export plain :: "hello"
 export escaped :: "a\nb\tc"
 export raw :: r"C:\Users\path"
@@ -7,3 +9,9 @@ export multi :: """
 line one
 line two
 """
+
+main :: fn() -> i32 {
+    println("[${plain}] [${escaped}] [${raw}] [${multi}]")
+    println("${plain.byte_len()} ${escaped.byte_len()} ${raw.byte_len()} ${multi.byte_len()}")
+    return 0
+}

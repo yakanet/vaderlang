@@ -1,10 +1,12 @@
-// Wide scalar ops (C-emit T1d coverage) — i64 / u32 / u64 / f64 families,
-// eager integer + f64 div/rem, bool.not, and the i32<->i64 / i32<->char
-// conversions. Expression-bodied single-op fns keep bodies temp-free (or
-// single-temp for div/rem), so the C is byte-parity-checkable against the
-// TS emitter without the monotone-vs-recycle temp divergence.
+// Wide scalar ops: the i64 / u32 / u64 / f64 families, integer division and
+// remainder, f64 division, bool negation, and the i32 -> i64 / i32 <-> char
+// conversions. `main` runs each where a wrong width or signedness shows:
+// division and remainder of negative values, unsigned comparisons and shifts
+// past 2^31 and 2^63, a mask over a value wider than 32 bits.
 
 module "snippet"
+
+import "std/io"
 
 export l_add  :: fn(a: i64, b: i64) -> i64  = a + b
 export l_div  :: fn(a: i64, b: i64) -> i64  = a / b
@@ -30,3 +32,17 @@ export to_chr   :: fn(x: i32) -> char = char(x)
 export from_chr :: fn(x: char) -> i32 = i32(x)
 export u_shr  :: fn(a: u32, b: u32) -> u32  = a >> b
 export ul_shr :: fn(a: u64, b: u64) -> u64  = a >> b
+
+main :: fn() -> i32 {
+    big: i64: 5_000_000_000
+    println("${l_add(big, big)} ${l_div(-7, 2)} ${l_rem(-7, 2)}")
+    println("${l_and(big, 0xFFFF)} ${l_shl(1, 40)} ${l_lt(-big, big)}")
+    println("${l_neg(big)} ${l_bnot(big)}")
+    println("${i_div(-7, 2)} ${i_rem(-7, 2)} ${i_rem(7, -2)}")
+    println("${u_div(4_000_000_000, 3)} ${u_lt(2_147_483_648, 2_147_483_647)}")
+    println("${ul_div(18_000_000_000_000_000_000, 7)} ${ul_ge(9_223_372_036_854_775_808, 1)}")
+    println("${u_shr(4_000_000_000, 4)} ${ul_shr(18_000_000_000_000_000_000, 60)}")
+    println("${f_add(0.5, 0.25)} ${f_div(1.0, 4.0)} ${f_lt(-0.5, 0.0)} ${f_neg(2.5)}")
+    println("${b_not(true)} ${to_long(-7)} ${to_chr(65)} ${from_chr('z')}")
+    return 0
+}

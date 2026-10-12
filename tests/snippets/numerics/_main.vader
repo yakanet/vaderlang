@@ -1,5 +1,7 @@
 module "snippet"
 
+import "std/io"
+
 export a :: 42
 export b :: 1_000_000
 export c :: 0xFF
@@ -12,3 +14,9 @@ export i :: 3.14
 export j :: 1.5e-10
 export k: f32: 3.14
 export l: f64: 0.5
+
+main :: fn() -> i32 {
+    println("${a} ${b} ${c} ${d} ${e} ${f}")
+    println("${g} ${h} ${i} ${j} ${k} ${l}")
+    return 0
+}

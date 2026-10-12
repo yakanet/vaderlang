@@ -1,2 +1,2 @@
 # compile errors
-[C4005] comptime division by zero
+[C4005] comptime division by zero: /

@@ -1,5 +1,7 @@
 module "snippet"
 
+import "std/io"
+
 export Point :: struct {
     x: f64
     y: f64
@@ -15,4 +17,11 @@ export List :: struct<T> {
 // post-MVP.
 export Buffer :: struct($N: i32) {
     data: u8[]
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1.5, .y = -2.0 }
+    l :: List<i32> { .items = [1, 2, 3], .len = 3 }
+    println("${p.x} ${p.y} ${l.items.len()} ${l.len}")
+    return 0
 }

@@ -2,6 +2,7 @@
 
 ## tests/snippets/decorators_ok
   FnDecl         log                  :: fn(i32, i32) -> void
+  FnDecl         main                 :: fn() -> i32
   FnDecl         test_log             :: fn() -> void
   expr 8:5      CallExpr       :: void
   expr 8:5      IdentExpr      :: fn(i32, i32) -> void

@@ -1,8 +1,6 @@
-// Layer 5b — `type`-valued locals are rejected at typecheck (T3035) until
-// Layer 4 milestone B.1 lands TypeValue end-to-end through the VM.
-// Without this rule, the lowerer emitted unreachable for the local slot
-// and the user got `reached unreachable` at runtime instead of a useful
-// diagnostic.
+// A `type`-valued local whose value is chosen at run time is rejected at
+// typecheck (T3035): no type value reaches the VM. The immutable form with a
+// constant type, `t: type: i32`, is an in-fn alias and is accepted.
 
 module "snippet"
 

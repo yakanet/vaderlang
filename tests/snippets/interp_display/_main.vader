@@ -1,5 +1,20 @@
+// Interpolating a value of a user type renders it through its `Display` impl.
 module "snippet"
 
-export greet :: fn(name: string, age: i32) -> string {
-    return "Hello, ${name}! You are ${age} years old."
+import "std/io"
+
+/// A duration in whole years.
+export Age :: struct { years: i32 }
+
+Age implements Display {
+    to_string :: fn(self) -> string = "${self.years} years"
+}
+
+export greet :: fn(name: string, age: Age) -> string {
+    return "Hello, ${name}! You are ${age} old."
+}
+
+main :: fn() -> i32 {
+    println(greet("Ada", Age { .years = 36 }))
+    return 0
 }

@@ -1,27 +1,37 @@
 # Typecheck
 
 ## tests/snippets/for_loop
+  FnDecl         main                 :: fn() -> i32
   FnDecl         mixed_loops          :: fn(i32) -> i32
-  expr 10:13    BinaryExpr     :: bool
-  expr 10:13    BinaryExpr     :: i32
-  expr 10:13    IdentExpr      :: i32
-  expr 10:9     IfExpr         :: void
-  expr 13:13    BinaryExpr     :: i32
-  expr 13:13    IdentExpr      :: i32
-  expr 13:9     IdentExpr      :: i32
-  expr 19:13    BinaryExpr     :: bool
-  expr 19:13    IdentExpr      :: i32
-  expr 19:9     IfExpr         :: void
-  expr 22:13    BinaryExpr     :: i32
-  expr 22:13    IdentExpr      :: i32
-  expr 22:9     IdentExpr      :: i32
-  expr 23:13    BinaryExpr     :: i32
-  expr 23:13    IdentExpr      :: i32
-  expr 23:9     IdentExpr      :: i32
-  expr 26:12    IdentExpr      :: i32
-  expr 7:10     IdentExpr      :: i32
-  expr 8:9      BinaryExpr     :: bool
-  expr 8:9      IdentExpr      :: i32
-  expr 9:13     BinaryExpr     :: i32
-  expr 9:13     IdentExpr      :: i32
-  expr 9:9      IdentExpr      :: i32
+  expr 10:9     BinaryExpr     :: bool
+  expr 10:9     IdentExpr      :: i32
+  expr 11:13    BinaryExpr     :: i32
+  expr 11:13    IdentExpr      :: i32
+  expr 11:9     IdentExpr      :: i32
+  expr 12:13    BinaryExpr     :: bool
+  expr 12:13    BinaryExpr     :: i32
+  expr 12:13    IdentExpr      :: i32
+  expr 12:9     IfExpr         :: void
+  expr 15:13    BinaryExpr     :: i32
+  expr 15:13    IdentExpr      :: i32
+  expr 15:9     IdentExpr      :: i32
+  expr 21:13    BinaryExpr     :: bool
+  expr 21:13    IdentExpr      :: i32
+  expr 21:9     IfExpr         :: void
+  expr 24:13    BinaryExpr     :: i32
+  expr 24:13    IdentExpr      :: i32
+  expr 24:9     IdentExpr      :: i32
+  expr 25:13    BinaryExpr     :: i32
+  expr 25:13    IdentExpr      :: i32
+  expr 25:9     IdentExpr      :: i32
+  expr 28:12    IdentExpr      :: i32
+  expr 32:13    StringLitExpr  :: string
+  expr 32:16    CallExpr       :: i32
+  expr 32:16    IdentExpr      :: fn(i32) -> i32
+  expr 32:34    CallExpr       :: i32
+  expr 32:34    IdentExpr      :: fn(i32) -> i32
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 32:52    CallExpr       :: i32
+  expr 32:52    IdentExpr      :: fn(i32) -> i32
+  expr 9:10     IdentExpr      :: i32

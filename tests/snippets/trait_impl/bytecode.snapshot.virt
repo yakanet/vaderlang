@@ -1,335 +1,150 @@
 module _main
 type 0 primitive null
-type 1 struct snippet$Point { x:3,y:3 }
+type 1 struct snippet$Point { x:4,y:4 }
 type 2 primitive string
-type 3 primitive f64
-type 4 struct std_core$Range__i32 { start:5,end:5,inclusive:6,done:6,cursor:5 }
-type 5 primitive i32
-type 6 primitive bool
-type 7 struct __Tuple_i32_u8_99ae0d29 { _0:5,_1:8 }
-type 8 primitive u8
-type 9 struct std_core$Range__usize { start:10,end:10,inclusive:6,done:6,cursor:10 }
-type 10 primitive usize
-type 11 struct __Tuple_usize_u8_de11f1ad { _0:10,_1:8 }
+type 3 primitive i32
+type 4 primitive f64
+type 5 primitive u8
+type 6 primitive usize
+type 7 array 5
+type 8 struct std_core$Buffer {  }
+type 9 primitive void
+type 10 primitive isize
 string 0 "point"
+string 1 "\n"
+import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=3,7,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 1 snippet$Display
-impl 4 std_core$Contains
-impl 4 std_core$Iterator
-impl 9 std_core$Contains
-impl 9 std_core$Iterator
+impl 8 std_core$ByteAccess
+export main 1
 
 fn 0 snippet$Point$Display$to_string (ref) -> string
   return.lit string.const 0   ; "point"
 end
 
-fn 1 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
-  local $field_2 i32
-  local $field_8 i32
-  local.field 0 4 0   ; arg 0 std_core$Range__i32.start
-  ref.cast 5   ; i32
-  local.set 2   ; $field_2
+fn 1 snippet$main () -> i32
+  f64.const 0.0 0
+  f64.const 0.0 0
+  struct.new 1   ; snippet$Point
+  call 0   ; snippet$Point$Display$to_string
+  call 5   ; std_io$println__string
+  return.lit i32.const 0
+end
+
+fn 2 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
   local.get 1   ; arg 1
-  local.get 2   ; $field_2
-  i32.lt
-  if $L0 void
-    return.lit bool.const false
-  end $L0
-  local.field 0 4 2   ; arg 0 std_core$Range__i32.inclusive
-  ref.cast 6   ; bool
-  if $L1 void
-  else
-    local.field 0 4 1   ; arg 0 std_core$Range__i32.end
-    ref.cast 5   ; i32
-    local.set 3   ; $field_8
-    local.get 1   ; arg 1
-    local.get 3   ; $field_8
-    i32.lt
-    return
-  end $L1
-  local.field 0 4 1   ; arg 0 std_core$Range__i32.end
-  ref.cast 5   ; i32
-  local.set 2   ; $field_2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  buffer.new
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 2   ; c0
   local.get 1   ; arg 1
-  local.get 2   ; $field_2
-  i32.le
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  buffer_to_string
   return
 end
 
-fn 2 std_core$i32$Comparable$compare (i32,i32) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
+fn 3 std_io$write (u8,string) -> void
+  local buf ref
+  local sent usize
+  local $len_6 usize
+  local $len_8 usize
+  local chunk ref
+  local $len_11 usize
+  local n i32
+  local $cast_16 usize
   local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 9   ; std_core$three_way
-  return
-end
-
-fn 3 std_core$i32$Step$step (i32) -> i32
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.checked_add
-  return
-end
-
-fn 4 std_core$Range$Iterator$next__i32 (ref) -> ref
-  local over bool
-  local $field_5 i32
-  local $field_6 i32
-  local $k_24 u8
-  local.field 0 4 2   ; arg 0 std_core$Range__i32.inclusive
-  ref.cast 6   ; bool
-  if $L0 void
-    local.field 0 4 3   ; arg 0 std_core$Range__i32.done
-    ref.cast 6   ; bool
-    if $L1 void
-      bool.const true
-      local.set 1   ; over
-    else
-      local.field 0 4 4   ; arg 0 std_core$Range__i32.cursor
-      ref.cast 5   ; i32
-      local.set 2   ; $field_5
-      local.field 0 4 1   ; arg 0 std_core$Range__i32.end
-      ref.cast 5   ; i32
-      local.set 3   ; $field_6
-      local.get 2   ; $field_5
-      local.get 3   ; $field_6
-      i32.gt
-      local.set 1   ; over
-    end $L1
-  else
-    local.field 0 4 4   ; arg 0 std_core$Range__i32.cursor
-    ref.cast 5   ; i32
-    local.set 2   ; $field_5
-    local.field 0 4 1   ; arg 0 std_core$Range__i32.end
-    ref.cast 5   ; i32
-    local.set 3   ; $field_6
-    local.get 2   ; $field_5
-    local.get 3   ; $field_6
-    i32.ge
-    local.set 1   ; over
-  end $L0
-  local.get 1   ; over
-  if $L2 void
-    local.field 0 4 4   ; arg 0 std_core$Range__i32.cursor
-    ref.cast 5   ; i32
-    i32.const 1
-    struct.new 7   ; __Tuple_i32_u8_99ae0d29
-    return
-  end $L2
-  local.field 0 4 4   ; arg 0 std_core$Range__i32.cursor
-  ref.cast 5   ; i32
-  local.set 2   ; $field_5
-  local.field 0 4 2   ; arg 0 std_core$Range__i32.inclusive
-  ref.cast 6   ; bool
-  if $L3 void
-    local.field 0 4 1   ; arg 0 std_core$Range__i32.end
-    ref.cast 5   ; i32
-    local.set 3   ; $field_6
-    local.get 2   ; $field_5
-    local.get 3   ; $field_6
-    i32.ge
-    local.set 1   ; over
-  else
-    bool.const false
-    local.set 1   ; over
-  end $L3
-  local.get 1   ; over
-  if $L4 void
-    local.get 0   ; arg 0
-    bool.const true
-    struct.set 4 3   ; std_core$Range__i32.done
-    i32.const 0
-    local.set 4   ; $k_24
-    local.get 2   ; $field_5
-    local.get 4   ; $k_24
-    struct.new 7   ; __Tuple_i32_u8_99ae0d29
-    return
-  end $L4
-  local.field 0 4 4   ; arg 0 std_core$Range__i32.cursor
-  ref.cast 5   ; i32
-  call 3   ; std_core$i32$Step$step
-  local.set 3   ; $field_6
-  local.get 0   ; arg 0
-  local.get 3   ; $field_6
-  struct.set 4 4   ; std_core$Range__i32.cursor
-  i32.const 0
-  local.set 4   ; $k_24
-  local.get 2   ; $field_5
-  local.get 4   ; $k_24
-  struct.new 7   ; __Tuple_i32_u8_99ae0d29
-  return
-end
-
-fn 5 std_core$Range$Contains$contains__usize (ref,usize) -> bool
-  local $field_2 usize
-  local $field_8 usize
-  local.field 0 9 0   ; arg 0 std_core$Range__usize.start
-  ref.cast 10   ; usize
-  local.set 2   ; $field_2
-  local.get 1   ; arg 1
-  local.get 2   ; $field_2
-  u64.lt
-  if $L0 void
-    return.lit bool.const false
-  end $L0
-  local.field 0 9 2   ; arg 0 std_core$Range__usize.inclusive
-  ref.cast 6   ; bool
-  if $L1 void
-  else
-    local.field 0 9 1   ; arg 0 std_core$Range__usize.end
-    ref.cast 10   ; usize
-    local.set 3   ; $field_8
-    local.get 1   ; arg 1
-    local.get 3   ; $field_8
-    u64.lt
-    return
-  end $L1
-  local.field 0 9 1   ; arg 0 std_core$Range__usize.end
-  ref.cast 10   ; usize
-  local.set 2   ; $field_2
-  local.get 1   ; arg 1
-  local.get 2   ; $field_2
-  u64.le
-  return
-end
-
-fn 6 std_core$usize$Comparable$compare (usize,usize) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 9   ; std_core$three_way
-  return
-end
-
-fn 7 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; arg 0
-  i64.const 1
-  usize.checked_add
-  return
-end
-
-fn 8 std_core$Range$Iterator$next__usize (ref) -> ref
-  local over bool
-  local $field_5 usize
-  local $field_6 usize
-  local $k_24 u8
-  local.field 0 9 2   ; arg 0 std_core$Range__usize.inclusive
-  ref.cast 6   ; bool
-  if $L0 void
-    local.field 0 9 3   ; arg 0 std_core$Range__usize.done
-    ref.cast 6   ; bool
-    if $L1 void
-      bool.const true
-      local.set 1   ; over
-    else
-      local.field 0 9 4   ; arg 0 std_core$Range__usize.cursor
-      ref.cast 10   ; usize
-      local.set 2   ; $field_5
-      local.field 0 9 1   ; arg 0 std_core$Range__usize.end
-      ref.cast 10   ; usize
-      local.set 3   ; $field_6
-      local.get 2   ; $field_5
-      local.get 3   ; $field_6
-      u64.gt
-      local.set 1   ; over
-    end $L1
-  else
-    local.field 0 9 4   ; arg 0 std_core$Range__usize.cursor
-    ref.cast 10   ; usize
-    local.set 2   ; $field_5
-    local.field 0 9 1   ; arg 0 std_core$Range__usize.end
-    ref.cast 10   ; usize
-    local.set 3   ; $field_6
-    local.get 2   ; $field_5
-    local.get 3   ; $field_6
+  call.import 1   ; std_core$bytes
+  local.set 2   ; buf
+  i64.const 0
+  local.set 3   ; sent
+  loop $L0 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_6
+    local.get 3   ; sent
+    local.get 4   ; $len_6
     u64.ge
-    local.set 1   ; over
+    if $L1 void
+    else
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 7   ; u8[]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 4   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L2 void
+        return
+      end $L2
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      usize.checked_add
+      local.set 3   ; sent
+      br $L0
+    end $L1
   end $L0
-  local.get 1   ; over
-  if $L2 void
-    local.field 0 9 4   ; arg 0 std_core$Range__usize.cursor
-    ref.cast 10   ; usize
-    i32.const 1
-    struct.new 11   ; __Tuple_usize_u8_de11f1ad
-    return
-  end $L2
-  local.field 0 9 4   ; arg 0 std_core$Range__usize.cursor
-  ref.cast 10   ; usize
-  local.set 2   ; $field_5
-  local.field 0 9 2   ; arg 0 std_core$Range__usize.inclusive
-  ref.cast 6   ; bool
-  if $L3 void
-    local.field 0 9 1   ; arg 0 std_core$Range__usize.end
-    ref.cast 10   ; usize
-    local.set 3   ; $field_6
-    local.get 2   ; $field_5
-    local.get 3   ; $field_6
-    u64.ge
-    local.set 1   ; over
-  else
-    bool.const false
-    local.set 1   ; over
-  end $L3
-  local.get 1   ; over
-  if $L4 void
-    local.get 0   ; arg 0
-    bool.const true
-    struct.set 9 3   ; std_core$Range__usize.done
-    i32.const 0
-    local.set 4   ; $k_24
-    local.get 2   ; $field_5
-    local.get 4   ; $k_24
-    struct.new 11   ; __Tuple_usize_u8_de11f1ad
-    return
-  end $L4
-  local.field 0 9 4   ; arg 0 std_core$Range__usize.cursor
-  ref.cast 10   ; usize
-  call 7   ; std_core$usize$Step$step
-  local.set 3   ; $field_6
-  local.get 0   ; arg 0
-  local.get 3   ; $field_6
-  struct.set 9 4   ; std_core$Range__usize.cursor
-  i32.const 0
-  local.set 4   ; $k_24
-  local.get 2   ; $field_5
-  local.get 4   ; $k_24
-  struct.new 11   ; __Tuple_usize_u8_de11f1ad
   return
 end
 
-fn 9 std_core$three_way (bool,bool) -> i32
-  local if_res i32
+fn 4 std_io$write_bytes (u8,ref,usize) -> i32
   local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
   if $L0 void
-    i32.const -1
-    local.tee 2   ; if_res
+    i32.const 1
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
     return
   end $L0
+  i32.const 2
   local.get 1   ; arg 1
-  if $L1 void
-    i32.const 1
-    local.set 2   ; if_res
-  else
-    i32.const 0
-    local.set 2   ; if_res
-  end $L1
-  local.get 2   ; if_res
+  local.get 2   ; arg 2
+  call.import 2   ; system_posix$sys_write
+  isize.to_i32
+  return
+end
+
+fn 5 std_io$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 1   ; "\n"
+  call 2   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 3   ; std_io$write
   return
 end
