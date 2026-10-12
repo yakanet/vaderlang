@@ -791,15 +791,7 @@ check_assign :: fn(
     // (it has no storage). Deep by construction : `CFG.child.count = 0` is
     // rejected because the predicate walks back to the root.
     if s.target is AST.FieldExpr as fe {
-        // Check the CONTAINER first so its type is recorded — the level that decides
-        // is the field's OWNER, and `expr_types` is empty for it until something
-        // checks it (the T3042 branch below does the same for an index receiver).
-        _ :: check_expr_fn(fe.target, null, typed, diags)
-        root :: container_is_immutable(fe.target, typed)
-        if push_immutability_diag_for(
-            root, .CannotMutateImmutableBinding, s.target.span,
-            "`${fe.field}` is reached through an immutable path", fe.target, typed, diags,
-        ) {
+        if reject_field_write(fe, typed, diags, check_expr_fn) {
             return
         }
     }
@@ -1121,6 +1113,49 @@ array_write_slot :: fn(
     return arr.element
 }
 
+/// What every write to a field is held to before its value is: T3101 for a
+/// tuple's element, then T3070 for a field reached through an immutable path.
+/// Checking the CONTAINER first records its type: the level that decides is the
+/// field's OWNER, and `expr_types` is empty for it until something checks it.
+///
+/// @return  whether one reported, the write then going no further.
+reject_field_write :: fn(
+    field: AST.FieldExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+) -> bool {
+    _ :: check_expr_fn(field.target, null, typed, diags)
+    if report_tuple_element_write(field, typed, diags) {
+        return true
+    }
+    return push_immutability_diag_for(
+        container_is_immutable(field.target, typed), .CannotMutateImmutableBinding,
+        field.span, "`${field.field}` is reached through an immutable path",
+        field.target, typed, diags,
+    )
+}
+
+/// T3101 : a tuple's element is never written, whatever the path to the tuple
+/// and whatever `!` it carries. A field no position names is left to T3009.
+///
+/// @return  whether it reported.
+report_tuple_element_write :: fn(
+    field: AST.FieldExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> bool {
+    owner :: typed.expr_types[field.target.id] ?? return false
+    tuple :: tuple_backing(owner) ?? return false
+    position :: parse_tuple_index(field.field)
+    if position < 0 || position >= i32(tuple.elements.len()) {
+        return false
+    }
+    detail :: "build a new `${display_type(owner)}` instead"
+    diags.push(typecheck_error(.CannotWriteTupleElement, field.span, detail))
+    return true
+}
+
 /// One element of a destructuring target. Holds it to the same rules a bare
 /// assignment would: a `::` local is still frozen, an immutable path is still
 /// closed, and the element type must fit the slot.
@@ -1140,15 +1175,8 @@ check_destructure_target :: fn(
             return
         }
     } else if target is AST.FieldExpr {
-        // T3070 — the same closed path a bare `p.x = v` is held to. Checking the
-        // CONTAINER first records its type: the level that decides is the field's
-        // OWNER, and `expr_types` is empty for it until something checks it.
-        _ :: check_expr_fn(target.target, null, typed, diags)
-        if push_immutability_diag_for(
-            container_is_immutable(target.target, typed), .CannotMutateImmutableBinding,
-            target.span, "`${target.field}` is reached through an immutable path",
-            target.target, typed, diags,
-        ) {
+        // The same rules a bare `p.x = v` is held to.
+        if reject_field_write(target, typed, diags, check_expr_fn) {
             return
         }
     } else if target is AST.IndexExpr {

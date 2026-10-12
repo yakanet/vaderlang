@@ -224,10 +224,10 @@ over :: fn(size: i64, budget: i64) -> i64 = if size > budget { -1 } else { size 
 /// caller can hold the object it returns.
 ///
 /// The condition a struct return needs and a tuple does not. A tuple has no
-/// observable identity (`t[0] = x` is T3008), so handing back its elements is
-/// the same value by another route. A struct has reference semantics: returning
-/// one the callee received from elsewhere, and rebuilding it at the caller,
-/// would break an alias someone else still holds. Building it on the spot at
+/// observable identity, its elements never being written (T3101), so handing
+/// back its elements is the same value by another route. A struct has reference
+/// semantics: returning one the callee received from elsewhere, and rebuilding
+/// it at the caller, would break an alias someone else still holds. Building it on the spot at
 /// every return is the proof that nobody does — and it makes the `@value`
 /// question moot rather than answering it.
 ///

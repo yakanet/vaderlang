@@ -138,6 +138,7 @@ export TypecheckCode :: enum(CodeInfo) {
     SelfMemberDispatchedByTag       { .id = "T3098", .message = "a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag" },
     ConstDependsOnItself            { .id = "T3099", .message = "a constant cannot depend on its own value" },
     FieldDefaultsFillEachOther      { .id = "T3100", .message = "field defaults cannot fill each other in" },
+    CannotWriteTupleElement         { .id = "T3101", .message = "a tuple's element cannot be written" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

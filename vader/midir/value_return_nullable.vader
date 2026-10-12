@@ -20,11 +20,12 @@ import "vader/lower"
 // otherwise. The caller rebuilds through a branch on the tag.
 //
 // A STRUCT needs a condition a tuple does not. A tuple has no observable
-// identity (`t[0] = x` is T3008), so handing back its elements is the same value
-// by another route. A struct has reference semantics: returning one the callee
-// got from elsewhere, and rebuilding it at the caller, would break an alias
-// someone else holds. `returns_fresh_struct` is the proof nobody does — every
-// `return` builds its value here or hands back `null`.
+// identity (its elements cannot be written, T3101), so handing back its
+// elements is the same value by another route. A struct has reference
+// semantics: returning one the callee got from elsewhere, and rebuilding it at
+// the caller, would break an alias someone else holds. `returns_fresh_struct`
+// is the proof nobody does — every `return` builds its value here or hands back
+// `null`.
 
 /// What a nullable-struct return hands back, or null when the function does not
 /// qualify.

@@ -3,9 +3,10 @@
 // value.
 //
 // A tuple and a union have no `Equals` impl to call. A tuple compares field by
-// field: it has no identity to observe, since `t[0] = x` is T3008. A union compares
-// by variant: two of its values are equal when both hold the same variant and those
-// two are equal by that variant's own rule ; `null` equals `null`.
+// field: it has no identity to observe, since its elements cannot be written
+// (T3101). A union compares by variant: two of its values are equal when both
+// hold the same variant and those two are equal by that variant's own rule ;
+// `null` equals `null`.
 //
 // The rewrite reads each side once, then folds over the parts:
 //

@@ -827,13 +827,14 @@ println(pair.1)      // "answer"
 ```
 
 - **Field access**: `t.0`, `t.1`, ... — numeric, in source order.
+- **Elements are read-only.** `t.0 = x`, `t.0 += 1` and a destructuring target `[t.0, n] = …` are `T3101`, whatever `!` the slot carries and through a distinct over a tuple too: build a new tuple instead. A struct held in an element is still a struct, so `t.0.x = 5` writes it.
 - **Disambiguation of seq literals** is contextual:
   - `[1, 2, 3]` → array (homogeneous, no annotation).
   - `[1, "x"]` → tuple (heterogeneous, no annotation).
   - With an annotation, the annotation wins: `xs: int[] = [1, 2, 3]` is array; `p: [int, string] = [1, "x"]` is tuple.
 - **Tuples are not arrays**: `[i32, i32]` is not assignable to `i32[]` even though every element type unifies.
 - **Element types are invariant.** A tuple's fields are laid out by their types and read with no test, so `[i32, i32]` does not pass as `[i32 | string, i32]` (T3001): the raw `i32` would be read as a union. A fresh literal is built straight into the slot's element types instead, so `p: [i32 | string, i32]: [1, 2]` compiles.
-- **`==` compares the elements, not the references.** A tuple carries no identity to observe — it cannot be mutated (`t[0] = x` is `T3008`) and a fresh one is built at each construction — so `a == b` is rewritten field by field. Two tuples with equal contents are equal whether or not they are the same object, and `a != b` negates the whole comparison. Each element compares as it would on its own: a nested tuple recurses, a struct goes through its `Equals` impl, a union by variant, a bounded type parameter through `Equals`. A **distinct newtype over a tuple** (`Pair :: [i32, i32]`) compares through its backing unless it implements `Equals` itself.
+- **`==` compares the elements, not the references.** A tuple carries no identity to observe — its elements cannot be written (`T3101`, above) and a fresh one is built at each construction — so `a == b` is rewritten field by field. Two tuples with equal contents are equal whether or not they are the same object, and `a != b` negates the whole comparison. Each element compares as it would on its own: a nested tuple recurses, a struct goes through its `Equals` impl, a union by variant, a bounded type parameter through `Equals`. A **distinct newtype over a tuple** (`Pair :: [i32, i32]`) compares through its backing unless it implements `Equals` itself.
 - **A tuple is only as comparable as its elements.** An element with no working `==` — an array, a struct without an `Equals` impl, a function value, a trait value, or a type parameter whose bound does not name `Equals` — is `T3043`, reported against the **element's** type, which is what needs the impl. The two operands must have the *same* type, not merely the same arity: `[i32, string] == [string, i32]` and a nested arity mismatch are both `T3001`.
 
 ### Destructuring

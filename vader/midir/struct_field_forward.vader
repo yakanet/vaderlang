@@ -21,9 +21,9 @@
 // and the function's GC frame with it — falls away.
 //
 // Deliberately NOT cleared on a side-effecting instruction, unlike
-// `array_load_forward`: only a tuple's construction is recorded, on the rule
-// that a tuple cannot be mutated (SPEC, "Tuples"). A struct's fields can be
-// written, and a field spelled `_0` names no position.
+// `array_load_forward`: only a tuple's construction is recorded, and a tuple's
+// element cannot be written (T3101). A struct's fields can be, and a field
+// spelled `_0` names no position.
 
 module "vader/midir"
 

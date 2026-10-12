@@ -9,9 +9,9 @@
 // multi-value return; the VM's operand stack takes N values natively, and so
 // does WASM — which is why the IR keeps the arity rather than the C shape.
 //
-// TUPLES ONLY, deliberately. A tuple has no observable identity — `t[0] = x` is
-// T3008 — so handing back its elements is not a change of meaning, it is the
-// same value by another route. A STRUCT is a different question: it has
+// TUPLES ONLY, deliberately. A tuple has no observable identity: its elements
+// cannot be written (T3101), so handing back its elements is not a change of
+// meaning, it is the same value by another route. A STRUCT is a different question: it has
 // reference semantics, and a size-triggered switch to value semantics is the
 // correctness cliff the value-types design rejects. That one needs `@value`, and it is not this pass's to decide.
 //
