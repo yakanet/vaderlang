@@ -2029,8 +2029,9 @@ check_for :: fn(
             // `for X { ... }` desugars to `for _ in X { ... }` when X
             // is iterable (array today ; custom Iterator impls land
             // with coerce.vader). Skip T3019 in that case.
-            if got is ArrayType {}
-            else if !is_assignable(got, TY_BOOL) {
+            if got is ArrayType {
+                record_site(typed, w.cond, .IterNext, BUILTIN_CALLEE)
+            } else if !is_assignable(got, TY_BOOL) {
                 /* iterable — no diag */
 
                 diags.push(
@@ -2055,6 +2056,9 @@ check_for :: fn(
             several :: several_iterators_trait(iter_ty, typed)
             if several != null {
                 diags.push(several_impls_error(iter_ty, several, "`for`", w.iter.span))
+                record_site(typed, w.iter, .IterNext, ERRONEOUS_CALLEE)
+            } else {
+                record_for_sites(typed, w.iter, iter_ty)
             }
             _ :: reject_unmet_impl_bounds(
                 iter_ty, core_trait_key(TRAIT_ITERATOR), .TraitNotSatisfied, w.iter.span,
@@ -2065,6 +2069,7 @@ check_for :: fn(
                 diags.push(typecheck_error(
                     .NotIterable, w.iter.span,
                     "a `for` walks an array, a string or an `Iterator`, got `${got}`"))
+                record_site(typed, w.iter, .IterNext, ERRONEOUS_CALLEE)
             }
             match w.loop_var as nv {
                 is AST.NamedVar       -> {

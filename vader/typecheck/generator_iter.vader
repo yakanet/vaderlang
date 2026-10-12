@@ -77,6 +77,11 @@ export GeneratorState :: struct {
 export generator_state_of :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GeneratorState | null =
     typed.generator_states[decl.name_span.hash()]
 
+// The `generator` whose state struct `state` is : the state's symbol id encodes the
+// fn's (`gen_state_symbol`), and every module's `fn_decls` holds every fn.
+generator_of_state :: fn(state: StructType, typed: TypedProgram) -> AST.FnDecl | null =
+    typed.fn_decls[GEN_STATE_ID_BASE - state.symbol.id]
+
 /// Register every `generator` fn's synthetic state struct as `implements
 /// Iterator<U>` — into EVERY module's registry — so a call to it types as a
 /// concrete iterator (chains resolve) regardless of which module consumes it.

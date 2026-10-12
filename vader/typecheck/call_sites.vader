@@ -93,6 +93,10 @@ export CallRole :: enum {
     IndexWrite,
     /// The `into` an implicit conversion runs, at the converted value.
     Into,
+    /// The `into` a `for` makes an iterator of its iterable with, at the iterable.
+    IterInto,
+    /// The `next` each step of a `for` calls, at the iterable.
+    IterNext,
 }
 
 /// The sites of a module, one table per role, each keyed by the node's id. A node
@@ -103,6 +107,8 @@ export CallSites :: struct {
     index_reads: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
     index_writes: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
     conversions: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
+    iterator_conversions: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
+    iterator_steps: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
 }
 
 /// The table of the sites playing `role`.
@@ -115,11 +121,21 @@ export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<usize, Cal
     .IndexRead  -> sites.index_reads
     .IndexWrite -> sites.index_writes
     .Into       -> sites.conversions
+    .IterInto   -> sites.iterator_conversions
+    .IterNext   -> sites.iterator_steps
 }
 
 // Every role, for a reader that walks them all : a role added to `CallRole` is
 // added here.
-all_roles :: fn() -> CallRole[] = [.Call, .Operator, .IndexRead, .IndexWrite, .Into]
+all_roles :: fn() -> CallRole[] = [
+    .Call,
+    .Operator,
+    .IndexRead,
+    .IndexWrite,
+    .Into,
+    .IterInto,
+    .IterNext,
+]
 
 FN_VALUE_CALLEE  :: FnValue {}
 BUILTIN_CALLEE   :: Builtin {}
@@ -251,6 +267,70 @@ conversion_callee :: fn(typed: TypedProgram, source: Type, target: Type) -> Call
     }
     method :: into_impl_method(typed, source, target) ?? return null
     return direct_callee(method.decl, per_instance)
+}
+
+/// File what `for x in iter` runs at `iter`: the `next` each step calls, and first
+/// the `into` that makes an iterator of it, for a type that only converts into one.
+///
+/// @param typed    the module being checked.
+/// @param iter     the iterable.
+/// @param iter_ty  its type.
+record_for_sites :: fn(typed: TypedProgram, iter: AST.Expr, iter_ty: Type) -> void =
+    record_site(typed, iter, .IterNext, step_callee(typed, iter, iter_ty))
+
+// What each step of a `for` over `iter_ty` calls ; a type that only converts into
+// an iterator files that `into` as it goes.
+step_callee :: fn(typed: TypedProgram, iter: AST.Expr, iter_ty: Type) -> Callee {
+    // Walking an array, or counting through a range written in place, is the
+    // language's own.
+    if array_backing(iter_ty) != null || counts_in_place(typed, iter) {
+        return BUILTIN_CALLEE
+    }
+    iterator :: core_trait_key(TRAIT_ITERATOR)
+    if iter_ty is TypeParamType | SelfType {
+        return BoundMember { .trait_key = iterator, .member = METHOD_NEXT }
+    }
+    if iter_ty is TraitType {
+        return TraitMember { .trait_key = iterator, .member = METHOD_NEXT }
+    }
+    if iter_ty is StructType && is_gen_state_struct(iter_ty) {
+        return direct_callee(generator_of_state(iter_ty, typed), false)
+    }
+    per_instance :: type_contains_type_param(iter_ty)
+    // A type that is an iterator itself is walked through its own `next`, whatever
+    // it converts into.
+    if struct_implements_trait(iter_ty, iterator, typed) {
+        next :: trait_members(typed, iter_ty, iterator, METHOD_NEXT)
+        if next.len() == 0 {
+            return UNSETTLED_CALLEE
+        }
+        return direct_callee(next[0].decl, per_instance)
+    }
+    for m in trait_members(typed, iter_ty, core_trait_key(TRAIT_INTO), METHOD_INTO) {
+        if m.trait_args.len() == 1 && iterator_element_of(m.trait_args[0]) != null {
+            record_site(typed, iter, .IterInto, direct_callee(m.decl, per_instance))
+            // The `Iterator` trait value the conversion hands back steps at run time.
+            return TraitMember { .trait_key = iterator, .member = METHOD_NEXT }
+        }
+    }
+    // A distinct with no iterator of its own walks its backing.
+    if iter_ty is DistinctType {
+        return step_callee(typed, iter, iter_ty.backing)
+    }
+    if iter_ty is UnresolvedType {
+        return ERRONEOUS_CALLEE
+    }
+    return UNSETTLED_CALLEE
+}
+
+// Whether `iter` is a range written in place whose lower bound counts
+// (`is_counting_type`) : the lowering walks it with a counter.
+counts_in_place :: fn(typed: TypedProgram, iter: AST.Expr) -> bool {
+    if iter !is AST.RangeExpr {
+        return false
+    }
+    lower :: typed.expr_types[iter.lower.id] ?? return false
+    return is_counting_type(lower)
 }
 
 /// What `left == right` runs, once the two are known to compare: the `Equals` of
@@ -392,6 +472,8 @@ role_label :: fn(role: CallRole) -> string = match role {
     .IndexRead  -> "index"
     .IndexWrite -> "index-write"
     .Into       -> "into"
+    .IterInto   -> "iter-into"
+    .IterNext   -> "iter-next"
 }
 
 // A call inside a materialised default method sits at a synthetic span, the same

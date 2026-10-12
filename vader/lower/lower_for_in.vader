@@ -783,7 +783,7 @@ try_lower_for_in_int_range :: fn(
     range :: extract_range(in_form.iter) ?? return null
     raw_lower :: ctx.types.expr_type(range.lower)
     raw_upper :: ctx.types.expr_type(range.upper)
-    if !is_integer_type(raw_lower) { return null }
+    if !is_counting_type(raw_lower) { return null }
     // Pick the counter's width from whichever bound is concrete : a
     // FreeInt literal on either side adopts the other's width. When
     // both bounds are concrete, the lower side wins (matches the
@@ -791,7 +791,7 @@ try_lower_for_in_int_range :: fn(
     // back to the i32 default via `default_if_free`. The Range's
     // element type is already settled by the bidirectional infer.
     bound_type :: if raw_lower is FreeIntType {
-        if is_integer_type(raw_upper) { default_if_free(raw_upper) } else { default_if_free(raw_lower) }
+        if is_counting_type(raw_upper) { default_if_free(raw_upper) } else { default_if_free(raw_lower) }
     } else {
         default_if_free(raw_lower)
     }
@@ -885,17 +885,6 @@ widen_int_lit :: fn(e: LoweredExpr, t: Type) -> LoweredExpr! {
         return LoweredIntLit { .span = e.span, .type = t, .value = e.value }
     }
     return e
-}
-
-is_integer_type :: fn(t: Type) -> bool {
-    // @partial: only primitive integers and the free int/char types are
-    // integers; every other Type → false.
-    @partial match t {
-        is PrimitiveType -> { return is_int_name(t.name) }
-        is FreeIntType -> { return true }
-        is FreeCharType -> { return true }
-        _ -> { return false }
-    }
 }
 
 

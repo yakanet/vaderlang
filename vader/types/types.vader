@@ -229,6 +229,19 @@ export is_int_name :: fn(name: string) -> bool {
     return m != null && m.is_int
 }
 
+/// Whether a range whose lower bound has type `t` counts in place: a primitive
+/// integer, or a free integer or `char` literal. A `for` over such a range written
+/// in place walks a counter instead of stepping a `Range`.
+///
+/// @param t  the lower bound's type.
+export is_counting_type :: fn(t: Type) -> bool = match t {
+    is PrimitiveType -> is_int_name(t.name)
+    is FreeIntType | FreeCharType -> true
+    is FreeFloatType | StructType | EnumType | DistinctType | ArrayType | TupleType -> false
+    is UnionType | FnType | TraitType | TypeParamType | SelfType | AnyType -> false
+    is NeverType | UnresolvedType | TypeMetaType -> false
+}
+
 export is_signed_int_name :: fn(name: string) -> bool {
     m :: primitive_meta(name)
     return m != null && m.is_int && m.is_signed

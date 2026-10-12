@@ -5,6 +5,7 @@
 module "sites"
 
 import "std/io"
+import "std/string"
 
 M :: import "std/math"
 
@@ -116,6 +117,34 @@ Ticks implements Into<i64> {
     into :: fn(self) -> i64 = i64(self)
 }
 
+export Countdown :: struct {
+    n: i32
+}
+
+Countdown implements Iterator<i32> {
+    next :: fn(self) -> [i32, Continuation] {
+        if self.n == 0 {
+            return [0, .Stop]
+        }
+        self.n = self.n -% 1
+        return [self.n, .Continue]
+    }
+}
+
+export Deck :: struct {
+    size: i32
+}
+
+Deck implements Into<Iterator<i32>!> {
+    into :: fn(self) -> Iterator<i32>! = Countdown { .n = self.size }
+}
+
+evens :: fn(limit: i32) -> Iterator<i32> {
+    for i in 0..<limit {
+        yield i *% 2
+    }
+}
+
 walk :: fn(it: Iterator<i32>) -> usize {
     n: usize = 0
     for _ in it {
@@ -225,4 +254,76 @@ export array_into_iterator :: fn() -> usize = walk([1, 2])
 export distinct_backing :: fn(t: Ticks) -> i64 {
     x: i64: t
     return x
+}
+
+export for_array :: fn(xs: i32[]) -> usize {
+    n: usize = 0
+    for _ in xs {
+        n += 1
+    }
+    return n
+}
+
+export for_range :: fn() -> usize {
+    n: usize = 0
+    for _ in 0..<3 {
+        n += 1
+    }
+    return n
+}
+
+export for_iterator :: fn(c: Countdown) -> usize {
+    n: usize = 0
+    for _ in c {
+        n += 1
+    }
+    return n
+}
+
+export for_into_iterator :: fn(d: Deck) -> usize {
+    n: usize = 0
+    for _ in d {
+        n += 1
+    }
+    return n
+}
+
+export for_generator :: fn() -> usize {
+    n: usize = 0
+    for _ in evens(4) {
+        n += 1
+    }
+    return n
+}
+
+export for_string :: fn(s: string) -> usize {
+    n: usize = 0
+    for _ in s {
+        n += 1
+    }
+    return n
+}
+
+export for_char_range :: fn() -> usize {
+    n: usize = 0
+    for _ in 'a'..='e' {
+        n += 1
+    }
+    return n
+}
+
+export for_bounded :: fn<T: Iterator<i32>!>(t: T) -> usize {
+    n: usize = 0
+    for _ in t {
+        n += 1
+    }
+    return n
+}
+
+export for_array_sugar :: fn(xs: i32[]) -> usize {
+    n: usize = 0
+    for xs {
+        n += 1
+    }
+    return n
 }
