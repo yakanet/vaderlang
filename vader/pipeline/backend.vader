@@ -135,9 +135,9 @@ export cfg_to_bytecode :: fn(
     pruned: LoweredProject, name: string, opts: EmitOptions, diags: Diagnostic[],
 ) -> BytecodeModule {
     forwarded :: build_optimised_cfg(pruned, opts.verify, diags)
-    Prof.prof_begin(Prof.PHASE_BYTECODE)
+    Prof.prof_begin(.Bytecode)
     module :: emit_bytecode_from_cfg(forwarded, name, opts)
-    Prof.prof_end(Prof.PHASE_BYTECODE)
+    Prof.prof_end(.Bytecode)
     return module
 }
 
@@ -156,31 +156,31 @@ export build_optimised_cfg :: fn(
     verify: bool,
     diags: Diagnostic[],
 ) -> CFGProject {
-    Prof.prof_begin(Prof.PHASE_CFG_BUILD)
+    Prof.prof_begin(.CfgBuild)
     cfg :: build_cfg_project(pruned, diags)
-    Prof.prof_end(Prof.PHASE_CFG_BUILD)
+    Prof.prof_end(.CfgBuild)
     // One check per pass, each naming the pass it follows.
     if verify { verify_cfg(cfg, "build_cfg_project", diags) }
     // Return a small tuple in registers instead of a heap object. BEFORE DCE:
     // the `struct.new` that built the tuple becomes unread once the terminator
     // names its fields, and DCE is what removes it — running after would leave
     // the allocation and the pass would buy nothing. See `value_return.vader`.
-    Prof.prof_begin(Prof.PHASE_VALUE_RET)
+    Prof.prof_begin(.ValueReturn)
     scalarised :: scalarise_value_returns(cfg)
-    Prof.prof_end(Prof.PHASE_VALUE_RET)
+    Prof.prof_end(.ValueReturn)
     if verify { verify_cfg(scalarised, "scalarise_value_returns", diags) }
     // Undoes the rebuilds the pass above planted, wherever the fields are still
     // in hand. Before DCE, which is what collects the objects left readerless.
     unrebuilt :: struct_field_forward_project(scalarised)
     if verify { verify_cfg(unrebuilt, "struct_field_forward_project", diags) }
-    Prof.prof_begin(Prof.PHASE_CFG_DCE)
+    Prof.prof_begin(.CfgDce)
     dced :: eliminate_dead_cfg(unrebuilt)
-    Prof.prof_end(Prof.PHASE_CFG_DCE)
+    Prof.prof_end(.CfgDce)
     if verify { verify_cfg(dced, "eliminate_dead_cfg", diags) }
-    Prof.prof_begin(Prof.PHASE_ESCAPE)
+    Prof.prof_begin(.Escape)
     annotated :: annotate_escape(dced)
     escaped :: annotated.project
-    Prof.prof_end(Prof.PHASE_ESCAPE)
+    Prof.prof_end(.Escape)
     // `$VADER_OPT_REPORT` — the allocations that stayed on the heap. Reported
     // here rather than with the lowering ones because escape analysis runs after
     // the lowering context is gone. Empty unless the env is set.
@@ -191,9 +191,9 @@ export build_optimised_cfg :: fn(
     // `$VADER_OPT_REPORT`: what the range analysis proves. An observation: it
     // runs for the report alone and changes nothing it reads.
     if opt_report_enabled() {
-        Prof.prof_begin(Prof.PHASE_RANGES)
+        Prof.prof_begin(.Ranges)
         report_ranges(forwarded)
-        Prof.prof_end(Prof.PHASE_RANGES)
+        Prof.prof_end(.Ranges)
     }
     return forwarded
 }
@@ -254,13 +254,13 @@ export lower_to_entry_from :: fn(pipeline: EvaluatedPipeline, verify: bool = fal
     // caller's `flush_build_diags` gate runs — a plain user error would ICE.
     lower_diags: Diagnostic[]: []
     // profiling bracket — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
-    Prof.prof_begin(Prof.PHASE_LOWER)
+    Prof.prof_begin(.Lower)
     lowered :: if any_error_diag(pre_diags) {
         new_lowered_project()
     } else {
         lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     }
-    Prof.prof_end(Prof.PHASE_LOWER)
+    Prof.prof_end(.Lower)
     if verify { verify_lowered(lowered, "lower_project", lower_diags) }
     return LoweredEntry {
         .lowered     = lowered,
@@ -322,9 +322,9 @@ export prepare_cfg_bytecode_from :: fn(
     le: LoweredEntry, file: Path, want_debug: bool, verify: bool = false,
 ) -> CfgBytecode {
     // profiling brackets — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
-    Prof.prof_begin(Prof.PHASE_PRUNE)
+    Prof.prof_begin(.Prune)
     pruned :: prune_unreachable_fns(le.lowered, false)
-    Prof.prof_end(Prof.PHASE_PRUNE)
+    Prof.prof_end(.Prune)
     // The prune rewrites the decl set, so it gets its own check: a dropped
     // decl something still references is what `I7002` / `I7010` look for.
     back_end_diags: Diagnostic[]: []

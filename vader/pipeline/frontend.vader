@@ -53,17 +53,17 @@ export prepare_evaluated_project_with :: fn(
     // self-compile profile (`bun run bench:profile`) stays one flag away ; they
     // never read the clock when off and never touch the emitted output. See
     // vader/profile.
-    Prof.prof_begin(Prof.PHASE_LOAD)
+    Prof.prof_begin(.Load)
     loaded :: load_project(file.as_string(), include_path_flags, target)
-    Prof.prof_end(Prof.PHASE_LOAD)
+    Prof.prof_end(.Load)
     typecheck_diags: Diagnostic[]: []
-    Prof.prof_begin(Prof.PHASE_TYPECHECK)
+    Prof.prof_begin(.Typecheck)
     result :: check_project_with_bodies(loaded, typecheck_diags, false)
     resolver_diags :: collect_body_diags(result)
     typed :: assemble_typed_project(result)
-    Prof.prof_end(Prof.PHASE_TYPECHECK)
+    Prof.prof_end(.Typecheck)
     comptime_diags: Diagnostic[]: []
-    Prof.prof_begin(Prof.PHASE_COMPTIME)
+    Prof.prof_begin(.Comptime)
     // The tree-walk `evaluate_project` always runs : it does the `@comptime`
     // dependency ordering (source of the C4009 cycle diagnostic), folds
     // tree-walkable `@comptime` decls, harvests the generic instances the
@@ -88,7 +88,7 @@ export prepare_evaluated_project_with :: fn(
         // two-pass — see vader/comptime_vm). No-op when none deferred.
         resolve_vm_required_decls(loaded, typed, evaluated, comptime_diags)
     }
-    Prof.prof_end(Prof.PHASE_COMPTIME)
+    Prof.prof_end(.Comptime)
     return EvaluatedPipeline {
         .loaded          = loaded,
         .typed           = typed,

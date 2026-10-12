@@ -433,7 +433,7 @@ walk_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
         is AST.CallExpr  -> { walk_call(e, out) }
         is AST.FieldExpr -> {
             walk_expr(e.target, out)
-            // Field READ. `Mode.Fast` and `Prof.PHASE` are also FieldExprs and land
+            // Field READ. `Mode.Fast` and `Ns.CONST` are also FieldExprs and land
             // here rather than on `EnumMember` / a const: telling them apart needs
             // the target's resolved type, which this walker doesn't have. Clients
             // colour property and enum-member from the same family (LSP4IJ maps them

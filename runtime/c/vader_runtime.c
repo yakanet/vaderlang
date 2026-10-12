@@ -2493,8 +2493,8 @@ vader_gc_stats_t vader_gc_get_stats(void) {
  * (vader/profile) brackets each pass with vader_prof_begin/end(phase_id);
  * we accumulate wall time, peak-RSS growth, and GC churn per phase, then
  * dump a table to stderr at exit. Phase ids index g_prof_names[] — that
- * table is the single source of truth and is mirrored by the PHASE_*
- * constants in vader/profile/profile.vader. Keep the two in lockstep. */
+ * table is the single source of truth and is mirrored by the `ProfPhase`
+ * enum in vader/profile/profile.vader. Keep the two in lockstep. */
 
 /* The profiler's own clock. Internal on purpose: `std/time` reads the OS
  * clocks itself through `@target` + `@extern`, so nothing outside this file

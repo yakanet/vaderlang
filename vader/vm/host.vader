@@ -91,9 +91,9 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     //
     // Guarded by `tests/extern_vm_handlers.test.ts` : any new `@extern` under
     // `vader/` must gain a handler here or that test fails.
-    if info.mangled_name == r"vader_profile$vader_prof_begin" { return HostOk { .value = zero_value() } }
-    if info.mangled_name == r"vader_profile$vader_prof_end"   { return HostOk { .value = zero_value() } }
-    if info.mangled_name == r"vader_profile$vader_prof_dump"  { return HostOk { .value = zero_value() } }
+    if info.mangled_name == r"vader_profile$prof_begin" { return HostOk { .value = zero_value() } }
+    if info.mangled_name == r"vader_profile$prof_end"   { return HostOk { .value = zero_value() } }
+    if info.mangled_name == r"vader_profile$prof_dump"  { return HostOk { .value = zero_value() } }
     // Placed after the `vader_profile$*` arms above, which ARE `@extern` and
     // must still be served.
     if info.is_extern {
