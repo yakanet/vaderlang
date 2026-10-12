@@ -554,7 +554,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
                     typecheck_error(
                         .MissingRequiredArg,
                         c.span,
-                        "missing required argument `${params[i].name}`",
+                        "`${params[i].name}`",
                     ),
                 )
                 ok = false
