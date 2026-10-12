@@ -1514,7 +1514,7 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
             val :: lit_tok.value
             // u64 → i64 wraps the high bit for magnitudes ≥ 2^63. Out-of-range
             // explicit variant values are surfaced downstream by T3030
-            // ("enum variant value out of range for backing type"), so we
+            // ("enum variant value out of range for its written width"), so we
             // don't validate here. A rejected literal leaves `value` null :
             // the variant takes the next implicit index.
             if val is u64 {

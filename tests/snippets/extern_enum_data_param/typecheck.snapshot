@@ -1,0 +1,60 @@
+# Typecheck
+
+## tests/snippets/extern_enum_data_param
+  FnDecl         apply                :: fn(fn(HttpStatus) -> i32, HttpStatus) -> i32
+  FnDecl         labs_step            :: fn(Step) -> i64
+  FnDecl         main                 :: fn() -> i32
+  EnumDecl       Step                 :: Step
+  StructDecl     StepInfo             :: StepInfo!
+  expr 15:23    StringLitExpr  :: string
+  expr 16:23    StringLitExpr  :: string
+  expr 17:23    StringLitExpr  :: string
+  expr 24:68    CallExpr       :: i32
+  expr 24:68    IdentExpr      :: fn(HttpStatus) -> i32
+  expr 24:70    IdentExpr      :: HttpStatus
+  expr 27:13    StringLitExpr  :: string
+  expr 27:16    CallExpr       :: i32
+  expr 27:16    IdentExpr      :: fn(HttpStatus) -> i32
+  expr 27:27    DotVariantExpr :: HttpStatus
+  expr 27:35    CallExpr       :: i32
+  expr 27:35    IdentExpr      :: fn(HttpStatus) -> i32
+  expr 27:46    DotVariantExpr :: HttpStatus
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 27:60    CallExpr       :: i32
+  expr 27:60    IdentExpr      :: fn(HttpStatus) -> i32
+  expr 27:71    DotVariantExpr :: HttpStatus
+  expr 28:13    StringLitExpr  :: string
+  expr 28:16    CallExpr       :: i64
+  expr 28:16    IdentExpr      :: fn(Step) -> i64
+  expr 28:26    DotVariantExpr :: Step
+  expr 28:37    CallExpr       :: i64
+  expr 28:37    IdentExpr      :: fn(Step) -> i64
+  expr 28:47    DotVariantExpr :: Step
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 28:59    CallExpr       :: i64
+  expr 28:59    IdentExpr      :: fn(Step) -> i64
+  expr 28:69    DotVariantExpr :: Step
+  expr 29:13    StringLitExpr  :: string
+  expr 29:16    CallExpr       :: i32
+  expr 29:16    IdentExpr      :: fn(fn(HttpStatus) -> i32, HttpStatus) -> i32
+  expr 29:22    IdentExpr      :: fn(HttpStatus) -> i32
+  expr 29:34    DotVariantExpr :: HttpStatus
+  expr 29:46    FieldExpr      :: HttpStatus
+  expr 29:46    FieldExpr      :: string
+  expr 29:46    IdentExpr      :: HttpStatus
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 30:15    DotVariantExpr :: HttpStatus
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(HttpStatus) -> void
+
+## tests/snippets/extern_enum_data_param/status
+  FnDecl         abs_status           :: fn(HttpStatus) -> i32
+  EnumDecl       HttpStatus           :: HttpStatus
+  FnDecl         seed_with            :: fn(HttpStatus) -> void
+  StructDecl     StatusInfo           :: StatusInfo!
+  expr 10:26    StringLitExpr  :: string
+  expr 11:26    StringLitExpr  :: string
+  expr 12:26    StringLitExpr  :: string

@@ -1,0 +1,32 @@
+module "snippet"
+
+import "snippet/status"
+import "std/io"
+
+// An enum with variant data stores its variant's rank, and crosses `@extern` as
+// the value written after `=`, at the width its header writes: `abs` and `labs`
+// echo it back. `HttpStatus` reads its values from a table and is declared in
+// another module, `Step` adds the first value to the rank, and a call through a
+// fn value converts the same way. `seed_with` returns nothing.
+
+StepInfo :: struct { label: string }
+
+Step :: enum(StepInfo, i64) {
+    First  { .label = "first" }  = 10,
+    Second { .label = "second" },
+    Third  { .label = "third" },
+}
+
+@c_header("<stdlib.h>")
+@extern("labs")
+labs_step :: fn(step: Step) -> i64
+
+apply :: fn(f: fn(HttpStatus) -> i32, status: HttpStatus) -> i32 = f(status)
+
+main :: fn() -> i32 {
+    println("${abs_status(.Ok)} ${abs_status(.NotFound)} ${abs_status(.Teapot)}")
+    println("${labs_step(.First)} ${labs_step(.Second)} ${labs_step(.Third)}")
+    println("${apply(abs_status, .Teapot)} ${HttpStatus.Teapot.reason}")
+    seed_with(.NotFound)
+    return 0
+}

@@ -1246,16 +1246,16 @@ line :: "HTTP/1.1 ${s.code} ${s.reason}"   // s : HttpStatus
 info :: StatusInfo(s)                       // the whole value, read-only
 ```
 
-The header takes three forms: `enum(u8)` (a width, no data), `enum(Info)` (data, width inferred), `enum(Info, u8)` (data, width pinned). A lone argument is the width when it resolves to an integer — directly or through a distinct over one (`Byte :: u8`, `enum(Byte)`) — and the data when it is a struct; anything else is `T3084` when it sits in the data position.
+The header takes three forms: `enum(u8)` (a width, no data), `enum(Info)` (data, width inferred), `enum(Info, i32)` (data, the width of its values pinned). A lone argument is the width when it resolves to an integer — directly or through a distinct over one (`Byte :: u8`, `enum(Byte)`) — and the data when it is a struct; anything else is `T3084` when it sits in the data position.
 
 - **Each block is checked as a literal of the data struct**: unknown field (`T3009`), wrong type (`T3001`), a required field left unset (`T3037`, on the variant). A variant without a block is valid when every field has a default. A block on an enum whose header names no data is `T3085`.
 - **Every value must be a constant** the compiler can bake (`C4001`): the data lives in one read-only table, built once.
-- **Values are free**, as for any enum: `Ok { … } = 200`, `NotFound { … } = 404`. A variant without `=` takes the previous value plus one, and two variants sharing a value is `T3031`.
+- **Values are free**, as for any enum: `Ok { … } = 200`, `NotFound { … } = 404`. A variant without `=` takes the previous value plus one, and two variants sharing a value is `T3031`. A written width bounds them: `= 404` under `enum(Info, u8)` is `T3030`.
 - **Reading.** `v.field` is the field of `v`'s data; `Info(v)` is the whole value, **read-only** (`info.code = 5` is `T3070`). On the enum's name, `HttpStatus.code` is still a variant lookup (`T3027`).
-- **Representation.** An enum with data stores its variant's **rank** — 0, 1, 2… in declaration order — not the written value: the data is a read-only table indexed by the rank, so a read allocates nothing, and `==`, `match` and `.Variant` compare ranks. The width (written, or inferred as the narrowest holding the ranks) and `@size_of` follow the number of variants, not the values: `HttpStatus` above is 1 byte.
+- **Representation.** An enum with data stores its variant's **rank** — 0, 1, 2… in declaration order — not the written value: the data is a read-only table indexed by the rank, so a read allocates nothing, and `==`, `match` and `.Variant` compare ranks. The rank is stored at the narrowest width holding the ranks, whatever the header writes, so `@size_of` follows the number of variants, not the values: `HttpStatus` above is 1 byte.
 - **Converting to an integer** (`i32(s)`) gives the written value — folded for a constant, `rank + first` when the values are consecutive, else a read of a second table of the values.
 - **Interpolating** renders through `Display`, like any enum (below) — never the written value.
-- **No C representation.** Such an enum cannot be an `@extern` parameter or a `@c_struct` field (`T3050`): C would read the rank where the source says 404.
+- **Crossing to C.** An `@extern` parameter crosses as the written value, at the width the header writes: `enum(Info, i32)` passes 404 as an `int32_t`. The declaration lowers to a Vader function that converts the rank before calling C, so a call through a fn value converts too. Without a written width it is `T3050`, as is an `@extern` that also takes a callback (C calls only a named function, and the converting function would hold the callback as a value). A `@c_struct` field copies the stored integer as it is, so such an enum cannot be one (`T3050`): C would read the rank where the source says 404.
 
 #### `Display`
 
@@ -3255,7 +3255,7 @@ Plus, on top of the scalars:
 | **`isize(p)` / `usize(p)` on a `CPointer`** | reading only | a foreign sentinel that is not NULL — `INVALID_HANDLE_VALUE`, `MAP_FAILED`, both `-1` — is invisible to `CPointer \| null`, which narrows on zero alone. Reading the pointer as a pointer-width integer is the only way to test one. Narrower targets (`u8(p)`, `i32(p)`) are `T3010`: they would drop address bits, as is `f64(p)`. The reverse — `CPointer(42)`, fabricating a pointer — stays `T3010`, and nothing needs it: a sentinel is RETURNED and compared, never passed |
 | an **array of scalars** | ARGUMENT only | crosses as ONE bare pointer; a length, when the callee wants one, is a parameter of its own. C cannot fabricate a Vader array, so an array RETURN is rejected. `@c_out` decides `void*` vs `const void*`, and what C writes reads back |
 | a **`@c_struct`** | ARGUMENT only, with `@c_pointer` | see above; both backends, with the offset caveat noted there |
-| an **enum with a written width** | ARGUMENT only | crosses as the integer its variant stores, at that width (`enum(i32)` → `int32_t`). An inferred width moves when a variant is added, so it is `T3050`, as is an enum with variant data, which stores a rank C knows nothing of (§ Variant data). A RESULT would let C hand back an integer no variant holds, so it is rejected too. A `@c_struct` field of enum type follows the same two rules |
+| an **enum with a written width** | ARGUMENT only | crosses as the integer its variant stores, at that width (`enum(i32)` → `int32_t`), and one with variant data as its written value (§ Variant data). An inferred width moves when a variant is added, so it is `T3050`. A RESULT would let C hand back an integer no variant holds, so it is rejected too. A `@c_struct` field of enum type needs a written width as well, and cannot be an enum with variant data |
 | a **function type** | ARGUMENT only | a callback — see below; native backend only |
 
 Anything else (a plain struct, a trait, a type-param) is `T3050`. Future

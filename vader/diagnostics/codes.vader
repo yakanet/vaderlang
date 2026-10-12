@@ -75,7 +75,7 @@ export TypecheckCode :: enum(CodeInfo) {
     UnknownEnumVariant              { .id = "T3027", .message = "unknown enum variant" },
     CannotInferEnumType             { .id = "T3028", .message = "cannot infer enum type from context" },
     EnumReprMustBePrimitiveInt      { .id = "T3029", .message = "enum backing type must be a primitive integer" },
-    EnumVariantValueOutOfRange      { .id = "T3030", .message = "enum variant value out of range for backing type" },
+    EnumVariantValueOutOfRange      { .id = "T3030", .message = "enum variant value out of range for its written width" },
     DuplicateEnumVariantValue       { .id = "T3031", .message = "duplicate enum variant value" },
     AmbiguousOverload               { .id = "T3032", .message = "ambiguous overload resolution" },
     InvalidMainSignature            { .id = "T3033", .message = "invalid `main` signature" },

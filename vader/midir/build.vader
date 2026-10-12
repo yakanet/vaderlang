@@ -306,7 +306,9 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     c_variadic_fixed: i32 = -1
     if d.origin.decl is FnDecl as fn_decl {
         extern_name = extern_symbol_name(fn_decl)
-        is_extern = decorators_have(fn_decl.decorators, "extern")
+        // A body is the Vader function an `@extern` taking an enum with variant
+        // data lowers to (`lower_extern_values.vader`), not the import.
+        is_extern = d.body == null && decorators_have(fn_decl.decorators, "extern")
         is_exported = decorators_have(fn_decl.decorators, "export")
         c_header = c_header_of(fn_decl.decorators)
         c_library = extern_library_name(fn_decl)

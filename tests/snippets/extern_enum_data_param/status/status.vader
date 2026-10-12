@@ -1,0 +1,27 @@
+// The `@extern`s of the extern_enum_data_param snippet that live outside the
+// entry module, one of them returning nothing.
+module "snippet/status"
+
+/// What a status reads as.
+export StatusInfo :: struct { reason: string }
+
+/// An HTTP status, stored as its rank and crossing to C as its code.
+export HttpStatus :: enum(StatusInfo, i32) {
+    Ok       { .reason = "OK" }           = 200,
+    NotFound { .reason = "Not Found" }    = 404,
+    Teapot   { .reason = "I'm a teapot" } = -418,
+}
+
+/// The absolute value of `status`'s code.
+///
+/// @param status  the status whose code C reads.
+@c_header("<stdlib.h>")
+@extern("abs")
+export abs_status :: fn(status: HttpStatus) -> i32
+
+/// Seed C's `rand` with `status`'s code.
+///
+/// @param status  the status whose code seeds it.
+@c_header("<stdlib.h>")
+@extern("srand")
+export seed_with :: fn(status: HttpStatus) -> void

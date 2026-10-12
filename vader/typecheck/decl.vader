@@ -562,7 +562,7 @@ validate_mirror_fields :: fn(
         }
         // An enum crosses as its repr, which the shim assigns like any integer.
         if fty is EnumType {
-            refusal :: extern_enum_refusal(fty)
+            refusal :: mirror_enum_refusal(fty)
             if refusal != null {
                 diags.push(typecheck_error(
                     .InvalidExternDecl, span,
@@ -580,19 +580,54 @@ validate_mirror_fields :: fn(
     }
 }
 
-// Why `e` cannot cross to C, as an `@extern` parameter or a `@c_struct` field;
-// null when it can. An enum crosses as the integer it stores, at its width: only
-// a written width is one C can be told, and an enum with variant data stores a
-// rank C knows nothing of.
-extern_enum_refusal :: fn(e: EnumType) -> string | null {
-    name :: e.symbol.name
+// Why `e` cannot be a `@c_struct` field; null when it can. The shim copies the
+// integer the enum stores, and an enum with variant data stores a rank C knows
+// nothing of.
+mirror_enum_refusal :: fn(e: EnumType) -> string | null {
     if e.data != null {
-        return "enum `${name}` carries variant data: it stores a rank, not the value C expects"
+        return "enum `${e.symbol.name}` carries variant data: it stores a rank, not the value C expects"
     }
-    if !e.width_written {
-        return "enum `${name}` has an inferred width, which moves when a variant is added: pin one in its declaration, e.g. `enum(${e.repr})`"
+    return extern_enum_refusal(e)
+}
+
+// Why `e` cannot be an `@extern` parameter; null when it can. It crosses at the
+// width its header writes, since an inferred one moves when a variant is added.
+// An enum with variant data crosses as its written value: the lowering converts
+// the rank it stores.
+extern_enum_refusal :: fn(e: EnumType) -> string | null {
+    if e.written_width != null {
+        return null
     }
-    return null
+    return "enum `${e.symbol.name}` has an inferred width, which moves when a variant is added: pin one in its declaration, e.g. `${pinned_header(e)}`"
+}
+
+// The header that pins `e` at the width it has now.
+pinned_header :: fn(e: EnumType) -> string {
+    data :: e.data ?? return "enum(${e.repr})"
+    [smallest, largest] :: value_bounds(e.values)
+    return "enum(${data.symbol.name}, ${narrowest_width(smallest, largest)})"
+}
+
+// The callback among `params` when they also hold an enum with variant data
+// that may cross; null otherwise. Such an enum reaches C through a Vader
+// function that converts its rank, which would receive the callback as a value,
+// and C calls only a named function (T3080).
+callback_beside_enum_values :: fn(params: Type[]) -> usize | null {
+    callback: usize | null = null
+    values := false
+    for i in 0..<params.len() {
+        pt :: params[i]
+        if pt is EnumType && pt.data != null && pt.written_width != null {
+            values = true
+        }
+        if pt is FnType && callback == null {
+            callback = i
+        }
+    }
+    if !values {
+        return null
+    }
+    return callback
 }
 
 validate_extern :: fn(
@@ -701,6 +736,16 @@ validate_extern :: fn(
                 ),
             )
         }
+    }
+    callback :: callback_beside_enum_values(params)
+    if callback != null {
+        diags.push(
+            typecheck_error(
+                .InvalidExternDecl,
+                decl.params[callback].span,
+                "`@extern` fn `${decl.name}` takes both an enum with variant data and a callback",
+            ),
+        )
     }
     if !is_extern_abi_type(return_type, true) {
         ret_span: Span = decl.span
@@ -1415,28 +1460,28 @@ export build_enum_type :: fn(
     sym: Symbol, decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
     header :: classify_enum_header(decl, resolved, diags)
-    if header.data != null {
-        return build_data_enum_type(sym, decl, header, diags)
-    }
-    // Without a written width, the enum takes the narrowest one its values
-    // fit ; `i64` admits every value while they are collected.
+    // A written width bounds the values; `i64` admits every value otherwise.
     indices :: resolve_enum_indices(decl, header.repr ?? "i64", diags)
+    if header.data != null {
+        return build_data_enum_type(sym, decl, header, indices)
+    }
+    // Without a written width, the enum takes the narrowest one its values fit.
     [smallest, largest] :: value_bounds(indices.values())
     return EnumType {
         .symbol        = sym,
         .repr          = header.repr ?? narrowest_width(smallest, largest),
         .indices       = indices,
-        .width_written = header.repr != null,
+        .written_width = header.repr,
     }
 }
 
 // An enum with variant data stores its variant's RANK, which indexes the data
-// table directly ; the written values move to `values`, read by a conversion
-// to an integer. The width, written or inferred, holds the ranks.
+// table directly, at the narrowest width holding the ranks; the written values
+// move to `values`, read by a conversion to an integer. A written width bounds
+// those values.
 build_data_enum_type :: fn(
-    sym: Symbol, decl: AST.EnumDecl, header: EnumHeader, diags: Diagnostic[],
+    sym: Symbol, decl: AST.EnumDecl, header: EnumHeader, written: MutableMap<string, i64>,
 ) -> EnumType {
-    written :: resolve_enum_indices(decl, "i64", diags)
     ranks :: MutableMap<string, i64> {}
     values: i64[]: []
     for variant in decl.variants {
@@ -1445,17 +1490,13 @@ build_data_enum_type :: fn(
         values.push(written[variant.name] ?? rank)
     }
     last_rank :: if values.len() > 0 { i64(values.len()) - 1 } else { 0 }
-    if header.repr != null && !repr_range(header.repr).contains(last_rank) {
-        diags.push(typecheck_error(.EnumVariantValueOutOfRange, decl.span,
-            "${values.len()} variants do not fit `${header.repr}`"))
-    }
     return EnumType {
         .symbol        = sym,
-        .repr          = header.repr ?? narrowest_width(0, last_rank),
+        .repr          = narrowest_width(0, last_rank),
         .indices       = ranks,
         .data          = header.data,
         .values        = values,
-        .width_written = header.repr != null,
+        .written_width = header.repr,
     }
 }
 

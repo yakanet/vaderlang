@@ -1,0 +1,16 @@
+// An `@extern` taking both an enum with variant data and a callback: T3050. The
+// enum reaches C through a Vader function that converts its rank to its written
+// value, which would receive the callback as a value, and C calls only a named
+// function.
+module "snippet"
+
+StatusInfo :: struct { reason: string }
+
+HttpStatus :: enum(StatusInfo, i32) {
+    Ok       { .reason = "OK" }        = 200,
+    NotFound { .reason = "Not Found" } = 404,
+}
+
+@extern on_status :: fn(status: HttpStatus, handler: fn(i32) -> i32) -> i32
+
+main :: fn() -> i32 { return 0 }

@@ -1,11 +1,11 @@
-// An `@extern` parameter of an enum with variant data: T3050, even with a
-// written width. Such an enum stores its variant's rank, so C would read 1
-// where the source says 404.
+// An `@extern` parameter of an enum with variant data and no written width:
+// T3050. It would cross as its written value, at a width that moves when a
+// variant is added, so C cannot be told it.
 module "snippet"
 
 StatusInfo :: struct { reason: string }
 
-HttpStatus :: enum(StatusInfo, i32) {
+HttpStatus :: enum(StatusInfo) {
     Ok       { .reason = "OK" }        = 200,
     NotFound { .reason = "Not Found" } = 404,
 }

@@ -539,6 +539,9 @@ const C_PARITY = new Set<string>([
   // An enum with a written width crosses `@extern` as the integer its variant
   // stores.
   "extern_enum_param",
+  // An enum with variant data crosses `@extern` as its written value, through a
+  // function that converts the rank, a call through a fn value included.
+  "extern_enum_data_param",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

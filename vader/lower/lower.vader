@@ -117,7 +117,12 @@ lower_project_impl :: fn(
                     for d in module_decls(imported_loaded) {
                         if d is FnDecl {
                             if d.body is null && d.type_params.len() == 0 {
+                                synth_start :: project_ctx.synth_decls.len()
                                 lowered :: lower_fn_decl(d, imported_typed_opt, project_ctx, diags)
+                                // An `@extern` taking an enum with variant data
+                                // leaves its import here.
+                                synth :: project_ctx.synth_decls
+                                imported_decls.push_all(synth[synth_start..<synth.len()])
                                 if lowered != null {
                                     imported_decls.push(lowered)
                                     // Pre-seed the call-site harvest's seen-set so

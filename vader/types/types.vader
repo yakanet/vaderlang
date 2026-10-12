@@ -41,9 +41,10 @@ export EnumType :: struct {
     /// Written value per rank, for an enum with variant data ; empty for any
     /// other enum, whose stored integer IS the value.
     values:        i64[] = []
-    /// Whether the header writes `repr` (`enum(i32)`) rather than leaving it
-    /// inferred.
-    width_written: bool = false
+    /// The width the header writes, or null when it leaves it out: `repr` for
+    /// an enum without variant data, the width of the written values for one
+    /// with variant data, whose rank is stored at an inferred width.
+    written_width: string | null = null
 }
 
 /// Distinct (newtype) over a primitive — nominal at typecheck, but its

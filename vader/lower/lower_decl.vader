@@ -213,6 +213,17 @@ lower_fn_decl :: fn(
     }
     return_type :: return_type_of(fn_decl, types)
     entry :: stub_entry(fn_decl, typed)
+    if takes_enum_values(fn_decl, params, typed) {
+        return lower_extern_through_values(
+            project_ctx,
+            entry,
+            typed,
+            subst,
+            fn_decl,
+            params,
+            return_type,
+        )
+    }
     // Generators (`generator`) desugar to a state-machine iterator: lower the
     // body in generator mode (yields → `LoweredYield` markers), then rewrite it
     // + synthesize `g$State` / `Iterator::next`.

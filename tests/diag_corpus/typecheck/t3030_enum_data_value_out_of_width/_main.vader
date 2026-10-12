@@ -1,0 +1,13 @@
+// A written value past the width an enum with variant data writes: T3030. That
+// width bounds the values, which the enum crosses `@extern` as, while the rank
+// it stores keeps the narrowest width.
+module "snippet"
+
+StatusInfo :: struct { reason: string }
+
+HttpStatus :: enum(StatusInfo, u8) {
+    Ok       { .reason = "OK" }        = 200,
+    NotFound { .reason = "Not Found" } = 404,
+}
+
+main :: fn() -> i32 { return 0 }

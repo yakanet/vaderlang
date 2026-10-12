@@ -6,6 +6,6 @@
   EnumDecl       TooBig               :: TooBig
 
 # Diagnostics
-[6:9] error[T3030] enum variant value out of range for backing type: 300 not in [0, 255] for `u8`
+[6:9] error[T3030] enum variant value out of range for its written width: 300 not in [0, 255] for `u8`
 [12:9] error[T3031] duplicate enum variant value: value 1 already used by `X`
 [15:23] error[T3029] enum backing type must be a primitive integer: got string
