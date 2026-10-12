@@ -1,0 +1,60 @@
+// A struct whose fields are spelled `_0`, `_1` is still a struct: its fields
+// are read by name whatever their declared order, and a write to one, direct,
+// through a call or from a deferred block, is what the next read sees. A tuple
+// is read by position.
+module "snippet"
+
+import "std/io"
+
+Swapped :: struct {
+    _1: i32
+    _0: i32
+}
+
+Slot :: struct {
+    _0: i32
+    _1: i32
+}
+
+bump :: fn(s: Slot) -> void {
+    s._0 = 7
+}
+
+read_by_name :: fn() -> string {
+    s :: Swapped { ._0 = 10, ._1 = 20 }
+    return "${s._0} ${s._1}"
+}
+
+written_directly :: fn() -> i32 {
+    s :: Slot { ._0 = 1, ._1 = 2 }
+    s._0 = 5
+    return s._0
+}
+
+written_by_a_call :: fn() -> i32 {
+    s :: Slot { ._0 = 1, ._1 = 2 }
+    bump(s)
+    return s._0
+}
+
+written_by_a_deferred_block :: fn() -> i32 {
+    s :: Slot { ._0 = 1, ._1 = 2 }
+    {
+        defer {
+            s._0 = 99
+        }
+    }
+    return s._0
+}
+
+tuple_read :: fn() -> i32 {
+    t: [i32, i32]: [3, 4]
+    return t.0 * 10 + t.1
+}
+
+main :: fn() -> i32 {
+    println(read_by_name())
+    println("${written_directly()} ${written_by_a_call()} ${written_by_a_deferred_block()}")
+    println("${tuple_read()}")
+    return 0
+}

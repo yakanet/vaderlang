@@ -1,4 +1,4 @@
-// vader/midir/struct_field_forward — reads of a freshly built struct, forwarded.
+// vader/midir/struct_field_forward — reads of a freshly built tuple, forwarded.
 //
 // The value ABI hands a small composite back in registers, and the caller
 // rebuilds it so every consumer keeps reading `pair._0` / `pair._1` as before —
@@ -21,13 +21,14 @@
 // and the function's GC frame with it — falls away.
 //
 // Deliberately NOT cleared on a side-effecting instruction, unlike
-// `array_load_forward`: a tuple field cannot be written (T3008), and the structs
-// admitted here are built by the rebuild and never escape before the read. That
-// is the assumption to revisit before widening this to named structs.
+// `array_load_forward`: only a tuple's construction is recorded, on the rule
+// that a tuple cannot be mutated (SPEC, "Tuples"). A struct's fields can be
+// written, and a field spelled `_0` names no position.
 
 module "vader/midir"
 
 import "std/collections"
+import "vader/types"
 
 /// Forward struct-field reads across every block of every function. The
 /// transform is value-preserving — a `Move` from the local the field was built
@@ -145,7 +146,7 @@ forward_block_with :: fn(
                 if d != null { drop_records_touching(built, d) }
             }
         }
-        if ins is InstrStructNew {
+        if ins is InstrStructNew && tuple_backing(ins.type) != null {
             built[i32(ins.dst)] = ins.fields
             out.push(ins)
             continue

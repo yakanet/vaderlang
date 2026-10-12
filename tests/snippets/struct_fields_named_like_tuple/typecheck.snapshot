@@ -1,0 +1,61 @@
+# Typecheck
+
+## tests/snippets/struct_fields_named_like_tuple
+  FnDecl         bump                 :: fn(Slot!) -> void
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         read_by_name         :: fn() -> string
+  StructDecl     Slot                 :: Slot!
+  StructDecl     Swapped              :: Swapped!
+  FnDecl         tuple_read           :: fn() -> i32
+  FnDecl         written_by_a_call    :: fn() -> i32
+  FnDecl         written_by_a_deferred_block :: fn() -> i32
+  FnDecl         written_directly     :: fn() -> i32
+  expr 20:5     FieldExpr      :: i32
+  expr 20:5     IdentExpr      :: Slot!
+  expr 24:10    StructLitExpr  :: Swapped!
+  expr 25:12    StringLitExpr  :: string
+  expr 25:15    FieldExpr      :: i32
+  expr 25:15    IdentExpr      :: Swapped!
+  expr 25:23    FieldExpr      :: i32
+  expr 25:23    IdentExpr      :: Swapped!
+  expr 29:10    StructLitExpr  :: Slot!
+  expr 30:5     FieldExpr      :: i32
+  expr 30:5     IdentExpr      :: Slot!
+  expr 31:12    FieldExpr      :: i32
+  expr 31:12    IdentExpr      :: Slot!
+  expr 35:10    StructLitExpr  :: Slot!
+  expr 36:10    IdentExpr      :: Slot!
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(Slot!) -> void
+  expr 37:12    FieldExpr      :: i32
+  expr 37:12    IdentExpr      :: Slot!
+  expr 41:10    StructLitExpr  :: Slot!
+  expr 44:13    FieldExpr      :: i32
+  expr 44:13    IdentExpr      :: Slot!
+  expr 47:12    FieldExpr      :: i32
+  expr 47:12    IdentExpr      :: Slot!
+  expr 51:20    SeqLitExpr     :: [i32, i32]!
+  expr 52:12    BinaryExpr     :: i32
+  expr 52:12    BinaryExpr     :: i32
+  expr 52:12    FieldExpr      :: i32
+  expr 52:12    IdentExpr      :: [i32, i32]
+  expr 52:23    FieldExpr      :: i32
+  expr 52:23    IdentExpr      :: [i32, i32]
+  expr 56:13    CallExpr       :: string
+  expr 56:13    IdentExpr      :: fn() -> string
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(T) -> void
+  expr 57:13    StringLitExpr  :: string
+  expr 57:16    CallExpr       :: i32
+  expr 57:16    IdentExpr      :: fn() -> i32
+  expr 57:38    CallExpr       :: i32
+  expr 57:38    IdentExpr      :: fn() -> i32
+  expr 57:5     CallExpr       :: void
+  expr 57:5     IdentExpr      :: fn(T) -> void
+  expr 57:61    CallExpr       :: i32
+  expr 57:61    IdentExpr      :: fn() -> i32
+  expr 58:13    StringLitExpr  :: string
+  expr 58:16    CallExpr       :: i32
+  expr 58:16    IdentExpr      :: fn() -> i32
+  expr 58:5     CallExpr       :: void
+  expr 58:5     IdentExpr      :: fn(T) -> void

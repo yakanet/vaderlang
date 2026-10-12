@@ -533,6 +533,9 @@ const C_PARITY = new Set<string>([
   "range_value_to_type_max",
   // A deferred block's write between two reads of an element reaches the second.
   "defer_write_between_array_reads",
+  // A struct with fields spelled `_0`, `_1` is read by name and written like any
+  // other.
+  "struct_fields_named_like_tuple",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

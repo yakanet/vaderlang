@@ -328,8 +328,7 @@ drop_records_touching :: fn(built: MutableMap<i32, LocalId[]>, local: LocalId) -
     }
 }
 
-// `_0` → 0. Negative when the name is not a tuple position — a named struct
-// field, which only the nullable path builds, and whose reads this leaves alone.
+// `_0` → 0. Negative when the name is not a tuple position.
 tuple_field_index :: fn(field: string) -> i32 {
     if !field.starts_with("_") {
         return -1
