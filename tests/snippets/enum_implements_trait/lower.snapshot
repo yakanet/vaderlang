@@ -58,32 +58,20 @@
     let d: Direction = int(0) :u8
     call :void
       callee:
-        std_io$println__string :void
+        std_io$println__snippet_Direction :void
       arg0:
-        call :string
-          callee:
-            snippet$Direction$Display$to_string :string
-          arg0:
-            d :Direction
+        d :Direction
     call :void
       callee:
-        std_io$println__string :void
+        std_io$println__snippet_Direction :void
       arg0:
-        call :string
-          callee:
-            snippet$Direction$Display$to_string :string
-          arg0:
-            int(1) :u8
+        int(1) :u8
     let s: Direction = int(2) :u8
     call :void
       callee:
-        std_io$println__string :void
+        std_io$println__snippet_Direction :void
       arg0:
-        call :string
-          callee:
-            snippet$Direction$Display$to_string :string
-          arg0:
-            s :Direction
+        s :Direction
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

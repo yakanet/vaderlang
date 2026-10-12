@@ -194,16 +194,8 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "IdentExpr",
-                        "name": "d"
-                      },
-                      "field": "to_string"
-                    },
-                    "args": []
+                    "kind": "IdentExpr",
+                    "name": "d"
                   },
                   "spread": false
                 }
@@ -222,20 +214,12 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "Direction"
-                        },
-                        "field": "East"
-                      },
-                      "field": "to_string"
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "Direction"
                     },
-                    "args": []
+                    "field": "East"
                   },
                   "spread": false
                 }
@@ -271,16 +255,8 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "IdentExpr",
-                        "name": "s"
-                      },
-                      "field": "to_string"
-                    },
-                    "args": []
+                    "kind": "IdentExpr",
+                    "name": "s"
                   },
                   "spread": false
                 }

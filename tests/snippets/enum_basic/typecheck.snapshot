@@ -3,7 +3,7 @@
 ## tests/snippets/enum_basic
   FnDecl         describe             :: fn(Direction) -> string
   EnumDecl       Direction            :: Direction
-  FnDecl         main                 :: fn() -> void
+  FnDecl         main                 :: fn() -> i32
   expr 13:11    IdentExpr      :: Direction
   expr 13:5     MatchExpr      :: string
   expr 14:19    StringLitExpr  :: string
@@ -18,8 +18,7 @@
   expr 23:5     IdentExpr      :: fn(T) -> void
   expr 24:13    CallExpr       :: string
   expr 24:13    IdentExpr      :: fn(Direction) -> string
-  expr 24:22    FieldExpr      :: Direction
-  expr 24:22    IdentExpr      :: Direction
+  expr 24:22    DotVariantExpr :: Direction
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void
   expr 25:13    DotVariantExpr :: Direction
@@ -48,7 +47,3 @@
   expr 28:30    DotVariantExpr :: Direction
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(T) -> void
-
-# Diagnostics
-[21:1] error[T3033] invalid `main` signature: main must return i32
-[24:22] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.North`

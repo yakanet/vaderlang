@@ -23,11 +23,11 @@ Direction implements Display {
 main :: fn() -> i32 {
     // UFCS-style dispatch on an enum value
     d :: Direction.North
-    println(d.to_string())
+    println(d)
     // Method call directly on `EnumName.Variant`
-    println(Direction.East.to_string())
+    println(Direction.East)
     // Through a let binding from a different variant
     s :: Direction.South
-    println(s.to_string())
+    println(s)
     return 0
 }
