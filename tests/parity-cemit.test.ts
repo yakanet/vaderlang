@@ -531,6 +531,8 @@ const C_PARITY = new Set<string>([
   "range_to_type_max",
   // A `Range` value iterated up to its type's maximum stops instead of trapping.
   "range_value_to_type_max",
+  // A deferred block's write between two reads of an element reaches the second.
+  "defer_write_between_array_reads",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

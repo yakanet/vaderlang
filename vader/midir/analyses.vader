@@ -44,20 +44,13 @@ export predecessors_of :: fn(fn_: CFGFunction) -> BlockId[][] {
 // ---- side-effect classification ------------------------------------------
 
 /// True when the instruction has observable effect outside its `dst`
-/// slot. DCE keeps these alive even when their result local is unread.
-export instruction_has_side_effect :: fn(ins: Instruction) -> bool {
-    // @partial: only the effectful instructions are listed ; every other
-    // instruction is a pure value producer (writes only its `dst`), so a new
-    // pure variant correctly defaults to false here.
-    return ins is InstrCall
-                | InstrCallIndirect
-                | InstrVirtualCall
-                | InstrIntrinsic
-                | InstrFieldSet
-                | InstrArraySet
-                | InstrArrayPush
-                | InstrCellSet
-}
+/// slot: it writes memory, or runs code that may (`instruction_runs_code`).
+/// DCE keeps these alive even when their result local is unread. Every other
+/// instruction writes at most its `dst`: `InstrDeferPush` only queues a thunk,
+/// which runs at the `InstrDeferPopExec` reported here.
+export instruction_has_side_effect :: fn(ins: Instruction) -> bool =
+    instruction_runs_code(ins) ||
+        ins is InstrFieldSet | InstrArraySet | InstrArrayPush | InstrCellSet
 
 /// True when executing the instruction runs code the CFG does not show: a
 /// call of any kind, an intrinsic, or the deferred blocks a scope exit pops.

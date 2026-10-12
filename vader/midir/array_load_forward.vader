@@ -14,8 +14,9 @@
 //   - an `ArraySet` may alias any tracked load (two array locals can name one
 //     array, two index locals one slot), so it clears all tracked slots, then
 //     records the slot it just wrote.
-//   - any side-effecting instruction (call / intrinsic / push / field-set, via
-//     `instruction_has_side_effect`) may write an aliased array, so it clears.
+//   - any side-effecting instruction (call / intrinsic / a scope exit's
+//     deferred blocks / push / field-set, via `instruction_has_side_effect`)
+//     may write an aliased array, so it clears.
 //   - redefining the array, index, or value local of a tracked slot
 //     invalidates it (locals are mutable pre-SSA — the value local can be
 //     reassigned between the store and a later load).

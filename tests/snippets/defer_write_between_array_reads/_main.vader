@@ -1,0 +1,22 @@
+// A deferred block runs when its scope ends, between the reads around that
+// scope: an element it writes there is what the read after the scope sees.
+// Reusing the read from before the scope instead would return its old value.
+module "snippet"
+
+import "std/io"
+
+read_around_defer :: fn(xs: i32[], i: usize) -> i32 {
+    before :: xs[i]
+    {
+        defer {
+            xs[i] = 99
+        }
+    }
+    after :: xs[i]
+    return before + after
+}
+
+main :: fn() -> i32 {
+    println("${read_around_defer([1, 2], 0)}")
+    return 0
+}
