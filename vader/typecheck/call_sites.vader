@@ -56,7 +56,7 @@ export TraitMember :: struct {
 /// result of an expression.
 export FnValue :: struct {}
 
-/// No call at all: a cast `T(x)`, an enum's built-in equality.
+/// No call at all: a cast `T(x)` that runs no `into`, a numeric operator.
 export Builtin :: struct {}
 
 /// A callee that is not a function: the error is reported.
@@ -91,6 +91,8 @@ export CallRole :: enum {
     IndexRead,
     /// `x[i] = v`, and the write-back of `x[i] op= v`.
     IndexWrite,
+    /// The `into` an implicit conversion runs, at the converted value.
+    Into,
 }
 
 /// The sites of a module, one table per role, each keyed by the node's id. A node
@@ -100,6 +102,7 @@ export CallSites :: struct {
     operators: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
     index_reads: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
     index_writes: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
+    conversions: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
 }
 
 /// The table of the sites playing `role`.
@@ -111,11 +114,12 @@ export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<usize, Cal
     .Operator   -> sites.operators
     .IndexRead  -> sites.index_reads
     .IndexWrite -> sites.index_writes
+    .Into       -> sites.conversions
 }
 
 // Every role, for a reader that walks them all : a role added to `CallRole` is
 // added here.
-all_roles :: fn() -> CallRole[] = [.Call, .Operator, .IndexRead, .IndexWrite]
+all_roles :: fn() -> CallRole[] = [.Call, .Operator, .IndexRead, .IndexWrite, .Into]
 
 FN_VALUE_CALLEE  :: FnValue {}
 BUILTIN_CALLEE   :: Builtin {}
@@ -220,6 +224,33 @@ first_member_callee :: fn(
         return UNSETTLED_CALLEE
     }
     return direct_callee(members[0].decl, false)
+}
+
+/// The `into` a conversion of `source` into `target` runs, by the rule the
+/// lowering's `try_emit_into_coercion` applies: an array into an `Iterator` through
+/// the impl toward the target's base, nothing for the same type or for a distinct
+/// handing out its own backing, else the impl of that exact pair. A source that
+/// mentions a type parameter is looked at again at each instance.
+///
+/// @param typed   the module the conversion is written in.
+/// @param source  the converted value's type.
+/// @param target  the type it converts into.
+/// @return        null when the conversion runs no `into`.
+conversion_callee :: fn(typed: TypedProgram, source: Type, target: Type) -> Callee | null {
+    per_instance :: type_contains_type_param(source)
+    // A generic slot (`Iterator<T>`) takes an array of any element.
+    if try_array_to_iter(source, erase_type_params(target)) {
+        array_into :: into_method_toward(typed, source, target) ?? return UNSETTLED_CALLEE
+        return direct_callee(array_into.decl, per_instance)
+    }
+    if equals_type(source, target) {
+        return null
+    }
+    if source is DistinctType && equals_type(source.backing, target) {
+        return null
+    }
+    method :: into_impl_method(typed, source, target) ?? return null
+    return direct_callee(method.decl, per_instance)
 }
 
 /// What `left == right` runs, once the two are known to compare: the `Equals` of
@@ -360,6 +391,7 @@ role_label :: fn(role: CallRole) -> string = match role {
     .Operator   -> "operator"
     .IndexRead  -> "index"
     .IndexWrite -> "index-write"
+    .Into       -> "into"
 }
 
 // A call inside a materialised default method sits at a synthetic span, the same

@@ -102,6 +102,28 @@ Bag implements Equals {
     equals :: fn(self, other: Bag) -> bool = self.items.len() == other.items.len()
 }
 
+export Meters :: struct {
+    v: i32
+}
+
+Meters implements Into<i64> {
+    into :: fn(self) -> i64 = i64(self.v)
+}
+
+export Ticks :: i64
+
+Ticks implements Into<i64> {
+    into :: fn(self) -> i64 = i64(self)
+}
+
+walk :: fn(it: Iterator<i32>) -> usize {
+    n: usize = 0
+    for _ in it {
+        n += 1
+    }
+    return n
+}
+
 export Holder :: struct {
     f: fn(i32) -> i32
 }
@@ -190,3 +212,17 @@ export index_update :: fn(g: Grid) -> void {
 export string_index :: fn(s: string) -> char = s[0]
 
 export array_index :: fn(xs: i32[]) -> i32 = xs[0]
+
+export cast_through_into :: fn(m: Meters) -> i64 = i64(m)
+
+export implicit_into :: fn(m: Meters) -> i64 {
+    x: i64: m
+    return x
+}
+
+export array_into_iterator :: fn() -> usize = walk([1, 2])
+
+export distinct_backing :: fn(t: Ticks) -> i64 {
+    x: i64: t
+    return x
+}

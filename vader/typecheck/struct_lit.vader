@@ -133,8 +133,8 @@ check_field :: fn(
     unbound_args :: decl is AST.StructDecl && st.args.len() < decl.type_params.len()
     as_pattern :: unbound_args && !is_free_numeric(got)
     want :: if as_pattern { erase_type_params(expected) } else { expected }
-    if is_assignable(got, want)               { return }
-    if try_into(got, want, typed, f.value.id) { return }
+    if is_assignable(got, want)            { return }
+    if try_into(got, want, typed, f.value) { return }
     push_level_mismatch(got, expected, f.span, .TypeMismatch, f.value, typed, diags)
 }
 

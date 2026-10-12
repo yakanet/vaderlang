@@ -574,7 +574,8 @@ emit_return_mismatch_if :: fn(
 // The one coercion gate shared by let / return / yield / assign : `got` flows
 // into `expected` when it is assignable, or `Into`-coercible. `is_assignable`
 // runs first so `try_into`'s LSP into-hint side effect stays off the already-
-// assignable path. `node_id` is the value expr's `Expr.id` for that hint.
+// assignable path. `value` is the value expr, where that hint and the `into` site
+// are recorded.
 //
 // Kept brace-bodied on purpose: the equivalent single-expr form
 // (`= is_assignable(...) || try_into(...)`) is inlined by the single-expr
@@ -583,11 +584,11 @@ emit_return_mismatch_if :: fn(
 // `check_block`, tripping the emit-time field-access panic). The current
 // compiler handles the single-expr form fine; the seed does not. Leave it
 // brace-bodied until the seed is advanced past that inliner/interning bug.
-flows_into :: fn(got: Type, expected: Type, node_id: usize, typed: TypedProgram) -> bool {
+flows_into :: fn(got: Type, expected: Type, value: AST.Expr, typed: TypedProgram) -> bool {
     if is_assignable(got, expected) {
         return true
     }
-    return try_into(got, expected, typed, node_id)
+    return try_into(got, expected, typed, value)
 }
 
 // Push `code` when `got` doesn't flow into `expected` — neither assignable nor
@@ -607,7 +608,7 @@ emit_mismatch_if :: fn(
     fits :: if value == null {
         is_assignable(got, expected)
     } else {
-        flows_into(got, expected, value.id, typed)
+        flows_into(got, expected, value, typed)
     }
     if fits {
         return
@@ -677,7 +678,7 @@ check_let :: fn(
         declared = default_if_free(got)
     } else {
         declared = ann
-        if !flows_into(got, ann, s.value.id, typed) {
+        if !flows_into(got, ann, s.value, typed) {
             push_level_mismatch(got, ann, s.span, .TypeMismatch, s.value, typed, diags)
         }
     }
@@ -876,8 +877,8 @@ emit_assign_mismatch_if :: fn(
     diags: Diagnostic[],
     source: AST.Expr | null = null,
 ) -> void {
-    if expected == null                           { return }
-    if flows_into(got, expected, value.id, typed) { return }
+    if expected == null                        { return }
+    if flows_into(got, expected, value, typed) { return }
     // The value a destructuring writes is an element of its `source`, the lever.
     lever :: if source != null { source } else { value }
     if note_widening_need(lever, got, expected, span, typed) { return }

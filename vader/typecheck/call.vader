@@ -1005,7 +1005,6 @@ type_call :: fn(
     // `T(x)` cast-style call : treat the call as a conversion and return the target
     // type. Folded before reaching the not-callable arm.
     if converts_by_name(c, callee_ty, typed) {
-        record_call_site(typed, c, BUILTIN_CALLEE)
         return cast_call_target(c, typed, diags, check_expr_fn)
     }
     named :: resolve_callee_fn(c.callee, typed)
@@ -1172,8 +1171,8 @@ type_call :: fn(
             // T3072 owns the argument's own top-level bit, as on the plain path below.
             cleared :: arg_mutability_cleared(arg_types[i])
             slot :: param_shape_slot(arg_types[i], want)
-            if is_assignable(cleared, slot)                       { continue }
-            if try_into(cleared, slot, typed, c.args[i].value.id) { continue }
+            if is_assignable(cleared, slot)                    { continue }
+            if try_into(cleared, slot, typed, c.args[i].value) { continue }
             note_gaining_need(c, i, arg_types[i], want, typed)
             push_level_mismatch(
                 arg_types[i], want, c.args[i].span, .TypeMismatch, c.args[i].value, typed, diags,
@@ -1257,7 +1256,7 @@ type_call :: fn(
         cleared :: arg_mutability_cleared(arg_ty)
         slot :: param_shape_slot(arg_ty, param_ty)
         if is_assignable(cleared, slot) { continue }
-        if try_into(cleared, slot, typed, c.args[i].value.id) { continue }
+        if try_into(cleared, slot, typed, c.args[i].value) { continue }
         note_gaining_need(c, i, arg_ty, param_ty, typed)
         push_level_mismatch(
             arg_ty, param_ty, c.args[i].span, .TypeMismatch, c.args[i].value, typed, diags,
@@ -1384,6 +1383,8 @@ cast_call_target :: fn(
     // (or `-Free*` unary) narrows into the target's primitive shape —
     // `i64(-250)` types the `-250` as `i64`, not `{integer}`.
     expected :: cast_operand_expected(target)
+    // The cast itself calls nothing ; an `into` it runs is its value's site.
+    record_call_site(typed, c, cast_site_callee(c))
     for arg in c.args {
         src :: check_expr_fn(arg.value, expected, typed, diags)
         // Variant data is constant : reading it hands back a read-only value.
@@ -1398,12 +1399,35 @@ cast_call_target :: fn(
                     "cannot cast ${display_type(src)} to ${display_type(target)}",
                 ),
             )
-        } else if type_withholds_mutation(src) {
-            // A conversion hands out what it was lent : `Point(ORIGIN)` is the const.
-            result = with_immutable(target, true)
+            record_call_site(typed, c, ERRONEOUS_CALLEE)
+        } else {
+            note_cast_into(typed, arg.value, src, target)
+            if type_withholds_mutation(src) {
+                // A conversion hands out what it was lent : `Point(ORIGIN)` is the const.
+                result = with_immutable(target, true)
+            }
         }
     }
     return result
+}
+
+// A cast takes one value ; any other count is reported.
+cast_site_callee :: fn(c: AST.CallExpr) -> Callee {
+    if c.args.len() == 1 {
+        return BUILTIN_CALLEE
+    }
+    return ERRONEOUS_CALLEE
+}
+
+// File the `into` a cast `T(x)` runs on `value`, as `emit_value_cast` decides it :
+// an enum with data read as a plain value runs none, a conversion the rule of
+// `conversion_callee`.
+note_cast_into :: fn(typed: TypedProgram, value: AST.Expr, source: Type, target: Type) -> void {
+    if source is EnumType && source.data != null && target !is EnumType {
+        return
+    }
+    callee :: conversion_callee(typed, source, target) ?? return
+    record_site(typed, value, .Into, callee)
 }
 
 /// T3006 enforcement : every type parameter the call bound must satisfy each

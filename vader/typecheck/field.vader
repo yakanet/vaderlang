@@ -644,7 +644,7 @@ try_free_fn_ufcs_dispatch :: fn(
     // Trait widening isn't an `.into()`, so (as in `try_into`) it's excluded :
     // only the array→iterator blanket records.
     if try_array_to_iter(target_ty, erase_type_params(first_param)) {
-        typed.into_coercions[e.target.id] = first_param
+        note_into(typed, e.target, target_ty, first_param)
     }
     // T3071 on this dispatch path too : a mutator declared as a free fn (`put`,
     // `remove`, `clear`) is the dominant stdlib style. A receiver converted into an

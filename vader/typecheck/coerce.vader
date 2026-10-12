@@ -10,23 +10,25 @@ module "vader/typecheck"
 
 import "vader/types"
 
+AST :: import "toolchain/ast"
+
 /// Look up `${got}::into::${expected}` in the impl-method index. The
 /// per-target keying lets a source type carry multiple `Into<T>`
 /// impls (e.g. `Into<i32>` AND `Into<string>`) without collision.
 /// Union targets never coerce — the typer can't pick a variant —
 /// so they fall through to the standard T3001 mismatch.
 ///
-/// @param node_id  `Expr.id` of the coerced value. On a real `.into()`
-///                 coercion (a matched `Into` impl or the `T[] → Iterator`
-///                 blanket) the target type is recorded under this id in
-///                 `typed.into_coercions` so the LSP can surface a ghost
-///                 `.into()` hint ; trait widening records nothing.
-export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, node_id: usize) -> bool {
+/// @param value  the coerced value. On a real `.into()` coercion (a matched
+///               `Into` impl or the `T[] → Iterator` blanket) the target type is
+///               recorded under its id in `typed.into_coercions`, so the LSP can
+///               surface a ghost `.into()` hint, and the `into` is filed as its
+///               site ; trait widening records nothing.
+export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, value: AST.Expr) -> bool {
     targeted :: into_impl_method(typed, got, expected)
     if targeted !is null {
         if targeted.ty is FnType as f {
             if is_assignable(f.return_type, expected) {
-                typed.into_coercions[node_id] = expected
+                note_into(typed, value, got, expected)
                 return true
             }
             return false
@@ -44,10 +46,22 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, node_id: u
     // keep the recursive assignability check small enough that
     // c-emit doesn't monomorphise a 3× larger main.c.
     if try_array_to_iter(got, expected) {
-        typed.into_coercions[node_id] = expected
+        note_into(typed, value, got, expected)
         return true
     }
     return false
+}
+
+/// Record that `value` converts from `source` into `target` through `Into`: the
+/// target under its id for the LSP's `.into()` hint, and the `into` it runs as its
+/// site, `Builtin` when the conversion runs none (a distinct's own backing).
+///
+/// @param value   the converted value.
+/// @param source  its type.
+/// @param target  the slot's type.
+note_into :: fn(typed: TypedProgram, value: AST.Expr, source: Type, target: Type) -> void {
+    typed.into_coercions[value.id] = target
+    record_site(typed, value, .Into, conversion_callee(typed, source, target) ?? BUILTIN_CALLEE)
 }
 
 export try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
@@ -133,8 +147,8 @@ bound_widens_into :: fn(param: TypeParamType, wanted: TraitType, typed: TypedPro
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "toolchain/span"
 import "vader/resolver/symbol"
-import "toolchain/ast"
 
 // A minimal `Iterator<elem>` trait type — `try_array_to_iter` only reads
 // `symbol.name` and `args`, so the other Symbol fields are placeholders.
@@ -151,6 +165,13 @@ iter_trait_for_test :: fn(elem: Type) -> Type {
     return mk_trait(sym, [elem], false)
 }
 
+// A converted value numbered `id`.
+value_for_test :: fn(id: usize) -> AST.Expr = AST.IntLitExpr {
+    .span = empty_span(),
+    .id = id,
+    .value = 0,
+}
+
 // `T[] → Iterator<T>` is a real `.into()` coercion : `try_into` records the
 // target type under the value's node id so the LSP can surface a `.into()`
 // hint (the array-into-Iterator param case from the feature request).
@@ -159,7 +180,7 @@ test_try_into_records_array_to_iter :: fn() -> void {
     typed :: empty_typed_program()
     arr :: mk_array(mk_primitive("i32"), false)
     iter :: iter_trait_for_test(mk_primitive("i32"))
-    assert(try_into(arr, iter, typed, 7), "i32[] should coerce into Iterator<i32>")
+    assert(try_into(arr, iter, typed, value_for_test(7)), "i32[] should coerce into Iterator<i32>")
     assert(typed.into_coercions[7] !is null, "coercion must be recorded under node id 7")
 }
 
@@ -170,7 +191,7 @@ test_try_into_records_array_to_iter :: fn() -> void {
 test_try_into_no_coercion_records_nothing :: fn() -> void {
     typed :: empty_typed_program()
     assert(
-        !try_into(mk_primitive("i32"), mk_primitive("string"), typed, 9),
+        !try_into(mk_primitive("i32"), mk_primitive("string"), typed, value_for_test(9)),
         "i32 does not coerce into string",
     )
     assert(typed.into_coercions[9] is null, "no coercion recorded when none applies")

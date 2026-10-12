@@ -140,7 +140,7 @@ export infer_null_coalesce :: fn(
         }
         is AST.Expr -> {
             got :: check_expr_fn(fallback, result, typed, diags)
-            if !flows_into(got, result, fallback.id, typed) {
+            if !flows_into(got, result, fallback, typed) {
                 diags.push(
                     typecheck_error(
                         .TypeMismatch,
