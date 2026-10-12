@@ -86,6 +86,9 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if stage == "typed-ast" {
         return run_typecheck_stage(file, module_filter, include_path_flags, target)
     }
+    if stage == "callees" {
+        return run_callees_stage(file, module_filter, target)
+    }
     if stage == "evaluated-ast" {
         return run_comptime_stage(file, module_filter, include_path_flags, target)
     }
@@ -250,6 +253,16 @@ run_typecheck_stage :: fn(
     // carries its own display path for the default scope.
     scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
     println(dump_program_with_others(fc.result.typed, true, fc.result.others, scope))
+    if fc.diags.len() > 0 {
+        println(fc.diags.dump_diagnostics())
+    }
+    return 0
+}
+
+run_callees_stage :: fn(file: Path, module_filter: string[], target: Target | null) -> i32 {
+    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], false, target)
+    scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
+    print(dump_call_sites_project(fc.result.typed, fc.result.others, scope))
     if fc.diags.len() > 0 {
         println(fc.diags.dump_diagnostics())
     }

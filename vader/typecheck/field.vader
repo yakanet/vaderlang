@@ -77,6 +77,8 @@ export infer_field :: fn(
     if candidate !is null {
         return candidate
     }
+    // A field from here on : calling it calls the value it holds.
+    note_callee(typed, e, FN_VALUE_CALLEE)
     candidate = try_tuple_index_dispatch(target_ty, e, diags)
     if candidate !is null {
         return candidate
@@ -188,6 +190,7 @@ export settle_impl_member :: fn(
     check_trait_ambiguity(e, target_ty, typed, diags)
     reject_mutating_method_on_immutable(chosen, e, target_ty, typed, diags)
     typed.chosen_impl_methods[e.id] = chosen
+    note_callee(typed, e, direct_callee(chosen.decl, false))
     if chosen.generic {
         _ :: reject_unmet_impl_bounds(
             default_if_free(target_ty), chosen.trait_key, .TraitNotSatisfied, e.field_span,
@@ -319,6 +322,7 @@ try_typeparam_bound_method :: fn(
     // `vcall <trait_key>.method` once the receiver gets erased to Any
     // post-monomorphization.
     record_bounded_dispatch(typed, e.id, member.trait_key, member.trait_args)
+    note_callee(typed, e, BoundMember { .trait_key = member.trait_key, .member = e.field })
     keep_instances_concrete(typed)
     return ty
 }
@@ -382,6 +386,7 @@ try_builtin_equals_method :: fn(
 ) -> Type | null {
     member :: builtin_equals_member(target_ty, e.field, typed) ?? return null
     typed.bounded_dispatch_trait[e.id] = member.trait_key
+    note_callee(typed, e, BUILTIN_CALLEE)
     return member.ty
 }
 
@@ -445,11 +450,16 @@ try_static_member :: fn(
         // An instance whose `T` implements the trait more than once calls the impl
         // at the bound's arguments.
         record_bounded_dispatch(typed, e.id, member.trait_key, member.trait_args)
+        note_callee(typed, e, BoundMember { .trait_key = member.trait_key, .member = e.field })
     } else {
         check_trait_ambiguity(e, owner, typed, diags)
         candidates :: impl_candidates(typed, owner, "::${e.field}")
         if candidates.len() > 1 && of_one_trait(candidates) {
             typed.overloaded_members[e.id] = candidates
+        }
+        // Several candidates wait for the call's arguments (`pick_member_overload`).
+        if candidates.len() == 1 {
+            note_callee(typed, e, direct_callee(candidates[0].decl, false))
         }
     }
     typed.static_members[e.id] = StaticMember { .owner = owner, .trait_key = member.trait_key }
@@ -622,6 +632,10 @@ try_free_fn_ufcs_dispatch :: fn(
         keep_instances_concrete(typed)
     }
     typed.chosen_fns[e.id] = free_ufcs.winner
+    // The lowering looks again at each instance when the receiver mentions a type
+    // parameter (`settled_choice`).
+    per_instance :: type_contains_type_param(target_ty)
+    note_callee(typed, e, direct_callee(free_ufcs.winner.decl, per_instance))
     // A `T[]` receiver fitting an `Iterator<T>` first param coerces through the
     // very `.into()` the lowerer synthesizes at `lower_ufcs`. Record it on the
     // receiver expr so the LSP surfaces the `.into()` hint here too — the
@@ -719,6 +733,7 @@ try_dispatched_method :: fn(
     }
     if target_ty is TraitType {
         member :: trait_type_member(target_ty, target_ty, e.field, typed) ?? return null
+        note_callee(typed, e, TraitMember { .trait_key = member.trait_key, .member = e.field })
         return settle_dispatched_member(member, e, target_ty, typed, diags)
     }
     // A union's member taken as a value has no instance to name : left to the field
@@ -730,6 +745,7 @@ try_dispatched_method :: fn(
     ty :: settle_dispatched_member(member, e, target_ty, typed, diags)
     if ty !is UnresolvedType {
         record_bounded_dispatch(typed, e.id, member.trait_key, member.trait_args)
+        note_callee(typed, e, TraitMember { .trait_key = member.trait_key, .member = e.field })
     }
     return ty
 }

@@ -500,10 +500,11 @@ export TypedProgram :: struct {
     struct_bounds: MutableMap<i32, ArgBound[]>
 
     /// Id of the `FieldExpr` callee being typed — `T.zero` in `T.zero()`. Set by
-    /// the call right before it types its callee, so a static member can tell a
-    /// call from a use as a value (T3093). Only a type name or a namespace member
-    /// owns a static member, and neither holds a call that could overwrite it
-    /// before it is read.
+    /// the call right before it types its callee, so a member access can tell a
+    /// call from a use as a value : a static member (T3093), and the callee a
+    /// decision is noted on (`note_callee`). Each call puts back the id it found,
+    /// so the calls nested in a callee's target or in the arguments leave it as it
+    /// was.
     callee_field_id: usize = AST.UNASSIGNED_NODE_ID
 
     /// The impl whose member bodies are being walked, keyed as `ImplMethod.impl_key`
@@ -725,6 +726,13 @@ export TypedProgram :: struct {
     /// The consts of the module `walk_bodies` is walking, so a read of one before
     /// its turn types it then (`settle_const_read`).
     const_walk: ConstWalk! = ConstWalk {}
+
+    /// Callee node id → what its call invokes, noted where the typecheck decides it
+    /// (`note_callee`).
+    callees: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
+
+    /// Call id → what the call invokes (`callee_of_call`).
+    call_sites: MutableMap<usize, CallSite>! = MutableMap<usize, CallSite> {}
 
     /// A local bound to a single name → the value it stands for (`m :: a`,
     /// `s :: xs[0..<n]`), whatever its rights ; absent when the binding converts it

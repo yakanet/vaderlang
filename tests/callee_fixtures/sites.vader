@@ -1,0 +1,112 @@
+// tests/callee_fixtures/sites — one function per shape of call `vader dump
+// --stage=callees` must settle; `tests/callee_sites.test.ts` holds what each call
+// invokes.
+
+module "sites"
+
+import "std/io"
+
+M :: import "std/math"
+
+double :: fn(x: i32) -> i32 = x *% 2
+
+describe :: fn(x: i32) -> string = "i32"
+describe :: fn(x: string) -> string = "string"
+
+tag :: fn(s: string) -> string = s
+
+same :: fn<T>(x: T) -> T = x
+
+export Shape :: trait {
+    area :: fn(self) -> i32
+    twice :: fn(self) -> i32 = self.area()
+}
+
+export Origin :: trait {
+    origin :: fn() -> Self
+}
+
+export Square :: struct {
+    side: i32
+}
+
+Square implements Shape {
+    area :: fn(self) -> i32 = self.side
+}
+
+export Circle :: struct {
+    radius: i32
+}
+
+Circle implements Shape {
+    area :: fn(self) -> i32 = self.radius
+}
+
+i64 implements Origin {
+    origin :: fn() -> i64 = 0
+}
+
+export Scale :: trait<By> {
+    scaled :: fn(self, by: By) -> Square
+}
+
+Square implements Scale<i32> {
+    scaled :: fn(self, by: i32) -> Square = Square { .side = self.side *% by }
+}
+
+Square implements Scale<Square> {
+    scaled :: fn(self, by: Square) -> Square = Square { .side = self.side *% by.side }
+}
+
+make :: fn() -> fn(i32) -> i32 = double
+
+export Holder :: struct {
+    f: fn(i32) -> i32
+}
+
+export Color :: enum {
+    Red,
+    Green,
+}
+
+export plain :: fn() -> i32 = double(1)
+
+export overloaded :: fn() -> string = describe("s")
+
+export ufcs_free :: fn() -> string = "s".tag()
+
+export impl_member :: fn(s: Square) -> i32 = s.area()
+
+export default_member :: fn(s: Square) -> i32 = s.twice()
+
+export bounded :: fn<T: Shape>(x: T) -> i32 = x.area()
+
+export trait_value :: fn(s: Shape) -> i32 = s.area()
+
+export union_dispatch :: fn(u: Square | Circle) -> i32 = u.area()
+
+export static_member :: fn() -> i64 = i64.origin()
+
+export bounded_static :: fn<T: Origin>() -> void {
+    _ :: T.origin()
+}
+
+export namespace_member :: fn(x: f64) -> f64 = M.sqrt(x)
+
+export value_param :: fn(f: fn(i32) -> i32) -> i32 = f(1)
+
+export field_value :: fn(h: Holder) -> i32 = h.f(1)
+
+export cast :: fn(x: i32) -> i64 = i64(x)
+
+export enum_equals :: fn(c: Color) -> bool = c.equals(.Red)
+
+export array_op :: fn(xs: i32[]) -> usize = xs.len()
+
+export generic_ufcs :: fn<T>(x: T) -> T = x.same()
+
+export library :: fn() -> void = println("x")
+
+export overloaded_member :: fn(s: Square) -> Square = s.scaled(s.scaled(2))
+
+export returned_value :: fn() -> i32 = make()(1)

@@ -1,0 +1,205 @@
+// vader/typecheck/call_sites — what each call invokes, as the typecheck settled it.
+//
+// The typecheck decides a call's callee in several places: `field.vader` for a
+// member (an impl member, a bound's, a trait value's, a free fn by UFCS),
+// `call.vader` for an overload, the resolver for a plain name. Each decision is
+// noted on the callee node as it is taken (`note_callee`, into `callees`), and
+// `infer_call` files it under the call (`call_sites`), so one table answers what
+// a call runs. A plain name, and a namespace member, are the fn the resolver
+// bound.
+
+module "vader/typecheck"
+
+import "std/collections"
+import "std/path"
+import "std/sort"
+import "std/string"
+import "std/string_builder"
+import "toolchain/span"
+import "vader/resolver"
+import "vader/resolver/symbol"
+import "vader/types"
+
+AST :: import "toolchain/ast"
+
+/// A known declaration: a free fn, an impl member (a materialised one included),
+/// a namespace member. Its node id names the function.
+export DirectFn :: struct {
+    decl: AST.FnDecl
+    /// The choice was made against a type parameter of the enclosing body, and the
+    /// lowering looks again at each instance: a UFCS receiver that mentions one.
+    per_instance: bool = false
+}
+
+/// A member reached through the bound of a type parameter, settled at each
+/// instance.
+export BoundMember :: struct {
+    trait_key: string
+    member: string
+}
+
+/// A member of a trait value, or of a union whose every variant implements the
+/// trait: dispatched at run time on the value's tag.
+export TraitMember :: struct {
+    trait_key: string
+    member: string
+}
+
+/// A call through a value of function type: a parameter, a local, a field, the
+/// result of an expression.
+export FnValue :: struct {}
+
+/// No call at all: a cast `T(x)`, an enum's built-in equality.
+export Builtin :: struct {}
+
+/// A callee that is not a function: the error is reported.
+export ErroneousCallee :: struct {}
+
+/// A valid call the typecheck reached by a form this record does not cover.
+export UnsettledCallee :: struct {}
+
+/// What a call invokes.
+export Callee :: DirectFn
+        | BoundMember
+        | TraitMember
+        | FnValue
+        | Builtin
+        | ErroneousCallee
+        | UnsettledCallee
+
+/// A call and what it invokes.
+export CallSite :: struct {
+    span: Span
+    callee: Callee
+}
+
+FN_VALUE_CALLEE  :: FnValue {}
+BUILTIN_CALLEE   :: Builtin {}
+ERRONEOUS_CALLEE :: ErroneousCallee {}
+UNSETTLED_CALLEE :: UnsettledCallee {}
+
+// Note what the member access `e` invokes, when `e` is the callee being typed.
+note_callee :: fn(typed: TypedProgram, e: AST.FieldExpr, callee: Callee) -> void {
+    if typed.callee_field_id == e.id {
+        typed.callees[e.id] = callee
+    }
+}
+
+// The declaration a decision settled on ; a candidate without one (an imported
+// overload) is a form the record does not cover.
+direct_callee :: fn(decl: AST.FnDecl | null, per_instance: bool) -> Callee {
+    if decl == null {
+        return UNSETTLED_CALLEE
+    }
+    return DirectFn { .decl = decl, .per_instance = per_instance }
+}
+
+record_call_site :: fn(typed: TypedProgram, c: AST.CallExpr, callee: Callee) -> void {
+    typed.call_sites[c.id] = CallSite { .span = c.span, .callee = callee }
+}
+
+// What the call `c` invokes : the decision noted on its callee, else the fn the
+// callee names (`named`, `resolve_callee_fn`).
+callee_of_call :: fn(
+    typed: TypedProgram,
+    c: AST.CallExpr,
+    callee_ty: Type,
+    named: FnDeclRef | null,
+) -> Callee {
+    if callee_ty !is FnType {
+        return ERRONEOUS_CALLEE
+    }
+    return typed.callees[c.callee.id] ?? named_callee(typed, c.callee, named)
+}
+
+named_callee :: fn(typed: TypedProgram, callee: AST.Expr, named: FnDeclRef | null) -> Callee {
+    if named != null {
+        return DirectFn { .decl = named.decl }
+    }
+    if calls_a_value(typed, callee) {
+        return FN_VALUE_CALLEE
+    }
+    return UNSETTLED_CALLEE
+}
+
+// A callee that is no name (`make()(1)`, `fs[0](1)`), or a name bound to a value :
+// a parameter, a local, a pattern binding, a constant.
+calls_a_value :: fn(typed: TypedProgram, callee: AST.Expr) -> bool {
+    if callee is AST.FieldExpr || callee is AST.GenericInstExpr {
+        return false
+    }
+    if callee !is AST.IdentExpr {
+        return true
+    }
+    sym :: typed.resolved.idents[callee.span.hash()] ?? return false
+    return match sym.kind {
+        .Param | .Local | .Binding | .Const -> true
+        .Fn | .Struct | .Enum | .Trait | .Impl | .TypeAlias -> false
+        .ImportBinding | .TypeParam | .BuiltinType | .BuiltinFn -> false
+        .Synthetic -> false
+    }
+}
+
+// ---- dump -----------------------------------------------------------------
+
+/// The calls of the modules of `scope`, module by module: `vader dump
+/// --stage=callees`.
+///
+/// @param typed   the entry module.
+/// @param others  every other module of the project.
+/// @param scope   the modules to render (`module_in_scope`).
+export dump_call_sites_project :: fn(
+    typed: TypedProgram,
+    others: TypedProgram[],
+    scope: string[],
+) -> string {
+    sb :: StringBuilder {}
+    sb.append("# callees\n")
+    for m in modules_in_scope(typed, others, scope) {
+        sb.append("\n## ${m.resolved.display_path}\n")
+        sb.append(dump_call_sites(m))
+    }
+    return sb.to_string()
+}
+
+// Every call of `typed`, one line each in source order, then the count of calls
+// the record could not settle.
+dump_call_sites :: fn(typed: TypedProgram) -> string {
+    sites :: typed.call_sites.values()
+    sb :: StringBuilder {}
+    unsettled := 0
+    for site in sort(sites, (a, b) -> a.span.start.offset < b.span.start.offset) {
+        if site.callee is UnsettledCallee {
+            unsettled += 1
+        }
+        sb.append("  ${site_position(site.span)} ${callee_label(site.callee)}\n")
+    }
+    sb.append("  calls: ${sites.len()}, unsettled: ${unsettled}\n")
+    return sb.to_string()
+}
+
+// A call inside a materialised default method sits at a synthetic span, the same
+// for every run but meaningless to a reader: it shows as `clone`.
+site_position :: fn(span: Span) -> string {
+    if span.start.file.starts_with(CLONE_FILE_PREFIX) {
+        return "clone"
+    }
+    return "${to_path(span.start.file).filename()}:${span.start.line}:${span.start.column}"
+}
+
+callee_label :: fn(callee: Callee) -> string = match callee {
+    is DirectFn        -> direct_label(callee)
+    is BoundMember     -> "bound ${callee.trait_key}.${callee.member}"
+    is TraitMember     -> "virtual ${callee.trait_key}.${callee.member}"
+    is FnValue         -> "value"
+    is Builtin         -> "builtin"
+    is ErroneousCallee -> "error"
+    is UnsettledCallee -> "unsettled"
+}
+
+direct_label :: fn(callee: DirectFn) -> string {
+    if callee.per_instance {
+        return "fn ${callee.decl.name} (per instance)"
+    }
+    return "fn ${callee.decl.name}"
+}
