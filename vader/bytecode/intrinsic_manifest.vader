@@ -184,6 +184,29 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     .FfiOpen | .FfiSymbol | .FfiCall | .NotIntrinsic -> true
 }
 
+/// Whether a call to host `id` can shorten an array of the program: the question
+/// midir's call summaries ask of a host function no op serves
+/// (`vader/midir/array_shrink.vader`). `false` lets the range analysis keep the
+/// lengths it knows across the call, so a wrong `false` lets an index go
+/// unchecked against an array that got shorter.
+///
+/// @param id  the host's classification, from `intrinsic_id_for`.
+export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
+    // Read a string or a primitive, or build a fresh value from one.
+    .ByteLen | .ByteAt | .StringHash | .StringIndexAt | .StringEquals -> false
+    .Bytes | .BytesToString | .PrimDisplayToString | .PrimIntEquals -> false
+    // The collector moves objects and never changes a length; the rest only read.
+    .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
+    // The scheduler's state is the runtime's own, not a program array.
+    .SchedNow | .SchedArm | .SchedPark -> false
+    // Constants of the build ; `panic` never returns.
+    .TargetCurrentOs | .TargetCurrentArch | .AbortPanic -> false
+    // Foreign code is lent a buffer, never the header that holds its length.
+    .FfiOpen | .FfiSymbol | .FfiCall -> false
+    // Unrecognised: conservatively may.
+    .NotIntrinsic -> true
+}
+
 /// Fail loud when a bodyless `@intrinsic` host import is not wired into the
 /// manifest. Called per-import at emit (`midir/emit.vader::reserve_cfg_extern`).
 ///

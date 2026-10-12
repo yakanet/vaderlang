@@ -16,7 +16,7 @@ included).
 
 The range analysis of midir followed none: every call forgot every array length
 it knew, in case the callee shortened the array. On the self-compile it proved
-312 of 6030 array accesses. Letting direct calls keep the lengths, which is not
+312 of 6026 array accesses. Letting direct calls keep the lengths, which is not
 sound, proved about 1890.
 
 ## Decision
@@ -33,35 +33,39 @@ sound, proved about 1890.
   client puts its nodes on a value that is always sound.
 - **The first client is midir's**: whether running a function may shorten an
   array. Only `remove_last` and `clear` shorten one; growth keeps `i < len(xs)`
-  true. The call graph has a node per function, per bodyless function, one for
-  indirect calls, one for the functions handed to C as callbacks, which every
-  bodyless function may call back, and one for a callee the project does not
-  define. It resolves a
-  callee through the same resolution as the CFG verifier, the chain the bytecode
-  emitter follows.
+  true. The call graph has a node per function and per bodyless function, plus
+  three: one for indirect calls, one for the functions handed to C as callbacks,
+  which every bodyless function may call back, and one for a callee the project
+  does not define. It resolves a callee through the same resolution as the CFG
+  verifier, the chain the bytecode emitter follows.
   - An indirect call or a deferred block reaches every function some Vader value
     is taken of (`InstrFnRef`, `InstrMakeClosure`), and a bodyless function every
     function handed to C (`InstrFnAddr`): those are the only sources of a value of
-    function type, and the CFG is the whole program.
-  - A bodyless function may shorten an array when one of its parameters can lead
-    to one or to code: anything but a scalar, a string, a C pointer or an enum
-    without variant data.
+    function type, and the CFG is the whole program. A virtual call whose key no
+    vtable row carries counts as a call to an unknown function.
+  - A bodyless function is judged by what the host does for it. Foreign code
+    (`@extern`) is lent an array's buffer, never the header that holds its length.
+    A host function an op serves, like an intrinsic, shortens an array if that op
+    does (`op_shortens_array`: `ArrayRemoveLast` and `ArrayClear`). Any other host
+    function answers through `intrinsic_may_shorten_array`, an exhaustive match on
+    `IntrinsicId` beside `intrinsic_may_collect`: a new host function has to say.
 - **Observation only.** The range analysis reads the summary; `array_load_forward`,
   `cfg_dce` and `bce_fn_pure` do not. `$VADER_OPT_REPORT` runs the analysis with
   and without the summary, so one build shows what the summary adds.
 
 ## Consequences
 
-- On the self-compile, 1115 of 6030 accesses are proven instead of 312. 2638 of
-  5499 functions may still shorten an array, 35 of them by their own body: the
+- On the self-compile, 1458 of 6026 accesses are proven instead of 312. 1460 of
+  5498 functions may still shorten an array, 35 of them by their own body: the
   rest inherit it through calls.
-- Most of the gap to the unsound bound comes from two cautious rules. With every
-  bodyless function assumed harmless, 1466 accesses are proven; with indirect
-  calls assumed harmless, 1224; with both, 1874. The native runtime shortens an
-  array only in `remove_last` and `clear`, and calls back into Vader only through
-  deferred blocks and FFI callbacks, which a tighter rule for bodyless functions
-  could rely on. Indirect calls could be narrowed to the functions whose
-  signature matches.
+- A first version judged a bodyless function by what it is handed (anything that
+  can lead to an array or to code) and proved 1115: system calls taking a byte
+  buffer and the `Buffer` operations made every caller cautious.
+- Indirect calls account for most of what is left. Assumed harmless, which is not
+  sound, they bring the count to about 1870. Splitting them by arity proved 8 more
+  accesses and was not kept: the functions that shorten an array share their
+  arity with the common callbacks. Telling the closures that reach a call site
+  apart needs a flow analysis of closures.
 - The report's range analysis takes about 510 ms instead of 250 ms, since it runs
   twice. Without `$VADER_OPT_REPORT` nothing runs.
 - Eliding the checks this proves remains a separate decision.

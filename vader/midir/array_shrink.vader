@@ -7,30 +7,25 @@
 //
 // A call may shorten an array when its callee's body does, or calls something
 // that may: the smallest fixed point over the call graph (`call_graph.vader`),
-// so a recursive function that shortens nothing is known not to. A bodyless
-// callee is judged by what it is handed (`can_reach_an_array`), and a callee the
+// so a recursive function that shortens nothing is known not to. A callee the
 // project does not define is assumed to shorten one.
+//
+// A bodyless function is judged by what the host does for it
+// (`extern_shrinks_by_itself`); it runs program code only through
+// `ForeignCallbacks` (`call_graph.vader`).
 
 module "vader/midir"
 
 import "std/iter"
 import "vader/fixpoint"
-import "vader/lower"
-import "vader/types"
+
+Bc :: import "vader/bytecode"
 
 /// Per node of a project's call graph, whether running it may shorten an array.
 ShrinkSummary :: struct {
     calls: CallGraph
     may_shrink: bool[]
 }
-
-// The intrinsics that leave every array at least as long as it was.
-NON_SHRINKING_INTRINSICS: string[]: [
-    INTRINSIC_SIZE_OF_TYPE,
-    INTRINSIC_ARRAY_REPEAT,
-    INTRINSIC_ARRAY_PUSH_ALL,
-    INTRINSIC_ARRAY_COPY,
-]
 
 /// Work out, for every function of `p`, whether calling it may shorten an array.
 ///
@@ -62,19 +57,17 @@ shrink_predicate :: fn(summary: ShrinkSummary) -> fn(Instruction) -> bool = fn(i
 summary_line :: fn(s: ShrinkSummary) -> string {
     nodes :: s.calls.nodes
     is_function :: (i: usize) -> nodes[i] is CFGFunction
-    is_extern :: (i: usize) -> nodes[i] is CFGExternDecl
     functions :: count_where(nodes.len(), is_function)
     shrinking :: count_where(nodes.len(), (i) -> is_function(i) && s.may_shrink[i])
     by_their_body :: count_where(
         nodes.len(),
         (i) -> is_function(i) && node_shrinks_by_itself(nodes[i]),
     )
-    externs :: count_where(nodes.len(), is_extern)
-    shrinking_externs :: count_where(nodes.len(), (i) -> is_extern(i) && s.may_shrink[i])
     indirect :: s.may_shrink[s.calls.index.indirect]
+    callbacks :: s.may_shrink[s.calls.index.foreign_callbacks]
     return "${shrinking} of ${functions} functions may shorten an array " +
-        "(${by_their_body} by their own body), ${shrinking_externs} of ${externs} bodyless " +
-        "ones ; an indirect call may: ${indirect}"
+        "(${by_their_body} by their own body) ; an indirect call may: ${indirect}, " +
+        "a callback handed to C may: ${callbacks}"
 }
 
 // How many of `0..<n` satisfy `pred`.
@@ -83,7 +76,7 @@ count_where :: fn(n: usize, pred: fn(usize) -> bool) -> usize = (0..<n).filter(p
 // What a node does by itself, its calls left out.
 node_shrinks_by_itself :: fn(node: CallNode) -> bool = match node {
     is CFGFunction                      -> body_shrinks_by_itself(node)
-    is CFGExternDecl                    -> extern_may_shrink(node)
+    is CFGExternDecl                    -> extern_shrinks_by_itself(node)
     is IndirectCalls | ForeignCallbacks -> false
     is UnknownCallee                    -> true
 }
@@ -92,26 +85,23 @@ body_shrinks_by_itself :: fn(f: CFGFunction) -> bool =
     f.blocks.any_match((block) -> block.instructions.any_match(is_shrinking_intrinsic))
 
 is_shrinking_intrinsic :: fn(ins: Instruction) -> bool =
-    ins is InstrIntrinsic && intrinsic_may_shrink(ins.name)
+    ins is InstrIntrinsic && intrinsic_shortens_array(ins.name)
 
-// An intrinsic this table does not know is assumed to shorten an array.
-intrinsic_may_shrink :: fn(name: string) -> bool = !(name in NON_SHRINKING_INTRINSICS)
+// An intrinsic no op serves is assumed to shorten an array.
+intrinsic_shortens_array :: fn(name: string) -> bool {
+    op :: intrinsic_op_for_name(name) ?? return true
+    return Bc.op_shortens_array(op)
+}
 
-// A bodyless function reaches nothing but what it is handed: it may shorten an
-// array when one of its parameters can lead to one, or to code it calls back.
-extern_may_shrink :: fn(e: CFGExternDecl) -> bool =
-    e.params.any_match((param) -> can_reach_an_array(param.type))
-
-// Whether a value of type `t` can lead to an array: the array itself, a value
-// holding one, or code that may shorten one. A string is immutable and a C
-// pointer points outside what the runtime owns.
-can_reach_an_array :: fn(t: Type) -> bool = match t {
-    is PrimitiveType | FreeIntType | FreeFloatType | FreeCharType -> false
-    is NeverType | TypeMetaType -> false
-    is EnumType -> t.data != null
-    is DistinctType -> can_reach_an_array(t.backing)
-    is UnionType -> t.variants.any_match(can_reach_an_array)
-    is TupleType -> t.elements.any_match(can_reach_an_array)
-    is StructType | TraitType | FnType | ArrayType -> true
-    is TypeParamType | SelfType | UnresolvedType | AnyType -> true
+// Foreign code (`@extern`) is lent an array's buffer, never the header that holds
+// its length.
+extern_shrinks_by_itself :: fn(e: CFGExternDecl) -> bool {
+    if e.is_extern {
+        return false
+    }
+    op :: Bc.intrinsic_op_for_mangled(e.mangled)
+    if op != null {
+        return Bc.op_shortens_array(op)
+    }
+    return Bc.intrinsic_may_shorten_array(Bc.intrinsic_id_for(e.mangled))
 }

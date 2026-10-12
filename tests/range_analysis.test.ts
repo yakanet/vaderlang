@@ -38,7 +38,7 @@ const EXPECTED: Record<string, string[]> = {
   early_exit: ["xs[$k_5] -> proven", "$idx_6 + $idx_8 -> unproven", "xs[$k_7] -> proven"],
   counter_below_bound: ["i + $k_4 -> proven"],
   push_keeps_length: ["total + $idx_9 -> unproven", "xs[i] -> proven"],
-  call_drops_length: ["total + $idx_9 -> unproven", "xs[i] -> unproven"],
+  println_keeps_length: ["total + $idx_9 -> unproven", "xs[i] -> proven"],
   call_keeps_length: ["total + $idx_9 -> unproven", "xs[i] -> proven"],
   callee_shortens: ["total + $idx_9 -> unproven", "xs[i] -> unproven"],
   recursive_callee_keeps_length: ["total + $idx_9 -> unproven", "xs[i] -> proven"],

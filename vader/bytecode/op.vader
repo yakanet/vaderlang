@@ -356,6 +356,12 @@ export ArrayRemoveLast :: struct {}
 /// Statement-form, no value pushed back.
 export ArrayClear :: struct {}
 
+/// Whether running `op` can make an array shorter: `ArrayRemoveLast` and
+/// `ArrayClear` alone do, every other op keeps a length or grows it. midir's call
+/// summaries (`vader/midir/array_shrink.vader`) ask it of every intrinsic and of
+/// every host function an op serves.
+export op_shortens_array :: fn(op: Op) -> bool = op is ArrayRemoveLast | ArrayClear
+
 /// Push the pre-materialised array at `module.data_pool[pool_index]`.
 /// `type_id` is the BcType index of the resulting read-only `T[]` array.
 /// The pool is built once at module-load time (parser materialises

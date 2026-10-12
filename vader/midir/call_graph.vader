@@ -8,7 +8,8 @@
 // - the node every bodyless function goes through, whose successors are the
 //   functions handed to foreign code as an address (`InstrFnAddr`): C may keep one
 //   and call it back from any later foreign call;
-// - the node a callee the project does not define resolves to.
+// - the node a callee the project does not define resolves to, and a virtual call
+//   whose key no vtable row carries.
 //
 // Every call is then an edge, and a client judges each kind of node on its own
 // terms (`array_shrink.vader`). Callees resolve through `CfgResolution`
@@ -125,7 +126,7 @@ callee_node :: fn(index: CalleeIndex, callee: Symbol) -> i32 {
 ///             from.
 instruction_callees :: fn(index: CalleeIndex, ins: Instruction) -> i32[] = match ins {
     is InstrCall -> [callee_node(index, ins.callee)]
-    is InstrVirtualCall -> index.virtual_targets[vtable_key(ins.trait_name, ins.method)] ?? []
+    is InstrVirtualCall -> virtual_callees(index, ins)
     is InstrCallIndirect | InstrDeferPopExec -> [index.indirect]
     is InstrConst | InstrBinOp | InstrUnOp | InstrFnRef | InstrFnAddr | InstrFieldGet -> []
     is InstrFieldSet | InstrArrayGet | InstrArraySet | InstrArrayLen | InstrArrayPush -> []
@@ -133,6 +134,11 @@ instruction_callees :: fn(index: CalleeIndex, ins: Instruction) -> i32[] = match
     is InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet -> []
     is InstrCellSet | InstrMakeClosure | InstrIntrinsic | InstrMove | InstrDeferPush -> []
 }
+
+// The nodes a virtual call may land on. A key no vtable row carries lands on
+// nothing the graph can see.
+virtual_callees :: fn(index: CalleeIndex, ins: InstrVirtualCall) -> i32[] =
+    index.virtual_targets[vtable_key(ins.trait_name, ins.method)] ?? [index.unknown]
 
 // The callees of one node, each once, in the order its body first reaches them ;
 // the functions it takes as a value or an address go into `taken`.

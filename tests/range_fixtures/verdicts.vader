@@ -41,9 +41,8 @@ export push_keeps_length :: fn(xs: i32[]) -> i32 {
     return total
 }
 
-/// `println` reaches a bodyless function handed a byte array, which the call
-/// summaries assume may shorten an array: unproven.
-export call_drops_length :: fn(xs: i32[]) -> i32 {
+/// `println` ends in foreign code, lent a buffer, never its length: proven.
+export println_keeps_length :: fn(xs: i32[]) -> i32 {
     total := 0
     for i in 0..<xs.len() {
         println("step")
