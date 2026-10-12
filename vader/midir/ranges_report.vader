@@ -1,0 +1,518 @@
+// vader/midir/ranges_report — the range analysis of a function, and what it
+// proves about each array access and checked operation.
+//
+// A forward fixed point in reverse postorder (`ranges.vader` for one step):
+// each block's entry state joins what its predecessors' edges carry, and a loop
+// header widens it, so a round that changes nothing comes within a few. Each
+// site then gets a verdict from the state just before it. An observation:
+// nothing here changes the CFG.
+//
+// An access is judged with checked operations that wrap, as in `--release`,
+// where its index check is the only guard left. A checked operation is judged
+// with checked operations that stop the run, as outside `--release`, the one
+// build where proving it fits removes anything.
+
+module "vader/midir"
+
+import "std/collections"
+import "std/sort"
+import "std/string_builder"
+import "toolchain/span"
+import "vader/lower"
+import "vader/resolver"
+
+// ---- fixed point ----------------------------------------------------------
+
+/// Rounds after which the analysis of a function gives up. Each loop header
+/// settles within `THRESHOLD_WIDENINGS` widenings and one more, so this only
+/// bounds a function with loops nested unusually deep.
+MAX_ROUNDS :: 100
+
+/// Widenings of one loop header that stop at the next threshold. The ones after
+/// open the moving end outright: a function with many constants, an interpreter
+/// loop matching on every opcode, would otherwise take a round per constant.
+THRESHOLD_WIDENINGS :: 3
+
+/// The fixed point under way.
+RangeFlow :: struct {
+    /// Per block, what holds at its head so far; null for a block no path has
+    /// reached yet. A stored state is never changed in place, so one may be
+    /// shared by several blocks.
+    states: (RangeState | null)[]!
+    /// The blocks a retreating edge enters: the loop headers, where the
+    /// analysis widens.
+    headers: bool[]
+    /// Per loop header, the times its state widened so far.
+    widenings: i32[]!
+    /// Per block, whether its state changed since the block was last walked.
+    dirty: bool[]!
+    /// The integer constants of the function, ascending: where widening stops.
+    thresholds: i64[]
+}
+
+/// The state at the head of each block of `fn_` once the analysis settles;
+/// null for a block no path reaches.
+///
+/// @param thresholds  the integer constants of `fn_`, ascending.
+/// @return            null when it did not settle within `MAX_ROUNDS`.
+block_entry_states :: fn(
+    ctx: RangeContext,
+    fn_: CFGFunction,
+    thresholds: i64[],
+) -> (RangeState | null)[] | null {
+    order :: reverse_postorder(fn_)
+    n :: fn_.blocks.len()
+    flow :: RangeFlow {
+        .states = [null] * n,
+        .headers = loop_headers(fn_, order),
+        .widenings = [0] * n,
+        .dirty = [false] * n,
+        .thresholds = thresholds,
+    }
+    flow.states[i32(fn_.entry)] = new_range_state()
+    flow.dirty[i32(fn_.entry)] = true
+    for _ in 0..<MAX_ROUNDS {
+        changed := false
+        for id in order {
+            at :: i32(id)
+            if !flow.dirty[at] {
+                continue
+            }
+            flow.dirty[at] = false
+            entry :: flow.states[at] ?? continue
+            s :: copy_range_state(entry)
+            block :: fn_.blocks[at]
+            for ins in block.instructions {
+                transfer(ctx, s, ins)
+            }
+            if flow_out(ctx, flow, block, s) {
+                changed = true
+            }
+        }
+        if !changed {
+            return flow.states
+        }
+    }
+    return null
+}
+
+// The blocks a retreating edge of `order` enters.
+loop_headers :: fn(fn_: CFGFunction, order: BlockId[]) -> bool[] {
+    positions :: rpo_positions(order, fn_.blocks.len())
+    headers: bool[]: [false] * fn_.blocks.len()
+    for b in fn_.blocks {
+        from :: positions[i32(b.id)]
+        if from < 0 {
+            continue
+        }
+        for succ in successors_of(b) {
+            if positions[i32(succ)] <= from {
+                headers[i32(succ)] = true
+            }
+        }
+    }
+    return headers
+}
+
+// Merge `s`, what holds at the end of `block`, into the entry state of each
+// successor along the edge to it. `s` is stored as it is where it can be.
+//
+// @return  whether any entry state changed.
+flow_out :: fn(ctx: RangeContext, flow: RangeFlow, block: BasicBlock, s: RangeState) -> bool {
+    t :: block.terminator
+    if t is TermBranch {
+        return merge_into(ctx, flow, t.target, s)
+    }
+    if t !is TermCondBranch {
+        return false
+    }
+    cmp :: branch_comparison(ctx, block, t.cond)
+    if cmp == null {
+        taken :: merge_into(ctx, flow, t.then_block, s)
+        return merge_into(ctx, flow, t.else_block, s) || taken
+    }
+    taken_state :: copy_range_state(s)
+    taken := false
+    if learn_comparison(ctx, taken_state, cmp, true) {
+        taken = merge_into(ctx, flow, t.then_block, taken_state)
+    }
+    if learn_comparison(ctx, s, cmp, false) {
+        return merge_into(ctx, flow, t.else_block, s) || taken
+    }
+    return taken
+}
+
+// Join `edge` into the entry state of `target`, widened at a loop header.
+//
+// @return  whether that state changed.
+merge_into :: fn(ctx: RangeContext, flow: RangeFlow, target: BlockId, edge: RangeState) -> bool {
+    at :: i32(target)
+    old :: flow.states[at]
+    if old == null {
+        flow.states[at] = edge
+        flow.dirty[at] = true
+        return true
+    }
+    next := join_range_states(old, edge)
+    if flow.headers[at] {
+        next = widen_range_states(old, next, widening_thresholds(flow, at))
+    }
+    settle_intervals(ctx, next)
+    if same_range_state(old, next) {
+        return false
+    }
+    if flow.headers[at] {
+        flow.widenings[at] += 1
+    }
+    flow.states[at] = next
+    flow.dirty[at] = true
+    return true
+}
+
+// The thresholds the loop header `at` stops at: none once it widened
+// `THRESHOLD_WIDENINGS` times.
+widening_thresholds :: fn(flow: RangeFlow, at: i32) -> i64[] {
+    if flow.widenings[at] < THRESHOLD_WIDENINGS {
+        return flow.thresholds
+    }
+    return []
+}
+
+// The integer constants `fn_` loads, ascending and each once.
+constants_of :: fn(fn_: CFGFunction) -> i64[] {
+    seen :: MutableSet<i64> {}
+    out: i64[]: []
+    for block in fn_.blocks {
+        for ins in block.instructions {
+            if ins is InstrConst {
+                value :: ins.value
+                if value is ConstInt && seen.add(value.value) {
+                    out.push(value.value)
+                }
+            }
+        }
+    }
+    return sort(out, (a, b) -> a < b)
+}
+
+// ---- verdicts -------------------------------------------------------------
+
+/// What the analysis concludes about one array access or checked operation.
+RangeVerdict :: enum {
+    /// The lowering proved it already: the access carries `bounds_safe`.
+    AlreadySafe,
+    Proven,
+    Unproven,
+    /// Fails whenever it runs: an index below zero, an overflow on every value.
+    CertainFault,
+    /// In a block no path reaches.
+    Unreachable,
+}
+
+/// An instruction the analysis judges: an array access, or a checked integer
+/// operation (`site_of`).
+SiteInstruction :: InstrArrayGet | InstrArraySet | InstrBinOp | InstrUnOp
+
+/// One array access or checked operation, and its verdict.
+RangeSite :: struct {
+    span: Span
+    /// The operation over its locals' names: `xs[i]`, `total + x`.
+    what: string
+    verdict: RangeVerdict
+}
+
+/// The verdicts on one function's sites.
+FunctionRanges :: struct {
+    mangled: string
+    /// In source order.
+    sites: RangeSite[]
+    /// The analysis did not settle within `MAX_ROUNDS`: no site is then proven.
+    gave_up: bool
+}
+
+/// Analyse `fn_` and judge every array access and checked operation in it.
+analyse_function_ranges :: fn(fn_: CFGFunction) -> FunctionRanges {
+    release :: range_context(fn_.locals, false)
+    sites: RangeSite[]: []
+    accesses :: has_sites(release, fn_, false)
+    arithmetic :: has_sites(release, fn_, true)
+    settled := true
+    if accesses || arithmetic {
+        thresholds :: constants_of(fn_)
+        if accesses && !judge_sites(release, fn_, thresholds, false, sites) {
+            settled = false
+        }
+        debug :: RangeContext { ...release, .checked_ops_trap = true }
+        if arithmetic && !judge_sites(debug, fn_, thresholds, true, sites) {
+            settled = false
+        }
+    }
+    return FunctionRanges {
+        .mangled = fn_.mangled,
+        .sites = sort(sites, (a, b) -> a.span.start.offset < b.span.start.offset),
+        .gave_up = !settled,
+    }
+}
+
+// Whether `fn_` holds a site of one kind: a checked operation when
+// `arithmetic`, an array access otherwise.
+has_sites :: fn(ctx: RangeContext, fn_: CFGFunction, arithmetic: bool) -> bool {
+    for block in fn_.blocks {
+        if block_has_sites(ctx, block, arithmetic) {
+            return true
+        }
+    }
+    return false
+}
+
+block_has_sites :: fn(ctx: RangeContext, block: BasicBlock, arithmetic: bool) -> bool {
+    for ins in block.instructions {
+        site :: site_of(ctx, ins)
+        if site != null && is_arithmetic(site) == arithmetic {
+            return true
+        }
+    }
+    return false
+}
+
+// Judge the sites of one kind in `fn_` from the analysis under `ctx`, and add
+// them to `sites`.
+//
+// @return  whether the analysis settled.
+judge_sites :: fn(
+    ctx: RangeContext,
+    fn_: CFGFunction,
+    thresholds: i64[],
+    arithmetic: bool,
+    sites: RangeSite[],
+) -> bool {
+    states :: block_entry_states(ctx, fn_, thresholds)
+    for block in fn_.blocks {
+        if !block_has_sites(ctx, block, arithmetic) {
+            continue
+        }
+        s :: walking_state(states, block.id)
+        for ins in block.instructions {
+            site :: site_of(ctx, ins)
+            if site != null && is_arithmetic(site) == arithmetic {
+                sites.push(
+                    RangeSite {
+                        .span = site_span(site),
+                        .what = site_label(ctx, site),
+                        .verdict = verdict_at(ctx, s, states == null, site),
+                    },
+                )
+            }
+            if s != null {
+                transfer(ctx, s, ins)
+            }
+        }
+    }
+    return states != null
+}
+
+// A copy of the entry state of block `id`, to walk the block with; null when no
+// path reaches it or the analysis gave up.
+walking_state :: fn(states: (RangeState | null)[] | null, id: BlockId) -> RangeState | null {
+    if states == null {
+        return null
+    }
+    entry :: states[i32(id)] ?? return null
+    return copy_range_state(entry)
+}
+
+/// `ins` when it is an array access or a checked integer operation.
+site_of :: fn(ctx: RangeContext, ins: Instruction) -> SiteInstruction | null {
+    if ins is InstrArrayGet | InstrArraySet {
+        return ins
+    }
+    if ins is InstrBinOp && is_checked(ins.op) && type_of(ctx, ins.dst) != null {
+        return ins
+    }
+    if ins is InstrUnOp && ins.op == .Neg && type_of(ctx, ins.dst) != null {
+        return ins
+    }
+    return null
+}
+
+is_arithmetic :: fn(site: SiteInstruction) -> bool = site is InstrBinOp | InstrUnOp
+
+site_span :: fn(site: SiteInstruction) -> Span = match site {
+    is InstrArrayGet -> site.span
+    is InstrArraySet -> site.span
+    is InstrBinOp    -> site.span
+    is InstrUnOp     -> site.span
+}
+
+site_label :: fn(ctx: RangeContext, site: SiteInstruction) -> string = match site {
+    is InstrArrayGet -> "${local_name(ctx, site.target)}[${local_name(ctx, site.index)}]"
+    is InstrArraySet -> "${local_name(ctx, site.target)}[${local_name(ctx, site.index)}] ="
+    is InstrBinOp    -> binop_label(ctx, site)
+    is InstrUnOp     -> "-${local_name(ctx, site.operand)}"
+}
+
+binop_label :: fn(ctx: RangeContext, ins: InstrBinOp) -> string =
+    "${local_name(ctx, ins.lhs)} ${operator_symbol(ins.op)} ${local_name(ctx, ins.rhs)}"
+
+local_name :: fn(ctx: RangeContext, local: LocalId) -> string = ctx.locals[i32(local)].name
+
+operator_symbol :: fn(op: LoweredBinaryOp) -> string = match op {
+    .Add | .AddChecked -> "+"
+    .Sub | .SubChecked -> "-"
+    .Mul | .MulChecked -> "*"
+    .Div               -> "/"
+    .Mod               -> "%"
+    .Shl               -> "<<"
+    .Shr               -> ">>"
+    .BitAnd            -> "&"
+    .BitOr             -> "|"
+    .BitXor            -> "^"
+    .And               -> "&&"
+    .Or                -> "||"
+    .Eq                -> "=="
+    .Neq               -> "!="
+    .Lt                -> "<"
+    .Lte               -> "<="
+    .Gt                -> ">"
+    .Gte               -> ">="
+}
+
+// The verdict on `site` from `s`, what holds just before it.
+verdict_at :: fn(
+    ctx: RangeContext,
+    s: RangeState | null,
+    gave_up: bool,
+    site: SiteInstruction,
+) -> RangeVerdict {
+    if already_safe(site) {
+        return .AlreadySafe
+    }
+    if gave_up {
+        return .Unproven
+    }
+    if s == null {
+        return .Unreachable
+    }
+    return match site {
+        is InstrArrayGet -> index_verdict(ctx, s, site.target, site.index)
+        is InstrArraySet -> index_verdict(ctx, s, site.target, site.index)
+        is InstrBinOp    -> arithmetic_verdict(ctx, s, site)
+        is InstrUnOp     -> negation_verdict(ctx, s, site)
+    }
+}
+
+already_safe :: fn(site: SiteInstruction) -> bool = match site {
+    is InstrArrayGet          -> site.bounds_safe
+    is InstrArraySet          -> site.bounds_safe
+    is InstrBinOp | InstrUnOp -> false
+}
+
+// An access at `index` is proven when the index is not negative and below a
+// local the array is at least as long as.
+index_verdict :: fn(
+    ctx: RangeContext,
+    s: RangeState,
+    array: LocalId,
+    index: LocalId,
+) -> RangeVerdict {
+    iv :: interval_of(ctx, s, index) ?? return .Unproven
+    if !iv.hi_open && iv.hi < 0 {
+        return .CertainFault
+    }
+    if iv.lo < 0 {
+        return .Unproven
+    }
+    for [n, of] in s.lengths {
+        if of != array {
+            continue
+        }
+        bound :: s.differences[fact_key(index, n)]
+        if bound != null && bound <= -1 {
+            return .Proven
+        }
+        length :: interval_of(ctx, s, n) ?? continue
+        if !iv.hi_open && iv.hi < length.lo {
+            return .Proven
+        }
+    }
+    return .Unproven
+}
+
+arithmetic_verdict :: fn(ctx: RangeContext, s: RangeState, ins: InstrBinOp) -> RangeVerdict {
+    t :: type_of(ctx, ins.dst)
+    a :: interval_of(ctx, s, ins.lhs)
+    b :: interval_of(ctx, s, ins.rhs)
+    kind :: arithmetic_of(ins.op)
+    if t == null || a == null || b == null || kind == null {
+        return .Unproven
+    }
+    fits :: result_fits(ctx, s, ins, kind, a, b, t)
+    return overflow_verdict(exact_result(kind, a, b), t, fits)
+}
+
+negation_verdict :: fn(ctx: RangeContext, s: RangeState, ins: InstrUnOp) -> RangeVerdict {
+    t :: type_of(ctx, ins.dst)
+    a :: interval_of(ctx, s, ins.operand)
+    if t == null || a == null {
+        return .Unproven
+    }
+    exact :: interval_negate(a)
+    return overflow_verdict(exact, t, closed_within(exact, t))
+}
+
+// A checked operation whose exact result is `exact` in the type of values `t`:
+// a certain fault when no value fits, proven when `fits`.
+overflow_verdict :: fn(exact: Interval, t: Interval, fits: bool) -> RangeVerdict {
+    if interval_meet(exact, t) == null {
+        return .CertainFault
+    }
+    if fits {
+        return .Proven
+    }
+    return .Unproven
+}
+
+// ---- dump -----------------------------------------------------------------
+
+/// The range analysis's verdicts for every function of the modules in `scope`,
+/// one line per array access and checked operation: `vader dump --stage=ranges`.
+///
+/// @param p      the CFG after every midir pass, as the bytecode emitter
+///               receives it.
+/// @param scope  the modules to render (`module_in_scope`).
+export dump_ranges_project :: fn(p: CFGProject, scope: string[]) -> string {
+    sb :: StringBuilder {}
+    sb.append("# ranges\n")
+    for [_, m] in p.modules {
+        if !module_in_scope(m.display_path, scope) || m.functions.len() == 0 {
+            continue
+        }
+        sb.append("\n## ${m.display_path}\n")
+        for fn_ in m.functions {
+            write_function_ranges(analyse_function_ranges(fn_), sb)
+        }
+    }
+    return sb.to_string()
+}
+
+write_function_ranges :: fn(r: FunctionRanges, sb: StringBuilder) -> void {
+    if r.sites.len() == 0 {
+        return
+    }
+    sb.append("\nfn ${r.mangled}\n")
+    if r.gave_up {
+        sb.append("  no fixed point within ${MAX_ROUNDS} rounds\n")
+    }
+    for site in r.sites {
+        at :: "${site.span.start.line}:${site.span.start.column}"
+        sb.append("  ${at} ${site.what} -> ${verdict_label(site.verdict)}\n")
+    }
+}
+
+verdict_label :: fn(v: RangeVerdict) -> string = match v {
+    .AlreadySafe  -> "already safe"
+    .Proven       -> "proven"
+    .Unproven     -> "unproven"
+    .CertainFault -> "certain fault"
+    .Unreachable  -> "unreachable"
+}

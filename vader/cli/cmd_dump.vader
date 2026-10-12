@@ -98,6 +98,9 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if stage == "cfg" {
         return run_cfg_stage(file, module_filter, include_path_flags, target)
     }
+    if stage == "ranges" {
+        return run_ranges_stage(file, module_filter, include_path_flags, target)
+    }
     if stage == "c" {
         return run_c_stage(file, include_path_flags, target)
     }
@@ -286,6 +289,26 @@ run_cfg_stage :: fn(
     return 0
 }
 
+// The range analysis's verdict on every array access and checked operation,
+// over the CFG the bytecode emitter receives: pruned as a build prunes it.
+run_ranges_stage :: fn(
+    file: Path,
+    module_filter: string[],
+    include_path_flags: string[],
+    target: Target | null,
+) -> i32 {
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
+    le :: lower_to_entry_from(pipeline)
+    scope :: dump_scope(module_filter, pipeline.loaded)
+    cfg_diags: Diagnostic[]: []
+    if !any_error_diag(le.pre_diags) {
+        pruned :: prune_unreachable_fns(le.lowered, false)
+        cfg :: build_optimised_cfg(pruned, false, cfg_diags)
+        print(dump_ranges_project(cfg, scope))
+    }
+    print_pipeline_diags(pipeline, le.lower_diags + cfg_diags, scope)
+    return 0
+}
 
 /// Lowered IR plus the few bits the CFG → bytecode tail still needs, with the
 /// `EvaluatedPipeline` (`loaded` + `typed` + `evaluated`) already out of scope.

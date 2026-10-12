@@ -48,6 +48,12 @@ fact_key :: fn(x: LocalId, y: LocalId) -> u64 = (local_bits(x) << 32) | local_bi
 
 local_bits :: fn(local: LocalId) -> u64 = u64(u32(i32(local)))
 
+/// The local `x` of the fact key `fact_key(x, y)`.
+fact_left :: fn(key: u64) -> LocalId = LocalId(i32(key >> 32))
+
+/// The local `y` of the fact key `fact_key(x, y)`.
+fact_right :: fn(key: u64) -> LocalId = LocalId(i32(key & 0xFFFF_FFFF))
+
 /// What holds on both of two paths: each interval joined, the facts both know
 /// with the looser bound.
 ///
@@ -134,10 +140,12 @@ same_range_state :: fn(a: RangeState, b: RangeState) -> bool {
 /// @param local  the local written.
 forget_local :: fn(s: RangeState, local: LocalId) -> void {
     _ :: s.intervals.remove(local)
-    bits :: local_bits(local)
+    if s.differences.len() == 0 && s.lengths.len() == 0 {
+        return
+    }
     doomed: u64[]: []
     for [key, _] in s.differences {
-        if key >> 32 == bits || key & 0xFFFF_FFFF == bits {
+        if fact_left(key) == local || fact_right(key) == local {
             doomed.push(key)
         }
     }

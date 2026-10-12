@@ -199,29 +199,11 @@ end_difference :: fn(x: i64, x_open: bool, y: i64, y_open: bool) -> i64 | null {
     return checked_sub(64, false, x, y)
 }
 
-/// What a wrapping operation or a cast holds, from its exact result: `exact`
-/// when all of it fits the type, the whole type otherwise, since a value then
-/// wrapped. An open end never fits: the type's own open end stops at
-/// `u64.max`, the result's does not.
-///
-/// @param exact  the result's values over the integers.
-/// @param t      the values of the result's type.
-interval_wrapped :: fn(exact: Interval, t: Interval) -> Interval {
-    if !exact.lo_open && !exact.hi_open && interval_within(exact, t) {
-        return exact
-    }
-    return t
-}
-
-/// What a checked operation holds once it did not stop, from its exact result:
-/// the values of `exact` its type holds, the operation stopping on the others.
-///
-/// @param exact  the result's values over the integers.
-/// @param t      the values of the result's type.
-/// @return       the whole type when no value fits, the operation then always
-///               stopping.
-interval_checked :: fn(exact: Interval, t: Interval) -> Interval =
-    interval_meet(exact, t) ?? t
+/// Whether every value of `exact`, an exact result over the integers, is a
+/// value of the type of values `t`. An open end never fits: the open upper end
+/// of a `u64` type stops at `u64.max`, an exact result's does not.
+closed_within :: fn(exact: Interval, t: Interval) -> bool =
+    !exact.lo_open && !exact.hi_open && interval_within(exact, t)
 
 /// `new` widened against `old`, what a loop header held the round before: an end
 /// that moved out jumps to the next of `thresholds` past it, or opens, so the
@@ -351,24 +333,13 @@ test_interval_mul_corners :: fn() -> void {
 }
 
 @test
-test_interval_wrapped :: fn() -> void {
+test_closed_within_rejects_an_open_end :: fn() -> void {
     u8_iv :: interval(0, 255)
-    assert(same_interval(interval_wrapped(interval(1, 10), u8_iv), interval(1, 10)), "fits")
-    assert(same_interval(interval_wrapped(interval(250, 260), u8_iv), u8_iv), "wraps")
+    assert(closed_within(interval(1, 10), u8_iv), "fits")
+    assert(!closed_within(interval(250, 260), u8_iv), "leaves the type")
     u64_iv :: unsigned_interval(64)
     plus_one :: interval_add(u64_iv, interval(1, 1))
-    assert(same_interval(interval_wrapped(plus_one, u64_iv), u64_iv), "u64.max + 1 wraps")
-}
-
-@test
-test_interval_checked_keeps_what_fits :: fn() -> void {
-    i32_iv :: interval(-2_147_483_648, 2_147_483_647)
-    stepped :: interval_add(interval(0, 2_147_483_647), interval(2, 2))
-    kept :: interval_checked(stepped, i32_iv)
-    assert(same_interval(kept, interval(2, 2_147_483_647)), "the values that did not stop")
-    u64_iv :: unsigned_interval(64)
-    plus_one :: interval_checked(interval_add(u64_iv, interval(1, 1)), u64_iv)
-    assert(plus_one.lo == 1 && plus_one.hi_open, "u64 + 1 is at least 1")
+    assert(!closed_within(plus_one, u64_iv), "u64.max + 1 is past u64")
 }
 
 @test

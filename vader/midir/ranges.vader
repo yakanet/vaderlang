@@ -1,0 +1,490 @@
+// vader/midir/ranges — how one instruction moves what the range analysis knows.
+//
+// Constants, copies and `+` / `-` of a single value carry intervals and facts
+// along. What a branch edge learns is in `ranges_edges.vader`, when a sum
+// provably fits its type in `ranges_fits.vader`, the fixed point over a whole
+// function and its verdicts in `ranges_report.vader`, the values in
+// `ranges_intervals.vader` and `ranges_state.vader`.
+//
+// A result reaches its type in one of two ways. A checked operation that stops
+// the run on overflow, as outside `--release`, proves by going on that its
+// exact result fit. Any other operation, a checked one inside `--release`
+// included, keeps its exact result only when that provably fits; it holds any
+// value of its type otherwise, and its facts are lost.
+//
+// A length fact survives a push, which only grows the array, and dies wherever
+// code the CFG does not show runs (`instruction_runs_code`), which might shrink
+// it through an alias this analysis does not see.
+
+module "vader/midir"
+
+import "std/collections"
+import "vader/integer"
+import "vader/lower"
+import "vader/types"
+
+// ---- context --------------------------------------------------------------
+
+/// What the analysis of one function reads at every step.
+RangeContext :: struct {
+    locals: CFGLocal[]
+    /// Per local, the values of its type; null for a local of no integer type.
+    types: (Interval | null)[]
+    /// Whether a checked operation stops the run when it overflows, as outside
+    /// `--release`. Inside, it wraps like any other.
+    checked_ops_trap: bool
+}
+
+/// The context for analysing a function with these locals.
+///
+/// @param locals            the function's locals, indexed by `LocalId`.
+/// @param checked_ops_trap  whether a checked operation stops the run when it
+///                          overflows.
+range_context :: fn(locals: CFGLocal[], checked_ops_trap: bool) -> RangeContext {
+    types: (Interval | null)[]: []
+    for l in locals {
+        types.push(type_interval(l.type))
+    }
+    return RangeContext {
+        .locals = locals,
+        .types = types,
+        .checked_ops_trap = checked_ops_trap,
+    }
+}
+
+// The values of the type of `local`; null for a local of no integer type.
+type_of :: fn(ctx: RangeContext, local: LocalId) -> Interval | null = ctx.types[i32(local)]
+
+/// The values `local` holds in `s`; null for a local of no integer type.
+interval_of :: fn(ctx: RangeContext, s: RangeState, local: LocalId) -> Interval | null {
+    whole :: type_of(ctx, local) ?? return null
+    return s.intervals[local] ?? whole
+}
+
+/// Record that `local` holds the values of `iv` that are values of its type. A
+/// local that may hold its whole type keeps no entry, so that states knowing
+/// the same compare equal.
+set_interval :: fn(ctx: RangeContext, s: RangeState, local: LocalId, iv: Interval) -> void {
+    whole :: type_of(ctx, local) ?? return
+    met :: interval_meet(iv, whole)
+    if met == null || same_interval(met, whole) {
+        _ :: s.intervals.remove(local)
+        return
+    }
+    s.intervals[local] = met
+}
+
+/// Put every interval of `s` back within its local's type, as `set_interval`
+/// leaves it: a widened end may have opened where the type closes it.
+settle_intervals :: fn(ctx: RangeContext, s: RangeState) -> void {
+    unsettled: LocalId[]: []
+    for [local, iv] in s.intervals {
+        whole :: type_of(ctx, local) ?? continue
+        if !interval_within(iv, whole) || same_interval(iv, whole) {
+            unsettled.push(local)
+        }
+    }
+    for local in unsettled {
+        iv :: s.intervals[local] ?? continue
+        set_interval(ctx, s, local, iv)
+    }
+}
+
+// Record the fact `key` stands for with the bound `c`, keeping the tighter
+// bound of two on one pair.
+add_fact :: fn(s: RangeState, key: u64, c: i64) -> void {
+    if fact_left(key) == fact_right(key) {
+        return
+    }
+    known :: s.differences[key]
+    if known == null || c < known {
+        s.differences[key] = c
+    }
+}
+
+// ---- writes ---------------------------------------------------------------
+
+// `dst` now holds `iv`, unrelated to any other local.
+set_result :: fn(ctx: RangeContext, s: RangeState, dst: LocalId, iv: Interval) -> void {
+    forget_local(s, dst)
+    set_interval(ctx, s, dst, iv)
+}
+
+// `dst := src + k`, a value that did not wrap: `dst` holds `iv` and sits `k`
+// above `src` in every fact `src` takes part in, `src - y <= c` giving
+// `dst - y <= c + k` and `x - src <= c` giving `x - dst <= c - k`. A local at
+// most an array's length stays so once lowered.
+shift_local :: fn(
+    ctx: RangeContext,
+    s: RangeState,
+    dst: LocalId,
+    src: LocalId,
+    k: i64,
+    iv: Interval,
+) -> void {
+    keys: u64[]: []
+    bounds: i64[]: []
+    for [key, c] in s.differences {
+        if fact_left(key) == src {
+            bound :: checked_add(64, false, c, k) ?? continue
+            keys.push(fact_key(dst, fact_right(key)))
+            bounds.push(bound)
+        } else if fact_right(key) == src {
+            bound :: checked_sub(64, false, c, k) ?? continue
+            keys.push(fact_key(fact_left(key), dst))
+            bounds.push(bound)
+        }
+    }
+    length_of :: s.lengths[src]
+    set_result(ctx, s, dst, iv)
+    for i in 0..<keys.len() {
+        add_fact(s, keys[i], bounds[i])
+    }
+    add_fact(s, fact_key(dst, src), k)
+    negated :: checked_negation(64, false, k)
+    if negated != null {
+        add_fact(s, fact_key(src, dst), negated)
+    }
+    if length_of != null && k <= 0 {
+        s.lengths[dst] = length_of
+    }
+}
+
+// Drop what `s` knows about every local `ins` writes.
+forget_written :: fn(s: RangeState, ins: Instruction) -> void {
+    dsts :: multi_dsts(ins)
+    if dsts != null {
+        for d in dsts {
+            forget_local(s, d)
+        }
+        return
+    }
+    dst :: dst_of(ins) ?? return
+    forget_local(s, dst)
+}
+
+// ---- transfer -------------------------------------------------------------
+
+/// Carry `s` across `ins`.
+///
+/// @param s  what holds just before `ins`, changed in place into what holds
+///           just after.
+transfer :: fn(ctx: RangeContext, s: RangeState, ins: Instruction) -> void {
+    if instruction_runs_code(ins) {
+        s.lengths.clear()
+    }
+    match ins {
+        is InstrConst -> { transfer_constant(ctx, s, ins) }
+        is InstrMove -> { transfer_copy(ctx, s, ins.dst, ins.src) }
+        is InstrCast -> { transfer_copy(ctx, s, ins.dst, ins.value) }
+        is InstrBinOp -> { transfer_binop(ctx, s, ins) }
+        is InstrUnOp -> { transfer_unop(ctx, s, ins) }
+        is InstrArrayLen -> { transfer_length(ctx, s, ins) }
+        // A value the analysis does not follow.
+        is InstrCall | InstrCallIndirect | InstrVirtualCall | InstrIntrinsic | InstrDeferPopExec
+            | InstrFnRef | InstrFnAddr | InstrFieldGet | InstrFieldSet | InstrArrayGet
+            | InstrArraySet | InstrArrayPush | InstrArraySlice | InstrStringSlice | InstrStructNew
+            | InstrArrayNew | InstrDataConst | InstrTypeCheck | InstrTypeConst | InstrCellNew
+            | InstrCellGet | InstrCellSet | InstrMakeClosure | InstrDeferPush -> {
+            forget_written(s, ins)
+        }
+    }
+}
+
+transfer_constant :: fn(ctx: RangeContext, s: RangeState, ins: InstrConst) -> void {
+    forget_local(s, ins.dst)
+    value :: ins.value
+    if value is ConstInt {
+        local_type :: ctx.locals[i32(ins.dst)].type
+        set_interval(ctx, s, ins.dst, constant_interval(value.value, local_type))
+    }
+}
+
+// `dst := src`, a move or a cast: the same value when every value `src` may
+// hold fits the type of `dst`.
+transfer_copy :: fn(ctx: RangeContext, s: RangeState, dst: LocalId, src: LocalId) -> void {
+    from :: interval_of(ctx, s, src)
+    to :: type_of(ctx, dst)
+    if from == null || to == null || !interval_within(from, to) {
+        forget_local(s, dst)
+        return
+    }
+    shift_local(ctx, s, dst, src, 0, from)
+}
+
+// `dst := len(array)`: at least every local known to be at most that length,
+// which nothing shrank since.
+transfer_length :: fn(ctx: RangeContext, s: RangeState, ins: InstrArrayLen) -> void {
+    shorter: LocalId[]: []
+    for [n, array] in s.lengths {
+        if array == ins.target && n != ins.dst {
+            shorter.push(n)
+        }
+    }
+    forget_local(s, ins.dst)
+    for n in shorter {
+        add_fact(s, fact_key(n, ins.dst), 0)
+        floor :: interval_of(ctx, s, n) ?? continue
+        length :: interval_of(ctx, s, ins.dst) ?? continue
+        raised :: interval_meet(length, interval_from_ends(floor.lo, null)) ?? continue
+        set_interval(ctx, s, ins.dst, raised)
+    }
+    s.lengths[ins.dst] = ins.target
+}
+
+transfer_binop :: fn(ctx: RangeContext, s: RangeState, ins: InstrBinOp) -> void {
+    t :: type_of(ctx, ins.dst)
+    a :: interval_of(ctx, s, ins.lhs)
+    b :: interval_of(ctx, s, ins.rhs)
+    if t == null || a == null || b == null {
+        forget_local(s, ins.dst)
+        return
+    }
+    kind :: arithmetic_of(ins.op)
+    if kind != null {
+        transfer_arithmetic(ctx, s, ins, kind, a, b, t)
+        return
+    }
+    set_result(ctx, s, ins.dst, bitwise_interval(ins.op, a, b))
+}
+
+transfer_arithmetic :: fn(
+    ctx: RangeContext,
+    s: RangeState,
+    ins: InstrBinOp,
+    kind: Arithmetic,
+    a: Interval,
+    b: Interval,
+    t: Interval,
+) -> void {
+    stops :: ctx.checked_ops_trap && is_checked(ins.op)
+    if !stops && !result_fits(ctx, s, ins, kind, a, b, t) {
+        forget_local(s, ins.dst)
+        return
+    }
+    exact :: exact_result(kind, a, b)
+    if kind == .Sum && is_single(b) {
+        shift_local(ctx, s, ins.dst, ins.lhs, b.lo, exact)
+        return
+    }
+    if kind == .Sum && is_single(a) {
+        shift_local(ctx, s, ins.dst, ins.rhs, a.lo, exact)
+        return
+    }
+    if kind == .Difference && is_single(b) {
+        k :: checked_negation(64, false, b.lo)
+        if k != null {
+            shift_local(ctx, s, ins.dst, ins.lhs, k, exact)
+            return
+        }
+    }
+    set_result(ctx, s, ins.dst, exact)
+}
+
+transfer_unop :: fn(ctx: RangeContext, s: RangeState, ins: InstrUnOp) -> void {
+    t :: type_of(ctx, ins.dst)
+    a :: interval_of(ctx, s, ins.operand)
+    if ins.op == .Neg && t != null && a != null {
+        exact :: interval_negate(a)
+        if ctx.checked_ops_trap || closed_within(exact, t) {
+            set_result(ctx, s, ins.dst, exact)
+            return
+        }
+    }
+    forget_local(s, ins.dst)
+}
+
+// ---- arithmetic -----------------------------------------------------------
+
+/// The operations whose exact result the analysis computes.
+Arithmetic :: enum {
+    Sum,
+    Difference,
+    Product,
+}
+
+arithmetic_of :: fn(op: LoweredBinaryOp) -> Arithmetic | null = match op {
+    .Add | .AddChecked -> .Sum
+    .Sub | .SubChecked -> .Difference
+    .Mul | .MulChecked -> .Product
+    .Div | .Mod | .Shl | .Shr | .BitAnd | .BitOr | .BitXor | .And | .Or | .Eq | .Neq | .Lt
+     | .Lte | .Gt | .Gte -> null
+}
+
+is_checked :: fn(op: LoweredBinaryOp) -> bool =
+    op == .AddChecked || op == .SubChecked || op == .MulChecked
+
+/// The exact result of `a` and `b` under `kind`, over the integers.
+exact_result :: fn(kind: Arithmetic, a: Interval, b: Interval) -> Interval = match kind {
+    .Sum        -> interval_add(a, b)
+    .Difference -> interval_sub(a, b)
+    .Product    -> interval_mul(a, b)
+}
+
+/// Whether `ins`, of `kind` on the operands' values `a` and `b`, gives a value
+/// of its type `t`: an exact result within `t`, or one a fact keeps there.
+result_fits :: fn(
+    ctx: RangeContext,
+    s: RangeState,
+    ins: InstrBinOp,
+    kind: Arithmetic,
+    a: Interval,
+    b: Interval,
+    t: Interval,
+) -> bool = match kind {
+    .Sum        -> sum_fits(ctx, s, ins.lhs, a, ins.rhs, b, t)
+    .Difference -> sum_fits(ctx, s, ins.lhs, a, null, interval_negate(b), t)
+    .Product    -> closed_within(interval_mul(a, b), t)
+}
+
+is_single :: fn(a: Interval) -> bool = !a.lo_open && !a.hi_open && a.lo == a.hi
+
+// The values of `a % b`, `a & b` or `a >> b` on the operands' values; any
+// integer for an operator the analysis does not follow.
+bitwise_interval :: fn(op: LoweredBinaryOp, a: Interval, b: Interval) -> Interval = match op {
+    .Mod -> remainder_interval(a, b)
+    .BitAnd -> interval_meet(non_negative_bound(a), non_negative_bound(b)) ?? ANY_INTEGER
+    .Shr -> non_negative_bound(a)
+    .Add | .Sub | .Mul | .Div | .Shl | .BitOr | .BitXor | .And | .Or | .Eq | .Neq | .Lt | .Lte
+     | .Gt | .Gte | .AddChecked | .SubChecked | .MulChecked -> ANY_INTEGER
+}
+
+// `a % b`: below the divisor and not above the dividend, when neither is
+// negative.
+remainder_interval :: fn(a: Interval, b: Interval) -> Interval {
+    if a.lo < 0 || b.lo < 1 {
+        return ANY_INTEGER
+    }
+    if b.hi_open {
+        return non_negative_bound(a)
+    }
+    return interval(0, lesser(a.hi, b.hi - 1))
+}
+
+// From zero to the top of `a` when `a` is not negative, which is what an `&`
+// with it or a shift right of it stays within; any integer otherwise.
+non_negative_bound :: fn(a: Interval) -> Interval {
+    if a.lo < 0 {
+        return ANY_INTEGER
+    }
+    return Interval {
+        .lo = 0,
+        .hi = a.hi,
+        .hi_open = a.hi_open,
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/span"
+
+// Locals `l0` to `l<n-1>` of the named primitive types, in order, in a context
+// where checked operations stop the run on overflow.
+test_context :: fn(type_names: string[]) -> RangeContext {
+    locals: CFGLocal[]: []
+    for i in 0..<type_names.len() {
+        locals.push(
+            CFGLocal {
+                .name = "l${i}",
+                .type = mk_primitive(type_names[i]),
+                .symbol = null,
+            },
+        )
+    }
+    return range_context(locals, true)
+}
+
+test_binop :: fn(op: LoweredBinaryOp, dst: i32, lhs: i32, rhs: i32) -> InstrBinOp = InstrBinOp {
+    .span = empty_span(),
+    .dst = LocalId(dst),
+    .op = op,
+    .lhs = LocalId(lhs),
+    .rhs = LocalId(rhs),
+    .type = mk_primitive("usize"),
+}
+
+test_constant :: fn(dst: i32, value: i64) -> Instruction = InstrConst {
+    .span = empty_span(),
+    .dst = LocalId(dst),
+    .value = ConstInt { .value = value },
+    .type = mk_primitive("usize"),
+}
+
+@test
+test_ranges_index_below_length_steps_without_wrapping :: fn() -> void {
+    // l0 = i, l1 = n, l2 = 1, l3 = i + 1 (wrapping), all `usize`.
+    ctx :: test_context(["usize", "usize", "usize", "usize"])
+    s :: new_range_state()
+    assert(learn_comparison(ctx, s, test_binop(.Lt, 9, 0, 1), true), "i < n can hold")
+    transfer(ctx, s, test_constant(2, 1))
+    transfer(ctx, s, test_binop(.Add, 3, 0, 2))
+    assert_eq(s.differences[fact_key(LocalId(3), LocalId(1))] ?? 99, 0)
+    stepped :: interval_of(ctx, s, LocalId(3)) ?? ANY_INTEGER
+    assert(stepped.lo == 1, "i + 1 is at least 1")
+}
+
+@test
+test_ranges_unknown_usize_plus_one_may_wrap :: fn() -> void {
+    ctx :: test_context(["usize", "usize", "usize"])
+    s :: new_range_state()
+    transfer(ctx, s, test_constant(1, 1))
+    transfer(ctx, s, test_binop(.Add, 2, 0, 1))
+    assert(s.intervals[LocalId(2)] == null, "a wrapped result holds its whole type")
+    assert(s.differences.len() == 0, "and takes part in no fact")
+}
+
+@test
+test_ranges_checked_add_wraps_in_release :: fn() -> void {
+    debug :: test_context(["usize", "usize", "usize"])
+    release :: RangeContext { ...debug, .checked_ops_trap = false }
+    trapping :: new_range_state()
+    transfer(debug, trapping, test_constant(1, 1))
+    transfer(debug, trapping, test_binop(.AddChecked, 2, 0, 1))
+    kept :: interval_of(debug, trapping, LocalId(2)) ?? ANY_INTEGER
+    assert(kept.lo == 1, "a checked add that went on is at least 1")
+    wrapping :: new_range_state()
+    transfer(release, wrapping, test_constant(1, 1))
+    transfer(release, wrapping, test_binop(.AddChecked, 2, 0, 1))
+    assert(wrapping.intervals[LocalId(2)] == null, "in release it may have wrapped")
+}
+
+@test
+test_ranges_second_length_read_is_at_least_the_first :: fn() -> void {
+    // l0 = n, at most the length of the array l2 and at least 1; l1 = len(l2).
+    ctx :: test_context(["usize", "usize", "usize"])
+    s :: new_range_state()
+    s.lengths[LocalId(0)] = LocalId(2)
+    set_interval(ctx, s, LocalId(0), interval(1, 5))
+    read :: InstrArrayLen {
+        .span = empty_span(),
+        .dst = LocalId(1),
+        .target = LocalId(2),
+    }
+    transfer(ctx, s, read)
+    length :: interval_of(ctx, s, LocalId(1)) ?? ANY_INTEGER
+    assert(length.lo == 1, "the length is at least n")
+    assert_eq(s.differences[fact_key(LocalId(0), LocalId(1))] ?? 99, 0)
+}
+
+@test
+test_ranges_running_code_drops_length_facts :: fn() -> void {
+    ctx :: test_context(["usize", "usize"])
+    s :: new_range_state()
+    s.lengths[LocalId(0)] = LocalId(1)
+    push :: InstrArrayPush {
+        .span = empty_span(),
+        .target = LocalId(1),
+        .value = LocalId(0),
+    }
+    transfer(ctx, s, push)
+    assert(s.lengths[LocalId(0)] == LocalId(1), "a push only grows the array")
+    clear :: InstrIntrinsic {
+        .span = empty_span(),
+        .dst = null,
+        .name = "array.clear",
+        .args = [LocalId(1)],
+    }
+    transfer(ctx, s, clear)
+    assert(s.lengths.len() == 0, "an intrinsic may shrink it")
+}

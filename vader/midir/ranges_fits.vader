@@ -1,0 +1,116 @@
+// vader/midir/ranges_fits — when the range analysis knows a sum stays within
+// its type.
+//
+// An exact result within the type fits. Past that, an open upper end of a
+// `u64` / `usize` value stops at the type's greatest value, and a fact against
+// another local bounds a sum the intervals alone cannot: `i < n` keeps `i + 1`
+// at most `n`. The analysis itself is in `ranges.vader`.
+
+module "vader/midir"
+
+import "std/collections"
+import "vader/integer"
+
+/// Whether `x + y` stays within `t`, for `x` and `y` two values of `t`, `x`
+/// held by `x_local` and `y` by `y_local` when a local holds it (a negated
+/// subtrahend has none).
+sum_fits :: fn(
+    ctx: RangeContext,
+    s: RangeState,
+    x_local: LocalId,
+    x: Interval,
+    y_local: LocalId | null,
+    y: Interval,
+    t: Interval,
+) -> bool {
+    exact :: interval_add(x, y)
+    above := !exact.hi_open && exact.hi <= t.hi || held_below_top(ctx, s, x_local, x, y, t)
+    below := !exact.lo_open && exact.lo >= t.lo || held_above_bottom(ctx, s, x_local, y, t)
+    if y_local != null {
+        above = above || held_below_top(ctx, s, y_local, y, x, t)
+        below = below || held_above_bottom(ctx, s, y_local, x, t)
+    }
+    return above && below
+}
+
+// Whether `x + y` stays at or below the greatest value of `t` thanks to what is
+// known of `x`: an open upper end of a value of `t` is at most that greatest
+// value, so a `y` not above zero keeps it there; and a fact `x - z <= c` keeps
+// `x + y` at most the greatest `z` plus `c` and `y`.
+held_below_top :: fn(
+    ctx: RangeContext,
+    s: RangeState,
+    x_local: LocalId,
+    x: Interval,
+    y: Interval,
+    t: Interval,
+) -> bool {
+    if y.hi_open {
+        return false
+    }
+    if x.hi_open && t.hi_open && y.hi <= 0 {
+        return true
+    }
+    for [key, c] in s.differences {
+        if fact_left(key) == x_local && below_top_through(ctx, s, fact_right(key), c, y.hi, t) {
+            return true
+        }
+    }
+    return false
+}
+
+// Whether `z + c + y_hi` stays at or below the greatest value of `t`, for every
+// value of `z`. An open upper end of `z` is the greatest value of its type,
+// within `t` when that type is `t`.
+below_top_through :: fn(
+    ctx: RangeContext,
+    s: RangeState,
+    z: LocalId,
+    c: i64,
+    y_hi: i64,
+    t: Interval,
+) -> bool {
+    zi :: interval_of(ctx, s, z) ?? return false
+    if zi.hi_open {
+        room :: checked_add(64, false, c, y_hi) ?? return false
+        return room <= 0 && holds_values_of(ctx, z, t)
+    }
+    top :: checked_add(64, false, zi.hi, c) ?? return false
+    total :: checked_add(64, false, top, y_hi) ?? return false
+    return total <= t.hi
+}
+
+// Whether `x + y` stays at or above the least value of `t` thanks to a fact
+// `z - x <= c`: `x + y` is then at least the least `z`, minus `c`, plus `y`.
+held_above_bottom :: fn(
+    ctx: RangeContext,
+    s: RangeState,
+    x_local: LocalId,
+    y: Interval,
+    t: Interval,
+) -> bool {
+    if y.lo_open {
+        return false
+    }
+    for [key, c] in s.differences {
+        if fact_right(key) != x_local {
+            continue
+        }
+        zi :: interval_of(ctx, s, fact_left(key)) ?? continue
+        if zi.lo_open {
+            continue
+        }
+        floor :: checked_sub(64, false, zi.lo, c) ?? continue
+        bottom :: checked_add(64, false, floor, y.lo) ?? continue
+        if bottom >= t.lo {
+            return true
+        }
+    }
+    return false
+}
+
+// Whether `local` holds values of an integer type with the values of `t`.
+holds_values_of :: fn(ctx: RangeContext, local: LocalId, t: Interval) -> bool {
+    own :: type_of(ctx, local) ?? return false
+    return same_interval(own, t)
+}

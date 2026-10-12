@@ -4152,7 +4152,7 @@ to the program like any other argument.
 | `vader help [action]` | Usage overview, or one action's options in full |
 | `vader init [name]` *(post-MVP)* | Scaffolds a new Vader project: directory, `examples/hello.vader`, default `vader.json` |
 
-`vader dump` stages, in pipeline order (`lexer`, `resolved-ast`, `cfg`, `c`/`wasm` produce text; the rest produce JSON):
+`vader dump` stages, in pipeline order (`lexer`, `resolved-ast`, `cfg`, `ranges`, `c`/`wasm` produce text; the rest produce JSON):
 
 | Stage | Output |
 |-------|--------|
@@ -4164,6 +4164,7 @@ to the program like any other argument.
 | `lowered-ast` | Desugared tree (match / interp / defer expanded) |
 | `dced-ast` | Lowered tree post-stdlib reachability prune |
 | `cfg` | Mid-IR CFG (post-DCE + escape-annotated) |
+| `ranges` | Range analysis over the CFG the bytecode emitter receives: a verdict per array access and checked operation |
 | `bytecode` | Stack-machine ops + type/string/import tables |
 | `c` | Generated C source |
 | `wasm` *(planned)* | WebAssembly module |

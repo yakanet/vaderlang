@@ -121,9 +121,8 @@ export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] 
 
 /// CFG → `BytecodeModule`: the optimise-and-emit tail every real emit path runs.
 ///
-/// Build the CFG, then DCE, escape annotation and the array-load-forward opt,
-/// then bytecode emit. A new CFG optimisation is wired in HERE, once — not at
-/// each call site. The profiling brackets are inert unless `$VADER_PROFILE`.
+/// Build the CFG and run the midir passes (`build_optimised_cfg`), then
+/// bytecode emit. The profiling brackets are inert unless `$VADER_PROFILE`.
 ///
 /// @param pruned  lowered project, already pruned of unreachable fns.
 /// @param name    bytecode module name (see `module_name_from_file`).
@@ -135,11 +134,33 @@ export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] 
 export cfg_to_bytecode :: fn(
     pruned: LoweredProject, name: string, opts: EmitOptions, diags: Diagnostic[],
 ) -> BytecodeModule {
+    forwarded :: build_optimised_cfg(pruned, opts.verify, diags)
+    Prof.prof_begin(Prof.PHASE_BYTECODE)
+    module :: emit_bytecode_from_cfg(forwarded, name, opts)
+    Prof.prof_end(Prof.PHASE_BYTECODE)
+    return module
+}
+
+/// The CFG of `pruned` as the bytecode emitter receives it: built, then through
+/// every midir pass in order, DCE, escape annotation and the array-load-forward
+/// opt among them. A new CFG optimisation is wired in here, once, and not at
+/// each call site.
+///
+/// @param pruned  lowered project, already pruned of unreachable fns.
+/// @param verify  run the CFG verifier after each pass (`--verify`).
+/// @param diags   accumulator for what the CFG build reports (an identifier it
+///                cannot place, M5007) and, under `verify`, the verifier
+///                findings.
+export build_optimised_cfg :: fn(
+    pruned: LoweredProject,
+    verify: bool,
+    diags: Diagnostic[],
+) -> CFGProject {
     Prof.prof_begin(Prof.PHASE_CFG_BUILD)
     cfg :: build_cfg_project(pruned, diags)
     Prof.prof_end(Prof.PHASE_CFG_BUILD)
     // One check per pass, each naming the pass it follows.
-    if opts.verify { verify_cfg(cfg, "build_cfg_project", diags) }
+    if verify { verify_cfg(cfg, "build_cfg_project", diags) }
     // Return a small tuple in registers instead of a heap object. BEFORE DCE:
     // the `struct.new` that built the tuple becomes unread once the terminator
     // names its fields, and DCE is what removes it — running after would leave
@@ -147,15 +168,15 @@ export cfg_to_bytecode :: fn(
     Prof.prof_begin(Prof.PHASE_VALUE_RET)
     scalarised :: scalarise_value_returns(cfg)
     Prof.prof_end(Prof.PHASE_VALUE_RET)
-    if opts.verify { verify_cfg(scalarised, "scalarise_value_returns", diags) }
+    if verify { verify_cfg(scalarised, "scalarise_value_returns", diags) }
     // Undoes the rebuilds the pass above planted, wherever the fields are still
     // in hand. Before DCE, which is what collects the objects left readerless.
     unrebuilt :: struct_field_forward_project(scalarised)
-    if opts.verify { verify_cfg(unrebuilt, "struct_field_forward_project", diags) }
+    if verify { verify_cfg(unrebuilt, "struct_field_forward_project", diags) }
     Prof.prof_begin(Prof.PHASE_CFG_DCE)
     dced :: eliminate_dead_cfg(unrebuilt)
     Prof.prof_end(Prof.PHASE_CFG_DCE)
-    if opts.verify { verify_cfg(dced, "eliminate_dead_cfg", diags) }
+    if verify { verify_cfg(dced, "eliminate_dead_cfg", diags) }
     Prof.prof_begin(Prof.PHASE_ESCAPE)
     annotated :: annotate_escape(dced)
     escaped :: annotated.project
@@ -164,13 +185,10 @@ export cfg_to_bytecode :: fn(
     // here rather than with the lowering ones because escape analysis runs after
     // the lowering context is gone. Empty unless the env is set.
     report_heap_allocations(annotated.stats)
-    if opts.verify { verify_cfg(escaped, "annotate_escape", diags) }
+    if verify { verify_cfg(escaped, "annotate_escape", diags) }
     forwarded :: array_load_forward_project(escaped)
-    if opts.verify { verify_cfg(forwarded, "array_load_forward_project", diags) }
-    Prof.prof_begin(Prof.PHASE_BYTECODE)
-    module :: emit_bytecode_from_cfg(forwarded, name, opts)
-    Prof.prof_end(Prof.PHASE_BYTECODE)
-    return module
+    if verify { verify_cfg(forwarded, "array_load_forward_project", diags) }
+    return forwarded
 }
 
 /// A lowered project plus what the caller still needs after the pipeline is

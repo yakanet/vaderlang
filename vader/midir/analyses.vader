@@ -59,6 +59,13 @@ export instruction_has_side_effect :: fn(ins: Instruction) -> bool {
                 | InstrCellSet
 }
 
+/// True when executing the instruction runs code the CFG does not show: a
+/// call of any kind, an intrinsic, or the deferred blocks a scope exit pops.
+/// That code may change any memory the function reaches, an array's length
+/// included.
+export instruction_runs_code :: fn(ins: Instruction) -> bool =
+    ins is InstrCall | InstrCallIndirect | InstrVirtualCall | InstrIntrinsic | InstrDeferPopExec
+
 // ---- operand walks --------------------------------------------------------
 
 /// Apply `visit` to every local read by the instruction (its operands).
@@ -434,8 +441,9 @@ export multi_dsts :: fn(ins: Instruction) -> LocalId[] | null {
 
 /// The local an instruction writes to, or `null` for pure side-
 /// effecting ops (FieldSet, ArraySet, …), zero-result calls — and a call
-/// handing back SEVERAL values, where there is no single answer. Walk
-/// `for_each_written_local` when every written local matters.
+/// handing back SEVERAL values, where there is no single answer. Ask
+/// `multi_dsts` first when every written local matters, or `writes_local`
+/// about one.
 export dst_of :: fn(ins: Instruction) -> LocalId | null {
     match ins {
         is InstrConst             -> { return ins.dst }
@@ -469,4 +477,15 @@ export dst_of :: fn(ins: Instruction) -> LocalId | null {
         is InstrDeferPush         -> { return null }
         is InstrDeferPopExec      -> { return null }
     }
+}
+
+/// Whether `ins` writes `local`, one of several results included. Allocates
+/// nothing, for the same reason as `multi_dsts`.
+export writes_local :: fn(ins: Instruction, local: LocalId) -> bool {
+    dsts :: multi_dsts(ins)
+    if dsts != null {
+        return local in dsts
+    }
+    dst :: dst_of(ins) ?? return false
+    return dst == local
 }

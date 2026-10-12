@@ -1,0 +1,121 @@
+// vader/midir/ranges_edges — what a conditional branch on a comparison teaches
+// each of its edges.
+//
+// The edge on which `x < y` holds learns the fact `x - y <= -1`, `x` below the
+// greatest `y` and `y` above the least `x`; the other edge learns the negation.
+// An edge whose comparison cannot hold is ruled out. The analysis itself is in
+// `ranges.vader`.
+
+module "vader/midir"
+
+import "vader/integer"
+
+/// The instruction whose result `cond`, the condition of `block`'s branch,
+/// holds, when it reads two integer locals that keep their values up to the
+/// branch: the comparison the branch tests.
+branch_comparison :: fn(ctx: RangeContext, block: BasicBlock, cond: LocalId) -> InstrBinOp | null {
+    found: InstrBinOp | null = null
+    for ins in block.instructions {
+        if found != null && (writes_local(ins, found.lhs) || writes_local(ins, found.rhs)) {
+            found = null
+        }
+        if writes_local(ins, cond) {
+            found = on_integers(ctx, ins)
+        }
+    }
+    return found
+}
+
+on_integers :: fn(ctx: RangeContext, ins: Instruction) -> InstrBinOp | null {
+    if ins !is InstrBinOp || type_of(ctx, ins.lhs) == null || type_of(ctx, ins.rhs) == null {
+        return null
+    }
+    return ins
+}
+
+/// Teach `s` what the edge on which `cmp` is `taken` proves.
+///
+/// @param s  the state at the end of the branching block, changed in place.
+/// @return   false when the comparison rules the edge out.
+learn_comparison :: fn(ctx: RangeContext, s: RangeState, cmp: InstrBinOp, taken: bool) -> bool =
+    match cmp.op {
+        .Lt -> learn_order(ctx, s, cmp.lhs, cmp.rhs, -1, taken)
+        .Lte -> learn_order(ctx, s, cmp.lhs, cmp.rhs, 0, taken)
+        .Gt -> learn_order(ctx, s, cmp.rhs, cmp.lhs, -1, taken)
+        .Gte -> learn_order(ctx, s, cmp.rhs, cmp.lhs, 0, taken)
+        .Eq -> !taken || learn_equal(ctx, s, cmp.lhs, cmp.rhs)
+        .Neq -> taken || learn_equal(ctx, s, cmp.lhs, cmp.rhs)
+        // Not a comparison: the edge learns nothing.
+        .Add | .Sub | .Mul | .Div | .Mod | .Shl | .Shr | .BitAnd | .BitOr | .BitXor | .And | .Or
+         | .AddChecked | .SubChecked | .MulChecked -> true
+    }
+
+// `x - y <= c` when `taken`, its negation `y - x <= -c - 1` otherwise.
+learn_order :: fn(
+    ctx: RangeContext,
+    s: RangeState,
+    x: LocalId,
+    y: LocalId,
+    c: i64,
+    taken: bool,
+) -> bool {
+    if taken {
+        return learn_difference(ctx, s, x, y, c)
+    }
+    return learn_difference(ctx, s, y, x, -c - 1)
+}
+
+learn_equal :: fn(ctx: RangeContext, s: RangeState, x: LocalId, y: LocalId) -> bool =
+    learn_difference(ctx, s, x, y, 0) && learn_difference(ctx, s, y, x, 0)
+
+// `x - y <= c`: the fact itself, `x` at most `c` above the greatest `y`, and
+// `y` at least `c` below the least `x`.
+learn_difference :: fn(ctx: RangeContext, s: RangeState, x: LocalId, y: LocalId, c: i64) -> bool {
+    xi :: interval_of(ctx, s, x) ?? return true
+    yi :: interval_of(ctx, s, y) ?? return true
+    if !yi.hi_open {
+        top :: checked_add(64, false, yi.hi, c)
+        if top != null {
+            narrowed :: interval_meet(xi, interval_from_ends(null, top)) ?? return false
+            set_interval(ctx, s, x, narrowed)
+        }
+    }
+    if !xi.lo_open {
+        floor :: checked_sub(64, false, xi.lo, c)
+        if floor != null {
+            narrowed :: interval_meet(yi, interval_from_ends(floor, null)) ?? return false
+            set_interval(ctx, s, y, narrowed)
+        }
+    }
+    add_fact(s, fact_key(x, y), c)
+    return true
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_ranges_branch_narrows_both_sides :: fn() -> void {
+    // l0 < l1 on `i32` locals, l1 known to be at most 10.
+    ctx :: test_context(["i32", "i32"])
+    s :: new_range_state()
+    set_interval(ctx, s, LocalId(1), interval(0, 10))
+    taken :: copy_range_state(s)
+    assert(learn_comparison(ctx, taken, test_binop(.Lt, 9, 0, 1), true), "l0 < l1 can hold")
+    below :: interval_of(ctx, taken, LocalId(0)) ?? ANY_INTEGER
+    assert(below.hi == 9, "l0 below the greatest l1")
+    other :: copy_range_state(s)
+    assert(learn_comparison(ctx, other, test_binop(.Lt, 9, 0, 1), false), "l0 >= l1 can hold")
+    above :: interval_of(ctx, other, LocalId(0)) ?? ANY_INTEGER
+    assert(above.lo == 0, "l0 at least the least l1")
+}
+
+@test
+test_ranges_branch_rules_out_an_impossible_edge :: fn() -> void {
+    ctx :: test_context(["i32", "i32"])
+    s :: new_range_state()
+    set_interval(ctx, s, LocalId(0), interval(5, 5))
+    set_interval(ctx, s, LocalId(1), interval(0, 3))
+    assert(!learn_comparison(ctx, s, test_binop(.Lt, 9, 0, 1), true), "5 < [0, 3] cannot hold")
+}

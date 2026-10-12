@@ -1,0 +1,98 @@
+// tests/range_fixtures/verdicts — one function per case `vader dump --stage=ranges`
+// must judge; `tests/range_analysis.test.ts` holds the expected verdicts.
+
+module "verdicts"
+
+import "std/io"
+
+/// An index below the length the loop compares against: proven.
+export indexed_loop :: fn(xs: i32[]) -> i32 {
+    total := 0
+    for i in 0..<xs.len() {
+        total += xs[i]
+    }
+    return total
+}
+
+/// Indices below a length an early return bounds from below: proven.
+export early_exit :: fn(xs: i32[]) -> i32 {
+    if xs.len() < 2 {
+        return 0
+    }
+    return xs[0] + xs[1]
+}
+
+/// A counter stepped while below an `i32` bound cannot overflow: proven.
+export counter_below_bound :: fn(n: i32) -> i32 {
+    i := 0
+    for i < n {
+        i += 1
+    }
+    return i
+}
+
+/// A push only grows the array, so the length fact survives it: proven.
+export push_keeps_length :: fn(xs: i32[]) -> i32 {
+    total := 0
+    for i in 0..<xs.len() {
+        xs.push(1)
+        total += xs[i]
+    }
+    return total
+}
+
+/// A call may shrink the array through an alias: unproven.
+export call_drops_length :: fn(xs: i32[]) -> i32 {
+    total := 0
+    for i in 0..<xs.len() {
+        println("step")
+        total += xs[i]
+    }
+    return total
+}
+
+/// An unsigned decrement behind `n > 0`: proven.
+export guarded_decrement :: fn(n: usize) -> usize {
+    if n > 0 {
+        return n - 1
+    }
+    return 0
+}
+
+/// An unsigned decrement of any value: unproven.
+export unguarded_decrement :: fn(n: usize) -> usize = n - 1
+
+/// `255 + 1` in `u8`, whenever it runs: a certain fault.
+export always_overflows :: fn(x: u8) -> u8 {
+    if x == 255 {
+        return x + 1
+    }
+    return x
+}
+
+/// An access behind `n < 0` on a `usize`: unreachable.
+export impossible_branch :: fn(xs: i32[], n: usize) -> i32 {
+    if n < 0 {
+        return xs[n]
+    }
+    return 0
+}
+
+/// An index that is always `-1`: a certain fault.
+export negative_index :: fn(xs: i32[]) -> i32 {
+    i: i32: -1
+    return xs[i]
+}
+
+/// The last index of an array that may be empty: unproven, and so is the
+/// `len - 1` that computes it.
+export last_element :: fn(xs: i32[]) -> i32 = xs[xs.len() - 1]
+
+/// The last index of an array known not to be empty: proven, and so is the
+/// `len - 1`, a second read of the length being at least the first.
+export guarded_last :: fn(xs: i32[]) -> i32 {
+    if xs.len() > 0 {
+        return xs[xs.len() - 1]
+    }
+    return 0
+}

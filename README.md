@@ -201,6 +201,7 @@ Accepted by every action, after the action name. All three are **reserved** — 
 | `lowered-ast`   | desugared tree (match → if/else, `?` → match, interp → builder calls, defer inlined) | Confirm the desugarings match expectations.                               |
 | `dced-ast`      | lowered tree after stdlib reachability prune                                         | See which stdlib decls survive the prune.                                 |
 | `cfg`           | midir CFG per fn (post DCE + escape annotation)                                     | Inspect basic blocks, terminators, three-address instructions, escape sets, stack slots. |
+| `ranges`        | per fn, a verdict on each array access and checked operation                         | See which bounds and overflow checks the range analysis proves.           |
 | `bytecode`      | `.vir` text of the compiled module                                                   | Inspect the final stack-machine ops + type/string/import tables.          |
 
 ```sh
