@@ -7,6 +7,13 @@
 // `infer_call` files it under the call (`call_sites`), so one table answers what
 // a call runs. A plain name, and a namespace member, are the fn the resolver
 // bound.
+//
+// A node also calls without a call expression: an operator through its trait, an
+// index through `Index` / `IndexSet`. Each such site is filed under its node and
+// the role it plays there (`CallSites`). Its check files `UnsettledCallee` on
+// entry and each route then files what it decided, `Builtin` when nothing is
+// called: a route that decides nothing shows as unsettled instead of passing for a
+// built-in operation.
 
 module "vader/typecheck"
 
@@ -58,6 +65,12 @@ export ErroneousCallee :: struct {}
 /// A valid call the typecheck reached by a form this record does not cover.
 export UnsettledCallee :: struct {}
 
+/// Several calls at one site, each run: the `equals` of every part a structural
+/// `==` compares (a tuple's elements, a union's variants).
+export EachOf :: struct {
+    callees: Callee[]
+}
+
 /// What a call invokes.
 export Callee :: DirectFn
         | BoundMember
@@ -66,12 +79,43 @@ export Callee :: DirectFn
         | Builtin
         | ErroneousCallee
         | UnsettledCallee
+        | EachOf
 
-/// A call and what it invokes.
-export CallSite :: struct {
-    span: Span
-    callee: Callee
+/// The part a site plays at its node.
+export CallRole :: enum {
+    /// A call expression `f(x)`, `x.m()`.
+    Call,
+    /// A binary operator, `in` included.
+    Operator,
+    /// `x[i]` read.
+    IndexRead,
+    /// `x[i] = v`, and the write-back of `x[i] op= v`.
+    IndexWrite,
 }
+
+/// The sites of a module, one table per role, each keyed by the node's id. A node
+/// may play several roles (`m[k] += v` reads, applies the operator, writes back).
+export CallSites :: struct {
+    calls: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
+    operators: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
+    index_reads: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
+    index_writes: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
+}
+
+/// The table of the sites playing `role`.
+///
+/// @param sites  a module's sites (`TypedProgram.call_sites`).
+/// @param role   the part the sites play.
+export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<usize, Callee>! = match role {
+    .Call       -> sites.calls
+    .Operator   -> sites.operators
+    .IndexRead  -> sites.index_reads
+    .IndexWrite -> sites.index_writes
+}
+
+// Every role, for a reader that walks them all : a role added to `CallRole` is
+// added here.
+all_roles :: fn() -> CallRole[] = [.Call, .Operator, .IndexRead, .IndexWrite]
 
 FN_VALUE_CALLEE  :: FnValue {}
 BUILTIN_CALLEE   :: Builtin {}
@@ -94,8 +138,20 @@ direct_callee :: fn(decl: AST.FnDecl | null, per_instance: bool) -> Callee {
     return DirectFn { .decl = decl, .per_instance = per_instance }
 }
 
-record_call_site :: fn(typed: TypedProgram, c: AST.CallExpr, callee: Callee) -> void {
-    typed.call_sites[c.id] = CallSite { .span = c.span, .callee = callee }
+record_call_site :: fn(typed: TypedProgram, c: AST.CallExpr, callee: Callee) -> void =
+    record_site(typed, c, .Call, callee)
+
+// File what the site `role` plays at `node` invokes. A node built after the
+// numbering (the comparison of a `match` literal pattern) has no id of its own and
+// is not filed.
+record_site :: fn(typed: TypedProgram, node: AST.Expr, role: CallRole, callee: Callee) -> void {
+    if node.id == AST.UNASSIGNED_NODE_ID {
+        return
+    }
+    sites_of(typed.call_sites, role)[node.id] = callee
+    if typed.dump_types {
+        typed.node_spans[node.id] = node.span
+    }
 }
 
 // What the call `c` invokes : the decision noted on its callee, else the fn the
@@ -140,6 +196,101 @@ calls_a_value :: fn(typed: TypedProgram, callee: AST.Expr) -> bool {
     }
 }
 
+// ---- implicit sites -------------------------------------------------------
+
+// The member a bounded type parameter dispatches to is settled at each instance ;
+// one of a trait value, of a union or of an erased value, at run time on its tag.
+dispatched_callee :: fn(receiver: Type, trait_key: string, member: string) -> Callee {
+    if receiver is TypeParamType {
+        return BoundMember { .trait_key = trait_key, .member = member }
+    }
+    return TraitMember { .trait_key = trait_key, .member = member }
+}
+
+// The callee of the first impl of `trait_key` that offers `member` on `receiver`,
+// for a receiver with one.
+first_member_callee :: fn(
+    typed: TypedProgram,
+    receiver: Type,
+    trait_key: string,
+    member: string,
+) -> Callee {
+    members :: trait_members(typed, receiver, trait_key, member)
+    if members.len() == 0 {
+        return UNSETTLED_CALLEE
+    }
+    return direct_callee(members[0].decl, false)
+}
+
+/// What `left == right` runs, once the two are known to compare: the `Equals` of
+/// each part a structural compare reaches. Follows the lowering's `value_eq` arm
+/// for arm, exhaustive over `Type` as `part_without_equality` is.
+///
+/// @param left   the left operand's type.
+/// @param right  the right operand's type.
+/// @param typed  the module being checked, for the impls.
+equality_callee :: fn(left: Type, right: Type, typed: TypedProgram) -> Callee {
+    if right is UnionType {
+        return parts_equality(shared_variants(left, right), typed)
+    }
+    // `Equals` is symmetric : a distinct on the right compares as one on the left.
+    if right is DistinctType && left !is DistinctType | UnionType {
+        return equality_callee(right, left, typed)
+    }
+    equals_key :: core_trait_key(TRAIT_EQUALS)
+    return match left {
+        is UnionType -> parts_equality(shared_variants(left, right), typed)
+        is TupleType -> parts_equality(left.elements, typed)
+        is StructType | ArrayType -> first_member_callee(typed, left, equals_key, METHOD_EQUALS)
+        is DistinctType -> distinct_equality(left, typed)
+        is TypeParamType | AnyType -> dispatched_callee(left, equals_key, METHOD_EQUALS)
+        is PrimitiveType | EnumType | FreeIntType | FreeFloatType | FreeCharType -> BUILTIN_CALLEE
+        is TraitType | FnType | SelfType -> ERRONEOUS_CALLEE
+        is TypeMetaType | NeverType | UnresolvedType -> ERRONEOUS_CALLEE
+    }
+}
+
+// A distinct compares through its own `Equals`, else through its backing's rule.
+distinct_equality :: fn(t: DistinctType, typed: TypedProgram) -> Callee {
+    equals_key :: core_trait_key(TRAIT_EQUALS)
+    if struct_implements_trait(t, equals_key, typed) {
+        return first_member_callee(typed, t, equals_key, METHOD_EQUALS)
+    }
+    return equality_callee(t.backing, t.backing, typed)
+}
+
+// The variants of `left` that `right` holds too : those a union `==` compares.
+shared_variants :: fn(left: Type, right: Type) -> Type[] {
+    shared: Type[]: []
+    for variant in union_variants(left) ?? [left] {
+        if counterpart(right, variant) != null {
+            shared.push(variant)
+        }
+    }
+    return shared
+}
+
+// What comparing each of `parts` with itself runs : `Builtin` when none calls, the
+// one call when one does, every call otherwise.
+parts_equality :: fn(parts: Type[], typed: TypedProgram) -> Callee {
+    calls: Callee[]: []
+    for part in parts {
+        callee :: equality_callee(part, part, typed)
+        if callee is EachOf {
+            calls.push_all(callee.callees)
+        } else if callee !is Builtin {
+            calls.push(callee)
+        }
+    }
+    if calls.len() == 0 {
+        return BUILTIN_CALLEE
+    }
+    if calls.len() == 1 {
+        return calls[0]
+    }
+    return EachOf { .callees = calls }
+}
+
 // ---- dump -----------------------------------------------------------------
 
 /// The calls of the modules of `scope`, module by module: `vader dump
@@ -162,20 +313,53 @@ export dump_call_sites_project :: fn(
     return sb.to_string()
 }
 
-// Every call of `typed`, one line each in source order, then the count of calls
-// the record could not settle.
+// Every site of `typed`, one line each in source order, then the count of sites
+// the record could not settle. A site's position is its node's span, filed when
+// the typecheck ran with `dump_types`.
 dump_call_sites :: fn(typed: TypedProgram) -> string {
-    sites :: typed.call_sites.values()
+    sites: DumpedSite[]: []
+    for role in all_roles() {
+        for [id, callee] in sites_of(typed.call_sites, role) {
+            span :: typed.node_spans[id] ?? empty_span()
+            sites.push(DumpedSite { .span = span, .role = role, .callee = callee })
+        }
+    }
     sb :: StringBuilder {}
     unsettled := 0
-    for site in sort(sites, (a, b) -> a.span.start.offset < b.span.start.offset) {
+    for site in sort(sites, comes_first) {
         if site.callee is UnsettledCallee {
             unsettled += 1
         }
-        sb.append("  ${site_position(site.span)} ${callee_label(site.callee)}\n")
+        position :: site_position(site.span)
+        sb.append("  ${position} ${role_label(site.role)} ${callee_label(site.callee)}\n")
     }
-    sb.append("  calls: ${sites.len()}, unsettled: ${unsettled}\n")
+    sb.append("  sites: ${sites.len()}, unsettled: ${unsettled}\n")
     return sb.to_string()
+}
+
+DumpedSite :: struct {
+    span: Span
+    role: CallRole
+    callee: Callee
+}
+
+// Source order ; among nodes that start together the inner one, and at one node the
+// roles in their declared order.
+comes_first :: fn(a: DumpedSite, b: DumpedSite) -> bool {
+    if a.span.start.offset != b.span.start.offset {
+        return a.span.start.offset < b.span.start.offset
+    }
+    if a.span.end.offset != b.span.end.offset {
+        return a.span.end.offset < b.span.end.offset
+    }
+    return usize(a.role) < usize(b.role)
+}
+
+role_label :: fn(role: CallRole) -> string = match role {
+    .Call       -> "call"
+    .Operator   -> "operator"
+    .IndexRead  -> "index"
+    .IndexWrite -> "index-write"
 }
 
 // A call inside a materialised default method sits at a synthetic span, the same
@@ -195,6 +379,15 @@ callee_label :: fn(callee: Callee) -> string = match callee {
     is Builtin         -> "builtin"
     is ErroneousCallee -> "error"
     is UnsettledCallee -> "unsettled"
+    is EachOf          -> each_label(callee)
+}
+
+each_label :: fn(callee: EachOf) -> string {
+    labels: string[]: []
+    for part in callee.callees {
+        labels.push(callee_label(part))
+    }
+    return "each(${labels.join(", ")})"
 }
 
 direct_label :: fn(callee: DirectFn) -> string {

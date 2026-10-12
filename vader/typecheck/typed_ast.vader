@@ -731,8 +731,8 @@ export TypedProgram :: struct {
     /// (`note_callee`).
     callees: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
 
-    /// Call id → what the call invokes (`callee_of_call`).
-    call_sites: MutableMap<usize, CallSite>! = MutableMap<usize, CallSite> {}
+    /// What each site invokes, by role and node id (`record_site`).
+    call_sites: CallSites! = CallSites {}
 
     /// A local bound to a single name → the value it stands for (`m :: a`,
     /// `s :: xs[0..<n]`), whatever its rights ; absent when the binding converts it

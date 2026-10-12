@@ -1,6 +1,6 @@
-// tests/callee_fixtures/sites — one function per shape of call `vader dump
-// --stage=callees` must settle; `tests/callee_sites.test.ts` holds what each call
-// invokes.
+// tests/callee_fixtures/sites — one function per shape of site `vader dump
+// --stage=callees` must settle, a call expression or an operator or index that
+// calls through a trait; `tests/callee_sites.test.ts` holds what each one invokes.
 
 module "sites"
 
@@ -60,6 +60,48 @@ Square implements Scale<Square> {
 
 make :: fn() -> fn(i32) -> i32 = double
 
+export Money :: struct {
+    cents: i64
+}
+
+Money implements Add {
+    add :: fn(self, other: Money) -> Money = Money { .cents = self.cents +% other.cents }
+}
+
+Money implements Comparable {
+    compare :: fn(self, other: Money) -> i32 = if self.cents < other.cents { -1 } else { 0 }
+}
+
+Money implements Equals {
+    equals :: fn(self, other: Money) -> bool = self.cents == other.cents
+}
+
+export Grid :: struct {
+    cells: i32[]!
+}
+
+Grid implements Index<usize, i32> {
+    at :: fn(self, i: usize) -> i32 = self.cells[i]
+}
+
+Grid implements IndexSet<usize, i32> {
+    set_at :: fn(self, i: usize, v: i32) -> void {
+        self.cells[i] = v
+    }
+}
+
+export Bag :: struct {
+    items: i32[]
+}
+
+Bag implements Contains<i32> {
+    contains :: fn(self, value: i32) -> bool = value in self.items
+}
+
+Bag implements Equals {
+    equals :: fn(self, other: Bag) -> bool = self.items.len() == other.items.len()
+}
+
 export Holder :: struct {
     f: fn(i32) -> i32
 }
@@ -110,3 +152,41 @@ export library :: fn() -> void = println("x")
 export overloaded_member :: fn(s: Square) -> Square = s.scaled(s.scaled(2))
 
 export returned_value :: fn() -> i32 = make()(1)
+
+export struct_operator :: fn(a: Money, b: Money) -> Money = a + b
+
+export struct_ordering :: fn(a: Money, b: Money) -> bool = a < b
+
+export bounded_operator :: fn<T: Add>(a: T, b: T) -> T = a + b
+
+export struct_equality :: fn(a: Money, b: Money) -> bool = a == b
+
+export tuple_equality :: fn(a: [Money, i32], b: [Money, i32]) -> bool = a == b
+
+export union_equality :: fn(a: Money | i32, b: Money | i32) -> bool = a == b
+
+export union_against_variant :: fn(a: Money | Bag, b: Money) -> bool = a == b
+
+export tuple_of_structs :: fn(a: [Money, Bag], b: [Money, Bag]) -> bool = a == b
+
+export bounded_equality :: fn<T: Equals>(a: T, b: T) -> bool = a == b
+
+export bounded_null :: fn<T>(x: T | null) -> bool = x == null
+
+export bare_bounded_null :: fn<T: Equals>(x: T) -> bool = x == null
+
+export custom_in :: fn(b: Bag) -> bool = 1 in b
+
+export index_read :: fn(g: Grid) -> i32 = g[0]
+
+export index_write :: fn(g: Grid) -> void {
+    g[0] = 1
+}
+
+export index_update :: fn(g: Grid) -> void {
+    g[0] += 1
+}
+
+export string_index :: fn(s: string) -> char = s[0]
+
+export array_index :: fn(xs: i32[]) -> i32 = xs[0]

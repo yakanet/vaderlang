@@ -1053,6 +1053,8 @@ index_write_slot :: fn(
 ) -> Type | null {
     set_trait :: core_trait_key(TRAIT_INDEX_SET)
     receiver_ty :: check_expr_fn(ix.target, null, typed, diags)
+    // Each route below files what it runs.
+    record_site(typed, ix, .IndexWrite, UNSETTLED_CALLEE)
     dispatched :: dispatched_index_args(ix, receiver_ty, set_trait, typed, diags)
     key_ty :: if dispatched != null {
         dispatched[0]
@@ -1062,9 +1064,11 @@ index_write_slot :: fn(
     index_ty :: check_expr_fn(ix.index, key_ty, typed, diags)
     arr :: stored_array(receiver_ty, typed)
     if reject_index_write_receiver(ix.target, receiver_ty, arr, ix.span, typed, diags) {
+        record_site(typed, ix, .IndexWrite, ERRONEOUS_CALLEE)
         return null
     }
     if arr != null {
+        record_site(typed, ix, .IndexWrite, BUILTIN_CALLEE)
         // Array elements are never flow-narrowed, so it is the declared slot type
         // the write must fit.
         return array_write_slot(ix, arr, index_ty, typed, diags)
@@ -1074,6 +1078,7 @@ index_write_slot :: fn(
         return dispatched[1]
     }
     if receiver_ty is UnresolvedType {
+        record_site(typed, ix, .IndexWrite, ERRONEOUS_CALLEE)
         return null
     }
     // Nothing stores into a receiver with no `IndexSet` and no array to fall back
@@ -1085,13 +1090,16 @@ index_write_slot :: fn(
                 "`${display_type(receiver_ty)}` has no `IndexSet` to write through",
             ),
         )
+        record_site(typed, ix, .IndexWrite, ERRONEOUS_CALLEE)
         return null
     }
     if reject_unmet_impl_bounds(
         receiver_ty, set_trait, .TraitNotSatisfied, ix.target.span, typed, diags,
     ) {
+        record_site(typed, ix, .IndexWrite, ERRONEOUS_CALLEE)
         return null
     }
+    // Files the member, the only one or the one the key picks.
     picked :: pick_index_member(ix, receiver_ty, set_trait, index_ty, typed, diags)
     if picked != null && picked.params.len() > 1 {
         return picked.params[1]

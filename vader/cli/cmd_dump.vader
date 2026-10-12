@@ -260,7 +260,8 @@ run_typecheck_stage :: fn(
 }
 
 run_callees_stage :: fn(file: Path, module_filter: string[], target: Target | null) -> i32 {
-    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], false, target)
+    // `dump_types` files each site's span, the position the dump prints.
+    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], true, target)
     scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
     print(dump_call_sites_project(fc.result.typed, fc.result.others, scope))
     if fc.diags.len() > 0 {

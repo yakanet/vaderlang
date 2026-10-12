@@ -15,6 +15,8 @@ export infer_index :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> Type {
     target :: check_expr_fn(e.target, null, typed, diags)
+    // Each route below files what it runs.
+    record_site(typed, e, .IndexRead, UNSETTLED_CALLEE)
     index_trait :: core_trait_key(TRAIT_INDEX)
     dispatched :: dispatched_index_args(e, target, index_trait, typed, diags)
     // Pin a free-literal index key to the key type K so `m[9000000000]` on a
@@ -26,12 +28,22 @@ export infer_index :: fn(
         index_key_expected(target, index_trait, typed)
     }
     index :: check_expr_fn(e.index, key_ty, typed, diags)
-    if target is UnresolvedType { return TY_UNRESOLVED }
-    // `"hello"[1]` — codepoint indexing on string returns char.
-    // `"hello"[r]` where `r: Range<T>` — codepoint slice returning string.
+    if target is UnresolvedType {
+        record_site(typed, e, .IndexRead, ERRONEOUS_CALLEE)
+        return TY_UNRESOLVED
+    }
+    // `"hello"[1]`: codepoint indexing on string returns char, through the
+    // `@intrinsic` member of `string implements Index`.
+    // `"hello"[r]` where `r: Range<T>`: codepoint slice returning string.
     if target is PrimitiveType {
         if target.name == "string" {
-            if is_range_type(index) { return TY_STRING }
+            if is_range_type(index) {
+                record_site(typed, e, .IndexRead, BUILTIN_CALLEE)
+                return TY_STRING
+            }
+            record_site(
+                typed, e, .IndexRead, first_member_callee(typed, target, index_trait, METHOD_AT),
+            )
             if !is_integer_index(index) {
                 diags.push(typecheck_error(.TypeMismatch, e.index.span,
                     "string index must be an integer, got ${display_type(index)}"))
@@ -47,6 +59,7 @@ export infer_index :: fn(
         // so it inherits the parent's mutability. Hard-wiring it mutable
         // laundered the freeze : `frozen[0..<1]` handed back a writable alias
         // onto the very buffer that was frozen.
+        record_site(typed, e, .IndexRead, BUILTIN_CALLEE)
         return mk_array(arr_view.element, arr_view.immutable)
     }
     if dispatched != null {
@@ -62,6 +75,7 @@ export infer_index :: fn(
     // Arrays — and array-backed distinct newtypes (`BigInt :: u32[]`) with no `Index`
     // of their own — index by element.
     if route == .Array && arr_view != null {
+        record_site(typed, e, .IndexRead, BUILTIN_CALLEE)
         if !is_integer_index(index) {
             diags.push(typecheck_error(.TypeMismatch, e.index.span,
                 "array index must be an integer, got ${display_type(index)}"))
@@ -78,6 +92,7 @@ export infer_index :: fn(
         diags.push(
             typecheck_error(.NotIndexable, e.span, "${display_type(target)} is not indexable"),
         )
+        record_site(typed, e, .IndexRead, ERRONEOUS_CALLEE)
         return TY_UNRESOLVED
     }
     _ :: reject_unmet_impl_bounds(target, index_trait, .TraitNotSatisfied, e.span, typed, diags)
@@ -103,8 +118,8 @@ reject_index_key :: fn(
 /// dispatches `x[i]` through the trait at run time — a type parameter bounded by it,
 /// a value of the trait itself, a union every variant of which implements it —
 /// exactly like the method form (`c.at(i)`, `c.set_at(i, v)`). The dispatch is
-/// recorded on `e`, so the lowering emits a virtual call on the receiver. Null for
-/// any other receiver.
+/// recorded on `e`, so the lowering emits a virtual call on the receiver, and filed
+/// as its site. Null for any other receiver.
 ///
 /// @param e          the index expression.
 /// @param target     its receiver's type.
@@ -122,10 +137,13 @@ dispatched_index_args :: fn(
         span :: e.target.span
         member :: union_trait_member(target, trait_key, method, span, typed, diags) ?? return null
         record_bounded_dispatch(typed, e.id, trait_key, member.trait_args)
+        record_site(typed, e, index_role(trait_key), dispatched_callee(target, trait_key, method))
         return member.trait_args
     }
     args :: trait_dispatch_args(target, trait_key, typed) ?? return null
     record_bounded_dispatch(typed, e.id, trait_key, args)
+    callee :: dispatched_callee(target, trait_key, index_method(trait_key))
+    record_site(typed, e, index_role(trait_key), callee)
     if target is TypeParamType {
         keep_instances_concrete(typed)
     }
@@ -225,11 +243,16 @@ index_key_expected :: fn(target: Type, trait_key: string, typed: TypedProgram) -
 index_method :: fn(trait_key: string) -> string =
     if trait_key == core_trait_key(TRAIT_INDEX_SET) { METHOD_SET_AT } else { METHOD_AT }
 
+// The role `x[i]` plays through `trait_key`.
+index_role :: fn(trait_key: string) -> CallRole =
+    if trait_key == core_trait_key(TRAIT_INDEX_SET) { .IndexWrite } else { .IndexRead }
+
 /// The member several impls of `trait_key` on `receiver` offer that the key `key_ty`
 /// picks (`Index<i32, Row>` beside `Index<Point, Cell>`), its signature on
 /// `receiver` without the receiver ; the pick is recorded for the lowering, in
-/// `picked_index_writes` for an `IndexSet`. Null when at most one impl offers it, or
-/// none takes the key (T3001) or two do (T3032).
+/// `picked_index_writes` for an `IndexSet`. The member is filed as the site, the
+/// only one when one impl offers it. Null when at most one impl offers it, or none
+/// takes the key (T3001) or two do (T3032).
 ///
 /// @param trait_key  `Index` for a read, `IndexSet` for a write.
 pick_index_member :: fn(
@@ -241,6 +264,10 @@ pick_index_member :: fn(
     diags: Diagnostic[],
 ) -> FnType | null {
     members :: trait_members(typed, receiver, trait_key, index_method(trait_key))
+    role :: index_role(trait_key)
+    if members.len() == 1 {
+        record_site(typed, e, role, direct_callee(members[0].decl, false))
+    }
     if members.len() < 2 {
         return null
     }
@@ -255,6 +282,7 @@ pick_index_member :: fn(
         diags.push(typecheck_error(
             .AmbiguousOverload, e.index.span, "several impls of ${impls} take a key ${key}",
         ))
+        record_site(typed, e, role, ERRONEOUS_CALLEE)
         return null
     }
     index :: pick.best
@@ -262,8 +290,10 @@ pick_index_member :: fn(
         diags.push(typecheck_error(
             .TypeMismatch, e.index.span, "no impl of ${impls} takes a key ${key}",
         ))
+        record_site(typed, e, role, ERRONEOUS_CALLEE)
         return null
     }
+    record_site(typed, e, role, direct_callee(members[index].decl, false))
     if trait_key == core_trait_key(TRAIT_INDEX_SET) {
         typed.picked_index_writes[e.id] = members[index]
     } else {

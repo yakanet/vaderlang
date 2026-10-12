@@ -35,6 +35,7 @@ export infer_binary :: fn(
     // free literal) recovers its element type from the slot — extends `[]`'s
     // existing context-typing across the `*`. See `check_arith`'s Mul/array case.
     left_ctx :: if e.op == .Mul && expected is ArrayType { expected } else { null }
+    record_site(typed, e, .Operator, operator_default(e.op))
     left := check_expr_fn(e.left, left_ctx, typed, diags)
     // `x is T` — right side is a type expression. Record its
     // resolved type directly so dump entries show e.g. `i32`
@@ -100,6 +101,13 @@ export infer_binary :: fn(
         .Is       -> { TY_BOOL }
         .In       -> { check_in(e, left, right, typed, diags) }
     }
+}
+
+// What an operator calls until its check settles it : nothing for one that never
+// dispatches through a trait, no decision yet for the others.
+operator_default :: fn(op: AST.BinaryOp) -> Callee = match classify(op) {
+    .Arith | .Compare | .Equality | .In     -> UNSETTLED_CALLEE
+    .Logical | .Integral | .Identity | .Is -> BUILTIN_CALLEE
 }
 
 /// Type-check `left ?? fallback`. `left` must be nullable ; the result is
@@ -171,13 +179,14 @@ check_arith :: fn(
     // impl is then a clean error (`instant + instant`, `[…] * <non-usize>`).
     if left !is DistinctType && right !is DistinctType && left !is ArrayType {
         if e.op == .Add && is_string(left) && is_string(right) {
+            record_site(typed, e, .Operator, BUILTIN_CALLEE)
             return TY_STRING
         }
         // The left operand dispatches : a numeric one has only the built-in op, a
         // struct one its impls, whatever the right operand (`v * 2.0` through
         // `Vec2 implements Mul<f64>`).
         if is_numeric(left) {
-            return numeric_result(e, left, right, diags)
+            return numeric_result(e, left, right, typed, diags)
         }
     }
     // Operator overloading via traits — `a + b` on user structs
@@ -186,7 +195,7 @@ check_arith :: fn(
     // its result type.
     method_name :: arith_trait_method(e.op)
     if method_name == "" {
-        return numeric_result(e, left, right, diags)
+        return numeric_result(e, left, right, typed, diags)
     }
     op_label :: "operator ${method_name}"
     bounded :: check_dispatched_operator(
@@ -196,7 +205,7 @@ check_arith :: fn(
         arith_trait(e.op),
         method_name,
         op_label,
-        e.id,
+        e,
         typed,
         diags,
     )
@@ -224,7 +233,7 @@ check_arith :: fn(
     if fb != null {
         return fb
     }
-    return numeric_result(e, left, right, diags)
+    return numeric_result(e, left, right, typed, diags)
 }
 
 // ---- array repeat — shared-element warning --------------------------------
@@ -359,7 +368,7 @@ check_operator_rhs :: fn(
 
 // The member of `candidates` an operator on `recv` dispatches to : the one whose
 // `other` takes `operand` best (`overload_rank`) when several impls of the trait
-// offer it, recorded for the lowering.
+// offer it, recorded for the lowering. Filed as the operator's site.
 pick_operator_member :: fn(
     candidates: ImplMethod[],
     recv: Type,
@@ -368,25 +377,26 @@ pick_operator_member :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> ImplMethod {
-    if candidates.len() == 1 {
-        return candidates[0]
+    index: usize = 0
+    if candidates.len() > 1 {
+        sigs: Type[]: []
+        for m in candidates {
+            sigs.push(impl_member_type(m, recv, typed))
+        }
+        pick :: pick_by_first_arg(sigs, operand, 1)
+        index = pick.best ?? 0
+        if pick.rival != null {
+            diags.push(
+                typecheck_error(
+                    .AmbiguousOverload,
+                    e.right.span,
+                    "several impls on ${display_type(recv)} take ${display_type(operand)} here",
+                ),
+            )
+        }
+        typed.picked_impl_members[e.id] = candidates[index]
     }
-    sigs: Type[]: []
-    for m in candidates {
-        sigs.push(impl_member_type(m, recv, typed))
-    }
-    pick :: pick_by_first_arg(sigs, operand, 1)
-    index :: pick.best ?? 0
-    if pick.rival != null {
-        diags.push(
-            typecheck_error(
-                .AmbiguousOverload,
-                e.right.span,
-                "several impls on ${display_type(recv)} take ${display_type(operand)} here",
-            ),
-        )
-    }
-    typed.picked_impl_members[e.id] = candidates[index]
+    record_site(typed, e, .Operator, direct_callee(candidates[index].decl, false))
     return candidates[index]
 }
 
@@ -406,6 +416,7 @@ pick_operator_member :: fn(
 /// @param method_name  the trait method the operator calls (`add`, `compare`, …).
 /// @param operand_expr the other operand, where a mismatch is reported.
 /// @param op_label     how a mismatch names the operator.
+/// @param e            the operator, under which the dispatch is recorded.
 /// @return             the method specialised at `recv`.
 /// @error              T3017 when the other operand does not fit the method's `other`.
 /// @error              as `union_trait_member`, on a union `recv`.
@@ -416,7 +427,7 @@ check_dispatched_operator :: fn(
     trait_name: string,
     method_name: string,
     op_label: string,
-    node_id: usize,
+    e: AST.BinaryExpr,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> FnType | null {
@@ -425,11 +436,12 @@ check_dispatched_operator :: fn(
     if member == null || member.trait_key != trait_key {
         return null
     }
-    record_bounded_dispatch(typed, node_id, member.trait_key, member.trait_args)
+    record_bounded_dispatch(typed, e.id, member.trait_key, member.trait_args)
     specialised :: member.ty
     if specialised !is FnType {
         return null
     }
+    record_site(typed, e, .Operator, dispatched_callee(recv, trait_key, method_name))
     if recv is TypeParamType {
         keep_instances_concrete(typed)
     }
@@ -544,7 +556,7 @@ check_compare :: fn(
     // pair like `f64 < i32` / `i32 < i64`. The ordering result is always `bool`
     // regardless of the operand type it returns.
     if is_numeric(left) && is_numeric(right) {
-        numeric_result(e, left, right, diags)
+        numeric_result(e, left, right, typed, diags)
         return TY_BOOL
     }
     if check_dispatched_operator(
@@ -554,7 +566,7 @@ check_compare :: fn(
         TRAIT_COMPARABLE,
         METHOD_COMPARE,
         "comparison operator",
-        e.id,
+        e,
         typed,
         diags,
     ) != null {
@@ -595,6 +607,7 @@ check_compare :: fn(
 push_trait_missing :: fn(
     e: AST.BinaryExpr, t: Type, trait_name: string, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
+    record_site(typed, e, .Operator, ERRONEOUS_CALLEE)
     if t is UnresolvedType {
         return
     }
@@ -648,7 +661,7 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
         TRAIT_CONTAINS,
         METHOD_CONTAINS,
         "operator in",
-        e.id,
+        e,
         typed,
         diags,
     ) != null {
@@ -749,10 +762,12 @@ check_equality :: fn(
     // don't structurally overlap) is not flagged.
     if is_null_type(right) {
         check_is_overlap(e, left, right, diags)
+        record_site(typed, e, .Operator, null_equality_callee(left))
         return TY_BOOL
     }
     if is_null_type(left) {
         check_is_overlap(e, right, left, diags)
+        record_site(typed, e, .Operator, null_equality_callee(right))
         return TY_BOOL
     }
     // A type parameter is opaque in its body : only a value of the same parameter
@@ -762,10 +777,12 @@ check_equality :: fn(
     comparable :: is_assignable(left, right) || is_assignable(right, left)
     if left is TypeParamType && !comparable {
         push_operand_mismatch(left, right, left, label, e.right.span, diags)
+        record_site(typed, e, .Operator, ERRONEOUS_CALLEE)
         return TY_BOOL
     }
     if right is TypeParamType && !comparable {
         push_operand_mismatch(right, left, right, label, e.left.span, diags)
+        record_site(typed, e, .Operator, ERRONEOUS_CALLEE)
         return TY_BOOL
     }
     incomparable := part_without_equality(left, typed)
@@ -776,6 +793,8 @@ check_equality :: fn(
         push_trait_missing(e, incomparable, TRAIT_EQUALS, typed, diags)
         return TY_BOOL
     }
+    // A struct operand's own member, picked below, replaces this.
+    record_site(typed, e, .Operator, equality_callee(left, right, typed))
     // A union compares by variant, against another union or one of its members.
     if left is UnionType || right is UnionType {
         if !shares_variant(left, right) {
@@ -795,7 +814,7 @@ check_equality :: fn(
     // width — reuse the shared `numeric_result` gate (T3017 on `u32 == i32`,
     // `f64 == i32`, …). Free literals fold, so `x == 0` still type-checks.
     if is_numeric(left) && is_numeric(right) {
-        numeric_result(e, left, right, diags)
+        numeric_result(e, left, right, typed, diags)
         return TY_BOOL
     }
     // Two scalars compare by REPRESENTATION : a distinct type stands for its
@@ -847,8 +866,19 @@ check_equality :: fn(
             typed,
             diags,
         )
+        // The lowering dispatches from the left operand.
+        record_site(typed, e, .Operator, equality_callee(left, right, typed))
     }
     return TY_BOOL
+}
+
+// What `x == null` runs : a test of the tag, but on a bare type parameter the
+// instance's own `==`.
+null_equality_callee :: fn(other: Type) -> Callee {
+    if other is TypeParamType {
+        return BoundMember { .trait_key = core_trait_key(TRAIT_EQUALS), .member = METHOD_EQUALS }
+    }
+    return BUILTIN_CALLEE
 }
 
 /// `a === b` / `a !== b` : the same object, never an equal value — SPEC §Identity.
@@ -1128,7 +1158,7 @@ check_integral :: fn(
         push_op_undefined(e, left, right, diags)
         return TY_UNRESOLVED
     }
-    return numeric_result(e, left, right, diags)
+    return numeric_result(e, left, right, typed, diags)
 }
 
 // ---- helpers --------------------------------------------------------------
@@ -1265,11 +1295,20 @@ repin_operand :: fn(
 // Compute the result type of a numeric binary op. Both operands must
 // be numeric AND in the same family (int / float) — Free* folds to a
 // concrete operand of its own family only. No implicit widening.
-numeric_result :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
+numeric_result :: fn(
+    e: AST.BinaryExpr,
+    left: Type,
+    right: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
     if !is_numeric(left) || !is_numeric(right) {
         push_op_undefined(e, left, right, diags)
+        record_site(typed, e, .Operator, ERRONEOUS_CALLEE)
         return TY_UNRESOLVED
     }
+    // The built-in op, whichever width the operands settle on below.
+    record_site(typed, e, .Operator, BUILTIN_CALLEE)
     // Same Free kind on both sides : keep the free kind.
     if left is FreeIntType && right is FreeIntType     { return left }
     if left is FreeFloatType && right is FreeFloatType { return left }
