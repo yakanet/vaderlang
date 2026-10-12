@@ -9,10 +9,9 @@
 // `Decl`, `Expr`, `Stmt`, `Pattern`, `LetBinding`, `ImportBinding`,
 // `StringLitPart`, etc. explicitly.
 
-/// Mints a unique `usize` id per call. One factory per parsed file is the
-/// expected ownership shape ; cloned bodies in `materialize.vader` re-use
-/// the host module's factory so cloned-node IDs stay disjoint from
-/// pre-existing IDs in that module.
+/// Mints a unique `usize` id per call. One factory serves the whole project
+/// (`load_project_with_overlay`), and what `materialize.vader` clones or
+/// synthesises draws from it too, so no two nodes of a project share an id.
 module "vader/parser"
 
 export NodeIdFactory :: struct { next: usize }
@@ -45,8 +44,8 @@ export assign_program_ids :: fn(p: Program, f: NodeIdFactory) -> void {
 
 /// Re-entrant entry for cloned blocks (used by
 /// `vader/resolver/materialize.vader` after substituting default-method
-/// bodies into an impl). Same factory the host module's parse used so
-/// cloned IDs don't collide with pre-existing ones.
+/// bodies into an impl). Same factory the project's parse used, so cloned
+/// IDs don't collide with pre-existing ones.
 export assign_block_ids :: fn(b: BlockExpr, f: NodeIdFactory) -> void {
     walk_block(b, f)
 }

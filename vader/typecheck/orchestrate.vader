@@ -1300,7 +1300,7 @@ materialize_file_sams :: fn(
         // `members` list — synthesise body-less FnDecls from the
         // trait's methods so the rest of the pipeline (declare /
         // ufcs / walk_fn_body) sees them.
-        materialize_intrinsic_members(decl, trait_decl)
+        materialize_intrinsic_members(decl, trait_decl, loaded.node_id_factory)
         // Always materialise the SAM rename — `check_short_impl_arity`
         // already marked invalid synthetics as `materialized=true` so
         // body-walk + body-typecheck skip them, but the rename still
@@ -1310,9 +1310,9 @@ materialize_file_sams :: fn(
         materialize_sam_members(decl, trait_decl, loaded.node_id_factory)
         // Default-bodied trait methods get cloned into the impl
         // (body + signature substituted). Bodies carry the
-        // materialised-span marker + IDs minted from the host
-        // module's factory so cloned nodes contribute distinct
-        // expr_types entries in the typecheck dump (rendered as
+        // materialised-span marker + IDs minted from the project's
+        // factory so cloned nodes contribute distinct expr_types
+        // entries in the typecheck dump (rendered as
         // `undefined:undefined`).
         materialize_default_members(decl, trait_decl, loaded.node_id_factory)
     }

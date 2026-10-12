@@ -27,8 +27,8 @@ export FnContext :: struct {
     /// expression checks (e.g. bounded trait-method dispatch in
     /// `field.vader`) attribute a finding back to the enclosing fn via
     /// `fn_needs_concrete_instances`. Keyed by id (not name) so overloaded fns
-    /// don't collide. A lambda carries its enclosing fn's ; `0` for synthetic
-    /// contexts.
+    /// don't collide. A lambda carries its enclosing fn's ; `0` for a lambda
+    /// typed outside any fn body (in a module-level const, say).
     fn_id: usize = 0
     /// Ids of the type parameters in scope : the enclosing impl's
     /// (`impl_type_param_ids`) and the fn's own `<…>`. Fixed for the body, so a
