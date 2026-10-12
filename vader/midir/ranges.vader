@@ -12,9 +12,11 @@
 // included, keeps its exact result only when that provably fits; it holds any
 // value of its type otherwise, and its facts are lost.
 //
-// A length fact survives a push, which only grows the array, and dies wherever
-// code the CFG does not show runs (`instruction_runs_code`), which might shrink
-// it through an alias this analysis does not see.
+// A length fact survives a push, which only grows the array, and dies at any
+// instruction the context says may shorten an array: any code the CFG does not
+// show (`instruction_runs_code`), or only what the call summaries cannot clear
+// (`array_shrink.vader`). Such code might shorten it through an alias this
+// analysis does not see.
 
 module "vader/midir"
 
@@ -33,6 +35,9 @@ RangeContext :: struct {
     /// Whether a checked operation stops the run when it overflows, as outside
     /// `--release`. Inside, it wraps like any other.
     checked_ops_trap: bool
+    /// Whether an instruction may shorten an array, so that every length known
+    /// before it dies.
+    shrinks: fn(Instruction) -> bool
 }
 
 /// The context for analysing a function with these locals.
@@ -40,7 +45,12 @@ RangeContext :: struct {
 /// @param locals            the function's locals, indexed by `LocalId`.
 /// @param checked_ops_trap  whether a checked operation stops the run when it
 ///                          overflows.
-range_context :: fn(locals: CFGLocal[], checked_ops_trap: bool) -> RangeContext {
+/// @param shrinks           whether an instruction may shorten an array.
+range_context :: fn(
+    locals: CFGLocal[],
+    checked_ops_trap: bool,
+    shrinks: fn(Instruction) -> bool,
+) -> RangeContext {
     types: (Interval | null)[]: []
     for l in locals {
         types.push(type_interval(l.type))
@@ -49,6 +59,7 @@ range_context :: fn(locals: CFGLocal[], checked_ops_trap: bool) -> RangeContext 
         .locals = locals,
         .types = types,
         .checked_ops_trap = checked_ops_trap,
+        .shrinks = shrinks,
     }
 }
 
@@ -170,7 +181,7 @@ forget_written :: fn(s: RangeState, ins: Instruction) -> void {
 /// @param s  what holds just before `ins`, changed in place into what holds
 ///           just after.
 transfer :: fn(ctx: RangeContext, s: RangeState, ins: Instruction) -> void {
-    if instruction_runs_code(ins) {
+    if ctx.shrinks(ins) {
         s.lengths.clear()
     }
     match ins {
@@ -392,7 +403,7 @@ test_context :: fn(type_names: string[]) -> RangeContext {
             },
         )
     }
-    return range_context(locals, true)
+    return range_context(locals, true, instruction_runs_code)
 }
 
 test_binop :: fn(op: LoweredBinaryOp, dst: i32, lhs: i32, rhs: i32) -> InstrBinOp = InstrBinOp {

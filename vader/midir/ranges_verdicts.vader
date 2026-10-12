@@ -52,8 +52,13 @@ FunctionRanges :: struct {
 }
 
 /// Analyse `fn_` and judge every array access and checked operation in it.
-analyse_function_ranges :: fn(fn_: CFGFunction) -> FunctionRanges {
-    release :: range_context(fn_.locals, false)
+///
+/// @param shrinks  whether an instruction may shorten an array.
+analyse_function_ranges :: fn(
+    fn_: CFGFunction,
+    shrinks: fn(Instruction) -> bool,
+) -> FunctionRanges {
+    release :: range_context(fn_.locals, false, shrinks)
     sites: RangeSite[]: []
     accesses :: has_sites(release, fn_, false)
     arithmetic :: has_sites(release, fn_, true)

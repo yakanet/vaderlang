@@ -1,0 +1,305 @@
+// vader/fixpoint — the fixed point of a property over a call graph.
+//
+// A client holds one fact per node of a graph whose edges go from a caller to the
+// functions it calls, and a step that recomputes one node's fact from what its
+// body does and from its callees' facts. `solve_bottom_up` runs that step over the
+// graph's strongly connected components, callees first, and repeats a component
+// until none of its facts moves: every callee outside a component has settled
+// before the component reads it.
+//
+// The lattice belongs to the client: its seed, its join, and the promise that a
+// step only ever moves a fact up. With a lattice of finite height that promise is
+// what makes every component settle; the cap catches a step that breaks it.
+//
+// Nodes are dense indices and facts live in the client's own arrays, so a client
+// maps its key (a mangle, a declaration) to an index once and the engine needs
+// no generic parameter.
+
+module "vader/fixpoint"
+
+import "std/abort"
+import "std/iter"
+import "std/math"
+
+/// A directed graph over the nodes `0..<successors.len()`; `successors[n]` lists
+/// the nodes `n` calls, possibly repeated, in any order.
+export Graph :: struct {
+    successors: i32[][]
+}
+
+/// The strongly connected components of `g`, each one after every component it
+/// reaches: callees come before their callers.
+///
+/// Tarjan's algorithm with an explicit stack, so a long chain of calls does not
+/// depend on how deep the host lets a recursion go.
+///
+/// @param g  the graph ; an edge to a node outside `0..<n` is a caller's bug and
+///           traps on the index.
+/// @return   every node exactly once ; within a component, nodes in no promised
+///           order.
+export components_bottom_up :: fn(g: Graph) -> i32[][] {
+    n :: g.successors.len()
+    walk :: TarjanWalk {
+        .order = [-1] * n,
+        .low = [0] * n,
+        .on_stack = [false] * n,
+        .stack = [],
+        .frame_nodes = [],
+        .frame_tried = [],
+    }
+    out: i32[][]: []
+    for root in 0..<n {
+        if walk.order[root] != -1 {
+            continue
+        }
+        enter(walk, i32(root))
+        for walk.frame_nodes.len() > 0 {
+            top :: walk.frame_nodes.len() - 1
+            v :: walk.frame_nodes[top]
+            successors :: g.successors[v]
+            tried :: walk.frame_tried[top]
+            if tried < successors.len() {
+                walk.frame_tried[top] = tried + 1
+                w :: successors[tried]
+                if walk.order[w] == -1 {
+                    enter(walk, w)
+                } else if walk.on_stack[w] {
+                    walk.low[v] = min(walk.low[v], walk.order[w])
+                }
+                continue
+            }
+            walk.frame_nodes.remove_last()
+            walk.frame_tried.remove_last()
+            caller :: walk.frame_nodes.last()
+            if caller != null {
+                walk.low[caller] = min(walk.low[caller], walk.low[v])
+            }
+            if walk.low[v] == walk.order[v] {
+                out.push(pop_component(walk, v))
+            }
+        }
+    }
+    return out
+}
+
+// Where Tarjan's walk stands. `order[v]` is the rank at which it first reached
+// `v`, -1 before ; `low[v]` the least rank `v` reaches back to through the nodes
+// on `stack`. Its own frames pair a node with how many of its successors it has
+// tried.
+TarjanWalk :: struct {
+    order: i32[]!
+    low: i32[]!
+    on_stack: bool[]!
+    stack: i32[]!
+    frame_nodes: i32[]!
+    frame_tried: usize[]!
+    next_rank: i32 = 0
+}
+
+// Give `v` the next rank, put it on the component stack and open its frame.
+enter :: fn(walk: TarjanWalk, v: i32) -> void {
+    walk.order[v] = walk.next_rank
+    walk.low[v] = walk.next_rank
+    walk.next_rank += 1
+    walk.on_stack[v] = true
+    walk.stack.push(v)
+    walk.frame_nodes.push(v)
+    walk.frame_tried.push(0)
+}
+
+// The nodes above `root` on the stack, `root` included: one component, taken off.
+pop_component :: fn(walk: TarjanWalk, root: i32) -> i32[] {
+    component: i32[]: []
+    for {
+        w :: walk.stack.remove_last() ?? panic("the component stack ran out before its root")
+        walk.on_stack[w] = false
+        component.push(w)
+        if w == root {
+            return component
+        }
+    }
+}
+
+/// Run `step` until no fact moves, one component at a time, callees first.
+///
+/// A component of one node that does not call itself takes a single step: its
+/// callees have settled. Any other component is swept until a whole sweep changes
+/// nothing, or until `cap` sweeps have run.
+///
+/// @param g     the call graph.
+/// @param step  recomputes the fact of `node` from its own body and from its
+///              successors' facts, and says whether that fact changed. It must
+///              only move a fact up the client's lattice.
+/// @param cap   the most sweeps one component may take. A lattice of height `h`
+///              settles a component of `k` nodes within `h * k + 1` sweeps.
+/// @return      the nodes of every component that had not settled at the cap ;
+///              their facts are wherever the last sweep left them, and the client
+///              puts them back on a value that is always sound.
+/// @example
+///   g :: Graph { .successors = [[1], [0], []] }
+///   reaches_two :: [false, false, true]
+///   unsettled :: solve_bottom_up(g, reachability_step(g, reaches_two), 8)
+export solve_bottom_up :: fn(g: Graph, step: fn(i32) -> bool, cap: i32) -> i32[] {
+    unsettled: i32[]: []
+    for component in components_bottom_up(g) {
+        if !is_cycle(g, component) {
+            step(component[0])
+            continue
+        }
+        if !sweep_until_settled(component, step, cap) {
+            unsettled.push_all(component)
+        }
+    }
+    return unsettled
+}
+
+// Whether `component` can call back into itself: several nodes, or one that calls
+// itself.
+is_cycle :: fn(g: Graph, component: i32[]) -> bool =
+    component.len() > 1 || component[0] in g.successors[component[0]]
+
+// Sweep `component` until a sweep moves nothing ; false when `cap` sweeps did not
+// get there.
+sweep_until_settled :: fn(component: i32[], step: fn(i32) -> bool, cap: i32) -> bool {
+    for 0..<cap {
+        changed := false
+        for node in component {
+            if step(node) {
+                changed = true
+            }
+        }
+        if !changed {
+            return true
+        }
+    }
+    return false
+}
+
+/// The step of a "may reach a marked node" property, whose smallest fixed point is
+/// `marked[n] = marked[n] || any successor's mark`: `marked` starts as the nodes
+/// that hold by themselves and ends as every node that reaches one.
+///
+/// @param g       the graph.
+/// @param marked  one flag per node, updated in place.
+/// @return        the step to hand to `solve_bottom_up`.
+export reachability_step :: fn(g: Graph, marked: bool[]) -> fn(i32) -> bool = fn(node: i32) {
+    if marked[node] {
+        return false
+    }
+    marked[node] = g.successors[node].any_match((m) -> marked[m])
+    return marked[node]
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/sort"
+import "std/testing"
+
+// The components of `g`, each sorted, so a test does not depend on the order
+// inside one.
+sorted_components :: fn(g: Graph) -> i32[][] =
+    components_bottom_up(g).map((component) -> sort(component, (a, b) -> a < b)).collect()
+
+// The position of the component holding `node` in `components`.
+rank_of :: fn(components: i32[][], node: i32) -> usize {
+    rank :: (0..<components.len()).find((i) -> node in components[i])
+    return rank ?? components.len()
+}
+
+@test
+test_components_chain_callees_first :: fn() -> void {
+    g :: Graph { .successors = [[1], [2], []] }
+    assert_eq("${sorted_components(g)}", "[[2], [1], [0]]")
+}
+
+@test
+test_components_cycle_is_one_component :: fn() -> void {
+    g :: Graph { .successors = [[1], [0, 2], []] }
+    assert_eq("${sorted_components(g)}", "[[2], [0, 1]]")
+}
+
+@test
+test_components_self_loop_and_isolated_nodes :: fn() -> void {
+    g :: Graph { .successors = [[0], [], []] }
+    assert_eq("${sorted_components(g)}", "[[0], [1], [2]]")
+}
+
+@test
+test_components_diamond_orders_the_join_first :: fn() -> void {
+    g :: Graph { .successors = [[1, 2], [3], [3], []] }
+    components :: sorted_components(g)
+    assert_eq(components.len(), 4)
+    assert(rank_of(components, 3) < rank_of(components, 1), "3 before 1")
+    assert(rank_of(components, 3) < rank_of(components, 2), "3 before 2")
+    assert(rank_of(components, 1) < rank_of(components, 0), "1 before 0")
+    assert(rank_of(components, 2) < rank_of(components, 0), "2 before 0")
+}
+
+@test
+test_components_nested_cycles :: fn() -> void {
+    // 0 → 1 → 2 → 0 and 2 → 3 → 4 → 3 : two cycles, the second reached from the
+    // first.
+    g :: Graph { .successors = [[1], [2], [0, 3], [4], [3]] }
+    assert_eq("${sorted_components(g)}", "[[3, 4], [0, 1, 2]]")
+}
+
+@test
+test_components_long_chain_needs_no_recursion :: fn() -> void {
+    n :: 20_000
+    successors: i32[][]: []
+    for i in 0..<n - 1 {
+        successors.push([i + 1])
+    }
+    successors.push([])
+    components :: components_bottom_up(Graph { .successors = successors })
+    assert_eq(components.len(), usize(n))
+    assert_eq(components[0][0], n - 1)
+    assert_eq(components[n - 1][0], 0)
+}
+
+@test
+test_solve_propagates_to_callers :: fn() -> void {
+    g :: Graph { .successors = [[1], [2], [], []] }
+    fact :: [false, false, true, false]
+    unsettled :: solve_bottom_up(g, reachability_step(g, fact), 8)
+    assert_eq(unsettled.len(), 0)
+    assert_eq("${fact}", "[true, true, true, false]")
+}
+
+@test
+test_solve_settles_a_cycle :: fn() -> void {
+    // 0 ↔ 1, 1 → 2 marked : the whole cycle reaches it.
+    g :: Graph { .successors = [[1], [0, 2], []] }
+    fact :: [false, false, true]
+    unsettled :: solve_bottom_up(g, reachability_step(g, fact), 8)
+    assert_eq(unsettled.len(), 0)
+    assert_eq("${fact}", "[true, true, true]")
+}
+
+@test
+test_solve_keeps_a_recursive_node_at_its_seed :: fn() -> void {
+    // 0 calls itself and nothing marked: the smallest fixed point leaves it false.
+    g :: Graph { .successors = [[0]] }
+    fact :: [false]
+    unsettled :: solve_bottom_up(g, reachability_step(g, fact), 8)
+    assert_eq(unsettled.len(), 0)
+    assert_eq("${fact}", "[false]")
+}
+
+@test
+test_solve_steps_a_lone_node_once :: fn() -> void {
+    g :: Graph { .successors = [[], []] }
+    steps :: [0, 0]
+    _ :: solve_bottom_up(g, fn(node: i32) {
+        steps[node] += 1
+        return false
+    }, 8)
+    assert_eq("${steps}", "[1, 1]")
+}
+
+@test
+test_solve_reports_a_component_past_the_cap :: fn() -> void {
+    g :: Graph { .successors = [[1], [0], []] }
+    unsettled :: solve_bottom_up(g, (node: i32) -> node != 2, 3)
+    assert_eq("${sort(unsettled, (a, b) -> a < b)}", "[0, 1]")
+}

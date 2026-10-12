@@ -1,0 +1,117 @@
+// vader/midir/array_shrink — which calls may shorten an array.
+//
+// The range analysis keeps what it knows of an array's length across an
+// instruction that cannot shorten one (`ranges.vader`, `transfer`). Only
+// `remove_last` and `clear` shorten an array (`ArrayOps` in `std/core`); every
+// other change makes it longer, which leaves `i < len(xs)` true.
+//
+// A call may shorten an array when its callee's body does, or calls something
+// that may: the smallest fixed point over the call graph (`call_graph.vader`),
+// so a recursive function that shortens nothing is known not to. A bodyless
+// callee is judged by what it is handed (`can_reach_an_array`), and a callee the
+// project does not define is assumed to shorten one.
+
+module "vader/midir"
+
+import "std/iter"
+import "vader/fixpoint"
+import "vader/lower"
+import "vader/types"
+
+/// Per node of a project's call graph, whether running it may shorten an array.
+ShrinkSummary :: struct {
+    calls: CallGraph
+    may_shrink: bool[]
+}
+
+// The intrinsics that leave every array at least as long as it was.
+NON_SHRINKING_INTRINSICS: string[]: [
+    INTRINSIC_SIZE_OF_TYPE,
+    INTRINSIC_ARRAY_REPEAT,
+    INTRINSIC_ARRAY_PUSH_ALL,
+    INTRINSIC_ARRAY_COPY,
+]
+
+/// Work out, for every function of `p`, whether calling it may shorten an array.
+///
+/// @param p  the CFG ; read only.
+summarise_array_shrinking :: fn(p: CFGProject) -> ShrinkSummary {
+    calls :: build_call_graph(p)
+    may_shrink: bool[]: []
+    for node in calls.nodes {
+        may_shrink.push(node_shrinks_by_itself(node))
+    }
+    cap :: i32(calls.nodes.len()) + 1
+    for node in solve_bottom_up(calls.graph, reachability_step(calls.graph, may_shrink), cap) {
+        may_shrink[node] = true
+    }
+    return ShrinkSummary { .calls = calls, .may_shrink = may_shrink }
+}
+
+/// Whether running `ins` may shorten an array, as the range analysis asks it
+/// (`RangeContext.shrinks`).
+///
+/// @param summary  the project's summary.
+shrink_predicate :: fn(summary: ShrinkSummary) -> fn(Instruction) -> bool = fn(ins: Instruction) {
+    may_shrink :: summary.may_shrink
+    callees :: instruction_callees(summary.calls.index, ins)
+    return is_shrinking_intrinsic(ins) || callees.any_match((callee) -> may_shrink[callee])
+}
+
+/// One line on what the summary concluded, for `$VADER_OPT_REPORT`.
+summary_line :: fn(s: ShrinkSummary) -> string {
+    nodes :: s.calls.nodes
+    is_function :: (i: usize) -> nodes[i] is CFGFunction
+    is_extern :: (i: usize) -> nodes[i] is CFGExternDecl
+    functions :: count_where(nodes.len(), is_function)
+    shrinking :: count_where(nodes.len(), (i) -> is_function(i) && s.may_shrink[i])
+    by_their_body :: count_where(
+        nodes.len(),
+        (i) -> is_function(i) && node_shrinks_by_itself(nodes[i]),
+    )
+    externs :: count_where(nodes.len(), is_extern)
+    shrinking_externs :: count_where(nodes.len(), (i) -> is_extern(i) && s.may_shrink[i])
+    indirect :: s.may_shrink[s.calls.index.indirect]
+    return "${shrinking} of ${functions} functions may shorten an array " +
+        "(${by_their_body} by their own body), ${shrinking_externs} of ${externs} bodyless " +
+        "ones ; an indirect call may: ${indirect}"
+}
+
+// How many of `0..<n` satisfy `pred`.
+count_where :: fn(n: usize, pred: fn(usize) -> bool) -> usize = (0..<n).filter(pred).count()
+
+// What a node does by itself, its calls left out.
+node_shrinks_by_itself :: fn(node: CallNode) -> bool = match node {
+    is CFGFunction                      -> body_shrinks_by_itself(node)
+    is CFGExternDecl                    -> extern_may_shrink(node)
+    is IndirectCalls | ForeignCallbacks -> false
+    is UnknownCallee                    -> true
+}
+
+body_shrinks_by_itself :: fn(f: CFGFunction) -> bool =
+    f.blocks.any_match((block) -> block.instructions.any_match(is_shrinking_intrinsic))
+
+is_shrinking_intrinsic :: fn(ins: Instruction) -> bool =
+    ins is InstrIntrinsic && intrinsic_may_shrink(ins.name)
+
+// An intrinsic this table does not know is assumed to shorten an array.
+intrinsic_may_shrink :: fn(name: string) -> bool = !(name in NON_SHRINKING_INTRINSICS)
+
+// A bodyless function reaches nothing but what it is handed: it may shorten an
+// array when one of its parameters can lead to one, or to code it calls back.
+extern_may_shrink :: fn(e: CFGExternDecl) -> bool =
+    e.params.any_match((param) -> can_reach_an_array(param.type))
+
+// Whether a value of type `t` can lead to an array: the array itself, a value
+// holding one, or code that may shorten one. A string is immutable and a C
+// pointer points outside what the runtime owns.
+can_reach_an_array :: fn(t: Type) -> bool = match t {
+    is PrimitiveType | FreeIntType | FreeFloatType | FreeCharType -> false
+    is NeverType | TypeMetaType -> false
+    is EnumType -> t.data != null
+    is DistinctType -> can_reach_an_array(t.backing)
+    is UnionType -> t.variants.any_match(can_reach_an_array)
+    is TupleType -> t.elements.any_match(can_reach_an_array)
+    is StructType | TraitType | FnType | ArrayType -> true
+    is TypeParamType | SelfType | UnresolvedType | AnyType -> true
+}

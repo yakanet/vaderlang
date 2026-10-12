@@ -37,15 +37,21 @@ RangeTally :: struct {
 /// @param p  the CFG after every midir pass, as the bytecode emitter receives
 ///           it.
 export report_ranges :: fn(p: CFGProject) -> void {
+    summary :: summarise_array_shrinking(p)
+    shrinks :: shrink_predicate(summary)
     total :: RangeTally {}
+    // The same analysis with every call forgetting the lengths, so the report
+    // shows what the call summaries add.
+    without_summaries :: RangeTally {}
     modules: [string, RangeTally][]: []
     faults: string[]: []
     for [_, m] in p.modules {
         tally :: RangeTally {}
         for fn_ in m.functions {
-            r :: analyse_function_ranges(fn_)
+            r :: analyse_function_ranges(fn_, shrinks)
             tally_function(tally, r)
             tally_function(total, r)
+            tally_function(without_summaries, analyse_function_ranges(fn_, instruction_runs_code))
             for site in r.sites {
                 if site.verdict == .CertainFault {
                     at :: source_position(site.span)
@@ -62,6 +68,10 @@ export report_ranges :: fn(p: CFGProject) -> void {
     out.append("  accesses: ${counts_line(total.accesses)}\n")
     out.append("  checked:  ${counts_line(total.checked)}\n")
     out.append("  functions with no fixed point: ${total.gave_up}\n")
+    out.append("  without call summaries:\n")
+    out.append("    accesses: ${counts_line(without_summaries.accesses)}\n")
+    out.append("    checked:  ${counts_line(without_summaries.checked)}\n")
+    out.append("  call summaries: ${summary_line(summary)}\n")
     out.append("\n  per module, accesses: proven + already safe / sites, checked: proven / sites\n")
     for [path, tally] in sort(modules, (a, b) -> a.0 < b.0) {
         out.append("    ${path}: ${tally_line(tally)}\n")
@@ -120,13 +130,14 @@ tally_line :: fn(t: RangeTally) -> string =
 export dump_ranges_project :: fn(p: CFGProject, scope: string[]) -> string {
     sb :: StringBuilder {}
     sb.append("# ranges\n")
+    shrinks :: shrink_predicate(summarise_array_shrinking(p))
     for [_, m] in p.modules {
         if !module_in_scope(m.display_path, scope) || m.functions.len() == 0 {
             continue
         }
         sb.append("\n## ${m.display_path}\n")
         for fn_ in m.functions {
-            write_function_ranges(analyse_function_ranges(fn_), sb)
+            write_function_ranges(analyse_function_ranges(fn_, shrinks), sb)
         }
     }
     return sb.to_string()

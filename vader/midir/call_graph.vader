@@ -1,0 +1,191 @@
+// vader/midir/call_graph — who calls whom across a CFG project.
+//
+// One node per function with a body, one per bodyless function (`CFGExternDecl`),
+// and three more:
+//
+// - the node an indirect call or a deferred block goes through, whose successors
+//   are the functions a Vader value is taken of (`InstrFnRef`, `InstrMakeClosure`);
+// - the node every bodyless function goes through, whose successors are the
+//   functions handed to foreign code as an address (`InstrFnAddr`): C may keep one
+//   and call it back from any later foreign call;
+// - the node a callee the project does not define resolves to.
+//
+// Every call is then an edge, and a client judges each kind of node on its own
+// terms (`array_shrink.vader`). Callees resolve through `CfgResolution`
+// (`verify.vader`), the chain the CFG verifier holds emitted calls to.
+//
+// The graph is closed over the project: a value of function type only comes into
+// being through those three instructions.
+
+module "vader/midir"
+
+import "std/collections"
+import "vader/fixpoint"
+import "vader/resolver/symbol"
+
+/// The node an indirect call or a deferred block goes through.
+IndirectCalls :: struct {}
+
+/// The node a foreign call goes through, to the functions C was handed.
+ForeignCallbacks :: struct {}
+
+/// The node a callee the project defines nowhere resolves to.
+UnknownCallee :: struct {}
+
+/// What a node of the call graph stands for.
+CallNode :: CFGFunction | CFGExternDecl | IndirectCalls | ForeignCallbacks | UnknownCallee
+
+/// How a call site finds its nodes. The functions are the first nodes, in
+/// `resolution.functions` order, then the externs, then the three fixed nodes.
+CalleeIndex :: struct {
+    resolution: CfgResolution
+    /// `vtable_key` → the nodes a virtual call through that key may land on.
+    virtual_targets: MutableMap<string, i32[]!>!
+    indirect: i32
+    foreign_callbacks: i32
+    unknown: i32
+}
+
+/// The call graph of a CFG project.
+CallGraph :: struct {
+    graph: Graph
+    nodes: CallNode[]
+    index: CalleeIndex
+}
+
+/// Build the call graph of `p`.
+///
+/// @param p  the CFG ; read only.
+build_call_graph :: fn(p: CFGProject) -> CallGraph {
+    resolution :: build_cfg_resolution(p)
+    nodes: CallNode[]: []
+    nodes.push_all(resolution.functions)
+    nodes.push_all(resolution.externs)
+    indirect :: i32(nodes.len())
+    nodes.push(IndirectCalls {})
+    nodes.push(ForeignCallbacks {})
+    nodes.push(UnknownCallee {})
+    index :: CalleeIndex {
+        .resolution = resolution,
+        .virtual_targets = MutableMap<string, i32[]!> {},
+        .indirect = indirect,
+        .foreign_callbacks = indirect + 1,
+        .unknown = indirect + 2,
+    }
+    for e in p.vtable_entries {
+        key :: vtable_key(e.trait_name, e.method_name)
+        targets :: index.virtual_targets[key] ?? new_target_list(index, key)
+        targets.push(callee_node(index, e.fn_symbol))
+    }
+    successors: i32[][]: []
+    taken :: TakenFunctions { .as_values = MutableSet<i32> {}, .as_addresses = MutableSet<i32> {} }
+    for node in nodes {
+        successors.push(node_callees(index, node, taken))
+    }
+    successors[index.indirect] = nodes_of(taken.as_values)
+    successors[index.foreign_callbacks] = nodes_of(taken.as_addresses)
+    return CallGraph {
+        .graph = Graph { .successors = successors },
+        .nodes = nodes,
+        .index = index,
+    }
+}
+
+// The functions some body takes as a Vader value, and those it hands to foreign
+// code as an address.
+TakenFunctions :: struct {
+    as_values: MutableSet<i32>
+    as_addresses: MutableSet<i32>
+}
+
+new_target_list :: fn(index: CalleeIndex, key: string) -> i32[]! {
+    fresh: i32[]: []
+    index.virtual_targets[key] = fresh
+    return fresh
+}
+
+/// The node a direct call to `callee` runs.
+///
+/// @param callee  an `InstrCall`'s callee, or a vtable entry's function.
+/// @return        a function, else an extern, else `index.unknown`.
+callee_node :: fn(index: CalleeIndex, callee: Symbol) -> i32 {
+    r :: index.resolution
+    function :: function_called(r, callee)
+    if function != null {
+        return function
+    }
+    extern_position :: import_called(r, callee) ?? return index.unknown
+    return i32(r.functions.len()) + extern_position
+}
+
+/// The nodes `ins` may run: none for an instruction that calls nothing, an
+/// intrinsic included (a client judges those by name).
+///
+/// @param ins  any instruction of a function of the project `index` was built
+///             from.
+instruction_callees :: fn(index: CalleeIndex, ins: Instruction) -> i32[] = match ins {
+    is InstrCall -> [callee_node(index, ins.callee)]
+    is InstrVirtualCall -> index.virtual_targets[vtable_key(ins.trait_name, ins.method)] ?? []
+    is InstrCallIndirect | InstrDeferPopExec -> [index.indirect]
+    is InstrConst | InstrBinOp | InstrUnOp | InstrFnRef | InstrFnAddr | InstrFieldGet -> []
+    is InstrFieldSet | InstrArrayGet | InstrArraySet | InstrArrayLen | InstrArrayPush -> []
+    is InstrArraySlice | InstrStringSlice | InstrStructNew | InstrArrayNew | InstrDataConst -> []
+    is InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet -> []
+    is InstrCellSet | InstrMakeClosure | InstrIntrinsic | InstrMove | InstrDeferPush -> []
+}
+
+// The callees of one node, each once, in the order its body first reaches them ;
+// the functions it takes as a value or an address go into `taken`.
+node_callees :: fn(index: CalleeIndex, node: CallNode, taken: TakenFunctions) -> i32[] {
+    if node is CFGExternDecl {
+        return [index.foreign_callbacks]
+    }
+    if node !is CFGFunction {
+        return []
+    }
+    seen :: MutableSet<i32> {}
+    callees: i32[]: []
+    for block in node.blocks {
+        for ins in block.instructions {
+            for callee in instruction_callees(index, ins) {
+                if seen.add(callee) {
+                    callees.push(callee)
+                }
+            }
+            note_taken(index, ins, taken)
+        }
+    }
+    return callees
+}
+
+// Record the function `ins` makes a value or an address of, if any.
+note_taken :: fn(index: CalleeIndex, ins: Instruction, taken: TakenFunctions) -> void {
+    match ins {
+        is InstrFnRef | InstrMakeClosure -> {
+            _ :: taken.as_values.add(taken_node(index, ins.fn_symbol))
+        }
+        is InstrFnAddr -> {
+            _ :: taken.as_addresses.add(taken_node(index, ins.fn_symbol))
+        }
+        is InstrConst | InstrBinOp | InstrUnOp | InstrCall | InstrCallIndirect -> {}
+        is InstrVirtualCall | InstrFieldGet | InstrFieldSet | InstrArrayGet -> {}
+        is InstrArraySet | InstrArrayLen | InstrArrayPush | InstrArraySlice -> {}
+        is InstrStringSlice | InstrStructNew | InstrArrayNew | InstrDataConst -> {}
+        is InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet -> {}
+        is InstrCellSet | InstrIntrinsic | InstrMove | InstrDeferPush | InstrDeferPopExec -> {}
+    }
+}
+
+// The node of a function taken as a value or an address: by symbol id alone, as
+// emit resolves a `fn.ref` or a `fn.addr`.
+taken_node :: fn(index: CalleeIndex, target: Symbol) -> i32 =
+    function_taken(index.resolution, target) ?? index.unknown
+
+// The members of `set`, in the order they were added.
+nodes_of :: fn(set: MutableSet<i32>) -> i32[] {
+    nodes: i32[]: []
+    for n in set {
+        nodes.push(n)
+    }
+    return nodes
+}

@@ -41,7 +41,8 @@ export push_keeps_length :: fn(xs: i32[]) -> i32 {
     return total
 }
 
-/// A call may shrink the array through an alias: unproven.
+/// `println` reaches a bodyless function handed a byte array, which the call
+/// summaries assume may shorten an array: unproven.
 export call_drops_length :: fn(xs: i32[]) -> i32 {
     total := 0
     for i in 0..<xs.len() {
@@ -50,6 +51,93 @@ export call_drops_length :: fn(xs: i32[]) -> i32 {
     }
     return total
 }
+
+/// A callee that shortens no array keeps the length fact: proven.
+export call_keeps_length :: fn(xs: i32[]) -> i32 {
+    total := 0
+    for i in 0..<xs.len() {
+        total = scramble(total)
+        total += xs[i]
+    }
+    return total
+}
+
+// Shortens nothing and calls nothing.
+scramble :: fn(x: i32) -> i32 = x *% 31
+
+/// A callee that shortens an array, another one here, drops every length fact:
+/// unproven.
+export callee_shortens :: fn(xs: i32[], stack: i32[]) -> i32 {
+    total := 0
+    for i in 0..<xs.len() {
+        pop(stack)
+        total += xs[i]
+    }
+    return total
+}
+
+pop :: fn(stack: i32[]) -> void {
+    _ :: stack.remove_last()
+}
+
+/// A recursive callee that shortens no array keeps the length fact: proven.
+export recursive_callee_keeps_length :: fn(xs: i32[]) -> i32 {
+    total := 0
+    for i in 0..<xs.len() {
+        total = countdown(total)
+        total += xs[i]
+    }
+    return total
+}
+
+countdown :: fn(n: i32) -> i32 {
+    if n <= 0 {
+        return 0
+    }
+    return countdown(n -% 1)
+}
+
+/// Something with an area.
+export Shape :: trait {
+    area :: fn(self) -> i32
+}
+
+Square :: struct {
+    side: i32
+}
+
+Square implements Shape {
+    area :: fn(self) -> i32 = self.side *% self.side
+}
+
+/// A virtual call none of whose implementations shortens an array keeps the
+/// length fact: proven.
+export virtual_call_keeps_length :: fn(xs: i32[], s: Shape) -> i32 {
+    total := 0
+    for i in 0..<xs.len() {
+        total = s.area()
+        total += xs[i]
+    }
+    return total
+}
+
+/// Hands a `Square` out as a `Shape`, so the virtual call has an implementation
+/// to land on.
+export unit_square :: fn() -> Shape = Square { .side = 1 }
+
+/// An indirect call may run any function a value is taken of, `pop` among them:
+/// unproven.
+export indirect_call_drops_length :: fn(xs: i32[], f: fn(i32) -> i32) -> i32 {
+    total := 0
+    for i in 0..<xs.len() {
+        total = f(total)
+        total += xs[i]
+    }
+    return total
+}
+
+/// Takes `pop` as a value.
+export shortening_callback :: fn() -> fn(i32[]!) -> void = pop
 
 /// An unsigned decrement behind `n > 0`: proven.
 export guarded_decrement :: fn(n: usize) -> usize {

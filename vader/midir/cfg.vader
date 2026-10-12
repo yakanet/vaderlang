@@ -323,6 +323,10 @@ export InstrFnAddr :: struct {
     type:      Type
 }
 
+/// The key a virtual call and the vtable rows it may land on share: the trait's
+/// `trait_key` and the method's name.
+vtable_key :: fn(trait_name: string, method: string) = "${trait_name}.${method}"
+
 /// Trait-method virtual dispatch. Lowers to bytecode `virtual.call`.
 export InstrVirtualCall :: struct {
     span:       Span

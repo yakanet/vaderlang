@@ -453,7 +453,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         }
         vtable_roots: i32[]: []
         for ve in cfg.vtable_entries {
-            key :: "${ve.trait_name}.${ve.method_name}"
+            key :: vtable_key(ve.trait_name, ve.method_name)
             if used_vt_keys[key] !is bool { continue }
             // Pin the receiver struct type so structs only kept through an
             // impl row survive when the row's trait is actually dispatched
@@ -543,7 +543,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
     }
     ordered.push_all(deferred)
     for ve in ordered {
-        key :: "${ve.trait_name}.${ve.method_name}"
+        key :: vtable_key(ve.trait_name, ve.method_name)
         if used_keys[key] !is bool { continue }
         fn_idx :: resolve_fn_index(ve.fn_symbol, ctx)
         if fn_idx < 0 { continue }
@@ -1138,7 +1138,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         } else {
             emit_get(ctx, ins.receiver, ins.span)
         }
-        push_emit(ctx, VirtualCall { .vtable_key = "${ins.trait_name}.${ins.method}", .parameter_count = i32(ins.args.len() + 1) }, ins.span)
+        push_emit(ctx, VirtualCall { .vtable_key = vtable_key(ins.trait_name, ins.method), .parameter_count = i32(ins.args.len() + 1) }, ins.span)
         emit_result_if_any(ctx, pos, ins.dst, ins.span)
         return
     }

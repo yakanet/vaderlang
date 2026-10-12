@@ -56,8 +56,14 @@ export instruction_has_side_effect :: fn(ins: Instruction) -> bool =
 /// call of any kind, an intrinsic, or the deferred blocks a scope exit pops.
 /// That code may change any memory the function reaches, an array's length
 /// included.
-export instruction_runs_code :: fn(ins: Instruction) -> bool =
-    ins is InstrCall | InstrCallIndirect | InstrVirtualCall | InstrIntrinsic | InstrDeferPopExec
+export instruction_runs_code :: fn(ins: Instruction) -> bool = match ins {
+    is InstrCall | InstrCallIndirect | InstrVirtualCall | InstrIntrinsic | InstrDeferPopExec -> true
+    is InstrConst | InstrBinOp | InstrUnOp | InstrFnRef | InstrFnAddr | InstrFieldGet -> false
+    is InstrFieldSet | InstrArrayGet | InstrArraySet | InstrArrayLen | InstrArrayPush -> false
+    is InstrArraySlice | InstrStringSlice | InstrStructNew | InstrArrayNew | InstrDataConst -> false
+    is InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet -> false
+    is InstrCellSet | InstrMakeClosure | InstrMove | InstrDeferPush -> false
+}
 
 // ---- operand walks --------------------------------------------------------
 

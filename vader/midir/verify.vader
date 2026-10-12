@@ -31,51 +31,83 @@ import "vader/typecheck"
 
 // ---- resolution tables ----------------------------------------------------
 
-// The four lookup tables `midir/emit` fills while reserving functions,
-// reduced to membership. Built once per project : rebuilding per function
-// would make the verifier quadratic on the self-host.
+// The four lookup tables `midir/emit` fills while reserving functions, each
+// giving a function's position in `functions` or an extern's in `externs`.
+// Built once per project : rebuilding per function would make the verifier
+// quadratic on the self-host. The call graph (`call_graph.vader`) resolves
+// through it too, so a callee is found the same way by both.
 CfgResolution :: struct {
-    fn_by_mangle:     MutableSet<string>!
-    fn_by_symbol:     MutableSet<i32>!
-    import_by_mangle: MutableSet<string>!
-    import_by_symbol: MutableSet<i32>!
+    functions:        CFGFunction[]
+    externs:          CFGExternDecl[]
+    fn_by_mangle:     MutableMap<string, i32>
+    fn_by_symbol:     MutableMap<i32, i32>
+    import_by_mangle: MutableMap<string, i32>
+    import_by_symbol: MutableMap<i32, i32>
 }
 
 // Mirrors `reserve_cfg_function` / `reserve_cfg_extern` : a fn is always
 // indexed by mangle, and additionally by symbol id when its origin carries
 // one (impl members and other synthetic fns set `origin.symbol = null`).
 build_cfg_resolution :: fn(project: CFGProject) -> CfgResolution {
-    r :: CfgResolution {
-        .fn_by_mangle     = MutableSet<string> {},
-        .fn_by_symbol     = MutableSet<i32> {},
-        .import_by_mangle = MutableSet<string> {},
-        .import_by_symbol = MutableSet<i32> {},
-    }
+    functions: CFGFunction[]: []
+    externs: CFGExternDecl[]: []
+    fn_by_mangle :: MutableMap<string, i32> {}
+    fn_by_symbol :: MutableMap<i32, i32> {}
+    import_by_mangle :: MutableMap<string, i32> {}
+    import_by_symbol :: MutableMap<i32, i32> {}
     for [_module_id, m] in project.modules {
         for f in m.functions {
-            r.fn_by_mangle.add(f.mangled)
-            if f.origin.symbol is Symbol as sym { r.fn_by_symbol.add(sym.id) }
+            at :: i32(functions.len())
+            index_by_name(fn_by_mangle, fn_by_symbol, f.mangled, f.origin.symbol, at)
+            functions.push(f)
         }
         for e in m.externs {
-            r.import_by_mangle.add(e.mangled)
-            if e.origin.symbol is Symbol as sym { r.import_by_symbol.add(sym.id) }
+            at :: i32(externs.len())
+            index_by_name(import_by_mangle, import_by_symbol, e.mangled, e.origin.symbol, at)
+            externs.push(e)
         }
     }
-    return r
+    return CfgResolution {
+        .functions = functions,
+        .externs = externs,
+        .fn_by_mangle = fn_by_mangle,
+        .fn_by_symbol = fn_by_symbol,
+        .import_by_mangle = import_by_mangle,
+        .import_by_symbol = import_by_symbol,
+    }
+}
+
+index_by_name :: fn(
+    by_mangle: MutableMap<string, i32>,
+    by_symbol: MutableMap<i32, i32>,
+    mangled: string,
+    symbol: Symbol | null,
+    index: i32,
+) -> void {
+    by_mangle[mangled] = index
+    sym :: symbol ?? return
+    by_symbol[sym.id] = index
+}
+
+// The function an `InstrCall` runs : by mangle, then by symbol id.
+function_called :: fn(r: CfgResolution, callee: Symbol) -> i32 | null {
+    found :: r.fn_by_mangle[callee.name] ?? return r.fn_by_symbol[callee.id]
+    return found
+}
+
+// The import an `InstrCall` runs when no function answers : by symbol id, then
+// by mangle.
+import_called :: fn(r: CfgResolution, callee: Symbol) -> i32 | null {
+    found :: r.import_by_symbol[callee.id] ?? return r.import_by_mangle[callee.name]
+    return found
 }
 
 // `InstrCall`'s full fallback chain.
-callee_resolves :: fn(r: CfgResolution, callee: Symbol) -> bool {
-    if r.fn_by_mangle.contains(callee.name)     { return true }
-    if r.fn_by_symbol.contains(callee.id)       { return true }
-    if r.import_by_symbol.contains(callee.id)   { return true }
-    if r.import_by_mangle.contains(callee.name) { return true }
-    return false
-}
+callee_resolves :: fn(r: CfgResolution, callee: Symbol) -> bool =
+    function_called(r, callee) != null || import_called(r, callee) != null
 
 // The fn-as-value chain : symbol id into the FUNCTION table only.
-fn_value_resolves :: fn(r: CfgResolution, target: Symbol) -> bool =
-    r.fn_by_symbol.contains(target.id)
+function_taken :: fn(r: CfgResolution, target: Symbol) -> i32 | null = r.fn_by_symbol[target.id]
 
 // ---- entry point ----------------------------------------------------------
 
@@ -280,7 +312,7 @@ verify_fn_references :: fn(
                 // straight off the union — and the fn-as-value rule keeps one
                 // site rather than three copies to hold in step.
                 is InstrFnRef | InstrFnAddr | InstrMakeClosure -> {
-                    if fn_value_resolves(resolution, ins.fn_symbol) { continue }
+                    if function_taken(resolution, ins.fn_symbol) != null { continue }
                     diags.push(internal_error(.UnresolvedFnReference, ins.span,
                         "${where}: ${fn_value_kind(ins)} `${ins.fn_symbol.name}` (symbol ${ins.fn_symbol.id}) was never materialised"))
                 }

@@ -39,6 +39,11 @@ const EXPECTED: Record<string, string[]> = {
   counter_below_bound: ["i + $k_4 -> proven"],
   push_keeps_length: ["total + $idx_9 -> unproven", "xs[i] -> proven"],
   call_drops_length: ["total + $idx_9 -> unproven", "xs[i] -> unproven"],
+  call_keeps_length: ["total + $idx_9 -> unproven", "xs[i] -> proven"],
+  callee_shortens: ["total + $idx_9 -> unproven", "xs[i] -> unproven"],
+  recursive_callee_keeps_length: ["total + $idx_9 -> unproven", "xs[i] -> proven"],
+  virtual_call_keeps_length: ["total + $idx_10 -> unproven", "xs[i] -> proven"],
+  indirect_call_drops_length: ["total + $idx_10 -> unproven", "xs[i] -> unproven"],
   guarded_decrement: ["n - $k_3 -> proven"],
   unguarded_decrement: ["n - $k_1 -> unproven"],
   always_overflows: ["x + $k_3 -> certain fault"],
@@ -61,4 +66,6 @@ test("VADER_OPT_REPORT totals the verdicts and lists each certain fault", async 
   expect(r.stderr).toContain("[VADER_OPT_REPORT] range analysis");
   expect(r.stderr).toContain("x + $k_3 in verdicts$always_overflows");
   expect(r.stderr).toContain("xs[i] in verdicts$negative_index");
+  expect(r.stderr).toContain("without call summaries:");
+  expect(r.stderr).toContain("functions may shorten an array");
 }, MEDIUM_BUILD);
