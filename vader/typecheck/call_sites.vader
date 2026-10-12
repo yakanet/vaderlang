@@ -97,6 +97,8 @@ export CallRole :: enum {
     IterInto,
     /// The `next` each step of a `for` calls, at the iterable.
     IterNext,
+    /// What renders an interpolated `${value}`, at the value.
+    Display,
 }
 
 /// The sites of a module, one table per role, each keyed by the node's id. A node
@@ -109,6 +111,7 @@ export CallSites :: struct {
     conversions: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
     iterator_conversions: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
     iterator_steps: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
+    displays: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
 }
 
 /// The table of the sites playing `role`.
@@ -123,6 +126,7 @@ export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<usize, Cal
     .Into       -> sites.conversions
     .IterInto   -> sites.iterator_conversions
     .IterNext   -> sites.iterator_steps
+    .Display    -> sites.displays
 }
 
 // Every role, for a reader that walks them all : a role added to `CallRole` is
@@ -135,6 +139,7 @@ all_roles :: fn() -> CallRole[] = [
     .Into,
     .IterInto,
     .IterNext,
+    .Display,
 ]
 
 FN_VALUE_CALLEE  :: FnValue {}
@@ -218,17 +223,19 @@ calls_a_value :: fn(typed: TypedProgram, callee: AST.Expr) -> bool {
 
 // ---- implicit sites -------------------------------------------------------
 
-// The member a bounded type parameter dispatches to is settled at each instance ;
-// one of a trait value, of a union or of an erased value, at run time on its tag.
+// The member a bounded type parameter (or `Self`) dispatches to is settled at each
+// instance ; one of a trait value, of a union or of an erased value, at run time on
+// its tag.
 dispatched_callee :: fn(receiver: Type, trait_key: string, member: string) -> Callee {
-    if receiver is TypeParamType {
+    if receiver is TypeParamType | SelfType {
         return BoundMember { .trait_key = trait_key, .member = member }
     }
     return TraitMember { .trait_key = trait_key, .member = member }
 }
 
 // The callee of the first impl of `trait_key` that offers `member` on `receiver`,
-// for a receiver with one.
+// for a receiver with one ; looked at again at each instance when `receiver`
+// mentions a type parameter.
 first_member_callee :: fn(
     typed: TypedProgram,
     receiver: Type,
@@ -239,7 +246,7 @@ first_member_callee :: fn(
     if members.len() == 0 {
         return UNSETTLED_CALLEE
     }
-    return direct_callee(members[0].decl, false)
+    return direct_callee(members[0].decl, type_contains_type_param(receiver))
 }
 
 /// The `into` a conversion of `source` into `target` runs, by the rule the
@@ -287,27 +294,20 @@ step_callee :: fn(typed: TypedProgram, iter: AST.Expr, iter_ty: Type) -> Callee 
         return BUILTIN_CALLEE
     }
     iterator :: core_trait_key(TRAIT_ITERATOR)
-    if iter_ty is TypeParamType | SelfType {
-        return BoundMember { .trait_key = iterator, .member = METHOD_NEXT }
-    }
-    if iter_ty is TraitType {
-        return TraitMember { .trait_key = iterator, .member = METHOD_NEXT }
+    if iter_ty is TypeParamType | SelfType | TraitType {
+        return dispatched_callee(iter_ty, iterator, METHOD_NEXT)
     }
     if iter_ty is StructType && is_gen_state_struct(iter_ty) {
         return direct_callee(generator_of_state(iter_ty, typed), false)
     }
-    per_instance :: type_contains_type_param(iter_ty)
     // A type that is an iterator itself is walked through its own `next`, whatever
     // it converts into.
     if struct_implements_trait(iter_ty, iterator, typed) {
-        next :: trait_members(typed, iter_ty, iterator, METHOD_NEXT)
-        if next.len() == 0 {
-            return UNSETTLED_CALLEE
-        }
-        return direct_callee(next[0].decl, per_instance)
+        return first_member_callee(typed, iter_ty, iterator, METHOD_NEXT)
     }
     for m in trait_members(typed, iter_ty, core_trait_key(TRAIT_INTO), METHOD_INTO) {
         if m.trait_args.len() == 1 && iterator_element_of(m.trait_args[0]) != null {
+            per_instance :: type_contains_type_param(iter_ty)
             record_site(typed, iter, .IterInto, direct_callee(m.decl, per_instance))
             // The `Iterator` trait value the conversion hands back steps at run time.
             return TraitMember { .trait_key = iterator, .member = METHOD_NEXT }
@@ -333,6 +333,48 @@ counts_in_place :: fn(typed: TypedProgram, iter: AST.Expr) -> bool {
     return is_counting_type(lower)
 }
 
+/// What `${value}` runs to render a value of type `t`: an integer, a `bool` or a
+/// `string` is written by the interpolation itself, any other type through the
+/// `to_string` of its `Display`, chosen per instance on a type parameter and at run
+/// time on a trait value or a union. A free literal renders as the type it
+/// defaults to, and a distinct with no `Display` of its own as its backing does.
+///
+/// @param typed  the module being checked.
+/// @param t      the interpolated value's type, known to implement `Display`.
+display_callee :: fn(typed: TypedProgram, t: Type) -> Callee = match t {
+    is PrimitiveType -> primitive_display(typed, t)
+    is FreeIntType | FreeFloatType | FreeCharType -> display_callee(typed, default_if_free(t))
+    is TypeParamType | SelfType | TraitType | UnionType | AnyType -> dispatched_display(t)
+    is StructType | EnumType | ArrayType -> display_member(typed, t)
+    is DistinctType -> distinct_display(typed, t)
+    // A value that never exists is never rendered.
+    is NeverType -> BUILTIN_CALLEE
+    is TupleType | FnType | UnresolvedType | TypeMetaType -> ERRONEOUS_CALLEE
+}
+
+dispatched_display :: fn(t: Type) -> Callee =
+    dispatched_callee(t, core_trait_key(TRAIT_DISPLAY), METHOD_TO_STRING)
+
+display_member :: fn(typed: TypedProgram, t: Type) -> Callee =
+    first_member_callee(typed, t, core_trait_key(TRAIT_DISPLAY), METHOD_TO_STRING)
+
+// The interpolation writes an integer, a `bool` or a `string` itself ; any other
+// primitive renders through its `Display`.
+primitive_display :: fn(typed: TypedProgram, t: PrimitiveType) -> Callee {
+    if is_int_name(t.name) || t.name == "bool" || t.name == "string" {
+        return BUILTIN_CALLEE
+    }
+    return display_member(typed, t)
+}
+
+// A distinct renders through its own `Display`, else as its backing does.
+distinct_display :: fn(typed: TypedProgram, t: DistinctType) -> Callee {
+    if struct_implements_trait(t, core_trait_key(TRAIT_DISPLAY), typed) {
+        return display_member(typed, t)
+    }
+    return display_callee(typed, t.backing)
+}
+
 /// What `left == right` runs, once the two are known to compare: the `Equals` of
 /// each part a structural compare reaches. Follows the lowering's `value_eq` arm
 /// for arm, exhaustive over `Type` as `part_without_equality` is.
@@ -354,9 +396,9 @@ equality_callee :: fn(left: Type, right: Type, typed: TypedProgram) -> Callee {
         is TupleType -> parts_equality(left.elements, typed)
         is StructType | ArrayType -> first_member_callee(typed, left, equals_key, METHOD_EQUALS)
         is DistinctType -> distinct_equality(left, typed)
-        is TypeParamType | AnyType -> dispatched_callee(left, equals_key, METHOD_EQUALS)
+        is TypeParamType | SelfType | AnyType -> dispatched_callee(left, equals_key, METHOD_EQUALS)
         is PrimitiveType | EnumType | FreeIntType | FreeFloatType | FreeCharType -> BUILTIN_CALLEE
-        is TraitType | FnType | SelfType -> ERRONEOUS_CALLEE
+        is TraitType | FnType -> ERRONEOUS_CALLEE
         is TypeMetaType | NeverType | UnresolvedType -> ERRONEOUS_CALLEE
     }
 }
@@ -474,6 +516,7 @@ role_label :: fn(role: CallRole) -> string = match role {
     .Into       -> "into"
     .IterInto   -> "iter-into"
     .IterNext   -> "iter-next"
+    .Display    -> "display"
 }
 
 // A call inside a materialised default method sits at a synthetic span, the same

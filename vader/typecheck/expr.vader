@@ -253,11 +253,17 @@ check_interpolated_part :: fn(
     type: Type, part: AST.Expr, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     if has_display(type, typed) {
-        boxed :: boxed_without_identity(type, typed) ?? return
+        boxed :: boxed_without_identity(type, typed)
+        if boxed == null {
+            record_site(typed, part, .Display, display_callee(typed, type))
+            return
+        }
         diags.push(typecheck_error(.UnionLosesVariantIdentity, part.span,
             "narrow it to `${boxed.name}` first"))
+        record_site(typed, part, .Display, ERRONEOUS_CALLEE)
         return
     }
+    record_site(typed, part, .Display, ERRONEOUS_CALLEE)
     // @partial: only a type parameter and an enum have a remedy worth naming.
     detail :: @partial match type {
         is TypeParamType -> "type parameter `${type.symbol.name}` has no `Display` bound"

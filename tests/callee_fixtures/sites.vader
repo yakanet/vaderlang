@@ -73,6 +73,10 @@ Money implements Comparable {
     compare :: fn(self, other: Money) -> i32 = if self.cents < other.cents { -1 } else { 0 }
 }
 
+Money implements Display {
+    to_string :: fn(self) -> string = "${self.cents}"
+}
+
 Money implements Equals {
     equals :: fn(self, other: Money) -> bool = self.cents == other.cents
 }
@@ -327,3 +331,12 @@ export for_array_sugar :: fn(xs: i32[]) -> usize {
     }
     return n
 }
+
+export Label :: string
+
+export interpolations :: fn(n: i32, s: string, x: f64, m: Money, l: Label) -> string =
+    "${n} ${s} ${x} ${m} ${l}"
+
+export bounded_interpolation :: fn<T: Display>(t: T) -> string = "${t}"
+
+export trait_value_interpolation :: fn(d: Display) -> string = "${d}"
