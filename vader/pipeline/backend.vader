@@ -188,6 +188,13 @@ export build_optimised_cfg :: fn(
     if verify { verify_cfg(escaped, "annotate_escape", diags) }
     forwarded :: array_load_forward_project(escaped)
     if verify { verify_cfg(forwarded, "array_load_forward_project", diags) }
+    // `$VADER_OPT_REPORT`: what the range analysis proves. An observation: it
+    // runs for the report alone and changes nothing it reads.
+    if opt_report_enabled() {
+        Prof.prof_begin(Prof.PHASE_RANGES)
+        report_ranges(forwarded)
+        Prof.prof_end(Prof.PHASE_RANGES)
+    }
     return forwarded
 }
 

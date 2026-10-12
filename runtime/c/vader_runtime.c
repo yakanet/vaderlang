@@ -2536,7 +2536,8 @@ static const char* g_prof_names[VADER_PROF_MAX_PHASES] = {
     "bytecode",   /* 8  */
     "c-emit",     /* 9  */
     "value-ret",  /* 10 */
-    NULL, NULL, NULL, NULL, NULL,
+    "ranges",     /* 11 */
+    NULL, NULL, NULL, NULL,
 };
 
 static int       g_prof_enabled = -1;   /* -1 unknown, 0 off, 1 on */

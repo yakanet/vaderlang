@@ -1,0 +1,183 @@
+// vader/midir/ranges_flow — the range analysis's fixed point over one function.
+//
+// Forward, in reverse postorder (`ranges.vader` for one step): each block's
+// entry state joins what its predecessors' edges carry, and a loop header
+// widens it, so a round that changes nothing comes within a few. A block is
+// walked again only once its entry state changed.
+
+module "vader/midir"
+
+import "std/collections"
+import "std/sort"
+
+/// Rounds after which the analysis of a function gives up. Each loop header
+/// settles within `THRESHOLD_WIDENINGS` widenings and one more, so this only
+/// bounds a function with loops nested unusually deep.
+MAX_ROUNDS :: 100
+
+/// Widenings of one loop header that stop at the next threshold. The ones after
+/// open the moving end outright: a function with many constants, an interpreter
+/// loop matching on every opcode, would otherwise take a round per constant.
+THRESHOLD_WIDENINGS :: 3
+
+/// The fixed point under way.
+RangeFlow :: struct {
+    /// Per block, what holds at its head so far; null for a block no path has
+    /// reached yet. A stored state is never changed in place, so one may be
+    /// shared by several blocks.
+    states: (RangeState | null)[]!
+    /// The blocks a retreating edge enters: the loop headers, where the
+    /// analysis widens.
+    headers: bool[]
+    /// Per loop header, the times its state widened so far.
+    widenings: i32[]!
+    /// Per block, whether its state changed since the block was last walked.
+    dirty: bool[]!
+    /// The integer constants of the function, ascending: where widening stops.
+    thresholds: i64[]
+}
+
+/// The state at the head of each block of `fn_` once the analysis settles;
+/// null for a block no path reaches.
+///
+/// @param thresholds  the integer constants of `fn_`, ascending.
+/// @return            null when it did not settle within `MAX_ROUNDS`.
+block_entry_states :: fn(
+    ctx: RangeContext,
+    fn_: CFGFunction,
+    thresholds: i64[],
+) -> (RangeState | null)[] | null {
+    order :: reverse_postorder(fn_)
+    n :: fn_.blocks.len()
+    flow :: RangeFlow {
+        .states = [null] * n,
+        .headers = loop_headers(fn_, order),
+        .widenings = [0] * n,
+        .dirty = [false] * n,
+        .thresholds = thresholds,
+    }
+    flow.states[i32(fn_.entry)] = new_range_state()
+    flow.dirty[i32(fn_.entry)] = true
+    for _ in 0..<MAX_ROUNDS {
+        changed := false
+        for id in order {
+            at :: i32(id)
+            if !flow.dirty[at] {
+                continue
+            }
+            flow.dirty[at] = false
+            entry :: flow.states[at] ?? continue
+            s :: copy_range_state(entry)
+            block :: fn_.blocks[at]
+            for ins in block.instructions {
+                transfer(ctx, s, ins)
+            }
+            if flow_out(ctx, flow, block, s) {
+                changed = true
+            }
+        }
+        if !changed {
+            return flow.states
+        }
+    }
+    return null
+}
+
+// The blocks a retreating edge of `order` enters.
+loop_headers :: fn(fn_: CFGFunction, order: BlockId[]) -> bool[] {
+    positions :: rpo_positions(order, fn_.blocks.len())
+    headers: bool[]: [false] * fn_.blocks.len()
+    for b in fn_.blocks {
+        from :: positions[i32(b.id)]
+        if from < 0 {
+            continue
+        }
+        for succ in successors_of(b) {
+            if positions[i32(succ)] <= from {
+                headers[i32(succ)] = true
+            }
+        }
+    }
+    return headers
+}
+
+// Merge `s`, what holds at the end of `block`, into the entry state of each
+// successor along the edge to it. `s` is stored as it is where it can be.
+//
+// @return  whether any entry state changed.
+flow_out :: fn(ctx: RangeContext, flow: RangeFlow, block: BasicBlock, s: RangeState) -> bool {
+    t :: block.terminator
+    if t is TermBranch {
+        return merge_into(ctx, flow, t.target, s)
+    }
+    if t !is TermCondBranch {
+        return false
+    }
+    cmp :: branch_comparison(ctx, block, t.cond)
+    if cmp == null {
+        taken :: merge_into(ctx, flow, t.then_block, s)
+        return merge_into(ctx, flow, t.else_block, s) || taken
+    }
+    taken_state :: copy_range_state(s)
+    taken := false
+    if learn_comparison(ctx, taken_state, cmp, true) {
+        taken = merge_into(ctx, flow, t.then_block, taken_state)
+    }
+    if learn_comparison(ctx, s, cmp, false) {
+        return merge_into(ctx, flow, t.else_block, s) || taken
+    }
+    return taken
+}
+
+// Join `edge` into the entry state of `target`, widened at a loop header.
+//
+// @return  whether that state changed.
+merge_into :: fn(ctx: RangeContext, flow: RangeFlow, target: BlockId, edge: RangeState) -> bool {
+    at :: i32(target)
+    old :: flow.states[at]
+    if old == null {
+        flow.states[at] = edge
+        flow.dirty[at] = true
+        return true
+    }
+    next := join_range_states(old, edge)
+    if flow.headers[at] {
+        next = widen_range_states(old, next, widening_thresholds(flow, at))
+    }
+    settle_intervals(ctx, next)
+    if same_range_state(old, next) {
+        return false
+    }
+    if flow.headers[at] {
+        flow.widenings[at] += 1
+    }
+    flow.states[at] = next
+    flow.dirty[at] = true
+    return true
+}
+
+// The thresholds the loop header `at` stops at: none once it widened
+// `THRESHOLD_WIDENINGS` times.
+widening_thresholds :: fn(flow: RangeFlow, at: i32) -> i64[] {
+    if flow.widenings[at] < THRESHOLD_WIDENINGS {
+        return flow.thresholds
+    }
+    return []
+}
+
+// The integer constants `fn_` loads, ascending and each once.
+constants_of :: fn(fn_: CFGFunction) -> i64[] {
+    seen :: MutableSet<i64> {}
+    out: i64[]: []
+    for block in fn_.blocks {
+        for ins in block.instructions {
+            if ins is InstrConst {
+                value :: ins.value
+                if value is ConstInt && seen.add(value.value) {
+                    out.push(value.value)
+                }
+            }
+        }
+    }
+    return sort(out, (a, b) -> a < b)
+}

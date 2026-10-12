@@ -54,3 +54,11 @@ test("the range analysis gives each fixture site its verdict", async () => {
   expect(r.stdout).not.toContain("# Diagnostics");
   expect(Object.fromEntries(sitesByFunction(r.stdout))).toEqual(EXPECTED);
 }, MEDIUM_BUILD);
+
+test("VADER_OPT_REPORT totals the verdicts and lists each certain fault", async () => {
+  const r = await runCli(["dump", "--stage=ranges", VERDICTS], { VADER_OPT_REPORT: "1" }, MEDIUM_BUILD);
+  expect(r.exit).toBe(0);
+  expect(r.stderr).toContain("[VADER_OPT_REPORT] range analysis");
+  expect(r.stderr).toContain("x + $k_3 in verdicts$always_overflows");
+  expect(r.stderr).toContain("xs[i] in verdicts$negative_index");
+}, MEDIUM_BUILD);

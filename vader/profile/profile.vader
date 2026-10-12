@@ -40,6 +40,8 @@ export PHASE_BYTECODE  :: 8
 export PHASE_CEMIT     :: 9
 /// Value-ABI return scalarisation (`scalarise_value_returns`).
 export PHASE_VALUE_RET :: 10
+/// Range analysis (`report_ranges`), which runs for `$VADER_OPT_REPORT` only.
+export PHASE_RANGES    :: 11
 
 // ---- raw runtime bindings (fn name == C symbol) ---------------------------
 

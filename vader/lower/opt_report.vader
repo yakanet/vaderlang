@@ -64,6 +64,12 @@ export opt_report_enabled :: fn() -> bool {
     return raw != "" && raw != "0"
 }
 
+/// Where `span` starts, as a report names a site: `file:line:column`.
+///
+/// @param span  the site.
+export source_position :: fn(span: Span) -> string =
+    "${span.start.file}:${span.start.line}:${span.start.column}"
+
 /// Note that `pass` fell back to its general path at `span`.
 ///
 /// A no-op unless the report is on. Callers sit at the single fall site of a
@@ -99,8 +105,7 @@ export render_opt_report :: fn(ctx: LowerProjectCtx) -> string {
     }
     out.append("\n  sites:\n")
     for m in ctx.opt_misses {
-        at :: "${m.span.start.file}:${m.span.start.line}:${m.span.start.column}"
-        out.append("    [${at}] ${m.pass} — ${m.note}\n")
+        out.append("    [${source_position(m.span)}] ${m.pass} — ${m.note}\n")
     }
     return out.to_string()
 }

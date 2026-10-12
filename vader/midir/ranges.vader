@@ -3,8 +3,8 @@
 // Constants, copies and `+` / `-` of a single value carry intervals and facts
 // along. What a branch edge learns is in `ranges_edges.vader`, when a sum
 // provably fits its type in `ranges_fits.vader`, the fixed point over a whole
-// function and its verdicts in `ranges_report.vader`, the values in
-// `ranges_intervals.vader` and `ranges_state.vader`.
+// function in `ranges_flow.vader` and its verdicts in `ranges_verdicts.vader`,
+// the values in `ranges_intervals.vader` and `ranges_state.vader`.
 //
 // A result reaches its type in one of two ways. A checked operation that stops
 // the run on overflow, as outside `--release`, proves by going on that its

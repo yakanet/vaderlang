@@ -1,0 +1,295 @@
+// vader/midir/ranges_verdicts — what the range analysis proves about each array
+// access and checked operation of a function.
+//
+// Each site gets a verdict from the state just before it, at the fixed point of
+// `ranges_flow.vader`. An observation: nothing here changes the CFG.
+//
+// An access is judged with checked operations that wrap, as in `--release`,
+// where its index check is the only guard left. A checked operation is judged
+// with checked operations that stop the run, as outside `--release`, the one
+// build where proving it fits removes anything.
+
+module "vader/midir"
+
+import "std/collections"
+import "std/sort"
+import "toolchain/span"
+import "vader/lower"
+
+/// What the analysis concludes about one array access or checked operation.
+RangeVerdict :: enum {
+    /// The lowering proved it already: the access carries `bounds_safe`.
+    AlreadySafe,
+    Proven,
+    Unproven,
+    /// Fails whenever it runs: an index below zero, an overflow on every value.
+    CertainFault,
+    /// In a block no path reaches.
+    Unreachable,
+}
+
+/// An instruction the analysis judges: an array access, or a checked integer
+/// operation (`site_of`).
+SiteInstruction :: InstrArrayGet | InstrArraySet | InstrBinOp | InstrUnOp
+
+/// One array access or checked operation, and its verdict.
+RangeSite :: struct {
+    span: Span
+    /// The operation over its locals' names: `xs[i]`, `total + x`.
+    what: string
+    /// A checked operation, not an array access.
+    arithmetic: bool
+    verdict: RangeVerdict
+}
+
+/// The verdicts on one function's sites.
+FunctionRanges :: struct {
+    mangled: string
+    /// In source order.
+    sites: RangeSite[]
+    /// The analysis did not settle within `MAX_ROUNDS`: no site is then proven.
+    gave_up: bool
+}
+
+/// Analyse `fn_` and judge every array access and checked operation in it.
+analyse_function_ranges :: fn(fn_: CFGFunction) -> FunctionRanges {
+    release :: range_context(fn_.locals, false)
+    sites: RangeSite[]: []
+    accesses :: has_sites(release, fn_, false)
+    arithmetic :: has_sites(release, fn_, true)
+    settled := true
+    if accesses || arithmetic {
+        thresholds :: constants_of(fn_)
+        if accesses && !judge_sites(release, fn_, thresholds, false, sites) {
+            settled = false
+        }
+        debug :: RangeContext { ...release, .checked_ops_trap = true }
+        if arithmetic && !judge_sites(debug, fn_, thresholds, true, sites) {
+            settled = false
+        }
+    }
+    return FunctionRanges {
+        .mangled = fn_.mangled,
+        .sites = sort(sites, (a, b) -> a.span.start.offset < b.span.start.offset),
+        .gave_up = !settled,
+    }
+}
+
+// Whether `fn_` holds a site of one kind: a checked operation when
+// `arithmetic`, an array access otherwise.
+has_sites :: fn(ctx: RangeContext, fn_: CFGFunction, arithmetic: bool) -> bool {
+    for block in fn_.blocks {
+        if block_has_sites(ctx, block, arithmetic) {
+            return true
+        }
+    }
+    return false
+}
+
+block_has_sites :: fn(ctx: RangeContext, block: BasicBlock, arithmetic: bool) -> bool {
+    for ins in block.instructions {
+        site :: site_of(ctx, ins)
+        if site != null && is_arithmetic(site) == arithmetic {
+            return true
+        }
+    }
+    return false
+}
+
+// Judge the sites of one kind in `fn_` from the analysis under `ctx`, and add
+// them to `sites`.
+//
+// @return  whether the analysis settled.
+judge_sites :: fn(
+    ctx: RangeContext,
+    fn_: CFGFunction,
+    thresholds: i64[],
+    arithmetic: bool,
+    sites: RangeSite[],
+) -> bool {
+    states :: block_entry_states(ctx, fn_, thresholds)
+    for block in fn_.blocks {
+        if !block_has_sites(ctx, block, arithmetic) {
+            continue
+        }
+        s :: walking_state(states, block.id)
+        for ins in block.instructions {
+            site :: site_of(ctx, ins)
+            if site != null && is_arithmetic(site) == arithmetic {
+                sites.push(
+                    RangeSite {
+                        .span = site_span(site),
+                        .what = site_label(ctx, site),
+                        .arithmetic = arithmetic,
+                        .verdict = verdict_at(ctx, s, states == null, site),
+                    },
+                )
+            }
+            if s != null {
+                transfer(ctx, s, ins)
+            }
+        }
+    }
+    return states != null
+}
+
+// A copy of the entry state of block `id`, to walk the block with; null when no
+// path reaches it or the analysis gave up.
+walking_state :: fn(states: (RangeState | null)[] | null, id: BlockId) -> RangeState | null {
+    if states == null {
+        return null
+    }
+    entry :: states[i32(id)] ?? return null
+    return copy_range_state(entry)
+}
+
+/// `ins` when it is an array access or a checked integer operation.
+site_of :: fn(ctx: RangeContext, ins: Instruction) -> SiteInstruction | null {
+    if ins is InstrArrayGet | InstrArraySet {
+        return ins
+    }
+    if ins is InstrBinOp && is_checked(ins.op) && type_of(ctx, ins.dst) != null {
+        return ins
+    }
+    if ins is InstrUnOp && ins.op == .Neg && type_of(ctx, ins.dst) != null {
+        return ins
+    }
+    return null
+}
+
+is_arithmetic :: fn(site: SiteInstruction) -> bool = site is InstrBinOp | InstrUnOp
+
+site_span :: fn(site: SiteInstruction) -> Span = match site {
+    is InstrArrayGet -> site.span
+    is InstrArraySet -> site.span
+    is InstrBinOp    -> site.span
+    is InstrUnOp     -> site.span
+}
+
+site_label :: fn(ctx: RangeContext, site: SiteInstruction) -> string = match site {
+    is InstrArrayGet -> "${local_name(ctx, site.target)}[${local_name(ctx, site.index)}]"
+    is InstrArraySet -> "${local_name(ctx, site.target)}[${local_name(ctx, site.index)}] ="
+    is InstrBinOp    -> binop_label(ctx, site)
+    is InstrUnOp     -> "-${local_name(ctx, site.operand)}"
+}
+
+binop_label :: fn(ctx: RangeContext, ins: InstrBinOp) -> string =
+    "${local_name(ctx, ins.lhs)} ${operator_symbol(ins.op)} ${local_name(ctx, ins.rhs)}"
+
+local_name :: fn(ctx: RangeContext, local: LocalId) -> string = ctx.locals[i32(local)].name
+
+operator_symbol :: fn(op: LoweredBinaryOp) -> string = match op {
+    .Add | .AddChecked -> "+"
+    .Sub | .SubChecked -> "-"
+    .Mul | .MulChecked -> "*"
+    .Div               -> "/"
+    .Mod               -> "%"
+    .Shl               -> "<<"
+    .Shr               -> ">>"
+    .BitAnd            -> "&"
+    .BitOr             -> "|"
+    .BitXor            -> "^"
+    .And               -> "&&"
+    .Or                -> "||"
+    .Eq                -> "=="
+    .Neq               -> "!="
+    .Lt                -> "<"
+    .Lte               -> "<="
+    .Gt                -> ">"
+    .Gte               -> ">="
+}
+
+// The verdict on `site` from `s`, what holds just before it.
+verdict_at :: fn(
+    ctx: RangeContext,
+    s: RangeState | null,
+    gave_up: bool,
+    site: SiteInstruction,
+) -> RangeVerdict {
+    if already_safe(site) {
+        return .AlreadySafe
+    }
+    if gave_up {
+        return .Unproven
+    }
+    if s == null {
+        return .Unreachable
+    }
+    return match site {
+        is InstrArrayGet -> index_verdict(ctx, s, site.target, site.index)
+        is InstrArraySet -> index_verdict(ctx, s, site.target, site.index)
+        is InstrBinOp    -> arithmetic_verdict(ctx, s, site)
+        is InstrUnOp     -> negation_verdict(ctx, s, site)
+    }
+}
+
+already_safe :: fn(site: SiteInstruction) -> bool = match site {
+    is InstrArrayGet          -> site.bounds_safe
+    is InstrArraySet          -> site.bounds_safe
+    is InstrBinOp | InstrUnOp -> false
+}
+
+// An access at `index` is proven when the index is not negative and below a
+// local the array is at least as long as.
+index_verdict :: fn(
+    ctx: RangeContext,
+    s: RangeState,
+    array: LocalId,
+    index: LocalId,
+) -> RangeVerdict {
+    iv :: interval_of(ctx, s, index) ?? return .Unproven
+    if !iv.hi_open && iv.hi < 0 {
+        return .CertainFault
+    }
+    if iv.lo < 0 {
+        return .Unproven
+    }
+    for [n, of] in s.lengths {
+        if of != array {
+            continue
+        }
+        bound :: s.differences[fact_key(index, n)]
+        if bound != null && bound <= -1 {
+            return .Proven
+        }
+        length :: interval_of(ctx, s, n) ?? continue
+        if !iv.hi_open && iv.hi < length.lo {
+            return .Proven
+        }
+    }
+    return .Unproven
+}
+
+arithmetic_verdict :: fn(ctx: RangeContext, s: RangeState, ins: InstrBinOp) -> RangeVerdict {
+    t :: type_of(ctx, ins.dst)
+    a :: interval_of(ctx, s, ins.lhs)
+    b :: interval_of(ctx, s, ins.rhs)
+    kind :: arithmetic_of(ins.op)
+    if t == null || a == null || b == null || kind == null {
+        return .Unproven
+    }
+    fits :: result_fits(ctx, s, ins, kind, a, b, t)
+    return overflow_verdict(exact_result(kind, a, b), t, fits)
+}
+
+negation_verdict :: fn(ctx: RangeContext, s: RangeState, ins: InstrUnOp) -> RangeVerdict {
+    t :: type_of(ctx, ins.dst)
+    a :: interval_of(ctx, s, ins.operand)
+    if t == null || a == null {
+        return .Unproven
+    }
+    exact :: interval_negate(a)
+    return overflow_verdict(exact, t, closed_within(exact, t))
+}
+
+// A checked operation whose exact result is `exact` in the type of values `t`:
+// a certain fault when no value fits, proven when `fits`.
+overflow_verdict :: fn(exact: Interval, t: Interval, fits: bool) -> RangeVerdict {
+    if interval_meet(exact, t) == null {
+        return .CertainFault
+    }
+    if fits {
+        return .Proven
+    }
+    return .Unproven
+}
