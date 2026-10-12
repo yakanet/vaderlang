@@ -560,14 +560,13 @@ validate_mirror_fields :: fn(
             }
             continue
         }
-        // An enum crosses as its repr, which the shim assigns like any integer —
-        // except one with variant data, whose stored integer is a rank C knows
-        // nothing about.
+        // An enum crosses as its repr, which the shim assigns like any integer.
         if fty is EnumType {
-            if fty.data != null {
+            refusal :: extern_enum_refusal(fty)
+            if refusal != null {
                 diags.push(typecheck_error(
                     .InvalidExternDecl, span,
-                    "field `${f.name}` of `@c_struct` `${sd.name}` is an enum with variant data — it stores a rank, not the value C expects",
+                    "field `${f.name}` of `@c_struct` `${sd.name}`: ${refusal}",
                 ))
             }
             continue
@@ -579,6 +578,21 @@ validate_mirror_fields :: fn(
             ))
         }
     }
+}
+
+// Why `e` cannot cross to C, as an `@extern` parameter or a `@c_struct` field;
+// null when it can. An enum crosses as the integer it stores, at its width: only
+// a written width is one C can be told, and an enum with variant data stores a
+// rank C knows nothing of.
+extern_enum_refusal :: fn(e: EnumType) -> string | null {
+    name :: e.symbol.name
+    if e.data != null {
+        return "enum `${name}` carries variant data: it stores a rank, not the value C expects"
+    }
+    if !e.width_written {
+        return "enum `${name}` has an inferred width, which moves when a variant is added: pin one in its declaration, e.g. `enum(${e.repr})`"
+    }
+    return null
 }
 
 validate_extern :: fn(
@@ -671,12 +685,19 @@ validate_extern :: fn(
             )
             continue
         }
+        if pt is EnumType {
+            refusal :: extern_enum_refusal(pt)
+            if refusal != null {
+                diags.push(typecheck_error(.InvalidExternDecl, decl.params[i].span, refusal))
+            }
+            continue
+        }
         if !is_extern_abi_type(pt, false) {
             diags.push(
                 typecheck_error(
                     .InvalidExternDecl,
                     decl.params[i].span,
-                    "`@extern` parameter type must be a primitive, `string`, or a primitive-element array, got `${display_type(pt)}`",
+                    "`@extern` parameter type must be a primitive, `string`, an enum, or a primitive-element array, got `${display_type(pt)}`",
                 ),
             )
         }
@@ -1402,9 +1423,10 @@ export build_enum_type :: fn(
     indices :: resolve_enum_indices(decl, header.repr ?? "i64", diags)
     [smallest, largest] :: value_bounds(indices.values())
     return EnumType {
-        .symbol  = sym,
-        .repr    = header.repr ?? narrowest_width(smallest, largest),
-        .indices = indices,
+        .symbol        = sym,
+        .repr          = header.repr ?? narrowest_width(smallest, largest),
+        .indices       = indices,
+        .width_written = header.repr != null,
     }
 }
 
@@ -1428,11 +1450,12 @@ build_data_enum_type :: fn(
             "${values.len()} variants do not fit `${header.repr}`"))
     }
     return EnumType {
-        .symbol  = sym,
-        .repr    = header.repr ?? narrowest_width(0, last_rank),
-        .indices = ranks,
-        .data    = header.data,
-        .values  = values,
+        .symbol        = sym,
+        .repr          = header.repr ?? narrowest_width(0, last_rank),
+        .indices       = ranks,
+        .data          = header.data,
+        .values        = values,
+        .width_written = header.repr != null,
     }
 }
 

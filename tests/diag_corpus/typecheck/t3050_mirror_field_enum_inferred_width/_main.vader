@@ -1,0 +1,16 @@
+// A `@c_struct` field whose enum has an inferred width: T3050, as for an
+// `@extern` parameter. The width moves when a variant is added, so C cannot be
+// told it.
+module "snippet"
+
+Mode :: enum {
+    Quiet,
+    Loud,
+}
+
+@c_struct("struct reply")
+Reply :: struct { mode: Mode, n: i32 }
+
+@extern send :: fn(@c_pointer r: Reply) -> i32
+
+main :: fn() -> i32 { return 0 }

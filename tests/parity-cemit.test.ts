@@ -536,6 +536,9 @@ const C_PARITY = new Set<string>([
   // A struct with fields spelled `_0`, `_1` is read by name and written like any
   // other.
   "struct_fields_named_like_tuple",
+  // An enum with a written width crosses `@extern` as the integer its variant
+  // stores.
+  "extern_enum_param",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

@@ -1,0 +1,13 @@
+// An `@extern` parameter of an enum whose width is inferred: T3050. The width
+// moves when a variant is added, so C cannot be told it; writing it,
+// `enum(u8)`, lets the enum cross.
+module "snippet"
+
+Direction :: enum {
+    North,
+    South,
+}
+
+@extern turn :: fn(direction: Direction) -> i32
+
+main :: fn() -> i32 { return 0 }

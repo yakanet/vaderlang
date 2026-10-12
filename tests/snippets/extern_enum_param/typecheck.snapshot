@@ -1,0 +1,29 @@
+# Typecheck
+
+## tests/snippets/extern_enum_param
+  FnDecl         abs_sign             :: fn(Sign) -> i32
+  FnDecl         labs_wide            :: fn(Wide) -> i64
+  FnDecl         main                 :: fn() -> i32
+  EnumDecl       Sign                 :: Sign
+  EnumDecl       Wide                 :: Wide
+  expr 29:13    StringLitExpr  :: string
+  expr 29:16    CallExpr       :: i32
+  expr 29:16    IdentExpr      :: fn(Sign) -> i32
+  expr 29:25    DotVariantExpr :: Sign
+  expr 29:36    CallExpr       :: i32
+  expr 29:36    IdentExpr      :: fn(Sign) -> i32
+  expr 29:45    DotVariantExpr :: Sign
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 29:55    CallExpr       :: i32
+  expr 29:55    IdentExpr      :: fn(Sign) -> i32
+  expr 29:64    DotVariantExpr :: Sign
+  expr 30:13    StringLitExpr  :: string
+  expr 30:16    CallExpr       :: i64
+  expr 30:16    IdentExpr      :: fn(Wide) -> i64
+  expr 30:26    DotVariantExpr :: Wide
+  expr 30:37    CallExpr       :: i64
+  expr 30:37    IdentExpr      :: fn(Wide) -> i64
+  expr 30:47    DotVariantExpr :: Wide
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void

@@ -1,0 +1,32 @@
+module "snippet"
+
+import "std/io"
+
+// An enum with a written width crosses `@extern` as the integer its variant
+// stores, at that width: `After` follows `Plus` and stores 6, not its rank.
+// `abs` and `labs` echo the value back, on both the VM and native.
+
+Sign :: enum(i32) {
+    Minus = -3,
+    Plus  = 5,
+    After,
+}
+
+Wide :: enum(u8) {
+    Small,
+    Big   = 200,
+}
+
+@c_header("<stdlib.h>")
+@extern("abs")
+abs_sign :: fn(x: Sign) -> i32
+
+@c_header("<stdlib.h>")
+@extern("labs")
+labs_wide :: fn(x: Wide) -> i64
+
+main :: fn() -> i32 {
+    println("${abs_sign(.Minus)} ${abs_sign(.Plus)} ${abs_sign(.After)}")
+    println("${labs_wide(.Small)} ${labs_wide(.Big)}")
+    return 0
+}
