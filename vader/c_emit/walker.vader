@@ -2408,10 +2408,13 @@ bind_array_local :: fn(s: FnState, pointer: CExpression) -> string {
 emit_slot_array_local :: fn(s: FnState, obj: StackVal, idx: StackVal, bounds_safe: bool) -> string {
     arr :: bind_array_local(s, array_header_pointer(obj))
     // Bounds is per-access (the reused local only shares the header binding and
-    // its buffer guard), EXCEPT when the producer proved the index in range (BCE —
-    // e.g. a foreach over the array, body proven not to change its length).
+    // its buffer guard), EXCEPT when a producer proved the index in range
+    // (`bounds_safe`). Under `$VADER_VERIFY_BOUNDS` such an access keeps a check
+    // whose trap says the proof was wrong.
     if !bounds_safe {
         statement_macro(s, "VADER_ARRAY_CHECK_INDEX", [verbatim(arr), expression_of(idx)])
+    } else if s.ctx.verify_bounds {
+        statement_macro(s, "VADER_ARRAY_CHECK_PROVEN", [verbatim(arr), expression_of(idx)])
     }
     return arr
 }

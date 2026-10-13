@@ -317,7 +317,7 @@ run_ranges_stage :: fn(
     cfg_diags: Diagnostic[]: []
     if !any_error_diag(le.pre_diags) {
         pruned :: prune_unreachable_fns(le.lowered, false)
-        cfg :: build_optimised_cfg(pruned, false, cfg_diags)
+        cfg :: build_optimised_cfg(pruned, false, false, cfg_diags)
         print(dump_ranges_project(cfg, scope))
     }
     print_pipeline_diags(pipeline, le.lower_diags + cfg_diags, scope)
@@ -378,7 +378,7 @@ run_bytecode_stage :: fn(
 run_c_stage :: fn(file: Path, include_path_flags: string[], target: Target | null) -> i32 {
     // `dump --stage=c` is a non-release C view : populate `debug` so the
     // emitted C carries `#line` (matches a debug `build --target=c`).
-    b :: prepare_cfg_bytecode_with(file, true, include_path_flags, target)
+    b :: prepare_cfg_bytecode_with(file, true, include_path_flags, target, false, proves_bounds(false))
     // No C for a front-end-rejected program — print only the diagnostics,
     // mirroring `run_bytecode_stage` (front-end errors only ; see its note).
     if any_error_diag(b.pre_diags) {
@@ -391,7 +391,7 @@ run_c_stage :: fn(file: Path, include_path_flags: string[], target: Target | nul
     // `vader/lsp`, which has its own `main`) flags several fns `is_main`.
     // `emit_c` already returns a trailing-newline-terminated string ; use
     // `print` (no auto-newline) so the output isn't double-newlined.
-    print(emit_c(b.module, CEmitOptions { .release = false, .entry_mangled = b.entry }))
+    print(emit_c(b.module, native_c_options(false, b.entry)))
     // Diagnostics go to STDERR here, unlike every other dump stage: this stage's
     // stdout is C source that gets fed straight to a compiler, so a `# Diagnostics`
     // block appended to it is read as a preprocessor directive and the build dies.

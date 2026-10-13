@@ -373,7 +373,25 @@ export strip_input_suffix :: fn(file: Path) -> Path =
 ///                 does not check, and emitting from a rejected program yields
 ///                 something that links but is wrong.
 export c_source_of :: fn(cfg: CfgBytecode, release: bool) -> string =
-    emit_c(cfg.module, CEmitOptions { .release = release, .entry_mangled = cfg.entry })
+    emit_c(cfg.module, native_c_options(release, cfg.entry))
+
+/// Whether a native build marks the accesses the range analysis proves in
+/// bounds: a `--release` build drops their check, and `$VADER_VERIFY_BOUNDS`
+/// keeps it under a message of its own in any mode. Decided here, with
+/// `native_c_options`, so every native entry point agrees.
+///
+/// @param release  the build is `--release`.
+export proves_bounds :: fn(release: bool) -> bool = release || bounds_verification_enabled()
+
+/// The C emitter's options for a native build of `entry`.
+///
+/// @param release  optimise, and drop `#line`.
+/// @param entry    the entry function's mangle.
+export native_c_options :: fn(release: bool, entry: string) -> CEmitOptions = CEmitOptions {
+    .release = release,
+    .entry_mangled = entry,
+    .verify_bounds = bounds_verification_enabled(),
+}
 
 // ---- tests ----------------------------------------------------------------
 

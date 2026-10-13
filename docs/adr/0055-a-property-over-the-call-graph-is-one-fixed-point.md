@@ -68,7 +68,7 @@ sound, proved about 1890.
   apart needs a flow analysis of closures.
 - The report's range analysis takes about 510 ms instead of 250 ms, since it runs
   twice. Without `$VADER_OPT_REPORT` nothing runs.
-- Eliding the checks this proves remains a separate decision.
+- Eliding the checks this proves was a separate decision: ADR 0058.
 - The typecheck's propagation of type-parameter observation runs on the engine
   too (`type_param_observation.vader`): a node per function that observes or
   relays, an edge per call that hands its callee the caller's own type

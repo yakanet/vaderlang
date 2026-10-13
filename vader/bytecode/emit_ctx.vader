@@ -30,6 +30,9 @@ export EmitOptions :: struct {
     /// Run the IR verifiers (`vader/lower/verify`, `vader/midir/verify`)
     /// between passes. Several extra IR walks per pass, so `--verify` only.
     verify: bool = false
+    /// Run the range analysis and mark `bounds_safe` every array access it
+    /// proves in bounds. The VM ignores the mark.
+    prove_bounds: bool = false
 }
 
 /// Default options : peephole ON, no extra roots, debug table OFF (the VM /

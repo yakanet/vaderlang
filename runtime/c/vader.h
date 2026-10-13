@@ -905,8 +905,15 @@ VADER_PURE VADER_NOINLINE struct vader_array_buf* vader_array_buf_forward(struct
 #else
 #define VADER_ARRAY_RESOLVE_BUF(a)
 #endif
+#define VADER_ARRAY_CHECK_INDEX_OR_TRAP(a, i, message) \
+    if ((size_t) (i) >= (a)->length) { vader_trap(message); }
 #define VADER_ARRAY_CHECK_INDEX(a, i) \
-    if ((size_t) (i) >= (a)->length) { vader_trap("array index out of bounds"); }
+    VADER_ARRAY_CHECK_INDEX_OR_TRAP(a, i, "array index out of bounds")
+
+/* The check of an index the compiler proved in range, kept only under
+ * `$VADER_VERIFY_BOUNDS`: failing it means the proof was wrong. */
+#define VADER_ARRAY_CHECK_PROVEN(a, i) \
+    VADER_ARRAY_CHECK_INDEX_OR_TRAP(a, i, "array index out of bounds where the compiler proved it in bounds")
 
 /* The resolving form, for the runtime's own sites that read `a->buf->slots`
  * after a collection they may have triggered themselves. */

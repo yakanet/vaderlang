@@ -34,7 +34,8 @@ export ProfPhase :: enum(i32) {
     CEmit = 9,
     /// Value-ABI return scalarisation (`scalarise_value_returns`).
     ValueReturn = 10,
-    /// Range analysis (`report_ranges`), which runs for `$VADER_OPT_REPORT` only.
+    /// Range analysis: the accesses a native build marks proven
+    /// (`mark_proven_accesses`), and `report_ranges` under `$VADER_OPT_REPORT`.
     Ranges = 11,
 }
 

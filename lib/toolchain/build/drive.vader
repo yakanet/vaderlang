@@ -199,7 +199,7 @@ emit_one :: fn(
             "`ctx.out` names one binary but ${entries} entries are queued — leave it empty to derive a name per entry"))
         return 1
     }
-    cfg :: prepare_cfg_bytecode_from(lowered, entry, !release)
+    cfg :: prepare_cfg_bytecode_from(lowered, entry, !release, false, proves_bounds(release))
     for d in cfg.pre_diags {
         ctx.diagnostics.push(d)
     }

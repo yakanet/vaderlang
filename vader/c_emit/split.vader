@@ -103,7 +103,8 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, header_name: str
     // each function lands in, and the context needs the analysis.
     buckets :: partition_functions(m.functions)
     ctx :: new_ctx(
-        m, opts.release, true, opts.atom_universe,
+        m,
+        EmitOptions { ...opts, .split = true },
         internal_fn_flags(m, buckets, opts.entry_mangled),
     )
 

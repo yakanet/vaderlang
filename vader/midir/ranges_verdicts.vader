@@ -35,6 +35,10 @@ SiteInstruction :: InstrArrayGet | InstrArraySet | InstrBinOp | InstrUnOp
 /// One array access or checked operation, and its verdict.
 RangeSite :: struct {
     span: Span
+    /// Where the instruction sits: its block, and its rank among the block's
+    /// instructions.
+    block: BlockId
+    position: usize
     /// The operation over its locals' names: `xs[i]`, `total + x`.
     what: string
     /// A checked operation, not an array access.
@@ -51,17 +55,20 @@ FunctionRanges :: struct {
     gave_up: bool
 }
 
-/// Analyse `fn_` and judge every array access and checked operation in it.
+/// Analyse `fn_` and judge every array access in it, and every checked operation
+/// unless `with_arithmetic` is off.
 ///
-/// @param shrinks  whether an instruction may shorten an array.
+/// @param shrinks          whether an instruction may shorten an array.
+/// @param with_arithmetic  judge the checked operations too.
 analyse_function_ranges :: fn(
     fn_: CFGFunction,
     shrinks: fn(Instruction) -> bool,
+    with_arithmetic: bool = true,
 ) -> FunctionRanges {
     release :: range_context(fn_.locals, false, shrinks)
     sites: RangeSite[]: []
     accesses :: has_sites(release, fn_, false)
-    arithmetic :: has_sites(release, fn_, true)
+    arithmetic :: with_arithmetic && has_sites(release, fn_, true)
     settled := true
     if accesses || arithmetic {
         thresholds :: constants_of(fn_)
@@ -118,12 +125,15 @@ judge_sites :: fn(
             continue
         }
         s :: walking_state(states, block.id)
-        for ins in block.instructions {
+        for position in 0..<block.instructions.len() {
+            ins :: block.instructions[position]
             site :: site_of(ctx, ins)
             if site != null && is_arithmetic(site) == arithmetic {
                 sites.push(
                     RangeSite {
                         .span = site_span(site),
+                        .block = block.id,
+                        .position = position,
                         .what = site_label(ctx, site),
                         .arithmetic = arithmetic,
                         .verdict = verdict_at(ctx, s, states == null, site),

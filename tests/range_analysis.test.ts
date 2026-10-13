@@ -6,7 +6,8 @@
 // out so that a change of layout in the fixture does not read as a change of
 // verdict. The domain and the transfer steps have their own `@test`s in
 // `vader/midir/ranges*.vader`; this pins what the whole analysis concludes on
-// the CFG the bytecode emitter receives.
+// the CFG the bytecode emitter receives, and which index checks the emitted C
+// keeps once a release build drops the proven ones.
 
 import { test, expect } from "bun:test";
 import { ensureCliBuilt, runCli, MEDIUM_BUILD } from "./cli-bin.ts";
@@ -15,6 +16,7 @@ import { join } from "node:path";
 ensureCliBuilt();
 
 const VERDICTS = join(import.meta.dir, "range_fixtures", "verdicts.vader");
+const ELISION = join(import.meta.dir, "range_fixtures", "elision", "elision.vader");
 
 /** Each function's sites, `<operation> -> <verdict>` in source order. */
 function sitesByFunction(dump: string): Map<string, string[]> {
@@ -68,4 +70,43 @@ test("VADER_OPT_REPORT totals the verdicts and lists each certain fault", async 
   expect(r.stderr).toContain("xs[i] in verdicts$negative_index");
   expect(r.stderr).toContain("without call summaries:");
   expect(r.stderr).toContain("functions may shorten an array");
+}, MEDIUM_BUILD);
+
+/** The index-check macros in the C definition of `elision$<name>`, in order. */
+function checksIn(c: string, name: string): string[] {
+  const start = c.search(new RegExp(`^static \\S.* elision_${name}\\(.*\\) \\{$`, "m"));
+  expect(start).toBeGreaterThanOrEqual(0);
+  const body = c.slice(start, c.indexOf("\n}\n", start));
+  return body.match(/VADER_ARRAY_CHECK_[A-Z]+/g) ?? [];
+}
+
+/** The C a native build of the elision fixture emits, `--out=-` streaming it. */
+async function nativeC(flags: string[], env?: Record<string, string>): Promise<string> {
+  const r = await runCli(["build", ...flags, "--emit=c", "--out=-", ELISION], env, MEDIUM_BUILD);
+  expect(r.exit).toBe(0);
+  return r.stdout;
+}
+
+test("a release build drops the index check of a proven access only", async () => {
+  const c = await nativeC(["--release"]);
+  expect(checksIn(c, "proven_access")).toEqual([]);
+  expect(checksIn(c, "unproven_access")).toEqual(["VADER_ARRAY_CHECK_INDEX"]);
+}, MEDIUM_BUILD);
+
+test("a debug build keeps the check of an access the range analysis proves", async () => {
+  const c = await nativeC([]);
+  expect(checksIn(c, "proven_access")).toEqual(["VADER_ARRAY_CHECK_INDEX"]);
+  expect(checksIn(c, "unproven_access")).toEqual(["VADER_ARRAY_CHECK_INDEX"]);
+}, MEDIUM_BUILD);
+
+test("VADER_VERIFY_BOUNDS keeps a proven access's check under a message of its own", async () => {
+  for (const flags of [[], ["--release"]]) {
+    const c = await nativeC(flags, { VADER_VERIFY_BOUNDS: "1" });
+    expect(checksIn(c, "proven_access")).toEqual(["VADER_ARRAY_CHECK_PROVEN"]);
+    expect(checksIn(c, "unproven_access")).toEqual(["VADER_ARRAY_CHECK_INDEX"]);
+  }
+  // The parity tests' path: `dump --stage=c`.
+  const dump = await runCli(["dump", "--stage=c", ELISION], { VADER_VERIFY_BOUNDS: "1" }, MEDIUM_BUILD);
+  expect(dump.exit).toBe(0);
+  expect(checksIn(dump.stdout, "proven_access")).toEqual(["VADER_ARRAY_CHECK_PROVEN"]);
 }, MEDIUM_BUILD);

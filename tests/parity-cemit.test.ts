@@ -603,10 +603,13 @@ for (const s of scenarios) {
     }
   }, { timeout: LONG_BUILD });
 
-  // Oracle 2 — the emitted C compiles + runs, matching vm.snapshot.
+  // Oracle 2 — the emitted C compiles + runs, matching vm.snapshot. Under
+  // `VADER_VERIFY_BOUNDS` the build runs the range analysis and an access it
+  // proves in bounds keeps its check under a message of its own, so a wrong
+  // proof fails here instead of reading out of bounds in a release build.
   test.concurrent(`c-emit-run: ${s.name}`, async () => {
     if (!CC_AVAILABLE) return;
-    const dump = await runCli(["dump", "--stage=c", s.mainPath]);
+    const dump = await runCli(["dump", "--stage=c", s.mainPath], { VADER_VERIFY_BOUNDS: "1" });
     const cFile = join(tmpdir(), `vader-cemit-${s.name}.c`);
     const binFile = join(tmpdir(), `vader-cemit-${s.name}${EXE_SUFFIX}`);
     writeFileSync(cFile, dump.stdout);

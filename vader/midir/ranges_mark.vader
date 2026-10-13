@@ -1,0 +1,118 @@
+// vader/midir/ranges_mark — mark every array access the range analysis proves in bounds.
+//
+// A native build that proves bounds (`proves_bounds`, `vader/pipeline`) runs the
+// range analysis (`ranges_verdicts.vader`) on each function as the bytecode
+// emitter receives it, and marks `bounds_safe` every array access it proves. The
+// C emitter then drops that access's index check, or keeps it with a message of
+// its own under `$VADER_VERIFY_BOUNDS` (`emit_slot_array_local`). The VM ignores
+// the mark and checks every access.
+//
+// An access is judged as in `--release`, where checked operations wrap, and a
+// call through the summary of what may shorten an array (`array_shrink.vader`).
+
+module "vader/midir"
+
+import "std/collections"
+import "std/iter"
+
+/// Mark `bounds_safe` every array access of `p` the range analysis proves in
+/// bounds.
+///
+/// @param p  the CFG after every other midir pass, as the bytecode emitter
+///           receives it.
+/// @return   `p` with those accesses marked.
+export mark_proven_accesses :: fn(p: CFGProject) -> CFGProject {
+    shrinks :: shrink_predicate(summarise_array_shrinking(p))
+    out :: MutableMap<string, CFGModule> {}
+    for [id, m] in p.modules {
+        functions :: m.functions.map((f) -> mark_in_function(f, shrinks)).collect()
+        out[id] = CFGModule { ...m, .functions = functions }
+    }
+    return CFGProject { ...p, .modules = out }
+}
+
+// `fn_` with every access the analysis proves marked `bounds_safe`.
+mark_in_function :: fn(fn_: CFGFunction, shrinks: fn(Instruction) -> bool) -> CFGFunction! {
+    proven :: proven_accesses(fn_, shrinks)
+    if proven.len() == 0 {
+        return CFGFunction { ...fn_ }
+    }
+    return CFGFunction { ...fn_, .blocks = fn_.blocks.map((b) -> mark_block(b, proven)).collect() }
+}
+
+// The accesses of `fn_` the analysis proves in bounds, each as its `pos_key`.
+proven_accesses :: fn(fn_: CFGFunction, shrinks: fn(Instruction) -> bool) -> MutableSet<i64> {
+    proven :: MutableSet<i64> {}
+    if !may_prove_an_access(fn_) {
+        return proven
+    }
+    for site in analyse_function_ranges(fn_, shrinks, false).sites {
+        if site.verdict == .Proven {
+            proven.add(pos_key(site.block, site.position))
+        }
+    }
+    return proven
+}
+
+// Whether the analysis could prove an access of `fn_`. It proves one only against
+// the length of its own array, which only `array_len` brings in: a function with
+// no unchecked access to an array whose length it reads proves nothing, and
+// skips the fixed point.
+may_prove_an_access :: fn(fn_: CFGFunction) -> bool {
+    measured :: MutableSet<LocalId> {}
+    for b in fn_.blocks {
+        for ins in b.instructions {
+            if ins is InstrArrayLen {
+                measured.add(ins.target)
+            }
+        }
+    }
+    if measured.len() == 0 {
+        return false
+    }
+    for b in fn_.blocks {
+        for ins in b.instructions {
+            target :: checked_access_target(ins) ?? continue
+            if target in measured {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+// The array an access indexes, when it still checks its index.
+checked_access_target :: fn(ins: Instruction) -> LocalId | null {
+    if ins is InstrArrayGet && !ins.bounds_safe {
+        return ins.target
+    }
+    if ins is InstrArraySet && !ins.bounds_safe {
+        return ins.target
+    }
+    return null
+}
+
+// `b` with each access `proven` names marked `bounds_safe`.
+mark_block :: fn(b: BasicBlock, proven: MutableSet<i64>) -> BasicBlock {
+    marked: Instruction[]: []
+    for position in 0..<b.instructions.len() {
+        ins :: b.instructions[position]
+        if pos_key(b.id, position) in proven {
+            marked.push(marked_safe(ins))
+        } else {
+            marked.push(ins)
+        }
+    }
+    return BasicBlock { ...b, .instructions = marked }
+}
+
+// `ins`, an array access, marked `bounds_safe`.
+marked_safe :: fn(ins: Instruction) -> Instruction {
+    if ins is InstrArrayGet {
+        return InstrArrayGet { ...ins, .bounds_safe = true }
+    }
+    if ins is InstrArraySet {
+        return InstrArraySet { ...ins, .bounds_safe = true }
+    }
+    return ins
+}

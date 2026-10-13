@@ -1,0 +1,25 @@
+// tests/range_fixtures/elision/elision — which index checks a build keeps, read
+// from the emitted C by `tests/range_analysis.test.ts`.
+
+module "elision"
+
+import "std/io"
+
+/// An index below the length the loop compares against: proven, so a release
+/// build drops its check.
+proven_access :: fn(xs: i32[]) -> i32 {
+    total := 0
+    for i in 0..<xs.len() {
+        total += xs[i]
+    }
+    return total
+}
+
+/// An index nothing bounds: its check stays.
+unproven_access :: fn(xs: i32[], i: i32) -> i32 = xs[i]
+
+main :: fn() -> i32 {
+    xs :: [1, 2, 3]
+    println("${proven_access(xs)} ${unproven_access(xs, 1)}")
+    return 0
+}
