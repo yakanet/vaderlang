@@ -1,7 +1,8 @@
 // A generic body may test one of its own type parameters (`x is U`) : its instances
 // stay concrete, so the test reads what each instance binds `U` to. So does every
-// generic fn that hands that body its own type parameters. Type arguments key an
-// instance in declaration order, whatever order the parameters appear in.
+// generic fn that hands that body its own type parameters, in method form too.
+// Type arguments key an instance in declaration order, whatever order the
+// parameters appear in.
 module "snippet"
 
 import "std/io"
@@ -27,6 +28,12 @@ relay :: fn<T, V>(x: V, sample: T) -> bool = same_kind(x, sample)
 
 relay_twice :: fn<T, V>(x: V, sample: T) -> bool = relay(x, sample)
 
+holds_kind :: fn<T>(samples: T[], x: Circle | Square) -> bool = x is T
+
+relay_method :: fn<T>(samples: T[], x: Circle | Square) -> bool = samples.holds_kind(x)
+
+relay_method_twice :: fn<T>(samples: T[], x: Circle | Square) -> bool = relay_method(samples, x)
+
 main :: fn() -> i32 {
     sq: Circle | Square: Square { .s = 2 }
     println("${is_a<Circle, Circle | Square>(sq)} ${is_a<Square, Circle | Square>(sq)}")
@@ -34,5 +41,8 @@ main :: fn() -> i32 {
     println("${same_kind(sq, Circle { .r = 0 })} ${same_kind(sq, Square { .s = 0 })}")
     println("${relay(sq, Circle { .r = 0 })} ${relay(sq, Square { .s = 0 })}")
     println("${relay_twice(sq, Circle { .r = 0 })} ${relay_twice(sq, Square { .s = 0 })}")
+    circles :: [Circle { .r = 0 }]
+    squares :: [Square { .s = 0 }]
+    println("${relay_method_twice(circles, sq)} ${relay_method_twice(squares, sq)}")
     return 0
 }

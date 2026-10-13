@@ -3,8 +3,10 @@
 ## Status
 
 Accepted (2026-10-13). The record the property layer of the type-system work walks
-for its call edges. The lowering does not read it yet; a verifier in the lowering
-compares the two first.
+for its call edges. Its first readers are the language server's references and
+rename, the call edges of the mutability deduction, and the propagation of
+type-parameter observation. The lowering does not read it yet; a verifier in the
+lowering compares the two first.
 
 ## Context
 
@@ -44,6 +46,11 @@ the typed level, where a generic body is checked once.
 - An overloaded member behind a namespace alias is recorded as its first
   declaration, which is what both sides take today. That is a known defect, to be
   fixed on both sides at once.
+- **The call graph's edges.** A call to a generic fn keeps the type each of the
+  fn's type parameters takes there (`DirectFn.bindings`), and the calls written in
+  each function are listed under its declaration (`CallSites.calls_in_fn`). A
+  lambda's calls are listed under the function around it, whose instances it
+  shares.
 - `vader dump --stage=callees` prints each site with its role and callee, and the
   count of unsettled sites.
 

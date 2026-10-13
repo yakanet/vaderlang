@@ -1,27 +1,29 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 union 3,4
+type 2 array 3
 type 3 struct snippet$Circle { r:1 }
-type 4 struct snippet$Square { s:1 }
-type 5 primitive bool
-type 6 primitive string
-type 7 primitive u8
-type 8 primitive usize
-type 9 struct std_core$Buffer {  }
-type 10 array 7
-type 11 primitive void
-type 12 primitive isize
+type 4 union 3,5
+type 5 struct snippet$Square { s:1 }
+type 6 primitive bool
+type 7 array 5
+type 8 primitive string
+type 9 primitive u8
+type 10 primitive usize
+type 11 struct std_core$Buffer {  }
+type 12 array 9
+type 13 primitive void
+type 14 primitive isize
 string 0 " "
 string 1 "yes"
 string 2 "no"
 string 3 "true"
 string 4 "false"
 string 5 "\n"
-import 0 byte_len std_core$byte_len result_type=8 param_types=6 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=10 param_types=6 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,10,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-impl 9 std_core$ByteAccess
+import 0 byte_len std_core$byte_len result_type=10 param_types=8 param_mutable=0 param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=12 param_types=8 param_mutable=0 param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,12,10 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+impl 11 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -32,52 +34,53 @@ fn 0 snippet$main () -> i32
   local $call_15 string
   local $call_17 string
   local $struct_25 ref
+  local __buf_8 ref
   i32.const 2
-  struct.new 4   ; snippet$Square
+  struct.new 5   ; snippet$Square
   local.set 0   ; sq
   i64.const 11
-  call 13   ; std_core$new_byte_buffer
+  call 19   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; sq
-  call 1   ; snippet$is_a__Circle__Circle___Square
+  call 3   ; snippet$is_a__Circle__Circle___Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $call_8
-  call 16   ; std_core$write_bool
+  call 22   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 0   ; " "
-  call 15   ; std_core$write_string_at
+  call 21   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 0   ; sq
-  call 2   ; snippet$is_a__Square__Circle___Square
+  call 4   ; snippet$is_a__Square__Circle___Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $call_8
-  call 16   ; std_core$write_bool
+  call 22   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 14   ; std_core$finish_buffer
-  call 19   ; std_io$println__string
+  call 20   ; std_core$finish_buffer
+  call 25   ; std_io$println__string
   local.get 0   ; sq
-  call 3   ; snippet$kind__Circle__Circle___Square
+  call 5   ; snippet$kind__Circle__Circle___Square
   local.set 4   ; $call_15
   local.get 0   ; sq
-  call 4   ; snippet$kind__Square__Circle___Square
+  call 6   ; snippet$kind__Square__Circle___Square
   local.set 5   ; $call_17
   local.get 4   ; $call_15
   string.const 0   ; " "
   local.get 5   ; $call_17
-  call 11   ; concat_3
-  call 19   ; std_io$println__string
+  call 17   ; concat_3
+  call 25   ; std_io$println__string
   i64.const 11
-  call 13   ; std_core$new_byte_buffer
+  call 19   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
@@ -86,36 +89,36 @@ fn 0 snippet$main () -> i32
   local.set 6   ; $struct_25
   local.get 0   ; sq
   local.get 6   ; $struct_25
-  call 5   ; snippet$same_kind__Circle__Circle___Square
+  call 7   ; snippet$same_kind__Circle__Circle___Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $call_8
-  call 16   ; std_core$write_bool
+  call 22   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 0   ; " "
-  call 15   ; std_core$write_string_at
+  call 21   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const 0
-  struct.new 4   ; snippet$Square
+  struct.new 5   ; snippet$Square
   local.set 6   ; $struct_25
   local.get 0   ; sq
   local.get 6   ; $struct_25
-  call 6   ; snippet$same_kind__Square__Circle___Square
+  call 8   ; snippet$same_kind__Square__Circle___Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $call_8
-  call 16   ; std_core$write_bool
+  call 22   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 14   ; std_core$finish_buffer
-  call 19   ; std_io$println__string
+  call 20   ; std_core$finish_buffer
+  call 25   ; std_io$println__string
   i64.const 11
-  call 13   ; std_core$new_byte_buffer
+  call 19   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
@@ -124,36 +127,36 @@ fn 0 snippet$main () -> i32
   local.set 6   ; $struct_25
   local.get 0   ; sq
   local.get 6   ; $struct_25
-  call 7   ; snippet$relay__Circle__Circle___Square
+  call 9   ; snippet$relay__Circle__Circle___Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $call_8
-  call 16   ; std_core$write_bool
+  call 22   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 0   ; " "
-  call 15   ; std_core$write_string_at
+  call 21   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const 0
-  struct.new 4   ; snippet$Square
+  struct.new 5   ; snippet$Square
   local.set 6   ; $struct_25
   local.get 0   ; sq
   local.get 6   ; $struct_25
-  call 8   ; snippet$relay__Square__Circle___Square
+  call 10   ; snippet$relay__Square__Circle___Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $call_8
-  call 16   ; std_core$write_bool
+  call 22   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 14   ; std_core$finish_buffer
-  call 19   ; std_io$println__string
+  call 20   ; std_core$finish_buffer
+  call 25   ; std_io$println__string
   i64.const 11
-  call 13   ; std_core$new_byte_buffer
+  call 19   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
@@ -162,50 +165,104 @@ fn 0 snippet$main () -> i32
   local.set 6   ; $struct_25
   local.get 0   ; sq
   local.get 6   ; $struct_25
-  call 9   ; snippet$relay_twice__Circle__Circle___Square
+  call 11   ; snippet$relay_twice__Circle__Circle___Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $call_8
-  call 16   ; std_core$write_bool
+  call 22   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 0   ; " "
-  call 15   ; std_core$write_string_at
+  call 21   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const 0
-  struct.new 4   ; snippet$Square
+  struct.new 5   ; snippet$Square
   local.set 6   ; $struct_25
   local.get 0   ; sq
   local.get 6   ; $struct_25
-  call 10   ; snippet$relay_twice__Square__Circle___Square
+  call 12   ; snippet$relay_twice__Square__Circle___Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $call_8
-  call 16   ; std_core$write_bool
+  call 22   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 14   ; std_core$finish_buffer
-  call 19   ; std_io$println__string
+  call 20   ; std_core$finish_buffer
+  call 25   ; std_io$println__string
+  i32.const 0
+  struct.new 3   ; snippet$Circle
+  array.new 2 1   ; snippet$Circle[]
+  local.set 1   ; __buf_0
+  i32.const 0
+  struct.new 5   ; snippet$Square
+  array.new 7 1   ; snippet$Square[]
+  local.set 6   ; $struct_25
+  i64.const 11
+  call 19   ; std_core$new_byte_buffer
+  local.set 7   ; __buf_8
+  i64.const 0
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 0   ; sq
+  call 1   ; snippet$relay_method_twice__Circle
+  local.set 3   ; $call_8
+  local.get 7   ; __buf_8
+  local.get 2   ; __off_1
+  local.get 3   ; $call_8
+  call 22   ; std_core$write_bool
+  local.set 2   ; __off_1
+  local.get 7   ; __buf_8
+  local.get 2   ; __off_1
+  string.const 0   ; " "
+  call 21   ; std_core$write_string_at
+  local.set 2   ; __off_1
+  local.get 6   ; $struct_25
+  local.get 0   ; sq
+  call 2   ; snippet$relay_method_twice__Square
+  local.set 3   ; $call_8
+  local.get 7   ; __buf_8
+  local.get 2   ; __off_1
+  local.get 3   ; $call_8
+  call 22   ; std_core$write_bool
+  local.set 2   ; __off_1
+  local.get 7   ; __buf_8
+  local.get 2   ; __off_1
+  call 20   ; std_core$finish_buffer
+  call 25   ; std_io$println__string
   return.lit i32.const 0
 end
 
-fn 1 snippet$is_a__Circle__Circle___Square (any) -> bool
+fn 1 snippet$relay_method_twice__Circle (ref,any) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 15   ; snippet$relay_method__Circle
+  return
+end
+
+fn 2 snippet$relay_method_twice__Square (ref,any) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 16   ; snippet$relay_method__Square
+  return
+end
+
+fn 3 snippet$is_a__Circle__Circle___Square (any) -> bool
   local.get 0   ; arg 0
   type_check 3   ; snippet$Circle
   return
 end
 
-fn 2 snippet$is_a__Square__Circle___Square (any) -> bool
+fn 4 snippet$is_a__Square__Circle___Square (any) -> bool
   local.get 0   ; arg 0
-  type_check 4   ; snippet$Square
+  type_check 5   ; snippet$Square
   return
 end
 
-fn 3 snippet$kind__Circle__Circle___Square (any) -> string
+fn 5 snippet$kind__Circle__Circle___Square (any) -> string
   local.get 0   ; arg 0
   type_check 3   ; snippet$Circle
   if $L0 void
@@ -214,56 +271,82 @@ fn 3 snippet$kind__Circle__Circle___Square (any) -> string
   return.lit string.const 2   ; "no"
 end
 
-fn 4 snippet$kind__Square__Circle___Square (any) -> string
+fn 6 snippet$kind__Square__Circle___Square (any) -> string
   local.get 0   ; arg 0
-  type_check 4   ; snippet$Square
+  type_check 5   ; snippet$Square
   if $L0 void
     return.lit string.const 1   ; "yes"
   end $L0
   return.lit string.const 2   ; "no"
 end
 
-fn 5 snippet$same_kind__Circle__Circle___Square (any,ref) -> bool
+fn 7 snippet$same_kind__Circle__Circle___Square (any,ref) -> bool
   local.get 0   ; arg 0
   type_check 3   ; snippet$Circle
   return
 end
 
-fn 6 snippet$same_kind__Square__Circle___Square (any,ref) -> bool
+fn 8 snippet$same_kind__Square__Circle___Square (any,ref) -> bool
   local.get 0   ; arg 0
-  type_check 4   ; snippet$Square
+  type_check 5   ; snippet$Square
   return
 end
 
-fn 7 snippet$relay__Circle__Circle___Square (any,ref) -> bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 5   ; snippet$same_kind__Circle__Circle___Square
-  return
-end
-
-fn 8 snippet$relay__Square__Circle___Square (any,ref) -> bool
+fn 9 snippet$relay__Circle__Circle___Square (any,ref) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 6   ; snippet$same_kind__Square__Circle___Square
+  call 7   ; snippet$same_kind__Circle__Circle___Square
   return
 end
 
-fn 9 snippet$relay_twice__Circle__Circle___Square (any,ref) -> bool
+fn 10 snippet$relay__Square__Circle___Square (any,ref) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 7   ; snippet$relay__Circle__Circle___Square
+  call 8   ; snippet$same_kind__Square__Circle___Square
   return
 end
 
-fn 10 snippet$relay_twice__Square__Circle___Square (any,ref) -> bool
+fn 11 snippet$relay_twice__Circle__Circle___Square (any,ref) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 8   ; snippet$relay__Square__Circle___Square
+  call 9   ; snippet$relay__Circle__Circle___Square
   return
 end
 
-fn 11 concat_3 (string,string,string) -> string
+fn 12 snippet$relay_twice__Square__Circle___Square (any,ref) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 10   ; snippet$relay__Square__Circle___Square
+  return
+end
+
+fn 13 snippet$holds_kind__Circle (ref,any) -> bool
+  local.get 1   ; arg 1
+  type_check 3   ; snippet$Circle
+  return
+end
+
+fn 14 snippet$holds_kind__Square (ref,any) -> bool
+  local.get 1   ; arg 1
+  type_check 5   ; snippet$Square
+  return
+end
+
+fn 15 snippet$relay_method__Circle (ref,any) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 13   ; snippet$holds_kind__Circle
+  return
+end
+
+fn 16 snippet$relay_method__Square (ref,any) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 14   ; snippet$holds_kind__Square
+  return
+end
+
+fn 17 concat_3 (string,string,string) -> string
   local c0 usize
   local $call_5 usize
   local $call_8 usize
@@ -304,7 +387,7 @@ fn 11 concat_3 (string,string,string) -> string
   return
 end
 
-fn 12 concat_2 (string,string) -> string
+fn 18 concat_2 (string,string) -> string
   local c0 usize
   local $call_4 usize
   local buf ref
@@ -333,20 +416,20 @@ fn 12 concat_2 (string,string) -> string
   return
 end
 
-fn 13 std_core$new_byte_buffer (usize) -> ref
+fn 19 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 14 std_core$finish_buffer (ref,usize) -> string
+fn 20 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 15 std_core$write_string_at (ref,usize,string) -> usize
+fn 21 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -361,24 +444,24 @@ fn 15 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 16 std_core$write_bool (ref,usize,bool) -> usize
+fn 22 std_core$write_bool (ref,usize,bool) -> usize
   local.get 2   ; arg 2
   if $L0 void
   else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     string.const 4   ; "false"
-    call 15   ; std_core$write_string_at
+    call 21   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   string.const 3   ; "true"
-  call 15   ; std_core$write_string_at
+  call 21   ; std_core$write_string_at
   return
 end
 
-fn 17 std_io$write (u8,string) -> void
+fn 23 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -407,14 +490,14 @@ fn 17 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 10   ; u8[]
+      array.slice 12   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 18   ; std_io$write_bytes
+      call 24   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -434,7 +517,7 @@ fn 17 std_io$write (u8,string) -> void
   return
 end
 
-fn 18 std_io$write_bytes (u8,ref,usize) -> i32
+fn 24 std_io$write_bytes (u8,ref,usize) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -454,14 +537,14 @@ fn 18 std_io$write_bytes (u8,ref,usize) -> i32
   return
 end
 
-fn 19 std_io$println__string (string) -> void
+fn 25 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 5   ; "\n"
-  call 12   ; concat_2
+  call 18   ; concat_2
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 17   ; std_io$write
+  call 23   ; std_io$write
   return
 end

@@ -95,13 +95,6 @@ export BoundedImpl :: struct {
     bounds: ArgBound[]
 }
 
-/// A fn declaration with the module declaring it, where the tables about it live
-/// (`fn_observes_type_params`).
-export FnDeclRef :: struct {
-    module: string
-    decl:   AST.FnDecl
-}
-
 /// One fn a call to its name may resolve to — an overload declared here, or one
 /// a file's wildcard imports put in unqualified scope.
 ///
@@ -667,11 +660,6 @@ export TypedProgram :: struct {
     /// observation climbs to the callers.
     fn_observes_type_params: MutableMap<usize, bool>!
 
-    /// Generic fn AST-node id → the fns its body calls with one of its own type
-    /// parameters among the call's type arguments : the edges
-    /// `propagate_type_param_observation` follows.
-    type_param_forwards: MutableMap<usize, FnDeclRef[]!>!
-
     /// Generic fn AST-node id → true when its body interpolates a value whose
     /// type mentions a type-param, so renders it through a `Display` dispatched
     /// on it. Read by the lowerer's instance flavor : an enum or a distinct
@@ -862,7 +850,6 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .bounded_dispatch_args = MutableMap<usize, Type[]> {},
     .fn_needs_concrete_instances = MutableMap<usize, bool> {},
     .fn_observes_type_params = MutableMap<usize, bool> {},
-    .type_param_forwards = MutableMap<usize, FnDeclRef[]!> {},
     .fn_display_dispatches = MutableMap<usize, bool> {},
     .overload_result_callees = MutableMap<usize, bool> {},
     .enum_data_reads = MutableMap<usize, bool> {},

@@ -14,6 +14,11 @@
 // entry and each route then files what it decided, `Builtin` when nothing is
 // called: a route that decides nothing shows as unsettled instead of passing for a
 // built-in operation.
+//
+// A call to a generic fn keeps the types its arguments bound the fn's type
+// parameters to (`DirectFn.bindings`), and the calls written in each function are
+// listed under it (`CallSites.calls_in_fn`) : together, the edges of the call
+// graph a property over the functions follows.
 
 module "vader/typecheck"
 
@@ -36,6 +41,10 @@ export DirectFn :: struct {
     /// An impl member chosen against a type parameter of the enclosing body: an impl
     /// on the instance's own type wins over it there (impl specialization).
     per_instance: bool = false
+    /// The type each type parameter of a generic fn takes at a call, by the
+    /// parameter's symbol id ; null for a fn that takes none, and on any site but a
+    /// call.
+    bindings: MutableMap<i32, Type> | null = null
 }
 
 /// A member reached through the bound of a type parameter, settled at each
@@ -104,6 +113,9 @@ export CallRole :: enum {
 /// The sites of a module, one table per role, each keyed by the node's id. A node
 /// may play several roles (`m[k] += v` reads, applies the operator, writes back).
 export CallSites :: struct {
+    /// The calls written in each function, by its declaration's id. A lambda's are
+    /// its enclosing function's, whose instances it shares.
+    calls_in_fn: MutableMap<usize, usize[]!>! = MutableMap<usize, usize[]!> {}
     calls: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
     operators: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
     index_reads: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
@@ -211,19 +223,68 @@ record_site :: fn(typed: TypedProgram, node: AST.Expr, role: CallRole, callee: C
     if node.id == AST.UNASSIGNED_NODE_ID {
         return
     }
-    sites_of(typed.call_sites, role)[node.id] = callee
+    table :: sites_of(typed.call_sites, role)
+    filed :: table.len()
+    table[node.id] = callee
+    // A node checked twice (an overload's first argument, a lambda's rounds) is
+    // listed once.
+    if role == .Call && table.len() > filed {
+        file_in_fn(typed, node.id)
+    }
     if typed.dump_types {
         typed.node_spans[node.id] = node.span
     }
 }
 
+// List the call `node` under the function being checked ; a module-level
+// initialiser is in none.
+file_in_fn :: fn(typed: TypedProgram, node: usize) -> void {
+    ctx :: typed.current_fn_ctx ?? return
+    if ctx.fn_id == 0 {
+        return
+    }
+    nodes :: typed.call_sites.calls_in_fn[ctx.fn_id]
+    if nodes == null {
+        typed.call_sites.calls_in_fn[ctx.fn_id] = [node]
+        return
+    }
+    nodes.push(node)
+}
+
+// Note the type each type parameter of `c`'s callee takes at the call, once its
+// arguments bound them. `bindings` is kept as is : the caller must not change it
+// afterwards.
+note_call_bindings :: fn(
+    typed: TypedProgram,
+    c: AST.CallExpr,
+    bindings: MutableMap<i32, Type>,
+) -> void {
+    callee :: typed.call_sites.calls[c.id] ?? return
+    if callee !is DirectFn || bindings.len() == 0 {
+        return
+    }
+    typed.call_sites.calls[c.id] = DirectFn { ...callee, .bindings = bindings }
+}
+
+// Whether the call to `callee` hands it a type naming one of the enclosing body's
+// own type parameters.
+forwards_type_params :: fn(callee: DirectFn) -> bool {
+    bindings :: callee.bindings ?? return false
+    for [_, bound] in bindings {
+        if type_contains_type_param(bound) {
+            return true
+        }
+    }
+    return false
+}
+
 // What the call `c` invokes : the decision noted on its callee, else the fn the
-// callee names (`named`, `resolve_callee_fn`).
+// callee names (`named`, `lookup_callee_fn_decl`).
 callee_of_call :: fn(
     typed: TypedProgram,
     c: AST.CallExpr,
     callee_ty: Type,
-    named: FnDeclRef | null,
+    named: AST.FnDecl | null,
 ) -> Callee {
     if callee_ty !is FnType {
         return ERRONEOUS_CALLEE
@@ -231,9 +292,9 @@ callee_of_call :: fn(
     return typed.callees[c.callee.id] ?? named_callee(typed, c.callee, named)
 }
 
-named_callee :: fn(typed: TypedProgram, callee: AST.Expr, named: FnDeclRef | null) -> Callee {
+named_callee :: fn(typed: TypedProgram, callee: AST.Expr, named: AST.FnDecl | null) -> Callee {
     if named != null {
-        return DirectFn { .decl = named.decl }
+        return DirectFn { .decl = named }
     }
     if calls_a_value(typed, callee) {
         return FN_VALUE_CALLEE

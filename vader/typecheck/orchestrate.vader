@@ -140,15 +140,25 @@ export check_project_with_bodies :: fn(
 
 // A generic fn that hands its own type parameters to one observing them
 // (`fn_observes_type_params`) observes them too : with erased instances it would
-// hand `Any`. Marks every such caller, across modules, to a fixed point.
+// hand `Any`. Marks every such caller, across modules, to a fixed point, over the
+// calls the record lists in each function. Declaration ids are project-wide.
 propagate_type_param_observation :: fn(modules: MutableMap<string, TypedProgram>) -> void {
+    observing :: MutableSet<usize> {}
+    for [_, typed] in modules {
+        for [id, _] in typed.fn_observes_type_params {
+            observing.add(id)
+        }
+    }
+    if observing.len() == 0 {
+        return
+    }
     changed := true
     for changed {
         changed = false
         for [_, typed] in modules {
-            for [caller, callees] in typed.type_param_forwards {
-                if caller !in typed.fn_observes_type_params
-                    && callees.any_match((callee) -> observes_type_params(modules, callee)) {
+            for [caller, calls] in typed.call_sites.calls_in_fn {
+                if caller !in observing && forwards_to_observer(typed, calls, observing) {
+                    observing.add(caller)
                     typed.fn_observes_type_params[caller] = true
                     changed = true
                 }
@@ -157,10 +167,20 @@ propagate_type_param_observation :: fn(modules: MutableMap<string, TypedProgram>
     }
 }
 
-// Whether the fn `callee` names observes its type parameters.
-observes_type_params :: fn(modules: MutableMap<string, TypedProgram>, callee: FnDeclRef) -> bool {
-    owner :: modules[callee.module] ?? return false
-    return callee.decl.id in owner.fn_observes_type_params
+// Whether one of `calls` runs a fn that observes its type parameters, handing it the
+// caller's own.
+forwards_to_observer :: fn(
+    typed: TypedProgram,
+    calls: usize[],
+    observing: MutableSet<usize>,
+) -> bool {
+    for call in calls {
+        callee :: typed.call_sites.calls[call] ?? continue
+        if callee is DirectFn && callee.decl.id in observing && forwards_type_params(callee) {
+            return true
+        }
+    }
+    return false
 }
 
 // One round of `check_project_with_bodies`, feeding `inference`.
