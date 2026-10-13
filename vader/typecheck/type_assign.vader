@@ -88,7 +88,7 @@ export check_common :: fn(from: Type, to: Type) -> bool {
 ///
 /// `ArrayType` is the exception, and on purpose : read-only `T[]` is an explicit,
 /// writable annotation that freezes the REFERENT (module consts, `.bytes()`
-/// views), so it stays covariant in `is_assignable_array`.
+/// views), which `is_assignable_array` keeps.
 export is_assignable_struct :: fn(from: Type, self: StructType, to: Type) -> bool {
     match to {
         is StructType -> {
@@ -136,30 +136,26 @@ export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type) -> bool 
 }
 
 /// `from is ArrayType`. `T[]! <: T[]` (mutable into read-only ; reverse
-/// forbidden). The element is **covariant** into a `const` (read-only) target
-/// whose reads take the source's slots as they are laid out (`reads_slots_of`),
-/// but **invariant** into a mutable one : covariance on a mutable array is
-/// unsound (arrays are reference-aliased — SPEC §Arrays — so a write through a
-/// widened alias would violate the source element type). Unresolved elements
-/// stay wildcards (accepted both ways by `is_assignable`).
+/// forbidden). The element is **invariant** but for its `!` : arrays are
+/// reference-aliased (SPEC §Arrays), so a write through a widened alias would
+/// violate the source element type. Only an argument may widen its element,
+/// which `widening_depth` decides and the effect summary checks against the
+/// callee. Unresolved elements stay wildcards (accepted both ways by
+/// `is_assignable`).
 export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type) -> bool {
     if to is ArrayType {
         if self.immutable && !to.immutable { return false }
-        // read-only `T[]` (read-only) target : element is covariant — reading a
-        // narrower array through a wider read-only view is sound (no write can
-        // violate the source element type), as long as the view reads the
-        // buffer the source wrote.
+        // A read-only target takes the element at a narrower `!`, never a wider
+        // element.
         if to.immutable {
             return fn_param_compatible(self.element, to.element)
-                && reads_slots_of(to.element, self.element)
+                && same_element(self.element, to.element)
         }
-        // Mutable target : element must be INVARIANT. Bidirectional
-        // assignability = invariance for concrete types, while the
-        // Unresolved wildcard (true both ways in `is_assignable`) survives.
-        // A covariant `i32[]` → `(i32 | string)[]` is rejected here —
-        // a write `b[0] = "hi"` through the alias would corrupt the shared i32
-        // buffer. Fresh literals sidestep this : they adopt the target element
-        // type in `infer_against_array`, so the init is reflexive.
+        // A mutable target takes the element as it is, `!` included. Bidirectional
+        // assignability = invariance for concrete types, while the Unresolved
+        // wildcard (true both ways in `is_assignable`) survives. Fresh literals
+        // adopt the target element type in `infer_against_array`, so the init is
+        // reflexive.
         // Fast-path the dominant equal-element case (`equals_type` ⟹ assignable
         // both ways) so `T[] → T[]` skips the two `is_assignable` passes.
         if equals_type(self.element, to.element) { return true }
@@ -170,37 +166,70 @@ export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type) -> bool 
 }
 
 /// How many arrays deep `from` fits `to` only by widening an element: 1 for
-/// `Circle[]` into `(Circle | null)[]`, 2 for `Circle[][]` into
-/// `(Circle | null)[][]`. Null when `from` is no array, or when its elements
-/// differ from the slot's by their `!` alone.
+/// `Circle[]` into `(Circle | null)[]`, or into `Shape[]` when `Circle implements
+/// Shape` ; 2 for `Circle[][]` into `(Circle | null)[][]`. The wider element must
+/// read the slots the narrower one is laid out in (`reads_slots_of`). Null when
+/// `from` does not widen into `to`, or fits it as it is.
 ///
-/// @param from  the argument's type.
-/// @param to    the parameter's type: an array, or a union holding one.
-export widening_depth :: fn(from: Type, to: Type) -> i32 | null {
+/// An array is shared, not copied: the widening is sound only if no callee puts
+/// a wider element into it. The typecheck accepts the argument and notes the
+/// depth ; the effect summary checks the callee.
+///
+/// @param from   the argument's type.
+/// @param to     the parameter's type: an array, or a union holding one.
+/// @param typed  the module checking the call, whose impls a trait element needs.
+export widening_depth :: fn(from: Type, to: Type, typed: TypedProgram) -> i32 | null {
     if from !is ArrayType {
         return null
     }
-    slot :: array_slot(from, to) ?? return null
-    if equals_type(from.element, slot.element) || equals_type_shape(from.element, slot.element) {
-        return null
-    }
-    deeper :: widening_depth(from.element, slot.element) ?? return 1
-    return deeper + 1
-}
-
-// The array `to` offers `from`: `to` itself, or the first array of a union that
-// takes it.
-array_slot :: fn(from: ArrayType, to: Type) -> ArrayType | null {
     if to is ArrayType {
-        return to
+        return array_widening_depth(from, to, typed)
     }
-    for v in union_variants(to) ?? [] {
-        if v is ArrayType && is_assignable(from, v) {
-            return v
+    variants :: union_variants(to) ?? return null
+    for slot in variants {
+        if slot is ArrayType {
+            depth :: array_widening_depth(from, slot, typed)
+            if depth != null {
+                return depth
+            }
         }
     }
     return null
 }
+
+/// Whether an argument of type `from` may fill a parameter of type `to`: as it
+/// is, or by widening an array (`widening_depth`). What picks a callee among
+/// overloads and candidate methods ; the check of the chosen call records the
+/// widening.
+///
+/// @param from   the argument's type.
+/// @param to     the parameter's type.
+/// @param typed  the module checking the call.
+export accepts_argument :: fn(from: Type, to: Type, typed: TypedProgram) -> bool =
+    is_assignable(from, to) || widening_depth(from, to, typed) != null
+
+// `widening_depth` into the array `slot`.
+array_widening_depth :: fn(from: ArrayType, slot: ArrayType, typed: TypedProgram) -> i32 | null {
+    narrow :: from.element
+    wide :: slot.element
+    if same_element(narrow, wide) {
+        return null
+    }
+    deeper :: widening_depth(narrow, wide, typed)
+    if deeper != null {
+        return deeper + 1
+    }
+    if reads_slots_of(wide, narrow) && fits_or_implements(narrow, wide, typed) {
+        return 1
+    }
+    return null
+}
+
+// Whether an element `narrow` is `wide` but for its `!`. A wildcard and a literal
+// that takes any layout are any element.
+same_element :: fn(narrow: Type, wide: Type) -> bool =
+    adopts_any_layout(narrow) || wide is UnresolvedType || equals_type(narrow, wide)
+        || equals_type_shape(narrow, wide)
 
 /// `from is FnType`. Params contravariant, return covariant.
 export is_assignable_fn :: fn(from: Type, self: FnType, to: Type) -> bool {
@@ -661,8 +690,8 @@ export fn_param_compatible :: fn(a: Type, b: Type) -> bool {
 /// declaration-site variance model exists : covariance is unsound for a *mutable*
 /// generic container — `MutableMap<i32, i32>` → `MutableMap<i32, i32 | string>`
 /// would let a write through the widened alias corrupt the shared `i32` backing,
-/// the exact reference-aliasing hole `is_assignable_array` closes for a mutable
-/// array element. Unresolved args stay wildcards (true both ways in
+/// the exact reference-aliasing hole `is_assignable_array` closes for an array
+/// element. Unresolved args stay wildcards (true both ways in
 /// `is_assignable`) ; a type parameter matches only itself. The equal-arg fast
 /// path keeps the dominant `Foo<T>` → `Foo<T>` case single-pass.
 export struct_args_compatible :: fn(a: Type[], b: Type[]) -> bool {
@@ -687,11 +716,11 @@ fits_tuple_field :: fn(from: Type, to: Type) -> bool {
 // ---- array slot layout ----------------------------------------------------
 
 // How an array of a given element type lays out its slots, as far as a read
-// through a covariant view can tell. Must agree with `array_kind_of`
+// through a widened element can tell. Must agree with `array_kind_of`
 // (`vader/bytecode/types.vader`), which fixes the layout once types are
 // lowered, and with `ref_carrying_element` (`vader/c_emit/walker.vader`), which
-// picks the reads that test it : a view whose reads expect another layout reads
-// garbage natively.
+// picks the reads that test it : a callee whose reads expect another layout
+// reads garbage natively.
 SlotLayout :: enum {
     // A raw value of the element's own width, or a layout this module cannot
     // tell (a type parameter) : only an array of the same type reads it.
@@ -703,16 +732,12 @@ SlotLayout :: enum {
     Boxed
 }
 
-// Whether a read-only `wide[]` view reads the slots of a `narrow[]` buffer.
-reads_slots_of :: fn(wide: Type, narrow: Type) -> bool {
-    if equals_type(wide, narrow) || adopts_any_layout(narrow) || wide is UnresolvedType {
-        return true
-    }
-    return match slot_layout(wide) {
-        .Dispatched -> slot_layout(narrow) != .Raw
-        .Boxed      -> slot_layout(narrow) == .Boxed
-        .Raw        -> false
-    }
+// Whether reads of a `wide` element take the slots of a `narrow[]` buffer, `narrow`
+// being another element (`same_element` is false).
+reads_slots_of :: fn(wide: Type, narrow: Type) -> bool = match slot_layout(wide) {
+    .Dispatched -> slot_layout(narrow) != .Raw
+    .Boxed      -> slot_layout(narrow) == .Boxed
+    .Raw        -> false
 }
 
 // An element with no layout of its own yet : the wildcard, a literal that takes
@@ -796,8 +821,8 @@ test_assignable_array_mut_into_const :: fn() -> void {
 
 @test
 test_array_mutable_element_invariant :: fn() -> void {
-    // Covariance into a MUTABLE array is unsound (reference aliasing) — reject
-    // both directions ; only an exact element type flows.
+    // Covariance of an array is unsound (reference aliasing) — reject both
+    // directions ; only an exact element type flows.
     i32_arr:        Type: mk_array(mk_primitive("i32"), false)
     union_arr_mut:  Type: mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), false)
     union_arr_mut2: Type: mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), false)
@@ -821,18 +846,20 @@ test_struct_args_invariant :: fn() -> void {
 }
 
 @test
-test_array_const_element_raw_into_boxed :: fn() -> void {
-    // An `i32[]` stores raw words ; a `(i32 | string)[]` view reads boxes.
-    i32_arr:         Type: mk_array(mk_primitive("i32"), false)
-    union_arr_const: Type: mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), true)
-    assert(!is_assignable(i32_arr, union_arr_const), "i32[] ↛ const (i32 | string)[]")
+test_array_widening_raw_into_boxed :: fn() -> void {
+    // An `i32[]` stores raw words ; a `(i32 | string)[]` reads boxes.
+    i32_arr: Type: mk_array(mk_primitive("i32"), false)
+    union_arr: Type: mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]), true)
+    typed :: empty_typed_program()
+    assert(widening_depth(i32_arr, union_arr, typed) == null, "i32[] ↛ (i32 | string)[]")
 }
 
 @test
-test_array_const_element_boxed_into_boxed :: fn() -> void {
-    string_arr:    Type: mk_array(mk_primitive("string"), false)
-    nullable_arr:  Type: mk_array(mk_union([mk_primitive("string"), mk_primitive("null")]), true)
-    assert(is_assignable(string_arr, nullable_arr), "string[] → const (string | null)[]")
+test_array_widening_boxed_into_boxed :: fn() -> void {
+    string_arr: Type: mk_array(mk_primitive("string"), false)
+    nullable_arr: Type: mk_array(mk_union([mk_primitive("string"), mk_primitive("null")]), true)
+    typed :: empty_typed_program()
+    assert(widening_depth(string_arr, nullable_arr, typed) == 1, "string[] → (string | null)[]")
 }
 
 circle_type :: fn() -> Type {
@@ -841,26 +868,39 @@ circle_type :: fn() -> Type {
 }
 
 @test
-test_array_const_element_reference_into_reference_union :: fn() -> void {
-    // A union of references and `null` reads the source's references as they are.
-    circles:  Type: mk_array(circle_type(), false)
-    nullable: Type: mk_array(mk_union([circle_type(), mk_primitive("null")]), true)
-    assert(is_assignable(circles, nullable), "Circle[] → const (Circle | null)[]")
-}
-
-@test
-test_array_const_element_reference_into_boxed_union :: fn() -> void {
+test_array_read_only_element_invariant :: fn() -> void {
+    // Only an argument widens an element, under the effect summary's check.
     circles: Type: mk_array(circle_type(), false)
-    mixed:   Type: mk_array(mk_union([circle_type(), mk_primitive("string")]), true)
-    assert(!is_assignable(circles, mixed), "Circle[] ↛ const (Circle | string)[]")
+    nullable: Type: mk_array(mk_union([circle_type(), mk_primitive("null")]), true)
+    read_only: Type: mk_array(with_immutable(circle_type(), true), true)
+    assert(!is_assignable(circles, nullable), "Circle[] ↛ (Circle | null)[]")
+    assert(is_assignable(circles, read_only), "Circle![]! → Circle[] (a narrower `!`)")
 }
 
 @test
-test_array_const_element_tuple_is_a_reference :: fn() -> void {
-    pair:     Type: mk_tuple([mk_primitive("i32"), mk_primitive("i32")], false)
+test_array_widening_reference_into_reference_union :: fn() -> void {
+    // A union of references and `null` reads the source's references as they are.
+    circles: Type: mk_array(circle_type(), false)
+    nullable: Type: mk_array(mk_union([circle_type(), mk_primitive("null")]), true)
+    typed :: empty_typed_program()
+    assert(widening_depth(circles, nullable, typed) == 1, "Circle[] → (Circle | null)[]")
+}
+
+@test
+test_array_widening_reference_into_boxed_union :: fn() -> void {
+    circles: Type: mk_array(circle_type(), false)
+    mixed: Type: mk_array(mk_union([circle_type(), mk_primitive("string")]), true)
+    typed :: empty_typed_program()
+    assert(widening_depth(circles, mixed, typed) == null, "Circle[] ↛ (Circle | string)[]")
+}
+
+@test
+test_array_widening_tuple_is_a_reference :: fn() -> void {
+    pair: Type: mk_tuple([mk_primitive("i32"), mk_primitive("i32")], false)
     nullable: Type: mk_array(mk_union([pair, mk_primitive("null")]), false)
-    mixed:    Type: mk_array(mk_union([pair, mk_primitive("null"), mk_primitive("string")]), true)
-    assert(!is_assignable(nullable, mixed), "([i32, i32] | null)[] ↛ const ([i32, i32] | null | string)[]")
+    mixed: Type: mk_array(mk_union([pair, mk_primitive("null"), mk_primitive("string")]), true)
+    typed :: empty_typed_program()
+    assert(widening_depth(nullable, mixed, typed) == null, "a tuple union ↛ a boxed union")
 }
 
 @test
@@ -912,26 +952,29 @@ test_erased_type_param_fits_any_argument :: fn() -> void {
 test_widening_depth_of_an_element_into_a_union :: fn() -> void {
     circles: Type: mk_array(circle_type(), false)
     nullable: Type: mk_array(mk_union([circle_type(), TY_NULL]), true)
-    assert(widening_depth(circles, nullable) == 1, "Circle[] → (Circle | null)[] widens 1 deep")
+    assert(widening_depth(circles, nullable, empty_typed_program()) == 1, "Circle[] widens 1 deep")
 }
 
 @test
 test_widening_depth_of_rows :: fn() -> void {
     rows: Type: mk_array(mk_array(circle_type(), false), false)
     nullable_rows: Type: mk_array(mk_array(mk_union([circle_type(), TY_NULL]), true), true)
-    assert(widening_depth(rows, nullable_rows) == 2, "Circle[][] widens 2 deep")
+    typed :: empty_typed_program()
+    assert(widening_depth(rows, nullable_rows, typed) == 2, "Circle[][] widens 2 deep")
 }
 
 @test
 test_widening_depth_ignores_a_mutability_marker :: fn() -> void {
     mutable: Type: mk_array(mk_primitive("i32"), false)
     read_only: Type: mk_array(mk_primitive("i32"), true)
-    assert(widening_depth(mutable, read_only) == null, "i32[]! → i32[] widens nothing")
+    typed :: empty_typed_program()
+    assert(widening_depth(mutable, read_only, typed) == null, "i32[]! → i32[] widens nothing")
 }
 
 @test
 test_widening_depth_through_a_nullable_parameter :: fn() -> void {
     circles: Type: mk_array(circle_type(), false)
     slot :: mk_union([mk_array(mk_union([circle_type(), TY_NULL]), true), TY_NULL])
-    assert(widening_depth(circles, slot) == 1, "a nullable array slot widens 1 deep")
+    typed :: empty_typed_program()
+    assert(widening_depth(circles, slot, typed) == 1, "a nullable slot widens 1 deep")
 }

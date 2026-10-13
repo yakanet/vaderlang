@@ -4,7 +4,8 @@
 // --stage=effects` on this file. Each call of `calls` hands a `Circle[]` (or a
 // `Circle[][]`) to a parameter whose element is `Circle | null`: the typecheck
 // accepts it, and the summary says whether the callee could put a `null` into
-// the caller's array.
+// the caller's array. Each verdict but `covariant` is also a T3102 error, which
+// the dump lists all the same.
 
 module "variance"
 

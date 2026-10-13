@@ -1,0 +1,65 @@
+// An array argument widens its element when its callee only reads the array: a
+// `Circle[]` is read as a `Shape[]` (trait) or as a `(Circle | null)[]` (union),
+// as an argument, as a receiver, and one array deeper. A literal of structs takes
+// a trait array's element as it is.
+module "snippet"
+
+import "std/io"
+
+Shape :: trait {
+    area :: fn(self) -> i32
+}
+
+Circle :: struct {
+    r: i32
+}
+
+Square :: struct {
+    s: i32
+}
+
+Circle implements Shape {
+    area :: fn(self) -> i32 = 3 * self.r * self.r
+}
+
+Square implements Shape {
+    area :: fn(self) -> i32 = self.s * self.s
+}
+
+total :: fn(shapes: Shape[]) -> i32 {
+    sum := 0
+    for s in shapes {
+        sum += s.area()
+    }
+    return sum
+}
+
+present :: fn(xs: (Circle | null)[]) -> i32 {
+    n := 0
+    for x in xs {
+        if x != null {
+            n += 1
+        }
+    }
+    return n
+}
+
+rows_present :: fn(rows: (Circle | null)[][]) -> i32 {
+    n := 0
+    for row in rows {
+        n += present(row)
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    circles :: [Circle { .r = 1 }, Circle { .r = 2 }]
+    println("${total(circles)}")
+    println("${circles.total()}")
+    println("${present(circles)}")
+    println("${rows_present([circles, circles])}")
+    mixed: Shape[]: [Circle { .r = 1 }, Square { .s = 4 }]
+    println("${total(mixed)}")
+    println("${total([Square { .s = 3 }])}")
+    return 0
+}

@@ -1,6 +1,13 @@
 # Lower
 
 ## snippet
+  fn snippet$first_name(names: (null | string)[]) -> null | string
+    ~>
+      index :null | string
+        on:
+          names :(null | string)[]
+        ix:
+          int(0) :i32
   fn snippet$main() -> i32
     let xs: (i32 | string)[]! =
       array :(i32 | string)[]!
@@ -112,23 +119,22 @@
       array :string[]
         "ten" :string
         "twenty" :string
-    let view: (null | string)[] = names :string[]
     if :void
       cond:
         is string :bool
-          index :null | string
-            on:
-              view :(null | string)[]
-            ix:
-              int(0) :i32
+          call :null | string
+            callee:
+              first_name :fn((null | string)[]) -> null | string
+            arg0:
+              names :string[]
       then:
         let n: string =
           cast → string
-            index :null | string
-              on:
-                view :(null | string)[]
-              ix:
-                int(0) :i32
+            call :null | string
+              callee:
+                first_name :fn((null | string)[]) -> null | string
+              arg0:
+                names :string[]
         call :void
           callee:
             std_io$println__string :void

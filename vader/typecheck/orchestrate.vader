@@ -34,47 +34,6 @@ merge_module_program :: fn(files: SourceFile[]) -> AST.Program {
     return AST.Program { ...first, .decls = concat_file_decls(files) }
 }
 
-/// Load + typecheck one entry file, returning the project, the typed result,
-/// and the *merged* diagnostic set (loader-time diagnostics first, then
-/// typecheck diagnostics). This is the single source of truth shared by the
-/// CLI typecheck stage and the LSP, so the editor never reports a diagnostic
-/// the compiler wouldn't — and vice-versa. The only thing layered on top is the
-/// LSP's per-file presentation filter (drop other files' spans).
-export FileCheck :: struct {
-    project: LoadedProject!
-    result: CheckResult
-    /// Loader diagnostics (parse / discovery / import-path / collect) followed
-    /// by typecheck diagnostics, in that order — the same merge the CLI's
-    /// `dump --stage=typed-ast` performs.
-    diags: Diagnostic[]
-}
-
-/// Load `entry_path` and run the full multi-module typecheck, merging every
-/// diagnostic the pipeline produced.
-///
-/// @param entry_path  the entry file's filesystem path.
-/// @param overlay     filesystem path → unsaved source text, consulted before
-///                    the disk ; pass an empty map for on-disk CLI behaviour
-///                    (`load_project_with_overlay(p, {})` ≡ `load_project(p)`).
-/// @return            the loaded project, the typed result, and the merged
-///                    loader + typecheck diagnostics.
-export check_file :: fn(
-    entry_path: string,
-    overlay: MutableMap<string, string>,
-    include_path_flags: string[],
-    dump_types: bool,
-    selection: Selection | null = null,
-) -> FileCheck {
-    project :: load_project_with_overlay(entry_path, overlay, include_path_flags, selection)
-    diags: Diagnostic[]: []
-    result :: check_project_with_bodies(project, diags, dump_types)
-    return FileCheck {
-        .project = project,
-        .result = result,
-        .diags = chain(project.diags, diags).collect(),
-    }
-}
-
 /// Run the full typecheck pipeline : decl-level + body-walking. The
 /// result carries the same `TypedProgram` + `ImplRegistry` as
 /// `check_module`, just with `expr_types` / `local_types` populated.

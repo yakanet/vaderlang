@@ -13,6 +13,7 @@ import "std/collections"
 import "std/io"
 import "std/path"
 import "vader/diagnostics"
+import "vader/pipeline/check"
 import "vader/target"
 import "vader/typecheck"
 

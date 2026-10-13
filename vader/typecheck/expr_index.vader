@@ -283,7 +283,7 @@ pick_index_member :: fn(
     for m in members {
         sigs.push(impl_member_type(m, receiver, typed))
     }
-    pick :: pick_by_first_arg(sigs, key_ty, 1)
+    pick :: pick_by_first_arg(sigs, key_ty, 1, typed)
     impls :: "`${trait_key_name(trait_key)}` on ${display_type(receiver)}"
     key :: "`${display_type(key_ty)}`"
     if pick.rival != null {

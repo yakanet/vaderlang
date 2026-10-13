@@ -717,7 +717,23 @@ read(mut_arr)             // OK — mutable passes for read-only
 read([4, 5, 6])           // OK — fresh array passes
 ```
 
-**Element variance**: the element type is **covariant** into a read-only target but **invariant** into a mutable one. Covariance also needs the view to read the slots the source wrote: an array of primitives stores raw values, an array of structs (or of a union of structs and `null`) raw references, and an array whose element is `string` or a union holding a non-reference stores boxes. A read-only view over references or boxes reads either; a view over boxes reads only boxes; a view over a primitive reads only its own type. A tuple is a heap object here, like a struct. So `Circle[]` passes as a read-only `(Circle | null)[]` and `string[]` as a read-only `(string | null)[]`, but `i32[]` does not pass as a read-only `(i32 | string)[]`, nor `Circle[]` as a read-only `(Circle | string)[]` (T3001). Because arrays are reference-aliased (`b := a` shares the buffer), a mutable `(i32 | string)[]!` does **not** accept an `i32[]!`: a write `b[0] = "x"` through the wider alias would store a string into the shared i32 buffer (T3001 on the binding / T3063 on a reassignment). A fresh **literal** is exempt: it is materialised directly at the target element type, so `xs: (i32 | string)[] = [1, 2, 3]` builds a union array (not a covariant widening of an existing reference) and compiles.
+**Element variance**: an array is shared, not copied (`b := a` shares the buffer), so its element type is **invariant** wherever the array is bound, stored or returned: a `(i32 | string)[]` local does not accept an `i32[]`, since a write `b[0] = "x"` through the wider alias would store a string into the shared i32 buffer (T3001 on the binding, T3063 on a reassignment). Only the `!` may differ, as at any level.
+
+An **argument** may widen its element: `Circle[]` passes for a `(Circle | null)[]` parameter, and for a `Shape[]` one when `Circle implements Shape`, at any depth (`Circle[][]` for `(Circle | null)[][]`). The compiler deduces from the callee's body whether that is sound, with no annotation: the callee must put no wider element into the array, so it may not replace an element, grow the array, keep it past the call, return it, or hand it to a function value; through a method, a trait or a bound, every function the call may run is checked. Reading the array, removing elements, and keeping or returning an element (which escapes as what it is) are all fine. An argument the callee may break is T3102, whose detail says what the callee does:
+
+```vader
+total :: fn(shapes: Shape[]) -> f64 { … }        // reads only
+add_square :: fn(shapes: Shape[]) -> void {      // grows the array
+    shapes.push(Square { .side = 1.0 })
+}
+
+total(circles)        // OK — a `Circle[]` is read as a `Shape[]`
+add_square(circles)   // T3102: `add_square` may grow `shapes`
+```
+
+The widened element must also read the slots the source wrote. An array of primitives stores raw values, an array of structs (or of a union of structs and `null`) raw references, and an array whose element is `string` or a union holding a non-reference stores boxes; a trait element is read through the struct's own reference. A wider element over references or boxes reads either; one over boxes reads only boxes; one over a primitive reads only its own type. A tuple is a heap object here, like a struct. So `string[]` passes for `(string | null)[]`, but `i32[]` does not pass for `(i32 | string)[]`, nor `Circle[]` for `(Circle | string)[]` (T3001).
+
+A fresh **literal** is no widening: it is materialised directly at the target element type, so `xs: (i32 | string)[] = [1, 2, 3]` builds a union array and compiles, and so does `shapes: Shape[] = [Circle { .r = 1.0 }]`.
 
 **In a union**: an array variant is a valid member anywhere in a type union, not only as the first — `string | u8[]` and `A | T[]! | B` both parse. The marker attaches to the variant it follows, never to the union.
 

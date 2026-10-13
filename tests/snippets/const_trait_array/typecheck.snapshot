@@ -17,7 +17,7 @@
   expr 26:31    IdentExpr      :: Square
   expr 26:43    FieldExpr      :: i32
   expr 26:43    IdentExpr      :: Square
-  expr 29:18    SeqLitExpr     :: (Circle! | Square!)[]
+  expr 29:18    SeqLitExpr     :: Shape[]
   expr 29:19    StructLitExpr  :: Circle!
   expr 29:38    StructLitExpr  :: Square!
   expr 33:14    IdentExpr      :: Shape[]

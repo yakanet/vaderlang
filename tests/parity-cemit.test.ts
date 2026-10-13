@@ -518,9 +518,12 @@ const C_PARITY = new Set<string>([
   // `x is U` on a generic fn's own type parameter: natively the shared body compared
   // the `ref _` tag (false where the VM said true).
   "generic_is_type_param",
-  // A read-only covariant array view: natively an `i32[]` read as `(i32 | string)[]`
-  // took its raw words for boxes; the view kept here reads boxes as boxes.
+  // A widened array argument: natively an `i32[]` read as `(i32 | string)[]` took
+  // its raw words for boxes; the widening kept here reads boxes as boxes.
   "array_union_literal_ok",
+  // A `Circle[]` read as a `Shape[]` (trait) and as a `(Circle | null)[]`, one
+  // array deeper too, and a struct literal taking a trait array's element.
+  "array_argument_widened",
   // `+%` / `-%` / `*%` at every width, run time and folded constants alike.
   "wrapping_operators",
   // A `-` written against a number literal belongs to it, postfixes included.

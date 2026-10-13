@@ -315,7 +315,7 @@ call :: fn(
     for q in 0..<sources.len() {
         source :: sources[q] ?? continue
         ctx.note_known_writes(targets, q, source)
-        ctx.note_widened(targets, q, source)
+        ctx.note_widened(c, targets, q, source)
         if lending == .Conversion || !ctx.is_converted(source) {
             ctx.note_lent(targets, q, source, lending == .ThroughIndex)
         }

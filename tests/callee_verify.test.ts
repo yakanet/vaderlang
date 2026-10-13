@@ -9,7 +9,7 @@
 // a new kind fails until it is explained here, or fixed.
 
 import { test, expect } from "bun:test";
-import { ensureCliBuilt, runCli, MEDIUM_BUILD } from "./cli-bin.ts";
+import { ensureCliBuilt, runCli, LONG_BUILD, MEDIUM_BUILD } from "./cli-bin.ts";
 import { join } from "node:path";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -55,14 +55,15 @@ const EXPLAINED: [RegExp, string][] = [
   [/^fn \w+ \/ virtual std_core\$Iterator\.next$/, "a generator's state erased to `Iterator`"],
 ];
 
+// The whole compiler is built: a long build.
 test("every disagreement on the compiler itself is an explained one", async () => {
   const out = join(mkdtempSync(join(tmpdir(), "callee-verify-")), "self.c");
   const main = join(ROOT, "vader", "cli", "main.vader");
-  const r = await runCli(["build", "--emit=c", `--out=${out}`, main], VERIFY, MEDIUM_BUILD);
+  const r = await runCli(["build", "--emit=c", `--out=${out}`, main], VERIFY, LONG_BUILD);
   expect(r.exit).toBe(0);
   expect(r.stderr).toContain("[VADER_VERIFY_CALLEES]");
   const unexplained = disagreements(r.stderr)
     .map((l) => l.replace(/ {2}\[.*\]$/, ""))
     .filter((pair) => !EXPLAINED.some(([pattern]) => pattern.test(pair)));
   expect(unexplained).toEqual([]);
-}, MEDIUM_BUILD);
+}, LONG_BUILD);

@@ -32,6 +32,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 7u
 
+static vader_box_t snippet_first_name(void* l0);
 static int32_t snippet_main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
@@ -47,30 +48,30 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[15] = {
-    [1] = { .slot_size = 4 },
+    [1] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
     [2] = { .slot_size = 16 },
-    [3] = { .slot_size = 1 },
-    [4] = { .slot_size = 8 },
-    [5] = {
+    [3] = { .slot_size = 16 },
+    [4] = { .slot_size = 4 },
+    [5] = { .slot_size = 1 },
+    [6] = { .slot_size = 8 },
+    [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
-    [6] = { .slot_size = 8 },
-    [7] = {
+    [8] = { .slot_size = 8 },
+    [9] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [9] = { .slot_size = 16 },
-    [10] = { .slot_size = 8 },
-    [11] = {
+    [11] = { .slot_size = 8 },
+    [12] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [12] = { .slot_size = 16 },
-    [13] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
-    },
+    [13] = { .slot_size = 16 },
     [14] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
@@ -86,12 +87,22 @@ static size_t vader_host_std_core_byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 3u);
+    return (void*) vader_string_bytes_view(a0, 9u, 5u);
 }
 
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     return write(a0, s1.ptr, a2);
+}
+
+static vader_box_t snippet_first_name(void* l0) {
+    vader_box_t t0;
+#line 12 "tests/snippets/array_union_literal_ok/_main.vader"
+    vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
+    VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+    VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
+    t0 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) INT32_C(0)];
+    return t0;
 }
 
 static int32_t snippet_main(void) {
@@ -112,15 +123,15 @@ static int32_t snippet_main(void) {
         vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 13 "tests/snippets/array_union_literal_ok/_main.vader"
-    vader_array_t* _a0_arr = vader_array_new(11u, 3u, 0u, 12u);
-    vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 2u] = vader_box_i32(1u, INT32_C(3));
-    vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 1u] = vader_box_i32(1u, INT32_C(2));
-    vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 0u] = vader_box_i32(1u, INT32_C(1));
-    l0 = (void*) _a0_arr;
-#line 14 "tests/snippets/array_union_literal_ok/_main.vader"
-    vader_array_push((vader_array_t*) l0, vader_box_string(2u, 1u));
 #line 15 "tests/snippets/array_union_literal_ok/_main.vader"
+    vader_array_t* _a0_arr = vader_array_new(12u, 3u, 0u, 13u);
+    vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 2u] = vader_box_i32(4u, INT32_C(3));
+    vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 1u] = vader_box_i32(4u, INT32_C(2));
+    vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 0u] = vader_box_i32(4u, INT32_C(1));
+    l0 = (void*) _a0_arr;
+#line 16 "tests/snippets/array_union_literal_ok/_main.vader"
+    vader_array_push((vader_array_t*) l0, vader_box_string(3u, 1u));
+#line 17 "tests/snippets/array_union_literal_ok/_main.vader"
     l1 = ((vader_array_t*) l0)->length;
     l2 = (size_t) 0;
     while ((l2 < l1)) {
@@ -128,13 +139,13 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l2)
         l3 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l2];
-#line 16 "tests/snippets/array_union_literal_ok/_main.vader"
-        if (l3.tag == 2u) {
+#line 18 "tests/snippets/array_union_literal_ok/_main.vader"
+        if (l3.tag == 3u) {
             l4 = l3.payload.s;
             t0 = concat_2(2u, l4);
             std_io_println__string(t0);
-#line 17 "tests/snippets/array_union_literal_ok/_main.vader"
-        } else if (l3.tag == 1u) {
+#line 19 "tests/snippets/array_union_literal_ok/_main.vader"
+        } else if (l3.tag == 4u) {
             l5 = ((int32_t) l3.payload.i);
             l6 = std_core_new_byte_buffer((size_t) 24);
             l7 = (size_t) 0;
@@ -144,34 +155,29 @@ static int32_t snippet_main(void) {
             t0 = std_core_finish_buffer(l6, l7);
             std_io_println__string(t0);
         }
-#line 16 "tests/snippets/array_union_literal_ok/_main.vader"
-#line 15 "tests/snippets/array_union_literal_ok/_main.vader"
+#line 18 "tests/snippets/array_union_literal_ok/_main.vader"
+#line 17 "tests/snippets/array_union_literal_ok/_main.vader"
         t1 = (l2 + INT64_C(1));
         l2 = (size_t) (int64_t) t1;
     }
-#line 20 "tests/snippets/array_union_literal_ok/_main.vader"
-    vader_array_t* _a2_arr = vader_array_new(13u, 2u, 0u, 2u);
-    vader_array_box_slots(_a2_arr->buf)[_a2_arr->offset + 1u] = vader_box_string(2u, 5u);
-    vader_array_box_slots(_a2_arr->buf)[_a2_arr->offset + 0u] = vader_box_string(2u, 4u);
-    l0 = (void*) _a2_arr;
 #line 22 "tests/snippets/array_union_literal_ok/_main.vader"
-    vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
-    VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
-    VADER_ARRAY_CHECK_INDEX(_a3_slotarr, INT32_C(0))
-    t2 = vader_array_box_slots(_a3_slotarr->buf)[_a3_slotarr->offset + (size_t) INT32_C(0)];
-    if (t2.tag == 2u) {
-        vader_array_t* _a4_slotarr = ((vader_array_t*) l0);
-        VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a4_slotarr, INT32_C(0))
-        t2 = vader_array_box_slots(_a4_slotarr->buf)[_a4_slotarr->offset + (size_t) INT32_C(0)];
+    vader_array_t* _a2_arr = vader_array_new(14u, 2u, 0u, 3u);
+    vader_array_box_slots(_a2_arr->buf)[_a2_arr->offset + 1u] = vader_box_string(3u, 5u);
+    vader_array_box_slots(_a2_arr->buf)[_a2_arr->offset + 0u] = vader_box_string(3u, 4u);
+    l0 = (void*) _a2_arr;
+#line 23 "tests/snippets/array_union_literal_ok/_main.vader"
+    t2 = snippet_first_name(l0);
+    if (t2.tag == 3u) {
+        t2 = snippet_first_name(l0);
         l4 = t2.payload.s;
+#line 24 "tests/snippets/array_union_literal_ok/_main.vader"
         t0 = concat_2(6u, l4);
         std_io_println__string(t0);
-#line 23 "tests/snippets/array_union_literal_ok/_main.vader"
+#line 26 "tests/snippets/array_union_literal_ok/_main.vader"
         { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-#line 22 "tests/snippets/array_union_literal_ok/_main.vader"
-    }
 #line 23 "tests/snippets/array_union_literal_ok/_main.vader"
+    }
+#line 26 "tests/snippets/array_union_literal_ok/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 

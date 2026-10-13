@@ -115,18 +115,19 @@ infer_against_tuple :: fn(
     // every element fits its slot it takes the slot's tuple type, as an array
     // literal does (`infer_against_array`) : the invariant tuple rule
     // (`is_assignable_tuple`) then accepts the init.
-    if fits_tuple_slots(elem_types, tup) {
+    if fits_tuple_slots(elem_types, tup, typed) {
         return mk_tuple(tup.elements, false)
     }
     return mk_tuple(elem_types, false)
 }
 
-// Whether every element type fits its slot of `tup`, none of which names a type
-// parameter : generic inference pins those from the elements.
-fits_tuple_slots :: fn(elem_types: Type[], tup: TupleType) -> bool {
+// Whether every element type fits its slot of `tup`, a trait slot through an impl,
+// none of which names a type parameter : generic inference pins those from the
+// elements.
+fits_tuple_slots :: fn(elem_types: Type[], tup: TupleType, typed: TypedProgram) -> bool {
     for i in 0..<elem_types.len() {
         slot :: tup.elements[i]
-        if type_contains_type_param(slot) || !is_assignable(elem_types[i], slot) {
+        if type_contains_type_param(slot) || !fits_or_implements(elem_types[i], slot, typed) {
             return false
         }
     }
@@ -149,15 +150,15 @@ infer_against_array :: fn(
     // representation, so when its elements FIT a concrete hint element it adopts
     // that hint rather than the narrower union of its actual elements : `[1, 2,
     // 3]` against a `(i32 | string)[]` slot types as `(i32 | string)[]`. This
-    // keeps the literal's type equal to the slot's, so the invariant mutable-
-    // array rule (`is_assignable_array`) accepts the init without a covariant
-    // widening — covariance is reserved for the sound read-only `T[]` case. The
-    // `is_assignable` guard (the same predicate the binding's `flows_into`
-    // applies) preserves the mismatch diagnostic when an element does NOT
-    // fit — `xs: i32[] = ["a"]` keeps `string[]` and is rejected downstream. A
-    // type-param-bearing hint is skipped so generic inference still pins `T`
-    // from the actual elements (`call.vader` doesn't thread such a hint here).
-    if !type_contains_type_param(arr.element) && is_assignable(actual, arr.element) {
+    // keeps the literal's type equal to the slot's, so the invariant array rule
+    // (`is_assignable_array`) accepts the init without a widening, which only an
+    // argument may take. Elements implementing a trait the slot names fit it too:
+    // `[Circle { .r = 1 }]` into a `Shape[]`. The guard preserves the mismatch
+    // diagnostic when an element does NOT fit — `xs: i32[] = ["a"]` keeps
+    // `string[]` and is rejected downstream. A type-param-bearing hint is skipped
+    // so generic inference still pins `T` from the actual elements (`call.vader`
+    // doesn't thread such a hint here).
+    if !type_contains_type_param(arr.element) && fits_or_implements(actual, arr.element, typed) {
         return mk_array(arr.element, arr.immutable)
     }
     return mk_array(actual, arr.immutable)

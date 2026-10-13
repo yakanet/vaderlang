@@ -1,0 +1,78 @@
+// vader/pipeline/check — the typecheck of a project, and the checks that need it
+// settled.
+//
+// Some checks read the whole typed program: the effect summary decides each array
+// argument the typecheck widened (T3102, `vader/effects`). The typecheck cannot
+// import the passes it feeds, so every client that checks a program, the CLI and
+// the LSP alike, comes through here and reports the same diagnostics. A module of
+// its own under the pipeline, so that the LSP takes it without the backend.
+
+module "vader/pipeline/check"
+
+import "std/collections"
+import "std/iter"
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/target"
+import "vader/typecheck"
+
+Fx :: import "vader/effects"
+
+/// Typecheck every module of `project`, bodies included, then run the checks that
+/// need the whole program typed.
+///
+/// @param project     the loaded project.
+/// @param diags       where the diagnostics go, the typecheck's first.
+/// @param dump_types  whether to fill the dump-only tables
+///                    (`check_project_with_bodies`).
+/// @return            the typed program.
+export check_project :: fn(
+    project: LoadedProject,
+    diags: Diagnostic[],
+    dump_types: bool,
+) -> CheckResult {
+    result :: check_project_with_bodies(project, diags, dump_types)
+    diags.push_all(Fx.widening_diagnostics(project, result))
+    return result
+}
+
+/// Load + typecheck one entry file, returning the project, the typed result,
+/// and the *merged* diagnostic set (loader-time diagnostics first, then
+/// typecheck diagnostics). This is the single source of truth shared by the
+/// CLI typecheck stage and the LSP, so the editor never reports a diagnostic
+/// the compiler wouldn't — and vice-versa. The only thing layered on top is the
+/// LSP's per-file presentation filter (drop other files' spans).
+export FileCheck :: struct {
+    project: LoadedProject!
+    result: CheckResult
+    /// Loader diagnostics (parse / discovery / import-path / collect) followed
+    /// by typecheck diagnostics, in that order — the same merge the CLI's
+    /// `dump --stage=typed-ast` performs.
+    diags: Diagnostic[]
+}
+
+/// Load `entry_path` and run the full multi-module typecheck, merging every
+/// diagnostic the pipeline produced.
+///
+/// @param entry_path  the entry file's filesystem path.
+/// @param overlay     filesystem path → unsaved source text, consulted before
+///                    the disk ; pass an empty map for on-disk CLI behaviour
+///                    (`load_project_with_overlay(p, {})` ≡ `load_project(p)`).
+/// @return            the loaded project, the typed result, and the merged
+///                    loader + typecheck diagnostics.
+export check_file :: fn(
+    entry_path: string,
+    overlay: MutableMap<string, string>,
+    include_path_flags: string[],
+    dump_types: bool,
+    selection: Selection | null = null,
+) -> FileCheck {
+    project :: load_project_with_overlay(entry_path, overlay, include_path_flags, selection)
+    diags: Diagnostic[]: []
+    result :: check_project(project, diags, dump_types)
+    return FileCheck {
+        .project = project,
+        .result = result,
+        .diags = chain(project.diags, diags).collect(),
+    }
+}

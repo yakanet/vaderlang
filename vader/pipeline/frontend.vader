@@ -19,6 +19,7 @@ import "vader/target"
 import "vader/typecheck"
 import "vader/comptime"
 import "vader/comptime_vm"
+import "vader/pipeline/check"
 Prof :: import "vader/profile"
 
 // Pipeline state shared by the comptime + lowerer dump stages : both
@@ -58,7 +59,7 @@ export prepare_evaluated_project_with :: fn(
     Prof.prof_end(.Load)
     typecheck_diags: Diagnostic[]: []
     Prof.prof_begin(.Typecheck)
-    result :: check_project_with_bodies(loaded, typecheck_diags, false)
+    result :: check_project(loaded, typecheck_diags, false)
     resolver_diags :: collect_body_diags(result)
     typed :: assemble_typed_project(result)
     Prof.prof_end(.Typecheck)

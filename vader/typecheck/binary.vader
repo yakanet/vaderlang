@@ -383,7 +383,7 @@ pick_operator_member :: fn(
         for m in candidates {
             sigs.push(impl_member_type(m, recv, typed))
         }
-        pick :: pick_by_first_arg(sigs, operand, 1)
+        pick :: pick_by_first_arg(sigs, operand, 1, typed)
         index = pick.best ?? 0
         if pick.rival != null {
             diags.push(

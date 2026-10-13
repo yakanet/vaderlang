@@ -7,13 +7,19 @@
 // the widened element (`breaks_widening`). The element itself may be read, kept
 // and returned: it escapes as what it is.
 //
-// The typecheck notes the widened arguments (`TypedProgram.widened_arguments`)
-// and still decides with the written rights; the verdicts are dumped beside them,
-// so that the two can be compared.
+// The typecheck accepts a widened argument and notes it
+// (`TypedProgram.widened_arguments`); once every module is typed, the summary
+// decides it, and a verdict other than covariant is a T3102 error
+// (`widening_diagnostics`).
 
 module "vader/effects"
 
+import "std/collections"
+import "std/iter"
 import "toolchain/span"
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/typecheck"
 
 AST :: import "toolchain/ast"
 
@@ -31,11 +37,16 @@ export WideningVerdict :: enum {
 
 /// An argument that fits its parameter only by widening an array.
 export WideningSite :: struct {
+    /// The argument's node id, the key of `TypedProgram.widened_arguments`.
+    arg: usize
     span: Span
     /// The display path of the module that holds the site.
     module: string
     /// How many arrays deep the element is widened.
     depth: i32
+    callee: Callee
+    /// The parameter the argument fills, by position.
+    param: usize
     verdict: WideningVerdict
     /// The first access of the callee's parameter that breaks the widening, for a
     /// verdict of `Breaks`.
@@ -46,25 +57,28 @@ export WideningSite :: struct {
 PendingWidening :: struct {
     site: WideningSite
     targets: CallTarget[]
-    /// The parameter the argument fills, by position.
-    param: usize
 }
 
-// `arg` fills parameter `param` of a call to one of `targets`: when the typecheck
-// widened it, decided once the callees' summaries are known.
-note_widened :: fn(ctx: WalkCtx, targets: CallTarget[], param: usize, arg: AST.Expr) -> void {
-    depth :: ctx.typed.widened_arguments[arg.id] ?? return
+// `arg` fills parameter `param` of a call of `callee`, to one of `targets`: when
+// the typecheck widened it, decided once the callees' summaries are known.
+note_widened :: fn(
+    ctx: WalkCtx,
+    callee: Callee,
+    targets: CallTarget[],
+    param: usize,
+    arg: AST.Expr,
+) -> void {
+    widened :: ctx.typed.widened_arguments[arg.id] ?? return
     site :: WideningSite {
+        .arg = arg.id,
         .span = arg.span,
         .module = ctx.typed.resolved.display_path,
-        .depth = depth,
+        .depth = widened.depth,
+        .callee = callee,
+        .param = param,
         .verdict = .Covariant,
     }
-    ctx.widenings.push(PendingWidening {
-        .site = site,
-        .targets = targets,
-        .param = param,
-    })
+    ctx.widenings.push(PendingWidening { .site = site, .targets = targets })
 }
 
 /// Each widened argument with its verdict, decided against its callees' summaries.
@@ -96,7 +110,7 @@ widening_outcome :: fn(
         if target is AnyCallee {
             return WideningSite { ...w.site, .verdict = .UnknownCallee }
         }
-        for a in accesses_of_param(known_params(target, facts), w.param, any) {
+        for a in accesses_of_param(known_params(target, facts), w.site.param, any) {
             if paths.breaks_widening(a, w.site.depth) {
                 return WideningSite {
                     ...w.site,
@@ -107,4 +121,90 @@ widening_outcome :: fn(
         }
     }
     return w.site
+}
+
+// How a diagnostic names `callee`.
+display_callee :: fn(callee: Callee) -> string = match callee {
+    is DirectFn -> "`${callee.decl.name}`"
+    is BoundMember -> "`${callee.member}`"
+    is TraitMember -> "`${callee.member}`"
+    is FnValue -> "a function value"
+    is EachOf | Builtin | ErroneousCallee | UnsettledCallee -> "the callee"
+}
+
+// The name of parameter `param` of `callee`, when the call names its declaration.
+parameter_name :: fn(callee: Callee, param: usize) -> string | null {
+    if callee is DirectFn && param < callee.decl.params.len() {
+        return callee.decl.params[param].name
+    }
+    return null
+}
+
+// ---- diagnostics ----------------------------------------------------------
+
+/// The T3102 errors of a checked project: each array argument the typecheck
+/// widened whose callee may put a wider element into it, or that no call
+/// decides (a method value, `xs.f` uncalled). Runs the effect summary only when
+/// some argument was widened.
+///
+/// @param project  the loaded project, whose declarations hold the bodies.
+/// @param checked  its typecheck.
+export widening_diagnostics :: fn(project: LoadedProject, checked: CheckResult) -> Diagnostic[] {
+    out: Diagnostic[]: []
+    modules :: checked.all_modules.values()
+    if !modules.any_match((typed) -> !typed.widened_arguments.is_empty()) {
+        return out
+    }
+    summary :: summarise_effects(project, checked)
+    decided :: MutableSet<usize> {}
+    for site in summary.widenings {
+        decided.add(site.arg)
+        if site.verdict != .Covariant {
+            detail :: widening_detail(site, summary.index.paths)
+            out.push(typecheck_error(.UnsafeArrayWidening, site.span, detail))
+        }
+    }
+    for typed in modules {
+        for [arg, widened] in typed.widened_arguments {
+            if arg !in decided {
+                detail :: "no call it is handed to tells what is done with it"
+                out.push(typecheck_error(.UnsafeArrayWidening, widened.span, detail))
+            }
+        }
+    }
+    return out
+}
+
+// What the callee may do that a wider element would take advantage of.
+widening_detail :: fn(site: WideningSite, paths: PathTable) -> string {
+    callee :: display_callee(site.callee)
+    breaking :: site.breaking ?? return "${callee} may do anything with it"
+    target :: argument_label(site, paths, breaking.path)
+    return "${callee} ${what_it_may_do(breaking.effect, target)}"
+}
+
+// What an access that breaks a widening does to `target`.
+what_it_may_do :: fn(effect: Effect, target: string) -> string = match effect {
+    .Assigned -> "may assign ${target}"
+    .Resized  -> "may grow ${target}"
+    .Stored   -> "may keep ${target}"
+    .Returned -> "may return ${target}"
+    .Unknown  -> "may hand ${target} to code it cannot see"
+    // A shrink never breaks a widening (`breaks_widening`): the arm keeps the
+    // match exhaustive.
+    .Shrunk   -> "may shrink ${target}"
+}
+
+// The part of the argument at `path`, by the parameter's name when the call names
+// one.
+argument_label :: fn(site: WideningSite, paths: PathTable, path: i32) -> string {
+    below :: paths.display_steps(path)
+    name :: parameter_name(site.callee, site.param)
+    if name != null {
+        return "`${name}${below}`"
+    }
+    if below == "" {
+        return "it"
+    }
+    return "its part `${below}`"
 }

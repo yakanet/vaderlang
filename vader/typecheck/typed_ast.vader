@@ -632,12 +632,12 @@ export TypedProgram :: struct {
     /// field access to the variant's integer.
     enum_data_reads: MutableMap<usize, bool>!
 
-    /// Argument id → how many arrays deep it fits its parameter only by widening
-    /// an element: 1 for `Circle[]` into `(Circle | null)[]`. A receiver counts as
-    /// an argument. The widening is sound only if the callee neither replaces an
+    /// Argument id → the argument, when it fits its parameter only by widening an
+    /// array element: `Circle[]` into `(Circle | null)[]`. A receiver counts as an
+    /// argument. The widening is sound only if the callee neither replaces an
     /// element nor grows, keeps or returns an array on the way down, which the
     /// effect summary checks once every module is typed.
-    widened_arguments: MutableMap<usize, i32>! = MutableMap<usize, i32> {}
+    widened_arguments: MutableMap<usize, WidenedArgument>! = MutableMap<usize, WidenedArgument> {}
 
     /// Walk-global stack of enclosing loops, pushed around each loop body by
     /// `check_for`. Unlike `FnContext.loop_depth` (not threaded through the
@@ -744,6 +744,14 @@ export TypedProject :: struct {
 
 /// Create an empty `TypedProgram` bound to `resolved`. All side-tables
 /// start empty ; the passes fill them in as they walk.
+/// An argument that fits its parameter only by widening an array element.
+export WidenedArgument :: struct {
+    /// How many arrays deep the element differs: 1 for `Circle[]` into
+    /// `(Circle | null)[]`, 2 for `Circle[][]` into `(Circle | null)[][]`.
+    depth: i32
+    span: Span
+}
+
 export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .resolved        = resolved,
     .expr_types      = MutableMap<usize, Type> {},

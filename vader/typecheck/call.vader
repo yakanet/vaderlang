@@ -105,7 +105,7 @@ pick_overload :: fn(
         // `I: Iterator<i32>` against `Iterator<T>`).
         pattern :: erase_type_params(ft.params[0])
         fits_bound :: arg0_ty is TypeParamType && try_trait_widen(arg0_ty, pattern, typed)
-        if !is_assignable(arg0_ty, pattern) && !fits_bound {
+        if !accepts_argument(arg0_ty, pattern, typed) && !fits_bound {
             continue
         }
         rank :: overload_rank(arg0_ty, ft.params[0], ft.params.len() == c.args.len())
@@ -184,7 +184,7 @@ pick_member_index :: fn(
 ) -> usize | null {
     if c.args.len() > 0 {
         arg0 :: check_expr_fn(c.args[0].value, null, typed, [])
-        pick :: pick_by_first_arg(sigs, arg0, c.args.len())
+        pick :: pick_by_first_arg(sigs, arg0, c.args.len(), typed)
         if pick.rival != null {
             diags.push(member_ambiguity_error(field, sigs, "accept ${display_type(arg0)}"))
             return null
@@ -233,7 +233,7 @@ ArgPick :: struct {
 /// @param sigs   the members' signatures ; one that is no `FnType` is skipped.
 /// @param arg    the type of the use site's first argument.
 /// @param arity  the use site's argument count, which an exact arity ranks above.
-pick_by_first_arg :: fn(sigs: Type[], arg: Type, arity: usize) -> ArgPick {
+pick_by_first_arg :: fn(sigs: Type[], arg: Type, arity: usize, typed: TypedProgram) -> ArgPick {
     pick := ArgPick {}
     best_rank: i32 = -1
     for i in 0..<sigs.len() {
@@ -241,7 +241,7 @@ pick_by_first_arg :: fn(sigs: Type[], arg: Type, arity: usize) -> ArgPick {
         if sig !is FnType || sig.params.len() == 0 {
             continue
         }
-        if !is_assignable(arg, erase_type_params(sig.params[0])) {
+        if !accepts_argument(arg, erase_type_params(sig.params[0]), typed) {
             continue
         }
         rank :: overload_rank(arg, sig.params[0], sig.params.len() == arity)
@@ -1435,21 +1435,17 @@ reject_ufcs_receiver_at_instance :: fn(
     )
 }
 
-// Whether an argument of type `from` fits a parameter of type `to`. One that fits
-// only by widening an array is noted for the effect summary.
-fits_argument :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) -> bool {
-    if !is_assignable(from, to) {
-        return false
-    }
-    note_widened_argument(typed, arg, from, to)
-    return true
-}
+// Whether an argument of type `from` fits a parameter of type `to`, as it is or by
+// widening an array.
+fits_argument :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) -> bool =
+    is_assignable(from, to) || fits_by_widening(typed, arg, from, to)
 
-// Notes `arg` for the effect summary when it fits its parameter only by widening
-// an array (`widening_depth`).
-note_widened_argument :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) -> void {
-    depth :: widening_depth(from, to) ?? return
-    typed.widened_arguments[arg.id] = depth
+// Whether `arg` fits its parameter by widening an array (`widening_depth`): the
+// effect summary then checks that the callee puts no wider element into it.
+fits_by_widening :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) -> bool {
+    depth :: widening_depth(from, to, typed) ?? return false
+    typed.widened_arguments[arg.id] = WidenedArgument { .depth = depth, .span = arg.span }
+    return true
 }
 
 // Whether a lambda argument's parameter still names a type parameter of the callee

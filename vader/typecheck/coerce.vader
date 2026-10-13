@@ -105,7 +105,7 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
     // `implements Error`, string == string) instead of failing per-variant.
     if got is UnionType {
         for v in got.variants {
-            if !(is_assignable(v, expected) || try_trait_widen(v, expected, typed)) {
+            if !fits_or_implements(v, expected, typed) {
                 return false
             }
         }
@@ -132,6 +132,15 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
     }
     return implements_trait_instance(got, expected, typed)
 }
+
+/// Whether a value of type `got` fits a slot of type `expected` as it is, or
+/// through a trait it implements (`try_trait_widen`).
+///
+/// @param got       the value's type.
+/// @param expected  the slot's type.
+/// @param typed     the module checking it, whose impls a trait slot needs.
+export fits_or_implements :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool =
+    is_assignable(got, expected) || try_trait_widen(got, expected, typed)
 
 // A type parameter is the traits its bound names : `x: T` with `T: Display` fits a
 // `Display` slot, `T: Iterator<i32>` an `Iterator<i32>` one — at the bound's own

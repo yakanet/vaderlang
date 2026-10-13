@@ -16,6 +16,63 @@
     },
     {
       "kind": "FnDecl",
+      "name": "first_name",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "names",
+          "type": {
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "BinaryExpr",
+              "op": "bitor",
+              "left": {
+                "kind": "IdentExpr",
+                "name": "string"
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "null"
+              }
+            }
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "BinaryExpr",
+        "op": "bitor",
+        "left": {
+          "kind": "IdentExpr",
+          "name": "string"
+        },
+        "right": {
+          "kind": "IdentExpr",
+          "name": "null"
+        }
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "IndexExpr",
+          "target": {
+            "kind": "IdentExpr",
+            "name": "names"
+          },
+          "index": {
+            "kind": "IntLitExpr",
+            "value": "0n"
+          }
+        }
+      },
+      "decorators": [],
+      "isExpressionBodied": true
+    },
+    {
+      "kind": "FnDecl",
       "name": "main",
       "visibility": "private",
       "typeParams": [],
@@ -251,33 +308,6 @@
             }
           },
           {
-            "kind": "LetStmt",
-            "mutable": false,
-            "binding": {
-              "kind": "SimpleBinding",
-              "name": "view"
-            },
-            "type": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "BinaryExpr",
-                "op": "bitor",
-                "left": {
-                  "kind": "IdentExpr",
-                  "name": "string"
-                },
-                "right": {
-                  "kind": "IdentExpr",
-                  "name": "null"
-                }
-              }
-            },
-            "value": {
-              "kind": "IdentExpr",
-              "name": "names"
-            }
-          },
-          {
             "kind": "ExprStmt",
             "expr": {
               "kind": "IfExpr",
@@ -285,15 +315,21 @@
                 "kind": "BinaryExpr",
                 "op": "is",
                 "left": {
-                  "kind": "IndexExpr",
-                  "target": {
+                  "kind": "CallExpr",
+                  "callee": {
                     "kind": "IdentExpr",
-                    "name": "view"
+                    "name": "first_name"
                   },
-                  "index": {
-                    "kind": "IntLitExpr",
-                    "value": "0n"
-                  }
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IdentExpr",
+                        "name": "names"
+                      },
+                      "spread": false
+                    }
+                  ]
                 },
                 "right": {
                   "kind": "IdentExpr",

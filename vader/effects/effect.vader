@@ -223,6 +223,14 @@ breaks_widening :: fn(t: PathTable, a: Access, depth: i32) -> bool {
 // How the dump writes `p` after its parameter's name: `.f[]`, then `…` when it
 // stands for deeper paths too.
 display_path :: fn(t: PathTable, p: i32) -> string {
+    if t.nodes[p].deeper {
+        return "${t.display_steps(p)}…"
+    }
+    return t.display_steps(p)
+}
+
+// The steps of `p` as source writes them after a name: `.f[]`.
+display_steps :: fn(t: PathTable, p: i32) -> string {
     sb :: StringBuilder {}
     for step in t.steps_of(p) {
         name :: t.step_names[step]
@@ -231,9 +239,6 @@ display_path :: fn(t: PathTable, p: i32) -> string {
         } else {
             sb.append(".${name}")
         }
-    }
-    if t.nodes[p].deeper {
-        sb.append("…")
     }
     return sb.to_string()
 }

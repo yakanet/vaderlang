@@ -1,0 +1,60 @@
+// An array argument may widen its element only when its callee puts no wider
+// element into it: the callee neither replaces an element nor grows, keeps or
+// returns the array, nor hands it to a function value. T3102 at each argument
+// that breaks it, receiver included ; one only read, or whose elements alone
+// escape, passes.
+module "snippet"
+
+Shape :: trait {
+    area :: fn(self) -> i32
+}
+
+Circle :: struct {
+    r: i32
+}
+
+Square :: struct {
+    s: i32
+}
+
+Circle implements Shape {
+    area :: fn(self) -> i32 = self.r
+}
+
+Square implements Shape {
+    area :: fn(self) -> i32 = self.s
+}
+
+Group :: struct {
+    shapes: Shape[]
+}
+
+total :: fn(shapes: Shape[]) -> i32 {
+    sum := 0
+    for s in shapes {
+        sum += s.area()
+    }
+    return sum
+}
+
+first :: fn(shapes: Shape[]) -> Shape = shapes[0]
+
+add_square :: fn(shapes: Shape[]) -> void {
+    shapes.push(Square { .s = 1 })
+}
+
+group :: fn(shapes: Shape[]) -> Group = Group { .shapes = shapes }
+
+same :: fn(shapes: Shape[]) -> Shape[] = shapes
+
+apply :: fn(f: fn(Shape[]) -> i32, circles: Circle[]) -> i32 = f(circles)
+
+main :: fn() -> i32 {
+    circles :: [Circle { .r = 2 }]
+    n :: total(circles) + first(circles).area()
+    add_square(circles)
+    circles.add_square()
+    _ :: group(circles)
+    _ :: same(circles)
+    return n + apply(total, circles)
+}
