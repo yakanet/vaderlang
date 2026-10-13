@@ -1,0 +1,76 @@
+// tests/effect_fixtures/variance — one call per verdict on a widened array.
+//
+// `tests/effect_summary.test.ts` reads the `# variance` section of `vader dump
+// --stage=effects` on this file. Each call of `calls` hands a `Circle[]` (or a
+// `Circle[][]`) to a parameter whose element is `Circle | null`: the typecheck
+// accepts it, and the summary says whether the callee could put a `null` into
+// the caller's array.
+
+module "variance"
+
+import "std/iter"
+
+export Circle :: struct {
+    r: i32
+}
+
+export Holder :: struct {
+    items: (Circle | null)[]
+}
+
+export Slot :: struct {
+    item: Circle | null
+}
+
+export counts :: fn(xs: (Circle | null)[]) -> i32 {
+    n := 0
+    for x in xs {
+        if x != null {
+            n += 1
+        }
+    }
+    return n
+}
+
+export keeps :: fn(xs: (Circle | null)[]) -> Holder = Holder { .items = xs }
+
+export returns :: fn(xs: (Circle | null)[]) -> (Circle | null)[] = xs
+
+export keeps_an_element :: fn(xs: (Circle | null)[]) -> Slot = Slot { .item = xs[0] }
+
+export lends_to_a_callback :: fn(xs: (Circle | null)[], f: fn((Circle | null)[]) -> void) -> void {
+    f(xs)
+}
+
+export tests_each :: fn(xs: (Circle | null)[]) -> bool = xs.any_match((x) -> x == null)
+
+export counts_rows :: fn(rows: (Circle | null)[][]) -> i32 {
+    n := 0
+    for row in rows {
+        n += counts(row)
+    }
+    return n
+}
+
+export keeps_a_row :: fn(rows: (Circle | null)[][]) -> Holder = Holder { .items = rows[0] }
+
+export pushes_null :: fn(xs: (Circle | null)[]!) -> void {
+    xs.push(null)
+}
+
+export drops_last :: fn(xs: (Circle | null)[]!) -> void {
+    _ :: xs.remove_last()
+}
+
+export calls :: fn(circles: Circle[]!, rows: Circle[][], f: fn((Circle | null)[]) -> void) -> void {
+    _ :: counts(circles)
+    _ :: keeps(circles)
+    _ :: returns(circles)
+    _ :: keeps_an_element(circles)
+    lends_to_a_callback(circles, f)
+    _ :: tests_each(circles)
+    _ :: counts_rows(rows)
+    _ :: keeps_a_row(rows)
+    circles.pushes_null()
+    circles.drops_last()
+}

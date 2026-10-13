@@ -169,6 +169,39 @@ export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type) -> bool 
     return check_common(from, to)
 }
 
+/// How many arrays deep `from` fits `to` only by widening an element: 1 for
+/// `Circle[]` into `(Circle | null)[]`, 2 for `Circle[][]` into
+/// `(Circle | null)[][]`. Null when `from` is no array, or when its elements
+/// differ from the slot's by their `!` alone.
+///
+/// @param from  the argument's type.
+/// @param to    the parameter's type: an array, or a union holding one.
+export widening_depth :: fn(from: Type, to: Type) -> i32 | null {
+    if from !is ArrayType {
+        return null
+    }
+    slot :: array_slot(from, to) ?? return null
+    if equals_type(from.element, slot.element) || equals_type_shape(from.element, slot.element) {
+        return null
+    }
+    deeper :: widening_depth(from.element, slot.element) ?? return 1
+    return deeper + 1
+}
+
+// The array `to` offers `from`: `to` itself, or the first array of a union that
+// takes it.
+array_slot :: fn(from: ArrayType, to: Type) -> ArrayType | null {
+    if to is ArrayType {
+        return to
+    }
+    for v in union_variants(to) ?? [] {
+        if v is ArrayType && is_assignable(from, v) {
+            return v
+        }
+    }
+    return null
+}
+
 /// `from is FnType`. Params contravariant, return covariant.
 export is_assignable_fn :: fn(from: Type, self: FnType, to: Type) -> bool {
     match to {
@@ -873,4 +906,32 @@ test_erased_type_param_fits_any_argument :: fn() -> void {
     i32_arr: Type: mk_array(mk_primitive("i32"), false)
     assert(!is_assignable(i32_arr, mk_array(t, false)), "i32[] ↛ T[]")
     assert(is_assignable(i32_arr, erase_type_params(mk_array(t, false))), "i32[] → erased T[]")
+}
+
+@test
+test_widening_depth_of_an_element_into_a_union :: fn() -> void {
+    circles: Type: mk_array(circle_type(), false)
+    nullable: Type: mk_array(mk_union([circle_type(), TY_NULL]), true)
+    assert(widening_depth(circles, nullable) == 1, "Circle[] → (Circle | null)[] widens 1 deep")
+}
+
+@test
+test_widening_depth_of_rows :: fn() -> void {
+    rows: Type: mk_array(mk_array(circle_type(), false), false)
+    nullable_rows: Type: mk_array(mk_array(mk_union([circle_type(), TY_NULL]), true), true)
+    assert(widening_depth(rows, nullable_rows) == 2, "Circle[][] widens 2 deep")
+}
+
+@test
+test_widening_depth_ignores_a_mutability_marker :: fn() -> void {
+    mutable: Type: mk_array(mk_primitive("i32"), false)
+    read_only: Type: mk_array(mk_primitive("i32"), true)
+    assert(widening_depth(mutable, read_only) == null, "i32[]! → i32[] widens nothing")
+}
+
+@test
+test_widening_depth_through_a_nullable_parameter :: fn() -> void {
+    circles: Type: mk_array(circle_type(), false)
+    slot :: mk_union([mk_array(mk_union([circle_type(), TY_NULL]), true), TY_NULL])
+    assert(widening_depth(circles, slot) == 1, "a nullable array slot widens 1 deep")
 }

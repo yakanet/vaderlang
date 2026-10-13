@@ -7,11 +7,14 @@
 // statements. A write is recorded by its form (`p.f = v`, `xs[i] = v`), whatever
 // the type it writes through.
 //
-// What escapes the call is stored: a value put in a field or an element,
-// captured by a lambda, assigned to a module variable, or yielded. A value the
-// function returns is returned, so that its caller holds it through the result.
-// A function that suspends keeps every parameter in its frame past the call.
-// What a lambda returns goes to whoever calls it, which may be anyone: stored.
+// What escapes the call is stored: a value put in a field or an element, assigned
+// to a module variable, or yielded. A value the function returns is returned, so
+// that its caller holds it through the result. What a lambda returns goes to
+// whoever calls it, which may be anyone: stored.
+//
+// A frame that outlives the call is no escape: the frame of a function that
+// suspends, the bindings a lambda captures. Nothing but the code walked here
+// reaches them, and the walk records all that code does with them.
 
 module "vader/effects"
 
@@ -29,12 +32,12 @@ WalkCtx :: struct {
     index: CalleeIndex
     /// Symbol id → slot, for the parameters that hold references and the locals.
     slots: MutableMap<i32, usize>! = MutableMap<i32, usize> {}
-    /// Per lambda being walked, innermost last, the symbols it binds.
-    lambdas: MutableSet<i32>![]! = []
-    /// Whether the body suspends (`yield`, `await`).
-    suspends: bool = false
+    /// How many lambdas the walk is inside.
+    lambda_depth: i32 = 0
     /// Where the walk notes what it does with frozen values (`frozen.vader`).
     frozen: FrozenSites!
+    /// Where the walk notes the arguments the typecheck widened (`variance.vader`).
+    widenings: PendingWidening[]!
     /// Whether the walk reads a module constant's initialiser.
     in_constant: bool = false
 }
@@ -44,15 +47,21 @@ WalkCtx :: struct {
 /// @param decl    a function with a body.
 /// @param typed   the module that typed it.
 /// @param index   the project's functions, to resolve its calls.
-/// @param frozen  where the walk notes what the body does with frozen values.
+/// @param frozen     where the walk notes what the body does with frozen values.
+/// @param widenings  where the walk notes the arguments the typecheck widened.
 skeleton_of :: fn(
-    decl: AST.FnDecl, typed: TypedProgram, index: CalleeIndex, frozen: FrozenSites,
+    decl: AST.FnDecl,
+    typed: TypedProgram,
+    index: CalleeIndex,
+    frozen: FrozenSites,
+    widenings: PendingWidening[],
 ) -> Skeleton {
     ctx :: WalkCtx {
         .s = new_skeleton(decl.params.len()),
         .typed = typed,
         .index = index,
         .frozen = frozen,
+        .widenings = widenings,
     }
     for i in 0..<decl.params.len() {
         p :: decl.params[i]
@@ -65,11 +74,6 @@ skeleton_of :: fn(
     result :: ctx.block_value(body)
     ctx.escape(result, .Returned)
     ctx.note_kept_trailing(body)
-    if ctx.suspends {
-        for i in 0..<decl.params.len() {
-            ctx.s.add_mark(i, EVERYWHERE, .Stored)
-        }
-    }
     return ctx.s
 }
 
@@ -82,10 +86,7 @@ stmt :: fn(ctx: WalkCtx, s: AST.Stmt) -> void {
         is AST.DestructureAssignStmt -> { ctx.destructure_assign(s) }
         is AST.ExprStmt              -> { ctx.discard(s.expr) }
         is AST.ReturnStmt            -> { ctx.return_stmt(s) }
-        is AST.YieldStmt             -> {
-            ctx.suspends = true
-            ctx.escape(ctx.kept_value(s.value), .Stored)
-        }
+        is AST.YieldStmt             -> { ctx.escape(ctx.kept_value(s.value), .Stored) }
         is AST.ForStmt               -> { ctx.for_stmt(s) }
         is AST.BreakStmt | AST.ContinueStmt -> {}
         is AST.DeferStmt             -> { ctx.defer_stmt(s) }
@@ -100,7 +101,7 @@ return_stmt :: fn(ctx: WalkCtx, s: AST.ReturnStmt) -> void {
 // A `return` hands its value to the caller ; inside a lambda, to whoever calls the
 // lambda.
 return_effect :: fn(ctx: WalkCtx) -> Effect {
-    if ctx.lambdas.len() > 0 {
+    if ctx.lambda_depth > 0 {
         return .Stored
     }
     return .Returned
@@ -226,9 +227,6 @@ bind :: fn(ctx: WalkCtx, b: AST.LetBinding, value: usize | null) -> void {
 // The binding whose name sits at `span` now holds `value` too.
 bind_symbol :: fn(ctx: WalkCtx, span: Span, value: usize | null) -> void {
     sym :: ctx.typed.resolved.idents[span.hash()] ?? return
-    if ctx.lambdas.len() > 0 {
-        ctx.lambdas[ctx.lambdas.len() - 1].add(sym.id)
-    }
     slot :: ctx.local_slot(sym.id)
     if value != null {
         ctx.s.add_flow(slot, value)
@@ -317,6 +315,7 @@ call :: fn(
     for q in 0..<sources.len() {
         source :: sources[q] ?? continue
         ctx.note_known_writes(targets, q, source)
+        ctx.note_widened(targets, q, source)
         if lending == .Conversion || !ctx.is_converted(source) {
             ctx.note_lent(targets, q, source, lending == .ThroughIndex)
         }

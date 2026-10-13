@@ -1084,8 +1084,8 @@ type_call :: fn(
             // T3072 owns the argument's own top-level bit, as on the plain path below.
             cleared :: arg_mutability_cleared(arg_types[i])
             slot :: param_shape_slot(arg_types[i], want)
-            if is_assignable(cleared, slot)                    { continue }
-            if try_into(cleared, slot, typed, c.args[i].value) { continue }
+            if fits_argument(typed, c.args[i].value, cleared, slot) { continue }
+            if try_into(cleared, slot, typed, c.args[i].value)      { continue }
             note_gaining_need(c, i, arg_types[i], want, typed)
             push_level_mismatch(
                 arg_types[i], want, c.args[i].span, .TypeMismatch, c.args[i].value, typed, diags,
@@ -1163,8 +1163,8 @@ type_call :: fn(
         // Array mutability still flows through : nothing else checks it here.
         cleared :: arg_mutability_cleared(arg_ty)
         slot :: param_shape_slot(arg_ty, param_ty)
-        if is_assignable(cleared, slot) { continue }
-        if try_into(cleared, slot, typed, c.args[i].value) { continue }
+        if fits_argument(typed, c.args[i].value, cleared, slot) { continue }
+        if try_into(cleared, slot, typed, c.args[i].value)      { continue }
         note_gaining_need(c, i, arg_ty, param_ty, typed)
         push_level_mismatch(
             arg_ty, param_ty, c.args[i].span, .TypeMismatch, c.args[i].value, typed, diags,
@@ -1425,12 +1425,31 @@ reject_ufcs_receiver_at_instance :: fn(
     if want is TraitType {
         return
     }
-    if is_assignable(arg_mutability_cleared(receiver_ty), param_shape_slot(receiver_ty, want)) {
+    cleared :: arg_mutability_cleared(receiver_ty)
+    slot :: param_shape_slot(receiver_ty, want)
+    if fits_argument(typed, callee.target, cleared, slot) {
         return
     }
     push_level_mismatch(
         receiver_ty, want, callee.target.span, .TypeMismatch, callee.target, typed, diags,
     )
+}
+
+// Whether an argument of type `from` fits a parameter of type `to`. One that fits
+// only by widening an array is noted for the effect summary.
+fits_argument :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) -> bool {
+    if !is_assignable(from, to) {
+        return false
+    }
+    note_widened_argument(typed, arg, from, to)
+    return true
+}
+
+// Notes `arg` for the effect summary when it fits its parameter only by widening
+// an array (`widening_depth`).
+note_widened_argument :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) -> void {
+    depth :: widening_depth(from, to) ?? return
+    typed.widened_arguments[arg.id] = depth
 }
 
 // Whether a lambda argument's parameter still names a type parameter of the callee

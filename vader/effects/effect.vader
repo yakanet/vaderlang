@@ -184,6 +184,42 @@ extends :: fn(t: PathTable, p: i32, c: i32) -> bool {
     return at == c || t.cuts[at] == c
 }
 
+// Where `p` sits on the chain of arrays that leads to an element widened `depth`
+// arrays deep: its length, when every step of it is an element and there are at
+// most `depth` of them. Null when it leaves the chain through a field, or goes
+// below the widened element.
+chain_position :: fn(t: PathTable, p: i32, depth: i32) -> i32 | null {
+    length :: t.nodes[p].length
+    if length > depth {
+        return null
+    }
+    at := p
+    for t.nodes[at].length > 0 {
+        if t.step_names[t.nodes[at].step] != ELEMENT {
+            return null
+        }
+        at = t.nodes[at].parent
+    }
+    return length
+}
+
+/// Whether access `a` lets a callee put a value of the wider type into an argument
+/// whose element was widened `depth` arrays deep: an element or an inner array
+/// replaced, or an array on the way down grown, kept, returned or handed to code
+/// the summary cannot see. A shrink takes nothing in, and what happens to the
+/// widened element itself, or below it, stays inside a value of its own type.
+///
+/// @param a      an access of the callee's parameter.
+/// @param depth  how many arrays deep the element was widened (`widening_depth`).
+breaks_widening :: fn(t: PathTable, a: Access, depth: i32) -> bool {
+    k :: t.chain_position(a.path, depth) ?? return false
+    return match a.effect {
+        .Shrunk                                   -> false
+        .Assigned                                 -> k >= 1 || t.nodes[a.path].deeper
+        .Resized | .Stored | .Returned | .Unknown -> k < depth
+    }
+}
+
 // How the dump writes `p` after its parameter's name: `.f[]`, then `…` when it
 // stands for deeper paths too.
 display_path :: fn(t: PathTable, p: i32) -> string {
@@ -437,4 +473,40 @@ test_include_of_a_cut_path_drops_what_it_covers :: fn() -> void {
     t.include(effects, Access { .path = path_of(t, ["c"]), .effect = .Assigned })
     t.include(effects, Access { .path = t.cut(path_of(t, ["a"])), .effect = .Assigned })
     assert_eq(effects.accesses.len(), 2)
+}
+
+@test
+test_widening_survives_a_shrink_and_a_kept_element :: fn() -> void {
+    t :: PathTable {}
+    shrunk :: Access { .path = ROOT, .effect = .Shrunk }
+    kept :: Access { .path = path_of(t, [ELEMENT]), .effect = .Stored }
+    assert(!t.breaks_widening(shrunk, 1), "a pop takes nothing in")
+    assert(!t.breaks_widening(kept, 1), "the element escapes as what it is")
+}
+
+@test
+test_widening_breaks_on_a_grown_or_kept_array :: fn() -> void {
+    t :: PathTable {}
+    grown :: Access { .path = ROOT, .effect = .Resized }
+    inner_kept :: Access { .path = path_of(t, [ELEMENT]), .effect = .Stored }
+    assert(t.breaks_widening(grown, 1), "a push may add a wider value")
+    assert(t.breaks_widening(inner_kept, 2), "an inner array escapes under the wider type")
+}
+
+@test
+test_widening_breaks_on_a_replaced_element_only :: fn() -> void {
+    t :: PathTable {}
+    replaced :: Access { .path = path_of(t, [ELEMENT]), .effect = .Assigned }
+    field :: Access { .path = path_of(t, [ELEMENT, "r"]), .effect = .Assigned }
+    assert(t.breaks_widening(replaced, 1), "`xs[i] = wider` replaces an element")
+    assert(!t.breaks_widening(field, 1), "a field of the element keeps its own type")
+}
+
+@test
+test_widening_breaks_when_unknown_code_gets_the_array :: fn() -> void {
+    t :: PathTable {}
+    array :: Access { .path = EVERYWHERE, .effect = .Unknown }
+    element :: Access { .path = t.cut(path_of(t, [ELEMENT])), .effect = .Unknown }
+    assert(t.breaks_widening(array, 1), "unknown code may push into the array")
+    assert(!t.breaks_widening(element, 1), "unknown code handed an element cannot replace it")
 }

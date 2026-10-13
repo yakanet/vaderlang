@@ -1,0 +1,110 @@
+// vader/effects/variance — widened array arguments, checked against their callees.
+//
+// An array argument may fit its parameter only by widening its element:
+// `Circle[]` into `(Circle | null)[]`. That is sound when no callee can put a
+// value of the wider type into the caller's array: none replaces an element, and
+// none grows, keeps, returns or hands to unseen code an array on the way down to
+// the widened element (`breaks_widening`). The element itself may be read, kept
+// and returned: it escapes as what it is.
+//
+// The typecheck notes the widened arguments (`TypedProgram.widened_arguments`)
+// and still decides with the written rights; the verdicts are dumped beside them,
+// so that the two can be compared.
+
+module "vader/effects"
+
+import "toolchain/span"
+
+AST :: import "toolchain/ast"
+
+/// What the summary makes of a widened argument.
+export WideningVerdict :: enum {
+    /// No callee can put a value of the wider type into the argument.
+    Covariant,
+    /// A callee replaces an element, or grows, keeps or returns an array the
+    /// widening crosses.
+    Breaks,
+    /// A callee the summary cannot see: a function value, a site the record could
+    /// not settle.
+    UnknownCallee,
+}
+
+/// An argument that fits its parameter only by widening an array.
+export WideningSite :: struct {
+    span: Span
+    /// The display path of the module that holds the site.
+    module: string
+    /// How many arrays deep the element is widened.
+    depth: i32
+    verdict: WideningVerdict
+    /// The first access of the callee's parameter that breaks the widening, for a
+    /// verdict of `Breaks`.
+    breaking: Access | null = null
+}
+
+/// A widened argument whose verdict waits for its callees' summaries.
+PendingWidening :: struct {
+    site: WideningSite
+    targets: CallTarget[]
+    /// The parameter the argument fills, by position.
+    param: usize
+}
+
+// `arg` fills parameter `param` of a call to one of `targets`: when the typecheck
+// widened it, decided once the callees' summaries are known.
+note_widened :: fn(ctx: WalkCtx, targets: CallTarget[], param: usize, arg: AST.Expr) -> void {
+    depth :: ctx.typed.widened_arguments[arg.id] ?? return
+    site :: WideningSite {
+        .span = arg.span,
+        .module = ctx.typed.resolved.display_path,
+        .depth = depth,
+        .verdict = .Covariant,
+    }
+    ctx.widenings.push(PendingWidening {
+        .site = site,
+        .targets = targets,
+        .param = param,
+    })
+}
+
+/// Each widened argument with its verdict, decided against its callees' summaries.
+///
+/// @param widenings  the widened arguments the walk noted.
+/// @param facts      per node, what each function does with its parameters.
+/// @param paths      the paths the facts name.
+settle_widenings :: fn(
+    widenings: PendingWidening[],
+    facts: ParamEffects[][],
+    paths: PathTable,
+) -> WideningSite[] {
+    any :: any_effects()
+    out: WideningSite[]: []
+    for w in widenings {
+        out.push(widening_outcome(w, facts, paths, any))
+    }
+    return out
+}
+
+// The site with its verdict, the worst over its targets.
+widening_outcome :: fn(
+    w: PendingWidening,
+    facts: ParamEffects[][],
+    paths: PathTable,
+    any: ParamEffects,
+) -> WideningSite {
+    for target in w.targets {
+        if target is AnyCallee {
+            return WideningSite { ...w.site, .verdict = .UnknownCallee }
+        }
+        for a in accesses_of_param(known_params(target, facts), w.param, any) {
+            if paths.breaks_widening(a, w.site.depth) {
+                return WideningSite {
+                    ...w.site,
+                    .verdict = .Breaks,
+                    .breaking = a,
+                }
+            }
+        }
+    }
+    return w.site
+}

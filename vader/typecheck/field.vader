@@ -654,6 +654,9 @@ try_free_fn_ufcs_dispatch :: fn(
                     target_ty, first_param, e.target.span, .TypeMismatch, e.target, typed, diags,
                 )
             }
+            // Matched by shape, the receiver may have widened an array as an argument
+            // does.
+            note_widened_argument(typed, e.target, cleared, slot)
         }
     }
     return free_ufcs.curried

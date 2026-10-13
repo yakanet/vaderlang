@@ -94,6 +94,8 @@ export stores_in_struct :: fn(p: Point) -> Holder = Holder { .inner = p, .items 
 
 export captures :: fn(p: Point) -> fn() -> i32 = () -> p.x
 
+export hands_out_its_capture :: fn(p: Point) -> fn() -> Point = () -> p
+
 export copies_with_spread :: fn(h: Holder) -> Holder = Holder { ...h, .inner = origin() }
 
 // ---- calls ----------------------------------------------------------------

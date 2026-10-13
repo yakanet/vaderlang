@@ -67,7 +67,7 @@ value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null = match e {
     is AST.CastExpr          -> ctx.value(e.value)
     is AST.StringLitExpr     -> ctx.string_value(e)
     is AST.IntrinsicCallExpr -> ctx.sequence_walked(e.args)
-    is AST.AwaitExpr         -> ctx.await_value(e)
+    is AST.AwaitExpr         -> ctx.nothing(e.inner)
     is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr
      | AST.DotVariantExpr | AST.GenericInstExpr | AST.FnTypeExpr | AST.ArrayTypeExpr
      | AST.MutableTypeExpr -> null
@@ -87,15 +87,10 @@ sequence_walked :: fn(ctx: WalkCtx, exprs: AST.Expr[]) -> usize | null {
     return null
 }
 
-// A parameter's or a local's slot. A lambda that reads a binding from outside it
-// captures it, and keeps it for as long as the lambda lives.
+// A parameter's or a local's slot.
 ident_value :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> usize | null {
     sym :: ctx.typed.resolved.idents[e.span.hash()] ?? return null
-    slot :: ctx.slots[sym.id] ?? return null
-    if ctx.lambdas.len() > 0 && sym.id !in ctx.lambdas[ctx.lambdas.len() - 1] {
-        ctx.s.add_mark(slot, ROOT, .Stored)
-    }
-    return slot
+    return ctx.slots[sym.id]
 }
 
 // `target[index]`: what the target's `Index` returns, the elements of a slice, or
@@ -186,11 +181,6 @@ binary_value :: fn(ctx: WalkCtx, e: AST.BinaryExpr) -> usize | null {
     return ctx.call(operator, [left, right], [e.left, e.right])
 }
 
-await_value :: fn(ctx: WalkCtx, e: AST.AwaitExpr) -> usize | null {
-    ctx.suspends = true
-    return ctx.nothing(e.inner)
-}
-
 // ---- control flow ---------------------------------------------------------
 
 // What a `??` falls back to: a value, or a statement that leaves.
@@ -276,15 +266,10 @@ block_value :: fn(ctx: WalkCtx, b: AST.BlockExpr) -> usize | null {
 // A lambda's own parameters hold nothing lent: whoever calls it is a function value
 // call, which lends it anything. What it returns leaves for that caller.
 lambda_value :: fn(ctx: WalkCtx, l: AST.LambdaExpr) -> usize | null {
-    bound :: MutableSet<i32> {}
-    for p in l.params {
-        sym :: ctx.typed.resolved.idents[p.span.hash()] ?? continue
-        bound.add(sym.id)
-    }
-    ctx.lambdas.push(bound)
+    ctx.lambda_depth += 1
     ctx.escape(ctx.block_value(l.body), .Stored)
     ctx.note_kept_trailing(l.body)
-    ctx.lambdas.remove_last()
+    ctx.lambda_depth -= 1
     return null
 }
 

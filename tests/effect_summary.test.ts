@@ -16,6 +16,7 @@ ensureCliBuilt();
 
 const SUMMARIES = join(import.meta.dir, "effect_fixtures", "summaries", "summaries.vader");
 const FROZEN = join(import.meta.dir, "effect_fixtures", "frozen", "frozen.vader");
+const VARIANCE = join(import.meta.dir, "effect_fixtures", "variance", "variance.vader");
 const COMPILER = join(import.meta.dir, "..", "vader", "cli", "main.vader");
 
 /** Each function of the `summaries` module with its accesses, in source order. */
@@ -60,7 +61,8 @@ const EXPECTED: [string, string[]][] = [
   ["returns_field", ["returned h.inner"]],
   ["writes_what_a_callee_returns", ["assigned h.inner.x"]],
   ["stores_in_struct", ["stored p"]],
-  ["captures", ["stored p"]],
+  ["captures", ["none"]],
+  ["hands_out_its_capture", ["stored p"]],
   ["copies_with_spread", ["stored h.items"]],
   ["calls_a_writer", ["assigned p.x"]],
   ["calls_a_function_value", ["stored p…", "unknown p…"]],
@@ -89,7 +91,7 @@ const EXPECTED: [string, string[]][] = [
   ["bumps_an_entry", ["assigned m.evals[].x"]],
   ["next", ["assigned self.n"]],
   ["drains", ["assigned it.n"]],
-  ["yields_points", ["stored xs…"]],
+  ["yields_points", ["stored xs[]"]],
   ["fills", ["assigned d…"]],
 ];
 
@@ -100,9 +102,12 @@ test("the effect summary gives each fixture function its accesses", async () => 
   expect(functionsOf(r.stdout)).toEqual(EXPECTED);
 }, MEDIUM_BUILD);
 
-/** The `# frozen` section's sites, `<outcome> <root>` in source order, then its totals. */
-function frozenSitesOf(dump: string): string[] {
-  const section = dump.slice(dump.indexOf("\n# frozen\n") + 1);
+/**
+ * A site section of the dump (`# frozen`, `# variance`): each site without its
+ * module and position, in source order, then the line of totals that closes it.
+ */
+function sectionSitesOf(dump: string, header: string): string[] {
+  const section = dump.slice(dump.indexOf(`\n${header}\n`) + 1);
   const out: string[] = [];
   for (const line of section.split("\n").slice(1)) {
     const site = line.match(/^ {2}\S+ \d+:\d+ (.*)$/)?.[1];
@@ -110,7 +115,7 @@ function frozenSitesOf(dump: string): string[] {
       out.push(site);
       continue;
     }
-    if (line.startsWith("write fault:")) out.push(line);
+    out.push(line);
     break;
   }
   return out;
@@ -121,7 +126,7 @@ function frozenSitesOf(dump: string): string[] {
 test("the frozen checks give each use of a frozen value its outcome", async () => {
   const r = await runCli(["dump", "--stage=effects", FROZEN], undefined, MEDIUM_BUILD);
   expect(r.exit).toBe(0);
-  expect(frozenSitesOf(r.stdout)).toEqual([
+  expect(sectionSitesOf(r.stdout, "# frozen")).toEqual([
     "write fault CFG",
     "call fault TABLE",
     "call fault CFG",
@@ -133,6 +138,24 @@ test("the frozen checks give each use of a frozen value its outcome", async () =
     "copy bytes()",
     "copy TABLE",
     "write fault: 1, call fault: 2, unknown call: 1, copy: 5, copy elided: 1",
+  ]);
+}, MEDIUM_BUILD);
+
+test("each widened array argument gets the verdict of its callee", async () => {
+  const r = await runCli(["dump", "--stage=effects", VARIANCE], undefined, MEDIUM_BUILD);
+  expect(r.exit).toBe(0);
+  expect(sectionSitesOf(r.stdout, "# variance")).toEqual([
+    "depth 1 covariant",
+    "depth 1 breaks: stored argument",
+    "depth 1 breaks: returned argument",
+    "depth 1 covariant",
+    "depth 1 breaks: unknown argument…",
+    "depth 1 covariant",
+    "depth 2 covariant",
+    "depth 2 breaks: stored argument[]",
+    "depth 1 breaks: resized argument",
+    "depth 1 covariant",
+    "covariant: 5, breaks: 5, unknown callee: 0",
   ]);
 }, MEDIUM_BUILD);
 

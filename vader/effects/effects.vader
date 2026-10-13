@@ -28,6 +28,9 @@ export EffectSummary :: struct {
     unsettled: i32[]
     /// What the program does with its frozen values (`frozen.vader`).
     frozen: FrozenSite[]
+    /// The arguments the typecheck widened, and whether their callees allow it
+    /// (`variance.vader`).
+    widenings: WideningSite[]
 }
 
 /// Summarise every function of a checked project.
@@ -37,11 +40,12 @@ export EffectSummary :: struct {
 export summarise_effects :: fn(project: LoadedProject, checked: CheckResult) -> EffectSummary {
     index :: index_functions(project, checked.all_modules)
     frozen :: FrozenSites {}
+    widenings: PendingWidening[]: []
     skeletons: Skeleton[]: []
     facts: ParamEffects[][]: []
     successors: i32[][]: []
     for f in index.functions {
-        s :: skeleton_of(f.decl, f.typed, index, frozen)
+        s :: skeleton_of(f.decl, f.typed, index, frozen, widenings)
         skeletons.push(s)
         facts.push(s.params.filled(() -> ParamEffects {}))
         successors.push(callee_nodes(s))
@@ -70,36 +74,46 @@ export summarise_effects :: fn(project: LoadedProject, checked: CheckResult) -> 
             facts[node][i] = any_effects()
         }
     }
-    note_initialisers(index, frozen)
+    note_initialisers(index, frozen, widenings)
     settle_frozen(frozen, facts)
     return EffectSummary {
         .index = index,
         .facts = facts,
         .unsettled = unsettled,
         .frozen = frozen.sites,
+        .widenings = settle_widenings(widenings, facts, index.paths),
     }
 }
 
 // Walk what the program evaluates outside a function: each constant's initialiser,
 // for the calls it hands a frozen value to, and each field default, which every
 // struct built without that field keeps.
-note_initialisers :: fn(index: CalleeIndex, frozen: FrozenSites) -> void {
+note_initialisers :: fn(
+    index: CalleeIndex,
+    frozen: FrozenSites,
+    widenings: PendingWidening[],
+) -> void {
     for c in index.constants {
-        initialiser_ctx(index, frozen, c, true).discard(c.value)
+        initialiser_ctx(index, frozen, widenings, c, true).discard(c.value)
     }
     for d in index.defaults {
-        _ :: initialiser_ctx(index, frozen, d, false).kept_value(d.value)
+        _ :: initialiser_ctx(index, frozen, widenings, d, false).kept_value(d.value)
     }
 }
 
 // A walk of `init`, whose own constraints nothing reads.
 initialiser_ctx :: fn(
-    index: CalleeIndex, frozen: FrozenSites, init: Initialiser, in_constant: bool,
+    index: CalleeIndex,
+    frozen: FrozenSites,
+    widenings: PendingWidening[],
+    init: Initialiser,
+    in_constant: bool,
 ) -> WalkCtx! = WalkCtx {
     .s = new_skeleton(0),
     .typed = init.typed,
     .index = index,
     .frozen = frozen,
+    .widenings = widenings,
     .in_constant = in_constant,
 }
 
