@@ -62,7 +62,8 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
                 // An impl member's recorded signature is receiver-dropped, so its
                 // types line up with the call's own args from slot 0. The receiver
                 // passes through — its slot is the impl's for-type by construction.
-                args :: build_ufcs_args(ctx, receiver, call, member.arg_types, 0)
+                target :: callee_field.target
+                args :: build_ufcs_args(ctx, target, receiver, call, member.arg_types, 0)
                 return LoweredCall {
                     .span = call.span, .type = type,
                     .callee = LoweredIdent {
@@ -86,7 +87,7 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
                 // call `any_match(a, p)` — a raw array reaching an `Iterator<T>` slot wraps
                 // through `into` (→ the `array_iter` generator) on either form.
                 free_params :: ufcs_param_types(ctx, free.symbol)
-                args :: build_ufcs_args(ctx, receiver, call, free_params, 1)
+                args :: build_ufcs_args(ctx, callee_field.target, receiver, call, free_params, 1)
                 // UFCS-on-generic-fn instance harvest : when the target
                 // is `fn<T>(x: T) -> T`, register a `GenericFnInstance` so
                 // `drain_generic_fn_instances` emits the body, and point
@@ -239,12 +240,18 @@ ufcs_param_types :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type[] {
 // whose `params[0]` is the receiver slot (and whose receiver is prepared for it
 // here) ; 0 for an impl member, whose recorded signature already dropped the
 // receiver (there is no slot to prepare it against — it is the impl's for-type).
+// `target` is the receiver's node, where the typecheck filed its conversion.
 build_ufcs_args :: fn(
-    ctx: FnLowerCtx, receiver: LoweredExpr, call: CallExpr, params: Type[], first_slot: usize,
+    ctx: FnLowerCtx,
+    target: Expr,
+    receiver: LoweredExpr,
+    call: CallExpr,
+    params: Type[],
+    first_slot: usize,
 ) -> LoweredExpr![]! {
     args: LoweredExpr[]: []
     if first_slot == 1 && params.len() > 0 {
-        args.push(prepare_value_for_slot(ctx, receiver, params[0], call.span))
+        args.push(prepare_node_for_slot(ctx, target, receiver, params[0], call.span))
     } else {
         args.push(receiver)
     }

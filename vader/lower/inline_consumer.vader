@@ -63,6 +63,7 @@ export try_inline_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type: Type
         .chain = chain,
         .instance = instance,
     }
+    observe_inlined(ctx, call, target.decl, target.callee.name)
     return emit_inlined_consumer(ctx, consumer, type, call.span)
 }
 

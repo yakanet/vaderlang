@@ -1,0 +1,633 @@
+// vader/lower/verify_callees — the lowering's callee choices against the typecheck's record.
+//
+// The typecheck files what each site invokes (`TypedProgram.call_sites`,
+// `vader/typecheck/call_sites.vader`), yet the lowering still chooses on its own at
+// several places. Under `$VADER_VERIFY_CALLEES`, each of those places reports what
+// it chose, and a choice the record does not account for is listed at the end of
+// the run (`render_callee_report`). `agrees` holds the few rules under which a
+// lowering shortcut still says what the record says: the same declaration, an
+// `@intrinsic` one served by an operation, a bound's or a trait value's member
+// reached at the instance or through the vtable, a function value called directly.
+//
+// Inert unless the variable is set: `LowerProjectCtx.callee_verifier` is then null,
+// and each observation point tests it before building anything, so it costs one
+// null test and never changes emitted code. Its arguments are what the lowering
+// already holds (a node, a lowered expression, a literal string).
+
+module "vader/lower"
+
+import "std/collections"
+import "std/string"
+import "std/string_builder"
+import "toolchain/ast"
+import "toolchain/span"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "vader/types"
+
+/// Environment variable that turns the verification on.
+export VERIFY_CALLEES_VAR :: "VADER_VERIFY_CALLEES"
+
+/// The verifier's state for one lowering run.
+export CalleeVerifier :: struct {
+    /// Where the lowering chose another callee than the record.
+    mismatches: CalleeMismatch[]! = []
+    /// The (node, role, choice) already reported.
+    seen: MutableSet<string>! = MutableSet<string> {}
+    /// How many choices were compared with the record ; a site lowered twice counts
+    /// twice.
+    observed: i32 = 0
+    /// Mangle → the impl member a call by that name runs (`note_member_origin`).
+    members: MutableMap<string, ObservedFn>! = MutableMap<string, ObservedFn> {}
+}
+
+/// A verifier when `$VADER_VERIFY_CALLEES` is set, else null.
+export new_callee_verifier :: fn() -> CalleeVerifier! | null {
+    if !env_flag_set(VERIFY_CALLEES_VAR) {
+        return null
+    }
+    return CalleeVerifier {}
+}
+
+/// A call to a known function.
+export ObservedFn :: struct {
+    /// Null when the lowering names a function no declaration backs.
+    decl: FnDecl | null
+    /// The trait the function implements as an impl member ; "" for a free fn.
+    trait_key: string = ""
+    /// What the report calls it.
+    name: string
+}
+
+/// A call dispatched at run time through the vtable of `trait_key`.
+export ObservedVirtual :: struct {
+    trait_key: string
+    member: string
+}
+
+/// No call: a primitive operation, an intrinsic, a counter loop.
+export ObservedNoCall :: struct {
+    what: string
+    /// An operator applied to two references compares them, whatever the type.
+    on_reference: bool = false
+}
+
+/// A call through a value of function type.
+export ObservedIndirect :: struct {}
+
+/// Several calls at one site: the `equals` of each part a structural `==` compares.
+export ObservedEach :: struct {
+    parts: ObservedCallee[]
+}
+
+/// What the lowering chose at a site.
+export ObservedCallee ::
+    | ObservedFn
+    | ObservedVirtual
+    | ObservedNoCall
+    | ObservedIndirect
+    | ObservedEach
+
+/// A site where the lowering chose something the record does not account for.
+export CalleeMismatch :: struct {
+    span: Span
+    role: CallRole
+    /// Null when the typecheck filed nothing for the site.
+    recorded: Callee | null
+    observed: ObservedCallee
+}
+
+// ---- observation points ---------------------------------------------------
+
+/// `lowered`, once the verifier has read off its shape what the site `role` plays
+/// at `node` runs: a direct call, a virtual one, or none.
+///
+/// @param node     the site's node, as the typecheck keyed it.
+/// @param role     the part the site plays at it.
+/// @param lowered  what the lowering made of it.
+observed :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, lowered: LoweredExpr) -> LoweredExpr! {
+    observe_lowered(ctx, node, role, lowered)
+    return lowered
+}
+
+/// `observed`, without handing the expression back.
+///
+/// @param node     the site's node.
+/// @param role     the part the site plays at it.
+/// @param lowered  what the lowering made of it.
+observe_lowered :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, lowered: LoweredExpr) -> void {
+    verifier :: ctx.project.callee_verifier ?? return
+    compare(ctx, verifier, node, role, observed_of(ctx, verifier, lowered))
+}
+
+/// Report that the site `role` plays at `node` runs no call.
+///
+/// @param node  the site's node.
+/// @param role  the part the site plays at it.
+/// @param what  how it runs instead: a primitive operation, a counter loop.
+observe_no_call :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, what: string) -> void {
+    verifier :: ctx.project.callee_verifier ?? return
+    compare(ctx, verifier, node, role, ObservedNoCall { .what = what })
+}
+
+/// Report that the operator `binary` is the built-in one: on two references, that
+/// compares their identity.
+///
+/// @param binary  the operator's node.
+observe_built_in_operator :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> void {
+    verifier :: ctx.project.callee_verifier ?? return
+    on_reference :: compares_identity(ctx.types.expr_type(binary.left))
+    built_in :: ObservedNoCall { .what = "primitive", .on_reference = on_reference }
+    compare(ctx, verifier, binary, .Operator, built_in)
+}
+
+// Whether the built-in `==` on two values of `t` compares their identity: a
+// reference's, as opposed to a scalar's, an enum's or a free literal's value. A
+// union compares identities when one of its variants other than `null` does.
+compares_identity :: fn(t: Type) -> bool {
+    if t is UnionType {
+        for variant in t.variants {
+            if !is_null_type(variant) && compares_identity(variant) {
+                return true
+            }
+        }
+        return false
+    }
+    return scalar_backing(t) == null && strip_distinct(t) !is EnumType | FreeIntType | FreeFloatType
+}
+
+/// Report that the site `role` plays at `node` calls `symbol`.
+///
+/// @param node    the site's node.
+/// @param role    the part the site plays at it.
+/// @param symbol  the callee, an impl member by its mangle or a function.
+observe_symbol :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, symbol: Symbol) -> void {
+    verifier :: ctx.project.callee_verifier ?? return
+    compare(ctx, verifier, node, role, observed_symbol(ctx, verifier, symbol))
+}
+
+/// Report that the site `role` plays at `node` calls `member` of `trait_key`
+/// through the vtable.
+///
+/// @param node       the site's node.
+/// @param role       the part the site plays at it.
+/// @param trait_key  the trait whose vtable serves the call.
+/// @param member     the member called.
+observe_virtual :: fn(
+    ctx: FnLowerCtx,
+    node: Expr,
+    role: CallRole,
+    trait_key: string,
+    member: string,
+) -> void {
+    verifier :: ctx.project.callee_verifier ?? return
+    compare(ctx, verifier, node, role, ObservedVirtual { .trait_key = trait_key, .member = member })
+}
+
+/// Report that the call `node` was replaced by the body of `decl`.
+///
+/// @param node  the call's node.
+/// @param decl  the inlined function.
+/// @param name  what the report calls it.
+observe_inlined :: fn(ctx: FnLowerCtx, node: Expr, decl: FnDecl, name: string) -> void {
+    verifier :: ctx.project.callee_verifier ?? return
+    compare(ctx, verifier, node, .Call, ObservedFn { .decl = decl, .name = name })
+}
+
+/// Report what an `in` runs: the trait's `contains` through the vtable, or the impl
+/// member the lowering picked.
+///
+/// @param binary    the `in`'s node.
+/// @param contains  the trait key of a dispatched collection, else its member.
+observe_contains :: fn(ctx: FnLowerCtx, binary: BinaryExpr, contains: string | UfcsMember) -> void {
+    if contains is string {
+        observe_virtual(ctx, binary, .Operator, contains, METHOD_CONTAINS)
+    } else {
+        observe_symbol(ctx, binary, .Operator, contains.symbol)
+    }
+}
+
+/// Report what a structural `==` lowered to `lowered` runs: the calls among the
+/// tests of its parts, the operands being bound ahead of it (`try_lower_value_eq`).
+///
+/// @param binary   the `==`'s node.
+/// @param lowered  the comparison, with its prelude.
+observe_equality :: fn(ctx: FnLowerCtx, binary: BinaryExpr, lowered: LoweredExpr) -> void {
+    verifier :: ctx.project.callee_verifier ?? return
+    parts: ObservedCallee[]: []
+    collect_calls(ctx, verifier, lowered, parts)
+    compare(ctx, verifier, binary, .Operator, gathered(parts))
+}
+
+/// Report what replaced the value of `node`: the call `after` makes, none when the
+/// lowering kept `before` (`===`), the value as it was.
+///
+/// @param node    the value's node.
+/// @param role    a conversion, a `for`'s iterator, an interpolated value's rendering.
+/// @param before  the value as lowered.
+/// @param after   what the lowering put in its place.
+observe_replacement :: fn(
+    ctx: FnLowerCtx,
+    node: Expr,
+    role: CallRole,
+    before: LoweredExpr,
+    after: LoweredExpr,
+) -> void {
+    verifier :: ctx.project.callee_verifier ?? return
+    if after === before {
+        compare(ctx, verifier, node, role, ObservedNoCall { .what = "unchanged" })
+        return
+    }
+    compare(ctx, verifier, node, role, observed_of(ctx, verifier, after))
+}
+
+/// `lowered`, once the verifier has noted that the `for` over `iter` walks in
+/// place: no `into` nor `next` called.
+///
+/// @param iter     the iterable's node.
+/// @param what     how the loop walks: a counter, an element, a fused chain.
+/// @param lowered  the loop.
+walked_in_place :: fn(
+    ctx: FnLowerCtx,
+    iter: Expr,
+    what: string,
+    lowered: LoweredStmt,
+) -> LoweredStmt! {
+    observe_no_call(ctx, iter, .IterInto, what)
+    observe_no_call(ctx, iter, .IterNext, what)
+    return lowered
+}
+
+/// `note_member_origin` for the member named `member` of `entry`.
+///
+/// @param mangled  the name the call carries.
+/// @param entry    the impl that declares it.
+/// @param member   the member's name.
+note_entry_member :: fn(
+    ctx: FnLowerCtx,
+    mangled: string,
+    entry: ImplEntry,
+    member: string,
+) -> void {
+    _ :: ctx.project.callee_verifier ?? return
+    decl :: select_member(entry, "", member) ?? return
+    note_member_origin(ctx, mangled, decl, entry.trait_key)
+}
+
+/// Lower a value the lowering does not prepare for its slot, telling the verifier
+/// that no `into` runs on it.
+///
+/// @param value  the value's node.
+lower_unprepared :: fn(ctx: FnLowerCtx, value: Expr) -> LoweredExpr! {
+    observe_no_call(ctx, value, .Into, "not prepared")
+    return lower_expr(ctx, value)
+}
+
+/// Note that a call mangled `mangled` names `decl`, a member of an impl of
+/// `trait_key`.
+///
+/// @param mangled    the name the call carries.
+/// @param decl       the member's declaration.
+/// @param trait_key  the trait its impl implements.
+note_member_origin :: fn(
+    ctx: FnLowerCtx,
+    mangled: string,
+    decl: FnDecl,
+    trait_key: string,
+) -> void {
+    verifier :: ctx.project.callee_verifier ?? return
+    if verifier.members[mangled] == null {
+        verifier.members[mangled] = ObservedFn {
+            .decl = decl,
+            .trait_key = trait_key,
+            .name = mangled,
+        }
+    }
+}
+
+// ---- comparison -----------------------------------------------------------
+
+// Report what the lowering chose at the site `role` plays at `node`, when it is
+// not what the typecheck recorded there. One report per (node, role, choice): an
+// instance of a generic body or an inlined one observes the same site again.
+compare :: fn(
+    ctx: FnLowerCtx,
+    verifier: CalleeVerifier,
+    node: Expr,
+    role: CallRole,
+    observed: ObservedCallee,
+) -> void {
+    if node.id == UNASSIGNED_NODE_ID {
+        return
+    }
+    verifier.observed += 1
+    recorded :: sites_of(ctx.typed.call_sites, role)[node.id]
+    if recorded == null {
+        // A value no conversion reaches has no `into` site on either side.
+        if converts(role) && observed is ObservedNoCall {
+            return
+        }
+    } else if agrees(recorded, observed) {
+        return
+    }
+    key :: "${node.id}:${role_label(role)}:${observed_label(observed)}"
+    if !verifier.seen.add(key) {
+        return
+    }
+    verifier.mismatches.push(
+        CalleeMismatch {
+            .span = node.span,
+            .role = role,
+            .recorded = recorded,
+            .observed = observed,
+        },
+    )
+}
+
+converts :: fn(role: CallRole) -> bool = role == .Into || role == .IterInto
+
+// What `lowered` runs.
+observed_of :: fn(
+    ctx: FnLowerCtx,
+    verifier: CalleeVerifier,
+    lowered: LoweredExpr,
+) -> ObservedCallee {
+    // @partial: a call or a virtual call is a call ; any other node runs in place.
+    return @partial match lowered {
+        is LoweredCast        -> observed_of(ctx, verifier, lowered.value)
+        is LoweredCall        -> observed_callee_expr(ctx, verifier, lowered.callee)
+        is LoweredVirtualCall -> ObservedVirtual {
+            .trait_key = lowered.trait_name,
+            .member = lowered.method,
+        }
+        _                     -> ObservedNoCall { .what = "operation" }
+    }
+}
+
+observed_callee_expr :: fn(
+    ctx: FnLowerCtx,
+    verifier: CalleeVerifier,
+    callee: LoweredExpr,
+) -> ObservedCallee {
+    if callee is LoweredIdent {
+        return observed_symbol(ctx, verifier, callee.symbol)
+    }
+    return ObservedIndirect {}
+}
+
+// What a call to `symbol` runs: an impl member by its mangle, a function by its
+// declaration, a value of function type otherwise.
+observed_symbol :: fn(ctx: FnLowerCtx, verifier: CalleeVerifier, symbol: Symbol) -> ObservedCallee {
+    member :: verifier.members[symbol.name]
+    if member != null {
+        return member
+    }
+    if symbol.kind != .Fn {
+        return ObservedIndirect {}
+    }
+    return ObservedFn { .decl = ctx.typed.fn_decls[symbol.id], .name = symbol.name }
+}
+
+// The calls `lowered` makes, outside the prelude of a block.
+collect_calls :: fn(
+    ctx: FnLowerCtx,
+    verifier: CalleeVerifier,
+    lowered: LoweredExpr,
+    parts: ObservedCallee[],
+) -> void {
+    match lowered {
+        is LoweredCall | LoweredVirtualCall -> {
+            parts.push(observed_of(ctx, verifier, lowered))
+        }
+        is LoweredBinary                    -> {
+            collect_calls(ctx, verifier, lowered.left, parts)
+            collect_calls(ctx, verifier, lowered.right, parts)
+        }
+        is LoweredUnary                     -> {
+            collect_calls(ctx, verifier, lowered.operand, parts)
+        }
+        is LoweredCast                      -> {
+            collect_calls(ctx, verifier, lowered.value, parts)
+        }
+        is LoweredBlock                     -> {
+            trailing :: lowered.trailing ?? return
+            collect_calls(ctx, verifier, trailing, parts)
+        }
+        _                                   -> {}
+    }
+}
+
+// What `parts` amount to: none, the one call, or each of them.
+gathered :: fn(parts: ObservedCallee[]) -> ObservedCallee {
+    if parts.len() == 0 {
+        return ObservedNoCall { .what = "compare" }
+    }
+    if parts.len() == 1 {
+        return parts[0]
+    }
+    return ObservedEach { .parts = parts }
+}
+
+// Whether `observed` is what `recorded` says the site runs.
+agrees :: fn(recorded: Callee, observed: ObservedCallee) -> bool = match recorded {
+    is DirectFn        -> direct_agrees(recorded, observed)
+    is BoundMember     -> member_agrees(recorded.trait_key, recorded.member, observed, true)
+    is TraitMember     -> member_agrees(recorded.trait_key, recorded.member, observed, false)
+    // A value of function type the lowering knows is called directly.
+    is FnValue         -> observed is ObservedIndirect | ObservedFn
+    is Builtin         -> observed is ObservedNoCall
+    is EachOf          -> each_agrees(recorded.callees, observed)
+    is ErroneousCallee -> false
+    is UnsettledCallee -> false
+}
+
+// The same declaration ; an `@intrinsic` one served by an operation.
+direct_agrees :: fn(recorded: DirectFn, observed: ObservedCallee) -> bool {
+    if observed is ObservedFn {
+        decl :: observed.decl ?? return false
+        return decl.id == recorded.decl.id
+    }
+    if observed is ObservedNoCall {
+        return decorators_have(recorded.decl.decorators, "intrinsic")
+    }
+    return false
+}
+
+// The trait's member through the vtable, or the member of an impl of that trait
+// at the instance. A bound settled on a primitive instance runs the built-in
+// operation, and one settled on a union one call per variant.
+member_agrees :: fn(
+    trait_key: string,
+    member: string,
+    observed: ObservedCallee,
+    per_instance: bool,
+) -> bool = match observed {
+    is ObservedVirtual  -> observed.trait_key == trait_key && observed.member == member
+    is ObservedFn       -> implements_member(observed, trait_key, member)
+    is ObservedNoCall   -> per_instance && !observed.on_reference
+    is ObservedIndirect -> false
+    is ObservedEach     -> per_instance && each_part_agrees(trait_key, member, observed.parts)
+}
+
+each_part_agrees :: fn(trait_key: string, member: string, parts: ObservedCallee[]) -> bool {
+    for part in parts {
+        if !member_agrees(trait_key, member, part, true) {
+            return false
+        }
+    }
+    return true
+}
+
+implements_member :: fn(observed: ObservedFn, trait_key: string, member: string) -> bool {
+    decl :: observed.decl ?? return false
+    return observed.trait_key == trait_key && decl.name == member
+}
+
+// Every call made is one recorded, and every call recorded is made ; a bound's
+// member settled on a primitive instance makes none.
+each_agrees :: fn(recorded: Callee[], observed: ObservedCallee) -> bool {
+    parts :: called_parts(observed)
+    for part in parts {
+        if !any_agrees(recorded, part) {
+            return false
+        }
+    }
+    for callee in recorded {
+        if callee !is BoundMember && !any_made(callee, parts) {
+            return false
+        }
+    }
+    return true
+}
+
+any_agrees :: fn(recorded: Callee[], part: ObservedCallee) -> bool {
+    for callee in recorded {
+        if agrees(callee, part) {
+            return true
+        }
+    }
+    return false
+}
+
+any_made :: fn(callee: Callee, parts: ObservedCallee[]) -> bool {
+    for part in parts {
+        if agrees(callee, part) {
+            return true
+        }
+    }
+    return false
+}
+
+called_parts :: fn(observed: ObservedCallee) -> ObservedCallee[] = match observed {
+    is ObservedEach -> observed.parts
+    is ObservedNoCall -> []
+    is ObservedFn | ObservedVirtual | ObservedIndirect -> [observed]
+}
+
+// ---- report ---------------------------------------------------------------
+
+/// The disagreements of the run, grouped by role and by what each side said, then
+/// by the pair of callees, each with its count and its first site. Says so when
+/// there is none ; "" when the verification is off.
+///
+/// @param project  the lowering project context, whose verifier accumulates them.
+render_callee_report :: fn(project: LowerProjectCtx) -> string {
+    verifier :: project.callee_verifier ?? return ""
+    header :: "\n[${VERIFY_CALLEES_VAR}] sites where the lowering chose another callee "
+        + "than the record"
+    observations :: "${verifier.observed} observations"
+    if verifier.mismatches.len() == 0 {
+        return "${header}: none (${observations})\n"
+    }
+    groups :: MutableMap<string, MutableMap<string, MismatchPair!>!> {}
+    for m in verifier.mismatches {
+        recorded :: recorded_kind(m.recorded)
+        key :: "${role_label(m.role)}: recorded ${recorded}, lowered ${observed_kind(m.observed)}"
+        pairs :: groups[key] ?? new_group(groups, key)
+        pair :: "${recorded_label(m.recorded)} / ${observed_label(m.observed)}"
+        seen :: pairs[pair]
+        if seen == null {
+            pairs[pair] = MismatchPair { .count = 1, .first = m.span }
+        } else {
+            seen.count += 1
+        }
+    }
+    out :: StringBuilder {}
+    out.append("${header}: ${verifier.mismatches.len()} (${observations})\n")
+    for [key, pairs] in groups {
+        out.append("\n  ${key}\n")
+        for [pair, seen] in pairs {
+            out.append("    ${seen.count} × ${pair}  [${source_position(seen.first)}]\n")
+        }
+    }
+    return out.to_string()
+}
+
+// How often one pair of callees disagreed, and where first.
+MismatchPair :: struct {
+    count: i32
+    first: Span
+}
+
+new_group :: fn(
+    groups: MutableMap<string, MutableMap<string, MismatchPair!>!>,
+    key: string,
+) -> MutableMap<string, MismatchPair!>! {
+    fresh :: MutableMap<string, MismatchPair!> {}
+    groups[key] = fresh
+    return fresh
+}
+
+recorded_kind :: fn(recorded: Callee | null) -> string {
+    if recorded == null {
+        return "nothing"
+    }
+    return match recorded {
+        is DirectFn        -> per_instance_kind(recorded)
+        is BoundMember     -> "a bound's member"
+        is TraitMember     -> "a virtual member"
+        is FnValue         -> "a value"
+        is Builtin         -> "no call"
+        is ErroneousCallee -> "an error"
+        is UnsettledCallee -> "unsettled"
+        is EachOf          -> "several calls"
+    }
+}
+
+per_instance_kind :: fn(recorded: DirectFn) -> string {
+    if recorded.per_instance {
+        return "a fn chosen per instance"
+    }
+    return "a fn"
+}
+
+recorded_label :: fn(recorded: Callee | null) -> string {
+    if recorded == null {
+        return "nothing"
+    }
+    return callee_label(recorded)
+}
+
+observed_kind :: fn(observed: ObservedCallee) -> string = match observed {
+    is ObservedFn       -> "a fn"
+    is ObservedVirtual  -> "a virtual call"
+    is ObservedNoCall   -> "no call"
+    is ObservedIndirect -> "an indirect call"
+    is ObservedEach     -> "several calls"
+}
+
+observed_label :: fn(observed: ObservedCallee) -> string = match observed {
+    is ObservedFn       -> "fn ${observed.name}"
+    is ObservedVirtual  -> "virtual ${observed.trait_key}.${observed.member}"
+    is ObservedNoCall   -> "no call ${observed.what}"
+    is ObservedIndirect -> "indirect"
+    is ObservedEach     -> each_observed_label(observed)
+}
+
+each_observed_label :: fn(observed: ObservedEach) -> string {
+    labels: string[]: []
+    for part in observed.parts {
+        labels.push(observed_label(part))
+    }
+    return "each(${labels.join(", ")})"
+}

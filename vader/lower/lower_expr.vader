@@ -645,7 +645,7 @@ lower_null_coalesce :: fn(ctx: FnLowerCtx, e: NullCoalesceExpr) -> LoweredExpr! 
 // lowered divergent statement followed by a provably-dead `unreachable`.
 lower_coalesce_fallback :: fn(ctx: FnLowerCtx, f: CoalesceFallback, result: Type) -> LoweredBlock! = match f {
     is ReturnStmt | BreakStmt | ContinueStmt -> coalesce_diverge_block(ctx, f, result)
-    is Expr -> wrap_block(f.span, lower_expr(ctx, f))
+    is Expr -> wrap_block(f.span, lower_unprepared(ctx, f))
 }
 
 coalesce_diverge_block :: fn(ctx: FnLowerCtx, s: Stmt, result: Type) -> LoweredBlock! {

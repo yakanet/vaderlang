@@ -237,7 +237,9 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
             if binding_type is TypeMetaType { return }
             // Mirror of the typer's `try_into` hook at let-stmt's value-position.
             raw_value :: lower_expr(ctx, let_stmt.value)
-            value :: prepare_value_for_slot(ctx, raw_value, binding_type, let_stmt.span)
+            value :: prepare_node_for_slot(
+                ctx, let_stmt.value, raw_value, binding_type, let_stmt.span,
+            )
             out.push(cell_aware_let(ctx, symbol, simple.name, value, binding_type, let_stmt.span))
         }
         is TupleBinding    -> {
@@ -353,7 +355,8 @@ lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt! {
     value: LoweredExpr | null: if return_stmt.value == null {
         null
     } else {
-        prepare_value_for_slot(ctx, lower_expr(ctx, return_stmt.value), ctx.return_type, span)
+        returned :: return_stmt.value
+        prepare_node_for_slot(ctx, returned, lower_expr(ctx, returned), ctx.return_type, span)
     }
     drain :: pop_defers_to_fn_root(ctx, span)
     if drain == null {

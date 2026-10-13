@@ -44,6 +44,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     // alias — that path lives in the typechecker's narrowing logic
     // and lowers to a regular `LoweredCast` reaching the alias slot.
     if binary.op == .Is {
+        observe_no_call(ctx, binary, .Operator, "type check")
         check_type :: ctx.types.expr_type(binary.right)
         return LoweredTypeCheck {
             .span = binary.span,
@@ -75,6 +76,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         if binary.right is RangeExpr as range_lit {
             if binary.left is IdentExpr {
                 if scalar_backing(ctx.types.expr_type(binary.left)) != null {
+                    observe_no_call(ctx, binary, .Operator, "bounds")
                     span :: binary.span
                     lo_value :: lower_expr(ctx, range_lit.lower)
                     hi_value :: lower_expr(ctx, range_lit.upper)
@@ -125,8 +127,10 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
             contains_member(ctx, binary.id, coll_type)
         }
         if contains == null {
+            observe_no_call(ctx, binary, .Operator, "stub")
             return stub(binary.span, type, "`in` / `not in` lowering deferred")
         }
+        observe_contains(ctx, binary, contains)
         // `contains` takes the collection first: `x` is bound ahead of it unless
         // neither can change what the other reads.
         prelude: LoweredStmt[]: []
@@ -156,11 +160,17 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     // the type-check is the operation we actually want.
     if binary.op == .Eq || binary.op == .Neq {
         null_rewrite :: try_lower_null_eq(ctx, binary)
-        if null_rewrite != null { return null_rewrite }
+        if null_rewrite != null {
+            observe_no_call(ctx, binary, .Operator, "tag test")
+            return null_rewrite
+        }
         // A tuple or a union has no impl to overload, so it is rewritten here
         // rather than through the trait router. See `lower_value_eq.vader`.
         value_rewrite :: try_lower_value_eq(ctx, binary)
-        if value_rewrite != null { return value_rewrite }
+        if value_rewrite != null {
+            observe_equality(ctx, binary, value_rewrite)
+            return value_rewrite
+        }
     }
     // `[lhs] * n` — array repeat / preallocation. A numeric `*` never yields an
     // array, so an array result type uniquely marks this case. Lower to the
@@ -168,6 +178,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     // reuses the source's type / element kind / tag, so no static element type
     // is threaded through. `[] * n` (empty source) reserves n slots, length 0.
     if binary.op == .Mul && type is ArrayType {
+        observe_no_call(ctx, binary, .Operator, "array.repeat")
         return LoweredIntrinsicCall {
             .span = binary.span,
             .type = type,
@@ -188,11 +199,13 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     // `string + string` case (user-struct `Add` and `T`/`Any` receivers were
     // handled by `try_lower_op_overload` above).
     if binary.op == .Add && is_string_type(type) {
+        observe_no_call(ctx, binary, .Operator, "concat")
         operands: LoweredExpr[]: []
         collect_concat_operands(ctx, binary.left, operands)
         collect_concat_operands(ctx, binary.right, operands)
         return lower_concat_chain(ctx, operands, binary.span)
     }
+    observe_built_in_operator(ctx, binary)
     if ctx.in_async && (binary.op == .And || binary.op == .Or) {
         // Short-circuit : the RHS runs only when the LHS permits. An `await` in
         // it can't hoist before the statement (would run unconditionally). v1
@@ -261,12 +274,14 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
         // returns i32).
         through_trait :: dispatched_trait(ctx, left_ty, binary.id) != null
         if left_ty is TypeParamType || left_ty is AnyType || through_trait {
+            observe_virtual(ctx, binary, .Operator, info.trait_key, info.method_name)
             return lower_op_overload_via_vcall(ctx, binary, type, info)
         }
         left_name :: type_surface_name(left_ty)
         if left_name == "" { return null }
         member :: operator_member(ctx, left_ty, info, binary.id) ?? return null
         if member is UfcsMember {
+            observe_symbol(ctx, binary, .Operator, member.symbol)
             lowered_left  :: lower_expr(ctx, binary.left)
             lowered_right :: lower_expr(ctx, binary.right)
             call_args: LoweredExpr[]: []

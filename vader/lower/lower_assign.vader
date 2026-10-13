@@ -16,7 +16,7 @@ lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt! {
     if compound_assign_op(assign_stmt) != null && !(assign_stmt.target is IdentExpr) {
         return lower_compound_assign(ctx, assign_stmt)
     }
-    value :: lower_expr(ctx, assign_stmt.value)
+    value :: lower_unprepared(ctx, assign_stmt.value)
     return lower_assign_one(ctx, assign_stmt.target, value, assign_stmt.span)
 }
 
@@ -194,6 +194,7 @@ lower_assign_target :: fn(ctx: FnLowerCtx, target: Expr) -> LoweredExpr! {
     if target is IndexExpr {
         receiver :: ctx.types.expr_type(target.target)
         if index_route(receiver, core_trait_key(TRAIT_INDEX_SET), ctx.typed) == .Array {
+            observe_no_call(ctx, target, .IndexWrite, "element")
             return LoweredIndex {
                 .span = target.span, .type = ctx.types.expr_type(target),
                 .target = lower_expr(ctx, target.target),
@@ -217,12 +218,12 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr! 
         // codepoint-range `LoweredStringSlice`.
         if array_backing(target_type) != null {
             sliced :: try_lower_range_slice(ctx, expr, type, false)
-            if sliced != null { return sliced }
+            if sliced != null { return observed(ctx, expr, .IndexRead, sliced) }
         }
         if target_type is PrimitiveType {
             if target_type.name == "string" {
                 sliced :: try_lower_range_slice(ctx, expr, type, true)
-                if sliced != null { return sliced }
+                if sliced != null { return observed(ctx, expr, .IndexRead, sliced) }
             }
         }
     }
@@ -237,7 +238,8 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr! 
         receiver :: lower_expr(ctx, expr.target)
         index :: lower_expr(ctx, expr.index)
         index_trait :: core_trait_key(TRAIT_INDEX)
-        return virtual_call(ctx, index_trait, METHOD_AT, receiver, [index], type, expr.span)
+        read :: virtual_call(ctx, index_trait, METHOD_AT, receiver, [index], type, expr.span)
+        return observed(ctx, expr, .IndexRead, read)
     }
     // Index trait routing (`index_route`, shared with the typecheck) : `s[i]` on a
     // `string`, a user struct or a distinct with its own `Index<I, T>` impl rewrites
@@ -255,21 +257,24 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr! 
             args: LoweredExpr[]: []
             args.push(lower_expr(ctx, expr.target))
             args.push(lower_expr(ctx, expr.index))
-            return LoweredCall {
+            at :: LoweredCall {
                 .span = expr.span, .type = type,
                 .callee = LoweredIdent {
                     .span = expr.span, .type = type, .symbol = member.symbol,
                 },
                 .args = args,
             }
+            return observed(ctx, expr, .IndexRead, at)
         }
     }
-    return LoweredIndex {
+    element :: LoweredIndex {
         .span = expr.span, .type = type,
         .target = lower_expr(ctx, expr.target),
         .index  = lower_expr(ctx, expr.index),
     }
+    return observed(ctx, expr, .IndexRead, element)
 }
+
 
 index_is_range :: fn(ctx: FnLowerCtx, index_expr: Expr) -> bool {
     if index_expr is RangeExpr { return true }
@@ -402,6 +407,7 @@ try_lower_index_set_assign :: fn(
                 args: LoweredExpr[]: [lower_expr(ctx, target.index), value]
                 index_set :: core_trait_key(TRAIT_INDEX_SET)
                 call :: virtual_call(ctx, index_set, METHOD_SET_AT, receiver, args, TY_VOID, span)
+                observe_lowered(ctx, target, .IndexWrite, call)
                 return LoweredExprStmt { .span = span, .expr = call }
             }
             target_type :: ctx.types.expr_type(target.target)
@@ -422,6 +428,7 @@ try_lower_index_set_assign :: fn(
                 find_trait_impl_member(ctx, target_type, index_set) ?? return null
             }
             if member is UfcsMember {
+                observe_symbol(ctx, target, .IndexWrite, member.symbol)
                 // Build `set_at(target, index, value)` direct call.
                 receiver :: lower_expr(ctx, target.target)
                 index :: lower_expr(ctx, target.index)

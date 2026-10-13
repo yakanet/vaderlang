@@ -59,8 +59,13 @@ export OPT_REPORT_VAR :: "VADER_OPT_REPORT"
 ///
 /// Read once per lowering run — `record_miss` consults the cached flag, so the
 /// per-site cost when off is a bool test rather than an environment lookup.
-export opt_report_enabled :: fn() -> bool {
-    raw :: get_env(OPT_REPORT_VAR) ?? return false
+export opt_report_enabled :: fn() -> bool = env_flag_set(OPT_REPORT_VAR)
+
+/// Whether the environment variable `name` is set to something other than `0`.
+///
+/// @param name  the variable.
+export env_flag_set :: fn(name: string) -> bool {
+    raw :: get_env(name) ?? return false
     return raw != "" && raw != "0"
 }
 

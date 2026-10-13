@@ -241,7 +241,7 @@ register_and_emit_generic_call :: fn(
     mono_args :: instance_type_args(ctx, fn_sym, concrete_args)
     mangled :: register_fn_instance_mangle(ctx, fn_sym, mono_args)
     lowered_args: LoweredExpr[]: []
-    for ca in call.args { lowered_args.push(lower_expr(ctx, ca.value)) }
+    for ca in call.args { lowered_args.push(lower_unprepared(ctx, ca.value)) }
     mono_sym :: Symbol {
         .id         = fn_sym.id,
         .kind       = .Fn,

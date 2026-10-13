@@ -47,22 +47,25 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr! {
     mark_produced_structs(type, ctx)
     // A call to a fn iterating its `Iterator` parameter once, handed a fusible
     // chain, becomes the chain's loop before the call itself is formed.
+    // The consumer, the namespace and the cast forms observe their own choice for
+    // the callee verifier (`verify_callees.vader`) ; the others are read off the
+    // call they produce.
     consumer_form :: try_inline_consumer(ctx, call, type)
     if consumer_form != null { return consumer_form }
     array_form :: try_lower_array_op(ctx, call, type)
-    if array_form != null { return array_form }
+    if array_form != null { return observed(ctx, call, .Call, array_form) }
     static_form :: try_lower_static_member_call(ctx, call, type)
-    if static_form != null { return static_form }
+    if static_form != null { return observed(ctx, call, .Call, static_form) }
     namespace_form :: try_lower_namespace_call(ctx, call, type)
     if namespace_form != null { return namespace_form }
     cast_form :: try_lower_cast_call(ctx, call, type)
     if cast_form != null { return cast_form }
     vcall_form :: try_lower_virtual_call(ctx, call, type)
-    if vcall_form != null { return vcall_form }
+    if vcall_form != null { return observed(ctx, call, .Call, vcall_form) }
     ufcs_form :: try_lower_ufcs_call(ctx, call, type)
-    if ufcs_form != null { return ufcs_form }
+    if ufcs_form != null { return observed(ctx, call, .Call, ufcs_form) }
     generic_form :: try_lower_generic_fn_call(ctx, call, type)
-    if generic_form != null { return generic_form }
+    if generic_form != null { return observed(ctx, call, .Call, generic_form) }
     raw_callee :: lower_expr(ctx, call.callee)
     // Slot preparation reads the picked overload's fn-type, so take params off
     // `raw_callee` before any result-type retype below.
@@ -76,8 +79,10 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr! {
     if callee is LoweredIdent {
         register_nongeneric_imported_fn(ctx, callee.symbol)
     }
-    return LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
+    plain :: LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
+    return observed(ctx, call, .Call, plain)
 }
+
 
 // `left == right` : the `Equals` of a primitive or an enum, which the comparison
 // primop answers.
@@ -266,7 +271,7 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
         member_ty :: lookup_fn_type_anywhere(ctx, member_symbol)
         if member_ty is FnType {
             generic_form :: emit_generic_fn_call(ctx, call, type, member_symbol, member_ty, callee.span)
-            if generic_form != null { return generic_form }
+            if generic_form != null { return observed(ctx, call, .Call, generic_form) }
         }
         // A non-generic member reached only through the namespace form
         // (`io.println`) still needs harvesting — its owning module is
@@ -274,14 +279,15 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
         // body is never reserved and the call is unresolved at emit.
         register_nongeneric_imported_fn(ctx, member_symbol)
         args: LoweredExpr[]: []
-        for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
-        return LoweredCall {
+        for call_arg in call.args { args.push(lower_unprepared(ctx, call_arg.value)) }
+        member_call :: LoweredCall {
             .span = call.span, .type = type,
             .callee = LoweredIdent {
                 .span = callee.span, .type = type, .symbol = member_symbol,
             },
             .args = args,
         }
+        return observed(ctx, call, .Call, member_call)
     }
     return null
 }

@@ -636,14 +636,15 @@ try_free_fn_ufcs_dispatch :: fn(
     // parameter (`settled_choice`).
     per_instance :: type_contains_type_param(target_ty)
     note_callee(typed, e, direct_callee(free_ufcs.winner.decl, per_instance))
-    // A `T[]` receiver fitting an `Iterator<T>` first param coerces through the
-    // very `.into()` the lowerer synthesizes at `lower_ufcs`. Record it on the
-    // receiver expr so the LSP surfaces the `.into()` hint here too — the
-    // receiver decision goes through `receiver_fits_first_param`, not `try_into`,
-    // so without this `arr.method()` would miss the hint that `method(arr)` gets.
-    // Trait widening isn't an `.into()`, so (as in `try_into`) it's excluded :
-    // only the array→iterator blanket records.
-    if try_array_to_iter(target_ty, erase_type_params(first_param)) {
+    // A `T[]` receiver fitting an `Iterator` first param coerces through the very
+    // `.into()` the lowerer synthesizes at `lower_ufcs`, whatever the element : the
+    // dispatch already accepted the receiver. Record it on the receiver expr so the
+    // LSP surfaces the `.into()` hint here too. The receiver decision goes through
+    // `receiver_fits_first_param`, not `try_into`, so without this `arr.method()`
+    // would miss the hint that `method(arr)` gets. Trait widening isn't an
+    // `.into()`, so (as in `try_into`) it's excluded : only the array→iterator
+    // blanket records.
+    if converts_array_to_iterator(target_ty, first_param) {
         note_into(typed, e.target, target_ty, first_param)
     }
     // T3071 on this dispatch path too : a mutator declared as a free fn (`put`,

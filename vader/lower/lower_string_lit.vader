@@ -231,9 +231,12 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr! 
                 k :: classify_kind(shown)
                 if k == .Signed || k == .Unsigned || k == .Bool { has_direct = true }
                 if k == .Display {
-                    values.push(build_display_to_string_call(ctx, inner, shown, span))
+                    rendered :: build_display_to_string_call(ctx, inner, shown, span)
+                    observe_replacement(ctx, part.expr, .Display, inner, rendered)
+                    values.push(rendered)
                     kinds.push(.Str)
                 } else {
+                    observe_no_call(ctx, part.expr, .Display, "writer")
                     values.push(inner)
                     kinds.push(k)
                 }

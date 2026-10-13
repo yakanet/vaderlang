@@ -270,7 +270,7 @@ build_struct_lit_fields :: fn(
 // declared type : an `Into` coercion applies when the field type calls for one.
 lower_field_value :: fn(
     ctx: FnLowerCtx, value: Expr, field_type: Type, span: Span,
-) -> LoweredExpr! = prepare_value_for_slot(ctx, lower_expr(ctx, value), field_type, span)
+) -> LoweredExpr! = prepare_node_for_slot(ctx, value, lower_expr(ctx, value), field_type, span)
 
 // Build a `LoweredStructLit` for a compiler-SYNTHESISED construction of a
 // stdlib/core struct (Range, Field, …), ordering the

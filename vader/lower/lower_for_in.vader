@@ -53,13 +53,13 @@ export lower_for_in :: fn(
     // via a variable, or when a `f` / `pred` field isn't a bare fn
     // reference (the slow path handles those).
     chain_form :: try_lower_chain_fusion(ctx, for_stmt, in_form, recurse, block_lowerer)
-    if chain_form != null { return chain_form }
+    if chain_form != null { return walked_in_place(ctx, in_form.iter, "fused chain", chain_form) }
     // Fast path : `for x in lo..<hi` / `for x in lo..=hi` over an
     // integer range lowers to a direct counter loop ; no Range
     // allocation, no `Iterator.next` dispatch. Falls through to the
     // slow path when the range bound isn't an integer.
     int_range :: try_lower_for_in_int_range(ctx, for_stmt, in_form, recurse, block_lowerer)
-    if int_range != null { return int_range }
+    if int_range != null { return walked_in_place(ctx, in_form.iter, "counter", int_range) }
     iter_lowered_raw :: recurse(ctx, in_form.iter)
     iter_type_raw :: type_of(iter_lowered_raw)
 
@@ -67,14 +67,14 @@ export lower_for_in :: fn(
     // loop with index lookup. No iterator object, no per-iter virtual call.
     // Falls through to the slow path when the iter type isn't a plain array.
     raw_array :: try_lower_for_in_raw_array(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, recurse, block_lowerer)
-    if raw_array != null { return raw_array }
+    if raw_array != null { return walked_in_place(ctx, in_form.iter, "element", raw_array) }
 
     // Fast path : `for entry in m` over `MutableMap<K, V>` (or
     // `for v in s` over `MutableSet<T>`) inlines the bucket-walk +
     // chain-traversal, skipping the iterator allocation and the per-iter
     // `next()` call.
     map_set :: try_lower_for_in_map_set(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, span, block_lowerer)
-    if map_set != null { return map_set }
+    if map_set != null { return walked_in_place(ctx, in_form.iter, "bucket walk", map_set) }
 
     // THE FALL. Every fast path above declined, so this `for` steps the `Iterator`
     // impl: one `next()` call per iteration instead of an inlined loop. That is
@@ -96,6 +96,7 @@ export lower_for_in :: fn(
     // A bare `string` has no `next()` to dispatch on: give the step-loop the
     // concrete `StringChars` instead.
     wrap_result :: wrap_string_iter(ctx, iter_lowered_raw, iter_type_raw, span)
+    observe_replacement(ctx, in_form.iter, .IterInto, iter_lowered_raw, wrap_result.iter)
     iter_lowered :: wrap_result.iter
     iter_type_wrapped :: wrap_result.iter_type
     element_type :: resolve_element_type(ctx, iter_type_raw, iter_type_wrapped, loop_var_type_key(in_form.loop_var, for_stmt.span))
@@ -151,6 +152,7 @@ export lower_for_in :: fn(
 
     iter_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = iter_symbol }
     step_call :: build_step_call(ctx, iter_ref, iter_type, step_type, span)
+    observe_lowered(ctx, in_form.iter, .IterNext, step_call)
     step_let :: LoweredLet {
         .span = span, .name = step_symbol.name, .symbol = step_symbol,
         .type = step_type, .value = step_call,
@@ -431,6 +433,9 @@ build_step_call :: fn(
         owner :: iter_type.symbol.name
         overload :: if winner == null { "" } else { winner.overload_suffix }
         next_name = "${owning_module}$${owner}$${TRAIT_ITERATOR}$${method_next}${suffix}${overload}"
+        if winner != null {
+            note_entry_member(ctx, next_name, winner, method_next)
+        }
         // Record the call so the post-lowering pass materialises the (with-body)
         // stdlib impl member instead of dropping the call to the panic fallback.
         ctx.project.referenced_impl_mangles.add(next_name)

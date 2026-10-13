@@ -231,6 +231,7 @@ build_ufcs_member :: fn(
     // members : bodyless (`@intrinsic`) → import ; with-body (e.g. `i32
     // implements Hash -> u64(self)`) → materialised real fn.
     ctx.project.referenced_impl_mangles.add(mangled)
+    note_member_origin(ctx, mangled, member, entry.trait_key)
     // Array impl (`T[] implements Contains` / `Into`, `MonType[] implements …`) :
     // the generic-impl materialiser is struct-instance-driven and never reaches an
     // array receiver, so record the element type and the member keyed by this
@@ -500,6 +501,8 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
 /// (`nsM.T(value)` in `try_lower_namespace_call`). The caller has already
 /// confirmed this is a cast (type-shaped callee / TypeMetaType) with one arg.
 emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr! {
+    // The cast itself calls nothing ; an `into` it runs is its value's site.
+    observe_no_call(ctx, call, .Call, "cast")
     // The checked type, not the lowered one : a variant literal lowers to its
     // bare index and no longer says it is an enum.
     source :: enum_type_or_unwrap(ctx, ctx.types.expr_type(call.args[0].value))
@@ -518,6 +521,7 @@ emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExp
     // that lift at lower time. The numeric-primitive cast then wraps
     // the lifted call for byte-parity (`cast → i32 / call into(u)`).
     coerced :: try_emit_into_coercion(ctx, arg, arg_type, type, call.span)
+    observe_replacement(ctx, call.args[0].value, .Into, arg, coerced ?? arg)
     inner :: if coerced == null { arg } else { coerced }
     if type is PrimitiveType {
         n :: type.name
@@ -699,5 +703,6 @@ try_emit_into_coercion :: fn(
     suffix :: entry.overload_suffix
     mangled :: "${mangle_module_id(entry.module)}$${src_name}$${decl.trait_name}$${m.name}${suffix}"
     ctx.project.referenced_impl_mangles.add(mangled)
+    note_member_origin(ctx, mangled, m, entry.trait_key)
     return mk_into_call(arg, target_type, span, mangled, entry.module)
 }

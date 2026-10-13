@@ -340,3 +340,11 @@ export interpolations :: fn(n: i32, s: string, x: f64, m: Money, l: Label) -> st
 export bounded_interpolation :: fn<T: Display>(t: T) -> string = "${t}"
 
 export trait_value_interpolation :: fn(d: Display) -> string = "${d}"
+
+export assigned_into :: fn(m: Meters) -> i64 {
+    x: i64 = 0
+    x = m
+    return x
+}
+
+export coalesced_into :: fn(found: i64 | null, m: Meters) -> i64 = found ?? m

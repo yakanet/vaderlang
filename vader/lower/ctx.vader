@@ -108,6 +108,9 @@ export LowerProjectCtx :: struct {
     /// Where an optimisation pass handed over to its general path. Only filled
     /// when `opt_report` is on ; never a diagnostic, never gates a build.
     opt_misses:          OptMiss[]! = []
+    /// The callee verifier's state, null unless `$VADER_VERIFY_CALLEES` is set. See
+    /// `verify_callees.vader`.
+    callee_verifier:     CalleeVerifier! | null = null
 
     /// The bindings each inlined callee declares, keyed by its symbol id —
     /// gathered once per callee (`declared_bindings`).
@@ -383,6 +386,7 @@ export GenericFnInstance :: struct {
 export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, typed: TypedProject) -> LowerProjectCtx! {
     return LowerProjectCtx {
         .opt_report          = opt_report_enabled(),
+        .callee_verifier     = new_callee_verifier(),
         .evaluated           = evaluated,
         .loaded              = loaded,
         .typed               = typed,

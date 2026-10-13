@@ -286,16 +286,18 @@ lower_project_impl :: fn(
     push_cache_tag(project)
     // `$VADER_OPT_REPORT` — what handed over to the general path
     // (`opt_report.vader`), then what a value ABI would reach
-    // (`value_abi.vader`). Both read the FINISHED project, so they run after
-    // every pass that can still add a decl, and both return "" when the report
-    // is off — the cost of a disabled report is one length test each.
+    // (`value_abi.vader`) ; `$VADER_VERIFY_CALLEES`, where the lowering chose
+    // another callee than the typecheck's record (`verify_callees.vader`). Each
+    // reads the FINISHED project, so they run after every pass that can still add
+    // a decl, and each returns "" when its report is off.
     //
     // Not on the staging run: `lower_project_staged` lowers a throwaway partial
     // project for the comptime VM, and reporting on it prints a second set of
     // numbers that describe nothing a user built.
     if !is_staging {
-        emit_opt_report(render_opt_report(project_ctx))
-        emit_opt_report(render_value_abi_report(project_ctx, project, typed))
+        emit_report(render_opt_report(project_ctx))
+        emit_report(render_value_abi_report(project_ctx, project, typed))
+        emit_report(render_callee_report(project_ctx))
     }
     // Last, so the passes above that rewrite a `let`'s value in place are checked too.
     verify_captured_cells(project, project_ctx.closures.cell_symbols, diags)
@@ -304,7 +306,7 @@ lower_project_impl :: fn(
 
 // Print a report to stderr, unless it is the empty string every renderer returns
 // when the report is off.
-emit_opt_report :: fn(report: string) -> void {
+emit_report :: fn(report: string) -> void {
     if report != "" {
         eprintln(report)
     }

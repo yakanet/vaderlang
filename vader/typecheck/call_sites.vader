@@ -249,6 +249,15 @@ first_member_callee :: fn(
     return direct_callee(members[0].decl, type_contains_type_param(receiver))
 }
 
+/// Whether the lowering converts `source` into `target` as an array into an
+/// `Iterator`: any array into any `Iterator`, the element settled by the slot that
+/// accepted it.
+///
+/// @param source  the converted value's type.
+/// @param target  the slot's type.
+converts_array_to_iterator :: fn(source: Type, target: Type) -> bool =
+    source is ArrayType && iterator_element_of(target) != null
+
 /// The `into` a conversion of `source` into `target` runs, by the rule the
 /// lowering's `try_emit_into_coercion` applies: an array into an `Iterator` through
 /// the impl toward the target's base, nothing for the same type or for a distinct
@@ -261,8 +270,7 @@ first_member_callee :: fn(
 /// @return        null when the conversion runs no `into`.
 conversion_callee :: fn(typed: TypedProgram, source: Type, target: Type) -> Callee | null {
     per_instance :: type_contains_type_param(source)
-    // A generic slot (`Iterator<T>`) takes an array of any element.
-    if try_array_to_iter(source, erase_type_params(target)) {
+    if converts_array_to_iterator(source, target) {
         array_into :: into_method_toward(typed, source, target) ?? return UNSETTLED_CALLEE
         return direct_callee(array_into.decl, per_instance)
     }
@@ -508,7 +516,10 @@ comes_first :: fn(a: DumpedSite, b: DumpedSite) -> bool {
     return usize(a.role) < usize(b.role)
 }
 
-role_label :: fn(role: CallRole) -> string = match role {
+/// How the dump and the lowering's verifier name `role`.
+///
+/// @param role  a site's role.
+export role_label :: fn(role: CallRole) -> string = match role {
     .Call       -> "call"
     .Operator   -> "operator"
     .IndexRead  -> "index"
@@ -528,7 +539,10 @@ site_position :: fn(span: Span) -> string {
     return "${to_path(span.start.file).filename()}:${span.start.line}:${span.start.column}"
 }
 
-callee_label :: fn(callee: Callee) -> string = match callee {
+/// How the dump and the lowering's verifier name `callee`.
+///
+/// @param callee  what a site invokes.
+export callee_label :: fn(callee: Callee) -> string = match callee {
     is DirectFn        -> direct_label(callee)
     is BoundMember     -> "bound ${callee.trait_key}.${callee.member}"
     is TraitMember     -> "virtual ${callee.trait_key}.${callee.member}"

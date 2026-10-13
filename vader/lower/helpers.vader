@@ -34,6 +34,21 @@ prepare_value_for_slot :: fn(
     ctx: FnLowerCtx, expr: LoweredExpr, slot: Type, span: Span,
 ) -> LoweredExpr! = try_emit_into_coercion(ctx, expr, type_of(expr), slot, span) ?? expr
 
+/// `prepare_value_for_slot` for the value of `node`, telling the callee verifier
+/// whether the conversion ran an `into` (`verify_callees.vader`).
+///
+/// @param node  the value's AST node, where the typecheck filed its conversion.
+/// @param expr  the lowered value.
+/// @param slot  the declared type of the slot it flows into.
+/// @param span  span to attribute a synthesised `into` call to.
+prepare_node_for_slot :: fn(
+    ctx: FnLowerCtx, node: Expr, expr: LoweredExpr, slot: Type, span: Span,
+) -> LoweredExpr! {
+    prepared :: try_emit_into_coercion(ctx, expr, type_of(expr), slot, span) ?? expr
+    observe_replacement(ctx, node, .Into, expr, prepared)
+    return prepared
+}
+
 /// Lower a call's arguments, then prepare each one for the param slot it binds to.
 /// Every argument is lowered before the first one is prepared.
 ///
@@ -63,7 +78,8 @@ lower_call_args :: fn(
         if slot >= params.len() {
             out.push(lowered[i])
         } else {
-            out.push(prepare_value_for_slot(ctx, lowered[i], params[slot], args[i].value.span))
+            value :: args[i].value
+            out.push(prepare_node_for_slot(ctx, value, lowered[i], params[slot], value.span))
         }
     }
     return out

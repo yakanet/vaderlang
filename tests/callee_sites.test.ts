@@ -19,7 +19,8 @@
 // `char` range, a type parameter bounded by `Iterator`, and `for xs { }` over an
 // array. And the interpolations: an integer, a string, a float, a struct with its
 // own `Display`, a distinct over `string`, a bounded type parameter and a trait
-// value. Each expected line is the dump's, position included.
+// value. Last, an implicit `into` at an assignment and at the fallback of a `??`.
+// Each expected line is the dump's, position included.
 
 import { test, expect } from "bun:test";
 import { ensureCliBuilt, runCli, MEDIUM_BUILD } from "./cli-bin.ts";
@@ -128,7 +129,9 @@ const EXPECTED = [
   "sites.vader:338:28 display builtin",
   "sites.vader:340:69 display bound std_core$Display.to_string",
   "sites.vader:342:67 display virtual std_core$Display.to_string",
-  "sites: 98, unsettled: 0",
+  "sites.vader:346:9 into fn into",
+  "sites.vader:350:77 into fn into",
+  "sites: 100, unsettled: 0",
 ];
 
 test("the typecheck settles what each site of the fixture invokes", async () => {
