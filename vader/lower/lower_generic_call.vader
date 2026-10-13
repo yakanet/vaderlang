@@ -60,66 +60,57 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
     // bypassing the inference step the bare-ident path uses.
     if call.callee is GenericInstExpr as gi {
         if gi.callee is IdentExpr as inner_id {
-            sym_or_null :: resolve_ident(ctx, inner_id.span)
-            if sym_or_null is Symbol {
-                fn_sym :: follow_import_binding(ctx, sym_or_null)
-                if fn_sym.kind == .Fn {
-                    type_args: Type[]: []
-                    for ta in gi.type_args {
-                        resolved :: ctx.types.type_expr_type(ta)
-                        if resolved is UnresolvedType {
-                            type_args.push(type_from_expr(ta, ctx.typed.resolved, []))
-                        } else {
-                            type_args.push(resolved)
-                        }
+            fn_sym :: recorded_fn_symbol(ctx, call)
+                ?? follow_import_binding(ctx, resolve_ident(ctx, inner_id.span) ?? return null)
+            if fn_sym.kind == .Fn {
+                type_args: Type[]: []
+                for ta in gi.type_args {
+                    resolved :: ctx.types.type_expr_type(ta)
+                    if resolved is UnresolvedType {
+                        type_args.push(type_from_expr(ta, ctx.typed.resolved, []))
+                    } else {
+                        type_args.push(resolved)
                     }
-                    if all_concrete(type_args) {
-                        return register_and_emit_generic_call(ctx, call, type, fn_sym, type_args, inner_id.span)
-                    }
+                }
+                if all_concrete(type_args) {
+                    return register_and_emit_generic_call(ctx, call, type, fn_sym, type_args, inner_id.span)
                 }
             }
         }
     }
     callee_ident :: as_ident(call.callee) ?? return null
-    if callee_ident is IdentExpr {
-        raw_sym :: resolve_ident(ctx, callee_ident.span) ?? return null
-        if raw_sym is Symbol {
-            // An overloaded name binds to its first declaration ; the overload
-            // typecheck picked is the one this call instantiates.
-            fn_sym :: chosen_symbol(ctx.typed, callee_ident.id) ?? follow_import_binding(ctx, raw_sym)
-            if fn_sym.kind != .Fn { return null }
-            // Probe the callee's recorded signature (substituted — unchanged
-            // for every call site).
-            callee_ty :: ctx.types.expr_type(callee_ident)
-            if !(callee_ty is FnType) { return null }
-            if callee_ty is FnType {
-                result :: emit_generic_fn_call(
-                    ctx, call, type, fn_sym, callee_ty, callee_ident.span)
-                if result != null { return result }
-                // `emit_generic_fn_call` returned null : `ft` (substituted)
-                // carries no type-param. For a SELF-RECURSIVE call inside a
-                // MANGLE-INDEXED instance (force-concrete, `entry_symbol == null`,
-                // set in `lower_mono_fn::build_fn_instance_decl`), the params were
-                // concretised by this entry's OWN subst, so the call would fall through to the bare
-                // generic symbol — which has no `function_index_by_symbol_id`
-                // slot → unresolved at emit (GATE-B1). Retry with the RAW (un-
-                // substituted) signature so the self-call re-infers its type args
-                // and routes through the instance mangle. Scoped to genuine self-
-                // recursion in a null-symbol body : every other call is byte-
-                // identical to before — `emit_generic_fn_call` runs no side
-                // effects before its no-param early return, so the retry
-                // is clean, and a non-self-recursive null result falls through to
-                // the caller's general handling unchanged. Erased (symbol-indexed)
-                // instances keep resolving their self-calls by symbol-id.
-                if ctx.entry.symbol == null && is_self_recursive_instance_call(ctx, fn_sym) {
-                    raw_ty :: ctx.types.raw_expr_type(callee_ident)
-                    if raw_ty is FnType {
-                        return emit_generic_fn_call(
-                            ctx, call, type, fn_sym, raw_ty, callee_ident.span)
-                    }
-                }
-                return null
-            }
+    // An overloaded name binds to its first declaration ; the overload the
+    // typecheck picked is the one this call instantiates.
+    fn_sym :: recorded_fn_symbol(ctx, call)
+        ?? follow_import_binding(ctx, resolve_ident(ctx, callee_ident.span) ?? return null)
+    if fn_sym.kind != .Fn { return null }
+    // Probe the callee's recorded signature (substituted — unchanged
+    // for every call site).
+    callee_ty :: ctx.types.expr_type(callee_ident)
+    if callee_ty !is FnType {
+        return null
+    }
+    result :: emit_generic_fn_call(ctx, call, type, fn_sym, callee_ty, callee_ident.span)
+    if result != null { return result }
+    // `emit_generic_fn_call` returned null : `ft` (substituted)
+    // carries no type-param. For a SELF-RECURSIVE call inside a
+    // MANGLE-INDEXED instance (force-concrete, `entry_symbol == null`,
+    // set in `lower_mono_fn::build_fn_instance_decl`), the params were
+    // concretised by this entry's OWN subst, so the call would fall through to the bare
+    // generic symbol — which has no `function_index_by_symbol_id`
+    // slot → unresolved at emit (GATE-B1). Retry with the RAW (un-
+    // substituted) signature so the self-call re-infers its type args
+    // and routes through the instance mangle. Scoped to genuine self-
+    // recursion in a null-symbol body : every other call is byte-
+    // identical to before — `emit_generic_fn_call` runs no side
+    // effects before its no-param early return, so the retry
+    // is clean, and a non-self-recursive null result falls through to
+    // the caller's general handling unchanged. Erased (symbol-indexed)
+    // instances keep resolving their self-calls by symbol-id.
+    if ctx.entry.symbol == null && is_self_recursive_instance_call(ctx, fn_sym) {
+        raw_ty :: ctx.types.raw_expr_type(callee_ident)
+        if raw_ty is FnType {
+            return emit_generic_fn_call(ctx, call, type, fn_sym, raw_ty, callee_ident.span)
         }
     }
     return null

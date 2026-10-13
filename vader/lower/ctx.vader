@@ -101,6 +101,10 @@ export LowerProjectCtx :: struct {
     /// `TypedProject` the materialiser already consumes — exposed earlier here.
     typed:               TypedProject
     impls:               ImplRegistry!
+    /// Every free fn's symbol, in the module that declares it, keyed by its
+    /// declaration's node id : the typecheck's record names a fn by its declaration,
+    /// a call names it by its symbol (`populate_fn_symbols`).
+    fn_symbols:          MutableMap<usize, Symbol>! = MutableMap<usize, Symbol> {}
 
     /// `$VADER_OPT_REPORT` is on — read once at construction so each fall site
     /// costs a bool test rather than an environment lookup. See `opt_report.vader`.

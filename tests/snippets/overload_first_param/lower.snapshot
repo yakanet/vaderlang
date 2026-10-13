@@ -83,7 +83,7 @@
       arg0:
         call :string
           callee:
-            describe :string
+            describe :fn(Bag) -> string
           arg0:
             b :Bag!
     call :void
@@ -144,7 +144,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        min :i32
+                        min :fn(i32, i32) -> i32
                       arg0:
                         int(3) :i32
                       arg1:
@@ -218,7 +218,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        max :i32
+                        max :fn(i32, i32) -> i32
                       arg0:
                         int(-2) :i32
                       arg1:
@@ -271,7 +271,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        abs :i32
+                        abs :fn(i32) -> i32
                       arg0:
                         int(-7) :i32
           ~>
@@ -341,7 +341,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        clamp :i32
+                        clamp :fn(i32, i32, i32) -> i32
                       arg0:
                         int(15) :i32
                       arg1:

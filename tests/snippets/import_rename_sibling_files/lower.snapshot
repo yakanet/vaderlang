@@ -8,7 +8,7 @@
       arg0:
         call :string
           callee:
-            trim :string
+            trim :fn(string) -> string
           arg0:
             "  a  " :string
     call :void
@@ -79,7 +79,7 @@
         arg1:
           call :string
             callee:
-              trim :string
+              trim :fn(string) -> string
             arg0:
               " d " :string
   fn concat_2(p0: string, p1: string) -> string

@@ -314,10 +314,7 @@ try_lower_namespace_fn_value :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) ->
     ns :: as_namespace_binding(ctx, e.target) ?? return null
     member :: resolve_namespace_member(ctx, ns, e.field)
     if member.kind != .Fn { return null }
-    // Harvest the non-generic imported fn so its body is emitted (self-guards to
-    // a no-op unless it's a non-generic stdlib Fn) — same as the ident path.
-    register_nongeneric_imported_fn(ctx, member)
-    return LoweredIdent { .span = e.span, .type = type, .symbol = member }
+    return fn_reference(ctx, member, e.span, type)
 }
 
 // `CellInit` and the cell-init wrapper now live in `vader/lower/helpers.vader`

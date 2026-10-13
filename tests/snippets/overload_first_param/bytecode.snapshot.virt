@@ -106,7 +106,7 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __off_1
   i32.const 3
   i32.const 5
-  call 33   ; std_math$min_1
+  call 32   ; std_math$min_1
   i32.to_i64
   local.set 3   ; $cast_20
   local.get 0   ; a
@@ -120,7 +120,7 @@ fn 1 snippet$main () -> i32
   call 31   ; std_io$println__string
   f64.const 3.5 4615063718147915776
   f64.const 5.0 4617315517961601024
-  call 32   ; std_math$min
+  call 33   ; std_math$min
   call 9   ; std_core$f64$Display$to_string
   local.set 4   ; $call_27
   string.const 4   ; "min(3.5, 5.0) = "
@@ -139,7 +139,7 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __off_1
   i32.const -2
   i32.const 8
-  call 35   ; std_math$max_1
+  call 34   ; std_math$max_1
   i32.to_i64
   local.set 3   ; $cast_20
   local.get 0   ; a
@@ -162,7 +162,7 @@ fn 1 snippet$main () -> i32
   call 6   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const -7
-  call 37   ; std_math$abs_1
+  call 35   ; std_math$abs_1
   i32.to_i64
   local.set 3   ; $cast_20
   local.get 0   ; a
@@ -195,7 +195,7 @@ fn 1 snippet$main () -> i32
   i32.const 15
   i32.const 0
   i32.const 10
-  call 39   ; std_math$clamp_1
+  call 37   ; std_math$clamp_1
   i32.to_i64
   local.set 3   ; $cast_20
   local.get 0   ; a
@@ -2099,19 +2099,7 @@ fn 31 std_io$println__string (string) -> void
   return
 end
 
-fn 32 std_math$min (f64,f64) -> f64
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  f64.lt
-  if $L0 void
-    local.get 0   ; arg 0
-    return
-  end $L0
-  local.get 1   ; arg 1
-  return
-end
-
-fn 33 std_math$min_1 (i32,i32) -> i32
+fn 32 std_math$min_1 (i32,i32) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i32.lt
@@ -2123,10 +2111,10 @@ fn 33 std_math$min_1 (i32,i32) -> i32
   return
 end
 
-fn 34 std_math$max (f64,f64) -> f64
+fn 33 std_math$min (f64,f64) -> f64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  f64.gt
+  f64.lt
   if $L0 void
     local.get 0   ; arg 0
     return
@@ -2135,7 +2123,7 @@ fn 34 std_math$max (f64,f64) -> f64
   return
 end
 
-fn 35 std_math$max_1 (i32,i32) -> i32
+fn 34 std_math$max_1 (i32,i32) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i32.gt
@@ -2144,6 +2132,19 @@ fn 35 std_math$max_1 (i32,i32) -> i32
     return
   end $L0
   local.get 1   ; arg 1
+  return
+end
+
+fn 35 std_math$abs_1 (i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.lt
+  if $L0 void
+    local.get 0   ; arg 0
+    i32.checked_neg
+    return
+  end $L0
+  local.get 0   ; arg 0
   return
 end
 
@@ -2160,33 +2161,32 @@ fn 36 std_math$abs (f64) -> f64
   return
 end
 
-fn 37 std_math$abs_1 (i32) -> i32
+fn 37 std_math$clamp_1 (i32,i32,i32) -> i32
   local.get 0   ; arg 0
-  i32.const 0
-  i32.lt
-  if $L0 void
-    local.get 0   ; arg 0
-    i32.checked_neg
-    return
-  end $L0
-  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 34   ; std_math$max_1
+  local.get 2   ; arg 2
+  call 32   ; std_math$min_1
   return
 end
 
 fn 38 std_math$clamp (f64,f64,f64) -> f64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 34   ; std_math$max
+  call 39   ; std_math$max
   local.get 2   ; arg 2
-  call 32   ; std_math$min
+  call 33   ; std_math$min
   return
 end
 
-fn 39 std_math$clamp_1 (i32,i32,i32) -> i32
+fn 39 std_math$max (f64,f64) -> f64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 35   ; std_math$max_1
-  local.get 2   ; arg 2
-  call 33   ; std_math$min_1
+  f64.gt
+  if $L0 void
+    local.get 0   ; arg 0
+    return
+  end $L0
+  local.get 1   ; arg 1
   return
 end

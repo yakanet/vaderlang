@@ -89,9 +89,6 @@ pick_overload :: fn(
         return initial
     }
     arg0_ty :: check_expr_fn(c.args[0].value, null, typed, [])
-    // The resolver bound `c.callee` to a primary overload ; its
-    // signature is what a non-overloaded display would show.
-    primary_ft :: primary_overload_ft(callee, typed)
     // Among candidates whose first param accepts arg0, pick the one with the
     // highest `overload_rank`. Eligibility is unchanged : only the
     // `is_assignable` gate below. Ties keep the first declared, unless
@@ -126,7 +123,7 @@ pick_overload :: fn(
     if rival != null {
         diags.push(ambiguous_overload_error(callee.name, arg0_ty, best, rival, callee.span))
     }
-    return commit_overload_pick(best, c, typed, primary_ft)
+    return commit_overload_pick(best, c, typed)
 }
 
 // A callee several impls of one trait offer (`v.add(…)` with `Add<f64>` beside
@@ -329,57 +326,15 @@ export overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
     return 0
 }
 
-// Record a chosen overload : patch the callee IdentExpr's type so the dump
-// shows the picked signature, keep the fn it runs, and mark
-// non-primary picks so the lowerer emits the call's result type on the callee
-// ident.
-commit_overload_pick :: fn(
-    picked: FnCandidate,
-    c: AST.CallExpr,
-    typed: TypedProgram,
-    primary_ft: Type | null,
-) -> FnType {
+// Record a chosen overload : patch the callee IdentExpr's type to the picked
+// signature, which the lowering types the callee and prepares the arguments
+// with, and keep the fn it runs.
+commit_overload_pick :: fn(picked: FnCandidate, c: AST.CallExpr, typed: TypedProgram) -> FnType {
     ft :: picked.ty
     typed.expr_types[c.callee.id] = ft
     typed.chosen_fns[c.callee.id] = picked
     typed.callees[c.callee.id] = direct_callee(picked.decl, false)
-    if is_nonprimary_pick(ft, primary_ft) {
-        typed.overload_result_callees[c.callee.id] = true
-    }
     return ft
-}
-
-// True when `picked` differs from the resolver-bound primary. An
-// imported overload (`primary == null`) is always non-primary.
-is_nonprimary_pick :: fn(picked: FnType, primary: Type | null) -> bool {
-    if primary is null {
-        return true
-    }
-    return !equals_type(picked, primary)
-}
-
-// Signature of the overload the resolver bound `callee` to. For a
-// local overload that's the symbol the resolver picked (first declared
-// by convention). For an imported overload the binding carries no
-// fn-type, so fall back to the first entry of `imported_fn_overloads`
-// — declaration order is preserved, so `[0]` is the primary the bare
-// import name resolves to. Returns null only when nothing is found.
-primary_overload_ft :: fn(callee: AST.Expr, typed: TypedProgram) -> Type | null {
-    if callee !is AST.IdentExpr {
-        return null
-    }
-    sym :: typed.resolved.idents[callee.span.hash()]
-    if sym != null {
-        ft :: typed.decl_types[sym.id]
-        if ft is FnType {
-            return ft
-        }
-    }
-    imported :: imported_overloads_in(typed, callee.span.start.file, callee.name)
-    if imported.len() > 0 {
-        return imported[0].ty
-    }
-    return null
 }
 
 collect_overload_candidates :: fn(

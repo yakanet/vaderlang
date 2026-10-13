@@ -131,17 +131,6 @@ export chosen_impl_decl :: fn(typed: TypedProgram, callee_id: usize) -> AST.FnDe
     return chosen.decl
 }
 
-/// The fn typecheck chose for the call whose callee is `callee_id`, in the
-/// module that declares it — see `TypedProgram.chosen_fns`. Null when it chose
-/// none.
-///
-/// @param typed      the module the call was checked in.
-/// @param callee_id  the callee node, as for `chosen_decl`.
-export chosen_symbol :: fn(typed: TypedProgram, callee_id: usize) -> Symbol | null {
-    chosen :: typed.chosen_fns[callee_id] ?? return null
-    return chosen.symbol
-}
-
 /// Imported fn overloads named `name` that are in scope in `file`. Empty when
 /// the file imports nothing that provides the name, which is exactly what makes
 /// the unqualified call and the UFCS call agree (SPEC §UFCS).
@@ -667,14 +656,6 @@ export TypedProgram :: struct {
     /// representation and the dispatch would reach that type's `Display`.
     fn_display_dispatches: MutableMap<usize, bool>!
 
-    /// Callee `IdentExpr.id` → true when overload resolution picked a
-    /// non-primary overload for a direct call (`describe(b)` choosing
-    /// the `Bag` overload while the resolver bound the `Box` primary).
-    /// The lowerer emits the call's *result* type on the callee ident
-    /// for these. Direct calls to the primary
-    /// (or non-overloaded names) keep the fn-type display.
-    overload_result_callees: MutableMap<usize, bool>!
-
     /// `FieldExpr.id` → true when `v.x` reads a field of an enum value's
     /// variant data rather than naming a variant (`Enum.Variant`). The lowerer
     /// reads the variant-data table for these and folds every other enum-typed
@@ -851,7 +832,6 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .fn_needs_concrete_instances = MutableMap<usize, bool> {},
     .fn_observes_type_params = MutableMap<usize, bool> {},
     .fn_display_dispatches = MutableMap<usize, bool> {},
-    .overload_result_callees = MutableMap<usize, bool> {},
     .enum_data_reads = MutableMap<usize, bool> {},
 }
 

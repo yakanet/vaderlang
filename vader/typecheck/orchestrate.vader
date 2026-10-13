@@ -1487,7 +1487,6 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
     typed.picked_index_writes = MutableMap<usize, ImplMethod> {}
     typed.static_members = MutableMap<usize, StaticMember> {}
     typed.callee_field_id = AST.UNASSIGNED_NODE_ID
-    typed.overload_result_callees = MutableMap<usize, bool> {}
     typed.callees = MutableMap<usize, Callee> {}
     typed.call_sites = CallSites {}
     typed.local_types = MutableMap<u64, Type> {}

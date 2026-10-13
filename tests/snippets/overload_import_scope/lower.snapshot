@@ -53,7 +53,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        f :void
+        f :fn(string) -> void
       arg0:
         "s" :string
     call :void
@@ -71,7 +71,7 @@
           int(3) :i32
     call :void
       callee:
-        f :void
+        f :fn(string) -> void
       arg0:
         "b" :string
     call :void
@@ -89,7 +89,7 @@
       arg0:
         call :string
           callee:
-            tag :string
+            tag :fn(string) -> string
           arg0:
             "o" :string
     return int(0) :i32

@@ -136,7 +136,7 @@
           arg2:
             call :string
               callee:
-                pick :string
+                pick :fn(string, string) -> string
               arg0:
                 "a" :string
               arg1:
@@ -163,7 +163,7 @@
           arg2:
             call :string
               callee:
-                tag :string
+                tag :fn(string, string) -> string
               arg0:
                 "abc" :string
               arg1:
@@ -188,7 +188,7 @@
           arg2:
             call :string
               callee:
-                tw :string
+                tw :fn(string, string) -> string
               arg0:
                 "a" :string
               arg1:
@@ -215,7 +215,7 @@
           arg2:
             call :string
               callee:
-                pick :string
+                pick :fn(string, string) -> string
               arg0:
                 "a" :string
               arg1:
@@ -242,7 +242,7 @@
           arg2:
             call :string
               callee:
-                tag :string
+                tag :fn(string, string) -> string
               arg0:
                 "abc" :string
               arg1:
@@ -269,7 +269,7 @@
           arg2:
             call :string
               callee:
-                pick :string
+                pick :fn(string, string) -> string
               arg0:
                 "a" :string
               arg1:

@@ -1,4 +1,4 @@
-// vader/lower/lower_call — call dispatch: overloads, virtual, namespace, array ops.
+// vader/lower/lower_call — call dispatch: virtual, namespace, static, array ops.
 //
 
 module "vader/lower"
@@ -14,9 +14,9 @@ import "vader/comptime"
 import "vader/resolver"
 import "toolchain/span"
 
-// Call lowering : routes through overload re-typing (`retype_overload_callee`),
-// UFCS rewrites (`try_lower_ufcs_call`), and generic-fn instance lookups
-// before lowering the callee + every arg. Special cases :
+// Call lowering : routes through UFCS rewrites (`try_lower_ufcs_call`) and
+// generic-fn instance lookups before lowering the callee the typecheck recorded
+// (`lower_callee`) + every arg. Special cases :
 // - `arr.push(x)` / `arr.len()` route to the dedicated
 //   `LoweredArrayPush` / `LoweredArrayLen` ops when the receiver is
 //   an array.
@@ -66,19 +66,8 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr! {
     if ufcs_form != null { return observed(ctx, call, .Call, ufcs_form) }
     generic_form :: try_lower_generic_fn_call(ctx, call, type)
     if generic_form != null { return observed(ctx, call, .Call, generic_form) }
-    raw_callee :: lower_expr(ctx, call.callee)
-    // Slot preparation reads the picked overload's fn-type, so take params off
-    // `raw_callee` before any result-type retype below.
-    param_types :: param_types_of(type_of(raw_callee))
-    args :: lower_call_args(ctx, call.args, param_types, 0)
-    callee :: retype_overload_callee(ctx, call.callee, raw_callee, type)
-    // Direct calls to non-generic stdlib free fns (`StringBuilder {}`,
-    // `byte_len(s)`) : harvest so `materialize_nongeneric_imported_fns`
-    // emits the body — the UFCS path harvests its own, this covers the
-    // bare-ident-callee form.
-    if callee is LoweredIdent {
-        register_nongeneric_imported_fn(ctx, callee.symbol)
-    }
+    callee :: lower_callee(ctx, call)
+    args :: lower_call_args(ctx, call.args, param_types_of(type_of(callee)), 0)
     plain :: LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
     return observed(ctx, call, .Call, plain)
 }
@@ -94,31 +83,11 @@ equals_primop :: fn(left: LoweredExpr, right: LoweredExpr, span: Span) = Lowered
     .right = right,
 }
 
-// Non-primary overload picks display the call's *result* type on the
-// callee ident. The typer flagged these in
-// `overload_result_callees` ; rebuild the lowered ident with the
-// result type AND re-point its symbol at the overload typecheck chose
-// (`chosen_fns`).
-//
-// The resolver binds an overloaded ident to the PRIMARY (first-declared)
-// overload ; `pick_overload` then patches the callee's expr-type to the
-// chosen overload and sets the flag, but leaves the resolver SYMBOL on the
-// primary. Without re-pointing it the emitter mangles the call to the
-// primary body — e.g. `min(usize, usize)` would call the `min(f64, f64)`
-// body, which the VM traps as `f64.lt expected f64, got i32`. Re-pointing
-// also drives `register_nongeneric_imported_fn` (back in `lower_call`) to
-// materialise the picked overload's body.
-retype_overload_callee :: fn(
-    ctx: FnLowerCtx, callee_ast: Expr, lowered: LoweredExpr, result_type: Type,
-) -> LoweredExpr! {
-    if callee_ast is IdentExpr {
-        if ctx.typed.overload_result_callees[callee_ast.id] is null { return lowered }
-        if lowered is LoweredIdent {
-            symbol :: chosen_symbol(ctx.typed, callee_ast.id) ?? lowered.symbol
-            return LoweredIdent { .span = lowered.span, .type = result_type, .symbol = symbol }
-        }
-    }
-    return lowered
+// The callee of a plain call : the fn the typecheck recorded, else the callee
+// expression itself, a value of fn type.
+lower_callee :: fn(ctx: FnLowerCtx, call: CallExpr) -> LoweredExpr! {
+    symbol :: recorded_fn_symbol(ctx, call) ?? return lower_expr(ctx, call.callee)
+    return fn_reference(ctx, symbol, call.callee.span, ctx.types.expr_type(call.callee))
 }
 
 /// The parameter types of a callee's fn type.
@@ -253,7 +222,8 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
                 return emit_value_cast(ctx, call, type)
             }
         }
-        member_symbol :: resolve_namespace_member(ctx, namespace_symbol, callee.field)
+        member_symbol :: recorded_fn_symbol(ctx, call)
+            ?? resolve_namespace_member(ctx, namespace_symbol, callee.field)
         // A GENERIC member (`io.println` → `println<T: Display>`) must harvest
         // its monomorphic instance + point the callee at the mangle, exactly
         // as the direct-ident path does — otherwise the bare member symbol is
@@ -266,17 +236,12 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
             generic_form :: emit_generic_fn_call(ctx, call, type, member_symbol, member_ty, callee.span)
             if generic_form != null { return observed(ctx, call, .Call, generic_form) }
         }
-        // A non-generic member reached only through the namespace form
-        // (`io.println`) still needs harvesting — its owning module is
-        // lowered lazily (every non-entry module is), so without this its
-        // body is never reserved and the call is unresolved at emit.
-        register_nongeneric_imported_fn(ctx, member_symbol)
+        member_callee :: fn_reference(ctx, member_symbol, callee.span, ctx.types.expr_type(callee))
         args :: lower_call_args(ctx, call.args, param_types_of(member_ty), 0)
         member_call :: LoweredCall {
-            .span = call.span, .type = type,
-            .callee = LoweredIdent {
-                .span = callee.span, .type = type, .symbol = member_symbol,
-            },
+            .span = call.span,
+            .type = type,
+            .callee = member_callee,
             .args = args,
         }
         return observed(ctx, call, .Call, member_call)
@@ -446,7 +411,7 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
     }
     // A free fn typecheck chose is the call, on an array too : in a generic body it
     // chose against the type parameter, and an array instance holds to it.
-    if chosen_symbol(ctx.typed, callee.id) != null {
+    if recorded_fn_symbol(ctx, call) != null {
         return null
     }
     // An array receiver, or an array-backed distinct newtype (`array_backing`),

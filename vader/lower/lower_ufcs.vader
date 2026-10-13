@@ -48,7 +48,7 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         // call site's file can see, which neither an impl member probed here nor
         // a search over every loaded module reproduces. In a generic body it chose
         // against the type parameters, and every instance holds to that choice.
-        chosen :: chosen_symbol(ctx.typed, callee_field.id)
+        chosen :: recorded_fn_symbol(ctx, call)
         if chosen == null {
             // An impl member (e.g. `x.to_string()` over
             // `i32 implements Display { to_string }`).
@@ -167,6 +167,18 @@ register_nongeneric_imported_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
     }
     ctx.project.nongeneric_imported_fns[fn_sym.id] = true
     ctx.project.nongeneric_imported_order.push(fn_sym)
+}
+
+/// A reference to the fn `symbol` : harvested first
+/// (`register_nongeneric_imported_fn`), so a fn of a module lowered lazily has its
+/// body emitted, in the order its references are lowered.
+///
+/// @param symbol  the fn, as the module declaring it names it.
+/// @param span    the reference's span.
+/// @param type    the reference's type.
+fn_reference :: fn(ctx: FnLowerCtx, symbol: Symbol, span: Span, type: Type) -> LoweredIdent! {
+    register_nongeneric_imported_fn(ctx, symbol)
+    return LoweredIdent { .span = span, .type = type, .symbol = symbol }
 }
 
 /// Record a referenced module-level `const` for end-of-project

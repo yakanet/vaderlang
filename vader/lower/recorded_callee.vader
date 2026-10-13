@@ -1,0 +1,40 @@
+// vader/lower/recorded_callee — what a call runs, read off the typecheck's record.
+//
+// The typecheck files what each call site invokes (`TypedProgram.call_sites`,
+// `vader/typecheck/call_sites.vader`). The lowering reads it here instead of
+// choosing the callee again ; a site the record leaves to the lowering (a value of
+// fn type, a member settled at each instance) keeps the lowering's own route.
+
+module "vader/lower"
+
+import "toolchain/ast"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+
+/// Index every free fn's symbol by its declaration's node id
+/// (`LowerProjectCtx.fn_symbols`). A module's `fn_overloads` lists the fns it
+/// declares, and its `fn_decls` their declarations.
+///
+/// @param typed        every module's typed program.
+/// @param project_ctx  the context the index is built on.
+populate_fn_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -> void {
+    for [_, module_typed] in typed.modules {
+        for [_, overloads] in module_typed.resolved.fn_overloads {
+            for sym in overloads {
+                decl :: module_typed.fn_decls[sym.id] ?? continue
+                project_ctx.fn_symbols[decl.id] = sym
+            }
+        }
+    }
+}
+
+/// The free fn the typecheck recorded for `call`, as the symbol its declaring
+/// module gives it. Null for any other callee: an impl member, a member dispatched
+/// through a trait, a value of fn type.
+///
+/// @param ctx   the fn-body context ; its module is the one `call` was checked in.
+/// @param call  the call.
+recorded_fn_symbol :: fn(ctx: FnLowerCtx, call: CallExpr) -> Symbol | null {
+    decl :: recorded_decl(ctx.typed, call) ?? return null
+    return ctx.project.fn_symbols[decl.id]
+}

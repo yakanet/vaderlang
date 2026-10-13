@@ -44,8 +44,8 @@ the typed level, where a generic body is checked once.
     or for a distinct handing out its own backing, and a cast files that `into` at
     its value.
 - An overloaded member behind a namespace alias is recorded as its first
-  declaration, which is what both sides take today. That is a known defect, to be
-  fixed on both sides at once.
+  declaration: the typecheck itself checks the call against that one alone. The
+  lowering reads the record, so resolving the overload there is enough.
 - **The call graph's edges.** A call to a generic fn keeps the type each of the
   fn's type parameters takes there (`DirectFn.bindings`), and the calls written in
   each function are listed under its declaration (`CallSites.calls_in_fn`). A

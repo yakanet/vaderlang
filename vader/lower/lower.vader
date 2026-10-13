@@ -80,6 +80,7 @@ lower_project_impl :: fn(
     // string interp, try for non-primitive Error variants, and the
     // for-in / Iterator step loop.
     populate_impls(loaded, typed, project_ctx)
+    populate_fn_symbols(typed, project_ctx)
     project :: new_lowered_project()
     project.entry = loaded.entry
     // Seed runtime `is Trait` membership from the frontend's id-keyed map
@@ -206,7 +207,7 @@ lower_project_impl :: fn(
     draining := true
     for draining {
         drain_generic_fn_instances(loaded, typed, project_ctx, project, diags)
-        materialize_nongeneric_imported_fns(loaded, typed, project_ctx, project, diags)
+        materialize_nongeneric_imported_fns(typed, project_ctx, project, diags)
         materialize_nongeneric_imported_consts(loaded, typed, project_ctx, project, diags)
         materialize_enum_tables(loaded, typed, project_ctx, project)
         surface_referenced_intrinsic_externs(loaded, typed, project_ctx, project)

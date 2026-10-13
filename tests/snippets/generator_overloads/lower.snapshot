@@ -200,7 +200,7 @@
     let words: __genstate_upto_1<string>! =
       call :__genstate_upto_1<string>!
         callee:
-          upto :__genstate_upto_1<string>!
+          upto :fn(string) -> Iterator<string>
         arg0:
           "xyz" :string
     let numbers: __genstate_upto<i32>! =
@@ -212,7 +212,7 @@
     let halves: __genstate_upto<f64>! =
       call :__genstate_upto<f64>!
         callee:
-          upto :__genstate_upto<f64>!
+          upto :fn(f64) -> Iterator<f64>
         arg0:
           float(1.5) :f64
     block :void

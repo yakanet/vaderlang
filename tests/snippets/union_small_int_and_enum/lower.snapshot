@@ -389,7 +389,7 @@
       arg0:
         call :string
           callee:
-            describe :string
+            describe :fn(string | u8) -> string
           arg0:
             int(12) :u8
     let joined: string | u8 =

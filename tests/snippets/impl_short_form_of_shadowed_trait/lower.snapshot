@@ -35,13 +35,13 @@
                       l:
                         call :i32
                           callee:
-                            describe :i32
+                            describe :fn(Animal) -> i32
                           arg0:
                             d :Dog!
                       r:
                         call :i32
                           callee:
-                            zero :i32
+                            zero :fn() -> i32
           ~>
             call :string
               callee:

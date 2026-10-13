@@ -2454,7 +2454,7 @@
                 arg2:
                   call :i64
                     callee:
-                      weigh :i64
+                      weigh :fn(i64, Iterator<i64>!) -> i64
                     arg0:
                       int(10) :i64
                     arg1:

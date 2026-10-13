@@ -460,44 +460,6 @@ find_fn_decl_for_symbol :: fn(decls: Decl[], sym: Symbol, arity: usize) -> FnDec
     return find_fn_decl_by_name(decls, sym.name, arity)
 }
 
-// First non-generic FnDecl named `name` in `decls`. Stdlib fn names are
-// effectively unique within a module ; on the rare overload, the first
-// match wins (refine to arity-keyed if a real collision surfaces).
-find_nongeneric_fn_decl_by_name :: fn(decls: Decl[], name: string) -> FnDecl | null {
-    for d in decls {
-        if d is FnDecl {
-            if d.name == name && d.type_params.len() == 0 { return d }
-        }
-    }
-    return null
-}
-
-// The non-generic FnDecl that DEFINED `fn_sym`. For an overloaded name
-// (`min :: fn(f64, f64) ; min :: fn(usize, usize)`) the resolver minted a
-// distinct symbol per decl with `defined_at` = the decl's `name_span` ; match
-// on that span so the right overload is materialised. A name-only lookup
-// would always pick the first declared overload and the call site (re-pointed
-// to a sibling overload by `retype_overload_callee`) would resolve to the
-// wrong body — or drop entirely. Falls back to name when the symbol carries
-// no span.
-find_nongeneric_fn_decl_for_symbol :: fn(decls: Decl[], fn_sym: Symbol) -> FnDecl | null {
-    match fn_sym.defined_at as want {
-        is null -> { return find_nongeneric_fn_decl_by_name(decls, fn_sym.name) }
-        is Span -> {
-            for d in decls {
-                if d is FnDecl {
-                    if d.name != fn_sym.name { continue }
-                    if d.type_params.len() != 0 { continue }
-                    if d.name_span.hash() == want.hash() { return d }
-                }
-            }
-            // Span miss (e.g. a re-pointed symbol whose span originated in a
-            // different per-module parse) : fall back to the name lookup.
-            return find_nongeneric_fn_decl_by_name(decls, fn_sym.name)
-        }
-    }
-}
-
 // Materialise the non-generic free fns harvested at call sites
 // (`register_nongeneric_imported_fn`) from lazily-lowered (non-entry) modules.
 // Each is lowered once via the normal `lower_fn_decl` path — with-body fns land
@@ -506,8 +468,7 @@ find_nongeneric_fn_decl_for_symbol :: fn(decls: Decl[], fn_sym: Symbol) -> FnDec
 // `write_string_at` and other non-generic fns of non-entry modules are dropped
 // (only GENERIC instances are otherwise harvested).
 materialize_nongeneric_imported_fns :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
-    project: LoweredProject, diags: Diagnostic[],
+    typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     // Cursor over a growing array : lowering one stdlib body can harvest
     // further non-generic stdlib fns it calls, appending mid-loop.
@@ -518,25 +479,21 @@ materialize_nongeneric_imported_fns :: fn(
         fn_sym :: project_ctx.nongeneric_imported_order[project_ctx.nongeneric_imported_cursor]
         project_ctx.nongeneric_imported_cursor += 1
         module_typed :: typed.modules[fn_sym.module] ?? continue
-        module_loaded :: loaded.modules[fn_sym.module] ?? continue
-        if module_typed is TypedProgram {
-            if module_loaded is LoadedModule {
-                fn_decl :: find_nongeneric_fn_decl_for_symbol(module_decls(module_loaded), fn_sym)
-                if fn_decl is FnDecl {
-                    // Bodyless externs are surfaced up front in
-                    // `lower_project`'s stdlib branch — skip to avoid a
-                    // duplicate import entry for the same symbol.
-                    if fn_decl.body is null { continue }
-                    synth_start :: project_ctx.synth_decls.len()
-                    lowered :: lower_fn_decl(fn_decl, module_typed, project_ctx, diags)
-                    if lowered != null { push_to_module(project, fn_sym.module, lowered) }
-                    // Drain any lambda/defer lifted fns this body spawned into
-                    // the same stdlib module (e.g. `strip_numeric_text`'s
-                    // `replace_chars_where((c) -> c == '_', …)`), right after the fn.
-                    drain_synth_since(project, fn_sym.module, project_ctx, synth_start)
-                }
-            }
+        fn_decl :: module_typed.fn_decls[fn_sym.id] ?? continue
+        // Bodyless externs are surfaced up front in `lower_project`'s stdlib
+        // branch — skip to avoid a duplicate import entry for the same symbol.
+        if fn_decl.body == null {
+            continue
         }
+        synth_start :: project_ctx.synth_decls.len()
+        lowered :: lower_fn_decl(fn_decl, module_typed, project_ctx, diags)
+        if lowered != null {
+            push_to_module(project, fn_sym.module, lowered)
+        }
+        // Drain any lambda/defer lifted fns this body spawned into the same
+        // stdlib module (e.g. `strip_numeric_text`'s
+        // `replace_chars_where((c) -> c == '_', …)`), right after the fn.
+        drain_synth_since(project, fn_sym.module, project_ctx, synth_start)
     }
 }
 

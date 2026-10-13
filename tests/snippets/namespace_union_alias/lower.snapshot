@@ -87,7 +87,7 @@
                         cast → i64
                           call :i32
                             callee:
-                              area :i32
+                              area :fn(Circle | Square) -> i32
                             arg0:
                               s :Circle | Square
                 assign

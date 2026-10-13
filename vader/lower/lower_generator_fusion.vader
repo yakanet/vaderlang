@@ -93,9 +93,9 @@ call_target :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> CallTarget | null {
     } else if callee !is AST.IdentExpr {
         return null
     }
-    symbol :: combinator_callee_sym(ctx, call) ?? return null
+    decl :: recorded_decl(ctx.typed, call) ?? return null
+    symbol :: ctx.project.fn_symbols[decl.id] ?? return null
     owner :: resolve_owner_typed(ctx, symbol.module) ?? return null
-    decl :: owner.fn_decls[symbol.id] ?? return null
     args: AST.Expr[]: []
     if callee is AST.FieldExpr {
         args.push(callee.target)
@@ -213,9 +213,9 @@ GenComboLayer :: struct {
 // params fuse independently, else null (the chain falls back to the boxed path).
 try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | null {
     fluent :: unpack_fluent_combinator(ctx, call) ?? return null
-    callee_sym :: combinator_callee_sym(ctx, call) ?? return null
+    decl :: recorded_decl(ctx.typed, call) ?? return null
+    callee_sym :: ctx.project.fn_symbols[decl.id] ?? return null
     owner :: resolve_owner_typed(ctx, callee_sym.module) ?? return null
-    decl :: owner.fn_decls[callee_sym.id] ?? return null
     if !fn_is_generator(decl) { return null }
     // v1: `self` plus zero (`indexed`) or one (map/filter/take/skip/chain) non-self param.
     if decl.params.len() != 1 && decl.params.len() != 2 { return null }
@@ -376,31 +376,6 @@ match_source_loop :: fn(stmt: AST.Stmt, decl: AST.FnDecl) -> GenSourceLoop | nul
         }
     }
     return null
-}
-
-// The resolved callee symbol of a combinator call — the free-fn symbol for a UFCS
-// `recv.name(arg)` or a direct `name(recv, arg)` ident : the fn typecheck chose,
-// else the one the ident names. An overloaded name binds to its first declaration,
-// which is not the one a pick of another runs. Both callers take a UFCS call only
-// once typecheck dispatched it to a free fn, which is when it records its choice.
-combinator_callee_sym :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> Symbol | null {
-    // Unwrap an explicit type-arg wrapper (`chain<T>(...)`) to the inner callee,
-    // mirroring `unpack_fluent_combinator`, so the sym resolves.
-    @partial match combinator_effective_callee(call.callee) as fe {
-        is AST.FieldExpr -> { return chosen_symbol(ctx.typed, fe.id) }
-        is AST.IdentExpr -> {
-            chosen :: chosen_symbol(ctx.typed, fe.id)
-            if chosen != null {
-                return chosen
-            }
-            sym :: resolve_ident(ctx, fe.span) ?? return null
-            // A directly-called imported combinator resolves to the `import`
-            // ImportBinding ; follow it to the OWNER fn so `resolve_owner_typed`
-            // sees the defining module.
-            return follow_import_binding(ctx, sym)
-        }
-        _                -> { return null }
-    }
 }
 
 // The instance substitution for a generator combinator: empty when non-generic,

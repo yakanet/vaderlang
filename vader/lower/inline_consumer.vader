@@ -79,16 +79,11 @@ ConsumerCall :: struct {
 
 // ---- the shape ----------------------------------------------------------------
 
-// Whether `call` is a UFCS call to a declaration already known to consume
-// nothing — read off the declaration typecheck picked, before resolving the
-// callee again.
+// Whether `call` calls a declaration already known to consume nothing — read off
+// the declaration the typecheck recorded, before its target is built.
 is_known_non_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> bool {
-    callee :: combinator_effective_callee(call.callee)
-    if callee is AST.FieldExpr {
-        decl :: chosen_decl(ctx.typed, callee.id) ?? return false
-        return decl.span.hash() in ctx.project.non_consumers
-    }
-    return false
+    decl :: recorded_decl(ctx.typed, call) ?? return false
+    return decl.span.hash() in ctx.project.non_consumers
 }
 
 // The shape of `target`'s callee, or null when it consumes no parameter —

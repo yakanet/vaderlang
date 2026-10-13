@@ -194,10 +194,13 @@ direct_callee :: fn(decl: AST.FnDecl | null, per_instance: bool) -> Callee {
     return DirectFn { .decl = decl, .per_instance = per_instance }
 }
 
-// The declaration the typecheck recorded for the call `c`, when it names one: a
-// known fn, by whatever dispatch ; null for a member reached through a bound or
-// dispatched at run time, a value of function type, or a call not typed yet.
-recorded_decl :: fn(typed: TypedProgram, c: AST.CallExpr) -> AST.FnDecl | null =
+/// The declaration the typecheck recorded for the call `c`, when it names one: a
+/// known fn, by whatever dispatch ; null for a member reached through a bound or
+/// dispatched at run time, a value of function type, or a call not typed yet.
+///
+/// @param typed  the module `c` was checked in.
+/// @param c      the call.
+export recorded_decl :: fn(typed: TypedProgram, c: AST.CallExpr) -> AST.FnDecl | null =
     direct_decl(sites_of(typed.call_sites, .Call)[c.id])
 
 // `recorded_decl` for the member access `e` a call is being made through, noted

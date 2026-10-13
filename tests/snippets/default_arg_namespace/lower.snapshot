@@ -8,7 +8,7 @@
       arg0:
         call :string
           callee:
-            greet :string
+            greet :fn(string, string) -> string
           arg0:
             "Bob" :string
           arg1:
@@ -19,7 +19,7 @@
       arg0:
         call :string
           callee:
-            greet :string
+            greet :fn(string, string) -> string
           arg0:
             "Eve" :string
           arg1:
@@ -30,7 +30,7 @@
       arg0:
         call :string
           callee:
-            greet :string
+            greet :fn(string, string) -> string
           arg0:
             "Al" :string
           arg1:

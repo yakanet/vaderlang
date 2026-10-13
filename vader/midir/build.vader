@@ -37,8 +37,8 @@ ProjectCtx :: struct {
     /// `@extern` fn symbol id → the indices of its CALLBACK parameters.
     ///
     /// Read off the DECLARATION, not off the callee expression's recorded type:
-    /// a namespace call, a UFCS call and a non-primary overload pick all record
-    /// the call's RESULT type on the callee ident, so asking the expression
+    /// a UFCS call records the call's RESULT type on the callee ident, so asking
+    /// the expression
     /// would silently answer "no callbacks here" and emit a fn value into C.
     /// A symbol names one declaration, which is also what makes an overload pick
     /// unambiguous.
