@@ -1,9 +1,10 @@
 // vader/lsp/handlers/rename — `textDocument/prepareRename` + `textDocument/rename`.
 //
-// Rename a symbol across the whole project. Reuses the reference index
-// (`analysis/reference_index`) : the cursor resolves to a Symbol, and every recorded
-// site for that Symbol — declaration, import bindings, and uses across files —
-// is rewritten in one `WorkspaceEdit`.
+// Rename a target across the whole project. Reuses the reference index
+// (`analysis/reference_index`) : the cursor resolves to a target, and every site
+// that names it (declaration, import bindings, uses across files) is rewritten in
+// one `WorkspaceEdit`. A name a trait fixes (an impl member) is not
+// renamed : the trait and its other impls would keep the old one.
 //
 // Safety : a `TextEdit` replaces a range with `newName` regardless of what the
 // range currently holds, so to never corrupt source we rewrite ONLY sites whose
@@ -33,8 +34,7 @@ export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> Jso
     if file_path == "" { return JsonNull {} }
     cached :: typed_project_for(state, file_path)
     index :: build_reference_index(cached.project, cached.result)
-    site :: site_at(index, file_path, cursor_field(params, "line") + 1, cursor_field(params, "character") + 1)
-    if site == null { return JsonNull {} }
+    site :: renameable_at(index, file_path, params) ?? return JsonNull {}
     li :: state.line_index_for_path(file_path)
     return range_json(site.span.span_to_range_json(li))
 }
@@ -52,34 +52,40 @@ export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
 
     cached :: typed_project_for(state, file_path)
     index :: build_reference_index(cached.project, cached.result)
-    site :: site_at(index, file_path, cursor_field(params, "line") + 1, cursor_field(params, "character") + 1)
-    if site == null { return JsonNull {} }
+    site :: renameable_at(index, file_path, params) ?? return JsonNull {}
 
     sources :: build_source_map(cached.project)
     old_name :: span_text(sources, site.span)
     if old_name == "" { return JsonNull {} }
 
-    edits :: sites_to_rename(index, site.symbol_id, old_name, sources)
+    edits :: sites_to_rename(index, site.key, old_name, sources)
     li_cache :: MutableMap<string, LineIndex> {}
     return workspace_edit_json(edits, new_name, state, li_cache)
 }
 
-// The reference site whose span contains the 1-based cursor, or null.
-site_at :: fn(index: ReferenceIndex, file: string, line: i32, col: i32) -> RefSite | null {
-    for s in index.sites {
-        if cursor_in_file_span(s.span, file, line, col) { return s }
+// The site under the cursor of `params`, when its target may be renamed.
+renameable_at :: fn(index: ReferenceIndex, file: string, params: JsonValue) -> RefSite | null {
+    line :: cursor_field(params, "line") + 1
+    site :: site_at(index, file, line, cursor_field(params, "character") + 1) ?? return null
+    if site.key in index.fixed {
+        return null
     }
-    return null
+    return site
 }
 
-// Every site of `symbol_id` whose current source text equals `old_name` — the
+// Every named site of `key` whose current source text equals `old_name` : the
 // spans safe to overwrite with the new name. Filtering by text protects against
 // rewriting a range that doesn't actually hold the old identifier (aliased
-// imports, re-export shims).
-sites_to_rename :: fn(index: ReferenceIndex, symbol_id: i32, old_name: string, sources: MutableMap<string, string>) -> RefSite[] {
+// imports, re-export shims) ; an implicit site holds no name at all.
+sites_to_rename :: fn(
+    index: ReferenceIndex,
+    key: i64,
+    old_name: string,
+    sources: MutableMap<string, string>,
+) -> RefSite[] {
     out: RefSite[]: []
     for s in index.sites {
-        if s.symbol_id != symbol_id { continue }
+        if s.key != key || s.implicit { continue }
         if span_text(sources, s.span) != old_name { continue }
         out.push(s)
     }
@@ -161,14 +167,13 @@ test_sources :: fn(path: string, content: string) -> MutableMap<string, string> 
     return m
 }
 
-mk_site :: fn(file: string, off: usize, len: usize, symbol_id: i32) -> RefSite {
+mk_site :: fn(file: string, off: usize, len: usize, key: i64) -> RefSite {
     return RefSite {
         .span = Span {
             .start = Position { .file = file, .offset = off, .line = 1, .column = i32(off) + 1 },
             .end   = Position { .file = file, .offset = off + len, .line = 1, .column = i32(off + len) + 1 },
         },
-        .symbol_id = symbol_id,
-        .is_decl   = false,
+        .key  = key,
     }
 }
 

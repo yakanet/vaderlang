@@ -1,28 +1,28 @@
-// vader/lsp/analysis/reference_index — project-wide Symbol → reference-spans index.
+// vader/lsp/analysis/reference_index — project-wide target → reference-spans index.
 //
 // Shared infrastructure behind find-references (`handlers/references`) and rename
-// (`handlers/rename`). Builds a `Symbol → use-spans` index by walking every
-// module's AST (via the typed-project cache's per-module resolution) and binding
-// each identifier span — both `IdentExpr` use-sites and the *declaration*
-// name-spans of locals / params / type-params / for- and pattern-bindings — to
-// the Symbol the body-walker recorded for it in `idents`. Top-level declarations
-// come from each module's symbol table (`defined_at`). Import bindings are
-// followed to their export target (`wire_imports` + `resolve_import_redirect`),
-// so a use of an imported name unifies with the declaration and every other use
-// across files — the project-wide behaviour find-references and rename require.
+// (`handlers/rename`). A target is a function, keyed by its declaration so each
+// overload and each impl member has references of its own, or any other symbol,
+// keyed by its id (`target_key`). Sites come from every module of the typed
+// project:
 //
-// Why both decl name-spans AND uses: the body-walker indexes a local's / param's
-// name_span into `idents` (body.vader), but those symbols are NOT in
-// `resolved.symbols` (top-level only). Collecting just `IdentExpr`s would miss
-// every local declaration, so renaming a local would rewrite its uses but not
-// its `::` / `:=` binding. Sites are deduped by span hash so a rename never emits
-// two edits for one range.
+// - declarations from the symbol tables (`defined_at`), the overloads past the
+//   first from `fn_overloads`, impl members from their impl blocks ;
+// - calls from the typecheck's record of what each site invokes
+//   (`TypedProgram.call_sites`) : a call names its fn at the callee's name,
+//   `x.f(a)` and `NS.f(x)` included, and a site that runs a fn without naming it
+//   (an operator, a `for`, an index, an interpolated value, a conversion) is an
+//   implicit reference, listed by find-references, never under the cursor nor
+//   renamed ;
+// - every other identifier span from the body walker's `idents` : uses, and the
+//   name spans of locals / for- and pattern-bindings, which `resolved.symbols`
+//   (top-level only) does not hold, so a rename rewrites a local's binding too.
 //
-// Symbols are globally unique (one factory across modules), so `Symbol.id` is a
-// stable cross-module key. v1 scope: identifiers in value + type position +
-// local/param/binding decl names. Field/method accesses (`.field`) carry no
-// `IdentExpr` (resolved separately) and are a follow-up. The index is rebuilt
-// per request; caching it on `ProjectCache` is a follow-up.
+// Import bindings are followed to their export target (`wire_imports` +
+// `resolve_import_redirect`), so a use of an imported name unifies with the
+// declaration across files. A span holds one named site, so a rename never emits
+// two edits for one range. The index is rebuilt per request; caching it on
+// `ProjectCache` is a follow-up.
 
 module "vader/lsp/analysis"
 
@@ -35,23 +35,49 @@ AST :: import "toolchain/ast"
 Parse :: import "vader/parser"
 import "toolchain/span"
 
-/// One recorded reference : a source span + the (import-resolved) Symbol id it
-/// refers to. `is_decl` marks a top-level declaration site (so
-/// `includeDeclaration` can exclude it) ; import-binding sites and local/param
-/// decl names count as uses here.
+/// One recorded reference : a source span and the target it refers to
+/// (`target_key`).
 export RefSite :: struct {
-    span:      Span
-    symbol_id: i32
-    is_decl:   bool
+    span:     Span
+    key:      i64
+    /// A declaration site, which `includeDeclaration` can exclude ; import-binding
+    /// sites and local decl names count as uses.
+    is_decl:  bool = false
+    /// A site that runs the target without naming it: listed by find-references,
+    /// never under the cursor nor renamed.
+    implicit: bool = false
 }
 
 /// Project-wide reference table : a flat list of every recorded use / decl
 /// site. Flat (not a map) — a references query does two linear passes (find the
-/// symbol under the cursor, then collect its sites), both bounded by project
+/// target under the cursor, then collect its sites), both bounded by project
 /// size, which is fine for an on-demand request.
 export ReferenceIndex :: struct {
     sites: RefSite[]
+    /// The targets whose name a trait fixes : an impl member, renamed only with
+    /// its trait and every other impl of it.
+    fixed: MutableSet<i64> = MutableSet<i64> {}
 }
+
+/// The named reference site whose span contains the 1-based cursor in `file`,
+/// or null. An implicit site (`a + b` running `add`) names nothing to stand on.
+///
+/// @param index  the project's references.
+/// @param file   the document the cursor is in, as the loader spells it.
+/// @param line   1-based cursor line.
+/// @param col    1-based cursor column.
+export site_at :: fn(index: ReferenceIndex, file: string, line: i32, col: i32) -> RefSite | null {
+    for s in index.sites {
+        if !s.implicit && cursor_in_file_span(s.span, file, line, col) {
+            return s
+        }
+    }
+    return null
+}
+
+// The key of a function: its declaration's node id, apart from every symbol id.
+// Node ids and symbol ids are two numberings, so functions take the negative half.
+fn_key :: fn(decl: AST.FnDecl) -> i64 = -i64(decl.id) - 1
 
 /// True when `sp` is in `file` AND the 1-based (line, col) falls inside it.
 ///
@@ -87,58 +113,212 @@ export cursor_in_span :: fn(sp: Span, line: i32, col: i32) -> bool {
 
 // ---- index construction --------------------------------------------------
 
-/// Walk every module's resolution + AST into a flat reference table. Each
-/// identifier span (use or local/param decl name) and each top-level
-/// `Symbol.defined_at` is keyed by the import-resolved Symbol id so uses unify
-/// across files. Deduped by span hash.
+/// Walk every module's resolution, call record and AST into a flat reference
+/// table (see the file header for where each kind of site comes from).
 ///
 /// @param project  the loaded project (carries every module's AST + the import
 ///                 wiring resolved by `wire_imports`).
-/// @param result   the typecheck result (carries per-module `resolved`).
-/// @return         a flat `ReferenceIndex` ready for `symbol_at` / `site_at`.
+/// @param result   the typecheck result (carries per-module `resolved` and
+///                 `call_sites`).
+/// @return         a flat `ReferenceIndex` ready for `site_at`.
 export build_reference_index :: fn(project: LoadedProject, result: CheckResult) -> ReferenceIndex {
     table :: wire_imports(project)
-    sites: RefSite[]: []
-    seen :: MutableMap<u64, bool> {}
+    index :: IndexBuilder {}
     for [id, typed] in result.all_modules {
         mod :: project.modules[id] ?? continue
 
-        // Top-level declaration + import sites from the module's symbol tables.
         for sym in typed.resolved.symbols + typed.resolved.import_bindings {
-            da :: sym.defined_at ?? continue
-            h :: da.hash()
-            if seen[h] != null { continue }
-            seen[h] = true
             canon :: resolve_import_redirect(sym, table)
-            sites.push(RefSite { .span = da, .symbol_id = canon.id, .is_decl = sym.kind != .ImportBinding })
+            add_symbol_site(index, typed, sym, canon, sym.kind != .ImportBinding)
+        }
+        // `resolved.symbols` holds an overloaded name's first declaration only.
+        for [_, overloads] in typed.resolved.fn_overloads {
+            for sym in overloads {
+                add_symbol_site(index, typed, sym, sym, true)
+            }
         }
 
-        // Identifier spans (uses + local/param/binding decl names) the body
-        // walker bound to a Symbol in `idents`.
+        recorded :: recorded_fns(typed)
         for f in mod.module.files {
-            spans: Span[]: []
-            for d in f.program.decls { collect_decl_idents(d, spans) }
-            for sp in spans {
-                h :: sp.hash()
-                if seen[h] != null { continue }
-                sym :: typed.resolved.idents[h] ?? continue
-                seen[h] = true
-                canon :: resolve_import_redirect(sym, table)
-                sites.push(RefSite { .span = sp, .symbol_id = canon.id, .is_decl = false })
+            found :: Collected {}
+            for d in f.program.decls {
+                collect_decl_idents(d, found)
+            }
+            for m in found.members {
+                index.fixed.add(fn_key(m))
+                add_named(index, RefSite {
+                    .span = m.name_span,
+                    .key = fn_key(m),
+                    .is_decl = true,
+                })
+            }
+            // The record first : a call's callee span is keyed by the fn the call
+            // runs, which `idents` (the first overload) does not say.
+            for e in found.nodes {
+                at :: recorded[e.id]
+                if at != null {
+                    add_recorded_sites(index, e, at)
+                }
+                if e is AST.FieldExpr {
+                    add_namespace_member(index, typed, e)
+                }
+            }
+            for sp in found.spans {
+                if sp.hash() in index.named {
+                    continue
+                }
+                sym :: typed.resolved.idents[sp.hash()] ?? continue
+                key :: target_key(typed, resolve_import_redirect(sym, table))
+                add_named(index, RefSite { .span = sp, .key = key })
             }
         }
     }
-    return ReferenceIndex { .sites = sites }
+    return ReferenceIndex { .sites = index.sites, .fixed = index.fixed }
 }
 
-// ---- identifier-span collectors (mirror ast_tokens.vader coverage) --------
+// The sites gathered so far, the spans already holding a named site, and the
+// targets whose name a trait fixes.
+IndexBuilder :: struct {
+    sites: RefSite[]! = []
+    named: MutableSet<u64>! = MutableSet<u64> {}
+    fixed: MutableSet<i64>! = MutableSet<i64> {}
+}
+
+// Add `site` unless its span already holds a named site.
+add_named :: fn(index: IndexBuilder, site: RefSite) -> void {
+    if index.named.add(site.span.hash()) {
+        index.sites.push(site)
+    }
+}
+
+// The declaration (or import binding) site of `sym`, keyed by `canon`'s target.
+add_symbol_site :: fn(
+    index: IndexBuilder,
+    typed: TypedProgram,
+    sym: Symbol,
+    canon: Symbol,
+    is_decl: bool,
+) -> void {
+    span :: sym.defined_at ?? return
+    add_named(index, RefSite {
+        .span = span,
+        .key = target_key(typed, canon),
+        .is_decl = is_decl,
+    })
+}
+
+// The target `sym` refers to: a function by its declaration, anything else by its
+// id. `fn_decls` is published to every module, so `typed` knows another module's.
+target_key :: fn(typed: TypedProgram, sym: Symbol) -> i64 {
+    if sym.kind == .Fn {
+        decl :: typed.fn_decls[sym.id]
+        if decl != null {
+            return fn_key(decl)
+        }
+    }
+    return i64(sym.id)
+}
+
+// The fns the record names at one node : the call's, and those run without being
+// named.
+RecordedFns :: struct {
+    called: AST.FnDecl[]! = []
+    implicit: AST.FnDecl[]! = []
+}
+
+// The fns the typecheck recorded in `typed`, by node : one pass over the record's
+// tables rather than a lookup per role at every node. A member materialised from a
+// trait default has no source of its own.
+recorded_fns :: fn(typed: TypedProgram) -> MutableMap<usize, RecordedFns!> {
+    out :: MutableMap<usize, RecordedFns!> {}
+    for role in all_roles() {
+        for [id, callee] in sites_of(typed.call_sites, role) {
+            for decl in named_decls(callee) {
+                if decl.materialized {
+                    continue
+                }
+                at :: out[id] ?? new_recorded(out, id)
+                if role == .Call {
+                    at.called.push(decl)
+                } else {
+                    at.implicit.push(decl)
+                }
+            }
+        }
+    }
+    return out
+}
+
+new_recorded :: fn(out: MutableMap<usize, RecordedFns!>, id: usize) -> RecordedFns! {
+    fresh :: RecordedFns {}
+    out[id] = fresh
+    return fresh
+}
+
+// The sites of the fns recorded at `e` : a call refers to its fn at the callee's
+// name, any other role at `e` itself, once per fn, and not again for the fn the
+// call names (a `for` stepping a generator it calls).
+add_recorded_sites :: fn(index: IndexBuilder, e: AST.Expr, at: RecordedFns) -> void {
+    if e is AST.CallExpr {
+        span :: callee_name_span(e.callee)
+        if span != null {
+            for decl in at.called {
+                add_named(index, RefSite { .span = span, .key = fn_key(decl) })
+            }
+        }
+    }
+    listed: i64[]: []
+    for decl in at.called {
+        listed.push(fn_key(decl))
+    }
+    for decl in at.implicit {
+        key :: fn_key(decl)
+        if key !in listed {
+            listed.push(key)
+            index.sites.push(RefSite {
+                .span = e.span,
+                .key = key,
+                .implicit = true,
+            })
+        }
+    }
+}
+
+// The span of the name a callee calls by : `f`, the `f` of `x.f` or `NS.f`, through
+// explicit type arguments ; null for a callee that names nothing.
+callee_name_span :: fn(callee: AST.Expr) -> Span | null {
+    // @partial: only a name, a member access or an instantiation of one names a fn.
+    return @partial match callee {
+        is AST.IdentExpr       -> callee.span
+        is AST.FieldExpr       -> callee.field_span
+        is AST.GenericInstExpr -> callee_name_span(callee.callee)
+        _                      -> null
+    }
+}
+
+// `NS.f` names the fn `f` of the module `NS` aliases, called or not ; a call's was
+// recorded first, so only a value's is added here.
+add_namespace_member :: fn(index: IndexBuilder, typed: TypedProgram, e: AST.FieldExpr) -> void {
+    decl :: lookup_callee_fn_decl(e, typed) ?? return
+    add_named(index, RefSite { .span = e.field_span, .key = fn_key(decl) })
+}
+
+// ---- collectors (mirror ast_tokens.vader coverage) --------------------------
 //
 // Accumulate every identifier-bearing span : `IdentExpr` use-sites AND the
 // name_spans of declarations the body-walker records in `idents` — local lets,
 // params, type-params, for-bindings, pattern bindings. Top-level decl names are
-// NOT pushed here (they come from `resolved.symbols`).
+// NOT pushed here (they come from `resolved.symbols`). Every expression node is
+// gathered too, for the call sites the typecheck recorded at it, and every impl
+// member a source declares.
 
-collect_decl_idents :: fn(d: AST.Decl, out: Span[]) -> void {
+Collected :: struct {
+    spans: Span[]! = []
+    nodes: AST.Expr[]! = []
+    members: AST.FnDecl[]! = []
+}
+
+collect_decl_idents :: fn(d: AST.Decl, out: Collected) -> void {
     match d {
         is AST.ImportDecl -> { collect_decorators(d.decorators, out) }
         is AST.FnDecl     -> { collect_fn(d, out) }
@@ -170,7 +350,13 @@ collect_decl_idents :: fn(d: AST.Decl, out: Span[]) -> void {
             collect_type_params(d.type_params, out)
             collect_type(d.for_type, out)
             for ta in d.trait_args { collect_type(ta, out) }
-            for m in d.members { collect_fn(m, out) }
+            // A member materialised from a trait default has no source of its own.
+            for m in d.members {
+                if !m.materialized {
+                    out.members.push(m)
+                    collect_fn(m, out)
+                }
+            }
         }
         is AST.TypeAliasDecl -> {
             collect_decorators(d.decorators, out)
@@ -189,7 +375,7 @@ collect_decl_idents :: fn(d: AST.Decl, out: Span[]) -> void {
     }
 }
 
-collect_decorators :: fn(ds: AST.Decorator[], out: Span[]) -> void {
+collect_decorators :: fn(ds: AST.Decorator[], out: Collected) -> void {
     for deco in ds {
         for a in deco.args { collect_expr(a, out) }
     }
@@ -200,11 +386,11 @@ collect_decorators :: fn(ds: AST.Decorator[], out: Span[]) -> void {
 // a clean rename target nor a precise reference range. Their uses (IdentExpr)
 // are still collected. Param / type-param rename is a follow-up needing a
 // name-only span.
-collect_type_params :: fn(ps: AST.TypeParam[], out: Span[]) -> void {
+collect_type_params :: fn(ps: AST.TypeParam[], out: Collected) -> void {
     for p in ps { collect_opt_type(p.bound, out) }
 }
 
-collect_fn :: fn(d: AST.FnDecl, out: Span[]) -> void {
+collect_fn :: fn(d: AST.FnDecl, out: Collected) -> void {
     collect_decorators(d.decorators, out)
     collect_type_params(d.type_params, out)
     for p in d.params {
@@ -215,16 +401,16 @@ collect_fn :: fn(d: AST.FnDecl, out: Span[]) -> void {
     collect_opt_block(d.body, out)
 }
 
-collect_binding :: fn(b: AST.LetBinding, out: Span[]) -> void {
+collect_binding :: fn(b: AST.LetBinding, out: Collected) -> void {
     match b {
-        is AST.SimpleBinding -> { out.push(b.name_span) }
+        is AST.SimpleBinding -> { out.spans.push(b.name_span) }
         is AST.TupleBinding -> { for e in b.elements { collect_binding(e, out) } }
         is AST.WildcardBinding -> {}
-        is AST.RestBinding -> { out.push(b.span) }
+        is AST.RestBinding -> { out.spans.push(b.span) }
     }
 }
 
-collect_stmt :: fn(s: AST.Stmt, out: Span[]) -> void {
+collect_stmt :: fn(s: AST.Stmt, out: Collected) -> void {
     match s {
         is AST.LetStmt               -> {
             collect_binding(s.binding, out)
@@ -250,7 +436,7 @@ collect_stmt :: fn(s: AST.Stmt, out: Span[]) -> void {
                 is AST.WhileFor    -> { collect_expr(w.cond, out) }
                 is AST.InFor       -> {
                     match w.loop_var as nv {
-                        is AST.NamedVar       -> { out.push(nv.span) }
+                        is AST.NamedVar       -> { out.spans.push(nv.span) }
                         is AST.DestructureVar -> { collect_binding(nv.pattern, out) }
                         is AST.DiscardVar     -> {}
                     }
@@ -270,14 +456,15 @@ collect_stmt :: fn(s: AST.Stmt, out: Span[]) -> void {
     }
 }
 
-collect_block :: fn(b: AST.BlockExpr, out: Span[]) -> void {
+collect_block :: fn(b: AST.BlockExpr, out: Collected) -> void {
     for s in b.stmts { collect_stmt(s, out) }
     collect_opt_expr(b.trailing, out)
 }
 
-collect_expr :: fn(e: AST.Expr, out: Span[]) -> void {
+collect_expr :: fn(e: AST.Expr, out: Collected) -> void {
+    out.nodes.push(e)
     match e {
-        is AST.IdentExpr        -> { out.push(e.span) }
+        is AST.IdentExpr        -> { out.spans.push(e.span) }
         is AST.NullCoalesceExpr -> {
             collect_expr(e.left, out)
             inner :: AST.coalesce_fallback_expr(e.fallback)
@@ -297,7 +484,7 @@ collect_expr :: fn(e: AST.Expr, out: Span[]) -> void {
             collect_expr(e.left, out)
             collect_expr(e.right, out)
             if e.bind_as is AST.AsBinding {
-                out.push(e.bind_as.span)
+                out.spans.push(e.bind_as.span)
             }
         }
         is AST.IfExpr -> {
@@ -312,7 +499,7 @@ collect_expr :: fn(e: AST.Expr, out: Span[]) -> void {
         is AST.MatchExpr -> {
             collect_expr(e.scrutinee, out)
             if e.bind_as is AST.AsBinding {
-                out.push(e.bind_as.span)
+                out.spans.push(e.bind_as.span)
             }
             for arm in e.arms {
                 collect_pattern(arm.pattern, out)
@@ -372,7 +559,7 @@ collect_expr :: fn(e: AST.Expr, out: Span[]) -> void {
     }
 }
 
-collect_pattern :: fn(p: AST.Pattern, out: Span[]) -> void {
+collect_pattern :: fn(p: AST.Pattern, out: Collected) -> void {
     match p {
         is AST.IsPattern -> {
             collect_type(p.ty, out)
@@ -399,9 +586,9 @@ collect_pattern :: fn(p: AST.Pattern, out: Span[]) -> void {
 
 // Type-position identifiers (`x: Foo`, `Map<K, V>`, `A | B`). The topmost ident
 // names a type that the body walker resolves into `idents`, so it's a reference.
-collect_type :: fn(e: AST.Expr, out: Span[]) -> void {
+collect_type :: fn(e: AST.Expr, out: Collected) -> void {
     match e {
-        is AST.IdentExpr       -> { out.push(e.span) }
+        is AST.IdentExpr       -> { out.spans.push(e.span) }
         is AST.GenericInstExpr -> {
             collect_type(e.callee, out)
             for a in e.type_args { collect_type(a, out) }
@@ -425,13 +612,13 @@ collect_type :: fn(e: AST.Expr, out: Span[]) -> void {
     }
 }
 
-collect_opt_type :: fn(e: AST.Expr | null, out: Span[]) -> void {
+collect_opt_type :: fn(e: AST.Expr | null, out: Collected) -> void {
     if e !is null {
         collect_type(e, out)
     }
 }
 
-collect_struct_lit_items :: fn(items: AST.StructLitItem[], out: Span[]) -> void {
+collect_struct_lit_items :: fn(items: AST.StructLitItem[], out: Collected) -> void {
     for it in items {
         if it is AST.StructLitField {
             collect_expr(it.value, out)
@@ -441,19 +628,19 @@ collect_struct_lit_items :: fn(items: AST.StructLitItem[], out: Span[]) -> void 
     }
 }
 
-collect_opt_expr :: fn(e: AST.Expr | null, out: Span[]) -> void {
+collect_opt_expr :: fn(e: AST.Expr | null, out: Collected) -> void {
     if e !is null {
         collect_expr(e, out)
     }
 }
 
-collect_opt_block :: fn(b: AST.BlockExpr | null, out: Span[]) -> void {
+collect_opt_block :: fn(b: AST.BlockExpr | null, out: Collected) -> void {
     if b !is null {
         collect_block(b, out)
     }
 }
 
-collect_opt_pattern :: fn(p: AST.Pattern | null, out: Span[]) -> void {
+collect_opt_pattern :: fn(p: AST.Pattern | null, out: Collected) -> void {
     if p !is null {
         collect_pattern(p, out)
     }
@@ -467,19 +654,19 @@ import "std/testing"
 // the walker's coverage (parse-only, no resolution needed).
 collect_count :: fn(src: string) -> usize {
     parsed :: Parse.parse_source(src, "t.vader")
-    out: Span[]: []
+    out :: Collected {}
     for d in parsed.program.decls { collect_decl_idents(d, out) }
-    return out.len()
+    return out.spans.len()
 }
 
 // Count collected spans whose source text equals `name`.
 idents_named :: fn(src: string, name: string) -> i32 {
     parsed :: Parse.parse_source(src, "t.vader")
-    out: Span[]: []
+    out :: Collected {}
     for d in parsed.program.decls { collect_decl_idents(d, out) }
     sb :: src.bytes()
     count := 0
-    for sp in out {
+    for sp in out.spans {
         if sp.start.offset < sp.end.offset && sp.end.offset <= sb.len() {
             if sb[sp.start.offset..<sp.end.offset].bytes_to_string() == name { count = count + 1 }
         }

@@ -1,9 +1,9 @@
 // vader/lsp/handlers/references — `textDocument/references` handler.
 //
 // Find-usages across the whole project. Builds the project-wide reference index
-// (`analysis/reference_index`), locates the import-resolved Symbol under the
-// cursor, then returns every recorded site for that Symbol as a `Location[]`.
-// Honours `context.includeDeclaration`.
+// (`analysis/reference_index`), locates the target under the cursor, then returns
+// every recorded site of that target as a `Location[]`, the sites that run it
+// without naming it included. Honours `context.includeDeclaration`.
 
 module "vader/lsp/handlers"
 
@@ -13,8 +13,8 @@ import "vader/lsp/protocol"
 import "vader/lsp/analysis"
 
 /// Resolve find-references for the position in `params`. Returns a `Location[]`
-/// (every use of the symbol under the cursor), empty when the cursor isn't on a
-/// resolvable identifier. Honours `context.includeDeclaration`.
+/// (every reference to the target under the cursor), empty when the cursor isn't
+/// on a resolvable identifier. Honours `context.includeDeclaration`.
 export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
     if uri == "" { return JsonArray { .items = [] } }
@@ -25,7 +25,8 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
     index :: build_reference_index(cached.project, cached.result)
 
     // LSP positions are 0-based ; the Vader AST is 1-based.
-    target :: symbol_at(index, file_path, cursor_field(params, "line") + 1, cursor_field(params, "character") + 1)
+    line :: cursor_field(params, "line") + 1
+    target :: site_at(index, file_path, line, cursor_field(params, "character") + 1)
     if target == null { return JsonArray { .items = [] } }
 
     include_decl :: include_declaration(params)
@@ -34,7 +35,7 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
     // the same file, and `line_index_for_path` reads from disk for non-open ones.
     li_cache :: MutableMap<string, LineIndex> {}
     for s in index.sites {
-        if s.symbol_id != target { continue }
+        if s.key != target.key { continue }
         if s.is_decl && !include_decl { continue }
         path :: s.span.start.file
         li :: line_index_cached(state, li_cache, path)
@@ -50,15 +51,6 @@ line_index_cached :: fn(state: ServerState, cache: MutableMap<string, LineIndex>
     built :: state.line_index_for_path(path)
     cache[path] = built
     return built
-}
-
-// The (import-resolved) symbol id of the reference whose span contains the
-// 1-based cursor, or null when the cursor isn't on a recorded identifier.
-symbol_at :: fn(index: ReferenceIndex, file: string, line: i32, col: i32) -> i32 | null {
-    for s in index.sites {
-        if cursor_in_file_span(s.span, file, line, col) { return s.symbol_id }
-    }
-    return null
 }
 
 // `params.context.includeDeclaration`, defaulting to true (the LSP default

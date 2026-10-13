@@ -129,9 +129,9 @@ export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<usize, Cal
     .Display    -> sites.displays
 }
 
-// Every role, for a reader that walks them all : a role added to `CallRole` is
-// added here.
-all_roles :: fn() -> CallRole[] = [
+/// Every role, for a reader that walks them all : a role added to `CallRole` is
+/// added here.
+export all_roles :: fn() -> CallRole[] = [
     .Call,
     .Operator,
     .IndexRead,
@@ -141,6 +141,25 @@ all_roles :: fn() -> CallRole[] = [
     .IterNext,
     .Display,
 ]
+
+/// The declarations `callee` runs by name: a known fn's, each of a structural
+/// `==`'s ; none for a member dispatched per instance or at run time, a value, a
+/// built-in operation or an unsettled site.
+///
+/// @param callee  what a site invokes.
+export named_decls :: fn(callee: Callee) -> AST.FnDecl[] = match callee {
+    is DirectFn -> [callee.decl]
+    is EachOf   -> each_named_decls(callee)
+    is BoundMember | TraitMember | FnValue | Builtin | ErroneousCallee | UnsettledCallee -> []
+}
+
+each_named_decls :: fn(callee: EachOf) -> AST.FnDecl[] {
+    out: AST.FnDecl[]: []
+    for part in callee.callees {
+        out.push_all(named_decls(part))
+    }
+    return out
+}
 
 FN_VALUE_CALLEE  :: FnValue {}
 BUILTIN_CALLEE   :: Builtin {}

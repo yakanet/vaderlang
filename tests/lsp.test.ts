@@ -1740,6 +1740,152 @@ test("lsp: rename stays in the file the cursor is in", async () => {
   expect(edit.changes[files[0]!]).toHaveLength(3);
 });
 
+// A function is found and renamed wherever a call runs it, whatever form the
+// call takes, and each overload and impl member has references of its own.
+const CALL_FORMS_SOURCE = `module "lsptest"
+
+import "std/io"
+
+V :: struct { x: i32 }
+
+V implements Add {
+    add :: fn(self, other: V) -> V = V { .x = self.x + other.x }
+}
+
+describe :: fn(self: V) -> string = "v"
+
+describe :: fn(self: i32) -> string = "i"
+
+twice :: fn(v: V) -> V = v.add(v) + v
+
+main :: fn() -> i32 {
+    v :: V { .x = 1 }
+    println(v.describe())
+    println(describe(v))
+    println(2.describe())
+    return twice(v).x
+}
+`;
+
+// The 0-based position of `needle` in `source`, `into` characters past its start.
+function positionOf(source: string, needle: string, into = 0): PositionT {
+  const at = source.indexOf(needle);
+  if (at < 0) throw new Error(`no ${needle}`);
+  const before = source.slice(0, at + into).split("\n");
+  return { line: before.length - 1, character: before[before.length - 1]!.length };
+}
+
+function key(p: PositionT): string {
+  return `${p.line}:${p.character}`;
+}
+
+// The start of each range, sorted: locations and text edits alike.
+function starts(items: { range: RangeT }[]): string[] {
+  return items.map((i) => key(i.range.start)).sort();
+}
+
+test("lsp: references and rename follow a fn through every call form", async () => {
+  const src = CALL_FORMS_SOURCE;
+  const firstDecl = key(positionOf(src, "describe :: fn(self: V)"));
+  const secondDecl = key(positionOf(src, "describe :: fn(self: i32)"));
+  const methodForm = key(positionOf(src, "v.describe()", 2));
+  const bareCall = key(positionOf(src, "describe(v)"));
+  const onLiteral = key(positionOf(src, "2.describe()", 2));
+  const addDecl = key(positionOf(src, "add :: fn"));
+  const addMethod = key(positionOf(src, "v.add(v)", 2));
+  const addOperator = key(positionOf(src, "v.add(v) + v"));
+  const results = await driveLsp(src, [
+    // 0: from the method form `v.describe()`.
+    { method: "textDocument/references", position: positionOf(src, "v.describe()", 3) },
+    // 1: from the second overload's declaration.
+    { method: "textDocument/references", position: positionOf(src, "describe :: fn(self: i32)") },
+    // 2: rename from the first overload's declaration.
+    { method: "textDocument/rename", position: positionOf(src, "describe :: fn(self: V)") },
+    // 3: references of an impl member, from its declaration.
+    { method: "textDocument/references", position: positionOf(src, "add :: fn") },
+    // 4: renaming it, from a call.
+    { method: "textDocument/prepareRename", position: positionOf(src, "v.add(v)", 2) },
+  ]);
+
+  // Each overload has its own calls.
+  expect(starts(results[0]!.result as Location[])).toEqual([firstDecl, methodForm, bareCall].sort());
+  expect(starts(results[1]!.result as Location[])).toEqual([secondDecl, onLiteral].sort());
+
+  const renamed = soleFileEdits(results[2]!.result as WorkspaceEditT);
+  expect(starts(renamed)).toEqual([firstDecl, methodForm, bareCall].sort());
+  for (const e of renamed) expect(textAt(src, e.range)).toBe("describe");
+
+  // `v.add(v) + v` runs `add` without naming it: a reference all the same.
+  expect(starts(results[3]!.result as Location[])).toEqual([addDecl, addMethod, addOperator].sort());
+  // `Add` fixes the name: renaming one impl's member would leave the trait's.
+  expect(results[4]!.result).toBeNull();
+}, { timeout: MEDIUM_BUILD });
+
+// `U.dbl` names the fn whether it is called or handed on as a value.
+const NAMESPACE_VALUE_SOURCE = `module "demo"
+
+U :: import "demo/util"
+
+apply :: fn(f: fn(i32) -> i32, x: i32) -> i32 = f(x)
+
+main :: fn() -> i32 = U.dbl(3) + apply(U.dbl, 1)
+`;
+
+test("lsp: a namespace member is referenced and renamed as a value too", async () => {
+  const src = NAMESPACE_VALUE_SOURCE;
+  const results = await driveLsp(src, [
+    { method: "textDocument/references", position: positionOf(src, "U.dbl(3)", 2) },
+    { method: "textDocument/rename", position: positionOf(src, "U.dbl(3)", 2) },
+  ], {
+    "util/util.vader": `module "demo/util"\n\nexport dbl :: fn(x: i32) -> i32 = x * 2\n`,
+  });
+
+  const sites = results[0]!.result as Location[];
+  const here = sites.filter((l) => l.uri.endsWith("lsp-test.vader"));
+  expect(starts(here)).toEqual([key(positionOf(src, "U.dbl(3)", 2)), key(positionOf(src, "U.dbl, 1", 2))].sort());
+  expect(sites).toHaveLength(3);
+
+  const edit = results[1]!.result as WorkspaceEditT;
+  const edits = Object.values(edit.changes).flat();
+  expect(edits).toHaveLength(3);
+}, { timeout: MEDIUM_BUILD });
+
+// A trait default is copied into each impl that inherits it; the copy has no
+// source of its own, so nothing in it is a reference.
+const DEFAULT_COPY_SOURCE = `module "lsptest"
+
+V :: struct { x: i32 }
+
+V implements Add {
+    add :: fn(self, other: V) -> V = V { .x = self.x + other.x }
+}
+
+Doubler :: trait {
+    get :: fn(self) -> V
+    twice :: fn(self) -> V = self.get() + self.get()
+}
+
+W :: struct { v: V }
+
+W implements Doubler {
+    get :: fn(self) -> V = self.v
+}
+
+main :: fn() -> i32 = W { .v = V { .x = 1 } }.twice().x
+`;
+
+test("lsp: a trait default copied into an impl is no reference", async () => {
+  const src = DEFAULT_COPY_SOURCE;
+  const results = await driveLsp(src, [
+    { method: "textDocument/references", position: positionOf(src, "add :: fn") },
+  ]);
+  const sites = results[0]!.result as Location[];
+  // The trait's own body is typechecked through its copies only, so its `+` has
+  // no record of its own: the declaration is the one site.
+  expect(starts(sites)).toEqual([key(positionOf(src, "add :: fn"))]);
+  expect(sites[0]!.uri.endsWith("lsp-test.vader")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
 // An `as` alias is declared by its NAME token, in both forms.
 const AS_ALIAS_SOURCE = `module "lsptest"
 

@@ -95,8 +95,8 @@ export BoundedImpl :: struct {
     bounds: ArgBound[]
 }
 
-/// A fn declaration with the module declaring it : node ids repeat across modules,
-/// so a declaration alone does not name a fn.
+/// A fn declaration with the module declaring it, where the tables about it live
+/// (`fn_observes_type_params`).
 export FnDeclRef :: struct {
     module: string
     decl:   AST.FnDecl
