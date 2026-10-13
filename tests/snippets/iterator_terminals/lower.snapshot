@@ -202,7 +202,7 @@
               let __fuse_step_0: [i32, Continuation]! =
                 call :[i32, Continuation]!
                   callee:
-                    snippet$Countdown$Iterator$next :?
+                    snippet$Countdown$Iterator$next :[i32, Continuation]!
                   arg0:
                     __fuse_iter_5 :Countdown!
               if :void

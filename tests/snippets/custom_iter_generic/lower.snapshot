@@ -14,7 +14,7 @@
         let __step_1: [i32, Continuation]! =
           call :[i32, Continuation]!
             callee:
-              snippet$Repeat$Iterator$next__i32 :?
+              snippet$Repeat$Iterator$next__i32 :[i32, Continuation]!
             arg0:
               __iter_0 :Repeat<i32>!
         if :void

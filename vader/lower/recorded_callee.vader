@@ -72,14 +72,41 @@ recorded_target :: fn(
     node: Expr,
     role: CallRole,
     receiver: Type,
+) -> RecordedTarget | null = callee_target(ctx, recorded_callee(ctx, node, role), receiver)
+
+/// What `callee`, a site's record, calls on `receiver` at this instance : see
+/// `recorded_target`.
+///
+/// @param callee    the site's record ; null for a site with none.
+/// @param receiver  the receiver's type at this instance.
+callee_target :: fn(
+    ctx: FnLowerCtx,
+    callee: Callee | null,
+    receiver: Type,
 ) -> RecordedTarget | null {
-    callee :: recorded_callee(ctx, node, role) ?? return null
+    if callee == null {
+        return null
+    }
     return match callee {
         is DirectFn    -> settled_direct_member(ctx, callee, receiver)
         is BoundMember -> bound_target(ctx, callee, receiver)
         is TraitMember -> RecordedVirtual { .trait_key = callee.trait_key }
         is FnValue | Builtin | ErroneousCallee | UnsettledCallee | EachOf -> null
     }
+}
+
+/// The impl that runs the member `callee` names on `receiver` at this instance :
+/// the one that declares it, or, for a member chosen against a type parameter, the
+/// impl serving the instance. Null for a free fn.
+///
+/// @param callee    a site's record.
+/// @param receiver  the receiver's type at this instance.
+recorded_impl :: fn(ctx: FnLowerCtx, callee: DirectFn, receiver: Type) -> ImplEntry | null {
+    entry :: ctx.project.impls.member_entry(callee.decl) ?? return null
+    if !callee.per_instance {
+        return entry
+    }
+    return ctx.project.impls.serving_impl(entry, impl_receiver(entry, receiver))
 }
 
 // The member `callee` names, built for `receiver` ; null for a free fn.
@@ -169,7 +196,7 @@ settled_bound_member :: fn(
 // `receiver` as the impl `entry` is written for : a distinct reaches its backing's
 // impl through its backing, an enum its repr's.
 impl_receiver :: fn(entry: ImplEntry, receiver: Type) -> Type {
-    if impl_base_key(receiver) == entry.target {
+    if receiver !is DistinctType | EnumType || impl_base_key(receiver) == entry.target {
         return receiver
     }
     if receiver is DistinctType {

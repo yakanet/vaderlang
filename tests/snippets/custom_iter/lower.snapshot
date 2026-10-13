@@ -47,7 +47,7 @@
         let __step_1: [i32, Continuation]! =
           call :[i32, Continuation]!
             callee:
-              snippet$Countdown$Iterator$next :?
+              snippet$Countdown$Iterator$next :[i32, Continuation]!
             arg0:
               __iter_0 :Countdown!
         if :void

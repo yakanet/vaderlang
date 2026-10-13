@@ -357,7 +357,7 @@
         let __step_22: [char, Continuation]! =
           call :[char, Continuation]!
             callee:
-              std_string$StringChars$Iterator$next :?
+              std_string$StringChars$Iterator$next :[char, Continuation]!
             arg0:
               __iter_21 :StringChars!
         if :void

@@ -57,7 +57,7 @@
             let __fuse_step_0: [char, Continuation]! =
               call :[char, Continuation]!
                 callee:
-                  std_string$StringChars$Iterator$next :?
+                  std_string$StringChars$Iterator$next :[char, Continuation]!
                 arg0:
                   __fuse_iter_0 :StringChars!
             if :void

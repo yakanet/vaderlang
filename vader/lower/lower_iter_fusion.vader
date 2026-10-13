@@ -261,13 +261,15 @@ bare_array_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 }
 
 // True when the array `expr` reaches its `Iterator` slot through the `into` of an
-// impl on its own instance (`MonType[] implements Into<Iterator<MonType>!>`), the
-// one the typechecker chose (`into_method_toward`) : iterating the raw array would
-// skip it.
+// impl on its own instance (`MonType[] implements Into<Iterator<MonType>!>`), as
+// the typecheck recorded it : iterating the raw array would skip it.
 converts_through_own_into :: fn(ctx: FnLowerCtx, array: Type, expr: AST.Expr) -> bool {
-    target :: ctx.typed.into_coercions[expr.id] ?? return false
-    found :: array_into_member(ctx, array, target) ?? return false
-    return found.entry.instance
+    into :: recorded_callee(ctx, expr, .Into)
+    if into !is DirectFn {
+        return false
+    }
+    entry :: recorded_impl(ctx, into, array) ?? return false
+    return entry.instance
 }
 
 // The receiver (chain source) + transform/predicate arg of a fluent
@@ -449,7 +451,7 @@ bind_layer_operands :: fn(
     arg_sym :: layer.arg_sym
     arg_slot :: layer.arg_slot
     if arg_expr != null && arg_sym != null && arg_slot != null {
-        arg :: prepare_value_for_slot(ctx, recurse(ctx, arg_expr), arg_slot, chain.span)
+        arg :: prepare_node_for_slot(ctx, arg_expr, recurse(ctx, arg_expr), arg_slot, chain.span)
         out.push(cell_aware_let(ctx, arg_sym, arg_sym.name, arg, arg_slot, chain.span))
     }
     return IterChain {
@@ -499,7 +501,7 @@ emit_fused_opaque_iter :: fn(
     step_type :: shape.type
 
     step_symbol :: fresh_synthetic_symbol(ctx, "fuse_step")
-    step_call :: build_step_call(ctx, iter_ref, iter_type, step_type, span)
+    step_call :: build_step_call(ctx, null, iter_ref, iter_type, step_type, span)
     step_let :: LoweredLet {
         .span = span, .name = step_symbol.name, .symbol = step_symbol,
         .type = step_type, .value = step_call,

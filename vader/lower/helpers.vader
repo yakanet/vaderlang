@@ -11,31 +11,19 @@ import "std/collections"
 import "vader/diagnostics"
 import "toolchain/ast"
 import "vader/resolver/symbol"
+import "vader/typecheck"
 import "vader/types"
 import "toolchain/span"
 import "std/string_builder"
 
-/// Prepare a lowered value for the slot it flows into — the ONE place that knows
-/// what "reaching a param / field / binding of type T" requires : an `Into`
-/// coercion when the value converts to the slot's type, chiefly a raw `T[]`
-/// reaching an `Iterator<T>` param, which wraps as the `array_iter` generator.
+/// Prepare the value of `node` for the slot of type `slot` it flows into : through
+/// the `into` the typecheck recorded for it, if any, telling the callee verifier
+/// (`verify_callees.vader`).
 ///
 /// EVERY call-building path must route its args through here, receiver
 /// included, because nothing downstream converts : `midir/emit.vader` emits call
 /// args as the lowered node typed them, only telling a scalar that enters a union
 /// slot its own type (`retag`).
-///
-/// @param ctx   the fn-body context — an `Into` coercion registers its member.
-/// @param expr  the lowered value.
-/// @param slot  the declared type of the slot it flows into.
-/// @param span  span to attribute a synthesised `into` call to.
-/// @return      the coerced value, or `expr` unchanged when no `Into` applies.
-prepare_value_for_slot :: fn(
-    ctx: FnLowerCtx, expr: LoweredExpr, slot: Type, span: Span,
-) -> LoweredExpr! = try_emit_into_coercion(ctx, expr, type_of(expr), slot, span) ?? expr
-
-/// `prepare_value_for_slot` for the value of `node`, telling the callee verifier
-/// whether the conversion ran an `into` (`verify_callees.vader`).
 ///
 /// @param node  the value's AST node, where the typecheck filed its conversion.
 /// @param expr  the lowered value.
@@ -44,9 +32,22 @@ prepare_value_for_slot :: fn(
 prepare_node_for_slot :: fn(
     ctx: FnLowerCtx, node: Expr, expr: LoweredExpr, slot: Type, span: Span,
 ) -> LoweredExpr! {
-    prepared :: try_emit_into_coercion(ctx, expr, type_of(expr), slot, span) ?? expr
+    prepared :: recorded_conversion(ctx, node, .Into, expr, slot, span)
     observe_replacement(ctx, node, .Into, expr, prepared)
     return prepared
+}
+
+// `expr`, the value of `node`, through the `into` the typecheck recorded for the
+// site `role` plays at `node`, toward a value of type `slot` ; `expr` itself when
+// it recorded none.
+recorded_conversion :: fn(
+    ctx: FnLowerCtx, node: Expr, role: CallRole, expr: LoweredExpr, slot: Type, span: Span,
+) -> LoweredExpr! {
+    into :: recorded_target(ctx, node, role, type_of(expr))
+    if into is UfcsMember {
+        return build_member_call_or_inline(into, [expr], slot, span)
+    }
+    return expr
 }
 
 /// Lower `value` and prepare it for the slot of type `slot` it flows into: an

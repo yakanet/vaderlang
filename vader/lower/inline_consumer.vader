@@ -292,9 +292,9 @@ emit_inlined_consumer :: fn(ctx: FnLowerCtx, call: ConsumerCall, type: Type, spa
         .result = result,
         .result_type = type,
     }
-    lowered :: lower_instance_body(ctx, consumer_ctx, value_tail(body))
-    raw :: lowered.trailing
-    trailing :: if raw == null { null } else { slot_result(consumer_ctx, raw, type, span) }
+    value_block :: value_tail(body)
+    lowered :: lower_instance_body(ctx, consumer_ctx, value_block)
+    trailing :: consumed_value(consumer_ctx, value_block.trailing, lowered.trailing, type, span)
     if !call.instance.exited {
         stmts.push_all(lowered.stmts)
         return result_block(stmts, trailing, type, span)
@@ -343,7 +343,7 @@ bind_consumer_arguments :: fn(
         }
         slot :: substitute(call.signature.params[k], call.subst)
         arg :: target.args[k]
-        value :: prepare_value_for_slot(ctx, lower_expr(ctx, arg), slot, span_of(arg))
+        value :: prepare_node_for_slot(ctx, arg, lower_expr(ctx, arg), slot, span_of(arg))
         out.push(bind_instance_param(ctx, call.instance, target.owner, target.decl.params[k], value, slot))
     }
     return bound
@@ -368,10 +368,25 @@ value_tail :: fn(body: AST.BlockExpr) -> AST.BlockExpr {
     return body
 }
 
-// `value` in the call's result slot ; a void result keeps it as it is, a
-// statement.
-slot_result :: fn(ctx: FnLowerCtx, value: LoweredExpr, type: Type, span: Span) -> LoweredExpr! =
-    if is_void(type) { value } else { prepare_value_for_slot(ctx, value, type, span) }
+// `value`, lowered from `node`, in the call's result slot ; a void result keeps it as
+// it is, a statement.
+slot_result :: fn(
+    ctx: FnLowerCtx, node: AST.Expr, value: LoweredExpr, type: Type, span: Span,
+) -> LoweredExpr! {
+    if is_void(type) {
+        return value
+    }
+    return prepare_node_for_slot(ctx, node, value, type, span)
+}
+
+// The body's trailing value `raw`, lowered from `node`, in the call's result slot.
+consumed_value :: fn(
+    ctx: FnLowerCtx, node: AST.Expr | null, raw: LoweredExpr | null, type: Type, span: Span,
+) -> LoweredExpr! | null {
+    value :: raw ?? return null
+    source :: node ?? return value
+    return slot_result(ctx, source, value, type, span)
+}
 
 assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr, span: Span) -> LoweredStmt! {
     if is_void(type) {
@@ -395,7 +410,7 @@ assign_consumer_return :: fn(
     ctx: FnLowerCtx, consumer: InlineConsumer, stmt: AST.ReturnStmt, out: LoweredStmt[],
 ) -> void {
     if stmt.value is AST.Expr as v {
-        value :: slot_result(ctx, lower_expr(ctx, v), consumer.result_type, stmt.span)
+        value :: slot_result(ctx, v, lower_expr(ctx, v), consumer.result_type, stmt.span)
         out.push(assign_consumed(consumer.result, consumer.result_type, value, stmt.span))
     }
 }

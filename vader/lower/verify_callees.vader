@@ -258,22 +258,6 @@ walked_in_place :: fn(
     return lowered
 }
 
-/// `note_member_origin` for the member named `member` of `entry`.
-///
-/// @param mangled  the name the call carries.
-/// @param entry    the impl that declares it.
-/// @param member   the member's name.
-note_entry_member :: fn(
-    ctx: FnLowerCtx,
-    mangled: string,
-    entry: ImplEntry,
-    member: string,
-) -> void {
-    _ :: ctx.project.callee_verifier ?? return
-    decl :: select_member(entry, member) ?? return
-    note_member_origin(ctx, mangled, decl, entry.trait_key)
-}
-
 /// Note that a call mangled `mangled` names `decl`, a member of an impl of
 /// `trait_key`.
 ///

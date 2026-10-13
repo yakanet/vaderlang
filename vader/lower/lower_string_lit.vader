@@ -5,11 +5,11 @@
 // when some part is a directly-writable primitive (int / uint / bool) — each
 // writes its bytes straight in, no throwaway interned string per part. A purely
 // text + `${string}` / `${Display}` interpolation has no digit to format, so it
-// stays on the leaner all-string concat path (`concat_from_collected` →
-// `lower_concat_chain` → the shared `concat_N`, same shape as `+`). Interpolated
-// `${Display}` values render via `build_display_to_string_call` (handles
-// primitives, structs, and FreeFloat→f64 pinning). The buffer primitives live in
-// the force-loaded `std/core` prelude, so resolution always succeeds.
+// stays on the leaner all-string concat path (`lower_concat_chain`, the shared
+// `concat_N`, same shape as `+`). Interpolated
+// `${Display}` values render through what the typecheck recorded (`render_part`).
+// The buffer primitives live in the force-loaded `std/core` prelude, so
+// resolution always succeeds.
 
 module "vader/lower"
 
@@ -19,6 +19,7 @@ import "std/abort"
 import "toolchain/ast"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
+import "vader/typecheck"
 import "vader/types"
 import "toolchain/span"
 
@@ -187,10 +188,9 @@ resolve_buffer_type :: fn(ctx: FnLowerCtx, wstr_sym: Symbol) -> Type | null {
 // the rest = a primitive that formats its bytes directly.
 WriterKind :: enum(u8) { Text, Str, Signed, Unsigned, Bool, Display }
 
-// A `distinct`-over-int is deliberately NOT stripped to its base : it may carry a
-// CUSTOM `Display` impl (e.g. `Instant`'s ISO-8601 form over `distinct i64`), so it
-// must take the `.Display` path and dispatch to that impl — the int fast path would
-// wrongly write its raw backing integer. Only a bare primitive fast-paths.
+// The writer of a bare primitive ; `.Display` for any other type, which renders
+// through its `Display` (`render_part`) — a distinct included, whose own `Display`
+// may differ from its backing's (`Instant`'s ISO-8601 form over `distinct i64`).
 classify_kind :: fn(t: Type) -> WriterKind {
     if t is PrimitiveType {
         if is_signed_int_name(t.name)   { return .Signed }
@@ -209,7 +209,7 @@ classify_kind :: fn(t: Type) -> WriterKind {
 // it never grows ; `off` threads through the offset-returning `write_*`
 // primitives, interned once. A purely text + `${string}` / `${Display}`
 // interpolation has no digit to format, so it stays on the leaner all-string
-// `concat_N` path (`concat_from_collected`). Each part is lowered once.
+// `concat_N` path (`lower_concat_chain`). Each part is lowered once.
 lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr! {
     string_type :: TY_STRING
     usize_type :: mk_primitive("usize")
@@ -227,15 +227,15 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr! 
             }
             is StringLitInterp -> {
                 inner :: lower_expr(ctx, part.expr)
-                shown :: shown_type(ctx, part.expr, inner)
-                k :: classify_kind(shown)
-                if k == .Signed || k == .Unsigned || k == .Bool { has_direct = true }
-                if k == .Display {
-                    rendered :: build_display_to_string_call(ctx, inner, shown, span)
+                shown :: default_if_free(shown_type(ctx, part.expr, inner))
+                rendered :: render_part(ctx, part.expr, inner, shown, span)
+                if rendered != null {
                     observe_replacement(ctx, part.expr, .Display, inner, rendered)
                     values.push(rendered)
                     kinds.push(.Str)
                 } else {
+                    k :: classify_kind(strip_distinct(shown))
+                    if k == .Signed || k == .Unsigned || k == .Bool { has_direct = true }
                     observe_no_call(ctx, part.expr, .Display, "writer")
                     values.push(inner)
                     kinds.push(k)
@@ -243,27 +243,21 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr! 
             }
         }
     }
-    if !has_direct { return concat_from_collected(ctx, values, kinds, span) }
+    // Every part is a string : the all-string `concat_N`.
+    if !has_direct {
+        return lower_concat_chain(ctx, values, span)
+    }
 
-    // Resolve the std/core buffer API ; a miss (impossible — force-loaded) falls
-    // back to concat. Separate checks so each narrows to a non-null Symbol.
-    nbb_sym :: resolve_writer_fn(ctx, "new_byte_buffer")
-    if nbb_sym == null { return concat_from_collected(ctx, values, kinds, span) }
-    finish_sym :: resolve_writer_fn(ctx, "finish_buffer")
-    if finish_sym == null { return concat_from_collected(ctx, values, kinds, span) }
-    blen_sym :: resolve_writer_fn(ctx, "byte_len")
-    if blen_sym == null { return concat_from_collected(ctx, values, kinds, span) }
-    wstr_sym :: resolve_writer_fn(ctx, "write_string_at")
-    if wstr_sym == null { return concat_from_collected(ctx, values, kinds, span) }
-    wint_sym :: resolve_writer_fn(ctx, "write_int")
-    if wint_sym == null { return concat_from_collected(ctx, values, kinds, span) }
-    wuint_sym :: resolve_writer_fn(ctx, "write_unsigned")
-    if wuint_sym == null { return concat_from_collected(ctx, values, kinds, span) }
-    wbool_sym :: resolve_writer_fn(ctx, "write_bool")
-    if wbool_sym == null { return concat_from_collected(ctx, values, kinds, span) }
+    // Resolve the std/core buffer API.
+    nbb_sym :: resolve_writer_fn(ctx, "new_byte_buffer") ?? return unreachable_buffer("new_byte_buffer")
+    finish_sym :: resolve_writer_fn(ctx, "finish_buffer") ?? return unreachable_buffer("finish_buffer")
+    blen_sym :: resolve_writer_fn(ctx, "byte_len") ?? return unreachable_buffer("byte_len")
+    wstr_sym :: resolve_writer_fn(ctx, "write_string_at") ?? return unreachable_buffer("write_string_at")
+    wint_sym :: resolve_writer_fn(ctx, "write_int") ?? return unreachable_buffer("write_int")
+    wuint_sym :: resolve_writer_fn(ctx, "write_unsigned") ?? return unreachable_buffer("write_unsigned")
+    wbool_sym :: resolve_writer_fn(ctx, "write_bool") ?? return unreachable_buffer("write_bool")
     // Buffer type from `write_string_at`'s self param.
-    buffer_type :: resolve_buffer_type(ctx, wstr_sym)
-    if buffer_type == null { return concat_from_collected(ctx, values, kinds, span) }
+    buffer_type :: resolve_buffer_type(ctx, wstr_sym) ?? return unreachable_buffer("Buffer")
     register_nongeneric_imported_fn(ctx, nbb_sym)
     register_nongeneric_imported_fn(ctx, finish_sym)
     register_nongeneric_imported_fn(ctx, blen_sym)
@@ -352,26 +346,61 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr! 
     }
 }
 
-// The non-direct path : each part as a string operand (Str / Text verbatim, else
-// `value.to_string()`), concatenated via the same shared `concat_N` as `+`.
-// Used when no part is a direct-write primitive, or the buffer API doesn't resolve.
-concat_from_collected :: fn(ctx: FnLowerCtx, values: LoweredExpr[], kinds: WriterKind[], span: Span) -> LoweredExpr! {
-    operands: LoweredExpr[]: []
-    for i in 0..<values.len() {
-        if kinds[i] == .Str || kinds[i] == .Text {
-            operands.push(values[i])
-        } else {
-            operands.push(build_display_to_string_call(ctx, values[i], type_of(values[i]), span))
-        }
-    }
-    return lower_concat_chain(ctx, operands, span)
-}
-
 // Widen `inner` to `width` (i64 / u64) for the write fn ; identity when already it.
 cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExpr! {
     t :: type_of(inner)
     if t is PrimitiveType { if t.name == width { return inner } }
     return LoweredCast { .span = span, .type = mk_primitive(width), .value = inner }
+}
+
+// What renders the interpolated `value` of type `shown`, as the typecheck recorded
+// it : its `Display` member, called or inlined, or the vtable's. Null when the
+// interpolation writes the value itself — an integer, a `bool`, a `string`, or a
+// distinct over one with no `Display` of its own — a bound's settled on such an
+// instance included.
+render_part :: fn(
+    ctx: FnLowerCtx,
+    node: Expr,
+    value: LoweredExpr,
+    shown: Type,
+    span: Span,
+) -> LoweredExpr! | null {
+    callee :: recorded_callee(ctx, node, .Display)
+    if writes_part(ctx, callee, shown) {
+        return null
+    }
+    target :: callee_target(ctx, callee, shown)
+    if target is UfcsMember {
+        return build_member_call_or_inline(target, [value], TY_STRING, span)
+    }
+    // A member dispatched at run time ; a value no writer takes (one that never
+    // exists) renders through the vtable too.
+    display :: core_trait_key(TRAIT_DISPLAY)
+    return virtual_call(ctx, display, METHOD_TO_STRING, value, [], TY_STRING, span)
+}
+
+// Whether the interpolation writes a part of type `shown` itself : the typecheck
+// recorded no call, or the type it settles on is one the interpolation writes — a
+// bound's member at its instance, a part typed only once unrolled (`@field` in a
+// `@comptime for`, recorded as erroneous).
+writes_part :: fn(ctx: FnLowerCtx, callee: Callee | null, shown: Type) -> bool {
+    if callee is Builtin {
+        return shown !is NeverType
+    }
+    if callee == null || callee is BoundMember | ErroneousCallee | UnsettledCallee {
+        return writes_itself(ctx, shown)
+    }
+    return false
+}
+
+// Whether the interpolation writes a value of type `t` itself : an integer, a
+// `bool`, a `string`, or a distinct over one with no `Display` of its own.
+writes_itself :: fn(ctx: FnLowerCtx, t: Type) -> bool {
+    if t is DistinctType {
+        own :: ctx.project.impls.impls_of(impl_base_key(t), core_trait_key(TRAIT_DISPLAY))
+        return own.len() == 0 && writes_itself(ctx, t.backing)
+    }
+    return classify_kind(t) != .Display
 }
 
 // The type whose `Display` renders an interpolated value : its checked type when
@@ -380,52 +409,6 @@ cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExp
 shown_type :: fn(ctx: FnLowerCtx, source: Expr, lowered: LoweredExpr) -> Type {
     checked :: enum_type_or_unwrap(ctx, ctx.types.expr_type(source))
     return if checked is EnumType { checked } else { type_of(lowered) }
-}
-
-// Build a `<T>.Display.to_string(value)` call shape, `T` being `source_type`.
-// Prefers a direct `LoweredCall` to the per-receiver impl member when the impl is
-// statically resolvable (concrete struct / enum types). Falls back
-// to `LoweredVirtualCall` for primitives / generic-T receivers where
-// the impl exists per-instantiation but isn't reachable at lower-time.
-build_display_to_string_call :: fn(
-    ctx: FnLowerCtx, value: LoweredExpr, source_type: Type, span: Span,
-) -> LoweredExpr! {
-    direct :: try_direct_display_call(ctx, value, source_type, span)
-    if direct != null { return direct }
-    // Erased Display dispatch (generic-`T` receiver, union) : the boxed tag picks
-    // the impl at runtime.
-    no_args: LoweredExpr[]: []
-    display :: core_trait_key(TRAIT_DISPLAY)
-    return virtual_call(ctx, display, METHOD_TO_STRING, value, no_args, TY_STRING, span)
-}
-
-// Look up `<source_type>.Display.to_string` statically. Returns a
-// `LoweredCall` whose callee is the impl-member's mangled fn symbol
-// when reachable ; null otherwise. The mangling matches what
-// `lower_impl_members` registers in `lower.vader`.
-try_direct_display_call :: fn(
-    ctx: FnLowerCtx, value: LoweredExpr, source_type: Type, span: Span,
-) -> LoweredExpr! | null {
-    string_type :: TY_STRING
-    // A `FreeFloat` literal (un-defaulted at lower-time) displays as `f64`:
-    // pin it so the lookup finds f64's concrete Ryu `Display` impl rather than
-    // falling through to an erased virtual dispatch.
-    receiver_type :: if source_type is FreeFloatType { mk_primitive("f64") } else { source_type }
-    // Resolve `<T>.Display.to_string` through the canonical UFCS path. This
-    // mangles via the IMPL's owning module (`std_core$usize$Display$to_string`,
-    // not the caller's) AND records the mangle in `referenced_impl_mangles`, so
-    // the post-lowering pass surfaces the bodyless intrinsic member as an import
-    // and the call resolves to its `$vt` wrapper. A previous hand-rolled scan
-    // here emitted a bare `to_string` callee with no recorded reference, so the
-    // call fell through to the emit's defensive `Return` (e.g. every `${usize}`
-    // interpolation silently mis-compiled). `null` (no concrete Display impl:
-    // generic-T / trait receiver) falls back to a `LoweredVirtualCall`.
-    member :: find_impl_member_for(ctx, receiver_type, METHOD_TO_STRING) ?? return null
-    // Build the direct `to_string(value)` call — or, when the member is the
-    // identity `fn(self) = self` (string's `Display`), inline to `value` itself.
-    call_args: LoweredExpr[]: []
-    call_args.push(value)
-    return build_member_call_or_inline(member, call_args, string_type, span)
 }
 
 has_interp_part :: fn(expr: StringLitExpr) -> bool {

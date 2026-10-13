@@ -18,7 +18,7 @@
         let __step_1: [char, Continuation]! =
           call :[char, Continuation]!
             callee:
-              std_string$StringChars$Iterator$next :?
+              std_string$StringChars$Iterator$next :[char, Continuation]!
             arg0:
               __iter_0 :StringChars!
         if :void
@@ -60,7 +60,7 @@
         let __step_3: [char, Continuation]! =
           call :[char, Continuation]!
             callee:
-              std_string$StringChars$Iterator$next :?
+              std_string$StringChars$Iterator$next :[char, Continuation]!
             arg0:
               __iter_2 :StringChars!
         if :void
@@ -98,7 +98,7 @@
         let __step_5: [char, Continuation]! =
           call :[char, Continuation]!
             callee:
-              std_string$StringChars$Iterator$next :?
+              std_string$StringChars$Iterator$next :[char, Continuation]!
             arg0:
               __iter_4 :StringChars!
         if :void
@@ -218,7 +218,7 @@
         let __step_9: [char, Continuation]! =
           call :[char, Continuation]!
             callee:
-              std_string$StringChars$Iterator$next :?
+              std_string$StringChars$Iterator$next :[char, Continuation]!
             arg0:
               __iter_8 :StringChars!
         if :void

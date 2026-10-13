@@ -69,6 +69,7 @@ the typed level, where a generic body is checked once.
   - an `into` the typecheck accepts at an assignment and the lowering never emits.
 
   The verifier lists them. Where the lowering is wrong, the lowering is fixed, not
-  the record.
+  the record: the last three are, once the lowering reads the record; the fast
+  paths remain, and the verifier keeps their list.
 - The lowering switches to the record form by form, once the verifier reports no
   unexplained disagreement for that form.

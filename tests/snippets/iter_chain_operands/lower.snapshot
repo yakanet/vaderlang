@@ -1343,7 +1343,7 @@
         let __step_49: [i32, Continuation]! =
           call :[i32, Continuation]!
             callee:
-              std_core$Range$Iterator$next__i32 :?
+              std_core$Range$Iterator$next__i32 :[i32, Continuation]!
             arg0:
               __iter_48 :Range<i32>!
         if :void

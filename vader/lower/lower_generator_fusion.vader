@@ -575,7 +575,7 @@ bind_gen_source_operands :: fn(
     for k in 0..<gs.decl.params.len() {
         slot :: substitute(gs.signature.params[k], gs.subst)
         arg :: recurse(ctx, gs.args[k])
-        value :: prepare_value_for_slot(ctx, arg, slot, span_of(arg))
+        value :: prepare_node_for_slot(ctx, gs.args[k], arg, slot, span_of(arg))
         out.push(bind_instance_param(ctx, gs.instance, gs.owner, gs.decl.params[k], value, slot))
     }
     return chain

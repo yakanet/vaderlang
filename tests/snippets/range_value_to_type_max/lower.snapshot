@@ -9,7 +9,7 @@
         let __step_1: [u8, Continuation]! =
           call :[u8, Continuation]!
             callee:
-              std_core$Range$Iterator$next__u8 :?
+              std_core$Range$Iterator$next__u8 :[u8, Continuation]!
             arg0:
               __iter_0 :Range<u8>!
         if :void
@@ -44,7 +44,7 @@
         let __step_1: [i8, Continuation]! =
           call :[i8, Continuation]!
             callee:
-              std_core$Range$Iterator$next__i8 :?
+              std_core$Range$Iterator$next__i8 :[i8, Continuation]!
             arg0:
               __iter_0 :Range<i8>!
         if :void
@@ -79,7 +79,7 @@
         let __step_1: [u64, Continuation]! =
           call :[u64, Continuation]!
             callee:
-              std_core$Range$Iterator$next__u64 :?
+              std_core$Range$Iterator$next__u64 :[u64, Continuation]!
             arg0:
               __iter_0 :Range<u64>!
         if :void
@@ -114,7 +114,7 @@
         let __step_1: [char, Continuation]! =
           call :[char, Continuation]!
             callee:
-              std_core$Range$Iterator$next__char :?
+              std_core$Range$Iterator$next__char :[char, Continuation]!
             arg0:
               __iter_0 :Range<char>!
         if :void

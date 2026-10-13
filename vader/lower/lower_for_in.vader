@@ -11,8 +11,8 @@
 //     <body>
 //   }
 //
-// and auto-wraps `T[]` iterators through `Into<Iterator<T>!>` so the loop
-// dispatches through the standard Iterator impl. Before falling back to
+// and runs the `into` the typecheck recorded for an iterable that only converts
+// into an iterator, then the `next` it recorded. Before falling back to
 // it, `lower_for_in` tries a series of fast paths that bypass the
 // Iterator dispatch entirely : `try_lower_chain_fusion` (std/iter
 // `map`/`filter` chains over an int range), `try_lower_for_in_int_range`
@@ -94,20 +94,22 @@ export lower_for_in :: fn(
         + "set, a fusible combinator chain and a direct generator")
 
     // A bare `string` has no `next()` to dispatch on: give the step-loop the
-    // concrete `StringChars` instead.
-    wrap_result :: wrap_string_iter(ctx, iter_lowered_raw, iter_type_raw, span)
-    observe_replacement(ctx, in_form.iter, .IterInto, iter_lowered_raw, wrap_result.iter)
-    iter_lowered :: wrap_result.iter
-    iter_type_wrapped :: wrap_result.iter_type
-    element_type :: resolve_element_type(ctx, iter_type_raw, iter_type_wrapped, loop_var_type_key(in_form.loop_var, for_stmt.span))
+    // concrete `StringChars` instead. That fast path stands in for the string's
+    // recorded `into` and `next` ; anything else runs those (`site`).
+    chars :: chars_of(ctx, iter_lowered_raw, iter_type_raw, span)
+    site :: recorded_site(in_form.iter, chars)
+    iterable :: chars ?? iter_lowered_raw
+    loop_var_key :: loop_var_type_key(in_form.loop_var, for_stmt.span)
+    element_type :: resolve_element_type(ctx, iter_type_raw, type_of(iterable), loop_var_key)
+    iter_lowered :: into_iterator(ctx, site, iterable, element_type, span)
+    observe_replacement(ctx, in_form.iter, .IterInto, iter_lowered_raw, iter_lowered)
     // Direction A : an escaping `generator` result is typed as its concrete
     // `__genstate_<fn>` struct so combinator chains resolve at typecheck. When the
     // for-in DIDN'T fuse (the fusion fast paths above declined), erase it back to
-    // `Iterator<element>` for the step loop so dispatch goes through the proven
-    // virtual `Iterator::next` vtable path (as before Direction A) rather than a
-    // devirtualized direct call to the state-machine `next` — whose synth decl the
-    // DCE prunes when it isn't reached by a symbol edge.
-    iter_type :: erase_genstate_for_dispatch(ctx, iter_type_wrapped, element_type)
+    // `Iterator<element>` for the step loop : the typecheck records the generator
+    // itself as what steps it, and the state's synthesised `next` is reached
+    // through the `Iterator` vtable.
+    iter_type :: erase_genstate_for_dispatch(ctx, type_of(iter_lowered), element_type)
 
     // No `Iterator` dispatch is reachable from the step loop for a primitive or a
     // union : emit a single `unreachable` rather than a `next()` nothing
@@ -116,8 +118,7 @@ export lower_for_in :: fn(
     // iterates only when its `Iterator` impl is in scope — those are M5001.
     if iter_type is PrimitiveType | UnionType {
         checked :: ctx.types.raw_expr_type(in_form.iter)
-        is_string :: iter_type is PrimitiveType && iter_type.name == "string"
-        if is_string || checked is TypeParamType | SelfType {
+        if is_string_type(iter_type) || checked is TypeParamType | SelfType {
             ctx.project.diags.push(lower_error(.IteratorImplMissing, span,
                 "`for x in iter` requires an Iterator impl on ${display_type(iter_type)}"))
         }
@@ -151,7 +152,7 @@ export lower_for_in :: fn(
     }
 
     iter_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = iter_symbol }
-    step_call :: build_step_call(ctx, iter_ref, iter_type, step_type, span)
+    step_call :: build_step_call(ctx, site, iter_ref, iter_type, step_type, span)
     observe_lowered(ctx, in_form.iter, .IterNext, step_call)
     step_let :: LoweredLet {
         .span = span, .name = step_symbol.name, .symbol = step_symbol,
@@ -273,34 +274,24 @@ build_body_stmts :: fn(bind_stmts: LoweredStmt[], user_body: LoweredBlock) -> Lo
     return out
 }
 
-WrapResult :: struct {
-    iter:      LoweredExpr!
-    iter_type: Type
-}
-
 // `string` → `StringChars`, via a synthesised `chars(s)` call.
 //
 // `string` implements `Into<Iterator<char>!>`, but routing through `into()` hands
 // back the ERASED `Iterator<char>` trait; calling `chars` keeps the concrete
-// `StringChars`, which `build_step_call`'s StructType path resolves — so
+// `StringChars`, whose own `next` the step loop calls (`step_member`) — so
 // `for c in s` lowers like `for c in s.chars()`.
 //
-// Returns the input verbatim when it is not a string, or when `chars` is out of
-// reach.
-wrap_string_iter :: fn(
+// Null when `iter` is not a string, or when `chars` is out of reach.
+chars_of :: fn(
     ctx: FnLowerCtx, iter: LoweredExpr, iter_type: Type, span: Span,
-) -> WrapResult {
-    unwrapped :: WrapResult { .iter = iter, .iter_type = iter_type }
-    if iter_type !is PrimitiveType {
-        return unwrapped
+) -> LoweredExpr! | null {
+    if !is_string_type(iter_type) {
+        return null
     }
-    if iter_type.name != "string" {
-        return unwrapped
-    }
-    chars :: module_export(ctx.project, "std/string", "chars") ?? return unwrapped
+    chars :: module_export(ctx.project, "std/string", "chars") ?? return null
     chars_fn_ty :: lookup_fn_type_anywhere(ctx, chars)
     if chars_fn_ty !is FnType {
-        return unwrapped
+        return null
     }
     // The synthesised call bypasses `lower_call`, so harvest `chars` ourselves —
     // its owning module (`std/string`) is lowered lazily, and nothing else
@@ -316,7 +307,37 @@ wrap_string_iter :: fn(
         },
         .args = [iter],
     }
-    return WrapResult { .iter = chars_call, .iter_type = chars_fn_ty.return_type }
+    return chars_call
+}
+
+// The site whose recorded `into` and `next` a `for` runs : none when the string
+// fast path (`chars`) stands in for them.
+recorded_site :: fn(iter: AST.Expr, chars: LoweredExpr | null) -> AST.Expr | null {
+    if chars != null {
+        return null
+    }
+    return iter
+}
+
+// The iterator a `for` steps when its iterable only converts into one
+// (`Deck implements Into<Iterator<Card>!>`) : the `Iterator` the `into` the
+// typecheck recorded at `site` hands back ; `iterable` itself otherwise.
+into_iterator :: fn(
+    ctx: FnLowerCtx,
+    site: AST.Expr | null,
+    iterable: LoweredExpr,
+    element: Type,
+    span: Span,
+) -> LoweredExpr! {
+    node :: site ?? return iterable
+    iterator :: iterator_of(ctx, element) ?? return iterable
+    return recorded_conversion(ctx, node, .IterInto, iterable, iterator, span)
+}
+
+// `Iterator<element>!`, the trait value a step loop dispatches `next` on.
+iterator_of :: fn(ctx: FnLowerCtx, element: Type) -> Type | null {
+    trait_sym :: find_core_trait(ctx.project, TRAIT_ITERATOR) ?? return null
+    return mk_trait(trait_sym, [element], false)
 }
 
 // Determine the element type yielded by the iterator. Tries :
@@ -374,94 +395,48 @@ resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type
 // coercion over adding another erase site.
 erase_genstate_for_dispatch :: fn(ctx: FnLowerCtx, iter_type: Type, element_type: Type) -> Type {
     if !is_gen_state_struct(iter_type) { return iter_type }
-    trait_sym :: find_core_trait(ctx.project, TRAIT_ITERATOR)
-    if trait_sym is Symbol { return mk_trait(trait_sym, [element_type], false) }
-    return iter_type
+    return iterator_of(ctx, element_type) ?? iter_type
 }
 
 // Build the per-iter `.next()` step call. Trait-typed iter →
-// `LoweredVirtualCall` ; concrete struct iter → `LoweredCall` to a
-// synth `next` symbol. The bytecode emit resolves the synth callee
-// via the impl-member mangling once that wiring lands.
+// `LoweredVirtualCall` ; concrete struct iter → a direct call to its `next`
+// (`step_member`) ; none, a trap.
 build_step_call :: fn(
-    ctx: FnLowerCtx, iter_ref: LoweredExpr, iter_type: Type, step_union: Type, span: Span,
+    ctx: FnLowerCtx,
+    node: AST.Expr | null,
+    iter_ref: LoweredExpr,
+    iter_type: Type,
+    step_union: Type,
+    span: Span,
 ) -> LoweredExpr! {
-    match iter_type {
-        is TraitType -> {
-            if iter_type.symbol.name == TRAIT_ITERATOR {
-                args: LoweredExpr[]: []
-                return LoweredVirtualCall {
-                    .span = span, .type = step_union,
-                    .trait_name = core_trait_key(TRAIT_ITERATOR), .method = METHOD_NEXT,
-                    .receiver = iter_ref, .args = args, .param_types = [],
-                }
-            }
+    if iter_type is TraitType && iter_type.symbol.name == TRAIT_ITERATOR {
+        args: LoweredExpr[]: []
+        return LoweredVirtualCall {
+            .span = span, .type = step_union,
+            .trait_name = core_trait_key(TRAIT_ITERATOR), .method = METHOD_NEXT,
+            .receiver = iter_ref, .args = args, .param_types = [],
         }
-        _ -> {}
     }
-    // Concrete struct iter (e.g. `Repeat<i32>`) : the impl-member `next`
-    // instance is mangled `<module>$<Struct>$Iterator$next<args-suffix>`
-    // (mirror of the generic-impl instance materialisation, lower.vader).
-    // Carry that mangle so the CFG call emit resolves it via
-    // `function_index_by_mangle` instead of dropping a bare-name callee.
-    // For multi-instantiation the erasure-dedupe keeps one body under the
-    // first instance's suffix ; single-instantiation (the common case)
-    // matches exactly. Cross-module user generic-impls would need the
-    // impl's owning module (see GATE B1) — caller-module here covers the
-    // colocated-struct case.
-    method_next :: METHOD_NEXT
-    next_name := method_next
-    if iter_type is StructType {
-        // Resolve the struct's Iterator impl entry. The materialised `next`
-        // member is registered under the impl's OWNING module (GATE B1) — not
-        // the caller's — so a cross-module iterator (e.g. `std/string`'s
-        // `StringChars`, used from any module via `for c in s`) resolves to
-        // the same mangle `surface_stdlib_impl_externs` / the generic
-        // materialiser emits. Generic impls erase instance args to `__Any` ;
-        // concrete-instantiation iterators keep the concrete suffix. Mirror of
-        // `find_impl_member_for`.
-        winner :: ctx.project.impls.winning_impl(iter_type, core_trait_key(TRAIT_ITERATOR))
-        owning_module :: mangle_module_id(
-            if winner == null { ctx.typed.resolved.display_path } else { winner.module },
-        )
-        args :: iter_type.args
-        suffix :: if winner != null && winner.is_generic {
-            mixed_any_suffix(ctx.project.impls, args)
-        } else {
-            args_suffix(args)
-        }
-        owner :: iter_type.symbol.name
-        overload :: if winner == null { "" } else { winner.overload_suffix }
-        next_name = "${owning_module}$${owner}$${TRAIT_ITERATOR}$${method_next}${suffix}${overload}"
-        if winner != null {
-            note_entry_member(ctx, next_name, winner, method_next)
-        }
-        // Record the call so the post-lowering pass materialises the (with-body)
-        // stdlib impl member instead of dropping the call to the panic fallback.
-        ctx.project.referenced_impl_mangles.add(next_name)
+    next :: step_member(ctx, node, iter_type) ?? return LoweredUnreachable {
+        .span = span,
+        .type = step_union,
+        .reason = "no Iterator impl on ${display_type(iter_type)}",
     }
-    next_symbol :: synth_next_symbol(ctx, next_name)
-    args: LoweredExpr[]: []
-    args.push(iter_ref)
-    return LoweredCall {
-        .span = span, .type = step_union,
-        .callee = LoweredIdent {
-            .span = span, .type = TY_UNRESOLVED, .symbol = next_symbol,
-        },
-        .args = args,
-    }
+    return mk_lowered_call(next.symbol, [iter_ref], step_union, span)
 }
 
-synth_next_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
-    return Symbol {
-        .id         = 0,
-        .kind       = .Fn,
-        .name       = name,
-        .module     = ctx.typed.resolved.path,
-        .module_name = ctx.typed.resolved.path,
-        .visibility = .Private,
-        .defined_at = null,
+// The `next` a `for` over `iter_type` steps : the member the typecheck recorded at
+// the loop's iterable `node`, or, for an iterator a fused chain steps on its own
+// account (`node` null), its impl of `Iterator`.
+step_member :: fn(ctx: FnLowerCtx, node: AST.Expr | null, iter_type: Type) -> UfcsMember | null {
+    if node == null {
+        return resolve_impl_member(ctx, iter_type, core_trait_key(TRAIT_ITERATOR), METHOD_NEXT)
     }
+    next :: recorded_target(ctx, node, .IterNext, iter_type)
+    if next is UfcsMember {
+        return next
+    }
+    return null
 }
 
 // For-in bindings that the body never references don't appear in
