@@ -628,6 +628,7 @@ static int32_t snippet_sum_of(void* l0) {
     while ((l4 < l3)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         l5 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
 #line 38 "tests/snippets/generator_source_fusion/_main.vader"
         l1 = vader_chk_add(i32, l1, l5);

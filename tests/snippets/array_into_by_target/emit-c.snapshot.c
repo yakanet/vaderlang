@@ -311,6 +311,7 @@ static int32_t snippet_main(void) {
 #line 48 "tests/snippets/array_into_by_target/_main.vader"
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
         t0 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l5);
 #line 37 "tests/snippets/array_into_by_target/_main.vader"
         l6 = ((vader_struct_snippet_Mon_t*) t0)->f_v;
@@ -342,6 +343,7 @@ static int32_t snippet_main(void) {
 #line 49 "tests/snippets/array_into_by_target/_main.vader"
         vader_array_t* _a1_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
         t0 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
 #line 37 "tests/snippets/array_into_by_target/_main.vader"
         l6 = ((vader_struct_snippet_Mon_t*) t0)->f_v;

@@ -547,6 +547,7 @@ static bool std_core____Contains_contains__u8(void* l0, uint8_t l1) {
     while ((l4 < l3)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l4, 3u);
         t1 = ((uint8_t) t0.payload.i);
 #line 341 "lib/std/core/core.vader"
@@ -572,6 +573,7 @@ static bool std_core____Contains_contains__i64(void* l0, int64_t l1) {
     while ((l4 < l3)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         t0 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
 #line 341 "lib/std/core/core.vader"
         if (t0 == l1) {
@@ -596,6 +598,7 @@ static bool std_core____Contains_contains__usize(void* l0, size_t l1) {
     while ((l4 < l3)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         t0 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
 #line 341 "lib/std/core/core.vader"
         if (t0 == l1) {

@@ -366,8 +366,9 @@ export InstrArrayGet :: struct {
     target: LocalId
     index:  LocalId
     type:   Type
-    /// BCE : carried from `LoweredIndex.bounds_safe` ; forwarded to the emitted
-    /// `LoadSlot*` / `ArrayGet` op so the C backend can skip the bounds check.
+    /// The index is known in range: carried from `LoweredIndex.bounds_safe`, or
+    /// set by the range analysis (`mark_proven_accesses`) ; forwarded to the
+    /// emitted `LoadSlot*` / `ArrayGet` op so the C backend can skip the check.
     bounds_safe: bool = false
 }
 
@@ -376,8 +377,8 @@ export InstrArraySet :: struct {
     target: LocalId
     index:  LocalId
     value:  LocalId
-    /// BCE : from the store `LoweredIndex.bounds_safe` — forwarded to the emitted
-    /// `StoreSlot*` / `ArraySet` op so the C backend can skip the bounds check.
+    /// As `InstrArrayGet.bounds_safe`, forwarded to the emitted `StoreSlot*` /
+    /// `ArraySet` op.
     bounds_safe: bool = false
 }
 

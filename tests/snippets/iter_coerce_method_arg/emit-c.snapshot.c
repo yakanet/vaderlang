@@ -440,6 +440,7 @@ static int32_t snippet_main(void) {
 #line 50 "tests/snippets/iter_coerce_method_arg/_main.vader"
         vader_array_t* _a2_slotarr = ((vader_array_t*) l4);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l8)
         l9 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l8];
 #line 19 "tests/snippets/iter_coerce_method_arg/_main.vader"
         l6 = vader_chk_add(i32, l6, l9);
@@ -481,6 +482,7 @@ static int32_t snippet_main(void) {
 #line 50 "tests/snippets/iter_coerce_method_arg/_main.vader"
         vader_array_t* _a3_slotarr = ((vader_array_t*) l4);
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l8)
         l9 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l8];
 #line 19 "tests/snippets/iter_coerce_method_arg/_main.vader"
         l6 = vader_chk_add(i32, l6, l9);

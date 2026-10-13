@@ -304,19 +304,18 @@ export LocalField :: struct { slot: i32, type_id: i32, field_index: i32 }
 /// ready for `array.push`. Sprint 4 (b2) addition.
 export ArrayNew :: struct { type_id: i32, length: i32 = 0 }
 /// Pop a value, then an array ; append the value to `array.elements`.
-/// Statement-form, no value pushed back. Sprint 4 (b2) addition.
+/// Statement-form, no value pushed back.
 /// `cache_slot` is the local slot holding the array when `push_cache_tag` proved
 /// this push's loop can keep the array's state in locals (-1 otherwise). It is a
 /// HINT: a backend that ignores it emits the ordinary push and stays correct.
 export ArrayPush :: struct { type_id: i32, cache_slot: i32 = -1 }
 /// Pop an index (i32) and an array ; push `array.elements[index]`.
-/// Traps on out-of-bounds index (unless `bounds_safe`). Sprint 4 (b2) addition.
-/// `bounds_safe` : the producer PROVED the index in range (BCE) → the C backend
+/// Traps on out-of-bounds index (unless `bounds_safe`).
+/// `bounds_safe` : the producer PROVED the index in range → the C backend
 /// skips the check. Default `false`. The VM always checks (soundness oracle).
 export ArrayGet :: struct { type_id: i32, bounds_safe: bool = false }
 /// Pop the new element value, an index, and an array ; mutate
 /// `array.elements[index]` in place. Statement-form, no push back.
-/// Sprint 4 (b2) addition.
 export ArraySet :: struct { type_id: i32, bounds_safe: bool = false }
 /// Pop an array, push its element count (approximated as an i32 ;
 /// our `Value` doesn't carry width tags).
@@ -760,7 +759,7 @@ export StoreI64 :: struct {}
 export StoreF64 :: struct {}
 
 /// 4-byte signed read (`i32` / `u32` / `char` elements).
-/// `bounds_safe` : producer PROVED the index in range (BCE) → C backend skips the
+/// `bounds_safe` : producer PROVED the index in range → C backend skips the
 /// bounds check ; default `false`. The VM checks regardless (soundness oracle).
 export LoadSlotI32 :: struct { bounds_safe: bool = false }
 /// 8-byte signed read (`i64` / `u64` / `usize` / `isize` elements). `bounds_safe` as above.

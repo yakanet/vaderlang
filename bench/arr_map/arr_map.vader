@@ -1,9 +1,9 @@
-// bench/arr_map — map-over-array iterator with a pure callback (BCE).
+// bench/arr_map — map-over-array iterator, its bounds proven.
 //
-// `for x in a.map(square)` fuses to a counter loop over `a[i]` that calls the pure
-// `square`. Post-inline interprocedural purity proves the callback allocates
-// nothing, so the fused `a[i]` drops its bounds check and the iterator
-// abstraction reaches hand-written-index-loop speed. Sibling of
+// `for x in a.map(square)` fuses to a counter loop over `a[i]` that calls
+// `square`. In a release build the range analysis proves the fused `a[i]` in
+// range, `square` shortening no array, so it drops its bounds check and the
+// iterator abstraction reaches hand-written-index-loop speed. Sibling of
 // arr_set (bare index loop) and arr_rw (open-coded load/store).
 
 module "main"

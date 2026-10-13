@@ -658,6 +658,7 @@ static void snippet_flat_map_find(void) {
             while ((l7 < l6)) {
                 vader_array_t* _a2_slotarr = ((vader_array_t*) l5);
                 VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l7)
                 l0 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l7];
 #line 349 "lib/std/iter/iter.vader"
                 t1 = snippet_over_ten(l0);
@@ -756,6 +757,7 @@ static void snippet_chain_find(void) {
 #line 31 "tests/snippets/fusion_consumer_break/_main.vader"
             vader_array_t* _a2_slotarr = ((vader_array_t*) l2);
             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l5)
             l0 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l5];
 #line 349 "lib/std/iter/iter.vader"
             t0 = snippet_above_one(l0);
@@ -780,6 +782,7 @@ static void snippet_chain_find(void) {
 #line 31 "tests/snippets/fusion_consumer_break/_main.vader"
             vader_array_t* _a3_slotarr = ((vader_array_t*) l3);
             VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l5)
             l6 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l5];
 #line 349 "lib/std/iter/iter.vader"
             t0 = snippet_above_one(l6);
@@ -882,6 +885,7 @@ static void snippet_flat_map_break(void) {
             while ((l6 < l5)) {
                 vader_array_t* _a2_slotarr = ((vader_array_t*) l4);
                 VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l6)
                 l7 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l6];
 #line 40 "tests/snippets/fusion_consumer_break/_main.vader"
                 l0 = vader_chk_add(i32, l0, INT32_C(1));
@@ -1367,6 +1371,7 @@ static void snippet_chain_break(void) {
         while ((l4 < l3)) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
             l5 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4];
 #line 157 "tests/snippets/fusion_consumer_break/_main.vader"
             if (l5 == INT32_C(2)) goto end_15;
@@ -1381,6 +1386,7 @@ static void snippet_chain_break(void) {
         while ((l4 < l3)) {
             vader_array_t* _a3_slotarr = ((vader_array_t*) l2);
             VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l4)
             l5 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l4];
 #line 157 "tests/snippets/fusion_consumer_break/_main.vader"
             if (l5 == INT32_C(2)) break;
@@ -1483,6 +1489,7 @@ static void snippet_chain_break_by_name(void) {
             while ((l8 < l7)) {
                 vader_array_t* _a4_slotarr = ((vader_array_t*) l6);
                 VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l8)
                 l9 = ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l8];
 #line 177 "tests/snippets/fusion_consumer_break/_main.vader"
                 if (l5 == INT32_C(2)) goto end_15;
@@ -1513,6 +1520,7 @@ static void snippet_chain_break_by_name(void) {
             while ((l8 < l7)) {
                 vader_array_t* _a7_slotarr = ((vader_array_t*) l1);
                 VADER_ARRAY_RESOLVE_BUF(_a7_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a7_slotarr, l8)
                 l9 = ((int32_t*) _a7_slotarr->buf->slots)[_a7_slotarr->offset + (size_t) l8];
 #line 177 "tests/snippets/fusion_consumer_break/_main.vader"
                 if (l5 == INT32_C(2)) goto end_15;
@@ -1558,6 +1566,7 @@ static void snippet_chain_break_by_name(void) {
                 while ((l4 < l3)) {
                     vader_array_t* _a11_slotarr = ((vader_array_t*) l2);
                     VADER_ARRAY_RESOLVE_BUF(_a11_slotarr)
+                    VADER_ARRAY_CHECK_INDEX(_a11_slotarr, l4)
                     l12 = ((int32_t*) _a11_slotarr->buf->slots)[_a11_slotarr->offset + (size_t) l4];
 #line 187 "tests/snippets/fusion_consumer_break/_main.vader"
                     if (l9 == INT32_C(2)) goto end_134;

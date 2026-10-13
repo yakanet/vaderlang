@@ -885,6 +885,7 @@ static vader_string_t snippet_widths(int32_t l0) {
     while ((l11 < l2)) {
         vader_array_t* _a6_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a6_slotarr, l11)
         t4 = vader_array_read_u8(_a6_slotarr, _a6_slotarr->offset + (size_t) l11, 9u);
         t5 = ((uint8_t) t4.payload.i);
 #line 172 "tests/snippets/array_push_cache/_main.vader"
@@ -903,6 +904,7 @@ static vader_string_t snippet_widths(int32_t l0) {
     while ((l11 < l2)) {
         vader_array_t* _a7_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a7_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a7_slotarr, l11)
         t4 = vader_box_i32(16u, ((int16_t*) _a7_slotarr->buf->slots)[_a7_slotarr->offset + (size_t) l11]);
         t6 = ((int16_t) t4.payload.i);
 #line 176 "tests/snippets/array_push_cache/_main.vader"
@@ -921,6 +923,7 @@ static vader_string_t snippet_widths(int32_t l0) {
     while ((l11 < l2)) {
         vader_array_t* _a8_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a8_slotarr, l11)
         t4 = vader_box_f64(19u, (double) ((float*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l11]);
         l9 = ((float) t4.payload.f);
 #line 180 "tests/snippets/array_push_cache/_main.vader"
@@ -1440,6 +1443,7 @@ static int32_t snippet_sum(void* l0) {
     while ((l4 < l3)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         l5 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
 #line 289 "tests/snippets/array_push_cache/_main.vader"
         l1 = vader_chk_add(i32, l1, l5);

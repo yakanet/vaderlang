@@ -1306,6 +1306,7 @@ static void snippet_headed(void) {
             while ((l5 < l3)) {
                 vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
                 VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l5)
                 l1 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l5];
 #line 349 "lib/std/iter/iter.vader"
                 t3 = snippet_below_five(l1);

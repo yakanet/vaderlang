@@ -53,6 +53,15 @@ const EXPECTED: Record<string, string[]> = {
   negative_index: ["xs[i] -> certain fault"],
   last_element: ["xs[$sub_checked_3] -> unproven", "$len_1 - $k_2 -> unproven"],
   guarded_last: ["xs[$sub_checked_6] -> proven", "$len_4 - $k_5 -> proven"],
+  foreach_element: ["__for_arr_0[__for_i_2] -> proven", "total + x -> unproven"],
+  fused_map_element: ["__fuse_arr_0[__fuse_i_2] -> proven", "total + y -> unproven"],
+  double: ["x + x -> unproven"],
+  fused_chain_elements: [
+    "__fuse_arr_0[__fuse_i_3] -> proven",
+    "__fuse_arr_1[__fuse_i_5] -> proven",
+    "total + z -> unproven",
+    "total + z -> unproven",
+  ],
 };
 
 test("the range analysis gives each fixture site its verdict", async () => {

@@ -1202,6 +1202,7 @@ static int32_t snippet_main(void) {
 #line 110 "tests/snippets/iterator_consumers/_main.vader"
         vader_array_t* _a5_slotarr = ((vader_array_t*) l8);
         VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l10)
         t1 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l10];
 #line 395 "lib/std/iter/iter.vader"
         l11 = snippet_square(t1);
@@ -1242,6 +1243,7 @@ static int32_t snippet_main(void) {
 #line 112 "tests/snippets/iterator_consumers/_main.vader"
         vader_array_t* _a6_slotarr = ((vader_array_t*) l8);
         VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a6_slotarr, l10)
         l12 = ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) l10];
 #line 389 "lib/std/iter/iter.vader"
         t5 = snippet_odd(l12);
@@ -1287,6 +1289,7 @@ static int32_t snippet_main(void) {
 #line 114 "tests/snippets/iterator_consumers/_main.vader"
         vader_array_t* _a7_slotarr = ((vader_array_t*) l8);
         VADER_ARRAY_RESOLVE_BUF(_a7_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a7_slotarr, l10)
         t1 = ((int32_t*) _a7_slotarr->buf->slots)[_a7_slotarr->offset + (size_t) l10];
 #line 395 "lib/std/iter/iter.vader"
         l11 = snippet_square(t1);
@@ -1325,6 +1328,7 @@ static int32_t snippet_main(void) {
 #line 116 "tests/snippets/iterator_consumers/_main.vader"
             vader_array_t* _a8_slotarr = ((vader_array_t*) l8);
             VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a8_slotarr, l10)
             t1 = ((int32_t*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l10];
 #line 395 "lib/std/iter/iter.vader"
             l11 = snippet_square(t1);
@@ -1371,6 +1375,7 @@ static int32_t snippet_main(void) {
 #line 118 "tests/snippets/iterator_consumers/_main.vader"
             vader_array_t* _a9_slotarr = ((vader_array_t*) l8);
             VADER_ARRAY_RESOLVE_BUF(_a9_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a9_slotarr, l10)
             t1 = ((int32_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) l10];
 #line 395 "lib/std/iter/iter.vader"
             l11 = snippet_square(t1);
@@ -1414,6 +1419,7 @@ static int32_t snippet_main(void) {
 #line 120 "tests/snippets/iterator_consumers/_main.vader"
             vader_array_t* _a10_slotarr = ((vader_array_t*) l6);
             VADER_ARRAY_RESOLVE_BUF(_a10_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a10_slotarr, l5)
             l8 = vader_array_ref_load_obj(_a10_slotarr->buf, _a10_slotarr->offset + (size_t) l5);
 #line 389 "lib/std/iter/iter.vader"
             t5 = __lambda_snippet_2(l8);
@@ -1628,6 +1634,7 @@ static int32_t snippet_main(void) {
 #line 131 "tests/snippets/iterator_consumers/_main.vader"
             vader_array_t* _a22_slotarr = ((vader_array_t*) l6);
             VADER_ARRAY_RESOLVE_BUF(_a22_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a22_slotarr, l5)
             t1 = ((int32_t*) _a22_slotarr->buf->slots)[_a22_slotarr->offset + (size_t) l5];
 #line 395 "lib/std/iter/iter.vader"
             snippet_tens_v(t1, &t7, &t8);
@@ -1710,6 +1717,7 @@ static int32_t snippet_main(void) {
 #line 135 "tests/snippets/iterator_consumers/_main.vader"
             vader_array_t* _a27_slotarr = ((vader_array_t*) l6);
             VADER_ARRAY_RESOLVE_BUF(_a27_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a27_slotarr, l5)
             t1 = ((int32_t*) _a27_slotarr->buf->slots)[_a27_slotarr->offset + (size_t) l5];
 #line 395 "lib/std/iter/iter.vader"
             snippet_fifties_v(t1, &t7, &t8);
@@ -1795,6 +1803,7 @@ static int32_t snippet_main(void) {
 #line 140 "tests/snippets/iterator_consumers/_main.vader"
             vader_array_t* _a32_slotarr = ((vader_array_t*) l6);
             VADER_ARRAY_RESOLVE_BUF(_a32_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a32_slotarr, l5)
             t1 = ((int32_t*) _a32_slotarr->buf->slots)[_a32_slotarr->offset + (size_t) l5];
 #line 395 "lib/std/iter/iter.vader"
             snippet_tens_v(t1, &t7, &t8);
@@ -1887,6 +1896,7 @@ static int32_t snippet_main(void) {
 #line 144 "tests/snippets/iterator_consumers/_main.vader"
         vader_array_t* _a38_slotarr = ((vader_array_t*) l6);
         VADER_ARRAY_RESOLVE_BUF(_a38_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a38_slotarr, l10)
         t1 = ((int32_t*) _a38_slotarr->buf->slots)[_a38_slotarr->offset + (size_t) l10];
 #line 395 "lib/std/iter/iter.vader"
         l11 = snippet_square(t1);
@@ -1913,6 +1923,7 @@ static int32_t snippet_main(void) {
 #line 144 "tests/snippets/iterator_consumers/_main.vader"
         vader_array_t* _a39_slotarr = ((vader_array_t*) l6);
         VADER_ARRAY_RESOLVE_BUF(_a39_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a39_slotarr, l10)
         t1 = ((int32_t*) _a39_slotarr->buf->slots)[_a39_slotarr->offset + (size_t) l10];
 #line 395 "lib/std/iter/iter.vader"
         t2 = snippet_square(t1);
@@ -1958,6 +1969,7 @@ static int32_t snippet_main(void) {
 #line 147 "tests/snippets/iterator_consumers/_main.vader"
         vader_array_t* _a40_slotarr = ((vader_array_t*) l3);
         VADER_ARRAY_RESOLVE_BUF(_a40_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a40_slotarr, l10)
         l1 = ((int32_t*) _a40_slotarr->buf->slots)[_a40_slotarr->offset + (size_t) l10];
 #line 110 "lib/std/iter/iter.vader"
         l9 = __lambda_snippet_11(l9, l1);
@@ -2012,6 +2024,7 @@ static int32_t snippet_main(void) {
             if ((l10 < l5)) {
                 vader_array_t* _a41_slotarr = ((vader_array_t*) l0);
                 VADER_ARRAY_RESOLVE_BUF(_a41_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a41_slotarr, l10)
                 t1 = ((int32_t*) _a41_slotarr->buf->slots)[_a41_slotarr->offset + (size_t) l10];
 #line 364 "lib/std/iter/iter.vader"
                 l20 = __lambda_snippet_13(t1);

@@ -774,6 +774,7 @@ static int32_t snippet_total(void* l0) {
     while ((l4 < l3)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         l5 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
 #line 34 "tests/snippets/iterator_lazy_forms/_main.vader"
         l1 = vader_chk_add(i32, l1, l5);
@@ -1035,6 +1036,7 @@ static void snippet_defaults(void) {
 #line 81 "tests/snippets/iterator_lazy_forms/_main.vader"
         vader_array_t* _a4_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l10)
         t5 = ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l10];
 #line 395 "lib/std/iter/iter.vader"
         t6 = snippet_inc(t5);

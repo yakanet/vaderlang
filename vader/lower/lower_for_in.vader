@@ -510,11 +510,11 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 //
 // Returns null when the iter type isn't a plain array ; caller falls
 // back to the generic step-loop.
-// ---- BCE : sound loop-body safepoint probe --------------------------------
+// ---- sound loop-body safepoint probe --------------------------------------
 
-// Is this loop body UNSAFE for bounds-check elimination (and for the push cache,
-// `push_cache.vader`) ? The body must contain no GC safepoint and no array-length
-// mutation. It is UNSAFE if it contains any of —
+// Is this loop body UNSAFE for the push cache (`push_cache.vader`) ? The body
+// must contain no GC safepoint and no array-length mutation. It is UNSAFE if it
+// contains any of —
 //   - a CALL (`LoweredCall` / `LoweredVirtualCall` / `LoweredIntrinsicCall`) or a
 //     `push` : may allocate (⟹ GC ⟹ the buffer moves) and/or change the length ;
 //   - a pure ALLOCATION (`LoweredArrayLit` / `StructLit` / `CellNew` /
@@ -530,15 +530,15 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 // silently pass as "safe" (T3013). Over-approximate : a call/alloc that never
 // touches THIS array still bails — refining is a later tier.
 // `guard_sym` (or `null` for none) : a symbol whose REBIND (`guard_sym = <expr>`)
-// also makes the body unsafe — a length proven for one array says nothing about
-// the array rebound in its place. Rebinding is an assignment (a statement), but a
+// also makes the body unsafe — the state the push cache lifts belongs to the array
+// the symbol held. Rebinding is an assignment (a statement), but a
 // statement can nest inside an `if` / block expr, so the guard rides the same
 // exhaustive walk.
 // A CALL is unsafe UNLESS its callee is a fn PROVEN non-allocating (transitively,
 // via `bce_fn_pure`) — then the call itself triggers no GC and can't change an
 // array's length, so it is treated like a pure operator : the loop stays safe iff
-// its ARGS are safe. This is what lets `for x in a.map(square)` (the inlined
-// fusion body still calls the pure `square`) qualify, generally, for ANY pure
+// its ARGS are safe. This is what lets `a.filter(is_odd).map(square).collect()`
+// (the fused body still calls the pure `square`) qualify, generally, for ANY pure
 // callback — no combinator is named. Indirect callees, virtual calls, intrinsics
 // and impure/unknown fns still bail. `pctx` carries the project-wide purity memo.
 bce_call_unsafe :: fn(x: LoweredCall, guard_sym: i32 | null, pctx: BcePurityCtx) -> bool {
@@ -688,14 +688,9 @@ try_lower_for_in_raw_array :: fn(
         .type = iter_type, .value = iter_lowered,
     }
     arr_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = arr_sym }
-    // BCE : mark the preheader `arr.len()` + the synthesized `arr[idx]` access as
-    // candidates ; the post-inline `bce_prove_tag` pass proves the (inlined) loop
-    // body safe and flips `bounds_safe`. Deferred to post-inline
-    // so bodies whose calls inline away (or, in iterator fusion, whose callbacks
-    // inline) still qualify. The synthesized counter runs `0..<len(arr)` over `arr`.
     len_let :: LoweredLet {
         .span = span, .name = len_sym.name, .symbol = len_sym, .type = usize_type,
-        .value = LoweredArrayLen { .span = span, .type = usize_type, .target = arr_ref, .bce_recheck = true },
+        .value = LoweredArrayLen { .span = span, .type = usize_type, .target = arr_ref },
     }
     idx_init :: LoweredLet {
         .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = usize_type,
@@ -710,7 +705,7 @@ try_lower_for_in_raw_array :: fn(
     }
     elem_access :: LoweredIndex {
         .span = span, .type = array_elem_type,
-        .target = arr_ref, .index = idx_ref, .bce_recheck = true,
+        .target = arr_ref, .index = idx_ref,
     }
     bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, elem_access, array_elem_type, span)
     inc_stmt :: LoweredAssign {

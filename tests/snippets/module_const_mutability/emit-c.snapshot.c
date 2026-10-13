@@ -730,6 +730,7 @@ static int32_t snippet_main(void) {
     while ((l7 < l1)) {
         vader_array_t* _a20_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a20_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a20_slotarr, l7)
         l11 = ((int32_t*) _a20_slotarr->buf->slots)[_a20_slotarr->offset + (size_t) l7];
 #line 161 "tests/snippets/module_const_mutability/_main.vader"
         l9 = vader_chk_add(i32, l9, l11);

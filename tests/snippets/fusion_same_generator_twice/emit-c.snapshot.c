@@ -884,6 +884,7 @@ static void snippet_filter_filter(void) {
 #line 57 "tests/snippets/fusion_same_generator_twice/_main.vader"
         vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
         l4 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3];
 #line 389 "lib/std/iter/iter.vader"
         t0 = snippet_odd(l4);
@@ -1102,6 +1103,7 @@ static void snippet_skip_skip(void) {
 #line 77 "tests/snippets/fusion_same_generator_twice/_main.vader"
         vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
         l6 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l5];
 #line 419 "lib/std/iter/iter.vader"
         if ((l3 >= INT64_C(1))) {
@@ -1209,6 +1211,7 @@ static void snippet_chain_of_maps(void) {
     while ((l6 < l5)) {
         vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l6)
         t0 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l6];
 #line 395 "lib/std/iter/iter.vader"
         l7 = snippet_inc(t0);
@@ -1223,6 +1226,7 @@ static void snippet_chain_of_maps(void) {
     while ((l6 < l5)) {
         vader_array_t* _a3_slotarr = ((vader_array_t*) l4);
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l6)
         t0 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l6];
 #line 395 "lib/std/iter/iter.vader"
         l7 = snippet_twice(t0);

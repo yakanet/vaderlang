@@ -251,8 +251,7 @@ hoisted :: fn(e: LoweredExpr, lets: LoweredLet[]) -> LoweredExpr! | null {
     }
     if e is LoweredArrayLen {
         target :: hoisted(e.target, lets) ?? return null
-        // A copy the bounds-check pass must not pair with the loop it measures.
-        return LoweredArrayLen { ...e, .target = target, .bce_recheck = false }
+        return LoweredArrayLen { ...e, .target = target }
     }
     if e is LoweredFieldAccess {
         target :: hoisted(e.target, lets) ?? return null

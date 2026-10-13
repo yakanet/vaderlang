@@ -907,6 +907,7 @@ static void snippet_take_continue(void) {
         while ((l5 < l4)) {
             vader_array_t* _a1_slotarr = ((vader_array_t*) l1);
             VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
             l6 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l5];
 #line 42 "tests/snippets/fusion_consumer_continue/_main.vader"
             l0 = vader_chk_add(i32, l0, INT32_C(1));
@@ -1722,6 +1723,7 @@ static void snippet_flat_map_continue(void) {
         while ((l6 < l5)) {
             vader_array_t* _a2_slotarr = ((vader_array_t*) l4);
             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+            VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l6)
             l7 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l6];
 #line 195 "tests/snippets/fusion_consumer_continue/_main.vader"
             if (!(l7 == INT32_C(10))) {
@@ -1813,6 +1815,7 @@ static void snippet_chain_continue(void) {
     while ((l4 < l3)) {
         vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
         l5 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4];
 #line 214 "tests/snippets/fusion_consumer_continue/_main.vader"
         if (l5 == INT32_C(2)) {
@@ -1834,6 +1837,7 @@ static void snippet_chain_continue(void) {
     while ((l4 < l3)) {
         vader_array_t* _a3_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l4)
         l5 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l4];
 #line 214 "tests/snippets/fusion_consumer_continue/_main.vader"
         if (l5 == INT32_C(2)) {
@@ -1946,6 +1950,7 @@ static void snippet_chain_continue_by_name(void) {
             if ((l8 < l7)) {
                 vader_array_t* _a4_slotarr = ((vader_array_t*) l6);
                 VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l8)
                 l9 = ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l8];
 #line 234 "tests/snippets/fusion_consumer_continue/_main.vader"
                 if (!(l5 == INT32_C(2))) {
@@ -1990,6 +1995,7 @@ static void snippet_chain_continue_by_name(void) {
             if ((l8 < l7)) {
                 vader_array_t* _a7_slotarr = ((vader_array_t*) l1);
                 VADER_ARRAY_RESOLVE_BUF(_a7_slotarr)
+                VADER_ARRAY_CHECK_INDEX(_a7_slotarr, l8)
                 l9 = ((int32_t*) _a7_slotarr->buf->slots)[_a7_slotarr->offset + (size_t) l8];
 #line 234 "tests/snippets/fusion_consumer_continue/_main.vader"
                 if (!(l5 == INT32_C(2))) {
@@ -2045,6 +2051,7 @@ static void snippet_chain_continue_by_name(void) {
                 if ((l4 < l3)) {
                     vader_array_t* _a11_slotarr = ((vader_array_t*) l2);
                     VADER_ARRAY_RESOLVE_BUF(_a11_slotarr)
+                    VADER_ARRAY_CHECK_INDEX(_a11_slotarr, l4)
                     l10 = ((int32_t*) _a11_slotarr->buf->slots)[_a11_slotarr->offset + (size_t) l4];
 #line 244 "tests/snippets/fusion_consumer_continue/_main.vader"
                     if (!(l9 == INT32_C(2))) {

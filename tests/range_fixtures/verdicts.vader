@@ -4,6 +4,7 @@
 module "verdicts"
 
 import "std/io"
+import "std/iter"
 
 /// An index below the length the loop compares against: proven.
 export indexed_loop :: fn(xs: i32[]) -> i32 {
@@ -182,4 +183,33 @@ export guarded_last :: fn(xs: i32[]) -> i32 {
         return xs[xs.len() - 1]
     }
     return 0
+}
+
+/// The element a foreach reads: proven.
+export foreach_element :: fn(xs: i32[]) -> i32 {
+    total := 0
+    for x in xs {
+        total += x
+    }
+    return total
+}
+
+/// The element a fused `map` reads, its callback a call: proven.
+export fused_map_element :: fn(xs: i32[]) -> i32 {
+    total := 0
+    for y in xs.map(double) {
+        total += y
+    }
+    return total
+}
+
+double :: fn(x: i32) -> i32 = x + x
+
+/// The elements of both arrays a fused `chain` reads: proven.
+export fused_chain_elements :: fn(xs: i32[], ys: i32[]) -> i32 {
+    total := 0
+    for z in xs.chain(ys) {
+        total += z
+    }
+    return total
 }

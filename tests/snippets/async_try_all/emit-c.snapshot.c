@@ -1069,6 +1069,7 @@ static vader_box_t std_async_TryJoinAll_Async_resume__i32__Any(void* l0) {
     while ((l4 < l3)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         l5 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l4];
 #line 183 "lib/std/async/async.vader"
         if ((l5.tag == 17u) || (l5.tag == 1u)) {

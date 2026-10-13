@@ -515,6 +515,7 @@ static bool std_core____Contains_contains__Label___Point(void* l0, vader_box_t l
     while ((l4 < l3)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         l5 = vader_array_ref_load_box(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
 #line 341 "lib/std/core/core.vader"
         if (l5.tag == 4u) {
@@ -559,6 +560,7 @@ static bool std_core____Contains_contains__f64___string(void* l0, vader_box_t l1
     while ((l4 < l3)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         l5 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l4];
 #line 341 "lib/std/core/core.vader"
         if ((l5.tag == 15u || l5.tag == 23u)) {

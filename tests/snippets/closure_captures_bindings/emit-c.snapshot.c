@@ -1040,6 +1040,7 @@ static int32_t snippet_over_fused_combinator(void) {
     while ((l4 < l3)) {
         vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
         l5 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4];
 #line 95 "tests/snippets/closure_captures_bindings/_main.vader"
         l6 = __lambda_snippet_20(l2, l5);

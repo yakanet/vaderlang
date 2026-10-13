@@ -205,6 +205,7 @@ static vader_box_t snippet_first_present__i32___string(void* l0) {
     while ((l3 < l2)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
         l4 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l3];
 #line 18 "tests/snippets/generic_param_over_wide_union/_main.vader"
         if (!(l4.tag == 0u)) {
