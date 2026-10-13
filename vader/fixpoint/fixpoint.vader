@@ -190,6 +190,23 @@ export reachability_step :: fn(g: Graph, marked: bool[]) -> fn(i32) -> bool = fn
     return marked[node]
 }
 
+/// Mark every node of `g` that reaches a marked one: `solve_bottom_up` over
+/// `reachability_step`.
+///
+/// A step only ever turns a mark on, so a component of `k` nodes settles within
+/// `k + 1` sweeps. A node left unsettled all the same takes the mark: for a "may"
+/// property, the side that is always sound.
+///
+/// @param g       the graph.
+/// @param marked  one flag per node: on entry the nodes that hold by themselves, on
+///                return every node that reaches one.
+export solve_reachability :: fn(g: Graph, marked: bool[]) -> void {
+    cap :: i32(g.successors.len()) + 1
+    for node in solve_bottom_up(g, reachability_step(g, marked), cap) {
+        marked[node] = true
+    }
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/sort"
@@ -284,6 +301,15 @@ test_solve_keeps_a_recursive_node_at_its_seed :: fn() -> void {
     unsettled :: solve_bottom_up(g, reachability_step(g, fact), 8)
     assert_eq(unsettled.len(), 0)
     assert_eq("${fact}", "[false]")
+}
+
+@test
+test_solve_reachability_marks_every_caller_of_a_mark :: fn() -> void {
+    // 0 → 1 ↔ 2 → 3 marked, 4 alone.
+    g :: Graph { .successors = [[1], [2], [1, 3], [], []] }
+    fact :: [false, false, false, true, false]
+    solve_reachability(g, fact)
+    assert_eq("${fact}", "[true, true, true, true, false]")
 }
 
 @test

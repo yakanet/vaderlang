@@ -36,10 +36,7 @@ summarise_array_shrinking :: fn(p: CFGProject) -> ShrinkSummary {
     for node in calls.nodes {
         may_shrink.push(node_shrinks_by_itself(node))
     }
-    cap :: i32(calls.nodes.len()) + 1
-    for node in solve_bottom_up(calls.graph, reachability_step(calls.graph, may_shrink), cap) {
-        may_shrink[node] = true
-    }
+    solve_reachability(calls.graph, may_shrink)
     return ShrinkSummary { .calls = calls, .may_shrink = may_shrink }
 }
 

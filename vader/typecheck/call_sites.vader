@@ -288,18 +288,6 @@ default_free_bindings :: fn(bindings: MutableMap<i32, Type>) -> void {
     }
 }
 
-// Whether the call to `callee` hands it a type naming one of the enclosing body's
-// own type parameters.
-forwards_type_params :: fn(callee: DirectFn) -> bool {
-    bindings :: callee.bindings ?? return false
-    for [_, bound] in bindings {
-        if type_contains_type_param(bound) {
-            return true
-        }
-    }
-    return false
-}
-
 // What the call `c` invokes : the decision noted on its callee, else the fn the
 // callee names (`named`, `lookup_callee_fn_decl`).
 callee_of_call :: fn(
