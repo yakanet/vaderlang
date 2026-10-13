@@ -20,9 +20,10 @@ AST :: import "toolchain/ast"
 ///
 /// @param value  the coerced value. On a real `.into()` coercion (a matched
 ///               `Into` impl or the `T[] → Iterator` blanket) the target type is
-///               recorded under its id in `typed.into_coercions`, so the LSP can
-///               surface a ghost `.into()` hint, and the `into` is filed as its
-///               site ; trait widening records nothing.
+///               recorded under its id in `typed.into_coercions` (the LSP's ghost
+///               `.into()` hint, the lowering where the slot type is not at hand),
+///               and the `into` is filed as its site ; trait widening records
+///               nothing.
 export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, value: AST.Expr) -> bool {
     targeted :: into_impl_method(typed, got, expected)
     if targeted !is null {

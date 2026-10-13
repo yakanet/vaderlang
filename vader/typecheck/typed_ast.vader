@@ -233,9 +233,10 @@ export TypedProgram :: struct {
     /// try_into` on the two `.into()`-flavoured branches (a real `Into`
     /// impl and the `T[] → Iterator<T>` blanket) — trait widening
     /// (`Cat → Animal`) is a subtype widen with no synthesised call, so
-    /// it records nothing. Consumed only by the LSP inlay-hint handler,
-    /// which surfaces a ghost `.into()` at the value's end. Invisible to
-    /// lowering / bytecode — the coercion decision itself is unchanged.
+    /// it records nothing. Read by the LSP inlay-hint handler, which surfaces a
+    /// ghost `.into()` at the value's end, and by the lowering where a value's
+    /// slot type is not at hand (`lower_converted`, a destructured leaf) ; the
+    /// `into` that runs is the one the call-site record names.
     into_coercions: MutableMap<usize, Type>!
 
     /// Type of every `:=` / `::` local binding, keyed by binding span

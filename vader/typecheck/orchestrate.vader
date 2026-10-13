@@ -1469,7 +1469,8 @@ has_expr_bodied_fn :: fn(decls: AST.Decl[]) -> bool {
 }
 
 // Clear per-expression tables so the second pass can re-populate
-// them with the now-settled fn return types. Decl-level tables
+// them with the now-settled fn return types: an entry the settle walk
+// wrote and the full walk does not would outlive it. Decl-level tables
 // (`decl_types`, struct/trait decls, impl_methods, …) stay intact —
 // only side-tables filled from inside fn bodies need a refresh.
 reset_expr_tables :: fn(typed: TypedProgram) -> void {
@@ -1477,8 +1478,7 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
     typed.expr_kinds = MutableMap<usize, string> {}
     typed.node_spans = MutableMap<usize, Span> {}
     typed.ufcs_receiver_types = MutableMap<usize, Type> {}
-    // The lowering calls the fn recorded here : a pick the settle walk left
-    // behind would outlive the full walk's.
+    typed.into_coercions = MutableMap<usize, Type> {}
     typed.chosen_fns = MutableMap<usize, FnCandidate> {}
     typed.chosen_impl_methods = MutableMap<usize, ImplMethod> {}
     typed.overloaded_members = MutableMap<usize, ImplMethod[]> {}
