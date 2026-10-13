@@ -118,7 +118,7 @@ FnState :: struct {
     /// after the closing `}`. Distinct from `continue_targets` so a loop
     /// targeted only by a continue doesn't emit an unused `end_` label.
     break_targets: i32[]
-    /// True when the fn is provably no-alloc (not in `EmitCtx.may_alloc`) —
+    /// True when the fn is provably no-alloc (false in `EmitCtx.may_alloc`) —
     /// it gets no GC shadow-stack frame, so `return` skips the `gc_top`
     /// restore and ref slots skip the `= vader_box_null()` root-init. Set by
     /// `function_definition` ; default `true` (the scalar / stack subset).

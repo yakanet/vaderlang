@@ -80,8 +80,8 @@ export default_emit_options :: fn() -> EmitOptions = EmitOptions { .release = fa
 ///
 /// Caches `struct_c_names` (parallel to `module.types`, `""` for
 /// non-struct slots), the string-literal `atom_ids`, the `null` / `string`
-/// / `[string]` primitive tags, and the `may_alloc` set (fns needing a GC
-/// frame). Each is computed by `new_ctx`.
+/// / `[string]` primitive tags, and the per-function `may_alloc` flags (fns
+/// needing a GC frame). Each is computed by `new_ctx`.
 export EmitCtx :: struct {
     module: BytecodeModule
     /// `vader_struct_<sanitised>_t` per BcStruct slot, `""` elsewhere.
@@ -103,10 +103,10 @@ export EmitCtx :: struct {
     /// BcType index of the `[string]` array (element == `string_tag`), or
     /// `-1` when absent. Used by the `main(argv: [string])` shim.
     string_array_tag: i32
-    /// Indices into `module.functions` of every fn that may trigger a GC
-    /// allocation (transitively). A fn NOT in this set is `no_frame` — it
+    /// Per function of `module.functions`, whether it may trigger a GC
+    /// allocation (transitively). A fn that may not is `no_frame` — it
     /// skips the shadow-stack prologue. Computed by `compute_may_alloc`.
-    may_alloc: i32[]
+    may_alloc: bool[]
     /// Per import of `module.imports`, whether calling it can trigger a
     /// collection. Computed by `imports_may_collect`.
     import_may_collect: bool[]

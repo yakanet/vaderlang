@@ -17,6 +17,7 @@ import "std/iter"
 import "std/string"
 import "vader/bytecode"
 import "vader/c_emit/c_ast"
+import "vader/fixpoint"
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
 vm :: import "vader/bytecode"
@@ -35,38 +36,34 @@ emit_functions :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 // ---- may-alloc analysis ---------------------------------------------------
 
 /// Callgraph analysis : which fns may trigger a GC allocation
-/// (transitively). Drives the `no_frame` decision — a fn outside this set
+/// (transitively). Drives the `no_frame` decision — a fn that may not
 /// skips the shadow-stack prologue (`inc(x) = x + 1`, accessors,
 /// predicates, stack-only struct builders). Direct allocators are the
 /// heap `struct.new`, array ops, string concat, the builder family,
 /// `make_closure`, the conservative indirect callers (`call.indirect` /
 /// `virtual.call`), and a `call.import` unless its host never collects ;
-/// transitive via any direct `call` to a fn already in the set.
+/// transitive via any direct `call` to a fn that may: the smallest fixed
+/// point over the direct calls (`solve_reachability`).
 ///
 /// @param fns                 the module's functions.
 /// @param import_may_collect  per import, whether calling it can collect
 ///                            (`imports_may_collect`).
-compute_may_alloc :: fn(fns: BcFunction[], import_may_collect: bool[]) -> i32[] {
-    may_alloc: i32[]: []
-    for fi in 0..<fns.len() {
-        if fn_has_direct_alloc(fns[fi], import_may_collect) {
-            may_alloc.push(i32(fi))
-        }
-    }
-    changed := true
-    for changed {
-        changed = false
-        for fi in 0..<fns.len() {
-            if i32(fi) in may_alloc {
-                continue
-            }
-            if fn_calls_may_alloc(fns[fi], may_alloc) {
-                may_alloc.push(i32(fi))
-                changed = true
-            }
-        }
-    }
+/// @return                    per function of `fns`, whether it may.
+compute_may_alloc :: fn(fns: BcFunction[], import_may_collect: bool[]) -> bool[] {
+    may_alloc :: fns.map((f) -> fn_has_direct_alloc(f, import_may_collect)).collect()
+    solve_reachability(Graph { .successors = fns.map(direct_callees).collect() }, may_alloc)
     return may_alloc
+}
+
+// The functions `fn_decl` calls directly (`call`), once per call.
+direct_callees :: fn(fn_decl: BcFunction) -> i32[] {
+    callees: i32[]: []
+    for op in fn_decl.body {
+        if op is vm.Call {
+            callees.push(op.function_index)
+        }
+    }
+    return callees
 }
 
 /// True when the fn builds a GC struct on the C stack (`struct.new` with the
@@ -75,27 +72,12 @@ compute_may_alloc :: fn(fns: BcFunction[], import_may_collect: bool[]) -> i32[] 
 /// left unrooted, the heap refs it captured go stale across a safepoint. Kept
 /// separate from `op_may_collect` — a stack `struct.new` does NOT allocate, and
 /// folding it in would wrongly mark its callers as collectors too.
-fn_builds_stack_object :: fn(fn_decl: BcFunction) -> bool {
-    for i in 0..<fn_decl.body.len() {
-        op :: fn_decl.body[i]
-        if op is vm.StructNew {
-            if op.stack {
-                return true
-            }
-        }
-    }
-    return false
-}
+fn_builds_stack_object :: fn(fn_decl: BcFunction) -> bool =
+    fn_decl.body.any_match((op) -> op is vm.StructNew && op.stack)
 
 /// True when `fn_decl` contains an op that can trigger a collection.
-fn_has_direct_alloc :: fn(fn_decl: BcFunction, import_may_collect: bool[]) -> bool {
-    for i in 0..<fn_decl.body.len() {
-        if op_may_collect(fn_decl.body[i], import_may_collect) {
-            return true
-        }
-    }
-    return false
-}
+fn_has_direct_alloc :: fn(fn_decl: BcFunction, import_may_collect: bool[]) -> bool =
+    fn_decl.body.any_match((op) -> op_may_collect(op, import_may_collect))
 
 /// Per import, whether calling it can trigger a collection. An `@extern` or an
 /// unknown host is `NotIntrinsic`, which stays a safepoint.
@@ -103,20 +85,6 @@ fn_has_direct_alloc :: fn(fn_decl: BcFunction, import_may_collect: bool[]) -> bo
 /// @param imports  the module's imports, in `call.import` index order.
 imports_may_collect :: fn(imports: BcImport[]) -> bool[] =
     imports.map((imp) -> intrinsic_may_collect(intrinsic_id_for(imp.mangled_name))).collect()
-
-/// True when `fn_decl` makes a direct `call` to a fn already known to
-/// may-alloc — the transitive propagation step.
-fn_calls_may_alloc :: fn(fn_decl: BcFunction, may_alloc: i32[]) -> bool {
-    for i in 0..<fn_decl.body.len() {
-        op :: fn_decl.body[i]
-        if op is vm.Call {
-            if op.function_index in may_alloc {
-                return true
-            }
-        }
-    }
-    return false
-}
 
 // Drop the header-cache entries this op invalidates — see
 // `FnState.bound_arrays`. Called before every op is emitted.
@@ -140,7 +108,7 @@ invalidate_header_cache :: fn(s: FnState, op: vm.Op) -> void {
     // C scope inside it. A probe loop then binds once per iteration instead of
     // once per array test.
     //
-    // Sound only in a `no_frame` fn : `no_frame` is `!(fn in ctx.may_alloc)`, and
+    // Sound only in a `no_frame` fn : such a fn is false in `ctx.may_alloc`, and
     // `compute_may_alloc` is the safepoint-reachability closure, so a `no_frame`
     // body provably reaches NO GC safepoint and no header can move inside the
     // scope. That is a second reading of the bit — `FnState.no_frame` documents
@@ -243,7 +211,7 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
     // frame afterwards yields a prologue whose pushes no return ever undoes, and
     // `vader_gc_top` is left pointing at a dead frame. Measured: the build driver
     // died on a signal.
-    no_frame :: !(fn_index in ctx.may_alloc) && !fn_builds_stack_object(function)
+    no_frame :: !ctx.may_alloc[fn_index] && !fn_builds_stack_object(function)
     // Temps are discovered during the walk (materialisation), and their
     // declarations belong in the prologue *above* the body : walk first, then
     // assemble the prologue.

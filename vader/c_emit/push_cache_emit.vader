@@ -109,10 +109,8 @@ pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
         if op_may_collect(op, s.ctx.import_may_collect) {
             return null
         }
-        if op is vm.Call {
-            if op.function_index in s.ctx.may_alloc {
-                return null
-            }
+        if op is vm.Call && s.ctx.may_alloc[op.function_index] {
+            return null
         }
         i += 1
     }

@@ -72,9 +72,18 @@ sound, proved about 1890.
 - The typecheck's propagation of type-parameter observation runs on the engine
   too (`type_param_observation.vader`): a node per function that observes or
   relays, an edge per call that hands its callee the caller's own type
-  parameters. Both clients solve a reachability, through `solve_reachability`,
+  parameters. Each client solves a reachability, through `solve_reachability`,
   which owns the cap and the sound side of an unsettled node. The loop the
   typecheck's client replaces swept every call once per link of the longest
   chain of such calls: `vader check` on a chain of 3000 generic relays takes about
   595 ms instead of 660. No function of the compiler observes a type parameter,
   so its own build does not move.
+- The C emitter's `compute_may_alloc` follows: a node per bytecode function, an
+  edge per direct `call`. Its set was an `i32[]` searched with `in`, swept once per
+  link of the longest chain; it is now a `bool[]` read by index, and the
+  self-compile's C emission takes about 3350 ms instead of 3390, its output
+  unchanged. Its graph is the bytecode's, not midir's: the C emitter also reads
+  a `.virt` dump, which has no CFG, and the bytecode emitter adds `_vt` wrappers
+  and renumbers the functions after midir. An indirect or virtual call stays an
+  allocator by itself; resolving them as midir does would spare no frame on the
+  self-compile, by an estimate over its bytecode.
