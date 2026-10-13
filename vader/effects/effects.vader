@@ -26,6 +26,8 @@ export EffectSummary :: struct {
     facts: ParamEffects[][]
     /// The nodes whose component had not settled at the cap.
     unsettled: i32[]
+    /// What the program does with its frozen values (`frozen.vader`).
+    frozen: FrozenSite[]
 }
 
 /// Summarise every function of a checked project.
@@ -34,11 +36,12 @@ export EffectSummary :: struct {
 /// @param checked  its typecheck, with every module's record of calls.
 export summarise_effects :: fn(project: LoadedProject, checked: CheckResult) -> EffectSummary {
     index :: index_functions(project, checked.all_modules)
+    frozen :: FrozenSites {}
     skeletons: Skeleton[]: []
     facts: ParamEffects[][]: []
     successors: i32[][]: []
     for f in index.functions {
-        s :: skeleton_of(f.decl, f.typed, index)
+        s :: skeleton_of(f.decl, f.typed, index, frozen)
         skeletons.push(s)
         facts.push(s.params.filled(() -> ParamEffects {}))
         successors.push(callee_nodes(s))
@@ -67,7 +70,37 @@ export summarise_effects :: fn(project: LoadedProject, checked: CheckResult) -> 
             facts[node][i] = any_effects()
         }
     }
-    return EffectSummary { .index = index, .facts = facts, .unsettled = unsettled }
+    note_initialisers(index, frozen)
+    settle_frozen(frozen, facts)
+    return EffectSummary {
+        .index = index,
+        .facts = facts,
+        .unsettled = unsettled,
+        .frozen = frozen.sites,
+    }
+}
+
+// Walk what the program evaluates outside a function: each constant's initialiser,
+// for the calls it hands a frozen value to, and each field default, which every
+// struct built without that field keeps.
+note_initialisers :: fn(index: CalleeIndex, frozen: FrozenSites) -> void {
+    for c in index.constants {
+        initialiser_ctx(index, frozen, c, true).discard(c.value)
+    }
+    for d in index.defaults {
+        _ :: initialiser_ctx(index, frozen, d, false).kept_value(d.value)
+    }
+}
+
+// A walk of `init`, whose own constraints nothing reads.
+initialiser_ctx :: fn(
+    index: CalleeIndex, frozen: FrozenSites, init: Initialiser, in_constant: bool,
+) -> WalkCtx! = WalkCtx {
+    .s = new_skeleton(0),
+    .typed = init.typed,
+    .index = index,
+    .frozen = frozen,
+    .in_constant = in_constant,
 }
 
 // The nodes the calls of `s` may run.

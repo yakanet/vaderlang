@@ -15,6 +15,7 @@ import { join } from "node:path";
 ensureCliBuilt();
 
 const SUMMARIES = join(import.meta.dir, "effect_fixtures", "summaries", "summaries.vader");
+const FROZEN = join(import.meta.dir, "effect_fixtures", "frozen", "frozen.vader");
 const COMPILER = join(import.meta.dir, "..", "vader", "cli", "main.vader");
 
 /** Each function of the `summaries` module with its accesses, in source order. */
@@ -62,7 +63,7 @@ const EXPECTED: [string, string[]][] = [
   ["captures", ["stored p"]],
   ["copies_with_spread", ["stored h.items"]],
   ["calls_a_writer", ["assigned p.x"]],
-  ["calls_a_function_value", ["assigned p…", "resized p…", "shrunk p…", "stored p…"]],
+  ["calls_a_function_value", ["stored p…", "unknown p…"]],
   ["writes_then_recurses", ["shrunk xs"]],
   ["recurses_back", ["shrunk xs"]],
   ["bump", ["assigned self.x"]],
@@ -97,6 +98,42 @@ test("the effect summary gives each fixture function its accesses", async () => 
   expect(r.exit).toBe(0);
   expect(r.stdout).not.toContain("# Diagnostics");
   expect(functionsOf(r.stdout)).toEqual(EXPECTED);
+}, MEDIUM_BUILD);
+
+/** The `# frozen` section's sites, `<outcome> <root>` in source order, then its totals. */
+function frozenSitesOf(dump: string): string[] {
+  const section = dump.slice(dump.indexOf("\n# frozen\n") + 1);
+  const out: string[] = [];
+  for (const line of section.split("\n").slice(1)) {
+    const site = line.match(/^ {2}\S+ \d+:\d+ (.*)$/)?.[1];
+    if (site !== undefined) {
+      out.push(site);
+      continue;
+    }
+    if (line.startsWith("write fault:")) out.push(line);
+    break;
+  }
+  return out;
+}
+
+// The typecheck still enforces the written rights, so the fixture is also a
+// handful of rights errors: the frozen sites are dumped all the same.
+test("the frozen checks give each use of a frozen value its outcome", async () => {
+  const r = await runCli(["dump", "--stage=effects", FROZEN], undefined, MEDIUM_BUILD);
+  expect(r.exit).toBe(0);
+  expect(frozenSitesOf(r.stdout)).toEqual([
+    "write fault CFG",
+    "call fault TABLE",
+    "call fault CFG",
+    "unknown call CFG",
+    "copy CFG",
+    "copy elided UNTOUCHED",
+    "copy CFG",
+    "copy CFG",
+    "copy bytes()",
+    "copy TABLE",
+    "write fault: 1, call fault: 2, unknown call: 1, copy: 5, copy elided: 1",
+  ]);
 }, MEDIUM_BUILD);
 
 // The compiler loads every module of the tree that declares an intrinsic, so its

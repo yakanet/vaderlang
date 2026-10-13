@@ -212,7 +212,7 @@ collect_returned :: fn(slots: SlotRoots, site: Site, ctx: EvalCtx) -> bool {
         recursive :: ctx.recursive(target)
         for q in 0..<site.args.len() {
             arg :: site.args[q] ?? continue
-            for a in ctx.accesses_of_param(params, q) {
+            for a in accesses_of_param(params, q, ctx.any) {
                 if a.effect != .Returned {
                     continue
                 }
@@ -234,7 +234,7 @@ apply_site :: fn(out: ParamEffects[], slots: SlotRoots, site: Site, ctx: EvalCtx
         recursive :: ctx.recursive(target)
         for q in 0..<site.args.len() {
             arg :: site.args[q] ?? continue
-            for a in ctx.accesses_of_param(params, q) {
+            for a in accesses_of_param(params, q, ctx.any) {
                 if a.effect != .Returned {
                     mark_roots(out, slots.roots[arg], a.path, a.effect, ctx.paths, recursive)
                 }
@@ -252,11 +252,13 @@ known_params :: fn(target: CallTarget, facts: ParamEffects[][]) -> ParamEffects[
         is AnyCallee    -> null
     }
 
-// The accesses a callee makes through its parameter `q` ; any at all when nothing
-// is known of the callee, or of that parameter.
-accesses_of_param :: fn(ctx: EvalCtx, params: ParamEffects[] | null, q: usize) -> Access[] {
+// The accesses a callee makes through its parameter `q` ; those of `any` when
+// nothing is known of the callee, or of that parameter.
+accesses_of_param :: fn(
+    params: ParamEffects[] | null, q: usize, any: ParamEffects,
+) -> Access[] {
     if params == null || q >= params.len() {
-        return ctx.any.accesses
+        return any.accesses
     }
     return params[q].accesses
 }
@@ -349,7 +351,7 @@ test_evaluate_lends_anything_to_an_unknown_callee :: fn() -> void {
     _ :: s.add_site([AnyCallee {}], [null, second])
     out :: evaluate(s, EvalCtx { .facts = [], .paths = t })
     assert_eq(out[0].accesses.len(), 0)
-    assert_eq(rendered(t, out, 1), "assigned …, resized …, shrunk …, stored …")
+    assert_eq(rendered(t, out, 1), "stored …, unknown …")
 }
 
 @test

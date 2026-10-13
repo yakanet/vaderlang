@@ -190,20 +190,13 @@ export select :: fn(question: string, options: string[]) -> usize | PromptError 
 /// @param count   number of options; must be > 0.
 /// @param key     the press to apply; anything that does not move returns
 ///                `cursor` unchanged.
-export moved :: fn(cursor: usize, count: usize, key: Key) -> usize {
-    if key == .Up {
-        return if cursor == 0 { count - 1 } else { cursor - 1 }
-    }
-    if key == .Down {
-        return if cursor + 1 >= count { 0 } else { cursor + 1 }
-    }
-    if key == .Home {
-        return 0
-    }
-    if key == .End {
-        return count - 1
-    }
-    return cursor
+// @partial: only the four movement keys move; every other press leaves `cursor` as is.
+export moved :: fn(cursor: usize, count: usize, key: Key) -> usize = @partial match key {
+    .Up   -> (cursor + count - 1) % count
+    .Down -> (cursor + 1) % count
+    .Home -> 0
+    .End  -> count - 1
+    _     -> cursor
 }
 
 // ---- multiselect ----------------------------------------------------------

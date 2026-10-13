@@ -20,7 +20,7 @@ module "std/string"
 export REPLACEMENT_CHAR :: char(0xFFFD)
 
 /// The highest valid Unicode scalar value (U+10FFFF). Codepoints above this are
-/// invalid ; `\u{…}` escapes past it are rejected, and encoders clamp to 4 bytes.
+/// invalid ; `\u{...}` escapes past it are rejected, and encoders clamp to 4 bytes.
 export MAX_CODEPOINT :: char(0x10FFFF)
 
 // ---- byte classification --------------------------------------------------

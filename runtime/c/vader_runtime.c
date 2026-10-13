@@ -1685,7 +1685,7 @@ static void vader_alloc_by_type_dump(void) {
  * STAGE0_CFLAGS for a bootstrap stage) and run with VADER_ALLOC_SITES=1.
  * Keyed by the return-address OFFSET from vader_gc_alloc (slide-invariant →
  * ASLR-proof) at three stack depths so runtime wrappers (vader_array_new,
- * the bytes() trampoline, …) can be cracked to the real .vader site.
+ * the bytes() trampoline, ...) can be cracked to the real .vader site.
  * Symbolise offline against an `-O0` build's `nm -n`:
  *   site_static_addr = nm(vader_gc_alloc) + offset
  * Inert — zero code, zero static arrays, zero hot-path cost — unless the macro

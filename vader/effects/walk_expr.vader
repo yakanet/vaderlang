@@ -33,11 +33,15 @@ discard :: fn(ctx: WalkCtx, e: AST.Expr) -> void {
 
 // What an implicit `into` at `e` returns of `held`, or `held` when none runs there.
 converted :: fn(ctx: WalkCtx, e: AST.Expr, held: usize | null) -> usize | null =
-    ctx.converted_by(ctx.site_callee(.Into, e.id), held)
+    ctx.converted_by(ctx.site_callee(.Into, e.id), held, e)
 
-// What the conversion `callee` returns of `held`, or `held` when nothing runs.
-converted_by :: fn(ctx: WalkCtx, callee: Callee | null, held: usize | null) -> usize | null {
-    result :: ctx.call(callee, [held])
+// What the conversion `callee` returns of `held`, which `source` evaluates to, or
+// `held` when nothing runs.
+converted_by :: fn(
+    ctx: WalkCtx, callee: Callee | null, held: usize | null, source: AST.Expr,
+) -> usize | null {
+    conversion :: callee ?? return held
+    result :: ctx.call(conversion, [held], [source], .Conversion)
     if result == null {
         return held
     }
@@ -101,7 +105,7 @@ index_value :: fn(ctx: WalkCtx, e: AST.IndexExpr) -> usize | null {
     index :: ctx.value(e.index)
     reader :: ctx.site_callee(.IndexRead, e.id)
     if reader != null && reader !is Builtin {
-        return ctx.call(reader, [target, index])
+        return ctx.call(reader, [target, index], [e.target, e.index], .ThroughIndex)
     }
     if e.index is AST.RangeExpr {
         return target
@@ -113,21 +117,26 @@ index_value :: fn(ctx: WalkCtx, e: AST.IndexExpr) -> usize | null {
 
 call_value :: fn(ctx: WalkCtx, c: AST.CallExpr) -> usize | null {
     callee :: ctx.site_callee(.Call, c.id) ?? UnsettledCallee {}
-    args :: ctx.call_args(c, callee)
+    sources :: ctx.call_sources(c, callee)
+    args: (usize | null)[]: []
+    for source in sources {
+        args.push(ctx.value(source))
+    }
     // A conversion that runs no `into` hands on the value it converts.
     if callee is Builtin {
         return single(args)
     }
-    return ctx.call(callee, args)
+    return ctx.call(callee, args, sources)
 }
 
-// The slot each parameter of the callee receives, by position: the receiver of a
-// method-form call first, when the callee takes it.
-call_args :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> (usize | null)[] {
-    args: (usize | null)[]: []
+// The expression each parameter of the callee receives, by position: the receiver
+// of a method-form call first, when the callee takes it. A callee expression that
+// is not an argument is walked here.
+call_sources :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> AST.Expr[] {
+    sources: AST.Expr[]: []
     if c.callee is AST.FieldExpr as method {
         if ctx.passes_receiver(c, method, callee) {
-            args.push(ctx.value(method.target))
+            sources.push(method.target)
         } else {
             ctx.discard(method.target)
         }
@@ -135,9 +144,9 @@ call_args :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> (usize | null)
         ctx.discard(c.callee)
     }
     for a in c.args {
-        args.push(ctx.value(a.value))
+        sources.push(a.value)
     }
-    return args
+    return sources
 }
 
 // Whether `callee` takes the target of `c.callee` as its first argument: a
@@ -167,16 +176,14 @@ binary_value :: fn(ctx: WalkCtx, e: AST.BinaryExpr) -> usize | null {
     right :: ctx.value(e.right)
     alias :: e.bind_as
     if alias != null {
+        ctx.note_kept(e.left)
         ctx.bind_symbol(alias.span, left)
     }
-    return ctx.call(ctx.site_callee(.Operator, e.id), operator_args(e.op, left, right))
-}
-
-operator_args :: fn(op: AST.BinaryOp, left: usize | null, right: usize | null) -> (usize | null)[] {
-    if op == .In || op == .NotIn {
-        return [right, left]
+    operator :: ctx.site_callee(.Operator, e.id) ?? return null
+    if e.op == .In || e.op == .NotIn {
+        return ctx.call(operator, [right, left], [e.right, e.left])
     }
-    return [left, right]
+    return ctx.call(operator, [left, right], [e.left, e.right])
 }
 
 await_value :: fn(ctx: WalkCtx, e: AST.AwaitExpr) -> usize | null {
@@ -213,11 +220,12 @@ match_value :: fn(ctx: WalkCtx, e: AST.MatchExpr) -> usize | null {
     scrutinee :: ctx.value(e.scrutinee)
     alias :: e.bind_as
     if alias != null {
+        ctx.note_kept(e.scrutinee)
         ctx.bind_symbol(alias.span, scrutinee)
     }
     arms: (usize | null)[]: []
     for arm in e.arms {
-        ctx.bind_pattern(arm.pattern, scrutinee)
+        ctx.bind_pattern(arm.pattern, scrutinee, e.scrutinee)
         guard :: arm.guard
         if guard != null {
             ctx.discard(guard)
@@ -227,24 +235,29 @@ match_value :: fn(ctx: WalkCtx, e: AST.MatchExpr) -> usize | null {
     return ctx.union_of(arms)
 }
 
-bind_pattern :: fn(ctx: WalkCtx, p: AST.Pattern, scrutinee: usize | null) -> void {
+// Bind each name `p` binds to its part of the scrutinee, which `source` evaluates
+// to.
+bind_pattern :: fn(
+    ctx: WalkCtx, p: AST.Pattern, scrutinee: usize | null, source: AST.Expr,
+) -> void {
     match p {
         is AST.IsPattern     -> {
             inner :: p.inner
             if inner != null {
-                ctx.bind_pattern(inner, scrutinee)
+                ctx.bind_pattern(inner, scrutinee, source)
             }
         }
         is AST.StructPattern -> {
             for f in p.fields {
                 if f.value is AST.PatternBinding {
+                    ctx.note_kept(source)
                     ctx.bind_symbol(f.name_span, ctx.step_slot(scrutinee, f.name))
                 }
             }
         }
         is AST.OrPattern     -> {
             for alt in p.patterns {
-                ctx.bind_pattern(alt, scrutinee)
+                ctx.bind_pattern(alt, scrutinee, source)
             }
         }
         is AST.WildcardPattern | AST.EnumVariantPattern
@@ -270,6 +283,7 @@ lambda_value :: fn(ctx: WalkCtx, l: AST.LambdaExpr) -> usize | null {
     }
     ctx.lambdas.push(bound)
     ctx.escape(ctx.block_value(l.body), .Stored)
+    ctx.note_kept_trailing(l.body)
     ctx.lambdas.remove_last()
     return null
 }
@@ -283,11 +297,12 @@ struct_literal_value :: fn(ctx: WalkCtx, e: AST.StructLitExpr) -> usize | null {
     for item in e.items {
         if item is AST.StructLitField {
             named.add(item.name)
-            ctx.escape(ctx.value(item.value), .Stored)
+            ctx.escape(ctx.kept_value(item.value), .Stored)
         }
     }
     for item in e.items {
         if item is AST.StructLitSpread {
+            ctx.note_kept(item.expr)
             ctx.spread(item.expr, named)
         }
     }
@@ -322,7 +337,7 @@ struct_fields_of :: fn(ctx: WalkCtx, e: AST.Expr) -> MutableMap<string, Type> | 
 // An array or a tuple literal keeps its elements ; it is a fresh value.
 sequence_value :: fn(ctx: WalkCtx, e: AST.SeqLitExpr) -> usize | null {
     for element in e.elements {
-        ctx.escape(ctx.value(element), .Stored)
+        ctx.escape(ctx.kept_value(element), .Stored)
     }
     return null
 }
@@ -337,7 +352,8 @@ range_value :: fn(ctx: WalkCtx, e: AST.RangeExpr) -> usize | null {
 string_value :: fn(ctx: WalkCtx, e: AST.StringLitExpr) -> usize | null {
     for part in e.parts {
         if part is AST.StringLitInterp {
-            _ :: ctx.call(ctx.site_callee(.Display, part.expr.id), [ctx.value(part.expr)])
+            renders :: ctx.site_callee(.Display, part.expr.id)
+            _ :: ctx.call(renders, [ctx.value(part.expr)], [part.expr])
         }
     }
     return null

@@ -32,7 +32,9 @@ if_to_match_action :: fn() -> CodeAction = CodeAction {
 }
 
 itm_applicable :: fn(node: AST.Expr, _ctx: ActionCtx) -> bool {
-    if node is AST.IfExpr { return is_match_convertible(node) }
+    if node is AST.IfExpr {
+        return is_match_convertible(node)
+    }
     return false
 }
 

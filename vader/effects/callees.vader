@@ -26,6 +26,13 @@ export CalleeIndex :: struct {
     nodes: MutableMap<usize, i32>! = MutableMap<usize, i32> {}
     /// Declaration id → what a bodyless function does.
     bodyless: MutableMap<usize, CallTarget>! = MutableMap<usize, CallTarget> {}
+    /// The declarations of the intrinsics that hand back a frozen view
+    /// (`makes_frozen_view`).
+    frozen_views: MutableSet<usize>! = MutableSet<usize> {}
+    /// Every module constant's initialiser, which may hand a frozen value on.
+    constants: Initialiser[]! = []
+    /// Every struct field default, which every struct built without the field keeps.
+    defaults: Initialiser[]! = []
     /// The impls of every module, each resolved in the module that declares it.
     impls: ImplRegistry! = ImplRegistry {}
     /// Every path the summary names.
@@ -43,6 +50,13 @@ export Function :: struct {
     typed: TypedProgram
 }
 
+/// A value the program evaluates outside a function, a constant's initialiser or
+/// a field default, and the module that typed it.
+export Initialiser :: struct {
+    value: AST.Expr
+    typed: TypedProgram
+}
+
 /// Index every function of `project`, and the impls of every module: the
 /// typecheck's own registry holds the entry module's alone.
 ///
@@ -57,17 +71,31 @@ index_functions :: fn(
         for file in loaded.module.files {
             index.impls.collect_impls(file.program.decls, typed.resolved)
             for d in file.program.decls {
-                if d is AST.FnDecl {
-                    index.register(d, typed)
-                } else if d is AST.ImplDecl {
-                    for member in d.members {
-                        index.register(member, typed)
+                match d {
+                    is AST.FnDecl     -> { index.register(d, typed) }
+                    is AST.ImplDecl   -> {
+                        for member in d.members {
+                            index.register(member, typed)
+                        }
                     }
+                    is AST.ConstDecl  -> {
+                        index.constants.push(Initialiser { .value = d.value, .typed = typed })
+                    }
+                    is AST.StructDecl -> { index.register_defaults(d, typed) }
+                    _                 -> {}
                 }
             }
         }
     }
     return index
+}
+
+// Note each default of `decl`'s fields.
+register_defaults :: fn(index: CalleeIndex, decl: AST.StructDecl, typed: TypedProgram) -> void {
+    for field in decl.fields {
+        value :: field.default ?? continue
+        index.defaults.push(Initialiser { .value = value, .typed = typed })
+    }
 }
 
 // Make `decl` a node when it has a body, else note what it does.
@@ -88,6 +116,9 @@ bodyless_target :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram)
         return KnownEffects { .params = decl.params.map(foreign_effects).collect() }
     }
     key :: index.intrinsic_key(decl, typed)
+    if makes_frozen_view(key) {
+        index.frozen_views.add(decl.id)
+    }
     known :: intrinsic_effects(index.paths, key)
     if known != null {
         return KnownEffects { .params = known }
@@ -229,6 +260,12 @@ push_effects :: fn(kept: i32) -> ParamEffects[] =
 // `store_u8` and `write_string` write bytes of `self`.
 writes_bytes :: fn(elements: i32) -> ParamEffects[] =
     [effects_of(.Assigned, elements), none(), none()]
+
+/// Whether the intrinsic of key `key` hands back a view of a frozen value: the
+/// bytes of a string, which alias the interned string (ADR 0053).
+///
+/// @param key  the intrinsic's key, as `intrinsic_effects` takes it.
+makes_frozen_view :: fn(key: string) -> bool = key == "std/core.bytes"
 
 // `self.copy_to(src_off, dst, dst_off, count)`: `self`'s elements go into `dst`.
 copy_to_effects :: fn(elements: i32) -> ParamEffects[] =

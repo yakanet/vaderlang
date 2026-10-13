@@ -1818,7 +1818,7 @@ ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32)
         // through it lands somewhere and must be allowed. Every other module const
         // is frozen: its value may be shared by every read, `.rodata` included.
         // `declare_const`'s T3076 is what keeps this shape to value elements.
-        return !has_mutable_const_storage(typed.decl_types[sym.id])
+        return is_frozen_const(sym, typed)
     }
     // A parameter without `!`, or a loop variable over an immutable iterable.
     if typed.resolved.immutable_borrows[sym.id] !is null {
@@ -1837,6 +1837,14 @@ ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32)
     scrut :: typed.narrow.binding_scrutinee[at.hash()] ?? return false
     return walk_levels(scrut, typed, budget - 1)
 }
+
+/// Whether `sym` names a module constant whose value is frozen: every one but the
+/// mutable array a `!` gives storage of its own (`has_mutable_const_storage`).
+///
+/// @param sym    the symbol a name resolves to.
+/// @param typed  the module that resolved the name.
+export is_frozen_const :: fn(sym: Symbol, typed: TypedProgram) -> bool =
+    sym.kind == .Const && !has_mutable_const_storage(typed.decl_types[sym.id])
 
 /// True when a module const's declared type is the one shape with real storage:
 /// a MUTABLE array, emitted as a writable global. Growing it is fine —

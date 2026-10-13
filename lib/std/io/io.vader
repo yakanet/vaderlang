@@ -44,7 +44,7 @@ export IOErrorKind :: enum(u8) {
 }
 
 export IOError :: struct {
-    /// Short human-readable diagnostic ("file not found", "EOF", …).
+    /// Short human-readable diagnostic ("file not found", "EOF", ...).
     msg: string
     /// Portable classification. `.Other` when the failure had no platform code
     /// — an end-of-input, a ceiling this library imposes — or when the code is
@@ -100,7 +100,7 @@ export last_io_error :: fn(msg: string) -> IOError
 last_io_error :: fn(msg: string) -> IOError {
     e :: sys_last_errno()
     // An `if` chain, NOT a `match`: a bare identifier in a pattern is a BINDING,
-    // so `match e { ENOENT -> … }` binds `e` to the name `ENOENT` and takes the
+    // so `match e { ENOENT -> ... }` binds `e` to the name `ENOENT` and takes the
     // first arm for every value. It compiles, and the only hint is a W0007 on a
     // constant that has other users anyway.
     kind := IOErrorKind.Other
@@ -901,7 +901,7 @@ up_to_nul :: fn(buf: u8[]) -> string {
 /// platform temp-dir environment (`$TMPDIR` on POSIX, `%TMP%` / `%TEMP%` via
 /// `GetTempPath` on Windows), falling back to `"/tmp"` when unset. The
 /// directory is assumed to exist and be writable ; this does not create it.
-/// @return  the temp directory path, e.g. `"/tmp"` or `"/var/folders/…/T"`.
+/// @return  the temp directory path, e.g. `"/tmp"` or `"/var/folders/.../T"`.
 @target
 export temp_dir :: fn() -> string
 

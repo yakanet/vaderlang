@@ -71,7 +71,7 @@ export Clone :: trait {
 ///   - **Implicit** : when a value of type `S` flows into a slot
 ///     expecting `Target` and `S implements Into<Target>`, the compiler
 ///     inserts `value.into()` at the boundary. Sites : call args with a
-///     typed parameter, `return` values, `let x: T = …`, and struct-
+///     typed parameter, `return` values, `let x: T = ...`, and struct-
 ///     literal fields.
 ///   - **Explicit** : `Target(value)` — the same `Type(value)` syntax
 ///     that performs primitive numeric casts (`u32(x)`, `i64(x)`). When
@@ -182,7 +182,7 @@ export Continuation :: enum(u8) {
 
 /// Pull-based iterator. The lowerer dispatches `for x in iter` through
 /// the impl table — users never call `next` directly. What consumes one —
-/// `count`, `last`, `collect`, `find`… — is a free function over
+/// `count`, `last`, `collect`, `find`... — is a free function over
 /// `Iterator<T>` in `std/iter`, a `for` over its argument.
 ///
 /// `next()` hands back the element and whether the iteration goes on. A PAIR

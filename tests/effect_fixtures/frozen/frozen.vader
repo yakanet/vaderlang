@@ -1,0 +1,74 @@
+// tests/effect_fixtures/frozen — one function per outcome of the frozen checks.
+//
+// `tests/effect_summary.test.ts` reads the `# frozen` section of `vader dump
+// --stage=effects` on this file. The typecheck still enforces the rights of the
+// written `!`, so several of these functions are also rights errors: the dump
+// lists them all the same, which is the comparison the observation is for.
+
+module "frozen"
+
+export Cfg :: struct {
+    n: i32
+}
+
+/// A struct no function of the program writes: a copy of one is left out.
+export Untouched :: struct {
+    n: i32
+}
+
+export Holder :: struct {
+    cfg: Cfg!
+}
+
+export CFG :: Cfg { .n = 1 }
+export TABLE :: [Cfg { .n = 1 }]
+export UNTOUCHED :: Untouched { .n = 1 }
+
+export writes_a_field :: fn() -> void {
+    CFG.n = 2
+}
+
+export pushes_onto_a_table :: fn() -> void {
+    TABLE.push(Cfg { .n = 2 })
+}
+
+export bump :: fn(c: Cfg) -> void {
+    c.n += 1
+}
+
+export bumps_a_constant :: fn() -> void {
+    bump(CFG)
+}
+
+export lends_to_a_callback :: fn(f: fn(Cfg) -> void) -> void {
+    f(CFG)
+}
+
+export binds_a_constant :: fn() -> i32 {
+    c :: CFG
+    return c.n
+}
+
+export binds_an_untouched_constant :: fn() -> i32 {
+    u :: UNTOUCHED
+    return u.n
+}
+
+export stores_a_constant :: fn() -> Holder = Holder { .cfg = CFG }
+
+export returns_a_constant :: fn() -> Cfg = CFG
+
+export reads_a_constant :: fn() -> i32 = CFG.n
+
+export binds_a_view :: fn(s: string) -> u8 {
+    bs :: s.bytes()
+    return bs[0]
+}
+
+export iterates_a_table :: fn() -> i32 {
+    total := 0
+    for c in TABLE {
+        total += c.n
+    }
+    return total
+}

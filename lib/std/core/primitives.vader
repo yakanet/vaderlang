@@ -304,7 +304,7 @@ char  implements Hash -> u64(self)
 // Three-way `compare` for every integer width plus `char`, factored through the
 // shared `three_way` helper so the if-chain lives in ONE place. Floats are
 // excluded — IEEE-754's NaN breaks total ordering, so an `Ord`-style trait is the
-// right shape for f32/f64 and is deferred. Each `-> three_way(…)` is
+// right shape for f32/f64 and is deferred. Each `-> three_way(...)` is
 // single-expression, so the post-lowering inliner folds it back at every `compare`
 // site — DRY with no call overhead.
 

@@ -219,7 +219,15 @@ export Effect :: enum {
     /// The value at the end of the path is returned: the caller holds it through
     /// the call's result.
     Returned,
+    /// Code the summary cannot see may change anything at the end of the path: a
+    /// function value, a site the record could not settle. A client that needs a
+    /// sound answer reads it as any change.
+    Unknown,
 }
+
+// Whether `a` changes what the caller lent, by code the summary sees.
+modifies :: fn(a: Access) -> bool =
+    a.effect == .Assigned || a.effect == .Resized || a.effect == .Shrunk
 
 // How the dump names `e`.
 effect_label :: fn(e: Effect) -> string = match e {
@@ -228,6 +236,7 @@ effect_label :: fn(e: Effect) -> string = match e {
     .Shrunk   -> "shrunk"
     .Stored   -> "stored"
     .Returned -> "returned"
+    .Unknown  -> "unknown"
 }
 
 /// An effect at a path of the summary's `PathTable`.
@@ -325,13 +334,12 @@ include_all :: fn(t: PathTable, into: ParamEffects, from: ParamEffects) -> bool 
     return grew
 }
 
-// The accesses of a parameter nothing is known of: changed and kept, anywhere
-// below it.
+// The accesses of a parameter nothing is known of: changed by unseen code, and
+// kept, anywhere below it.
 any_effects :: fn() -> ParamEffects! {
     effects :: ParamEffects {}
-    for effect in [Effect.Assigned, Effect.Resized, Effect.Shrunk, Effect.Stored] {
-        effects.insert(Access { .path = EVERYWHERE, .effect = effect })
-    }
+    effects.insert(Access { .path = EVERYWHERE, .effect = .Unknown })
+    effects.insert(Access { .path = EVERYWHERE, .effect = .Stored })
     return effects
 }
 

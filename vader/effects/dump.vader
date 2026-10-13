@@ -8,6 +8,7 @@
 module "vader/effects"
 
 import "std/collections"
+import "std/iter"
 import "std/sort"
 import "std/string"
 import "std/string_builder"
@@ -38,6 +39,7 @@ export dump_effects :: fn(summary: EffectSummary, scope: string[]) -> string {
             write_function(sb, summary, node)
         }
     }
+    write_frozen(sb, summary.frozen, scope)
     functions :: summary.index.functions.len()
     sb.append("\nfunctions: ${functions}, unsettled: ${summary.unsettled.len()}\n")
     for name in sort(summary.index.unknown, (a, b) -> a < b) {
@@ -70,4 +72,50 @@ write_function :: fn(sb: StringBuilder, summary: EffectSummary, node: i32) -> vo
     if !written {
         sb.append("  none\n")
     }
+}
+
+// The frozen sites of the modules in `scope`, by module then in source order, and
+// how many of each kind.
+write_frozen :: fn(sb: StringBuilder, frozen: FrozenSite[], scope: string[]) -> void {
+    sites: FrozenSite[]: []
+    for site in frozen {
+        if module_in_scope(site.module, scope) {
+            sites.push(site)
+        }
+    }
+    sb.append("\n# frozen\n")
+    kinds :: [
+        FrozenKind.WriteFault,
+        FrozenKind.CallFault,
+        FrozenKind.UnknownCall,
+        FrozenKind.Copy,
+        FrozenKind.ElidedCopy,
+    ]
+    counts :: kinds.len().filled(() -> 0)
+    for site in sort(sites, site_comes_first) {
+        position :: site.span.start
+        label :: frozen_label(site.kind)
+        sb.append("  ${site.module} ${position.line}:${position.column} ${label} ${site.root}\n")
+        counts[usize(site.kind)] += 1
+    }
+    totals: string[]: []
+    for kind in kinds {
+        totals.push("${frozen_label(kind)}: ${counts[usize(kind)]}")
+    }
+    sb.append("${totals.join(", ")}\n")
+}
+
+site_comes_first :: fn(a: FrozenSite, b: FrozenSite) -> bool {
+    if a.module != b.module {
+        return a.module < b.module
+    }
+    return a.span.start.offset < b.span.start.offset
+}
+
+frozen_label :: fn(kind: FrozenKind) -> string = match kind {
+    .WriteFault  -> "write fault"
+    .CallFault   -> "call fault"
+    .UnknownCall -> "unknown call"
+    .Copy        -> "copy"
+    .ElidedCopy  -> "copy elided"
 }

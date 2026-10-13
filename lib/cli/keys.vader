@@ -98,7 +98,10 @@ export decode_key :: fn(bytes: u8[], from: usize) -> DecodedKey {
 
 // A single-byte press.
 one :: fn(key: Key) = DecodedKey {
-    .press = KeyPress { .key = key, .text = "" },
+    .press = KeyPress {
+        .key = key,
+        .text = "",
+    },
     .consumed = 1,
 }
 
@@ -138,15 +141,15 @@ decode_escape :: fn(bytes: u8[], from: usize, remaining: usize) -> DecodedKey {
     }
 }
 
-// The four cursor letters, shared by the `ESC [` and `ESC O` forms.
-arrow_for :: fn(final: u8) -> Key {
-    if final == 'A' { return .Up }
-    if final == 'B' { return .Down }
-    if final == 'C' { return .Right }
-    if final == 'D' { return .Left }
-    if final == 'H' { return .Home }
-    if final == 'F' { return .End }
-    return .Unknown
+// The cursor-key letters, shared by the `ESC [` and `ESC O` forms.
+arrow_for :: fn(final: u8) -> Key = match final {
+    'A' -> .Up
+    'B' -> .Down
+    'C' -> .Right
+    'D' -> .Left
+    'H' -> .Home
+    'F' -> .End
+    _   -> .Unknown
 }
 
 // `ESC [ <digits> ~`. Consumes through the `~` so the rest of the burst decodes
