@@ -20,7 +20,7 @@
 // same thing — so the split is: this pass proves it is SAFE, the backend decides
 // where the state lives.
 //
-// Whether a callee is pure comes from `bce_prove.vader`.
+// Whether a loop body may disturb the array comes from `purity.vader`.
 
 module "vader/lower"
 
@@ -30,7 +30,7 @@ module "vader/lower"
 ///
 /// @param project  the lowered project ; pushes are marked in place.
 export push_cache_tag :: fn(project: LoweredProject) -> void {
-    pctx :: bce_build_purity_ctx(project)
+    ctx :: new_purity_ctx(project)
     for [_, m] in project.modules {
         for d in m.decls {
             if d is LoweredFnDecl {
@@ -38,7 +38,7 @@ export push_cache_tag :: fn(project: LoweredProject) -> void {
                 if body != null {
                     // No array is live on entry : a parameter may already be
                     // aliased by the caller, so only a local mint starts a set.
-                    pc_scan_block(body, [], pctx)
+                    pc_scan_block(ctx, body, [])
                 }
             }
         }
@@ -52,16 +52,16 @@ export push_cache_tag :: fn(project: LoweredProject) -> void {
 // down and refined statement by statement, which is what makes the answer
 // flow-sensitive: `return out` AFTER the loop is harmless (the write-back has
 // run), the same `return` before it would not be.
-pc_scan_block :: fn(b: LoweredBlock, live: i32[], pctx: BcePurityCtx) -> void {
+pc_scan_block :: fn(ctx: PurityCtx, b: LoweredBlock, live: i32[]) -> void {
     working: i32[]: []
     working.push_all(live)
     for st in b.stmts {
-        pc_scan_stmt(st, working, pctx)
+        pc_scan_stmt(ctx, st, working)
         pc_update_live(working, st)
     }
     t :: b.trailing
     if t != null {
-        pc_scan_expr(t, working, pctx)
+        pc_scan_expr(ctx, t, working)
     }
 }
 
@@ -112,52 +112,52 @@ pc_live_entering :: fn(live: i32[], lp: LoweredLoop) -> i32[]! {
     return kept
 }
 
-pc_scan_stmt :: fn(st: LoweredStmt, live: i32[], pctx: BcePurityCtx) -> void {
+pc_scan_stmt :: fn(ctx: PurityCtx, st: LoweredStmt, live: i32[]) -> void {
     if st is LoweredLoop {
         inner :: pc_live_entering(live, st)
-        pc_try_cache(st, inner, pctx)
+        pc_try_cache(ctx, st, inner)
         // Descend regardless : a nested loop is its own candidate, whether or
         // not the enclosing one qualified.
-        pc_scan_block(st.body, inner, pctx)
+        pc_scan_block(ctx, st.body, inner)
         for s in st.step {
-            pc_scan_stmt(s, inner, pctx)
+            pc_scan_stmt(ctx, s, inner)
         }
         c :: st.cond
         if c != null {
-            pc_scan_expr(c, inner, pctx)
+            pc_scan_expr(ctx, c, inner)
         }
         return
     }
     match st {
-        is LoweredLet       -> { pc_scan_expr(st.value, live, pctx) }
-        is LoweredAssign    -> { pc_scan_expr(st.value, live, pctx) }
-        is LoweredCellSet   -> { pc_scan_expr(st.value, live, pctx) }
-        is LoweredYield     -> { pc_scan_expr(st.value, live, pctx) }
-        is LoweredExprStmt  -> { pc_scan_expr(st.expr, live, pctx) }
-        is LoweredAwait     -> { pc_scan_expr(st.awaited, live, pctx) }
-        is LoweredDeferPush -> { pc_scan_expr(st.thunk, live, pctx) }
-        is LoweredLabelledBlock -> { pc_scan_block(st.body, live, pctx) }
+        is LoweredLet       -> { pc_scan_expr(ctx, st.value, live) }
+        is LoweredAssign    -> { pc_scan_expr(ctx, st.value, live) }
+        is LoweredCellSet   -> { pc_scan_expr(ctx, st.value, live) }
+        is LoweredYield     -> { pc_scan_expr(ctx, st.value, live) }
+        is LoweredExprStmt  -> { pc_scan_expr(ctx, st.expr, live) }
+        is LoweredAwait     -> { pc_scan_expr(ctx, st.awaited, live) }
+        is LoweredDeferPush -> { pc_scan_expr(ctx, st.thunk, live) }
+        is LoweredLabelledBlock -> { pc_scan_block(ctx, st.body, live) }
         is LoweredReturn    -> {
             // `.value` sits at a different offset per variant, so these cannot be
             // collapsed into one or-pattern arm (T3008).
 
             v :: st.value
             if v != null {
-                pc_scan_expr(v, live, pctx)
+                pc_scan_expr(ctx, v, live)
             }
         }
         _                   -> {}
     }
 }
 
-pc_scan_expr :: fn(e: LoweredExpr, live: i32[], pctx: BcePurityCtx) -> void {
+pc_scan_expr :: fn(ctx: PurityCtx, e: LoweredExpr, live: i32[]) -> void {
     match e {
-        is LoweredBlock -> { pc_scan_block(e, live, pctx) }
+        is LoweredBlock -> { pc_scan_block(ctx, e, live) }
         is LoweredIf    -> {
-            pc_scan_block(e.then_block, live, pctx)
+            pc_scan_block(ctx, e.then_block, live)
             eb :: e.else_block
             if eb != null {
-                pc_scan_block(eb, live, pctx)
+                pc_scan_block(ctx, eb, live)
             }
         }
         _               -> {}
@@ -167,7 +167,7 @@ pc_scan_expr :: fn(e: LoweredExpr, live: i32[], pctx: BcePurityCtx) -> void {
 // ---- decide, then mark ----------------------------------------------------
 
 // Every condition the lifted form needs, in the order that rejects fastest.
-pc_try_cache :: fn(lp: LoweredLoop, live: i32[], pctx: BcePurityCtx) -> void {
+pc_try_cache :: fn(ctx: PurityCtx, lp: LoweredLoop, live: i32[]) -> void {
     pushes: LoweredArrayPush[]: []
     pc_collect_pushes(lp.body, pushes)
     for st in lp.step {
@@ -180,7 +180,7 @@ pc_try_cache :: fn(lp: LoweredLoop, live: i32[], pctx: BcePurityCtx) -> void {
         return
     }
     // Anything else that names the array would read a `length` the lifted form
-    // has not written back yet.
+    // has not written back yet, or rebind the array whose state it holds.
     if pc_used_outside_push(lp, sym) {
         return
     }
@@ -199,11 +199,9 @@ pc_try_cache :: fn(lp: LoweredLoop, live: i32[], pctx: BcePurityCtx) -> void {
     // their own `LoweredLoop` arms, so asking them about `lp` rather than
     // `lp.body` keeps it in one place.
     //
-    // `pc_stmt_unsafe` answers "can this move a buffer" — and it counts a push
-    // as unsafe, since a push can grow, so the candidate pushes are held to
-    // their VALUE expression only. The grow is not a problem here: it is the
-    // one safepoint the lifted form knows about, and it refreshes across it.
-    if pc_stmt_unsafe(lp, sym, pctx) {
+    // `pc_stmt_may_disturb` answers "can this move a buffer", holding the
+    // candidate pushes to their value expression (`pc_body_may_disturb`).
+    if pc_stmt_may_disturb(ctx, lp, sym) {
         return
     }
     for p in pushes {
@@ -303,8 +301,10 @@ pc_stmt_exits :: fn(st: LoweredStmt) -> bool = match st {
         | LoweredLabelledBlock -> false
 }
 
-// Any mention of `sym` that is not a candidate push's own target — such a read
-// would see a `length` the lifted form is still holding in a local.
+// Any mention of `sym` that is not a candidate push's own target: a read would
+// see a `length` the lifted form is still holding in a local, and an assignment
+// would rebind the array whose state it holds. `pc_stmt_may_disturb` relies on
+// this for the rebind.
 //
 // `cf_expr_mentions` (`concat_fusion.vader`, same module) is that walk, and
 // `push_target = false` is exactly this pass's difference from the concat
@@ -316,36 +316,36 @@ pc_used_outside_push :: fn(lp: LoweredLoop, sym: i32) -> bool = cf_stmt_mentions
     CF_SKIP_PUSH,
 )
 
-// Can anything in the body move a buffer, or rebind the array? `bce_*_unsafe` is
-// the shared answer — but it calls a push unsafe (a push can grow), so a
-// candidate push is held to its value expression only. The grow IS a safepoint;
-// it is the one the lifted form refreshes across, which is why it is exempt here
-// and nowhere else.
-pc_body_unsafe :: fn(b: LoweredBlock, sym: i32, pctx: BcePurityCtx) -> bool {
+// Can anything in the body move a buffer? `*_may_disturb` (`purity.vader`) is the
+// shared answer, but it counts a push (a push can grow), so a candidate push is
+// held to its value expression only. The grow IS a safepoint; it is the one the
+// lifted form refreshes across, which is why it is exempt here and nowhere else.
+// A rebind of the array is refused before, by `pc_used_outside_push`.
+pc_body_may_disturb :: fn(ctx: PurityCtx, b: LoweredBlock, sym: i32) -> bool {
     for st in b.stmts {
-        if pc_stmt_unsafe(st, sym, pctx) {
+        if pc_stmt_may_disturb(ctx, st, sym) {
             return true
         }
     }
     t :: b.trailing ?? return false
-    return pc_expr_unsafe_skipping_push(t, sym, pctx)
+    return pc_expr_may_disturb_skipping_push(ctx, t, sym)
 }
 
-pc_stmt_unsafe :: fn(st: LoweredStmt, sym: i32, pctx: BcePurityCtx) -> bool {
+pc_stmt_may_disturb :: fn(ctx: PurityCtx, st: LoweredStmt, sym: i32) -> bool {
     if st is LoweredExprStmt {
-        return pc_expr_unsafe_skipping_push(st.expr, sym, pctx)
+        return pc_expr_may_disturb_skipping_push(ctx, st.expr, sym)
     }
     if st is LoweredLabelledBlock {
-        return pc_body_unsafe(st.body, sym, pctx)
+        return pc_body_may_disturb(ctx, st.body, sym)
     }
     if st is LoweredLoop {
-        return bce_opt_expr_unsafe(st.cond, sym, pctx) || pc_body_unsafe(st.body, sym, pctx)
-            || pc_body_unsafe(loop_step_block(st), sym, pctx)
+        return opt_expr_may_disturb(ctx, st.cond) || pc_body_may_disturb(ctx, st.body, sym)
+            || pc_body_may_disturb(ctx, loop_step_block(st), sym)
     }
-    return bce_stmt_unsafe(st, sym, pctx)
+    return stmt_may_disturb(ctx, st)
 }
 
-pc_expr_unsafe_skipping_push :: fn(e: LoweredExpr, sym: i32, pctx: BcePurityCtx) -> bool {
+pc_expr_may_disturb_skipping_push :: fn(ctx: PurityCtx, e: LoweredExpr, sym: i32) -> bool {
     if e is LoweredArrayPush {
         // Only a push onto the candidate is exempt ; a push onto some OTHER
         // array still allocates, and that moves our buffer too.
@@ -356,20 +356,20 @@ pc_expr_unsafe_skipping_push :: fn(e: LoweredExpr, sym: i32, pctx: BcePurityCtx)
         if t.symbol.id != sym {
             return true
         }
-        return bce_expr_unsafe(e.value, sym, pctx)
+        return expr_may_disturb(ctx, e.value)
     }
     if e is LoweredBlock {
-        return pc_body_unsafe(e, sym, pctx)
+        return pc_body_may_disturb(ctx, e, sym)
     }
     if e is LoweredIf {
-        if bce_expr_unsafe(e.cond, sym, pctx) {
+        if expr_may_disturb(ctx, e.cond) {
             return true
         }
-        if pc_body_unsafe(e.then_block, sym, pctx) {
+        if pc_body_may_disturb(ctx, e.then_block, sym) {
             return true
         }
         eb :: e.else_block ?? return false
-        return pc_body_unsafe(eb, sym, pctx)
+        return pc_body_may_disturb(ctx, eb, sym)
     }
-    return bce_expr_unsafe(e, sym, pctx)
+    return expr_may_disturb(ctx, e)
 }

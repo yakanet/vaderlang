@@ -143,10 +143,11 @@ import "vader/types"
 // A project holding `f :: fn() { x :: <value> }`, `x` being symbol 1.
 captured_let_project :: fn(value: LoweredExpr) -> LoweredProject {
     binding :: LoweredLet {
-        .span = empty_span(), .name = "x", .symbol = bce_test_sym(1, "x"), .type = TY_BOOL,
+        .span = empty_span(), .name = "x", .symbol = test_fn_symbol(1, "x"), .type = TY_BOOL,
         .value = value,
     }
-    return one_module_project([bce_test_fn(bce_test_sym(2, "f"), bce_test_block([binding]))])
+    f :: test_fn_decl(test_fn_symbol(2, "f"), fresh_test_body([binding]))
+    return one_module_project([f])
 }
 
 // A project whose only module, `m`, holds `decls`.
@@ -170,9 +171,9 @@ bare :: fn() -> LoweredExpr! = LoweredBoolLit { .span = empty_span(), .type = TY
 
 @test
 test_verify_functions_defined_once_reports_the_second_body :: fn() -> void {
-    f :: bce_test_sym(2, "f")
-    first :: bce_test_fn(f, bce_test_block([]))
-    second :: bce_test_fn(f, bce_test_block([]))
+    f :: test_fn_symbol(2, "f")
+    first :: test_fn_decl(f, fresh_test_body([]))
+    second :: test_fn_decl(f, fresh_test_body([]))
     project :: one_module_project([first, second])
     diags: Diagnostic[]: []
     verify_functions_defined_once(project, "test", diags)
