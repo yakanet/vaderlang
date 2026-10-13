@@ -267,8 +267,19 @@ export Effect :: enum {
 }
 
 // Whether `a` changes what the caller lent, by code the summary sees.
-modifies :: fn(a: Access) -> bool =
-    a.effect == .Assigned || a.effect == .Resized || a.effect == .Shrunk
+modifies :: fn(a: Access) -> bool = match a.effect {
+    .Assigned | .Resized | .Shrunk -> true
+    .Stored | .Returned | .Unknown -> false
+}
+
+// Whether access `a` keeps a value past the call: stored, or returned.
+is_kept :: fn(a: Access) -> bool = match a.effect {
+    .Stored | .Returned                       -> true
+    .Assigned | .Resized | .Shrunk | .Unknown -> false
+}
+
+// Whether access `a` hands a value to code the summary cannot see.
+is_unknown :: fn(a: Access) -> bool = a.effect == .Unknown
 
 // How the dump names `e`.
 effect_label :: fn(e: Effect) -> string = match e {

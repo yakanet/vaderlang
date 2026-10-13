@@ -48,14 +48,15 @@ callback.
   parameter handed down takes everything below it, and a cut path drops the
   accesses it covers. Without them a recursive walk of a tree named every
   combination of fields down to three steps, 35 000 accesses for one parameter.
-- **The frozen checks** are computed beside the rights, not instead of them. A
-  value is rooted at a frozen one through fields, elements, `??`, branches and
-  conversions that keep the object, never through a name. A write through it, or
-  an argument its callee modifies, is a fault; an argument only unknown code may
-  modify is reported apart; a binding, a store, a return, or an argument the
-  callee keeps or returns (but for the target of an index read) is a copy. A copy
-  is left out when no write of the program reaches a value of its type, or of a
-  type it holds.
+- **The frozen checks** are computed beside the rights, not instead of them. Each
+  use of a frozen value is a root of its function's skeleton, followed like a
+  parameter: through fields, elements, branches, aliases, and what a callee
+  returns. A name bound to it holds a copy (E1), a root of its own. A use written
+  through, or lent to a callee that modifies it, is a fault; one only unknown code
+  may modify is reported apart; a use stored or returned is a copy. A binding
+  written, stored, returned or handed to unseen code is a copy; one only read
+  shares the frozen value. A copy is left out when no write of the program reaches
+  a value of its type, or of a type it holds.
 
 ## Consequences
 
@@ -70,7 +71,9 @@ callback.
   when function values are taken as readers. Turning the checks into errors
   needs a decision on those first.
 - Type-based elision leaves out 544 copies, 416 of the 438 stores of a type
-  singleton among them, and keeps 201, of which 148 are views of a string's bytes
-  bound to a name: an elision per name would leave out most of them.
+  singleton among them. A binding only read shares the frozen value: of the 201
+  copies the first version kept, 148 being views of a string's bytes bound to a
+  name, 20 remain (2026-10-14, roots of the skeleton: a binding's copy is left out
+  by the types of what it copied).
 - `CheckResult.impls` holds the entry module's impls only; the summary builds its
   own registry over every module, as the lowering does.

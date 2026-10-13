@@ -4,8 +4,9 @@
 // lent (`skeleton.vader`). A value's slot holds the parameters it may be reached
 // from. Locals are aliases: a local's slot holds the roots of everything bound
 // or assigned to it, wherever in the body, which needs no order between the
-// statements. A write is recorded by its form (`p.f = v`, `xs[i] = v`), whatever
-// the type it writes through.
+// statements ; but a name bound to a frozen value holds a copy of it
+// (`frozen.vader`). A write is recorded by its form (`p.f = v`, `xs[i] = v`),
+// whatever the type it writes through.
 //
 // What escapes the call is stored: a value put in a field or an element, assigned
 // to a module variable, or yielded. A value the function returns is returned, so
@@ -38,23 +39,27 @@ WalkCtx :: struct {
     frozen: FrozenSites!
     /// Where the walk notes the arguments the typecheck widened (`variance.vader`).
     widenings: PendingWidening[]!
+    /// The roots the frozen checks decide: each use of a frozen value, each binding.
+    roots: FrozenRoot[]! = []
     /// Whether the walk reads a module constant's initialiser.
     in_constant: bool = false
 }
 
 /// The skeleton of `decl`'s body.
 ///
-/// @param decl    a function with a body.
-/// @param typed   the module that typed it.
-/// @param index   the project's functions, to resolve its calls.
+/// @param decl       a function with a body.
+/// @param typed      the module that typed it.
+/// @param index      the project's functions, to resolve its calls.
 /// @param frozen     where the walk notes what the body does with frozen values.
 /// @param widenings  where the walk notes the arguments the typecheck widened.
+/// @param node       the function's node in the call graph.
 skeleton_of :: fn(
     decl: AST.FnDecl,
     typed: TypedProgram,
     index: CalleeIndex,
     frozen: FrozenSites,
     widenings: PendingWidening[],
+    node: i32,
 ) -> Skeleton {
     ctx :: WalkCtx {
         .s = new_skeleton(decl.params.len()),
@@ -73,7 +78,7 @@ skeleton_of :: fn(
     body :: decl.body ?? return ctx.s
     result :: ctx.block_value(body)
     ctx.escape(result, .Returned)
-    ctx.note_kept_trailing(body)
+    ctx.note_frozen_body(node)
     return ctx.s
 }
 
@@ -81,12 +86,12 @@ skeleton_of :: fn(
 
 stmt :: fn(ctx: WalkCtx, s: AST.Stmt) -> void {
     match s {
-        is AST.LetStmt               -> { ctx.bind(s.binding, ctx.kept_value(s.value)) }
-        is AST.AssignStmt            -> { ctx.assign(s.target, ctx.kept_value(s.value)) }
+        is AST.LetStmt               -> { ctx.bind(s.binding, ctx.value(s.value)) }
+        is AST.AssignStmt            -> { ctx.assign(s.target, ctx.value(s.value)) }
         is AST.DestructureAssignStmt -> { ctx.destructure_assign(s) }
         is AST.ExprStmt              -> { ctx.discard(s.expr) }
         is AST.ReturnStmt            -> { ctx.return_stmt(s) }
-        is AST.YieldStmt             -> { ctx.escape(ctx.kept_value(s.value), .Stored) }
+        is AST.YieldStmt             -> { ctx.escape(ctx.value(s.value), .Stored) }
         is AST.ForStmt               -> { ctx.for_stmt(s) }
         is AST.BreakStmt | AST.ContinueStmt -> {}
         is AST.DeferStmt             -> { ctx.defer_stmt(s) }
@@ -95,7 +100,7 @@ stmt :: fn(ctx: WalkCtx, s: AST.Stmt) -> void {
 
 return_stmt :: fn(ctx: WalkCtx, s: AST.ReturnStmt) -> void {
     value :: s.value ?? return
-    ctx.escape(ctx.kept_value(value), ctx.return_effect())
+    ctx.escape(ctx.value(value), ctx.return_effect())
 }
 
 // A `return` hands its value to the caller ; inside a lambda, to whoever calls the
@@ -119,11 +124,7 @@ for_stmt :: fn(ctx: WalkCtx, s: AST.ForStmt) -> void {
         is AST.InfiniteFor -> {}
         is AST.WhileFor    -> { ctx.discard(form.cond) }
         is AST.InFor       -> {
-            by_elements :: ctx.steps_through_elements(form.iter)
-            if by_elements && form.loop_var !is AST.DiscardVar {
-                ctx.note_kept(form.iter)
-            }
-            element :: ctx.loop_element(form.iter, ctx.value(form.iter), by_elements)
+            element :: ctx.loop_element(form.iter, ctx.value(form.iter))
             match form.loop_var as var {
                 is AST.NamedVar       -> { ctx.bind_symbol(var.span, element) }
                 is AST.DestructureVar -> { ctx.bind(var.pattern, element) }
@@ -137,10 +138,8 @@ for_stmt :: fn(ctx: WalkCtx, s: AST.ForStmt) -> void {
 // What each step of a `for` over `iter` hands its variable: an element of an array,
 // or what the iterator's `next` returns, the iterator being what `into` makes of
 // the iterable.
-loop_element :: fn(
-    ctx: WalkCtx, iter: AST.Expr, iterable: usize | null, by_elements: bool,
-) -> usize | null {
-    if by_elements {
+loop_element :: fn(ctx: WalkCtx, iter: AST.Expr, iterable: usize | null) -> usize | null {
+    if ctx.steps_through_elements(iter) {
         return ctx.step_slot(iterable, ELEMENT)
     }
     iterator :: ctx.converted_by(ctx.site_callee(.IterInto, iter.id), iterable, iter)
@@ -154,7 +153,7 @@ steps_through_elements :: fn(ctx: WalkCtx, iter: AST.Expr) -> bool {
 }
 
 destructure_assign :: fn(ctx: WalkCtx, s: AST.DestructureAssignStmt) -> void {
-    value :: ctx.kept_value(s.value)
+    value :: ctx.value(s.value)
     for t in s.targets {
         match t {
             is AST.PlaceTarget    -> { ctx.assign(t.place, ctx.step_slot(value, ELEMENT)) }
@@ -191,17 +190,18 @@ assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: usize | null) -> voi
     if slot == null {
         ctx.escape(value, .Stored)
     } else if value != null {
-        ctx.s.add_flow(slot, value)
+        ctx.bind_copy(slot, value, name.span, ctx.typed.expr_types[name.id])
     }
 }
 
-// `target[index] = value`, through the target's `IndexSet` or into an array.
+// `target[index] = value`, through the target's `IndexSet` or into an array. A
+// write the typecheck refused is still a write of the element.
 assign_element :: fn(ctx: WalkCtx, place: AST.IndexExpr, value: usize | null) -> void {
     ctx.note_write(place.target)
     target :: ctx.value(place.target)
     index :: ctx.value(place.index)
     writer :: ctx.site_callee(.IndexWrite, place.id)
-    if writer != null && writer !is Builtin {
+    if writer != null && writer !is Builtin && writer !is ErroneousCallee {
         _ :: ctx.call(writer, [target, index, value], [null, place.index, null])
         return
     }
@@ -224,12 +224,13 @@ bind :: fn(ctx: WalkCtx, b: AST.LetBinding, value: usize | null) -> void {
     }
 }
 
-// The binding whose name sits at `span` now holds `value` too.
+// The binding whose name sits at `span` now holds `value` too, a copy of what it
+// holds of a frozen value.
 bind_symbol :: fn(ctx: WalkCtx, span: Span, value: usize | null) -> void {
     sym :: ctx.typed.resolved.idents[span.hash()] ?? return
     slot :: ctx.local_slot(sym.id)
     if value != null {
-        ctx.s.add_flow(slot, value)
+        ctx.bind_copy(slot, value, span, ctx.typed.local_types[span.hash()])
     }
 }
 
@@ -285,18 +286,6 @@ union_of :: fn(ctx: WalkCtx, values: (usize | null)[]) -> usize | null {
 site_callee :: fn(ctx: WalkCtx, role: CallRole, id: usize) -> Callee | null =
     sites_of(ctx.typed.call_sites, role)[id]
 
-// What a call does with the expressions it is lent, for the frozen checks.
-Lending :: enum {
-    /// Arguments.
-    Plain,
-    /// The target and the index of an index read, which hands back part of its
-    /// target: not a copy of it.
-    ThroughIndex,
-    /// The value an `into` converts. Any other call that takes a converted
-    /// argument receives what `into` returns, not the expression.
-    Conversion,
-}
-
 // A call to `callee` handing it `args` by its parameters' positions ; its result's
 // slot, or null when there is no call, or one that runs nothing. `sources` are the
 // expressions the arguments come from, where the walk has them.
@@ -305,7 +294,6 @@ call :: fn(
     callee: Callee | null,
     args: (usize | null)[],
     sources: (AST.Expr | null)[] = [],
-    lending: Lending = .Plain,
 ) -> usize | null {
     c :: callee ?? return null
     targets :: ctx.index.targets_of(c)
@@ -316,17 +304,8 @@ call :: fn(
         source :: sources[q] ?? continue
         ctx.note_known_writes(targets, q, source)
         ctx.note_widened(c, targets, q, source)
-        if lending == .Conversion || !ctx.is_converted(source) {
-            ctx.note_lent(targets, q, source, lending == .ThroughIndex)
-        }
     }
     return ctx.s.add_site(targets, args)
-}
-
-// Whether an implicit `into` runs on the value of `e`.
-is_converted :: fn(ctx: WalkCtx, e: AST.Expr) -> bool {
-    conversion :: ctx.site_callee(.Into, e.id) ?? return false
-    return conversion !is Builtin
 }
 
 // The step a field access takes: an element of a tuple for `t.0`.

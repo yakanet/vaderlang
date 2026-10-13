@@ -131,13 +131,16 @@ test("the frozen checks give each use of a frozen value its outcome", async () =
     "call fault TABLE",
     "call fault CFG",
     "unknown call CFG",
+    "binding shared CFG",
+    "binding shared UNTOUCHED",
     "copy CFG",
+    "copy CFG",
+    "binding shared bytes()",
+    "binding shared TABLE",
     "copy elided UNTOUCHED",
     "copy CFG",
-    "copy CFG",
-    "copy bytes()",
-    "copy TABLE",
-    "write fault: 1, call fault: 2, unknown call: 1, copy: 5, copy elided: 1",
+    "call fault CFG",
+    "write fault: 1, call fault: 3, unknown call: 1, copy: 3, copy elided: 1, binding shared: 4",
   ]);
 }, MEDIUM_BUILD);
 

@@ -72,3 +72,22 @@ export iterates_a_table :: fn() -> i32 {
     }
     return total
 }
+
+export UntouchedHolder :: struct {
+    untouched: Untouched
+}
+
+export stores_an_untouched_constant :: fn() -> UntouchedHolder =
+    UntouchedHolder { .untouched = UNTOUCHED }
+
+export writes_a_copy :: fn() -> i32 {
+    c :: CFG
+    c.n = 2
+    return c.n
+}
+
+export hands_back :: fn(c: Cfg) -> Cfg = c
+
+export bumps_what_a_call_returns :: fn() -> void {
+    bump(hands_back(CFG))
+}

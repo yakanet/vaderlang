@@ -91,12 +91,17 @@ write_frozen :: fn(sb: StringBuilder, frozen: FrozenSite[], scope: string[]) -> 
         FrozenKind.UnknownCall,
         FrozenKind.Copy,
         FrozenKind.ElidedCopy,
+        FrozenKind.SharedBinding,
     ]
     counts :: kinds.len().filled(() -> 0)
     for site in sort(sites, (a, b) -> in_source_order(a.module, a.span, b.module, b.span)) {
         position :: site.span.start
         label :: frozen_label(site.kind)
-        sb.append("  ${site.module} ${position.line}:${position.column} ${label} ${site.root}\n")
+        sb.append("  ${site.module} ${position.line}:${position.column} ${label} ${site.root}")
+        if site.mixed {
+            sb.append(" (mixed)")
+        }
+        sb.append("\n")
         counts[usize(site.kind)] += 1
     }
     write_totals(sb, kinds.map(frozen_label).collect(), counts)
@@ -121,11 +126,12 @@ write_totals :: fn(sb: StringBuilder, labels: string[], counts: i32[]) -> void {
 }
 
 frozen_label :: fn(kind: FrozenKind) -> string = match kind {
-    .WriteFault  -> "write fault"
-    .CallFault   -> "call fault"
-    .UnknownCall -> "unknown call"
-    .Copy        -> "copy"
-    .ElidedCopy  -> "copy elided"
+    .WriteFault    -> "write fault"
+    .CallFault     -> "call fault"
+    .UnknownCall   -> "unknown call"
+    .Copy          -> "copy"
+    .ElidedCopy    -> "copy elided"
+    .SharedBinding -> "binding shared"
 }
 
 // The widened arguments of the modules in `scope`, by module then in source order,

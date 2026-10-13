@@ -41,7 +41,7 @@ converted_by :: fn(
     ctx: WalkCtx, callee: Callee | null, held: usize | null, source: AST.Expr,
 ) -> usize | null {
     conversion :: callee ?? return held
-    result :: ctx.call(conversion, [held], [source], .Conversion)
+    result :: ctx.call(conversion, [held], [source])
     if result == null {
         return held
     }
@@ -87,10 +87,14 @@ sequence_walked :: fn(ctx: WalkCtx, exprs: AST.Expr[]) -> usize | null {
     return null
 }
 
-// A parameter's or a local's slot.
+// A parameter's or a local's slot, or a use of a frozen constant.
 ident_value :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> usize | null {
     sym :: ctx.typed.resolved.idents[e.span.hash()] ?? return null
-    return ctx.slots[sym.id]
+    local :: ctx.slots[sym.id]
+    if local != null {
+        return local
+    }
+    return ctx.frozen_use(e, sym)
 }
 
 // `target[index]`: what the target's `Index` returns, the elements of a slice, or
@@ -100,7 +104,7 @@ index_value :: fn(ctx: WalkCtx, e: AST.IndexExpr) -> usize | null {
     index :: ctx.value(e.index)
     reader :: ctx.site_callee(.IndexRead, e.id)
     if reader != null && reader !is Builtin {
-        return ctx.call(reader, [target, index], [e.target, e.index], .ThroughIndex)
+        return ctx.call(reader, [target, index], [e.target, e.index])
     }
     if e.index is AST.RangeExpr {
         return target
@@ -121,7 +125,7 @@ call_value :: fn(ctx: WalkCtx, c: AST.CallExpr) -> usize | null {
     if callee is Builtin {
         return single(args)
     }
-    return ctx.call(callee, args, sources)
+    return ctx.union_of([ctx.call(callee, args, sources), ctx.frozen_view(c, callee)])
 }
 
 // The expression each parameter of the callee receives, by position: the receiver
@@ -171,7 +175,6 @@ binary_value :: fn(ctx: WalkCtx, e: AST.BinaryExpr) -> usize | null {
     right :: ctx.value(e.right)
     alias :: e.bind_as
     if alias != null {
-        ctx.note_kept(e.left)
         ctx.bind_symbol(alias.span, left)
     }
     operator :: ctx.site_callee(.Operator, e.id) ?? return null
@@ -210,12 +213,11 @@ match_value :: fn(ctx: WalkCtx, e: AST.MatchExpr) -> usize | null {
     scrutinee :: ctx.value(e.scrutinee)
     alias :: e.bind_as
     if alias != null {
-        ctx.note_kept(e.scrutinee)
         ctx.bind_symbol(alias.span, scrutinee)
     }
     arms: (usize | null)[]: []
     for arm in e.arms {
-        ctx.bind_pattern(arm.pattern, scrutinee, e.scrutinee)
+        ctx.bind_pattern(arm.pattern, scrutinee)
         guard :: arm.guard
         if guard != null {
             ctx.discard(guard)
@@ -225,29 +227,25 @@ match_value :: fn(ctx: WalkCtx, e: AST.MatchExpr) -> usize | null {
     return ctx.union_of(arms)
 }
 
-// Bind each name `p` binds to its part of the scrutinee, which `source` evaluates
-// to.
-bind_pattern :: fn(
-    ctx: WalkCtx, p: AST.Pattern, scrutinee: usize | null, source: AST.Expr,
-) -> void {
+// Bind each name `p` binds to its part of the scrutinee.
+bind_pattern :: fn(ctx: WalkCtx, p: AST.Pattern, scrutinee: usize | null) -> void {
     match p {
         is AST.IsPattern     -> {
             inner :: p.inner
             if inner != null {
-                ctx.bind_pattern(inner, scrutinee, source)
+                ctx.bind_pattern(inner, scrutinee)
             }
         }
         is AST.StructPattern -> {
             for f in p.fields {
                 if f.value is AST.PatternBinding {
-                    ctx.note_kept(source)
                     ctx.bind_symbol(f.name_span, ctx.step_slot(scrutinee, f.name))
                 }
             }
         }
         is AST.OrPattern     -> {
             for alt in p.patterns {
-                ctx.bind_pattern(alt, scrutinee, source)
+                ctx.bind_pattern(alt, scrutinee)
             }
         }
         is AST.WildcardPattern | AST.EnumVariantPattern
@@ -268,7 +266,6 @@ block_value :: fn(ctx: WalkCtx, b: AST.BlockExpr) -> usize | null {
 lambda_value :: fn(ctx: WalkCtx, l: AST.LambdaExpr) -> usize | null {
     ctx.lambda_depth += 1
     ctx.escape(ctx.block_value(l.body), .Stored)
-    ctx.note_kept_trailing(l.body)
     ctx.lambda_depth -= 1
     return null
 }
@@ -282,12 +279,11 @@ struct_literal_value :: fn(ctx: WalkCtx, e: AST.StructLitExpr) -> usize | null {
     for item in e.items {
         if item is AST.StructLitField {
             named.add(item.name)
-            ctx.escape(ctx.kept_value(item.value), .Stored)
+            ctx.escape(ctx.value(item.value), .Stored)
         }
     }
     for item in e.items {
         if item is AST.StructLitSpread {
-            ctx.note_kept(item.expr)
             ctx.spread(item.expr, named)
         }
     }
@@ -322,7 +318,7 @@ struct_fields_of :: fn(ctx: WalkCtx, e: AST.Expr) -> MutableMap<string, Type> | 
 // An array or a tuple literal keeps its elements ; it is a fresh value.
 sequence_value :: fn(ctx: WalkCtx, e: AST.SeqLitExpr) -> usize | null {
     for element in e.elements {
-        ctx.escape(ctx.kept_value(element), .Stored)
+        ctx.escape(ctx.value(element), .Stored)
     }
     return null
 }

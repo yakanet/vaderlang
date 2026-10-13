@@ -1,25 +1,28 @@
 // vader/effects/frozen — the frozen checks of ADR 0053, in observation.
 //
 // A module constant is frozen, deeply, and so is a view of a string's bytes
-// (`s.bytes()`): nothing modifies them in place. A value is rooted at a frozen
-// one when it is reached from it through fields, elements, `??` and branches,
-// never through a name: a name bound to a frozen value holds a copy of it (E1).
-// Each site where such a value goes somewhere has one outcome:
+// (`s.bytes()`): nothing modifies them in place. Each use of a frozen value is a
+// root of its function's skeleton, followed like a parameter through fields,
+// elements, branches, aliases and calls. A name bound to a frozen value holds a
+// copy of it (E1): the binding is a root of its own, which takes the place of the
+// frozen one. Once the summary is settled, each root has one outcome:
 //
-// - written through: a fault;
-// - handed to a parameter its callee modifies: a fault;
-// - bound to a name, stored, returned, or handed to a parameter its callee keeps
-//   or returns: a copy, left out when nothing in the program writes a value of a
-//   type the copy can reach.
+// - a use written through: a fault ; handed to a callee that modifies it: a fault ;
+//   handed to code the summary cannot see: an unknown call ;
+// - a use stored or returned: a copy ;
+// - a binding written, stored, returned or handed to unseen code: a copy ; one
+//   only read shares the frozen value.
 //
-// Nothing is reported as a diagnostic yet: the sites are dumped beside the rights
-// the typecheck still enforces, so that the two can be compared.
+// A copy is left out when nothing in the program writes a value of a type it can
+// reach. Nothing is reported as a diagnostic yet: the sites are dumped beside the
+// rights the typecheck still enforces, so that the two can be compared.
 
 module "vader/effects"
 
 import "std/collections"
 import "std/iter"
 import "toolchain/span"
+import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
 
@@ -27,17 +30,20 @@ AST :: import "toolchain/ast"
 
 /// What a site does with a frozen value.
 export FrozenKind :: enum {
-    /// A write through a path rooted at it.
+    /// A write through a use of it.
     WriteFault,
-    /// It is handed to a parameter its callee modifies.
+    /// A use of it is handed to a callee that modifies it.
     CallFault,
-    /// It is handed to a parameter that code the summary cannot see may modify: a
-    /// function value somewhere down the call.
+    /// A use of it is handed to code the summary cannot see: a function value
+    /// somewhere down the call.
     UnknownCall,
     /// It is kept somewhere a write could reach: a copy of it is.
     Copy,
     /// It is kept, but nothing in the program writes a value its copy could reach.
     ElidedCopy,
+    /// A name bound to it that nothing writes, keeps or returns: the name shares the
+    /// frozen value instead of copying it.
+    SharedBinding,
 }
 
 /// A site that hands a frozen value on.
@@ -48,183 +54,108 @@ export FrozenSite :: struct {
     kind: FrozenKind
     /// The constant the value is rooted at, or `bytes()` for a view.
     root: string
+    /// A binding that takes a frozen value or another one, `x :: f() ?? CONST`: its
+    /// copy belongs where the frozen value is chosen, not at the binding.
+    mixed: bool = false
 }
 
 /// The frozen sites of a project, and what deciding them waits for.
 FrozenSites :: struct {
     sites: FrozenSite[]! = []
-    /// Copies whose elision waits for every write of the program.
-    copies: PendingCopy[]! = []
-    /// Arguments whose outcome waits for their callee's summary.
-    calls: PendingCall[]! = []
+    /// The bodies that use a frozen value, decided once the summary is settled.
+    bodies: FrozenBody[]! = []
     /// The kinds of value some site of the program writes (`written_keys`).
     written: MutableSet<string>! = MutableSet<string> {}
 }
 
-PendingCopy :: struct {
-    site: FrozenSite
-    /// The copied value's type, and the module that typed it.
+/// A root of a skeleton that the frozen checks decide: a use of a frozen value, or
+/// a binding that would copy one. The records of a body are its extra roots in
+/// order: record `i` is root `params + i` (`root_record`).
+FrozenRoot :: struct {
+    /// Its number in the skeleton (`Skeleton.add_root`, `Skeleton.add_copy`).
+    root: usize
+    span: Span
+    /// The constant a use names, or `bytes()` ; empty for a binding.
+    label: string
+    binding: bool
+    /// The type of the value a copy would duplicate.
     type: Type | null
-    typed: TypedProgram
 }
 
-PendingCall :: struct {
-    copy: PendingCopy
-    targets: CallTarget[]
-    /// The parameter the value fills, by position.
-    param: usize
-    /// An index read hands back part of its target by design: what `at` returns is
-    /// the path itself, not a copy.
-    through_index: bool
+/// A body that uses a frozen value, with the roots its walk gave it.
+FrozenBody :: struct {
+    skeleton: Skeleton
+    roots: FrozenRoot[]
+    typed: TypedProgram
+    /// Its node in the call graph ; -1 for a constant's initialiser or a default.
+    node: i32
+    /// Whether the body is a constant's initialiser, which keeps nothing that is
+    /// not frozen as well.
+    in_constant: bool
 }
 
 // ---- roots ----------------------------------------------------------------
 
-// The frozen value `e` is rooted at: a constant's name, `bytes()` for a view ;
-// null when `e` holds nothing frozen.
-frozen_root :: fn(ctx: WalkCtx, e: AST.Expr) -> string | null = match e {
-    is AST.IdentExpr        -> ctx.constant_named(e)
-    is AST.FieldExpr        -> ctx.frozen_root(e.target)
-    is AST.IndexExpr        -> ctx.frozen_root(e.target)
-    is AST.CastExpr         -> ctx.frozen_root(e.value)
-    is AST.NullCoalesceExpr -> ctx.first_root(e.left, coalesce_fallback_value(e.fallback))
-    is AST.IfExpr           -> ctx.first_root(e.then_block, else_expr(e.else_branch))
-    is AST.MatchExpr        -> ctx.arm_root(e.arms)
-    is AST.BlockExpr        -> ctx.optional_root(e.trailing)
-    is AST.CallExpr         -> ctx.call_root(e)
-    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr
-     | AST.StringLitExpr | AST.BinaryExpr | AST.UnaryExpr | AST.LambdaExpr | AST.StructLitExpr
-     | AST.SeqLitExpr | AST.RangeExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr
-     | AST.DotVariantExpr | AST.FnTypeExpr | AST.ArrayTypeExpr | AST.MutableTypeExpr
-     | AST.AwaitExpr -> null
-}
-
-// The root of `a`, else of `b`.
-first_root :: fn(ctx: WalkCtx, a: AST.Expr, b: AST.Expr | null) -> string | null {
-    root :: ctx.frozen_root(a)
-    if root != null {
-        return root
-    }
-    return ctx.optional_root(b)
-}
-
-optional_root :: fn(ctx: WalkCtx, e: AST.Expr | null) -> string | null {
-    known :: e ?? return null
-    return ctx.frozen_root(known)
-}
-
-// The root of the first arm whose value has one.
-arm_root :: fn(ctx: WalkCtx, arms: AST.MatchArm[]) -> string | null {
-    for arm in arms {
-        root :: ctx.frozen_root(arm.body)
-        if root != null {
-            return root
-        }
-    }
-    return null
-}
-
-// The name of the frozen constant `e` names, as the typecheck's rights judge it.
-constant_named :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> string | null {
-    sym :: ctx.typed.resolved.idents[e.span.hash()] ?? return null
-    if !is_frozen_const(sym, ctx.typed) {
+// The slot of a use of the frozen constant `sym`, which `e` names ; null when `sym`
+// is no frozen constant, or its value holds no reference.
+frozen_use :: fn(ctx: WalkCtx, e: AST.IdentExpr, sym: Symbol) -> usize | null {
+    if !is_frozen_const(sym, ctx.typed) || !holds_references(ctx.typed.expr_types[e.id]) {
         return null
     }
-    return sym.name
+    return ctx.frozen_source(e, sym.name)
 }
 
-// What a call hands back of a frozen value: a view of a string's bytes is
-// `bytes()` ; a conversion that runs no `into` hands back the value it converts.
-call_root :: fn(ctx: WalkCtx, c: AST.CallExpr) -> string | null {
-    callee :: ctx.site_callee(.Call, c.id) ?? return null
-    if callee is Builtin && c.args.len() == 1 {
-        return ctx.frozen_root(c.args[0].value)
+// The slot of a use of a frozen value at `e`, labelled `label` for the dump.
+frozen_source :: fn(ctx: WalkCtx, e: AST.Expr, label: string) -> usize {
+    slot :: ctx.s.fresh_slot()
+    use :: FrozenRoot {
+        .root = ctx.s.add_root(slot),
+        .span = e.span,
+        .label = label,
+        .binding = false,
+        .type = ctx.typed.expr_types[e.id],
     }
-    if callee is DirectFn && callee.decl.id in ctx.index.frozen_views {
-        return "bytes()"
-    }
-    return null
+    ctx.roots.push(use)
+    return slot
 }
 
-coalesce_fallback_value :: fn(f: AST.CoalesceFallback) -> AST.Expr | null {
-    if f is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt {
+// The slot of the view of a string's bytes the call `c` returns ; null when `c`
+// returns none.
+frozen_view :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> usize | null {
+    if callee !is DirectFn || callee.decl.id !in ctx.index.frozen_views {
         return null
     }
-    return f
+    return ctx.frozen_source(c, "bytes()")
 }
 
-else_expr :: fn(branch: AST.IfElse | null) -> AST.Expr | null = match branch {
-    is AST.IfElseIf    -> branch.branch
-    is AST.IfElseBlock -> branch.block
-    is null            -> null
-}
-
-// ---- sites ----------------------------------------------------------------
-
-// `e` is kept past where it is read: a copy when it is rooted at a frozen value.
-// A constant's initialiser keeps nothing: what it builds is frozen as well.
-note_kept :: fn(ctx: WalkCtx, e: AST.Expr) -> void {
-    if ctx.in_constant {
-        return
-    }
-    root :: ctx.frozen_root(e) ?? return
-    if holds_references(ctx.typed.expr_types[e.id]) {
-        ctx.frozen.copies.push(ctx.pending_copy(e, root))
-    }
-}
-
-// The value of `e`, which is kept past where it is read.
-kept_value :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null {
-    ctx.note_kept(e)
-    return ctx.value(e)
-}
-
-// What the block `b` evaluates to is kept.
-note_kept_trailing :: fn(ctx: WalkCtx, b: AST.BlockExpr) -> void {
-    trailing :: b.trailing ?? return
-    ctx.note_kept(trailing)
-}
-
-// A slot of `container` is written: a fault when it is rooted at a frozen value.
-note_write :: fn(ctx: WalkCtx, container: AST.Expr) -> void {
-    ctx.note_written(ctx.typed.expr_types[container.id])
-    root :: ctx.frozen_root(container) ?? return
-    ctx.frozen.sites.push(ctx.site_at(container.span, .WriteFault, root))
-}
-
-// `arg` fills parameter `param` of a call to one of `targets`: decided once the
-// callees' summaries are known.
-note_lent :: fn(
-    ctx: WalkCtx,
-    targets: CallTarget[],
-    param: usize,
-    arg: AST.Expr,
-    through_index: bool,
-) -> void {
-    root :: ctx.frozen_root(arg) ?? return
-    if !holds_references(ctx.typed.expr_types[arg.id]) {
-        return
-    }
-    ctx.frozen.calls.push(PendingCall {
-        .copy = ctx.pending_copy(arg, root),
-        .targets = targets,
-        .param = param,
-        .through_index = through_index,
-    })
-}
-
-pending_copy :: fn(ctx: WalkCtx, e: AST.Expr, root: string) -> PendingCopy {
-    site :: ctx.site_at(e.span, .Copy, root)
-    return PendingCopy { .site = site, .type = ctx.typed.expr_types[e.id], .typed = ctx.typed }
-}
-
-site_at :: fn(ctx: WalkCtx, span: Span, kind: FrozenKind, root: string) -> FrozenSite =
-    FrozenSite {
+// The binding of the name at `span`, of type `type`, to what `value` holds: a copy
+// of what it holds of a frozen value, an alias of the rest.
+bind_copy :: fn(ctx: WalkCtx, slot: usize, value: usize, span: Span, type: Type | null) -> void {
+    binding :: FrozenRoot {
+        .root = ctx.s.add_copy(slot, value),
         .span = span,
-        .module = ctx.typed.resolved.display_path,
-        .kind = kind,
-        .root = root,
+        .label = "",
+        .binding = true,
+        .type = type,
     }
+    ctx.roots.push(binding)
+}
+
+// Keep the walked body when it uses a frozen value, to decide its roots once the
+// summary is settled.
+note_frozen_body :: fn(ctx: WalkCtx, node: i32) -> void {
+    if ctx.s.seeds.is_empty() {
+        return
+    }
+    body :: FrozenBody {
+        .skeleton = ctx.s,
+        .roots = ctx.roots,
+        .typed = ctx.typed,
+        .node = node,
+        .in_constant = ctx.in_constant,
+    }
+    ctx.frozen.bodies.push(body)
+}
 
 // ---- written kinds --------------------------------------------------------
 
@@ -246,6 +177,10 @@ note_known_writes :: fn(ctx: WalkCtx, targets: CallTarget[], param: usize, arg: 
         }
     }
 }
+
+// A slot of `container` is written: record the kind of value written.
+note_write :: fn(ctx: WalkCtx, container: AST.Expr) -> void =
+    ctx.note_written(ctx.typed.expr_types[container.id])
 
 // Record that a value of type `t` is written somewhere.
 note_written :: fn(ctx: WalkCtx, t: Type | null) -> void {
@@ -306,59 +241,136 @@ fields_may_be_written :: fn(
 
 // ---- deciding -------------------------------------------------------------
 
-/// Decide every pending site against the callees' summaries and the program's
-/// writes.
+/// Decide every root of the bodies that use a frozen value, the summary settled.
 ///
-/// @param frozen  the sites the walk noted.
-/// @param facts   per node, what each function does with its parameters.
-settle_frozen :: fn(frozen: FrozenSites, facts: ParamEffects[][]) -> void {
-    any :: any_effects()
-    for call in frozen.calls {
-        kind :: lent_outcome(call, facts, any) ?? continue
-        if kind == .Copy {
-            frozen.copies.push(call.copy)
-        } else {
-            frozen.sites.push(FrozenSite { ...call.copy.site, .kind = kind })
-        }
-    }
-    for copy in frozen.copies {
-        seen :: MutableSet<i32> {}
-        if may_be_written(frozen.written, copy.type, copy.typed, seen) {
-            frozen.sites.push(copy.site)
-        } else {
-            frozen.sites.push(FrozenSite { ...copy.site, .kind = .ElidedCopy })
+/// @param frozen      the bodies and the program's writes.
+/// @param facts       per node, what each function does with its parameters.
+/// @param paths       the summary's paths.
+/// @param components  per node, its strongly connected component.
+settle_frozen :: fn(
+    frozen: FrozenSites,
+    facts: ParamEffects[][],
+    paths: PathTable,
+    components: i32[],
+) -> void {
+    for body in frozen.bodies {
+        ctx :: body_ctx(body, facts, paths, components)
+        effects :: evaluate_roots(body.skeleton, ctx)
+        for r in body.roots {
+            frozen.decide(body, r, effects)
         }
     }
 }
 
-// What lending a frozen value to `call` makes of the site, the worst over its
-// targets: a fault, an unknown call, a copy, or nothing when every callee only
-// reads it.
-lent_outcome :: fn(
-    call: PendingCall, facts: ParamEffects[][], any: ParamEffects,
-) -> FrozenKind | null {
-    unseen := false
-    kept := false
-    for target in call.targets {
-        accesses :: accesses_of_param(known_params(target, facts), call.param, any)
-        if accesses.any_match(modifies) {
-            return .CallFault
-        }
-        if accesses.any_match((a) -> a.effect == .Unknown) {
-            unseen = true
-        }
-        if accesses.any_match((a) -> keeps(a, call.through_index)) {
-            kept = true
-        }
+// What evaluating `body` reads: its node's component for a function, none for an
+// initialiser.
+body_ctx :: fn(
+    body: FrozenBody,
+    facts: ParamEffects[][],
+    paths: PathTable,
+    components: i32[],
+) -> EvalCtx {
+    if body.node < 0 {
+        return EvalCtx { .facts = facts, .paths = paths }
     }
-    if unseen {
+    return node_ctx(facts, paths, components, body.node)
+}
+
+// Record the outcome of root `r` of `body`, if it has one.
+decide :: fn(frozen: FrozenSites, body: FrozenBody, r: FrozenRoot, effects: RootEffects) -> void {
+    marked :: effects.marked[r.root].accesses
+    lent :: effects.lent[r.root].accesses
+    if !r.binding {
+        kind :: frozen.use_outcome(body, r, marked, lent) ?? return
+        frozen.record(body, r, kind, r.label)
+        return
+    }
+    took :: effects.took[r.root] ?? return
+    uses :: took.map((t) -> body.root_record(t.param)).collect()
+    kind :: frozen.binding_outcome(body, uses, marked, lent)
+    frozen.record(body, r, kind, uses[0].label, r.root in effects.mixed)
+}
+
+// What a use of a frozen value comes to: a fault, an unknown call, a copy, or
+// nothing when it is only read. A constant's initialiser keeps nothing that is not
+// frozen as well.
+use_outcome :: fn(
+    frozen: FrozenSites,
+    body: FrozenBody,
+    r: FrozenRoot,
+    marked: Access[],
+    lent: Access[],
+) -> FrozenKind | null {
+    if marked.any_match(modifies) {
+        return .WriteFault
+    }
+    if lent.any_match(modifies) {
+        return .CallFault
+    }
+    if either(marked, lent, is_unknown) {
         return .UnknownCall
     }
-    if kept {
-        return .Copy
+    if !body.in_constant && either(marked, lent, is_kept) {
+        return frozen.copy_or_elided(body, [r])
     }
     return null
 }
 
-keeps :: fn(a: Access, through_index: bool) -> bool =
-    a.effect == .Stored || (a.effect == .Returned && !through_index)
+// What a binding of the frozen values `uses` comes to: written, it needs its copy ;
+// kept, returned or handed to unseen code, a copy their types may make needless ;
+// only read, it shares the frozen value.
+binding_outcome :: fn(
+    frozen: FrozenSites,
+    body: FrozenBody,
+    uses: FrozenRoot[],
+    marked: Access[],
+    lent: Access[],
+) -> FrozenKind {
+    if either(marked, lent, modifies) {
+        return .Copy
+    }
+    if either(marked, lent, escapes) {
+        return frozen.copy_or_elided(body, uses)
+    }
+    return .SharedBinding
+}
+
+// A copy of the frozen values `uses`, left out when no write of the program reaches
+// a value of any of their types.
+copy_or_elided :: fn(frozen: FrozenSites, body: FrozenBody, uses: FrozenRoot[]) -> FrozenKind {
+    for use in uses {
+        seen :: MutableSet<i32> {}
+        if may_be_written(frozen.written, use.type, body.typed, seen) {
+            return .Copy
+        }
+    }
+    return .ElidedCopy
+}
+
+// Record a site of kind `kind` for root `r` of `body`.
+record :: fn(
+    frozen: FrozenSites,
+    body: FrozenBody,
+    r: FrozenRoot,
+    kind: FrozenKind,
+    label: string,
+    mixed: bool = false,
+) -> void {
+    site :: FrozenSite {
+        .span = r.span,
+        .module = body.typed.resolved.display_path,
+        .kind = kind,
+        .root = label,
+        .mixed = mixed,
+    }
+    frozen.sites.push(site)
+}
+
+// The record of extra root `root` of `body`.
+root_record :: fn(body: FrozenBody, root: usize) -> FrozenRoot =
+    body.roots[root - body.skeleton.params]
+
+either :: fn(marked: Access[], lent: Access[], p: fn(Access) -> bool) -> bool =
+    marked.any_match(p) || lent.any_match(p)
+
+escapes :: fn(a: Access) -> bool = !modifies(a)
