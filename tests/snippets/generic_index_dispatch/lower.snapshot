@@ -263,18 +263,22 @@
     return int(0) :i32
   fn snippet$read_nth__Cell(c: Cell!, i: usize) -> i32
     ~>
-      vcall std_core$Index.at :i32
-        recv:
-          c :Cell!
+      call :i32
+        callee:
+          snippet$Cell$Index$at :i32
         arg0:
+          c :Cell!
+        arg1:
           i :usize
   fn snippet$write_nth__Cell(c: Cell!, i: usize, v: i32) -> void
-    vcall std_core$IndexSet.set_at :void
-      recv:
-        c :Cell!
+    call :void
+      callee:
+        snippet$Cell$IndexSet$set_at :void
       arg0:
-        i :usize
+        c :Cell!
       arg1:
+        i :usize
+      arg2:
         v :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

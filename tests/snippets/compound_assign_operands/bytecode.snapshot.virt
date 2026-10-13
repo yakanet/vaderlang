@@ -19,11 +19,10 @@ type 16 struct std_core$Buffer {  }
 type 17 primitive i64
 type 18 primitive u64
 type 19 array 15
-type 20 primitive char
-type 21 primitive isize
-type 22 array 12
-type 23 array 10
-type 24 struct $Cell_usize { value:1 }
+type 20 primitive isize
+type 21 array 12
+type 22 array 10
+type 23 struct $Cell_usize { value:1 }
 string 0 "index "
 string 1 "pick"
 string 2 "at "
@@ -46,17 +45,12 @@ string 18 "written out = "
 string 19 "\n"
 import 0 byte_len std_core$byte_len result_type=1 param_types=10 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=19 param_types=10 param_mutable=0 param_by_address= (string) -> ref
-import 2 at std_core$string$Index$at result_type=20 param_types=10,1 param_mutable=0,0 param_by_address= (string,usize) -> char
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=21 param_types=4,19,1 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=20 param_types=4,19,1 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 3 std_core$Index
 impl 3 std_core$IndexSet
 impl 6 std_core$Index
 impl 7 snippet$Stepper
 impl 16 std_core$ByteAccess
-vtable std_core$Index.at 3 2
-vtable std_core$Index.at 6 4
-vtable std_core$Index.at 10 20
-vtable std_core$IndexSet.set_at 3 3
 export main 7
 
 fn 0 snippet$slot (usize) -> usize
@@ -329,7 +323,7 @@ fn 7 snippet$main () -> i32
   local.set 5   ; $field_43
   local.get 3   ; __buf_1
   local.get 5   ; $field_43
-  array.new 22 2   ; snippet$Row[]
+  array.new 21 2   ; snippet$Row[]
   local.set 3   ; __buf_1
   i64.const 1
   call 0   ; snippet$slot
@@ -339,7 +333,7 @@ fn 7 snippet$main () -> i32
   local.set 6   ; __place_operand_7
   local.get 3   ; __buf_1
   local.get 1   ; __place_operand_0
-  array.get 22   ; snippet$Row[]
+  array.get 21   ; snippet$Row[]
   local.set 5   ; $field_43
   local.field 5 12 0   ; $field_43 snippet$Row.cells
   local.set 7   ; $field_85
@@ -366,7 +360,7 @@ fn 7 snippet$main () -> i32
   local.set 1   ; __place_operand_0
   local.get 3   ; __buf_1
   i32.const 1
-  array.get 22   ; snippet$Row[]
+  array.get 21   ; snippet$Row[]
   struct.get 12 0   ; snippet$Row.cells
   i32.const 0
   load_slot_i32
@@ -471,14 +465,14 @@ fn 7 snippet$main () -> i32
   call 19   ; std_io$println__string
   string.const 9   ; "a"
   string.const 10   ; "b"
-  array.new 23 2   ; string[]
+  array.new 22 2   ; string[]
   local.set 3   ; __buf_1
   i64.const 1
   call 0   ; snippet$slot
   local.set 1   ; __place_operand_0
   local.get 3   ; __buf_1
   local.get 1   ; __place_operand_0
-  array.get 23   ; string[]
+  array.get 22   ; string[]
   ref.cast 10   ; string
   string.const 11   ; "!"
   call 10   ; concat_2
@@ -486,15 +480,15 @@ fn 7 snippet$main () -> i32
   local.get 3   ; __buf_1
   local.get 1   ; __place_operand_0
   local.get 8   ; $call_162
-  array.set 23   ; string[]
+  array.set 22   ; string[]
   local.get 3   ; __buf_1
   i32.const 0
-  array.get 23   ; string[]
+  array.get 22   ; string[]
   ref.cast 10   ; string
   local.set 8   ; $call_162
   local.get 3   ; __buf_1
   i32.const 1
-  array.get 23   ; string[]
+  array.get 22   ; string[]
   ref.cast 10   ; string
   local.set 9   ; $idx_168
   string.const 12   ; "words = "
@@ -574,11 +568,11 @@ fn 7 snippet$main () -> i32
   call 13   ; std_core$finish_buffer
   call 19   ; std_io$println__string
   i64.const 0
-  struct.new 24   ; $Cell_usize
+  struct.new 23   ; $Cell_usize
   local.tee 10   ; k
   struct.new 9   ; __lambda_env_snippet_1
   local.set 3   ; __buf_1
-  local.field 10 24 0   ; k $Cell_usize.value
+  local.field 10 23 0   ; k $Cell_usize.value
   local.set 1   ; __place_operand_0
   local.get 0   ; a
   local.get 1   ; __place_operand_0
@@ -635,7 +629,7 @@ fn 7 snippet$main () -> i32
   string.const 16   ; " k="
   call 14   ; std_core$write_string_at
   local.set 1   ; __place_operand_0
-  local.field 10 24 0   ; k $Cell_usize.value
+  local.field 10 23 0   ; k $Cell_usize.value
   usize.to_i64
   local.set 12   ; $cast_237
   local.get 3   ; __buf_1
@@ -720,7 +714,7 @@ end
 fn 8 __lambda_snippet_0 (ref) -> i32
   local.field 0 9 0   ; arg 0 __lambda_env_snippet_1.cap_0
   i64.const 2
-  struct.set 24 0   ; $Cell_usize.value
+  struct.set 23 0   ; $Cell_usize.value
   return.lit i32.const 1
 end
 
@@ -729,16 +723,17 @@ fn 9 snippet$bump_nth__Cell (ref,usize) -> void
   local $add_checked_6 i32
   local.get 1   ; arg 1
   call 0   ; snippet$slot
-  local.tee 2   ; __place_operand_0
+  local.set 2   ; __place_operand_0
   local.get 0   ; arg 0
-  virtual.call 2 std_core$Index.at
+  local.get 2   ; __place_operand_0
+  call 2   ; snippet$Cell$Index$at
   i32.const 100
   i32.checked_add
   local.set 3   ; $add_checked_6
+  local.get 0   ; arg 0
   local.get 2   ; __place_operand_0
   local.get 3   ; $add_checked_6
-  local.get 0   ; arg 0
-  virtual.call 3 std_core$IndexSet.set_at
+  call 3   ; snippet$Cell$IndexSet$set_at
   return
 end
 
@@ -1111,14 +1106,14 @@ fn 18 std_io$write_bytes (u8,ref,usize) -> i32
     i32.const 1
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call.import 3   ; system_posix$sys_write
+    call.import 2   ; system_posix$sys_write
     isize.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 3   ; system_posix$sys_write
+  call.import 2   ; system_posix$sys_write
   isize.to_i32
   return
 end
@@ -1132,12 +1127,5 @@ fn 19 std_io$println__string (string) -> void
   i32.const 0
   local.get 1   ; $call_3
   call 17   ; std_io$write
-  return
-end
-
-fn 20 std_core$string$Index$at_vt (string,usize) -> char
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call.import 2   ; std_core$string$Index$at
   return
 end

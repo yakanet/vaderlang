@@ -4,6 +4,11 @@
 
 Accepted (2026-10-08). Amends 0042.
 
+**Superseded in part by [0056](0056-the-typecheck-records-what-each-call-site-invokes.md) (2026-10-13)**: the choice is the callee the
+call-site record names at the use site, which the lowering calls ; the per-node
+tables below (`picked_impl_members`, `picked_index_writes`,
+`bounded_dispatch_args`) are gone, and so is the lookup by name.
+
 ## Context
 
 A receiver may implement one trait several times at different arguments:

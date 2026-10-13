@@ -175,9 +175,6 @@ export StaticMember :: struct {
     /// The type the member is called on, as written : a type parameter is
     /// substituted per instance by the lowerer.
     owner: Type
-    /// The trait declaring the member, so the impl lookup cannot land on a
-    /// same-named member of another trait.
-    trait_key: string
 }
 
 /// One UFCS-dispatchable impl method: its signature plus whether it may mutate
@@ -451,20 +448,10 @@ export TypedProgram :: struct {
     /// trait (`Add<f64>`, `Add<Vec2>`) ; the call picks among them by its arguments.
     overloaded_members: MutableMap<usize, ImplMethod[]>!
 
-    /// Node id (the call's `FieldExpr`, an operator's `BinaryExpr`, an
-    /// `IndexExpr`) → the member a use site chose among several impls of one trait.
-    /// The lowerer calls it instead of resolving the member by name.
-    picked_impl_members: MutableMap<usize, ImplMethod>!
-
     /// Integer literal id → a literal `check_expr` left free that does not fit the
     /// `i32` it defaults to: T3066 unless a later context repins it
     /// (`report_literals_past_default`).
     literals_past_default: MutableMap<usize, AST.IntLitExpr>!
-
-    /// `IndexExpr` id → the `set_at` an index write picked among several `IndexSet`
-    /// impls ; apart from `picked_impl_members`, because `m[k] += v` reads and writes
-    /// through one `IndexExpr`.
-    picked_index_writes: MutableMap<usize, ImplMethod>!
 
     /// `FieldExpr` id → the static member a `Type.member` access names. Read by
     /// the lowerer, which calls the owner's impl member directly, with no
@@ -613,24 +600,6 @@ export TypedProgram :: struct {
     /// const IS reopenable now (a mutable one gets a writable global), so `annotate
     /// \`WORDS!\`` is actionable rather than a dead end.
     const_decls: MutableMap<i32, AST.ConstDecl>!
-
-    /// FieldExpr.id → the resolved trait's `trait_key`. Populated when a
-    /// `x.method()` call dispatches via a TypeParam bound (`T: Hash`
-    /// resolves `.hash` through the Hash trait), through a trait every variant of a
-    /// union receiver implements (`tag_dispatch`), or reaches an enum's built-in
-    /// `Equals`. The lower consumes this to emit `vcall std/core.Hash.hash` on
-    /// erased-to-Any and union receivers instead of a direct field-call to an
-    /// unresolved member, and the comparison itself on an enum or primitive receiver.
-    /// IndexExpr.id → `Index` / `IndexSet` when `x[k]` dispatches through the trait
-    /// (`dispatched_index_args`), BinaryExpr.id → the operator's trait (`in`,
-    /// arithmetic, comparison) : a bounded `T`, a trait value, a union of its
-    /// implementors.
-    bounded_dispatch_trait: MutableMap<usize, string>!
-
-    /// Node id → the arguments of the bound's trait a `bounded_dispatch_trait` entry
-    /// dispatches through (`T: Mul<f64>` → `[f64]`) : an instance whose `T` implements
-    /// the trait more than once calls the impl at these arguments.
-    bounded_dispatch_args: MutableMap<usize, Type[]>!
 
     /// Generic fn AST-node id → true when its body needs each instance's real
     /// types (`keep_instances_concrete`) : a trait dispatch on a type-param (no
@@ -805,9 +774,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .chosen_fns = MutableMap<usize, FnCandidate> {},
     .chosen_impl_methods = MutableMap<usize, ImplMethod> {},
     .overloaded_members = MutableMap<usize, ImplMethod[]> {},
-    .picked_impl_members = MutableMap<usize, ImplMethod> {},
     .literals_past_default = MutableMap<usize, AST.IntLitExpr> {},
-    .picked_index_writes = MutableMap<usize, ImplMethod> {},
     .static_members = MutableMap<usize, StaticMember> {},
     .type_param_bound_traits = MutableMap<i32, TypeParamBound> {},
     .struct_bounds = MutableMap<i32, ArgBound[]> {},
@@ -827,8 +794,6 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .loop_var_iterable = MutableMap<i32, AST.Expr> {},
     .local_annotation = MutableMap<i32, AST.TypeExpr> {},
     .const_decls = MutableMap<i32, AST.ConstDecl> {},
-    .bounded_dispatch_trait = MutableMap<usize, string> {},
-    .bounded_dispatch_args = MutableMap<usize, Type[]> {},
     .fn_needs_concrete_instances = MutableMap<usize, bool> {},
     .fn_observes_type_params = MutableMap<usize, bool> {},
     .fn_display_dispatches = MutableMap<usize, bool> {},

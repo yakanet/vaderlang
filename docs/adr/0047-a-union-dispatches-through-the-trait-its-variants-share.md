@@ -4,6 +4,10 @@
 
 Accepted (2026-10-08). Closes the two items 0043 left open.
 
+**Superseded in part by [0056](0056-the-typecheck-records-what-each-call-site-invokes.md) (2026-10-13)**: the use site records the
+trait's member in the call-site record (`TraitMember`), no longer through
+`record_bounded_dispatch`.
+
 ## Context
 
 The SPEC says "a union satisfies a trait iff all its members satisfy it". Passing

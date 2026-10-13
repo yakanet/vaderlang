@@ -574,27 +574,33 @@
       let __destr_el_2: i32 =
         ._1 :i32
           __destr_src_0 :[i32, i32]!
-      vcall std_core$IndexSet.set_at :void
-        recv:
-          c :MutableMap<string, i32>!
+      call :void
+        callee:
+          std_collections$MutableMap$IndexSet$set_at__string__i32 :void
         arg0:
+          c :MutableMap<string, i32>!
+        arg1:
           "x" :string
-        arg1:
+        arg2:
           __destr_el_1 :i32
-      vcall std_core$IndexSet.set_at :void
-        recv:
-          c :MutableMap<string, i32>!
+      call :void
+        callee:
+          std_collections$MutableMap$IndexSet$set_at__string__i32 :void
         arg0:
-          "y" :string
+          c :MutableMap<string, i32>!
         arg1:
+          "y" :string
+        arg2:
           __destr_el_2 :i32
   fn snippet$put_wider__MutableMap_i64__i32_(c: MutableMap<i64, i32>!) -> void
-    vcall std_core$IndexSet.set_at :void
-      recv:
-        c :MutableMap<i64, i32>!
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__i64__i32 :void
       arg0:
-        int(9000000001) :i64
+        c :MutableMap<i64, i32>!
       arg1:
+        int(9000000001) :i64
+      arg2:
         int(8) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

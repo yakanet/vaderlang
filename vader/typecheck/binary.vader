@@ -368,7 +368,7 @@ check_operator_rhs :: fn(
 
 // The member of `candidates` an operator on `recv` dispatches to : the one whose
 // `other` takes `operand` best (`overload_rank`) when several impls of the trait
-// offer it, recorded for the lowering. Filed as the operator's site.
+// offer it. Filed as the operator's site, which the lowering calls.
 pick_operator_member :: fn(
     candidates: ImplMethod[],
     recv: Type,
@@ -394,9 +394,8 @@ pick_operator_member :: fn(
                 ),
             )
         }
-        typed.picked_impl_members[e.id] = candidates[index]
     }
-    record_site(typed, e, .Operator, direct_callee(candidates[index].decl, false))
+    record_site(typed, e, .Operator, member_callee(candidates[index].decl, recv))
     return candidates[index]
 }
 
@@ -436,12 +435,12 @@ check_dispatched_operator :: fn(
     if member == null || member.trait_key != trait_key {
         return null
     }
-    record_bounded_dispatch(typed, e.id, member.trait_key, member.trait_args)
     specialised :: member.ty
     if specialised !is FnType {
         return null
     }
-    record_site(typed, e, .Operator, dispatched_callee(recv, trait_key, method_name))
+    callee :: dispatched_callee(recv, trait_key, method_name, member.trait_args)
+    record_site(typed, e, .Operator, callee)
     if recv is TypeParamType {
         keep_instances_concrete(typed)
     }

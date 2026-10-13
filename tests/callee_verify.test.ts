@@ -52,7 +52,7 @@ test("the verifier lists the fixture's sites the lowering gets wrong", async () 
 // Each kind of disagreement the compiler is known to hold, with the reason.
 const EXPLAINED: [RegExp, string][] = [
   [/^fn len \/ fn byte_len$/, "`s.bytes().len()` folded into `byte_len` by name"],
-  [/^fn mul \/ no call array\.repeat$/, "`[x] * n` emitted as the `array.repeat` intrinsic"],
+  [/^fn mul( \(per instance\))? \/ no call array\.repeat$/, "`[x] * n` emitted as the `array.repeat` intrinsic"],
   [/ \/ no call fused chain$/, "a generator chain fused into the loop"],
   [/ \/ no call bucket walk$/, "a map or set walked in place"],
   [/^fn compare \/ no call primitive$/, "`char` ordering compared as a primitive"],

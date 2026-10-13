@@ -10,6 +10,7 @@ module "vader/lower"
 import "toolchain/ast"
 import "vader/resolver/symbol"
 import "vader/typecheck"
+import "vader/types"
 
 /// Index every free fn's symbol by its declaration's node id
 /// (`LowerProjectCtx.fn_symbols`). A module's `fn_overloads` lists the fns it
@@ -37,4 +38,158 @@ populate_fn_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -> 
 recorded_fn_symbol :: fn(ctx: FnLowerCtx, call: CallExpr) -> Symbol | null {
     decl :: recorded_decl(ctx.typed, call) ?? return null
     return ctx.project.fn_symbols[decl.id]
+}
+
+/// What the typecheck recorded at the site `role` plays at `node`.
+///
+/// @param node  the site.
+/// @param role  the part the site plays at `node`.
+recorded_callee :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole) -> Callee | null =
+    sites_of(ctx.typed.call_sites, role)[node.id]
+
+/// A member called through its trait's vtable, the value's tag picking the impl.
+RecordedVirtual :: struct {
+    trait_key: string
+}
+
+/// What a site calls at an instance : an impl member, or a member through its
+/// trait's vtable.
+RecordedTarget :: UfcsMember | RecordedVirtual
+
+/// What the site `role` plays at `node` calls at this instance, as the typecheck
+/// recorded it : the impl member it names, or, for one chosen against a type
+/// parameter, the member of the impl serving the instance ; for a bound's member,
+/// the member of the impl of the bound's trait the instance implements, or the
+/// vtable when the instance leaves the bound erased ; the vtable for a member of a
+/// trait value or of a union. Null for a free fn, a value of fn type, no call, and
+/// the `equals` of the parts a structural `==` compares.
+///
+/// @param node      the site.
+/// @param role      the part the site plays at `node`.
+/// @param receiver  the receiver's type at this instance ; an enum's surface type.
+recorded_target :: fn(
+    ctx: FnLowerCtx,
+    node: Expr,
+    role: CallRole,
+    receiver: Type,
+) -> RecordedTarget | null {
+    callee :: recorded_callee(ctx, node, role) ?? return null
+    return match callee {
+        is DirectFn    -> settled_direct_member(ctx, callee, receiver)
+        is BoundMember -> bound_target(ctx, callee, receiver)
+        is TraitMember -> RecordedVirtual { .trait_key = callee.trait_key }
+        is FnValue | Builtin | ErroneousCallee | UnsettledCallee | EachOf -> null
+    }
+}
+
+// The member `callee` names, built for `receiver` ; null for a free fn.
+settled_direct_member :: fn(
+    ctx: FnLowerCtx,
+    callee: DirectFn,
+    receiver: Type,
+) -> UfcsMember | null {
+    entry :: ctx.project.impls.member_entry(callee.decl) ?? return null
+    target :: impl_receiver(entry, receiver)
+    if !callee.per_instance {
+        identity :: is_identity_member(callee.decl)
+        surface :: type_surface_name(target)
+        return build_ufcs_member(ctx, target, surface, callee.decl, entry, identity)
+    }
+    serving :: ctx.project.impls.serving_impl(entry, target)
+    return member_named(ctx, serving, target, callee.decl.name)
+}
+
+/// The trait the site `role` plays at `node` dispatches through at run time, as
+/// `recorded_target` would find it, without building the impl member it would
+/// otherwise call.
+///
+/// @param node      the site.
+/// @param role      the part the site plays at `node`.
+/// @param receiver  the receiver's type at this instance.
+recorded_dispatch :: fn(
+    ctx: FnLowerCtx,
+    node: Expr,
+    role: CallRole,
+    receiver: Type,
+) -> string | null {
+    callee :: recorded_callee(ctx, node, role) ?? return null
+    if callee is TraitMember {
+        return callee.trait_key
+    }
+    if callee is BoundMember && dispatches_at_run_time(receiver) {
+        return callee.trait_key
+    }
+    return null
+}
+
+// A bound's member on `receiver` : through the vtable when the instance leaves the
+// bound erased, else the impl of the bound's trait the instance implements.
+bound_target :: fn(
+    ctx: FnLowerCtx,
+    callee: BoundMember,
+    receiver: Type,
+) -> RecordedTarget | null {
+    if dispatches_at_run_time(receiver) {
+        return RecordedVirtual { .trait_key = callee.trait_key }
+    }
+    return settled_bound_member(ctx, callee, receiver)
+}
+
+// Whether a value of type `t` picks its impl by its tag : an erased or still open
+// type parameter, a trait value, a union.
+dispatches_at_run_time :: fn(t: Type) -> bool = t is AnyType | TypeParamType | TraitType | UnionType
+
+// The member of the bound's trait `receiver` implements : the impl at the bound's
+// trait arguments when several impls of the trait cover it.
+settled_bound_member :: fn(
+    ctx: FnLowerCtx,
+    callee: BoundMember,
+    receiver: Type,
+) -> UfcsMember | null {
+    // A trait without arguments is implemented once on a type.
+    if callee.trait_args.len() > 0 {
+        args: Type[]: []
+        for a in callee.trait_args {
+            args.push(ctx.types.apply(a))
+        }
+        entry :: ctx.project.impls.impl_at_args(receiver, callee.trait_key, args)
+        if entry != null {
+            return member_named(ctx, entry, receiver, callee.member)
+        }
+    }
+    own :: resolve_impl_member(ctx, receiver, callee.trait_key, callee.member)
+    if own != null || receiver !is EnumType || callee.trait_key != core_trait_key(TRAIT_HASH) {
+        return own
+    }
+    // An enum's built-in `Hash` is its stored integer's ; its built-in `Equals` is
+    // the comparison itself, which the caller emits.
+    return resolve_impl_member(ctx, mk_primitive(receiver.repr), callee.trait_key, callee.member)
+}
+
+// `receiver` as the impl `entry` is written for : a distinct reaches its backing's
+// impl through its backing, an enum its repr's.
+impl_receiver :: fn(entry: ImplEntry, receiver: Type) -> Type {
+    if impl_base_key(receiver) == entry.target {
+        return receiver
+    }
+    if receiver is DistinctType {
+        return impl_receiver(entry, receiver.backing)
+    }
+    if receiver is EnumType {
+        return mk_primitive(receiver.repr)
+    }
+    return receiver
+}
+
+/// Whether the call `call` runs an `equals` the comparison primop answers : an
+/// enum's built-in one, or a bound's on an instance whose `T` is an enum or a
+/// primitive.
+///
+/// @param call  a method call on an enum or primitive receiver.
+runs_builtin_equals :: fn(ctx: FnLowerCtx, call: CallExpr) -> bool {
+    callee :: recorded_callee(ctx, call, .Call) ?? return false
+    if callee is Builtin {
+        return true
+    }
+    return callee is BoundMember && callee.trait_key == core_trait_key(TRAIT_EQUALS)
 }

@@ -431,22 +431,22 @@ fn 4 snippet$main () -> i32
 end
 
 fn 5 snippet$pair_into__MutableMap_string__i32_ (ref) -> void
+  local.get 0   ; arg 0
   string.const 4   ; "x"
   i32.const 3
+  call 22   ; std_collections$MutableMap$IndexSet$set_at__string__i32
   local.get 0   ; arg 0
-  virtual.call 3 std_core$IndexSet.set_at
   string.const 5   ; "y"
   i32.const 4
-  local.get 0   ; arg 0
-  virtual.call 3 std_core$IndexSet.set_at
+  call 22   ; std_collections$MutableMap$IndexSet$set_at__string__i32
   return
 end
 
 fn 6 snippet$put_wider__MutableMap_i64__i32_ (ref) -> void
+  local.get 0   ; arg 0
   i64.const 9000000001
   i32.const 8
-  local.get 0   ; arg 0
-  virtual.call 3 std_core$IndexSet.set_at
+  call 20   ; std_collections$MutableMap$IndexSet$set_at__i64__i32
   return
 end
 

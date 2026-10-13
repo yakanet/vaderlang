@@ -52,6 +52,9 @@ export DirectFn :: struct {
 export BoundMember :: struct {
     trait_key: string
     member: string
+    /// The trait's arguments as the bound names them (`T: Mul<f64>` → `[f64]`) :
+    /// what picks among several impls of the trait on the instance.
+    trait_args: Type[] = []
 }
 
 /// A member of a trait value, or of a union whose every variant implements the
@@ -184,6 +187,12 @@ note_callee :: fn(typed: TypedProgram, e: AST.FieldExpr, callee: Callee) -> void
         typed.callees[e.id] = callee
     }
 }
+
+// The impl member `decl` chosen against `receiver` : chosen again at each instance
+// when `receiver` mentions a type parameter, where an impl on the instance's own
+// type wins over it.
+member_callee :: fn(decl: AST.FnDecl | null, receiver: Type) -> Callee =
+    direct_callee(decl, type_contains_type_param(receiver))
 
 // The declaration a decision settled on ; a candidate without one (an imported
 // overload) is a form the record does not cover.
@@ -326,11 +335,20 @@ calls_a_value :: fn(typed: TypedProgram, callee: AST.Expr) -> bool {
 // ---- implicit sites -------------------------------------------------------
 
 // The member a bounded type parameter (or `Self`) dispatches to is settled at each
-// instance ; one of a trait value, of a union or of an erased value, at run time on
-// its tag.
-dispatched_callee :: fn(receiver: Type, trait_key: string, member: string) -> Callee {
+// instance, among the impls of the trait at `trait_args` ; one of a trait value, of
+// a union or of an erased value, at run time on its tag.
+dispatched_callee :: fn(
+    receiver: Type,
+    trait_key: string,
+    member: string,
+    trait_args: Type[] = [],
+) -> Callee {
     if receiver is TypeParamType | SelfType {
-        return BoundMember { .trait_key = trait_key, .member = member }
+        return BoundMember {
+            .trait_key = trait_key,
+            .member = member,
+            .trait_args = trait_args,
+        }
     }
     return TraitMember { .trait_key = trait_key, .member = member }
 }
@@ -348,7 +366,7 @@ first_member_callee :: fn(
     if members.len() == 0 {
         return UNSETTLED_CALLEE
     }
-    return direct_callee(members[0].decl, type_contains_type_param(receiver))
+    return member_callee(members[0].decl, receiver)
 }
 
 /// Whether the lowering converts `source` into `target` as an array into an
@@ -371,10 +389,9 @@ converts_array_to_iterator :: fn(source: Type, target: Type) -> bool =
 /// @param target  the type it converts into.
 /// @return        null when the conversion runs no `into`.
 conversion_callee :: fn(typed: TypedProgram, source: Type, target: Type) -> Callee | null {
-    per_instance :: type_contains_type_param(source)
     if converts_array_to_iterator(source, target) {
         array_into :: into_method_toward(typed, source, target) ?? return UNSETTLED_CALLEE
-        return direct_callee(array_into.decl, per_instance)
+        return member_callee(array_into.decl, source)
     }
     if equals_type(source, target) {
         return null
@@ -383,7 +400,7 @@ conversion_callee :: fn(typed: TypedProgram, source: Type, target: Type) -> Call
         return null
     }
     method :: into_impl_method(typed, source, target) ?? return null
-    return direct_callee(method.decl, per_instance)
+    return member_callee(method.decl, source)
 }
 
 /// File what `for x in iter` runs at `iter`: the `next` each step calls, and first
@@ -417,8 +434,7 @@ step_callee :: fn(typed: TypedProgram, iter: AST.Expr, iter_ty: Type) -> Callee 
     }
     for m in trait_members(typed, iter_ty, core_trait_key(TRAIT_INTO), METHOD_INTO) {
         if m.trait_args.len() == 1 && iterator_element_of(m.trait_args[0]) != null {
-            per_instance :: type_contains_type_param(iter_ty)
-            record_site(typed, iter, .IterInto, direct_callee(m.decl, per_instance))
+            record_site(typed, iter, .IterInto, member_callee(m.decl, iter_ty))
             // The `Iterator` trait value the conversion hands back steps at run time.
             return TraitMember { .trait_key = iterator, .member = METHOD_NEXT }
         }
@@ -533,8 +549,9 @@ shared_variants :: fn(left: Type, right: Type) -> Type[] {
     return shared
 }
 
-// What comparing each of `parts` with itself runs : `Builtin` when none calls, the
-// one call when one does, every call otherwise.
+// What comparing each of `parts` with itself runs : `Builtin` when none calls, every
+// call otherwise — a list even of one, which names the `equals` of a part and no
+// dispatch of the compared value.
 parts_equality :: fn(parts: Type[], typed: TypedProgram) -> Callee {
     calls: Callee[]: []
     for part in parts {
@@ -547,9 +564,6 @@ parts_equality :: fn(parts: Type[], typed: TypedProgram) -> Callee {
     }
     if calls.len() == 0 {
         return BUILTIN_CALLEE
-    }
-    if calls.len() == 1 {
-        return calls[0]
     }
     return EachOf { .callees = calls }
 }

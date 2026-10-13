@@ -129,7 +129,7 @@ pick_overload :: fn(
 // A callee several impls of one trait offer (`v.add(…)` with `Add<f64>` beside
 // `Add<Vec2>`, `w.into()` with `Into<Label>` beside `Into<Tag>`) : the member the
 // call's first argument picks, or, for a member without one, the one whose result
-// fits `expected`. The pick is recorded for the lowering.
+// fits `expected`. The pick is noted as the call's callee, which the lowering calls.
 pick_member_overload :: fn(
     c: AST.CallExpr,
     initial: Type,
@@ -160,8 +160,7 @@ pick_member_overload :: fn(
         check_expr_fn,
     ) ?? return TY_UNRESOLVED
     chosen :: candidates[index]
-    typed.picked_impl_members[field.id] = chosen
-    typed.callees[field.id] = direct_callee(chosen.decl, false)
+    typed.callees[field.id] = member_callee(chosen.decl, receiver)
     ty :: if is_static {
         chosen.ty
     } else {

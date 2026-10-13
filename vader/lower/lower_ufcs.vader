@@ -36,14 +36,6 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         // The lowered node (the repr value) is still passed as the `self` arg.
         surface_type :: ctx.types.expr_type(callee_field.target)
         recv_type :: if surface_type is EnumType { surface_type } else { type_of(receiver) }
-        // Trait-typed receivers normally route through vcall (handled above).
-        // BUT a combinator the typer resolved as a free-fn UFCS on an erased
-        // `Iterator<T>` receiver (`it.map(f)` — the trait has no `map` method)
-        // reaches here after `try_lower_virtual_call` declined ; resolve it as
-        // the free fn. `ufcs_receiver_types[id]` set ⇔ typer picked free-fn UFCS.
-        if recv_type is TraitType {
-            if ctx.typed.ufcs_receiver_types[callee_field.id] is null { return null }
-        }
         // A free fn typecheck chose is the call : it ranked the candidates the
         // call site's file can see, which neither an impl member probed here nor
         // a search over every loaded module reproduces. In a generic body it chose
@@ -51,14 +43,8 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         chosen :: recorded_fn_symbol(ctx, call)
         if chosen == null {
             // An impl member (e.g. `x.to_string()` over
-            // `i32 implements Display { to_string }`).
-            picks :: ctx.typed.picked_impl_members
-            picked :: use_site_member(ctx, picks, callee_field.id, recv_type, callee_field.field)
-            member :: if picked != null {
-                picked
-            } else {
-                impl_member_or_enum(ctx, recv_type, callee_field.field)
-            }
+            // `i32 implements Display { to_string }`), as the typecheck recorded it.
+            member :: recorded_target(ctx, call, .Call, recv_type)
             if member is UfcsMember {
                 // An impl member's recorded signature is receiver-dropped, so its
                 // types line up with the call's own args from slot 0. The receiver
@@ -294,17 +280,4 @@ lookup_fn_type_anywhere :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
     program :: ctx.project.evaluated.modules[sym.module] ?? return null
     if program is EvaluatedProgram { return program.typed.decl_types[sym.id] }
     return null
-}
-
-// `recv_type`'s impl member `method_name` — and for `hash` on an enum with
-// variant data, which has no impl of its own, its stored integer's. A generic
-// instance keeps such an enum concrete (`MutableMap<HttpStatus, V>`) and its
-// body hashes the key : the stored rank serves, being unique per variant. Any
-// other method would hand out the rank where the written value is meant.
-impl_member_or_enum :: fn(ctx: FnLowerCtx, recv_type: Type, method_name: string) -> UfcsMember | null {
-    member :: find_impl_member_for(ctx, recv_type, method_name)
-    if member != null || recv_type !is EnumType || recv_type.data == null || method_name != METHOD_HASH {
-        return member
-    }
-    return find_impl_member_for(ctx, mk_primitive(recv_type.repr), method_name)
 }

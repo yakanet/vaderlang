@@ -1186,18 +1186,22 @@
             slot :fn(usize) -> usize
           arg0:
             i :usize
-      vcall std_core$IndexSet.set_at :void
-        recv:
-          c :Cell!
+      call :void
+        callee:
+          snippet$Cell$IndexSet$set_at :void
         arg0:
-          __place_operand_0 :usize
+          c :Cell!
         arg1:
+          __place_operand_0 :usize
+        arg2:
           add_checked :i32
             l:
-              vcall std_core$Index.at :i32
-                recv:
-                  c :Cell!
+              call :i32
+                callee:
+                  snippet$Cell$Index$at :i32
                 arg0:
+                  c :Cell!
+                arg1:
                   __place_operand_0 :usize
             r:
               int(100) :i32

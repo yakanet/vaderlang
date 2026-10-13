@@ -89,17 +89,15 @@ ImplMemberMatch :: struct {
 }
 
 /// Resolve `target_type`'s impl member : in its impl of `trait_key` (any impl when
-/// empty), the member `name` (the impl's sole member when empty). Keying on the
-/// trait keeps a same-named member of another trait the type implements from
-/// being the one called.
+/// empty), the member `name`. Keying on the trait keeps a same-named member of
+/// another trait the type implements from being the one called.
 ///
 /// Owns the one invariant every lookup shares: a user impl (with a real
 /// body) shadows an `@intrinsic` builtin of the same (type, member) —
 /// `i32 implements Display -> "..."` must win over the std_core intrinsic
 /// `Display`. Single pass: return the first non-intrinsic match immediately;
 /// remember the first intrinsic match as a fallback and use it only when no
-/// user impl turns up. The mangle always reads the SELECTED member's own name,
-/// so trait-keyed dispatch picks up whatever the impl declares.
+/// user impl turns up.
 resolve_impl_member :: fn(
     ctx: FnLowerCtx,
     target_type: Type,
@@ -115,7 +113,7 @@ resolve_impl_member :: fn(
     }
     for entry in covering_first(candidates, target_type) {
         decl :: entry.decl
-        m :: select_member(entry, trait_key, name) ?? continue
+        m :: select_member(entry, name) ?? continue
         if !impl_is_intrinsic(decl) {
             return build_ufcs_member(ctx, target_type, target_name, m, entry, is_identity_member(m))
         }
@@ -130,34 +128,18 @@ resolve_impl_member :: fn(
     return null
 }
 
-// Pick the impl member for `resolve_impl_member`'s scan : in an impl of
-// `trait_key` (any trait when empty), the member named `name` — or, when `name`
-// is empty, the impl's sole member (single-method traits `Index` / `IndexSet`).
-select_member :: fn(entry: ImplEntry, trait_key: string, name: string) -> FnDecl | null {
-    decl :: entry.decl
-    if trait_key != "" && entry.trait_key != trait_key { return null }
-    if name == "" {
-        if decl.members.len() == 0 { return null }
-        return decl.members[0]
-    }
-    for m in decl.members {
+// The member named `name` the impl `entry` declares.
+select_member :: fn(entry: ImplEntry, name: string) -> FnDecl | null {
+    for m in entry.decl.members {
         if m.name == name { return m }
     }
     return null
 }
 
-// Resolve a UFCS member by method NAME (`recv.method()` dispatch).
+// Resolve a member by NAME, whatever trait declares it : what the lowering calls
+// on its own account (a `concat_N` buffer, an interpolation's `to_string`).
 find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: string) -> UfcsMember | null =
     resolve_impl_member(ctx, target_type, "", method_name)
-
-/// Resolve the sole method member of `target_type`'s impl of `trait_key` (a
-/// `trait_key`), reading the method's name FROM the impl instead of hard-coding
-/// a call-site literal. Dispatches on trait identity, exactly like the
-/// typechecker's index routing (`vader/typecheck/orchestrate.vader`,
-/// `TRAIT_INDEX` / `TRAIT_INDEX_SET`), so a rename of the trait's method can't
-/// drift a hard-coded name.
-find_trait_impl_member :: fn(ctx: FnLowerCtx, target_type: Type, trait_key: string) -> UfcsMember | null =
-    resolve_impl_member(ctx, target_type, trait_key, "")
 
 /// The vtable slot an impl member of `trait_key` fills ; null for a static member,
 /// which is reached through a type and never dispatched on a value.
@@ -304,53 +286,6 @@ impl_member_arg_types :: fn(
     return []
 }
 
-/// The member a use site reaches when several impls of its trait cover `receiver` :
-/// the one the typechecker picked by the site's arguments, or, in an instance of a
-/// generic body, the one at the bound's trait arguments (`T: Mul<f64>` with a `T`
-/// that also implements `Mul<Vec2>`). Null when a single impl serves, found by name.
-///
-/// @param picks     the typechecker's picks : `picked_impl_members`, or
-///                  `picked_index_writes` for an index write.
-/// @param node_id   the use site.
-/// @param receiver  the concrete type the member is called on.
-/// @param name      the member's name.
-use_site_member :: fn(
-    ctx: FnLowerCtx,
-    picks: MutableMap<usize, ImplMethod>,
-    node_id: usize,
-    receiver: Type,
-    name: string,
-) -> UfcsMember | null {
-    picked :: picks[node_id]
-    if picked == null {
-        return bound_member(ctx, node_id, receiver, name)
-    }
-    entry :: ctx.project.impls.by_decl[picked.impl_key] ?? return null
-    // A distinct operand reaches its backing's impl through its own type first.
-    if entry.target != impl_base_key(receiver) {
-        return null
-    }
-    return member_named(ctx, entry, receiver, name)
-}
-
-// The member `name` of `receiver`'s impl at the trait arguments a bounded `T`'s
-// dispatch recorded under `node_id`, substituted for this instance.
-bound_member :: fn(
-    ctx: FnLowerCtx,
-    node_id: usize,
-    receiver: Type,
-    name: string,
-) -> UfcsMember | null {
-    trait_key :: ctx.typed.bounded_dispatch_trait[node_id] ?? return null
-    args :: ctx.typed.bounded_dispatch_args[node_id] ?? return null
-    concrete: Type[]: []
-    for a in args {
-        concrete.push(ctx.types.apply(a))
-    }
-    entry :: ctx.project.impls.impl_at_args(receiver, trait_key, concrete) ?? return null
-    return member_named(ctx, entry, receiver, name)
-}
-
 /// Materialise the member `method` of `trait_key` for every array variant of
 /// `receiver`, a union a virtual call dispatches on : an array impl's member is
 /// built only for the elements a call names (`array_member_uses`), and a union's
@@ -415,7 +350,7 @@ member_named :: fn(
     receiver: Type,
     name: string,
 ) -> UfcsMember | null {
-    m :: select_member(entry, "", name) ?? return null
+    m :: select_member(entry, name) ?? return null
     surface :: type_surface_name(receiver)
     return build_ufcs_member(ctx, receiver, surface, m, entry, is_identity_member(m))
 }

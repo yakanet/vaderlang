@@ -4,6 +4,10 @@
 
 Accepted (2026-10-07). Resolves the index item that 0033 left open.
 
+**Superseded in part by [0056](0056-the-typecheck-records-what-each-call-site-invokes.md) (2026-10-13)**: a bounded `T`'s index
+dispatch is the call-site record's member of the bound, no longer
+`bounded_dispatch_trait`.
+
 ## Context
 
 Four places decided how `x[i]` dispatches: the typecheck and the lowering, each for

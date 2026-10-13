@@ -127,7 +127,6 @@ try_impl_method_ufcs :: fn(
         // A body of one of these impls reaches its own impl's member.
         for m in candidates {
             if m.impl_key == typed.enclosing_impl {
-                typed.picked_impl_members[e.id] = m
                 return settle_impl_member(m, e, target_ty, typed, diags)
             }
         }
@@ -190,7 +189,7 @@ export settle_impl_member :: fn(
     check_trait_ambiguity(e, target_ty, typed, diags)
     reject_mutating_method_on_immutable(chosen, e, target_ty, typed, diags)
     typed.chosen_impl_methods[e.id] = chosen
-    note_callee(typed, e, direct_callee(chosen.decl, false))
+    note_callee(typed, e, member_callee(chosen.decl, target_ty))
     if chosen.generic {
         _ :: reject_unmet_impl_bounds(
             default_if_free(target_ty), chosen.trait_key, .TraitNotSatisfied, e.field_span,
@@ -318,11 +317,10 @@ try_typeparam_bound_method :: fn(
     if ty is UnresolvedType {
         return ty
     }
-    // Record the trait carrying `e.field` so the lower can emit
-    // `vcall <trait_key>.method` once the receiver gets erased to Any
-    // post-monomorphization.
-    record_bounded_dispatch(typed, e.id, member.trait_key, member.trait_args)
-    note_callee(typed, e, BoundMember { .trait_key = member.trait_key, .member = e.field })
+    // The lowering emits `vcall <trait_key>.method` once the receiver gets erased
+    // to Any, the impl of the trait at the bound's arguments otherwise.
+    callee :: dispatched_callee(target_ty, member.trait_key, e.field, member.trait_args)
+    note_callee(typed, e, callee)
     keep_instances_concrete(typed)
     return ty
 }
@@ -367,25 +365,14 @@ dispatched_member :: fn(
         _                -> null
     }
 
-/// Records that the use site `node_id` dispatches through its bound's trait
-/// `trait_key` at `args` (`bounded_dispatch_trait`, `bounded_dispatch_args`).
-export record_bounded_dispatch :: fn(
-    typed: TypedProgram, node_id: usize, trait_key: string, args: Type[],
-) -> void {
-    typed.bounded_dispatch_trait[node_id] = trait_key
-    typed.bounded_dispatch_args[node_id] = args
-}
-
-// `c.equals(d)` on an enum, whose `Equals` is built in (`builtin_equals_member`).
-// Recorded like a bounded receiver's dispatch, which the lowerer turns into the
-// comparison itself.
+// `c.equals(d)` on an enum, whose `Equals` is built in (`builtin_equals_member`) :
+// recorded as no call, the lowering emits the comparison itself.
 try_builtin_equals_method :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
     typed: TypedProgram,
 ) -> Type | null {
     member :: builtin_equals_member(target_ty, e.field, typed) ?? return null
-    typed.bounded_dispatch_trait[e.id] = member.trait_key
     note_callee(typed, e, BUILTIN_CALLEE)
     return member.ty
 }
@@ -449,8 +436,8 @@ try_static_member :: fn(
         keep_instances_concrete(typed)
         // An instance whose `T` implements the trait more than once calls the impl
         // at the bound's arguments.
-        record_bounded_dispatch(typed, e.id, member.trait_key, member.trait_args)
-        note_callee(typed, e, BoundMember { .trait_key = member.trait_key, .member = e.field })
+        callee :: dispatched_callee(owner, member.trait_key, e.field, member.trait_args)
+        note_callee(typed, e, callee)
     } else {
         check_trait_ambiguity(e, owner, typed, diags)
         candidates :: impl_candidates(typed, owner, "::${e.field}")
@@ -459,10 +446,10 @@ try_static_member :: fn(
         }
         // Several candidates wait for the call's arguments (`pick_member_overload`).
         if candidates.len() == 1 {
-            note_callee(typed, e, direct_callee(candidates[0].decl, false))
+            note_callee(typed, e, member_callee(candidates[0].decl, owner))
         }
     }
-    typed.static_members[e.id] = StaticMember { .owner = owner, .trait_key = member.trait_key }
+    typed.static_members[e.id] = StaticMember { .owner = owner }
     return member.ty
 }
 
@@ -742,7 +729,6 @@ try_dispatched_method :: fn(
     member :: union_trait_member(target_ty, "", e.field, e.field_span, typed, diags) ?? return null
     ty :: settle_dispatched_member(member, e, target_ty, typed, diags)
     if ty !is UnresolvedType {
-        record_bounded_dispatch(typed, e.id, member.trait_key, member.trait_args)
         note_callee(typed, e, TraitMember { .trait_key = member.trait_key, .member = e.field })
     }
     return ty

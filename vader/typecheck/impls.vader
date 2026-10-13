@@ -68,6 +68,9 @@ export ImplRegistry :: struct {
     by_target: MutableMap<string, ImplEntry[]!>! = MutableMap<string, ImplEntry[]!> {}
     /// Every entry, keyed by its impl's `span.hash()` — unique project-wide.
     by_decl: MutableMap<u64, ImplEntry>! = MutableMap<u64, ImplEntry> {}
+    /// Every entry, keyed by the node id of each member it declares, a materialised
+    /// one included (`member_entry`).
+    by_member: MutableMap<usize, ImplEntry>! = MutableMap<usize, ImplEntry> {}
     /// Every entry the registry has seen — used by the lowerer to drive
     /// virtual dispatch over trait-typed receivers.
     all: ImplEntry[]! = []
@@ -148,6 +151,12 @@ collect_impl :: fn(self: ImplRegistry, impl_: ImplDecl, resolved: ResolvedModule
     push_entry(self.by_target, "${target}::${trait_key}", entry)
     push_entry(self.by_base, target, entry)
     self.by_decl[impl_.span.hash()] = entry
+    for m in impl_.members {
+        // A member synthesised without an id names no site.
+        if m.id != UNASSIGNED_NODE_ID {
+            self.by_member[m.id] = entry
+        }
+    }
     self.all.push(entry)
     if instance {
         self.record_specialized_args(for_type)
@@ -392,6 +401,33 @@ export is_specialized_arg :: fn(self: ImplRegistry, t: Type) -> bool {
 
 keeps_concrete :: fn(self: ImplRegistry, t: Type) -> bool =
     impl_type_key(t) in self.specialized_args || impl_base_key(t) in self.overloaded_bases
+
+/// The impl that declares the member `member`, a materialised one included ; null
+/// for a fn no impl declares.
+///
+/// @param member  an impl member, as the typecheck's call-site record names it.
+export member_entry :: fn(self: ImplRegistry, member: FnDecl) -> ImplEntry | null =
+    self.by_member[member.id]
+
+/// The impl that serves `receiver` in place of `entry` : one written for the
+/// receiver's own instance that implements the same trait instance (impl
+/// specialization), else `entry` itself.
+///
+/// @param entry     the impl chosen against a receiver naming a type parameter.
+/// @param receiver  that receiver at an instance.
+export serving_impl :: fn(self: ImplRegistry, entry: ImplEntry, receiver: Type) -> ImplEntry {
+    // No impl is written for one instance anywhere.
+    if entry.instance || self.specialized_args.is_empty() {
+        return entry
+    }
+    args :: trait_args_at(entry, receiver)
+    for own in self.impls_for(receiver, entry.trait_key) {
+        if own.instance && may_coincide_each(own.trait_args, args) {
+            return own
+        }
+    }
+    return entry
+}
 
 /// The entry of `decl`, or null when its trait name binds to no trait.
 ///

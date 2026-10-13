@@ -199,9 +199,9 @@ observe_inlined :: fn(ctx: FnLowerCtx, node: Expr, decl: FnDecl, name: string) -
 ///
 /// @param binary    the `in`'s node.
 /// @param contains  the trait key of a dispatched collection, else its member.
-observe_contains :: fn(ctx: FnLowerCtx, binary: BinaryExpr, contains: string | UfcsMember) -> void {
-    if contains is string {
-        observe_virtual(ctx, binary, .Operator, contains, METHOD_CONTAINS)
+observe_contains :: fn(ctx: FnLowerCtx, binary: BinaryExpr, contains: RecordedTarget) -> void {
+    if contains is RecordedVirtual {
+        observe_virtual(ctx, binary, .Operator, contains.trait_key, METHOD_CONTAINS)
     } else {
         observe_symbol(ctx, binary, .Operator, contains.symbol)
     }
@@ -270,7 +270,7 @@ note_entry_member :: fn(
     member: string,
 ) -> void {
     _ :: ctx.project.callee_verifier ?? return
-    decl :: select_member(entry, "", member) ?? return
+    decl :: select_member(entry, member) ?? return
     note_member_origin(ctx, mangled, decl, entry.trait_key)
 }
 
@@ -312,7 +312,7 @@ compare :: fn(
         return
     }
     verifier.observed += 1
-    recorded :: sites_of(ctx.typed.call_sites, role)[node.id]
+    recorded :: recorded_callee(ctx, node, role)
     if recorded == null {
         // A value no conversion reaches has no `into` site on either side.
         if converts(role) && observed is ObservedNoCall {

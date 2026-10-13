@@ -5,8 +5,9 @@
 Accepted (2026-10-13). The record the property layer of the type-system work walks
 for its call edges. Its first readers are the language server's references and
 rename, the call edges of the mutability deduction, and the propagation of
-type-parameter observation. The lowering does not read it yet; a verifier in the
-lowering compares the two first.
+type-parameter observation. The lowering reads it form by form, once a verifier
+in the lowering finds the two agree: free fns, impl members, and what dispatches
+through a trait at run time so far.
 
 ## Context
 

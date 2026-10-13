@@ -259,45 +259,31 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr! 
             }
         }
     }
-    // A receiver dispatching through `Index` (a bounded `T`, a trait value, a union
-    // of its implementors) : the
-    // typer recorded the dispatch on this index expr — emit a virtual
-    // `Index.at(c, i)` call so the receiver's runtime tag picks the impl, mirroring
-    // the `c.at(i)` method form (`try_lower_virtual_call`). The entry only says the
-    // index dispatches : in `c[i] op= v` one node is read AND written, so it may
-    // name `IndexSet`.
-    if ctx.typed.bounded_dispatch_trait[expr.id] != null {
+    // What the index calls, as the typecheck recorded it. A receiver dispatching
+    // through `Index` at run time (a trait value, a union of its implementors, a
+    // bounded `T` this instance erases) : a virtual `Index.at(c, i)` call, so the
+    // receiver's tag picks the impl, mirroring the `c.at(i)` method form
+    // (`try_lower_virtual_call`). `s[i]` on a `string`, a user struct or a distinct
+    // with its own `Index<I, T>` impl : a direct call to the member the key picked.
+    callee :: recorded_target(ctx, expr, .IndexRead, target_type)
+    if callee is RecordedVirtual {
         receiver :: lower_expr(ctx, expr.target)
         index :: lower_expr(ctx, expr.index)
-        index_trait :: core_trait_key(TRAIT_INDEX)
-        read :: virtual_call(ctx, index_trait, METHOD_AT, receiver, [index], type, expr.span)
+        read :: virtual_call(ctx, callee.trait_key, METHOD_AT, receiver, [index], type, expr.span)
         return observed(ctx, expr, .IndexRead, read)
     }
-    // Index trait routing (`index_route`, shared with the typecheck) : `s[i]` on a
-    // `string`, a user struct or a distinct with its own `Index<I, T>` impl rewrites
-    // to a direct `at(s, i)` call.
-    if index_route(target_type, core_trait_key(TRAIT_INDEX), ctx.typed) == .Impl {
-        // The `Index` impl the key picked, when several take one.
-        picks :: ctx.typed.picked_impl_members
-        picked :: use_site_member(ctx, picks, expr.id, target_type, METHOD_AT)
-        member :: if picked != null {
-            picked
-        } else {
-            find_trait_impl_member(ctx, target_type, core_trait_key(TRAIT_INDEX))
+    if callee is UfcsMember {
+        args: LoweredExpr[]: []
+        args.push(lower_expr(ctx, expr.target))
+        args.push(lower_expr(ctx, expr.index))
+        at :: LoweredCall {
+            .span = expr.span, .type = type,
+            .callee = LoweredIdent {
+                .span = expr.span, .type = type, .symbol = callee.symbol,
+            },
+            .args = args,
         }
-        if member is UfcsMember {
-            args: LoweredExpr[]: []
-            args.push(lower_expr(ctx, expr.target))
-            args.push(lower_expr(ctx, expr.index))
-            at :: LoweredCall {
-                .span = expr.span, .type = type,
-                .callee = LoweredIdent {
-                    .span = expr.span, .type = type, .symbol = member.symbol,
-                },
-                .args = args,
-            }
-            return observed(ctx, expr, .IndexRead, at)
-        }
+        return observed(ctx, expr, .IndexRead, at)
     }
     element :: LoweredIndex {
         .span = expr.span, .type = type,
@@ -426,61 +412,43 @@ try_lower_index_set_assign :: fn(
     // other Expr target → null (handled by the regular assign path).
     @partial match target {
         is IndexExpr -> {
-            // A receiver dispatching through `IndexSet` (a bounded `T`, a trait
-            // value, a union of its implementors) : the typer recorded the dispatch
-            // on this index expr
-            // (`dispatched_index_args`) — emit a virtual
-            // `IndexSet.set_at(c, i, v)` call (erased receiver, runtime tag picks
-            // the impl), mirroring the read-side `Index.at` vcall in `lower_index`.
-            // As there, the entry only says the index dispatches : `c[i] op= v`
-            // reads the same node, which may have recorded `Index` last.
-            if ctx.typed.bounded_dispatch_trait[target.id] != null {
+            target_type :: ctx.types.expr_type(target.target)
+            // What the write calls, as the typecheck recorded it. A receiver
+            // dispatching through `IndexSet` at run time (a trait value, a union of
+            // its implementors, a bounded `T` this instance erases) : a virtual
+            // `IndexSet.set_at(c, i, v)` call, mirroring the read-side `Index.at`
+            // one in `lower_index`.
+            callee :: recorded_target(ctx, target, .IndexWrite, target_type)
+            if callee is RecordedVirtual {
                 receiver :: lower_expr(ctx, target.target)
                 args: LoweredExpr[]: [lower_expr(ctx, target.index), value]
-                index_set :: core_trait_key(TRAIT_INDEX_SET)
-                call :: virtual_call(ctx, index_set, METHOD_SET_AT, receiver, args, TY_VOID, span)
+                method :: METHOD_SET_AT
+                call :: virtual_call(ctx, callee.trait_key, method, receiver, args, TY_VOID, span)
                 observe_lowered(ctx, target, .IndexWrite, call)
                 return LoweredExprStmt { .span = span, .expr = call }
             }
-            target_type :: ctx.types.expr_type(target.target)
-            // An array store is `lower_assign_target`'s (`index_route`).
-            if index_route(target_type, core_trait_key(TRAIT_INDEX_SET), ctx.typed) != .Impl {
+            // An array store is `lower_assign_target`'s.
+            if callee !is UfcsMember {
                 return null
             }
-            // Resolve the write through the `IndexSet` impl by TRAIT identity — never
-            // by a `"set_at"` literal : it carries the mangle the materialiser emits,
-            // and that DCE indexes.
-            // The `IndexSet` impl the key picked, when several take one.
-            picks :: ctx.typed.picked_index_writes
-            picked :: use_site_member(ctx, picks, target.id, target_type, METHOD_SET_AT)
-            member :: if picked != null {
-                picked
-            } else {
-                index_set :: core_trait_key(TRAIT_INDEX_SET)
-                find_trait_impl_member(ctx, target_type, index_set) ?? return null
-            }
-            if member is UfcsMember {
-                observe_symbol(ctx, target, .IndexWrite, member.symbol)
-                // Build `set_at(target, index, value)` direct call.
-                receiver :: lower_expr(ctx, target.target)
-                index :: lower_expr(ctx, target.index)
-
-                args: LoweredExpr[]: []
-                args.push(receiver)
-                args.push(index)
-                args.push(value)
-                return LoweredExprStmt {
-                    .span = span,
-                    .expr = LoweredCall {
-                        .span = span, .type = TY_VOID,
-                        .callee = LoweredIdent {
-                            .span = span, .type = TY_VOID, .symbol = member.symbol,
-                        },
-                        .args = args,
+            observe_symbol(ctx, target, .IndexWrite, callee.symbol)
+            // Build `set_at(target, index, value)` direct call.
+            receiver :: lower_expr(ctx, target.target)
+            index :: lower_expr(ctx, target.index)
+            args: LoweredExpr[]: []
+            args.push(receiver)
+            args.push(index)
+            args.push(value)
+            return LoweredExprStmt {
+                .span = span,
+                .expr = LoweredCall {
+                    .span = span, .type = TY_VOID,
+                    .callee = LoweredIdent {
+                        .span = span, .type = TY_VOID, .symbol = callee.symbol,
                     },
-                }
+                    .args = args,
+                },
             }
-            return null
         }
         _ -> { return null }
     }

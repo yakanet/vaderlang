@@ -3,8 +3,8 @@
 // A value of a trait, and a union whose every variant implements the trait, call
 // its members at run time through the value's tag : `c.contains(k)`, `k in c`,
 // `u.area()`, `u + 5`, `u[k]`. A union and a trait value are one tagged box, so
-// nothing converts. The use site records the dispatch (`record_bounded_dispatch`)
-// on a union, and the lowering emits the virtual call. A dispatch by the tag
+// nothing converts. The use site records the trait's member (`TraitMember`), and
+// the lowering emits the virtual call. A dispatch by the tag
 // alone cannot serve every member nor every union, and those are refused here
 // rather than run through the wrong impl.
 

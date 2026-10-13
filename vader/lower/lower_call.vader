@@ -117,15 +117,10 @@ try_lower_static_member_call :: fn(
     field :: as_field_expr(call.callee) ?? return null
     found :: ctx.typed.static_members[field.id] ?? return null
     owner :: ctx.types.apply(found.owner)
-    picked :: use_site_member(ctx, ctx.typed.picked_impl_members, field.id, owner, field.field)
-    member :: if picked != null {
-        picked
-    } else {
-        resolve_impl_member(ctx, owner, found.trait_key, field.field)
-    }
+    member :: recorded_target(ctx, call, .Call, owner)
     // No impl only when typecheck refused the instance's bound (T3006) : lowering
     // still runs so every diagnostic gets reported, and the call becomes a trap.
-    if member == null {
+    if member !is UfcsMember {
         return LoweredUnreachable {
             .span = call.span,
             .type = type,
@@ -136,12 +131,10 @@ try_lower_static_member_call :: fn(
     return build_member_call_or_inline(member, args, type, call.span)
 }
 
-/// `recv.method(args)` against a trait-typed receiver lowers to a
-/// `LoweredVirtualCall` — the bytecode emit dispatches in O(1) via the
-/// per-(trait, method) vtable. Detection : the callee is a `FieldExpr`
-/// and the lowered receiver's runtime type is a `TraitType` (the typer
-/// already narrowed unions / cast-call sites so the lowered tree carries
-/// the dispatch type at the surface).
+/// `recv.method(args)` dispatched at run time lowers to a `LoweredVirtualCall` —
+/// the bytecode emit dispatches in O(1) via the per-(trait, method) vtable :
+/// on a receiver whose lowered type is a `TraitType`, and wherever the typecheck
+/// recorded a member of a union or a bound this instance leaves erased.
 try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr! | null {
     callee_field :: as_field_expr(call.callee) ?? return null
     if callee_field is FieldExpr {
@@ -160,10 +153,9 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
             return dispatched_method_call(ctx, call, callee_field, receiver, trait_key, type)
         }
         // TypeParam-bounded receiver erased to Any, or a union of the trait's
-        // implementors : typer recorded the resolving trait's key in
-        // `bounded_dispatch_trait` ; route through the runtime vtable so the
-        // boxed value's tag picks the right impl at runtime.
-        trait_key :: dispatched_trait(ctx, receiver_ty, callee_field.id)
+        // implementors : the typecheck recorded the trait the member belongs to ;
+        // route through the runtime vtable so the boxed value's tag picks the impl.
+        trait_key :: recorded_dispatch(ctx, call, .Call, receiver_ty)
         if trait_key != null {
             return dispatched_method_call(ctx, call, callee_field, receiver, trait_key, type)
         }
@@ -176,10 +168,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
         // int `equals`. Other trait methods (Hash / Comparable have materialised
         // bodies) fall through to the UFCS direct-call path.
         if receiver_ty is EnumType || kept_type_argument(receiver_ty) != null {
-            tname_opt :: ctx.typed.bounded_dispatch_trait[callee_field.id]
-            is_equals_call :: (callee_field.field == METHOD_EQUALS
-                && tname_opt == core_trait_key(TRAIT_EQUALS))
-            if is_equals_call && call.args.len() > 0 {
+            if runs_builtin_equals(ctx, call) && call.args.len() > 0 {
                 return equals_primop(receiver, lower_expr(ctx, call.args[0].value), call.span)
             }
         }

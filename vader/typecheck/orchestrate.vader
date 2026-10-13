@@ -1482,9 +1482,7 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
     typed.chosen_fns = MutableMap<usize, FnCandidate> {}
     typed.chosen_impl_methods = MutableMap<usize, ImplMethod> {}
     typed.overloaded_members = MutableMap<usize, ImplMethod[]> {}
-    typed.picked_impl_members = MutableMap<usize, ImplMethod> {}
     typed.literals_past_default = MutableMap<usize, AST.IntLitExpr> {}
-    typed.picked_index_writes = MutableMap<usize, ImplMethod> {}
     typed.static_members = MutableMap<usize, StaticMember> {}
     typed.callee_field_id = AST.UNASSIGNED_NODE_ID
     typed.callees = MutableMap<usize, Callee> {}

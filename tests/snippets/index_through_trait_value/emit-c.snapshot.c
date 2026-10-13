@@ -477,8 +477,8 @@ static void snippet_pair_into__MutableMap_string__i32_(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 30 "tests/snippets/index_through_trait_value/_main.vader"
-    vader_vt_std_core_IndexSet__set_at(vader_ref_box(l0), vader_box_string(2u, 5u), vader_box_i32(3u, INT32_C(3)));
-    vader_vt_std_core_IndexSet__set_at(vader_ref_box(l0), vader_box_string(2u, 6u), vader_box_i32(3u, INT32_C(4)));
+    std_collections_MutableMap_IndexSet_set_at__string__i32(l0, 5u, INT32_C(3));
+    std_collections_MutableMap_IndexSet_set_at__string__i32(l0, 6u, INT32_C(4));
 #line 29 "tests/snippets/index_through_trait_value/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -488,7 +488,7 @@ static void snippet_put_wider__MutableMap_i64__i32_(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 38 "tests/snippets/index_through_trait_value/_main.vader"
-    vader_vt_std_core_IndexSet__set_at(vader_ref_box(l0), vader_box_i64(12u, INT64_C(9000000001)), vader_box_i32(3u, INT32_C(8)));
+    std_collections_MutableMap_IndexSet_set_at__i64__i32(l0, INT64_C(9000000001), INT32_C(8));
 #line 37 "tests/snippets/index_through_trait_value/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
