@@ -7,6 +7,7 @@
 
 module "vader/lower"
 
+import "std/collections"
 import "toolchain/ast"
 import "vader/resolver/symbol"
 import "vader/typecheck"
@@ -219,4 +220,72 @@ runs_builtin_equals :: fn(ctx: FnLowerCtx, call: CallExpr) -> bool {
         return true
     }
     return callee is BoundMember && callee.trait_key == core_trait_key(TRAIT_EQUALS)
+}
+
+/// The type arguments of the call `call` to the generic fn `fn_sym`, in its
+/// declaration's order, at this instance : those the typecheck recorded, and, for
+/// one it left to the instance (`count(it)` with `it: I` and `I: Iterator<i32>`,
+/// which only the instance's own `I` settles), the binding the arguments' types
+/// give at this instance. Null for a fn that takes none, and when one stays unbound.
+///
+/// @param call    the call.
+/// @param fn_sym  the fn it runs.
+recorded_type_args :: fn(ctx: FnLowerCtx, call: CallExpr, fn_sym: Symbol) -> Type[] | null {
+    callee :: recorded_callee(ctx, call, .Call)
+    if callee !is DirectFn || callee.decl.type_params.len() == 0 {
+        return null
+    }
+    owner :: resolve_owner_typed(ctx, fn_sym.module) ?? return null
+    declared :: declared_type_params(callee.decl, owner) ?? return null
+    recorded :: callee.bindings ?? MutableMap<i32, Type> {}
+    bindings :: MutableMap<i32, Type> {}
+    for [id, bound] in recorded {
+        bindings[id] = ctx.types.apply(bound)
+    }
+    if leaves_unbound(declared, bindings) {
+        bind_at_instance(ctx, call, owner.decl_types[fn_sym.id], bindings)
+    }
+    out: Type[]: []
+    for tp in declared {
+        out.push(bindings[tp.id] ?? return null)
+    }
+    return out
+}
+
+// Whether `bindings` leaves one of `declared` unbound.
+leaves_unbound :: fn(declared: Symbol[], bindings: MutableMap<i32, Type>) -> bool {
+    for tp in declared {
+        if bindings[tp.id] == null {
+            return true
+        }
+    }
+    return false
+}
+
+// Bind each type parameter of the callee's signature `callee_type` that `bindings`
+// leaves unbound, by unifying its parameters with the types the call's arguments
+// take at this instance — a UFCS receiver first.
+bind_at_instance :: fn(
+    ctx: FnLowerCtx,
+    call: CallExpr,
+    callee_type: Type | null,
+    bindings: MutableMap<i32, Type>,
+) -> void {
+    if callee_type !is FnType {
+        return
+    }
+    args: Expr[]: []
+    if call.callee is FieldExpr && ctx.typed.ufcs_receiver_types[call.callee.id] != null {
+        args.push(call.callee.target)
+    }
+    for a in call.args {
+        args.push(a.value)
+    }
+    for k in 0..<args.len() {
+        if k >= callee_type.params.len() {
+            break
+        }
+        actual :: default_if_free(ctx.types.expr_type(args[k]))
+        unify_params(callee_type.params[k], actual, bindings, ctx)
+    }
 }

@@ -264,18 +264,28 @@ file_in_fn :: fn(typed: TypedProgram, node: usize) -> void {
 }
 
 // Note the type each type parameter of `c`'s callee takes at the call, once its
-// arguments bound them. `bindings` is kept as is : the caller must not change it
-// afterwards.
+// arguments bound them, each free literal first pinned to its default in place : the
+// record holds no free type, and the caller substitutes the same map. `bindings` is
+// kept as is : the caller must not change it afterwards.
 note_call_bindings :: fn(
     typed: TypedProgram,
     c: AST.CallExpr,
     bindings: MutableMap<i32, Type>,
 ) -> void {
+    default_free_bindings(bindings)
     callee :: typed.call_sites.calls[c.id] ?? return
     if callee !is DirectFn || bindings.len() == 0 {
         return
     }
     typed.call_sites.calls[c.id] = DirectFn { ...callee, .bindings = bindings }
+}
+
+// Pin every free literal type `bindings` holds to its default (`{integer}` → `i32`).
+default_free_bindings :: fn(bindings: MutableMap<i32, Type>) -> void {
+    for k in bindings.keys() {
+        v :: bindings[k] ?? continue
+        bindings[k] = default_if_free(v)
+    }
 }
 
 // Whether the call to `callee` hands it a type naming one of the enclosing body's

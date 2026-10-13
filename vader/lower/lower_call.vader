@@ -222,7 +222,8 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
         // `lookup_fn_type_anywhere`.
         member_ty :: lookup_fn_type_anywhere(ctx, member_symbol)
         if member_ty is FnType {
-            generic_form :: emit_generic_fn_call(ctx, call, type, member_symbol, member_ty, callee.span)
+            params :: member_ty.params
+            generic_form :: emit_generic_fn_call(ctx, call, type, member_symbol, params, callee.span)
             if generic_form != null { return observed(ctx, call, .Call, generic_form) }
         }
         member_callee :: fn_reference(ctx, member_symbol, callee.span, ctx.types.expr_type(callee))

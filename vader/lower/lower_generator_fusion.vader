@@ -138,15 +138,113 @@ declared_type_params :: fn(decl: AST.FnDecl, owner: TypedProgram) -> Symbol[] | 
 // null when one stays unbound.
 unify_type_args :: fn(ctx: FnLowerCtx, patterns: Type[], actuals: Type[], type_params: Symbol[]) -> Type[] | null {
     bindings :: MutableMap<i32, Type> {}
-    order: i32[]: []
     for k in 0..<patterns.len() {
-        unify_params(patterns[k], actuals[k], bindings, order, ctx)
+        unify_params(patterns[k], actuals[k], bindings, ctx)
     }
     out: Type[]: []
     for tp in type_params {
         out.push(bindings[tp.id] ?? return null)
     }
     return out
+}
+
+// Bind each type parameter `pattern` names to the matching part of `concrete`, the
+// first binding of a parameter winning.
+unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type>, ctx: FnLowerCtx) -> void {
+    if pattern is TypeParamType {
+        if bindings[pattern.symbol.id] == null {
+            bindings[pattern.symbol.id] = concrete
+        }
+        return
+    }
+    if pattern is StructType {
+        if concrete is StructType {
+            n :: pattern.args.len()
+            for i in 0..<n {
+                if i >= concrete.args.len() { break }
+                unify_params(pattern.args[i], concrete.args[i], bindings, ctx)
+            }
+        }
+    }
+    // Trait param vs concrete arg : recover the trait's generic args by
+    // walking the impl table, then unify them with the pattern's args.
+    // Drives monomorphisation of `fn<T>(it: Iterator<T>)` etc. from any
+    // arg that implements the trait (struct, primitive, raw array, or a
+    // value already boxed into the trait type).
+    if pattern is TraitType {
+        trait_args :: trait_concrete_args(pattern, concrete, ctx)
+        if trait_args != null {
+            n :: pattern.args.len()
+            for i in 0..<n {
+                if i >= trait_args.len() { break }
+                unify_params(pattern.args[i], trait_args[i], bindings, ctx)
+            }
+        }
+    }
+    if pattern is ArrayType {
+        if concrete is ArrayType {
+            unify_params(pattern.element, concrete.element, bindings, ctx)
+        }
+    }
+    // Union param : the typer's own pairing (`union_leftovers`), against a union
+    // arg or a narrower one (`T | null` given a narrowed `i32`), so the lowerer
+    // monomorphises a fn whose signature carries a type-param inside a union
+    // (`find_map`'s `f: fn(T) -> U | null`) to the instance typecheck checked — a
+    // type-param left unbound leaves the call unresolved at emit.
+    if pattern is UnionType {
+        for pair in union_leftovers(pattern.variants, union_variants(concrete) ?? [concrete]) {
+            unify_params(pair.pattern, pair.actual, bindings, ctx)
+        }
+    }
+    if pattern is FnType {
+        if concrete is FnType {
+            n :: pattern.params.len()
+            for i in 0..<n {
+                if i >= concrete.params.len() { break }
+                unify_params(pattern.params[i], concrete.params[i], bindings, ctx)
+            }
+            unify_params(pattern.return_type, concrete.return_type, bindings, ctx)
+        }
+    }
+    if pattern is TupleType {
+        if concrete is TupleType {
+            n :: pattern.elements.len()
+            for i in 0..<n {
+                if i >= concrete.elements.len() { break }
+                unify_params(pattern.elements[i], concrete.elements[i], bindings, ctx)
+            }
+        }
+    }
+}
+
+// Recover the concrete trait args for `concrete` viewed as `tt` (the
+// trait pattern). Three sources, in order :
+//   1. `concrete` is already the same trait (a boxed value) → its args.
+//   2. A concrete `implements` recorded in `struct_trait_args`
+//      (`Hello implements Greeter(i32)`, `i32 implements Doubler(i32)`).
+//   3. The builtin `Iterator<T>` element : the first type-arg of a struct
+//      iterator (`Range<i32>`, a generator state struct) or a raw array's
+//      element — covers generic impls whose recorded args are still
+//      type-params, plus the `T[] → Iterator<T>` coercion that has no
+//      impl decl. Returns `null` when no source resolves.
+trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Type[] | null {
+    if concrete is TraitType {
+        if concrete.symbol.name == tt.symbol.name { return concrete.args }
+        return null
+    }
+    recorded :: lookup_struct_trait_args(concrete, trait_key_of(tt.symbol), ctx.typed)
+    if recorded != null {
+        if all_concrete(recorded) { return recorded }
+    }
+    if tt.symbol.name == TRAIT_ITERATOR && tt.args.len() == 1 {
+        if concrete is StructType {
+            if concrete.args.len() > 0 { return [concrete.args[0]] }
+        }
+        if concrete is ArrayType {
+            return [concrete.element]
+        }
+    }
+    return null
 }
 
 // Strip distinct wrappers off `args`, require all-concrete, then bind each type
@@ -517,7 +615,7 @@ try_descend_gen_source :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain |
         return null
     }
     signature :: fn_signature(owner, target.callee) ?? return null
-    subst :: gen_source_subst(ctx, target, signature, call) ?? return null
+    subst :: gen_source_subst(ctx, target, call) ?? return null
     element :: genstate_element(ctx.typed, decl, subst) ?? return null
     if is_void(element) {
         return null
@@ -540,26 +638,14 @@ try_descend_gen_source :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain |
     }
 }
 
-// The instance substitution of a generator source: each declared parameter unified
-// with its argument's type, then the result with the call's own type (a type
-// parameter only the result names). One left unbound declines.
-gen_source_subst :: fn(
-    ctx: FnLowerCtx, target: CallTarget, signature: FnType, call: AST.CallExpr,
-) -> Substitution | null {
+// The instance substitution of a generator source: the type arguments the
+// typecheck recorded at the call. One left unbound declines.
+gen_source_subst :: fn(ctx: FnLowerCtx, target: CallTarget, call: AST.CallExpr) -> Substitution | null {
     decl :: target.decl
     if decl.type_params.len() == 0 {
         return new_substitution()
     }
-    patterns: Type[]: []
-    actuals: Type[]: []
-    for k in 0..<target.args.len() {
-        patterns.push(signature.params[k])
-        actuals.push(default_if_free(ctx.types.expr_type(target.args[k])))
-    }
-    patterns.push(signature.return_type)
-    actuals.push(default_if_free(ctx.types.expr_type(call)))
-    type_params :: declared_type_params(decl, target.owner) ?? return null
-    concrete :: unify_type_args(ctx, patterns, actuals, type_params) ?? return null
+    concrete :: recorded_type_args(ctx, call, target.callee) ?? return null
     return subst_from_concrete(decl, target.owner, concrete)
 }
 

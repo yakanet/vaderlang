@@ -1,4 +1,4 @@
-// vader/lower/lower_generic_call — generic function calls: type-arg inference and instance emit.
+// vader/lower/lower_generic_call — generic function calls: the instance a call names, and its emit.
 //
 
 module "vader/lower"
@@ -15,13 +15,6 @@ import "vader/comptime"
 import "vader/resolver"
 import "toolchain/span"
 
-/// `fn<T, U>(a, b)` call to a top-level generic fn lowers to a direct
-/// call against the monomorphized instance. Detection : callee is an
-/// IdentExpr resolving to a Fn symbol whose source FnDecl has
-/// `type_params.len() > 0`. Type args come from the args' inferred
-/// types — for `identity(42)` the FnType has param `T`, arg has type
-/// `i32`, so `T = i32`. The synth monomorphic decl is registered
-/// with the project ctx ; dedup is by `(fn_symbol.id, args_key)`.
 /// Chase an `ImportBinding` symbol through `import_targets.symbol_targets`
 /// to its concrete export target. Returns the original symbol when it
 /// isn't an ImportBinding, or when the target lookup fails (let the
@@ -36,28 +29,12 @@ follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
     return sym
 }
 
-// True when `callee` resolves to the same source fn as the instance currently
-// being lowered — a self-recursive generic call. The entry being lowered carries
-// the source `FnDecl` (`MonoEntry.decl`) ; a fn symbol's `defined_at` is its
-// `name_span`, so equal spans ⇒ the same fn. Compares via `Span.equals` (full
-// start+end structural equality, collision-free) rather than `Span.hash` (which
-// is start-only by design). Scopes the GATE-B1 raw-signature retry in
-// `try_lower_generic_fn_call` to genuine self-recursion.
-is_self_recursive_instance_call :: fn(ctx: FnLowerCtx, callee: Symbol) -> bool {
-    if ctx.entry.decl is FnDecl as ed {
-        def :: callee.defined_at
-        if def is Span {
-            return def.equals(ed.name_span)
-        }
-    }
-    return false
-}
-
+// A call to a top-level generic fn lowers to a direct call to its monomorphized
+// instance, at the type arguments the typecheck recorded (`emit_generic_fn_call`).
 try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr! | null {
     // Explicit-args generic call : `identity<i32>(42)`. The callee
     // is a GenericInstExpr whose inner callee is the fn IdentExpr.
-    // Type args come from the GenericInstExpr's type_args slot,
-    // bypassing the inference step the bare-ident path uses.
+    // Type args come from the GenericInstExpr's type_args slot.
     if call.callee is GenericInstExpr as gi {
         if gi.callee is IdentExpr as inner_id {
             fn_sym :: recorded_fn_symbol(ctx, call)
@@ -84,85 +61,62 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
     fn_sym :: recorded_fn_symbol(ctx, call)
         ?? follow_import_binding(ctx, resolve_ident(ctx, callee_ident.span) ?? return null)
     if fn_sym.kind != .Fn { return null }
-    // Probe the callee's recorded signature (substituted — unchanged
-    // for every call site).
     callee_ty :: ctx.types.expr_type(callee_ident)
     if callee_ty !is FnType {
         return null
     }
-    result :: emit_generic_fn_call(ctx, call, type, fn_sym, callee_ty, callee_ident.span)
-    if result != null { return result }
-    // `emit_generic_fn_call` returned null : `ft` (substituted)
-    // carries no type-param. For a SELF-RECURSIVE call inside a
-    // MANGLE-INDEXED instance (force-concrete, `entry_symbol == null`,
-    // set in `lower_mono_fn::build_fn_instance_decl`), the params were
-    // concretised by this entry's OWN subst, so the call would fall through to the bare
-    // generic symbol — which has no `function_index_by_symbol_id`
-    // slot → unresolved at emit (GATE-B1). Retry with the RAW (un-
-    // substituted) signature so the self-call re-infers its type args
-    // and routes through the instance mangle. Scoped to genuine self-
-    // recursion in a null-symbol body : every other call is byte-
-    // identical to before — `emit_generic_fn_call` runs no side
-    // effects before its no-param early return, so the retry
-    // is clean, and a non-self-recursive null result falls through to
-    // the caller's general handling unchanged. Erased (symbol-indexed)
-    // instances keep resolving their self-calls by symbol-id.
-    if ctx.entry.symbol == null && is_self_recursive_instance_call(ctx, fn_sym) {
-        raw_ty :: ctx.types.raw_expr_type(callee_ident)
-        if raw_ty is FnType {
-            return emit_generic_fn_call(ctx, call, type, fn_sym, raw_ty, callee_ident.span)
-        }
-    }
-    return null
+    return emit_generic_fn_call(ctx, call, type, fn_sym, callee_ty.params, callee_ident.span)
 }
 
-// Harvest the monomorphic instance for a generic free-fn call and emit the
-// `LoweredCall` carrying the instance mangle. Shared by the direct-ident path
+// The call to the instance of the generic fn `fn_sym` that `call` names, its
+// arguments prepared for `params`. Shared by the direct-ident path
 // (`try_lower_generic_fn_call`) and the namespace-member path
-// (`try_lower_namespace_call`, `io.println` → `println<T: Display>`) — both
-// resolve a `(fn_sym, ft)` and must register the instance + point the callee at
-// its mangle, else the bare symbol is unresolved at emit (GATE-B1).
-//
-// Returns null when `ft` isn't generic or the type args don't infer to all-
-// concrete (recovery — the caller falls through to its non-generic handling).
+// (`try_lower_namespace_call`, `io.println` → `println<T: Display>`). Null when the
+// fn takes no type argument or they are not all concrete (recovery — the caller
+// falls through to its non-generic handling).
 emit_generic_fn_call :: fn(
-    ctx: FnLowerCtx, call: CallExpr, type: Type, fn_sym: Symbol, ft: FnType, callee_span: Span,
+    ctx: FnLowerCtx, call: CallExpr, type: Type, fn_sym: Symbol, params: Type[], callee_span: Span,
 ) -> LoweredExpr! | null {
-    if !type_contains_type_param(ft) { return null }
-    // Resolve concrete type args by unifying each `ft.params[i]` (which carries
-    // the generic shape) with the call arg's inferred concrete type. Each unique
-    // TypeParam symbol in the fn's signature contributes one entry to
-    // `concrete_args` in source-declared order.
-    concrete_args :: instance_type_args(ctx, fn_sym, infer_type_args(ft, call, ctx, fn_sym))
-    if !all_concrete(concrete_args) { return null }
-    // Register the instance for materialisation at the end of `lower_project` and
-    // take the mangle it settles on. Everything about the name is derived inside,
-    // so this path and the UFCS harvest cannot disagree on it.
-    mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args)
-    // Build args through the shared slot preparation (`into` coercion), same as
-    // the non-generic path.
-    lowered_args :: lower_call_args(ctx, call.args, ft.params, 0)
-    // The callee must carry `fn_sym.id` : the materialised instance registers in
-    // `function_index_by_symbol_id` under its origin symbol (= `fn_sym`), so a
-    // call keyed on a placeholder id (`0`) misses and is silently dropped.
-    mono_sym :: Symbol {
-        .id         = fn_sym.id,
-        .kind       = .Fn,
-        .name       = mangled,
-        .module     = fn_sym.module,
-        .module_name = fn_sym.module,
-        .visibility = .Private,
-        .defined_at = null,
-    }
+    mangled :: recorded_instance_mangle(ctx, call, fn_sym) ?? return null
+    lowered_args :: lower_call_args(ctx, call.args, params, 0)
     return LoweredCall {
-        .span = call.span, .type = type,
-        .callee = LoweredIdent { .span = callee_span, .type = type, .symbol = mono_sym },
+        .span = call.span,
+        .type = type,
+        .callee = LoweredIdent {
+            .span = callee_span,
+            .type = type,
+            .symbol = instance_symbol(fn_sym, mangled),
+        },
         .args = lowered_args,
     }
 }
 
+// The mangle of the instance of the generic `fn_sym` that `call` names, at the type
+// arguments the typecheck recorded there, registered for materialisation. Null for a
+// fn that takes none, or for arguments not all concrete.
+recorded_instance_mangle :: fn(ctx: FnLowerCtx, call: CallExpr, fn_sym: Symbol) -> string | null {
+    type_args :: recorded_type_args(ctx, call, fn_sym) ?? return null
+    if !all_concrete(type_args) {
+        return null
+    }
+    return register_fn_instance_mangle(ctx, fn_sym, type_args)
+}
+
+// The callee naming the instance `mangled` of `fn_sym`. It carries `fn_sym.id` : the
+// materialised instance registers in `function_index_by_symbol_id` under its origin
+// symbol, so a call keyed on a placeholder id (`0`) misses and is silently dropped.
+instance_symbol :: fn(fn_sym: Symbol, mangled: string) -> Symbol = Symbol {
+    .id         = fn_sym.id,
+    .kind       = .Fn,
+    .name       = mangled,
+    .module     = fn_sym.module,
+    .module_name = fn_sym.module,
+    .visibility = .Private,
+    .defined_at = null,
+}
+
 // Register (once per instance) the monomorphic instance for
-// `fn_sym<concrete_args>` and return its mangle.
+// `fn_sym<type_args>` and return its mangle.
 //
 // THE one place that builds either the mangle or the dedupe key. Both are derived
 // here from the arguments, so no caller can build them differently — which is
@@ -181,16 +135,17 @@ emit_generic_fn_call :: fn(
 // gets a `_1` suffix, keeping the `dump_bytecode → parse_virt → exec` round-trip's
 // fn names distinct. Later call sites of the same instance reuse the cached mangle.
 //
-// `concrete_args` must already be distinct-stripped — a distinct has no runtime
-// identity, so its instance IS the backing's.
+// A distinct among `type_args` keys the instance of its backing, unless the fn
+// keeps its instances concrete (`instance_type_args`).
 //
 // The module is the fn's DEFINING one (`fn_sym.module`), never the caller's:
 // `build_fn_instance_decl` looks the AST decl up there. Its *display* path (the
 // declared `module "..."` name) feeds the mangle, not the filesystem id, so the
 // name matches the surfaced decl's — falling back to the id when the lookup misses.
 register_fn_instance_mangle :: fn(
-    ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: Type[],
+    ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[],
 ) -> string {
+    concrete_args :: instance_type_args(ctx, fn_sym, type_args)
     owner_module :: fn_sym.module
     display :: lookup_module_display_path(ctx, owner_module)
     mod_mangle :: mangle_module_id(if display == null { owner_module } else { display })
@@ -215,201 +170,22 @@ register_fn_instance_mangle :: fn(
     }
 }
 
-// Shared emit for both bare-ident generic calls and explicit-args
-// `fn<T>(args)` GenericInstExpr calls. Registers the GenericFnInstance
-// and emits the LoweredCall pointing at the monomorphic mangled symbol.
+// The call to the instance of `fn_sym` at the written type arguments of an
+// explicit `fn<T>(args)` call.
 register_and_emit_generic_call :: fn(
     ctx: FnLowerCtx, call: CallExpr, type: Type,
     fn_sym: Symbol, concrete_args: Type[], callee_span: Span,
 ) -> LoweredExpr! {
-    // `owner_module` is the fn's defining module, NOT the caller's —
-    // `build_fn_instance_decl` looks up the AST decl in
-    // `loaded.modules[owner_module]`, so picking the caller's module
-    // for cross-module generic calls (`println` from a snippet's
-    // `main`) sends the lookup to the wrong module → returns null →
-    // instance never materialises → `emit_call_to_symbol` misses and
-    // the call drops. Mirrors the harvest in `lower_ufcs::harvest_ufcs_fn_instance`.
-    mono_args :: instance_type_args(ctx, fn_sym, concrete_args)
-    mangled :: register_fn_instance_mangle(ctx, fn_sym, mono_args)
+    mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args)
     lowered_args: LoweredExpr[]: []
     for ca in call.args { lowered_args.push(lower_converted(ctx, ca.value)) }
-    mono_sym :: Symbol {
-        .id         = fn_sym.id,
-        .kind       = .Fn,
-        .name       = mangled,
-        .module     = fn_sym.module,
-        .module_name = fn_sym.module,
-        .visibility = .Private,
-        .defined_at = null,
-    }
     return LoweredCall {
         .span = call.span, .type = type,
         .callee = LoweredIdent {
-            .span = callee_span, .type = type, .symbol = mono_sym,
+            .span = callee_span, .type = type, .symbol = instance_symbol(fn_sym, mangled),
         },
         .args = lowered_args,
     }
-}
-
-infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx, fn_sym: Symbol) -> Type[] {
-    // For each fn-param's generic shape, walk it and the matching
-    // call-arg's concrete type in lock-step. The first time we see a
-    // TypeParam symbol on the pattern side, record its concrete-side
-    // counterpart. Repeated bindings of the same symbol must agree.
-    bindings :: MutableMap<i32, Type> {}
-    order: i32[]: []
-    n :: ft.params.len()
-    if n > call.args.len() { return [] }
-    for i in 0..<n {
-        pattern :: ft.params[i]
-        concrete :: default_if_free(ctx.types.expr_type(call.args[i].value))
-        unify_params(pattern, concrete, bindings, order, ctx)
-    }
-    // A type-param that appears ONLY in the return type (`empty :: fn<T>() ->
-    // T[]`) is reachable from no argument — the typechecker bound it from the
-    // result slot, so unify against the call's own recorded type. Last, so the
-    // arguments keep priority (`unify_params` is first-binding-wins) ; without
-    // it the instance is keyed on a dangling `T` and materialisation fails with
-    // the GATE B1 "unresolved callee" panic.
-    unify_params(ft.return_type, default_if_free(ctx.types.expr_type(call)), bindings, order, ctx)
-    out: Type[]: []
-    for id in declared_order(ctx, fn_sym, order) {
-        v :: bindings[id]
-        match v {
-            is null -> {}
-            // Apply the enclosing fn's substitution so a transitive
-            // call inside an erased generic body (`outer<T>` calling
-            // `inner_count(arr)`) resolves the inner type-arg through
-            // `T -> Any`, yielding `inner_count__Any` rather than a
-            // dangling `inner_count__T`.
-            _ -> { out.push(substitute(v, ctx.subst)) }
-        }
-    }
-    return out
-}
-
-// The type parameters a call bound (`order`, by first appearance) in `fn_sym`'s
-// declaration order : the order its instances bind type arguments in
-// (`build_fn_concrete_subst`), so `fn<T, V>(x: V, s: T)` keys on `[T, V]`. `order`
-// as it is when the declaration is out of reach or declares one the call left
-// unbound.
-declared_order :: fn(ctx: FnLowerCtx, fn_sym: Symbol, order: i32[]) -> i32[] {
-    if order.len() < 2 {
-        return order
-    }
-    owner :: resolve_owner_typed(ctx, fn_sym.module) ?? return order
-    decl :: owner.fn_decls[fn_sym.id] ?? return order
-    declared :: declared_type_params(decl, owner) ?? return order
-    ids: i32[]: []
-    for tp in declared {
-        if tp.id !in order {
-            return order
-        }
-        ids.push(tp.id)
-    }
-    return ids
-}
-
-unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type>, order: i32[], ctx: FnLowerCtx) -> void {
-    if pattern is TypeParamType {
-        existing :: bindings[pattern.symbol.id]
-        match existing {
-            is null -> {
-                bindings[pattern.symbol.id] = concrete
-                order.push(pattern.symbol.id)
-            }
-            _ -> {}
-        }
-        return
-    }
-    if pattern is StructType {
-        if concrete is StructType {
-            n :: pattern.args.len()
-            for i in 0..<n {
-                if i >= concrete.args.len() { break }
-                unify_params(pattern.args[i], concrete.args[i], bindings, order, ctx)
-            }
-        }
-    }
-    // Trait param vs concrete arg : recover the trait's generic args by
-    // walking the impl table, then unify them with the pattern's args.
-    // Drives monomorphisation of `fn<T>(it: Iterator<T>)` etc. from any
-    // arg that implements the trait (struct, primitive, raw array, or a
-    // value already boxed into the trait type).
-    if pattern is TraitType {
-        trait_args :: trait_concrete_args(pattern, concrete, ctx)
-        if trait_args != null {
-            n :: pattern.args.len()
-            for i in 0..<n {
-                if i >= trait_args.len() { break }
-                unify_params(pattern.args[i], trait_args[i], bindings, order, ctx)
-            }
-        }
-    }
-    if pattern is ArrayType {
-        if concrete is ArrayType {
-            unify_params(pattern.element, concrete.element, bindings, order, ctx)
-        }
-    }
-    // Union param : the typer's own pairing (`union_leftovers`), against a union
-    // arg or a narrower one (`T | null` given a narrowed `i32`), so the lowerer
-    // monomorphises a fn whose signature carries a type-param inside a union
-    // (`find_map`'s `f: fn(T) -> U | null`) to the instance typecheck checked — a
-    // type-param left unbound leaves the call unresolved at emit.
-    if pattern is UnionType {
-        for pair in union_leftovers(pattern.variants, union_variants(concrete) ?? [concrete]) {
-            unify_params(pair.pattern, pair.actual, bindings, order, ctx)
-        }
-    }
-    if pattern is FnType {
-        if concrete is FnType {
-            n :: pattern.params.len()
-            for i in 0..<n {
-                if i >= concrete.params.len() { break }
-                unify_params(pattern.params[i], concrete.params[i], bindings, order, ctx)
-            }
-            unify_params(pattern.return_type, concrete.return_type, bindings, order, ctx)
-        }
-    }
-    if pattern is TupleType {
-        if concrete is TupleType {
-            n :: pattern.elements.len()
-            for i in 0..<n {
-                if i >= concrete.elements.len() { break }
-                unify_params(pattern.elements[i], concrete.elements[i], bindings, order, ctx)
-            }
-        }
-    }
-}
-
-// Recover the concrete trait args for `concrete` viewed as `tt` (the
-// trait pattern). Three sources, in order :
-//   1. `concrete` is already the same trait (a boxed value) → its args.
-//   2. A concrete `implements` recorded in `struct_trait_args`
-//      (`Hello implements Greeter(i32)`, `i32 implements Doubler(i32)`).
-//   3. The builtin `Iterator<T>` element : the first type-arg of a struct
-//      iterator (`Range<i32>`, a generator state struct) or a raw array's
-//      element — covers generic impls whose recorded args are still
-//      type-params, plus the `T[] → Iterator<T>` coercion that has no
-//      impl decl. Returns `null` when no source resolves.
-trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Type[] | null {
-    if concrete is TraitType {
-        if concrete.symbol.name == tt.symbol.name { return concrete.args }
-        return null
-    }
-    recorded :: lookup_struct_trait_args(concrete, trait_key_of(tt.symbol), ctx.typed)
-    if recorded != null {
-        if all_concrete(recorded) { return recorded }
-    }
-    if tt.symbol.name == TRAIT_ITERATOR && tt.args.len() == 1 {
-        if concrete is StructType {
-            if concrete.args.len() > 0 { return [concrete.args[0]] }
-        }
-        if concrete is ArrayType {
-            return [concrete.element]
-        }
-    }
-    return null
 }
 
 all_concrete :: fn(args: Type[]) -> bool {

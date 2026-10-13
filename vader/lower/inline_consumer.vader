@@ -51,7 +51,7 @@ export try_inline_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type: Type
     }
     signature :: fn_signature(target.owner, target.callee) ?? return null
     shape :: consumer_shape(ctx.project, target, signature) ?? return null
-    subst :: consumer_subst(ctx, shape, signature, target.args, type) ?? return null
+    subst :: consumer_subst(ctx, call, target.callee, shape) ?? return null
     chain :: descend_chain(ctx, target.args[shape.param], true) ?? return null
     // Minted last: a descent that gives up must leave no ids or clones behind.
     instance :: new_inline_instance(ctx.project, target.callee, target.decl, target.owner) ?? return null
@@ -247,25 +247,16 @@ if_holds :: fn(e: AST.IfExpr, into_loops: bool, test: fn(AST.Stmt) -> bool) -> b
 
 // ---- the substitution -------------------------------------------------------
 
-// The concrete substitution the body is inlined under: each parameter unified
-// with its argument's type, then the result with the call's own type (a type
-// parameter only the result names). One left unbound declines.
+// The concrete substitution the body is inlined under: the type arguments the
+// typecheck recorded at the call. One left unbound, or not concrete, declines.
 consumer_subst :: fn(
-    ctx: FnLowerCtx, shape: ConsumerShape, signature: FnType, args: AST.Expr[], type: Type,
+    ctx: FnLowerCtx, call: AST.CallExpr, callee: Symbol, shape: ConsumerShape,
 ) -> Substitution | null {
     subst :: new_substitution()
     if shape.type_params.len() == 0 {
         return subst
     }
-    patterns: Type[]: []
-    actuals: Type[]: []
-    for k in 0..<args.len() {
-        patterns.push(signature.params[k])
-        actuals.push(default_if_free(ctx.types.expr_type(args[k])))
-    }
-    patterns.push(signature.return_type)
-    actuals.push(default_if_free(type))
-    bound :: unify_type_args(ctx, patterns, actuals, shape.type_params) ?? return null
+    bound :: recorded_type_args(ctx, call, callee) ?? return null
     concrete :: strip_distinct_each(bound)
     if !all_concrete(concrete) {
         return null

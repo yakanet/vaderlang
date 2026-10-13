@@ -1091,13 +1091,8 @@ type_call :: fn(
                 arg_types[i], want, c.args[i].span, .TypeMismatch, c.args[i].value, typed, diags,
             )
         }
-        // Default any FreeInt/FreeFloat bound to a typeParam before
-        // substituting, so the return type comes back concrete
-        // (`i32` / `f64`) instead of `{integer}` / `{float}`.
-        for k in bindings.keys() {
-            v :: bindings[k] ?? continue
-            bindings[k] = default_if_free(v)
-        }
+        // Records the bindings, each free literal pinned to its default, so the
+        // return type substituted below comes back concrete (`i32` / `f64`).
         note_call_bindings(typed, c, bindings)
         // A method-form callee reads as the call binds it, receiver and arguments
         // together, not as the receiver alone did (`local.pick(CFG)` reads

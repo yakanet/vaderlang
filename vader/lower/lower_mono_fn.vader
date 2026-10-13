@@ -393,7 +393,7 @@ call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) ->
 ///
 /// @param ctx     the fn-body context.
 /// @param fn_sym  the generic fn instantiated.
-/// @param args    its inferred type arguments, in declaration order.
+/// @param args    its type arguments at the call, in declaration order.
 instance_type_args :: fn(ctx: FnLowerCtx, fn_sym: Symbol, args: Type[]) -> Type[] {
     // With no distinct to strip, the flavor makes no difference.
     if !args.any_match((a) -> contains_distinct(a)) {
@@ -408,9 +408,9 @@ instance_type_args :: fn(ctx: FnLowerCtx, fn_sym: Symbol, args: Type[]) -> Type[
 // The instance-mangle suffix a generic free-fn CALL SITE must use, matching the
 // flavor the materialiser will pick: `mixed_any_suffix` for a Mixed instance
 // (invariant under ref-erasure so top-level `[string, StructA]` and a transitive
-// `[string, Any]` reconcile on one body), else `mono_suffix`. Shared by all three
-// call-site mangle builders (`emit_generic_fn_call`, `register_and_emit_generic_call`,
-// `try_lower_ufcs_call`) so the registered mangle + inst_key reconcile with the body.
+// `[string, Any]` reconcile on one body), else `mono_suffix`. Read by
+// `register_fn_instance_mangle`, which every generic call site goes through, so the
+// registered mangle and inst_key reconcile with the body.
 call_site_instance_suffix :: fn(ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: Type[]) -> string {
     if call_site_fn_flavor(ctx, fn_sym, concrete_args) == .Mixed {
         return mixed_any_suffix(ctx.project.impls, concrete_args)

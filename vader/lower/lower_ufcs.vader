@@ -70,24 +70,9 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         // either form.
         free_params :: ufcs_param_types(ctx, chosen)
         args :: build_ufcs_args(ctx, callee_field.target, receiver, call, free_params, 1)
-        // UFCS-on-generic-fn instance harvest : when the target
-        // is `fn<T>(x: T) -> T`, register a `GenericFnInstance` so
-        // `drain_generic_fn_instances` emits the body, and point
-        // the callee at the resulting monomorphic mangle (mirror of
-        // `register_and_emit_generic_call`'s ident path). A non-generic
-        // target returns null → keep the plain resolver symbol.
-        mangled :: harvest_ufcs_fn_instance(ctx, chosen, recv_type, call.args)
-        callee_sym :: if mangled == null { chosen } else {
-            Symbol {
-                .id         = chosen.id,
-                .kind       = .Fn,
-                .name       = mangled,
-                .module     = chosen.module,
-                .module_name = chosen.module,
-                .visibility = .Private,
-                .defined_at = null,
-            }
-        }
+        // A generic target names its instance at the type arguments the typecheck
+        // recorded, as the ident path does (`emit_generic_fn_call`).
+        callee_sym :: ufcs_callee_symbol(ctx, call, chosen)
         return LoweredCall {
             .span = call.span, .type = type,
             .callee = LoweredIdent {
@@ -183,64 +168,16 @@ register_nongeneric_imported_const :: fn(ctx: FnLowerCtx, const_sym: Symbol) -> 
     ctx.project.nongeneric_imported_const_order.push(const_sym)
 }
 
-/// Register a `GenericFnInstance` for a UFCS-resolved generic free fn.
-/// Mirrors the harvest in `try_lower_generic_fn_call` for the
-/// ident-call path. The receiver type binds the first param ; the
-/// remaining call args bind subsequent params. Idempotent on the
-/// `<symbol.id>::<args_suffix>` key.
-// Harvest a UFCS call's generic-fn instance and return the monomorphic
-// mangle the call site must point at (`null` when the target is non-generic,
-// so the caller keeps the plain resolver symbol). Without returning the
-// mangle the UFCS call site would emit a bare resolver-symbol callee that
-// resolves to no fn-table entry — the emit drops it to its defensive
-// `Return` (every `recv.generic_fn()` call silently mis-compiled).
-harvest_ufcs_fn_instance :: fn(
-    ctx: FnLowerCtx, fn_sym: Symbol, recv_type: Type, ast_args: CallArg[],
-) -> string | null {
-    // Locate the fn's FnType — UFCS resolution tolerates fns defined
-    // in foreign modules (e.g. stdlib's `len`).
-    fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym) ?? return null
-    if fn_ty is FnType {
-        if !type_contains_type_param(fn_ty) {
-            // Non-generic free fn. The entry's own are lowered eagerly by
-            // `lower_module` (and seeded into the seen-set) ; every non-entry
-            // module is lazy, so harvest its referenced fns for
-            // `materialize_nongeneric_imported_fns` — otherwise the call
-            // is dropped (no fn-table entry).
-            register_nongeneric_imported_fn(ctx, fn_sym)
-            return null
-        }
-        if fn_ty.params.len() == 0 { return null }
-        bindings :: MutableMap<i32, Type> {}
-        order: i32[]: []
-        unify_params(fn_ty.params[0], default_if_free(recv_type), bindings, order, ctx)
-        n :: fn_ty.params.len()
-        for i in 1..<n {
-            ai :: i - 1
-            if ai >= ast_args.len() { break }
-            concrete :: default_if_free(ctx.types.expr_type(ast_args[ai].value))
-            unify_params(fn_ty.params[i], concrete, bindings, order, ctx)
-        }
-        concrete_args: Type[]: []
-        for id in declared_order(ctx, fn_sym, order) {
-            v :: bindings[id]
-            match v {
-                is null -> { return null }
-                _ -> { concrete_args.push(v) }
-            }
-        }
-        if !all_concrete(concrete_args) { return null }
-        mono_args :: instance_type_args(ctx, fn_sym, concrete_args)
-        // Record the instance once ; return the (uniq-disambiguated) mangle on
-        // every call so the call site can target it even when a sibling call
-        // already harvested. The name is built INSIDE
-        // `register_fn_instance_mangle`, shared with the direct-call path — this
-        // harvest used to build its own and doubled the module prefix, so a generic
-        // instance was named after whichever of `a.f()` / `f(a)` the lowering
-        // reached first.
-        return register_fn_instance_mangle(ctx, fn_sym, mono_args)
+// The symbol a UFCS call to the free fn `fn_sym` names : its instance at the type
+// arguments the typecheck recorded for a generic fn, the fn itself otherwise. A
+// fn of a module lowered lazily is harvested either way, so its body is emitted.
+ufcs_callee_symbol :: fn(ctx: FnLowerCtx, call: CallExpr, fn_sym: Symbol) -> Symbol {
+    mangled :: recorded_instance_mangle(ctx, call, fn_sym)
+    if mangled == null {
+        register_nongeneric_imported_fn(ctx, fn_sym)
+        return fn_sym
     }
-    return null
+    return instance_symbol(fn_sym, mangled)
 }
 
 // Look up an evaluated module's `display_path` (the declared

@@ -1758,12 +1758,8 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
     bindings :: MutableMap<i32, Type> {}
     unify_type_param(ft.params[0], target_ty, bindings)
     // Default Free* bindings so the curried return type comes back as
-    // `i32`/`f64` instead of `{integer}`/`{float}` — same pattern as
-    // the free-numeric-arg pinning `infer_call` does (`call.vader`).
-    for k in bindings.keys() {
-        v :: bindings[k] ?? continue
-        bindings[k] = default_if_free(v)
-    }
+    // `i32`/`f64` instead of `{integer}`/`{float}`.
+    default_free_bindings(bindings)
     fitted_first :: substitute_map(ft.params[0], bindings)
     if !receiver_fits_first_param(target_ty, fitted_first, typed) {
         return null
