@@ -27,6 +27,7 @@ import "vader/bytecode"
 import "vader/midir"
 import "vader/pipeline"
 import "vader/diagnostics"
+import "vader/effects"
 import "std/collections"
 import "toolchain/ast"
 import "vader/c_emit" {
@@ -88,6 +89,9 @@ cmd_dump :: fn(args: string[]) -> i32 {
     }
     if stage == "callees" {
         return run_callees_stage(file, module_filter, target)
+    }
+    if stage == "effects" {
+        return run_effects_stage(file, module_filter, target)
     }
     if stage == "evaluated-ast" {
         return run_comptime_stage(file, module_filter, include_path_flags, target)
@@ -264,6 +268,16 @@ run_callees_stage :: fn(file: Path, module_filter: string[], target: Target | nu
     fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], true, target)
     scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
     print(dump_call_sites_project(fc.result.typed, fc.result.others, scope))
+    if fc.diags.len() > 0 {
+        println(fc.diags.dump_diagnostics())
+    }
+    return 0
+}
+
+run_effects_stage :: fn(file: Path, module_filter: string[], target: Target | null) -> i32 {
+    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], false, target)
+    scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
+    print(dump_effects(summarise_effects(fc.project, fc.result), scope))
     if fc.diags.len() > 0 {
         println(fc.diags.dump_diagnostics())
     }

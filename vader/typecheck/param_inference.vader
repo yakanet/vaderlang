@@ -868,17 +868,6 @@ param_for_arg :: fn(c: AST.CallExpr, i: usize, typed: TypedProgram) -> AST.FnPar
     return if at < decl.params.len() { decl.params[at] } else { null }
 }
 
-// How many of `decl`'s parameters a method-form call `c` fills with its receiver.
-receiver_offset :: fn(c: AST.CallExpr, decl: AST.FnDecl, typed: TypedProgram) -> usize {
-    if c.callee !is AST.FieldExpr {
-        return 0
-    }
-    if typed.ufcs_receiver_types[c.callee.id] != null {
-        return 1
-    }
-    return if chosen_impl_decl(typed, c.callee.id) != null { receiver_count(decl) } else { 0 }
-}
-
 // `edge` from the parameter `key`, once per root of its argument — or once, rootless,
 // when it has none.
 add_edges :: fn(inference: ParamInference, key: u64, edge: ArgEdge, roots: SlotRoot[]) -> void {

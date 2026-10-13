@@ -372,10 +372,13 @@ reject_marker_on_value_type :: fn(t: Type, span: Span, diags: Diagnostic[]) -> v
         "`${display_type_key(t)}` has no interior to mutate — drop the `!`"))
 }
 
-// A union answers yes only when NO variant has an interior : `(i32 | string)!` is
-// as meaningless as `string!`, while `i32 | Cfg[]!` marks the one variant that can
-// carry it.
-is_value_only_type :: fn(t: Type) -> bool {
+/// Whether a value of type `t` has no interior a function could change: a
+/// primitive (a string included), an enum, a function value. A union answers yes
+/// only when NO variant has an interior : `(i32 | string)!` is as meaningless as
+/// `string!`, while `i32 | Cfg[]!` marks the one variant that can carry it.
+///
+/// @param t  the value's type.
+export is_value_only_type :: fn(t: Type) -> bool {
     if t is UnionType {
         for v in t.variants {
             if !is_value_only_type(v) { return false }

@@ -225,6 +225,26 @@ direct_decl :: fn(callee: Callee | null) -> AST.FnDecl | null {
     return null
 }
 
+/// How many of `decl`'s parameters the method-form call `c` fills with its receiver:
+/// 1 for a member that takes `self` and for a free function called by UFCS, 0 for a
+/// static member, a namespace member and a call that is not in method form.
+///
+/// @param c      the call.
+/// @param decl   the declaration the record names for it.
+/// @param typed  the module that checked the call.
+export receiver_offset :: fn(c: AST.CallExpr, decl: AST.FnDecl, typed: TypedProgram) -> usize {
+    if c.callee !is AST.FieldExpr {
+        return 0
+    }
+    if typed.ufcs_receiver_types[c.callee.id] != null {
+        return 1
+    }
+    if chosen_impl_decl(typed, c.callee.id) == null {
+        return 0
+    }
+    return receiver_count(decl)
+}
+
 record_call_site :: fn(typed: TypedProgram, c: AST.CallExpr, callee: Callee) -> void =
     record_site(typed, c, .Call, callee)
 

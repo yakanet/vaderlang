@@ -1,0 +1,280 @@
+// vader/effects/walk — a function's body read into its skeleton.
+//
+// One pass over the typed body, writing down what it does with the values it is
+// lent (`skeleton.vader`). A value's slot holds the parameters it may be reached
+// from. Locals are aliases: a local's slot holds the roots of everything bound
+// or assigned to it, wherever in the body, which needs no order between the
+// statements. A write is recorded by its form (`p.f = v`, `xs[i] = v`), whatever
+// the type it writes through.
+//
+// What escapes the call is stored: a value put in a field or an element,
+// captured by a lambda, assigned to a module variable, or yielded. A value the
+// function returns is returned, so that its caller holds it through the result.
+// A function that suspends keeps every parameter in its frame past the call.
+// What a lambda returns goes to whoever calls it, which may be anyone: stored.
+
+module "vader/effects"
+
+import "std/collections"
+import "std/iter"
+import "toolchain/span"
+import "vader/typecheck"
+
+AST :: import "toolchain/ast"
+
+/// The state of the walk of one body.
+WalkCtx :: struct {
+    s: Skeleton!
+    typed: TypedProgram
+    index: CalleeIndex
+    /// Symbol id → slot, for the parameters that hold references and the locals.
+    slots: MutableMap<i32, usize>! = MutableMap<i32, usize> {}
+    /// Per lambda being walked, innermost last, the symbols it binds.
+    lambdas: MutableSet<i32>![]! = []
+    /// Whether the body suspends (`yield`, `await`).
+    suspends: bool = false
+}
+
+/// The skeleton of `decl`'s body.
+///
+/// @param decl   a function with a body.
+/// @param typed  the module that typed it.
+/// @param index  the project's functions, to resolve its calls.
+skeleton_of :: fn(decl: AST.FnDecl, typed: TypedProgram, index: CalleeIndex) -> Skeleton {
+    ctx :: WalkCtx { .s = new_skeleton(decl.params.len()), .typed = typed, .index = index }
+    for i in 0..<decl.params.len() {
+        p :: decl.params[i]
+        sym :: typed.resolved.idents[p.span.hash()] ?? continue
+        if holds_references(typed.param_types[p.span.hash()]) {
+            ctx.slots[sym.id] = i
+        }
+    }
+    body :: decl.body ?? return ctx.s
+    result :: ctx.block_value(body)
+    ctx.escape(result, .Returned)
+    if ctx.suspends {
+        for i in 0..<decl.params.len() {
+            ctx.s.add_mark(i, EVERYWHERE, .Stored)
+        }
+    }
+    return ctx.s
+}
+
+// ---- statements -----------------------------------------------------------
+
+stmt :: fn(ctx: WalkCtx, s: AST.Stmt) -> void {
+    match s {
+        is AST.LetStmt               -> { ctx.bind(s.binding, ctx.value(s.value)) }
+        is AST.AssignStmt            -> { ctx.assign(s.target, ctx.value(s.value)) }
+        is AST.DestructureAssignStmt -> { ctx.destructure_assign(s) }
+        is AST.ExprStmt              -> { ctx.discard(s.expr) }
+        is AST.ReturnStmt            -> { ctx.return_stmt(s) }
+        is AST.YieldStmt             -> {
+            ctx.suspends = true
+            ctx.escape(ctx.value(s.value), .Stored)
+        }
+        is AST.ForStmt               -> { ctx.for_stmt(s) }
+        is AST.BreakStmt | AST.ContinueStmt -> {}
+        is AST.DeferStmt             -> { ctx.defer_stmt(s) }
+    }
+}
+
+return_stmt :: fn(ctx: WalkCtx, s: AST.ReturnStmt) -> void {
+    value :: s.value ?? return
+    ctx.escape(ctx.value(value), ctx.return_effect())
+}
+
+// A `return` hands its value to the caller ; inside a lambda, to whoever calls the
+// lambda.
+return_effect :: fn(ctx: WalkCtx) -> Effect {
+    if ctx.lambdas.len() > 0 {
+        return .Stored
+    }
+    return .Returned
+}
+
+defer_stmt :: fn(ctx: WalkCtx, s: AST.DeferStmt) -> void {
+    match s.body as body {
+        is AST.DeferStmtBody  -> { ctx.stmt(body.stmt) }
+        is AST.DeferBlockBody -> { _ :: ctx.block_value(body.block) }
+    }
+}
+
+for_stmt :: fn(ctx: WalkCtx, s: AST.ForStmt) -> void {
+    match s.form as form {
+        is AST.InfiniteFor -> {}
+        is AST.WhileFor    -> { ctx.discard(form.cond) }
+        is AST.InFor       -> {
+            element :: ctx.loop_element(form.iter, ctx.value(form.iter))
+            match form.loop_var as var {
+                is AST.NamedVar       -> { ctx.bind_symbol(var.span, element) }
+                is AST.DestructureVar -> { ctx.bind(var.pattern, element) }
+                is AST.DiscardVar     -> {}
+            }
+        }
+    }
+    _ :: ctx.block_value(s.body)
+}
+
+// What each step of a `for` over `iter` hands its variable: an element of an array,
+// or what the iterator's `next` returns, the iterator being what `into` makes of
+// the iterable.
+loop_element :: fn(ctx: WalkCtx, iter: AST.Expr, iterable: usize | null) -> usize | null {
+    next :: ctx.site_callee(.IterNext, iter.id)
+    if next == null || next is Builtin {
+        return ctx.step_slot(iterable, ELEMENT)
+    }
+    return ctx.call(next, [ctx.converted_by(ctx.site_callee(.IterInto, iter.id), iterable)])
+}
+
+destructure_assign :: fn(ctx: WalkCtx, s: AST.DestructureAssignStmt) -> void {
+    value :: ctx.value(s.value)
+    for t in s.targets {
+        match t {
+            is AST.PlaceTarget    -> { ctx.assign(t.place, ctx.step_slot(value, ELEMENT)) }
+            is AST.RestTarget     -> { ctx.assign(t.place, value) }
+            is AST.WildcardTarget -> {}
+        }
+    }
+}
+
+// `place = value`: a local now holds `value` too ; a field or an element of a value
+// is assigned, and keeps `value` ; anything else (a module variable) keeps it.
+assign :: fn(ctx: WalkCtx, place: AST.Expr, value: usize | null) -> void {
+    // @partial: no other form is a place the typecheck accepts ; one that were
+    // would keep `value` all the same.
+    @partial match place {
+        is AST.IdentExpr -> { ctx.assign_name(place, value) }
+        is AST.FieldExpr -> {
+            ctx.mark(ctx.value(place.target), ctx.index.paths.path_to(field_step(place)), .Assigned)
+            ctx.escape(value, .Stored)
+        }
+        is AST.IndexExpr -> { ctx.assign_element(place, value) }
+        _                -> {
+            ctx.discard(place)
+            ctx.escape(value, .Stored)
+        }
+    }
+}
+
+// `name = value`: a local or a parameter now holds `value` too ; a module variable
+// keeps it.
+assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: usize | null) -> void {
+    slot :: ctx.ident_value(name)
+    if slot == null {
+        ctx.escape(value, .Stored)
+    } else if value != null {
+        ctx.s.add_flow(slot, value)
+    }
+}
+
+// `target[index] = value`, through the target's `IndexSet` or into an array.
+assign_element :: fn(ctx: WalkCtx, place: AST.IndexExpr, value: usize | null) -> void {
+    target :: ctx.value(place.target)
+    index :: ctx.value(place.index)
+    writer :: ctx.site_callee(.IndexWrite, place.id)
+    if writer != null && writer !is Builtin {
+        _ :: ctx.call(writer, [target, index, value])
+        return
+    }
+    ctx.mark(target, ctx.index.paths.path_to(ELEMENT), .Assigned)
+    ctx.escape(value, .Stored)
+}
+
+// ---- bindings -------------------------------------------------------------
+
+bind :: fn(ctx: WalkCtx, b: AST.LetBinding, value: usize | null) -> void {
+    match b {
+        is AST.SimpleBinding   -> { ctx.bind_symbol(b.name_span, value) }
+        is AST.TupleBinding    -> {
+            for element in b.elements {
+                ctx.bind(element, ctx.step_slot(value, ELEMENT))
+            }
+        }
+        is AST.RestBinding     -> { ctx.bind_symbol(b.span, value) }
+        is AST.WildcardBinding -> {}
+    }
+}
+
+// The binding whose name sits at `span` now holds `value` too.
+bind_symbol :: fn(ctx: WalkCtx, span: Span, value: usize | null) -> void {
+    sym :: ctx.typed.resolved.idents[span.hash()] ?? return
+    if ctx.lambdas.len() > 0 {
+        ctx.lambdas[ctx.lambdas.len() - 1].add(sym.id)
+    }
+    slot :: ctx.local_slot(sym.id)
+    if value != null {
+        ctx.s.add_flow(slot, value)
+    }
+}
+
+// The slot of the local `id`, made on its first binding.
+local_slot :: fn(ctx: WalkCtx, id: i32) -> usize {
+    known :: ctx.slots[id]
+    if known != null {
+        return known
+    }
+    slot :: ctx.s.fresh_slot()
+    ctx.slots[id] = slot
+    return slot
+}
+
+// ---- helpers --------------------------------------------------------------
+
+// The function does `effect` at `path` below `value`, when it holds anything lent.
+mark :: fn(ctx: WalkCtx, value: usize | null, path: i32, effect: Effect) -> void {
+    if value != null {
+        ctx.s.add_mark(value, path, effect)
+    }
+}
+
+// `value` leaves the call, kept (`.Stored`) or returned.
+escape :: fn(ctx: WalkCtx, value: usize | null, effect: Effect) -> void =
+    ctx.mark(value, ROOT, effect)
+
+// A slot holding what `value` holds one `step` down, null when `value` is.
+step_slot :: fn(ctx: WalkCtx, value: usize | null, step: string) -> usize | null {
+    from :: value ?? return null
+    slot :: ctx.s.fresh_slot()
+    ctx.s.add_flow(slot, from, ctx.index.paths.path_to(step))
+    return slot
+}
+
+// A slot holding what each of `values` holds.
+union_of :: fn(ctx: WalkCtx, values: (usize | null)[]) -> usize | null {
+    held :: values.filter_not_null().collect()
+    if held.len() == 0 {
+        return null
+    }
+    if held.len() == 1 {
+        return held[0]
+    }
+    slot :: ctx.s.fresh_slot()
+    for v in held {
+        ctx.s.add_flow(slot, v)
+    }
+    return slot
+}
+
+// What the record says the site `role` at node `id` invokes.
+site_callee :: fn(ctx: WalkCtx, role: CallRole, id: usize) -> Callee | null =
+    sites_of(ctx.typed.call_sites, role)[id]
+
+// A call to `callee` handing it `args` by its parameters' positions ; its result's
+// slot, or null when there is no call, or one that runs nothing.
+call :: fn(ctx: WalkCtx, callee: Callee | null, args: (usize | null)[]) -> usize | null {
+    c :: callee ?? return null
+    targets :: ctx.index.targets_of(c)
+    if targets.len() == 0 {
+        return null
+    }
+    return ctx.s.add_site(targets, args)
+}
+
+// The step a field access takes: an element of a tuple for `t.0`.
+field_step :: fn(e: AST.FieldExpr) -> string {
+    if e.is_numeric {
+        return ELEMENT
+    }
+    return e.field
+}

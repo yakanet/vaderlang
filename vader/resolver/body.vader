@@ -953,6 +953,7 @@ bind_pattern :: fn(self: ResolveState, p: AST.Pattern) -> void {
                     is AST.PatternBinding -> {
                         sym :: self.mint_local(.Binding, f.name, f.name_span)
                         self.scope.bind(f.name, sym)
+                        self.idents[f.name_span.hash()] = sym
                     }
                     is AST.PatternLiteral -> { self.walk_expr(lit.value) }
                 }

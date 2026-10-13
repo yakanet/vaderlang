@@ -1,0 +1,344 @@
+// vader/effects/walk_expr — each expression of a body to the slot of its value.
+//
+// `value` walks an expression for what it does and returns the slot of what it
+// evaluates to: the roots a caller lent that the value may be, or be reached
+// from. A value whose type holds no references (a number, a string, an enum)
+// returns no slot: nothing a callee could change is reached through it.
+
+module "vader/effects"
+
+import "std/collections"
+import "vader/typecheck"
+import "vader/types"
+
+AST :: import "toolchain/ast"
+
+/// The slot of `e`'s value, `e` walked ; null when it holds nothing lent. An
+/// implicit `into` at `e` hands on what the conversion returns of it.
+///
+/// @param ctx  the walk.
+/// @param e    an expression in value position.
+value :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null {
+    held :: ctx.converted(e, ctx.value_of(e))
+    if !holds_references(ctx.typed.expr_types[e.id]) {
+        return null
+    }
+    return held
+}
+
+// Walk `e` for what it does ; its value is not used.
+discard :: fn(ctx: WalkCtx, e: AST.Expr) -> void {
+    _ :: ctx.value(e)
+}
+
+// What an implicit `into` at `e` returns of `held`, or `held` when none runs there.
+converted :: fn(ctx: WalkCtx, e: AST.Expr, held: usize | null) -> usize | null =
+    ctx.converted_by(ctx.site_callee(.Into, e.id), held)
+
+// What the conversion `callee` returns of `held`, or `held` when nothing runs.
+converted_by :: fn(ctx: WalkCtx, callee: Callee | null, held: usize | null) -> usize | null {
+    result :: ctx.call(callee, [held])
+    if result == null {
+        return held
+    }
+    return result
+}
+
+value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null = match e {
+    is AST.IdentExpr         -> ctx.ident_value(e)
+    is AST.FieldExpr         -> ctx.step_slot(ctx.value(e.target), field_step(e))
+    is AST.IndexExpr         -> ctx.index_value(e)
+    is AST.CallExpr          -> ctx.call_value(e)
+    is AST.BinaryExpr        -> ctx.binary_value(e)
+    is AST.UnaryExpr         -> ctx.nothing(e.operand)
+    is AST.NullCoalesceExpr  -> ctx.union_of([ctx.value(e.left), ctx.fallback_value(e.fallback)])
+    is AST.IfExpr            -> ctx.if_value(e)
+    is AST.MatchExpr         -> ctx.match_value(e)
+    is AST.BlockExpr         -> ctx.block_value(e)
+    is AST.LambdaExpr        -> ctx.lambda_value(e)
+    is AST.StructLitExpr     -> ctx.struct_literal_value(e)
+    is AST.SeqLitExpr        -> ctx.sequence_value(e)
+    is AST.RangeExpr         -> ctx.range_value(e)
+    // A conversion that runs no `into` hands on the value it converts.
+    is AST.CastExpr          -> ctx.value(e.value)
+    is AST.StringLitExpr     -> ctx.string_value(e)
+    is AST.IntrinsicCallExpr -> ctx.sequence_walked(e.args)
+    is AST.AwaitExpr         -> ctx.await_value(e)
+    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr
+     | AST.DotVariantExpr | AST.GenericInstExpr | AST.FnTypeExpr | AST.ArrayTypeExpr
+     | AST.MutableTypeExpr -> null
+}
+
+// Walk `e`, whose value holds nothing lent.
+nothing :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null {
+    ctx.discard(e)
+    return null
+}
+
+// Walk each of `exprs`, whose values hold nothing lent.
+sequence_walked :: fn(ctx: WalkCtx, exprs: AST.Expr[]) -> usize | null {
+    for e in exprs {
+        ctx.discard(e)
+    }
+    return null
+}
+
+// A parameter's or a local's slot. A lambda that reads a binding from outside it
+// captures it, and keeps it for as long as the lambda lives.
+ident_value :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> usize | null {
+    sym :: ctx.typed.resolved.idents[e.span.hash()] ?? return null
+    slot :: ctx.slots[sym.id] ?? return null
+    if ctx.lambdas.len() > 0 && sym.id !in ctx.lambdas[ctx.lambdas.len() - 1] {
+        ctx.s.add_mark(slot, ROOT, .Stored)
+    }
+    return slot
+}
+
+// `target[index]`: what the target's `Index` returns, the elements of a slice, or
+// one element.
+index_value :: fn(ctx: WalkCtx, e: AST.IndexExpr) -> usize | null {
+    target :: ctx.value(e.target)
+    index :: ctx.value(e.index)
+    reader :: ctx.site_callee(.IndexRead, e.id)
+    if reader != null && reader !is Builtin {
+        return ctx.call(reader, [target, index])
+    }
+    if e.index is AST.RangeExpr {
+        return target
+    }
+    return ctx.step_slot(target, ELEMENT)
+}
+
+// ---- calls ----------------------------------------------------------------
+
+call_value :: fn(ctx: WalkCtx, c: AST.CallExpr) -> usize | null {
+    callee :: ctx.site_callee(.Call, c.id) ?? UnsettledCallee {}
+    args :: ctx.call_args(c, callee)
+    // A conversion that runs no `into` hands on the value it converts.
+    if callee is Builtin {
+        return single(args)
+    }
+    return ctx.call(callee, args)
+}
+
+// The slot each parameter of the callee receives, by position: the receiver of a
+// method-form call first, when the callee takes it.
+call_args :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> (usize | null)[] {
+    args: (usize | null)[]: []
+    if c.callee is AST.FieldExpr as method {
+        if ctx.passes_receiver(c, method, callee) {
+            args.push(ctx.value(method.target))
+        } else {
+            ctx.discard(method.target)
+        }
+    } else {
+        ctx.discard(c.callee)
+    }
+    for a in c.args {
+        args.push(ctx.value(a.value))
+    }
+    return args
+}
+
+// Whether `callee` takes the target of `c.callee` as its first argument: a
+// method-form call of a member or of a free function by UFCS, not a static member
+// (`Type.member`, which the typecheck records), a namespace member, or a function
+// value read from a field.
+passes_receiver :: fn(
+    ctx: WalkCtx, c: AST.CallExpr, callee_expr: AST.FieldExpr, callee: Callee,
+) -> bool = match callee {
+    is DirectFn -> receiver_offset(c, callee.decl, ctx.typed) == 1
+    is BoundMember | TraitMember | UnsettledCallee -> callee_expr.id !in ctx.typed.static_members
+    is FnValue | Builtin | ErroneousCallee | EachOf -> false
+}
+
+// The one argument of a conversion.
+single :: fn(args: (usize | null)[]) -> usize | null {
+    if args.len() == 1 {
+        return args[0]
+    }
+    return null
+}
+
+// `left op right`: an operator an impl serves is a call, `in` taking its
+// container first. An `is` test binds its `as` name to the tested value.
+binary_value :: fn(ctx: WalkCtx, e: AST.BinaryExpr) -> usize | null {
+    left :: ctx.value(e.left)
+    right :: ctx.value(e.right)
+    alias :: e.bind_as
+    if alias != null {
+        ctx.bind_symbol(alias.span, left)
+    }
+    return ctx.call(ctx.site_callee(.Operator, e.id), operator_args(e.op, left, right))
+}
+
+operator_args :: fn(op: AST.BinaryOp, left: usize | null, right: usize | null) -> (usize | null)[] {
+    if op == .In || op == .NotIn {
+        return [right, left]
+    }
+    return [left, right]
+}
+
+await_value :: fn(ctx: WalkCtx, e: AST.AwaitExpr) -> usize | null {
+    ctx.suspends = true
+    return ctx.nothing(e.inner)
+}
+
+// ---- control flow ---------------------------------------------------------
+
+// What a `??` falls back to: a value, or a statement that leaves.
+fallback_value :: fn(ctx: WalkCtx, f: AST.CoalesceFallback) -> usize | null {
+    match f {
+        is AST.ReturnStmt                   -> { ctx.return_stmt(f) }
+        is AST.BreakStmt | AST.ContinueStmt -> {}
+        is AST.Expr                         -> { return ctx.value(f) }
+    }
+    return null
+}
+
+if_value :: fn(ctx: WalkCtx, e: AST.IfExpr) -> usize | null {
+    ctx.discard(e.cond)
+    then :: ctx.block_value(e.then_block)
+    return ctx.union_of([then, ctx.else_value(e.else_branch)])
+}
+
+else_value :: fn(ctx: WalkCtx, branch: AST.IfElse | null) -> usize | null = match branch {
+    is AST.IfElseIf    -> ctx.if_value(branch.branch)
+    is AST.IfElseBlock -> ctx.block_value(branch.block)
+    is null            -> null
+}
+
+// Each arm's bindings hold parts of the scrutinee ; the match is worth any arm.
+match_value :: fn(ctx: WalkCtx, e: AST.MatchExpr) -> usize | null {
+    scrutinee :: ctx.value(e.scrutinee)
+    alias :: e.bind_as
+    if alias != null {
+        ctx.bind_symbol(alias.span, scrutinee)
+    }
+    arms: (usize | null)[]: []
+    for arm in e.arms {
+        ctx.bind_pattern(arm.pattern, scrutinee)
+        guard :: arm.guard
+        if guard != null {
+            ctx.discard(guard)
+        }
+        arms.push(ctx.value(arm.body))
+    }
+    return ctx.union_of(arms)
+}
+
+bind_pattern :: fn(ctx: WalkCtx, p: AST.Pattern, scrutinee: usize | null) -> void {
+    match p {
+        is AST.IsPattern     -> {
+            inner :: p.inner
+            if inner != null {
+                ctx.bind_pattern(inner, scrutinee)
+            }
+        }
+        is AST.StructPattern -> {
+            for f in p.fields {
+                if f.value is AST.PatternBinding {
+                    ctx.bind_symbol(f.name_span, ctx.step_slot(scrutinee, f.name))
+                }
+            }
+        }
+        is AST.OrPattern     -> {
+            for alt in p.patterns {
+                ctx.bind_pattern(alt, scrutinee)
+            }
+        }
+        is AST.WildcardPattern | AST.EnumVariantPattern
+         | AST.LiteralPattern | AST.RangePattern -> {}
+    }
+}
+
+block_value :: fn(ctx: WalkCtx, b: AST.BlockExpr) -> usize | null {
+    for s in b.stmts {
+        ctx.stmt(s)
+    }
+    trailing :: b.trailing ?? return null
+    return ctx.value(trailing)
+}
+
+// A lambda's own parameters hold nothing lent: whoever calls it is a function value
+// call, which lends it anything. What it returns leaves for that caller.
+lambda_value :: fn(ctx: WalkCtx, l: AST.LambdaExpr) -> usize | null {
+    bound :: MutableSet<i32> {}
+    for p in l.params {
+        sym :: ctx.typed.resolved.idents[p.span.hash()] ?? continue
+        bound.add(sym.id)
+    }
+    ctx.lambdas.push(bound)
+    ctx.escape(ctx.block_value(l.body), .Stored)
+    ctx.lambdas.remove_last()
+    return null
+}
+
+// ---- literals -------------------------------------------------------------
+
+// A struct literal keeps its field values ; a spread keeps every field of its
+// source the literal does not name. The literal is a fresh value.
+struct_literal_value :: fn(ctx: WalkCtx, e: AST.StructLitExpr) -> usize | null {
+    named :: MutableSet<string> {}
+    for item in e.items {
+        if item is AST.StructLitField {
+            named.add(item.name)
+            ctx.escape(ctx.value(item.value), .Stored)
+        }
+    }
+    for item in e.items {
+        if item is AST.StructLitSpread {
+            ctx.spread(item.expr, named)
+        }
+    }
+    return null
+}
+
+// Keep each field of `source` that `named` leaves out, as a spread copies it ; all
+// of `source` when its fields are not known.
+spread :: fn(ctx: WalkCtx, source: AST.Expr, named: MutableSet<string>) -> void {
+    slot :: ctx.value(source) ?? return
+    fields :: ctx.struct_fields_of(source)
+    if fields == null {
+        ctx.s.add_mark(slot, EVERYWHERE, .Stored)
+        return
+    }
+    for [name, t] in fields {
+        if name !in named && holds_references(t) {
+            ctx.s.add_mark(slot, ctx.index.paths.path_to(name), .Stored)
+        }
+    }
+}
+
+// The declared type of each field of the struct `e` evaluates to.
+struct_fields_of :: fn(ctx: WalkCtx, e: AST.Expr) -> MutableMap<string, Type> | null {
+    t :: ctx.typed.expr_types[e.id] ?? return null
+    if t !is StructType {
+        return null
+    }
+    return ctx.typed.struct_field_types[t.symbol.id]
+}
+
+// An array or a tuple literal keeps its elements ; it is a fresh value.
+sequence_value :: fn(ctx: WalkCtx, e: AST.SeqLitExpr) -> usize | null {
+    for element in e.elements {
+        ctx.escape(ctx.value(element), .Stored)
+    }
+    return null
+}
+
+range_value :: fn(ctx: WalkCtx, e: AST.RangeExpr) -> usize | null {
+    ctx.discard(e.lower)
+    ctx.discard(e.upper)
+    return null
+}
+
+// An interpolation renders each value it holds through its `Display`.
+string_value :: fn(ctx: WalkCtx, e: AST.StringLitExpr) -> usize | null {
+    for part in e.parts {
+        if part is AST.StringLitInterp {
+            _ :: ctx.call(ctx.site_callee(.Display, part.expr.id), [ctx.value(part.expr)])
+        }
+    }
+    return null
+}

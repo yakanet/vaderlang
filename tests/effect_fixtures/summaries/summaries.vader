@@ -1,0 +1,198 @@
+// tests/effect_fixtures/summaries — one function per case of the effect summary.
+//
+// `tests/effect_summary.test.ts` reads `vader dump --stage=effects` of this file
+// and pins what each function is summarised to do with its parameters.
+
+module "summaries"
+
+import "std/collections"
+
+export Point :: struct {
+    x: i32
+    y: i32
+}
+
+export Holder :: struct {
+    inner: Point!
+    items: Point![]!
+}
+
+export origin :: fn() -> Point! = Point { .x = 0, .y = 0 }
+
+// ---- writes ---------------------------------------------------------------
+
+export reads_only :: fn(p: Point) -> i32 = p.x + p.y
+
+export sets_field :: fn(p: Point) -> void {
+    p.x = 1
+}
+
+export sets_nested_field :: fn(h: Holder) -> void {
+    h.inner.x = 1
+}
+
+export sets_element :: fn(xs: Point[], p: Point) -> void {
+    xs[0] = p
+}
+
+export sets_element_field :: fn(xs: Point[]) -> void {
+    xs[0].x = 1
+}
+
+export pushes :: fn(xs: Point[], p: Point) -> void {
+    xs.push(p)
+}
+
+export clears :: fn(xs: Point[]) -> void {
+    xs.clear()
+}
+
+// ---- aliases --------------------------------------------------------------
+
+export through_local :: fn(h: Holder) -> void {
+    items :: h.items
+    items.push(origin())
+}
+
+export through_loop :: fn(xs: Point[]) -> void {
+    for p in xs {
+        p.x = 0
+    }
+}
+
+export through_narrowing :: fn(s: Point | Holder) -> void {
+    if s is Point {
+        s.x = 3
+    }
+}
+
+export through_alias :: fn(s: Point | Holder) -> void {
+    match s.items_of() as found {
+        is Point[] -> { found.clear() }
+        is null    -> {}
+    }
+}
+
+export items_of :: fn(s: Point | Holder) -> Point![]! | null {
+    if s is Holder {
+        return s.items
+    }
+    return null
+}
+
+// ---- escapes --------------------------------------------------------------
+
+export returns_param :: fn(p: Point) -> Point = p
+
+export returns_field :: fn(h: Holder) -> Point! = h.inner
+
+export writes_what_a_callee_returns :: fn(h: Holder) -> void {
+    returns_field(h).x = 2
+}
+
+export stores_in_struct :: fn(p: Point) -> Holder = Holder { .inner = p, .items = [] }
+
+export captures :: fn(p: Point) -> fn() -> i32 = () -> p.x
+
+export copies_with_spread :: fn(h: Holder) -> Holder = Holder { ...h, .inner = origin() }
+
+// ---- calls ----------------------------------------------------------------
+
+export calls_a_writer :: fn(p: Point) -> void {
+    sets_field(p)
+}
+
+export calls_a_function_value :: fn(p: Point, f: fn(Point) -> void) -> void {
+    f(p)
+}
+
+export writes_then_recurses :: fn(xs: Point[], n: i32) -> void {
+    if n > 0 {
+        recurses_back(xs, n - 1)
+    }
+}
+
+export recurses_back :: fn(xs: Point[], n: i32) -> void {
+    xs.clear()
+    writes_then_recurses(xs, n)
+}
+
+export Bump :: trait {
+    bump :: fn(self!) -> void
+}
+
+Point implements Bump {
+    bump :: fn(self) -> void {
+        self.x += 1
+    }
+}
+
+Holder implements Bump {
+    bump :: fn(self) -> void {
+        self.items.clear()
+    }
+}
+
+export through_a_trait_value :: fn(b: Bump) -> void {
+    b.bump()
+}
+
+export through_a_bound :: fn<T: Bump!>(t: T) -> void {
+    t.bump()
+}
+
+export into_a_map :: fn(m: MutableMap<string, Point>, p: Point) -> void {
+    m["a"] = p
+}
+
+// ---- implicit calls -------------------------------------------------------
+
+export concatenates :: fn(a: Point[], b: Point[]) -> Point[] = a + b
+
+export bumps_an_entry :: fn(m: MutableMap<string, Point!>) -> void {
+    p :: m["a"] ?? return
+    p.x = 1
+}
+
+export Countdown :: struct {
+    n: i32
+}
+
+Countdown implements Iterator<i32> {
+    next :: fn(self) -> [i32, Continuation] {
+        if self.n == 0 {
+            return [0, .Stop]
+        }
+        self.n -= 1
+        return [self.n, .Continue]
+    }
+}
+
+export drains :: fn(it: Countdown) -> i32 {
+    total := 0
+    for x in it {
+        total += x
+    }
+    return total
+}
+
+// ---- suspension and foreign code ------------------------------------------
+
+export yields_points :: fn(xs: Point[]) -> Iterator<Point> {
+    for p in xs {
+        yield p
+    }
+}
+
+/// Mirror of C's `div_t`.
+@c_struct("div_t")
+export Div :: struct {
+    quot: i32
+    rem:  i32
+}
+
+@extern fill_div :: fn(@c_pointer @c_out d: Div, quot: i32, rem: i32) -> void
+
+export fills :: fn(d: Div) -> void {
+    fill_div(d, 7, 3)
+}

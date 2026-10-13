@@ -1,0 +1,73 @@
+// vader/effects/dump — the summary as `vader dump --stage=effects` prints it.
+//
+// One block per module in scope, one per function in source order: each access
+// on a line, `<effect> <parameter><path>`, or `none` for a function that only
+// reads what it is lent. A footer counts the functions, those whose component
+// did not settle, and the bodyless functions the compiler knows nothing of.
+
+module "vader/effects"
+
+import "std/collections"
+import "std/sort"
+import "std/string"
+import "std/string_builder"
+import "vader/resolver"
+
+/// The summary of the functions of the modules `scope` selects, module by module.
+///
+/// @param summary  the project's summary.
+/// @param scope    the display paths to render, each with its submodules
+///                 (`module_in_scope`).
+export dump_effects :: fn(summary: EffectSummary, scope: string[]) -> string {
+    by_module :: MutableMap<string, i32[]!> {}
+    for node in 0..<summary.index.functions.len() {
+        path :: summary.index.functions[node].typed.resolved.display_path
+        if !module_in_scope(path, scope) {
+            continue
+        }
+        nodes :: by_module[path] ?? []
+        nodes.push(i32(node))
+        by_module[path] = nodes
+    }
+    sb :: StringBuilder {}
+    sb.append("# effects\n")
+    for path in sort(by_module.keys(), (a, b) -> a < b) {
+        sb.append("\n## ${path}\n")
+        nodes :: by_module[path] ?? []
+        for node in sort(nodes, (a, b) -> comes_before(summary, a, b)) {
+            write_function(sb, summary, node)
+        }
+    }
+    functions :: summary.index.functions.len()
+    sb.append("\nfunctions: ${functions}, unsettled: ${summary.unsettled.len()}\n")
+    for name in sort(summary.index.unknown, (a, b) -> a < b) {
+        sb.append("unknown intrinsic: ${name}\n")
+    }
+    return sb.to_string()
+}
+
+// Source order, by the position of the function's name.
+comes_before :: fn(summary: EffectSummary, a: i32, b: i32) -> bool =
+    name_offset(summary, a) < name_offset(summary, b)
+
+name_offset :: fn(summary: EffectSummary, node: i32) -> usize =
+    summary.index.functions[node].decl.name_span.start.offset
+
+write_function :: fn(sb: StringBuilder, summary: EffectSummary, node: i32) -> void {
+    decl :: summary.index.functions[node].decl
+    position :: decl.name_span.start
+    sb.append("fn ${decl.name} ${position.line}:${position.column}\n")
+    effects :: summary.facts[node]
+    paths :: summary.index.paths
+    written := false
+    for i in 0..<decl.params.len() {
+        name :: decl.params[i].name
+        for a in sorted_accesses(paths, effects[i]) {
+            sb.append("  ${effect_label(a.effect)} ${name}${paths.display_path(a.path)}\n")
+            written = true
+        }
+    }
+    if !written {
+        sb.append("  none\n")
+    }
+}

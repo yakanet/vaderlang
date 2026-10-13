@@ -175,7 +175,7 @@ BUILD_FLAGS: FlagSpec[]: [
     },
 ]
 
-// The twelve IR stages. This array is the only list of them: `cmd_dump`
+// The IR stages. This array is the only list of them: `cmd_dump`
 // dispatches on the name, but what is *accepted* — and what an unknown stage
 // reports — comes from here.
 DUMP_STAGES: ValueSpec[]: [
@@ -184,6 +184,7 @@ DUMP_STAGES: ValueSpec[]: [
     ValueSpec { .name = "resolved-ast", .help = "Per-module symbol table + import wiring" },
     ValueSpec { .name = "typed-ast", .help = "Per-decl + per-expression types" },
     ValueSpec { .name = "callees", .help = "What each call invokes, as the typecheck settled it" },
+    ValueSpec { .name = "effects", .help = "What each function does with what it is lent" },
     ValueSpec { .name = "evaluated-ast", .help = "@comptime / @file values + generic instances" },
     ValueSpec {
         .name = "lowered-ast",
