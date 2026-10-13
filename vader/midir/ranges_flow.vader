@@ -24,7 +24,8 @@ THRESHOLD_WIDENINGS :: 3
 RangeFlow :: struct {
     /// Per block, what holds at its head so far; null for a block no path has
     /// reached yet. A stored state is never changed in place, so one may be
-    /// shared by several blocks.
+    /// shared by several blocks, and is settled (`settle_intervals`): an edge it
+    /// covers adds nothing to it.
     states: (RangeState | null)[]!
     /// The blocks a retreating edge enters: the loop headers, where the
     /// analysis widens.
@@ -140,9 +141,12 @@ merge_into :: fn(ctx: RangeContext, flow: RangeFlow, target: BlockId, edge: Rang
         flow.dirty[at] = true
         return true
     }
-    next := join_range_states(old, edge)
+    if range_state_covers(old, edge) {
+        return false
+    }
+    next :: join_range_states(old, edge)
     if flow.headers[at] {
-        next = widen_range_states(old, next, widening_thresholds(flow, at))
+        widen_range_states(old, next, widening_thresholds(flow, at))
     }
     settle_intervals(ctx, next)
     if same_range_state(old, next) {

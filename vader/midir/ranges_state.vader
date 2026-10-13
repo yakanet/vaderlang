@@ -78,32 +78,58 @@ join_range_states :: fn(a: RangeState, b: RangeState) -> RangeState! {
     return out
 }
 
-/// `new` widened against `old`, a loop header's state the round before: each
+/// Widen `new` against `old`, a loop header's state the round before: each
 /// interval by `interval_widen`, and a fact whose bound grew dropped, so it
 /// cannot grow one round at a time. A length needs no widening: it is kept or
 /// dropped, never loosened.
 ///
 /// @param old         the header's state the round before.
 /// @param new         `old` joined with what reached the header since, so it
-///                    knows nothing `old` does not.
+///                    knows nothing `old` does not; widened in place.
 /// @param thresholds  the values worth stopping at, ascending.
-widen_range_states :: fn(
-    old: RangeState,
-    new: RangeState,
-    thresholds: i64[],
-) -> RangeState! {
-    out :: copy_range_state(new)
-    for [local, iv] in new.intervals {
+widen_range_states :: fn(old: RangeState, new: RangeState, thresholds: i64[]) -> void {
+    // Over a copy of the keys: `new.intervals` is written as it is walked.
+    for local in new.intervals.keys() {
+        iv :: new.intervals[local] ?? continue
         before :: old.intervals[local] ?? continue
-        out.intervals[local] = interval_widen(before, iv, thresholds)
+        new.intervals[local] = interval_widen(before, iv, thresholds)
     }
+    grown: u64[]: []
     for [key, c] in new.differences {
         before :: old.differences[key] ?? continue
         if c > before {
-            _ :: out.differences.remove(key)
+            grown.push(key)
         }
     }
-    return out
+    for key in grown {
+        _ :: new.differences.remove(key)
+    }
+}
+
+/// Whether `outer` already allows everything `inner` does: each interval it knows
+/// holds `inner`'s, each fact it knows `inner` knows at least as tightly, and each
+/// length it knows `inner` knows too. Joining `inner` into `outer` would then
+/// change nothing.
+range_state_covers :: fn(outer: RangeState, inner: RangeState) -> bool {
+    for [local, iv] in outer.intervals {
+        theirs :: inner.intervals[local] ?? return false
+        if !interval_within(theirs, iv) {
+            return false
+        }
+    }
+    for [key, c] in outer.differences {
+        theirs :: inner.differences[key] ?? return false
+        if theirs > c {
+            return false
+        }
+    }
+    for [n, array] in outer.lengths {
+        theirs :: inner.lengths[n] ?? return false
+        if theirs != array {
+            return false
+        }
+    }
+    return true
 }
 
 /// Whether `a` and `b` know the same: what ends the fixed point.
@@ -140,12 +166,12 @@ same_range_state :: fn(a: RangeState, b: RangeState) -> bool {
 /// @param local  the local written.
 forget_local :: fn(s: RangeState, local: LocalId) -> void {
     _ :: s.intervals.remove(local)
-    if s.differences.len() == 0 && s.lengths.len() == 0 {
+    if !range_state_mentions(s, local) {
         return
     }
     doomed: u64[]: []
     for [key, _] in s.differences {
-        if fact_left(key) == local || fact_right(key) == local {
+        if fact_mentions(key, local) {
             doomed.push(key)
         }
     }
@@ -154,7 +180,7 @@ forget_local :: fn(s: RangeState, local: LocalId) -> void {
     }
     stale: LocalId[]: []
     for [n, array] in s.lengths {
-        if n == local || array == local {
+        if length_mentions(n, array, local) {
             stale.push(n)
         }
     }
@@ -162,6 +188,30 @@ forget_local :: fn(s: RangeState, local: LocalId) -> void {
         _ :: s.lengths.remove(n)
     }
 }
+
+/// Whether `local` takes part in a fact or a length of `s`: what `forget_local`
+/// drops.
+range_state_mentions :: fn(s: RangeState, local: LocalId) -> bool {
+    for [key, _] in s.differences {
+        if fact_mentions(key, local) {
+            return true
+        }
+    }
+    for [n, array] in s.lengths {
+        if length_mentions(n, array, local) {
+            return true
+        }
+    }
+    return false
+}
+
+/// Whether the fact `key` is about `local`.
+fact_mentions :: fn(key: u64, local: LocalId) -> bool =
+    fact_left(key) == local || fact_right(key) == local
+
+/// Whether the length `n <= len(array)` is about `local`.
+length_mentions :: fn(n: LocalId, array: LocalId, local: LocalId) -> bool =
+    n == local || array == local
 
 // ---- tests ----------------------------------------------------------------
 
@@ -216,11 +266,44 @@ test_widen_range_states_drops_a_growing_fact :: fn() -> void {
     new :: copy_range_state(old)
     new.intervals[LocalId(1)] = interval(0, 1)
     new.differences[fact_key(LocalId(3), LocalId(2))] = 0
-    widened :: widen_range_states(old, new, thresholds)
-    one :: widened.intervals[LocalId(1)] ?? ANY_INTEGER
+    widen_range_states(old, new, thresholds)
+    one :: new.intervals[LocalId(1)] ?? ANY_INTEGER
     assert(same_interval(one, interval(0, 10)), "interval widened")
-    assert_eq(widened.differences[fact_key(LocalId(1), LocalId(2))] ?? 99, -1)
-    assert(widened.differences[fact_key(LocalId(3), LocalId(2))] == null, "growing fact dropped")
+    assert_eq(new.differences[fact_key(LocalId(1), LocalId(2))] ?? 99, -1)
+    assert(new.differences[fact_key(LocalId(3), LocalId(2))] == null, "growing fact dropped")
+}
+
+@test
+test_covers_a_state_that_knows_at_least_as_much :: fn() -> void {
+    outer :: new_range_state()
+    outer.intervals[LocalId(1)] = interval(0, 10)
+    outer.differences[fact_key(LocalId(1), LocalId(2))] = 0
+    inner :: copy_range_state(outer)
+    inner.intervals[LocalId(1)] = interval(2, 3)
+    inner.differences[fact_key(LocalId(1), LocalId(2))] = -1
+    inner.intervals[LocalId(5)] = interval(0, 0)
+    assert(range_state_covers(outer, inner), "a tighter state")
+    assert(!range_state_covers(inner, outer), "a looser state")
+    assert(!range_state_covers(outer, new_range_state()), "a state that knows less")
+}
+
+@test
+test_covers_matches_a_join_that_changes_nothing :: fn() -> void {
+    a :: new_range_state()
+    a.intervals[LocalId(1)] = interval(0, 10)
+    a.intervals[LocalId(4)] = ANY_INTEGER
+    a.differences[fact_key(LocalId(1), LocalId(2))] = 0
+    a.lengths[LocalId(2)] = LocalId(6)
+    narrower :: copy_range_state(a)
+    narrower.intervals[LocalId(4)] = interval(-3, 3)
+    other_array :: copy_range_state(a)
+    other_array.lengths[LocalId(2)] = LocalId(7)
+    looser :: copy_range_state(a)
+    looser.differences[fact_key(LocalId(1), LocalId(2))] = 1
+    for inner in [a, narrower, other_array, looser, new_range_state()] {
+        unchanged :: same_range_state(join_range_states(a, inner), a)
+        assert_eq(range_state_covers(a, inner), unchanged)
+    }
 }
 
 @test

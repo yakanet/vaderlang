@@ -45,7 +45,15 @@ summarise_array_shrinking :: fn(p: CFGProject) -> ShrinkSummary {
 ///
 /// @param summary  the project's summary.
 shrink_predicate :: fn(summary: ShrinkSummary) -> fn(Instruction) -> bool = fn(ins: Instruction) {
+    // Asked of every instruction the analysis steps over: the common answers
+    // build no callee list.
+    if !instruction_runs_code(ins) {
+        return false
+    }
     may_shrink :: summary.may_shrink
+    if ins is InstrCall {
+        return may_shrink[callee_node(summary.calls.index, ins.callee)]
+    }
     callees :: instruction_callees(summary.calls.index, ins)
     return is_shrinking_intrinsic(ins) || callees.any_match((callee) -> may_shrink[callee])
 }
