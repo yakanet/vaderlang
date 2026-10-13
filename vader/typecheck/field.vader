@@ -625,17 +625,14 @@ try_free_fn_ufcs_dispatch :: fn(
     }
     first_param :: free_ufcs.winner.ty.params[0]
     typed.ufcs_receiver_types[e.id] = first_param
-    // The lowerer finds the fn again from the receiver's own type when that type
-    // names a type parameter (`settled_choice`, lower_ufcs.vader) ; erased to `Any`
-    // it names none, so the enclosing fn's instances stay concrete.
+    // The chosen fn is instantiated at the receiver's own type at each instance
+    // (`harvest_ufcs_fn_instance`, lower_ufcs.vader) ; erased to `Any` the receiver
+    // names none, so the enclosing fn's instances stay concrete.
     if type_contains_type_param(target_ty) {
         keep_instances_concrete(typed)
     }
     typed.chosen_fns[e.id] = free_ufcs.winner
-    // The lowering looks again at each instance when the receiver mentions a type
-    // parameter (`settled_choice`).
-    per_instance :: type_contains_type_param(target_ty)
-    note_callee(typed, e, direct_callee(free_ufcs.winner.decl, per_instance))
+    note_callee(typed, e, direct_callee(free_ufcs.winner.decl, false))
     // A `T[]` receiver fitting an `Iterator` first param coerces through the very
     // `.into()` the lowerer synthesizes at `lower_ufcs`, whatever the element : the
     // dispatch already accepted the receiver. Record it on the receiver expr so the

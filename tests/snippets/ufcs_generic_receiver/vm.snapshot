@@ -1,7 +1,9 @@
 # stdout
-i32 1
+generic 1
 generic s
 i32 1
 generic t
+generic clear
+3
 # exit
 0

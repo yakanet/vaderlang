@@ -33,8 +33,8 @@ AST :: import "toolchain/ast"
 /// a namespace member. Its node id names the function.
 export DirectFn :: struct {
     decl: AST.FnDecl
-    /// The choice was made against a type parameter of the enclosing body, and the
-    /// lowering looks again at each instance: a UFCS receiver that mentions one.
+    /// An impl member chosen against a type parameter of the enclosing body: an impl
+    /// on the instance's own type wins over it there (impl specialization).
     per_instance: bool = false
 }
 

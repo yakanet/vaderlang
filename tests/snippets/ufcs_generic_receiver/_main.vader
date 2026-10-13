@@ -1,6 +1,8 @@
-// A UFCS call inside a body generic over its receiver : the body is checked once
-// for every `T`, so which `describe` fits is only known per instance — `i32`'s
-// own overload for `show(1)`, the generic one for `show("s")`.
+// A UFCS call inside a body generic over its receiver is resolved once, against
+// `T` : only the generic `describe` accepts any `T`, so every instance of `show`
+// runs it, `show(1)` included. Called on an `i32` itself, the `i32` overload is the
+// more specific and wins. An array instance holds to the choice too : `wipe(xs)`
+// runs the generic `clear`, not the array's own.
 module "snippet"
 
 import "std/io"
@@ -11,10 +13,19 @@ describe :: fn(self: i32) -> string = "i32 ${self}"
 
 show :: fn<T: Display>(value: T) -> string = value.describe()
 
+clear :: fn<T>(self: T) -> void {
+    println("generic clear")
+}
+
+wipe :: fn<T>(x: T) -> void = x.clear()
+
 main :: fn() -> i32 {
     println(show(1))
     println(show("s"))
     println(1.describe())
     println("t".describe())
+    xs :: [1, 2, 3]
+    wipe(xs)
+    println(xs.len())
     return 0
 }

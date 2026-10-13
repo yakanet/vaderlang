@@ -444,6 +444,11 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
     if callee !is FieldExpr {
         return null
     }
+    // A free fn typecheck chose is the call, on an array too : in a generic body it
+    // chose against the type parameter, and an array instance holds to it.
+    if chosen_symbol(ctx.typed, callee.id) != null {
+        return null
+    }
     // An array receiver, or an array-backed distinct newtype (`array_backing`),
     // carries the array intrinsics : the lowered target is the value itself, which
     // is the backing array at runtime.

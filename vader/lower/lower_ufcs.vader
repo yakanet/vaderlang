@@ -46,8 +46,9 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         }
         // A free fn typecheck chose is the call : it ranked the candidates the
         // call site's file can see, which neither an impl member probed here nor
-        // a search over every loaded module reproduces.
-        chosen :: settled_choice(ctx, callee_field.id, callee_field.target)
+        // a search over every loaded module reproduces. In a generic body it chose
+        // against the type parameters, and every instance holds to that choice.
+        chosen :: chosen_symbol(ctx.typed, callee_field.id)
         if chosen == null {
             // An impl member (e.g. `x.to_string()` over
             // `i32 implements Display { to_string }`).
@@ -72,154 +73,44 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
                     .args = args,
                 }
             }
+            // Typecheck dispatched the call to no free fn (a value of function type
+            // in a field) : the general call path lowers it.
+            return null
         }
-        // Free-fn UFCS : the fn typecheck chose, else a fn whose first param's
-        // nominal type matches the receiver's surface name.
-        free :: if chosen != null {
-            UfcsMember { .symbol = chosen }
-        } else {
-            find_free_fn_ufcs(ctx, recv_type, callee_field.field)
-        }
-        if !(free is null) {
-            if free is UfcsMember {
-                // Prepare the receiver AND every argument against the free fn's
-                // declared params, so `a.any_match(p)` lowers exactly like the free
-                // call `any_match(a, p)` — a raw array reaching an `Iterator<T>` slot wraps
-                // through `into` (→ the `array_iter` generator) on either form.
-                free_params :: ufcs_param_types(ctx, free.symbol)
-                args :: build_ufcs_args(ctx, callee_field.target, receiver, call, free_params, 1)
-                // UFCS-on-generic-fn instance harvest : when the target
-                // is `fn<T>(x: T) -> T`, register a `GenericFnInstance` so
-                // `drain_generic_fn_instances` emits the body, and point
-                // the callee at the resulting monomorphic mangle (mirror of
-                // `register_and_emit_generic_call`'s ident path). A non-generic
-                // target returns null → keep the plain resolver symbol.
-                mangled :: harvest_ufcs_fn_instance(ctx, free.symbol, recv_type, call.args)
-                callee_sym :: if mangled == null { free.symbol } else {
-                    Symbol {
-                        .id         = free.symbol.id,
-                        .kind       = .Fn,
-                        .name       = mangled,
-                        .module     = free.symbol.module,
-                        .module_name = free.symbol.module,
-                        .visibility = .Private,
-                        .defined_at = null,
-                    }
-                }
-                return LoweredCall {
-                    .span = call.span, .type = type,
-                    .callee = LoweredIdent {
-                        .span = callee_field.span, .type = type, .symbol = callee_sym,
-                    },
-                    .args = args,
-                }
+        // Free-fn UFCS : the fn typecheck chose. Prepare the receiver AND every
+        // argument against its declared params, so `a.any_match(p)` lowers exactly
+        // like the free call `any_match(a, p)`: a raw array reaching an
+        // `Iterator<T>` slot wraps through `into` (→ the `array_iter` generator) on
+        // either form.
+        free_params :: ufcs_param_types(ctx, chosen)
+        args :: build_ufcs_args(ctx, callee_field.target, receiver, call, free_params, 1)
+        // UFCS-on-generic-fn instance harvest : when the target
+        // is `fn<T>(x: T) -> T`, register a `GenericFnInstance` so
+        // `drain_generic_fn_instances` emits the body, and point
+        // the callee at the resulting monomorphic mangle (mirror of
+        // `register_and_emit_generic_call`'s ident path). A non-generic
+        // target returns null → keep the plain resolver symbol.
+        mangled :: harvest_ufcs_fn_instance(ctx, chosen, recv_type, call.args)
+        callee_sym :: if mangled == null { chosen } else {
+            Symbol {
+                .id         = chosen.id,
+                .kind       = .Fn,
+                .name       = mangled,
+                .module     = chosen.module,
+                .module_name = chosen.module,
+                .visibility = .Private,
+                .defined_at = null,
             }
+        }
+        return LoweredCall {
+            .span = call.span, .type = type,
+            .callee = LoweredIdent {
+                .span = callee_field.span, .type = type, .symbol = callee_sym,
+            },
+            .args = args,
         }
     }
     return null
-}
-
-/// The free fn typecheck chose for the UFCS call `receiver.<name>(…)` whose
-/// callee is `callee_id`, when that choice holds for the body being lowered.
-/// A body generic over its receiver was checked once for every instance, so a
-/// choice made against a type parameter says nothing of this instance : null
-/// then, and the caller searches against the concrete receiver.
-///
-/// @param callee_id  the call's `FieldExpr`.
-/// @param receiver   the receiver expression, as typecheck saw it.
-/// @return           the chosen fn, or null when there is none to hold to.
-export settled_choice :: fn(ctx: FnLowerCtx, callee_id: usize, receiver: Expr) -> Symbol | null {
-    chosen :: chosen_symbol(ctx.typed, callee_id)
-    if chosen == null {
-        // Typecheck writes the receiver slot and the choice together.
-        if ctx.typed.ufcs_receiver_types[callee_id] != null {
-            unreachable("lower_ufcs: a free-fn UFCS dispatch recorded no chosen fn")
-        }
-        return null
-    }
-    if type_contains_type_param(ctx.types.raw_expr_type(receiver)) {
-        return null
-    }
-    return chosen
-}
-
-// The free fn a UFCS call reaches by searching — for a call no typecheck chose
-// for (the lowering builds one itself), or one it chose against a type parameter
-// (`settled_choice`). This search spans every loaded module, whatever the call
-// site's file imports.
-find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsMember | null {
-    // Unions have no nominal surface name ; they still dispatch UFCS to a
-    // free fn whose first param is the same union (`shape.describe()` ->
-    // `describe(shape: Shape)`). A trait receiver likewise has no surface name
-    // but resolves a combinator whose first param is the SAME trait (`it.map(f)`
-    // over an erased `Iterator<T>`). `first_param_matches` handles both the
-    // structural-union and same-trait cases, so don't bail on empty name unless
-    // the receiver is neither nominal, a union, nor a trait.
-    recv_name :: type_surface_name(recv_type)
-    if recv_name == "" && !(recv_type is UnionType) && !(recv_type is TraitType) { return null }
-    // Keep the `first_param_matches` gate for eligibility, but among the eligible
-    // candidates pick the one with the HIGHEST receiver specificity — a concrete
-    // union member beats a bare `T` wildcard (see `overload_specificity`), as the
-    // typer's UFCS pick (field.vader) does. A strict `>` keeps the first among equals : local wins over imported, which
-    // wins over cross-module (the buckets are scanned in that order).
-    best: Symbol | null = null
-    best_spec: i32 = -1
-    overloads :: ctx.typed.resolved.fn_overloads[name]
-    if overloads is Symbol[] as symbols {
-        for sym in symbols {
-            if !first_param_matches(ctx, sym, recv_type) { continue }
-            spec :: ufcs_specificity(ctx, recv_type, sym)
-            if spec > best_spec {
-                best = sym
-                best_spec = spec
-            }
-        }
-    }
-    // Imported free fn — `import "p" { x as name }` binds `name` in
-    // `import_bindings`, not in `fn_overloads`. Follow the import target to
-    // the source symbol and probe its signature.
-    for candidate in ctx.typed.resolved.import_bindings {
-        if candidate.name != name { continue }
-        target :: follow_import_binding(ctx, candidate)
-        if target.kind == .Fn {
-            if !first_param_matches(ctx, target, recv_type) { continue }
-            spec :: ufcs_specificity(ctx, recv_type, target)
-            if spec > best_spec {
-                best = target
-                best_spec = spec
-            }
-        }
-    }
-    // Cross-module free fn — `s.len()` against `MutableSet`'s
-    // `len :: fn<T>(self: MutableSet<T>) -> usize` defined in
-    // `stdlib/std/collections.vader` even though the user file never
-    // `import`s `len`.
-    for [_, ep] in ctx.project.evaluated.modules {
-        bucket :: ep.typed.resolved.fn_overloads[name]
-        if bucket is Symbol[] as bucket_syms {
-            for sym in bucket_syms {
-                if !first_param_matches(ctx, sym, recv_type) { continue }
-                spec :: ufcs_specificity(ctx, recv_type, sym)
-                if spec > best_spec {
-                    best = sym
-                    best_spec = spec
-                }
-            }
-        }
-    }
-    if best is Symbol { return UfcsMember { .symbol = best } }
-    return null
-}
-
-// Receiver specificity of `sym`'s first param for `recv_type` — scores the
-// receiver slot with `overload_specificity`. A fn with no params (or no recorded
-// fn type) scores 0.
-ufcs_specificity :: fn(ctx: FnLowerCtx, recv_type: Type, sym: Symbol) -> i32 {
-    params :: ufcs_param_types(ctx, sym)
-    if params.len() == 0 {
-        return 0
-    }
-    return overload_specificity(recv_type, params[0])
 }
 
 // Declared param types of a UFCS-resolved free fn, receiver slot first. Empty
@@ -257,61 +148,6 @@ build_ufcs_args :: fn(
     }
     args.push_all(lower_call_args(ctx, call.args, params, first_slot))
     return args
-}
-
-first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool {
-    // Mirror the typer's `receiver_fits_first_param` (field.vader): lead with
-    // assignability to the param with its type parameters erased, then
-    // trait-widening.
-    // Keeping the two copies structurally aligned is what stops the recurring
-    // drift between typer and lower (a union-first-param UFCS once mis-lowered to
-    // a field-access → midir panic). The leading `is_assignable` subsumes
-    // concrete→concrete, a union receiver, AND a concrete receiver fitting a
-    // union member (`i32` into `i32 | f32`).
-    fn_ty :: lookup_fn_type_anywhere(ctx, sym)
-    if fn_ty is FnType {
-        if fn_ty.params.len() == 0 { return false }
-        first :: fn_ty.params[0]
-        if is_assignable(recv_type, erase_type_params(first)) {
-            return true
-        }
-        // Trait-typed first param (`filter(it: Iterator<T>, …)`) matches a
-        // concrete receiver that implements the trait (`StringChars`
-        // implements `Iterator<char>`). Consult the project-wide impl
-        // registry so cross-module stdlib impls are reachable.
-        if first is TraitType {
-            // An erased trait receiver whose type is the SAME trait the first
-            // param wants — `it: Iterator<i32>` into `map(self: Iterator<T>, …)`.
-            // The first param's generic `T` unifies with the receiver's concrete
-            // arg (the typer already validated this and recorded the free-fn
-            // resolution) ; re-confirm by trait identity. Mirrors the
-            // typer's `receiver_fits_first_param`, keeping the two passes aligned.
-            if recv_type is TraitType {
-                if recv_type.symbol.id == first.symbol.id { return true }
-            }
-            if has_impl_for(ctx.project, recv_type, first.symbol) { return true }
-            // Direction A : a `generator`'s synthetic `<fn>$State` result impls
-            // `Iterator<U>` via the typecheck-side registry (`register_generator_
-            // iter_impls`), not the AST-derived `ImplRegistry`. Consult it so the
-            // lowerer agrees with what typecheck resolved (chained generator
-            // combinators on a concrete `__genstate` receiver).
-            if struct_implements_trait(recv_type, trait_key_of(first.symbol), ctx.typed) { return true }
-            // A raw array fits an `Iterator<T>` first param via the blanket
-            // `T[] implements Into<Iterator<T>!>` — the receiver is wrapped in
-            // `.into()` at the call site (see `try_lower_ufcs_call`). Mirrors
-            // the typer's `receiver_fits_first_param`, which already accepts
-            // this ; without it the typer/lowerer disagree (typer curries the
-            // UFCS call, lowerer can't resolve it → `a.any_match(p)` mis-lowered to a
-            // field-access on a primitive). Use the same predicate the typer
-            // does so the two passes can't drift again.
-            return try_array_to_iter(recv_type, erase_type_params(first))
-        }
-        // Lower-only escape for post-monomorphization generic erasure: an erased
-        // `Struct<Any>` receiver into `Struct<i32>` shares a surface name, but
-        // `is_assignable` (carrying full type args) would decline it.
-        return type_surface_name(first) == type_surface_name(recv_type)
-    }
-    return false
 }
 
 /// Record a referenced non-generic free fn for end-of-project

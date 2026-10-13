@@ -8,7 +8,6 @@
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
-  ArrayOps<T>
   Div<Rhs, Out>
   Rem<Rhs, Out>
   Index<I, T>
@@ -18,6 +17,7 @@
   Iterator<T>
   Iterator<T>
   Async<T>
+  ArrayOps<T>
   Range<i32>
   Range<usize>
   Range<T>

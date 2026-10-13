@@ -70,7 +70,7 @@ const EXPECTED = [
   "sites.vader:197:36 call builtin",
   "sites.vader:199:46 call builtin",
   "sites.vader:201:45 call fn len",
-  "sites.vader:203:43 call fn same (per instance)",
+  "sites.vader:203:43 call fn same",
   "sites.vader:205:34 call fn println",
   "sites.vader:207:55 call fn scaled",
   "sites.vader:207:64 call fn scaled",

@@ -509,9 +509,12 @@ const C_PARITY = new Set<string>([
   // An overloaded call and a UFCS call run the fn typecheck chose, never one of a
   // module imported behind a namespace alias.
   "overload_import_scope",
-  // A UFCS call in a generic body resolved per instance, against the concrete
-  // receiver.
+  // A UFCS call in a generic body runs the fn typecheck chose against the type
+  // parameter, in every instance.
   "ufcs_generic_receiver",
+  // A free fn named like a field's fn value, or like std's `chars`, never runs
+  // in their place.
+  "free_fn_namesakes",
   // `x is U` on a generic fn's own type parameter: natively the shared body compared
   // the `ref _` tag (false where the VM said true).
   "generic_is_type_param",

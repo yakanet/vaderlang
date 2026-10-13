@@ -1,0 +1,31 @@
+// A free fn named like what a call runs never takes its place : a field holding a
+// fn value is called through that value beside a `render` that accepts the
+// receiver's base, and a string is stepped through std's `chars` beside a local
+// one.
+
+module "snippet"
+
+import "std/io"
+import "std/string"
+
+Box :: struct<T> {
+    value: T
+    render: fn(T) -> string
+}
+
+render :: fn(self: Box<string>, x: string) -> string = "free render ${x}"
+
+// The loop below must not call it.
+@allow_unused
+chars :: fn(self: string, marker: i32) -> string = "local chars"
+
+through_field :: fn(b: Box<i32>) -> string = b.render(b.value)
+
+main :: fn() -> i32 {
+    b :: Box<i32> { .value = 7, .render = (x: i32) -> "field ${x}" }
+    println(through_field(b))
+    for c in "ab" {
+        println("${c}")
+    }
+    return 0
+}
