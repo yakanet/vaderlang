@@ -46,3 +46,18 @@ each :: fn(xs: Box[], f: fn(Box!) -> void) -> void {
         f(x)
     }
 }
+
+// The warning through a static member : `through_static` hands `b` to `reset`.
+Resetter :: trait {
+    reset :: fn(b: Self!) -> void
+}
+
+Box implements Resetter {
+    reset :: fn(b: Box) -> void {
+        b.n = 3
+    }
+}
+
+through_static :: fn(b: Box!) -> void {
+    Box.reset(b)
+}

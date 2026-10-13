@@ -1589,7 +1589,7 @@ call_return_hint :: fn(call: AST.CallExpr, typed: TypedProgram) -> string {
     if result != null && type_grants_mutation(result) {
         return ""
     }
-    decl :: called_decl(call, typed)
+    decl :: recorded_decl(typed, call)
     if decl != null {
         rt :: decl.return_type ?? return ""
         return " — annotate the return of `${decl.name}` at ${where_of(rt.span)}"

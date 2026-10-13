@@ -781,9 +781,10 @@ note_method_receiver_edge :: fn(
         note_receiver_edge(inference, member, e, recv_ty, null, typed)
         return
     }
-    chosen :: typed.chosen_fns[e.id] ?? return
-    decl :: chosen.decl ?? return
-    note_receiver_edge(inference, decl, e, recv_ty, chosen.ty.params[0], typed)
+    // A free fn the receiver fills the first parameter of.
+    decl :: noted_decl(typed, e) ?? return
+    first :: typed.ufcs_receiver_types[e.id] ?? return
+    note_receiver_edge(inference, decl, e, recv_ty, first, typed)
 }
 
 // `first_ty` is the first parameter's type, or null for an impl member's `self`,
@@ -859,10 +860,10 @@ recording_edges :: fn(typed: TypedProgram) -> ParamInference! | null {
     return if inference.first_round { inference } else { null }
 }
 
-// The declared parameter that argument `i` of `c` fills, by any dispatch : past the
-// receiver of a method-form call.
+// The declared parameter that argument `i` of `c` fills, in the fn the typecheck
+// recorded for the call : past the receiver of a method-form call.
 param_for_arg :: fn(c: AST.CallExpr, i: usize, typed: TypedProgram) -> AST.FnParam | null {
-    decl :: called_decl(c, typed) ?? return null
+    decl :: recorded_decl(typed, c) ?? return null
     at :: i + receiver_offset(c, decl, typed)
     return if at < decl.params.len() { decl.params[at] } else { null }
 }

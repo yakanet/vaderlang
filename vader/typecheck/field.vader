@@ -286,7 +286,7 @@ mutating_receiver_detail :: fn(im: ImplMethod, e: AST.FieldExpr, typed: TypedPro
     declared :: "`${e.field}` mutates its receiver (declared `self!`), " +
         "but this receiver is immutable"
     member :: im.decl
-    decl :: if member != null { member } else { chosen_decl(typed, e.id) ?? return declared }
+    decl :: if member != null { member } else { noted_decl(typed, e) ?? return declared }
     if decl.params.len() == 0 {
         return declared
     }
