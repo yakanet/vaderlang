@@ -16,7 +16,7 @@ lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt! {
     if compound_assign_op(assign_stmt) != null && !(assign_stmt.target is IdentExpr) {
         return lower_compound_assign(ctx, assign_stmt)
     }
-    value :: lower_unprepared(ctx, assign_stmt.value)
+    value :: lower_converted(ctx, assign_stmt.value)
     return lower_assign_one(ctx, assign_stmt.target, value, assign_stmt.span)
 }
 
@@ -146,7 +146,7 @@ lower_destructuring_assign :: fn(ctx: FnLowerCtx, s: DestructureAssignStmt) -> L
                 tmp :: fresh_synthetic_symbol(ctx, "destr_el")
                 stmts.push(LoweredLet {
                     .span = span, .name = tmp.name, .symbol = tmp, .type = elem_ty,
-                    .value = build_leaf_access(src, backing, elem_ty, span, i, null),
+                    .value = destructured_leaf(ctx, t.place, src, backing, elem_ty, span, i),
                 })
                 writes.push(t.place)
                 reads.push(synth_ident(tmp, elem_ty, span))
@@ -173,6 +173,38 @@ lower_destructuring_assign :: fn(ctx: FnLowerCtx, s: DestructureAssignStmt) -> L
         stmts.push(lower_assign_one(ctx, writes[i], reads[i], span))
     }
     return wrap_stmts(span, stmts)
+}
+
+// The element `index` of `src` for the place `place`, read at the place's type ;
+// when the typecheck accepted a conversion into the place (filed on the place, as
+// the value has no node of its own), read at the source's element type and run its
+// `into`.
+destructured_leaf :: fn(
+    ctx: FnLowerCtx,
+    place: Expr,
+    src: LoweredExpr,
+    backing: Type,
+    place_type: Type,
+    span: Span,
+    index: usize,
+) -> LoweredExpr! {
+    if ctx.typed.into_coercions[place.id] == null {
+        return build_leaf_access(src, backing, place_type, span, index, null)
+    }
+    source_type :: element_type_at(backing, index, place_type)
+    leaf :: build_leaf_access(src, backing, source_type, span, index, null)
+    return prepare_node_for_slot(ctx, place, leaf, place_type, span)
+}
+
+// The type element `index` of `backing` holds ; `fallback` for any other shape.
+element_type_at :: fn(backing: Type, index: usize, fallback: Type) -> Type {
+    if backing is ArrayType {
+        return backing.element
+    }
+    if backing is TupleType && index < backing.elements.len() {
+        return backing.elements[index]
+    }
+    return fallback
 }
 
 /// Lvalue lowerer — bypasses the match-narrowing `LoweredCast` wrap that

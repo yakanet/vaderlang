@@ -58,7 +58,7 @@ export lower_block :: fn(
         }
     }
     trailing_base :: if ctx.in_async { ctx.pending_awaits.len() } else { usize(0) }
-    raw_trailing :: lower_trailing(ctx, block.trailing)
+    raw_trailing :: lower_trailing(ctx, block.trailing, is_fn_root)
     if ctx.in_async { drain_pending_from(ctx, stmts, trailing_base) }
     defer_count :: ctx.blocks[entry_depth].defers.len()
     // Skip the block-fall-through pop_exec when control flow has
@@ -85,8 +85,16 @@ export lower_block :: fn(
     }
 }
 
-lower_trailing :: fn(ctx: FnLowerCtx, trailing: Expr | null) -> LoweredExpr! | null {
+// The trailing value of a fn's own body is what the fn returns.
+lower_trailing :: fn(
+    ctx: FnLowerCtx,
+    trailing: Expr | null,
+    is_fn_root: bool,
+) -> LoweredExpr! | null {
     if trailing == null { return null }
+    if is_fn_root {
+        return lower_for_slot(ctx, trailing, ctx.return_type, trailing.span)
+    }
     return lower_expr(ctx, trailing)
 }
 
@@ -152,7 +160,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
                 // loop-var binding + its body, splicing the consumption site in
                 // place of the boxed `next()` dispatch. Multi-yield generators
                 // duplicate the sink body (v1 targets single-yield combinators).
-                value :: lower_expr(ctx, stmt.value)
+                value :: lower_for_slot(ctx, stmt.value, sink.element_type, stmt.span)
                 // The sink always binds a single element ; a `for [k, v]` destructure
                 // is baked into `sink.body`'s front (in the consumer ctx) at sink build.
                 out.push_all(bind_loop_var(ctx, sink.binding_symbol, sink.binding_name, null, value, sink.element_type, stmt.span))
@@ -162,7 +170,9 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
                 // transform (lower_generator.vader). Never reaches the backend.
                 out.push(LoweredYield {
                     .span = stmt.span,
-                    .value = lower_expr(ctx, stmt.value),
+                    .value = lower_for_slot(
+                        ctx, stmt.value, generator_element_of(ctx.return_type), stmt.span,
+                    ),
                 })
             } else {
                 // A `yield` outside a generator is a T3059 typecheck error; if
@@ -236,10 +246,7 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
             // slot, the typer pre-resolved the type. Skip emit.
             if binding_type is TypeMetaType { return }
             // Mirror of the typer's `try_into` hook at let-stmt's value-position.
-            raw_value :: lower_expr(ctx, let_stmt.value)
-            value :: prepare_node_for_slot(
-                ctx, let_stmt.value, raw_value, binding_type, let_stmt.span,
-            )
+            value :: lower_for_slot(ctx, let_stmt.value, binding_type, let_stmt.span)
             out.push(cell_aware_let(ctx, symbol, simple.name, value, binding_type, let_stmt.span))
         }
         is TupleBinding    -> {
@@ -355,8 +362,7 @@ lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt! {
     value: LoweredExpr | null: if return_stmt.value == null {
         null
     } else {
-        returned :: return_stmt.value
-        prepare_node_for_slot(ctx, returned, lower_expr(ctx, returned), ctx.return_type, span)
+        lower_for_slot(ctx, return_stmt.value, ctx.return_type, span)
     }
     drain :: pop_defers_to_fn_root(ctx, span)
     if drain == null {

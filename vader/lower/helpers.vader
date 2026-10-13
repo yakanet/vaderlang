@@ -49,6 +49,26 @@ prepare_node_for_slot :: fn(
     return prepared
 }
 
+/// Lower `value` and prepare it for the slot of type `slot` it flows into: an
+/// `Into` coercion applies when the slot calls for one.
+///
+/// @param value  the value's AST node.
+/// @param slot   the declared type of the slot.
+/// @param span   span to attribute a synthesised `into` call to.
+lower_for_slot :: fn(ctx: FnLowerCtx, value: Expr, slot: Type, span: Span) -> LoweredExpr! =
+    prepare_node_for_slot(ctx, value, lower_expr(ctx, value), slot, span)
+
+/// Lower `value`, then run the conversion the typecheck accepted on it, if any. For
+/// a value whose slot type is not at hand where it is lowered: the target is the one
+/// the typecheck filed (`TypedProgram.into_coercions`).
+///
+/// @param value  the value's AST node.
+/// @return       the lowered value, through its `into` when the typecheck accepted one.
+lower_converted :: fn(ctx: FnLowerCtx, value: Expr) -> LoweredExpr! {
+    target :: ctx.typed.into_coercions[value.id] ?? return lower_expr(ctx, value)
+    return lower_for_slot(ctx, value, ctx.types.apply(target), value.span)
+}
+
 /// Lower a call's arguments, then prepare each one for the param slot it binds to.
 /// Every argument is lowered before the first one is prepared.
 ///

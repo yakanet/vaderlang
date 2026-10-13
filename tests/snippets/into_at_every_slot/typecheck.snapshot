@@ -1,0 +1,157 @@
+# Typecheck
+
+## tests/snippets/into_at_every_slot
+  FnDecl         apply                :: fn(fn(Celsius) -> Label, Celsius) -> Label
+  StructDecl     Box                  :: Box!
+  StructDecl     Celsius              :: Celsius!
+  FnDecl         fallback             :: fn(Label | null) -> Label
+  FnDecl         first                :: fn(T, Label) -> string
+  StructDecl     Holder               :: Holder!
+  StructDecl     Label                :: Label!
+  FnDecl         labels               :: fn() -> Iterator<Label>!
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         returned             :: fn(Celsius) -> Label
+  TraitDecl      Shower               :: Shower!
+  FnDecl         through_bound        :: fn(T, Celsius) -> string
+  FnDecl         through_trait        :: fn(Shower, Celsius) -> string
+  expr 18:33    StructLitExpr  :: Label!
+  expr 18:49    StringLitExpr  :: string
+  expr 18:52    FieldExpr      :: i32
+  expr 18:52    IdentExpr      :: Celsius
+  expr 22:34    StringLitExpr  :: string
+  expr 22:38    FieldExpr      :: i32
+  expr 22:38    IdentExpr      :: Celsius
+  expr 27:44    IdentExpr      :: Label | null
+  expr 27:44    NullCoalesceExpr :: Label
+  expr 27:49    StructLitExpr  :: Celsius!
+  expr 30:11    StructLitExpr  :: Celsius!
+  expr 33:44    FieldExpr      :: string
+  expr 33:44    IdentExpr      :: Label
+  expr 35:39    IdentExpr      :: Celsius
+  expr 37:61    CallExpr       :: Label
+  expr 37:61    IdentExpr      :: fn(Celsius) -> Label
+  expr 37:63    IdentExpr      :: Celsius
+  expr 46:44    FieldExpr      :: string
+  expr 46:44    IdentExpr      :: Label
+  expr 49:56    CallExpr       :: string
+  expr 49:56    FieldExpr      :: fn(Label) -> string
+  expr 49:56    IdentExpr      :: Shower
+  expr 49:63    IdentExpr      :: Celsius
+  expr 51:62    CallExpr       :: string
+  expr 51:62    FieldExpr      :: fn(Label) -> string
+  expr 51:62    IdentExpr      :: T
+  expr 51:69    IdentExpr      :: Celsius
+  expr 54:16    StructLitExpr  :: Label!
+  expr 54:32    StringLitExpr  :: string
+  expr 55:5     IdentExpr      :: Label
+  expr 55:9     StructLitExpr  :: Celsius!
+  expr 56:13    StringLitExpr  :: string
+  expr 56:24    FieldExpr      :: string
+  expr 56:24    IdentExpr      :: Label
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(T) -> void
+  expr 57:10    StructLitExpr  :: Holder!
+  expr 57:24    StructLitExpr  :: Label!
+  expr 57:40    StringLitExpr  :: string
+  expr 58:11    StructLitExpr  :: Celsius!
+  expr 58:5     FieldExpr      :: Label
+  expr 58:5     IdentExpr      :: Holder!
+  expr 59:13    StringLitExpr  :: string
+  expr 59:23    FieldExpr      :: Label
+  expr 59:23    FieldExpr      :: string
+  expr 59:23    IdentExpr      :: Holder!
+  expr 59:5     CallExpr       :: void
+  expr 59:5     IdentExpr      :: fn(T) -> void
+  expr 60:10    StructLitExpr  :: MutableMap<string, Label>!
+  expr 61:14    StructLitExpr  :: Celsius!
+  expr 61:5     IdentExpr      :: MutableMap<string, Label>!
+  expr 61:7     StringLitExpr  :: string
+  expr 62:12    IdentExpr      :: MutableMap<string, Label>!
+  expr 62:12    IndexExpr      :: Label | null
+  expr 62:12    NullCoalesceExpr :: Label
+  expr 62:14    StringLitExpr  :: string
+  expr 62:22    StructLitExpr  :: Label!
+  expr 62:38    StringLitExpr  :: string
+  expr 63:13    StringLitExpr  :: string
+  expr 63:21    FieldExpr      :: string
+  expr 63:21    IdentExpr      :: Label
+  expr 63:5     CallExpr       :: void
+  expr 63:5     IdentExpr      :: fn(T) -> void
+  expr 65:13    SeqLitExpr     :: [Celsius!, i32]!
+  expr 65:14    StructLitExpr  :: Celsius!
+  expr 66:14    IdentExpr      :: [Celsius!, i32]!
+  expr 66:6     IdentExpr      :: Label
+  expr 66:9     IdentExpr      :: i32
+  expr 67:13    StringLitExpr  :: string
+  expr 67:29    FieldExpr      :: string
+  expr 67:29    IdentExpr      :: Label
+  expr 67:40    IdentExpr      :: i32
+  expr 67:5     CallExpr       :: void
+  expr 67:5     IdentExpr      :: fn(T) -> void
+  expr 68:18    SeqLitExpr     :: Label[]!
+  expr 69:13    StructLitExpr  :: Celsius!
+  expr 69:5     CallExpr       :: void
+  expr 69:5     FieldExpr      :: fn(Label) -> void
+  expr 69:5     IdentExpr      :: Label[]!
+  expr 70:13    StringLitExpr  :: string
+  expr 70:22    FieldExpr      :: string
+  expr 70:22    IdentExpr      :: Label[]!
+  expr 70:22    IndexExpr      :: Label
+  expr 70:5     CallExpr       :: void
+  expr 70:5     IdentExpr      :: fn(T) -> void
+  expr 71:13    StringLitExpr  :: string
+  expr 71:26    CallExpr       :: Label
+  expr 71:26    FieldExpr      :: string
+  expr 71:26    IdentExpr      :: fn(Label | null) -> Label
+  expr 71:5     CallExpr       :: void
+  expr 71:5     IdentExpr      :: fn(T) -> void
+  expr 72:14    CallExpr       :: __genstate_labels<Label>!
+  expr 72:14    IdentExpr      :: fn() -> Iterator<Label>!
+  expr 73:17    StringLitExpr  :: string
+  expr 73:27    FieldExpr      :: string
+  expr 73:27    IdentExpr      :: Label
+  expr 73:9     CallExpr       :: void
+  expr 73:9     IdentExpr      :: fn(T) -> void
+  expr 75:13    StringLitExpr  :: string
+  expr 75:27    CallExpr       :: string
+  expr 75:27    FieldExpr      :: fn(string) -> string
+  expr 75:34    StructLitExpr  :: Celsius!
+  expr 75:5     CallExpr       :: void
+  expr 75:5     IdentExpr      :: fn(T) -> void
+  expr 76:13    StringLitExpr  :: string
+  expr 76:26    CallExpr       :: string
+  expr 76:26    GenericInstExpr :: fn(T, Label) -> string
+  expr 76:26    IdentExpr      :: fn(T, Label) -> string
+  expr 76:40    StructLitExpr  :: Celsius!
+  expr 76:5     CallExpr       :: void
+  expr 76:5     IdentExpr      :: fn(T) -> void
+  expr 77:13    StringLitExpr  :: string
+  expr 77:29    CallExpr       :: string
+  expr 77:29    IdentExpr      :: fn(Shower, Celsius) -> string
+  expr 77:43    StructLitExpr  :: Box!
+  expr 77:5     CallExpr       :: void
+  expr 77:5     IdentExpr      :: fn(T) -> void
+  expr 77:59    StructLitExpr  :: Celsius!
+  expr 78:13    StringLitExpr  :: string
+  expr 78:23    CallExpr       :: string
+  expr 78:23    IdentExpr      :: fn(T, Celsius) -> string
+  expr 78:37    StructLitExpr  :: Box!
+  expr 78:5     CallExpr       :: void
+  expr 78:5     IdentExpr      :: fn(T) -> void
+  expr 78:53    StructLitExpr  :: Celsius!
+  expr 79:13    StringLitExpr  :: string
+  expr 79:24    CallExpr       :: Label
+  expr 79:24    FieldExpr      :: string
+  expr 79:24    IdentExpr      :: fn(Celsius) -> Label
+  expr 79:33    StructLitExpr  :: Celsius!
+  expr 79:5     CallExpr       :: void
+  expr 79:5     IdentExpr      :: fn(T) -> void
+  expr 80:13    StringLitExpr  :: string
+  expr 80:24    CallExpr       :: Label
+  expr 80:24    FieldExpr      :: string
+  expr 80:24    IdentExpr      :: fn(fn(Celsius) -> Label, Celsius) -> Label
+  expr 80:30    LambdaExpr     :: fn(Celsius) -> Label
+  expr 80:37    IdentExpr      :: Celsius
+  expr 80:40    StructLitExpr  :: Celsius!
+  expr 80:5     CallExpr       :: void
+  expr 80:5     IdentExpr      :: fn(T) -> void

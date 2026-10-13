@@ -1,0 +1,82 @@
+// An implicit `into` runs at every slot that accepts one: an assigned name, field
+// and map entry, a destructured place, an element pushed, the fallback of a `??`, a
+// yielded value, an argument of a namespace member, of a call with explicit type
+// arguments and of a call through a trait value or a bounded type parameter, and
+// the value an expression body or a lambda returns.
+
+module "snippet"
+
+import "std/collections"
+import "std/io"
+
+S :: import "std/string"
+
+Celsius :: struct { v: i32 }
+Label :: struct { text: string }
+
+Celsius implements Into<Label> {
+    into :: fn(self) -> Label = Label { .text = "${self.v}C" }
+}
+
+Celsius implements Into<string> {
+    into :: fn(self) -> string = " ${self.v}C "
+}
+
+Holder :: struct { l: Label }
+
+fallback :: fn(x: Label | null) -> Label = x ?? Celsius { .v = 4 }
+
+labels :: fn() -> Iterator<Label>! {
+    yield Celsius { .v = 5 }
+}
+
+first :: fn<T>(x: T, l: Label) -> string = l.text
+
+returned :: fn(c: Celsius) -> Label = c
+
+apply :: fn(f: fn(Celsius) -> Label, c: Celsius) -> Label = f(c)
+
+Shower :: trait {
+    show :: fn(self, l: Label) -> string
+}
+
+Box :: struct { n: i32 }
+
+Box implements Shower {
+    show :: fn(self, l: Label) -> string = l.text
+}
+
+through_trait :: fn(s: Shower, c: Celsius) -> string = s.show(c)
+
+through_bound :: fn<T: Shower>(s: T, c: Celsius) -> string = s.show(c)
+
+main :: fn() -> i32 {
+    l: Label = Label { .text = "none" }
+    l = Celsius { .v = 3 }
+    println("assign [${l.text}]")
+    h :: Holder { .l = Label { .text = "none" } }
+    h.l = Celsius { .v = 6 }
+    println("field [${h.l.text}]")
+    m :: MutableMap<string, Label> {}
+    m["k"] = Celsius { .v = 8 }
+    got :: m["k"] ?? Label { .text = "absent" }
+    println("map [${got.text}]")
+    n := 0
+    pair :: [Celsius { .v = 13 }, 1]
+    [l, n] = pair
+    println("destructure [${l.text}] ${n}")
+    xs: Label[]: []
+    xs.push(Celsius { .v = 14 })
+    println("push [${xs[0].text}]")
+    println("coalesce [${fallback(null).text}]")
+    for g in labels() {
+        println("yield [${g.text}]")
+    }
+    println("namespace [${S.trim(Celsius { .v = 9 })}]")
+    println("explicit [${first<i32>(1, Celsius { .v = 10 })}]")
+    println("trait value [${through_trait(Box { .n = 1 }, Celsius { .v = 15 })}]")
+    println("bound [${through_bound(Box { .n = 1 }, Celsius { .v = 16 })}]")
+    println("return [${returned(Celsius { .v = 11 }).text}]")
+    println("lambda [${apply((c) -> c, Celsius { .v = 12 }).text}]")
+    return 0
+}

@@ -46,9 +46,6 @@ test("the verifier lists the fixture's sites the lowering gets wrong", async () 
     "fn into / fn chars  [sites.vader:305:14]",
     // A distinct over `string` renders through a virtual `to_string`.
     "builtin / virtual std_core$Display.to_string  [sites.vader:338:28]",
-    // The lowering never runs the `into` of an assigned value nor of a `??`
-    // fallback: both sites are listed, under the first one.
-    "fn into / no call not prepared  [sites.vader:346:9]",
   ]);
 }, MEDIUM_BUILD);
 

@@ -298,6 +298,10 @@ const C_PARITY = new Set<string>([
   "into_impls_on_one_instance",
   // An array iterated through its own `into` by an inlined consumer and a chain.
   "array_own_into_not_fused",
+  // An implicit `into` at an assignment, a destructured place, a `push`, a `??`
+  // fallback, a `yield`, the argument of a namespace, explicitly instantiated or
+  // dispatched call, and an expression body's return.
+  "into_at_every_slot",
   // Several impls of one trait on one receiver : each use site runs the one its
   // own types pick.
   "several_impls_of_one_trait",

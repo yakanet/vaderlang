@@ -274,15 +274,6 @@ note_entry_member :: fn(
     note_member_origin(ctx, mangled, decl, entry.trait_key)
 }
 
-/// Lower a value the lowering does not prepare for its slot, telling the verifier
-/// that no `into` runs on it.
-///
-/// @param value  the value's node.
-lower_unprepared :: fn(ctx: FnLowerCtx, value: Expr) -> LoweredExpr! {
-    observe_no_call(ctx, value, .Into, "not prepared")
-    return lower_expr(ctx, value)
-}
-
 /// Note that a call mangled `mangled` names `decl`, a member of an impl of
 /// `trait_key`.
 ///

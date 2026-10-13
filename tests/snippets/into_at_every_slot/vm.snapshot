@@ -1,0 +1,16 @@
+# stdout
+assign [3C]
+field [6C]
+map [8C]
+destructure [13C] 1
+push [14C]
+coalesce [4C]
+yield [5C]
+namespace [9C]
+explicit [10C]
+trait value [15C]
+bound [16C]
+return [11C]
+lambda [12C]
+# exit
+0

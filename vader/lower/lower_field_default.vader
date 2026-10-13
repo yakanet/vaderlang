@@ -40,7 +40,7 @@ lower_field_default :: fn(
         thunk :: default_thunk(default_ctx, st, field, default, field_type)
         return mk_lowered_call(thunk.symbol, [], thunk.type, field.span)
     }
-    value :: lower_field_value(default_ctx, default, field_type, field.span)
+    value :: lower_for_slot(default_ctx, default, field_type, field.span)
     _ :: expanding.remove(key)
     return value
 }
@@ -87,7 +87,7 @@ default_thunk :: fn(
     // whatever body first reached it.
     synth :: project.synth_decls
     synth_start :: synth.len()
-    value :: lower_field_value(thunk_ctx, default, field_type, field.span)
+    value :: lower_for_slot(thunk_ctx, default, field_type, field.span)
     project.entry_decls.push_all(synth[synth_start..<synth.len()])
     for _ in synth_start..<synth.len() {
         _ :: synth.remove_last()

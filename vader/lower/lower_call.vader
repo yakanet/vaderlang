@@ -124,15 +124,11 @@ retype_overload_callee :: fn(
 /// The parameter types of a callee's fn type.
 ///
 /// @param callee_type  the callee's type ; anything but a fn type has none.
-export param_types_of :: fn(callee_type: Type) -> Type[] {
-    // @partial: only a FnType carries param types; every other Type → no params.
-    @partial match callee_type {
-        is FnType -> { return callee_type.params }
-        _ -> {
-            empty: Type[]: []
-            return empty
-        }
+export param_types_of :: fn(callee_type: Type | null) -> Type[] {
+    if callee_type is FnType {
+        return callee_type.params
     }
+    return []
 }
 
 /// `Type.member(args)` on a static trait member (`T.zero()`, `i64.zero()`) : a
@@ -232,11 +228,8 @@ dispatched_method_call :: fn(
     trait_key: string,
     type: Type,
 ) -> LoweredVirtualCall! {
-    args: LoweredExpr[]: []
-    for call_arg in call.args {
-        args.push(lower_expr(ctx, call_arg.value))
-    }
     param_types :: param_types_of(ctx.types.expr_type(call.callee))
+    args :: lower_call_args(ctx, call.args, param_types, 0)
     return virtual_call(ctx, trait_key, field.field, receiver, args, type, call.span, param_types)
 }
 
@@ -278,8 +271,7 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
         // lowered lazily (every non-entry module is), so without this its
         // body is never reserved and the call is unresolved at emit.
         register_nongeneric_imported_fn(ctx, member_symbol)
-        args: LoweredExpr[]: []
-        for call_arg in call.args { args.push(lower_unprepared(ctx, call_arg.value)) }
+        args :: lower_call_args(ctx, call.args, param_types_of(member_ty), 0)
         member_call :: LoweredCall {
             .span = call.span, .type = type,
             .callee = LoweredIdent {
@@ -448,78 +440,80 @@ fold_bytes_len :: fn(ctx: FnLowerCtx, target: LoweredExpr, span: Span) -> Lowere
 // array intrinsic — caller falls back to the generic call path.
 try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr! | null {
     callee :: call.callee
-    // @partial: only a `recv.field(args)` (FieldExpr callee) can be an array op;
-    // every other Expr callee → null (caller falls back to the generic path).
-    @partial match callee {
-        is FieldExpr -> {
-            target_type :: ctx.types.expr_type(callee.target)
-            // An array receiver — or an array-backed distinct newtype, via
-            // `array_backing` — carries the array intrinsics (the lowered target
-            // is the value itself, which is the backing array at runtime).
-            @partial match array_backing(target_type) {
-                is ArrayType -> {
-                    if callee.field == "len" && call.args.len() == 0 {
-                        len_target :: lower_expr(ctx, callee.target)
-                        // `s.bytes().len()` → `byte_len(s)` : fold the inline
-                        // form to the O(1) host primitive so it doesn't alloc a
-                        // borrowed-view header just to read the length. Held
-                        // views (`bs.len()`) have a `LoweredIdent` target and
-                        // don't match.
-                        folded :: fold_bytes_len(ctx, len_target, call.span)
-                        if folded != null { return folded }
-                        return LoweredArrayLen {
-                            .span = call.span, .type = mk_primitive("usize"),
-                            .target = len_target,
-                        }
-                    }
-                    if callee.field == "push" && call.args.len() == 1 {
-                        return LoweredArrayPush {
-                            .span = call.span, .type = mk_primitive("void"),
-                            .target = lower_expr(ctx, callee.target),
-                            .value  = lower_expr(ctx, call.args[0].value),
-                        }
-                    }
-                    // `push_all` / `copy_to` / `remove_last` / `clear` lower to
-                    // `array.*` intrinsics : the receiver is args[0], the rest are
-                    // the call args in source order (the bytecode op pops them in
-                    // reverse). `type` is the typer's result type (void, or `T |
-                    // null` for remove_last). Backed by parameterless ops — the
-                    // runtime reads the element kind/tag off the array buf.
-                    if callee.field == "push_all" && call.args.len() == 1 {
-                        return LoweredIntrinsicCall {
-                            .span = call.span, .type = type, .name = INTRINSIC_ARRAY_PUSH_ALL,
-                            .args = [lower_expr(ctx, callee.target), lower_expr(ctx, call.args[0].value)],
-                        }
-                    }
-                    if callee.field == "copy_to" && call.args.len() == 4 {
-                        return LoweredIntrinsicCall {
-                            .span = call.span, .type = type, .name = INTRINSIC_ARRAY_COPY,
-                            .args = [
-                                lower_expr(ctx, callee.target),
-                                lower_expr(ctx, call.args[0].value),
-                                lower_expr(ctx, call.args[1].value),
-                                lower_expr(ctx, call.args[2].value),
-                                lower_expr(ctx, call.args[3].value),
-                            ],
-                        }
-                    }
-                    if callee.field == "remove_last" && call.args.len() == 0 {
-                        return LoweredIntrinsicCall {
-                            .span = call.span, .type = type, .name = INTRINSIC_ARRAY_REMOVE_LAST,
-                            .args = [lower_expr(ctx, callee.target)],
-                        }
-                    }
-                    if callee.field == "clear" && call.args.len() == 0 {
-                        return LoweredIntrinsicCall {
-                            .span = call.span, .type = type, .name = INTRINSIC_ARRAY_CLEAR,
-                            .args = [lower_expr(ctx, callee.target)],
-                        }
-                    }
-                    return null
-                }
-                _ -> { return null }
-            }
-        }
-        _ -> { return null }
+    // Only a `recv.field(args)` can be an array op.
+    if callee !is FieldExpr {
+        return null
     }
+    // An array receiver, or an array-backed distinct newtype (`array_backing`),
+    // carries the array intrinsics : the lowered target is the value itself, which
+    // is the backing array at runtime.
+    array :: array_backing(ctx.types.expr_type(callee.target)) ?? return null
+    if callee.field == "len" && call.args.len() == 0 {
+        len_target :: lower_expr(ctx, callee.target)
+        // `s.bytes().len()` → `byte_len(s)` : fold the inline form to the O(1) host
+        // primitive so it doesn't alloc a borrowed-view header just to read the
+        // length. Held views (`bs.len()`) have a `LoweredIdent` target and don't
+        // match.
+        folded :: fold_bytes_len(ctx, len_target, call.span)
+        if folded != null {
+            return folded
+        }
+        return LoweredArrayLen {
+            .span = call.span,
+            .type = mk_primitive("usize"),
+            .target = len_target,
+        }
+    }
+    if callee.field == "push" && call.args.len() == 1 {
+        return LoweredArrayPush {
+            .span = call.span,
+            .type = mk_primitive("void"),
+            .target = lower_expr(ctx, callee.target),
+            .value = lower_for_slot(ctx, call.args[0].value, array.element, call.span),
+        }
+    }
+    // `push_all` / `copy_to` / `remove_last` / `clear` lower to `array.*`
+    // intrinsics : the receiver is args[0], the rest are the call args in source
+    // order (the bytecode op pops them in reverse). `type` is the typer's result
+    // type (void, or `T | null` for remove_last). Backed by parameterless ops : the
+    // runtime reads the element kind/tag off the array buf.
+    if callee.field == "push_all" && call.args.len() == 1 {
+        return LoweredIntrinsicCall {
+            .span = call.span,
+            .type = type,
+            .name = INTRINSIC_ARRAY_PUSH_ALL,
+            .args = [lower_expr(ctx, callee.target), lower_expr(ctx, call.args[0].value)],
+        }
+    }
+    if callee.field == "copy_to" && call.args.len() == 4 {
+        return LoweredIntrinsicCall {
+            .span = call.span,
+            .type = type,
+            .name = INTRINSIC_ARRAY_COPY,
+            .args = [
+                lower_expr(ctx, callee.target),
+                lower_expr(ctx, call.args[0].value),
+                lower_expr(ctx, call.args[1].value),
+                lower_expr(ctx, call.args[2].value),
+                lower_expr(ctx, call.args[3].value),
+            ],
+        }
+    }
+    if callee.field == "remove_last" && call.args.len() == 0 {
+        return LoweredIntrinsicCall {
+            .span = call.span,
+            .type = type,
+            .name = INTRINSIC_ARRAY_REMOVE_LAST,
+            .args = [lower_expr(ctx, callee.target)],
+        }
+    }
+    if callee.field == "clear" && call.args.len() == 0 {
+        return LoweredIntrinsicCall {
+            .span = call.span,
+            .type = type,
+            .name = INTRINSIC_ARRAY_CLEAR,
+            .args = [lower_expr(ctx, callee.target)],
+        }
+    }
+    return null
 }
