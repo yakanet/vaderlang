@@ -1,0 +1,10 @@
+# stdout
+primitives: 6 10 5.0
+written impl: 6 14
+default impl: 8
+self impl: 12
+partial bound: 10
+array: 4
+mutable impl: 9
+# exit
+0

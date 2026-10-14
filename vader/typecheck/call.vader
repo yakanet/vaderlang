@@ -1345,14 +1345,11 @@ check_typeparam_bounds :: fn(
     for [id, bound_ty] in bindings {
         bound :: typed.type_param_bound_traits[id] ?? continue
         for trait_ty in bound.traits {
-            wanted: TraitType = trait_ty
-            if trait_ty.args.len() > 0 {
-                substituted :: substitute_map(trait_ty, bindings)
-                if substituted is TraitType {
-                    wanted = substituted
-                }
-            }
+            wanted :: bound_instance(trait_ty, bindings)
             reason :: unmet_bound_reason(bound_ty, wanted, typed) ?? continue
+            if lent_read_only_meets(bound_ty, trait_ty, bindings, typed) {
+                continue
+            }
             key :: trait_key_of(trait_ty.symbol)
             owner :: callee_name(c.callee)
             detail := unmet_bound_detail(bound.name, owner, wanted, reason) +
@@ -1365,6 +1362,44 @@ check_typeparam_bounds :: fn(
             diags.push(typecheck_error(.TraitNotSatisfied, c.span, detail))
         }
     }
+}
+
+// The bound trait `trait_ty` at the types `bindings` give its parameters.
+bound_instance :: fn(trait_ty: TraitType, bindings: MutableMap<i32, Type>) -> TraitType {
+    if trait_ty.args.len() == 0 {
+        return trait_ty
+    }
+    substituted :: substitute_map(trait_ty, bindings)
+    if substituted is TraitType {
+        return substituted
+    }
+    return trait_ty
+}
+
+// Whether the bound `trait_ty` is met once the bindings are lent read-only. A
+// binding keeps the rights of the argument that made it (`Money!` for a literal),
+// and an owned argument may be lent where an impl names the type read-only
+// (`Add<Money, Money>`).
+lent_read_only_meets :: fn(
+    bound_ty: Type,
+    trait_ty: TraitType,
+    bindings: MutableMap<i32, Type>,
+    typed: TypedProgram,
+) -> bool {
+    if trait_ty.args.len() == 0 {
+        return false
+    }
+    lent :: bound_instance(trait_ty, read_only_bindings(bindings))
+    return unmet_bound_reason(bound_ty, lent, typed) == null
+}
+
+// `bindings` as an unmarked slot reads them.
+read_only_bindings :: fn(bindings: MutableMap<i32, Type>) -> MutableMap<i32, Type> {
+    out :: MutableMap<i32, Type> {}
+    for [id, t] in bindings {
+        out[id] = apply_readonly_default(t, null)
+    }
+    return out
 }
 
 // Whether `t` implements `wanted` at its arguments — `Contains<string>` is no

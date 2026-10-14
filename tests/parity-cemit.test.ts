@@ -530,6 +530,9 @@ const C_PARITY = new Set<string>([
   // A free literal stored into an `i64 | …` union is an `i64`, so `is i64` holds
   // natively as on the VM.
   "literal_into_wide_union",
+  // A bound naming its trait's arguments is met by a defaulted or a written impl,
+  // whatever rights the argument carries.
+  "bound_with_arguments",
   // `+%` / `-%` / `*%` at every width, run time and folded constants alike.
   "wrapping_operators",
   // A `-` written against a number literal belongs to it, postfixes included.

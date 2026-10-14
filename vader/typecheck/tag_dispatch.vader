@@ -206,19 +206,18 @@ union_trait_instance :: fn(u: UnionType, sym: Symbol, typed: TypedProgram) -> Tr
     if !u.variants.all_match((v) -> struct_implements_trait(v, key, typed)) {
         return null
     }
-    decl :: typed.trait_decls[sym.id] ?? return null
-    owner :: typed.trait_decl_owners[sym.id] ?? typed.resolved
+    // Without the trait's declaration the variants' lists stay unpadded, and may
+    // differ in length.
+    if typed.trait_decls[sym.id] == null {
+        return null
+    }
     variants: Type[]: []
     per_variant: Type[][]: []
     for v in u.variants {
         variant :: strip_mutability(v)
         written :: resolve_struct_trait_args(v, key, typed) ?? NO_TYPES
-        at_variant: Type[]: []
-        for a in pad_trait_default_args(written, decl.type_params, owner) {
-            at_variant.push(substitute_self(a, variant))
-        }
         variants.push(variant)
-        per_variant.push(at_variant)
+        per_variant.push(with_trait_defaults(variant, written, sym, typed))
     }
     args: Type[]: []
     for i in 0..<per_variant[0].len() {

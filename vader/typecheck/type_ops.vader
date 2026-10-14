@@ -946,8 +946,9 @@ export struct_implements_trait :: fn(t: Type, trait_key: string, typed: TypedPro
 /// instance of it : `Cell<i64>` implements `Source<i64>`, which is no
 /// `Source<i32>`. The arguments compare with their rights, both ways : an impl of
 /// `Sink<Cfg!>` stores what it is handed, so it serves no slot lending read-only
-/// `Cfg`s. A trait written without arguments, or an impl with none recorded, is
-/// decided by `struct_implements_trait` alone.
+/// `Cfg`s. Arguments either side leaves to the trait's defaults are filled in,
+/// `Self` read as `t`, before comparing (`i32 implements Add` is `Add<i32, i32>`).
+/// A trait asked without arguments is decided by `struct_implements_trait` alone.
 ///
 /// @param t       the implementing type.
 /// @param wanted  the trait instance a slot asks for.
@@ -961,17 +962,39 @@ export implements_trait_instance :: fn(t: Type, wanted: TraitType, typed: TypedP
         return true
     }
     // Any impl of the trait at the arguments asked (`Into<Label>` beside `Into<Tag>`).
+    // `Self` is read as an unmarked slot reads `t`, as the impl writes it.
+    self_ty :: apply_readonly_default(t, null)
+    asked :: with_trait_defaults(self_ty, wanted.args, wanted.symbol, typed)
     lists :: struct_trait_arg_lists(t, key, typed)
     if lists.len() > 1 && !is_gen_state_struct(t) {
         for raw in lists {
-            if trait_args_match(resolve_trait_args_for(t, raw, typed), wanted.args) {
+            args :: resolve_trait_args_for(t, raw, typed)
+            if trait_args_match(with_trait_defaults(self_ty, args, wanted.symbol, typed), asked) {
                 return true
             }
         }
         return false
     }
     impl_args :: resolve_struct_trait_args(t, key, typed) ?? return true
-    return trait_args_match(impl_args, wanted.args)
+    return trait_args_match(with_trait_defaults(self_ty, impl_args, wanted.symbol, typed), asked)
+}
+
+// `args`, arguments given to the trait `sym`, with the defaults the trait declares
+// where they are left out and `Self` read as `self_ty`, at the rights it is read
+// with: `i32 implements Add` and a bound `Add<i32>` are both `Add<i32, i32>`.
+with_trait_defaults :: fn(
+    self_ty: Type,
+    args: Type[],
+    sym: Symbol,
+    typed: TypedProgram,
+) -> Type[] {
+    decl :: typed.trait_decls[sym.id] ?? return args
+    owner :: typed.trait_decl_owners[sym.id] ?? typed.resolved
+    out: Type[]: []
+    for a in pad_trait_default_args(args, decl.type_params, owner) {
+        out.push(substitute_self(a, self_ty))
+    }
+    return out
 }
 
 /// Why `t` does not implement `trait_key` although an impl of it exists for `t`'s

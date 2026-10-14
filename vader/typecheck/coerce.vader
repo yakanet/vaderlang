@@ -151,7 +151,9 @@ bound_widens_into :: fn(param: TypeParamType, wanted: TraitType, typed: TypedPro
     if wanted.args.len() == 0 || bound_args.len() == 0 {
         return true
     }
-    return trait_args_match(bound_args, wanted.args)
+    have :: with_trait_defaults(param, bound_args, wanted.symbol, typed)
+    asked :: with_trait_defaults(param, wanted.args, wanted.symbol, typed)
+    return trait_args_match(have, asked)
 }
 
 // ---- tests ----------------------------------------------------------------
