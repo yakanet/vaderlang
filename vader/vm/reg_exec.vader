@@ -379,9 +379,11 @@ reg_call :: fn(
             .ToI32 -> { set_i32(bits, tags, base, operand_a(w), i32_of(bits, base, operand_b(w))) }
             .ToI64 -> { set_i64(bits, tags, base, operand_a(w), bits_of(bits, base, operand_b(w))) }
             .ToI64U -> {
-                from :: base + usize(operand_b(w))
-                n :: if tags[from] == .I32 { i64(u32(i32(bits[from]))) } else { bits[from] }
+                n :: zero_extended(bits, tags, base, operand_b(w))
                 set_i64(bits, tags, base, operand_a(w), n)
+            }
+            .ToChar -> {
+                set_char(bits, tags, base, operand_a(w), char(u32_of(bits, base, operand_b(w))))
             }
             .Jump -> {
                 pc = usize(operand_a(w))
@@ -1245,6 +1247,21 @@ set_f64 :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: f64)
     tags[at] = .F64
 }
 
+set_char :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: char) -> void {
+    at :: base + usize(register)
+    bits[at] = i64(u32(v))
+    tags[at] = .Char
+}
+
+// r[register] as an i64, an `I32` holding an unsigned value zero-extended.
+zero_extended :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32) -> i64 {
+    at :: base + usize(register)
+    if tags[at] == .I32 {
+        return i64(u32(i32(bits[at])))
+    }
+    return bits[at]
+}
+
 set_bool :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: bool) -> void {
     at :: base + usize(register)
     bits[at] = if v { 1 } else { 0 }
@@ -1281,11 +1298,7 @@ parse_test_module :: fn(text: string) -> bc.BytecodeModule | null {
 
 // The message `module` traps with, or "" when it runs to its end.
 trap_message :: fn(module: bc.BytecodeModule) -> string {
-    state :: prepare(module)
-    if state is VerifyError {
-        assert(false, "the test module verifies: ${display_verify_error(state)}")
-        return ""
-    }
+    state :: prepared(module) ?? return ""
     result :: exec(state, [])
     if result is Trap {
         return result.message
@@ -1364,4 +1377,38 @@ test_string_bytes_read_in_place :: fn() -> void {
 test_string_byte_out_of_bounds_traps :: fn() -> void {
     module :: string_byte_module(6) ?? return
     assert_eq(trap_message(module), "byte index out of bounds")
+}
+
+// A module whose `main` converts the `u32` 0xE9 to a `char` and back to an `i32`.
+char_conversion_module :: fn() -> bc.BytecodeModule | null {
+    lines :: [
+        "module demo",
+        "type 0 primitive i32",
+        "fn 0 main () -> i32",
+        "  i32.const 233",
+        "  u32.to_char",
+        "  char.to_i32",
+        "  return",
+        "end",
+        "export main 0",
+    ]
+    return parse_test_module("${lines.join("\n")}\n")
+}
+
+// Whether `main`, translated, runs `op`.
+main_runs :: fn(module: bc.BytecodeModule, op: RegOp) -> bool {
+    state :: prepared(module) ?? return false
+    for each in state.reg.functions[0].ops {
+        if each == op {
+            return true
+        }
+    }
+    return false
+}
+
+@test
+test_char_conversion_runs_in_registers :: fn() -> void {
+    module :: char_conversion_module() ?? return
+    assert_eq(exec_value(module), 0xE9)
+    assert(main_runs(module, .ToChar), "`u32.to_char` runs as `ToChar`")
 }

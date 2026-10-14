@@ -394,12 +394,10 @@ export Retag :: struct { type_id: i32 }
 /// destination storage class (I32Val / I64Val / F64Val / CharVal) so
 /// downstream typed ops (`f64.div`, `u32.shl`, …) find a matching tag.
 ///
-/// `from_name` carries the SOURCE width as its source-level name
-/// (`usize` / `u32` / `i16` / …) — used purely by the dump format so
-/// every `.virt` round-trip preserves the exact `<from>.to_<to>`
-/// spelling. ValType lives in `vader/bytecode` which can't be
-/// imported here (vm sits below bytecode in the layering) ; a string
-/// avoids the cycle.
+/// `from_name` carries the SOURCE type as its source-level name (`usize`,
+/// `u32`, `i16`, …): the dump spells `<from>.to_<to>` with it, and the
+/// backends read its signedness off it, an unsigned source being widened
+/// with zeros.
 export Convert :: struct {
     from_name: string
     target:    ConvertTarget

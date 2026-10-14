@@ -571,13 +571,23 @@ unary_op :: fn(op: bc.Op, ft: FunctionTags, pc: usize) -> RegOp | null {
             } else if op.target == .I32 {
                 .ToI32
             } else if op.target == .I64 {
-                if op.from_name.byte_len() > 0 && op.from_name.byte_at(0) == 'u' { .ToI64U } else { .ToI64 }
+                widening(op.from_name)
+            } else if op.target == .Char {
+                .ToChar
             } else {
                 null
             }
         }
         _ -> null
     }
+}
+
+// The widening of an integer to an i64: zero-extended from an unsigned source.
+widening :: fn(from_name: string) -> RegOp {
+    if is_unsigned_source(from_name) {
+        return .ToI64U
+    }
+    return .ToI64
 }
 
 operands_within :: fn(ft: FunctionTags, pc: usize, allowed: u8) =

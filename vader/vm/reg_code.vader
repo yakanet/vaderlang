@@ -110,10 +110,12 @@ RegOp :: enum(i32) {
     SubChecked
     MulChecked
     NegChecked
-    // r[a] <- r[b] as an i32 ; as an i64, sign- or zero-extended (`ToI64U`).
+    // r[a] <- r[b] as an i32 ; as an i64, sign- or zero-extended (`ToI64U`) ; as
+    // a char, its low 32 bits.
     ToI32
     ToI64
     ToI64U
+    ToChar
     // pc <- a.
     Jump
     // pc <- a, a back edge: `b` original ops ran since the target (the comptime

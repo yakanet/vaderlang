@@ -202,13 +202,7 @@ test_inline_leaf_keeps_the_overflow_trap_of_a_checked_op :: fn() -> void {
     parsed :: leaf_module("  i32.const 65536\n  call 0\n  return\n") ?? return
     module :: inline_leaf_calls(parsed)
     assert(!has_call(module.functions[3]), "a checked multiply does not keep the call")
-    state :: prepare(module)
-    if state is VerifyError {
-        assert(false, "rejected by the verifier: ${display_verify_error(state)}")
-        return
-    }
-    result :: exec(state, [])
-    assert(result is Trap && "i32.mul overflow" in result.message, "the inlined multiply stops")
+    assert("i32.mul overflow" in trap_message(module), "the inlined multiply stops")
 }
 
 @test

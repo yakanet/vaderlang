@@ -161,6 +161,11 @@ export read_f64 :: fn(v: Value, at_pc: i32, label: string) -> F64Val | Trap {
     return Trap { .message = "${label} at pc=${at_pc}: expected f64, got ${describe_value_tag(v)}" }
 }
 
+// Whether a `Convert` reads an unsigned integer, by its source type's name. Runs
+// once per executed conversion, so it reads the name in place: no byte view.
+is_unsigned_source :: fn(from_name: string) =
+    from_name.byte_len() > 0 && from_name.byte_at(0) == 'u'
+
 /// Re-tag `v` to the storage class implied by `target`. Re-tagging a value
 /// already at the target storage is a no-op fast path — avoids the box
 /// reallocation when `mask32(u32 x)` (hot in SHA-256 / MD5) hits an
@@ -173,7 +178,7 @@ export convert_value :: fn(v: Value, target: ConvertTarget, from_name: string, a
     // (u8/u16 are always < 2^31, so this is a no-op for them ; only a u32 with
     // the high bit set actually differs.)
     nv :: if v is I32Val {
-        if from_name.starts_with("u") { I64Val(i64(u32(v))) } else { v }
+        if is_unsigned_source(from_name) { I64Val(i64(u32(v))) } else { v }
     } else {
         v
     }

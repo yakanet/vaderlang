@@ -95,9 +95,8 @@ convert_int_fast :: fn(frame: Frame, target: bc.ConvertTarget, from_name: string
     n: i64 = 0
     if t == .I32 {
         // Only a widening to i64 can see above bit 31 — an `.I32` target truncates
-        // back to the same low word either way. `starts_with` is not the test: it
-        // allocates a byte view per call, and this runs once per executed convert.
-        if target == .I64 && from_name.byte_len() > 0 && from_name.byte_at(0) == 'u' {
+        // back to the same low word either way.
+        if target == .I64 && is_unsigned_source(from_name) {
             n = i64(u32(frame.payload[idx]))
         } else {
             n = i64(i32(frame.payload[idx]))

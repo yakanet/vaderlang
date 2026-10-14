@@ -74,13 +74,19 @@ test_virt_roundtrip :: fn() -> void {
     assert(exec_value(round_tripped) == 82, "round-tripped module should exec to 82")
 }
 
-// Exec `module` and return its exit value, failing the test on a trap.
-exec_value :: fn(module: bc.BytecodeModule) -> i32 {
+// `module` prepared for a run, failing the test when the verifier rejects it.
+prepared :: fn(module: bc.BytecodeModule) -> VmState | null {
     state :: prepare(module)
     if state is VerifyError {
         assert(false, "rejected by the verifier: ${display_verify_error(state)}")
-        return -1
+        return null
     }
+    return state
+}
+
+// Exec `module` and return its exit value, failing the test on a trap.
+exec_value :: fn(module: bc.BytecodeModule) -> i32 {
+    state :: prepared(module) ?? return -1
     result :: exec(state, [])
     if result is Trap {
         assert(false, "unexpected VM trap: ${result.message}")
