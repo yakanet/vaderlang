@@ -15,6 +15,6 @@
   expr 25:18    IdentExpr      :: i32
 
 # Diagnostics
-[12:5] error[T3041] cannot reassign a constant binding: `x` is declared with `::` — use `:=` to allow mutation
-[13:5] error[T3041] cannot reassign a constant binding: `x` is declared with `::` — use `:=` to allow mutation
-[14:5] error[T3041] cannot reassign a constant binding: `x` is declared with `::` — use `:=` to allow mutation
+[12:5] error[T3041] cannot reassign a constant binding: `x` is declared with `::` ; `:=` allows rebinding
+[13:5] error[T3041] cannot reassign a constant binding: `x` is declared with `::` ; `:=` allows rebinding
+[14:5] error[T3041] cannot reassign a constant binding: `x` is declared with `::` ; `:=` allows rebinding

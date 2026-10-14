@@ -750,7 +750,7 @@ FLAGS:  bool[]!:   [false] * 8       // the repeat form pools like a literal
 bump :: fn(i: usize) -> void { COUNTS[i] = COUNTS[i] + 1 }   // persists across calls
 ```
 
-A marked const behaves like any other mutable array, **`push` included** — a permanent GC frame roots these globals, so a reallocated buffer is forwarded rather than collected.
+A marked const behaves like any other mutable array, **`push` included** — a permanent GC frame roots these globals, so a reallocated buffer is forwarded rather than collected. Its binding stays fixed, as every module const's does: `COUNTS = [1]` is T3041, like `LIMIT = 4` on `LIMIT :: 3`.
 
 Any **element type** works — flat (primitive, enum, distinct) or aggregate (struct, tuple, nested array). What is rejected is a marker **below** the array level: an aggregate's elements are emitted as separate read-only statics, so keeping the element type read-only is exactly what makes the writable slots safe (`SPECS[0] = other` reaches a slot; `SPECS[0].code = 9` is T3070). A non-array const isn't pooled at all and has no storage to make writable. Both are **T3076**.
 
@@ -1915,7 +1915,7 @@ So with a type annotation the separator decides mutability: `:` → immutable, `
 
 Vader separates **who may rebind a name** from **who may mutate what it points at**.
 
-**The binding.** `::` freezes it, `:=` allows rebinding. If `p :: Point { ... }`, `p = otherPoint` is rejected (T3041).
+**The binding.** `::` freezes it, `:=` allows rebinding. If `p :: Point { ... }`, `p = otherPoint` is rejected (T3041), and so is rebinding any declaration (a module const, a fn, a type), written bare, renamed by its import or through a namespace (`P.SEP = 'x'`). Only a parameter, a binding and a `:=` local may be rebound.
 
 **The referent.** An **inferred local is owned**: `::` freezes only its binding, so `p.x = 5` and `x :: [1, 2] ; x.push(3)` stay legal. A **written type is a read-only slot** — that covers parameters, struct fields, return types *and* annotated locals, see below. And a **module-level const freezes both, at every level**: its value is not the reader's to change, so a write through it is rejected (T3070) — directly, through an element (`TABLE[0].n = 1`), or through a local bound from it: `p :: ORIGIN` is a read-only view of the const, not a copy. A mutable copy is spelled as one, `p :: Point { ...ORIGIN }`.
 

@@ -1,4 +1,4 @@
 # compile errors
-[T3041] cannot reassign a constant binding: `x` is declared with `::` — use `:=` to allow mutation
-[T3041] cannot reassign a constant binding: `x` is declared with `::` — use `:=` to allow mutation
-[T3041] cannot reassign a constant binding: `x` is declared with `::` — use `:=` to allow mutation
+[T3041] cannot reassign a constant binding: `x` is declared with `::` ; `:=` allows rebinding
+[T3041] cannot reassign a constant binding: `x` is declared with `::` ; `:=` allows rebinding
+[T3041] cannot reassign a constant binding: `x` is declared with `::` ; `:=` allows rebinding

@@ -771,21 +771,12 @@ check_assign :: fn(
     diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
-    // T3041 : bare-ident assignment to a `::`-bound local. Surface
-    // the diag and skip the value-side typing so the dump doesn't
-    // carry extra expr_types for a rejected write.
+    // T3041 : bare-ident assignment to a `::`-bound local or a module constant.
+    // Surface the diag and skip the value-side typing so the dump doesn't carry
+    // extra expr_types for a rejected write.
     target :: s.target
-    if target is AST.IdentExpr {
-        if is_const_reassign(target, typed) {
-            diags.push(
-                typecheck_error(
-                    .CannotReassignConst,
-                    target.span,
-                    "`${target.name}` is declared with `::` — use `:=` to allow mutation",
-                ),
-            )
-            return
-        }
+    if target is AST.IdentExpr && reject_const_reassign(target, typed, diags) {
+        return
     }
     // T3070 : `p.x = v` reached through an immutable access path — today a
     // module-level const, whose write would otherwise be silently discarded
@@ -1135,6 +1126,12 @@ reject_field_write :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> bool {
     _ :: check_expr_fn(field.target, null, typed, diags)
+    // `M.NAME = v` would rebind a declaration of the module `M` names: T3041.
+    if namespace_base_mod_id(field.target, typed) != null {
+        diags.push(typecheck_error(.CannotReassignConst, field.span,
+            "`${field.field}` is declared in an imported module"))
+        return true
+    }
     if report_tuple_element_write(field, typed, diags) {
         return true
     }
@@ -1177,10 +1174,7 @@ check_destructure_target :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
     if target is AST.IdentExpr {
-        if is_const_reassign(target, typed) {
-            diags.push(typecheck_error(
-                .CannotReassignConst, target.span,
-                "`${target.name}` is declared with `::` — use `:=` to allow mutation"))
+        if reject_const_reassign(target, typed, diags) {
             return
         }
     } else if target is AST.FieldExpr {
@@ -1218,9 +1212,39 @@ destructured_element :: fn(value: AST.Expr, i: usize) -> AST.Expr | null {
     return null
 }
 
-is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
-    sym :: typed.resolved.idents[ident.span.hash()] ?? return false
-    return typed.resolved.immutable_locals[sym.id] !is null
+// T3041 when `ident` names a binding nothing may rebind ; whether it was reported.
+reject_const_reassign :: fn(
+    ident: AST.IdentExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> bool {
+    detail :: const_reassign_detail(ident, typed) ?? return false
+    diags.push(typecheck_error(.CannotReassignConst, ident.span, detail))
+    return true
+}
+
+// T3041's detail for `ident`, null when it may be rebound: a parameter, a binding a
+// pattern or an `as` makes, a local declared with `:=`. A `::` local gets the `:=`
+// hint. Any other name is a declaration, a module variable included: its `!` frees
+// the elements, not the binding.
+const_reassign_detail :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> string | null {
+    sym :: bare_name_symbol(ident, typed) ?? return null
+    return match sym.kind {
+        .Param | .Binding -> null
+        .Local            -> local_rebind_detail(ident, sym, typed)
+        .Const            -> "`${ident.name}` is a module constant"
+        .ImportBinding    -> "`${ident.name}` names an imported module"
+        .Fn | .Struct | .Enum | .Trait | .Impl | .TypeAlias | .TypeParam | .BuiltinType
+            | .BuiltinFn | .Synthetic -> "`${ident.name}` names a ${sym.kind.label}"
+    }
+}
+
+// T3041's detail for the local `sym`, null when `:=` declared it.
+local_rebind_detail :: fn(ident: AST.IdentExpr, sym: Symbol, typed: TypedProgram) -> string | null {
+    if typed.resolved.immutable_locals[sym.id] == null {
+        return null
+    }
+    return "`${ident.name}` is declared with `::` ; `:=` allows rebinding"
 }
 
 // Immutability of an access path, in detail. Immutability is a property of
@@ -1814,8 +1838,7 @@ retypes_reference :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
 }
 
 ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32) -> bool {
-    written :: typed.resolved.idents[ident.span.hash()] ?? return false
-    sym :: declared_symbol(written, typed)
+    sym :: bare_name_symbol(ident, typed) ?? return false
     // A module-level const needs no table, and holds cross-module for free:
     // `seed_wildcard_exports` seeds the ORIGINAL symbol, kind included.
     if sym.kind == .Const {

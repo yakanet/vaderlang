@@ -1,0 +1,38 @@
+// Rebinding a `::` local or a declaration is T3041, by a plain, a compound or a
+// destructuring assignment, and through an import that renames it or a namespace
+// that holds it. A module variable counts too: its elements are writable
+// (`COUNTS[0] = 5` passes), its binding is not. A parameter and a `:=` local may
+// be rebound.
+module "snippet"
+
+import "std/path" { SEP as S }
+
+P :: import "std/path"
+
+LIMIT :: 3
+COUNTS: i32[]!: [0, 0]
+
+one :: fn() -> i32 = 1
+
+two :: fn() -> i32 = 2
+
+export rebind :: fn(n: i32) -> i32 {
+    x :: 1
+    x = 2
+    x += 1
+    LIMIT = 4
+    LIMIT += 1
+    COUNTS = [1]
+    COUNTS[0] = 5
+    y := 0
+    [LIMIT, y] = [4, 5]
+    S = 'x'
+    P.SEP = 'x'
+    one = two
+    n = 3
+    return x + y + n
+}
+
+main :: fn() -> i32 {
+    return 0
+}

@@ -8,8 +8,8 @@
 // (`frozen.vader`). A write is recorded by its form (`p.f = v`, `xs[i] = v`),
 // whatever the type it writes through.
 //
-// What escapes the call is stored: a value put in a field or an element, assigned
-// to a module variable, or yielded. A value the function returns is returned, so
+// What escapes the call is stored: a value put in a field or an element, or
+// yielded. A value the function returns is returned, so
 // that its caller holds it through the result. What a lambda returns goes to
 // whoever calls it, which may be anyone: stored.
 //
@@ -162,7 +162,8 @@ destructure_assign :: fn(ctx: WalkCtx, s: AST.DestructureAssignStmt) -> void {
 }
 
 // `place = value`: a local now holds `value` too ; a field or an element of a value
-// is assigned, and keeps `value` ; anything else (a module variable) keeps it.
+// is assigned, and keeps `value` ; anything else, a place the typecheck refused,
+// keeps it.
 assign :: fn(ctx: WalkCtx, place: AST.Expr, value: usize | null) -> void {
     // @partial: no other form is a place the typecheck accepts ; one that were
     // would keep `value` all the same.
@@ -181,8 +182,8 @@ assign :: fn(ctx: WalkCtx, place: AST.Expr, value: usize | null) -> void {
     }
 }
 
-// `name = value`: a local or a parameter now holds `value` too ; a module variable
-// keeps it.
+// `name = value`: a local or a parameter now holds `value` too ; a module constant,
+// which the typecheck refuses to rebind (T3041), keeps it.
 assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: usize | null) -> void {
     slot :: ctx.ident_value(name)
     if slot == null {
