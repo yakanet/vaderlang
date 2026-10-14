@@ -1,0 +1,34 @@
+// tests/effect_fixtures/imported — constants and module variables another module
+// declares.
+//
+// `tests/effect_summary.test.ts` reads the `# frozen` section of `vader dump
+// --stage=effects` on this project, then runs it. A constant reached through a
+// namespace alias is a use like a bare one: `hands_out` returns `L.CFG`, a copy.
+// A module variable is judged in the module that declares it: a name bound to
+// `L.COUNTS` or `TOTALS` shares the global, so its pushes show in the lengths.
+
+module "app"
+
+import "std/io"
+import "vars"
+
+L :: import "lib"
+
+bump :: fn(c: L.Cfg) -> void {
+    c.n += 1
+}
+
+hands_out :: fn() -> L.Cfg = L.CFG
+
+main :: fn() -> i32 {
+    c :: L.Cfg { .n = 9 }
+    bump(c)
+    counts :: L.COUNTS
+    counts.push(4)
+    totals :: TOTALS
+    totals.push(5)
+    println(hands_out().n)
+    println(L.COUNTS.len())
+    println(TOTALS.len())
+    return 0
+}

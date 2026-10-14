@@ -1,0 +1,12 @@
+// tests/effect_fixtures/imported/lib — a constant and a module variable, reached
+// through a namespace alias by `app`.
+
+module "lib"
+
+export Cfg :: struct {
+    n: i32
+}
+
+export CFG :: Cfg { .n = 1 }
+
+export COUNTS: i32[]!: [0, 0]

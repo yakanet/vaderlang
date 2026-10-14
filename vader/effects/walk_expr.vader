@@ -8,6 +8,7 @@
 module "vader/effects"
 
 import "std/collections"
+import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
 
@@ -50,7 +51,7 @@ converted_by :: fn(
 
 value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null = match e {
     is AST.IdentExpr         -> ctx.ident_value(e)
-    is AST.FieldExpr         -> ctx.step_slot(ctx.value(e.target), field_step(e))
+    is AST.FieldExpr         -> ctx.field_value(e)
     is AST.IndexExpr         -> ctx.index_value(e)
     is AST.CallExpr          -> ctx.call_value(e)
     is AST.BinaryExpr        -> ctx.binary_value(e)
@@ -95,6 +96,21 @@ ident_value :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> usize | null {
         return local
     }
     return ctx.frozen_use(e, sym)
+}
+
+// `target.field`: a step below the target's slot, or a use of the frozen constant a
+// namespace alias's member names (`M.CONST`).
+field_value :: fn(ctx: WalkCtx, e: AST.FieldExpr) -> usize | null {
+    member :: ctx.namespace_member(e) ?? return ctx.step_slot(ctx.value(e.target), field_step(e))
+    return ctx.frozen_use(e, member)
+}
+
+// The symbol the member `e` of a namespace alias names ; null when `e.target` is no
+// namespace alias.
+namespace_member :: fn(ctx: WalkCtx, e: AST.FieldExpr) -> Symbol | null {
+    module :: namespace_base_mod_id(e.target, ctx.typed) ?? return null
+    loaded :: ctx.index.project.modules[module] ?? return null
+    return loaded.collected.symbols[e.field]
 }
 
 // `target[index]`: what the target's `Index` returns, the elements of a slice, or

@@ -41,8 +41,6 @@ WalkCtx :: struct {
     widenings: PendingWidening[]!
     /// The roots the frozen checks decide: each use of a frozen value, each binding.
     roots: FrozenRoot[]! = []
-    /// Whether the walk reads a module constant's initialiser.
-    in_constant: bool = false
 }
 
 /// The skeleton of `decl`'s body.
@@ -78,7 +76,7 @@ skeleton_of :: fn(
     body :: decl.body ?? return ctx.s
     result :: ctx.block_value(body)
     ctx.escape(result, .Returned)
-    ctx.note_frozen_body(node)
+    ctx.note_frozen_body(node, null)
     return ctx.s
 }
 

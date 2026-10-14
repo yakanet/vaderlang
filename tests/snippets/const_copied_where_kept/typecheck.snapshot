@@ -1,6 +1,8 @@
 # Typecheck
 
 ## tests/snippets/const_copied_where_kept
+  ConstDecl      ALIAS                :: Counter
+  FnDecl         alias                :: fn() -> Counter
   FnDecl         bump                 :: fn(Counter!) -> void
   StructDecl     Counter              :: Counter!
   FnDecl         first_prime          :: fn() -> i32
@@ -9,35 +11,54 @@
   FnDecl         primes               :: fn() -> i32[]
   ConstDecl      START                :: Counter
   FnDecl         start                :: fn() -> Counter
-  expr 14:10    StructLitExpr  :: Counter!
-  expr 15:11    SeqLitExpr     :: i32[]!
-  expr 17:28    IdentExpr      :: Counter
-  expr 19:30    IdentExpr      :: i32[]
-  expr 19:30    IndexExpr      :: i32
-  expr 21:27    IdentExpr      :: i32[]
-  expr 24:5     BinaryExpr     :: i32
-  expr 24:5     FieldExpr      :: i32
-  expr 24:5     IdentExpr      :: Counter!
-  expr 28:10    StructLitExpr  :: Counter!
-  expr 29:10    IdentExpr      :: Counter!
-  expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(Counter!) -> void
-  expr 30:13    FieldExpr      :: i32
-  expr 30:13    IdentExpr      :: Counter!
-  expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn(T) -> void
-  expr 31:13    CallExpr       :: Counter
-  expr 31:13    FieldExpr      :: i32
-  expr 31:13    IdentExpr      :: fn() -> Counter
-  expr 31:5     CallExpr       :: void
-  expr 31:5     IdentExpr      :: fn(T) -> void
-  expr 32:13    CallExpr       :: i32
-  expr 32:13    IdentExpr      :: fn() -> i32
-  expr 32:5     CallExpr       :: void
-  expr 32:5     IdentExpr      :: fn(T) -> void
-  expr 33:13    CallExpr       :: i32[]
-  expr 33:13    CallExpr       :: usize
-  expr 33:13    FieldExpr      :: fn() -> usize
-  expr 33:13    IdentExpr      :: fn() -> i32[]
-  expr 33:5     CallExpr       :: void
-  expr 33:5     IdentExpr      :: fn(T) -> void
+  ConstDecl      STARTS               :: Counter[]
+  FnDecl         starts               :: fn() -> Counter[]
+  expr 16:10    StructLitExpr  :: Counter!
+  expr 17:11    SeqLitExpr     :: i32[]!
+  expr 18:11    SeqLitExpr     :: Counter[]!
+  expr 18:12    IdentExpr      :: Counter
+  expr 18:19    IdentExpr      :: Counter
+  expr 19:10    IdentExpr      :: Counter
+  expr 21:28    IdentExpr      :: Counter
+  expr 23:30    IdentExpr      :: i32[]
+  expr 23:30    IndexExpr      :: i32
+  expr 25:27    IdentExpr      :: i32[]
+  expr 27:31    IdentExpr      :: Counter[]
+  expr 29:28    IdentExpr      :: Counter
+  expr 32:5     BinaryExpr     :: i32
+  expr 32:5     FieldExpr      :: i32
+  expr 32:5     IdentExpr      :: Counter!
+  expr 36:10    StructLitExpr  :: Counter!
+  expr 37:10    IdentExpr      :: Counter!
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(Counter!) -> void
+  expr 38:13    FieldExpr      :: i32
+  expr 38:13    IdentExpr      :: Counter!
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    CallExpr       :: Counter
+  expr 39:13    FieldExpr      :: i32
+  expr 39:13    IdentExpr      :: fn() -> Counter
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 40:13    CallExpr       :: i32
+  expr 40:13    IdentExpr      :: fn() -> i32
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 41:13    CallExpr       :: i32[]
+  expr 41:13    CallExpr       :: usize
+  expr 41:13    FieldExpr      :: fn() -> usize
+  expr 41:13    IdentExpr      :: fn() -> i32[]
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(T) -> void
+  expr 42:13    CallExpr       :: Counter[]
+  expr 42:13    CallExpr       :: usize
+  expr 42:13    FieldExpr      :: fn() -> usize
+  expr 42:13    IdentExpr      :: fn() -> Counter[]
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void
+  expr 43:13    CallExpr       :: Counter
+  expr 43:13    FieldExpr      :: i32
+  expr 43:13    IdentExpr      :: fn() -> Counter
+  expr 43:5     CallExpr       :: void
+  expr 43:5     IdentExpr      :: fn(T) -> void

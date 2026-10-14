@@ -13,6 +13,12 @@
         int(2) :i32
         int(3) :i32
         int(5) :i32
+  const snippet$STARTS: Counter[] =
+    array :Counter[]!
+      START :Counter
+      START :Counter
+  const snippet$ALIAS: Counter =
+    START :Counter
   fn snippet$start() -> Counter
     ~>
       START :Counter
@@ -26,6 +32,12 @@
   fn snippet$primes() -> i32[]
     ~>
       PRIMES :i32[]
+  fn snippet$starts() -> Counter[]
+    ~>
+      STARTS :Counter[]
+  fn snippet$alias() -> Counter
+    ~>
+      ALIAS :Counter
   fn snippet$bump(c: Counter!) -> void
     assign
       target:
@@ -74,4 +86,17 @@
         std_io$println__usize :void
       arg0:
         LoweredArrayLen
+    call :void
+      callee:
+        std_io$println__usize :void
+      arg0:
+        LoweredArrayLen
+    call :void
+      callee:
+        std_io$println__i32 :void
+      arg0:
+        .n :i32
+          call :Counter
+            callee:
+              alias :fn() -> Counter
     return int(0) :i32

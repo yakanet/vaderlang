@@ -81,6 +81,37 @@
       "decorators": []
     },
     {
+      "kind": "ConstDecl",
+      "name": "STARTS",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "SeqLitExpr",
+        "elements": [
+          {
+            "kind": "IdentExpr",
+            "name": "START"
+          },
+          {
+            "kind": "IdentExpr",
+            "name": "START"
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ConstDecl",
+      "name": "ALIAS",
+      "visibility": "private",
+      "type": null,
+      "value": {
+        "kind": "IdentExpr",
+        "name": "START"
+      },
+      "decorators": []
+    },
+    {
       "kind": "FnDecl",
       "name": "start",
       "visibility": "private",
@@ -148,6 +179,51 @@
         "trailing": {
           "kind": "IdentExpr",
           "name": "PRIMES"
+        }
+      },
+      "decorators": [],
+      "isExpressionBodied": true
+    },
+    {
+      "kind": "FnDecl",
+      "name": "starts",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "Counter"
+        }
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "IdentExpr",
+          "name": "STARTS"
+        }
+      },
+      "decorators": [],
+      "isExpressionBodied": true
+    },
+    {
+      "kind": "FnDecl",
+      "name": "alias",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "Counter"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "IdentExpr",
+          "name": "ALIAS"
         }
       },
       "decorators": [],
@@ -369,6 +445,66 @@
                       "field": "len"
                     },
                     "args": []
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "IdentExpr",
+                          "name": "starts"
+                        },
+                        "args": []
+                      },
+                      "field": "len"
+                    },
+                    "args": []
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "alias"
+                      },
+                      "args": []
+                    },
+                    "field": "n"
                   },
                   "spread": false
                 }

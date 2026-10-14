@@ -17,6 +17,7 @@ ensureCliBuilt();
 const SUMMARIES = join(import.meta.dir, "effect_fixtures", "summaries", "summaries.vader");
 const FROZEN = join(import.meta.dir, "effect_fixtures", "frozen", "frozen.vader");
 const VARIANCE = join(import.meta.dir, "effect_fixtures", "variance", "variance.vader");
+const IMPORTED = join(import.meta.dir, "effect_fixtures", "imported", "app", "main.vader");
 const COMPILER = join(import.meta.dir, "..", "vader", "cli", "main.vader");
 
 /** Each function of the `summaries` module with its accesses, in source order. */
@@ -142,6 +143,22 @@ test("the frozen checks give each use of a frozen value its outcome", async () =
     "call fault CFG",
     "write fault: 1, call fault: 3, unknown call: 1, copy: 3, copy elided: 1, binding shared: 4",
   ]);
+}, MEDIUM_BUILD);
+
+// A constant reached through a namespace alias is a use like a bare one, and a
+// module variable is judged in the module that declares it: a name bound to it
+// shares the global, which the run shows.
+test("the frozen checks see constants and module variables of another module", async () => {
+  const r = await runCli(["dump", "--stage=effects", IMPORTED], undefined, MEDIUM_BUILD);
+  expect(r.exit).toBe(0);
+  expect(r.stdout).not.toContain("# Diagnostics");
+  expect(sectionSitesOf(r.stdout, "# frozen")).toEqual([
+    "copy CFG",
+    "write fault: 0, call fault: 0, unknown call: 0, copy: 1, copy elided: 0, binding shared: 0",
+  ]);
+  const run = await runCli(["run", IMPORTED], undefined, MEDIUM_BUILD);
+  expect(run.exit).toBe(0);
+  expect(run.stdout).toBe("1\n3\n2\n");
 }, MEDIUM_BUILD);
 
 test("each widened array argument gets the verdict of its callee", async () => {

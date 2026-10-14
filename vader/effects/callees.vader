@@ -37,6 +37,11 @@ export CalleeIndex :: struct {
     impls: ImplRegistry! = ImplRegistry {}
     /// Every path the summary names.
     paths: PathTable! = PathTable {}
+    /// The loaded project, whose modules hold the symbols a namespace alias names.
+    project: LoadedProject
+    /// The typed modules, by the key of `project.modules` and `Symbol.module`: a
+    /// symbol is judged in the module that declares it.
+    modules: MutableMap<string, TypedProgram>
     /// `trait_key.member` → the members of that name of every impl of the trait.
     members: MutableMap<string, CallTarget[]>! = MutableMap<string, CallTarget[]> {}
     /// Bodyless functions the compiler knows nothing of while they are lent a value
@@ -55,6 +60,8 @@ export Function :: struct {
 export Initialiser :: struct {
     value: AST.Expr
     typed: TypedProgram
+    /// The symbol id of the constant it initialises ; null for a field default.
+    initialises: i32 | null = null
 }
 
 /// Index every function of `project`, and the impls of every module: the
@@ -65,7 +72,7 @@ export Initialiser :: struct {
 index_functions :: fn(
     project: LoadedProject, modules: MutableMap<string, TypedProgram>,
 ) -> CalleeIndex! {
-    index :: CalleeIndex {}
+    index :: CalleeIndex { .project = project, .modules = modules }
     for [id, loaded] in project.modules {
         typed :: modules[id] ?? continue
         for file in loaded.module.files {
@@ -79,7 +86,13 @@ index_functions :: fn(
                         }
                     }
                     is AST.ConstDecl  -> {
-                        index.constants.push(Initialiser { .value = d.value, .typed = typed })
+                        sym :: loaded.collected.symbols[d.name] ?? continue
+                        initialiser :: Initialiser {
+                            .value = d.value,
+                            .typed = typed,
+                            .initialises = sym.id,
+                        }
+                        index.constants.push(initialiser)
                     }
                     is AST.StructDecl -> { index.register_defaults(d, typed) }
                     _                 -> {}

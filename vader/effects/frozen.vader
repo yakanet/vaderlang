@@ -70,6 +70,9 @@ FrozenSites :: struct {
     written: MutableSet<string>! = MutableSet<string> {}
     /// The uses that read a fresh value of their constant, decided with the sites.
     fresh: FreshReads! = FreshReads {}
+    /// Constant symbol id → the uses of other constants its value keeps, which a
+    /// fresh value of it reads fresh too (`spread_fresh`).
+    kept_by_constants: MutableMap<i32, ConstantUse[]!>! = MutableMap<i32, ConstantUse[]!> {}
 }
 
 /// A root of a skeleton that the frozen checks decide: a use of a frozen value, or
@@ -114,17 +117,19 @@ FrozenBody :: struct {
     typed: TypedProgram
     /// Its node in the call graph ; -1 for a constant's initialiser or a default.
     node: i32
-    /// Whether the body is a constant's initialiser, which keeps nothing that is
-    /// not frozen as well.
-    in_constant: bool
+    /// For a constant's initialiser, the constant's symbol id: its value keeps
+    /// nothing that is not frozen as well.
+    initialises: i32 | null
 }
 
 // ---- roots ----------------------------------------------------------------
 
 // The slot of a use of the frozen constant `sym`, which `e` names ; null when `sym`
-// is no frozen constant, or its value holds no reference.
-frozen_use :: fn(ctx: WalkCtx, e: AST.IdentExpr, sym: Symbol) -> usize | null {
-    if !is_frozen_const(sym, ctx.typed) || !holds_references(ctx.typed.expr_types[e.id]) {
+// is no frozen constant, or its value holds no reference. A constant is judged in
+// the module that declares it: an importer's tables hold no type for it.
+frozen_use :: fn(ctx: WalkCtx, e: AST.Expr, sym: Symbol) -> usize | null {
+    declared_in :: ctx.index.modules[sym.module] ?? ctx.typed
+    if !is_frozen_const(sym, declared_in) || !holds_references(ctx.typed.expr_types[e.id]) {
         return null
     }
     use :: ConstantUse { .node = e.id, .symbol = sym.id }
@@ -174,8 +179,8 @@ bind_copy :: fn(ctx: WalkCtx, slot: usize, value: usize, span: Span) -> void {
 }
 
 // Keep the walked body when it uses a frozen value, to decide its roots once the
-// summary is settled.
-note_frozen_body :: fn(ctx: WalkCtx, node: i32) -> void {
+// summary is settled ; `initialises` is the constant it initialises, if any.
+note_frozen_body :: fn(ctx: WalkCtx, node: i32, initialises: i32 | null) -> void {
     if ctx.s.seeds.is_empty() {
         return
     }
@@ -184,7 +189,7 @@ note_frozen_body :: fn(ctx: WalkCtx, node: i32) -> void {
         .roots = ctx.roots,
         .typed = ctx.typed,
         .node = node,
-        .in_constant = ctx.in_constant,
+        .initialises = initialises,
     }
     ctx.frozen.bodies.push(body)
 }
@@ -292,6 +297,31 @@ settle_frozen :: fn(
             frozen.decide(body, r, effects, paths)
         }
     }
+    frozen.spread_fresh()
+}
+
+// A fresh value of a constant is a fresh value of what its initialiser keeps: the
+// uses of other constants it keeps read fresh too, and so on down.
+spread_fresh :: fn(frozen: FrozenSites) -> void {
+    pending: i32[]: []
+    for constant in frozen.fresh.constants {
+        pending.push(constant)
+    }
+    for pending.len() > 0 {
+        constant :: pending.remove_last() ?? break
+        for use in frozen.kept_by_constants[constant] ?? [] {
+            if frozen.mark_fresh(use) {
+                pending.push(use.symbol)
+            }
+        }
+    }
+}
+
+// The use `use` reads a fresh value of its constant ; true when the constant had no
+// such use yet.
+mark_fresh :: fn(frozen: FrozenSites, use: ConstantUse) -> bool {
+    frozen.fresh.uses.add(use.node)
+    return frozen.fresh.constants.add(use.symbol)
 }
 
 // What evaluating `body` reads: its node's component for a function, none for an
@@ -324,6 +354,7 @@ decide :: fn(
         .marked = effects.marked[r.root].accesses,
         .lent = effects.lent[r.root].accesses,
     }
+    frozen.note_kept_by_constant(c, r)
     kind :: frozen.outcome(c, r) ?? return
     frozen.record(body, r, kind, body.root_record(held[0].param).label, r.root in effects.mixed)
     if frozen.reads_fresh(c, kind) {
@@ -350,6 +381,19 @@ outcome :: fn(frozen: FrozenSites, c: RootCase, r: FrozenRoot) -> FrozenKind | n
     return frozen.use_outcome(c)
 }
 
+// A use in a constant's initialiser that the constant's value keeps, with a type
+// some write reaches: a fresh value of that constant reads it fresh too.
+note_kept_by_constant :: fn(frozen: FrozenSites, c: RootCase, r: FrozenRoot) -> void {
+    constant :: c.body.initialises ?? return
+    use :: r.constant ?? return
+    if !frozen.hands_on_written(c, is_kept) {
+        return
+    }
+    kept :: frozen.kept_by_constants[constant] ?? []
+    kept.push(use)
+    frozen.kept_by_constants[constant] = kept
+}
+
 // Whether the uses a root decided `kind` holds read a fresh value: copied, or
 // handed to unseen code with a type some write of the program reaches.
 reads_fresh :: fn(frozen: FrozenSites, c: RootCase, kind: FrozenKind) -> bool = match kind {
@@ -363,8 +407,7 @@ reads_fresh :: fn(frozen: FrozenSites, c: RootCase, kind: FrozenKind) -> bool = 
 // value. A view of a string's bytes is not copied yet.
 read_fresh :: fn(frozen: FrozenSites, use: FrozenRoot) -> void {
     constant :: use.constant ?? return
-    frozen.fresh.uses.add(constant.node)
-    _ :: frozen.fresh.constants.add(constant.symbol)
+    _ :: frozen.mark_fresh(constant)
 }
 
 // What a use of a frozen value comes to: a fault, an unknown call, a copy, or
@@ -380,7 +423,7 @@ use_outcome :: fn(frozen: FrozenSites, c: RootCase) -> FrozenKind | null {
     if c.either(is_unknown) {
         return .UnknownCall
     }
-    if !c.body.in_constant && c.either(is_kept) {
+    if c.body.initialises == null && c.either(is_kept) {
         return frozen.copy_or_elided(c, is_kept)
     }
     return null

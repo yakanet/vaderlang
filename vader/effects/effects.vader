@@ -84,23 +84,18 @@ export summarise_effects :: fn(project: LoadedProject, checked: CheckResult) -> 
     }
 }
 
-// Walk what the program evaluates outside a function: each constant's initialiser,
-// for the calls it hands a frozen value to, and each field default, which every
-// struct built without that field keeps.
+// Walk what the program evaluates outside a function: each constant's initialiser
+// and each field default, whose value the constant, or every struct built without
+// that field, keeps.
 note_initialisers :: fn(
     index: CalleeIndex,
     frozen: FrozenSites,
     widenings: PendingWidening[],
 ) -> void {
-    for c in index.constants {
-        ctx :: initialiser_ctx(index, frozen, widenings, c, true)
-        ctx.discard(c.value)
-        ctx.note_frozen_body(-1)
-    }
-    for d in index.defaults {
-        ctx :: initialiser_ctx(index, frozen, widenings, d, false)
-        ctx.escape(ctx.value(d.value), .Stored)
-        ctx.note_frozen_body(-1)
+    for init in chain(index.constants, index.defaults) {
+        ctx :: initialiser_ctx(index, frozen, widenings, init)
+        ctx.escape(ctx.value(init.value), .Stored)
+        ctx.note_frozen_body(-1, init.initialises)
     }
 }
 
@@ -110,14 +105,12 @@ initialiser_ctx :: fn(
     frozen: FrozenSites,
     widenings: PendingWidening[],
     init: Initialiser,
-    in_constant: bool,
 ) -> WalkCtx! = WalkCtx {
     .s = new_skeleton(0),
     .typed = init.typed,
     .index = index,
     .frozen = frozen,
     .widenings = widenings,
-    .in_constant = in_constant,
 }
 
 // What evaluating node `node` reads: the facts, the paths, and its component.

@@ -1842,7 +1842,8 @@ ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32)
 /// mutable array a `!` gives storage of its own (`has_mutable_const_storage`).
 ///
 /// @param sym    the symbol a name resolves to.
-/// @param typed  the module that resolved the name.
+/// @param typed  a module whose `decl_types` hold the constant's type: the one that
+///               declares it. An importer's hold none, which reads as frozen.
 export is_frozen_const :: fn(sym: Symbol, typed: TypedProgram) -> bool =
     sym.kind == .Const && !has_mutable_const_storage(typed.decl_types[sym.id])
 
