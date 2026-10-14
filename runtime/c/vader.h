@@ -103,7 +103,6 @@ typedef uint64_t vader_u64_t;
 typedef float    vader_f32_t;
 typedef double   vader_f64_t;
 typedef bool     vader_bool_t;
-typedef uint32_t vader_char_t;          /* Unicode codepoint */
 
 /* Atom type — forward-declared here so `vader_string_t` (defined below
  * as an alias) doesn't depend on the full atom-API section further down.
@@ -1440,7 +1439,6 @@ static inline int32_t vader_string_compare(vader_string_t a, vader_string_t b) {
     if (order != 0) return order < 0 ? -1 : 1;
     return la < lb ? -1 : 1;
 }
-vader_char_t   vader_string_char_at(vader_string_t s, size_t i);
 /* Zero-copy `const u8[]` view over `s`'s interned bytes — backs
  * `std/string::bytes`. Allocates only a small `vader_array_t` header
  * (flagged VADER_ARRAY_FLAG_BORROWED, `buf == NULL`) ; reads route through
@@ -1455,12 +1453,6 @@ vader_array_t* vader_string_bytes_view(vader_string_t s, uint32_t arr_type, uint
  * packed bytes and interns a copy (O(n)). Bytes are taken verbatim, no UTF-8
  * validation. Backs `std/string::as_string`. */
 vader_string_t vader_string_as_string(vader_array_t* a);
-/* Called only by the bootstrap seed's C, which predates `s[i]` and `s[lo..<hi]`
- * written in Vader: they go once the seed no longer calls them.
- * `vader_string_codepoint_at` traps on OOB ; `vader_string_slice_codepoints`
- * clamps. Both walk UTF-8 from the start (O(n) in the target index). */
-vader_char_t   vader_string_codepoint_at(vader_string_t s, size_t cp_index);
-vader_string_t vader_string_slice_codepoints(vader_string_t s, size_t cp_lo, size_t cp_hi);
 
 /* Process-level argv plumbing — emitted `main` calls this to materialise its
  * `[string]` argument from the host argv. */

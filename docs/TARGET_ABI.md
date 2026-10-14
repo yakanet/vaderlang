@@ -268,11 +268,12 @@ them back to these four phases.)
   `==` primitive.
   **✅ DONE (S6/S7).** `hash` = pure-Vader FNV-1a-64 over `bytes()` ; `concat`
   (`+` and `.add()`) = a Buffer-backed StringBuilder chain (no dedicated op) ;
-  the `StringConcat` op + `vader_string_concat`/`hash`/`eq`/`byte_at` + the
+  the `StringConcat` op + `vader_string_concat`/`hash`/`eq` + the
   byte-slice `vader_string_slice` + `vader_string_concat_all` are all deleted.
-  `slice` (`s[lo..<hi]`) is **kept primitive** — it is a codepoint atom-slice
-  aliasing the parent atom (zero-copy, intern-deduped), strictly better than a
-  Buffer copy + re-intern ; `==` stays an O(1) atom-id compare.
+  `s[i]` and `s[lo..<hi]` are Vader too (`std/core/utf8.vader`, ADR 0061), over
+  the kept `byte_len` / `byte_at` / `byte_slice`: a byte atom-slice aliasing the
+  parent atom (zero-copy, intern-deduped), strictly better than a Buffer copy +
+  re-intern ; `==` stays an O(1) atom-id compare.
 
 ### Achieved end state (2026-06-14)
 
@@ -289,7 +290,7 @@ and `push`/`slice`/`new` are GC-coupled (grow rooting, borrowed-view packing).
 
 What is genuinely retired (deleted from `runtime/c`): the 9 `vader_builder_*` +
 4 `Builder*` ops ; `vader_string_concat` / `vader_string_hash` /
-`vader_string_eq` / `vader_string_byte_at` / `vader_string_slice` (byte) /
+`vader_string_eq` / `vader_string_slice` (byte) /
 `vader_string_concat_all` + the `StringConcat` op ; the 9 number-format helpers ;
 and **`vader_array_get` / `vader_array_set` / `vader_array_load_slot`** (the Array
 accessor retirement, Inc1-4 — open-coded at every emit site).

@@ -1,7 +1,7 @@
-// A7 Phase 2 — `string[r]` slices by codepoint indices, not bytes.
-// The runtime walks UTF-8 to find the byte boundaries matching the
-// codepoint indices, then returns a zero-copy `string` view. Slicing
-// at codepoint boundaries can never produce malformed UTF-8.
+// `string[r]` slices by codepoint indices, not bytes: the walk in
+// `std/core/utf8.vader` finds the byte boundaries of the codepoints,
+// then `byte_slice` returns a zero-copy `string` view. Slicing at
+// codepoint boundaries can never produce malformed UTF-8.
 
 module "snippet"
 
