@@ -1,9 +1,10 @@
 // An integer literal must fit the type it lands in, checked at its exact bounds:
 // `-128` is one literal and fits an `i8`, `128` does not. A literal no context
 // pins must fit the `i32` it defaults to wherever it sits, a range pattern's
-// bounds the scrutinee's type, the bounds of `x in lo..=hi` the type of `x`, and
-// a free literal a `match` arm or an `if` branch gives the type its siblings settle
-// the result to, a shift's amount included.
+// bounds the scrutinee's type, the bounds of `x in lo..=hi` the type of `x`, a free
+// literal a `match` arm or an `if` branch gives the type its siblings settle the
+// result to (a shift's amount included), and a free argument or UFCS receiver the
+// parameter type its call settles it at.
 module "snippet"
 
 export LEAST: i8: -128
@@ -47,6 +48,20 @@ export branch :: fn(flag: bool) -> u8 {
 export shifted :: fn(flag: bool) -> u8 {
     k :: if flag { u8(7) } else { 1 << 300 }
     return k
+}
+
+pick :: fn<T>(a: T, b: T) -> T = a
+
+same :: fn(x: u8) -> u8 = x
+
+either :: fn<T>(a: T | string, b: T) -> bool = a is string
+
+export calls :: fn() -> void {
+    _ :: pick(300, u8(1))
+    _ :: 300.same()
+    _ :: 300.pick(u8(1))
+    _ :: either(300, u8(1))
+    _ :: 300.either(u8(1))
 }
 
 main :: fn() -> i32 {

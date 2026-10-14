@@ -66,7 +66,7 @@ export infer_field :: fn(
     }
     candidate = try_free_fn_ufcs_dispatch(target_ty, e, typed, diags)
     if candidate !is null {
-        repin_free_ufcs_receiver(target_ty, e, typed, diags, check_expr_fn)
+        repin_free_ufcs_receiver(e, typed, diags)
         return candidate
     }
     candidate = try_dispatched_method(target_ty, e, typed, diags)
@@ -665,37 +665,33 @@ try_free_fn_ufcs_dispatch :: fn(
     return free_ufcs.curried
 }
 
-// When a free-numeric receiver resolves to a free-fn UFCS call, re-pin it to
-// the fn's first-param type (just recorded in `ufcs_receiver_types`) so it
-// lowers AS that type — mirrors how a regular call pins its args to the param
-// types (call.vader). Without this, `50.millis()` types the receiver as a free
-// int, lowers it as i32, and the lowerer can't match `millis`'s i64 first param
-// (→ midir panic, see bug_ufcs_primitive_literal_freefn).
-repin_free_ufcs_receiver :: fn(
-    target_ty: Type,
-    e: AST.FieldExpr,
+// Settle a free-numeric receiver of a free-fn UFCS call at the fn's first
+// parameter (just recorded in `ufcs_receiver_types`), as a call settles its
+// arguments: `50.millis()` lowers its receiver as the `i64` `millis` takes.
+repin_free_ufcs_receiver :: fn(e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    first_param :: typed.ufcs_receiver_types[e.id] ?? return
+    settle_free_at_slot(e.target, first_param, typed, diags)
+}
+
+// Settle the checked free value `e` at a parameter of type `slot`, as an argument:
+// a union slot settles it on one member first (`union_member_for_free`).
+settle_free_at_slot :: fn(
+    e: AST.Expr,
+    slot: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> void {
-    if !is_free_numeric(target_ty) {
+    recorded :: typed.expr_types[e.id] ?? return
+    if !is_free_numeric(recorded) {
         return
     }
-    first_param :: typed.ufcs_receiver_types[e.id] ?? return
-    pin_ty :: union_member_for_free(target_ty, first_param, e.target, diags)
-    // Re-check the receiver with `pin_ty` as `expected` — pins the free literal
-    // (propagating to sub-expressions) by recording its pinned type in
-    // `expr_types`. Diagnostics already fired on the first (no-expectation) check
-    // at infer_field's head, so a fresh `[]` sinks them. The bound result is the
-    // pinned receiver type ; we want only the side effect on `expr_types`.
-    repinned :: check_expr_fn(e.target, pin_ty, typed, [])
+    settle_free_value(e, union_member_for_free(recorded, slot, e, diags), typed, diags)
 }
 
 // The concrete type to pin a free-literal UFCS receiver to. A concrete first param
 // IS the pin. A UNION first param settles the literal on one member by the same
 // rule as an argument (`union_literal_member`), T3089 included : `42.0.f()` into
-// `i32 | f32` is the `f32`. The re-check below discards its diagnostics, so the
-// ambiguity is reported here.
+// `i32 | f32` is the `f32`.
 union_member_for_free :: fn(
     free_ty: Type, first_param: Type, receiver: AST.Expr, diags: Diagnostic[],
 ) -> Type {

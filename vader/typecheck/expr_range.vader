@@ -82,9 +82,9 @@ infer_range_from_bounds :: fn(
         element = pick_bound_or_default(upper)
         // Retype the still-free side to `element` so downstream
         // consumers (slice lowering, dump) see the same width ; through
-        // `check_expr_fn`, which checks that a literal fits it.
+        // `settle_free_value`, which checks that a literal fits it.
         target :: if upper is FreeIntType { e.upper } else { e.lower }
-        _ :: check_expr_fn(target, element, typed, diags)
+        settle_free_value(target, element, typed, diags)
     } else {
         check_expr_fn(e.upper, element, typed, diags)
     }

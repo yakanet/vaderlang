@@ -1,6 +1,17 @@
 // A char literal whose codepoint exceeds the target integer is rejected (T3055):
-// a single u8 byte can never equal a multi-byte character.
+// a single u8 byte can never equal a multi-byte character, nor can a generic call
+// or a UFCS receiver settle one into a `u8`.
 module "snippet"
+
+pick :: fn<T>(a: T, b: T) -> T = a
+
+same :: fn(x: u8) -> u8 = x
+
+export calls :: fn() -> void {
+    _ :: pick('💩', u8(1))
+    _ :: '💩'.pick(u8(1))
+    _ :: '💩'.same()
+}
 
 main :: fn() -> i32 {
     bs :: "x".bytes()

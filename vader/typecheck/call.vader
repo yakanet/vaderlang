@@ -1105,24 +1105,24 @@ type_call :: fn(
         // trait-typed param it is boxed : when `7` flows into `Doubler<T>` and
         // `i32 implements Doubler(i32)`, the arg expr records the substituted trait
         // type so the lowerer emits `int(7) :Doubler(i32)`. Into a primitive it is
-        // re-checked against it, nested literals included : `pick(1, x)` with
-        // `x: i64` binds `T = i64`, and the lowerer instantiates `pick` from the
-        // types recorded on the arguments.
+        // settled there (`settle_free_value`), its nested literals bounds-checked:
+        // `pick(1, x)` with `x: i64` binds `T = i64`, and the lowerer instantiates
+        // `pick` from the types recorded on the arguments.
         for i in 0..<n {
             got :: arg_types[i]
-            if got !is FreeIntType && got !is FreeFloatType {
+            if !is_free_numeric(got) {
                 continue
             }
             want :: substitute_map(callee_ty.params[i], bindings)
-            if want is TraitType {
+            if want !is TraitType {
+                settle_free_at_slot(c.args[i].value, want, typed, diags)
+            } else if got !is FreeCharType {
                 if struct_implements_trait(default_if_free(got), trait_key_of(want.symbol), typed) {
                     typed.expr_types[c.args[i].value.id] = want
                 }
-            } else if want is PrimitiveType {
-                _ :: check_expr_fn(c.args[i].value, want, typed, [])
             }
         }
-        repin_free_ufcs_receiver_at_instance(c, bindings, typed, check_expr_fn)
+        repin_free_ufcs_receiver_at_instance(c, bindings, typed, diags)
         // T3006 : enforce `T: Trait` bounds on the callee's fn-decl
         // type-params against the bindings we ended up with.
         check_typeparam_bounds(c, bindings, typed, diags)
@@ -1476,7 +1476,7 @@ repin_free_ufcs_receiver_at_instance :: fn(
     c: AST.CallExpr,
     bindings: MutableMap<i32, Type>,
     typed: TypedProgram,
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    diags: Diagnostic[],
 ) -> void {
     callee :: c.callee
     if callee !is AST.FieldExpr {
@@ -1484,13 +1484,10 @@ repin_free_ufcs_receiver_at_instance :: fn(
     }
     chosen :: generic_ufcs_callee(callee, typed) ?? return
     receiver_ty :: typed.expr_types[callee.target.id] ?? return
-    if receiver_ty !is FreeIntType && receiver_ty !is FreeFloatType {
+    if !is_free_numeric(receiver_ty) {
         return
     }
-    want :: substitute_map(chosen.ty.params[0], bindings)
-    if want is PrimitiveType {
-        _ :: check_expr_fn(callee.target, want, typed, [])
-    }
+    settle_free_at_slot(callee.target, substitute_map(chosen.ty.params[0], bindings), typed, diags)
 }
 
 // A UFCS call whose signature minus the receiver names none of the callee's type
