@@ -1915,7 +1915,7 @@ So with a type annotation the separator decides mutability: `:` → immutable, `
 
 Vader separates **who may rebind a name** from **who may mutate what it points at**.
 
-**The binding.** `::` freezes it, `:=` allows rebinding. If `p :: Point { ... }`, `p = otherPoint` is rejected (T3041), and so is rebinding any declaration (a module const, a fn, a type), written bare, renamed by its import or through a namespace (`P.SEP = 'x'`). Only a parameter, a binding and a `:=` local may be rebound.
+**The binding.** `::` freezes it, `:=` allows rebinding. If `p :: Point { ... }`, `p = otherPoint` is rejected (T3041), and so is rebinding any declaration (a module const, a fn, a type), written bare, renamed by its import or through a namespace (`P.SEP = 'x'`). Only a parameter, a binding and a `:=` local may be rebound. An assignment writes to a name, a field or an element; any other target (`get() = 3`, `xs.len() = 5`, `Color.Red = .Green`) is T3082.
 
 **The referent.** An **inferred local is owned**: `::` freezes only its binding, so `p.x = 5` and `x :: [1, 2] ; x.push(3)` stay legal. A **written type is a read-only slot** — that covers parameters, struct fields, return types *and* annotated locals, see below. And a **module-level const freezes both, at every level**: its value is not the reader's to change, so a write through it is rejected (T3070) — directly, through an element (`TABLE[0].n = 1`), or through a local bound from it: `p :: ORIGIN` is a read-only view of the const, not a copy. A mutable copy is spelled as one, `p :: Point { ...ORIGIN }`.
 

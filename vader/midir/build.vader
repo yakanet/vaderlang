@@ -630,9 +630,14 @@ build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
     target :: s.target
     if target is LoweredIdent {
         slot_opt :: fn_ctx.local_by_sym_id[target.symbol.id]
-        value :: build_expr(fn_ctx, s.value)
-        if slot_opt is null { return }
-        if value is null { return }
+        // Reported as a read of such a name is (`build_ident`), not dropped.
+        if slot_opt is null {
+            fn_ctx.project.diags.push(lower_error(.UnresolvedIdent, target.span,
+                "`${target.symbol.name}` is assigned but has no local in this function: " +
+                    "the typecheck should have refused it (T3041)"))
+            return
+        }
+        value :: build_expr(fn_ctx, s.value) ?? return
         emit(fn_ctx, InstrMove { .dst = slot_opt, .src = value, .span = s.span })
         return
     }
@@ -660,9 +665,8 @@ build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
         })
         return
     }
-    // Unsupported target : build the value for side effects, discard.
-    build_expr(fn_ctx, s.value)
-    return
+    panic("midir/build: assignment to something that is no place in `${fn_ctx.mangled}`: " +
+        "typecheck should have refused it (T3082)")
 }
 
 // A loop with no condition starts its body in its header. A header that only

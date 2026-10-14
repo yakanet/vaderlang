@@ -1,9 +1,30 @@
 module "snippet"
 
+Color :: enum {
+    Red,
+    Green,
+}
+
+Point :: struct {
+    x: i32
+}
+
+get :: fn() -> i32 = 1
+
 main :: fn() -> i32 {
     a := 1
+    xs :: [1, 2]
     // Each element of a destructuring assignment must be a target that exists:
     // a name, a field or an index. A literal is none of those.
     [a, 42] = [1, 2]
-    return 0
+    // Nor is any other target of an assignment: a call, a literal, what an operator
+    // computes, or a member reached through a type rather than a value.
+    get() = 3
+    get() += 1
+    1 = 2
+    (a + 1) = 3
+    xs.len() = 5
+    Color.Red = .Green
+    Point.x = 1
+    return a
 }

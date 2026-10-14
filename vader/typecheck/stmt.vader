@@ -778,6 +778,13 @@ check_assign :: fn(
     if target is AST.IdentExpr && reject_const_reassign(target, typed, diags) {
         return
     }
+    // T3082 : a name, a field or an element is a place ; a call, a literal or what
+    // an operator computes is not (`get() = 3`, `xs.len() = 5`, `1 = 2`).
+    if target !is AST.IdentExpr && target !is AST.FieldExpr && target !is AST.IndexExpr {
+        diags.push(typecheck_error(.InvalidAssignTarget, target.span,
+            "an assignment writes to a name, a field or an element, not to this"))
+        return
+    }
     // T3070 : `p.x = v` reached through an immutable access path — today a
     // module-level const, whose write would otherwise be silently discarded
     // (it has no storage). Deep by construction : `CFG.child.count = 0` is
@@ -1126,6 +1133,13 @@ reject_field_write :: fn(
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
 ) -> bool {
     _ :: check_expr_fn(field.target, null, typed, diags)
+    // `Color.Red = v`, `Point.x = v` : what a type names is no place (T3082).
+    base :: bare_name_symbol(field.target, typed)
+    if base != null && is_type_kind(base.kind) {
+        diags.push(typecheck_error(.InvalidAssignTarget, field.span,
+            "`${field.field}` is reached through the type `${base.name}`, not a value"))
+        return true
+    }
     // `M.NAME = v` would rebind a declaration of the module `M` names: T3041.
     if namespace_base_mod_id(field.target, typed) != null {
         diags.push(typecheck_error(.CannotReassignConst, field.span,
