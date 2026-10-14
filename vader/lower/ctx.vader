@@ -256,7 +256,7 @@ export LowerProjectCtx :: struct {
     /// Resume cursor into `nongeneric_imported_order` for
     /// `materialize_nongeneric_imported_fns`. Persisted so the
     /// materialise↔surface fixpoint loop drains newly-harvested fns
-    /// (e.g. `utf8_decode_len` pulled in by a surfaced `StringChars.next`)
+    /// (e.g. `decode_tail` pulled in by a surfaced `StringChars.next`)
     /// without re-lowering earlier entries.
     nongeneric_imported_cursor: usize
 

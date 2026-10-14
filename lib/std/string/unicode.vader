@@ -97,8 +97,8 @@ export utf8_decode :: fn(bs: u8[], i: usize) -> char {
 
 /// Decode the UTF-8 sequence at byte offset `i` of a byte view into a codepoint
 /// and its encoded byte length. Advance the caller's cursor by the returned `n`
-/// to land on the next leading byte. Powers `StringChars` (the `for c in s`
-/// iterator) and the VM's codepoint-indexed string ops.
+/// to land on the next leading byte. A string is decoded in place by
+/// `codepoint_at_byte`.
 ///
 /// @param bs  the byte view (e.g. `s.bytes()`).
 /// @param i   byte offset of a UTF-8 leading byte.
@@ -108,21 +108,62 @@ export utf8_decode_len :: fn(bs: u8[], i: usize) -> [char, usize] {
     return [c, c.codepoint_byte_len()]
 }
 
-/// Decode the UTF-8 codepoint at byte offset `i` of a string — the string-receiver
-/// wrapper over `utf8_decode`. Use when you have a `string` and a byte cursor and
-/// want to compare the decoded scalar against ASCII literals.
+/// Decode the UTF-8 codepoint at byte offset `i` of a string, read in place with no
+/// byte view, as `utf8_decode` decodes one off a view: a continuation byte at `i`
+/// decodes as `U+FFFD`, a truncated sequence as `U+0000`. Use when you have a
+/// `string` and a byte cursor.
 /// @param s  the source string.
 /// @param i  byte offset. Traps if `i >= s.byte_len()`.
-export char_at_byte :: fn(s: string, i: usize) -> char = s.bytes().utf8_decode(i)
+export char_at_byte :: fn(s: string, i: usize) -> char {
+    b :: s.byte_at(i)
+    if b < 0x80 {
+        return char(b)
+    }
+    return decode_tail(s, b, i)
+}
 
 /// Decode the UTF-8 sequence at byte offset `i` of a string into a codepoint and
-/// its encoded byte length — the string-receiver wrapper over `utf8_decode_len`.
-/// Advance the caller's cursor by the returned `n` to land on the next leading
-/// byte.
+/// its encoded byte length, read in place. Advance the caller's cursor by the
+/// returned `n` to land on the next leading byte.
 /// @param s  the source string.
 /// @param i  byte offset of a UTF-8 leading byte.
 /// @return   `[codepoint, byte_length]`.
-export codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize] = s.bytes().utf8_decode_len(i)
+export codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize] {
+    c :: s.char_at_byte(i)
+    return [c, c.codepoint_byte_len()]
+}
+
+// The non-ASCII half of `char_at_byte`: the codepoint the byte `b` at byte `i` of
+// `s` leads.
+decode_tail :: fn(s: string, b: u8, i: usize) -> char {
+    if b.is_utf8_continuation() {
+        return REPLACEMENT_CHAR
+    }
+    rem :: s.byte_len() - i
+    if b < 0xE0 {
+        if rem < 2 {
+            return char(0)
+        }
+        b1 :: s.byte_at(i + 1)
+        return char(((u32(b) & 0x1F) << 6) + (u32(b1) & 0x3F))
+    }
+    if b < 0xF0 {
+        if rem < 3 {
+            return char(0)
+        }
+        b1 :: s.byte_at(i + 1)
+        b2 :: s.byte_at(i + 2)
+        return char(((u32(b) & 0x0F) << 12) + ((u32(b1) & 0x3F) << 6) + (u32(b2) & 0x3F))
+    }
+    if rem < 4 {
+        return char(0)
+    }
+    b1 :: s.byte_at(i + 1)
+    b2 :: s.byte_at(i + 2)
+    b3 :: s.byte_at(i + 3)
+    return char(((u32(b) & 0x07) << 18) + ((u32(b1) & 0x3F) << 12) +
+        ((u32(b2) & 0x3F) << 6) + (u32(b3) & 0x3F))
+}
 
 // ---- UTF-16 surrogates ----------------------------------------------------
 //
@@ -190,6 +231,17 @@ import "std/testing"
     assert_eq(char_at_byte("héllo", 1), 'é')
     // Offset 2 lands on a continuation byte → U+FFFD.
     assert_eq(char_at_byte("héllo", 2), REPLACEMENT_CHAR)
+}
+
+@test test_char_at_byte_every_width :: fn() -> void {
+    // "€😀" = E2 82 AC F0 9F 98 80.
+    assert_eq(char_at_byte("€😀", 0), '€')
+    assert_eq(char_at_byte("€😀", 3), '😀')
+}
+
+@test test_char_at_byte_truncated :: fn() -> void {
+    // A three-byte lead with one byte left after it.
+    assert_eq(char_at_byte(bytes_to_string([0x61, 0xE2, 0x82]), 1), char(0))
 }
 
 @test test_utf8_decode_len :: fn() -> void {

@@ -68,28 +68,33 @@ export ends_with :: fn(s: string, suffix: string) -> bool {
 
 /// Iterator yielding Unicode codepoints — one per UTF-8 sequence,
 /// regardless of whether the codepoint is encoded in 1, 2, 3, or 4
-/// bytes. The cursor moves in bytes ; `length` is the byte length of the
-/// source string, captured at construction so `step` doesn't recompute it.
+/// bytes. The cursor moves in bytes over the string itself.
 export StringChars :: struct {
-    /// Byte view captured once at construction — `next` decodes a codepoint per
-    /// step off this held view (one view alloc per loop, not one per codepoint).
-    /// A borrowed view self-roots its owner atom through the GC (the array header
-    /// carries the owner id ; `vader_atom_mark_heap` keeps it alive), so no
-    /// separate string handle is needed.
-    bytes:  u8[]
-    cursor: usize
-    length: usize
+    @internal
+    s:      string
+    @internal
+    cursor: usize = 0
 }
 
 StringChars implements Iterator<char> {
+    // Kept small enough to be inlined into the caller's loop across modules: the
+    // multi-byte case is left to `decode_tail`, and the length is read with
+    // `byte_len()` rather than cached in a field, so the bounds checks of the
+    // continuation bytes fold away.
     next :: fn(self) -> [char, Continuation] {
-        if (self.cursor >= self.length) {
+        i :: self.cursor
+        if i >= self.s.byte_len() {
             // The element beside `Stop` is never read; `char` is concrete here,
             // so any one does.
             return [' ', .Stop]
         }
-        [c, width] :: self.bytes.utf8_decode_len(self.cursor)
-        self.cursor = self.cursor + width
+        b :: self.s.byte_at(i)
+        if b < 0x80 {
+            self.cursor = i + 1
+            return [char(b), .Continue]
+        }
+        c :: decode_tail(self.s, b, i)
+        self.cursor = i + c.codepoint_byte_len()
         return [c, .Continue]
     }
 }
@@ -105,18 +110,12 @@ StringChars implements Iterator<char> {
 ///
 /// @param s  source string.
 /// @return   a `StringChars` iterator over its codepoints.
-export chars :: fn(s: string) -> StringChars! {
-    bs :: s.bytes()
-    return StringChars { .bytes = bs, .cursor = 0, .length = bs.len() }
-}
+export chars :: fn(s: string) -> StringChars! = StringChars { .s = s }
 
 // `for c in s` desugars to `for c in s.into()` via this impl — codepoints
 // are the default unit. Byte iteration stays opt-in via `s.bytes()`.
 string implements Into<Iterator<char>!> {
-    into :: fn(self) -> Iterator<char>! {
-        bs :: self.bytes()
-        return StringChars { .bytes = bs, .cursor = 0, .length = bs.len() }
-    }
+    into :: fn(self) -> Iterator<char>! = self.chars()
 }
 
 /// Lets `sub in s` desugar to `s.contains(sub)`. The Contains trait
@@ -874,6 +873,29 @@ import "std/testing"
     assert_eq(len(""), 0)
     assert_eq(len("abc"), 3)
     assert_eq(len("héllo"), 5)
+}
+
+@test test_chars_every_width :: fn() -> void {
+    want :: ['a', 'é', '€', '😀']
+    i: usize = 0
+    for c in "aé€😀" {
+        assert_eq(c, want[i])
+        i += 1
+    }
+    assert_eq(i, want.len())
+}
+
+@test test_chars_invalid_bytes_decode_as_a_byte_view :: fn() -> void {
+    // A stray continuation byte, then a three-byte lead cut short by the end.
+    s :: bytes_to_string([0x61, 0xA9, 0x62, 0x63, 0x64, 0xE2, 0x82])
+    bs :: s.bytes()
+    i: usize = 0
+    for c in s {
+        [want, width] :: bs.utf8_decode_len(i)
+        assert_eq(c, want)
+        i += width
+    }
+    assert(i >= bs.len(), "the iterator walks to the end of the string")
 }
 
 @test test_last_index_of :: fn() -> void {

@@ -37,9 +37,8 @@ struct vader_struct___Tuple_u64_u64_u64_2d035edd_t {
 };
 struct vader_struct_std_string_StringChars_t {
     vader_obj_header_t header;
-    void* f_bytes;
+    vader_string_t f_s;
     size_t f_cursor;
-    size_t f_length;
 };
 
 /* Compile-time atom table — see docs/ATOM_INTERNING.md. */
@@ -891,8 +890,7 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__string(vader_string_t l0);
 static void* std_string_chars(vader_string_t l0);
 static void std_string_StringChars_Iterator_next_v(void* l0, uint32_t* __o0, uint8_t* __o1);
-static void std_string_utf8_decode_len(void* l0, size_t l1, uint32_t* __o0, size_t* __o1);
-static uint32_t std_string_utf8_decode(void* l0, size_t l1);
+static uint32_t std_string_decode_tail(vader_string_t l0, uint8_t l1, size_t l2);
 static size_t std_string_codepoint_byte_len(uint32_t l0);
 static bool std_string_is_utf8_continuation(uint8_t l0);
 
@@ -960,8 +958,8 @@ const vader_type_info_t vader_type_info_table[26] = {
     [24] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_string_StringChars_t),
         .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_string_StringChars_t, f_bytes) },
-        .ref_count = 1,
+        .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_string_StringChars_t, f_s) },
+        .string_count = 1,
     },
     [25] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -975,6 +973,10 @@ const size_t vader_type_info_count = 26;
 
 static size_t vader_host_std_core_byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
+}
+
+static uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) {
+    return vader_string_byte_at(a0, a1);
 }
 
 static vader_string_t vader_host_std_core_bytes_to_string(void* a0) {
@@ -3271,143 +3273,118 @@ static void std_io_println__string(vader_string_t l0) {
 }
 
 static void* std_string_chars(vader_string_t l0) {
-    void* l1 = NULL;
-    size_t l2;
     void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l1, &t0 };
+    void** gc_raw_roots[1] = { &t0 };
     vader_string_t* gc_atom_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 109 "lib/std/string/string.vader"
-    l1 = vader_host_std_core_bytes(l0);
-#line 110 "lib/std/string/string.vader"
-    l2 = ((vader_array_t*) l1)->length;
+#line 113 "lib/std/string/string.vader"
     vader_struct_std_string_StringChars_t* _a0_obj = (vader_struct_std_string_StringChars_t*) vader_gc_alloc(sizeof(vader_struct_std_string_StringChars_t));
     vader_obj_header_init(_a0_obj, 24u);
-    _a0_obj->f_bytes = l1;
+    _a0_obj->f_s = l0;
     _a0_obj->f_cursor = (size_t) 0;
-    _a0_obj->f_length = l2;
     t0 = (void*) _a0_obj;
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void std_string_StringChars_Iterator_next_v(void* l0, uint32_t* __o0, uint8_t* __o1) {
     size_t l1, l2;
-    void* l3;
+    uint8_t l3;
     uint32_t l4;
-    uint32_t t0;
+    vader_string_t t0;
+    int64_t t1;
+#line 85 "lib/std/string/string.vader"
+    l1 = ((vader_struct_std_string_StringChars_t*) l0)->f_cursor;
+#line 86 "lib/std/string/string.vader"
+    t0 = ((vader_struct_std_string_StringChars_t*) l0)->f_s;
+    l2 = vader_host_std_core_byte_len(t0);
+    if ((l1 >= l2)) {
+#line 89 "lib/std/string/string.vader"
+        *__o1 = (uint8_t) 1; *__o0 = 32u; return;
+#line 86 "lib/std/string/string.vader"
+    }
+#line 91 "lib/std/string/string.vader"
+    t0 = ((vader_struct_std_string_StringChars_t*) l0)->f_s;
+    l3 = vader_host_std_core_byte_at(t0, l1);
+#line 92 "lib/std/string/string.vader"
+    if (!((l3 < INT32_C(128)))) {
+#line 96 "lib/std/string/string.vader"
+        t0 = ((vader_struct_std_string_StringChars_t*) l0)->f_s;
+        l4 = std_string_decode_tail(t0, l3, l1);
+#line 97 "lib/std/string/string.vader"
+        l2 = std_string_codepoint_byte_len(l4);
+        t1 = vader_chk_add(usize, l1, l2);
+        l2 = (size_t) (int64_t) t1;
+        ((vader_struct_std_string_StringChars_t*) l0)->f_cursor = l2;
+#line 98 "lib/std/string/string.vader"
+        *__o1 = (uint8_t) 0; *__o0 = l4; return;
+#line 92 "lib/std/string/string.vader"
+    }
+#line 93 "lib/std/string/string.vader"
+    t1 = vader_chk_add(usize, l1, INT64_C(1));
+    l1 = (size_t) (int64_t) t1;
+    ((vader_struct_std_string_StringChars_t*) l0)->f_cursor = l1;
+#line 94 "lib/std/string/string.vader"
+    *__o1 = (uint8_t) 0; *__o0 = ((uint32_t) (uint8_t) l3); return;
+}
+
+static uint32_t std_string_decode_tail(vader_string_t l0, uint8_t l1, size_t l2) {
+    size_t l3, l4;
+    uint8_t l5, l8, l9;
+    uint32_t l6, l7;
+    bool t0;
     size_t t1;
     int64_t t2;
-#line 86 "lib/std/string/string.vader"
-    l1 = ((vader_struct_std_string_StringChars_t*) l0)->f_cursor;
-    l2 = ((vader_struct_std_string_StringChars_t*) l0)->f_length;
-    if (!((l1 >= l2))) {
-#line 91 "lib/std/string/string.vader"
-        l3 = ((vader_struct_std_string_StringChars_t*) l0)->f_bytes;
-        l1 = ((vader_struct_std_string_StringChars_t*) l0)->f_cursor;
-        std_string_utf8_decode_len(l3, l1, &t0, &t1);
-        l2 = t1;
-        l4 = t0;
-        l1 = l2;
-#line 92 "lib/std/string/string.vader"
-        t1 = ((vader_struct_std_string_StringChars_t*) l0)->f_cursor;
-        t2 = vader_chk_add(usize, t1, l1);
-        l1 = (size_t) (int64_t) t2;
-        ((vader_struct_std_string_StringChars_t*) l0)->f_cursor = l1;
-#line 93 "lib/std/string/string.vader"
-        *__o1 = (uint8_t) 0; *__o0 = l4; return;
-#line 86 "lib/std/string/string.vader"
-    }
-#line 89 "lib/std/string/string.vader"
-    *__o1 = (uint8_t) 1; *__o0 = 32u; return;
-}
-
-static void std_string_utf8_decode_len(void* l0, size_t l1, uint32_t* __o0, size_t* __o1) {
-    uint32_t l2;
-    size_t l3;
-#line 107 "lib/std/string/unicode.vader"
-    l2 = std_string_utf8_decode(l0, l1);
-#line 108 "lib/std/string/unicode.vader"
-    l3 = std_string_codepoint_byte_len(l2);
-    *__o1 = l3; *__o0 = l2; return;
-}
-
-static uint32_t std_string_utf8_decode(void* l0, size_t l1) {
-    size_t l2, l4;
-    uint8_t l3, l5, l8, l9;
-    uint32_t l6, l7;
-    vader_box_t t0;
-    bool t1;
-    int64_t t2;
     int32_t t3;
-#line 74 "lib/std/string/unicode.vader"
-    l2 = ((vader_array_t*) l0)->length;
-#line 75 "lib/std/string/unicode.vader"
-    vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
-    VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
-    VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l1)
-    t0 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l1, 6u);
-    l3 = ((uint8_t) t0.payload.i);
-#line 76 "lib/std/string/unicode.vader"
-    if ((l3 < INT32_C(128))) {
-        return ((uint32_t) (uint8_t) l3);
-    }
-#line 78 "lib/std/string/unicode.vader"
-    t1 = std_string_is_utf8_continuation(l3);
-    if (t1) {
+#line 139 "lib/std/string/unicode.vader"
+    t0 = std_string_is_utf8_continuation(l1);
+    if (t0) {
 #line 20 "lib/std/string/unicode.vader"
-#line 78 "lib/std/string/unicode.vader"
+#line 140 "lib/std/string/unicode.vader"
         return ((uint32_t) 65533);
+#line 139 "lib/std/string/unicode.vader"
     }
-#line 79 "lib/std/string/unicode.vader"
-    t2 = vader_chk_sub(usize, l2, l1);
-    l2 = (size_t) (int64_t) t2;
-#line 80 "lib/std/string/unicode.vader"
-    if ((l3 < INT32_C(224))) {
-#line 81 "lib/std/string/unicode.vader"
-        if (!((l2 < INT64_C(2)))) {
-#line 82 "lib/std/string/unicode.vader"
-            t2 = vader_chk_add(usize, l1, INT64_C(1));
+#line 142 "lib/std/string/unicode.vader"
+    t1 = vader_host_std_core_byte_len(l0);
+    t2 = vader_chk_sub(usize, t1, l2);
+    l3 = (size_t) (int64_t) t2;
+#line 143 "lib/std/string/unicode.vader"
+    if ((l1 < INT32_C(224))) {
+#line 144 "lib/std/string/unicode.vader"
+        if (!((l3 < INT64_C(2)))) {
+#line 147 "lib/std/string/unicode.vader"
+            t2 = vader_chk_add(usize, l2, INT64_C(1));
             l4 = (size_t) (int64_t) t2;
-            vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
-            VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-            VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
-            t0 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l4, 6u);
-            l5 = ((uint8_t) t0.payload.i);
-#line 83 "lib/std/string/unicode.vader"
-            t3 = ((((int32_t) (uint8_t) l3) & INT32_C(31)) << INT32_C(6));
+            l5 = vader_host_std_core_byte_at(l0, l4);
+#line 148 "lib/std/string/unicode.vader"
+            t3 = ((((int32_t) (uint8_t) l1) & INT32_C(31)) << INT32_C(6));
             l6 = (uint32_t) (int32_t) t3;
             t3 = (((int32_t) (uint8_t) l5) & INT32_C(63));
             l7 = (uint32_t) (int32_t) t3;
             t3 = vader_chk_add(u32, l6, l7);
             return ((uint32_t) (int32_t) t3);
-#line 81 "lib/std/string/unicode.vader"
+#line 144 "lib/std/string/unicode.vader"
         }
+#line 145 "lib/std/string/unicode.vader"
         return ((uint32_t) 0);
-#line 80 "lib/std/string/unicode.vader"
+#line 143 "lib/std/string/unicode.vader"
     }
-#line 85 "lib/std/string/unicode.vader"
-    if ((l3 < INT32_C(240))) {
-#line 86 "lib/std/string/unicode.vader"
-        if (!((l2 < INT64_C(3)))) {
-#line 87 "lib/std/string/unicode.vader"
-            t2 = vader_chk_add(usize, l1, INT64_C(1));
+#line 150 "lib/std/string/unicode.vader"
+    if ((l1 < INT32_C(240))) {
+#line 151 "lib/std/string/unicode.vader"
+        if (!((l3 < INT64_C(3)))) {
+#line 154 "lib/std/string/unicode.vader"
+            t2 = vader_chk_add(usize, l2, INT64_C(1));
             l4 = (size_t) (int64_t) t2;
-            vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
-            VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-            VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
-            t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l4, 6u);
-            l5 = ((uint8_t) t0.payload.i);
-#line 88 "lib/std/string/unicode.vader"
-            t2 = vader_chk_add(usize, l1, INT64_C(2));
+            l5 = vader_host_std_core_byte_at(l0, l4);
+#line 155 "lib/std/string/unicode.vader"
+            t2 = vader_chk_add(usize, l2, INT64_C(2));
             l4 = (size_t) (int64_t) t2;
-            VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
-            t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l4, 6u);
-            l8 = ((uint8_t) t0.payload.i);
-#line 89 "lib/std/string/unicode.vader"
-            t3 = ((((int32_t) (uint8_t) l3) & INT32_C(15)) << INT32_C(12));
+            l8 = vader_host_std_core_byte_at(l0, l4);
+#line 156 "lib/std/string/unicode.vader"
+            t3 = ((((int32_t) (uint8_t) l1) & INT32_C(15)) << INT32_C(12));
             l6 = (uint32_t) (int32_t) t3;
             t3 = ((((int32_t) (uint8_t) l5) & INT32_C(63)) << INT32_C(6));
             l7 = (uint32_t) (int32_t) t3;
@@ -3417,50 +3394,48 @@ static uint32_t std_string_utf8_decode(void* l0, size_t l1) {
             l7 = (uint32_t) (int32_t) t3;
             t3 = vader_chk_add(u32, l6, l7);
             return ((uint32_t) (int32_t) t3);
-#line 86 "lib/std/string/unicode.vader"
+#line 151 "lib/std/string/unicode.vader"
         }
+#line 152 "lib/std/string/unicode.vader"
         return ((uint32_t) 0);
-#line 85 "lib/std/string/unicode.vader"
+#line 150 "lib/std/string/unicode.vader"
     }
-#line 91 "lib/std/string/unicode.vader"
-    if (!((l2 < INT64_C(4)))) {
-#line 92 "lib/std/string/unicode.vader"
-        t2 = vader_chk_add(usize, l1, INT64_C(1));
-        l2 = (size_t) (int64_t) t2;
-        vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
-        VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l2)
-        t0 = vader_array_read_u8(_a3_slotarr, _a3_slotarr->offset + (size_t) l2, 6u);
-        l5 = ((uint8_t) t0.payload.i);
-#line 93 "lib/std/string/unicode.vader"
-        t2 = vader_chk_add(usize, l1, INT64_C(2));
-        l2 = (size_t) (int64_t) t2;
-        VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l2)
-        t0 = vader_array_read_u8(_a3_slotarr, _a3_slotarr->offset + (size_t) l2, 6u);
-        l8 = ((uint8_t) t0.payload.i);
-#line 94 "lib/std/string/unicode.vader"
-        t2 = vader_chk_add(usize, l1, INT64_C(3));
-        l2 = (size_t) (int64_t) t2;
-        VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l2)
-        t0 = vader_array_read_u8(_a3_slotarr, _a3_slotarr->offset + (size_t) l2, 6u);
-        l9 = ((uint8_t) t0.payload.i);
-#line 95 "lib/std/string/unicode.vader"
-        t3 = ((((int32_t) (uint8_t) l3) & INT32_C(7)) << INT32_C(18));
+#line 158 "lib/std/string/unicode.vader"
+    if (!((l3 < INT64_C(4)))) {
+#line 161 "lib/std/string/unicode.vader"
+        t2 = vader_chk_add(usize, l2, INT64_C(1));
+        l3 = (size_t) (int64_t) t2;
+        l5 = vader_host_std_core_byte_at(l0, l3);
+#line 162 "lib/std/string/unicode.vader"
+        t2 = vader_chk_add(usize, l2, INT64_C(2));
+        l3 = (size_t) (int64_t) t2;
+        l8 = vader_host_std_core_byte_at(l0, l3);
+#line 163 "lib/std/string/unicode.vader"
+        t2 = vader_chk_add(usize, l2, INT64_C(3));
+        l3 = (size_t) (int64_t) t2;
+        l9 = vader_host_std_core_byte_at(l0, l3);
+#line 164 "lib/std/string/unicode.vader"
+        t3 = ((((int32_t) (uint8_t) l1) & INT32_C(7)) << INT32_C(18));
         l6 = (uint32_t) (int32_t) t3;
         t3 = ((((int32_t) (uint8_t) l5) & INT32_C(63)) << INT32_C(12));
         l7 = (uint32_t) (int32_t) t3;
         t3 = vader_chk_add(u32, l6, l7);
         l6 = (uint32_t) (int32_t) t3;
+#line 165 "lib/std/string/unicode.vader"
         t3 = ((((int32_t) (uint8_t) l8) & INT32_C(63)) << INT32_C(6));
         l7 = (uint32_t) (int32_t) t3;
+#line 164 "lib/std/string/unicode.vader"
         t3 = vader_chk_add(u32, l6, l7);
         l6 = (uint32_t) (int32_t) t3;
+#line 165 "lib/std/string/unicode.vader"
         t3 = (((int32_t) (uint8_t) l9) & INT32_C(63));
         l7 = (uint32_t) (int32_t) t3;
+#line 164 "lib/std/string/unicode.vader"
         t3 = vader_chk_add(u32, l6, l7);
         return ((uint32_t) (int32_t) t3);
-#line 91 "lib/std/string/unicode.vader"
+#line 158 "lib/std/string/unicode.vader"
     }
+#line 159 "lib/std/string/unicode.vader"
     return ((uint32_t) 0);
 }
 

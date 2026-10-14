@@ -849,34 +849,34 @@ static vader_string_t std_string_to_lower(vader_string_t l0) {
 #line 35 "lib/std/string_builder/string_builder.vader"
     vader_array_t* _a0_arr = vader_array_new(22u, 0u, 0u, 1u);
     t0 = (void*) _a0_arr;
-#line 407 "lib/std/string/string.vader"
+#line 406 "lib/std/string/string.vader"
     vader_struct_std_string_builder_StringBuilder_t* _a1_obj = (vader_struct_std_string_builder_StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string_builder_StringBuilder_t));
     vader_obj_header_init(_a1_obj, 21u);
     _a1_obj->f_parts = t0;
     l1 = (void*) _a1_obj;
-#line 408 "lib/std/string/string.vader"
+#line 407 "lib/std/string/string.vader"
     l2 = vader_host_std_core_bytes(l0);
-#line 409 "lib/std/string/string.vader"
+#line 408 "lib/std/string/string.vader"
     l3 = ((vader_array_t*) l2)->length;
-#line 410 "lib/std/string/string.vader"
+#line 409 "lib/std/string/string.vader"
     l4 = (size_t) 0;
-#line 411 "lib/std/string/string.vader"
+#line 410 "lib/std/string/string.vader"
     while ((l4 < l3)) {
-#line 412 "lib/std/string/string.vader"
+#line 411 "lib/std/string/string.vader"
         std_string_utf8_decode_len(l2, l4, &t1, &t2);
         l8 = t2;
         l5 = t1;
         l6 = l8;
-#line 414 "lib/std/string/string.vader"
+#line 413 "lib/std/string/string.vader"
         t3 = std_string_to_lower_cp((uint32_t) (int32_t) ((int32_t) (uint32_t) l5));
         l7 = ((uint32_t) (uint32_t) t3);
         std_string_builder_append_char(l1, l7);
-#line 415 "lib/std/string/string.vader"
+#line 414 "lib/std/string/string.vader"
         t4 = vader_chk_add(usize, l4, l6);
         l4 = (size_t) (int64_t) t4;
-#line 411 "lib/std/string/string.vader"
+#line 410 "lib/std/string/string.vader"
     }
-#line 417 "lib/std/string/string.vader"
+#line 416 "lib/std/string/string.vader"
     t5 = std_string_builder_StringBuilder_Display_to_string(l1);
     { vader_string_t __vret = t5; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -895,7 +895,7 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
     uint32_t l1;
     bool l2;
     int32_t t0;
-#line 374 "lib/std/string/string.vader"
+#line 373 "lib/std/string/string.vader"
     if ((l0 >= INT32_C(65))) {
         l2 = (l0 <= INT32_C(90));
     } else {
@@ -904,11 +904,11 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
     if (l2) {
         t0 = vader_chk_add(u32, l0, INT32_C(32));
         l1 = (uint32_t) (int32_t) t0;
-#line 373 "lib/std/string/string.vader"
+#line 372 "lib/std/string/string.vader"
         return l1;
-#line 374 "lib/std/string/string.vader"
+#line 373 "lib/std/string/string.vader"
     }
-#line 375 "lib/std/string/string.vader"
+#line 374 "lib/std/string/string.vader"
     if ((l0 >= INT32_C(192))) {
         l2 = (l0 <= INT32_C(214));
     } else {
@@ -917,7 +917,7 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
     if (l2) {
         t0 = vader_chk_add(u32, l0, INT32_C(32));
         l1 = (uint32_t) (int32_t) t0;
-#line 376 "lib/std/string/string.vader"
+#line 375 "lib/std/string/string.vader"
     } else {
         if ((l0 >= INT32_C(216))) {
             l2 = (l0 <= INT32_C(222));
@@ -927,18 +927,18 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
         if (l2) {
             t0 = vader_chk_add(u32, l0, INT32_C(32));
             l1 = (uint32_t) (int32_t) t0;
-#line 377 "lib/std/string/string.vader"
+#line 376 "lib/std/string/string.vader"
         } else if (l0 == INT32_C(376)) {
             l1 = (uint32_t) 255;
-#line 378 "lib/std/string/string.vader"
+#line 377 "lib/std/string/string.vader"
         } else {
             l1 = l0;
-#line 377 "lib/std/string/string.vader"
-        }
 #line 376 "lib/std/string/string.vader"
+        }
 #line 375 "lib/std/string/string.vader"
+#line 374 "lib/std/string/string.vader"
     }
-#line 373 "lib/std/string/string.vader"
+#line 372 "lib/std/string/string.vader"
     return l1;
 }
 
