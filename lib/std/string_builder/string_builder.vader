@@ -44,7 +44,8 @@ export append :: fn(self: StringBuilder, s: string) -> void {
 
 /// Append a single Unicode codepoint, UTF-8-encoded then interned as a part.
 /// @param self  builder receiver.
-/// @param c     codepoint to encode (`u32(c)` ≤ `0x10FFFF`).
+/// @param c     codepoint to encode; one that is no Unicode scalar value
+///              encodes as U+FFFD.
 export append_char :: fn(self: StringBuilder, c: char) -> void {
     self.parts.push(utf8_encode(c).bytes_to_string())
 }

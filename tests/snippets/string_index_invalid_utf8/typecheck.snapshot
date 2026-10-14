@@ -2,36 +2,49 @@
 
 ## tests/snippets/string_index_invalid_utf8
   FnDecl         main                 :: fn() -> i32
-  expr 11:10    CallExpr       :: string
-  expr 11:10    IdentExpr      :: fn(u8[]) -> string
-  expr 11:26    SeqLitExpr     :: u8[]
-  expr 13:14    RangeExpr      :: Range<usize>!
-  expr 13:18    IdentExpr      :: usize
-  expr 14:17    CallExpr       :: u32
-  expr 14:17    IdentExpr      :: type
-  expr 14:21    IdentExpr      :: string
-  expr 14:21    IndexExpr      :: char
-  expr 14:23    IdentExpr      :: usize
-  expr 14:9     CallExpr       :: void
-  expr 14:9     IdentExpr      :: fn(T) -> void
-  expr 16:13    CallExpr       :: usize
-  expr 16:13    FieldExpr      :: fn() -> usize
-  expr 16:13    IdentExpr      :: string
-  expr 16:13    IndexExpr      :: string
-  expr 16:15    RangeExpr      :: Range<usize>!
-  expr 16:5     CallExpr       :: void
-  expr 16:5     IdentExpr      :: fn(T) -> void
-  expr 17:13    CallExpr       :: usize
-  expr 17:13    FieldExpr      :: fn() -> usize
-  expr 17:13    IdentExpr      :: string
-  expr 17:13    IndexExpr      :: string
-  expr 17:15    RangeExpr      :: Range<usize>!
-  expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn(T) -> void
-  expr 18:13    CallExpr       :: usize
-  expr 18:13    FieldExpr      :: fn() -> usize
-  expr 18:13    IdentExpr      :: string
-  expr 18:13    IndexExpr      :: string
-  expr 18:15    RangeExpr      :: Range<usize>!
-  expr 18:5     CallExpr       :: void
-  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 12:10    CallExpr       :: string
+  expr 12:10    IdentExpr      :: fn(u8[]) -> string
+  expr 12:26    SeqLitExpr     :: u8[]
+  expr 13:13    CallExpr       :: usize
+  expr 13:13    FieldExpr      :: fn() -> usize
+  expr 13:13    IdentExpr      :: string
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(T) -> void
+  expr 14:14    RangeExpr      :: Range<usize>!
+  expr 14:18    CallExpr       :: usize
+  expr 14:18    FieldExpr      :: fn() -> usize
+  expr 14:18    IdentExpr      :: string
+  expr 15:17    CallExpr       :: u32
+  expr 15:17    IdentExpr      :: type
+  expr 15:21    IdentExpr      :: string
+  expr 15:21    IndexExpr      :: char
+  expr 15:23    IdentExpr      :: usize
+  expr 15:9     CallExpr       :: void
+  expr 15:9     IdentExpr      :: fn(T) -> void
+  expr 18:14    IdentExpr      :: string
+  expr 19:9     BinaryExpr     :: usize
+  expr 19:9     IdentExpr      :: usize
+  expr 21:13    IdentExpr      :: usize
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 22:13    CallExpr       :: usize
+  expr 22:13    FieldExpr      :: fn() -> usize
+  expr 22:13    IdentExpr      :: string
+  expr 22:13    IndexExpr      :: string
+  expr 22:15    RangeExpr      :: Range<usize>!
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 23:13    CallExpr       :: usize
+  expr 23:13    FieldExpr      :: fn() -> usize
+  expr 23:13    IdentExpr      :: string
+  expr 23:13    IndexExpr      :: string
+  expr 23:15    RangeExpr      :: Range<usize>!
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 24:13    CallExpr       :: usize
+  expr 24:13    FieldExpr      :: fn() -> usize
+  expr 24:13    IdentExpr      :: string
+  expr 24:13    IndexExpr      :: string
+  expr 24:15    RangeExpr      :: Range<usize>!
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void

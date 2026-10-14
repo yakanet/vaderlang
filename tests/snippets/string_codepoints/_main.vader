@@ -12,7 +12,7 @@ main :: fn() -> i32 {
     println("empty  cp=${len("")} bytes=${"".bytes().len()}")
 
     // codepoint_at_byte walks one sequence at a time. Manual iteration mimics
-    // what `chars()` does internally, demonstrating the [char, i32] return.
+    // what `chars()` does internally, demonstrating the [char, usize] return.
     s :: "你好"
     n :: s.bytes().len()
     i: usize = 0
@@ -22,7 +22,7 @@ main :: fn() -> i32 {
         i = i + w
     }
 
-    // codepoint_byte_len is callable directly when only the width is needed.
+    // codepoint_byte_len gives the width a char takes once encoded.
     println("'a' width=${codepoint_byte_len('a')}")
     println("'é' width=${codepoint_byte_len('é')}")
     println("'你' width=${codepoint_byte_len('你')}")

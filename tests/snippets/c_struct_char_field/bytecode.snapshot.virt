@@ -11,8 +11,9 @@ type 8 primitive u8
 type 9 struct std_core$Buffer {  }
 type 10 primitive i64
 type 11 array 8
-type 12 primitive void
-type 13 primitive isize
+type 12 primitive u32
+type 13 primitive void
+type 14 primitive isize
 string 0 "before quot="
 string 1 " rem="
 string 2 "after quot="
@@ -23,7 +24,7 @@ import 0 extern memset snippet$zero_pair header=<stdlib.h> result_type=5 param_t
 import 1 byte_len std_core$byte_len result_type=4 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=11 param_mutable=0 param_by_address= (ref) -> string
 import 3 bytes std_core$bytes result_type=11 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,11,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=14 param_types=1,11,4 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 9 std_core$ByteAccess
 export main 0
 
@@ -78,7 +79,7 @@ fn 0 snippet$main () -> i32
   local.get 3   ; __buf_1
   local.get 2   ; $call_8
   call 3   ; std_core$finish_buffer
-  call 11   ; std_io$println__string
+  call 12   ; std_io$println__string
   local.get 0   ; p
   i32.const 0
   i64.const 8
@@ -121,7 +122,7 @@ fn 0 snippet$main () -> i32
   local.get 3   ; __buf_1
   local.get 2   ; $call_8
   call 3   ; std_core$finish_buffer
-  call 11   ; std_io$println__string
+  call 12   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -324,28 +325,26 @@ end
 fn 8 std_core$utf8_encode (char) -> ref
   local cp u32
   local out ref
-  local $cast_7 u8
-  local $shr_12 u32
+  local $shr_15 u32
+  local $cast_17 u8
   local.get 0   ; arg 0
   char.to_i32
-  local.set 1   ; cp
-  array.new 11 0   ; u8[]
-  local.set 2   ; out
-  local.get 1   ; cp
   i32.const 128
   u32.lt
   if $L0 void
-    local.get 1   ; cp
-    u32.to_i32
+    local.get 0   ; arg 0
+    char.to_i32
     i32.const 255
     i32.bitand
-    local.set 3   ; $cast_7
-    local.get 2   ; out
-    local.get 3   ; $cast_7
-    array.push 8   ; u8
-    local.get 2   ; out
+    array.new 11 1   ; u8[]
     return
   end $L0
+  local.get 0   ; arg 0
+  char.to_i32
+  call 9   ; std_core$scalar_or_replacement
+  local.set 1   ; cp
+  array.new 11 0   ; u8[]
+  local.set 2   ; out
   local.get 1   ; cp
   i32.const 2048
   u32.lt
@@ -353,148 +352,185 @@ fn 8 std_core$utf8_encode (char) -> ref
     local.get 1   ; cp
     i32.const 6
     u32.shr
-    local.set 4   ; $shr_12
+    local.set 3   ; $shr_15
     i32.const 192
-    local.get 4   ; $shr_12
+    local.get 3   ; $shr_15
     i32.bitor
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 3   ; $cast_7
+    local.set 4   ; $cast_17
     local.get 2   ; out
-    local.get 3   ; $cast_7
+    local.get 4   ; $cast_17
     array.push 8   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
-    local.set 4   ; $shr_12
+    local.set 3   ; $shr_15
     i32.const 128
-    local.get 4   ; $shr_12
+    local.get 3   ; $shr_15
     i32.bitor
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 3   ; $cast_7
+    local.set 4   ; $cast_17
     local.get 2   ; out
-    local.get 3   ; $cast_7
+    local.get 4   ; $cast_17
+    array.push 8   ; u8
+    local.get 2   ; out
+    return
+  end $L1
+  local.get 1   ; cp
+  i32.const 65536
+  u32.lt
+  if $L2 void
+    local.get 1   ; cp
+    i32.const 12
+    u32.shr
+    local.set 3   ; $shr_15
+    i32.const 224
+    local.get 3   ; $shr_15
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
+    array.push 8   ; u8
+    local.get 1   ; cp
+    i32.const 6
+    u32.shr
+    i32.const 63
+    i32.bitand
+    local.set 3   ; $shr_15
+    i32.const 128
+    local.get 3   ; $shr_15
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
+    array.push 8   ; u8
+    local.get 1   ; cp
+    i32.const 63
+    i32.bitand
+    local.set 3   ; $shr_15
+    i32.const 128
+    local.get 3   ; $shr_15
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
     array.push 8   ; u8
   else
     local.get 1   ; cp
-    i32.const 65536
-    u32.lt
-    if $L2 void
-      local.get 1   ; cp
-      i32.const 12
-      u32.shr
-      local.set 4   ; $shr_12
-      i32.const 224
-      local.get 4   ; $shr_12
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 8   ; u8
-      local.get 1   ; cp
-      i32.const 6
-      u32.shr
-      i32.const 63
-      i32.bitand
-      local.set 4   ; $shr_12
-      i32.const 128
-      local.get 4   ; $shr_12
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 8   ; u8
-      local.get 1   ; cp
-      i32.const 63
-      i32.bitand
-      local.set 4   ; $shr_12
-      i32.const 128
-      local.get 4   ; $shr_12
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 8   ; u8
-    else
-      local.get 1   ; cp
-      i32.const 18
-      u32.shr
-      local.set 4   ; $shr_12
-      i32.const 240
-      local.get 4   ; $shr_12
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 8   ; u8
-      local.get 1   ; cp
-      i32.const 12
-      u32.shr
-      i32.const 63
-      i32.bitand
-      local.set 4   ; $shr_12
-      i32.const 128
-      local.get 4   ; $shr_12
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 8   ; u8
-      local.get 1   ; cp
-      i32.const 6
-      u32.shr
-      i32.const 63
-      i32.bitand
-      local.set 4   ; $shr_12
-      i32.const 128
-      local.get 4   ; $shr_12
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 8   ; u8
-      local.get 1   ; cp
-      i32.const 63
-      i32.bitand
-      local.set 1   ; cp
-      i32.const 128
-      local.get 1   ; cp
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 8   ; u8
-    end $L2
-  end $L1
+    i32.const 18
+    u32.shr
+    local.set 3   ; $shr_15
+    i32.const 240
+    local.get 3   ; $shr_15
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
+    array.push 8   ; u8
+    local.get 1   ; cp
+    i32.const 12
+    u32.shr
+    i32.const 63
+    i32.bitand
+    local.set 3   ; $shr_15
+    i32.const 128
+    local.get 3   ; $shr_15
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
+    array.push 8   ; u8
+    local.get 1   ; cp
+    i32.const 6
+    u32.shr
+    i32.const 63
+    i32.bitand
+    local.set 3   ; $shr_15
+    i32.const 128
+    local.get 3   ; $shr_15
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
+    array.push 8   ; u8
+    local.get 1   ; cp
+    i32.const 63
+    i32.bitand
+    local.set 1   ; cp
+    i32.const 128
+    local.get 1   ; cp
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
+    array.push 8   ; u8
+  end $L2
   local.get 2   ; out
   return
 end
 
-fn 9 std_io$write (u8,string) -> void
+fn 9 std_core$scalar_or_replacement (u32) -> u32
+  local and_res bool
+  local.get 0   ; arg 0
+  i32.const 55296
+  u32.ge
+  if $L0 void
+    local.get 0   ; arg 0
+    i32.const 57343
+    u32.le
+    local.set 1   ; and_res
+  else
+    bool.const false
+    local.set 1   ; and_res
+  end $L0
+  local.get 1   ; and_res
+  if $L1 void
+    bool.const true
+    local.set 1   ; and_res
+  else
+    local.get 0   ; arg 0
+    i32.const 1114111
+    u32.gt
+    local.set 1   ; and_res
+  end $L1
+  local.get 1   ; and_res
+  if $L2 void
+  else
+    local.get 0   ; arg 0
+    return
+  end $L2
+  i32.const 65533
+  i32.to_char
+  char.to_i32
+  return
+end
+
+fn 10 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -530,7 +566,7 @@ fn 9 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 10   ; std_io$write_bytes
+      call 11   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -550,7 +586,7 @@ fn 9 std_io$write (u8,string) -> void
   return
 end
 
-fn 10 std_io$write_bytes (u8,ref,usize) -> i32
+fn 11 std_io$write_bytes (u8,ref,usize) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -570,7 +606,7 @@ fn 10 std_io$write_bytes (u8,ref,usize) -> i32
   return
 end
 
-fn 11 std_io$println__string (string) -> void
+fn 12 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 5   ; "\n"
@@ -578,6 +614,6 @@ fn 11 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 9   ; std_io$write
+  call 10   ; std_io$write
   return
 end

@@ -15,10 +15,10 @@ type 12 primitive i64
 type 13 array 7
 type 14 union 15,0
 type 15 struct std_core$DecimalParts { w:4,q:3,negative:6,too_many_digits:6 }
-type 16 struct std_core$SlowParts { d:17,e:3 }
-type 17 array 18
-type 18 primitive u32
-type 19 struct __Tuple_Array_u32_u32_6fc96a7e { _0:17,_1:18 }
+type 16 primitive u32
+type 17 struct std_core$SlowParts { d:18,e:3 }
+type 18 array 16
+type 19 struct __Tuple_Array_u32_u32_6fc96a7e { _0:18,_1:16 }
 type 20 struct std_core$Dec64 { mantissa:4,exp:3 }
 type 21 struct __Tuple_u64_u64_u64_2d035edd { _0:4,_1:4,_2:4 }
 type 22 ref _
@@ -155,7 +155,7 @@ fn 0 snippet$show (string,string) -> void
   local parsed any
   local $field_7 string
   local.get 1   ; arg 1
-  call 54   ; json$parse
+  call 52   ; json$parse
   local.tee 2   ; parsed
   type_check 26   ; json$JsonError
   if $L0 void
@@ -168,7 +168,7 @@ fn 0 snippet$show (string,string) -> void
     string.const 0   ; ": error: "
     local.get 3   ; $field_7
     call 2   ; concat_3
-    call 53   ; std_io$println__string
+    call 51   ; std_io$println__string
     return
   end $L0
   local.get 2   ; parsed
@@ -176,65 +176,65 @@ fn 0 snippet$show (string,string) -> void
   if $L1 void
     local.get 2   ; parsed
     ref.cast 30   ; json$JsonString
-    call 55   ; json$stringify
+    call 53   ; json$stringify
     local.set 3   ; $field_7
     local.get 0   ; arg 0
     string.const 1   ; ": "
     local.get 3   ; $field_7
     call 2   ; concat_3
-    call 53   ; std_io$println__string
+    call 51   ; std_io$println__string
   else
     local.get 2   ; parsed
     type_check 28   ; json$JsonNumber
     if $L2 void
       local.get 2   ; parsed
       ref.cast 28   ; json$JsonNumber
-      call 55   ; json$stringify
+      call 53   ; json$stringify
       local.set 3   ; $field_7
       local.get 0   ; arg 0
       string.const 1   ; ": "
       local.get 3   ; $field_7
       call 2   ; concat_3
-      call 53   ; std_io$println__string
+      call 51   ; std_io$println__string
     else
       local.get 2   ; parsed
       type_check 25   ; json$JsonBool
       if $L3 void
         local.get 2   ; parsed
         ref.cast 25   ; json$JsonBool
-        call 55   ; json$stringify
+        call 53   ; json$stringify
         local.set 3   ; $field_7
         local.get 0   ; arg 0
         string.const 1   ; ": "
         local.get 3   ; $field_7
         call 2   ; concat_3
-        call 53   ; std_io$println__string
+        call 51   ; std_io$println__string
       else
         local.get 2   ; parsed
         type_check 27   ; json$JsonNull
         if $L4 void
           local.get 2   ; parsed
           ref.cast 27   ; json$JsonNull
-          call 55   ; json$stringify
+          call 53   ; json$stringify
           local.set 3   ; $field_7
           local.get 0   ; arg 0
           string.const 1   ; ": "
           local.get 3   ; $field_7
           call 2   ; concat_3
-          call 53   ; std_io$println__string
+          call 51   ; std_io$println__string
         else
           local.get 2   ; parsed
           type_check 24   ; json$JsonArray
           if $L5 void
             local.get 2   ; parsed
             ref.cast 24   ; json$JsonArray
-            call 55   ; json$stringify
+            call 53   ; json$stringify
             local.set 3   ; $field_7
             local.get 0   ; arg 0
             string.const 1   ; ": "
             local.get 3   ; $field_7
             call 2   ; concat_3
-            call 53   ; std_io$println__string
+            call 51   ; std_io$println__string
           else
             local.get 2   ; parsed
             type_check 29   ; json$JsonObject
@@ -244,13 +244,13 @@ fn 0 snippet$show (string,string) -> void
             end $L6
             local.get 2   ; parsed
             ref.cast 29   ; json$JsonObject
-            call 55   ; json$stringify
+            call 53   ; json$stringify
             local.set 3   ; $field_7
             local.get 0   ; arg 0
             string.const 1   ; ": "
             local.get 3   ; $field_7
             call 2   ; concat_3
-            call 53   ; std_io$println__string
+            call 51   ; std_io$println__string
           end $L5
         end $L4
       end $L3
@@ -378,219 +378,7 @@ fn 3 concat_2 (string,string) -> string
   return
 end
 
-fn 4 std_core$char_at_byte (string,usize) -> char
-  local b u8
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call.import 1   ; std_core$byte_at
-  local.tee 2   ; b
-  i32.const 128
-  u32.lt
-  if $L0 void
-  else
-    local.get 0   ; arg 0
-    local.get 2   ; b
-    local.get 1   ; arg 1
-    call 5   ; std_core$decode_tail
-    return
-  end $L0
-  local.get 2   ; b
-  u8.to_char
-  return
-end
-
-fn 5 std_core$decode_tail (string,u8,usize) -> char
-  local rem usize
-  local $add_checked_16 usize
-  local b1 u8
-  local $shl_23 u32
-  local $bitand_26 u32
-  local b2 u8
-  local b3 u8
-  local.get 1   ; arg 1
-  call 11   ; std_core$is_utf8_continuation
-  if $L0 void
-    i32.const 65533
-    i32.to_char
-    return
-  end $L0
-  local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
-  local.get 2   ; arg 2
-  usize.checked_sub
-  local.set 3   ; rem
-  local.get 1   ; arg 1
-  i32.const 224
-  u32.lt
-  if $L1 void
-    local.get 3   ; rem
-    i64.const 2
-    u64.lt
-    if $L2 void
-    else
-      local.get 2   ; arg 2
-      i64.const 1
-      usize.checked_add
-      local.set 4   ; $add_checked_16
-      local.get 0   ; arg 0
-      local.get 4   ; $add_checked_16
-      call.import 1   ; std_core$byte_at
-      local.set 5   ; b1
-      local.get 1   ; arg 1
-      u8.to_i32
-      i32.const 31
-      i32.bitand
-      i32.const 6
-      i32.shl
-      local.set 6   ; $shl_23
-      local.get 5   ; b1
-      u8.to_i32
-      i32.const 63
-      i32.bitand
-      local.set 7   ; $bitand_26
-      local.get 6   ; $shl_23
-      local.get 7   ; $bitand_26
-      u32.checked_add
-      u32.to_char
-      return
-    end $L2
-    i32.const 0
-    i32.to_char
-    return
-  end $L1
-  local.get 1   ; arg 1
-  i32.const 240
-  u32.lt
-  if $L3 void
-    local.get 3   ; rem
-    i64.const 3
-    u64.lt
-    if $L4 void
-    else
-      local.get 2   ; arg 2
-      i64.const 1
-      usize.checked_add
-      local.set 4   ; $add_checked_16
-      local.get 0   ; arg 0
-      local.get 4   ; $add_checked_16
-      call.import 1   ; std_core$byte_at
-      local.set 5   ; b1
-      local.get 2   ; arg 2
-      i64.const 2
-      usize.checked_add
-      local.set 4   ; $add_checked_16
-      local.get 0   ; arg 0
-      local.get 4   ; $add_checked_16
-      call.import 1   ; std_core$byte_at
-      local.set 8   ; b2
-      local.get 1   ; arg 1
-      u8.to_i32
-      i32.const 15
-      i32.bitand
-      i32.const 12
-      i32.shl
-      local.set 6   ; $shl_23
-      local.get 5   ; b1
-      u8.to_i32
-      i32.const 63
-      i32.bitand
-      i32.const 6
-      i32.shl
-      local.set 7   ; $bitand_26
-      local.get 6   ; $shl_23
-      local.get 7   ; $bitand_26
-      u32.checked_add
-      local.set 6   ; $shl_23
-      local.get 8   ; b2
-      u8.to_i32
-      i32.const 63
-      i32.bitand
-      local.set 7   ; $bitand_26
-      local.get 6   ; $shl_23
-      local.get 7   ; $bitand_26
-      u32.checked_add
-      u32.to_char
-      return
-    end $L4
-    i32.const 0
-    i32.to_char
-    return
-  end $L3
-  local.get 3   ; rem
-  i64.const 4
-  u64.lt
-  if $L5 void
-  else
-    local.get 2   ; arg 2
-    i64.const 1
-    usize.checked_add
-    local.set 3   ; rem
-    local.get 0   ; arg 0
-    local.get 3   ; rem
-    call.import 1   ; std_core$byte_at
-    local.set 5   ; b1
-    local.get 2   ; arg 2
-    i64.const 2
-    usize.checked_add
-    local.set 3   ; rem
-    local.get 0   ; arg 0
-    local.get 3   ; rem
-    call.import 1   ; std_core$byte_at
-    local.set 8   ; b2
-    local.get 2   ; arg 2
-    i64.const 3
-    usize.checked_add
-    local.set 3   ; rem
-    local.get 0   ; arg 0
-    local.get 3   ; rem
-    call.import 1   ; std_core$byte_at
-    local.set 9   ; b3
-    local.get 1   ; arg 1
-    u8.to_i32
-    i32.const 7
-    i32.bitand
-    i32.const 18
-    i32.shl
-    local.set 6   ; $shl_23
-    local.get 5   ; b1
-    u8.to_i32
-    i32.const 63
-    i32.bitand
-    i32.const 12
-    i32.shl
-    local.set 7   ; $bitand_26
-    local.get 6   ; $shl_23
-    local.get 7   ; $bitand_26
-    u32.checked_add
-    local.set 6   ; $shl_23
-    local.get 8   ; b2
-    u8.to_i32
-    i32.const 63
-    i32.bitand
-    i32.const 6
-    i32.shl
-    local.set 7   ; $bitand_26
-    local.get 6   ; $shl_23
-    local.get 7   ; $bitand_26
-    u32.checked_add
-    local.set 6   ; $shl_23
-    local.get 9   ; b3
-    u8.to_i32
-    i32.const 63
-    i32.bitand
-    local.set 7   ; $bitand_26
-    local.get 6   ; $shl_23
-    local.get 7   ; $bitand_26
-    u32.checked_add
-    u32.to_char
-    return
-  end $L5
-  i32.const 0
-  i32.to_char
-  return
-end
-
-fn 6 std_core$parse_f64 (string) -> any
+fn 4 std_core$parse_f64 (string) -> any
   local parts ref
   local __coalesce_0 any
   local $field_8 u64
@@ -598,7 +386,7 @@ fn 6 std_core$parse_f64 (string) -> any
   local $add_checked_14 u64
   local $field_19 bool
   local.get 0   ; arg 0
-  call 13   ; std_core$scan_decimal
+  call 10   ; std_core$scan_decimal
   local.tee 2   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -618,7 +406,7 @@ fn 6 std_core$parse_f64 (string) -> any
     local.set 4   ; $field_9
     local.get 3   ; $field_8
     local.get 4   ; $field_9
-    call 14   ; std_core$eisel_lemire
+    call 11   ; std_core$eisel_lemire
     local.set 3   ; $field_8
     local.field 1 15 0   ; parts std_core$DecimalParts.w
     ref.cast 4   ; u64
@@ -630,7 +418,7 @@ fn 6 std_core$parse_f64 (string) -> any
     local.set 4   ; $field_9
     local.get 5   ; $add_checked_14
     local.get 4   ; $field_9
-    call 14   ; std_core$eisel_lemire
+    call 11   ; std_core$eisel_lemire
     local.set 5   ; $add_checked_14
     local.get 3   ; $field_8
     local.get 5   ; $add_checked_14
@@ -641,7 +429,7 @@ fn 6 std_core$parse_f64 (string) -> any
       local.set 6   ; $field_19
       local.get 0   ; arg 0
       local.get 6   ; $field_19
-      call 15   ; std_core$parse_f64_slow
+      call 12   ; std_core$parse_f64_slow
       retag 10   ; f64
       return
     end $L2
@@ -654,7 +442,7 @@ fn 6 std_core$parse_f64 (string) -> any
   local.set 4   ; $field_9
   local.get 3   ; $field_8
   local.get 4   ; $field_9
-  call 14   ; std_core$eisel_lemire
+  call 11   ; std_core$eisel_lemire
   local.set 3   ; $field_8
   local.field 1 15 2   ; parts std_core$DecimalParts.negative
   ref.cast 6   ; bool
@@ -677,20 +465,20 @@ fn 6 std_core$parse_f64 (string) -> any
   return
 end
 
-fn 7 std_core$new_byte_buffer (usize) -> ref
+fn 5 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 8 std_core$finish_buffer (ref,usize) -> string
+fn 6 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 9 std_core$write_int (ref,usize,i64) -> usize
+fn 7 std_core$write_int (ref,usize,i64) -> usize
   local neg bool
   local ndigits usize
   local m i64
@@ -805,7 +593,7 @@ fn 9 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 10 std_core$write_unsigned (ref,usize,u64) -> usize
+fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
   local ndigits usize
   local m u64
   local i usize
@@ -885,40 +673,29 @@ fn 10 std_core$write_unsigned (ref,usize,u64) -> usize
   return
 end
 
-fn 11 std_core$is_utf8_continuation (u8) -> bool
-  local.get 0   ; arg 0
-  i32.const 192
-  i32.bitand
-  i32.const 128
-  i32.eq
-  return
-end
-
-fn 12 std_core$utf8_encode (char) -> ref
+fn 9 std_core$utf8_encode (char) -> ref
   local cp u32
   local out ref
-  local $cast_7 u8
-  local $shr_12 u32
+  local $shr_15 u32
+  local $cast_17 u8
   local.get 0   ; arg 0
   char.to_i32
-  local.set 1   ; cp
-  array.new 13 0   ; u8[]
-  local.set 2   ; out
-  local.get 1   ; cp
   i32.const 128
   u32.lt
   if $L0 void
-    local.get 1   ; cp
-    u32.to_i32
+    local.get 0   ; arg 0
+    char.to_i32
     i32.const 255
     i32.bitand
-    local.set 3   ; $cast_7
-    local.get 2   ; out
-    local.get 3   ; $cast_7
-    array.push 7   ; u8
-    local.get 2   ; out
+    array.new 13 1   ; u8[]
     return
   end $L0
+  local.get 0   ; arg 0
+  char.to_i32
+  call 13   ; std_core$scalar_or_replacement
+  local.set 1   ; cp
+  array.new 13 0   ; u8[]
+  local.set 2   ; out
   local.get 1   ; cp
   i32.const 2048
   u32.lt
@@ -926,148 +703,149 @@ fn 12 std_core$utf8_encode (char) -> ref
     local.get 1   ; cp
     i32.const 6
     u32.shr
-    local.set 4   ; $shr_12
+    local.set 3   ; $shr_15
     i32.const 192
-    local.get 4   ; $shr_12
+    local.get 3   ; $shr_15
     i32.bitor
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 3   ; $cast_7
+    local.set 4   ; $cast_17
     local.get 2   ; out
-    local.get 3   ; $cast_7
+    local.get 4   ; $cast_17
     array.push 7   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
-    local.set 4   ; $shr_12
+    local.set 3   ; $shr_15
     i32.const 128
-    local.get 4   ; $shr_12
+    local.get 3   ; $shr_15
     i32.bitor
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 3   ; $cast_7
+    local.set 4   ; $cast_17
     local.get 2   ; out
-    local.get 3   ; $cast_7
+    local.get 4   ; $cast_17
+    array.push 7   ; u8
+    local.get 2   ; out
+    return
+  end $L1
+  local.get 1   ; cp
+  i32.const 65536
+  u32.lt
+  if $L2 void
+    local.get 1   ; cp
+    i32.const 12
+    u32.shr
+    local.set 3   ; $shr_15
+    i32.const 224
+    local.get 3   ; $shr_15
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
+    array.push 7   ; u8
+    local.get 1   ; cp
+    i32.const 6
+    u32.shr
+    i32.const 63
+    i32.bitand
+    local.set 3   ; $shr_15
+    i32.const 128
+    local.get 3   ; $shr_15
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
+    array.push 7   ; u8
+    local.get 1   ; cp
+    i32.const 63
+    i32.bitand
+    local.set 3   ; $shr_15
+    i32.const 128
+    local.get 3   ; $shr_15
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
     array.push 7   ; u8
   else
     local.get 1   ; cp
-    i32.const 65536
-    u32.lt
-    if $L2 void
-      local.get 1   ; cp
-      i32.const 12
-      u32.shr
-      local.set 4   ; $shr_12
-      i32.const 224
-      local.get 4   ; $shr_12
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 7   ; u8
-      local.get 1   ; cp
-      i32.const 6
-      u32.shr
-      i32.const 63
-      i32.bitand
-      local.set 4   ; $shr_12
-      i32.const 128
-      local.get 4   ; $shr_12
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 7   ; u8
-      local.get 1   ; cp
-      i32.const 63
-      i32.bitand
-      local.set 4   ; $shr_12
-      i32.const 128
-      local.get 4   ; $shr_12
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 7   ; u8
-    else
-      local.get 1   ; cp
-      i32.const 18
-      u32.shr
-      local.set 4   ; $shr_12
-      i32.const 240
-      local.get 4   ; $shr_12
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 7   ; u8
-      local.get 1   ; cp
-      i32.const 12
-      u32.shr
-      i32.const 63
-      i32.bitand
-      local.set 4   ; $shr_12
-      i32.const 128
-      local.get 4   ; $shr_12
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 7   ; u8
-      local.get 1   ; cp
-      i32.const 6
-      u32.shr
-      i32.const 63
-      i32.bitand
-      local.set 4   ; $shr_12
-      i32.const 128
-      local.get 4   ; $shr_12
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 7   ; u8
-      local.get 1   ; cp
-      i32.const 63
-      i32.bitand
-      local.set 1   ; cp
-      i32.const 128
-      local.get 1   ; cp
-      i32.bitor
-      u32.to_i32
-      i32.const 255
-      i32.bitand
-      local.set 3   ; $cast_7
-      local.get 2   ; out
-      local.get 3   ; $cast_7
-      array.push 7   ; u8
-    end $L2
-  end $L1
+    i32.const 18
+    u32.shr
+    local.set 3   ; $shr_15
+    i32.const 240
+    local.get 3   ; $shr_15
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
+    array.push 7   ; u8
+    local.get 1   ; cp
+    i32.const 12
+    u32.shr
+    i32.const 63
+    i32.bitand
+    local.set 3   ; $shr_15
+    i32.const 128
+    local.get 3   ; $shr_15
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
+    array.push 7   ; u8
+    local.get 1   ; cp
+    i32.const 6
+    u32.shr
+    i32.const 63
+    i32.bitand
+    local.set 3   ; $shr_15
+    i32.const 128
+    local.get 3   ; $shr_15
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
+    array.push 7   ; u8
+    local.get 1   ; cp
+    i32.const 63
+    i32.bitand
+    local.set 1   ; cp
+    i32.const 128
+    local.get 1   ; cp
+    i32.bitor
+    u32.to_i32
+    i32.const 255
+    i32.bitand
+    local.set 4   ; $cast_17
+    local.get 2   ; out
+    local.get 4   ; $cast_17
+    array.push 7   ; u8
+  end $L2
   local.get 2   ; out
   return
 end
 
-fn 13 std_core$scan_decimal (string) -> any
+fn 10 std_core$scan_decimal (string) -> any
   local n usize
   local i usize
   local negative bool
@@ -1132,7 +910,7 @@ fn 13 std_core$scan_decimal (string) -> any
         local.get 0   ; arg 0
         local.get 2   ; i
         call.import 1   ; std_core$byte_at
-        call 16   ; std_core$pf_is_digit
+        call 14   ; std_core$pf_is_digit
         if $L6 void
         else
           br $L3
@@ -1214,7 +992,7 @@ fn 13 std_core$scan_decimal (string) -> any
             local.get 0   ; arg 0
             local.get 2   ; i
             call.import 1   ; std_core$byte_at
-            call 16   ; std_core$pf_is_digit
+            call 14   ; std_core$pf_is_digit
             if $L15 void
             else
               br $L12
@@ -1363,7 +1141,7 @@ fn 13 std_core$scan_decimal (string) -> any
     local.get 0   ; arg 0
     local.get 2   ; i
     call.import 1   ; std_core$byte_at
-    call 16   ; std_core$pf_is_digit
+    call 14   ; std_core$pf_is_digit
     if $L28 void
       i32.const 0
       local.set 5   ; sig
@@ -1376,7 +1154,7 @@ fn 13 std_core$scan_decimal (string) -> any
             local.get 0   ; arg 0
             local.get 2   ; i
             call.import 1   ; std_core$byte_at
-            call 16   ; std_core$pf_is_digit
+            call 14   ; std_core$pf_is_digit
             if $L32 void
             else
               br $L29
@@ -1440,7 +1218,7 @@ fn 13 std_core$scan_decimal (string) -> any
   return.lit null.const
 end
 
-fn 14 std_core$eisel_lemire (u64,i32) -> u64
+fn 11 std_core$eisel_lemire (u64,i32) -> u64
   local or_res bool
   local $cast_13 u64
   local $cast_15 u64
@@ -1482,7 +1260,7 @@ fn 14 std_core$eisel_lemire (u64,i32) -> u64
     return
   end $L2
   local.get 0   ; arg 0
-  call 17   ; std_core$pf_clz64
+  call 15   ; std_core$pf_clz64
   local.tee 5   ; lz
   i32.to_i64
   local.set 3   ; $cast_13
@@ -1492,7 +1270,7 @@ fn 14 std_core$eisel_lemire (u64,i32) -> u64
   local.set 3   ; $cast_13
   local.get 1   ; arg 1
   local.get 3   ; $cast_13
-  call 18   ; std_core$pf_product
+  call 16   ; std_core$pf_product
   local.set 8   ; $cast_39
   local.set 3   ; $cast_13
   local.get 8   ; $cast_39
@@ -1706,7 +1484,7 @@ fn 14 std_core$eisel_lemire (u64,i32) -> u64
   return
 end
 
-fn 15 std_core$parse_f64_slow (string,bool) -> f64
+fn 12 std_core$parse_f64_slow (string,bool) -> f64
   local p ref
   local sign u64
   local m ref
@@ -1720,7 +1498,7 @@ fn 15 std_core$parse_f64_slow (string,bool) -> f64
   local $shl_86 u64
   local $sub_checked_109 u64
   local.get 0   ; arg 0
-  call 19   ; std_core$sd_scan
+  call 17   ; std_core$sd_scan
   local.set 2   ; p
   local.get 1   ; arg 1
   if $L0 void
@@ -1730,27 +1508,27 @@ fn 15 std_core$parse_f64_slow (string,bool) -> f64
     i64.const 0
     local.set 3   ; sign
   end $L0
-  local.field 2 16 0   ; p std_core$SlowParts.d
-  call 20   ; std_core$is_zero
+  local.field 2 17 0   ; p std_core$SlowParts.d
+  call 18   ; std_core$is_zero
   if $L1 void
     local.get 3   ; sign
     bits_to_f64
     return
   end $L1
-  local.field 2 16 0   ; p std_core$SlowParts.d
+  local.field 2 17 0   ; p std_core$SlowParts.d
   local.set 4   ; m
   i32.const 0
   local.set 5   ; b_exp
   bool.const false
   local.set 6   ; sticky
-  local.field 2 16 1   ; p std_core$SlowParts.e
+  local.field 2 17 1   ; p std_core$SlowParts.e
   ref.cast 3   ; i32
   i32.const 0
   i32.ge
   if $L2 void
     i32.const 0
     local.set 7   ; _k
-    local.field 2 16 1   ; p std_core$SlowParts.e
+    local.field 2 17 1   ; p std_core$SlowParts.e
     ref.cast 3   ; i32
     local.set 8   ; __for_hi_0
     loop $L3 void
@@ -1760,7 +1538,7 @@ fn 15 std_core$parse_f64_slow (string,bool) -> f64
       if $L4 void
         local.get 4   ; m
         i32.const 5
-        call 30   ; std_core$BigInt$Mul$mul
+        call 28   ; std_core$BigInt$Mul$mul
         local.set 4   ; m
         local.get 7   ; _k
         i32.const 1
@@ -1769,11 +1547,11 @@ fn 15 std_core$parse_f64_slow (string,bool) -> f64
         br $L3
       end $L4
     end $L3
-    local.field 2 16 1   ; p std_core$SlowParts.e
+    local.field 2 17 1   ; p std_core$SlowParts.e
     ref.cast 3   ; i32
     local.set 5   ; b_exp
   else
-    local.field 2 16 1   ; p std_core$SlowParts.e
+    local.field 2 17 1   ; p std_core$SlowParts.e
     ref.cast 3   ; i32
     i32.checked_neg
     local.tee 7   ; _k
@@ -1782,9 +1560,9 @@ fn 15 std_core$parse_f64_slow (string,bool) -> f64
     i32.const 64
     i32.checked_add
     local.set 8   ; __for_hi_0
-    local.field 2 16 0   ; p std_core$SlowParts.d
+    local.field 2 17 0   ; p std_core$SlowParts.d
     local.get 8   ; __for_hi_0
-    call 21   ; std_core$shl
+    call 19   ; std_core$shl
     local.set 4   ; m
     i32.const 0
     local.set 9   ; _k
@@ -1795,12 +1573,12 @@ fn 15 std_core$parse_f64_slow (string,bool) -> f64
       if $L6 void
         local.get 4   ; m
         i32.const 5
-        call 31   ; std_core$BigInt$Div$div
+        call 29   ; std_core$BigInt$Div$div
         local.set 10   ; __tup_1
         local.field 10 19 0   ; __tup_1 __Tuple_Array_u32_u32_6fc96a7e._0
         local.set 4   ; m
         local.field 10 19 1   ; __tup_1 __Tuple_Array_u32_u32_6fc96a7e._1
-        ref.cast 18   ; u32
+        ref.cast 16   ; u32
         i32.const 0
         i32.ne
         if $L7 void
@@ -1814,14 +1592,14 @@ fn 15 std_core$parse_f64_slow (string,bool) -> f64
         br $L5
       end $L6
     end $L5
-    local.field 2 16 1   ; p std_core$SlowParts.e
+    local.field 2 17 1   ; p std_core$SlowParts.e
     ref.cast 3   ; i32
     local.get 8   ; __for_hi_0
     i32.checked_sub
     local.set 5   ; b_exp
   end $L2
   local.get 4   ; m
-  call 22   ; std_core$bit_len
+  call 20   ; std_core$bit_len
   local.tee 7   ; _k
   i32.const 1
   i32.checked_sub
@@ -1853,7 +1631,7 @@ fn 15 std_core$parse_f64_slow (string,bool) -> f64
     local.get 4   ; m
     local.get 9   ; _k
     local.get 6   ; sticky
-    call 23   ; std_core$sd_round_at
+    call 21   ; std_core$sd_round_at
     local.set 12   ; $shl_86
     local.get 3   ; sign
     local.get 12   ; $shl_86
@@ -1872,7 +1650,7 @@ fn 15 std_core$parse_f64_slow (string,bool) -> f64
   local.get 4   ; m
   local.get 7   ; _k
   local.get 6   ; sticky
-  call 23   ; std_core$sd_round_at
+  call 21   ; std_core$sd_round_at
   local.set 11   ; $shl_71
   i64.const 1
   i64.const 53
@@ -1932,7 +1710,43 @@ fn 15 std_core$parse_f64_slow (string,bool) -> f64
   return
 end
 
-fn 16 std_core$pf_is_digit (u8) -> bool
+fn 13 std_core$scalar_or_replacement (u32) -> u32
+  local and_res bool
+  local.get 0   ; arg 0
+  i32.const 55296
+  u32.ge
+  if $L0 void
+    local.get 0   ; arg 0
+    i32.const 57343
+    u32.le
+    local.set 1   ; and_res
+  else
+    bool.const false
+    local.set 1   ; and_res
+  end $L0
+  local.get 1   ; and_res
+  if $L1 void
+    bool.const true
+    local.set 1   ; and_res
+  else
+    local.get 0   ; arg 0
+    i32.const 1114111
+    u32.gt
+    local.set 1   ; and_res
+  end $L1
+  local.get 1   ; and_res
+  if $L2 void
+  else
+    local.get 0   ; arg 0
+    return
+  end $L2
+  i32.const 65533
+  i32.to_char
+  char.to_i32
+  return
+end
+
+fn 14 std_core$pf_is_digit (u8) -> bool
   local.get 0   ; arg 0
   i32.const 48
   u32.ge
@@ -1945,7 +1759,7 @@ fn 16 std_core$pf_is_digit (u8) -> bool
   return.lit bool.const false
 end
 
-fn 17 std_core$pf_clz64 (u64) -> i32
+fn 15 std_core$pf_clz64 (u64) -> i32
   local n i32
   local v u64
   i32.const 0
@@ -1974,7 +1788,7 @@ fn 17 std_core$pf_clz64 (u64) -> i32
   return
 end
 
-fn 18 std_core$pf_product (i32,u64) -> (u64,u64)
+fn 16 std_core$pf_product (i32,u64) -> (u64,u64)
   local $sub_checked_4 i32
   local idx usize
   local $idx_9 u64
@@ -1996,7 +1810,7 @@ fn 18 std_core$pf_product (i32,u64) -> (u64,u64)
   local.set 4   ; $idx_9
   local.get 1   ; arg 1
   local.get 4   ; $idx_9
-  call 24   ; std_core$umul128
+  call 22   ; std_core$umul128
   local.set 5   ; lo
   local.set 4   ; $idx_9
   local.get 4   ; $idx_9
@@ -2017,7 +1831,7 @@ fn 18 std_core$pf_product (i32,u64) -> (u64,u64)
     local.set 7   ; $idx_25
     local.get 1   ; arg 1
     local.get 7   ; $idx_25
-    call 24   ; std_core$umul128
+    call 22   ; std_core$umul128
     drop
     local.set 7   ; $idx_25
     local.get 5   ; lo
@@ -2042,7 +1856,7 @@ fn 18 std_core$pf_product (i32,u64) -> (u64,u64)
   return
 end
 
-fn 19 std_core$sd_scan (string) -> ref
+fn 17 std_core$sd_scan (string) -> ref
   local n usize
   local i usize
   local or_res bool
@@ -2081,7 +1895,7 @@ fn 19 std_core$sd_scan (string) -> ref
     local.set 2   ; i
   end $L1
   i32.const 0
-  array.new 17 1   ; u32[]
+  array.new 18 1   ; u32[]
   local.set 4   ; d
   i32.const 0
   local.set 5   ; e
@@ -2096,7 +1910,7 @@ fn 19 std_core$sd_scan (string) -> ref
         local.get 0   ; arg 0
         local.get 2   ; i
         call.import 1   ; std_core$byte_at
-        call 16   ; std_core$pf_is_digit
+        call 14   ; std_core$pf_is_digit
         if $L5 void
         else
           br $L2
@@ -2125,7 +1939,7 @@ fn 19 std_core$sd_scan (string) -> ref
           local.get 4   ; d
           i32.const 10
           local.get 8   ; $cast_35
-          call 25   ; std_core$mul_add_small
+          call 23   ; std_core$mul_add_small
           local.set 4   ; d
           bool.const true
           local.set 3   ; or_res
@@ -2161,7 +1975,7 @@ fn 19 std_core$sd_scan (string) -> ref
             local.get 0   ; arg 0
             local.get 2   ; i
             call.import 1   ; std_core$byte_at
-            call 16   ; std_core$pf_is_digit
+            call 14   ; std_core$pf_is_digit
             if $L13 void
             else
               br $L10
@@ -2190,7 +2004,7 @@ fn 19 std_core$sd_scan (string) -> ref
               local.get 4   ; d
               i32.const 10
               local.get 8   ; $cast_35
-              call 25   ; std_core$mul_add_small
+              call 23   ; std_core$mul_add_small
               local.set 4   ; d
               bool.const true
               local.set 3   ; or_res
@@ -2294,7 +2108,7 @@ fn 19 std_core$sd_scan (string) -> ref
           local.get 0   ; arg 0
           local.get 2   ; i
           call.import 1   ; std_core$byte_at
-          call 16   ; std_core$pf_is_digit
+          call 14   ; std_core$pf_is_digit
           if $L26 void
           else
             br $L23
@@ -2341,16 +2155,16 @@ fn 19 std_core$sd_scan (string) -> ref
     end $L28
     local.get 4   ; d
     local.get 5   ; e
-    struct.new 16   ; std_core$SlowParts
+    struct.new 17   ; std_core$SlowParts
     return
   end $L18
   local.get 4   ; d
   local.get 5   ; e
-  struct.new 16   ; std_core$SlowParts
+  struct.new 17   ; std_core$SlowParts
   return
 end
 
-fn 20 std_core$is_zero (ref) -> bool
+fn 18 std_core$is_zero (ref) -> bool
   local i usize
   local __for_hi_0 usize
   i64.const 0
@@ -2365,8 +2179,8 @@ fn 20 std_core$is_zero (ref) -> bool
     if $L1 void
       local.get 0   ; arg 0
       local.get 1   ; i
-      array.get 17   ; u32[]
-      ref.cast 18   ; u32
+      array.get 18   ; u32[]
+      ref.cast 16   ; u32
       i32.const 0
       i32.ne
       if $L2 void
@@ -2382,7 +2196,7 @@ fn 20 std_core$is_zero (ref) -> bool
   return.lit bool.const true
 end
 
-fn 21 std_core$shl (ref,i32) -> ref
+fn 19 std_core$shl (ref,i32) -> ref
   local out ref
   local __for_discard_0 usize
   local __for_hi_1 usize
@@ -2394,7 +2208,7 @@ fn 21 std_core$shl (ref,i32) -> ref
   local $cast_38 u64
   local v u64
   local $cast_43 u32
-  array.new 17 0   ; u32[]
+  array.new 18 0   ; u32[]
   local.set 2   ; out
   i64.const 0
   local.set 3   ; __for_discard_0
@@ -2410,7 +2224,7 @@ fn 21 std_core$shl (ref,i32) -> ref
     if $L1 void
       local.get 2   ; out
       i32.const 0
-      array.push 18 2   ; u32 out
+      array.push 16 2   ; u32 out
       local.get 3   ; __for_discard_0
       i64.const 1
       i64.add
@@ -2437,12 +2251,12 @@ fn 21 std_core$shl (ref,i32) -> ref
       if $L4 void
         local.get 0   ; arg 0
         local.get 3   ; __for_discard_0
-        array.get 17   ; u32[]
-        ref.cast 18   ; u32
+        array.get 18   ; u32[]
+        ref.cast 16   ; u32
         local.set 6   ; $idx_24
         local.get 2   ; out
         local.get 6   ; $idx_24
-        array.push 18 2   ; u32 out
+        array.push 16 2   ; u32 out
         local.get 3   ; __for_discard_0
         i64.const 1
         i64.add
@@ -2467,8 +2281,8 @@ fn 21 std_core$shl (ref,i32) -> ref
     if $L6 void
       local.get 0   ; arg 0
       local.get 3   ; __for_discard_0
-      array.get 17   ; u32[]
-      ref.cast 18   ; u32
+      array.get 18   ; u32[]
+      ref.cast 16   ; u32
       u32.to_i64
       local.set 7   ; $cast_35
       local.get 5   ; bit_shift
@@ -2491,7 +2305,7 @@ fn 21 std_core$shl (ref,i32) -> ref
       local.set 12   ; $cast_43
       local.get 2   ; out
       local.get 12   ; $cast_43
-      array.push 18   ; u32
+      array.push 16   ; u32
       local.get 11   ; v
       i64.const 32
       u64.shr
@@ -2510,7 +2324,7 @@ fn 21 std_core$shl (ref,i32) -> ref
   if $L7 void
     local.get 2   ; out
     local.get 6   ; $idx_24
-    array.push 18   ; u32
+    array.push 16   ; u32
     local.get 2   ; out
     return
   end $L7
@@ -2518,7 +2332,7 @@ fn 21 std_core$shl (ref,i32) -> ref
   return
 end
 
-fn 22 std_core$bit_len (ref) -> i32
+fn 20 std_core$bit_len (ref) -> i32
   local i i32
   local $cast_8 usize
   local $mul_checked_13 i32
@@ -2541,8 +2355,8 @@ fn 22 std_core$bit_len (ref) -> i32
       local.set 2   ; $cast_8
       local.get 0   ; arg 0
       local.get 2   ; $cast_8
-      array.get 17   ; u32[]
-      ref.cast 18   ; u32
+      array.get 18   ; u32[]
+      ref.cast 16   ; u32
       i32.const 0
       i32.ne
       if $L2 void
@@ -2555,9 +2369,9 @@ fn 22 std_core$bit_len (ref) -> i32
         local.set 4   ; $cast_15
         local.get 0   ; arg 0
         local.get 4   ; $cast_15
-        array.get 17   ; u32[]
-        ref.cast 18   ; u32
-        call 26   ; std_core$clz32
+        array.get 18   ; u32[]
+        ref.cast 16   ; u32
+        call 24   ; std_core$clz32
         local.set 5   ; $call_17
         i32.const 32
         local.get 5   ; $call_17
@@ -2578,7 +2392,7 @@ fn 22 std_core$bit_len (ref) -> i32
   return.lit i32.const 0
 end
 
-fn 23 std_core$sd_round_at (ref,i32,bool) -> u64
+fn 21 std_core$sd_round_at (ref,i32,bool) -> u64
   local $call_6 u64
   local $cast_8 u64
   local $sub_checked_13 i32
@@ -2590,7 +2404,7 @@ fn 23 std_core$sd_round_at (ref,i32,bool) -> u64
   if $L0 void
     local.get 0   ; arg 0
     i32.const 0
-    call 27   ; std_core$bits64
+    call 25   ; std_core$bits64
     local.set 3   ; $call_6
     local.get 1   ; arg 1
     i32.checked_neg
@@ -2603,7 +2417,7 @@ fn 23 std_core$sd_round_at (ref,i32,bool) -> u64
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 27   ; std_core$bits64
+  call 25   ; std_core$bits64
   local.set 3   ; $call_6
   local.get 1   ; arg 1
   i32.const 1
@@ -2611,7 +2425,7 @@ fn 23 std_core$sd_round_at (ref,i32,bool) -> u64
   local.set 5   ; $sub_checked_13
   local.get 0   ; arg 0
   local.get 5   ; $sub_checked_13
-  call 27   ; std_core$bits64
+  call 25   ; std_core$bits64
   i64.const 1
   i64.bitand
   i64.const 1
@@ -2628,7 +2442,7 @@ fn 23 std_core$sd_round_at (ref,i32,bool) -> u64
     local.set 5   ; $sub_checked_13
     local.get 0   ; arg 0
     local.get 5   ; $sub_checked_13
-    call 28   ; std_core$any_below
+    call 26   ; std_core$any_below
     local.set 7   ; sticky
   end $L1
   local.get 6   ; round_bit
@@ -2663,7 +2477,7 @@ fn 23 std_core$sd_round_at (ref,i32,bool) -> u64
   return
 end
 
-fn 24 std_core$umul128 (u64,u64) -> (u64,u64)
+fn 22 std_core$umul128 (u64,u64) -> (u64,u64)
   local a_lo u64
   local a_hi u64
   local b_lo u64
@@ -2751,7 +2565,7 @@ fn 24 std_core$umul128 (u64,u64) -> (u64,u64)
   return
 end
 
-fn 25 std_core$mul_add_small (ref,u32,u32) -> ref
+fn 23 std_core$mul_add_small (ref,u32,u32) -> ref
   local $arr_3 ref
   local $len_4 usize
   local carry u64
@@ -2760,7 +2574,7 @@ fn 25 std_core$mul_add_small (ref,u32,u32) -> ref
   local $cast_16 u64
   local v u64
   local $cast_22 u32
-  array.new 17 0   ; u32[]
+  array.new 18 0   ; u32[]
   local.set 3   ; $arr_3
   local.get 0   ; arg 0
   array.len
@@ -2784,8 +2598,8 @@ fn 25 std_core$mul_add_small (ref,u32,u32) -> ref
     if $L1 void
       local.get 0   ; arg 0
       local.get 4   ; $len_4
-      array.get 17   ; u32[]
-      ref.cast 18   ; u32
+      array.get 18   ; u32[]
+      ref.cast 16   ; u32
       u32.to_i64
       local.set 7   ; $cast_15
       local.get 1   ; arg 1
@@ -2803,7 +2617,7 @@ fn 25 std_core$mul_add_small (ref,u32,u32) -> ref
       local.set 10   ; $cast_22
       local.get 3   ; $arr_3
       local.get 10   ; $cast_22
-      array.push 18 3   ; u32 $arr_3
+      array.push 16 3   ; u32 $arr_3
       local.get 9   ; v
       i64.const 32
       u64.shr
@@ -2827,7 +2641,7 @@ fn 25 std_core$mul_add_small (ref,u32,u32) -> ref
       local.set 10   ; $cast_22
       local.get 3   ; $arr_3
       local.get 10   ; $cast_22
-      array.push 18 3   ; u32 $arr_3
+      array.push 16 3   ; u32 $arr_3
       local.get 5   ; carry
       i64.const 32
       u64.shr
@@ -2839,7 +2653,7 @@ fn 25 std_core$mul_add_small (ref,u32,u32) -> ref
   return
 end
 
-fn 26 std_core$clz32 (u32) -> i32
+fn 24 std_core$clz32 (u32) -> i32
   local n i32
   local v u32
   i32.const 0
@@ -2868,7 +2682,7 @@ fn 26 std_core$clz32 (u32) -> i32
   return
 end
 
-fn 27 std_core$bits64 (ref,i32) -> u64
+fn 25 std_core$bits64 (ref,i32) -> u64
   local base usize
   local sh i32
   local w0 u64
@@ -2888,7 +2702,7 @@ fn 27 std_core$bits64 (ref,i32) -> u64
   local.set 3   ; sh
   local.get 0   ; arg 0
   local.get 2   ; base
-  call 29   ; std_core$limb
+  call 27   ; std_core$limb
   local.set 4   ; w0
   local.get 2   ; base
   i64.const 1
@@ -2896,7 +2710,7 @@ fn 27 std_core$bits64 (ref,i32) -> u64
   local.set 5   ; $add_checked_12
   local.get 0   ; arg 0
   local.get 5   ; $add_checked_12
-  call 29   ; std_core$limb
+  call 27   ; std_core$limb
   local.set 6   ; w1
   local.get 3   ; sh
   i32.const 0
@@ -2909,7 +2723,7 @@ fn 27 std_core$bits64 (ref,i32) -> u64
     local.set 2   ; base
     local.get 0   ; arg 0
     local.get 2   ; base
-    call 29   ; std_core$limb
+    call 27   ; std_core$limb
     local.set 7   ; w2
     local.get 3   ; sh
     i32.to_i64
@@ -2955,7 +2769,7 @@ fn 27 std_core$bits64 (ref,i32) -> u64
   return
 end
 
-fn 28 std_core$any_below (ref,i32) -> bool
+fn 26 std_core$any_below (ref,i32) -> bool
   local whole i32
   local bit i32
   local i usize
@@ -2981,8 +2795,8 @@ fn 28 std_core$any_below (ref,i32) -> bool
     if $L1 void
       local.get 0   ; arg 0
       local.get 4   ; i
-      array.get 17   ; u32[]
-      ref.cast 18   ; u32
+      array.get 18   ; u32[]
+      ref.cast 16   ; u32
       i32.const 0
       i32.ne
       if $L2 void
@@ -3023,8 +2837,8 @@ fn 28 std_core$any_below (ref,i32) -> bool
       local.set 4   ; i
       local.get 0   ; arg 0
       local.get 4   ; i
-      array.get 17   ; u32[]
-      ref.cast 18   ; u32
+      array.get 18   ; u32[]
+      ref.cast 16   ; u32
       local.get 6   ; $cast_26
       i32.bitand
       i32.const 0
@@ -3039,7 +2853,7 @@ fn 28 std_core$any_below (ref,i32) -> bool
   return.lit bool.const false
 end
 
-fn 29 std_core$limb (ref,usize) -> u64
+fn 27 std_core$limb (ref,usize) -> u64
   local $len_3 usize
   local.get 0   ; arg 0
   array.len
@@ -3050,23 +2864,23 @@ fn 29 std_core$limb (ref,usize) -> u64
   if $L0 void
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    array.get 17   ; u32[]
-    ref.cast 18   ; u32
+    array.get 18   ; u32[]
+    ref.cast 16   ; u32
     u32.to_i64
     return
   end $L0
   return.lit i64.const 0
 end
 
-fn 30 std_core$BigInt$Mul$mul (ref,u32) -> ref
+fn 28 std_core$BigInt$Mul$mul (ref,u32) -> ref
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i32.const 0
-  call 25   ; std_core$mul_add_small
+  call 23   ; std_core$mul_add_small
   return
 end
 
-fn 31 std_core$BigInt$Div$div (ref,u32) -> ref
+fn 29 std_core$BigInt$Div$div (ref,u32) -> ref
   local msb ref
   local rem u64
   local i i32
@@ -3078,7 +2892,7 @@ fn 31 std_core$BigInt$Div$div (ref,u32) -> ref
   local $cast_22 u32
   local $cast_23 u64
   local out ref
-  array.new 17 0   ; u32[]
+  array.new 18 0   ; u32[]
   local.set 2   ; msb
   i64.const 0
   local.set 3   ; rem
@@ -3102,8 +2916,8 @@ fn 31 std_core$BigInt$Div$div (ref,u32) -> ref
       local.set 6   ; $cast_15
       local.get 0   ; arg 0
       local.get 6   ; $cast_15
-      array.get 17   ; u32[]
-      ref.cast 18   ; u32
+      array.get 18   ; u32[]
+      ref.cast 16   ; u32
       u32.to_i64
       local.set 7   ; $cast_17
       local.get 5   ; $shl_14
@@ -3120,7 +2934,7 @@ fn 31 std_core$BigInt$Div$div (ref,u32) -> ref
       local.set 10   ; $cast_22
       local.get 2   ; msb
       local.get 10   ; $cast_22
-      array.push 18 2   ; u32 msb
+      array.push 16 2   ; u32 msb
       local.get 1   ; arg 1
       u32.to_i64
       local.set 11   ; $cast_23
@@ -3135,7 +2949,7 @@ fn 31 std_core$BigInt$Div$div (ref,u32) -> ref
       br $L0
     end $L1
   end $L0
-  array.new 17 0   ; u32[]
+  array.new 18 0   ; u32[]
   local.set 12   ; out
   local.get 2   ; msb
   array.len
@@ -3153,12 +2967,12 @@ fn 31 std_core$BigInt$Div$div (ref,u32) -> ref
       local.set 6   ; $cast_15
       local.get 2   ; msb
       local.get 6   ; $cast_15
-      array.get 17   ; u32[]
-      ref.cast 18   ; u32
+      array.get 18   ; u32[]
+      ref.cast 16   ; u32
       local.set 10   ; $cast_22
       local.get 12   ; out
       local.get 10   ; $cast_22
-      array.push 18 12   ; u32 out
+      array.push 16 12   ; u32 out
       local.get 4   ; i
       i32.const 1
       i32.checked_sub
@@ -3175,13 +2989,13 @@ fn 31 std_core$BigInt$Div$div (ref,u32) -> ref
   return
 end
 
-fn 32 std_core$f64$Display$to_string (f64) -> string
+fn 30 std_core$f64$Display$to_string (f64) -> string
   local.get 0   ; arg 0
-  call 33   ; std_core$format_f64
+  call 31   ; std_core$format_f64
   return
 end
 
-fn 33 std_core$format_f64 (f64) -> string
+fn 31 std_core$format_f64 (f64) -> string
   local bits u64
   local sign bool
   local mantissa u64
@@ -3237,7 +3051,7 @@ fn 33 std_core$format_f64 (f64) -> string
   end $L3
   local.get 3   ; mantissa
   local.get 1   ; bits
-  call 34   ; std_core$d2d
+  call 32   ; std_core$d2d
   local.set 4   ; d
   local.field 4 20 0   ; d std_core$Dec64.mantissa
   ref.cast 4   ; u64
@@ -3248,11 +3062,11 @@ fn 33 std_core$format_f64 (f64) -> string
   local.get 1   ; bits
   local.get 5   ; $field_34
   local.get 2   ; sign
-  call 35   ; std_core$render
+  call 33   ; std_core$render
   return
 end
 
-fn 34 std_core$d2d (u64,u64) -> ref
+fn 32 std_core$d2d (u64,u64) -> ref
   local e2 i32
   local m2 u64
   local accept_bounds bool
@@ -3332,7 +3146,7 @@ fn 34 std_core$d2d (u64,u64) -> ref
     local.set 6   ; or_res
   end $L1
   local.get 6   ; or_res
-  call 36   ; std_core$b2u
+  call 34   ; std_core$b2u
   local.set 7   ; mm_shift
   i64.const 0
   local.set 8   ; vr
@@ -3351,12 +3165,12 @@ fn 34 std_core$d2d (u64,u64) -> ref
   i32.ge
   if $L2 void
     local.get 2   ; e2
-    call 37   ; std_core$log10_pow2
+    call 35   ; std_core$log10_pow2
     local.set 13   ; $call_57
     local.get 2   ; e2
     i32.const 3
     i32.gt
-    call 38   ; std_core$b2i
+    call 36   ; std_core$b2i
     local.set 14   ; $call_60
     local.get 13   ; $call_57
     local.get 14   ; $call_60
@@ -3364,7 +3178,7 @@ fn 34 std_core$d2d (u64,u64) -> ref
     local.tee 13   ; $call_57
     local.set 11   ; e10
     local.get 13   ; $call_57
-    call 39   ; std_core$pow5bits
+    call 37   ; std_core$pow5bits
     local.set 14   ; $call_60
     i32.const 125
     local.get 14   ; $call_60
@@ -3405,7 +3219,7 @@ fn 34 std_core$d2d (u64,u64) -> ref
     local.get 18   ; hi
     local.get 14   ; $call_60
     local.get 7   ; mm_shift
-    call 40   ; std_core$mul_shift_all_64
+    call 38   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
     local.field 17 21 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
     ref.cast 4   ; u64
@@ -3434,7 +3248,7 @@ fn 34 std_core$d2d (u64,u64) -> ref
       if $L4 void
         local.get 5   ; mv
         local.get 13   ; $call_57
-        call 41   ; std_core$multiple_of_power_of_5
+        call 39   ; std_core$multiple_of_power_of_5
         local.set 12   ; vr_is_tz
       else
         local.get 4   ; accept_bounds
@@ -3445,15 +3259,15 @@ fn 34 std_core$d2d (u64,u64) -> ref
           local.get 7   ; mm_shift
           u64.checked_sub
           local.get 13   ; $call_57
-          call 41   ; std_core$multiple_of_power_of_5
+          call 39   ; std_core$multiple_of_power_of_5
           local.set 6   ; or_res
         else
           local.get 5   ; mv
           i64.const 2
           u64.checked_add
           local.get 13   ; $call_57
-          call 41   ; std_core$multiple_of_power_of_5
-          call 36   ; std_core$b2u
+          call 39   ; std_core$multiple_of_power_of_5
+          call 34   ; std_core$b2u
           local.set 16   ; lo
           local.get 9   ; vp
           local.get 16   ; lo
@@ -3465,13 +3279,13 @@ fn 34 std_core$d2d (u64,u64) -> ref
   else
     local.get 2   ; e2
     i32.checked_neg
-    call 42   ; std_core$log10_pow5
+    call 40   ; std_core$log10_pow5
     local.set 13   ; $call_57
     local.get 2   ; e2
     i32.checked_neg
     i32.const 1
     i32.gt
-    call 38   ; std_core$b2i
+    call 36   ; std_core$b2i
     local.set 14   ; $call_60
     local.get 13   ; $call_57
     local.get 14   ; $call_60
@@ -3485,7 +3299,7 @@ fn 34 std_core$d2d (u64,u64) -> ref
     local.get 13   ; $call_57
     i32.checked_sub
     local.tee 2   ; e2
-    call 39   ; std_core$pow5bits
+    call 37   ; std_core$pow5bits
     i32.const 125
     i32.checked_sub
     local.set 14   ; $call_60
@@ -3519,7 +3333,7 @@ fn 34 std_core$d2d (u64,u64) -> ref
     local.get 18   ; hi
     local.get 14   ; $call_60
     local.get 7   ; mm_shift
-    call 40   ; std_core$mul_shift_all_64
+    call 38   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
     local.field 17 21 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
     ref.cast 4   ; u64
@@ -3555,7 +3369,7 @@ fn 34 std_core$d2d (u64,u64) -> ref
       if $L8 void
         local.get 5   ; mv
         local.get 13   ; $call_57
-        call 43   ; std_core$multiple_of_power_of_2
+        call 41   ; std_core$multiple_of_power_of_2
         local.set 12   ; vr_is_tz
       end $L8
     end $L6
@@ -3756,7 +3570,7 @@ fn 34 std_core$d2d (u64,u64) -> ref
       local.set 4   ; accept_bounds
     end $L24
     local.get 4   ; accept_bounds
-    call 36   ; std_core$b2u
+    call 34   ; std_core$b2u
     local.set 3   ; m2
     local.get 8   ; vr
     local.get 3   ; m2
@@ -3860,7 +3674,7 @@ fn 34 std_core$d2d (u64,u64) -> ref
     local.set 6   ; or_res
   end $L28
   local.get 6   ; or_res
-  call 36   ; std_core$b2u
+  call 34   ; std_core$b2u
   local.set 3   ; m2
   local.get 8   ; vr
   local.get 3   ; m2
@@ -3876,7 +3690,7 @@ fn 34 std_core$d2d (u64,u64) -> ref
   return
 end
 
-fn 35 std_core$render (u64,i32,bool) -> string
+fn 33 std_core$render (u64,i32,bool) -> string
   local mantissa u64
   local exp i32
   local buf ref
@@ -3921,7 +3735,7 @@ fn 35 std_core$render (u64,i32,bool) -> string
     local.get 6   ; off
     local.get 3   ; mantissa
     local.get 4   ; exp
-    call 44   ; std_core$write_decimal
+    call 42   ; std_core$write_decimal
     local.set 7   ; $call_21
     local.get 5   ; buf
     local.get 7   ; $call_21
@@ -3932,7 +3746,7 @@ fn 35 std_core$render (u64,i32,bool) -> string
   local.get 6   ; off
   local.get 3   ; mantissa
   local.get 4   ; exp
-  call 44   ; std_core$write_decimal
+  call 42   ; std_core$write_decimal
   local.set 7   ; $call_21
   local.get 5   ; buf
   local.get 7   ; $call_21
@@ -3940,7 +3754,7 @@ fn 35 std_core$render (u64,i32,bool) -> string
   return
 end
 
-fn 36 std_core$b2u (bool) -> u64
+fn 34 std_core$b2u (bool) -> u64
   local.get 0   ; arg 0
   if $L0 void
     return.lit i64.const 1
@@ -3948,7 +3762,7 @@ fn 36 std_core$b2u (bool) -> u64
   return.lit i64.const 0
 end
 
-fn 37 std_core$log10_pow2 (i32) -> i32
+fn 35 std_core$log10_pow2 (i32) -> i32
   local.get 0   ; arg 0
   i32.to_i64
   i64.const 78913
@@ -3959,7 +3773,7 @@ fn 37 std_core$log10_pow2 (i32) -> i32
   return
 end
 
-fn 38 std_core$b2i (bool) -> i32
+fn 36 std_core$b2i (bool) -> i32
   local.get 0   ; arg 0
   if $L0 void
     return.lit i32.const 1
@@ -3967,7 +3781,7 @@ fn 38 std_core$b2i (bool) -> i32
   return.lit i32.const 0
 end
 
-fn 39 std_core$pow5bits (i32) -> i32
+fn 37 std_core$pow5bits (i32) -> i32
   local.get 0   ; arg 0
   i32.to_i64
   i64.const 1217359
@@ -3980,7 +3794,7 @@ fn 39 std_core$pow5bits (i32) -> i32
   return
 end
 
-fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
+fn 38 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local m u64
   local tmp u64
   local lo u64
@@ -3995,12 +3809,12 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   i64.shl
   local.tee 5   ; m
   local.get 1   ; arg 1
-  call 24   ; std_core$umul128
+  call 22   ; std_core$umul128
   local.set 7   ; lo
   local.set 6   ; tmp
   local.get 5   ; m
   local.get 2   ; arg 2
-  call 24   ; std_core$umul128
+  call 22   ; std_core$umul128
   local.set 8   ; lo1
   local.set 5   ; m
   local.get 6   ; tmp
@@ -4009,7 +3823,7 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.tee 8   ; lo1
   local.get 6   ; tmp
   u64.lt
-  call 36   ; std_core$b2u
+  call 34   ; std_core$b2u
   local.set 6   ; tmp
   local.get 5   ; m
   local.get 6   ; tmp
@@ -4026,7 +3840,7 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.get 6   ; tmp
   local.get 7   ; lo
   u64.lt
-  call 36   ; std_core$b2u
+  call 34   ; std_core$b2u
   local.set 6   ; tmp
   local.get 9   ; $add_28
   local.get 6   ; tmp
@@ -4034,7 +3848,7 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.tee 6   ; tmp
   local.get 8   ; lo1
   u64.lt
-  call 36   ; std_core$b2u
+  call 34   ; std_core$b2u
   local.set 9   ; $add_28
   local.get 5   ; m
   local.get 9   ; $add_28
@@ -4050,7 +3864,7 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.get 6   ; tmp
   local.get 9   ; $add_28
   local.get 10   ; $cast_41
-  call 45   ; std_core$shiftright128
+  call 43   ; std_core$shiftright128
   local.set 6   ; tmp
   i64.const 0
   local.set 9   ; $add_28
@@ -4069,7 +3883,7 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 10   ; $cast_41
     local.get 7   ; lo
     u64.gt
-    call 36   ; std_core$b2u
+    call 34   ; std_core$b2u
     local.set 10   ; $cast_41
     local.get 11   ; $sub_50
     local.get 10   ; $cast_41
@@ -4077,7 +3891,7 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.tee 10   ; $cast_41
     local.get 8   ; lo1
     u64.gt
-    call 36   ; std_core$b2u
+    call 34   ; std_core$b2u
     local.set 11   ; $sub_50
     local.get 5   ; m
     local.get 11   ; $sub_50
@@ -4093,7 +3907,7 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 10   ; $cast_41
     local.get 11   ; $sub_50
     local.get 12   ; $cast_63
-    call 45   ; std_core$shiftright128
+    call 43   ; std_core$shiftright128
     local.set 9   ; $add_28
   else
     local.get 7   ; lo
@@ -4107,7 +3921,7 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 10   ; $cast_41
     local.get 7   ; lo
     u64.lt
-    call 36   ; std_core$b2u
+    call 34   ; std_core$b2u
     local.set 7   ; lo
     local.get 11   ; $sub_50
     local.get 7   ; lo
@@ -4120,7 +3934,7 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 7   ; lo
     local.get 8   ; lo1
     u64.lt
-    call 36   ; std_core$b2u
+    call 34   ; std_core$b2u
     local.set 12   ; $cast_63
     local.get 11   ; $sub_50
     local.get 12   ; $cast_63
@@ -4137,7 +3951,7 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 12   ; $cast_63
     local.get 10   ; $cast_41
     u64.gt
-    call 36   ; std_core$b2u
+    call 34   ; std_core$b2u
     local.set 10   ; $cast_41
     local.get 13   ; $sub_79
     local.get 10   ; $cast_41
@@ -4145,7 +3959,7 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.tee 10   ; $cast_41
     local.get 7   ; lo
     u64.gt
-    call 36   ; std_core$b2u
+    call 34   ; std_core$b2u
     local.set 7   ; lo
     local.get 11   ; $sub_50
     local.get 7   ; lo
@@ -4159,7 +3973,7 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 10   ; $cast_41
     local.get 7   ; lo
     local.get 11   ; $sub_50
-    call 45   ; std_core$shiftright128
+    call 43   ; std_core$shiftright128
     local.set 9   ; $add_28
   end $L0
   local.get 3   ; arg 3
@@ -4172,22 +3986,22 @@ fn 40 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.get 8   ; lo1
   local.get 5   ; m
   local.get 7   ; lo
-  call 45   ; std_core$shiftright128
+  call 43   ; std_core$shiftright128
   local.get 6   ; tmp
   local.get 9   ; $add_28
   struct.new 21   ; __Tuple_u64_u64_u64_2d035edd
   return
 end
 
-fn 41 std_core$multiple_of_power_of_5 (u64,i32) -> bool
+fn 39 std_core$multiple_of_power_of_5 (u64,i32) -> bool
   local.get 0   ; arg 0
-  call 46   ; std_core$pow5_factor
+  call 44   ; std_core$pow5_factor
   local.get 1   ; arg 1
   i32.ge
   return
 end
 
-fn 42 std_core$log10_pow5 (i32) -> i32
+fn 40 std_core$log10_pow5 (i32) -> i32
   local.get 0   ; arg 0
   i32.to_i64
   i64.const 732923
@@ -4198,7 +4012,7 @@ fn 42 std_core$log10_pow5 (i32) -> i32
   return
 end
 
-fn 43 std_core$multiple_of_power_of_2 (u64,i32) -> bool
+fn 41 std_core$multiple_of_power_of_2 (u64,i32) -> bool
   local $cast_3 u64
   local.get 1   ; arg 1
   i32.to_i64
@@ -4217,7 +4031,7 @@ fn 43 std_core$multiple_of_power_of_2 (u64,i32) -> bool
   return
 end
 
-fn 44 std_core$write_decimal (ref,usize,u64,i32) -> usize
+fn 42 std_core$write_decimal (ref,usize,u64,i32) -> usize
   local k i32
   local n i32
   local $add_checked_14 usize
@@ -4227,7 +4041,7 @@ fn 44 std_core$write_decimal (ref,usize,u64,i32) -> usize
   local if_res u8
   local $cast_62 u64
   local.get 2   ; arg 2
-  call 47   ; std_core$decimal_width
+  call 45   ; std_core$decimal_width
   local.set 4   ; k
   local.get 3   ; arg 3
   local.get 4   ; k
@@ -4263,13 +4077,13 @@ fn 44 std_core$write_decimal (ref,usize,u64,i32) -> usize
       local.get 0   ; arg 0
       local.get 6   ; $add_checked_14
       local.get 7   ; $unop_18
-      call 49   ; std_core$write_zeros
+      call 47   ; std_core$write_zeros
       local.set 6   ; $add_checked_14
       local.get 0   ; arg 0
       local.get 6   ; $add_checked_14
       local.get 2   ; arg 2
       local.get 4   ; k
-      call 48   ; std_core$write_digits
+      call 46   ; std_core$write_digits
       return
     end $L1
   end $L0
@@ -4277,7 +4091,7 @@ fn 44 std_core$write_decimal (ref,usize,u64,i32) -> usize
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   local.get 4   ; k
-  call 48   ; std_core$write_digits
+  call 46   ; std_core$write_digits
   local.set 6   ; $add_checked_14
   local.get 4   ; k
   local.get 5   ; n
@@ -4294,7 +4108,7 @@ fn 44 std_core$write_decimal (ref,usize,u64,i32) -> usize
       local.get 0   ; arg 0
       local.get 6   ; $add_checked_14
       local.get 7   ; $unop_18
-      call 49   ; std_core$write_zeros
+      call 47   ; std_core$write_zeros
       local.set 8   ; zeroed
       local.get 0   ; arg 0
       local.get 8   ; zeroed
@@ -4326,7 +4140,7 @@ fn 44 std_core$write_decimal (ref,usize,u64,i32) -> usize
       local.get 1   ; arg 1
       local.get 4   ; k
       local.get 5   ; n
-      call 50   ; std_core$insert_point
+      call 48   ; std_core$insert_point
       return
     end $L5
   end $L4
@@ -4338,7 +4152,7 @@ fn 44 std_core$write_decimal (ref,usize,u64,i32) -> usize
     local.get 1   ; arg 1
     local.get 4   ; k
     i32.const 1
-    call 50   ; std_core$insert_point
+    call 48   ; std_core$insert_point
     local.set 8   ; zeroed
   else
     local.get 6   ; $add_checked_14
@@ -4385,7 +4199,7 @@ fn 44 std_core$write_decimal (ref,usize,u64,i32) -> usize
     local.get 0   ; arg 0
     local.get 6   ; $add_checked_14
     local.get 11   ; $cast_62
-    call 10   ; std_core$write_unsigned
+    call 8   ; std_core$write_unsigned
     return
   end $L8
   local.get 4   ; k
@@ -4394,11 +4208,11 @@ fn 44 std_core$write_decimal (ref,usize,u64,i32) -> usize
   local.get 0   ; arg 0
   local.get 6   ; $add_checked_14
   local.get 11   ; $cast_62
-  call 10   ; std_core$write_unsigned
+  call 8   ; std_core$write_unsigned
   return
 end
 
-fn 45 std_core$shiftright128 (u64,u64,u64) -> u64
+fn 43 std_core$shiftright128 (u64,u64,u64) -> u64
   local $sub_checked_4 u64
   local $shr_6 u64
   i64.const 64
@@ -4419,7 +4233,7 @@ fn 45 std_core$shiftright128 (u64,u64,u64) -> u64
   return
 end
 
-fn 46 std_core$pow5_factor (u64) -> i32
+fn 44 std_core$pow5_factor (u64) -> i32
   local value u64
   local count i32
   local.get 0   ; arg 0
@@ -4446,7 +4260,7 @@ fn 46 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 47 std_core$decimal_width (u64) -> i32
+fn 45 std_core$decimal_width (u64) -> i32
   local width i32
   local m u64
   local.get 0   ; arg 0
@@ -4479,7 +4293,7 @@ fn 47 std_core$decimal_width (u64) -> i32
   return
 end
 
-fn 48 std_core$write_digits (ref,usize,u64,i32) -> usize
+fn 46 std_core$write_digits (ref,usize,u64,i32) -> usize
   local n u64
   local $cast_5 usize
   local i usize
@@ -4530,7 +4344,7 @@ fn 48 std_core$write_digits (ref,usize,u64,i32) -> usize
   return
 end
 
-fn 49 std_core$write_zeros (ref,usize,i32) -> usize
+fn 47 std_core$write_zeros (ref,usize,i32) -> usize
   local i i32
   local $cast_6 usize
   local $add_checked_7 usize
@@ -4568,7 +4382,7 @@ fn 49 std_core$write_zeros (ref,usize,i32) -> usize
   return
 end
 
-fn 50 std_core$insert_point (ref,usize,i32,i32) -> usize
+fn 48 std_core$insert_point (ref,usize,i32,i32) -> usize
   local $cast_4 usize
   local $add_checked_8 usize
   local $cast_10 usize
@@ -4608,7 +4422,7 @@ fn 50 std_core$insert_point (ref,usize,i32,i32) -> usize
   return
 end
 
-fn 51 std_io$write (u8,string) -> void
+fn 49 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -4644,7 +4458,7 @@ fn 51 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 52   ; std_io$write_bytes
+      call 50   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -4664,7 +4478,7 @@ fn 51 std_io$write (u8,string) -> void
   return
 end
 
-fn 52 std_io$write_bytes (u8,ref,usize) -> i32
+fn 50 std_io$write_bytes (u8,ref,usize) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -4684,7 +4498,7 @@ fn 52 std_io$write_bytes (u8,ref,usize) -> i32
   return
 end
 
-fn 53 std_io$println__string (string) -> void
+fn 51 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 34   ; "\n"
@@ -4692,18 +4506,18 @@ fn 53 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 51   ; std_io$write
+  call 49   ; std_io$write
   return
 end
 
-fn 54 json$parse (string) -> any
+fn 52 json$parse (string) -> any
   local p ref
   local v any
   local.get 0   ; arg 0
-  call 56   ; json$new_parser
+  call 54   ; json$new_parser
   local.tee 1   ; p
   i32.const 0
-  call 57   ; json$parse_value
+  call 55   ; json$parse_value
   local.tee 2   ; v
   type_check 26   ; json$JsonError
   if $L0 void
@@ -4712,21 +4526,21 @@ fn 54 json$parse (string) -> any
     return
   end $L0
   local.get 1   ; p
-  call 58   ; json$skip_ws
+  call 56   ; json$skip_ws
   local.get 1   ; p
-  call 59   ; json$at_end
+  call 57   ; json$at_end
   if $L1 void
   else
     local.get 1   ; p
     string.const 35   ; "trailing characters after JSON value"
-    call 60   ; json$fail
+    call 58   ; json$fail
     return
   end $L1
   local.get 2   ; v
   return
 end
 
-fn 55 json$stringify (any) -> string
+fn 53 json$stringify (any) -> string
   local sb ref
   array.new 48 0   ; string[]
   struct.new 33   ; std_string_builder$StringBuilder
@@ -4734,20 +4548,20 @@ fn 55 json$stringify (any) -> string
   local.get 0   ; arg 0
   i32.const 0
   i32.const 0
-  call 61   ; json$write_value
+  call 59   ; json$write_value
   local.get 1   ; sb
-  call 95   ; std_string_builder$StringBuilder$Display$to_string
+  call 93   ; std_string_builder$StringBuilder$Display$to_string
   return
 end
 
-fn 56 json$new_parser (string) -> ref
+fn 54 json$new_parser (string) -> ref
   local.get 0   ; arg 0
   i64.const 0
   struct.new 32   ; json$Parser
   return
 end
 
-fn 57 json$parse_value (ref,i32) -> any
+fn 55 json$parse_value (ref,i32) -> any
   local c char
   local s any
   local or_res bool
@@ -4757,27 +4571,27 @@ fn 57 json$parse_value (ref,i32) -> any
   if $L0 void
     local.get 0   ; arg 0
     string.const 36   ; "maximum nesting depth exceeded"
-    call 60   ; json$fail
+    call 58   ; json$fail
     return
   end $L0
   local.get 0   ; arg 0
-  call 58   ; json$skip_ws
+  call 56   ; json$skip_ws
   local.get 0   ; arg 0
-  call 59   ; json$at_end
+  call 57   ; json$at_end
   if $L1 void
     local.get 0   ; arg 0
     string.const 37   ; "unexpected end of input"
-    call 60   ; json$fail
+    call 58   ; json$fail
     return
   end $L1
   local.get 0   ; arg 0
-  call 62   ; json$peek_byte
+  call 60   ; json$peek_byte
   local.tee 2   ; c
   char.const 34
   i32.eq
   if $L2 void
     local.get 0   ; arg 0
-    call 63   ; json$parse_string
+    call 61   ; json$parse_string
     local.tee 3   ; s
     type_check 26   ; json$JsonError
     if $L3 void
@@ -4797,7 +4611,7 @@ fn 57 json$parse_value (ref,i32) -> any
   if $L4 void
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    call 64   ; json$parse_object
+    call 62   ; json$parse_object
     local.tee 3   ; s
     type_check 26   ; json$JsonError
     if $L5 void
@@ -4816,7 +4630,7 @@ fn 57 json$parse_value (ref,i32) -> any
   if $L6 void
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    call 65   ; json$parse_array
+    call 63   ; json$parse_array
     local.tee 3   ; s
     type_check 26   ; json$JsonError
     if $L7 void
@@ -4844,7 +4658,7 @@ fn 57 json$parse_value (ref,i32) -> any
   local.get 4   ; or_res
   if $L9 void
     local.get 0   ; arg 0
-    call 66   ; json$parse_bool
+    call 64   ; json$parse_bool
     local.tee 3   ; s
     type_check 26   ; json$JsonError
     if $L10 void
@@ -4862,7 +4676,7 @@ fn 57 json$parse_value (ref,i32) -> any
   i32.eq
   if $L11 void
     local.get 0   ; arg 0
-    call 67   ; json$parse_null
+    call 65   ; json$parse_null
     local.tee 3   ; s
     type_check 26   ; json$JsonError
     if $L12 void
@@ -4883,7 +4697,7 @@ fn 57 json$parse_value (ref,i32) -> any
     local.set 4   ; or_res
   else
     local.get 2   ; c
-    call 90   ; std_char$is_digit
+    call 88   ; std_char$is_digit
     local.set 4   ; or_res
   end $L13
   local.get 4   ; or_res
@@ -4891,11 +4705,11 @@ fn 57 json$parse_value (ref,i32) -> any
   else
     local.get 0   ; arg 0
     string.const 38   ; "unexpected character"
-    call 60   ; json$fail
+    call 58   ; json$fail
     return
   end $L14
   local.get 0   ; arg 0
-  call 68   ; json$parse_number
+  call 66   ; json$parse_number
   local.tee 3   ; s
   type_check 26   ; json$JsonError
   if $L15 void
@@ -4909,28 +4723,28 @@ fn 57 json$parse_value (ref,i32) -> any
   return
 end
 
-fn 58 json$skip_ws (ref) -> void
+fn 56 json$skip_ws (ref) -> void
   loop $L0 void
     local.get 0   ; arg 0
-    call 59   ; json$at_end
+    call 57   ; json$at_end
     if $L1 void
     else
       local.get 0   ; arg 0
-      call 62   ; json$peek_byte
-      call 91   ; std_char$is_white_char
+      call 60   ; json$peek_byte
+      call 89   ; std_char$is_white_char
       if $L2 void
       else
         return
       end $L2
       local.get 0   ; arg 0
-      call 69   ; json$advance
+      call 67   ; json$advance
       br $L0
     end $L1
   end $L0
   return
 end
 
-fn 59 json$at_end (ref) -> bool
+fn 57 json$at_end (ref) -> bool
   local $field_1 usize
   local $call_3 usize
   local.field 0 32 1   ; arg 0 json$Parser.pos
@@ -4946,7 +4760,7 @@ fn 59 json$at_end (ref) -> bool
   return
 end
 
-fn 60 json$fail (ref,string) -> ref
+fn 58 json$fail (ref,string) -> ref
   local $field_2 usize
   local.field 0 32 1   ; arg 0 json$Parser.pos
   ref.cast 8   ; usize
@@ -4957,7 +4771,7 @@ fn 60 json$fail (ref,string) -> ref
   return
 end
 
-fn 61 json$write_value (ref,any,i32,i32) -> void
+fn 59 json$write_value (ref,any,i32,i32) -> void
   local $field_13 f64
   local $field_16 string
   local $cast_19 ref
@@ -4966,7 +4780,7 @@ fn 61 json$write_value (ref,any,i32,i32) -> void
   if $L0 void
     local.get 0   ; arg 0
     string.const 2   ; "null"
-    call 92   ; std_string_builder$append
+    call 90   ; std_string_builder$append
     return
   end $L0
   local.get 1   ; arg 1
@@ -4979,11 +4793,11 @@ fn 61 json$write_value (ref,any,i32,i32) -> void
     if $L2 void
       local.get 0   ; arg 0
       string.const 3   ; "true"
-      call 92   ; std_string_builder$append
+      call 90   ; std_string_builder$append
     else
       local.get 0   ; arg 0
       string.const 4   ; "false"
-      call 92   ; std_string_builder$append
+      call 90   ; std_string_builder$append
     end $L2
   else
     local.get 1   ; arg 1
@@ -4996,7 +4810,7 @@ fn 61 json$write_value (ref,any,i32,i32) -> void
       local.set 4   ; $field_13
       local.get 0   ; arg 0
       local.get 4   ; $field_13
-      call 73   ; json$write_number
+      call 71   ; json$write_number
     else
       local.get 1   ; arg 1
       type_check 30   ; json$JsonString
@@ -5009,7 +4823,7 @@ fn 61 json$write_value (ref,any,i32,i32) -> void
         local.get 0   ; arg 0
         local.get 5   ; $field_16
         string.const 39   ; "\""
-        call 72   ; json$write_string
+        call 70   ; json$write_string
       else
         local.get 1   ; arg 1
         type_check 24   ; json$JsonArray
@@ -5021,7 +4835,7 @@ fn 61 json$write_value (ref,any,i32,i32) -> void
           local.get 6   ; $cast_19
           local.get 2   ; arg 2
           local.get 3   ; arg 3
-          call 71   ; json$write_array
+          call 69   ; json$write_array
         else
           local.get 1   ; arg 1
           type_check 29   ; json$JsonObject
@@ -5036,7 +4850,7 @@ fn 61 json$write_value (ref,any,i32,i32) -> void
           local.get 6   ; $cast_19
           local.get 2   ; arg 2
           local.get 3   ; arg 3
-          call 70   ; json$write_object
+          call 68   ; json$write_object
         end $L5
       end $L4
     end $L3
@@ -5044,11 +4858,11 @@ fn 61 json$write_value (ref,any,i32,i32) -> void
   return
 end
 
-fn 62 json$peek_byte (ref) -> char
+fn 60 json$peek_byte (ref) -> char
   local $field_3 string
   local $field_4 usize
   local.get 0   ; arg 0
-  call 59   ; json$at_end
+  call 57   ; json$at_end
   if $L0 void
   else
     local.field 0 32 0   ; arg 0 json$Parser.src
@@ -5059,13 +4873,14 @@ fn 62 json$peek_byte (ref) -> char
     local.set 2   ; $field_4
     local.get 1   ; $field_3
     local.get 2   ; $field_4
-    call 4   ; std_core$char_at_byte
+    call.import 1   ; std_core$byte_at
+    u8.to_char
     return
   end $L0
   return.lit char.const 0
 end
 
-fn 63 json$parse_string (ref) -> any
+fn 61 json$parse_string (ref) -> any
   local start usize
   local scan usize
   local __for_hi_0 usize
@@ -5075,12 +4890,12 @@ fn 63 json$parse_string (ref) -> any
   local $call_31 string
   local.get 0   ; arg 0
   char.const 34
-  call 74   ; json$expect_byte
+  call 72   ; json$expect_byte
   type_check 26   ; json$JsonError
   if $L0 void
     local.get 0   ; arg 0
     char.const 34
-    call 74   ; json$expect_byte
+    call 72   ; json$expect_byte
     ref.cast 26   ; json$JsonError
     return
   end $L0
@@ -5137,13 +4952,13 @@ fn 63 json$parse_string (ref) -> any
         local.set 7   ; $call_31
         local.get 6   ; sb
         local.get 7   ; $call_31
-        call 92   ; std_string_builder$append
+        call 90   ; std_string_builder$append
         local.get 0   ; arg 0
         local.get 2   ; scan
         struct.set 32 1   ; json$Parser.pos
         local.get 0   ; arg 0
         local.get 6   ; sb
-        call 75   ; json$parse_string_with_escapes
+        call 73   ; json$parse_string_with_escapes
         return
       end $L4
       local.get 2   ; scan
@@ -5155,11 +4970,11 @@ fn 63 json$parse_string (ref) -> any
   end $L1
   local.get 0   ; arg 0
   string.const 40   ; "unterminated string"
-  call 60   ; json$fail
+  call 58   ; json$fail
   return
 end
 
-fn 64 json$parse_object (ref,i32) -> any
+fn 62 json$parse_object (ref,i32) -> any
   local $arr_9 ref
   local $arr_10 ref
   local $arr_11 ref
@@ -5171,12 +4986,12 @@ fn 64 json$parse_object (ref,i32) -> any
   local c char
   local.get 0   ; arg 0
   char.const 123
-  call 74   ; json$expect_byte
+  call 72   ; json$expect_byte
   type_check 26   ; json$JsonError
   if $L0 void
     local.get 0   ; arg 0
     char.const 123
-    call 74   ; json$expect_byte
+    call 72   ; json$expect_byte
     ref.cast 26   ; json$JsonError
     return
   end $L0
@@ -5195,18 +5010,18 @@ fn 64 json$parse_object (ref,i32) -> any
   struct.new 49   ; std_collections$MutableMap__string__Any
   local.set 2   ; $arr_9
   local.get 0   ; arg 0
-  call 58   ; json$skip_ws
+  call 56   ; json$skip_ws
   local.get 0   ; arg 0
-  call 59   ; json$at_end
+  call 57   ; json$at_end
   if $L1 void
   else
     local.get 0   ; arg 0
-    call 62   ; json$peek_byte
+    call 60   ; json$peek_byte
     char.const 125
     i32.eq
     if $L2 void
       local.get 0   ; arg 0
-      call 69   ; json$advance
+      call 67   ; json$advance
       local.get 2   ; $arr_9
       struct.new 29   ; json$JsonObject
       return
@@ -5214,13 +5029,13 @@ fn 64 json$parse_object (ref,i32) -> any
   end $L1
   loop $L3 void
     local.get 0   ; arg 0
-    call 59   ; json$at_end
+    call 57   ; json$at_end
     if $L4 void
     else
       local.get 0   ; arg 0
-      call 58   ; json$skip_ws
+      call 56   ; json$skip_ws
       local.get 0   ; arg 0
-      call 63   ; json$parse_string
+      call 61   ; json$parse_string
       local.tee 5   ; key
       type_check 26   ; json$JsonError
       if $L5 void
@@ -5229,15 +5044,15 @@ fn 64 json$parse_object (ref,i32) -> any
         return
       end $L5
       local.get 0   ; arg 0
-      call 58   ; json$skip_ws
+      call 56   ; json$skip_ws
       local.get 0   ; arg 0
       char.const 58
-      call 74   ; json$expect_byte
+      call 72   ; json$expect_byte
       type_check 26   ; json$JsonError
       if $L6 void
         local.get 0   ; arg 0
         char.const 58
-        call 74   ; json$expect_byte
+        call 72   ; json$expect_byte
         ref.cast 26   ; json$JsonError
         return
       end $L6
@@ -5247,7 +5062,7 @@ fn 64 json$parse_object (ref,i32) -> any
       local.set 6   ; $add_checked_35
       local.get 0   ; arg 0
       local.get 6   ; $add_checked_35
-      call 57   ; json$parse_value
+      call 55   ; json$parse_value
       local.tee 7   ; value
       type_check 26   ; json$JsonError
       if $L7 void
@@ -5263,25 +5078,25 @@ fn 64 json$parse_object (ref,i32) -> any
       local.get 2   ; $arr_9
       local.get 8   ; $cast_40
       local.get 9   ; $cast_41
-      call 96   ; std_collections$MutableMap$IndexSet$set_at__string__Any
+      call 94   ; std_collections$MutableMap$IndexSet$set_at__string__Any
       local.get 0   ; arg 0
-      call 58   ; json$skip_ws
+      call 56   ; json$skip_ws
       local.get 0   ; arg 0
-      call 59   ; json$at_end
+      call 57   ; json$at_end
       if $L8 void
         local.get 0   ; arg 0
         string.const 41   ; "unterminated object"
-        call 60   ; json$fail
+        call 58   ; json$fail
         return
       end $L8
       local.get 0   ; arg 0
-      call 62   ; json$peek_byte
+      call 60   ; json$peek_byte
       local.tee 10   ; c
       char.const 44
       i32.eq
       if $L9 void
         local.get 0   ; arg 0
-        call 69   ; json$advance
+        call 67   ; json$advance
         br $L3
       end $L9
       local.get 10   ; c
@@ -5291,11 +5106,11 @@ fn 64 json$parse_object (ref,i32) -> any
       else
         local.get 0   ; arg 0
         string.const 42   ; "expected `,` or `}`"
-        call 60   ; json$fail
+        call 58   ; json$fail
         return
       end $L10
       local.get 0   ; arg 0
-      call 69   ; json$advance
+      call 67   ; json$advance
       local.get 2   ; $arr_9
       struct.new 29   ; json$JsonObject
       return
@@ -5303,11 +5118,11 @@ fn 64 json$parse_object (ref,i32) -> any
   end $L3
   local.get 0   ; arg 0
   string.const 41   ; "unterminated object"
-  call 60   ; json$fail
+  call 58   ; json$fail
   return
 end
 
-fn 65 json$parse_array (ref,i32) -> any
+fn 63 json$parse_array (ref,i32) -> any
   local items ref
   local $add_checked_18 i32
   local v any
@@ -5315,30 +5130,30 @@ fn 65 json$parse_array (ref,i32) -> any
   local c char
   local.get 0   ; arg 0
   char.const 91
-  call 74   ; json$expect_byte
+  call 72   ; json$expect_byte
   type_check 26   ; json$JsonError
   if $L0 void
     local.get 0   ; arg 0
     char.const 91
-    call 74   ; json$expect_byte
+    call 72   ; json$expect_byte
     ref.cast 26   ; json$JsonError
     return
   end $L0
   array.new 42 0   ; union[]
   local.set 2   ; items
   local.get 0   ; arg 0
-  call 58   ; json$skip_ws
+  call 56   ; json$skip_ws
   local.get 0   ; arg 0
-  call 59   ; json$at_end
+  call 57   ; json$at_end
   if $L1 void
   else
     local.get 0   ; arg 0
-    call 62   ; json$peek_byte
+    call 60   ; json$peek_byte
     char.const 93
     i32.eq
     if $L2 void
       local.get 0   ; arg 0
-      call 69   ; json$advance
+      call 67   ; json$advance
       local.get 2   ; items
       struct.new 24   ; json$JsonArray
       return
@@ -5346,7 +5161,7 @@ fn 65 json$parse_array (ref,i32) -> any
   end $L1
   loop $L3 void
     local.get 0   ; arg 0
-    call 59   ; json$at_end
+    call 57   ; json$at_end
     if $L4 void
     else
       local.get 1   ; arg 1
@@ -5355,7 +5170,7 @@ fn 65 json$parse_array (ref,i32) -> any
       local.set 3   ; $add_checked_18
       local.get 0   ; arg 0
       local.get 3   ; $add_checked_18
-      call 57   ; json$parse_value
+      call 55   ; json$parse_value
       local.tee 4   ; v
       type_check 26   ; json$JsonError
       if $L5 void
@@ -5369,25 +5184,25 @@ fn 65 json$parse_array (ref,i32) -> any
       local.get 5   ; $cast_23
       array.push 31   ; union
       local.get 0   ; arg 0
-      call 58   ; json$skip_ws
+      call 56   ; json$skip_ws
       local.get 0   ; arg 0
-      call 59   ; json$at_end
+      call 57   ; json$at_end
       if $L6 void
         local.get 0   ; arg 0
         string.const 43   ; "unterminated array"
-        call 60   ; json$fail
+        call 58   ; json$fail
         return
       end $L6
       local.get 0   ; arg 0
-      call 62   ; json$peek_byte
+      call 60   ; json$peek_byte
       local.tee 6   ; c
       char.const 44
       i32.eq
       if $L7 void
         local.get 0   ; arg 0
-        call 69   ; json$advance
+        call 67   ; json$advance
         local.get 0   ; arg 0
-        call 58   ; json$skip_ws
+        call 56   ; json$skip_ws
         br $L3
       end $L7
       local.get 6   ; c
@@ -5397,11 +5212,11 @@ fn 65 json$parse_array (ref,i32) -> any
       else
         local.get 0   ; arg 0
         string.const 44   ; "expected `,` or `]`"
-        call 60   ; json$fail
+        call 58   ; json$fail
         return
       end $L8
       local.get 0   ; arg 0
-      call 69   ; json$advance
+      call 67   ; json$advance
       local.get 2   ; items
       struct.new 24   ; json$JsonArray
       return
@@ -5409,14 +5224,14 @@ fn 65 json$parse_array (ref,i32) -> any
   end $L3
   local.get 0   ; arg 0
   string.const 43   ; "unterminated array"
-  call 60   ; json$fail
+  call 58   ; json$fail
   return
 end
 
-fn 66 json$parse_bool (ref) -> any
+fn 64 json$parse_bool (ref) -> any
   local.get 0   ; arg 0
   string.const 3   ; "true"
-  call 76   ; json$match_keyword
+  call 74   ; json$match_keyword
   if $L0 void
     bool.const true
     struct.new 25   ; json$JsonBool
@@ -5424,12 +5239,12 @@ fn 66 json$parse_bool (ref) -> any
   end $L0
   local.get 0   ; arg 0
   string.const 4   ; "false"
-  call 76   ; json$match_keyword
+  call 74   ; json$match_keyword
   if $L1 void
   else
     local.get 0   ; arg 0
     string.const 45   ; "expected `true` or `false`"
-    call 60   ; json$fail
+    call 58   ; json$fail
     return
   end $L1
   bool.const false
@@ -5437,22 +5252,22 @@ fn 66 json$parse_bool (ref) -> any
   return
 end
 
-fn 67 json$parse_null (ref) -> any
+fn 65 json$parse_null (ref) -> any
   local.get 0   ; arg 0
   string.const 2   ; "null"
-  call 76   ; json$match_keyword
+  call 74   ; json$match_keyword
   if $L0 void
   else
     local.get 0   ; arg 0
     string.const 46   ; "expected `null`"
-    call 60   ; json$fail
+    call 58   ; json$fail
     return
   end $L0
   struct.new 27   ; json$JsonNull
   return
 end
 
-fn 68 json$parse_number (ref) -> any
+fn 66 json$parse_number (ref) -> any
   local start usize
   local or_res bool
   local first_digit char
@@ -5464,22 +5279,22 @@ fn 68 json$parse_number (ref) -> any
   ref.cast 8   ; usize
   local.set 1   ; start
   local.get 0   ; arg 0
-  call 62   ; json$peek_byte
+  call 60   ; json$peek_byte
   char.const 45
   i32.eq
   if $L0 void
     local.get 0   ; arg 0
-    call 69   ; json$advance
+    call 67   ; json$advance
   end $L0
   local.get 0   ; arg 0
-  call 59   ; json$at_end
+  call 57   ; json$at_end
   if $L1 void
     bool.const true
     local.set 2   ; or_res
   else
     local.get 0   ; arg 0
-    call 62   ; json$peek_byte
-    call 90   ; std_char$is_digit
+    call 60   ; json$peek_byte
+    call 88   ; std_char$is_digit
     bool.not
     local.set 2   ; or_res
   end $L1
@@ -5487,29 +5302,29 @@ fn 68 json$parse_number (ref) -> any
   if $L2 void
     local.get 0   ; arg 0
     string.const 47   ; "expected digit"
-    call 60   ; json$fail
+    call 58   ; json$fail
     return
   end $L2
   local.get 0   ; arg 0
-  call 62   ; json$peek_byte
+  call 60   ; json$peek_byte
   local.set 3   ; first_digit
   local.get 0   ; arg 0
-  call 69   ; json$advance
+  call 67   ; json$advance
   local.get 3   ; first_digit
   char.const 48
   i32.eq
   if $L3 void
     local.get 0   ; arg 0
-    call 59   ; json$at_end
+    call 57   ; json$at_end
     if $L4 void
     else
       local.get 0   ; arg 0
-      call 62   ; json$peek_byte
-      call 90   ; std_char$is_digit
+      call 60   ; json$peek_byte
+      call 88   ; std_char$is_digit
       if $L5 void
         local.get 0   ; arg 0
         string.const 48   ; "leading zeros are not allowed"
-        call 60   ; json$fail
+        call 58   ; json$fail
         return
       end $L5
     end $L4
@@ -5517,42 +5332,42 @@ fn 68 json$parse_number (ref) -> any
   block $L6 void
     loop $L7 void
       local.get 0   ; arg 0
-      call 59   ; json$at_end
+      call 57   ; json$at_end
       if $L8 void
       else
         local.get 0   ; arg 0
-        call 62   ; json$peek_byte
-        call 90   ; std_char$is_digit
+        call 60   ; json$peek_byte
+        call 88   ; std_char$is_digit
         if $L9 void
         else
           br $L6
         end $L9
         local.get 0   ; arg 0
-        call 69   ; json$advance
+        call 67   ; json$advance
         br $L7
       end $L8
     end $L7
   end $L6
   local.get 0   ; arg 0
-  call 59   ; json$at_end
+  call 57   ; json$at_end
   if $L10 void
   else
     local.get 0   ; arg 0
-    call 62   ; json$peek_byte
+    call 60   ; json$peek_byte
     char.const 46
     i32.eq
     if $L11 void
       local.get 0   ; arg 0
-      call 69   ; json$advance
+      call 67   ; json$advance
       local.get 0   ; arg 0
-      call 59   ; json$at_end
+      call 57   ; json$at_end
       if $L12 void
         bool.const true
         local.set 2   ; or_res
       else
         local.get 0   ; arg 0
-        call 62   ; json$peek_byte
-        call 90   ; std_char$is_digit
+        call 60   ; json$peek_byte
+        call 88   ; std_char$is_digit
         bool.not
         local.set 2   ; or_res
       end $L12
@@ -5560,24 +5375,24 @@ fn 68 json$parse_number (ref) -> any
       if $L13 void
         local.get 0   ; arg 0
         string.const 49   ; "expected digit after `.`"
-        call 60   ; json$fail
+        call 58   ; json$fail
         return
       end $L13
       block $L14 void
         loop $L15 void
           local.get 0   ; arg 0
-          call 59   ; json$at_end
+          call 57   ; json$at_end
           if $L16 void
           else
             local.get 0   ; arg 0
-            call 62   ; json$peek_byte
-            call 90   ; std_char$is_digit
+            call 60   ; json$peek_byte
+            call 88   ; std_char$is_digit
             if $L17 void
             else
               br $L14
             end $L17
             local.get 0   ; arg 0
-            call 69   ; json$advance
+            call 67   ; json$advance
             br $L15
           end $L16
         end $L15
@@ -5585,11 +5400,11 @@ fn 68 json$parse_number (ref) -> any
     end $L11
   end $L10
   local.get 0   ; arg 0
-  call 59   ; json$at_end
+  call 57   ; json$at_end
   bool.not
   if $L18 void
     local.get 0   ; arg 0
-    call 62   ; json$peek_byte
+    call 60   ; json$peek_byte
     char.const 101
     i32.eq
     if $L19 void
@@ -5597,7 +5412,7 @@ fn 68 json$parse_number (ref) -> any
       local.set 4   ; or_res
     else
       local.get 0   ; arg 0
-      call 62   ; json$peek_byte
+      call 60   ; json$peek_byte
       char.const 69
       i32.eq
       local.set 4   ; or_res
@@ -5611,13 +5426,13 @@ fn 68 json$parse_number (ref) -> any
   local.get 2   ; or_res
   if $L20 void
     local.get 0   ; arg 0
-    call 69   ; json$advance
+    call 67   ; json$advance
     local.get 0   ; arg 0
-    call 59   ; json$at_end
+    call 57   ; json$at_end
     bool.not
     if $L21 void
       local.get 0   ; arg 0
-      call 62   ; json$peek_byte
+      call 60   ; json$peek_byte
       char.const 43
       i32.eq
       if $L22 void
@@ -5625,7 +5440,7 @@ fn 68 json$parse_number (ref) -> any
         local.set 4   ; or_res
       else
         local.get 0   ; arg 0
-        call 62   ; json$peek_byte
+        call 60   ; json$peek_byte
         char.const 45
         i32.eq
         local.set 4   ; or_res
@@ -5639,17 +5454,17 @@ fn 68 json$parse_number (ref) -> any
     local.get 2   ; or_res
     if $L23 void
       local.get 0   ; arg 0
-      call 69   ; json$advance
+      call 67   ; json$advance
     end $L23
     local.get 0   ; arg 0
-    call 59   ; json$at_end
+    call 57   ; json$at_end
     if $L24 void
       bool.const true
       local.set 2   ; or_res
     else
       local.get 0   ; arg 0
-      call 62   ; json$peek_byte
-      call 90   ; std_char$is_digit
+      call 60   ; json$peek_byte
+      call 88   ; std_char$is_digit
       bool.not
       local.set 2   ; or_res
     end $L24
@@ -5657,24 +5472,24 @@ fn 68 json$parse_number (ref) -> any
     if $L25 void
       local.get 0   ; arg 0
       string.const 50   ; "expected digit in exponent"
-      call 60   ; json$fail
+      call 58   ; json$fail
       return
     end $L25
     block $L26 void
       loop $L27 void
         local.get 0   ; arg 0
-        call 59   ; json$at_end
+        call 57   ; json$at_end
         if $L28 void
         else
           local.get 0   ; arg 0
-          call 62   ; json$peek_byte
-          call 90   ; std_char$is_digit
+          call 60   ; json$peek_byte
+          call 88   ; std_char$is_digit
           if $L29 void
           else
             br $L26
           end $L29
           local.get 0   ; arg 0
-          call 69   ; json$advance
+          call 67   ; json$advance
           br $L27
         end $L28
       end $L27
@@ -5690,7 +5505,7 @@ fn 68 json$parse_number (ref) -> any
   local.get 1   ; start
   local.get 6   ; $field_77
   call.import 2   ; std_core$byte_slice
-  call 81   ; std_string$parse_float
+  call 79   ; std_string$parse_float
   local.tee 7   ; parsed
   type_check 10   ; f64
   if $L30 void
@@ -5707,11 +5522,11 @@ fn 68 json$parse_number (ref) -> any
   end $L31
   local.get 0   ; arg 0
   string.const 51   ; "invalid number"
-  call 60   ; json$fail
+  call 58   ; json$fail
   return
 end
 
-fn 69 json$advance (ref) -> void
+fn 67 json$advance (ref) -> void
   local $add_checked_3 usize
   local.field 0 32 1   ; arg 0 json$Parser.pos
   ref.cast 8   ; usize
@@ -5724,7 +5539,7 @@ fn 69 json$advance (ref) -> void
   return
 end
 
-fn 70 json$write_object (ref,ref,i32,i32) -> void
+fn 68 json$write_object (ref,ref,i32,i32) -> void
   local first bool
   local __iter_src_0 ref
   local __iter_ekeys_1 ref
@@ -5738,18 +5553,18 @@ fn 70 json$write_object (ref,ref,i32,i32) -> void
   local $add_checked_35 i32
   local $add_checked_41 i32
   local.field 1 29 0   ; arg 1 json$JsonObject.entries
-  call 103   ; std_collections$len__string__Any
+  call 101   ; std_collections$len__string__Any
   i64.const 0
   i64.eq
   if $L0 void
     local.get 0   ; arg 0
     string.const 52   ; "{}"
-    call 92   ; std_string_builder$append
+    call 90   ; std_string_builder$append
     return
   end $L0
   local.get 0   ; arg 0
   string.const 53   ; "{"
-  call 92   ; std_string_builder$append
+  call 90   ; std_string_builder$append
   bool.const true
   local.set 4   ; first
   local.field 1 29 0   ; arg 1 json$JsonObject.entries
@@ -5791,7 +5606,7 @@ fn 70 json$write_object (ref,ref,i32,i32) -> void
       else
         local.get 0   ; arg 0
         string.const 54   ; ","
-        call 92   ; std_string_builder$append
+        call 90   ; std_string_builder$append
       end $L3
       local.get 3   ; arg 3
       i32.const 1
@@ -5800,18 +5615,18 @@ fn 70 json$write_object (ref,ref,i32,i32) -> void
       local.get 0   ; arg 0
       local.get 2   ; arg 2
       local.get 14   ; $add_checked_35
-      call 77   ; json$write_indent
+      call 75   ; json$write_indent
       local.get 0   ; arg 0
       local.get 12   ; k
       string.const 55   ; "\":"
-      call 72   ; json$write_string
+      call 70   ; json$write_string
       local.get 2   ; arg 2
       i32.const 0
       i32.gt
       if $L4 void
         local.get 0   ; arg 0
         string.const 56   ; " "
-        call 92   ; std_string_builder$append
+        call 90   ; std_string_builder$append
       end $L4
       local.get 3   ; arg 3
       i32.const 1
@@ -5821,7 +5636,7 @@ fn 70 json$write_object (ref,ref,i32,i32) -> void
       local.get 13   ; v
       local.get 2   ; arg 2
       local.get 15   ; $add_checked_41
-      call 61   ; json$write_value
+      call 59   ; json$write_value
       bool.const false
       local.set 4   ; first
       br $L1
@@ -5830,14 +5645,14 @@ fn 70 json$write_object (ref,ref,i32,i32) -> void
   local.get 0   ; arg 0
   local.get 2   ; arg 2
   local.get 3   ; arg 3
-  call 77   ; json$write_indent
+  call 75   ; json$write_indent
   local.get 0   ; arg 0
   string.const 57   ; "}"
-  call 92   ; std_string_builder$append
+  call 90   ; std_string_builder$append
   return
 end
 
-fn 71 json$write_array (ref,ref,i32,i32) -> void
+fn 69 json$write_array (ref,ref,i32,i32) -> void
   local first bool
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -5852,12 +5667,12 @@ fn 71 json$write_array (ref,ref,i32,i32) -> void
   if $L0 void
     local.get 0   ; arg 0
     string.const 58   ; "[]"
-    call 92   ; std_string_builder$append
+    call 90   ; std_string_builder$append
     return
   end $L0
   local.get 0   ; arg 0
   string.const 59   ; "["
-  call 92   ; std_string_builder$append
+  call 90   ; std_string_builder$append
   bool.const true
   local.set 4   ; first
   local.field 1 24 0   ; arg 1 json$JsonArray.items
@@ -5880,7 +5695,7 @@ fn 71 json$write_array (ref,ref,i32,i32) -> void
       else
         local.get 0   ; arg 0
         string.const 54   ; ","
-        call 92   ; std_string_builder$append
+        call 90   ; std_string_builder$append
       end $L3
       local.get 3   ; arg 3
       i32.const 1
@@ -5889,7 +5704,7 @@ fn 71 json$write_array (ref,ref,i32,i32) -> void
       local.get 0   ; arg 0
       local.get 2   ; arg 2
       local.get 9   ; $add_checked_23
-      call 77   ; json$write_indent
+      call 75   ; json$write_indent
       local.get 3   ; arg 3
       i32.const 1
       i32.checked_add
@@ -5898,7 +5713,7 @@ fn 71 json$write_array (ref,ref,i32,i32) -> void
       local.get 8   ; item
       local.get 2   ; arg 2
       local.get 10   ; $add_checked_25
-      call 61   ; json$write_value
+      call 59   ; json$write_value
       bool.const false
       local.set 4   ; first
       local.get 7   ; __for_i_2
@@ -5911,14 +5726,14 @@ fn 71 json$write_array (ref,ref,i32,i32) -> void
   local.get 0   ; arg 0
   local.get 2   ; arg 2
   local.get 3   ; arg 3
-  call 77   ; json$write_indent
+  call 75   ; json$write_indent
   local.get 0   ; arg 0
   string.const 60   ; "]"
-  call 92   ; std_string_builder$append
+  call 90   ; std_string_builder$append
   return
 end
 
-fn 72 json$write_string (ref,string,string) -> void
+fn 70 json$write_string (ref,string,string) -> void
   local n usize
   local run usize
   local i usize
@@ -5927,7 +5742,7 @@ fn 72 json$write_string (ref,string,string) -> void
   local $call_20 string
   local.get 0   ; arg 0
   string.const 39   ; "\""
-  call 92   ; std_string_builder$append
+  call 90   ; std_string_builder$append
   local.get 1   ; arg 1
   call.import 0   ; std_core$byte_len
   local.set 3   ; n
@@ -5943,7 +5758,7 @@ fn 72 json$write_string (ref,string,string) -> void
       local.get 1   ; arg 1
       local.get 5   ; i
       call.import 1   ; std_core$byte_at
-      call 78   ; json$escape_of
+      call 76   ; json$escape_of
       local.tee 7   ; __coalesce_0
       type_check 0   ; null
       if $L2 void
@@ -5967,11 +5782,11 @@ fn 72 json$write_string (ref,string,string) -> void
         local.set 8   ; $call_20
         local.get 0   ; arg 0
         local.get 8   ; $call_20
-        call 92   ; std_string_builder$append
+        call 90   ; std_string_builder$append
       end $L3
       local.get 0   ; arg 0
       local.get 6   ; escape
-      call 92   ; std_string_builder$append
+      call 90   ; std_string_builder$append
       local.get 5   ; i
       i64.const 1
       usize.checked_add
@@ -5989,10 +5804,10 @@ fn 72 json$write_string (ref,string,string) -> void
   if $L4 void
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    call 92   ; std_string_builder$append
+    call 90   ; std_string_builder$append
     local.get 0   ; arg 0
     local.get 2   ; arg 2
-    call 92   ; std_string_builder$append
+    call 90   ; std_string_builder$append
     return
   end $L4
   local.get 1   ; arg 1
@@ -6002,50 +5817,50 @@ fn 72 json$write_string (ref,string,string) -> void
   local.set 6   ; escape
   local.get 0   ; arg 0
   local.get 6   ; escape
-  call 92   ; std_string_builder$append
+  call 90   ; std_string_builder$append
   local.get 0   ; arg 0
   local.get 2   ; arg 2
-  call 92   ; std_string_builder$append
+  call 90   ; std_string_builder$append
   return
 end
 
-fn 73 json$write_number (ref,f64) -> void
+fn 71 json$write_number (ref,f64) -> void
   local $call_2 string
   local.get 1   ; arg 1
-  call 104   ; std_numbers$to_compact_str
+  call 102   ; std_numbers$to_compact_str
   local.set 2   ; $call_2
   local.get 0   ; arg 0
   local.get 2   ; $call_2
-  call 92   ; std_string_builder$append
+  call 90   ; std_string_builder$append
   return
 end
 
-fn 74 json$expect_byte (ref,char) -> any
+fn 72 json$expect_byte (ref,char) -> any
   local.get 0   ; arg 0
-  call 59   ; json$at_end
+  call 57   ; json$at_end
   if $L0 void
     local.get 0   ; arg 0
     string.const 37   ; "unexpected end of input"
-    call 60   ; json$fail
+    call 58   ; json$fail
     return
   end $L0
   local.get 0   ; arg 0
-  call 62   ; json$peek_byte
+  call 60   ; json$peek_byte
   local.get 1   ; arg 1
   i32.ne
   if $L1 void
   else
     local.get 0   ; arg 0
-    call 69   ; json$advance
+    call 67   ; json$advance
     return.lit null.const
   end $L1
   local.get 0   ; arg 0
   string.const 38   ; "unexpected character"
-  call 60   ; json$fail
+  call 58   ; json$fail
   return
 end
 
-fn 75 json$parse_string_with_escapes (ref,ref) -> any
+fn 73 json$parse_string_with_escapes (ref,ref) -> any
   local $field_3 string
   local $field_4 usize
   local b u8
@@ -6062,7 +5877,7 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
   local $call_67 string
   loop $L0 void
     local.get 0   ; arg 0
-    call 59   ; json$at_end
+    call 57   ; json$at_end
     if $L1 void
     else
       local.field 0 32 0   ; arg 0 json$Parser.src
@@ -6079,9 +5894,9 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
       i32.eq
       if $L2 void
         local.get 0   ; arg 0
-        call 69   ; json$advance
+        call 67   ; json$advance
         local.get 1   ; arg 1
-        call 95   ; std_string_builder$StringBuilder$Display$to_string
+        call 93   ; std_string_builder$StringBuilder$Display$to_string
         retag 1   ; string
         return
       end $L2
@@ -6090,27 +5905,27 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
       i32.eq
       if $L3 void
         local.get 0   ; arg 0
-        call 69   ; json$advance
+        call 67   ; json$advance
         local.get 0   ; arg 0
-        call 59   ; json$at_end
+        call 57   ; json$at_end
         if $L4 void
           local.get 0   ; arg 0
           string.const 61   ; "unterminated escape"
-          call 60   ; json$fail
+          call 58   ; json$fail
           return
         end $L4
         local.get 0   ; arg 0
-        call 62   ; json$peek_byte
+        call 60   ; json$peek_byte
         local.set 5   ; esc
         local.get 0   ; arg 0
-        call 69   ; json$advance
+        call 67   ; json$advance
         local.get 5   ; esc
         char.const 34
         i32.eq
         if $L5 void
           local.get 1   ; arg 1
           char.const 34
-          call 93   ; std_string_builder$append_char
+          call 91   ; std_string_builder$append_char
         else
           local.get 5   ; esc
           char.const 92
@@ -6118,7 +5933,7 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
           if $L6 void
             local.get 1   ; arg 1
             char.const 92
-            call 93   ; std_string_builder$append_char
+            call 91   ; std_string_builder$append_char
           else
             local.get 5   ; esc
             char.const 47
@@ -6126,7 +5941,7 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
             if $L7 void
               local.get 1   ; arg 1
               char.const 47
-              call 93   ; std_string_builder$append_char
+              call 91   ; std_string_builder$append_char
             else
               local.get 5   ; esc
               char.const 110
@@ -6134,7 +5949,7 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
               if $L8 void
                 local.get 1   ; arg 1
                 char.const 10
-                call 93   ; std_string_builder$append_char
+                call 91   ; std_string_builder$append_char
               else
                 local.get 5   ; esc
                 char.const 116
@@ -6142,7 +5957,7 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
                 if $L9 void
                   local.get 1   ; arg 1
                   char.const 9
-                  call 93   ; std_string_builder$append_char
+                  call 91   ; std_string_builder$append_char
                 else
                   local.get 5   ; esc
                   char.const 114
@@ -6150,7 +5965,7 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
                   if $L10 void
                     local.get 1   ; arg 1
                     char.const 13
-                    call 93   ; std_string_builder$append_char
+                    call 91   ; std_string_builder$append_char
                   else
                     local.get 5   ; esc
                     char.const 98
@@ -6161,7 +5976,7 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
                       local.set 6   ; $cast_39
                       local.get 1   ; arg 1
                       local.get 6   ; $cast_39
-                      call 93   ; std_string_builder$append_char
+                      call 91   ; std_string_builder$append_char
                     else
                       local.get 5   ; esc
                       char.const 102
@@ -6172,7 +5987,7 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
                         local.set 7   ; $cast_44
                         local.get 1   ; arg 1
                         local.get 7   ; $cast_44
-                        call 93   ; std_string_builder$append_char
+                        call 91   ; std_string_builder$append_char
                       else
                         local.get 5   ; esc
                         char.const 117
@@ -6181,17 +5996,17 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
                         else
                           local.get 0   ; arg 0
                           string.const 63   ; "unknown escape"
-                          call 60   ; json$fail
+                          call 58   ; json$fail
                           return
                         end $L13
                         local.get 0   ; arg 0
                         local.get 1   ; arg 1
-                        call 79   ; json$decode_unicode_escape
+                        call 77   ; json$decode_unicode_escape
                         if $L14 void
                         else
                           local.get 0   ; arg 0
                           string.const 62   ; "invalid \\u escape"
-                          call 60   ; json$fail
+                          call 58   ; json$fail
                           return
                         end $L14
                       end $L12
@@ -6210,7 +6025,7 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
       block $L15 void
         loop $L16 void
           local.get 0   ; arg 0
-          call 59   ; json$at_end
+          call 57   ; json$at_end
           if $L17 void
           else
             local.field 0 32 0   ; arg 0 json$Parser.src
@@ -6244,7 +6059,7 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
               br $L15
             end $L19
             local.get 0   ; arg 0
-            call 69   ; json$advance
+            call 67   ; json$advance
             br $L16
           end $L17
         end $L16
@@ -6262,17 +6077,17 @@ fn 75 json$parse_string_with_escapes (ref,ref) -> any
       local.set 15   ; $call_67
       local.get 1   ; arg 1
       local.get 15   ; $call_67
-      call 92   ; std_string_builder$append
+      call 90   ; std_string_builder$append
       br $L0
     end $L1
   end $L0
   local.get 0   ; arg 0
   string.const 40   ; "unterminated string"
-  call 60   ; json$fail
+  call 58   ; json$fail
   return
 end
 
-fn 76 json$match_keyword (ref,string) -> bool
+fn 74 json$match_keyword (ref,string) -> bool
   local $field_2 string
   local $field_3 usize
   local $call_7 usize
@@ -6285,7 +6100,7 @@ fn 76 json$match_keyword (ref,string) -> bool
   local.get 2   ; $field_2
   local.get 3   ; $field_3
   local.get 1   ; arg 1
-  call 82   ; std_string$matches_at
+  call 80   ; std_string$matches_at
   if $L0 void
   else
     return.lit bool.const false
@@ -6306,7 +6121,7 @@ fn 76 json$match_keyword (ref,string) -> bool
   return.lit bool.const true
 end
 
-fn 77 json$write_indent (ref,i32,i32) -> void
+fn 75 json$write_indent (ref,i32,i32) -> void
   local $mul_checked_7 i32
   local.get 1   ; arg 1
   i32.const 0
@@ -6315,7 +6130,7 @@ fn 77 json$write_indent (ref,i32,i32) -> void
   else
     local.get 0   ; arg 0
     string.const 34   ; "\n"
-    call 92   ; std_string_builder$append
+    call 90   ; std_string_builder$append
     local.get 1   ; arg 1
     local.get 2   ; arg 2
     i32.checked_mul
@@ -6323,13 +6138,13 @@ fn 77 json$write_indent (ref,i32,i32) -> void
     local.get 0   ; arg 0
     char.const 32
     local.get 3   ; $mul_checked_7
-    call 94   ; std_string_builder$append_repeated
+    call 92   ; std_string_builder$append_repeated
     return
   end $L0
   return
 end
 
-fn 78 json$escape_of (u8) -> any
+fn 76 json$escape_of (u8) -> any
   local if_res any
   local and_res bool
   local $call_28 string
@@ -6390,10 +6205,10 @@ fn 78 json$escape_of (u8) -> any
           if $L6 void
             local.get 0   ; arg 0
             u8.to_i64
-            call 105   ; std_numbers$to_hex
+            call 103   ; std_numbers$to_hex
             i64.const 4
             char.const 48
-            call 83   ; std_string$pad_start
+            call 81   ; std_string$pad_start
             local.set 3   ; $call_28
             string.const 69   ; "\\u"
             local.get 3   ; $call_28
@@ -6412,7 +6227,7 @@ fn 78 json$escape_of (u8) -> any
   return
 end
 
-fn 79 json$decode_unicode_escape (ref,ref) -> bool
+fn 77 json$decode_unicode_escape (ref,ref) -> bool
   local hi_val i32
   local hi char
   local $add_checked_14 usize
@@ -6420,7 +6235,7 @@ fn 79 json$decode_unicode_escape (ref,ref) -> bool
   local $field_18 string
   local lo char
   local.get 0   ; arg 0
-  call 80   ; json$read_hex4
+  call 78   ; json$read_hex4
   local.tee 2   ; hi_val
   i32.const 0
   i32.lt
@@ -6430,16 +6245,16 @@ fn 79 json$decode_unicode_escape (ref,ref) -> bool
   local.get 2   ; hi_val
   i32.to_char
   local.tee 3   ; hi
-  call 85   ; std_string$is_surrogate
+  call 83   ; std_string$is_surrogate
   if $L1 void
   else
     local.get 1   ; arg 1
     local.get 3   ; hi
-    call 93   ; std_string_builder$append_char
+    call 91   ; std_string_builder$append_char
     return.lit bool.const true
   end $L1
   local.get 3   ; hi
-  call 86   ; std_string$is_high_surrogate
+  call 84   ; std_string$is_high_surrogate
   if $L2 void
     local.field 0 32 1   ; arg 0 json$Parser.pos
     ref.cast 8   ; usize
@@ -6492,7 +6307,7 @@ fn 79 json$decode_unicode_escape (ref,ref) -> bool
           local.get 5   ; $call_16
           struct.set 32 1   ; json$Parser.pos
           local.get 0   ; arg 0
-          call 80   ; json$read_hex4
+          call 78   ; json$read_hex4
           local.tee 2   ; hi_val
           i32.const 0
           i32.ge
@@ -6500,15 +6315,15 @@ fn 79 json$decode_unicode_escape (ref,ref) -> bool
             local.get 2   ; hi_val
             i32.to_char
             local.tee 7   ; lo
-            call 87   ; std_string$is_low_surrogate
+            call 85   ; std_string$is_low_surrogate
             if $L7 void
               local.get 3   ; hi
               local.get 7   ; lo
-              call 88   ; std_string$combine_surrogates
+              call 86   ; std_string$combine_surrogates
               local.set 3   ; hi
               local.get 1   ; arg 1
               local.get 3   ; hi
-              call 93   ; std_string_builder$append_char
+              call 91   ; std_string_builder$append_char
               return.lit bool.const true
             end $L7
           end $L6
@@ -6524,11 +6339,11 @@ fn 79 json$decode_unicode_escape (ref,ref) -> bool
   local.set 3   ; hi
   local.get 1   ; arg 1
   local.get 3   ; hi
-  call 93   ; std_string_builder$append_char
+  call 91   ; std_string_builder$append_char
   return.lit bool.const true
 end
 
-fn 80 json$read_hex4 (ref) -> i32
+fn 78 json$read_hex4 (ref) -> i32
   local $add_checked_3 usize
   local $call_5 usize
   local v i32
@@ -6568,8 +6383,9 @@ fn 80 json$read_hex4 (ref) -> i32
       local.set 2   ; $call_5
       local.get 4   ; $field_15
       local.get 2   ; $call_5
-      call 4   ; std_core$char_at_byte
-      call 107   ; std_numbers$hex_digit_value
+      call.import 1   ; std_core$byte_at
+      u8.to_char
+      call 105   ; std_numbers$hex_digit_value
       local.tee 5   ; d
       i32.const 0
       i32.lt
@@ -6601,10 +6417,10 @@ fn 80 json$read_hex4 (ref) -> i32
   return
 end
 
-fn 81 std_string$parse_float (string) -> any
+fn 79 std_string$parse_float (string) -> any
   local __coalesce_0 any
   local.get 0   ; arg 0
-  call 6   ; std_core$parse_f64
+  call 4   ; std_core$parse_f64
   local.tee 1   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -6621,7 +6437,7 @@ fn 81 std_string$parse_float (string) -> any
   return
 end
 
-fn 82 std_string$matches_at (string,usize,string) -> bool
+fn 80 std_string$matches_at (string,usize,string) -> bool
   local m usize
   local $call_5 usize
   local $add_checked_14 usize
@@ -6685,7 +6501,7 @@ fn 82 std_string$matches_at (string,usize,string) -> bool
   return.lit bool.const true
 end
 
-fn 83 std_string$pad_start (string,usize,char) -> string
+fn 81 std_string$pad_start (string,usize,char) -> string
   local n usize
   local sb ref
   local.get 0   ; arg 0
@@ -6707,7 +6523,7 @@ fn 83 std_string$pad_start (string,usize,char) -> string
     if $L2 void
       local.get 4   ; sb
       local.get 2   ; arg 2
-      call 93   ; std_string_builder$append_char
+      call 91   ; std_string_builder$append_char
       local.get 3   ; n
       i64.const 1
       i64.add
@@ -6717,18 +6533,18 @@ fn 83 std_string$pad_start (string,usize,char) -> string
   end $L1
   local.get 4   ; sb
   local.get 0   ; arg 0
-  call 92   ; std_string_builder$append
+  call 90   ; std_string_builder$append
   local.get 4   ; sb
-  call 95   ; std_string_builder$StringBuilder$Display$to_string
+  call 93   ; std_string_builder$StringBuilder$Display$to_string
   return
 end
 
-fn 84 std_string$trim_suffix (string,string) -> string
+fn 82 std_string$trim_suffix (string,string) -> string
   local $call_4 usize
   local $call_5 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 89   ; std_string$ends_with
+  call 87   ; std_string$ends_with
   if $L0 void
   else
     local.get 0   ; arg 0
@@ -6751,7 +6567,7 @@ fn 84 std_string$trim_suffix (string,string) -> string
   return
 end
 
-fn 85 std_string$is_surrogate (char) -> bool
+fn 83 std_string$is_surrogate (char) -> bool
   local cp u32
   local.get 0   ; arg 0
   char.to_i32
@@ -6767,7 +6583,7 @@ fn 85 std_string$is_surrogate (char) -> bool
   return.lit bool.const false
 end
 
-fn 86 std_string$is_high_surrogate (char) -> bool
+fn 84 std_string$is_high_surrogate (char) -> bool
   local cp u32
   local.get 0   ; arg 0
   char.to_i32
@@ -6783,7 +6599,7 @@ fn 86 std_string$is_high_surrogate (char) -> bool
   return.lit bool.const false
 end
 
-fn 87 std_string$is_low_surrogate (char) -> bool
+fn 85 std_string$is_low_surrogate (char) -> bool
   local cp u32
   local.get 0   ; arg 0
   char.to_i32
@@ -6799,7 +6615,7 @@ fn 87 std_string$is_low_surrogate (char) -> bool
   return.lit bool.const false
 end
 
-fn 88 std_string$combine_surrogates (char,char) -> char
+fn 86 std_string$combine_surrogates (char,char) -> char
   local $shl_7 u32
   local $sub_checked_11 u32
   local.get 0   ; arg 0
@@ -6825,7 +6641,7 @@ fn 88 std_string$combine_surrogates (char,char) -> char
   return
 end
 
-fn 89 std_string$ends_with (string,string) -> bool
+fn 87 std_string$ends_with (string,string) -> bool
   local $call_2 usize
   local $call_3 usize
   local.get 1   ; arg 1
@@ -6852,13 +6668,13 @@ fn 89 std_string$ends_with (string,string) -> bool
     local.get 0   ; arg 0
     local.get 2   ; $call_2
     local.get 1   ; arg 1
-    call 82   ; std_string$matches_at
+    call 80   ; std_string$matches_at
     return
   end $L0
   return.lit bool.const false
 end
 
-fn 90 std_char$is_digit (char) -> bool
+fn 88 std_char$is_digit (char) -> bool
   char.const 48
   local.get 0   ; arg 0
   i32.le
@@ -6871,7 +6687,7 @@ fn 90 std_char$is_digit (char) -> bool
   return.lit bool.const false
 end
 
-fn 91 std_char$is_white_char (char) -> bool
+fn 89 std_char$is_white_char (char) -> bool
   local or_res bool
   local.get 0   ; arg 0
   char.const 32
@@ -6905,20 +6721,20 @@ fn 91 std_char$is_white_char (char) -> bool
   return
 end
 
-fn 92 std_string_builder$append (ref,string) -> void
+fn 90 std_string_builder$append (ref,string) -> void
   local.field 0 33 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.get 1   ; arg 1
   array.push 1   ; string
   return
 end
 
-fn 93 std_string_builder$append_char (ref,char) -> void
+fn 91 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
   local.field 0 33 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
-  call 12   ; std_core$utf8_encode
+  call 9   ; std_core$utf8_encode
   call.import 3   ; std_core$bytes_to_string
   local.set 3   ; $call_4
   local.get 2   ; $field_2
@@ -6927,11 +6743,11 @@ fn 93 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 94 std_string_builder$append_repeated (ref,char,i32) -> void
+fn 92 std_string_builder$append_repeated (ref,char,i32) -> void
   local s string
   local _ i32
   local.get 1   ; arg 1
-  call 12   ; std_core$utf8_encode
+  call 9   ; std_core$utf8_encode
   call.import 3   ; std_core$bytes_to_string
   local.set 3   ; s
   i32.const 0
@@ -6954,7 +6770,7 @@ fn 94 std_string_builder$append_repeated (ref,char,i32) -> void
   return
 end
 
-fn 95 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 93 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -7056,15 +6872,15 @@ fn 95 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   return
 end
 
-fn 96 std_collections$MutableMap$IndexSet$set_at__string__Any (ref,string,any) -> void
+fn 94 std_collections$MutableMap$IndexSet$set_at__string__Any (ref,string,any) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 102   ; std_collections$put__string__Any
+  call 100   ; std_collections$put__string__Any
   return
 end
 
-fn 97 std_collections$first_slot (u64,usize) -> usize
+fn 95 std_collections$first_slot (u64,usize) -> usize
   local.get 0   ; arg 0
   u64.to_i64
   local.get 1   ; arg 1
@@ -7072,7 +6888,7 @@ fn 97 std_collections$first_slot (u64,usize) -> usize
   return
 end
 
-fn 98 std_collections$next_slot (usize,u64,usize) -> usize
+fn 96 std_collections$next_slot (usize,u64,usize) -> usize
   local $mul_4 usize
   local $cast_5 usize
   local.get 0   ; arg 0
@@ -7092,7 +6908,7 @@ fn 98 std_collections$next_slot (usize,u64,usize) -> usize
   return
 end
 
-fn 99 std_collections$ensure_index__string__Any (ref) -> void
+fn 97 std_collections$ensure_index__string__Any (ref) -> void
   local idx ref
   local __for_discard_0 usize
   local.field 0 49 2   ; arg 0 std_collections$MutableMap__string__Any.index
@@ -7134,7 +6950,7 @@ fn 99 std_collections$ensure_index__string__Any (ref) -> void
   return
 end
 
-fn 100 std_collections$rehash__string__Any (ref,usize) -> void
+fn 98 std_collections$rehash__string__Any (ref,usize) -> void
   local fresh ref
   local __for_discard_0 usize
   local e usize
@@ -7181,10 +6997,10 @@ fn 100 std_collections$rehash__string__Any (ref,usize) -> void
       local.get 4   ; e
       array.get 48   ; string[]
       ref.cast 1   ; string
-      call 108   ; std_core$string$Hash$hash_vt
+      call 106   ; std_core$string$Hash$hash_vt
       local.tee 6   ; perturb
       local.get 3   ; __for_discard_0
-      call 97   ; std_collections$first_slot
+      call 95   ; std_collections$first_slot
       local.set 7   ; s
       loop $L4 void
         local.get 2   ; fresh
@@ -7200,7 +7016,7 @@ fn 100 std_collections$rehash__string__Any (ref,usize) -> void
           local.get 7   ; s
           local.get 6   ; perturb
           local.get 3   ; __for_discard_0
-          call 98   ; std_collections$next_slot
+          call 96   ; std_collections$next_slot
           local.set 7   ; s
           br $L4
         end $L5
@@ -7233,7 +7049,7 @@ fn 100 std_collections$rehash__string__Any (ref,usize) -> void
   return
 end
 
-fn 101 std_collections$write_entry__string__Any (ref,string,any) -> void
+fn 99 std_collections$write_entry__string__Any (ref,string,any) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
@@ -7276,7 +7092,7 @@ fn 101 std_collections$write_entry__string__Any (ref,string,any) -> void
   return
 end
 
-fn 102 std_collections$put__string__Any (ref,string,any) -> void
+fn 100 std_collections$put__string__Any (ref,string,any) -> void
   local $field_3 usize
   local $field_4 usize
   local $mul_checked_24 usize
@@ -7285,7 +7101,7 @@ fn 102 std_collections$put__string__Any (ref,string,any) -> void
   local $field_69 ref
   local $cast_73 i32
   local.get 0   ; arg 0
-  call 99   ; std_collections$ensure_index__string__Any
+  call 97   ; std_collections$ensure_index__string__Any
   local.field 0 49 4   ; arg 0 std_collections$MutableMap__string__Any.size
   ref.cast 8   ; usize
   local.set 3   ; $field_3
@@ -7338,17 +7154,17 @@ fn 102 std_collections$put__string__Any (ref,string,any) -> void
     end $L1
     local.get 0   ; arg 0
     local.get 3   ; $field_3
-    call 100   ; std_collections$rehash__string__Any
+    call 98   ; std_collections$rehash__string__Any
   end $L0
   local.get 1   ; arg 1
-  call 108   ; std_core$string$Hash$hash_vt
+  call 106   ; std_core$string$Hash$hash_vt
   local.set 6   ; perturb
   local.field 0 49 3   ; arg 0 std_collections$MutableMap__string__Any.mask
   ref.cast 8   ; usize
   local.set 3   ; $field_3
   local.get 6   ; perturb
   local.get 3   ; $field_3
-  call 97   ; std_collections$first_slot
+  call 95   ; std_collections$first_slot
   local.set 3   ; $field_3
   i64.const -1
   local.set 7   ; first_tomb
@@ -7405,7 +7221,7 @@ fn 102 std_collections$put__string__Any (ref,string,any) -> void
       local.get 3   ; $field_3
       local.get 6   ; perturb
       local.get 5   ; $mul_checked_24
-      call 98   ; std_collections$next_slot
+      call 96   ; std_collections$next_slot
       local.set 3   ; $field_3
       br $L3
     end $L4
@@ -7437,7 +7253,7 @@ fn 102 std_collections$put__string__Any (ref,string,any) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 101   ; std_collections$write_entry__string__Any
+  call 99   ; std_collections$write_entry__string__Any
   local.field 0 49 2   ; arg 0 std_collections$MutableMap__string__Any.index
   local.set 8   ; $field_69
   local.field 0 49 4   ; arg 0 std_collections$MutableMap__string__Any.size
@@ -7461,13 +7277,13 @@ fn 102 std_collections$put__string__Any (ref,string,any) -> void
   return
 end
 
-fn 103 std_collections$len__string__Any (ref) -> usize
+fn 101 std_collections$len__string__Any (ref) -> usize
   local.field 0 49 4   ; arg 0 std_collections$MutableMap__string__Any.size
   ref.cast 8   ; usize
   return
 end
 
-fn 104 std_numbers$to_compact_str (f64) -> string
+fn 102 std_numbers$to_compact_str (f64) -> string
   local $unop_2 f64
   local __buf_0 ref
   local __off_1 usize
@@ -7492,7 +7308,7 @@ fn 104 std_numbers$to_compact_str (f64) -> string
       f64.eq
       if $L2 void
         i64.const 20
-        call 7   ; std_core$new_byte_buffer
+        call 5   ; std_core$new_byte_buffer
         local.set 2   ; __buf_0
         i64.const 0
         local.set 3   ; __off_1
@@ -7502,23 +7318,23 @@ fn 104 std_numbers$to_compact_str (f64) -> string
         local.get 2   ; __buf_0
         local.get 3   ; __off_1
         local.get 4   ; $cast_14
-        call 9   ; std_core$write_int
+        call 7   ; std_core$write_int
         local.set 3   ; __off_1
         local.get 2   ; __buf_0
         local.get 3   ; __off_1
-        call 8   ; std_core$finish_buffer
+        call 6   ; std_core$finish_buffer
         return
       end $L2
     end $L1
   end $L0
   local.get 0   ; arg 0
-  call 32   ; std_core$f64$Display$to_string
+  call 30   ; std_core$f64$Display$to_string
   string.const 73   ; ".0"
-  call 84   ; std_string$trim_suffix
+  call 82   ; std_string$trim_suffix
   return
 end
 
-fn 105 std_numbers$to_hex (u64) -> string
+fn 103 std_numbers$to_hex (u64) -> string
   local rev ref
   local base u64
   local x u64
@@ -7547,7 +7363,7 @@ fn 105 std_numbers$to_hex (u64) -> string
       local.get 3   ; x
       local.get 2   ; base
       u64.rem
-      call 106   ; std_numbers$hex_digit
+      call 104   ; std_numbers$hex_digit
       local.set 4   ; $call_12
       local.get 1   ; rev
       local.get 4   ; $call_12
@@ -7584,7 +7400,7 @@ fn 105 std_numbers$to_hex (u64) -> string
       local.set 4   ; $call_12
       local.get 5   ; sb
       local.get 4   ; $call_12
-      call 93   ; std_string_builder$append_char
+      call 91   ; std_string_builder$append_char
       local.get 7   ; k
       i64.const 1
       i64.add
@@ -7593,11 +7409,11 @@ fn 105 std_numbers$to_hex (u64) -> string
     end $L4
   end $L3
   local.get 5   ; sb
-  call 95   ; std_string_builder$StringBuilder$Display$to_string
+  call 93   ; std_string_builder$StringBuilder$Display$to_string
   return
 end
 
-fn 106 std_numbers$hex_digit (u64) -> char
+fn 104 std_numbers$hex_digit (u64) -> char
   local $cast_4 u32
   local.get 0   ; arg 0
   i64.const 9
@@ -7625,7 +7441,7 @@ fn 106 std_numbers$hex_digit (u64) -> char
   return
 end
 
-fn 107 std_numbers$hex_digit_value (char) -> i32
+fn 105 std_numbers$hex_digit_value (char) -> i32
   local if_res i32
   local and_res bool
   local.get 0   ; arg 0
@@ -7704,7 +7520,7 @@ fn 107 std_numbers$hex_digit_value (char) -> i32
   return
 end
 
-fn 108 std_core$string$Hash$hash_vt (string) -> u64
+fn 106 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0   ; arg 0
   call.import 5   ; std_core$string$Hash$hash
   return

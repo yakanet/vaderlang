@@ -26,7 +26,6 @@
 
 module "regex"
 
-import "std/string"
 import "std/string_builder"
 
 // =========================================================================
@@ -154,7 +153,7 @@ export compile :: fn(pattern: string) -> Pattern | RegexError {
     parse_outcome :: parse_alternation(p)
     if parse_outcome is RegexError { return parse_outcome }
     if !at_end(p) {
-        c :: p.pattern.char_at_byte(p.cursor)
+        c :: p.pattern.codepoint_at_byte(p.cursor).0
         return RegexError { .msg = "unexpected character '${c}'", .position = p.cursor }
     }
     p.insts.push(InstSave { .slot = 1 })
@@ -608,8 +607,8 @@ space_class_ranges :: fn() -> CharRange[] {
     ]
 }
 
-// Number of UTF-8 bytes occupied by the codepoint starting at `offset`.
-codepoint_byte_advance :: fn(s: string, offset: usize) = s.char_at_byte(offset).codepoint_byte_len()
+// The byte offset just past the codepoint at byte `offset` of `s`.
+next_codepoint :: fn(s: string, offset: usize) = offset + s.codepoint_at_byte(offset).1
 
 // These wrap the built-in zero-copy slice + `push_all` intrinsic. The earlier
 // hand-rolled element loops existed because the generic `std/iter.slice` /
@@ -643,7 +642,7 @@ export find :: fn(self: Pattern, input: string) -> Match | null {
         m :: run_at(self, input, start)
         if m is Match { return m }
         if start == n { return null }
-        start = start + codepoint_byte_advance(input, start)
+        start = next_codepoint(input, start)
     }
     return null
 }
@@ -660,13 +659,13 @@ export find_all :: fn(self: Pattern, input: string) -> Match[] {
             out.push(m)
             if m.end == start {
                 if start >= n { return out }
-                start = start + codepoint_byte_advance(input, start)
+                start = next_codepoint(input, start)
             } else {
                 start = m.end
             }
         } else {
             if start >= n { return out }
-            start = start + codepoint_byte_advance(input, start)
+            start = next_codepoint(input, start)
         }
     }
     return out

@@ -1,9 +1,9 @@
 // std/string/unicode — the codepoint side of the UTF-8 codec.
 //
-// The width a `char` takes once encoded, a decode that answers that width
-// (`codepoint_at_byte`), and UTF-16 surrogates. The encoder, the decoder, the byte
-// classification, `len` and `s[i]` sit in the prelude (`std/core/utf8.vader`); the
-// codepoint iterator (`chars`, `StringChars`) in `string.vader`.
+// The width a `char` takes once encoded, and UTF-16 surrogates. The encoder, the
+// decoder, the byte classification, `len` and `s[i]` sit in the prelude
+// (`std/core/utf8.vader`); the codepoint iterator (`chars`, `StringChars`) in
+// `string.vader`.
 
 module "std/string"
 
@@ -15,35 +15,23 @@ export MAX_CODEPOINT :: char(0x10FFFF)
 
 // ---- widths ---------------------------------------------------------------
 
-/// UTF-8 encoded byte length (1–4) of codepoint `c`:
+/// UTF-8 encoded byte length (1–4) of codepoint `c`, as `utf8_encode` writes it:
 ///   - `U+0000..U+007F`     → 1 byte
 ///   - `U+0080..U+07FF`     → 2 bytes
-///   - `U+0800..U+FFFF`     → 3 bytes
+///   - `U+0800..U+FFFF`     → 3 bytes, a surrogate as U+FFFD
 ///   - `U+10000..U+10FFFF`  → 4 bytes
+///   - past `U+10FFFF`      → 3 bytes, as U+FFFD
 ///
-/// The `char` counterpart to `utf8_lead_len` (which measures from a leading
-/// byte). Codepoints above `U+10FFFF` clamp to 4 — invalid Unicode anyway.
+/// The width a `char` takes once encoded, not the width it was decoded from:
+/// `codepoint_at_byte` answers that one.
 /// @param c  the codepoint to measure.
 /// @return   its UTF-8 encoded length in bytes (1, 2, 3, or 4).
 export codepoint_byte_len :: fn(c: char) -> usize {
     cp :: u32(c)
-    if cp < 0x80    { return 1 }
-    if cp < 0x800   { return 2 }
-    if cp < 0x10000 { return 3 }
+    if cp < 0x80                               { return 1 }
+    if cp < 0x800                              { return 2 }
+    if cp < 0x10000 || cp > u32(MAX_CODEPOINT) { return 3 }
     return 4
-}
-
-// ---- decode ---------------------------------------------------------------
-
-/// Decode the UTF-8 sequence at byte offset `i` of a string into a codepoint and
-/// its encoded byte length, read in place. Advance the caller's cursor by the
-/// returned `n` to land on the next leading byte.
-/// @param s  the source string.
-/// @param i  byte offset of a UTF-8 leading byte.
-/// @return   `[codepoint, byte_length]`.
-export codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize] {
-    c :: s.char_at_byte(i)
-    return [c, c.codepoint_byte_len()]
 }
 
 // ---- UTF-16 surrogates ----------------------------------------------------
@@ -90,15 +78,6 @@ import "std/testing"
     assert_eq(codepoint_byte_len('A'), 1)
     assert_eq(codepoint_byte_len('é'), 2)
     assert_eq(codepoint_byte_len('😀'), 4)
-}
-
-@test test_codepoint_at_byte :: fn() -> void {
-    [c0, w0] :: codepoint_at_byte("a😀", 0)
-    assert_eq(c0, 'a')
-    assert_eq(w0, 1)
-    [c1, w1] :: codepoint_at_byte("a😀", 1)
-    assert_eq(c1, '😀')
-    assert_eq(w1, 4)
 }
 
 @test test_surrogate_classification :: fn() -> void {

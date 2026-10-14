@@ -73,7 +73,7 @@ peek_byte :: fn(p: Parser) -> char {
     if at_end(p) {
         return '\0'
     }
-    return p.src.char_at_byte(p.pos)
+    return char(p.src.byte_at(p.pos))
 }
 
 advance :: fn(p: Parser) -> void {
@@ -335,7 +335,7 @@ read_hex4 :: fn(p: Parser) -> i32 {
     }
     v := 0
     for k in usize(0)..<4 {
-        d :: hex_digit_value(p.src.char_at_byte(p.pos + k))
+        d :: hex_digit_value(char(p.src.byte_at(p.pos + k)))
         if d < 0 {
             return -1
         }

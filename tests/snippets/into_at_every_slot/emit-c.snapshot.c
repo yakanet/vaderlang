@@ -1330,23 +1330,23 @@ static vader_string_t std_string_trim(vader_string_t l0) {
     bool t1;
     int64_t t2;
     vader_string_t t3;
-#line 303 "lib/std/string/string.vader"
+#line 302 "lib/std/string/string.vader"
     l1 = vader_host_std_core_byte_len(l0);
-#line 304 "lib/std/string/string.vader"
+#line 303 "lib/std/string/string.vader"
     l2 = (size_t) 0;
-#line 305 "lib/std/string/string.vader"
+#line 304 "lib/std/string/string.vader"
     while ((l2 < l1)) {
         t0 = vader_host_std_core_byte_at(l0, l2);
         t1 = std_string_is_white_byte(t0);
         if (!(t1)) {
             break;
         }
-#line 306 "lib/std/string/string.vader"
+#line 305 "lib/std/string/string.vader"
         t2 = vader_chk_add(usize, l2, INT64_C(1));
         l2 = (size_t) (int64_t) t2;
-#line 305 "lib/std/string/string.vader"
+#line 304 "lib/std/string/string.vader"
     }
-#line 309 "lib/std/string/string.vader"
+#line 308 "lib/std/string/string.vader"
     while ((l1 > l2)) {
         t2 = vader_chk_sub(usize, l1, INT64_C(1));
         l3 = (size_t) (int64_t) t2;
@@ -1355,19 +1355,19 @@ static vader_string_t std_string_trim(vader_string_t l0) {
         if (!(t1)) {
             break;
         }
-#line 310 "lib/std/string/string.vader"
+#line 309 "lib/std/string/string.vader"
         t2 = vader_chk_sub(usize, l1, INT64_C(1));
         l1 = (size_t) (int64_t) t2;
-#line 309 "lib/std/string/string.vader"
+#line 308 "lib/std/string/string.vader"
     }
-#line 312 "lib/std/string/string.vader"
+#line 311 "lib/std/string/string.vader"
     t3 = vader_host_std_core_byte_slice(l0, l2, l1);
     return t3;
 }
 
 static bool std_string_is_white_byte(uint8_t l0) {
     bool l1;
-#line 164 "lib/std/string/string.vader"
+#line 163 "lib/std/string/string.vader"
     if (l0 == INT32_C(32)) {
         l1 = true;
     } else {

@@ -18,7 +18,6 @@
 module "vader/lsp/protocol"
 
 import "std/math"
-import "std/string"
 
 // ---- encoding -------------------------------------------------------------
 
@@ -75,8 +74,10 @@ export new_line_index :: fn(source: string, encoding: PositionEncoding) -> LineI
 
 /// The number of `character` units a codepoint of UTF-8 byte-width `w` occupies
 /// under `encoding` : bytes for utf-8, two for an astral (4-byte) codepoint under
-/// utf-16, one otherwise (BMP under utf-16, any codepoint under utf-32). The
-/// single source of truth shared by the outgoing count and the incoming walk.
+/// utf-16, one otherwise (BMP under utf-16, any codepoint under utf-32). A
+/// malformed byte run decodes as one U+FFFD, a BMP codepoint, as the client's
+/// decoder reads it too. The single source of truth shared by the outgoing count
+/// and the incoming walk.
 units_for :: fn(encoding: PositionEncoding, w: usize) -> i32 {
     if encoding == .Utf8 { return i32(w) }
     if encoding == .Utf16 && w == 4 { return 2 }
@@ -94,7 +95,7 @@ count_units :: fn(source: string, from: usize, to: usize, encoding: PositionEnco
     count: i32 = 0
     i: usize = from
     for i < hi {
-        w :: source.byte_at(i).utf8_lead_len()
+        w :: source.codepoint_at_byte(i).1
         count += units_for(encoding, w)
         i += w
     }
@@ -171,7 +172,7 @@ export li_offset :: fn(li: LineIndex, line: i32, character: i32) -> usize {
         if c == '\n' || c == '\r' {
             break // never cross into the next line
         }
-        w :: utf8_lead_len(c)
+        w :: li.source.codepoint_at_byte(cursor).1
         cursor += w
         remaining -= units_for(li.encoding, w)
     }
@@ -244,4 +245,12 @@ import "std/testing"
     li :: new_line_index("ab\ncd", .Utf8)
     // Asking past the end of line 0 stops at the LF, not into line 1.
     assert_eq(li_offset(li, 0, 99), 2)
+}
+
+@test test_character_counts_a_malformed_run_once :: fn() -> void {
+    // `"<C3>" a`: the lead byte C3 is not continued, so it is one U+FFFD, one unit,
+    // and `a` (byte 4) gets the column the lexer gives it.
+    li :: new_line_index(bytes_to_string([0x22, 0xC3, 0x22, 0x20, 0x61]), .Utf16)
+    assert_eq(li_character(li, 0, 4), 4)
+    assert_eq(span_column(li, 0, 4), 5)
 }

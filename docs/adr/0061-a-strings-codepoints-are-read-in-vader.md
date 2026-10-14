@@ -5,6 +5,10 @@
 Accepted (2026-10-14). Amends 0046: `lib/` now implements one trait twice on one
 receiver, `Index` on `string`.
 
+**Amended by [0063](0063-one-decoding-of-malformed-utf8.md) (2026-10-14)**: the
+walk steps by the bytes `codepoint_at_byte` decodes, not by the width the lead byte
+announces: "the walk is unchanged" below no longer holds on malformed bytes.
+
 ## Context
 
 A backend had to provide two codepoint walks besides the bytes of a string: `s[i]`

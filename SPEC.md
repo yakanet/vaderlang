@@ -280,7 +280,7 @@ The identifier `void` is **reserved**: binding it as a fn name, struct name, par
 '\u{1F600}'  // explicit codepoint
 ```
 
-- Escape set: `\n`, `\t`, `\r`, `\\`, `\'`, `\0`, `\u{HHHH}` (1–6 hex digits).
+- Escape set: `\n`, `\t`, `\r`, `\\`, `\'`, `\0`, `\u{HHHH}` (1–6 hex digits, a Unicode scalar value: a surrogate `D800..DFFF` or a value past `10FFFF` is L0009, in a char or a string literal).
 - Exactly **one** logical codepoint per literal. `''` and `'ab'` are lexical errors.
 - A char **literal** is *free*: in an integer context it coerces to that integer type, carrying its codepoint, bounds-checked at compile time (`b == '/'` with `b: u8` works ; `b == '💩'` is rejected — U+1F4A9 doesn't fit `u8`). With no integer context it defaults to `char`. This replaces the old `b'X'` byte literal — write `'X'`, not `b'X'`. (There is no `b'…'` form anymore.) A char **variable** keeps the concrete `char` type and never auto-coerces: convert it explicitly with `u8(c)` (which truncates codepoints above `0xFF`).
 
@@ -682,11 +682,12 @@ A negative integer literal is one value (§Default integer), so `x: i64: -9_223_
 
 - Internals: an **interned atom id** — `vader_string_t` is a `u32`, 4 bytes, copied on assignment. `==` is an integer compare and hashing is the identity; the bytes live once in a global atom table (`docs/ATOM_INTERNING.md`). The `(ptr, len)` fat value this used to be went out with atom interning.
 - Immutable. Concatenation allocates.
-- `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). For the **byte** length, `s.byte_len()` (O(1), no view). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `byte_len()` for byte arithmetic.
+- `len()` returns the number of Unicode codepoints (an allocation-free walk, decoding malformed bytes as described below). For the **byte** length, `s.byte_len()` (O(1), no view). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `byte_len()` for byte arithmetic.
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`); pair with `for c in s.chars()` for a true Unicode loop.
 - `bytes()` returns the UTF-8 byte sequence as `u8[]`, read-only since a return takes the default, for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); writes to it are rejected at compile time (T3042), which keeps the view sound since the shared bytes are immutable. On the VM the array reads the interned bytes in place until a write copies them. `bytes()` is for handing the bytes to code that takes a `u8[]`; to read them, the string itself answers (`byte_len`, `byte_at`, `byte_slice`, below), with no view to allocate. Strings iterate by **codepoint** by default: `string implements Into<Iterator<char>!>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); the byte loop is `for i in 0..<s.byte_len() { b :: s.byte_at(i) }`.
 - `is_empty()` — sugar for `s.byte_len() == 0` (codepoint count and byte count agree on emptiness).
-- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`); the key is a `usize` or a free literal, as for any `Index` impl, and an index past the last codepoint stops the run. **Slicing** `s[lo..<hi]` (or `s[lo..=hi]`) returns the codepoints of the range as a string (via `string implements Index<Range<usize>, string>`): bounds past the end clamp to it, and a range that ends before it starts gives `""`. Both walk from the start, a codepoint spanning the width its lead byte announces and a stray continuation byte counting as one: `s[i]` is O(i); pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, read the string in place: `s.byte_at(i) -> u8` for the raw byte, `s.byte_slice(lo, hi)` for the substring between two byte offsets, `s.char_at_byte(i) -> char` and `s.codepoint_at_byte(i) -> [char, usize]` (the codepoint and its byte width) to decode the UTF-8 codepoint starting at byte offset `i` (lexers, JSON and regex parsers). A continuation byte at `i` decodes as `U+FFFD`, a sequence cut short by the end as `U+0000`. There is no `IndexSet` impl; strings are immutable.
+- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`); the key is a `usize` or a free literal, as for any `Index` impl, and an index past the last codepoint stops the run. **Slicing** `s[lo..<hi]` (or `s[lo..=hi]`) returns the codepoints of the range as a string (via `string implements Index<Range<usize>, string>`): bounds past the end clamp to it, and a range that ends before it starts gives `""`. Both walk from the start: `s[i]` is O(i); pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, read the string in place: `s.byte_at(i) -> u8` for the raw byte, `s.byte_slice(lo, hi)` for the substring between two byte offsets, `s.codepoint_at_byte(i) -> [char, usize]` to decode the UTF-8 codepoint starting at byte offset `i` into the codepoint and the bytes it spans (lexers and regex parsers; `.0` keeps the codepoint alone). There is no `IndexSet` impl; strings are immutable.
+- **Malformed UTF-8.** Nothing validates the bytes a string is made from (`bytes_to_string`, `read_file_string`, a `byte_slice` that cuts a codepoint). Every codepoint walk decodes them one way, the substitution Unicode recommends and WHATWG decoders apply: a malformed run is one `U+FFFD` spanning the longest prefix of a well-formed sequence, and at least one byte. Overlong forms, surrogates and codepoints past U+10FFFF are malformed, and `utf8_encode` (behind `append_char` and a `char`'s `Display`) writes a `char` holding one as `U+FFFD`, so what it writes decodes back. So `s.len()` is the number of codepoints `for c in s` yields and the number of valid `s[i]`, on any bytes. The compiler reads source the same way: a malformed run in a literal is a `U+FFFD`, one column wide.
 - Literals stored in the binary's data section.
 
 ### Arrays
@@ -3557,12 +3558,11 @@ len              :: fn(s: string) -> usize                      // codepoint cou
 chars            :: fn(s: string) -> StringChars                // StringChars implements Iterator<char>
 
 // Byte access (raw UTF-8), read in place. `byte_len`, `byte_at`, `byte_slice`,
-// `char_at_byte`, `bytes` and `bytes_to_string` live in the prelude (`std/core`).
+// `codepoint_at_byte`, `bytes` and `bytes_to_string` live in the prelude (`std/core`).
 byte_len          :: fn(s: string) -> usize                         // byte length, O(1)
 byte_at           :: fn(s: string, i: usize) -> u8                  // the byte at `i`; traps past the end
 byte_slice        :: fn(s: string, start: usize, end: usize) -> string  // bytes `start..<end` as a string
-char_at_byte      :: fn(s: string, i: usize) -> char                // UTF-8 codepoint starting at byte offset `i`
-codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize]       // the same, with its byte width
+codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize]       // the codepoint at byte `i`, the bytes it spans
 bytes             :: fn(s: string) -> u8[]                          // UTF-8 bytes as an array
 bytes_to_string   :: fn(bs: u8[]) -> string                         // inverse of bytes()
 
@@ -3582,8 +3582,8 @@ join       :: fn(parts: string[], sep: string) -> string
 left_trim  :: fn(s: string) -> string
 right_trim :: fn(s: string) -> string
 
-// UTF-8 codepoint width (powers `chars()` / `len`).
-codepoint_byte_len :: fn(c: char) -> usize                      // 1..4 — UTF-8 width of a codepoint
+// The bytes a `char` takes once encoded.
+codepoint_byte_len :: fn(c: char) -> usize                      // 1..4, as `utf8_encode` writes it
 
 // Pattern / scanner helpers (ad-hoc — no real regex engine in MVP).
 trim_prefix         :: fn(s: string, prefix: string) -> string

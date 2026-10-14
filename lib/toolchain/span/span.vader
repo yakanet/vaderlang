@@ -24,8 +24,8 @@ module "toolchain/span"
 /// A point in a source file.
 ///
 /// `offset` is a raw UTF-8 byte offset ; `column` is a 1-based **codepoint**
-/// index within the line (the lexer counts leading bytes). The LSP boundary
-/// translates to UTF-16 column counts when needed.
+/// index within the line, malformed bytes decoded as `codepoint_at_byte` decodes
+/// them. The LSP boundary translates to UTF-16 column counts when needed.
 export Position :: struct {
     file: string
     offset: usize

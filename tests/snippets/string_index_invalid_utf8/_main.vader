@@ -1,18 +1,24 @@
-// string_index_invalid_utf8: `s[i]` and `s[lo..<hi]` over malformed UTF-8 read
-// the same codepoints on the VM as natively. A stray continuation byte counts as
-// one codepoint of one byte, decoded as U+FFFD; a lead byte cut short by the end
-// is one codepoint, decoded as U+0000.
+// string_index_invalid_utf8: over malformed UTF-8, `s.len()`, `s[i]`, `s[lo..<hi]`
+// and `for c in s` step through the same codepoints, on the VM as natively. A stray
+// continuation byte is one U+FFFD of one byte; a lead byte cut short by the end is
+// one U+FFFD over the bytes it has.
 
 module "snippet"
 
 import "std/io"
+import "std/string"
 
 main :: fn() -> i32 {
     s :: bytes_to_string([0x61, 0xA9, 0x62, 0x63, 0x64, 0xE2, 0x82])
-    n: usize: 6
-    for i in 0..<n {
+    println(s.len())
+    for i in 0..<s.len() {
         println(u32(s[i]))
     }
+    walked: usize = 0
+    for _ in s {
+        walked += 1
+    }
+    println(walked)
     println(s[1..<3].byte_len())
     println(s[2..<10].byte_len())
     println(s[4..<2].byte_len())

@@ -94,17 +94,16 @@ StringChars implements Iterator<char> {
             self.cursor = i + 1
             return [char(b), .Continue]
         }
-        c :: decode_tail(self.s, b, i)
-        self.cursor = i + c.codepoint_byte_len()
+        [c, width] :: decode_tail(self.s, b, i)
+        self.cursor = i + width
         return [c, .Continue]
     }
 }
 
 /// Iterate `s` codepoint-by-codepoint. `for c in s` desugars to this via
 /// the `Into<Iterator<char>!>` impl below — call `s.chars()` explicitly
-/// only when you need the iterator as a value. Byte-indexed `s[i]` loops
-/// return U+FFFD on continuation bytes for non-ASCII content ; prefer
-/// `for c in s` for Unicode-correct iteration.
+/// only when you need the iterator as a value. It walks `s` once, where
+/// `s[i]` walks from the start at every index.
 ///
 /// Example :
 ///   `for c in "héllo" { println("${c}") }`
@@ -853,11 +852,10 @@ import "std/testing"
 }
 
 @test test_chars_invalid_bytes :: fn() -> void {
-    // A stray continuation byte decodes as U+FFFD and steps over the width of
-    // U+FFFD, three bytes ; a lead cut short by the end decodes as U+0000 and
-    // steps one byte.
+    // A stray continuation byte decodes as U+FFFD and steps one byte ; a lead cut
+    // short by the end decodes as one U+FFFD over the bytes it has.
     s :: bytes_to_string([0x61, 0xA9, 0x62, 0x63, 0x64, 0xE2, 0x82])
-    want :: ['a', REPLACEMENT_CHAR, 'd', char(0), REPLACEMENT_CHAR]
+    want :: ['a', REPLACEMENT_CHAR, 'b', 'c', 'd', REPLACEMENT_CHAR]
     i: usize = 0
     for c in s {
         assert_eq(c, want[i])

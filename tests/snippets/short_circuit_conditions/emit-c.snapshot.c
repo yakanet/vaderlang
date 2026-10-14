@@ -836,13 +836,13 @@ static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 81 "lib/std/string_builder/string_builder.vader"
-    l1 = ((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts)->length;
 #line 82 "lib/std/string_builder/string_builder.vader"
+    l1 = ((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts)->length;
+#line 83 "lib/std/string_builder/string_builder.vader"
     if (l1 == INT64_C(0)) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
-#line 83 "lib/std/string_builder/string_builder.vader"
+#line 84 "lib/std/string_builder/string_builder.vader"
     if (l1 == INT64_C(1)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
@@ -851,9 +851,9 @@ static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l
         t1 = t0.payload.s;
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 84 "lib/std/string_builder/string_builder.vader"
-    l1 = (size_t) 0;
 #line 85 "lib/std/string_builder/string_builder.vader"
+    l1 = (size_t) 0;
+#line 86 "lib/std/string_builder/string_builder.vader"
     l2 = ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts;
     l3 = ((vader_array_t*) l2)->length;
     l4 = (size_t) 0;
@@ -863,19 +863,19 @@ static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-#line 86 "lib/std/string_builder/string_builder.vader"
+#line 87 "lib/std/string_builder/string_builder.vader"
         l5 = vader_host_std_core_byte_len(t1);
         t2 = vader_chk_add(usize, l1, l5);
         l1 = (size_t) (int64_t) t2;
-#line 85 "lib/std/string_builder/string_builder.vader"
+#line 86 "lib/std/string_builder/string_builder.vader"
         t2 = (l4 + INT64_C(1));
         l4 = (size_t) (int64_t) t2;
     }
-#line 88 "lib/std/string_builder/string_builder.vader"
-    l2 = (void*) vader_buffer_new((size_t) l1);
 #line 89 "lib/std/string_builder/string_builder.vader"
-    l3 = (size_t) 0;
+    l2 = (void*) vader_buffer_new((size_t) l1);
 #line 90 "lib/std/string_builder/string_builder.vader"
+    l3 = (size_t) 0;
+#line 91 "lib/std/string_builder/string_builder.vader"
     l6 = ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts;
     l4 = ((vader_array_t*) l6)->length;
     l5 = (size_t) 0;
@@ -885,17 +885,17 @@ static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l5)
         t0 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l5];
         l7 = t0.payload.s;
-#line 91 "lib/std/string_builder/string_builder.vader"
-        vader_buffer_write_string((vader_buffer_t*) l2, (size_t) l3, l7);
 #line 92 "lib/std/string_builder/string_builder.vader"
+        vader_buffer_write_string((vader_buffer_t*) l2, (size_t) l3, l7);
+#line 93 "lib/std/string_builder/string_builder.vader"
         l8 = vader_host_std_core_byte_len(l7);
         t2 = vader_chk_add(usize, l3, l8);
         l3 = (size_t) (int64_t) t2;
-#line 90 "lib/std/string_builder/string_builder.vader"
+#line 91 "lib/std/string_builder/string_builder.vader"
         t2 = (l5 + INT64_C(1));
         l5 = (size_t) (int64_t) t2;
     }
-#line 94 "lib/std/string_builder/string_builder.vader"
+#line 95 "lib/std/string_builder/string_builder.vader"
     t1 = vader_buffer_intern_string((vader_buffer_t*) l2, (size_t) l1);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }

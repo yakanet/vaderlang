@@ -15,9 +15,23 @@
             int(100) :u8
             int(226) :u8
             int(130) :u8
-    let n: usize = int(6) :usize
+    call :void
+      callee:
+        std_io$println__usize :void
+      arg0:
+        call :usize
+          callee:
+            len :usize
+          arg0:
+            s :string
     block :void
       let i: usize = int(0) :usize
+      let __for_hi_0: usize =
+        call :usize
+          callee:
+            len :usize
+          arg0:
+            s :string
       loop while (<…>)
         ~>
           call :void
@@ -42,6 +56,49 @@
                 i :usize
               r:
                 int(1) :usize
+    let walked: usize = int(0) :usize
+    block :void
+      let __iter_1: StringChars! =
+        call :StringChars!
+          callee:
+            chars :StringChars!
+          arg0:
+            s :string
+      loop
+        let __step_2: [char, Continuation]! =
+          call :[char, Continuation]!
+            callee:
+              std_string$StringChars$Iterator$next :[char, Continuation]!
+            arg0:
+              __iter_1 :StringChars!
+        if :void
+          cond:
+            eq :bool
+              l:
+                ._1 :Continuation
+                  __step_2 :[char, Continuation]!
+              r:
+                int(1) :u8
+          then:
+            break
+          else:
+            let _: char =
+              ._0 :char
+                __step_2 :[char, Continuation]!
+            assign
+              target:
+                walked :usize
+              value:
+                add_checked :usize
+                  l:
+                    walked :usize
+                  r:
+                    int(1) :usize
+    call :void
+      callee:
+        std_io$println__usize :void
+      arg0:
+        walked :usize
     call :void
       callee:
         std_io$println__usize :void

@@ -13,8 +13,6 @@
 
 module "cli"
 
-import "std/string"
-
 /// A key the prompts understand. Anything else decodes to `.Unknown` and is
 /// ignored rather than guessed at.
 export Key :: enum(u8) {
@@ -93,7 +91,7 @@ export decode_key :: fn(burst: string, from: usize) -> DecodedKey {
     if b < 0x20 {
         return one(.Unknown)
     }
-    return decode_char(burst, from, remaining)
+    return decode_char(burst, from)
 }
 
 // A single-byte press.
@@ -181,15 +179,13 @@ decode_tilde :: fn(burst: string, from: usize, remaining: usize) -> DecodedKey {
     return DecodedKey { .press = KeyPress { .key = .Unknown, .text = "" }, .consumed = n }
 }
 
-// A printable character, taken as a WHOLE codepoint: a UTF-8 lead byte says how
-// many continuation bytes follow, and reporting them separately would put half a
-// character into a text field.
-decode_char :: fn(burst: string, from: usize, remaining: usize) -> DecodedKey {
-    width :: utf8_lead_len(burst.byte_at(from))
-    take :: if width > remaining { remaining } else { width }
+// A printable character, taken as a WHOLE codepoint: reporting its bytes
+// separately would put half a character into a text field.
+decode_char :: fn(burst: string, from: usize) -> DecodedKey {
+    width :: burst.codepoint_at_byte(from).1
     return DecodedKey {
-        .press = KeyPress { .key = .Char, .text = burst.byte_slice(from, from + take) },
-        .consumed = take,
+        .press = KeyPress { .key = .Char, .text = burst.byte_slice(from, from + width) },
+        .consumed = width,
     }
 }
 
