@@ -1,0 +1,43 @@
+# Typecheck
+
+## tests/snippets/const_copied_where_kept
+  FnDecl         bump                 :: fn(Counter!) -> void
+  StructDecl     Counter              :: Counter!
+  FnDecl         first_prime          :: fn() -> i32
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      PRIMES               :: i32[]
+  FnDecl         primes               :: fn() -> i32[]
+  ConstDecl      START                :: Counter
+  FnDecl         start                :: fn() -> Counter
+  expr 14:10    StructLitExpr  :: Counter!
+  expr 15:11    SeqLitExpr     :: i32[]!
+  expr 17:28    IdentExpr      :: Counter
+  expr 19:30    IdentExpr      :: i32[]
+  expr 19:30    IndexExpr      :: i32
+  expr 21:27    IdentExpr      :: i32[]
+  expr 24:5     BinaryExpr     :: i32
+  expr 24:5     FieldExpr      :: i32
+  expr 24:5     IdentExpr      :: Counter!
+  expr 28:10    StructLitExpr  :: Counter!
+  expr 29:10    IdentExpr      :: Counter!
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(Counter!) -> void
+  expr 30:13    FieldExpr      :: i32
+  expr 30:13    IdentExpr      :: Counter!
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 31:13    CallExpr       :: Counter
+  expr 31:13    FieldExpr      :: i32
+  expr 31:13    IdentExpr      :: fn() -> Counter
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
+  expr 32:13    CallExpr       :: i32
+  expr 32:13    IdentExpr      :: fn() -> i32
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 33:13    CallExpr       :: i32[]
+  expr 33:13    CallExpr       :: usize
+  expr 33:13    FieldExpr      :: fn() -> usize
+  expr 33:13    IdentExpr      :: fn() -> i32[]
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void

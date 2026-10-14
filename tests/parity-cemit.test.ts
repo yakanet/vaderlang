@@ -524,6 +524,9 @@ const C_PARITY = new Set<string>([
   // A `Circle[]` read as a `Shape[]` (trait) and as a `(Circle | null)[]`, one
   // array deeper too, and a struct literal taking a trait array's element.
   "array_argument_widened",
+  // A pooled constant kept where a write may reach it is built again at the use,
+  // natively too, where the shared one lies in `.rodata`.
+  "const_copied_where_kept",
   // `+%` / `-%` / `*%` at every width, run time and folded constants alike.
   "wrapping_operators",
   // A `-` written against a number literal belongs to it, postfixes included.

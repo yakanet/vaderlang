@@ -13,6 +13,12 @@
 // The nested array field is what makes the const materialise BOXED; a struct of
 // scalars alone does not reproduce. Found 2026-07-27 via `vader lsp
 // --stdlib-root=…`, where `command_specs` did `push_all` on a flag-spec const.
+//
+// `dst` keeps the elements of `ITEMS`, which a write could reach through their
+// nested arrays, so each use of `ITEMS` here reads a fresh table built by its
+// accessor (the frozen checks of ADR 0053): the source of `push_all` is a heap array,
+// not the boxed pool one. The snippet pins `push_all` of struct elements that carry an
+// array; the boxed source stays reachable only from a use the checks do not root.
 
 module "snippet"
 

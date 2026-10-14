@@ -28,6 +28,8 @@ export EffectSummary :: struct {
     unsettled: i32[]
     /// What the program does with its frozen values (`frozen.vader`).
     frozen: FrozenSite[]
+    /// The uses of constants that read a fresh value, for the lowering.
+    fresh: FreshReads
     /// The arguments the typecheck widened, and whether their callees allow it
     /// (`variance.vader`).
     widenings: WideningSite[]
@@ -77,6 +79,7 @@ export summarise_effects :: fn(project: LoadedProject, checked: CheckResult) -> 
         .facts = facts,
         .unsettled = unsettled,
         .frozen = frozen.sites,
+        .fresh = frozen.fresh,
         .widenings = settle_widenings(widenings, facts, index.paths),
     }
 }

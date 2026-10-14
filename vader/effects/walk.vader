@@ -190,7 +190,7 @@ assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: usize | null) -> voi
     if slot == null {
         ctx.escape(value, .Stored)
     } else if value != null {
-        ctx.bind_copy(slot, value, name.span, ctx.typed.expr_types[name.id])
+        ctx.bind_copy(slot, value, name.span)
     }
 }
 
@@ -230,7 +230,7 @@ bind_symbol :: fn(ctx: WalkCtx, span: Span, value: usize | null) -> void {
     sym :: ctx.typed.resolved.idents[span.hash()] ?? return
     slot :: ctx.local_slot(sym.id)
     if value != null {
-        ctx.bind_copy(slot, value, span, ctx.typed.local_types[span.hash()])
+        ctx.bind_copy(slot, value, span)
     }
 }
 

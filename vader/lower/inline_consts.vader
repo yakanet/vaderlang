@@ -75,6 +75,19 @@ export inline_consts :: fn(project: LoweredProject, project_ctx: LowerProjectCtx
                     // priority over fn-wrap, which would `array.new` + refill at
                     // each call. What is not bakeable falls through.
                     if try_data_pool(d, sym, project) || try_pool_struct(d, sym, project) {
+                        // A use that must not share the pooled value calls an
+                        // accessor that builds it again.
+                        if sym.id in project_ctx.typed.fresh.constants {
+                            fn_symbol :: const_accessor_symbol(
+                                sym,
+                                next_project_synthetic_id(project_ctx),
+                            )
+                            project.const_fresh_wrap[sym.id] = ConstFnWrap {
+                                .fn_symbol = fn_symbol,
+                                .call_type = d.type,
+                            }
+                            new_decls.push(synthesize_const_fn(d, fn_symbol))
+                        }
                         changed = true
                         continue
                     }

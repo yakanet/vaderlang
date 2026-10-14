@@ -2,7 +2,8 @@
 // settled.
 //
 // Some checks read the whole typed program: the effect summary decides each array
-// argument the typecheck widened (T3102, `vader/effects`). The typecheck cannot
+// argument the typecheck widened (T3102, `vader/effects`), and which uses of a
+// constant read a fresh value of it for the lowering. The typecheck cannot
 // import the passes it feeds, so every client that checks a program, the CLI and
 // the LSP alike, comes through here and reports the same diagnostics. A module of
 // its own under the pipeline, so that the LSP takes it without the backend.
@@ -18,6 +19,14 @@ import "vader/typecheck"
 
 Fx :: import "vader/effects"
 
+/// A typechecked project, with the effect summary the checks read.
+export CheckedProject :: struct {
+    result: CheckResult
+    /// What every function does with what it is lent ; it also says which uses of
+    /// a constant read a fresh value of it (`effects.fresh`).
+    effects: Fx.EffectSummary
+}
+
 /// Typecheck every module of `project`, bodies included, then run the checks that
 /// need the whole program typed.
 ///
@@ -25,15 +34,39 @@ Fx :: import "vader/effects"
 /// @param diags       where the diagnostics go, the typecheck's first.
 /// @param dump_types  whether to fill the dump-only tables
 ///                    (`check_project_with_bodies`).
-/// @return            the typed program.
+/// @return            the typed program and its effect summary.
 export check_project :: fn(
     project: LoadedProject,
     diags: Diagnostic[],
     dump_types: bool,
-) -> CheckResult {
+) -> CheckedProject {
     result :: check_project_with_bodies(project, diags, dump_types)
-    diags.push_all(Fx.widening_diagnostics(project, result))
-    return result
+    effects :: Fx.summarise_effects(project, result)
+    diags.push_all(Fx.widening_diagnostics(effects, result))
+    return CheckedProject { .result = result, .effects = effects }
+}
+
+/// The typed project the comptime engine and the lowering read: every typed
+/// module, and the uses of constants the lowering must not share.
+///
+/// @param checked  the checked project.
+export assemble_typed_project :: fn(checked: CheckedProject) -> TypedProject {
+    project :: new_typed_project(checked.effects.fresh)
+    result :: checked.result
+    project.modules[result.typed.resolved.path] = result.typed
+    // Every typed module the orchestrator built (entry, imports, std/*), so the
+    // passes that query impls by trait see the ones std defines.
+    if !result.all_modules.is_empty() {
+        for [module_id, module_typed] in result.all_modules {
+            project.modules[module_id] = module_typed
+        }
+        return project
+    }
+    // A single-module shortcut fills only `others`, which skips std/*.
+    for other in result.others {
+        project.modules[other.resolved.path] = other
+    }
+    return project
 }
 
 /// Load + typecheck one entry file, returning the project, the typed result,
@@ -45,6 +78,8 @@ export check_project :: fn(
 export FileCheck :: struct {
     project: LoadedProject!
     result: CheckResult
+    /// The effect summary of the project (`CheckedProject.effects`).
+    effects: Fx.EffectSummary
     /// Loader diagnostics (parse / discovery / import-path / collect) followed
     /// by typecheck diagnostics, in that order — the same merge the CLI's
     /// `dump --stage=typed-ast` performs.
@@ -69,10 +104,11 @@ export check_file :: fn(
 ) -> FileCheck {
     project :: load_project_with_overlay(entry_path, overlay, include_path_flags, selection)
     diags: Diagnostic[]: []
-    result :: check_project(project, diags, dump_types)
+    checked :: check_project(project, diags, dump_types)
     return FileCheck {
         .project = project,
-        .result = result,
+        .result = checked.result,
+        .effects = checked.effects,
         .diags = chain(project.diags, diags).collect(),
     }
 }

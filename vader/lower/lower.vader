@@ -407,7 +407,7 @@ import "std/testing"
         .project_root = null,
         .diags        = [],
     }
-    typed :: new_typed_project()
+    typed :: new_typed_project(FreshReads {})
     evaluated :: new_evaluated_project(typed)
     diags: Diagnostic[]: []
     project :: lower_project(loaded, typed, evaluated, diags)

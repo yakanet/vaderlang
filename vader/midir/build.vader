@@ -34,6 +34,9 @@ ProjectCtx :: struct {
     /// Const symbol id → lowered value (inline bucket) — `build_ident`
     /// re-builds it at each read site.
     const_inline:  MutableMap<i32, LoweredExpr>
+    /// Const symbol id → the accessor that builds a const of the data pool again
+    /// (`LoweredProject.const_fresh_wrap`).
+    const_fresh_wrap: MutableMap<i32, ConstFnWrap>
     /// `@extern` fn symbol id → the indices of its CALLBACK parameters.
     ///
     /// Read off the DECLARATION, not off the callee expression's recorded type:
@@ -77,6 +80,7 @@ new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx! {
         .string_index = MutableMap<string, i32> {},
         .const_fn_wrap = lp.const_fn_wrap,
         .const_inline  = lp.const_inline,
+        .const_fresh_wrap = lp.const_fresh_wrap,
         .extern_callbacks = externs,
         .diags            = diags,
     }
@@ -840,7 +844,7 @@ build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
     // value. A fn-wrapped const lowers to a 0-arg `call` ; an inline const
     // re-builds its value here. (Scalar consts usually fold in
     // `lower_ident` upstream, but the inline map catches any that didn't.)
-    wrap :: fn_ctx.project.const_fn_wrap[e.symbol.id]
+    wrap :: const_accessor(fn_ctx, e)
     if wrap is ConstFnWrap {
         dst :: fresh_tmp(fn_ctx, "const_init", wrap.call_type)
         no_args: LocalId[]: []
@@ -859,6 +863,19 @@ build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
         .UnresolvedIdent, e.span,
         "`${e.symbol.name}` resolved to a symbol with no local in this function — a binding was lost between the resolver and here"))
     return build_unreachable_type(fn_ctx, e.type, e.span, "unresolved ident ${e.symbol.name}")
+}
+
+// The accessor a read of const `e` calls: for a use that must not share a value of
+// the data pool, the one that builds it again ; otherwise the const's own, when
+// the lowering wrapped it.
+const_accessor :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> ConstFnWrap | null {
+    if e.fresh {
+        fresh :: fn_ctx.project.const_fresh_wrap[e.symbol.id]
+        if fresh != null {
+            return fresh
+        }
+    }
+    return fn_ctx.project.const_fn_wrap[e.symbol.id]
 }
 
 build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {

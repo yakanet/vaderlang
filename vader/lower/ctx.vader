@@ -651,8 +651,9 @@ export EnumTableKind :: enum { Data, Values }
 import "std/testing"
 
 @test test_new_lower_project_ctx_is_empty :: fn() -> void {
-    evaluated :: new_evaluated_project(new_typed_project())
-    project :: new_lower_project_ctx(evaluated, empty_loaded_project(), new_typed_project())
+    typed :: new_typed_project(FreshReads {})
+    evaluated :: new_evaluated_project(typed)
+    project :: new_lower_project_ctx(evaluated, empty_loaded_project(), typed)
     assert_eq(project.core_symbols.len(), 0)
     assert_eq(project.synth_decls.len(), 0)
     assert_eq(project.next_synthetic_id, -1)

@@ -2,6 +2,11 @@
 
 ## snippet
   struct snippet$Cfg { n: i32 }
+  fn __const_snippet$LIST() -> i32[]
+    ~>
+      array :i32[]
+        int(10) :i32
+        int(20) :i32
   fn snippet$make() -> i32[]!
     ~>
       array :i32[]!

@@ -59,9 +59,9 @@ export prepare_evaluated_project_with :: fn(
     Prof.prof_end(.Load)
     typecheck_diags: Diagnostic[]: []
     Prof.prof_begin(.Typecheck)
-    result :: check_project(loaded, typecheck_diags, false)
-    resolver_diags :: collect_body_diags(result)
-    typed :: assemble_typed_project(result)
+    checked :: check_project(loaded, typecheck_diags, false)
+    resolver_diags :: collect_body_diags(checked.result)
+    typed :: assemble_typed_project(checked)
     Prof.prof_end(.Typecheck)
     comptime_diags: Diagnostic[]: []
     Prof.prof_begin(.Comptime)
@@ -113,26 +113,4 @@ export collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
         for d in module_typed.resolved.diags { out.push(d) }
     }
     return out
-}
-
-// Bridge the typecheck orchestrator's `CheckResult` (entry + others)
-// into the `TypedProject` shape the comptime engine expects.
-export assemble_typed_project :: fn(result: CheckResult) -> TypedProject {
-    project :: new_typed_project()
-    project.modules[result.typed.resolved.path] = result.typed
-    // Drain every typed module the orchestrator built — entry + direct
-    // imports + std/* — so downstream passes that need impl-by-trait
-    // queries (lower, bytecode emit) see std-defined impls.
-    if !result.all_modules.is_empty() {
-        for [module_id, module_typed] in result.all_modules {
-            project.modules[module_id] = module_typed
-        }
-        return project
-    }
-    // Fallback for single-module / shortcut callers : iterate the
-    // legacy `others` filter (skips std/*).
-    for other in result.others {
-        project.modules[other.resolved.path] = other
-    }
-    return project
 }

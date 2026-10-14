@@ -3,8 +3,9 @@
 ## Status
 
 Accepted (2026-10-13). The effect summary that ADR 0053 calls for, and its frozen
-checks, in observation: nothing reads them yet but `vader dump --stage=effects`.
-Moving the rights out of the types onto them is a later decision.
+checks. Their faults are observed only, in `vader dump --stage=effects`, beside the
+rights the typecheck still enforces; their copies are made (2026-10-14). Moving
+the rights out of the types onto them is a later decision.
 
 ## Context
 
@@ -23,8 +24,8 @@ callback.
 ## Decision
 
 - **A pass after the typecheck** (`vader/effects`), over every module's typed
-  bodies and call record (0056), on the fixed-point engine (0055). It runs on
-  demand only.
+  bodies and call record (0056), on the fixed-point engine (0055). Every check
+  runs it (`vader/pipeline/check`): the CLI, the LSP and the seed's driver.
 - **The fact is a set of accesses per parameter**: an effect (assigned, resized,
   shrunk, stored, returned, unknown) at a path below the parameter. A path is at
   most three steps, each a field by its name or an element, and is cut past
@@ -56,12 +57,28 @@ callback.
   may modify is reported apart; a use stored or returned is a copy. A binding
   written, stored, returned or handed to unseen code is a copy; one only read
   shares the frozen value. A copy is left out when no write of the program reaches
-  a value of its type, or of a type it holds.
+  a value of the type of what is kept, returned or handed on, or of a type it
+  holds: an element kept out of a table is judged by the element's type.
+- **The copy is made at the use.** A use the checks copy, or hand to unseen code
+  with a type some write reaches, reads a fresh value of its constant. The summary
+  lists those uses (`EffectSummary.fresh`), and the typed project the lowering
+  reads carries them with no default, so a driver that skips the summary does not
+  compile. A constant laid out in the data pool, one value every read shares, gets
+  an accessor that builds its literal again, which those uses call; a constant
+  wrapped in a function or inlined at each read is fresh already. A view of a
+  string's bytes is not copied yet: without telling one field of a struct from
+  another, the copy would land on every `for c in s`.
 
 ## Consequences
 
 - On the compiler, the summary names 6 600 functions and settles every component;
   it costs about 150 ms in the process, most of it the walk and the fixed point.
+  Every check runs it, since the lowering reads which uses take a fresh value.
+- A copy builds the whole constant, even where one element escapes:
+  `intrinsic_spec`, which hands out an entry of `INTRINSICS`, builds the table at
+  each call, since an entry carries an array and some array of every program is
+  written. Copying only what escapes needs a copy per type, which the lowering
+  does not have.
 - The frozen checks find no proven fault on the compiler. They catch the ten
   probes, as a fault, an unknown call or a copy, and the 36 rights fixtures of the
   diagnostic corpus whose error concerns the use of a constant, at the site or
@@ -70,10 +87,10 @@ callback.
   through higher-order helpers such as `any_match`; none is proven, and all go
   when function values are taken as readers. Turning the checks into errors
   needs a decision on those first.
-- Type-based elision leaves out 544 copies, 416 of the 438 stores of a type
+- Type-based elision leaves out 569 copies, 416 of the 438 stores of a type
   singleton among them. A binding only read shares the frozen value: of the 201
   copies the first version kept, 148 being views of a string's bytes bound to a
-  name, 20 remain (2026-10-14, roots of the skeleton: a binding's copy is left out
-  by the types of what it copied).
+  name, 17 remain (2026-10-14, roots of the skeleton, and a copy judged by the
+  type of what escapes rather than by the whole constant's).
 - `CheckResult.impls` holds the entry module's impls only; the summary builds its
   own registry over every module, as the lowering does.

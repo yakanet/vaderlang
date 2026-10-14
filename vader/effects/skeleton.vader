@@ -189,7 +189,8 @@ RootEffects :: struct {
     marked: ParamEffects[]
     /// Through the calls the body makes.
     lent: ParamEffects[]
-    /// Per copy root, the seeded roots it took the place of.
+    /// Per copy root, the seeded roots it took the place of, each at the path the
+    /// copy holds below it.
     took: MutableMap<usize, Root[]!>
     /// The copy roots whose binding let another root through besides.
     mixed: MutableSet<usize>
@@ -215,7 +216,7 @@ evaluate_roots :: fn(s: Skeleton, ctx: EvalCtx) -> RootEffects {
                 mixed.add(copy)
             } else {
                 taken :: took[copy] ?? []
-                taken.push(r)
+                taken.push(r.carried(f, ctx.paths))
                 took[copy] = taken
             }
         }
@@ -313,8 +314,12 @@ flowed_root :: fn(r: Root, f: Flow, seeds: MutableMap<usize, usize>, paths: Path
     if copy != null && r.param in seeds {
         return Root { .param = copy, .path = ROOT }
     }
-    return Root { .param = r.param, .path = paths.joined(r.path, f.path) }
+    return r.carried(f, paths)
 }
+
+// Root `r` of slot `f.from` as slot `f.into` holds it, `f.path` further down.
+carried :: fn(r: Root, f: Flow, paths: PathTable) -> Root =
+    Root { ...r, .path = paths.joined(r.path, f.path) }
 
 // Give slot `into` every root of slot `from`, `path` further down ; true when it
 // gained one. A flow may read the slot it writes, so the roots are read by

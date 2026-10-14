@@ -1,0 +1,35 @@
+// A module constant laid out in the data pool is one value shared by every use, so
+// a use that keeps it where a write may reach it builds the constant again. `start`
+// returns `START` and `primes` returns `PRIMES`, both of a type some function of the
+// program writes: each call builds a fresh value. `first_prime` only reads its
+// constant and keeps the shared one.
+module "snippet"
+
+import "std/io"
+
+Counter :: struct {
+    n: i32
+}
+
+START :: Counter { .n = 1 }
+PRIMES :: [2, 3, 5]
+
+start :: fn() -> Counter = START
+
+first_prime :: fn() -> i32 = PRIMES[0]
+
+primes :: fn() -> i32[] = PRIMES
+
+bump :: fn(c: Counter) -> void {
+    c.n += 1
+}
+
+main :: fn() -> i32 {
+    c :: Counter { .n = 5 }
+    bump(c)
+    println(c.n)
+    println(start().n)
+    println(first_prime())
+    println(primes().len())
+    return 0
+}

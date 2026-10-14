@@ -278,7 +278,7 @@ run_callees_stage :: fn(file: Path, module_filter: string[], target: Target | nu
 run_effects_stage :: fn(file: Path, module_filter: string[], target: Target | null) -> i32 {
     fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], false, target)
     scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
-    print(dump_effects(summarise_effects(fc.project, fc.result), scope))
+    print(dump_effects(fc.effects, scope))
     if fc.diags.len() > 0 {
         println(fc.diags.dump_diagnostics())
     }

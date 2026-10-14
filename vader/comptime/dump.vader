@@ -95,6 +95,6 @@ module_display_path :: fn(module_program: EvaluatedProgram) -> string {
 import "std/testing"
 
 @test test_dump_empty_project_header_only :: fn() -> void {
-    project :: new_evaluated_project(new_typed_project())
+    project :: new_evaluated_project(new_typed_project(FreshReads {}))
     assert_eq(dump_evaluated(project, []), "# Comptime")
 }

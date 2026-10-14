@@ -122,7 +122,7 @@ export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject! {
 import "std/testing"
 
 @test test_new_evaluated_project_is_empty :: fn() -> void {
-    project :: new_evaluated_project(new_typed_project())
+    project :: new_evaluated_project(new_typed_project(FreshReads {}))
     assert_eq(project.modules.len(), 0)
     assert_eq(project.file_exprs.len(), 0)
 }

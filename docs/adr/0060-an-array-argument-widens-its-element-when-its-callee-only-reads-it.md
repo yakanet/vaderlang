@@ -52,8 +52,7 @@ one argument of a private function, and one snippet's local view.
 - `total(circles)` with `total :: fn(shapes: Shape[])`, the example of the type
   system charter, compiles and runs, natively and on the VM.
 - The receiver hole is closed: `circles.add_null()` is T3102.
-- A program with a widened argument runs the effect summary at each check and
-  build, about 150 ms on the compiler, which has three; one without pays nothing.
+- The verdict reads the effect summary that every check runs (ADR 0059).
 - A widened argument whose callee is a function value is refused: there is no
   body to read.
 - Still invariant: a local, a field, a return, a named function converted to a

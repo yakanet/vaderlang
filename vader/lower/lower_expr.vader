@@ -301,10 +301,20 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr!
             // route it → `build_ident` emits `unreachable`. Self-guards :
             // no-op unless `final_sym` is a stdlib Const.
             register_nongeneric_imported_const(ctx, final_sym)
-            return LoweredIdent { .span = ident.span, .type = type, .symbol = final_sym }
+            return LoweredIdent {
+                .span = ident.span,
+                .type = type,
+                .symbol = final_sym,
+                .fresh = ctx.reads_fresh_constant(ident.id, final_sym),
+            }
         }
     }
 }
+
+// Whether the use `node` of `symbol` reads a fresh value of a constant rather than
+// the one the program shares (`TypedProject.fresh`).
+reads_fresh_constant :: fn(ctx: FnLowerCtx, node: usize, symbol: Symbol) -> bool =
+    symbol.kind == .Const && node in ctx.project.typed.fresh.uses
 
 /// `nsM.foo` used as a fn-VALUE (not a call callee) — lower to the member fn
 /// symbol (a `LoweredIdent`, which emit turns into a FnRef), mirroring the

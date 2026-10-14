@@ -143,19 +143,13 @@ parameter_name :: fn(callee: Callee, param: usize) -> string | null {
 // ---- diagnostics ----------------------------------------------------------
 
 /// The T3102 errors of a checked project: each array argument the typecheck
-/// widened whose callee may put a wider element into it, or that no call
-/// decides (a method value, `xs.f` uncalled). Runs the effect summary only when
-/// some argument was widened.
+/// widened whose callee may put a wider element into it, or that no call decides
+/// (a method value, `xs.f` uncalled).
 ///
-/// @param project  the loaded project, whose declarations hold the bodies.
-/// @param checked  its typecheck.
-export widening_diagnostics :: fn(project: LoadedProject, checked: CheckResult) -> Diagnostic[] {
+/// @param summary  the effect summary of the project.
+/// @param checked  its typecheck, which noted the widened arguments.
+export widening_diagnostics :: fn(summary: EffectSummary, checked: CheckResult) -> Diagnostic[] {
     out: Diagnostic[]: []
-    modules :: checked.all_modules.values()
-    if !modules.any_match((typed) -> !typed.widened_arguments.is_empty()) {
-        return out
-    }
-    summary :: summarise_effects(project, checked)
     decided :: MutableSet<usize> {}
     for site in summary.widenings {
         decided.add(site.arg)
@@ -164,7 +158,7 @@ export widening_diagnostics :: fn(project: LoadedProject, checked: CheckResult) 
             out.push(typecheck_error(.UnsafeArrayWidening, site.span, detail))
         }
     }
-    for typed in modules {
+    for typed in checked.all_modules.values() {
         for [arg, widened] in typed.widened_arguments {
             if arg !in decided {
                 detail :: "no call it is handed to tells what is done with it"

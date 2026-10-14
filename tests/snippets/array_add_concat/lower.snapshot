@@ -2,6 +2,23 @@
 
 ## snippet
   struct snippet$Item { name: string, inner: string[] }
+  fn __const_snippet$LEFT() -> Item[]
+    ~>
+      array :Item[]
+        Item! {
+          name: "a" :string
+          inner:
+            array :string[]
+              "x" :string
+        }
+  fn __const_snippet$RIGHT() -> Item[]
+    ~>
+      array :Item[]
+        Item! {
+          name: "b" :string
+          inner:
+            array :string[]
+        }
   fn snippet$main() -> i32
     let a: i32[] =
       array :i32[]

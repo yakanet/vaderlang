@@ -346,7 +346,12 @@ try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> Lo
     // symbol (same shape as the bare-ident seam) so `build_ident` routes the
     // read site — instead of degrading to a field access on the alias.
     register_nongeneric_imported_const(ctx, member)
-    return LoweredIdent { .span = e.span, .type = type, .symbol = member }
+    return LoweredIdent {
+        .span = e.span,
+        .type = type,
+        .symbol = member,
+        .fresh = ctx.reads_fresh_constant(e.id, member),
+    }
 }
 
 

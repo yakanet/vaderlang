@@ -16,6 +16,12 @@
 //
 // The nested array field is what makes the const materialise BOXED; a struct of
 // scalars alone does not reproduce.
+//
+// `dst` keeps the elements of `ITEMS`, which a write could reach through their
+// nested arrays, so each use of `ITEMS` here reads a fresh table built by its
+// accessor (the frozen checks of ADR 0053): the source of `copy_to` is a heap array,
+// not the boxed pool one. The snippet pins `copy_to` of struct elements that carry an
+// array; the boxed source stays reachable only from a use the checks do not root.
 
 module "snippet"
 

@@ -740,6 +740,21 @@ import "toolchain/span"
 /// the orchestrator (`check.vader`).
 export TypedProject :: struct {
     modules: MutableMap<string, TypedProgram>!
+    /// The uses of constants the lowering must not share. No default: a driver
+    /// that lowers without running the effect summary has to say so.
+    fresh: FreshReads
+}
+
+/// The uses of module constants that read a fresh value of their constant rather
+/// than the one the program shares: the frozen checks found that what such a use
+/// holds may be written, kept where a write could reach it, or handed to unseen
+/// code (ADR 0053). Filled by the effect summary (`vader/effects`), read by the
+/// lowering.
+export FreshReads :: struct {
+    /// The use nodes, project-wide.
+    uses: MutableSet<usize>! = MutableSet<usize> {}
+    /// The constants with such a use, by symbol id.
+    constants: MutableSet<i32>! = MutableSet<i32> {}
 }
 
 /// Create an empty `TypedProgram` bound to `resolved`. All side-tables
@@ -818,8 +833,12 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
 
 
 
-export new_typed_project :: fn() -> TypedProject = TypedProject {
+/// An empty project.
+///
+/// @param fresh  the uses of constants the lowering must not share.
+export new_typed_project :: fn(fresh: FreshReads) -> TypedProject = TypedProject {
     .modules = MutableMap<string, TypedProgram> {},
+    .fresh = fresh,
 }
 
 /// Test helper — empty TypedProgram bound to a synthetic resolved module.
@@ -894,6 +913,6 @@ test_typed_program_stores_and_recovers_type :: fn() -> void {
 
 @test
 test_typed_project_initially_empty :: fn() -> void {
-    proj :: new_typed_project()
+    proj :: new_typed_project(FreshReads {})
     assert_eq(proj.modules.len(), 0)
 }

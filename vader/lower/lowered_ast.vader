@@ -116,6 +116,9 @@ export LoweredProject :: struct {
     /// value at each read site (`inline` bucket). Scalars also land here as
     /// a safety net for any reference `lower_ident` didn't fold.
     const_inline:   MutableMap<i32, LoweredExpr>!
+    /// Const symbol id → the accessor that builds a const of the data pool again,
+    /// for the uses that read a fresh value of it (`LoweredIdent.fresh`).
+    const_fresh_wrap: MutableMap<i32, ConstFnWrap>! = MutableMap<i32, ConstFnWrap> {}
     /// `Symbol.id → trait_key`s — the frontend's authoritative trait
     /// membership (from `TypedProgram.struct_traits_by_sym`), threaded to the
     /// bytecode emitter to seed `is Trait` impl_table rows per interned struct
@@ -392,6 +395,9 @@ export LoweredIdent :: struct {
     span:   Span
     type:   Type
     symbol: Symbol
+    /// A use of a module constant that reads a fresh value of it rather than the
+    /// one the program shares (`TypedProject.fresh`).
+    fresh:  bool = false
 }
 
 /// A `type` reified as a value — emitted when a `TypeMeta`-typed ident

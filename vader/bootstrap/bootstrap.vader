@@ -41,6 +41,7 @@ import "vader/comptime"
 import "vader/comptime_vm"
 import "vader/lower"
 import "vader/midir"
+import "vader/pipeline/check"
 import "vader/bytecode"
 import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as _ }
 
@@ -253,9 +254,9 @@ EvaluatedPipeline :: struct {
 prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
     loaded :: load_project(file, [])
     typecheck_diags: Diagnostic[]: []
-    result :: check_project_with_bodies(loaded, typecheck_diags, false)
-    resolver_diags :: collect_body_diags(result)
-    typed :: assemble_typed_project(result)
+    checked :: check_project(loaded, typecheck_diags, false)
+    resolver_diags :: collect_body_diags(checked.result)
+    typed :: assemble_typed_project(checked)
     comptime_diags: Diagnostic[]: []
     evaluated :: evaluate_project(loaded, typed, comptime_diags)
     // VM-backed comptime : bake any loop-bearing `@comptime` decls the tree-walk
@@ -285,24 +286,3 @@ collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
     return out
 }
 
-// Bridge the typecheck orchestrator's `CheckResult` (entry + others) into the
-// `TypedProject` shape the comptime engine expects.
-assemble_typed_project :: fn(result: CheckResult) -> TypedProject {
-    project :: new_typed_project()
-    project.modules[result.typed.resolved.path] = result.typed
-    // Drain every typed module the orchestrator built — entry + direct imports
-    // + std/* — so downstream passes (lower, bytecode emit) see std-defined impls.
-    if !result.all_modules.is_empty() {
-        for module_id in result.all_modules.keys() {
-            module_typed :: result.all_modules[module_id] ?? continue
-            project.modules[module_id] = module_typed
-        }
-        return project
-    }
-    // Fallback for single-module / shortcut callers : iterate the legacy
-    // `others` filter (skips std/*).
-    for other in result.others {
-        project.modules[other.resolved.path] = other
-    }
-    return project
-}

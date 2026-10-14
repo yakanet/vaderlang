@@ -58,6 +58,7 @@ static const vader_array_t vader_data_1 = {
     { 1u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 
+static void* __const_snippet_LIST(void);
 static void* snippet_make(void);
 static int32_t snippet_main(void);
 static vader_box_t snippet_pick__Cfg(vader_box_t l0, vader_box_t l1);
@@ -135,6 +136,19 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
     return write(a0, s1.ptr, a2);
 }
 
+static void* __const_snippet_LIST(void) {
+    void* t0 = NULL;
+    void** gc_raw_roots[1] = { &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+#line 14 "tests/snippets/type_param_least_rights/_main.vader"
+    vader_array_t* _a0_arr = vader_array_new(1u, 2u, 7u, 2u);
+    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(20);
+    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
+    t0 = (void*) _a0_arr;
+    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
 static void* snippet_make(void) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
@@ -198,9 +212,8 @@ static int32_t snippet_main(void) {
 #line 27 "tests/snippets/type_param_least_rights/_main.vader"
     t1 = snippet_pick__Cfg(vader_ref_box(t0), vader_ref_box(l1));
     l3 = t1.payload.obj;
-#line 14 "tests/snippets/type_param_least_rights/_main.vader"
-    l4 = (void*) &vader_data_1;
 #line 28 "tests/snippets/type_param_least_rights/_main.vader"
+    l4 = __const_snippet_LIST();
     l4 = snippet_pair__i32__(vader_ref_box(l1), vader_ref_box(l4));
     l5 = (((vader_obj_header_t*) l4)->type_index == 4u ? ((vader_struct___Tuple_Any_Any_7e2af780_t*) l4)->f__0.payload.obj : ((vader_struct___Tuple_Array_i32_Array_i32__40b28492_t*) l4)->f__0);
     l4 = (((vader_obj_header_t*) l4)->type_index == 4u ? ((vader_struct___Tuple_Any_Any_7e2af780_t*) l4)->f__1.payload.obj : ((vader_struct___Tuple_Array_i32_Array_i32__40b28492_t*) l4)->f__1);

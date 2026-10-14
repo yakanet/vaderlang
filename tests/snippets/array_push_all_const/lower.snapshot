@@ -3,6 +3,22 @@
 ## snippet
   struct snippet$Inner { tag: string }
   struct snippet$Item { name: string, inner: Inner[] }
+  fn __const_snippet$ITEMS() -> Item[]
+    ~>
+      array :Item[]
+        Item! {
+          name: "first" :string
+          inner:
+            array :Inner[]
+              Inner! {
+                tag: "a" :string
+              }
+        }
+        Item! {
+          name: "second" :string
+          inner:
+            array :Inner[]
+        }
   fn snippet$main() -> i32
     let dst: Item[]! =
       array :Item[]!
