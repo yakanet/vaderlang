@@ -95,7 +95,7 @@ strip_core_member :: fn(mangled: string, suffix: string) -> string | null {
 export IntrinsicId :: enum(u8) {
     NotIntrinsic,
     // std/core string + bytes
-    ByteLen, ByteAt,
+    ByteLen, ByteAt, ByteSlice,
     Bytes, BytesToString, StringIndexAt, StringHash,
     StringEquals,
     // primitive members (recognised via the grammar helpers, any width)
@@ -133,6 +133,7 @@ export intrinsic_id_for :: fn(mangled: string) -> IntrinsicId {
 
     if mangled == r"std_core$byte_len"                   { return .ByteLen }
     if mangled == r"std_core$byte_at"                    { return .ByteAt }
+    if mangled == r"std_core$byte_slice"                 { return .ByteSlice }
 
     if mangled == r"std_core$bytes"                      { return .Bytes }
     if mangled == r"std_core$bytes_to_string"            { return .BytesToString }
@@ -172,6 +173,8 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
     // Reads of the atom (`vader.h`, `vader_runtime.c`): its length, one byte,
     // the hash cached at intern, a codepoint found by walking the bytes.
     .ByteLen | .ByteAt | .StringHash | .StringIndexAt -> false
+    // A slice of the atom takes an atom-table slot, grown by `realloc`.
+    .ByteSlice -> false
     // Constants of the runtime's own build.
     .TargetCurrentOs | .TargetCurrentArch -> false
     // Allocate: a view header, an interned string, the rendered text.
@@ -193,7 +196,7 @@ export intrinsic_may_collect :: fn(id: IntrinsicId) -> bool = match id {
 /// @param id  the host's classification, from `intrinsic_id_for`.
 export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     // Read a string or a primitive, or build a fresh value from one.
-    .ByteLen | .ByteAt | .StringHash | .StringIndexAt | .StringEquals -> false
+    .ByteLen | .ByteAt | .ByteSlice | .StringHash | .StringIndexAt | .StringEquals -> false
     .Bytes | .BytesToString | .PrimDisplayToString | .PrimIntEquals -> false
     // The collector moves objects and never changes a length; the rest only read.
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false

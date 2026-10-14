@@ -997,6 +997,8 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
     if (offset > pe->len || len > pe->len - offset) {
         vader_trap("vader_atom_slice: range overflows parent length");
     }
+    /* An atom is the only one with its bytes: a slice covering it is itself. */
+    if (offset == 0 && len == pe->len) return parent;
 
     /* Flatten one hop : every slice atom enforces `parent.parent == 0`
      * at insert time (we never link a slice to another slice), so the

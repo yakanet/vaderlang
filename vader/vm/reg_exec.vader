@@ -513,6 +513,14 @@ reg_call :: fn(
                 }
                 set_i32(bits, tags, base, operand_a(w), i32(s.byte_at(usize(index))))
             }
+            .StringByteSlice -> {
+                at :: base + usize(operand_a(w))
+                s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "byte_slice", "string")
+                start :: usize(bits_of(bits, base, operand_b(w)))
+                end :: usize(bits_of(bits, base, operand_c(w)))
+                m.refs[at] = StringVal(s.byte_slice(start, end))
+                tags[at] = .Ref
+            }
             .Trap -> { return Trap { .message = f.texts[usize(operand_a(w))] } }
             .DeferPush -> {
                 closure :: register_value(m, base + usize(operand_a(w)))
@@ -1337,9 +1345,10 @@ test_array_element_write_out_of_bounds_traps :: fn() -> void {
     assert(expected in trap_message(module), "a[5] = 9 traps")
 }
 
-// A module whose `main` returns the byte length of "héllo" plus its byte at `index`.
-string_byte_module :: fn(index: i32) -> bc.BytecodeModule | null {
-    lines :: [
+// A module whose `main` runs `body` with the string constant 0, "héllo" (68 C3 A9 6C
+// 6C 6F), and the imports `byte_len` 0, `byte_at` 1 and `byte_slice` 2.
+string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
+    header :: [
         "module demo",
         "type 0 primitive i32",
         "type 1 primitive u8",
@@ -1350,21 +1359,25 @@ string_byte_module :: fn(index: i32) -> bc.BytecodeModule | null {
             + " param_by_address= (string) -> usize",
         r"import 1 byte_at std_core$byte_at result_type=1 param_types=3,2 param_mutable=0,0"
             + " param_by_address= (string,usize) -> u8",
+        r"import 2 byte_slice std_core$byte_slice result_type=3 param_types=3,2,2"
+            + " param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string",
         "fn 0 main () -> i32",
-        "  string.const 0",
-        "  call.import 0",
-        "  usize.to_i32",
-        "  string.const 0",
-        "  i64.const ${index}",
-        "  call.import 1",
-        "  u8.to_i32",
-        "  i32.checked_add",
-        "  return",
-        "end",
-        "export main 0",
     ]
-    return parse_test_module("${lines.join("\n")}\n")
+    return parse_test_module("${header.join("\n")}\n  ${body.join("\n  ")}\nend\nexport main 0\n")
 }
+
+// A module whose `main` returns the byte length of "héllo" plus its byte at `index`.
+string_byte_module :: fn(index: i32) -> bc.BytecodeModule | null = string_module([
+    "string.const 0",
+    "call.import 0",
+    "usize.to_i32",
+    "string.const 0",
+    "i64.const ${index}",
+    "call.import 1",
+    "u8.to_i32",
+    "i32.checked_add",
+    "return",
+])
 
 @test
 test_string_bytes_read_in_place :: fn() -> void {
@@ -1411,4 +1424,40 @@ test_char_conversion_runs_in_registers :: fn() -> void {
     module :: char_conversion_module() ?? return
     assert_eq(exec_value(module), 0xE9)
     assert(main_runs(module, .ToChar), "`u32.to_char` runs as `ToChar`")
+}
+
+// A module whose `main` returns the byte length of the bytes `start..<end` of "héllo".
+slice_length_module :: fn(start: i32, end: i32) -> bc.BytecodeModule | null = string_module([
+    "string.const 0",
+    "i64.const ${start}",
+    "i64.const ${end}",
+    "call.import 2",
+    "call.import 0",
+    "usize.to_i32",
+    "return",
+])
+
+@test
+test_string_byte_slice_runs_in_registers :: fn() -> void {
+    // The bytes 1..<3 of "héllo" are C3 A9: "é".
+    module :: string_module([
+        "string.const 0",
+        "i64.const 1",
+        "i64.const 3",
+        "call.import 2",
+        "i64.const 1",
+        "call.import 1",
+        "u8.to_i32",
+        "return",
+    ]) ?? return
+    assert_eq(exec_value(module), 0xA9)
+    assert(main_runs(module, .StringByteSlice), "`byte_slice` runs as `StringByteSlice`")
+}
+
+@test
+test_string_byte_slice_clamps_its_bounds :: fn() -> void {
+    past_the_end :: slice_length_module(4, 99) ?? return
+    assert_eq(exec_value(past_the_end), 2)
+    end_before_start :: slice_length_module(5, 2) ?? return
+    assert_eq(exec_value(end_before_start), 0)
 }

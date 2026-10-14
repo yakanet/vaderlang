@@ -1416,6 +1416,15 @@ static inline uint8_t vader_string_byte_at(vader_string_t s, size_t i) {
     if (i >= (size_t) e->len) vader_trap("byte index out of bounds");
     return ((const uint8_t*) e->data)[i];
 }
+/* The bytes `lo..<hi` of `s` as a string, the bounds clamped as `vader_array_slice`
+ * clamps them. An atom slice: nothing is copied. */
+static inline vader_string_t vader_string_byte_slice(vader_string_t s, size_t lo, size_t hi) {
+    size_t len = vader_atom_len(s);
+    if (lo > len) lo = len;
+    if (hi < lo)  hi = lo;
+    if (hi > len) hi = len;
+    return vader_atom_slice(s, lo, hi - lo);
+}
 /* Three-way byte order of two atoms — the `string.compare` op behind `string
  * implements Comparable`. Negative, zero or positive as `a` orders before, with or
  * after `b` ; UTF-8 byte order is codepoint order, and a proper prefix orders
