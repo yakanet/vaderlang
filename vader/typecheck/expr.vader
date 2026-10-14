@@ -42,8 +42,22 @@ export check_expr :: fn(
     } else {
         narrowed
     }
-    // A char literal that coerced to a concrete integer must fit it — `b == '💩'`
-    // (u8) is rejected here, where both the codepoint and the pinned type are known.
+    check_literal_bounds(expr, final, typed, diags)
+    record_expr(typed, expr, final)
+    return final
+}
+
+// The bounds a literal settled to `final` must hold, where both its value and its
+// type are known. A char literal that coerced to a concrete integer must fit it
+// (`b == '💩'` on a `u8`), and so must an integer literal (`x: i32 = 9000000000`,
+// `x: u8 = 300`, `z: u32 = -1`). One left free lowers at its default unless a
+// later context repins it: past that default it waits for the end of the walk.
+check_literal_bounds :: fn(
+    expr: AST.Expr,
+    final: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
     if expr is AST.CharLitExpr {
         if final is PrimitiveType {
             if is_int_name(final.name) && !char_fits(expr.value, final.name) {
@@ -52,11 +66,6 @@ export check_expr :: fn(
             }
         }
     }
-    // A free integer literal pinned to a concrete integer width must fit it —
-    // `x: i32 = 9000000000`, `x: u8 = 300` and `z: u32 = -1` are rejected here,
-    // where both the value and the pinned type are known (mirrors the char bounds
-    // check above). One left free lowers at its default unless a later context
-    // repins it: past that default it waits for the end of the walk.
     if expr is AST.IntLitExpr {
         if final is PrimitiveType {
             if is_int_name(final.name) && !int_fits(expr.value, expr.negative, final.name) {
@@ -71,8 +80,49 @@ export check_expr :: fn(
             }
         }
     }
-    record_expr(typed, expr, final)
-    return final
+}
+
+// Settle the checked free value `e` at `t`, a slot type known only once `e` was
+// typed: record `t` along what gives the value, down to the literals that make it
+// (a block's tail, an `if`'s branches, a `match`'s arms, the operands of a
+// negation or of arithmetic), each literal then bound to fit `t`. Nothing is
+// inferred again: a node already concrete, a nested condition or a diverging arm
+// among them, is left alone. Both operands of a free arithmetic or bitwise
+// operator take `t`, a shift's amount included, as they would from a typed slot
+// (`binary.vader::op_expected_ctx`).
+settle_free_value :: fn(e: AST.Expr, t: Type, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    recorded :: typed.expr_types[e.id] ?? return
+    if t !is PrimitiveType || !literal_family_holds(recorded, t.name) {
+        return
+    }
+    record_expr(typed, e, t)
+    // @partial: every other free node is a literal, whose bounds are checked, or a
+    // node with no operand to follow.
+    @partial match e {
+        is AST.BlockExpr  -> {
+            tail :: e.trailing ?? return
+            settle_free_value(tail, t, typed, diags)
+        }
+        is AST.IfExpr     -> {
+            settle_free_value(e.then_block, t, typed, diags)
+            match e.else_branch as eb {
+                is AST.IfElseBlock -> { settle_free_value(eb.block, t, typed, diags) }
+                is AST.IfElseIf    -> { settle_free_value(eb.branch, t, typed, diags) }
+                is null            -> {}
+            }
+        }
+        is AST.MatchExpr  -> {
+            for arm in e.arms {
+                settle_free_value(arm.body, t, typed, diags)
+            }
+        }
+        is AST.UnaryExpr  -> { settle_free_value(e.operand, t, typed, diags) }
+        is AST.BinaryExpr -> {
+            settle_free_value(e.left, t, typed, diags)
+            settle_free_value(e.right, t, typed, diags)
+        }
+        _                 -> { check_literal_bounds(e, t, typed, diags) }
+    }
 }
 
 // T3066 for each literal past its default still free once the module's bodies are

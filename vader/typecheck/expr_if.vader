@@ -36,15 +36,31 @@ export report_mixed_mutability :: fn(joined: Type, span: Span, diags: Diagnostic
 /// one — mirroring the binary-operator coercion (`binary.vader::numeric_result`).
 /// Without this, an unannotated `::` binding (`expected = null`) escapes as a
 /// union with no arithmetic defined on it (T3017). Unrelated branches fall back
-/// to the plain union.
+/// to the plain union. The value of a coerced branch takes its new type too, so
+/// that its literals are built at it and must fit it (T3066):
+/// `k :: if flag { u8(7) } else { 300 }` is refused.
 ///
-/// @param types  the branches' types, in source order.
-export join_branch_types :: fn(types: Type[]) -> Type {
-    repinned: Type[]: []
-    for t in types {
-        repinned.push(repin_free(t, types))
+/// @param values  the expression each branch gives, in source order.
+/// @param types   the branches' types, in the same order.
+join_branch_types :: fn(
+    values: AST.Expr[],
+    types: Type[],
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    settled: Type[]: []
+    for i in 0..<types.len() {
+        if !is_free_numeric(types[i]) {
+            settled.push(types[i])
+            continue
+        }
+        t :: repin_free(types[i], types)
+        if !is_free_numeric(t) {
+            settle_free_value(values[i], t, typed, diags)
+        }
+        settled.push(t)
     }
-    return union_of(repinned)
+    return union_of(settled)
 }
 
 // `t` as the first of `siblings` it is a free literal of, `t` itself otherwise —
@@ -81,7 +97,7 @@ export infer_if :: fn(
         is AST.IfElseBlock -> {
             else_ty :: check_else_with_narrow(
                 eb.block, e.cond, expected, typed, diags, ctx, check_expr_fn)
-            joined :: join_branch_types([then_ty, else_ty])
+            joined :: join_branch_types([e.then_block, eb.block], [then_ty, else_ty], typed, diags)
             // Only when nothing pins the result. With an `expected` slot each branch
             // was already checked against it, so the union is an artefact of the join
             // — reporting it would flag every `if c { field } else { [] }` used as a
@@ -95,7 +111,8 @@ export infer_if :: fn(
             inner: AST.Expr: eb.branch
             else_ty :: check_else_branch_expr(
                 inner, e.cond, expected, typed, diags, check_expr_fn)
-            return collapse_if_unresolved(join_branch_types([then_ty, else_ty]), then_ty, else_ty)
+            joined :: join_branch_types([e.then_block, inner], [then_ty, else_ty], typed, diags)
+            return collapse_if_unresolved(joined, then_ty, else_ty)
         }
     }
 }

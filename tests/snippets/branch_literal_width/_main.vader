@@ -1,11 +1,53 @@
 // A free literal in one branch of an `if` or a `match` takes the type of a
 // concrete sibling branch of its family: a char literal beside a byte is that
 // byte's `u8`, an integer literal beside an `i64` is an `i64`. Unpinned, the
-// result would be a union of the two, compared and computed with as one.
+// result would be a union of the two, compared and computed with as one. The
+// literal itself is built at that type, through nested blocks, `if`s, `else if`s,
+// `match`es and arithmetic, so `250 + 5` stays a `u8`, `9_000_000_000` is not an
+// `i32` and `1 << 40` is shifted as a `u64`. An arm that reads its narrowed
+// scrutinee is not typed a second time.
 
 module "snippet"
 
 import "std/io"
+
+nested :: fn(s: string | null, deep: bool, n: i32) -> u8 {
+    k :: match s {
+        is string -> u8(7)
+        is null   -> if deep {
+            250
+        } else if n > 0 {
+            match n {
+                1 -> 200
+                _ -> 100
+            }
+        } else {
+            { 50 }
+        }
+    }
+    return k + 5
+}
+
+wide_if :: fn(flag: bool) -> i64 {
+    k :: if flag { i64(1) } else { 9_000_000_000 }
+    return k
+}
+
+Probe :: struct {
+    flag: bool
+}
+
+Wide :: struct {
+    n: u64
+}
+
+arithmetic :: fn(s: Probe | Wide) -> u64 {
+    k :: match s {
+        is Probe -> (1 << 40) + (if s.flag { 1 } else { 2 })
+        is Wide  -> s.n
+    }
+    return k
+}
 
 main :: fn() -> i32 {
     out: u8[]: [65]
@@ -26,5 +68,10 @@ main :: fn() -> i32 {
         _ -> big
     }
     println("match, i64 or int: ${wide + big}")
+    println("nested: ${nested(null, true, 0)} ${nested(null, false, 1)} ${nested(null, false, 2)}")
+    println("nested: ${nested(null, false, 0)} ${nested("x", false, 0)}")
+    println("if, i64 or int: ${wide_if(false)}")
+    probes :: "${arithmetic(Probe { .flag = true })} ${arithmetic(Probe { .flag = false })}"
+    println("arithmetic: ${probes} ${arithmetic(Wide { .n = 3 })}")
     return 0
 }

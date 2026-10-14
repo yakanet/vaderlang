@@ -88,6 +88,7 @@ export infer_match :: fn(
     scrut_sym_id    :: if alias_sym is Symbol as a { a.id } else { scrutinee_sym_id(scrut, typed) }
     scrut_field_key :: if alias_sym is Symbol { "" } else { scrutinee_field_key(scrut, typed) }
     arm_types: Type[]: []
+    bodies: AST.Expr[]: []
     remaining := scrut_ty
     has_wildcard := false
     covered_enum_variants: string[]: []
@@ -148,6 +149,7 @@ export infer_match :: fn(
             }
         }
         arm_types.push(check_expr_fn(arm.body, expected, typed, diags))
+        bodies.push(arm.body)
         if scrut_sym_id != -1 {
             if arm_narrow !is null {
                 pop_narrow(typed, scrut_sym_id, prev_arm)
@@ -315,7 +317,7 @@ export infer_match :: fn(
     // `bc_type_of` footguns — so `never` is NOT exempt. Only a genuine void
     // statement match (`_ -> {}`, side-effects only) and open scrutinees
     // (i32 / string / …) stay out of scope.
-    result_ty :: join_branch_types(arm_types)
+    result_ty :: join_branch_types(bodies, arm_types, typed, diags)
     // Same rule as the `if` join : only when nothing pins the result.
     if expected == null {
         report_mixed_mutability(result_ty, e.span, diags)

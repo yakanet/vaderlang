@@ -3,5 +3,9 @@ if, byte or char: byte
 if, empty: char
 match, byte or char: char
 match, i64 or int: 5000000001
+nested: 255 205 105
+nested: 55 12
+if, i64 or int: 9000000000
+arithmetic: 1099511627777 1099511627778 3
 # exit
 0

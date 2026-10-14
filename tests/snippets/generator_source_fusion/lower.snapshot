@@ -1623,7 +1623,7 @@
                                                   int(1) :usize
                                           else:
                                             ~>
-                                              int(0) :i32
+                                              int(0) :usize
                                       block :void
                                         let start: usize = int(0) :usize
                                         loop while (<…>)

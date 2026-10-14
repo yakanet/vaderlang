@@ -2833,7 +2833,7 @@ fn 41 std_iter$__gen_state_std_iter_3$Iterator$next (ref) -> ref
               usize.checked_add
               local.set 10   ; if_res
             else
-              i32.const 0
+              i64.const 0
               local.set 10   ; if_res
             end $L10
             local.get 0   ; arg 0
