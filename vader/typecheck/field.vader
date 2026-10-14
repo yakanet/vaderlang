@@ -878,7 +878,7 @@ bare_name_symbol :: fn(target: AST.Expr, typed: TypedProgram) -> Symbol | null {
         return null
     }
     sym :: typed.resolved.idents[target.span.hash()] ?? return null
-    return redirect_import_typed(sym, typed)
+    return declared_symbol(sym, typed)
 }
 
 /// Whether `target` is a bare name bound to a declaration of `kind`, through

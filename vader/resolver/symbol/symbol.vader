@@ -50,8 +50,19 @@ export Symbol :: struct {
     /// needs. Same split as `Module.id` vs `Module.display_path`.
     module_name: string
     visibility:  Visibility
+    /// A module constant with writable storage of its own (`COUNTS: i32[]!: […]`,
+    /// `declares_module_variable`) ; every other constant is frozen. Decided where
+    /// the declaration is collected: an importer reads it on the declaration's
+    /// symbol, past any import binding that renames it.
+    module_variable: bool = false
     defined_at:  Span | null
 }
+
+/// Whether `sym` names a module constant whose value is frozen: every one but a
+/// module variable.
+///
+/// @param sym  the symbol a name resolves to.
+export is_frozen_const :: fn(sym: Symbol) -> bool = sym.kind == .Const && !sym.module_variable
 
 // IDs start at 1 so dumps keyed on the id stay stable.
 export SymbolFactory :: struct {
@@ -65,7 +76,8 @@ export make :: fn(
         module: string,
         module_name: string,
         visibility: Visibility,
-        defined_at: Span | null
+        defined_at: Span | null,
+        module_variable: bool = false,
     ) -> Symbol {
     id :: self.next
     self.next = id + 1
@@ -77,5 +89,6 @@ export make :: fn(
         .module_name = module_name,
         .visibility = visibility,
         .defined_at = defined_at,
+        .module_variable = module_variable,
     }
 }

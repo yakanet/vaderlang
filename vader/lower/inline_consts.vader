@@ -28,9 +28,9 @@
 //
 // Since `orchestrate::auto_freeze_module_const` pins every unannotated
 // module-level const as read-only at every level, the data pool is now the default
-// route for them (`KEYWORDS`, `TOKEN_TYPES`, …) and fn-wrap is reached only by
-// consts that opt out with an explicit mutable annotation, or whose elements
-// aren't bakeable. `tests/snippets/const_fn_wrap` guards that remaining path.
+// route for them (`KEYWORDS`, `TOKEN_TYPES`, …), module variables included, and
+// fn-wrap is reached only by consts whose elements aren't bakeable.
+// `tests/snippets/const_fn_wrap` guards that remaining path.
 
 module "vader/lower"
 
@@ -120,24 +120,24 @@ should_fn_wrap :: fn(value: LoweredExpr) -> bool {
     return false
 }
 
-// Route an read-only into the project data pool : register a
+// Route an array constant into the project data pool : register a
 // `DataPoolEntry`, point the const's read sites at a `LoweredDataConst` (via
 // `const_inline`, which `build_ident` rebuilds as the `data.const` op), and
-// report success so the caller drops the decl. Returns false for any
-// non-eligible shape (mutable array, non-poolable element, non-array) — those
-// keep the fn-wrap / inline buckets.
+// report success so the caller drops the decl. Returns false for a shape it
+// cannot pool (an element that is not bakeable, a non-array), which keeps the
+// fn-wrap / inline buckets.
 //
 // Poolable elements : integer / char / bool / float literals (each reduced to an
 // `i64` bit pattern) and string literals (kept verbatim). Struct arrays route
 // through later phases.
 try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject) -> bool {
     if cd.type is ArrayType as arr_type {
-        // A MUTABLE array pools too, into a writable global rather than `.rodata`.
-        // Typecheck's T3076 has already restricted that shape to value elements, so
-        // nothing here can put a heap pointer in a static buffer.
+        // A module variable pools too, into a writable global rather than `.rodata`.
+        // Typecheck's T3076 keeps its elements read-only, so nothing writes into the
+        // element objects an aggregate entry emits as constants.
         if pool_literal_of(cd.value) is LoweredArrayLit as lit {
             element_type_name :: display_type_key(arr_type.element)
-            entry :: render_data_pool_entry(lit, element_type_name, !arr_type.immutable)
+            entry :: render_data_pool_entry(lit, element_type_name, symbol.module_variable)
             if entry != null {
                 pool_index :: project.data_pool.len()
                 project.data_pool.push(entry)
@@ -219,8 +219,8 @@ pool_literal_of :: fn(value: LoweredExpr) -> LoweredExpr | null {
     return null
 }
 
-// Build the pooled entry for an immutable array literal, or null when an element
-// isn't poolable. A `string[]` becomes a `StrDataPoolEntry` (values verbatim) ;
+// Build the pooled entry for an array literal, writable when `mutable`, or null
+// when an element isn't poolable. A `string[]` becomes a `StrDataPoolEntry` (values verbatim) ;
 // every other element type takes the primitive bit-pattern path.
 render_data_pool_entry :: fn(
     lit: LoweredArrayLit, element_name: string, mutable: bool,

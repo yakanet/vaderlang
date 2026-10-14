@@ -1196,13 +1196,9 @@ declare_const :: fn(
             }
         }
         // A module const's ANNOTATION is a written slot, so it takes the read-only
-        // default like any other — `X: u32[]: [...]` is frozen, `X: u32[]!: [...]`
-        // asks for a shared mutable global. The default is load-bearing, not
-        // cosmetic: `inline_consts` routes an array into `.rodata` only when its
-        // type is read-only, so an annotated const that skipped it goes back to
-        // being rebuilt op-by-op at every read site (one `.const` per element plus
-        // an `array.new`, instead of a single `data.const`). The UNANNOTATED path
-        // gets the same result through `auto_freeze_module_const`.
+        // default like any other: `X: u32[]: [...]` is frozen, `X: u32[]!: [...]` is
+        // a module variable (`Symbol.module_variable`). The UNANNOTATED path gets the
+        // same type through `auto_freeze_module_const`.
         _       -> {
             ty :: apply_readonly_default(type_from_expr(annotation, resolved, diags), annotation)
             reject_mutable_module_const(ty, annotation, diags)
@@ -1358,35 +1354,9 @@ first_mutable_level :: fn(
     return null
 }
 
-// A written marker T3076 refuses : any but the storable `X: T[]!`.
+// A written marker T3076 refuses : any but the module variable's `X: T[]!`.
 marks_unstorable :: fn(w: AST.TypeExpr) -> bool =
-    marks_mutable_anywhere(w) && !is_storable_const_marker(w)
-
-// The one marked annotation T3076 accepts : the `!` on the array level, nowhere deeper.
-is_storable_const_marker :: fn(w: AST.TypeExpr) -> bool =
-    w is AST.MutableTypeExpr && w.inner is AST.ArrayTypeExpr && !marks_mutable_anywhere(w.inner)
-
-// Whether the written type carries a `!` at ANY level. `type_expr_marks_mutable`
-// only answers for the level it is handed, and a module const has to be judged on
-// the whole annotation.
-marks_mutable_anywhere :: fn(w: AST.TypeExpr) -> bool {
-    if w is AST.MutableTypeExpr { return true }
-    if w is AST.ArrayTypeExpr { return marks_mutable_anywhere(w.element) }
-    if w is AST.SeqLitExpr {
-        for el in w.elements {
-            if marks_mutable_anywhere(el) { return true }
-        }
-        return false
-    }
-    if w is AST.BinaryExpr {
-        if w.op == .BitOr {
-            return marks_mutable_anywhere(w.left) || marks_mutable_anywhere(w.right)
-        }
-    }
-    return false
-}
-
-
+    AST.type_expr_marks_mutable_anywhere(w) && !declares_module_variable(w)
 
 /// Resolve the type a `Name :: <type-expr>` declaration registers. A primitive,
 /// array, struct or tuple RHS (`Name :: i64`, `BigInt :: u32[]`) becomes a

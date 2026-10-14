@@ -1314,6 +1314,29 @@ export type_expr_marks_mutable :: fn(ty: TypeExpr | null) -> bool {
     return false
 }
 
+/// Whether a written type carries a `!` at any level: its own (`Cfg[]!`), an
+/// element's (`Cfg![]`), a tuple member's or a union variant's.
+/// `type_expr_marks_mutable` answers for one level only.
+///
+/// @param ty  the written type.
+export type_expr_marks_mutable_anywhere :: fn(ty: TypeExpr) -> bool {
+    if ty is MutableTypeExpr { return true }
+    if ty is ArrayTypeExpr   { return type_expr_marks_mutable_anywhere(ty.element) }
+    if ty is SeqLitExpr {
+        for el in ty.elements {
+            if type_expr_marks_mutable_anywhere(el) {
+                return true
+            }
+        }
+        return false
+    }
+    if ty is BinaryExpr && ty.op == .BitOr {
+        return type_expr_marks_mutable_anywhere(ty.left) ||
+            type_expr_marks_mutable_anywhere(ty.right)
+    }
+    return false
+}
+
 /// `ty` with any top-level `!` marker peeled off — the written type's SHAPE.
 ///
 /// Every pass that inspects a written type structurally (is it an array? does its

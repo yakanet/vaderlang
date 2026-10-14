@@ -125,14 +125,14 @@ FrozenBody :: struct {
 // ---- roots ----------------------------------------------------------------
 
 // The slot of a use of the frozen constant `sym`, which `e` names ; null when `sym`
-// is no frozen constant, or its value holds no reference. A constant is judged in
-// the module that declares it: an importer's tables hold no type for it.
+// is no frozen constant, or its value holds no reference. An import binding that
+// renames the constant stands for it.
 frozen_use :: fn(ctx: WalkCtx, e: AST.Expr, sym: Symbol) -> usize | null {
-    declared_in :: ctx.index.modules[sym.module] ?? ctx.typed
-    if !is_frozen_const(sym, declared_in) || !holds_references(ctx.typed.expr_types[e.id]) {
+    constant :: declared_symbol(sym, ctx.typed)
+    if !is_frozen_const(constant) || !holds_references(ctx.typed.expr_types[e.id]) {
         return null
     }
-    use :: ConstantUse { .node = e.id, .symbol = sym.id }
+    use :: ConstantUse { .node = e.id, .symbol = constant.id }
     return ctx.frozen_source(e, sym.name, use)
 }
 

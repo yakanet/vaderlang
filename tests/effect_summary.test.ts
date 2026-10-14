@@ -145,20 +145,21 @@ test("the frozen checks give each use of a frozen value its outcome", async () =
   ]);
 }, MEDIUM_BUILD);
 
-// A constant reached through a namespace alias is a use like a bare one, and a
-// module variable is judged in the module that declares it: a name bound to it
-// shares the global, which the run shows.
+// A constant reached through a namespace alias or renamed by its import is a use
+// like a bare one, and a module variable is judged in the module that declares it:
+// a name bound to it shares the global, which the run shows.
 test("the frozen checks see constants and module variables of another module", async () => {
   const r = await runCli(["dump", "--stage=effects", IMPORTED], undefined, MEDIUM_BUILD);
   expect(r.exit).toBe(0);
   expect(r.stdout).not.toContain("# Diagnostics");
   expect(sectionSitesOf(r.stdout, "# frozen")).toEqual([
     "copy CFG",
-    "write fault: 0, call fault: 0, unknown call: 0, copy: 1, copy elided: 0, binding shared: 0",
+    "copy CAPS",
+    "write fault: 0, call fault: 0, unknown call: 0, copy: 2, copy elided: 0, binding shared: 0",
   ]);
   const run = await runCli(["run", IMPORTED], undefined, MEDIUM_BUILD);
   expect(run.exit).toBe(0);
-  expect(run.stdout).toBe("1\n3\n2\n");
+  expect(run.stdout).toBe("1\n2\n3\n2\n");
 }, MEDIUM_BUILD);
 
 test("each widened array argument gets the verdict of its callee", async () => {

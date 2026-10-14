@@ -1667,6 +1667,11 @@ module_const_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
     if sym.kind != .Const {
         return ""
     }
+    // Its elements are frozen whatever is written (T3076): only a whole element can
+    // be replaced.
+    if sym.module_variable {
+        return "; the elements of module variable `${sym.name}` are frozen: replace a whole one"
+    }
     decl :: typed.const_decls[sym.id] ?? return ""
     // Only an array has storage a marker can make writable (T3076, T3096) ; any
     // other const is a value every read shares.
@@ -1809,16 +1814,14 @@ retypes_reference :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
 }
 
 ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32) -> bool {
-    sym :: typed.resolved.idents[ident.span.hash()] ?? return false
+    written :: typed.resolved.idents[ident.span.hash()] ?? return false
+    sym :: declared_symbol(written, typed)
     // A module-level const needs no table, and holds cross-module for free:
     // `seed_wildcard_exports` seeds the ORIGINAL symbol, kind included.
     if sym.kind == .Const {
-        // ... except for the ONE shape that gets real storage : a mutable array of
-        // value elements is emitted as a fixed-capacity global, so an element write
-        // through it lands somewhere and must be allowed. Every other module const
-        // is frozen: its value may be shared by every read, `.rodata` included.
-        // `declare_const`'s T3076 is what keeps this shape to value elements.
-        return is_frozen_const(sym, typed)
+        // A module variable has storage of its own ; every other module const is
+        // frozen, its value shared by every read, `.rodata` included.
+        return !sym.module_variable
     }
     // A parameter without `!`, or a loop variable over an immutable iterable.
     if typed.resolved.immutable_borrows[sym.id] !is null {
@@ -1838,27 +1841,6 @@ ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32)
     return walk_levels(scrut, typed, budget - 1)
 }
 
-/// Whether `sym` names a module constant whose value is frozen: every one but the
-/// mutable array a `!` gives storage of its own (`has_mutable_const_storage`).
-///
-/// @param sym    the symbol a name resolves to.
-/// @param typed  a module whose `decl_types` hold the constant's type: the one that
-///               declares it. An importer's hold none, which reads as frozen.
-export is_frozen_const :: fn(sym: Symbol, typed: TypedProgram) -> bool =
-    sym.kind == .Const && !has_mutable_const_storage(typed.decl_types[sym.id])
-
-/// True when a module const's declared type is the one shape with real storage:
-/// a MUTABLE array, emitted as a writable global. Growing it is fine —
-/// `emit_global_const_roots` roots it so the collector forwards a reallocated
-/// buffer. `declare_const`'s T3076 is what keeps the marker to the array level.
-///
-/// @param t  the const's declared type, or null when it has none.
-export has_mutable_const_storage :: fn(t: Type | null) -> bool {
-    if t is ArrayType {
-        return !t.immutable
-    }
-    return false
-}
 
 // Iterating an immutable value lends out immutable elements: `for it in CFG.items`
 // where `CFG` is a module-level const must not allow `it.n = 99`. Without this the

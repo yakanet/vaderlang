@@ -3,14 +3,15 @@
 //
 // `tests/effect_summary.test.ts` reads the `# frozen` section of `vader dump
 // --stage=effects` on this project, then runs it. A constant reached through a
-// namespace alias is a use like a bare one: `hands_out` returns `L.CFG`, a copy.
-// A module variable is judged in the module that declares it: a name bound to
-// `L.COUNTS` or `TOTALS` shares the global, so its pushes show in the lengths.
+// namespace alias, or renamed by its import, is a use like a bare one: `hands_out`
+// returns `L.CFG` and `limits` returns `CAPS`, each a copy. A module variable is
+// judged in the module that declares it: a name bound to `L.COUNTS` or `SUMS`
+// shares the global, so its pushes show in the lengths.
 
 module "app"
 
 import "std/io"
-import "vars"
+import "vars" { LIMITS as CAPS, TOTALS as SUMS }
 
 L :: import "lib"
 
@@ -20,15 +21,18 @@ bump :: fn(c: L.Cfg) -> void {
 
 hands_out :: fn() -> L.Cfg = L.CFG
 
+limits :: fn() -> i32[] = CAPS
+
 main :: fn() -> i32 {
     c :: L.Cfg { .n = 9 }
     bump(c)
     counts :: L.COUNTS
     counts.push(4)
-    totals :: TOTALS
+    totals :: SUMS
     totals.push(5)
     println(hands_out().n)
+    println(limits().len())
     println(L.COUNTS.len())
-    println(TOTALS.len())
+    println(SUMS.len())
     return 0
 }

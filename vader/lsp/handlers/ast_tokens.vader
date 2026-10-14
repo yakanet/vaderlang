@@ -112,7 +112,7 @@ refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken[], so
                 // canonical and col/length are still derived later by
                 // `reencode_columns`.
                 out[i].tok_type = i32(token_type_of_symbol(hit.kind))
-                out[i].modifiers = modifiers_of_symbol(hit.kind)
+                out[i].modifiers = modifiers_of_symbol(hit)
             }
             is null -> {}
         }
@@ -128,16 +128,20 @@ token_type_of_symbol :: fn(k: SymbolKind) -> TokenType = match k {
     .Local | .Binding | .Const | .ImportBinding | .Impl | .Synthetic  -> .Variable
 }
 
-/// Modifier bitmask for a symbol kind — `0` for kinds carrying none.
+/// Modifier bitmask for a symbol, `0` for kinds carrying none.
 ///
 /// A module const is `static` + `readonly`, the pair clients resolve to their
 /// "constant" colour (LSP4IJ → `CONSTANT`); without it a `SCREAMING_SNAKE` const
-/// read as a plain — and worse, reassignable — local.
-modifiers_of_symbol :: fn(k: SymbolKind) -> i32 {
-    if k == .Const {
-        return modifier_bit(.Static) | modifier_bit(.Readonly)
+/// read as a plain (and worse, reassignable) local. A module variable is `static`
+/// alone: code writes it.
+modifiers_of_symbol :: fn(sym: Symbol) -> i32 {
+    if sym.kind != .Const {
+        return 0
     }
-    return 0
+    if sym.module_variable {
+        return modifier_bit(.Static)
+    }
+    return modifier_bit(.Static) | modifier_bit(.Readonly)
 }
 
 // ---- raw-token helpers ----------------------------------------------------

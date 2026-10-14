@@ -39,9 +39,6 @@ export CalleeIndex :: struct {
     paths: PathTable! = PathTable {}
     /// The loaded project, whose modules hold the symbols a namespace alias names.
     project: LoadedProject
-    /// The typed modules, by the key of `project.modules` and `Symbol.module`: a
-    /// symbol is judged in the module that declares it.
-    modules: MutableMap<string, TypedProgram>
     /// `trait_key.member` → the members of that name of every impl of the trait.
     members: MutableMap<string, CallTarget[]>! = MutableMap<string, CallTarget[]> {}
     /// Bodyless functions the compiler knows nothing of while they are lent a value
@@ -72,7 +69,7 @@ export Initialiser :: struct {
 index_functions :: fn(
     project: LoadedProject, modules: MutableMap<string, TypedProgram>,
 ) -> CalleeIndex! {
-    index :: CalleeIndex { .project = project, .modules = modules }
+    index :: CalleeIndex { .project = project }
     for [id, loaded] in project.modules {
         typed :: modules[id] ?? continue
         for file in loaded.module.files {

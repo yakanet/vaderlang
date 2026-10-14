@@ -1548,7 +1548,7 @@ export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST
         return null
     }
     sym :: typed.resolved.idents[base.span.hash()] ?? return null
-    redirected :: redirect_import_typed(sym, typed)
+    redirected :: declared_symbol(sym, typed)
     return typed.fn_decls[redirected.id]
 }
 
@@ -1615,13 +1615,6 @@ callee_name :: fn(callee: AST.Expr) -> string {
 }
 
 import "vader/resolver"
-
-redirect_import_typed :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
-    if typed.import_targets == null {
-        return sym
-    }
-    return resolve_import_redirect(sym, typed.import_targets)
-}
 
 /// When `param` is `Trait(T, U, …)` and `arg` is a struct (or
 /// primitive — e.g. `i32 implements Doubler(i32)`) that implements

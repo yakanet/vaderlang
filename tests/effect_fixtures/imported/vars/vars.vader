@@ -1,6 +1,8 @@
-// tests/effect_fixtures/imported/vars — a module variable, wildcard-imported by
-// `app`.
+// tests/effect_fixtures/imported/vars — a constant and a module variable,
+// wildcard-imported by `app`, which renames both.
 
 module "vars"
+
+export LIMITS: i32[]: [7, 8]
 
 export TOTALS: i32[]!: [0]
