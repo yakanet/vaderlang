@@ -5966,17 +5966,17 @@ end
 
 fn 72 json$write_object (ref,ref,i32,i32) -> void
   local first bool
-  local __iter_src_0 ref
-  local __iter_ekeys_1 ref
-  local __iter_evals_2 ref
-  local __iter_size_3 usize
-  local __iter_pos_4 usize
+  local self ref
+  local keys ref
+  local values ref
+  local i usize
+  local __for_hi_0 usize
   local $idx_23 string
   local $idx_24 any
   local k string
   local v any
-  local $add_checked_35 i32
-  local $add_checked_41 i32
+  local $add_checked_33 i32
+  local $add_checked_39 i32
   local.field 1 29 0   ; arg 1 json$JsonObject.entries
   call 105   ; std_collections$len__string__Any
   i64.const 0
@@ -5993,39 +5993,34 @@ fn 72 json$write_object (ref,ref,i32,i32) -> void
   bool.const true
   local.set 4   ; first
   local.field 1 29 0   ; arg 1 json$JsonObject.entries
-  local.set 5   ; __iter_src_0
-  local.field 5 43 0   ; __iter_src_0 std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString.ekeys
-  local.set 6   ; __iter_ekeys_1
-  local.field 5 43 1   ; __iter_src_0 std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString.evals
-  local.set 7   ; __iter_evals_2
-  local.field 5 43 4   ; __iter_src_0 std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString.size
-  ref.cast 8   ; usize
-  local.set 8   ; __iter_size_3
+  local.set 5   ; self
+  local.field 5 43 0   ; self std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString.ekeys
+  local.set 6   ; keys
+  local.field 5 43 1   ; self std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString.evals
+  local.set 7   ; values
   i64.const 0
-  local.set 9   ; __iter_pos_4
+  local.set 8   ; i
+  local.field 5 43 4   ; self std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString.size
+  ref.cast 8   ; usize
+  local.set 9   ; __for_hi_0
   loop $L1 void
-    local.get 9   ; __iter_pos_4
-    local.get 8   ; __iter_size_3
-    u64.ge
+    local.get 8   ; i
+    local.get 9   ; __for_hi_0
+    u64.lt
     if $L2 void
-    else
-      local.get 6   ; __iter_ekeys_1
-      local.get 9   ; __iter_pos_4
+      local.get 6   ; keys
+      local.get 8   ; i
       array.get 48   ; string[]
       ref.cast 1   ; string
       local.set 10   ; $idx_23
-      local.get 7   ; __iter_evals_2
-      local.get 9   ; __iter_pos_4
+      local.get 7   ; values
+      local.get 8   ; i
       array.get 42   ; union[]
       local.set 11   ; $idx_24
       local.get 10   ; $idx_23
       local.set 12   ; k
       local.get 11   ; $idx_24
       local.set 13   ; v
-      local.get 9   ; __iter_pos_4
-      i64.const 1
-      i64.add
-      local.set 9   ; __iter_pos_4
       local.get 4   ; first
       if $L3 void
       else
@@ -6036,10 +6031,10 @@ fn 72 json$write_object (ref,ref,i32,i32) -> void
       local.get 3   ; arg 3
       i32.const 1
       i32.checked_add
-      local.set 14   ; $add_checked_35
+      local.set 14   ; $add_checked_33
       local.get 0   ; arg 0
       local.get 2   ; arg 2
-      local.get 14   ; $add_checked_35
+      local.get 14   ; $add_checked_33
       call 79   ; json$write_indent
       local.get 0   ; arg 0
       local.get 12   ; k
@@ -6056,14 +6051,18 @@ fn 72 json$write_object (ref,ref,i32,i32) -> void
       local.get 3   ; arg 3
       i32.const 1
       i32.checked_add
-      local.set 15   ; $add_checked_41
+      local.set 15   ; $add_checked_39
       local.get 0   ; arg 0
       local.get 13   ; v
       local.get 2   ; arg 2
-      local.get 15   ; $add_checked_41
+      local.get 15   ; $add_checked_39
       call 63   ; json$write_value
       bool.const false
       local.set 4   ; first
+      local.get 8   ; i
+      i64.const 1
+      i64.add
+      local.set 8   ; i
       br $L1
     end $L2
   end $L1

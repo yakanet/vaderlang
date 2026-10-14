@@ -3,18 +3,12 @@
 
 module "vader/lower"
 
-import "std/collections"
-
 import "vader/resolver"
 import "vader/typecheck"
-import "vader/comptime"
-import "vader/resolver/symbol"
 
 // Populate `core_symbols` from std/core's resolved view so the lowerer can
 // resolve `Range`, `Continuation`, `Iterator`, `Display`, `Error`,
-// … without re-walking the project per call. Per-module export lookups
-// (std/collections' `MutableMap`, …) go through the lazy `module_export` below
-// instead of dedicated per-module tables.
+// … without re-walking the project per call.
 populate_core_symbols :: fn(loaded: LoadedProject, project_ctx: LowerProjectCtx) -> void {
     // Source std/core's exports directly from the core module (one seed) rather
     // than from per-module `resolved.core_symbols` copies (removed). This is the
@@ -23,29 +17,6 @@ populate_core_symbols :: fn(loaded: LoadedProject, project_ctx: LowerProjectCtx)
     for [name, sym] in build_core_seed(loaded) {
         project_ctx.core_symbols[name] = sym
     }
-}
-
-// Resolve a top-level export of a stdlib module by display path + name, e.g.
-// `module_export(ctx, "std/collections", "MutableMap")`. Backs the MutableMap/Set
-// for-in destructure and the `${…}`→StringBuilder desugar. Lazily caches one
-// `name -> Symbol` map per path (merging every module sharing the path), keyed on
-// the exact logical `display_path`
-// (a `module_id` substring match is fragile — it broke when a module moved
-// to a per-file subfolder, and `std/string` would match `std/string_builder`).
-// Returns null when the module isn't loaded or has no such export, so the
-// gated peepholes simply don't fire.
-module_export :: fn(ctx: LowerProjectCtx, display_path: string, name: string) -> Symbol | null {
-    cached :: ctx.module_symbol_cache[display_path]
-    if cached != null { return cached[name] }
-    table :: MutableMap<string, Symbol> {}
-    for [_, module_typed] in ctx.typed.modules {
-        if module_typed.resolved.display_path != display_path { continue }
-        for entry in module_typed.resolved.symbols {
-            table[entry.name] = entry
-        }
-    }
-    ctx.module_symbol_cache[display_path] = table
-    return table[name]
 }
 
 populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {

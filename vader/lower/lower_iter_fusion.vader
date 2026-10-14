@@ -34,9 +34,10 @@ IterChainKind :: enum(u8) {
     // consumer's argument, that is neither a Range nor an array. Set only via
     // `opaque_iter_bottom`. See `emit_fused_opaque_iter`.
     OpaqueIter,
-    // A call to a generator that is not a combinator — `zip(a, b)`, a user
-    // generator — whose whole body is inlined at the bottom of the chain. See
-    // `try_descend_gen_source` / `emit_fused_gen_source`.
+    // A call to a generator that is not a combinator (`zip(a, b)`, a user
+    // generator), or a `for` iterable whose `into` is a generator: its whole body
+    // is inlined at the bottom of the chain. See `try_descend_gen_source`,
+    // `try_descend_into_gen_source` and `emit_fused_gen_source`.
     GenSource,
 }
 
@@ -94,8 +95,8 @@ mk_generator_chain :: fn(source: IterChain, gen_layer: GenComboLayer, span: Span
 }
 
 // Top-level entry — recognise `for x in <chain>` and emit the fused
-// counter loop. Returns null whenever the chain doesn't match a fusible
-// shape (`generator` combinators over an int-range or array bottom).
+// loop. Returns null whenever the chain doesn't match a fusible shape
+// (`generator` combinators over a range, an array or a generator source).
 try_lower_chain_fusion :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
@@ -204,8 +205,8 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr, as_source: bool) -> IterCha
 }
 
 descend_chain_concrete :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
-    // @partial: only a Range bottom, an array bottom, or a
-    // `generator` combinator call forms a fusible chain; every other Expr → null.
+    // @partial: a Range and a call (combinator or generator) have their own
+    // arms; every other Expr is read by `expression_bottom`.
     @partial match expr {
         is AST.RangeExpr -> {
             bound :: ctx.types.expr_type(expr.lower)
@@ -238,10 +239,20 @@ descend_chain_concrete :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | nul
                 return gen_source
             }
             // Any other call is a source like any expression : `f().map(g)`.
-            return bare_array_bottom(ctx, expr)
+            return expression_bottom(ctx, expr)
         }
-        _ -> { return bare_array_bottom(ctx, expr) }
+        _ -> { return expression_bottom(ctx, expr) }
     }
+}
+
+// Any other expression as a chain source: a bare array, or a `for` iterable whose
+// `into` is a generator.
+expression_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
+    array :: bare_array_bottom(ctx, expr)
+    if array != null {
+        return array
+    }
+    return try_descend_into_gen_source(ctx, expr, span_of(expr))
 }
 
 // A BARE array-typed expr heading a lazy chain (`arr.map(f)` — the implicit array

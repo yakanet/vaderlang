@@ -38,40 +38,79 @@
           arg0:
             b :Box<i32>!
     block :void
-      let __iter_0: StringChars! =
-        call :StringChars!
-          callee:
-            chars :StringChars!
-          arg0:
-            "ab" :string
-      loop
-        let __step_1: [char, Continuation]! =
-          call :[char, Continuation]!
+      let self: string = "ab" :string
+      let i: usize = int(0) :usize
+      loop while (<…>)
+        let b: u8 =
+          call :u8
             callee:
-              std_string$StringChars$Iterator$next :[char, Continuation]!
+              byte_at :u8
             arg0:
-              __iter_0 :StringChars!
-        if :void
-          cond:
-            eq :bool
-              l:
-                ._1 :Continuation
-                  __step_1 :[char, Continuation]!
-              r:
-                int(1) :u8
-          then:
-            break
-          else:
-            let c: char =
-              ._0 :char
-                __step_1 :[char, Continuation]!
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                vcall std_core$Display.to_string :string
-                  recv:
-                    c :?
+              self :string
+            arg1:
+              i :usize
+        ~>
+          if :void
+            cond:
+              lt :bool
+                l:
+                  b :u8
+                r:
+                  int(128) :u8
+            then:
+              assign
+                target:
+                  i :usize
+                value:
+                  add_checked :usize
+                    l:
+                      i :usize
+                    r:
+                      int(1) :usize
+              let c: char =
+                cast → char
+                  b :u8
+              call :void
+                callee:
+                  std_io$println__string :void
+                arg0:
+                  vcall std_core$Display.to_string :string
+                    recv:
+                      c :?
+            else:
+              let __tup_0: [char, usize] =
+                call :[char, usize]
+                  callee:
+                    decode_tail :fn(string, u8, usize) -> [char, usize]
+                  arg0:
+                    self :string
+                  arg1:
+                    b :u8
+                  arg2:
+                    i :usize
+              let c: char =
+                ._0 :char
+                  __tup_0 :[char, usize]
+              let width: usize =
+                ._1 :usize
+                  __tup_0 :[char, usize]
+              assign
+                target:
+                  i :usize
+                value:
+                  add_checked :usize
+                    l:
+                      i :usize
+                    r:
+                      width :usize
+              let c: char = c :char
+              call :void
+                callee:
+                  std_io$println__string :void
+                arg0:
+                  vcall std_core$Display.to_string :string
+                    recv:
+                      c :?
     return int(0) :i32
   fn __lambda_snippet_0(x: i32) -> string
     ~>

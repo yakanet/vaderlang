@@ -167,12 +167,10 @@ mk_lowered_call :: fn(sym: Symbol, args: LoweredExpr[], ret: Type, span: Span) -
 synth_ident :: fn(sym: Symbol, ty: Type, span: Span) -> LoweredExpr! =
     LoweredIdent { .span = span, .type = ty, .symbol = sym }
 
-// Resolve a `std/core` free fn by name (the Writer / Buffer API) via the generic
-// `module_export` lookup. Returns `null` only if std/core wasn't loaded ; since
-// it is the force-loaded prelude, the caller treats a null as a compiler
-// invariant violation (panics via `unreachable_buffer`).
+// Resolve a `std/core` free fn by name (the Writer / Buffer API). Returns `null`
+// only if std/core wasn't loaded, which the force-loaded prelude rules out.
 resolve_writer_fn :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null =
-    module_export(ctx.project, "std/core", name)
+    lookup_core_symbol(ctx, name)
 
 // The `Buffer` type, read from `write_string_at`'s `self` param. Shared by
 // `lower_interp_buffer` and `synthesize_concat_fn` (both size + write a buffer

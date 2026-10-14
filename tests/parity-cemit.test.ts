@@ -518,6 +518,9 @@ const C_PARITY = new Set<string>([
   // A free fn named like a field's fn value, or like std's `chars`, never runs
   // in their place.
   "free_fn_namesakes",
+  // An `into` written as a generator on a non-generic impl, its iterator held as a
+  // value: the body is the state machine, not a plain body that returns nothing.
+  "into_generator_held_as_value",
   // `x is U` on a generic fn's own type parameter: natively the shared body compared
   // the `ref _` tag (false where the VM said true).
   "generic_is_type_param",

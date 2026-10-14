@@ -49,7 +49,7 @@ export parse_int_in_base :: fn(s: string, base: i32) -> i64 | ParseError {
     }
     acc: i64 = 0
     b: i64: i64(base)
-    for c in s.chars() {
+    for c in s {
         d :: hex_digit_value(c)
         if d < 0 || d >= base {
             return ParseError { .msg = "invalid digit" }
@@ -76,7 +76,7 @@ export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError {
     acc: u64 = 0
     b: u64: u64(base)
     u64_max: u64: 0xFFFF_FFFF_FFFF_FFFF
-    for c in s.chars() {
+    for c in s {
         d :: hex_digit_value(c)
         if d < 0 || d >= base {
             return ParseError { .msg = "invalid digit" }

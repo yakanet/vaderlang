@@ -17,8 +17,7 @@ type 14 struct std_collections$MutableSet__i32 { inner:12 }
 type 15 array 1
 type 16 array 4
 type 17 array 2
-type 18 struct std_string$StringChars { s:2,cursor:6 }
-type 19 primitive isize
+type 18 primitive isize
 string 0 "arr="
 string 1 "a"
 string 2 "b"
@@ -31,7 +30,7 @@ import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_mutable=0 
 import 1 byte_at std_core$byte_at result_type=5 param_types=2,6 param_mutable=0,0 param_by_address= (string,usize) -> u8
 import 2 bytes std_core$bytes result_type=10 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 3 hash std_core$string$Hash$hash result_type=3 param_types=2 param_mutable=0 param_by_address= (string) -> u64
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=1,10,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=1,10,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 7 std_core$ByteAccess
 impl 12 std_core$Index
 impl 12 std_core$IndexSet
@@ -43,7 +42,6 @@ impl 13 std_core$Contains
 impl 13 std_core$Into
 impl 14 std_core$Contains
 impl 14 std_core$Into
-impl 18 std_core$Iterator
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -55,7 +53,10 @@ fn 0 snippet$main () -> i32
   local $cast_26 i64
   local $arr_30 ref
   local $arr_31 ref
-  local $call_elem_138 u8
+  local self string
+  local b u8
+  local width usize
+  local $call_elem_152 usize
   i32.const 10
   i32.const 20
   i32.const 30
@@ -138,34 +139,33 @@ fn 0 snippet$main () -> i32
   local.set 6   ; $arr_30
   local.field 1 13 1   ; __for_arr_0 std_collections$MutableMap__string__i32.evals
   local.set 7   ; $arr_31
+  i64.const 0
+  local.set 2   ; __for_len_1
   local.field 1 13 4   ; __for_arr_0 std_collections$MutableMap__string__i32.size
   ref.cast 6   ; usize
-  local.set 2   ; __for_len_1
-  i64.const 0
   local.set 3   ; __for_i_2
   loop $L2 void
-    local.get 3   ; __for_i_2
     local.get 2   ; __for_len_1
-    u64.ge
+    local.get 3   ; __for_i_2
+    u64.lt
     if $L3 void
-    else
       local.get 6   ; $arr_30
-      local.get 3   ; __for_i_2
+      local.get 2   ; __for_len_1
       array.get 17   ; string[]
       ref.cast 2   ; string
       drop
       local.get 7   ; $arr_31
-      local.get 3   ; __for_i_2
+      local.get 2   ; __for_len_1
       load_slot_i32
       local.set 4   ; x
-      local.get 3   ; __for_i_2
-      i64.const 1
-      i64.add
-      local.set 3   ; __for_i_2
       local.get 0   ; arr_total
       local.get 4   ; x
       i32.checked_add
       local.set 0   ; arr_total
+      local.get 2   ; __for_len_1
+      i64.const 1
+      i64.add
+      local.set 2   ; __for_len_1
       br $L2
     end $L3
   end $L2
@@ -218,30 +218,29 @@ fn 0 snippet$main () -> i32
   local.field 1 14 0   ; __for_arr_0 std_collections$MutableSet__i32.inner
   struct.get 12 0   ; std_collections$MutableMap__i32__bool.ekeys
   local.set 6   ; $arr_30
+  i64.const 0
+  local.set 2   ; __for_len_1
   local.field 1 14 0   ; __for_arr_0 std_collections$MutableSet__i32.inner
   struct.get 12 4   ; std_collections$MutableMap__i32__bool.size
   ref.cast 6   ; usize
-  local.set 2   ; __for_len_1
-  i64.const 0
   local.set 3   ; __for_i_2
   loop $L4 void
-    local.get 3   ; __for_i_2
     local.get 2   ; __for_len_1
-    u64.ge
+    local.get 3   ; __for_i_2
+    u64.lt
     if $L5 void
-    else
       local.get 6   ; $arr_30
-      local.get 3   ; __for_i_2
+      local.get 2   ; __for_len_1
       load_slot_i32
       local.set 4   ; x
-      local.get 3   ; __for_i_2
-      i64.const 1
-      i64.add
-      local.set 3   ; __for_i_2
       local.get 0   ; arr_total
       local.get 4   ; x
       i32.checked_add
       local.set 0   ; arr_total
+      local.get 2   ; __for_len_1
+      i64.const 1
+      i64.add
+      local.set 2   ; __for_len_1
       br $L4
     end $L5
   end $L4
@@ -270,18 +269,46 @@ fn 0 snippet$main () -> i32
   i32.const 0
   local.set 0   ; arr_total
   string.const 5   ; "héllo 世界"
-  call 27   ; std_string$chars
-  local.set 1   ; __for_arr_0
+  local.set 8   ; self
+  i64.const 0
+  local.set 2   ; __for_len_1
   loop $L6 void
-    local.get 1   ; __for_arr_0
-    call 28   ; std_string$StringChars$Iterator$next$v
-    local.set 8   ; $call_elem_138
-    drop
-    local.get 8   ; $call_elem_138
-    i32.const 1
-    i32.eq
+    local.get 8   ; self
+    call.import 0   ; std_core$byte_len
+    local.set 3   ; __for_i_2
+    local.get 2   ; __for_len_1
+    local.get 3   ; __for_i_2
+    u64.lt
     if $L7 void
-    else
+      local.get 8   ; self
+      local.get 2   ; __for_len_1
+      call.import 1   ; std_core$byte_at
+      local.tee 9   ; b
+      i32.const 128
+      u32.lt
+      if $L8 void
+        local.get 2   ; __for_len_1
+        i64.const 1
+        usize.checked_add
+        local.set 2   ; __for_len_1
+        local.get 0   ; arr_total
+        i32.const 1
+        i32.checked_add
+        local.set 0   ; arr_total
+        br $L6
+      end $L8
+      local.get 8   ; self
+      local.get 9   ; b
+      local.get 2   ; __for_len_1
+      call 7   ; std_core$decode_tail
+      local.set 11   ; $call_elem_152
+      drop
+      local.get 11   ; $call_elem_152
+      local.set 10   ; width
+      local.get 2   ; __for_len_1
+      local.get 10   ; width
+      usize.checked_add
+      local.set 2   ; __for_len_1
       local.get 0   ; arr_total
       i32.const 1
       i32.checked_add
@@ -1165,7 +1192,7 @@ fn 20 std_collections$rehash__string__i32 (ref,usize) -> void
       local.get 4   ; e
       array.get 17   ; string[]
       ref.cast 2   ; string
-      call 29   ; std_core$string$Hash$hash_vt
+      call 27   ; std_core$string$Hash$hash_vt
       local.tee 6   ; perturb
       local.get 3   ; __for_discard_0
       call 15   ; std_collections$first_slot
@@ -1552,7 +1579,7 @@ fn 24 std_collections$put__string__i32 (ref,string,i32) -> void
     call 20   ; std_collections$rehash__string__i32
   end $L0
   local.get 1   ; arg 1
-  call 29   ; std_core$string$Hash$hash_vt
+  call 27   ; std_core$string$Hash$hash_vt
   local.set 6   ; perturb
   local.field 0 13 3   ; arg 0 std_collections$MutableMap__string__i32.mask
   ref.cast 6   ; usize
@@ -1756,77 +1783,7 @@ fn 26 std_collections$add__i32 (ref,i32) -> bool
   return.lit bool.const false
 end
 
-fn 27 std_string$chars (string) -> ref
-  local.get 0   ; arg 0
-  i64.const 0
-  struct.new 18   ; std_string$StringChars
-  return
-end
-
-fn 28 std_string$StringChars$Iterator$next$v (ref) -> (char,u8)
-  local i usize
-  local $call_4 usize
-  local b u8
-  local c char
-  local $call_elem_30 usize
-  local.field 0 18 1   ; arg 0 std_string$StringChars.cursor
-  ref.cast 6   ; usize
-  local.set 1   ; i
-  local.field 0 18 0   ; arg 0 std_string$StringChars.s
-  ref.cast 2   ; string
-  call.import 0   ; std_core$byte_len
-  local.set 2   ; $call_4
-  local.get 1   ; i
-  local.get 2   ; $call_4
-  u64.ge
-  if $L0 void
-    char.const 32
-    i32.const 1
-    return
-  end $L0
-  local.field 0 18 0   ; arg 0 std_string$StringChars.s
-  ref.cast 2   ; string
-  local.get 1   ; i
-  call.import 1   ; std_core$byte_at
-  local.tee 3   ; b
-  i32.const 128
-  u32.lt
-  if $L1 void
-  else
-    local.field 0 18 0   ; arg 0 std_string$StringChars.s
-    ref.cast 2   ; string
-    local.get 3   ; b
-    local.get 1   ; i
-    call 7   ; std_core$decode_tail
-    local.set 5   ; $call_elem_30
-    local.set 4   ; c
-    local.get 5   ; $call_elem_30
-    local.set 2   ; $call_4
-    local.get 1   ; i
-    local.get 2   ; $call_4
-    usize.checked_add
-    local.set 2   ; $call_4
-    local.get 0   ; arg 0
-    local.get 2   ; $call_4
-    struct.set 18 1   ; std_string$StringChars.cursor
-    local.get 4   ; c
-    i32.const 0
-    return
-  end $L1
-  local.get 1   ; i
-  i64.const 1
-  usize.checked_add
-  local.set 1   ; i
-  local.get 0   ; arg 0
-  local.get 1   ; i
-  struct.set 18 1   ; std_string$StringChars.cursor
-  local.get 3   ; b
-  u8.to_char
-  i32.const 0
-  return
-end
-
-fn 29 std_core$string$Hash$hash_vt (string) -> u64
+fn 27 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0   ; arg 0
   call.import 3   ; std_core$string$Hash$hash
   return

@@ -4,6 +4,9 @@
 
 Accepted (2026-10-14). Removes the `bytes_view_elision` pass mentioned by 0029.
 
+**Completed by [0064](0064-a-for-inlines-the-generator-its-into-is.md)
+(2026-10-15)**: the two name-keyed fast paths named below are gone.
+
 ## Context
 
 `s.bytes()` returns a read-only `u8[]` view over a string's interned bytes. Natively

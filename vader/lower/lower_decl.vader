@@ -62,7 +62,7 @@ lower_impl_member_list :: fn(
         params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
         return_type :: return_type_of(member, types)
         entry :: synth_impl_entry(member, typed, mangled, impl_trait_key(project_ctx, impl_decl))
-        body :: lower_fn_body(member, typed, project_ctx, entry, subst, return_type)
+        body :: lower_body_of(member, typed, project_ctx, entry, subst, params, return_type)
         out.push(LoweredFnDecl {
             .mangled     = mangled,
             .params      = params,
@@ -224,24 +224,11 @@ lower_fn_decl :: fn(
             return_type,
         )
     }
-    // Generators (`generator`) desugar to a state-machine iterator: lower the
-    // body in generator mode (yields → `LoweredYield` markers), then rewrite it
-    // + synthesize `g$State` / `Iterator::next`.
-    // Shared with the mono-instance paths via `lower_generator_body`.
-    gen_body :: fn_decl.body
-    if fn_is_generator(fn_decl) && gen_body != null {
-        return LoweredFnDecl {
-            .mangled     = entry.mangled,
-            .params      = params,
-            .return_type = return_type,
-            .body        = lower_generator_body(project_ctx, entry, typed, subst, fn_decl, gen_body, params, return_type),
-            .origin      = entry,
-        }
-    }
     // `async` fns desugar to a coroutine state machine (async analogue of the
     // generator branch). The declared return `T` becomes the erased `Async<T>`
     // at the `LoweredFnDecl` boundary — the body constructs + returns a boxed
     // `__asyncstate` frame, and callers type the call as `Async<T>`.
+    gen_body :: fn_decl.body
     if fn_is_async(fn_decl) && gen_body != null {
         // `async main` is the program entry : the entry point can't return an
         // `Async<i32>` frame as an exit code. Keep its return `i32` and inline
@@ -273,7 +260,7 @@ lower_fn_decl :: fn(
             .origin      = entry,
         }
     }
-    body :: lower_fn_body(fn_decl, typed, project_ctx, entry, subst, return_type)
+    body :: lower_body_of(fn_decl, typed, project_ctx, entry, subst, params, return_type)
     return LoweredFnDecl {
         .mangled     = entry.mangled,
         .params      = params,
@@ -281,6 +268,23 @@ lower_fn_decl :: fn(
         .body        = body,
         .origin      = entry,
     }
+}
+
+// The body of a fn or an impl member: its state machine when it is a generator,
+// its plain lowering otherwise ; null when it has none (`@extern`, `@intrinsic`).
+// Every site that materialises one goes through here: lowered as a plain body, a
+// generator drops every `yield` and returns no value.
+lower_body_of :: fn(
+    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+    entry: MonoEntry, subst: Substitution, params: LoweredParam[], return_type: Type,
+) -> LoweredBlock! | null {
+    body :: fn_decl.body ?? return null
+    if fn_is_generator(fn_decl) {
+        return lower_generator_body(
+            project_ctx, entry, typed, subst, fn_decl, body, params, return_type,
+        )
+    }
+    return lower_fn_body(fn_decl, typed, project_ctx, entry, subst, return_type)
 }
 
 // Build the fn-body context and invoke the block lowerer. Returns

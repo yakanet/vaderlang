@@ -1,8 +1,7 @@
-/// Map iteration micro-bench — exercises the `for entry in m` desugar
-/// path on a small map iterated repeatedly. Stresses the `Into<Iterator
-/// <Entry<K, V>>>` impl on `MutableMap`, the `for entry in m` desugar and its
-/// compact-dict bucket-walk fast path, and the GC under 1 M
-/// `Entry<K, V>` visits.
+/// Map iteration micro-bench: exercises `for [k, v] in m` on a small map
+/// iterated repeatedly: the `Into<Iterator<[K, V]>!>` impl on `MutableMap`,
+/// a generator whose walk of the compact dict the `for` inlines, over 1 M
+/// entries.
 
 module "main"
 

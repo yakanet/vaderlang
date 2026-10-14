@@ -116,13 +116,17 @@ export LowerProjectCtx :: struct {
     /// `verify_callees.vader`.
     callee_verifier:     CalleeVerifier! | null = null
 
-    /// The bindings each inlined callee declares, keyed by its symbol id —
-    /// gathered once per callee (`declared_bindings`).
+    /// The bindings each inlined callee declares, keyed by its id (its symbol's,
+    /// or an impl member's from `impl_member_ids`), gathered once per callee
+    /// (`declared_bindings`).
     instance_bindings:   MutableMap<i32, Symbol[]>! = MutableMap<i32, Symbol[]> {}
     /// The callees whose body is being inlined right now — generators and
     /// iterator consumers alike. Inlining one of them again, from inside its own
     /// body, would never end.
     inlining_callees:    MutableSet<i32>! = MutableSet<i32> {}
+    /// The id each inlined impl member's instances are keyed on, by its
+    /// declaration's id: a member has no resolver symbol to lend its own.
+    impl_member_ids:     MutableMap<usize, i32>! = MutableMap<usize, i32> {}
     /// Instance clone id → the resolver's id for the same binding: the key of
     /// every resolver table indexed by symbol id (`origin_symbol_id`).
     clone_origins:       MutableMap<i32, i32>! = MutableMap<i32, i32> {}
@@ -139,14 +143,6 @@ export LowerProjectCtx :: struct {
     /// because resolving one means finding the module that TYPED it, and the
     /// answer is project-global — see `find_core_enum`.
     core_enum_types:     MutableMap<string, Type>!
-
-    /// Per-(display-path) `name -> Symbol` cache backing `module_export` — a
-    /// generic replacement for the old hardcoded per-module tables (std/iter,
-    /// std/collections, std/string, std/string_builder). Lazily filled on the
-    /// first lookup of a path with that module's exports (an empty map for an
-    /// unloaded module, so chain-fusion / inline peepholes that gate on the
-    /// lookup simply don't fire).
-    module_symbol_cache: MutableMap<string, MutableMap<string, Symbol>>!
 
     /// Global `symbol_id -> ComptimeValue` index over every loaded
     /// module's `evaluated.modules[*].comptime_decls`. Populated once
@@ -397,7 +393,6 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .impls               = ImplRegistry {},
         .core_symbols        = MutableMap<string, Symbol> {},
         .core_enum_types     = MutableMap<string, Type> {},
-        .module_symbol_cache = MutableMap<string, MutableMap<string, Symbol>> {},
         .comptime_value_by_symbol_id = MutableMap<i32, ComptimeValue> {},
         .local_symbol_indices = MutableMap<string, MutableMap<u64, Symbol>> {},
         .closures            = new_closure_analysis(),

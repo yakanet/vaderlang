@@ -76,18 +76,21 @@
  * keep hoisting loop-invariant loads across it. Without this an out-of-line
  * helper is an opaque barrier that clobbers every alias. */
 #  define VADER_PURE        __attribute__((pure))
+#  define VADER_NORETURN    __attribute__((noreturn))
 #elif defined(_MSC_VER)
 #  define VADER_LIKELY(x)   (x)
 #  define VADER_UNLIKELY(x) (x)
 #  define VADER_NOINLINE    __declspec(noinline)
 #  define VADER_HOST_EXPORT __declspec(dllexport) __declspec(noinline)
 #  define VADER_PURE
+#  define VADER_NORETURN
 #else
 #  define VADER_LIKELY(x)   (x)
 #  define VADER_UNLIKELY(x) (x)
 #  define VADER_NOINLINE
 #  define VADER_HOST_EXPORT
 #  define VADER_PURE
+#  define VADER_NORETURN
 #endif
 
 /* ------------------------------------------------------ scalar primitives */
@@ -124,6 +127,15 @@ typedef vader_u32_t vader_atom_t;
 typedef vader_atom_t vader_string_t;
 
 vader_string_t vader_string_new(const char* p, size_t n);
+
+/* ----------------------------------------------------------------- traps */
+
+/* Declared above every inline helper that calls them: a helper compiled against a
+ * declaration without `noreturn` calls a function that may return, and the C
+ * compiler then reloads, in every loop around that call, what it could change. */
+VADER_NORETURN void vader_unreachable(const char* where);
+VADER_NORETURN void vader_trap(const char* msg);
+VADER_NORETURN void vader_panic(vader_string_t msg);
 
 /* `@extern` ABI helpers — return a NUL-terminated `const char*` view of
  * the atom's bytes. For owner atoms the runtime returns `data` directly
@@ -189,9 +201,6 @@ extern vader_atom_entry_t* vader_atom_entries;
  * because emitted code reaches them from its own translation unit, where a
  * cross-TU call cannot be inlined: `s[i]` in a scan loop became one real call
  * per byte. */
-static inline const vader_atom_entry_t* vader_atom_entry(vader_atom_t a) {
-    return &vader_atom_entries[a];
-}
 static inline const char* vader_atom_data(vader_atom_t a) {
     return vader_atom_entries[a].data;
 }
@@ -696,10 +705,9 @@ typedef struct {
     uint8_t            bytes[];
 } vader_buffer_t;
 
-/* Forward decls — the canonical declarations sit further down ; the inline
- * `vader_buffer_new` below predates them in file order. */
+/* Forward decl: the canonical declaration sits further down ; the inline
+ * `vader_buffer_new` below predates it in file order. */
 void* vader_gc_alloc(size_t bytes);
-void  vader_trap(const char* msg);
 
 /* Guarded integer division / remainder. The C-emit backend routes every
  * integer `div` / `mod` through these instead of a bare `a / b` so native
@@ -1409,11 +1417,12 @@ static inline size_t vader_string_byte_len(vader_string_t s) {
 }
 /* Header-free byte read : the `i`-th UTF-8 byte of `s`, straight off the interned
  * atom (no `const u8[]` view alloc). Bounds-checked to match `s.bytes()[i]`.
- * One `vader_atom_entry` load shares the base for the length check and the read. */
+ * The length is read through `vader_atom_len`, as `byte_len` reads it: the C
+ * compiler then sees one load, and drops the check under a `i < s.byte_len()`
+ * loop condition even when the loop's step is not a constant. */
 static inline uint8_t vader_string_byte_at(vader_string_t s, size_t i) {
-    const vader_atom_entry_t* e = vader_atom_entry(s);
-    if (i >= (size_t) e->len) vader_trap("byte index out of bounds");
-    return ((const uint8_t*) e->data)[i];
+    if (i >= vader_atom_len(s)) vader_trap("byte index out of bounds");
+    return ((const uint8_t*) vader_atom_data(s))[i];
 }
 /* The bytes `lo..<hi` of `s` as a string, the bounds clamped as `vader_array_slice`
  * clamps them. An atom slice: nothing is copied. */
@@ -1430,12 +1439,11 @@ static inline vader_string_t vader_string_byte_slice(vader_string_t s, size_t lo
  * first. Equal strings are one atom, so equality reads no byte. */
 static inline int32_t vader_string_compare(vader_string_t a, vader_string_t b) {
     if (a == b) return 0;
-    const vader_atom_entry_t* ea = vader_atom_entry(a);
-    const vader_atom_entry_t* eb = vader_atom_entry(b);
-    size_t la = (size_t) ea->len;
-    size_t lb = (size_t) eb->len;
+    size_t la = vader_atom_len(a);
+    size_t lb = vader_atom_len(b);
     size_t shorter = la < lb ? la : lb;
-    int order = shorter == 0 ? 0 : memcmp(ea->data, eb->data, shorter);
+    int order = 0;
+    if (shorter > 0) order = memcmp(vader_atom_data(a), vader_atom_data(b), shorter);
     if (order != 0) return order < 0 ? -1 : 1;
     return la < lb ? -1 : 1;
 }
@@ -1467,22 +1475,5 @@ vader_array_t* vader_runtime_argv(int argc, char** argv,
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
 #endif
-
-/* ----------------------------------------------------------------- traps */
-
-#ifdef __GNUC__
-__attribute__((noreturn))
-#endif
-void vader_unreachable(const char* where);
-
-#ifdef __GNUC__
-__attribute__((noreturn))
-#endif
-void vader_trap(const char* msg);
-
-#ifdef __GNUC__
-__attribute__((noreturn))
-#endif
-void vader_panic(vader_string_t msg);
 
 #endif /* VADER_H */

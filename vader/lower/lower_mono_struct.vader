@@ -554,16 +554,7 @@ materialize_impl_for_instance :: fn(
             .vtable_slot    = member_vtable_slot(impl_trait, member),
         }
         synth_start :: project_ctx.synth_decls.len()
-        // A `generator` impl member (e.g. `Into::into` yielding its elements)
-        // desugars to the state-machine form, same as a free-fn generator — else
-        // the plain body lowering drops every `yield` and the member returns no
-        // value. Shared with the free-fn paths via `lower_generator_body`.
-        gen_body :: member.body
-        body :: if fn_is_generator(member) && gen_body != null {
-            lower_generator_body(project_ctx, entry, impl_typed, subst, member, gen_body, params, return_type)
-        } else {
-            lower_fn_body(member, impl_typed, project_ctx, entry, subst, return_type)
-        }
+        body :: lower_body_of(member, impl_typed, project_ctx, entry, subst, params, return_type)
         push_to_module(project, impl_typed.resolved.path, LoweredFnDecl {
             .mangled     = mangled,
             .params      = params,

@@ -58,42 +58,83 @@
                 int(1) :usize
     let walked: usize = int(0) :usize
     block :void
-      let __iter_1: StringChars! =
-        call :StringChars!
-          callee:
-            chars :StringChars!
-          arg0:
-            s :string
-      loop
-        let __step_2: [char, Continuation]! =
-          call :[char, Continuation]!
+      let self: string = s :string
+      let i: usize = int(0) :usize
+      loop while (<…>)
+        let b: u8 =
+          call :u8
             callee:
-              std_string$StringChars$Iterator$next :[char, Continuation]!
+              byte_at :u8
             arg0:
-              __iter_1 :StringChars!
-        if :void
-          cond:
-            eq :bool
-              l:
-                ._1 :Continuation
-                  __step_2 :[char, Continuation]!
-              r:
-                int(1) :u8
-          then:
-            break
-          else:
-            let _: char =
-              ._0 :char
-                __step_2 :[char, Continuation]!
-            assign
-              target:
-                walked :usize
-              value:
-                add_checked :usize
-                  l:
-                    walked :usize
-                  r:
-                    int(1) :usize
+              self :string
+            arg1:
+              i :usize
+        ~>
+          if :void
+            cond:
+              lt :bool
+                l:
+                  b :u8
+                r:
+                  int(128) :u8
+            then:
+              assign
+                target:
+                  i :usize
+                value:
+                  add_checked :usize
+                    l:
+                      i :usize
+                    r:
+                      int(1) :usize
+              let _: char =
+                cast → char
+                  b :u8
+              assign
+                target:
+                  walked :usize
+                value:
+                  add_checked :usize
+                    l:
+                      walked :usize
+                    r:
+                      int(1) :usize
+            else:
+              let __tup_0: [char, usize] =
+                call :[char, usize]
+                  callee:
+                    decode_tail :fn(string, u8, usize) -> [char, usize]
+                  arg0:
+                    self :string
+                  arg1:
+                    b :u8
+                  arg2:
+                    i :usize
+              let c: char =
+                ._0 :char
+                  __tup_0 :[char, usize]
+              let width: usize =
+                ._1 :usize
+                  __tup_0 :[char, usize]
+              assign
+                target:
+                  i :usize
+                value:
+                  add_checked :usize
+                    l:
+                      i :usize
+                    r:
+                      width :usize
+              let _: char = c :char
+              assign
+                target:
+                  walked :usize
+                value:
+                  add_checked :usize
+                    l:
+                      walked :usize
+                    r:
+                      int(1) :usize
     call :void
       callee:
         std_io$println__usize :void

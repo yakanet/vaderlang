@@ -14,11 +14,11 @@
 // and runs the `into` the typecheck recorded for an iterable that only converts
 // into an iterator, then the `next` it recorded. Before falling back to
 // it, `lower_for_in` tries a series of fast paths that bypass the
-// Iterator dispatch entirely : `try_lower_chain_fusion` (std/iter
-// `map`/`filter` chains over an int range), `try_lower_for_in_int_range`
-// (counter loop over `lo..<hi`), `try_lower_for_in_raw_array` (index
-// loop over a raw `T[]`), and `try_lower_for_in_map_set` (inlined
-// bucket walk over `MutableMap` / `MutableSet`).
+// Iterator dispatch entirely : `try_lower_chain_fusion` (a combinator chain,
+// a generator call, or an iterable whose `into` is a generator, as for
+// `MutableMap` and `string`: the generator's body becomes the loop),
+// `try_lower_for_in_int_range` (counter loop over `lo..<hi`),
+// `try_lower_for_in_raw_array` (index loop over a raw `T[]`).
 
 module "vader/lower"
 
@@ -45,13 +45,10 @@ export lower_for_in :: fn(
     block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
 ) -> LoweredStmt! {
     span :: for_stmt.span
-    // Fast path : `for x in <chain>` where `<chain>` is one or more
-    // `std/iter` lazy combinators (`map` / `filter` / …, all generators)
-    // wrapping a literal integer range — fuse
-    // the whole pipeline into a single counter loop. Skipped when the
-    // bottom isn't an int range, when any layer references its source
-    // via a variable, or when a `f` / `pred` field isn't a bare fn
-    // reference (the slow path handles those).
+    // Fast path : `for x in <chain>` where `<chain>` is generator combinators
+    // (`map` / `filter` / …) over a range, an array, a generator call, or an
+    // iterable whose `into` is a generator: the whole pipeline becomes one
+    // loop. Skipped when the chain has no fusible bottom.
     chain_form :: try_lower_chain_fusion(ctx, for_stmt, in_form, recurse, block_lowerer)
     if chain_form != null { return walked_in_place(ctx, in_form.iter, "fused chain", chain_form) }
     // Fast path : `for x in lo..<hi` / `for x in lo..=hi` over an
@@ -69,13 +66,6 @@ export lower_for_in :: fn(
     raw_array :: try_lower_for_in_raw_array(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, recurse, block_lowerer)
     if raw_array != null { return walked_in_place(ctx, in_form.iter, "element", raw_array) }
 
-    // Fast path : `for entry in m` over `MutableMap<K, V>` (or
-    // `for v in s` over `MutableSet<T>`) inlines the bucket-walk +
-    // chain-traversal, skipping the iterator allocation and the per-iter
-    // `next()` call.
-    map_set :: try_lower_for_in_map_set(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, span, block_lowerer)
-    if map_set != null { return walked_in_place(ctx, in_form.iter, "bucket walk", map_set) }
-
     // THE FALL. Every fast path above declined, so this `for` steps the `Iterator`
     // impl: one `next()` call per iteration instead of an inlined loop. That is
     // correct and it is what the language promises — but it is also the single
@@ -90,18 +80,12 @@ export lower_for_in :: fn(
         "stepping `${display_type(iter_type_raw)}` through its `Iterator` impl — "
         + "one `next()` per iteration instead of an inlined loop (the call itself "
         + "is usually devirtualised, and the step pair usually crosses in "
-        + "registers); the fast paths cover an int range, a raw `T[]`, a map / "
-        + "set, a fusible combinator chain and a direct generator")
+        + "registers); the fast paths cover an int range, a raw `T[]`, a fusible "
+        + "combinator chain and a generator, called or reached through `into`")
 
-    // A bare `string` has no `next()` to dispatch on: give the step-loop the
-    // concrete `StringChars` instead. That fast path stands in for the string's
-    // recorded `into` and `next` ; anything else runs those (`site`).
-    chars :: chars_of(ctx, iter_lowered_raw, iter_type_raw, span)
-    site :: recorded_site(in_form.iter, chars)
-    iterable :: chars ?? iter_lowered_raw
     loop_var_key :: loop_var_type_key(in_form.loop_var, for_stmt.span)
-    element_type :: resolve_element_type(ctx, iter_type_raw, type_of(iterable), loop_var_key)
-    iter_lowered :: into_iterator(ctx, site, iterable, element_type, span)
+    element_type :: resolve_element_type(ctx, iter_type_raw, loop_var_key)
+    iter_lowered :: into_iterator(ctx, in_form.iter, iter_lowered_raw, element_type, span)
     observe_replacement(ctx, in_form.iter, .IterInto, iter_lowered_raw, iter_lowered)
     // Direction A : an escaping `generator` result is typed as its concrete
     // `__genstate_<fn>` struct so combinator chains resolve at typecheck. When the
@@ -152,7 +136,7 @@ export lower_for_in :: fn(
     }
 
     iter_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = iter_symbol }
-    step_call :: build_step_call(ctx, site, iter_ref, iter_type, step_type, span)
+    step_call :: build_step_call(ctx, in_form.iter, iter_ref, iter_type, step_type, span)
     observe_lowered(ctx, in_form.iter, .IterNext, step_call)
     step_let :: LoweredLet {
         .span = span, .name = step_symbol.name, .symbol = step_symbol,
@@ -274,64 +258,18 @@ build_body_stmts :: fn(bind_stmts: LoweredStmt[], user_body: LoweredBlock) -> Lo
     return out
 }
 
-// `string` → `StringChars`, via a synthesised `chars(s)` call.
-//
-// `string` implements `Into<Iterator<char>!>`, but routing through `into()` hands
-// back the ERASED `Iterator<char>` trait; calling `chars` keeps the concrete
-// `StringChars`, whose own `next` the step loop calls (`step_member`) — so
-// `for c in s` lowers like `for c in s.chars()`.
-//
-// Null when `iter` is not a string, or when `chars` is out of reach.
-chars_of :: fn(
-    ctx: FnLowerCtx, iter: LoweredExpr, iter_type: Type, span: Span,
-) -> LoweredExpr! | null {
-    if !is_string_type(iter_type) {
-        return null
-    }
-    chars :: module_export(ctx.project, "std/string", "chars") ?? return null
-    chars_fn_ty :: lookup_fn_type_anywhere(ctx, chars)
-    if chars_fn_ty !is FnType {
-        return null
-    }
-    // The synthesised call bypasses `lower_call`, so harvest `chars` ourselves —
-    // its owning module (`std/string`) is lowered lazily, and nothing else
-    // references this non-generic free fn unless the surrounding code happens to
-    // call `.chars()` explicitly. Without this the call resolves to no fn-table
-    // entry → GATE B1 at emit.
-    register_nongeneric_imported_fn(ctx, chars)
-    chars_call :: LoweredCall {
-        .span = span, .type = chars_fn_ty.return_type,
-        .callee = LoweredIdent {
-            .span = span, .type = chars_fn_ty.return_type,
-            .symbol = chars,
-        },
-        .args = [iter],
-    }
-    return chars_call
-}
-
-// The site whose recorded `into` and `next` a `for` runs : none when the string
-// fast path (`chars`) stands in for them.
-recorded_site :: fn(iter: AST.Expr, chars: LoweredExpr | null) -> AST.Expr | null {
-    if chars != null {
-        return null
-    }
-    return iter
-}
-
 // The iterator a `for` steps when its iterable only converts into one
 // (`Deck implements Into<Iterator<Card>!>`) : the `Iterator` the `into` the
 // typecheck recorded at `site` hands back ; `iterable` itself otherwise.
 into_iterator :: fn(
     ctx: FnLowerCtx,
-    site: AST.Expr | null,
+    site: AST.Expr,
     iterable: LoweredExpr,
     element: Type,
     span: Span,
 ) -> LoweredExpr! {
-    node :: site ?? return iterable
     iterator :: iterator_of(ctx, element) ?? return iterable
-    return recorded_conversion(ctx, node, .IterInto, iterable, iterator, span)
+    return recorded_conversion(ctx, site, .IterInto, iterable, iterator, span)
 }
 
 // `Iterator<element>!`, the trait value a step loop dispatches `next` on.
@@ -347,33 +285,22 @@ iterator_of :: fn(ctx: FnLowerCtx, element: Type) -> Type | null {
 //    args, so it correctly handles combinators whose element type is NOT
 //    the first type arg — a `map` generator over `i32` yields `U` (the impl's
 //    `Iterator<U>`), not the source `i32` ; a `MutableMap` iterator yields
-//    `Entry<K, V>`. The structural heuristics below cannot, so they must
+//    `[K, V]`. The structural heuristics below cannot, so they must
 //    only run when the typer left no usable entry.
-// 1. The raw iter type's first type-arg (`Range<T>`, a user iterator).
-// 2. `typed.iter_element_types[display_type(raw_iter_type)]` — written
+// 1. The iter type's first type-arg (`Range<T>`, a user iterator).
+// 2. `typed.iter_element_types[display_type(iter_type)]`, written
 //    by the typecheck when checking the Iterator impl.
 // 3. Falls back to TY_UNRESOLVED so the lowered loop still emits a
 //    well-formed shape (the typer's earlier diagnostics already
 //    surfaced the missing impl).
-resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type, binding_key: u64) -> Type {
+resolve_element_type :: fn(ctx: FnLowerCtx, iter_type: Type, binding_key: u64) -> Type {
     from_typed_binding :: concrete_local_type(ctx.types, binding_key)
     if !(from_typed_binding is null) {
         return from_typed_binding
     }
-    match iter_type {
-        is StructType -> {
-            if iter_type.args.len() > 0 { return iter_type.args[0] }
-        }
-        _ -> {}
-    }
-    match raw_iter_type {
-        is StructType -> {
-            if raw_iter_type.args.len() > 0 { return raw_iter_type.args[0] }
-        }
-        is TraitType -> {
-            if raw_iter_type.args.len() > 0 { return raw_iter_type.args[0] }
-        }
-        _ -> {}
+    args :: type_args_of(iter_type)
+    if args.len() > 0 {
+        return args[0]
     }
     elements :: ctx.typed.iter_element_types
     element :: impl_side(ctx.typed, elements, iter_type, "") ?? return TY_UNRESOLVED
@@ -476,7 +403,7 @@ LoopBinding :: struct { symbol: Symbol, name: string, pattern: AST.LetBinding | 
 
 /// Translate an AST `LoopVar` into its lowering `LoopBinding`. Centralises the
 /// per-variant resolution so every for-in lowering site (slow / raw-array /
-/// int-range / map-set / iter-fusion / generator) stays uniform.
+/// int-range / iter-fusion / generator) stays uniform.
 resolve_loop_binding :: fn(ctx: FnLowerCtx, loop_var: AST.LoopVar, fallback_span: Span) -> LoopBinding {
     match loop_var {
         is AST.NamedVar -> {
@@ -791,169 +718,3 @@ may_be_type_max :: fn(hi: LoweredExpr, t: Type) -> bool {
     return checked_add(bits, is_unsigned_int_name(t.name), hi.value, 1) == null
 }
 
-// `for entry in m` over `MutableMap<K, V>` / `for v in s` over
-// `MutableSet<T>` — inline the bucket-walk + chain-traversal so the loop
-// skips the iterator struct, the per-iter `next()` call and the step pair it
-// would rebuild. Returns null when the iter type isn't a recognised map/set or
-// std/collections isn't loaded.
-try_lower_for_in_map_set :: fn(
-    ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    src_value: LoweredExpr, src_type: Type, span: Span,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
-) -> LoweredStmt! | null {
-    if src_type is StructType {
-        // `MutableMap` / `MutableSet` lookups returning null (std/collections not
-        // loaded) fall through to `!is_map && !is_set` below — no separate gate.
-        is_map :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableMap"), src_type.symbol.id)
-        is_set :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableSet"), src_type.symbol.id)
-        if !is_map && !is_set { return null }
-        // Element component types : Map<K, V> → [K, V] ; Set<T> → [T, bool].
-        entry_args: Type[]: []
-        if is_map {
-            for a in src_type.args { entry_args.push(a) }
-        } else {
-            if src_type.args.len() == 0 { return null }
-            entry_args.push(src_type.args[0])
-            entry_args.push(TY_BOOL)
-        }
-        if entry_args.len() != 2 { return null }
-        // Compact-dict map/set fast-path : dense index walk over `ekeys` / `evals`.
-        return lower_map_set_compact(ctx, for_stmt, in_form, src_value, src_type, span,
-            block_lowerer, src_type, is_map, is_set, entry_args)
-    }
-    return null
-}
-
-// Compact-dict map/set for-in : walk the dense `ekeys` / `evals` arrays by
-// index. For a map, bind a per-step `[key, value]` tuple (never escapes the
-// body → scalar-replaced, zero-alloc) ; for a set, bind the key directly.
-lower_map_set_compact :: fn(
-    ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    src_value: LoweredExpr, src_type: Type, span: Span,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
-    source: StructType, is_map: bool, is_set: bool, entry_args: Type[],
-) -> LoweredStmt! {
-    usize_ty :: mk_primitive("usize")
-    key_ty :: entry_args[0]
-    val_ty :: entry_args[1]
-    pair_type :: mk_tuple([key_ty, val_ty], false)
-    ekeys_array_type :: mk_array(key_ty, false)
-    evals_array_type :: mk_array(val_ty, false)
-    binding_value_type: Type = pair_type
-    if is_set { binding_value_type = source.args[0] }
-
-    // Hoist the source value once.
-    src_sym :: fresh_synthetic_symbol(ctx, "iter_src")
-    src_let :: LoweredLet {
-        .span = span, .name = src_sym.name, .symbol = src_sym,
-        .type = src_type, .value = src_value,
-    }
-    src_ref :: LoweredIdent { .span = span, .type = src_type, .symbol = src_sym }
-
-    // The map whose dense arrays we walk : a Map directly, a Set via `.inner`.
-    map_ref: LoweredExpr = src_ref
-    if is_set {
-        inner_map_type :: map_struct_type(module_export(ctx.project, "std/collections", "MutableMap"), entry_args)
-        map_ref = LoweredFieldAccess { .span = span, .type = inner_map_type, .target = src_ref, .field = "inner" }
-    }
-
-    // let ekeys = <map>.ekeys ; let evals = <map>.evals (map only) ; let size = <map>.size
-    ekeys_sym :: fresh_synthetic_symbol(ctx, "iter_ekeys")
-    ekeys_ref :: LoweredIdent { .span = span, .type = ekeys_array_type, .symbol = ekeys_sym }
-    ekeys_let :: LoweredLet {
-        .span = span, .name = ekeys_sym.name, .symbol = ekeys_sym, .type = ekeys_array_type,
-        .value = LoweredFieldAccess { .span = span, .type = ekeys_array_type, .target = map_ref, .field = "ekeys" },
-    }
-    evals_sym :: fresh_synthetic_symbol(ctx, "iter_evals")
-    evals_ref :: LoweredIdent { .span = span, .type = evals_array_type, .symbol = evals_sym }
-    evals_let :: LoweredLet {
-        .span = span, .name = evals_sym.name, .symbol = evals_sym, .type = evals_array_type,
-        .value = LoweredFieldAccess { .span = span, .type = evals_array_type, .target = map_ref, .field = "evals" },
-    }
-    size_sym :: fresh_synthetic_symbol(ctx, "iter_size")
-    size_ref :: LoweredIdent { .span = span, .type = usize_ty, .symbol = size_sym }
-    size_let :: LoweredLet {
-        .span = span, .name = size_sym.name, .symbol = size_sym, .type = usize_ty,
-        .value = LoweredFieldAccess { .span = span, .type = usize_ty, .target = map_ref, .field = "size" },
-    }
-    pos_sym :: fresh_synthetic_symbol(ctx, "iter_pos")
-    pos_ref :: LoweredIdent { .span = span, .type = usize_ty, .symbol = pos_sym }
-    pos_let :: LoweredLet {
-        .span = span, .name = pos_sym.name, .symbol = pos_sym, .type = usize_ty,
-        .value = LoweredIntLit { .span = span, .type = usize_ty, .value = 0 },
-    }
-    // loop body : if pos >= size break ; bind ; pos += 1 ; <user body>
-    oob_if :: LoweredExprStmt {
-        .span = span,
-        .expr = LoweredIf {
-            .span = span, .type = TY_VOID,
-            .cond = LoweredBinary {
-                .span = span, .type = TY_BOOL, .op = .Gte,
-                .left = pos_ref, .right = size_ref,
-            },
-            .then_block = single_stmt_block(span, LoweredBreak { .span = span, .label = null }),
-            .else_block = null,
-        },
-    }
-    // bind value : Set → ekeys[pos] (the key) ; Map → [key, value] tuple. The
-    // tuple lowers to the `_0` / `_1` struct layout (mirrors `lower_seq_lit`), so
-    // `for [k, v] in m` destructures it positionally like `for [x, y] in zip(...)`.
-    bind_value: LoweredExpr = LoweredIndex { .span = span, .type = binding_value_type, .target = ekeys_ref, .index = pos_ref }
-    if is_map {
-        bind_value = LoweredStructLit {
-            .span = span, .type = pair_type,
-            .fields = [
-                LoweredStructLitField {
-                    .name = "_0", .value = LoweredIndex { .span = span, .type = key_ty, .target = ekeys_ref, .index = pos_ref },
-                },
-                LoweredStructLitField {
-                    .name = "_1", .value = LoweredIndex { .span = span, .type = val_ty, .target = evals_ref, .index = pos_ref },
-                },
-            ],
-        }
-    }
-    lb :: resolve_loop_binding(ctx, in_form.loop_var, span)
-    binding_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, bind_value, binding_value_type, span)
-    pos_inc :: LoweredAssign {
-        .span = span, .target = pos_ref,
-        .value = LoweredBinary {
-            .span = span, .type = usize_ty, .op = .Add,
-            .left = pos_ref, .right = LoweredIntLit { .span = span, .type = usize_ty, .value = 1 },
-        },
-    }
-    user_body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
-    loop_body_stmts: LoweredStmt[]: []
-    loop_body_stmts.push(oob_if)
-    loop_body_stmts.push_all(binding_stmts)
-    loop_body_stmts.push(pos_inc)
-    for s in block_stmts_with_trailing(user_body) { loop_body_stmts.push(s) }
-    loop_stmt :: LoweredLoop {
-        .span = span, .label = resolve_loop_label(ctx, for_stmt), .cond = null,
-        .body = LoweredBlock { .span = span, .type = TY_VOID, .stmts = loop_body_stmts, .trailing = null },
-        .step = [],
-    }
-    all_stmts: LoweredStmt[]: []
-    all_stmts.push(src_let)
-    all_stmts.push(ekeys_let)
-    if is_map { all_stmts.push(evals_let) }
-    all_stmts.push(size_let)
-    all_stmts.push(pos_let)
-    all_stmts.push(loop_stmt)
-    return wrap_stmts(span, all_stmts)
-}
-
-struct_sym_matches :: fn(sym: Symbol | null, id: i32) -> bool {
-    if sym is Symbol { return sym.id == id }
-    return false
-}
-
-map_struct_type :: fn(map_sym: Symbol | null, entry_args: Type[]) -> Type {
-    if map_sym != null { return mk_struct(map_sym, entry_args, immutable = false) }
-    return TY_UNRESOLVED
-}
-
-single_stmt_block :: fn(span: Span, stmt: LoweredStmt) -> LoweredBlock! {
-    stmts: LoweredStmt[]: []
-    stmts.push(stmt)
-    return LoweredBlock { .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null }
-}

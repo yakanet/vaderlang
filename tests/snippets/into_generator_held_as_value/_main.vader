@@ -1,0 +1,44 @@
+// into_generator_held_as_value: an `into` written as a generator, on a
+// non-generic impl, still runs when its iterator is held as a value rather than
+// walked by a `for` (which inlines the body): passed to an `Iterator` parameter,
+// or bound to a local. The body is then the generator's state machine.
+
+module "snippet"
+
+import "std/io"
+import "std/string"
+
+Deck :: struct {
+    n: i32
+}
+
+Deck implements Into<Iterator<i32>!> {
+    into :: fn(self) -> Iterator<i32>! {
+        for i in 0..<self.n {
+            yield i * 10
+        }
+    }
+}
+
+total :: fn(it: Iterator<i32>) -> i32 {
+    acc := 0
+    for x in it {
+        acc += x
+    }
+    return acc
+}
+
+codepoint_sum :: fn(it: Iterator<char>) -> u32 {
+    acc: u32 = 0
+    for c in it {
+        acc += u32(c)
+    }
+    return acc
+}
+
+main :: fn() -> i32 {
+    println(total(Deck { .n = 4 }))
+    letters: Iterator<char>: "héllo".into()
+    println(codepoint_sum(letters))
+    return 0
+}

@@ -435,7 +435,7 @@ static int32_t snippet_main(void* l0) {
 #line 62 "lib/std/collections/collections.vader"
     vader_array_t* _a3_arr = vader_array_new(30u, 0u, 7u, 7u);
     l4 = (void*) _a3_arr;
-#line 335 "lib/std/collections/collections.vader"
+#line 339 "lib/std/collections/collections.vader"
     vader_struct_std_collections_MutableMap__string___u8__bool_t* _a4_obj = (vader_struct_std_collections_MutableMap__string___u8__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__string___u8__bool_t));
     vader_obj_header_init(_a4_obj, 29u);
     _a4_obj->f_ekeys = l1;
@@ -1397,21 +1397,21 @@ static bool std_collections_add__string___u8(void* l0, vader_box_t l1) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 344 "lib/std/collections/collections.vader"
+#line 348 "lib/std/collections/collections.vader"
     t0 = std_collections_MutableMap_Contains_contains__string___u8__bool(((vader_struct_std_collections_MutableSet__string___u8_t*) l0)->f_inner, l1);
     if (!(t0)) {
-#line 345 "lib/std/collections/collections.vader"
+#line 349 "lib/std/collections/collections.vader"
         std_collections_MutableMap_IndexSet_set_at__string___u8__bool(((vader_struct_std_collections_MutableSet__string___u8_t*) l0)->f_inner, l1, true);
-#line 346 "lib/std/collections/collections.vader"
+#line 350 "lib/std/collections/collections.vader"
         { vader_gc_top = gc_frame.prev; return true; }
-#line 344 "lib/std/collections/collections.vader"
+#line 348 "lib/std/collections/collections.vader"
     }
     { vader_gc_top = gc_frame.prev; return false; }
 }
 
 static size_t std_collections_len__string___u8(void* l0) {
     size_t t0;
-#line 358 "lib/std/collections/collections.vader"
+#line 362 "lib/std/collections/collections.vader"
     t0 = ((vader_struct_std_collections_MutableMap__string___u8__bool_t*) ((vader_struct_std_collections_MutableSet__string___u8_t*) l0)->f_inner)->f_size;
     return t0;
 }

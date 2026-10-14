@@ -31,8 +31,8 @@ import "std/abort"
 /// a suffix of its own, so two instances of one callee in one function body are
 /// two sets of locals and loops.
 export InlineInstance :: struct {
-    /// The callee's own symbol id: while its body is inlined, the id sits in
-    /// `LowerProjectCtx.inlining_callees`.
+    /// The callee's id (its symbol's, or an impl member's minted one): while its
+    /// body is inlined, the id sits in `LowerProjectCtx.inlining_callees`.
     callee_id:    i32
     /// Original symbol id → this instance's clone.
     clones:       MutableMap<i32, Symbol>
@@ -43,24 +43,24 @@ export InlineInstance :: struct {
     exited:       bool = false
 }
 
-/// A fresh instance of `callee`, declared by `decl` in `owner`: every binding the
-/// declaration introduces gets a clone under a new id. A clone of a binding in a
-/// cell joins `cell_symbols`, so its `let` still makes a cell.
+/// A fresh instance of the callee `callee_id`, declared by `decl` in `owner`: every
+/// binding the declaration introduces gets a clone under a new id. A clone of a
+/// binding in a cell joins `cell_symbols`, so its `let` still makes a cell.
 ///
-/// @param project  the project context: mints the ids, holds the captures.
-/// @param callee   the inlined fn's own symbol; keys the binding cache.
-/// @param decl     its declaration.
-/// @param owner    the module `decl` is declared in.
-/// @return         null while `callee`'s body is being inlined further out:
-///                 inlining it again from inside its own body would never end.
+/// @param project    the project context: mints the ids, holds the captures.
+/// @param callee_id  the inlined fn's id; keys the binding cache.
+/// @param decl       its declaration.
+/// @param owner      the module `decl` is declared in.
+/// @return           null while the callee's body is being inlined further out:
+///                   inlining it again from inside its own body would never end.
 new_inline_instance :: fn(
-    project: LowerProjectCtx, callee: Symbol, decl: AST.FnDecl, owner: TypedProgram,
+    project: LowerProjectCtx, callee_id: i32, decl: AST.FnDecl, owner: TypedProgram,
 ) -> InlineInstance! | null {
-    if callee.id in project.inlining_callees {
+    if callee_id in project.inlining_callees {
         return null
     }
     clones :: MutableMap<i32, Symbol> {}
-    for binding in declared_bindings(project, callee, decl, owner) {
+    for binding in declared_bindings(project, callee_id, decl, owner) {
         clone :: Symbol { ...binding, .id = next_project_synthetic_id(project) }
         clones[binding.id] = clone
         project.clone_origins[clone.id] = binding.id
@@ -69,7 +69,7 @@ new_inline_instance :: fn(
         }
     }
     return InlineInstance {
-        .callee_id = callee.id,
+        .callee_id = callee_id,
         .clones = clones,
         .label_suffix = synthetic_label(project, r"$i"),
     }
@@ -80,9 +80,9 @@ new_inline_instance :: fn(
 // holds only the module's top-level symbols; the index `lookup_local_symbol`
 // reads covers every binding. Gathered once per callee.
 declared_bindings :: fn(
-    project: LowerProjectCtx, callee: Symbol, decl: AST.FnDecl, owner: TypedProgram,
+    project: LowerProjectCtx, callee_id: i32, decl: AST.FnDecl, owner: TypedProgram,
 ) -> Symbol[] {
-    cached :: project.instance_bindings[callee.id]
+    cached :: project.instance_bindings[callee_id]
     if cached != null {
         return cached
     }
@@ -96,7 +96,7 @@ declared_bindings :: fn(
             found.push(symbol)
         }
     }
-    project.instance_bindings[callee.id] = found
+    project.instance_bindings[callee_id] = found
     return found
 }
 

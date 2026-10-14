@@ -98,22 +98,41 @@ StringChars implements Iterator<char> {
     }
 }
 
-/// Iterate `s` codepoint-by-codepoint. `for c in s` desugars to this via
-/// the `Into<Iterator<char>!>` impl below — call `s.chars()` explicitly
-/// only when you need the iterator as a value. It walks `s` once, where
-/// `s[i]` walks from the start at every index.
+/// Iterate `s` codepoint-by-codepoint, as an iterator value: `for c in s`
+/// walks the same codepoints through the `Into<Iterator<char>!>` impl below,
+/// without one. It walks `s` once, where `s[i]` walks from the start at
+/// every index.
 ///
 /// Example :
-///   `for c in "héllo" { println("${c}") }`
+///   `letters :: "héllo".chars()`
 ///
 /// @param s  source string.
 /// @return   a `StringChars` iterator over its codepoints.
 export chars :: fn(s: string) -> StringChars! = StringChars { .s = s }
 
 // `for c in s` desugars to `for c in s.into()` via this impl — codepoints
-// are the default unit. A byte loop indexes the string: `s.byte_at(i)`.
+// are the default unit. A byte loop indexes the string: `s.byte_at(i)`. A
+// generator, so a `for` inlines this walk instead of stepping an iterator.
 string implements Into<Iterator<char>!> {
-    into :: fn(self) -> Iterator<char>! = self.chars()
+    into :: fn(self) -> Iterator<char>! {
+        i: usize = 0
+        // The length is read at every turn rather than held in a local, so the C
+        // compiler sees the bound `byte_at` checks against and drops that check.
+        // Two `yield`s, each inlining the loop body: behind one shared `yield`,
+        // the ASCII path takes two branches per codepoint in the native build
+        // (ADR 0064).
+        for i < self.byte_len() {
+            b :: self.byte_at(i)
+            if b < 0x80 {
+                i += 1
+                yield char(b)
+            } else {
+                [c, width] :: decode_tail(self, b, i)
+                i += width
+                yield c
+            }
+        }
+    }
 }
 
 /// Lets `sub in s` desugar to `s.contains(sub)`. The Contains trait
@@ -569,7 +588,7 @@ escape_meaning :: fn(b: u8) -> string | null = match b {
 /// @return             a fresh string.
 export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string) -> string {
     sb :: StringBuilder {}
-    for c in s.chars() {
+    for c in s {
         if pred(c) {
             sb.append(replacement)
         } else {
@@ -595,7 +614,7 @@ export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
     out: string[]: []
     sb := StringBuilder {}
     has_pending := false
-    for c in s.chars() {
+    for c in s {
         if pred(c) {
             if has_pending {
                 out.push(sb.to_string())

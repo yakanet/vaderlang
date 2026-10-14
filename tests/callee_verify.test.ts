@@ -35,22 +35,20 @@ test("the verifier lists the fixture's sites the lowering gets wrong", async () 
     .filter((l) => l.includes("callee_fixtures/sites.vader:"))
     .map((l) => l.replace(/\[\S*callee_fixtures\//, "["));
   expect(own).toEqual([
-    // The generator chains are fused into the loop: their `next` runs in place.
+    // The generators are fused into the loop: their `next` runs in place, and a
+    // string's `into` is one.
     "virtual std_core$Iterator.next / no call fused chain  [sites.vader:154:14]",
     "fn evens / no call fused chain  [sites.vader:297:14]",
-    // A string is stepped through `chars`, not through its `into`.
-    "fn into / fn chars  [sites.vader:305:14]",
+    "fn into / no call fused chain  [sites.vader:305:14]",
   ]);
 }, MEDIUM_BUILD);
 
 // Each kind of disagreement the compiler is known to hold, with the reason.
 const EXPLAINED: [RegExp, string][] = [
   [/^fn mul( \(per instance\))? \/ no call array\.repeat$/, "`[x] * n` emitted as the `array.repeat` intrinsic"],
-  [/ \/ no call fused chain$/, "a generator chain fused into the loop"],
-  [/ \/ no call bucket walk$/, "a map or set walked in place"],
+  [/ \/ no call fused chain$/, "a generator, or a generator `into`, fused into the loop"],
   [/^fn compare \/ no call primitive$/, "`char` ordering compared as a primitive"],
   [/^fn contains \/ no call bounds$/, "`x in lo..hi` over a literal range compared in place"],
-  [/^fn into \/ fn chars$/, "a string stepped through `chars`"],
   [/^fn \w+ \/ virtual std_core\$Iterator\.next$/, "a generator's state erased to `Iterator`"],
 ];
 

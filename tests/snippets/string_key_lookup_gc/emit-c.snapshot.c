@@ -214,7 +214,7 @@ static int32_t snippet_main(void) {
 #line 62 "lib/std/collections/collections.vader"
     vader_array_t* _a2_arr = vader_array_new(15u, 0u, 7u, 1u);
     l2 = (void*) _a2_arr;
-#line 335 "lib/std/collections/collections.vader"
+#line 339 "lib/std/collections/collections.vader"
     vader_struct_std_collections_MutableMap__string__bool_t* _a3_obj = (vader_struct_std_collections_MutableMap__string__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__string__bool_t));
     vader_obj_header_init(_a3_obj, 14u);
     _a3_obj->f_ekeys = l0;
@@ -565,7 +565,7 @@ static void std_collections_MutableMap_IndexSet_set_at__string__i32(void* l0, va
 
 static bool std_collections_MutableSet_Contains_contains__string(void* l0, vader_string_t l1) {
     bool t0;
-#line 371 "lib/std/collections/collections.vader"
+#line 375 "lib/std/collections/collections.vader"
     t0 = std_collections_MutableMap_Contains_contains__string__bool(((vader_struct_std_collections_MutableSet__string_t*) l0)->f_inner, l1);
     return t0;
 }
@@ -1455,14 +1455,14 @@ static bool std_collections_add__string(void* l0, vader_string_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 344 "lib/std/collections/collections.vader"
+#line 348 "lib/std/collections/collections.vader"
     t0 = std_collections_MutableMap_Contains_contains__string__bool(((vader_struct_std_collections_MutableSet__string_t*) l0)->f_inner, l1);
     if (!(t0)) {
-#line 345 "lib/std/collections/collections.vader"
+#line 349 "lib/std/collections/collections.vader"
         std_collections_MutableMap_IndexSet_set_at__string__bool(((vader_struct_std_collections_MutableSet__string_t*) l0)->f_inner, l1, true);
-#line 346 "lib/std/collections/collections.vader"
+#line 350 "lib/std/collections/collections.vader"
         { vader_gc_top = gc_frame.prev; return true; }
-#line 344 "lib/std/collections/collections.vader"
+#line 348 "lib/std/collections/collections.vader"
     }
     { vader_gc_top = gc_frame.prev; return false; }
 }

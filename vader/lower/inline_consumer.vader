@@ -54,7 +54,9 @@ export try_inline_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type: Type
     subst :: consumer_subst(ctx, call, target.callee, shape) ?? return null
     chain :: descend_chain(ctx, target.args[shape.param], true) ?? return null
     // Minted last: a descent that gives up must leave no ids or clones behind.
-    instance :: new_inline_instance(ctx.project, target.callee, target.decl, target.owner) ?? return null
+    instance :: new_inline_instance(
+        ctx.project, target.callee.id, target.decl, target.owner,
+    ) ?? return null
     consumer :: ConsumerCall {
         .target = target,
         .signature = signature,

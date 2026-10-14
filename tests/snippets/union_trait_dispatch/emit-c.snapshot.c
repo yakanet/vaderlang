@@ -4377,7 +4377,7 @@ static bool std_collections_MutableMap_Contains_contains__string__i32(void* l0, 
 
 static bool std_collections_MutableSet_Contains_contains__i32(void* l0, int32_t l1) {
     bool t0;
-#line 371 "lib/std/collections/collections.vader"
+#line 375 "lib/std/collections/collections.vader"
     t0 = std_collections_MutableMap_Contains_contains__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) l0)->f_inner, l1);
     return t0;
 }

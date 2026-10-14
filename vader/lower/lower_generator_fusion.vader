@@ -369,7 +369,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     output_elem :: genstate_element(ctx.typed, decl, subst_opt) ?? return null
 
     // Minted last: a descent that gives up must leave no ids, clones or captures behind.
-    instance :: new_inline_instance(ctx.project, callee_sym, decl, owner) ?? return null
+    instance :: new_inline_instance(ctx.project, callee_sym.id, decl, owner) ?? return null
     cloned_extras: GenSourceBinding[]: []
     for extra in extra_sources {
         cloned_extras.push(GenSourceBinding {
@@ -590,8 +590,9 @@ fuse_source_loop :: fn(
 // A call to a `generator` that is not a combinator — `zip(a, b)`, `xs.window(3)`, a
 // user generator over a range — heads a chain as a SOURCE: its whole body is
 // inlined at the bottom of the chain, each `yield` feeding the stage above. A bare
-// `for v in gen(args)` is the one-stage case. No generator is special-cased:
-// whatever its body does, the consumer is spliced at its yields.
+// `for v in gen(args)` is the one-stage case, and `for v in m` when the `into` of
+// `m` is a generator. No generator is special-cased: whatever its body does, the
+// consumer is spliced at its yields.
 
 /// A generator call heading a chain, carried on `IterChain.gen_source`.
 GenSourceCall :: struct {
@@ -621,21 +622,94 @@ try_descend_gen_source :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain |
         return null
     }
     // Minted last: a descent that gives up must leave no ids or clones behind.
-    instance :: new_inline_instance(ctx.project, target.callee, decl, owner) ?? return null
-    return IterChain {
-        .kind = .GenSource,
-        .range_lower = null, .range_upper = null, .inclusive = false,
-        .element_type = element,
-        .gen_source = GenSourceCall {
-            .decl = decl,
-            .owner = owner,
-            .signature = signature,
-            .subst = subst,
-            .args = target.args,
-            .instance = instance,
-        },
-        .source = null, .span = call.span,
+    instance :: new_inline_instance(ctx.project, target.callee.id, decl, owner) ?? return null
+    source :: GenSourceCall {
+        .decl = decl,
+        .owner = owner,
+        .signature = signature,
+        .subst = subst,
+        .args = target.args,
+        .instance = instance,
     }
+    return mk_gen_source_chain(source, element, call.span)
+}
+
+// `expr` as a chain source when it is a `for` iterable whose recorded `into` is a
+// generator (`MutableMap`'s, `string`'s): that body inlined like a generator
+// call's, its `self` bound to `expr`. Null for any other conversion. Only the
+// `for` role: an `into` recorded for a slot is applied again when the operand is
+// bound (`bind_gen_source_operands`).
+try_descend_into_gen_source :: fn(ctx: FnLowerCtx, expr: AST.Expr, span: Span) -> IterChain | null {
+    into :: recorded_callee(ctx, expr, .IterInto)
+    if into !is DirectFn {
+        return null
+    }
+    receiver :: ctx.types.expr_type(expr)
+    entry :: recorded_impl(ctx, into, receiver) ?? return null
+    decl :: select_member(entry, into.decl.name) ?? return null
+    if !fn_is_generator(decl) || decl.body == null {
+        return null
+    }
+    owner :: typed_module_named(ctx, entry.module) ?? return null
+    signature :: owner.impl_method_decl_types[decl.name_span.hash()]
+    if signature !is FnType {
+        return null
+    }
+    type_args :: strip_distinct_each(type_args_of(impl_receiver(entry, receiver)))
+    if !all_concrete(type_args) {
+        return null
+    }
+    subst :: build_impl_subst(entry.decl, type_args, owner, owner)
+    element :: iterator_element_of(substitute(signature.return_type, subst)) ?? return null
+    if is_void(element) || !all_concrete([element]) {
+        return null
+    }
+    // Minted last: a descent that gives up must leave no ids or clones behind.
+    callee_id :: impl_member_id(ctx, decl)
+    instance :: new_inline_instance(ctx.project, callee_id, decl, owner) ?? return null
+    source :: GenSourceCall {
+        .decl = decl,
+        .owner = owner,
+        .signature = signature,
+        .subst = subst,
+        .args = [expr],
+        .instance = instance,
+    }
+    return mk_gen_source_chain(source, element, span)
+}
+
+// A chain headed by the inlined generator `source`, yielding `element`.
+mk_gen_source_chain :: fn(source: GenSourceCall, element: Type, span: Span) = IterChain {
+    .kind = .GenSource,
+    .range_lower = null, .range_upper = null, .inclusive = false,
+    .element_type = element, .gen_source = source,
+    .source = null, .span = span,
+}
+
+// The id an inlined impl member's instances are keyed on: a member has no resolver
+// symbol, so one id is minted per declaration, once (`impl_member_ids`).
+impl_member_id :: fn(ctx: FnLowerCtx, decl: AST.FnDecl) -> i32 {
+    known :: ctx.project.impl_member_ids[decl.id]
+    if known != null {
+        return known
+    }
+    minted :: next_project_synthetic_id(ctx.project)
+    ctx.project.impl_member_ids[decl.id] = minted
+    return minted
+}
+
+// The typed program of the module whose display path is `display` (an
+// `ImplEntry.module`).
+typed_module_named :: fn(ctx: FnLowerCtx, display: string) -> TypedProgram | null {
+    if ctx.typed.resolved.display_path == display {
+        return ctx.typed
+    }
+    for [_, m] in ctx.project.typed.modules {
+        if m.resolved.display_path == display {
+            return m
+        }
+    }
+    return null
 }
 
 // The instance substitution of a generator source: the type arguments the

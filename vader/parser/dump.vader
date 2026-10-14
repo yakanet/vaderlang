@@ -38,7 +38,7 @@ write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
     // Walk by codepoint so multi-byte sequences emit cleanly (a byte
     // walk would surface FFFD on continuation bytes).
-    for c in s.chars() {
+    for c in s {
         if c == '"'  { sb.append("\\\"") }
         else if c == '\\' { sb.append("\\\\") }
         else if c == '\n' { sb.append("\\n") }

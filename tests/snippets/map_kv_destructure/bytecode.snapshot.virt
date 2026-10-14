@@ -35,15 +35,15 @@ fn 0 snippet$main () -> i32
   local $arr_1 ref
   local $arr_2 ref
   local sum i32
-  local __iter_size_3 usize
-  local __iter_pos_4 usize
+  local i usize
+  local __for_hi_0 usize
   local $idx_26 string
   local $idx_27 i32
   local v i32
-  local __p_7 string
-  local $call_38 usize
-  local __off_9 usize
-  local $cast_47 i64
+  local __p_1 string
+  local $call_36 usize
+  local __off_3 usize
+  local $cast_45 i64
   array.new 12 0   ; string[]
   local.set 0   ; $arr_0
   array.new 11 0   ; i32[]
@@ -75,70 +75,69 @@ fn 0 snippet$main () -> i32
   local.set 1   ; $arr_1
   local.field 0 10 1   ; $arr_0 std_collections$MutableMap__string__i32.evals
   local.set 2   ; $arr_2
+  i64.const 0
+  local.set 4   ; i
   local.field 0 10 4   ; $arr_0 std_collections$MutableMap__string__i32.size
   ref.cast 5   ; usize
-  local.set 4   ; __iter_size_3
-  i64.const 0
-  local.set 5   ; __iter_pos_4
+  local.set 5   ; __for_hi_0
   loop $L0 void
-    local.get 5   ; __iter_pos_4
-    local.get 4   ; __iter_size_3
-    u64.ge
+    local.get 4   ; i
+    local.get 5   ; __for_hi_0
+    u64.lt
     if $L1 void
-    else
       local.get 1   ; $arr_1
-      local.get 5   ; __iter_pos_4
+      local.get 4   ; i
       array.get 12   ; string[]
       ref.cast 2   ; string
       local.set 6   ; $idx_26
       local.get 2   ; $arr_2
-      local.get 5   ; __iter_pos_4
+      local.get 4   ; i
       load_slot_i32
       local.set 7   ; $idx_27
       local.get 6   ; $idx_26
-      local.set 9   ; __p_7
+      local.set 9   ; __p_1
       local.get 7   ; $idx_27
       local.set 8   ; v
-      local.get 5   ; __iter_pos_4
-      i64.const 1
-      i64.add
-      local.set 5   ; __iter_pos_4
-      local.get 9   ; __p_7
+      local.get 9   ; __p_1
       call.import 0   ; std_core$byte_len
-      local.set 10   ; $call_38
+      local.set 10   ; $call_36
       i64.const 21
-      local.get 10   ; $call_38
+      local.get 10   ; $call_36
       i64.add
       call 2   ; std_core$new_byte_buffer
       local.set 0   ; $arr_0
       i64.const 0
-      local.set 11   ; __off_9
+      local.set 11   ; __off_3
       local.get 0   ; $arr_0
-      local.get 11   ; __off_9
-      local.get 9   ; __p_7
+      local.get 11   ; __off_3
+      local.get 9   ; __p_1
       call 4   ; std_core$write_string_at
-      local.set 11   ; __off_9
+      local.set 11   ; __off_3
       local.get 0   ; $arr_0
-      local.get 11   ; __off_9
+      local.get 11   ; __off_3
       string.const 3   ; "="
       call 4   ; std_core$write_string_at
-      local.set 11   ; __off_9
+      local.set 11   ; __off_3
       local.get 8   ; v
       i32.to_i64
-      local.set 12   ; $cast_47
+      local.set 12   ; $cast_45
       local.get 0   ; $arr_0
-      local.get 11   ; __off_9
-      local.get 12   ; $cast_47
+      local.get 11   ; __off_3
+      local.get 12   ; $cast_45
       call 5   ; std_core$write_int
-      local.set 11   ; __off_9
+      local.set 11   ; __off_3
       local.get 0   ; $arr_0
-      local.get 11   ; __off_9
+      local.get 11   ; __off_3
       call 3   ; std_core$finish_buffer
       call 8   ; std_io$println__string
       local.get 3   ; sum
       local.get 8   ; v
       i32.checked_add
       local.set 3   ; sum
+      local.get 4   ; i
+      i64.const 1
+      i64.add
+      local.set 4   ; i
       br $L0
     end $L1
   end $L0
@@ -146,22 +145,22 @@ fn 0 snippet$main () -> i32
   call 2   ; std_core$new_byte_buffer
   local.set 0   ; $arr_0
   i64.const 0
-  local.set 4   ; __iter_size_3
+  local.set 4   ; i
   local.get 0   ; $arr_0
-  local.get 4   ; __iter_size_3
+  local.get 4   ; i
   string.const 4   ; "sum="
   call 4   ; std_core$write_string_at
-  local.set 4   ; __iter_size_3
+  local.set 4   ; i
   local.get 3   ; sum
   i32.to_i64
-  local.set 12   ; $cast_47
+  local.set 12   ; $cast_45
   local.get 0   ; $arr_0
-  local.get 4   ; __iter_size_3
-  local.get 12   ; $cast_47
+  local.get 4   ; i
+  local.get 12   ; $cast_45
   call 5   ; std_core$write_int
-  local.set 4   ; __iter_size_3
+  local.set 4   ; i
   local.get 0   ; $arr_0
-  local.get 4   ; __iter_size_3
+  local.get 4   ; i
   call 3   ; std_core$finish_buffer
   call 8   ; std_io$println__string
   return.lit i32.const 0

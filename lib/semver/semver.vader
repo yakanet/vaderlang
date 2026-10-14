@@ -217,7 +217,7 @@ export parse_range :: fn(s: string) -> VersionRange | ParseError {
 
 is_all_digits :: fn(s: string) -> bool {
     if s.is_empty() { return false }
-    for c in s.chars() {
+    for c in s {
         if !is_digit(c) { return false }
     }
     return true
@@ -227,7 +227,7 @@ is_all_digits :: fn(s: string) -> bool {
 // bare operator whose version sits in the next whitespace-separated token.
 is_bare_operator :: fn(s: string) -> bool {
     if s.is_empty() { return false }
-    for c in s.chars() {
+    for c in s {
         if c != '<' && c != '>' && c != '=' && c != '~' && c != '^' { return false }
     }
     return true
@@ -253,7 +253,7 @@ parse_numeric_id :: fn(s: string) -> i32 | ParseError {
 validate_prerelease_id :: fn(id: string) -> string {
     if id.is_empty() { return "empty prerelease identifier" }
     only_digits := true
-    for c in id.chars() {
+    for c in id {
         if !is_alnum(c) && c != '-' { return "invalid character in prerelease identifier" }
         if !is_digit(c) { only_digits = false }
     }
@@ -281,7 +281,7 @@ validate_prerelease :: fn(s: string) -> string {
 // per §10 (build metadata is opaque, not used for ordering).
 validate_build_id :: fn(id: string) -> string {
     if id.is_empty() { return "empty build identifier" }
-    for c in id.chars() {
+    for c in id {
         if !is_alnum(c) && c != '-' { return "invalid character in build identifier" }
     }
     return ""
