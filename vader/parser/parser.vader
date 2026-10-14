@@ -184,13 +184,18 @@ export Parser :: struct {
     file:   string
     pos:    i32
     errors: Diagnostic[]!
-    // True except inside the immediate condition expression of if/for/match.
-    allow_struct_lit: bool
-    // True except inside a match-arm guard : `is T if n > 0 -> body`
-    // must not parse `0 -> body` (or `flag -> body`) as a bare lambda —
-    // the arrow belongs to the arm. Parenthesised sub-expressions restore
-    // it, so an intentional lambda in a guard stays writable as `(x -> …)`.
-    allow_bare_lambda: bool
+    // The brackets open at the current token, `(`, `[`, `{` and an interpolation,
+    // counted as `advance` consumes them. The two rules below hold at one depth
+    // only: a bracket opened inside the construct ends what it encloses, so the
+    // ambiguity the rule avoids cannot arise there.
+    bracket_depth: i32
+    // The depth of an if / for / match condition, where a struct literal is not
+    // parsed: `if Foo { … }` reads `Foo` as the condition and `{` as the body. -1
+    // outside any condition.
+    no_struct_lit_at: i32
+    // The depth of a match-arm guard, where a bare lambda is not parsed: in
+    // `is T if n > 0 -> body` the arrow belongs to the arm. -1 outside a guard.
+    no_bare_lambda_at: i32
     // When non-null, the lexer's `>>` token has been split : its first `>`
     // was already consumed (and `pos` advanced past it), and this field
     // holds a synthetic `Gt` exposing the second `>`. The next
@@ -218,8 +223,9 @@ new_parser :: fn(tokens: Token[], file: string) = Parser {
     .file             = file,
     .pos              = 0,
     .errors           = [],
-    .allow_struct_lit = true,
-    .allow_bare_lambda = true,
+    .bracket_depth = 0,
+    .no_struct_lit_at = -1,
+    .no_bare_lambda_at = -1,
     .shr_pending_half = null,
 }
 
@@ -258,8 +264,27 @@ advance :: fn(p: Parser) -> Token {
     } else if p.pos < i32(p.tokens.len()) - 1 {
         p.pos = p.pos + 1
     }
+    p.bracket_depth += bracket_step(t.kind)
     return t
 }
+
+// How a token moves the bracket depth: +1 for an opening bracket, -1 for a closing
+// one. Only `advance` consumes brackets.
+bracket_step :: fn(k: TokenKind) -> i32 {
+    if k == .LParen || k == .LBracket || k == .LBrace || k == .InterpOpen {
+        return 1
+    }
+    if k == .RParen || k == .RBracket || k == .RBrace || k == .InterpClose {
+        return -1
+    }
+    return 0
+}
+
+// Whether a struct literal parses here: anywhere but at a condition's own depth.
+allows_struct_lit :: fn(p: Parser) -> bool = p.bracket_depth != p.no_struct_lit_at
+
+// Whether a bare lambda parses here: anywhere but at a guard's own depth.
+allows_bare_lambda :: fn(p: Parser) -> bool = p.bracket_depth != p.no_bare_lambda_at
 
 /// True when the current position holds a closing `>` (real `Gt`, fresh
 /// `Shr`, or the synthetic second half of an already-split `Shr`).
@@ -2502,14 +2527,14 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt! 
         }
     }
 
-    saved_allow :: p.allow_struct_lit
-    p.allow_struct_lit = false
+    saved_restriction :: p.no_struct_lit_at
+    p.no_struct_lit_at = p.bracket_depth
 
     if p.check(.Ident) && p.check_at(.KwIn, 1) {
         bind_tok :: p.advance()
         p.advance()  // `in`
         iter :: p.parse_expr(0)
-        p.allow_struct_lit = saved_allow
+        p.no_struct_lit_at = saved_restriction
         body :: p.parse_block()
         return ForStmt {
             .span  = Span { .start = start.span.start, .end = body.span.end },
@@ -2529,7 +2554,7 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt! 
         binding :: p.parse_let_binding()
         p.expect(.KwIn, "`in` after for-loop binding")
         iter :: p.parse_expr(0)
-        p.allow_struct_lit = saved_allow
+        p.no_struct_lit_at = saved_restriction
         body :: p.parse_block()
         return ForStmt {
             .span  = Span { .start = start.span.start, .end = body.span.end },
@@ -2541,7 +2566,7 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt! 
     }
 
     cond :: p.parse_expr(0)
-    p.allow_struct_lit = saved_allow
+    p.no_struct_lit_at = saved_restriction
     body :: p.parse_block()
     // `for <range>` iterates the range with no user variable — a `DiscardVar`
     // (without this `for 0..<n` would type-error as a while condition). Modelled
@@ -2875,7 +2900,7 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr! {
     // go through the `(params) -> body` path in parse_prefix.
     match left {
         is IdentExpr -> {
-            if p.allow_bare_lambda && p.check(.Arrow) {
+            if p.allows_bare_lambda() && p.check(.Arrow) {
                 left = p.parse_single_param_lambda_tail(left)
             }
         }
@@ -3089,7 +3114,7 @@ parse_prefix :: fn(p: Parser) -> Expr! {
     if t.kind == .StringBegin { return p.parse_string_lit() }
     if t.kind == .Ident       { return p.parse_ident_or_struct_lit() }
     if t.kind == .LParen {
-        if p.allow_bare_lambda && p.peek_lambda_without_fn() { return p.parse_lambda_without_fn() }
+        if p.allows_bare_lambda() && p.peek_lambda_without_fn() { return p.parse_lambda_without_fn() }
         return p.parse_paren()
     }
     if t.kind == .LBracket    { return p.parse_seq_lit() }
@@ -3237,7 +3262,7 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr! {
         // prefix time ; the qualified form lands here because `module` was
         // already consumed as the prefix expression and `.Type` is a
         // postfix `dot`. Same struct-lit gate as the bare path.
-        if p.allow_struct_lit && p.check(.LBrace) && looks_like_struct_lit_body(p.tokens, p.pos) {
+        if p.allows_struct_lit() && p.check(.LBrace) && looks_like_struct_lit_body(p.tokens, p.pos) {
             p.advance()
             fields :: p.parse_struct_lit_fields()
             rb :: p.expect(.RBrace, "`}` to close struct literal")
@@ -3339,7 +3364,7 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr! {
             .callee    = callee,
             .type_args = args,
         }
-        if p.allow_struct_lit && p.check(.LBrace) {
+        if p.allows_struct_lit() && p.check(.LBrace) {
             p.advance()
             fields :: p.parse_struct_lit_fields()
             rb :: p.expect(.RBrace, "`}` to close struct literal")
@@ -3362,7 +3387,7 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr! {
         }
     }
 
-    if p.allow_struct_lit && p.check(.LBrace) && looks_like_struct_lit_body(p.tokens, p.pos) {
+    if p.allows_struct_lit() && p.check(.LBrace) && looks_like_struct_lit_body(p.tokens, p.pos) {
         p.advance()
         fields :: p.parse_struct_lit_fields()
         rb :: p.expect(.RBrace, "`}` to close struct literal")
@@ -3498,13 +3523,7 @@ parse_struct_lit_fields :: fn(p: Parser) -> CommaList<StructLitField! | StructLi
 parse_paren :: fn(p: Parser) -> Expr! {
     p.advance()  // `(`
     p.skip_newlines()
-    saved_allow :: p.allow_struct_lit
-    saved_lambda :: p.allow_bare_lambda
-    p.allow_struct_lit = true
-    p.allow_bare_lambda = true
     expr :: p.parse_expr(0)
-    p.allow_struct_lit = saved_allow
-    p.allow_bare_lambda = saved_lambda
     p.skip_newlines()
     p.expect(.RParen, "`)` to close parenthesised expression")
     return expr
@@ -3647,18 +3666,14 @@ parse_string_lit :: fn(p: Parser) -> StringLitExpr! {
 
 parse_if_expr :: fn(p: Parser) -> IfExpr! {
     start :: p.advance()  // `if`
-    saved_allow :: p.allow_struct_lit
-    // Struct literals are disabled at condition top-level so `if Foo { … }`
-    // reads `Foo` as the condition (not a struct literal). A leading `(` is NOT
-    // special-cased here: it parses as an ordinary parenthesised primary
-    // (`parse_paren_or_tuple` re-enables struct literals inside the parens AND
-    // keeps the infix chain going), so `if (i + 1) % 4 == 0` and
-    // `if (Point { .x = 1 }).ok` parse as the full expression. A bespoke
-    // `if (...)` grabber used to eat just the first paren group and leave the
-    // rest dangling — that was the bug.
-    p.allow_struct_lit = false
+    saved_restriction :: p.no_struct_lit_at
+    // No struct literal at the condition's own depth, so `if Foo { … }` reads
+    // `Foo` as the condition. A leading `(` is an ordinary parenthesised primary
+    // that keeps the infix chain going, so `if (i + 1) % 4 == 0` and
+    // `if (Point { .x = 1 }).ok` parse as the full expression.
+    p.no_struct_lit_at = p.bracket_depth
     cond :: p.parse_expr(0)
-    p.allow_struct_lit = saved_allow
+    p.no_struct_lit_at = saved_restriction
 
     then_block :: p.parse_block()
     else_branch: IfElse | null = null
@@ -3686,10 +3701,10 @@ parse_if_expr :: fn(p: Parser) -> IfExpr! {
 
 parse_match_expr :: fn(p: Parser, partial: bool, unreachable: bool) -> MatchExpr! {
     start :: p.advance()  // `match`
-    saved_allow :: p.allow_struct_lit
-    p.allow_struct_lit = false
+    saved_restriction :: p.no_struct_lit_at
+    p.no_struct_lit_at = p.bracket_depth
     scrutinee :: p.parse_expr(0)
-    p.allow_struct_lit = saved_allow
+    p.no_struct_lit_at = saved_restriction
     // `match e as x { … }` — name the scrutinee once for every arm. `as` is not an
     // infix operator (it has no binding power), so it can only be consumed here.
     bind_as: AsBinding | null = null
@@ -3737,13 +3752,10 @@ parse_match_arm :: fn(p: Parser) -> MatchArm! {
     }
     guard: Expr | null = null
     if p.match_kind(.KwIf) != null {
-        saved_allow :: p.allow_struct_lit
-        saved_lambda :: p.allow_bare_lambda
-        p.allow_struct_lit = false
-        p.allow_bare_lambda = false
+        saved_restriction :: p.no_bare_lambda_at
+        p.no_bare_lambda_at = p.bracket_depth
         guard = p.parse_expr(0)
-        p.allow_struct_lit = saved_allow
-        p.allow_bare_lambda = saved_lambda
+        p.no_bare_lambda_at = saved_restriction
     }
     p.expect(.Arrow, "`->` between pattern and arm body")
     body :: p.parse_expr(0)
@@ -3963,13 +3975,40 @@ parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader"
 }
 
 @test test_is_generic_type_in_condition :: fn() -> void {
-    // parser-1 : `is Foo<T>` in a condition (allow_struct_lit=false) must parse
+    // parser-1 : `is Foo<T>` in a condition (no struct literal there) must parse
     // as the type it denotes, not a generic call that expects `(` and then
     // chokes on the `{` of the `if` body (was P1002).
     src :: "module \"t\"\n" +
         "Box :: struct<T> { v: T }\n" +
         "f :: fn(x: Box<i32> | i32) -> i32 {\n" +
         "    if x is Box<i32> { return 1 }\n" +
+        "    return 0\n" +
+        "}\n"
+    assert_eq(parse_error_count(src), 0)
+}
+
+@test test_struct_literal_enclosed_in_a_condition :: fn() -> void {
+    // A bracket opened inside a condition ends what it encloses, so the ban on
+    // struct literals holds at the condition's own depth only: a call's argument, a
+    // named one, an index, a sequence literal, an intrinsic's argument, an
+    // interpolation, a scrutinee's argument. A guard has no body brace, and the ban
+    // on bare lambdas holds at its own depth only.
+    src :: "module \"t\"\n" +
+        "P :: struct { x: i32 }\n" +
+        "f :: fn(p: P) -> bool = p.x == 0\n" +
+        "g :: fn(xs: i32[], s: string) -> i32 {\n" +
+        "    if f(P { .x = 0 }) { return 1 }\n" +
+        "    if f(p = P { .x = 0 }) { return 2 }\n" +
+        "    if xs[P { .x = 0 }.x] == 0 { return 3 }\n" +
+        "    for q in [P { .x = 1 }] { return q.x }\n" +
+        "    if @size_of(P { .x = 1 }) == 4 { return 4 }\n" +
+        "    if s == \"" + r"$" + "{P { .x = 1 }.x}\" { return 5 }\n" +
+        "    match f(P { .x = 2 }) {\n" +
+        "        true -> { return 6 }\n" +
+        "        _ if P { .x = 3 }.x == s.byte_len() -> { return 7 }\n" +
+        "        _ if xs.any_match(x -> x > 0) -> { return 8 }\n" +
+        "        _ -> {}\n" +
+        "    }\n" +
         "    return 0\n" +
         "}\n"
     assert_eq(parse_error_count(src), 0)

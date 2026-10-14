@@ -2000,11 +2000,11 @@ mixed_family_parens :: fn(parent: p.BinaryOp, child: p.BinaryOp) -> bool {
 
 // ---- control-flow expressions ----
 
-// Emit a condition / scrutinee / for-iterable. The parser disables struct
-// literals in these positions (`allow_struct_lit = false`), so a `Point { … }`
-// whose `{` would otherwise be read as the block opener must be wrapped in
-// parens — which re-enables struct literals inside (`parse_paren`) and
-// reparses to the same AST (`if (Point { .x = 1 }).ok { … }`).
+// Emit a condition / scrutinee / for-iterable. The parser parses no struct
+// literal at the condition's own bracket depth (`no_struct_lit_at`), so a
+// `Point { … }` whose `{` would otherwise be read as the block opener must be
+// wrapped in parens, inside which literals parse again, and which reparses to
+// the same AST (`if (Point { .x = 1 }).ok { … }`).
 emit_condition :: fn(self: Printer, cond: p.Expr) -> void {
     if expr_head_is_struct_lit(cond) {
         self.write("(")
