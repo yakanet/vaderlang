@@ -422,9 +422,8 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
     // key carries its own.
     dot :: vtable_key.last_index_of('.', 0)
     if dot < 0 { return "" }
-    kb :: vtable_key.bytes()
-    trait_key :: kb[0..<usize(dot)].bytes_to_string()
-    method :: kb[usize(dot) + 1..<kb.len()].bytes_to_string()
+    trait_key :: vtable_key.byte_slice(0, usize(dot))
+    method :: vtable_key.byte_slice(usize(dot) + 1, vtable_key.byte_len())
     return bc.primitive_member_mangle(kind, trait_key_name(trait_key), method)
 }
 

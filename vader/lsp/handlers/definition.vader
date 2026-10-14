@@ -97,7 +97,7 @@ member_by_type :: fn(
     state: ServerState, uri: string, index: DocIndex, line: i32, character: i32,
 ) -> ExternalHit | null {
     name :: index.name_at(line, character)
-    if name.bytes().len() == 0 {
+    if name.byte_len() == 0 {
         return null
     }
     // The DOT TEST COMES FIRST, before anything expensive. `typed_project_for`
@@ -121,7 +121,7 @@ member_by_type :: fn(
         return resolve_in_module(state, uri, alias_path, name, true)
     }
     file_path :: uri_to_path(uri)
-    if file_path.bytes().len() == 0 {
+    if file_path.byte_len() == 0 {
         return null
     }
     // DURING an edit burst this project is deliberately stale: `handle_did_change`
@@ -172,7 +172,7 @@ chosen_member :: fn(
     decl :: if free != null { free } else { chosen_impl_decl(typed, e.id) ?? return null }
     at :: decl.name_span.start
     src :: state.source_for_path(at.file)
-    if src.bytes().len() == 0 {
+    if src.byte_len() == 0 {
         return null
     }
     uri :: path_to_uri(at.file)

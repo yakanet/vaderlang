@@ -67,19 +67,18 @@ strip_comment :: fn(line: string) -> string {
     // quoted string. The `.virt` writer keeps the comment delimiter
     // literal so a `;` inside a quoted payload (e.g. `string 3 "GC;..."`)
     // must not be treated as the start of a comment.
-    lb :: line.bytes()
-    n :: lb.len()
+    n :: line.byte_len()
     in_quote := false
     i: usize = 0
     for i < n {
-        b :: lb[i]
+        b :: line.byte_at(i)
         if b == '\\' && in_quote && i + 1 < n {
             // Skip the escaped byte so `\"` doesn't close the string.
             i += 2
             continue
         }
         if b == '"' { in_quote = !in_quote }
-        else if b == ';' && !in_quote { return lb[0..<i].bytes_to_string().trim() }
+        else if b == ';' && !in_quote { return line.byte_slice(0, i).trim() }
         i += 1
     }
     return line.trim()
@@ -94,8 +93,7 @@ strip_comment :: fn(line: string) -> string {
 /// @return         the next whitespace-delimited token, or the rest of
 ///                 the line if there is no further space.
 first_token_after :: fn(cleaned: string, prefix: string) -> string {
-    cb :: cleaned.bytes()
-    rest :: cb[prefix.bytes().len()..<cb.len()].bytes_to_string().trim()
+    rest :: cleaned.byte_slice(prefix.byte_len(), cleaned.byte_len()).trim()
     return head_of(rest)
 }
 
@@ -118,6 +116,15 @@ before_first :: fn(s: string, c: char) -> string {
     return s.byte_slice(0, usize(at))
 }
 
+// The text of `s` after the first `c`, or nothing when `c` does not occur.
+after_first :: fn(s: string, c: char) -> string {
+    at :: s.index_of(c, 0)
+    if at < 0 {
+        return ""
+    }
+    return s.byte_slice(usize(at) + 1, s.byte_len())
+}
+
 /// Parse a comma-separated list of base-10 i32s — used by both
 /// `parse_union_type` (variant list) and `parse_fn_type` (param-type list).
 /// Malformed entries are skipped silently ; an empty input yields `[]`.
@@ -126,7 +133,7 @@ before_first :: fn(s: string, c: char) -> string {
 /// @return     parsed ids, in order.
 parse_int_list :: fn(csv: string) -> i32[]! {
     ids: i32[]: []
-    if csv.bytes().len() == 0 { return ids }
+    if csv.byte_len() == 0 { return ids }
     parts :: csv.split(",")
     n :: parts.len()
     for i in 0..<n {
@@ -143,7 +150,7 @@ parse_int_list :: fn(csv: string) -> i32[]! {
 /// @param strings  the module-wide string pool, appended to in place.
 /// @return         `null` when a string was appended, else why it could not be.
 parse_string_decl :: fn(cleaned: string, strings: string[]) -> DirectiveError | null {
-    after :: cleaned.byte_slice("string ".byte_len(), cleaned.byte_len())
+    after :: cleaned.trim_prefix("string ")
     first_quote :: after.index_of('"', 0)
     if first_quote < 0 {
         return DirectiveError { .reason = "expected `string <index> \"…\"`, got no quoted text" }
@@ -164,11 +171,10 @@ parse_string_decl :: fn(cleaned: string, strings: string[]) -> DirectiveError | 
 hex_to_bytes :: fn(s: string) -> u8[] {
     out: u8[]: []
     i: usize = 0
-    sb :: s.bytes()
-    len :: sb.len()
+    len :: s.byte_len()
     for i + 1 < len {
-        hi :: u32(hex_digit_value(char(u32(sb[i]))))
-        lo :: u32(hex_digit_value(char(u32(sb[i + 1]))))
+        hi :: u32(hex_digit_value(char(u32(s.byte_at(i)))))
+        lo :: u32(hex_digit_value(char(u32(s.byte_at(i + 1)))))
         out.push(u8((hi << 4) | lo))
         i += 2
     }
@@ -179,16 +185,7 @@ hex_to_bytes :: fn(s: string) -> u8[] {
 // moved to `byte_codec.vader` — shared with exec.vader's memory-op arms.
 // Same module, so the call sites above resolve unchanged.
 /// Index of the last ASCII space in `s`, or `-1` if absent.
-last_index_of_space :: fn(s: string) -> i32 {
-    sb :: s.bytes()
-    n :: i32(sb.len())
-    i: i32 = n - 1
-    for i >= 0 {
-        if sb[usize(i)] == ' ' { return i }
-        i -= 1
-    }
-    return -1
-}
+last_index_of_space :: fn(s: string) -> i32 = i32(s.last_index_of(' ', 0))
 /// Read the mangled name from a `fn N MANGLED (PARAMS) -> RET` header
 /// — the second whitespace-token after the `fn ` prefix. Same tokenizing
 /// shape as `parse_import_decl`'s `parts[2]` lookup, so both header
@@ -197,7 +194,7 @@ last_index_of_space :: fn(s: string) -> i32 {
 /// @param cleaned  the .virt line, already comment-stripped.
 /// @return         the mangled name, or `""` if the header is malformed.
 read_fn_mangled_name :: fn(cleaned: string) -> string {
-    after :: cleaned.byte_slice("fn ".byte_len(), cleaned.byte_len())
+    after :: cleaned.trim_prefix("fn ")
     parts :: after.split(" ")
     if parts.len() < 2 { return "" }
     return parts[1]
@@ -636,7 +633,7 @@ parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> bc.Op | null
 /// @param line  the comment-stripped op line.
 /// @return      `F64Const { value }` on success, `null` on malformed input.
 parse_f64_const :: fn(line: string) -> bc.Op | null {
-    rest :: line.byte_slice("f64.const ".byte_len(), line.byte_len()).trim()
+    rest :: line.trim_prefix("f64.const ").trim()
     // Abstract non-finite words carry no bit column — map each to its canonical
     // IEEE-754 pattern (typed so the >i64 hex constants pin to `u64`).
     pos_inf: u64: 0x7FF0000000000000
@@ -676,7 +673,7 @@ parse_call :: fn(line: string) -> bc.Op | null {
 /// @param line  the .virt line (comment-stripped).
 /// @return      `BoolConst { value }`, or `null` on malformed input.
 parse_bool_const :: fn(line: string) -> bc.Op | null {
-    rest :: line.byte_slice("bool.const ".byte_len(), line.byte_len()).trim()
+    rest :: line.trim_prefix("bool.const ").trim()
     if rest == "true"  { return bc.BoolConst { .value = true  } }
     if rest == "false" { return bc.BoolConst { .value = false } }
     return null
@@ -700,7 +697,7 @@ parse_call_indirect :: fn(line: string) -> bc.Op | null {
 /// @return      `VirtualCall { parameter_count, vtable_key }`, or `null`
 ///              on malformed input.
 parse_virtual_call :: fn(line: string) -> bc.Op | null {
-    rest :: line.byte_slice("virtual.call ".byte_len(), line.byte_len()).trim()
+    rest :: line.trim_prefix("virtual.call ").trim()
     space :: rest.index_of(' ', 0)
     if space < 0 { return null }
     pc_text :: rest.byte_slice(0, usize(space)).trim()
@@ -813,7 +810,7 @@ parse_struct_get :: fn(line: string) -> bc.Op | null {
 /// @return      a `LocalField` op on success, `null` on any parse error
 ///              (missing space, non-integer token, …).
 parse_local_field :: fn(line: string) -> bc.Op | null {
-    rest :: line.byte_slice("local.field ".byte_len(), line.byte_len()).trim()
+    rest :: line.trim_prefix("local.field ").trim()
     s1 :: rest.index_of(' ', 0)
     if s1 < 0 { return null }
     s2 :: rest.index_of(' ', usize(s1) + 1)
@@ -839,7 +836,7 @@ parse_local_field :: fn(line: string) -> bc.Op | null {
 /// @return      a `ReturnLit` op on success, `null` when the inner op
 ///              isn't a recognised const-producing op.
 parse_return_lit :: fn(line: string) -> bc.Op | null {
-    inner_raw :: line.byte_slice("return.lit ".byte_len(), line.byte_len()).trim()
+    inner_raw :: line.trim_prefix("return.lit ").trim()
     inner_head :: head_of(inner_raw)
     inner_op :: parse_op_line(inner_raw, inner_head) ?? return null
     const_inner :: bc.const_op_of(inner_op) ?? return null
@@ -888,7 +885,7 @@ parse_array_slice :: fn(line: string) -> bc.Op | null {
 }
 
 parse_data_const :: fn(line: string) -> bc.Op | null {
-    after :: line.byte_slice("data.const ".byte_len(), line.byte_len())
+    after :: line.trim_prefix("data.const ")
     sp :: after.index_of(' ', 0)
     if sp < 0 { return null }
     pool_text :: after.byte_slice(0, usize(sp))

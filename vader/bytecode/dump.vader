@@ -271,11 +271,10 @@ quote_ident :: fn(s: string) -> string {
 }
 
 is_simple_ident :: fn(s: string) -> bool {
-    sb :: s.bytes()
-    n :: sb.len()
+    n :: s.byte_len()
     if n == 0 { return false }
     for i in 0..<n {
-        match sb[i] {
+        match s.byte_at(i) {
             'A'..='Z' | 'a'..='z' | '0'..='9' | '_' | '$' | '.' -> { continue }
             _ -> { return false }
         }
@@ -290,10 +289,9 @@ is_simple_ident :: fn(s: string) -> bool {
 json_escape :: fn(s: string) -> string {
     sb :: StringBuilder {}
     sb.append_char('"')
-    bytes :: s.bytes()
-    n :: bytes.len()
+    n :: s.byte_len()
     for i in 0..<n {
-        b :: bytes[i]
+        b :: s.byte_at(i)
         if b == '"' { sb.append("\\\"") }
         else if b == '\\' { sb.append("\\\\") }
         else { sb.append_char(char(u32(b))) }
@@ -1075,10 +1073,9 @@ import "std/testing"
 export quote_string :: fn(value: string) -> string {
     out :: StringBuilder {}
     out.append("\"")
-    vb :: value.bytes()
-    n :: vb.len()
+    n :: value.byte_len()
     for i in 0..<n {
-        b :: vb[i]
+        b :: value.byte_at(i)
         if      b == '\\' { out.append("\\\\") }
         else if b == '"'  { out.append("\\\"") }
         else if b == '\n' { out.append("\\n") }
@@ -1088,7 +1085,7 @@ export quote_string :: fn(value: string) -> string {
         else {
             // Copy the raw byte verbatim — `char(u32(b))` would re-encode it
             // as UTF-8 and double-encode any byte >= 0x80.
-            out.append(vb[i..<i + 1].bytes_to_string())
+            out.append(value.byte_slice(i, i + 1))
         }
     }
     out.append("\"")

@@ -52,17 +52,18 @@ string 30 "bad file descriptor"
 string 31 "\n"
 import 0 byte_len std_core$byte_len result_type=6 param_types=4 param_mutable=0 param_by_address= (string) -> usize
 import 1 byte_at std_core$byte_at result_type=5 param_types=4,6 param_mutable=0,0 param_by_address= (string,usize) -> u8
-import 2 bytes_to_string std_core$bytes_to_string result_type=4 param_types=9 param_mutable=0 param_by_address= (ref) -> string
-import 3 bytes std_core$bytes result_type=9 param_types=4 param_mutable=0 param_by_address= (string) -> ref
-import 4 extern getenv std_env$get_env header=<stdlib.h> result_type=13 param_types=4 param_mutable=0 param_by_address= (string) -> any
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,9,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-import 6 extern vader_last_errno system_posix$sys_last_errno result_type=1 () -> i32
-import 7 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=17 param_mutable=0 param_by_address= (pointer) -> i32
-import 8 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=16 param_types=4,4 param_mutable=0,0 param_by_address= (string,string) -> any
-import 9 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=17 param_mutable=0 param_by_address= (pointer) -> i32
-import 10 extern fread system_posix$sys_fread header=<stdio.h> result_type=6 param_types=9,6,6,17 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-import 11 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=6 param_types=9,6,6,17 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-import 12 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=4 param_mutable=0 param_by_address= (string) -> i32
+import 2 byte_slice std_core$byte_slice result_type=4 param_types=4,6,6 param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string
+import 3 bytes_to_string std_core$bytes_to_string result_type=4 param_types=9 param_mutable=0 param_by_address= (ref) -> string
+import 4 bytes std_core$bytes result_type=9 param_types=4 param_mutable=0 param_by_address= (string) -> ref
+import 5 extern getenv std_env$get_env header=<stdlib.h> result_type=13 param_types=4 param_mutable=0 param_by_address= (string) -> any
+import 6 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=1,9,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 7 extern vader_last_errno system_posix$sys_last_errno result_type=1 () -> i32
+import 8 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=17 param_mutable=0 param_by_address= (pointer) -> i32
+import 9 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=16 param_types=4,4 param_mutable=0,0 param_by_address= (string,string) -> any
+import 10 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=17 param_mutable=0 param_by_address= (pointer) -> i32
+import 11 extern fread system_posix$sys_fread header=<stdio.h> result_type=6 param_types=9,6,6,17 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 12 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=6 param_types=9,6,6,17 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 13 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=4 param_mutable=0 param_by_address= (string) -> i32
 impl 7 std_core$ByteAccess
 impl 11 std_core$Error
 export main 0
@@ -228,22 +229,22 @@ end
 
 fn 3 std_core$len (string) -> usize
   local n usize
-  local __for_len_1 usize
-  local __for_i_2 usize
+  local i usize
+  local __for_hi_0 usize
   i64.const 0
   local.set 1   ; n
+  i64.const 0
+  local.set 2   ; i
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
-  local.set 2   ; __for_len_1
-  i64.const 0
-  local.set 3   ; __for_i_2
+  local.set 3   ; __for_hi_0
   loop $L0 void
-    local.get 3   ; __for_i_2
-    local.get 2   ; __for_len_1
+    local.get 2   ; i
+    local.get 3   ; __for_hi_0
     u64.lt
     if $L1 void
       local.get 0   ; arg 0
-      local.get 3   ; __for_i_2
+      local.get 2   ; i
       call.import 1   ; std_core$byte_at
       i32.const 192
       i32.bitand
@@ -255,10 +256,10 @@ fn 3 std_core$len (string) -> usize
         usize.checked_add
         local.set 1   ; n
       end $L2
-      local.get 3   ; __for_i_2
+      local.get 2   ; i
       i64.const 1
       i64.add
-      local.set 3   ; __for_i_2
+      local.set 2   ; i
       br $L0
     end $L1
   end $L0
@@ -376,7 +377,7 @@ end
 
 fn 8 std_io$temp_dir () -> string
   string.const 6   ; "TMPDIR"
-  call.import 4   ; std_env$get_env
+  call.import 5   ; std_env$get_env
   call 13   ; std_io$temp_dir_of
   return
 end
@@ -384,7 +385,7 @@ end
 fn 9 std_io$write_file_string (string,string) -> any
   local $call_2 ref
   local.get 1   ; arg 1
-  call.import 3   ; std_core$bytes
+  call.import 4   ; std_core$bytes
   local.set 2   ; $call_2
   local.get 0   ; arg 0
   local.get 2   ; $call_2
@@ -394,7 +395,7 @@ end
 
 fn 10 std_io$remove_file (string) -> any
   local.get 0   ; arg 0
-  call.import 12   ; system_posix$sys_unlink
+  call.import 13   ; system_posix$sys_unlink
   i32.const 0
   i32.ne
   if $L0 void
@@ -417,7 +418,7 @@ fn 11 std_io$read_file_string (string,usize) -> any
   else
     local.get 2   ; r
     ref.cast 9   ; u8[]
-    call.import 2   ; std_core$bytes_to_string
+    call.import 3   ; std_core$bytes_to_string
     retag 4   ; string
     return
   end $L0
@@ -436,7 +437,7 @@ fn 12 std_io$write (u8,string) -> void
   local n i32
   local $cast_16 usize
   local.get 1   ; arg 1
-  call.import 3   ; std_core$bytes
+  call.import 4   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -509,23 +510,23 @@ fn 13 std_io$temp_dir_of (any) -> string
 end
 
 fn 14 std_io$write_file_bytes (string,ref) -> any
-  local __for_len_1 usize
-  local __for_i_2 usize
+  local i usize
+  local __for_hi_0 usize
   local f pointer
-  local __coalesce_3 any
+  local __coalesce_1 any
   local err ref
+  i64.const 0
+  local.set 2   ; i
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
-  local.set 2   ; __for_len_1
-  i64.const 0
-  local.set 3   ; __for_i_2
+  local.set 3   ; __for_hi_0
   loop $L0 void
-    local.get 3   ; __for_i_2
-    local.get 2   ; __for_len_1
+    local.get 2   ; i
+    local.get 3   ; __for_hi_0
     u64.lt
     if $L1 void
       local.get 0   ; arg 0
-      local.get 3   ; __for_i_2
+      local.get 2   ; i
       call.import 1   ; std_core$byte_at
       i32.const 0
       i32.eq
@@ -536,24 +537,24 @@ fn 14 std_io$write_file_bytes (string,ref) -> any
         struct.new 11   ; std_io$IOError
         return
       end $L2
-      local.get 3   ; __for_i_2
+      local.get 2   ; i
       i64.const 1
       i64.add
-      local.set 3   ; __for_i_2
+      local.set 2   ; i
       br $L0
     end $L1
   end $L0
   local.get 0   ; arg 0
   string.const 11   ; "wb"
-  call.import 8   ; system_posix$sys_fopen
-  local.tee 5   ; __coalesce_3
+  call.import 9   ; system_posix$sys_fopen
+  local.tee 5   ; __coalesce_1
   type_check 0   ; null
   if $L3 void
     string.const 12   ; "open failed"
     call 15   ; std_io$last_io_error
     return
   end $L3
-  local.get 5   ; __coalesce_3
+  local.get 5   ; __coalesce_1
   ref.cast 17   ; pointer
   local.set 4   ; f
   local.get 1   ; arg 1
@@ -563,32 +564,32 @@ fn 14 std_io$write_file_bytes (string,ref) -> any
   if $L4 void
     local.get 1   ; arg 1
     array.len
-    local.set 2   ; __for_len_1
+    local.set 2   ; i
     local.get 1   ; arg 1
     i64.const 1
-    local.get 2   ; __for_len_1
+    local.get 2   ; i
     local.get 4   ; f
-    call.import 11   ; system_posix$sys_fwrite
-    local.set 2   ; __for_len_1
+    call.import 12   ; system_posix$sys_fwrite
+    local.set 2   ; i
     local.get 1   ; arg 1
     array.len
-    local.set 3   ; __for_i_2
-    local.get 2   ; __for_len_1
-    local.get 3   ; __for_i_2
+    local.set 3   ; __for_hi_0
+    local.get 2   ; i
+    local.get 3   ; __for_hi_0
     i64.ne
     if $L5 void
       string.const 13   ; "short write"
       call 15   ; std_io$last_io_error
       local.set 6   ; err
       local.get 4   ; f
-      call.import 9   ; system_posix$sys_fclose
+      call.import 10   ; system_posix$sys_fclose
       drop
       local.get 6   ; err
       return
     end $L5
   end $L4
   local.get 4   ; f
-  call.import 9   ; system_posix$sys_fclose
+  call.import 10   ; system_posix$sys_fclose
   i32.const 0
   i32.ne
   if $L6 void
@@ -605,7 +606,7 @@ fn 15 std_io$last_io_error (string) -> ref
   local kind u8
   local if_res i32
   local reason string
-  call.import 6   ; system_posix$sys_last_errno
+  call.import 7   ; system_posix$sys_last_errno
   local.set 1   ; e
   i32.const 0
   local.set 2   ; kind
@@ -750,7 +751,7 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
   local $len_32 usize
   local.get 0   ; arg 0
   string.const 15   ; "rb"
-  call.import 8   ; system_posix$sys_fopen
+  call.import 9   ; system_posix$sys_fopen
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -776,7 +777,7 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
     i64.const 1
     local.get 6   ; $len_18
     local.get 2   ; f
-    call.import 10   ; system_posix$sys_fread
+    call.import 11   ; system_posix$sys_fread
     local.tee 7   ; n
     i64.const 0
     u64.gt
@@ -796,7 +797,7 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
     u64.gt
     if $L3 void
       local.get 2   ; f
-      call.import 9   ; system_posix$sys_fclose
+      call.import 10   ; system_posix$sys_fclose
       drop
       string.const 17   ; "file too large"
       i32.const 0
@@ -815,7 +816,7 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
       br $L1
     end $L4
     local.get 2   ; f
-    call.import 7   ; system_posix$sys_ferror
+    call.import 8   ; system_posix$sys_ferror
     i32.const 0
     i32.ne
     if $L5 void
@@ -827,7 +828,7 @@ fn 16 std_io$read_file_bytes (string,usize) -> any
       local.set 3   ; __coalesce_0
     end $L5
     local.get 2   ; f
-    call.import 9   ; system_posix$sys_fclose
+    call.import 10   ; system_posix$sys_fclose
     drop
     local.get 3   ; __coalesce_0
     type_check 0   ; null
@@ -850,96 +851,89 @@ fn 17 std_io$write_bytes (u8,ref,usize) -> i32
     i32.const 1
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call.import 5   ; system_posix$sys_write
+    call.import 6   ; system_posix$sys_write
     isize.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 5   ; system_posix$sys_write
+  call.import 6   ; system_posix$sys_write
   isize.to_i32
   return
 end
 
 fn 18 std_io$without_trailing_sep (string) -> string
-  local b ref
   local trailing usize
   local i usize
   local __for_hi_0 usize
   local last usize
-  local $sub_checked_21 usize
+  local $sub_checked_19 usize
+  i64.const 0
+  local.set 1   ; trailing
+  i64.const 0
+  local.set 2   ; i
   local.get 0   ; arg 0
-  call.import 3   ; std_core$bytes
-  local.set 1   ; b
-  i64.const 0
-  local.set 2   ; trailing
-  i64.const 0
-  local.set 3   ; i
-  local.get 1   ; b
-  array.len
-  local.set 4   ; __for_hi_0
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; __for_hi_0
   block $L0 void
     loop $L1 void
-      local.get 3   ; i
-      local.get 4   ; __for_hi_0
+      local.get 2   ; i
+      local.get 3   ; __for_hi_0
       u64.lt
       if $L2 void
-        local.get 1   ; b
-        array.len
+        local.get 0   ; arg 0
+        call.import 0   ; std_core$byte_len
         i64.const 1
         usize.checked_sub
-        local.get 3   ; i
+        local.get 2   ; i
         usize.checked_sub
-        local.tee 5   ; last
+        local.tee 4   ; last
         i64.const 0
         i64.eq
         br_if $L0
-        local.get 1   ; b
-        local.get 5   ; last
-        array.get 9   ; u8[]
-        ref.cast 5   ; u8
+        local.get 0   ; arg 0
+        local.get 4   ; last
+        call.import 1   ; std_core$byte_at
         i32.const 47
         i32.ne
         br_if $L0
-        local.get 5   ; last
+        local.get 4   ; last
         i64.const 1
         usize.checked_sub
-        local.set 6   ; $sub_checked_21
-        local.get 1   ; b
-        local.get 6   ; $sub_checked_21
-        array.get 9   ; u8[]
-        ref.cast 5   ; u8
+        local.set 5   ; $sub_checked_19
+        local.get 0   ; arg 0
+        local.get 5   ; $sub_checked_19
+        call.import 1   ; std_core$byte_at
         i32.const 58
         i32.eq
         br_if $L0
-        local.get 2   ; trailing
+        local.get 1   ; trailing
         i64.const 1
         usize.checked_add
-        local.set 2   ; trailing
-        local.get 3   ; i
+        local.set 1   ; trailing
+        local.get 2   ; i
         i64.const 1
         i64.add
-        local.set 3   ; i
+        local.set 2   ; i
         br $L1
       end $L2
     end $L1
   end $L0
-  local.get 2   ; trailing
+  local.get 1   ; trailing
   i64.const 0
   i64.eq
   if $L3 void
   else
-    local.get 1   ; b
-    array.len
-    local.get 2   ; trailing
+    local.get 0   ; arg 0
+    call.import 0   ; std_core$byte_len
+    local.get 1   ; trailing
     usize.checked_sub
-    local.set 2   ; trailing
-    local.get 1   ; b
+    local.set 1   ; trailing
+    local.get 0   ; arg 0
     i64.const 0
-    local.get 2   ; trailing
-    array.slice 9   ; u8[]
-    call.import 2   ; std_core$bytes_to_string
+    local.get 1   ; trailing
+    call.import 2   ; std_core$byte_slice
     return
   end $L3
   local.get 0   ; arg 0

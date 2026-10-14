@@ -113,7 +113,8 @@ TUPLE_NAME_MAX: usize : 40
 /// key map stays the authority on identity — this only names what it interned.
 fnv1a_hex :: fn(s: string) -> string {
     h: u64 = 0xcbf29ce484222325
-    for b in s.bytes() {
+    for k in 0..<s.byte_len() {
+        b :: s.byte_at(k)
         h = (h ^ u64(b)) *% 0x100000001b3
     }
     out := ""
@@ -132,7 +133,8 @@ fnv1a_hex :: fn(s: string) -> string {
 c_safe_key :: fn(key: string) -> string {
     out := ""
     prev_underscore := false
-    for b in key.bytes() {
+    for i in 0..<key.byte_len() {
+        b :: key.byte_at(i)
         if (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9') {
             out = out + "${char(b)}"
             prev_underscore = false

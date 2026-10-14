@@ -340,7 +340,6 @@ import_path :: fn(line: string) -> string {
     if !t.starts_with("import ") {
         return ""
     }
-    tb :: t.bytes()
     q1 :: t.index_of('"', 0)
     if q1 < 0 {
         return ""
@@ -349,7 +348,7 @@ import_path :: fn(line: string) -> string {
     if q2 < 0 {
         return ""
     }
-    return tb[usize(q1) + 1..<usize(q2)].bytes_to_string()
+    return t.byte_slice(usize(q1) + 1, usize(q2))
 }
 
 // ---- tests ----------------------------------------------------------------

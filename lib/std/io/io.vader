@@ -259,8 +259,7 @@ export read_line :: fn() -> string | IOError {
             }
             return b
         }
-        bytes :: b.bytes()
-        if bytes.len() == 0 || bytes[0] == '\n' {
+        if b.byte_len() == 0 || b.byte_at(0) == '\n' {
             // A CRLF peer: drop the CR that TERMINATED the line, not every CR
             // in it — an interior `\r` is data, and silently eating it corrupts
             // any line-oriented payload that carries one.
@@ -269,7 +268,7 @@ export read_line :: fn() -> string | IOError {
             }
             return out.bytes_to_string()
         }
-        out.push(bytes[0])
+        out.push(b.byte_at(0))
     }
     return IOError { .msg = "line too long" }
 }
@@ -538,7 +537,8 @@ write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
     // A NUL byte truncates the path at the C boundary, so the file would land
     // somewhere the caller never named and every later step would blame the
     // wrong thing. Refused here, where the truncation would happen.
-    for b in path.bytes() {
+    for i in 0..<path.byte_len() {
+        b :: path.byte_at(i)
         if b == 0 {
             return IOError { .msg = "path contains a NUL byte" }
         }
@@ -566,7 +566,8 @@ write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
     // A NUL byte truncates the path at the C boundary, so the file would land
     // somewhere the caller never named and every later step would blame the
     // wrong thing. Refused here, where the truncation would happen.
-    for b in path.bytes() {
+    for i in 0..<path.byte_len() {
+        b :: path.byte_at(i)
         if b == 0 {
             return IOError { .msg = "path contains a NUL byte" }
         }
@@ -620,20 +621,19 @@ mkdir_one :: fn(path: string) -> bool = create_directory(to_wide(path), null) ||
 /// @error       `IOError` when a component cannot be created — a parent that is
 ///              a file, a read-only mount, a path over 4096 bytes.
 export create_dir :: fn(path: string) -> null | IOError {
-    b :: path.bytes()
-    if b.len() == 0 {
+    if path.byte_len() == 0 {
         return IOError { .msg = "empty path" }
     }
-    if b.len() >= 4096 {
+    if path.byte_len() >= 4096 {
         return IOError { .msg = "path too long" }
     }
     // Each prefix in turn. From 1, so a leading `/` is a root and not a
     // component, and repeated separators are skipped.
-    for i in 1..<b.len() {
-        if b[i] != '/' {
+    for i in 1..<path.byte_len() {
+        if path.byte_at(i) != '/' {
             continue
         }
-        if b[i - 1] == '/' {
+        if path.byte_at(i - 1) == '/' {
             continue
         }
         // `C:` is a root, not a component. `CreateDirectoryA("C:")` reports
@@ -642,10 +642,10 @@ export create_dir :: fn(path: string) -> null | IOError {
         // the process works from another drive. A CI runner on `D:\a\...` with
         // a `C:` temp directory is exactly that shape. Not guarded off POSIX,
         // where a directory may legitimately be named `a:`.
-        if VADER_OS == .Windows && i == 2 && b[1] == ':' {
+        if VADER_OS == .Windows && i == 2 && path.byte_at(1) == ':' {
             continue
         }
-        if !mkdir_one(b[0..<i].bytes_to_string()) {
+        if !mkdir_one(path.byte_slice(0, i)) {
             return IOError { .msg = "cannot create parent" }
         }
     }
@@ -776,6 +776,20 @@ read_dir :: fn(path: string) -> string[]! | IOError {
     return out
 }
 
+// What `read_dir` puts between `path` and `*`: nothing after a separator, after a
+// drive's colon, or on the empty path.
+glob_separator :: fn(path: string) -> string {
+    n :: path.byte_len()
+    if n == 0 {
+        return ""
+    }
+    tail :: path.byte_at(n - 1)
+    if tail == '\\' || tail == '/' || tail == ':' {
+        return ""
+    }
+    return "\\"
+}
+
 @target(.Windows)
 read_dir :: fn(path: string) -> string[]! | IOError {
     // `FindFirstFileW` wants a GLOB, not a directory: the separator is added
@@ -788,9 +802,7 @@ read_dir :: fn(path: string) -> string[]! | IOError {
     // this replaces appended nothing to an empty path, so prefixing one would
     // silently start listing `C:\`. A bare `C:` is left alone for the same
     // reason: in Win32 it means "the current directory on C", not `C:\`.
-    pb :: path.bytes()
-    tail :: if pb.len() == 0 { u8(0) } else { pb[pb.len() - 1] }
-    sep :: if pb.len() == 0 || tail == '\\' || tail == '/' || tail == ':' { "" } else { "\\" }
+    sep :: glob_separator(path)
     data: u8[]: [0] * FIND_DATA_BYTES
     h :: find_first_file(to_wide("${path}${sep}*"), data)
     if isize(h) == INVALID_HANDLE {
@@ -981,10 +993,9 @@ from_wide :: fn(w: u16[], units: i32) -> string {
 // `std/path` here drags `std/string` and `std/math` into the closure of every
 // program that touches `std/io`, and the whole borrowing was one character.
 to_slash :: fn(p: string) -> string {
-    b :: p.bytes()
-    out: u8[]: [0] * b.len()
-    for i in 0..<b.len() {
-        out[i] = if b[i] == '\\' { '/' } else { b[i] }
+    out: u8[]: [0] * p.byte_len()
+    for i in 0..<p.byte_len() {
+        out[i] = if p.byte_at(i) == '\\' { '/' } else { p.byte_at(i) }
     }
     return out.bytes_to_string()
 }
@@ -992,15 +1003,14 @@ to_slash :: fn(p: string) -> string {
 // Drop trailing separators so `temp_dir() + "/name"` stays clean. Keeps a lone
 // `/`, which IS the directory rather than a separator after one.
 without_trailing_sep :: fn(p: string) -> string {
-    b :: p.bytes()
     trailing: usize = 0
-    for i in 0..<b.len() {
-        last :: b.len() - 1 - i
-        if last == 0 || b[last] != '/' {
+    for i in 0..<p.byte_len() {
+        last :: p.byte_len() - 1 - i
+        if last == 0 || p.byte_at(last) != '/' {
             break
         }
         // `C:/` IS the drive root; the separator is part of it.
-        if b[last - 1] == ':' {
+        if p.byte_at(last - 1) == ':' {
             break
         }
         trailing += 1
@@ -1008,7 +1018,7 @@ without_trailing_sep :: fn(p: string) -> string {
     if trailing == 0 {
         return p
     }
-    return b[0..<(b.len() - trailing)].bytes_to_string()
+    return p.byte_slice(0, p.byte_len() - trailing)
 }
 
 // ---- tests ----------------------------------------------------------------

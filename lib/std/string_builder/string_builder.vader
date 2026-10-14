@@ -83,13 +83,13 @@ StringBuilder implements Display {
         if n == 1 { return self.parts[0] }
         total: usize = 0
         for p in self.parts {
-            total = total + p.bytes().len()
+            total = total + p.byte_len()
         }
         buf :: total.new_buffer()
         off: usize = 0
         for p in self.parts {
             buf.write_string(off, p)
-            off = off + p.bytes().len()
+            off = off + p.byte_len()
         }
         return buf.intern_string(total)
     }

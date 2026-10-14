@@ -184,7 +184,7 @@ export join :: fn(self: Path, other: string) -> Path {
     if s.is_empty() {
         return Path(other)
     }
-    if s[s.bytes().len() - 1] == SEP {
+    if s.str_ends_with(SEP_STR) {
         return Path(s + other)
     }
     return Path(s + SEP_STR + other)
@@ -209,8 +209,8 @@ export starts_with :: fn(self: Path, prefix: Path) -> bool {
     if !s.str_starts_with(pfx) {
         return false
     }
-    self_len :: s.bytes().len()
-    prefix_len :: pfx.bytes().len()
+    self_len :: s.byte_len()
+    prefix_len :: pfx.byte_len()
     if self_len == prefix_len {
         return true
     }
@@ -232,8 +232,8 @@ export ends_with :: fn(self: Path, suffix: Path) -> bool {
     if !s.str_ends_with(sfx) {
         return false
     }
-    self_len :: s.bytes().len()
-    suffix_len :: sfx.bytes().len()
+    self_len :: s.byte_len()
+    suffix_len :: sfx.byte_len()
     if self_len == suffix_len {
         return true
     }
@@ -266,15 +266,14 @@ export normalize :: fn(self: Path) -> Path {
     abs :: self.is_absolute()
     segments: string[]: []
     count: usize = 0
-    rb :: s.bytes()
-    n :: rb.len()
+    n :: s.byte_len()
     i: usize = if abs { 1 } else { 0 }
     seg_start := i
     for i <= n {
         at_end :: i == n
-        is_sep :: !at_end && s[i] == SEP
+        is_sep :: !at_end && s.matches_at(i, SEP_STR)
         if is_sep || at_end {
-            seg :: rb[seg_start..<i].bytes_to_string()
+            seg :: s.byte_slice(seg_start, i)
             if seg.is_empty() || seg == "." {
                 // skip
             } else if seg == ".." {

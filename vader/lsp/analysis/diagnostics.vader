@@ -117,7 +117,7 @@ lsp_diag_tag :: fn(code_id: string) -> i32 {
 }
 
 format_message :: fn(d: Diagnostic) -> string {
-    if d.detail.bytes().len() == 0 { return d.code.message }
+    if d.detail.byte_len() == 0 { return d.code.message }
     return "${d.code.message}: ${d.detail}"
 }
 

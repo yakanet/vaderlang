@@ -39,7 +39,7 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     // the inferred type, not the source-text binding signature).
     decl :: resolve_decl_at(state, uri, line, character)
     if !(decl is null) {
-        if decl.doc.bytes().len() > 0 { return hover_json(decl, deduced_note(state, uri, decl)) }
+        if decl.doc.byte_len() > 0 { return hover_json(decl, deduced_note(state, uri, decl)) }
     }
 
     // Value-position hovers — a local, an argument, an intermediate
@@ -107,7 +107,7 @@ hover_json :: fn(d: DeclEntry, deduced: string) -> JsonValue {
     if deduced != "" {
         body = body + "\n" + deduced
     }
-    if d.doc.bytes().len() > 0 {
+    if d.doc.byte_len() > 0 {
         body = body + "\n\n" + format_vaderdoc(d.doc)
     }
     return markdown_hover(body)
@@ -138,26 +138,24 @@ markdown_hover :: fn(body: string) -> JsonValue {
 // must sit on its own line ; multi-line @tag continuations are kept
 // verbatim in the body for now.
 format_vaderdoc :: fn(raw: string) -> string {
-    if raw.bytes().len() == 0 { return raw }
+    if raw.byte_len() == 0 { return raw }
     lines :: raw.split("\n")
     body: string[]: []
     tags: string[]: []
     for ln in lines {
         rest :: ln.trim()
-        // One byte view per trimmed line ; the @tag branches slice off it.
-        rb :: rest.bytes()
         if rest.starts_with("@param ") || rest == "@param" {
-            payload :: rb[6..<rb.len()].bytes_to_string().trim()
+            payload :: rest.trim_prefix("@param").trim()
             tags.push("- **param** " + format_param_payload(payload))
             continue
         }
         if rest.starts_with("@return ") || rest == "@return" {
-            payload :: rb[7..<rb.len()].bytes_to_string().trim()
+            payload :: rest.trim_prefix("@return").trim()
             tags.push("- **returns** " + payload)
             continue
         }
         if rest.starts_with("@error ") || rest == "@error" {
-            payload :: rb[6..<rb.len()].bytes_to_string().trim()
+            payload :: rest.trim_prefix("@error").trim()
             tags.push("- **error** " + payload)
             continue
         }
@@ -166,9 +164,9 @@ format_vaderdoc :: fn(raw: string) -> string {
             // lines (often indented backtick-quoted snippets) follow
             // it visually. Insert a blank line before the header so
             // it stands out as its own paragraph.
-            payload :: rb[8..<rb.len()].bytes_to_string().trim()
+            payload :: rest.trim_prefix("@example").trim()
             if body.len() > 0 { body.push("") }
-            if payload.bytes().len() > 0 {
+            if payload.byte_len() > 0 {
                 body.push("**Example** " + payload)
             } else {
                 body.push("**Example**")
@@ -179,7 +177,7 @@ format_vaderdoc :: fn(raw: string) -> string {
     }
     out := body.join("\n")
     if tags.len() > 0 {
-        if out.bytes().len() > 0 { out = out + "\n\n" }
+        if out.byte_len() > 0 { out = out + "\n\n" }
         out = out + tags.join("\n")
     }
     return out
@@ -189,21 +187,20 @@ format_vaderdoc :: fn(raw: string) -> string {
 // the description into running text. Falls back to the bare payload
 // when no whitespace separates name from description.
 format_param_payload :: fn(payload: string) -> string {
-    pb :: payload.bytes()
-    n :: pb.len()
+    n :: payload.byte_len()
     if n == 0 { return payload }
     space: u8: ' '
     tab:   u8: '\t'
     i: usize = 0
     for i < n {
-        b :: pb[i]
+        b :: payload.byte_at(i)
         if b == space || b == tab { break }
         i = i + 1
     }
     if i == 0 || i >= n { return payload }
-    name :: pb[0..<i].bytes_to_string()
-    desc :: pb[i..<n].bytes_to_string().trim()
-    if desc.bytes().len() == 0 { return "`" + name + "`" }
+    name :: payload.byte_slice(0, i)
+    desc :: payload.byte_slice(i, n).trim()
+    if desc.byte_len() == 0 { return "`" + name + "`" }
     return "`" + name + "` — " + desc
 }
 

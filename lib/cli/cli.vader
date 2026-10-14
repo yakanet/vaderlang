@@ -157,12 +157,10 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
         }
 
         long :: a.starts_with("--")
-        ab :: a.bytes()
-        body :: ab[if long { 2 } else { 1 }..<ab.len()].bytes_to_string()
+        body :: a.byte_slice(if long { 2 } else { 1 }, a.byte_len())
         eq :: body.index_of('=', 0)
-        bb :: body.bytes()
-        name :: if eq < 0 { body } else { bb[0..<usize(eq)].bytes_to_string() }
-        inline_value :: if eq < 0 { "" } else { bb[usize(eq) + 1..<bb.len()].bytes_to_string() }
+        name :: if eq < 0 { body } else { body.byte_slice(0, usize(eq)) }
+        inline_value :: if eq < 0 { "" } else { body.byte_slice(usize(eq) + 1, body.byte_len()) }
 
         spec :: find_spec(specs, name, long)
         if spec == null {

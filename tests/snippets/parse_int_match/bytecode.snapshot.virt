@@ -301,7 +301,7 @@ fn 4 std_core$scan_decimal (string) -> any
   bool.const false
   local.set 3   ; negative
   local.get 0   ; arg 0
-  i32.const 0
+  i64.const 0
   call.import 1   ; std_core$byte_at
   i32.const 45
   i32.eq
@@ -312,7 +312,7 @@ fn 4 std_core$scan_decimal (string) -> any
     local.set 2   ; i
   else
     local.get 0   ; arg 0
-    i32.const 0
+    i64.const 0
     call.import 1   ; std_core$byte_at
     i32.const 43
     i32.eq
@@ -1268,7 +1268,7 @@ fn 10 std_core$sd_scan (string) -> ref
   i64.const 0
   local.set 2   ; i
   local.get 0   ; arg 0
-  i32.const 0
+  i64.const 0
   call.import 1   ; std_core$byte_at
   i32.const 45
   i32.eq
@@ -1277,7 +1277,7 @@ fn 10 std_core$sd_scan (string) -> ref
     local.set 3   ; or_res
   else
     local.get 0   ; arg 0
-    i32.const 0
+    i64.const 0
     call.import 1   ; std_core$byte_at
     i32.const 43
     i32.eq
@@ -2496,7 +2496,7 @@ fn 26 std_string$parse_int (string) -> any
   bool.const false
   local.set 3   ; neg
   local.get 0   ; arg 0
-  i32.const 0
+  i64.const 0
   call.import 1   ; std_core$byte_at
   i32.const 45
   i32.eq

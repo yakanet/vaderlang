@@ -41,7 +41,7 @@ export ExternalHit :: struct {
 export resolve :: fn(
     state: ServerState, idx: DocIndex, name: string, allow_member: bool = false,
 ) -> ExternalHit | null {
-    if name.bytes().len() == 0 { return null }
+    if name.byte_len() == 0 { return null }
     roots :: document_roots(state, idx.uri) ?? return null
     // A declaration of the module wins over every import of the file : the
     // per-document index only sees the open file, so search the module's other
@@ -177,7 +177,7 @@ export first_in_files :: fn(
             continue
         }
         src :: state.source_for_path(file)
-        if src.bytes().len() == 0 {
+        if src.byte_len() == 0 {
             continue
         }
         uri :: path_to_uri(file)
@@ -201,7 +201,7 @@ export first_in_files :: fn(
 /// @param uri    the document's URI.
 export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | null {
     path :: uri_to_path(uri)
-    if path.bytes().len() == 0 {
+    if path.byte_len() == 0 {
         return null
     }
     discard: Diagnostic[]: []
@@ -228,7 +228,7 @@ export module_named :: fn(name: string, paths: IncludePath[]) -> DiscoveredModul
 // `path` made absolute against the working directory, the base a relative root
 // is read from.
 absolute_path :: fn(path: string) -> string {
-    if path.starts_with("/") || (path.byte_len() > 1 && path.bytes()[1] == ':') {
+    if path.starts_with("/") || (path.byte_len() > 1 && path.byte_at(1) == ':') {
         return path
     }
     return join_path(current_working_directory(), path)

@@ -52,7 +52,7 @@ string 32 "bad file descriptor"
 string 33 "\n"
 import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 byte_at std_core$byte_at result_type=4 param_types=2,5 param_mutable=0,0 param_by_address= (string,usize) -> u8
-import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 param_mutable=0 param_by_address= (ref) -> string
+import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,5,5 param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string
 import 3 bytes std_core$bytes result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 4 extern getenv std_env$get_env header=<stdlib.h> result_type=12 param_types=2 param_mutable=0 param_by_address= (string) -> any
 import 5 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,7,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
@@ -276,23 +276,23 @@ fn 6 std_io$temp_dir () -> string
 end
 
 fn 7 std_io$write_file_bytes (string,ref) -> any
-  local __for_len_1 usize
-  local __for_i_2 usize
+  local i usize
+  local __for_hi_0 usize
   local f pointer
-  local __coalesce_3 any
+  local __coalesce_1 any
   local err ref
+  i64.const 0
+  local.set 2   ; i
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
-  local.set 2   ; __for_len_1
-  i64.const 0
-  local.set 3   ; __for_i_2
+  local.set 3   ; __for_hi_0
   loop $L0 void
-    local.get 3   ; __for_i_2
-    local.get 2   ; __for_len_1
+    local.get 2   ; i
+    local.get 3   ; __for_hi_0
     u64.lt
     if $L1 void
       local.get 0   ; arg 0
-      local.get 3   ; __for_i_2
+      local.get 2   ; i
       call.import 1   ; std_core$byte_at
       i32.const 0
       i32.eq
@@ -303,24 +303,24 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
         struct.new 10   ; std_io$IOError
         return
       end $L2
-      local.get 3   ; __for_i_2
+      local.get 2   ; i
       i64.const 1
       i64.add
-      local.set 3   ; __for_i_2
+      local.set 2   ; i
       br $L0
     end $L1
   end $L0
   local.get 0   ; arg 0
   string.const 10   ; "wb"
   call.import 8   ; system_posix$sys_fopen
-  local.tee 5   ; __coalesce_3
+  local.tee 5   ; __coalesce_1
   type_check 0   ; null
   if $L3 void
     string.const 11   ; "open failed"
     call 13   ; std_io$last_io_error
     return
   end $L3
-  local.get 5   ; __coalesce_3
+  local.get 5   ; __coalesce_1
   ref.cast 15   ; pointer
   local.set 4   ; f
   local.get 1   ; arg 1
@@ -330,18 +330,18 @@ fn 7 std_io$write_file_bytes (string,ref) -> any
   if $L4 void
     local.get 1   ; arg 1
     array.len
-    local.set 2   ; __for_len_1
+    local.set 2   ; i
     local.get 1   ; arg 1
     i64.const 1
-    local.get 2   ; __for_len_1
+    local.get 2   ; i
     local.get 4   ; f
     call.import 11   ; system_posix$sys_fwrite
-    local.set 2   ; __for_len_1
+    local.set 2   ; i
     local.get 1   ; arg 1
     array.len
-    local.set 3   ; __for_i_2
-    local.get 2   ; __for_len_1
-    local.get 3   ; __for_i_2
+    local.set 3   ; __for_hi_0
+    local.get 2   ; i
+    local.get 3   ; __for_hi_0
     i64.ne
     if $L5 void
       string.const 12   ; "short write"
@@ -735,83 +735,76 @@ fn 14 std_io$write_bytes (u8,ref,usize) -> i32
 end
 
 fn 15 std_io$without_trailing_sep (string) -> string
-  local b ref
   local trailing usize
   local i usize
   local __for_hi_0 usize
   local last usize
-  local $sub_checked_21 usize
+  local $sub_checked_19 usize
+  i64.const 0
+  local.set 1   ; trailing
+  i64.const 0
+  local.set 2   ; i
   local.get 0   ; arg 0
-  call.import 3   ; std_core$bytes
-  local.set 1   ; b
-  i64.const 0
-  local.set 2   ; trailing
-  i64.const 0
-  local.set 3   ; i
-  local.get 1   ; b
-  array.len
-  local.set 4   ; __for_hi_0
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; __for_hi_0
   block $L0 void
     loop $L1 void
-      local.get 3   ; i
-      local.get 4   ; __for_hi_0
+      local.get 2   ; i
+      local.get 3   ; __for_hi_0
       u64.lt
       if $L2 void
-        local.get 1   ; b
-        array.len
+        local.get 0   ; arg 0
+        call.import 0   ; std_core$byte_len
         i64.const 1
         usize.checked_sub
-        local.get 3   ; i
+        local.get 2   ; i
         usize.checked_sub
-        local.tee 5   ; last
+        local.tee 4   ; last
         i64.const 0
         i64.eq
         br_if $L0
-        local.get 1   ; b
-        local.get 5   ; last
-        array.get 7   ; u8[]
-        ref.cast 4   ; u8
+        local.get 0   ; arg 0
+        local.get 4   ; last
+        call.import 1   ; std_core$byte_at
         i32.const 47
         i32.ne
         br_if $L0
-        local.get 5   ; last
+        local.get 4   ; last
         i64.const 1
         usize.checked_sub
-        local.set 6   ; $sub_checked_21
-        local.get 1   ; b
-        local.get 6   ; $sub_checked_21
-        array.get 7   ; u8[]
-        ref.cast 4   ; u8
+        local.set 5   ; $sub_checked_19
+        local.get 0   ; arg 0
+        local.get 5   ; $sub_checked_19
+        call.import 1   ; std_core$byte_at
         i32.const 58
         i32.eq
         br_if $L0
-        local.get 2   ; trailing
+        local.get 1   ; trailing
         i64.const 1
         usize.checked_add
-        local.set 2   ; trailing
-        local.get 3   ; i
+        local.set 1   ; trailing
+        local.get 2   ; i
         i64.const 1
         i64.add
-        local.set 3   ; i
+        local.set 2   ; i
         br $L1
       end $L2
     end $L1
   end $L0
-  local.get 2   ; trailing
+  local.get 1   ; trailing
   i64.const 0
   i64.eq
   if $L3 void
   else
-    local.get 1   ; b
-    array.len
-    local.get 2   ; trailing
+    local.get 0   ; arg 0
+    call.import 0   ; std_core$byte_len
+    local.get 1   ; trailing
     usize.checked_sub
-    local.set 2   ; trailing
-    local.get 1   ; b
+    local.set 1   ; trailing
+    local.get 0   ; arg 0
     i64.const 0
-    local.get 2   ; trailing
-    array.slice 7   ; u8[]
-    call.import 2   ; std_core$bytes_to_string
+    local.get 1   ; trailing
+    call.import 2   ; std_core$byte_slice
     return
   end $L3
   local.get 0   ; arg 0

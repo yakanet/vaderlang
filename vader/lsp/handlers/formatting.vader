@@ -60,7 +60,8 @@ full_doc_edit_json :: fn(src: string, formatted: string) -> JsonValue {
 // is one past the last line, so this value used as `end.line` covers the lot.
 count_lines :: fn(src: string) -> i32 {
     n: i32 = 1
-    for b in src.bytes() {
+    for i in 0..<src.byte_len() {
+        b :: src.byte_at(i)
         if b == '\n' { n = n + 1 }
     }
     return n
@@ -83,7 +84,7 @@ test_format_source_smoke :: fn() -> void {
     // A messy-but-parseable source formats to something non-empty.
     r :: format_source("x::1\n", "t.vader")
     match r {
-        is Formatted    -> { assert(r.output.bytes().len() > 0, "formatted output is empty") }
+        is Formatted    -> { assert(r.output.byte_len() > 0, "formatted output is empty") }
         is ParseFailure -> { assert(false, "simple source should parse") }
     }
 }

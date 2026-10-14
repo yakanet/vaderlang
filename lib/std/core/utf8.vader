@@ -116,7 +116,8 @@ decode_tail :: fn(s: string, b: u8, i: usize) -> char {
 /// @return   the codepoint count.
 export len :: fn(s: string) -> usize {
     n: usize = 0
-    for b in s.bytes() {
+    for i in 0..<s.byte_len() {
+        b :: s.byte_at(i)
         if (b & 0xC0) != 0x80 {
             n += 1
         }

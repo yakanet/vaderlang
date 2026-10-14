@@ -29,12 +29,10 @@ import "std/path"
 export uri_to_path :: fn(uri: string) -> string {
     prefix :: "file://"
     if !uri.starts_with(prefix) { return "" }
-    ub :: uri.bytes()
-    raw :: ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
+    raw :: uri.byte_slice(prefix.byte_len(), uri.byte_len())
     rest :: percent_decode(raw)
     if is_drive_after_slash(rest) {
-        rb :: rest.bytes()
-        return rb[1..<rb.len()].bytes_to_string()
+        return rest.byte_slice(1, rest.byte_len())
     }
     return rest
 }
@@ -43,15 +41,14 @@ export uri_to_path :: fn(uri: string) -> string {
 // after it) passes through literally. Operates on bytes so multi-byte UTF-8
 // escapes reassemble correctly.
 percent_decode :: fn(s: string) -> string {
-    sb :: s.bytes()
-    n :: sb.len()
+    n :: s.byte_len()
     out: u8[]: []
     i: usize = 0
     for i < n {
-        b :: sb[i]
+        b :: s.byte_at(i)
         if b == '%' && i + 2 < n {
-            hi :: hex_val(sb[i + 1])
-            lo :: hex_val(sb[i + 2])
+            hi :: hex_val(s.byte_at(i + 1))
+            lo :: hex_val(s.byte_at(i + 2))
             if hi >= 0 && lo >= 0 {
                 out.push(u8(hi * 16 + lo))
                 i += 3
@@ -85,12 +82,11 @@ export path_to_uri :: fn(path: string) -> string {
 // `/c:/...` — a leading slash, an ASCII letter, then `:` (a Windows drive path
 // that picked up the URL's extra leading slash).
 is_drive_after_slash :: fn(s: string) -> bool {
-    sb :: s.bytes()
-    if sb.len() < 3 { return false }
-    if sb[0] != '/' { return false }
-    c :: sb[1]
+    if s.byte_len() < 3 { return false }
+    if s.byte_at(0) != '/' { return false }
+    c :: s.byte_at(1)
     if !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) { return false }
-    return sb[2] == ':'
+    return s.byte_at(2) == ':'
 }
 
 // ---- tests ----------------------------------------------------------------

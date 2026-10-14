@@ -150,7 +150,8 @@ lambda_return_type :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Type {
 /// A module path as a C-safe identifier fragment (`vader/lower` -> `vader_lower`).
 module_key :: fn(path: string) -> string {
     out := ""
-    for b in path.bytes() {
+    for i in 0..<path.byte_len() {
+        b :: path.byte_at(i)
         if (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9') {
             out = out + "${char(b)}"
         } else {

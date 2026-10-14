@@ -73,10 +73,8 @@ export ends_with :: fn(s: string, suffix: string) -> bool {
 /// regardless of whether the codepoint is encoded in 1, 2, 3, or 4
 /// bytes. The cursor moves in bytes over the string itself.
 export StringChars :: struct {
-    @internal
-    s:      string
-    @internal
-    cursor: usize = 0
+    @internal s:      string
+    @internal cursor: usize = 0
 }
 
 StringChars implements Iterator<char> {
@@ -142,14 +140,12 @@ export compare_ascending :: fn(a: string, b: string) -> bool = a < b
 /// JavaScript's default `String.localeCompare()` ordering for the
 /// ASCII subset (case-folded comparison ; ties broken by code point).
 export compare_ascending_ci :: fn(a: string, b: string) -> bool {
-    ab :: a.bytes()
-    bb :: b.bytes()
-    la :: ab.len()
-    lb :: bb.len()
+    la :: a.byte_len()
+    lb :: b.byte_len()
     n :: min(la, lb)
     for i in 0..<n {
-        ca :: to_lower_byte(ab[i])
-        cb :: to_lower_byte(bb[i])
+        ca :: to_lower_byte(a.byte_at(i))
+        cb :: to_lower_byte(b.byte_at(i))
         if ca < cb { return true }
         if ca > cb { return false }
     }
@@ -405,12 +401,11 @@ ParseError implements Error {
 /// @return    the parsed integer, or `ParseError` on failure.
 /// @error     `ParseError` on empty input, malformed digit, or overflow.
 export parse_int :: fn(s: string) -> i32 | ParseError {
-    bs :: s.bytes()
-    n :: bs.len()
+    n :: s.byte_len()
     if n == 0 { return ParseError { .msg = "parse_int: empty string" } }
     i: usize = 0
     neg := false
-    if bs[0] == '-' {
+    if s.byte_at(0) == '-' {
         neg = true
         i = 1
     }
@@ -418,7 +413,7 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
     // Accumulate in i64 so i32 overflow is detectable before truncation.
     acc: i64 = 0
     for i < n {
-        b :: bs[i]
+        b :: s.byte_at(i)
         if b < '0' || b > '9' {
             return ParseError { .msg = "parse_int: invalid digit" }
         }
@@ -643,7 +638,7 @@ import "std/testing"
     assert_eq(sum, 530)
 
     // Empty string : zero-length view.
-    assert_eq("".bytes().len(), 0)
+    assert_eq("".byte_len(), 0)
 
     // Multi-byte UTF-8 : surface the raw bytes (你 = E4 BD A0).
     cjk :: "你".bytes()

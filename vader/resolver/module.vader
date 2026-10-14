@@ -218,8 +218,7 @@ export join_path :: fn(base: string, seg: string) -> string {
     if base == "" {
         return s
     }
-    baseb :: base.bytes()
-    if baseb[baseb.len() - 1] == '/' {
+    if base.ends_with("/") {
         return "${base}${s}"
     }
     return "${base}/${s}"

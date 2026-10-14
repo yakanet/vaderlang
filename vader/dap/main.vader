@@ -422,8 +422,7 @@ evaluate_result :: fn(value: string) -> JsonValue {
 display_fn_name :: fn(mangled: string) -> string {
     idx :: last_index_of(mangled, '$', 0)
     if idx < 0 { return mangled }
-    b :: mangled.bytes()
-    return b[usize(idx) + 1..<b.len()].bytes_to_string()
+    return mangled.byte_slice(usize(idx) + 1, mangled.byte_len())
 }
 
 // Final path segment (`/a/b/c.vader` → `c.vader`) for the `source.name`.

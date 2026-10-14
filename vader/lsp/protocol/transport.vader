@@ -53,13 +53,12 @@ export read_frame :: fn() -> string | TransportError {
                                 return TransportError { .msg = "expected LF after CR in header" }
                             }
                             line :: line_buf.to_string()
-                            line_bytes :: line.bytes()
-                            if line_bytes.len() == 0 {
+                            if line.byte_len() == 0 {
                                 // Blank line = end of headers.
                                 finished = true
                             } else {
                                 if line.starts_with("Content-Length:") {
-                                    raw :: line_bytes[15..<line_bytes.len()].bytes_to_string()
+                                    raw :: line.trim_prefix("Content-Length:")
                                     trimmed :: raw.trim()
                                     parsed :: trimmed.parse_int()
                                     match parsed {
@@ -108,7 +107,7 @@ export poll_pending :: fn(timeout_ms: i32) -> bool = poll_stdin(timeout_ms)
 /// then the body. Flushes via `print` (which calls `fflush(stdout)`).
 /// @param body  the JSON-encoded message to send.
 export write_frame :: fn(body: string) -> void {
-    n :: body.bytes().len()
+    n :: body.byte_len()
     sb :: StringBuilder {}
     sb.append("Content-Length: ")
     sb.append("${n}")

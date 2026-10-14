@@ -126,10 +126,10 @@ export finish_buffer :: fn(self: Buffer, len: usize) -> string = self.intern_str
 /// @param end    byte offset where the slice stops, excluded.
 @intrinsic export byte_slice :: fn(s: string, start: usize, end: usize) -> string
 
-/// Write `s`'s bytes at `off` ; return `off + s.bytes().len()`.
+/// Write `s`'s bytes at `off` ; return `off + s.byte_len()`.
 export write_string_at :: fn(self: Buffer, off: usize, s: string) -> usize {
     self.write_string(off, s)
-    return off + s.bytes().len()
+    return off + s.byte_len()
 }
 
 /// Write the signed decimal digits of `n` at `off` ; return the offset past them.

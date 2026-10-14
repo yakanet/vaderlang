@@ -127,7 +127,7 @@ export new_state :: fn(library_root: string) -> ServerState! {
         .union_cache             = null,
         .indices                 = MutableMap<string, DocIndex> {},
         .dirty                   = MutableMap<string, bool> {},
-        .include_flags           = if library_root.bytes().len() > 0 { [library_root] } else { [] },
+        .include_flags           = if library_root.byte_len() > 0 { [library_root] } else { [] },
         .definition_link_support = false,
         .position_encoding       = .Utf16,
         .inlay_refresh_support   = false,
@@ -310,7 +310,7 @@ track_virt_document :: fn(self: ServerState, uri: string, text: string) -> void 
 export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
     uri :: get_string(td, "uri")
-    if uri.bytes().len() == 0 { return }
+    if uri.byte_len() == 0 { return }
     text :: get_string(td, "text")
     self.docs[uri] = text
     if is_virt_uri(uri) {
@@ -330,7 +330,7 @@ export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
 export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
     uri :: get_string(td, "uri")
-    if uri.bytes().len() == 0 { return }
+    if uri.byte_len() == 0 { return }
     changes :: get_field(params, "contentChanges")
     match changes {
         is JsonArray -> {
@@ -360,7 +360,7 @@ export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
 export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
     uri :: get_string(td, "uri")
-    if uri.bytes().len() == 0 { return }
+    if uri.byte_len() == 0 { return }
     // Removed rather than blanked. `remove` needs a `MutableMap<K, V>!`, which
     // is why the placeholders were written; `self` is `ServerState!` here, so
     // it is reachable. A blanked entry still answers as a real one.

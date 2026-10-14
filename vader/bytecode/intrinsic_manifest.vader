@@ -79,8 +79,7 @@ export is_unsigned_display :: fn(mangled: string) -> bool {
 // `suffix` are module-level literals). Only the returned kind slice allocates.
 strip_core_member :: fn(mangled: string, suffix: string) -> string | null {
     if !mangled.starts_with(CORE_PREFIX) || !mangled.ends_with(suffix) { return null }
-    b :: mangled.bytes()
-    return b[CORE_PREFIX.bytes().len()..<b.len() - suffix.bytes().len()].bytes_to_string()
+    return mangled.byte_slice(CORE_PREFIX.byte_len(), mangled.byte_len() - suffix.byte_len())
 }
 
 // ---- host intrinsic identity ----------------------------------------------

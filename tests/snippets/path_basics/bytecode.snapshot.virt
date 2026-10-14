@@ -64,9 +64,8 @@ string 48 "."
 import 0 byte_len std_core$byte_len result_type=6 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 byte_at std_core$byte_at result_type=5 param_types=1,6 param_mutable=0,0 param_by_address= (string,usize) -> u8
 import 2 byte_slice std_core$byte_slice result_type=1 param_types=1,6,6 param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string
-import 3 bytes_to_string std_core$bytes_to_string result_type=1 param_types=9 param_mutable=0 param_by_address= (ref) -> string
-import 4 bytes std_core$bytes result_type=9 param_types=1 param_mutable=0 param_by_address= (string) -> ref
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=3,9,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 3 bytes std_core$bytes result_type=9 param_types=1 param_mutable=0 param_by_address= (string) -> ref
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=3,9,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 7 std_core$ByteAccess
 impl 11 std_core$Display
 export main 1
@@ -859,7 +858,7 @@ fn 14 std_io$write (u8,string) -> void
   local n i32
   local $cast_16 usize
   local.get 1   ; arg 1
-  call.import 4   ; std_core$bytes
+  call.import 3   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -913,14 +912,14 @@ fn 15 std_io$write_bytes (u8,ref,usize) -> i32
     i32.const 1
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call.import 5   ; system_posix$sys_write
+    call.import 4   ; system_posix$sys_write
     isize.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 5   ; system_posix$sys_write
+  call.import 4   ; system_posix$sys_write
   isize.to_i32
   return
 end
@@ -1083,7 +1082,6 @@ end
 
 fn 25 std_path$join (string,string) -> string
   local s string
-  local $sub_checked_14 usize
   local.get 1   ; arg 1
   call 32   ; std_string$is_empty
   if $L0 void
@@ -1107,15 +1105,8 @@ fn 25 std_path$join (string,string) -> string
     return
   end $L2
   local.get 2   ; s
-  call.import 0   ; std_core$byte_len
-  i64.const 1
-  usize.checked_sub
-  local.set 3   ; $sub_checked_14
-  local.get 2   ; s
-  local.get 3   ; $sub_checked_14
-  call 11   ; std_core$string$Index$at
-  char.const 47
-  i32.eq
+  string.const 47   ; "/"
+  call 33   ; std_string$ends_with
   if $L3 void
   else
     local.get 2   ; s
@@ -1245,7 +1236,6 @@ fn 28 std_path$normalize (string) -> string
   local abs bool
   local segments ref
   local count usize
-  local rb ref
   local n usize
   local i usize
   local seg_start usize
@@ -1255,9 +1245,10 @@ fn 28 std_path$normalize (string) -> string
   local seg string
   local or_res bool
   local can_pop bool
-  local $sub_checked_43 usize
+  local $sub_checked_39 usize
+  local $len_46 usize
   local $len_50 usize
-  local $len_54 usize
+  local sb ref
   local.get 0   ; arg 0
   local.tee 1   ; s
   call 32   ; std_string$is_empty
@@ -1273,71 +1264,67 @@ fn 28 std_path$normalize (string) -> string
   i64.const 0
   local.set 4   ; count
   local.get 1   ; s
-  call.import 4   ; std_core$bytes
-  local.tee 5   ; rb
-  array.len
-  local.set 6   ; n
+  call.import 0   ; std_core$byte_len
+  local.set 5   ; n
   local.get 2   ; abs
   if $L1 void
     i64.const 1
-    local.set 7   ; i
+    local.set 6   ; i
   else
     i64.const 0
-    local.set 7   ; i
+    local.set 6   ; i
   end $L1
-  local.get 7   ; i
-  local.set 8   ; seg_start
+  local.get 6   ; i
+  local.set 7   ; seg_start
   loop $L2 void
-    local.get 7   ; i
-    local.get 6   ; n
+    local.get 6   ; i
+    local.get 5   ; n
     u64.le
     if $L3 void
-      local.get 7   ; i
-      local.get 6   ; n
+      local.get 6   ; i
+      local.get 5   ; n
       i64.eq
-      local.tee 9   ; at_end
+      local.tee 8   ; at_end
       bool.not
       if $L4 void
         local.get 1   ; s
-        local.get 7   ; i
-        call 11   ; std_core$string$Index$at
-        char.const 47
-        i32.eq
-        local.set 10   ; is_sep
+        local.get 6   ; i
+        string.const 47   ; "/"
+        call 34   ; std_string$matches_at
+        local.set 9   ; is_sep
       else
         bool.const false
-        local.set 10   ; is_sep
+        local.set 9   ; is_sep
       end $L4
-      local.get 10   ; is_sep
+      local.get 9   ; is_sep
       if $L5 void
         bool.const true
-        local.set 11   ; or_res
+        local.set 10   ; or_res
       else
-        local.get 9   ; at_end
-        local.set 11   ; or_res
+        local.get 8   ; at_end
+        local.set 10   ; or_res
       end $L5
-      local.get 11   ; or_res
+      local.get 10   ; or_res
       if $L6 void
-        local.get 5   ; rb
-        local.get 8   ; seg_start
-        local.get 7   ; i
-        array.slice 9   ; u8[]
-        call.import 3   ; std_core$bytes_to_string
-        local.tee 12   ; seg
+        local.get 1   ; s
+        local.get 7   ; seg_start
+        local.get 6   ; i
+        call.import 2   ; std_core$byte_slice
+        local.tee 11   ; seg
         call 32   ; std_string$is_empty
         if $L7 void
           bool.const true
-          local.set 13   ; or_res
+          local.set 12   ; or_res
         else
-          local.get 12   ; seg
+          local.get 11   ; seg
           string.const 48   ; "."
           string.eq
-          local.set 13   ; or_res
+          local.set 12   ; or_res
         end $L7
-        local.get 13   ; or_res
+        local.get 12   ; or_res
         if $L8 void
         else
-          local.get 12   ; seg
+          local.get 11   ; seg
           string.const 38   ; ".."
           string.eq
           if $L9 void
@@ -1348,19 +1335,19 @@ fn 28 std_path$normalize (string) -> string
               local.get 4   ; count
               i64.const 1
               usize.checked_sub
-              local.set 15   ; $sub_checked_43
+              local.set 14   ; $sub_checked_39
               local.get 3   ; segments
-              local.get 15   ; $sub_checked_43
+              local.get 14   ; $sub_checked_39
               array.get 12   ; string[]
               ref.cast 1   ; string
               string.const 38   ; ".."
               string.ne
-              local.set 14   ; can_pop
+              local.set 13   ; can_pop
             else
               bool.const false
-              local.set 14   ; can_pop
+              local.set 13   ; can_pop
             end $L10
-            local.get 14   ; can_pop
+            local.get 13   ; can_pop
             if $L11 void
               local.get 4   ; count
               i64.const 1
@@ -1372,18 +1359,18 @@ fn 28 std_path$normalize (string) -> string
               else
                 local.get 3   ; segments
                 array.len
-                local.set 16   ; $len_50
+                local.set 15   ; $len_46
                 local.get 4   ; count
-                local.get 16   ; $len_50
+                local.get 15   ; $len_46
                 u64.lt
                 if $L13 void
                   local.get 3   ; segments
                   local.get 4   ; count
-                  local.get 12   ; seg
+                  local.get 11   ; seg
                   array.set 12   ; string[]
                 else
                   local.get 3   ; segments
-                  local.get 12   ; seg
+                  local.get 11   ; seg
                   array.push 1   ; string
                 end $L13
                 local.get 4   ; count
@@ -1395,18 +1382,18 @@ fn 28 std_path$normalize (string) -> string
           else
             local.get 3   ; segments
             array.len
-            local.set 17   ; $len_54
+            local.set 16   ; $len_50
             local.get 4   ; count
-            local.get 17   ; $len_54
+            local.get 16   ; $len_50
             u64.lt
             if $L14 void
               local.get 3   ; segments
               local.get 4   ; count
-              local.get 12   ; seg
+              local.get 11   ; seg
               array.set 12   ; string[]
             else
               local.get 3   ; segments
-              local.get 12   ; seg
+              local.get 11   ; seg
               array.push 1   ; string
             end $L14
             local.get 4   ; count
@@ -1415,58 +1402,58 @@ fn 28 std_path$normalize (string) -> string
             local.set 4   ; count
           end $L9
         end $L8
-        local.get 7   ; i
+        local.get 6   ; i
         i64.const 1
         usize.checked_add
-        local.set 8   ; seg_start
+        local.set 7   ; seg_start
       end $L6
-      local.get 7   ; i
+      local.get 6   ; i
       i64.const 1
       usize.checked_add
-      local.set 7   ; i
+      local.set 6   ; i
       br $L2
     end $L3
   end $L2
   array.new 12 0   ; string[]
   struct.new 11   ; std_string_builder$StringBuilder
-  local.set 5   ; rb
+  local.set 17   ; sb
   local.get 2   ; abs
   if $L15 void
-    local.get 5   ; rb
+    local.get 17   ; sb
     string.const 47   ; "/"
     call 37   ; std_string_builder$append
   end $L15
   i64.const 0
-  local.set 6   ; n
+  local.set 5   ; n
   loop $L16 void
-    local.get 6   ; n
+    local.get 5   ; n
     local.get 4   ; count
     u64.lt
     if $L17 void
-      local.get 6   ; n
+      local.get 5   ; n
       i64.const 0
       u64.gt
       if $L18 void
-        local.get 5   ; rb
+        local.get 17   ; sb
         string.const 47   ; "/"
         call 37   ; std_string_builder$append
       end $L18
       local.get 3   ; segments
-      local.get 6   ; n
+      local.get 5   ; n
       array.get 12   ; string[]
       ref.cast 1   ; string
       local.set 1   ; s
-      local.get 5   ; rb
+      local.get 17   ; sb
       local.get 1   ; s
       call 37   ; std_string_builder$append
-      local.get 6   ; n
+      local.get 5   ; n
       i64.const 1
       i64.add
-      local.set 6   ; n
+      local.set 5   ; n
       br $L16
     end $L17
   end $L16
-  local.get 5   ; rb
+  local.get 17   ; sb
   call 38   ; std_string_builder$StringBuilder$Display$to_string
   local.tee 1   ; s
   call 32   ; std_string$is_empty
@@ -1512,7 +1499,7 @@ fn 30 std_string$last_index_of (string,char,isize) -> isize
     if $L1 void
       local.get 0   ; arg 0
       local.get 5   ; i
-      call 34   ; std_string$codepoint_at_byte
+      call 35   ; std_string$codepoint_at_byte
       local.set 8   ; $call_elem_22
       local.set 6   ; cp
       local.get 8   ; $call_elem_22
@@ -1546,7 +1533,7 @@ fn 31 std_string$starts_with (string,string) -> bool
   local.get 0   ; arg 0
   i64.const 0
   local.get 1   ; arg 1
-  call 35   ; std_string$matches_at
+  call 34   ; std_string$matches_at
   return
 end
 
@@ -1585,27 +1572,13 @@ fn 33 std_string$ends_with (string,string) -> bool
     local.get 0   ; arg 0
     local.get 2   ; $call_2
     local.get 1   ; arg 1
-    call 35   ; std_string$matches_at
+    call 34   ; std_string$matches_at
     return
   end $L0
   return.lit bool.const false
 end
 
-fn 34 std_string$codepoint_at_byte (string,usize) -> (char,usize)
-  local c char
-  local $call_4 usize
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 8   ; std_core$char_at_byte
-  local.tee 2   ; c
-  call 36   ; std_string$codepoint_byte_len
-  local.set 3   ; $call_4
-  local.get 2   ; c
-  local.get 3   ; $call_4
-  return
-end
-
-fn 35 std_string$matches_at (string,usize,string) -> bool
+fn 34 std_string$matches_at (string,usize,string) -> bool
   local m usize
   local $call_5 usize
   local $add_checked_14 usize
@@ -1667,6 +1640,20 @@ fn 35 std_string$matches_at (string,usize,string) -> bool
     end $L3
   end $L2
   return.lit bool.const true
+end
+
+fn 35 std_string$codepoint_at_byte (string,usize) -> (char,usize)
+  local c char
+  local $call_4 usize
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  call 8   ; std_core$char_at_byte
+  local.tee 2   ; c
+  call 36   ; std_string$codepoint_byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c
+  local.get 3   ; $call_4
+  return
 end
 
 fn 36 std_string$codepoint_byte_len (char) -> usize

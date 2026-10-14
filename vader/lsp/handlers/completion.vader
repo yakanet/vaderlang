@@ -184,14 +184,13 @@ strip_binding_prefix :: fn(sig: string) -> string {
 /// 1-based column (the receiver ends just before it). Returns `null` when the
 /// cursor isn't completing a member. `line0` / `char0` are 0-based (LSP).
 member_context :: fn(li: LineIndex, line0: i32, char0: i32) -> i32 | null {
-    sb :: li.source.bytes()
     i := li_offset(li, line0, char0)
-    if i > sb.len() { i = sb.len() }
+    if i > li.source.byte_len() { i = li.source.byte_len() }
     for i > 0 {
-        if is_ident_byte(sb[i - 1]) { i = i - 1 } else { break }
+        if is_ident_byte(li.source.byte_at(i - 1)) { i = i - 1 } else { break }
     }
     if i == 0 { return null }
-    if sb[i - 1] != '.' { return null }
+    if li.source.byte_at(i - 1) != '.' { return null }
     dot_off :: i - 1
     ls :: line_start_offset(li.source, dot_off)
     return i32(dot_off - ls) + 1
@@ -342,10 +341,9 @@ is_leading_dot :: fn(li: LineIndex, line0: i32, dot_col: i32) -> bool {
     // is `recv.field` with the value glued to the dot, so a value end (ident /
     // `)` / `]`) right before it means member access. A space / `(` / `=` / `{`
     // / keyword-gap (`return .`) / start-of-input means a leading dot.
-    sb :: li.source.bytes()
     dot_off :: li_offset(li, line0, dot_col - 1)
     if dot_off == 0 { return true }
-    b :: sb[dot_off - 1]
+    b :: li.source.byte_at(dot_off - 1)
     if is_ident_byte(b) { return false }
     if b == ')' || b == ']' { return false }
     return true
@@ -354,14 +352,13 @@ is_leading_dot :: fn(li: LineIndex, line0: i32, dot_col: i32) -> bool {
 // The source byte before the dot at 1-based `dot_col` on `line0`, skipping
 // whitespace ; 0 at the start of input. Shared by the leading-dot classifiers.
 byte_before_dot :: fn(li: LineIndex, line0: i32, dot_col: i32) -> u8 {
-    sb :: li.source.bytes()
     dot_off :: li_offset(li, line0, dot_col - 1)
     if dot_off == 0 { return 0 }
     i := dot_off - 1
     for i > 0 {
-        if sb[i] == ' ' || sb[i] == '\t' { i = i - 1 } else { break }
+        if li.source.byte_at(i) == ' ' || li.source.byte_at(i) == '\t' { i = i - 1 } else { break }
     }
-    return sb[i]
+    return li.source.byte_at(i)
 }
 
 // True when the dot opens a struct-literal field key — the byte before it (after
@@ -693,11 +690,10 @@ ci_kind :: fn(k: DeclKind) -> CompletionItemKind = match k {
 // Imported names carry no resolved kind in the index, so guess from the
 // casing : PascalCase reads as a type (Class icon), otherwise a fn / value.
 import_ci_kind :: fn(name: string) -> CompletionItemKind {
-    nb :: name.bytes()
-    if nb.len() == 0 {
+    if name.byte_len() == 0 {
         return .Function
     }
-    return match nb[0] {
+    return match name.byte_at(0) {
         'A'..='Z' -> .Class
         _         -> .Function
     }
@@ -707,7 +703,7 @@ completion_item :: fn(label: string, kind: CompletionItemKind, detail: string) -
     obj :: MutableMap<string, JsonValue> {}
     obj["label"] = JsonString { .value = label }
     obj["kind"]  = JsonNumber { .value = f64(i32(kind)) }
-    if detail.bytes().len() > 0 {
+    if detail.byte_len() > 0 {
         obj["detail"] = JsonString { .value = detail }
     }
     return JsonObject { .entries = obj }

@@ -201,18 +201,17 @@ LeadingNumber :: struct {
 }
 
 read_leading_number :: fn(raw: string) -> LeadingNumber {
-    bs :: raw.bytes()
     value: i64 = 0
     n: usize = 0
-    for n < bs.len() {
-        b :: bs[n]
+    for n < raw.byte_len() {
+        b :: raw.byte_at(n)
         if b < '0' || b > '9' {
             break
         }
         value = value * 10 + i64(b - '0')
         n += 1
     }
-    return LeadingNumber { .value = value, .digits = n, .whole = n > 0 && n == bs.len() }
+    return LeadingNumber { .value = value, .digits = n, .whole = n > 0 && n == raw.byte_len() }
 }
 
 // ---- tests ----------------------------------------------------------------

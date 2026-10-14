@@ -77,10 +77,9 @@ export mangle_type_arg :: fn(t: Type) -> string = sanitise_ident(display_type_ke
 /// @return     the sanitised form, safe to splice into a mangled name.
 export sanitise_ident :: fn(raw: string) -> string {
     sb :: StringBuilder {}
-    rb :: raw.bytes()
-    n :: rb.len()
+    n :: raw.byte_len()
     for i in 0..<n {
-        b :: rb[i]
+        b :: raw.byte_at(i)
         if is_ident_byte(b) {
             sb.append_char(char(u32(b)))
         } else {

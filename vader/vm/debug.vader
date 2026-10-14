@@ -110,10 +110,9 @@ export line_has_breakpoint :: fn(controller: DebugController, file: string, line
 /// @param name  the `BcLocal.name`.
 /// @return      `true` iff `name` is a real source identifier.
 export is_source_local :: fn(name: string) -> bool {
-    b :: name.bytes()
-    if b.len() == 0 { return false }
-    if b[0] == '$' { return false }
-    if b.len() >= 2 && b[0] == '_' && b[1] == '_' { return false }
+    if name.byte_len() == 0 { return false }
+    if name.byte_at(0) == '$' { return false }
+    if name.byte_len() >= 2 && name.byte_at(0) == '_' && name.byte_at(1) == '_' { return false }
     if name == "if_res" { return false }
     return true
 }

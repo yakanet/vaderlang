@@ -276,26 +276,25 @@ HintAnchor :: struct {
 operator_hint_anchor :: fn(
     li: LineIndex, content: string, name_span: Span, value_span: Span,
 ) -> HintAnchor {
-    bytes :: content.bytes()
     limit :: value_span.start.offset
     line: i32 = name_span.end.line - 1
-    if limit <= bytes.len() {
+    if limit <= content.byte_len() {
         for off in name_span.end.offset..<limit {
-            byte :: bytes[off]
+            byte :: content.byte_at(off)
             if byte == '\n' {
                 line += 1
                 continue
             }
             if byte == '\r' {
                 // CRLF advances on its LF ; a lone CR opens a line on its own.
-                if off + 1 >= limit || bytes[off + 1] != '\n' {
+                if off + 1 >= limit || content.byte_at(off + 1) != '\n' {
                     line += 1
                 }
                 continue
             }
             // `::` or `:=` — the hint inserts before the operator's SECOND char.
             if byte == ':' && off + 1 < limit {
-                next :: bytes[off + 1]
+                next :: content.byte_at(off + 1)
                 if next == ':' || next == '=' {
                     return HintAnchor {
                         .line = line, .character = li_character(li, line, off + 1),

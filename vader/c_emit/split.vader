@@ -382,7 +382,8 @@ unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
         // `open()` truncates at the first NUL. The file then reaches the linker
         // with no `.c`, and the failure is reported three steps away as
         // `ld: unknown file type`. Fail HERE, where the name is still readable.
-        for b in stem.bytes() {
+        for i in 0..<stem.byte_len() {
+            b :: stem.byte_at(i)
             if !is_ident_byte(b) {
                 todo("split: unit name for `${fns[usize(buckets[k][0])].name}` is not an identifier — the mangled name is corrupt")
             }

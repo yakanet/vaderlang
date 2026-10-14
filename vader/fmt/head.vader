@@ -139,29 +139,27 @@ const_head :: fn(h: Printer, d: p.ConstDecl) -> string {
 // value (a lambda body) still breaks lines in flat mode, hence the first line.
 // The cut backs off to a UTF-8 lead byte, so it never splits a character.
 cut_head :: fn(text: string, limit: usize) -> string {
-    bytes :: text.bytes()
     end := first_line_len(text)
-    if end == bytes.len() && end <= limit {
+    if end == text.byte_len() && end <= limit {
         return text
     }
     if end > limit {
         end = limit
-        for end > 0 && (bytes[end] & 0xC0) == 0x80 {
+        for end > 0 && (text.byte_at(end) & 0xC0) == 0x80 {
             end -= 1
         }
     }
-    return bytes[0..<end].bytes_to_string().trim() + " …"
+    return text.byte_slice(0, end).trim() + " …"
 }
 
 // Byte length of `text`'s first line — all of it when it holds no newline.
 first_line_len :: fn(text: string) -> usize {
-    bytes :: text.bytes()
-    for i in 0..<bytes.len() {
-        if bytes[i] == '\n' {
+    for i in 0..<text.byte_len() {
+        if text.byte_at(i) == '\n' {
             return i
         }
     }
-    return bytes.len()
+    return text.byte_len()
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -215,5 +213,5 @@ test_head_long_value_is_cut :: fn() -> void {
     table.append("1000]")
     head :: head_of(table.to_string())
     assert(head.ends_with(" …"), "a long table value is cut")
-    assert(head.bytes().len() <= HEAD_VALUE_MAX + 4, "the cut keeps the limit")
+    assert(head.byte_len() <= HEAD_VALUE_MAX + 4, "the cut keeps the limit")
 }

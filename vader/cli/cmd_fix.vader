@@ -92,17 +92,16 @@ MarkerEdit :: struct {
 // `source` with the `!` at each of `offsets` removed. An offset that does not hold a
 // `!` — a file edited since the check — is left alone.
 without_markers :: fn(source: string, offsets: usize[]) -> MarkerEdit {
-    bytes :: source.bytes()
     drop :: MutableSet<usize> {}
     for offset in offsets {
-        if offset < bytes.len() && bytes[offset] == '!' {
+        if offset < source.byte_len() && source.byte_at(offset) == '!' {
             _ :: drop.add(offset)
         }
     }
     out: u8[]: []
-    for i in 0..<bytes.len() {
+    for i in 0..<source.byte_len() {
         if !(i in drop) {
-            out.push(bytes[i])
+            out.push(source.byte_at(i))
         }
     }
     return MarkerEdit { .text = bytes_to_string(out), .removed = i32(drop.len()) }

@@ -192,7 +192,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         line :: lines[line_index]
         line_index += 1
         cleaned :: strip_comment(line)
-        if cleaned.bytes().len() == 0 { continue }
+        if cleaned.byte_len() == 0 { continue }
         head :: head_of(cleaned)
         here :: line_index - 1
 
@@ -369,8 +369,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
 // ---- module-level directive parsers ---------------------------------------
 
 parse_module_name :: fn(cleaned: string) -> string {
-    cb :: cleaned.bytes()
-    return cb["module ".bytes().len()..<cb.len()].bytes_to_string().trim()
+    return cleaned.trim_prefix("module ").trim()
 }
 
 /// Parse `type N <decl>` into the matching `BcType`, appended in ordinal order —
@@ -388,17 +387,14 @@ parse_module_name :: fn(cleaned: string) -> string {
 /// @param types    the type table, appended to in ordinal order.
 /// @return         `null` when a type was appended, else why it could not be.
 parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> DirectiveError | null {
-    cb :: cleaned.bytes()
-    after_type :: cb["type ".bytes().len()..<cb.len()].bytes_to_string().trim()
+    after_type :: cleaned.trim_prefix("type ").trim()
     first_space :: after_type.index_of(' ', 0)
     if first_space < 0 {
         return DirectiveError {
             .reason = "expected `type <index> <kind> …`, got no kind after the index",
         }
     }
-    atb :: after_type.bytes()
-    rest :: atb[usize(first_space) + 1..<atb.len()].bytes_to_string().trim()
-    rb :: rest.bytes()
+    rest :: after_type.byte_slice(usize(first_space) + 1, after_type.byte_len()).trim()
 
     if rest.starts_with("struct ") {
         parsed :: parse_struct_type_bc(rest)
@@ -416,12 +412,12 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> DirectiveError 
         return null
     }
     if rest.starts_with("primitive ") {
-        kind :: rb["primitive ".bytes().len()..<rb.len()].bytes_to_string().trim()
+        kind :: rest.trim_prefix("primitive ").trim()
         types.push(bc.BcPrimitive { .val = vt_or_void(kind) })
         return null
     }
     if rest.starts_with("array ") {
-        element_text :: rb["array ".bytes().len()..<rb.len()].bytes_to_string().trim()
+        element_text :: rest.trim_prefix("array ").trim()
         parsed :: parse_int_in_base(element_text, 10)
         if parsed is ParseError {
             return DirectiveError {
@@ -432,7 +428,7 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> DirectiveError 
         return null
     }
     if rest.starts_with("ref ") {
-        name :: unquote_name(rb["ref ".bytes().len()..<rb.len()].bytes_to_string().trim())
+        name :: unquote_name(rest.trim_prefix("ref ").trim())
         normalised :: if name == "_" { "" } else { name }
         types.push(bc.BcRef { .trait_name = normalised })
         return null
@@ -450,12 +446,8 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> DirectiveError 
 /// @param s  the text between `struct ` and `{`.
 /// @return   the offset of the space starting ` as "`, or -1 when absent.
 find_mirror_marker :: fn(s: string) -> isize {
-    bs :: s.bytes()
-    if bs.len() < 5 {
-        return -1
-    }
-    for i in 0..<bs.len() - 4 {
-        if bs[i] == ' ' && bs[i + 1] == 'a' && bs[i + 2] == 's' && bs[i + 3] == ' ' && bs[i + 4] == '"' {
+    for i in 0..<s.byte_len() {
+        if s.matches_at(i, " as \"") {
             return isize(i)
         }
     }
@@ -512,9 +504,8 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
                         .reason = "struct `${name}`: field `${pt}` has no `name:type` separator",
                     }
                 }
-                ptb :: pt.bytes()
-                fname :: ptb[0..<usize(colon)].bytes_to_string().trim()
-                tidtext :: ptb[usize(colon) + 1..<ptb.len()].bytes_to_string().trim()
+                fname :: pt.byte_slice(0, usize(colon)).trim()
+                tidtext :: pt.byte_slice(usize(colon) + 1, pt.byte_len()).trim()
                 tid :: parse_int_in_base(tidtext, 10)
                 if tid is ParseError {
                     detail :: "field `${fname}` type index \"${tidtext}\" is not a number"
@@ -530,18 +521,17 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
 /// Parse `fn (tid,tid) -> tid` (a fn-VALUE type — its slots are type indices,
 /// not ValType names) into a `BcFn`.
 parse_fn_type_bc :: fn(rest: string) -> bc.BcFn {
-    rb :: rest.bytes()
     open :: rest.index_of('(', 0)
     close :: rest.index_of(')', 0)
     params: i32[]: if open >= 0 && close >= 0 && close > open + 1 {
-        parse_int_list(rb[usize(open) + 1..<usize(close)].bytes_to_string().trim())
+        parse_int_list(rest.byte_slice(usize(open) + 1, usize(close)).trim())
     } else {
         []
     }
     return_type := 0
     arrow :: rest.index_of('>', 0)
     if arrow >= 0 {
-        ret_text :: rb[usize(arrow) + 1..<rb.len()].bytes_to_string().trim()
+        ret_text :: rest.byte_slice(usize(arrow) + 1, rest.byte_len()).trim()
         parsed :: parse_int_in_base(ret_text, 10)
         if !(parsed is ParseError) { return_type = i32(parsed) }
     }
@@ -549,8 +539,7 @@ parse_fn_type_bc :: fn(rest: string) -> bc.BcFn {
 }
 
 parse_union_type_bc :: fn(rest: string) -> bc.BcUnion {
-    rb :: rest.bytes()
-    after :: rb["union ".bytes().len()..<rb.len()].bytes_to_string().trim()
+    after :: rest.trim_prefix("union ").trim()
     return bc.BcUnion { .variants = parse_int_list(after) }
 }
 
@@ -690,54 +679,49 @@ parse_import_decl_bc :: fn(
 }
 
 parse_impl_decl_bc :: fn(cleaned: string, impl_table: bc.ImplEntry[]) -> DirectiveError | null {
-    cb :: cleaned.bytes()
-    after :: cb["impl ".bytes().len()..<cb.len()].bytes_to_string().trim()
+    after :: cleaned.trim_prefix("impl ").trim()
     space :: after.index_of(' ', 0)
     if space < 0 {
         return DirectiveError { .reason = "expected `impl <type-index> <trait>`, got `${after}`" }
     }
-    ab :: after.bytes()
-    type_id_text :: ab[0..<usize(space)].bytes_to_string().trim()
+    type_id_text :: after.byte_slice(0, usize(space)).trim()
     parsed :: parse_int_in_base(type_id_text, 10)
     if parsed is ParseError {
         return DirectiveError { .reason = "impl: type index \"${type_id_text}\" is not a number" }
     }
-    trait_name :: ab[usize(space) + 1..<ab.len()].bytes_to_string().trim()
+    trait_name :: after.byte_slice(usize(space) + 1, after.byte_len()).trim()
     impl_table.push(bc.ImplEntry { .struct_type_index = i32(parsed), .trait_name = trait_name })
     return null
 }
 
 parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]) -> DirectiveError | null {
-    cb :: cleaned.bytes()
-    after :: cb["vtable ".bytes().len()..<cb.len()].bytes_to_string().trim()
+    after :: cleaned.trim_prefix("vtable ").trim()
     last_space :: last_index_of_space(after)
     if last_space < 0 {
         return DirectiveError {
             .reason = "expected `vtable <key> <type-index> <fn-index>`, got `${after}`",
         }
     }
-    ab :: after.bytes()
-    fn_text :: ab[usize(last_space) + 1..<ab.len()].bytes_to_string().trim()
+    fn_text :: after.byte_slice(usize(last_space) + 1, after.byte_len()).trim()
     fn_parsed :: parse_int_in_base(fn_text, 10)
     if fn_parsed is ParseError {
         return DirectiveError { .reason = "vtable: fn index \"${fn_text}\" is not a number" }
     }
-    head :: ab[0..<usize(last_space)].bytes_to_string().trim()
+    head :: after.byte_slice(0, usize(last_space)).trim()
     second_space :: last_index_of_space(head)
     if second_space < 0 {
         return DirectiveError {
             .reason = "vtable: expected a key and a type index before the fn index, got `${head}`",
         }
     }
-    hb :: head.bytes()
-    type_text :: hb[usize(second_space) + 1..<hb.len()].bytes_to_string().trim()
+    type_text :: head.byte_slice(usize(second_space) + 1, head.byte_len()).trim()
     type_parsed :: parse_int_in_base(type_text, 10)
     if type_parsed is ParseError {
         return DirectiveError {
             .reason = "vtable: receiver type index \"${type_text}\" is not a number",
         }
     }
-    key :: hb[0..<usize(second_space)].bytes_to_string().trim()
+    key :: head.byte_slice(0, usize(second_space)).trim()
     register_vtable_row(vtables, key, bc.VtableEntry {
         .receiver_type_index = i32(type_parsed),
         .fn_index            = i32(fn_parsed),
@@ -756,8 +740,7 @@ register_vtable_row :: fn(vtables: bc.VtableRow[], key: string, entry: bc.Vtable
 /// Parse `export NAME N`. Returns the fn index when `NAME == "main"` (the
 /// entry directive), otherwise records a `BcExport` row and returns `-1`.
 parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]) -> i32 {
-    cb :: cleaned.bytes()
-    after :: cb["export ".bytes().len()..<cb.len()].bytes_to_string().trim()
+    after :: cleaned.trim_prefix("export ").trim()
     parts :: after.split(" ")
     if parts.len() < 2 { return -1 }
     parsed :: parse_int_in_base(parts[1], 10)
@@ -775,27 +758,21 @@ parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]) -> i32 {
 parse_data_decl_bc :: fn(
     cleaned: string, data_pool: bc.BcDataEntry[], strings: string[],
 ) -> DirectiveError | null {
-    cb :: cleaned.bytes()
-    after :: cb["data ".bytes().len()..<cb.len()].bytes_to_string()
+    after :: cleaned.trim_prefix("data ")
     sp1 :: after.index_of(' ', 0)
     if sp1 < 0 {
         return DirectiveError {
             .reason = "expected `data <index> [mut] <kind> <payload>`, got `${after}`",
         }
     }
-    ab :: after.bytes()
-    kind_payload :: ab[usize(sp1) + 1..<ab.len()].bytes_to_string()
-    kind_payload_bytes :: kind_payload.bytes()
-    sp2 :: kind_payload.index_of(' ', 0)
-    kind_name :: if sp2 < 0 { kind_payload } else { kind_payload_bytes[0..<usize(sp2)].bytes_to_string() }
-    payload :: if sp2 < 0 { "" } else { kind_payload_bytes[usize(sp2) + 1..<kind_payload_bytes.len()].bytes_to_string() }
+    kind_payload :: after.byte_slice(usize(sp1) + 1, after.byte_len())
+    kind_name :: before_first(kind_payload, ' ')
+    payload :: after_first(kind_payload, ' ')
     // `mut` before the kind marks a writable global (see `dump::storage_class`).
     // Re-split once past it so the rest reads exactly as the read-only form.
     if kind_name == "mut" {
-        pb :: payload.bytes()
-        sp3 :: payload.index_of(' ', 0)
-        inner_kind :: if sp3 < 0 { payload } else { pb[0..<usize(sp3)].bytes_to_string() }
-        inner_payload :: if sp3 < 0 { "" } else { pb[usize(sp3) + 1..<pb.len()].bytes_to_string() }
+        inner_kind :: before_first(payload, ' ')
+        inner_payload :: after_first(payload, ' ')
         return parse_data_entry_body(inner_kind, inner_payload, true, data_pool, strings)
     }
     return parse_data_entry_body(kind_name, payload, false, data_pool, strings)
@@ -819,18 +796,17 @@ parse_data_entry_body :: fn(
     }
     // Every other kind carries a `hex"…"` blob. A malformed one used to be
     // dropped, which removed a whole pool entry and renumbered every later index.
-    rb :: payload.bytes()
-    if rb.len() < 5 || rb[0] != 'h' || rb[1] != 'e' || rb[2] != 'x' || rb[3] != '"' {
+    if payload.byte_len() < 5 || !payload.starts_with("hex\"") {
         return DirectiveError {
             .reason = "data `${kind_name}`: expected a `hex\"…\"` payload, got `${payload}`",
         }
     }
-    if rb[rb.len() - 1] != '"' {
+    if !payload.ends_with("\"") {
         return DirectiveError {
             .reason = "data `${kind_name}`: hex payload is not closed by a quote",
         }
     }
-    hex_body :: rb[4..<rb.len() - 1].bytes_to_string()
+    hex_body :: payload.byte_slice(4, payload.byte_len() - 1)
     kind :: bc.array_kind_from_name(kind_name)
     esz :: usize(bc.array_kind_element_size(kind))
     items: u64[] = []
@@ -848,25 +824,24 @@ parse_data_entry_body :: fn(
 /// quote round-trips. Whitespace between tokens is skipped.
 parse_quoted_strings :: fn(s: string) -> string[] {
     out: string[]: []
-    sb :: s.bytes()
-    n :: sb.len()
+    n :: s.byte_len()
     i: usize = 0
     for i < n {
-        if sb[i] != '"' {
+        if s.byte_at(i) != '"' {
             i += 1
             continue
         }
         i += 1
         start :: i
         for i < n {
-            if sb[i] == '\\' {
+            if s.byte_at(i) == '\\' {
                 i += 2
                 continue
             }
-            if sb[i] == '"' { break }
+            if s.byte_at(i) == '"' { break }
             i += 1
         }
-        body :: sb[start..<i].bytes_to_string()
+        body :: s.byte_slice(start, i)
         out.push(decode_escapes(body))
         i += 1
     }
@@ -963,34 +938,33 @@ token_to_int :: fn(s: string) -> i32 {
 // Quoted-aware whitespace tokeniser : a `"…"` run (escape-decoded) is one token.
 tokenize_agg :: fn(s: string) -> string[] {
     out: string[]: []
-    sb :: s.bytes()
-    n :: sb.len()
+    n :: s.byte_len()
     i: usize = 0
     for i < n {
-        if sb[i] == ' ' {
+        if s.byte_at(i) == ' ' {
             i += 1
             continue
         }
-        if sb[i] == '"' {
+        if s.byte_at(i) == '"' {
             i += 1
             start :: i
             for i < n {
-                if sb[i] == '\\' {
+                if s.byte_at(i) == '\\' {
                     i += 2
                     continue
                 }
-                if sb[i] == '"' { break }
+                if s.byte_at(i) == '"' { break }
                 i += 1
             }
-            out.push(decode_escapes(sb[start..<i].bytes_to_string()))
+            out.push(decode_escapes(s.byte_slice(start, i)))
             i += 1
         } else {
             start :: i
             for i < n {
-                if sb[i] == ' ' { break }
+                if s.byte_at(i) == ' ' { break }
                 i += 1
             }
-            out.push(sb[start..<i].bytes_to_string())
+            out.push(s.byte_slice(start, i))
         }
     }
     return out
@@ -1004,13 +978,12 @@ tokenize_agg :: fn(s: string) -> string[] {
 /// (BcType indices) are reconstructed via `primitive_index_for` — exact for
 /// primitive slots, `0` for ref/any (which `c_emit` doesn't tag).
 parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature! {
-    lb :: line.bytes()
     open :: line.index_of('(', 0)
     close :: line.index_of(')', 0)
     params: bc.ValType[]: []
     param_types: i32[]: []
     if open >= 0 && close >= 0 && close > open + 1 {
-        inner :: lb[usize(open) + 1..<usize(close)].bytes_to_string()
+        inner :: line.byte_slice(usize(open) + 1, usize(close))
         for p in inner.split(",") {
             v :: vt_or_void(p.trim())
             params.push(v)
@@ -1022,7 +995,7 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature! {
     results: bc.ValType[]: []
     result_types: i32[]: []
     if arrow >= 0 {
-        rtext :: lb[usize(arrow) + 1..<lb.len()].bytes_to_string().trim()
+        rtext :: line.byte_slice(usize(arrow) + 1, line.byte_len()).trim()
         // `-> i32` is one result and `-> (i32,i32)` several — the same split the
         // writer makes, so a single-value signature round-trips through the
         // format it has always used.
@@ -1053,13 +1026,11 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature! {
 }
 
 parse_local_decl_bc :: fn(cleaned: string) -> bc.BcLocal {
-    cb :: cleaned.bytes()
-    after :: cb["local ".bytes().len()..<cb.len()].bytes_to_string().trim()
+    after :: cleaned.trim_prefix("local ").trim()
     sp :: after.index_of(' ', 0)
     if sp < 0 { return bc.BcLocal { .name = after, .val = .Void } }
-    ab :: after.bytes()
-    nm :: ab[0..<usize(sp)].bytes_to_string()
-    vtn :: ab[usize(sp) + 1..<ab.len()].bytes_to_string().trim()
+    nm :: after.byte_slice(0, usize(sp))
+    vtn :: after.byte_slice(usize(sp) + 1, after.byte_len()).trim()
     return bc.BcLocal { .name = nm, .val = vt_or_void(vtn) }
 }
 
@@ -1084,10 +1055,9 @@ primitive_index_for :: fn(types: bc.BcType[], val: bc.ValType) -> i32 {
 /// escape set matches dump's `json_escape` — `\"` / `\\` — which
 /// `decode_escapes` understands). A bare name passes through unchanged.
 unquote_name :: fn(s: string) -> string {
-    sb :: s.bytes()
-    n :: sb.len()
-    if n >= 2 && sb[0] == '"' && sb[n - 1] == '"' {
-        return decode_escapes(sb[1..<n - 1].bytes_to_string())
+    n :: s.byte_len()
+    if n >= 2 && s.byte_at(0) == '"' && s.byte_at(n - 1) == '"' {
+        return decode_escapes(s.byte_slice(1, n - 1))
     }
     return s
 }

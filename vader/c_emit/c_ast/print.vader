@@ -99,7 +99,7 @@ write_top_level :: fn(out: StringBuilder, item: CTopLevel) -> void {
             qualifier :: if item.constant { "const " } else { "" }
             head :: "${storage_keyword(item.storage)}${qualifier}${item.type} "
             out.append(head)
-            write_declarator(out, item.declarator, head.bytes().len(), 0)
+            write_declarator(out, item.declarator, head.byte_len(), 0)
             out.append(";\n")
         }
         is CPrototype              -> {
@@ -577,7 +577,7 @@ write_assign :: fn(out: StringBuilder, node: CAssign) -> void {
 write_declaration :: fn(out: StringBuilder, node: CDeclaration, depth: i32) -> void {
     out.append(node.type)
     out.append(" ")
-    column :: usize(depth) * INDENT_WIDTH + node.type.bytes().len() + 1
+    column :: usize(depth) * INDENT_WIDTH + node.type.byte_len() + 1
     for k in 0..<node.declarators.len() {
         if k > 0 {
             out.append(", ")
@@ -611,7 +611,7 @@ write_declared :: fn(
     out.append(head)
     if value != null {
         out.append(" =")
-        write_initializer(out, value, column + head.bytes().len() + 2, depth)
+        write_initializer(out, value, column + head.byte_len() + 2, depth)
     }
 }
 
@@ -697,7 +697,7 @@ write_filled :: fn(out: StringBuilder, elements: CExpression[], depth: i32) -> v
     column := start
     for element in elements {
         text :: text_of(element)
-        width :: text.bytes().len() + 1
+        width :: text.byte_len() + 1
         if column > start && column + 1 + width > LINE_WIDTH {
             out.append("\n")
             column = start
@@ -735,7 +735,7 @@ write_element :: fn(out: StringBuilder, element: CExpression, depth: i32) -> voi
 
 // Whether `text`, written from `column`, leaves room for a closing `;` or `,`
 // within `LINE_WIDTH`.
-fits :: fn(text: string, column: usize) -> bool = column + text.bytes().len() + 1 <= LINE_WIDTH
+fits :: fn(text: string, column: usize) -> bool = column + text.byte_len() + 1 <= LINE_WIDTH
 
 // `expression` as C text, on one line.
 text_of :: fn(expression: CExpression) -> string {

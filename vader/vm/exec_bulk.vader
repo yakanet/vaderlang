@@ -149,15 +149,15 @@ exec_buffer_write_string :: fn(frame: Frame) -> Trap | null {
     if off_unwrap is Trap { return off_unwrap }
     obj_unwrap :: read_obj(peek_val(frame, frame.sp - 3), frame.pc, "buffer_write_string receiver")
     if obj_unwrap is Trap { return obj_unwrap }
-    src_bytes :: string(str_unwrap).bytes()
+    src :: string(str_unwrap)
     // Same negative-offset + range pair `load_bytes_op` / `store_bytes_op` check,
     // so it goes through the same helper and reports the same way.
-    checked :: check_byte_range(i32(off_unwrap), src_bytes.len(),
+    checked :: check_byte_range(i32(off_unwrap), src.byte_len(),
                                 obj_unwrap.bytes.len(), "buffer_write_string", frame.pc)
     if checked is Trap { return checked }
     off :: checked
-    for i in 0..<src_bytes.len() {
-        obj_unwrap.bytes[off + i] = src_bytes[i]
+    for i in 0..<src.byte_len() {
+        obj_unwrap.bytes[off + i] = src.byte_at(i)
     }
     frame.sp = frame.sp - 3
     frame.pc = frame.pc + 1

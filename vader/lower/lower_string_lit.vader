@@ -290,7 +290,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr! 
             write_values.push(v)
             write_kinds.push(.Bool)
         } else if k == .Text {
-            if v is LoweredStringLit { const_bytes = const_bytes + i64(v.value.bytes().len()) }
+            if v is LoweredStringLit { const_bytes = const_bytes + i64(v.value.byte_len()) }
             write_values.push(v)
             write_kinds.push(.Str)
         } else {

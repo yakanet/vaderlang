@@ -1801,14 +1801,13 @@ receiver_fits_first_param :: fn(target_ty: Type, first: Type, typed: TypedProgra
 // the name isn't a non-negative integer literal — `.foo` on a tuple
 // then falls through to T3009 via the bounds check.
 parse_tuple_index :: fn(s: string) -> i32 {
-    sb :: s.bytes()
-    len :: sb.len()
+    len :: s.byte_len()
     if len == 0 {
         return -1
     }
     n: i32 = 0
     for i in 0..<len {
-        c :: sb[i]
+        c :: s.byte_at(i)
         if c < u8('0') || c > u8('9') {
             return -1
         }

@@ -181,12 +181,7 @@ export to_compact_str :: fn(self: f64) -> string {
     if self > -EXACT_INTEGER_LIMIT && self < EXACT_INTEGER_LIMIT && self == f64(i64(self)) {
         return "${i64(self)}"
     }
-    s :: "${self}"
-    if s.ends_with(".0") {
-        sb :: s.bytes()
-        return sb[0..<sb.len() - 2].bytes_to_string()
-    }
-    return s
+    return "${self}".trim_suffix(".0")
 }
 
 /// Strip the base prefix (`0x` / `0b` / `0o`) and every `_` digit separator
@@ -204,8 +199,7 @@ export to_compact_str :: fn(self: f64) -> string {
 ///   `strip_numeric_text("1_000", 10)  // "1000"`
 export strip_numeric_text :: fn(text: string, base: i32) -> string {
     start: usize: if base == 10 { 0 } else { 2 }
-    tb :: text.bytes()
-    body :: tb[start..<tb.len()].bytes_to_string()
+    body :: text.byte_slice(start, text.byte_len())
     // Fast path : no `_` to filter → return the slice directly.
     if !body.contains("_") { return body }
     return body.replace_chars_where((c: char) -> c == '_', "")

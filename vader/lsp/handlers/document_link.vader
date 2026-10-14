@@ -71,14 +71,13 @@ import_link :: fn(imp: ImportDecl, source: string, paths: IncludePath[], li: Lin
 // column distance (no multi-byte codepoints before the path). Returns null when
 // no quote is found before the line ends (malformed import — parser recovery).
 path_string_range :: fn(imp: ImportDecl, source: string, li: LineIndex) -> SpanRange | null {
-    sb :: source.bytes()
-    n :: sb.len()
+    n :: source.byte_len()
     start_off :: imp.span.start.offset
     quote: u8: '"'
     q := start_off
     found := false
     for i in start_off..<n {
-        b :: sb[i]
+        b :: source.byte_at(i)
         if b == quote {
             q = i
             found = true
@@ -88,7 +87,7 @@ path_string_range :: fn(imp: ImportDecl, source: string, li: LineIndex) -> SpanR
     }
     if !found { return null }
     interior_off :: q + 1
-    plen :: imp.path.bytes().len()
+    plen :: imp.path.byte_len()
     start_col :: imp.span.start.column + i32(interior_off - start_off)
     sp :: Span {
         .start = Position {

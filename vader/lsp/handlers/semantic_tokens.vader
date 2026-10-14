@@ -35,14 +35,14 @@ import "vader/text"
 /// @return        `{ data: [...] }` or `null`.
 export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: position_uri(params)
-    if uri.bytes().len() == 0 {
+    if uri.byte_len() == 0 {
         return JsonNull {}
     }
     source :: state.source_for(uri)
     match source {
         is null -> { return JsonNull {} }
         is string -> {
-            if source.bytes().len() == 0 { return JsonNull {} }
+            if source.byte_len() == 0 { return JsonNull {} }
             data :: produce_tokens(source, uri, new_line_index(source, state.position_encoding))
             result :: MutableMap<string, JsonValue> {}
             result["data"] = data

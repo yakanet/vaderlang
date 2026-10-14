@@ -446,22 +446,22 @@ end
 
 fn 2 std_core$len (string) -> usize
   local n usize
-  local __for_len_1 usize
-  local __for_i_2 usize
+  local i usize
+  local __for_hi_0 usize
   i64.const 0
   local.set 1   ; n
+  i64.const 0
+  local.set 2   ; i
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
-  local.set 2   ; __for_len_1
-  i64.const 0
-  local.set 3   ; __for_i_2
+  local.set 3   ; __for_hi_0
   loop $L0 void
-    local.get 3   ; __for_i_2
-    local.get 2   ; __for_len_1
+    local.get 2   ; i
+    local.get 3   ; __for_hi_0
     u64.lt
     if $L1 void
       local.get 0   ; arg 0
-      local.get 3   ; __for_i_2
+      local.get 2   ; i
       call.import 1   ; std_core$byte_at
       i32.const 192
       i32.bitand
@@ -473,10 +473,10 @@ fn 2 std_core$len (string) -> usize
         usize.checked_add
         local.set 1   ; n
       end $L2
-      local.get 3   ; __for_i_2
+      local.get 2   ; i
       i64.const 1
       i64.add
-      local.set 3   ; __for_i_2
+      local.set 2   ; i
       br $L0
     end $L1
   end $L0

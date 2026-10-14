@@ -32,11 +32,10 @@ export sanitise :: fn(raw: string) -> string {
     // Build the sanitised bytes then intern ONCE. The byte-by-byte
     // `StringBuilder.append_char` this replaced UTF-8-encoded + interned a fresh
     // 1-char string per byte — the hottest `append_char` caller in c-emit.
-    rawb :: raw.bytes()
-    n :: rawb.len()
+    n :: raw.byte_len()
     buf: u8[]: []
     for i in 0..<n {
-        b :: rawb[i]
+        b :: raw.byte_at(i)
         buf.push(if is_ident_byte(b) { b } else { u8('_') })
     }
     out :: buf.bytes_to_string()
@@ -82,12 +81,11 @@ export c_string_lit :: fn(s: string) -> string {
     // Build the escaped bytes then intern ONCE. The per-byte
     // `StringBuilder.append_char` this replaced UTF-8-encoded + interned a fresh
     // 1-char string per char — the 2nd-hottest `append_char` caller in c-emit.
-    sbytes :: s.bytes()
-    n :: sbytes.len()
+    n :: s.byte_len()
     buf: u8[]: []
     buf.push('"')
     for i in 0..<n {
-        b :: sbytes[i]
+        b :: s.byte_at(i)
         if b == '\\' {
             buf.push('\\')
             buf.push('\\')
@@ -112,7 +110,7 @@ export c_string_lit :: fn(s: string) -> string {
             // Close the escape so a following hex digit doesn't extend it.
             next_idx :: i + 1
             if next_idx < n {
-                next_b :: sbytes[next_idx]
+                next_b :: s.byte_at(next_idx)
                 if is_hex_digit(char(u32(next_b))) {
                     buf.push('"')
                     buf.push('"')

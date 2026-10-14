@@ -278,22 +278,23 @@ static size_t std_core_len(vader_string_t l0) {
 #line 118 "lib/std/core/utf8.vader"
     l1 = (size_t) 0;
 #line 119 "lib/std/core/utf8.vader"
-    l2 = vader_host_std_core_byte_len(l0);
-    l3 = (size_t) 0;
-    while ((l3 < l2)) {
-        t0 = vader_host_std_core_byte_at(l0, l3);
+    l2 = (size_t) 0;
+    l3 = vader_host_std_core_byte_len(l0);
+    while ((l2 < l3)) {
 #line 120 "lib/std/core/utf8.vader"
-        if ((t0 & INT32_C(192)) != INT32_C(128)) {
+        t0 = vader_host_std_core_byte_at(l0, l2);
 #line 121 "lib/std/core/utf8.vader"
+        if ((t0 & INT32_C(192)) != INT32_C(128)) {
+#line 122 "lib/std/core/utf8.vader"
             t1 = vader_chk_add(usize, l1, INT64_C(1));
             l1 = (size_t) (int64_t) t1;
-#line 120 "lib/std/core/utf8.vader"
+#line 121 "lib/std/core/utf8.vader"
         }
 #line 119 "lib/std/core/utf8.vader"
-        t1 = (l3 + INT64_C(1));
-        l3 = (size_t) (int64_t) t1;
+        t1 = (l2 + INT64_C(1));
+        l2 = (size_t) (int64_t) t1;
     }
-#line 124 "lib/std/core/utf8.vader"
+#line 125 "lib/std/core/utf8.vader"
     return l1;
 }
 

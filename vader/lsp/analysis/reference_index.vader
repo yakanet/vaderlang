@@ -664,11 +664,10 @@ idents_named :: fn(src: string, name: string) -> i32 {
     parsed :: Parse.parse_source(src, "t.vader")
     out :: Collected {}
     for d in parsed.program.decls { collect_decl_idents(d, out) }
-    sb :: src.bytes()
     count := 0
     for sp in out.spans {
-        if sp.start.offset < sp.end.offset && sp.end.offset <= sb.len() {
-            if sb[sp.start.offset..<sp.end.offset].bytes_to_string() == name { count = count + 1 }
+        if sp.start.offset < sp.end.offset && sp.end.offset <= src.byte_len() {
+            if src.byte_slice(sp.start.offset, sp.end.offset) == name { count = count + 1 }
         }
     }
     return count

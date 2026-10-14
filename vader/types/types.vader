@@ -375,9 +375,9 @@ export declaration_key :: fn(sym: Symbol) -> string = "#${sym.id}"
 /// @param module_id  the module display path (e.g. `"std/string"`).
 /// @return           the mangled fragment (e.g. `"std_string"`).
 export mangle_module_id :: fn(module_id: string) -> string {
-    src :: module_id.bytes()
-    out: u8[]: [] * src.len()
-    for b in src {
+    out: u8[]: [] * module_id.byte_len()
+    for i in 0..<module_id.byte_len() {
+        b :: module_id.byte_at(i)
         if b == '/' || b == '.' {
             out.push('_')
         } else {
@@ -417,12 +417,11 @@ export has_builtin_impl :: fn(t: Type, trait_key: string) -> bool =
 ///
 /// @param key  a `trait_key`.
 export trait_key_name :: fn(key: string) -> string {
-    b :: key.bytes()
-    start := b.len()
-    for start > 0 && b[start - 1] != '$' {
+    start := key.byte_len()
+    for start > 0 && key.byte_at(start - 1) != '$' {
         start -= 1
     }
-    return b[start..<b.len()].bytes_to_string()
+    return key.byte_slice(start, key.byte_len())
 }
 
 /// Names of stdlib core structs the compiler refers to by symbol.

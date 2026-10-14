@@ -89,7 +89,7 @@ string 61 "parse_int: invalid digit"
 string 62 "parse_int: overflow"
 import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> usize
 import 1 byte_at std_core$byte_at result_type=5 param_types=2,6 param_mutable=0,0 param_by_address= (string,usize) -> u8
-import 2 bytes_to_string std_core$bytes_to_string result_type=2 param_types=9 param_mutable=0 param_by_address= (ref) -> string
+import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,6,6 param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string
 import 3 bytes std_core$bytes result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> ref
 import 4 hash std_core$string$Hash$hash result_type=3 param_types=2 param_mutable=0 param_by_address= (string) -> u64
 import 5 extern write system_posix$sys_write header=<unistd.h> result_type=20 param_types=1,9,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
@@ -1310,31 +1310,29 @@ fn 18 cli$parse (ref,ref) -> ref
   local i usize
   local a string
   local long bool
-  local ab ref
   local if_res usize
-  local $len_37 usize
+  local $call_35 usize
   local body string
   local eq isize
-  local bb ref
   local name string
-  local $cast_51 usize
+  local $cast_46 usize
   local inline_value string
-  local $add_checked_60 usize
-  local $len_61 usize
+  local $add_checked_54 usize
+  local $call_55 usize
   local spec any
-  local $call_68 string
-  local $field_78 string
+  local $call_61 string
+  local $field_71 string
   local or_res bool
-  local $field_87 string
-  local $call_90 string
-  local $call_104 string
-  local $call_108 string
-  local $call_109 string
-  local $add_checked_113 usize
+  local $field_80 string
+  local $call_83 string
+  local $call_97 string
+  local $call_101 string
+  local $call_102 string
+  local $add_checked_106 usize
   local next string
   local looks_like_flag bool
   local negative_number bool
-  local $call_135 string
+  local $call_128 string
   array.new 11 0   ; string[]
   local.set 2   ; $arr_2
   array.new 11 0   ; string[]
@@ -1392,86 +1390,75 @@ fn 18 cli$parse (ref,ref) -> ref
         local.get 7   ; a
         string.const 39   ; "--"
         call 35   ; std_string$starts_with
-        local.set 8   ; long
-        local.get 7   ; a
-        call.import 3   ; std_core$bytes
-        local.set 9   ; ab
-        local.get 8   ; long
+        local.tee 8   ; long
         if $L5 void
           i64.const 2
-          local.set 10   ; if_res
+          local.set 9   ; if_res
         else
           i64.const 1
-          local.set 10   ; if_res
+          local.set 9   ; if_res
         end $L5
-        local.get 9   ; ab
-        array.len
-        local.set 11   ; $len_37
-        local.get 9   ; ab
-        local.get 10   ; if_res
-        local.get 11   ; $len_37
-        array.slice 9   ; u8[]
-        call.import 2   ; std_core$bytes_to_string
-        local.tee 12   ; body
+        local.get 7   ; a
+        call.import 0   ; std_core$byte_len
+        local.set 10   ; $call_35
+        local.get 7   ; a
+        local.get 9   ; if_res
+        local.get 10   ; $call_35
+        call.import 2   ; std_core$byte_slice
+        local.tee 11   ; body
         char.const 61
         i64.const 0
         call 36   ; std_string$index_of
-        local.set 13   ; eq
-        local.get 12   ; body
-        call.import 3   ; std_core$bytes
-        local.set 14   ; bb
-        local.get 13   ; eq
+        local.tee 12   ; eq
         i64.const 0
         i64.lt
         if $L6 void
-          local.get 12   ; body
-          local.set 15   ; name
+          local.get 11   ; body
+          local.set 13   ; name
         else
-          local.get 13   ; eq
+          local.get 12   ; eq
           isize.to_i64
-          local.set 16   ; $cast_51
-          local.get 14   ; bb
+          local.set 14   ; $cast_46
+          local.get 11   ; body
           i64.const 0
-          local.get 16   ; $cast_51
-          array.slice 9   ; u8[]
-          call.import 2   ; std_core$bytes_to_string
-          local.set 15   ; name
+          local.get 14   ; $cast_46
+          call.import 2   ; std_core$byte_slice
+          local.set 13   ; name
         end $L6
-        local.get 13   ; eq
+        local.get 12   ; eq
         i64.const 0
         i64.lt
         if $L7 void
           string.const 3   ; ""
-          local.set 17   ; inline_value
+          local.set 15   ; inline_value
         else
-          local.get 13   ; eq
+          local.get 12   ; eq
           isize.to_i64
           i64.const 1
           usize.checked_add
-          local.set 18   ; $add_checked_60
-          local.get 14   ; bb
-          array.len
-          local.set 19   ; $len_61
-          local.get 14   ; bb
-          local.get 18   ; $add_checked_60
-          local.get 19   ; $len_61
-          array.slice 9   ; u8[]
-          call.import 2   ; std_core$bytes_to_string
-          local.set 17   ; inline_value
+          local.set 16   ; $add_checked_54
+          local.get 11   ; body
+          call.import 0   ; std_core$byte_len
+          local.set 17   ; $call_55
+          local.get 11   ; body
+          local.get 16   ; $add_checked_54
+          local.get 17   ; $call_55
+          call.import 2   ; std_core$byte_slice
+          local.set 15   ; inline_value
         end $L7
         local.get 1   ; arg 1
-        local.get 15   ; name
+        local.get 13   ; name
         local.get 8   ; long
         call 21   ; cli$find_spec
-        local.tee 20   ; spec
+        local.tee 18   ; spec
         type_check 0   ; null
         if $L8 void
           string.const 41   ; "unknown flag "
           local.get 7   ; a
           call 1   ; concat_2
-          local.set 21   ; $call_68
+          local.set 19   ; $call_61
           local.get 4   ; $arr_4
-          local.get 21   ; $call_68
+          local.get 19   ; $call_61
           array.push 2   ; string
           local.get 6   ; i
           i64.const 1
@@ -1479,58 +1466,58 @@ fn 18 cli$parse (ref,ref) -> ref
           local.set 6   ; i
           br $L1
         end $L8
-        local.get 20   ; spec
+        local.get 18   ; spec
         ref.cast 13   ; cli$FlagSpec
         struct.get 13 5   ; cli$FlagSpec.kind
         i32.const 0
         i32.eq
         if $L9 void
-          local.get 13   ; eq
+          local.get 12   ; eq
           i64.const 0
           i64.lt
           if $L10 void
-            local.get 20   ; spec
+            local.get 18   ; spec
             ref.cast 13   ; cli$FlagSpec
             struct.get 13 0   ; cli$FlagSpec.name
             ref.cast 2   ; string
-            local.set 22   ; $field_78
+            local.set 20   ; $field_71
             local.get 2   ; $arr_2
-            local.get 22   ; $field_78
+            local.get 20   ; $field_71
             string.const 36   ; "true"
             call 27   ; std_collections$MutableMap$IndexSet$set_at__string__string
           else
-            local.get 17   ; inline_value
+            local.get 15   ; inline_value
             string.const 36   ; "true"
             string.eq
             if $L11 void
               bool.const true
-              local.set 23   ; or_res
+              local.set 21   ; or_res
             else
-              local.get 17   ; inline_value
+              local.get 15   ; inline_value
               string.const 37   ; "false"
               string.eq
-              local.set 23   ; or_res
+              local.set 21   ; or_res
             end $L11
-            local.get 23   ; or_res
+            local.get 21   ; or_res
             if $L12 void
-              local.get 20   ; spec
+              local.get 18   ; spec
               ref.cast 13   ; cli$FlagSpec
               struct.get 13 0   ; cli$FlagSpec.name
               ref.cast 2   ; string
-              local.set 24   ; $field_87
+              local.set 22   ; $field_80
               local.get 2   ; $arr_2
-              local.get 24   ; $field_87
-              local.get 17   ; inline_value
+              local.get 22   ; $field_80
+              local.get 15   ; inline_value
               call 27   ; std_collections$MutableMap$IndexSet$set_at__string__string
             else
               local.get 7   ; a
               string.const 42   ; ": bool flag accepts true or false, got \""
-              local.get 17   ; inline_value
+              local.get 15   ; inline_value
               string.const 43   ; "\""
               call 2   ; concat_4
-              local.set 25   ; $call_90
+              local.set 23   ; $call_83
               local.get 4   ; $arr_4
-              local.get 25   ; $call_90
+              local.get 23   ; $call_83
               array.push 2   ; string
             end $L12
           end $L10
@@ -1540,14 +1527,14 @@ fn 18 cli$parse (ref,ref) -> ref
           local.set 6   ; i
           br $L1
         end $L9
-        local.get 13   ; eq
+        local.get 12   ; eq
         i64.const 0
         i64.ge
         if $L13 void
-          local.get 20   ; spec
+          local.get 18   ; spec
           ref.cast 13   ; cli$FlagSpec
           local.get 7   ; a
-          local.get 17   ; inline_value
+          local.get 15   ; inline_value
           local.get 2   ; $arr_2
           local.get 4   ; $arr_4
           call 22   ; cli$record_str_flag
@@ -1563,27 +1550,27 @@ fn 18 cli$parse (ref,ref) -> ref
         local.get 5   ; n
         u64.ge
         if $L14 void
-          local.get 20   ; spec
+          local.get 18   ; spec
           ref.cast 13   ; cli$FlagSpec
           call 23   ; cli$value_placeholder
-          local.set 26   ; $call_104
-          local.get 20   ; spec
+          local.set 24   ; $call_97
+          local.get 18   ; spec
           ref.cast 13   ; cli$FlagSpec
           call 23   ; cli$value_placeholder
-          local.set 27   ; $call_108
+          local.set 25   ; $call_101
           local.get 7   ; a
           string.const 44   ; ": missing value, expected "
           local.get 7   ; a
           string.const 45   ; "="
-          local.get 26   ; $call_104
+          local.get 24   ; $call_97
           string.const 46   ; " or "
           local.get 7   ; a
           string.const 47   ; " "
-          local.get 27   ; $call_108
+          local.get 25   ; $call_101
           call 3   ; concat_9
-          local.set 28   ; $call_109
+          local.set 26   ; $call_102
           local.get 4   ; $arr_4
-          local.get 28   ; $call_109
+          local.get 26   ; $call_102
           array.push 2   ; string
           local.get 6   ; i
           i64.const 1
@@ -1594,55 +1581,55 @@ fn 18 cli$parse (ref,ref) -> ref
         local.get 6   ; i
         i64.const 1
         usize.checked_add
-        local.set 29   ; $add_checked_113
+        local.set 27   ; $add_checked_106
         local.get 0   ; arg 0
-        local.get 29   ; $add_checked_113
+        local.get 27   ; $add_checked_106
         array.get 11   ; string[]
         ref.cast 2   ; string
-        local.tee 30   ; next
+        local.tee 28   ; next
         string.const 40   ; "-"
         call 35   ; std_string$starts_with
         if $L15 void
-          local.get 30   ; next
+          local.get 28   ; next
           string.const 40   ; "-"
           string.ne
-          local.set 31   ; looks_like_flag
+          local.set 29   ; looks_like_flag
         else
           bool.const false
-          local.set 31   ; looks_like_flag
+          local.set 29   ; looks_like_flag
         end $L15
-        local.get 20   ; spec
+        local.get 18   ; spec
         ref.cast 13   ; cli$FlagSpec
         struct.get 13 5   ; cli$FlagSpec.kind
         i32.const 2
         i32.eq
         if $L16 void
-          local.get 30   ; next
+          local.get 28   ; next
           call 37   ; std_string$parse_int
           type_check 23   ; std_string$ParseError
           bool.not
-          local.set 32   ; negative_number
+          local.set 30   ; negative_number
         else
           bool.const false
-          local.set 32   ; negative_number
+          local.set 30   ; negative_number
         end $L16
-        local.get 31   ; looks_like_flag
+        local.get 29   ; looks_like_flag
         if $L17 void
-          local.get 32   ; negative_number
+          local.get 30   ; negative_number
           if $L18 void
           else
             local.get 7   ; a
             string.const 48   ; ": missing value — \""
-            local.get 30   ; next
+            local.get 28   ; next
             string.const 49   ; "\" reads as a flag; use "
             local.get 7   ; a
             string.const 45   ; "="
-            local.get 30   ; next
+            local.get 28   ; next
             string.const 50   ; " if it is the value"
             call 4   ; concat_8
-            local.set 33   ; $call_135
+            local.set 31   ; $call_128
             local.get 4   ; $arr_4
-            local.get 33   ; $call_135
+            local.get 31   ; $call_128
             array.push 2   ; string
             local.get 6   ; i
             i64.const 1
@@ -1651,10 +1638,10 @@ fn 18 cli$parse (ref,ref) -> ref
             br $L1
           end $L18
         end $L17
-        local.get 20   ; spec
+        local.get 18   ; spec
         ref.cast 13   ; cli$FlagSpec
         local.get 7   ; a
-        local.get 30   ; next
+        local.get 28   ; next
         local.get 2   ; $arr_2
         local.get 4   ; $arr_4
         call 22   ; cli$record_str_flag
@@ -2527,7 +2514,7 @@ fn 37 std_string$parse_int (string) -> any
   bool.const false
   local.set 3   ; neg
   local.get 0   ; arg 0
-  i32.const 0
+  i64.const 0
   call.import 1   ; std_core$byte_at
   i32.const 45
   i32.eq

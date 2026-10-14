@@ -105,11 +105,10 @@ has_decorators :: fn(run: AST.ImportDecl[]) -> bool {
 // action must decline.
 has_interleaved_comments :: fn(run: AST.ImportDecl[], source: string) -> bool {
     if run.len() < 2 { return false }
-    sb :: source.bytes()
     for i in 0..<(run.len() - 1) {
         stop :: run[i + 1].span.start.offset
         for j in run[i].span.end.offset..<stop {
-            b :: sb[j]
+            b :: source.byte_at(j)
             if b != ' ' && b != '\t' && b != '\n' && b != '\r' { return true }
         }
     }
@@ -204,7 +203,7 @@ import_entry_less :: fn(a: ImportEntry, b: ImportEntry) -> bool {
 render_modifier_import :: fn(path: string, names: AST.ImportName[]) -> string {
     texts :: sorted_name_texts(names)
     single :: "import \"" + path + "\" { " + texts.join(", ") + " }"
-    if single.bytes().len() <= 100 { return single }
+    if single.byte_len() <= 100 { return single }
     body := "import \"" + path + "\" {"
     for i in 0..<texts.len() { body = body + "\n    " + texts[i] + "," }
     return body + "\n}"

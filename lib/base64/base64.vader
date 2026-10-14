@@ -92,8 +92,7 @@ decode_byte :: fn(b: u8) -> i32 = match b {
 /// @error        Base64Error when `input.len()` isn't a multiple of 4, or any
 ///               non-alphabet character appears.
 export decode :: fn(input: string) -> u8[] | Base64Error {
-    bs :: input.bytes()
-    n :: bs.len()
+    n :: input.byte_len()
     if n == 0 { return [] }
     if n % 4 != 0 {
         return Base64Error { .msg = "base64: input length must be a multiple of 4" }
@@ -104,10 +103,10 @@ export decode :: fn(input: string) -> u8[] | Base64Error {
     // malformed and must be rejected — otherwise pad_count would wrongly read
     // 2 and the trailing data byte would be silently dropped.
     pad_count: usize = 0
-    if bs[n - 1] == '=' {
+    if input.byte_at(n - 1) == '=' {
         pad_count = 1
-        if bs[n - 2] == '=' { pad_count = 2 }
-    } else if bs[n - 2] == '=' {
+        if input.byte_at(n - 2) == '=' { pad_count = 2 }
+    } else if input.byte_at(n - 2) == '=' {
         return Base64Error { .msg = "base64: '=' padding is only allowed at the end of input" }
     }
 
@@ -119,10 +118,10 @@ export decode :: fn(input: string) -> u8[] | Base64Error {
     i: usize = 0
     full_quads :: n - 4
     for i < full_quads {
-        v0 :: decode_byte(bs[i])
-        v1 :: decode_byte(bs[i + 1])
-        v2 :: decode_byte(bs[i + 2])
-        v3 :: decode_byte(bs[i + 3])
+        v0 :: decode_byte(input.byte_at(i))
+        v1 :: decode_byte(input.byte_at(i + 1))
+        v2 :: decode_byte(input.byte_at(i + 2))
+        v3 :: decode_byte(input.byte_at(i + 3))
         if v0 < 0 || v1 < 0 || v2 < 0 || v3 < 0 {
             return Base64Error { .msg = "base64: invalid character at offset ${i}" }
         }
@@ -134,16 +133,16 @@ export decode :: fn(input: string) -> u8[] | Base64Error {
     }
 
     // Final quad with possible padding.
-    v0 :: decode_byte(bs[i])
-    v1 :: decode_byte(bs[i + 1])
+    v0 :: decode_byte(input.byte_at(i))
+    v1 :: decode_byte(input.byte_at(i + 1))
     if v0 < 0 || v1 < 0 {
         return Base64Error { .msg = "base64: invalid character in final quad" }
     }
     triple_lead :: (u32(v0) << 18) | (u32(v1) << 12)
     out.push(u8((triple_lead >> 16) & 0xFF))
     if pad_count == 0 {
-        v2 :: decode_byte(bs[i + 2])
-        v3 :: decode_byte(bs[i + 3])
+        v2 :: decode_byte(input.byte_at(i + 2))
+        v3 :: decode_byte(input.byte_at(i + 3))
         if v2 < 0 || v3 < 0 {
             return Base64Error { .msg = "base64: invalid character in final quad" }
         }
@@ -151,7 +150,7 @@ export decode :: fn(input: string) -> u8[] | Base64Error {
         out.push(u8((triple >> 8) & 0xFF))
         out.push(u8(triple & 0xFF))
     } else if pad_count == 1 {
-        v2 :: decode_byte(bs[i + 2])
+        v2 :: decode_byte(input.byte_at(i + 2))
         if v2 < 0 {
             return Base64Error { .msg = "base64: invalid character before padding" }
         }

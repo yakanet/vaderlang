@@ -164,12 +164,10 @@ import "std/testing"
 // Splice an action result over its target span — byte-for-byte what the editor
 // does with the emitted `WorkspaceEdit` : replace `[start.offset, end.offset)`
 // with `new_text`. The offsets are raw UTF-8 byte offsets and the span is
-// half-open, so the byte view slices exactly the region the editor would.
+// half-open, so a byte slice covers exactly the region the editor would.
 rt_splice :: fn(src: string, r: ActionResult) -> string {
-    sb :: src.bytes()
-    n :: sb.len()
-    prefix :: sb[0..<r.target_span.start.offset].bytes_to_string()
-    suffix :: sb[r.target_span.end.offset..<n].bytes_to_string()
+    prefix :: src.byte_slice(0, r.target_span.start.offset)
+    suffix :: src.byte_slice(r.target_span.end.offset, src.byte_len())
     return prefix + r.new_text + suffix
 }
 
