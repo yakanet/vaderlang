@@ -1,0 +1,30 @@
+// A free integer literal stored into a union whose integer variant is `i64` takes
+// that variant: it is built as an `i64`, so `is i64` holds on both backends, as it
+// does for a value already typed `i64`. Covers a typed binding, a reassignment and
+// an argument.
+module "snippet"
+
+import "std/io"
+
+describe :: fn(v: i64 | null) -> string {
+    if v is i64 {
+        return "i64 ${v}"
+    }
+    return "null"
+}
+
+main :: fn() -> i32 {
+    a: i64 | null: 7
+    println(describe(a))
+    b: i64 | string: 8
+    if b is i64 {
+        println("b is i64")
+    } else {
+        println("b is not i64")
+    }
+    c: i64 | null = null
+    c = 9
+    println(describe(c))
+    println(describe(10))
+    return 0
+}

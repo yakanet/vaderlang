@@ -527,6 +527,9 @@ const C_PARITY = new Set<string>([
   // A pooled constant kept where a write may reach it is built again at the use,
   // natively too, where the shared one lies in `.rodata`.
   "const_copied_where_kept",
+  // A free literal stored into an `i64 | …` union is an `i64`, so `is i64` holds
+  // natively as on the VM.
+  "literal_into_wide_union",
   // `+%` / `-%` / `*%` at every width, run time and folded constants alike.
   "wrapping_operators",
   // A `-` written against a number literal belongs to it, postfixes included.

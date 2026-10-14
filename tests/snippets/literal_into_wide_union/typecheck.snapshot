@@ -1,0 +1,37 @@
+# Typecheck
+
+## tests/snippets/literal_into_wide_union
+  FnDecl         describe             :: fn(i64 | null) -> string
+  FnDecl         main                 :: fn() -> i32
+  expr 10:13    IdentExpr      :: i64
+  expr 10:5     IfExpr         :: void
+  expr 10:8     BinaryExpr     :: bool
+  expr 10:8     IdentExpr      :: i64 | null
+  expr 11:16    StringLitExpr  :: string
+  expr 11:23    IdentExpr      :: i64
+  expr 13:12    StringLitExpr  :: string
+  expr 18:13    CallExpr       :: string
+  expr 18:13    IdentExpr      :: fn(i64 | null) -> string
+  expr 18:22    IdentExpr      :: i64 | null
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 20:13    IdentExpr      :: i64
+  expr 20:5     IfExpr         :: void
+  expr 20:8     BinaryExpr     :: bool
+  expr 20:8     IdentExpr      :: i64 | string
+  expr 21:17    StringLitExpr  :: string
+  expr 21:9     CallExpr       :: void
+  expr 21:9     IdentExpr      :: fn(T) -> void
+  expr 23:17    StringLitExpr  :: string
+  expr 23:9     CallExpr       :: void
+  expr 23:9     IdentExpr      :: fn(T) -> void
+  expr 26:5     IdentExpr      :: i64 | null
+  expr 27:13    CallExpr       :: string
+  expr 27:13    IdentExpr      :: fn(i64 | null) -> string
+  expr 27:22    IdentExpr      :: i64 | null
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 28:13    CallExpr       :: string
+  expr 28:13    IdentExpr      :: fn(i64 | null) -> string
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
