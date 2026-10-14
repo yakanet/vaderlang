@@ -35,11 +35,12 @@ export mint :: fn(self: NodeIdFactory) -> usize {
 /// IDs.
 export assign_program_ids :: fn(p: Program, f: NodeIdFactory) -> void {
     p.id = f.mint()
-    match p.module {
-        is null       -> {}
-        is ModuleDecl -> { p.module.id = f.mint() }
+    if p.module !is null {
+        p.module.id = f.mint()
     }
-    for d in p.decls { walk_decl(d, f) }
+    for d in p.decls {
+        walk_decl(d, f)
+    }
 }
 
 /// Re-entrant entry for cloned blocks (used by
@@ -124,9 +125,15 @@ walk_decl :: fn(d: Decl, f: NodeIdFactory) -> void {
 
 walk_fn_decl :: fn(d: FnDecl, f: NodeIdFactory) -> void {
     d.id = f.mint()
-    for dec in d.decorators { walk_decorator(dec, f) }
-    for tp in d.type_params { walk_type_param(tp, f) }
-    for p in d.params { walk_fn_param(p, f) }
+    for dec in d.decorators {
+        walk_decorator(dec, f)
+    }
+    for tp in d.type_params {
+        walk_type_param(tp, f)
+    }
+    for p in d.params {
+        walk_fn_param(p, f)
+    }
     if d.return_type !is null {
         walk_expr(d.return_type, f)
     }
