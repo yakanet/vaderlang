@@ -1572,7 +1572,6 @@ const char vader_atom_blob[] =
     "copy_to" "\0"
     "could be " "\0"
     "counter" "\0"
-    "cp_slice" "\0"
     "cursor" "\0"
     "cyclic type alias" "\0"
     "d" "\0"
@@ -2367,20 +2366,12 @@ const char vader_atom_blob[] =
     "stray backslash (Vader has no line continuation)" "\0"
     "string" "\0"
     "string + non-string" "\0"
-    "string codepoint index out of bounds" "\0"
-    "string index must be an integer, got " "\0"
     "string interpolation expression must implement `Display`" "\0"
     "string.compare" "\0"
     "string.const" "\0"
     "string.eq" "\0"
     "string.h" "\0"
     "string.ne" "\0"
-    "string.slice_codepoints" "\0"
-    "string.slice_codepoints hi" "\0"
-    "string.slice_codepoints lo" "\0"
-    "string.slice_codepoints receiver" "\0"
-    "string[] index" "\0"
-    "string[] receiver" "\0"
     "string_begin" "\0"
     "string_end" "\0"
     "string_part" "\0"
@@ -2690,10 +2681,8 @@ const char vader_atom_blob[] =
     "vader_string_byte_len" "\0"
     "vader_string_byte_slice" "\0"
     "vader_string_bytes_view" "\0"
-    "vader_string_codepoint_at" "\0"
     "vader_string_compare" "\0"
     "vader_string_hash" "\0"
-    "vader_string_slice_codepoints" "\0"
     "vader_string_t" "\0"
     "vader_string_t*" "\0"
     "vader_string_to_cstr" "\0"
@@ -4352,1223 +4341,1212 @@ const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32099] },
     { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32107] },
     { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32117] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32125] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32134] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32141] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32159] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32161] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32168] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32173] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32184] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32195] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32206] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32215] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32255] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32293] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32349] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32374] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32414] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32448] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32456] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32465] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32471] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32485] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32500] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32516] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32549] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32560] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32571] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32580] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32591] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32601] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32617] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32637] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32647] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32655] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32667] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32671] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32674] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32681] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32685] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32695] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32702] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32707] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32738] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32775] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32804] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32843] },
-    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32868] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32929] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32966] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32968] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32974] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32980] },
-    { 0u, 0u, 119u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32988] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33108] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33113] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33151] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33182] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33213] },
-    { 0u, 0u, 91u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33225] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33317] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33321] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33333] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33338] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33365] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33392] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33409] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33414] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33421] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33467] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33502] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33556] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33582] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33588] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33592] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33596] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33599] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33604] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33609] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33616] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33627] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33643] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33649] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33661] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33670] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33713] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33719] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33727] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33783] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33800] },
-    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33835] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33897] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33907] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33929] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33940] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33960] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33980] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34029] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34045] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34072] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34095] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34128] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34147] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34168] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34214] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34230] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34253] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34292] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34315] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34330] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34355] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34382] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34416] },
-    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34431] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34483] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34513] },
-    { 0u, 0u, 68u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34528] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34597] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34620] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34627] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34654] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34677] },
-    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34688] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34752] },
-    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34801] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34861] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34885] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34896] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34943] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34970] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34998] },
-    { 0u, 0u, 70u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35026] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35097] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35104] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35112] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35121] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35172] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35174] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35178] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35190] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35194] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35202] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35213] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35221] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35228] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35235] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35242] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35249] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35256] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35264] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35271] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35279] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35287] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35299] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35303] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35306] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35312] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35322] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35350] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35364] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35383] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35399] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35414] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35434] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35448] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35463] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35479] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35485] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35493] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35538] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35579] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35620] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35654] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35665] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35686] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35725] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35754] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35766] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35778] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35814] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35826] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35841] },
-    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35897] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35939] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35977] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35984] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35989] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36004] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36019] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36075] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36089] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36125] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36131] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36145] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36148] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36152] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36156] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36164] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36179] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36186] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36194] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36201] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36207] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36211] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36222] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36236] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36287] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36326] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36334] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36346] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36355] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36362] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36368] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36376] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36384] },
-    { 0u, 0u, 72u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36419] },
-    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36492] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36560] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36605] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36624] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36675] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36718] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36727] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36735] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36742] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36752] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36761] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36769] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36779] },
-    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36791] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36859] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36873] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36882] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36896] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36909] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36918] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36932] },
-    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36941] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37004] },
-    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37058] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37121] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37177] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37221] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37253] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37297] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37333] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37338] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37343] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37349] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37352] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37356] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37397] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37402] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37416] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37420] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37427] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37451] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37456] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37463] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37465] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37469] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37473] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37481] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37492] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37503] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37513] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37524] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37535] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37543] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37566] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37573] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37580] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37587] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37594] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37601] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37624] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37632] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37639] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37647] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37655] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37663] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37671] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37679] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37683] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37691] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37702] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37713] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37723] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37734] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37745] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37753] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37776] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37783] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37790] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37797] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37804] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37811] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37819] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37826] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37834] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37842] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37865] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37873] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37881] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37889] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37892] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37895] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37901] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37940] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37944] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37947] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37952] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37986] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37994] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38001] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38006] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38047] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38061] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38072] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38106] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38113] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38133] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38155] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38167] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38188] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38203] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38217] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38254] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38288] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38317] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38320] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38326] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38332] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38337] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38350] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38360] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38387] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38393] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38418] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38430] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38439] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38443] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38448] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38455] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38463] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38471] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38497] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38503] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38525] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38539] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38586] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38590] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38598] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38606] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38614] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38621] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38633] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38659] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38712] },
-    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38750] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38792] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38806] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38815] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38828] },
-    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38840] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38882] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38923] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38935] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38940] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38949] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38959] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39000] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39023] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39073] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39103] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39136] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39154] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39184] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39209] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39226] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39239] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39265] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39279] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39303] },
-    { 0u, 0u, 81u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39341] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39423] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39438] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39441] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39456] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39493] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39506] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39512] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39515] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39526] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39561] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39579] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39623] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39673] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39720] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39747] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39752] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39762] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39772] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39783] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39794] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39803] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39813] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39822] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39872] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39900] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39911] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39937] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39939] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32125] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32132] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32150] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32152] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32159] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32164] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32175] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32186] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32197] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32206] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32246] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32284] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32340] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32365] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32405] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32439] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32447] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32456] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32462] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32476] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32491] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32507] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32540] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32551] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32562] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32571] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32582] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32592] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32608] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32628] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32638] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32646] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32658] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32662] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32665] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32672] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32676] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32686] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32693] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32698] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32729] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32766] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32795] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32834] },
+    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32859] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32920] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32957] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32959] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32965] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32971] },
+    { 0u, 0u, 119u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32979] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33099] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33104] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33142] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33173] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33204] },
+    { 0u, 0u, 91u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33216] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33308] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33312] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33324] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33329] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33356] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33383] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33400] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33405] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33412] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33458] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33493] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33547] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33573] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33579] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33583] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33587] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33590] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33595] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33600] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33607] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33618] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33634] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33640] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33652] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33661] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33704] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33710] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33718] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33774] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33791] },
+    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33826] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33888] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33898] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33920] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33931] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33951] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33971] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34020] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34036] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34063] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34086] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34119] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34138] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34159] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34205] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34221] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34244] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34283] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34306] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34321] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34346] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34373] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34407] },
+    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34422] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34474] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34504] },
+    { 0u, 0u, 68u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34519] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34588] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34611] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34618] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34645] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34668] },
+    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34679] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34743] },
+    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34792] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34852] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34876] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34887] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34934] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34961] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34989] },
+    { 0u, 0u, 70u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35017] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35088] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35095] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35103] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35112] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35163] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35165] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35169] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35181] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35185] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35193] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35204] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35212] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35219] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35226] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35233] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35240] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35247] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35255] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35262] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35270] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35278] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35290] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35294] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35297] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35303] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35313] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35341] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35355] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35374] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35390] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35405] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35425] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35439] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35454] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35470] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35476] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35484] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35529] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35570] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35611] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35645] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35656] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35677] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35716] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35745] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35757] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35769] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35805] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35817] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35832] },
+    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35888] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35930] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35968] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35975] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35980] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[35995] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36010] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36066] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36080] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36116] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36122] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36136] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36139] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36143] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36147] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36155] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36170] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36177] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36185] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36192] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36198] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36202] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36213] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36227] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36278] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36317] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36325] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36337] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36346] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36353] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36359] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36367] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36375] },
+    { 0u, 0u, 72u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36410] },
+    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36483] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36551] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36596] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36615] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36666] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36709] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36718] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36726] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36733] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36743] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36752] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36760] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36770] },
+    { 0u, 0u, 67u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36782] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36850] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36864] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36873] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36887] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36900] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36909] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36923] },
+    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36932] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36995] },
+    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37049] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37112] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37168] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37212] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37244] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37288] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37324] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37329] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37334] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37340] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37343] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37347] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37388] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37393] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37407] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37411] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37418] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37442] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37447] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37454] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37456] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37460] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37464] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37472] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37483] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37494] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37504] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37515] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37526] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37534] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37557] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37564] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37571] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37578] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37585] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37592] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37615] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37623] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37630] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37638] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37646] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37654] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37662] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37670] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37674] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37682] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37693] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37704] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37714] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37725] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37736] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37744] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37767] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37774] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37781] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37788] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37795] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37802] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37810] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37817] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37825] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37833] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37856] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37864] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37872] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37880] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37883] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37886] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37892] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37931] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37935] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37938] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37943] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37977] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37985] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37992] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37997] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38038] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38052] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38063] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38097] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38104] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38124] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38146] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38158] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38179] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38194] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38208] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38245] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38279] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38308] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38311] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38317] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38323] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38328] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38341] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38351] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38378] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38384] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38409] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38421] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38430] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38434] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38439] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38446] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38454] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38462] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38488] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38494] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38516] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38530] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38577] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38581] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38589] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38597] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38605] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38612] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38624] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38650] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38703] },
+    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38741] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38783] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38797] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38806] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38819] },
+    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38831] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38873] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38914] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38926] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38931] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38940] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38950] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38991] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39014] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39064] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39094] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39127] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39145] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39175] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39200] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39217] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39230] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39256] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39270] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39294] },
+    { 0u, 0u, 81u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39332] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39414] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39429] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39432] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39447] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39484] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39497] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39503] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39506] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39517] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39552] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39570] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39614] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39664] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39711] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39738] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39743] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39753] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39763] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39774] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39785] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39794] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39804] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39813] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39863] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39891] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39902] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39928] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39930] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39936] },
     { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39945] },
     { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39954] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39963] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39972] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39984] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39993] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40001] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40009] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40019] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40028] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40034] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40041] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40047] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40061] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40071] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40077] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40083] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40092] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40100] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40110] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40118] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40128] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40137] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40145] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40154] },
-    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40156] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40211] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40230] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40237] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40246] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40276] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40280] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40287] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40325] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40329] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40335] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39963] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39975] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39984] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39992] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40000] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40010] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40019] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40025] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40032] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40038] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40052] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40062] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40068] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40074] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40083] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40091] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40101] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40109] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40119] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40128] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40136] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40145] },
+    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40147] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40202] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40221] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40228] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40237] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40267] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40271] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40278] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40316] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40320] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40326] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40374] },
     { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40383] },
     { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40392] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40401] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40410] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40420] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40434] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40448] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40462] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40470] },
-    { 0u, 0u, 66u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40476] },
-    { 0u, 0u, 71u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40543] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40615] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40647] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40659] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40669] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40679] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40689] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40729] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40734] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40739] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40745] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40764] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40771] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40774] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40778] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40780] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40785] },
-    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40806] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40870] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40904] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40917] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40943] },
-    { 0u, 0u, 65u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40949] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41015] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41055] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41075] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41112] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41143] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41155] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41165] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41175] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41185] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41197] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41209] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41221] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41246] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41262] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41282] },
-    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41296] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41338] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41365] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41381] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41401] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41448] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41463] },
-    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41486] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41545] },
-    { 0u, 0u, 81u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41568] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41650] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41684] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41716] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41752] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41785] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41817] },
-    { 0u, 0u, 114u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41836] },
-    { 0u, 0u, 87u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41951] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42039] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42045] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42058] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42072] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42093] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42115] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42162] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42180] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42206] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42247] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42266] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42270] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42277] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42303] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42357] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42410] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42451] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42463] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42480] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42530] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42541] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42545] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42557] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42562] },
-    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42602] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42656] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42705] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42748] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42752] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42759] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42774] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42778] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42784] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42795] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42811] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42819] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42824] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42845] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42850] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42872] },
-    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42920] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42976] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42984] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42993] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43044] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43070] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43087] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43099] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43120] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43149] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43173] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43188] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43198] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43231] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43252] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43305] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43321] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43346] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43394] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43416] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43425] },
-    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43433] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43493] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43498] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43509] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43513] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43520] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43524] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43531] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43541] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43570] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43596] },
-    { 0u, 0u, 256u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43634] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43891] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43934] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43946] },
-    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43987] },
-    { 0u, 0u, 64u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44035] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44100] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44110] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44119] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44129] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44141] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44153] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44165] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44210] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44213] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44242] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44248] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44255] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44277] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44283] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44287] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44296] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44298] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44301] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44307] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44326] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44332] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44343] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44355] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44384] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44392] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44417] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44425] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44434] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44442] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44457] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44475] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44480] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44494] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44499] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44511] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44524] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44544] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44552] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44595] },
-    { 0u, 0u, 141u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44638] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44780] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44790] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44794] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44804] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44809] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44818] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44837] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44855] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44857] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44860] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44871] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44882] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44891] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44894] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44901] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44910] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44932] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44944] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44956] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44980] },
-    { 0u, 0u, 78u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44990] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45069] },
-    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45074] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45126] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45130] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45139] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45146] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45153] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45202] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45251] },
-    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45260] },
-    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45319] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45376] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45380] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45392] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45441] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45477] },
-    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45502] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45545] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45594] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45603] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45610] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45617] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45625] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45631] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45638] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45646] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45657] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45674] },
-    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45686] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45743] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45751] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45759] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45785] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45790] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45797] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45812] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45814] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45817] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45822] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45832] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45851] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45866] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45882] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45888] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45893] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45944] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45985] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45992] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46006] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46024] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46042] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46059] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46094] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46098] },
-    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46104] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46161] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46173] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46177] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46184] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46189] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46197] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46210] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46242] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46249] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46256] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46264] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46270] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46283] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46289] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46297] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46310] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46318] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46324] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46349] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46372] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46379] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46416] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46421] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46433] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46446] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46466] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46472] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46478] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46485] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46493] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46503] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46519] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46535] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46544] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46559] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46584] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46599] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46615] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46626] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46645] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46656] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46673] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46689] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46699] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46740] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46775] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46814] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46850] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46890] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46907] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46925] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46945] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46960] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46985] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47018] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47049] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47084] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47114] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47149] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47182] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47220] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47235] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47260] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47283] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47303] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47327] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47349] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47371] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47394] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47418] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40401] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40411] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40425] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40439] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40453] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40461] },
+    { 0u, 0u, 66u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40467] },
+    { 0u, 0u, 71u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40534] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40606] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40638] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40650] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40660] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40670] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40680] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40720] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40725] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40730] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40736] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40755] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40762] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40765] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40769] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40771] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40776] },
+    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40797] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40861] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40895] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40908] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40934] },
+    { 0u, 0u, 65u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[40940] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41006] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41046] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41066] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41103] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41134] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41146] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41156] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41166] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41176] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41188] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41200] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41212] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41237] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41253] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41273] },
+    { 0u, 0u, 41u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41287] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41329] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41356] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41372] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41392] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41439] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41454] },
+    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41477] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41536] },
+    { 0u, 0u, 81u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41559] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41641] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41675] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41707] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41743] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41776] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41808] },
+    { 0u, 0u, 114u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41827] },
+    { 0u, 0u, 87u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41942] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42030] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42036] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42049] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42063] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42084] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42106] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42153] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42171] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42197] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42238] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42257] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42261] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42268] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42294] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42348] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42401] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42442] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42454] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42471] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42521] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42532] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42536] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42548] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42553] },
+    { 0u, 0u, 53u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42593] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42647] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42696] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42739] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42743] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42750] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42765] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42769] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42775] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42786] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42802] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42810] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42815] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42836] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42841] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42863] },
+    { 0u, 0u, 55u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42911] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42967] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42975] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[42984] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43035] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43061] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43078] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43090] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43111] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43140] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43164] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43179] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43189] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43222] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43243] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43296] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43312] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43337] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43385] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43407] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43416] },
+    { 0u, 0u, 59u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43424] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43484] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43489] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43500] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43504] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43511] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43515] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43522] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43532] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43561] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43587] },
+    { 0u, 0u, 256u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43625] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43882] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43925] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43937] },
+    { 0u, 0u, 47u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43978] },
+    { 0u, 0u, 64u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44026] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44091] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44101] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44110] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44120] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44132] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44144] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44156] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44201] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44204] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44233] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44239] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44246] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44268] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44274] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44278] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44287] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44289] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44292] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44298] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44317] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44323] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44334] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44346] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44375] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44383] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44408] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44416] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44425] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44433] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44448] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44466] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44471] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44485] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44490] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44502] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44515] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44535] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44543] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44586] },
+    { 0u, 0u, 141u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44629] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44771] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44781] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44785] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44795] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44800] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44809] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44828] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44846] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44848] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44851] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44862] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44873] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44882] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44885] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44892] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44901] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44923] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44935] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44947] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44971] },
+    { 0u, 0u, 78u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[44981] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45060] },
+    { 0u, 0u, 51u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45065] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45117] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45121] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45130] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45137] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45144] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45193] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45242] },
+    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45251] },
+    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45310] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45367] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45371] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45383] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45432] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45468] },
+    { 0u, 0u, 42u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45493] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45536] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45585] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45594] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45601] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45608] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45616] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45622] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45629] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45637] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45648] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45665] },
+    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45677] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45734] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45742] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45750] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45776] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45781] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45788] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45803] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45805] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45808] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45813] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45823] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45842] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45857] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45873] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45879] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45884] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45935] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45976] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45983] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45997] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46015] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46033] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46050] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46085] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46089] },
+    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46095] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46152] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46164] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46168] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46175] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46180] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46188] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46201] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46233] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46240] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46247] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46255] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46261] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46274] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46280] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46288] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46301] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46309] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46315] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46340] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46363] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46370] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46407] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46412] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46424] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46437] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46457] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46463] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46469] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46476] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46484] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46494] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46510] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46526] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46535] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46550] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46575] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46590] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46606] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46617] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46636] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46647] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46664] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46680] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46690] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46731] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46766] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46805] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46841] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46881] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46898] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46916] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46936] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46951] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[46976] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47009] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47040] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47075] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47105] },
+    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47140] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47173] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47211] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47226] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47251] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47274] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47294] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47318] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47340] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47362] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47385] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47409] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47431] },
     { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47440] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47449] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47458] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47463] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47474] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47482] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47492] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47508] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47518] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47528] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47544] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47555] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47570] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47585] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47600] },
-    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47609] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47658] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47665] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47685] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47722] },
-    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47760] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47817] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47832] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47845] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47855] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47864] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47874] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47898] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47925] },
-    { 0u, 0u, 32u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47952] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47985] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48000] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48018] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48031] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48042] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48054] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48061] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48068] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48076] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48116] },
-    { 0u, 0u, 71u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48142] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48214] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48224] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48235] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48246] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48277] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48294] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48311] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48322] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48340] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48371] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48391] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48408] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48413] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48417] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48429] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48436] },
-    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48445] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48484] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48494] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48511] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48525] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48540] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48556] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48569] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48571] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48575] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48584] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48610] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48617] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48652] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48698] },
-    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48703] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48764] },
-    { 0u, 0u, 74u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48815] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48890] },
-    { 0u, 0u, 82u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48921] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49004] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49055] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49068] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49079] },
-    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49094] },
-    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49152] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49196] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49210] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49222] },
-    { 0u, 0u, 96u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49237] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49334] },
-    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49384] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49443] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49463] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49483] },
-    { 0u, 0u, 146u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49536] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49683] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49697] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49715] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49760] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49770] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49782] },
-    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49804] },
-    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49878] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49940] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49957] },
-    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50007] },
-    { 0u, 0u, 69u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50071] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50141] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50167] },
-    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50189] },
-    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50263] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50303] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50309] },
-    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50319] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50351] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50382] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50398] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50416] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50429] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50466] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50517] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50523] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50531] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50542] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50579] },
-    { 0u, 0u, 97u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50599] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50697] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50702] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50706] },
-    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50712] },
-    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50757] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50807] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50812] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50823] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50861] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50875] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50892] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50933] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50953] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50983] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50994] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51005] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51016] },
-    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51032] },
-    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51087] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51116] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51127] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51137] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51148] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51159] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51170] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51181] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51191] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51225] },
-    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51235] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51269] },
-    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51277] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51318] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51341] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51349] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51358] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51374] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51376] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51379] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51401] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51410] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51414] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51418] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51426] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51449] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51456] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51463] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51470] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51477] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51485] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51508] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51516] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51520] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51528] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51551] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51558] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51565] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51572] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51579] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51587] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51610] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51618] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51621] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51625] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51634] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51643] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51652] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51660] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51670] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51678] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51700] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51717] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51727] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51755] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51776] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51800] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51817] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51823] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51831] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51859] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51880] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51895] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51912] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51935] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51959] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51977] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51982] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51994] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52011] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52033] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52056] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52074] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52096] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52117] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52127] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52136] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52155] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52182] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52213] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52233] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52253] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52273] },
-    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52301] },
-    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52348] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52394] },
-    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52424] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52498] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52504] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52512] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52523] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52558] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52565] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52583] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52601] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52608] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52630] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52649] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52667] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52685] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52702] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52726] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52742] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52766] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52783] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52804] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52826] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52847] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52868] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52889] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52910] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52931] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52951] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52972] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52992] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53012] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53037] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53062] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53084] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53110] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53134] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53153] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53171] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53185] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53200] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53216] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53242] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53261] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53291] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53309] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53335] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53355] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53366] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53379] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53394] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53408] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53423] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53435] },
-    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53448] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53475] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53497] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53519] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53541] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53562] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53587] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53604] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53627] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53650] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53673] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53695] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53711] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53737] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53748] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53762] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53782] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53801] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53818] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53830] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53851] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53868] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53885] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53911] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53926] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53943] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53964] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53979] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54000] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54017] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54028] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54040] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54056] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54071] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54088] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54105] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54124] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54142] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54155] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54181] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54206] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54230] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54242] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54264] },
-    { 0u, 0u, 119u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54283] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54403] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54423] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54435] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54460] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54484] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54507] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54521] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54540] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54556] },
-    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54572] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54589] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54603] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54626] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54647] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54669] },
-    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54693] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54717] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54743] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54764] },
-    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54782] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54812] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54827] },
-    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54843] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54864] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54878] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54889] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54911] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54929] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54951] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54969] },
-    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54987] },
-    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55005] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55025] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55035] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55041] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55048] },
-    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55101] },
-    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55123] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55176] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55185] },
-    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55195] },
-    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55220] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55271] },
-    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55284] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55307] },
-    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55321] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55359] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55365] },
-    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55374] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55388] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55403] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55408] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55414] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55421] },
-    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55430] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55449] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55465] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55481] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55489] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55497] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55502] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55509] },
-    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55512] },
-    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55540] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55575] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55581] },
-    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55589] },
-    { 0u, 0u, 117u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55626] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55744] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55775] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55783] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55795] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55801] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55809] },
-    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55818] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55882] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55893] },
-    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55903] },
-    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55916] },
-    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55932] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55947] },
-    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55954] },
-    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55980] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56016] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56023] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56027] },
-    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56033] },
-    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56064] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56127] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56129] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56132] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56135] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56139] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56143] },
-    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56150] },
-    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56158] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56168] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56170] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56173] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56175] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56178] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56190] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56199] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56203] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56205] },
-    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[56209] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47449] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47454] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47465] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47473] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47483] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47499] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47509] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47519] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47535] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47546] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47561] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47576] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47591] },
+    { 0u, 0u, 48u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47600] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47649] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47656] },
+    { 0u, 0u, 56u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47676] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47733] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47748] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47761] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47771] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47780] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47790] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47803] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47814] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47826] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47833] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47840] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47848] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47888] },
+    { 0u, 0u, 71u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47914] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47986] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47996] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48007] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48018] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48049] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48066] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48083] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48094] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48112] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48143] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48163] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48180] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48185] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48189] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48201] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48208] },
+    { 0u, 0u, 38u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48217] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48256] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48266] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48283] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48297] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48312] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48328] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48341] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48343] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48347] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48356] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48382] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48389] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48424] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48470] },
+    { 0u, 0u, 60u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48475] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48536] },
+    { 0u, 0u, 74u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48587] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48662] },
+    { 0u, 0u, 82u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48693] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48776] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48827] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48840] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48851] },
+    { 0u, 0u, 57u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48866] },
+    { 0u, 0u, 43u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48924] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48968] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48982] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[48994] },
+    { 0u, 0u, 96u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49009] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49106] },
+    { 0u, 0u, 58u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49156] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49215] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49235] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49255] },
+    { 0u, 0u, 146u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49308] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49455] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49469] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49487] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49532] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49542] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49554] },
+    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49576] },
+    { 0u, 0u, 61u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49650] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49712] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49729] },
+    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49779] },
+    { 0u, 0u, 69u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49843] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49913] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49939] },
+    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49961] },
+    { 0u, 0u, 39u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50035] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50075] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50081] },
+    { 0u, 0u, 31u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50091] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50123] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50154] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50170] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50188] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50201] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50238] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50289] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50295] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50303] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50314] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50351] },
+    { 0u, 0u, 97u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50371] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50469] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50474] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50478] },
+    { 0u, 0u, 44u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50484] },
+    { 0u, 0u, 49u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50529] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50579] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50584] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50595] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50633] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50647] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50664] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50705] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50725] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50755] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50766] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50777] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50788] },
+    { 0u, 0u, 54u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50804] },
+    { 0u, 0u, 28u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50859] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50888] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50899] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50909] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50920] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50931] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50942] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50953] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50963] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[50997] },
+    { 0u, 0u, 33u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51007] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51041] },
+    { 0u, 0u, 40u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51049] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51090] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51113] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51121] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51130] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51146] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51148] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51151] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51173] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51182] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51186] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51190] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51198] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51221] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51228] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51235] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51242] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51249] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51257] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51280] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51288] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51292] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51300] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51323] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51330] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51337] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51344] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51351] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51359] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51382] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51390] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51393] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51397] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51406] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51415] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51424] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51432] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51442] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51450] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51472] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51489] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51499] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51527] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51548] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51572] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51589] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51595] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51603] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51631] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51652] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51667] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51684] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51707] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51731] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51749] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51754] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51766] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51783] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51805] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51828] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51846] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51868] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51889] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51899] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51908] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51927] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51954] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[51985] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52005] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52025] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52045] },
+    { 0u, 0u, 46u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52073] },
+    { 0u, 0u, 45u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52120] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52166] },
+    { 0u, 0u, 73u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52196] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52270] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52276] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52284] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52295] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52330] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52337] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52355] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52373] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52380] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52402] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52421] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52439] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52457] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52474] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52498] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52514] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52538] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52555] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52576] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52598] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52619] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52640] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52661] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52682] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52703] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52723] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52744] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52764] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52784] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52809] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52834] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52856] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52882] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52906] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52925] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52943] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52957] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52972] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52988] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53014] },
+    { 0u, 0u, 29u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53033] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53063] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53081] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53107] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53127] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53138] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53151] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53166] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53180] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53195] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53207] },
+    { 0u, 0u, 26u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53220] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53247] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53269] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53291] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53313] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53334] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53359] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53376] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53399] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53422] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53445] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53467] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53483] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53509] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53520] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53534] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53554] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53573] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53590] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53602] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53623] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53640] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53657] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53683] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53698] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53715] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53736] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53751] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53772] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53789] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53800] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53812] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53828] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53843] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53860] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53877] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53896] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53914] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53927] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53953] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[53978] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54002] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54014] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54036] },
+    { 0u, 0u, 119u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54055] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54175] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54195] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54207] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54232] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54256] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54279] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54293] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54312] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54328] },
+    { 0u, 0u, 16u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54344] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54361] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54375] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54398] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54419] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54441] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54465] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54489] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54510] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54528] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54543] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54559] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54580] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54594] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54605] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54627] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54645] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54667] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54685] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54703] },
+    { 0u, 0u, 19u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54721] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54741] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54751] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54757] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54764] },
+    { 0u, 0u, 21u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54817] },
+    { 0u, 0u, 52u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54839] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54892] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54901] },
+    { 0u, 0u, 24u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54911] },
+    { 0u, 0u, 50u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54936] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[54987] },
+    { 0u, 0u, 22u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55000] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55023] },
+    { 0u, 0u, 37u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55037] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55075] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55081] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55090] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55104] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55119] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55124] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55130] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55137] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55146] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55165] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55181] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55197] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55205] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55213] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55218] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55225] },
+    { 0u, 0u, 27u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55228] },
+    { 0u, 0u, 34u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55256] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55291] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55297] },
+    { 0u, 0u, 36u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55305] },
+    { 0u, 0u, 117u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55342] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55460] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55491] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55499] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55511] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55517] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55525] },
+    { 0u, 0u, 63u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55534] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55598] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55609] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55619] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55632] },
+    { 0u, 0u, 14u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55648] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55663] },
+    { 0u, 0u, 25u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55670] },
+    { 0u, 0u, 35u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55696] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55732] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55739] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55743] },
+    { 0u, 0u, 30u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55749] },
+    { 0u, 0u, 62u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55780] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55843] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55845] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55848] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55851] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55855] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55859] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55866] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55874] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55884] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55886] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55889] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55891] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55894] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55906] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55915] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55919] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55921] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[55925] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 2778u
+#define VADER_COMPTIME_ATOM_COUNT 2767u
 
 /* Comptime data pool — read-only arrays in `.rodata`.
  * Out-of-arena pointers are immortal to the GC (it never copies /
  * relocates them), so `data.const` boxes a zero-copy view. */
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint64_t slots[1302]; } vader_data_0_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1302u, 1302u, 287u, 4u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1302u, 1302u, 291u, 4u, { 0u, 0u, 0u },
     {
         (uint64_t) UINT64_C(17218479456385750618), (uint64_t) UINT64_C(1242899115359157055),
         (uint64_t) UINT64_C(10761549660241094136), (uint64_t) UINT64_C(5388497965526861063),
@@ -6227,7 +6205,7 @@ const vader_array_t vader_data_0 = {
     { 21u, 0u, 0u, 0u, NULL }, 1302u, 1302u, 0u, (vader_array_buf_t*) &vader_data_0_buf,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint64_t slots[684]; } vader_data_1_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 684u, 684u, 287u, 4u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 684u, 684u, 291u, 4u, { 0u, 0u, 0u },
     {
         (uint64_t) UINT64_C(1), (uint64_t) UINT64_C(2305843009213693952),
         (uint64_t) UINT64_C(11068046444225730970), (uint64_t) UINT64_C(1844674407370955161),
@@ -6577,7 +6555,7 @@ const vader_array_t vader_data_1 = {
     { 21u, 0u, 0u, 0u, NULL }, 684u, 684u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; uint64_t slots[652]; } vader_data_2_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 287u, 4u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 652u, 652u, 291u, 4u, { 0u, 0u, 0u },
     {
         (uint64_t) UINT64_C(0), (uint64_t) UINT64_C(1152921504606846976), (uint64_t) UINT64_C(0),
         (uint64_t) UINT64_C(1441151880758558720), (uint64_t) UINT64_C(0),
@@ -6911,137 +6889,137 @@ const vader_array_t vader_data_2 = {
     { 21u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_2_buf,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e0 = {
-    { 866u, 0u, 0u, 0u, NULL }, 471u, 1696u,
+    { 867u, 0u, 0u, 0u, NULL }, 471u, 1695u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e1 = {
-    { 866u, 0u, 0u, 0u, NULL }, 472u, 1544u,
+    { 867u, 0u, 0u, 0u, NULL }, 472u, 1544u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e2 = {
-    { 866u, 0u, 0u, 0u, NULL }, 473u, 1786u,
+    { 867u, 0u, 0u, 0u, NULL }, 473u, 1785u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e3 = {
-    { 866u, 0u, 0u, 0u, NULL }, 474u, 1540u,
+    { 867u, 0u, 0u, 0u, NULL }, 474u, 1540u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e4 = {
-    { 866u, 0u, 0u, 0u, NULL }, 475u, 1541u,
+    { 867u, 0u, 0u, 0u, NULL }, 475u, 1541u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e5 = {
-    { 866u, 0u, 0u, 0u, NULL }, 476u, 447u,
+    { 867u, 0u, 0u, 0u, NULL }, 476u, 447u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e6 = {
-    { 866u, 0u, 0u, 0u, NULL }, 477u, 1548u,
+    { 867u, 0u, 0u, 0u, NULL }, 477u, 1548u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e7 = {
-    { 866u, 0u, 0u, 0u, NULL }, 478u, 511u,
+    { 867u, 0u, 0u, 0u, NULL }, 478u, 511u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e8 = {
-    { 866u, 0u, 0u, 0u, NULL }, 479u, 1542u,
+    { 867u, 0u, 0u, 0u, NULL }, 479u, 1542u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e9 = {
-    { 866u, 0u, 0u, 0u, NULL }, 480u, 1546u,
+    { 867u, 0u, 0u, 0u, NULL }, 480u, 1546u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e10 = {
-    { 866u, 0u, 0u, 0u, NULL }, 481u, 1545u,
+    { 867u, 0u, 0u, 0u, NULL }, 481u, 1545u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e11 = {
-    { 866u, 0u, 0u, 0u, NULL }, 482u, 446u,
+    { 867u, 0u, 0u, 0u, NULL }, 482u, 446u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e12 = {
-    { 866u, 0u, 0u, 0u, NULL }, 483u, 1583u,
+    { 867u, 0u, 0u, 0u, NULL }, 483u, 1582u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e13 = {
-    { 866u, 0u, 0u, 0u, NULL }, 484u, 1812u,
+    { 867u, 0u, 0u, 0u, NULL }, 484u, 1811u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e14 = {
-    { 866u, 0u, 0u, 0u, NULL }, 485u, 1536u,
+    { 867u, 0u, 0u, 0u, NULL }, 485u, 1536u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e15 = {
-    { 866u, 0u, 0u, 0u, NULL }, 486u, 1897u,
+    { 867u, 0u, 0u, 0u, NULL }, 486u, 1896u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_3_e16 = {
-    { 866u, 0u, 0u, 0u, NULL }, 487u, 1928u,
+    { 867u, 0u, 0u, 0u, NULL }, 487u, 1927u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[17]; } vader_data_3_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 17u, 17u, 866u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 17u, 17u, 867u, 0u, { 0u, 0u, 0u },
     {
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e0 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e1 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e2 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e3 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e4 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e5 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e6 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e7 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e8 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e9 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e10,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e11,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e12,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e13,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e14,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e15,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_3_e16,
             },
@@ -7049,365 +7027,365 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_3 = {
-    { 77u, 0u, 0u, 0u, NULL }, 17u, 17u, 0u, (vader_array_buf_t*) &vader_data_3_buf,
+    { 81u, 0u, 0u, 0u, NULL }, 17u, 17u, 0u, (vader_array_buf_t*) &vader_data_3_buf,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e0 = {
-    { 866u, 0u, 0u, 0u, NULL }, 633u, 2101u,
+    { 867u, 0u, 0u, 0u, NULL }, 633u, 2100u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e1 = {
-    { 866u, 0u, 0u, 0u, NULL }, 634u, 1892u,
+    { 867u, 0u, 0u, 0u, NULL }, 634u, 1891u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e2 = {
-    { 866u, 0u, 0u, 0u, NULL }, 635u, 1895u,
+    { 867u, 0u, 0u, 0u, NULL }, 635u, 1894u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e3 = {
-    { 866u, 0u, 0u, 0u, NULL }, 636u, 1617u,
+    { 867u, 0u, 0u, 0u, NULL }, 636u, 1616u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e4 = {
-    { 866u, 0u, 0u, 0u, NULL }, 637u, 1890u,
+    { 867u, 0u, 0u, 0u, NULL }, 637u, 1889u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e5 = {
-    { 866u, 0u, 0u, 0u, NULL }, 638u, 2562u,
+    { 867u, 0u, 0u, 0u, NULL }, 638u, 2553u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e6 = {
-    { 866u, 0u, 0u, 0u, NULL }, 639u, 2563u,
+    { 867u, 0u, 0u, 0u, NULL }, 639u, 2554u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e7 = {
-    { 866u, 0u, 0u, 0u, NULL }, 640u, 2405u,
+    { 867u, 0u, 0u, 0u, NULL }, 640u, 2396u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e8 = {
-    { 866u, 0u, 0u, 0u, NULL }, 641u, 2469u,
+    { 867u, 0u, 0u, 0u, NULL }, 641u, 2460u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e9 = {
-    { 866u, 0u, 0u, 0u, NULL }, 642u, 1586u,
+    { 867u, 0u, 0u, 0u, NULL }, 642u, 1585u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e10 = {
-    { 866u, 0u, 0u, 0u, NULL }, 643u, 1615u,
+    { 867u, 0u, 0u, 0u, NULL }, 643u, 1614u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e11 = {
-    { 866u, 0u, 0u, 0u, NULL }, 644u, 1896u,
+    { 867u, 0u, 0u, 0u, NULL }, 644u, 1895u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e12 = {
-    { 866u, 0u, 0u, 0u, NULL }, 645u, 2267u,
+    { 867u, 0u, 0u, 0u, NULL }, 645u, 2266u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e13 = {
-    { 866u, 0u, 0u, 0u, NULL }, 646u, 2580u,
+    { 867u, 0u, 0u, 0u, NULL }, 646u, 2571u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e14 = {
-    { 866u, 0u, 0u, 0u, NULL }, 647u, 2099u,
+    { 867u, 0u, 0u, 0u, NULL }, 647u, 2098u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e15 = {
-    { 866u, 0u, 0u, 0u, NULL }, 648u, 2277u,
+    { 867u, 0u, 0u, 0u, NULL }, 648u, 2276u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e16 = {
-    { 866u, 0u, 0u, 0u, NULL }, 649u, 1726u,
+    { 867u, 0u, 0u, 0u, NULL }, 649u, 1725u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e17 = {
-    { 866u, 0u, 0u, 0u, NULL }, 650u, 2173u,
+    { 867u, 0u, 0u, 0u, NULL }, 650u, 2172u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e18 = {
-    { 866u, 0u, 0u, 0u, NULL }, 651u, 1208u,
+    { 867u, 0u, 0u, 0u, NULL }, 651u, 1208u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e19 = {
-    { 866u, 0u, 0u, 0u, NULL }, 652u, 2098u,
+    { 867u, 0u, 0u, 0u, NULL }, 652u, 2097u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e20 = {
-    { 866u, 0u, 0u, 0u, NULL }, 653u, 2102u,
+    { 867u, 0u, 0u, 0u, NULL }, 653u, 2101u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e21 = {
-    { 866u, 0u, 0u, 0u, NULL }, 654u, 1757u,
+    { 867u, 0u, 0u, 0u, NULL }, 654u, 1756u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e22 = {
-    { 866u, 0u, 0u, 0u, NULL }, 655u, 2476u,
+    { 867u, 0u, 0u, 0u, NULL }, 655u, 2467u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e23 = {
-    { 866u, 0u, 0u, 0u, NULL }, 656u, 2268u,
+    { 867u, 0u, 0u, 0u, NULL }, 656u, 2267u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e24 = {
-    { 866u, 0u, 0u, 0u, NULL }, 657u, 2232u,
+    { 867u, 0u, 0u, 0u, NULL }, 657u, 2231u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e25 = {
-    { 866u, 0u, 0u, 0u, NULL }, 658u, 1616u,
+    { 867u, 0u, 0u, 0u, NULL }, 658u, 1615u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e26 = {
-    { 866u, 0u, 0u, 0u, NULL }, 659u, 1691u,
+    { 867u, 0u, 0u, 0u, NULL }, 659u, 1690u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e27 = {
-    { 866u, 0u, 0u, 0u, NULL }, 660u, 1685u,
+    { 867u, 0u, 0u, 0u, NULL }, 660u, 1684u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e28 = {
-    { 866u, 0u, 0u, 0u, NULL }, 661u, 1188u,
+    { 867u, 0u, 0u, 0u, NULL }, 661u, 1188u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e29 = {
-    { 866u, 0u, 0u, 0u, NULL }, 662u, 1555u,
+    { 867u, 0u, 0u, 0u, NULL }, 662u, 1555u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e30 = {
-    { 866u, 0u, 0u, 0u, NULL }, 663u, 2108u,
+    { 867u, 0u, 0u, 0u, NULL }, 663u, 2107u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e31 = {
-    { 866u, 0u, 0u, 0u, NULL }, 664u, 2439u,
+    { 867u, 0u, 0u, 0u, NULL }, 664u, 2430u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e32 = {
-    { 866u, 0u, 0u, 0u, NULL }, 665u, 1264u,
+    { 867u, 0u, 0u, 0u, NULL }, 665u, 1264u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e33 = {
-    { 866u, 0u, 0u, 0u, NULL }, 666u, 1270u,
+    { 867u, 0u, 0u, 0u, NULL }, 666u, 1270u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e34 = {
-    { 866u, 0u, 0u, 0u, NULL }, 667u, 2554u,
+    { 867u, 0u, 0u, 0u, NULL }, 667u, 2545u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e35 = {
-    { 866u, 0u, 0u, 0u, NULL }, 668u, 1177u,
+    { 867u, 0u, 0u, 0u, NULL }, 668u, 1177u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e36 = {
-    { 866u, 0u, 0u, 0u, NULL }, 669u, 1175u,
+    { 867u, 0u, 0u, 0u, NULL }, 669u, 1175u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e37 = {
-    { 866u, 0u, 0u, 0u, NULL }, 670u, 2475u,
+    { 867u, 0u, 0u, 0u, NULL }, 670u, 2466u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e38 = {
-    { 866u, 0u, 0u, 0u, NULL }, 671u, 1612u,
+    { 867u, 0u, 0u, 0u, NULL }, 671u, 1611u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e39 = {
-    { 866u, 0u, 0u, 0u, NULL }, 672u, 1176u,
+    { 867u, 0u, 0u, 0u, NULL }, 672u, 1176u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e40 = {
-    { 866u, 0u, 0u, 0u, NULL }, 673u, 2123u,
+    { 867u, 0u, 0u, 0u, NULL }, 673u, 2122u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_4_e41 = {
-    { 866u, 0u, 0u, 0u, NULL }, 674u, 1236u,
+    { 867u, 0u, 0u, 0u, NULL }, 674u, 1236u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[42]; } vader_data_4_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 42u, 42u, 866u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 42u, 42u, 867u, 0u, { 0u, 0u, 0u },
     {
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e0 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e1 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e2 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e3 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e4 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e5 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e6 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e7 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e8 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e9 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e10,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e11,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e12,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e13,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e14,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e15,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e16,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e17,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e18,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e19,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e20,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e21,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e22,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e23,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e24,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e25,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e26,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e27,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e28,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e29,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e30,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e31,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e32,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e33,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e34,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e35,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e36,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e37,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e38,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e39,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e40,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_4_e41,
             },
@@ -7415,815 +7393,815 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_4 = {
-    { 77u, 0u, 0u, 0u, NULL }, 42u, 42u, 0u, (vader_array_buf_t*) &vader_data_4_buf,
+    { 81u, 0u, 0u, 0u, NULL }, 42u, 42u, 0u, (vader_array_buf_t*) &vader_data_4_buf,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e0 = {
-    { 866u, 0u, 0u, 0u, NULL }, 689u, 2480u,
+    { 867u, 0u, 0u, 0u, NULL }, 689u, 2471u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e1 = {
-    { 866u, 0u, 0u, 0u, NULL }, 690u, 1675u,
+    { 867u, 0u, 0u, 0u, NULL }, 690u, 1674u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e2 = {
-    { 866u, 0u, 0u, 0u, NULL }, 691u, 2754u,
+    { 867u, 0u, 0u, 0u, NULL }, 691u, 2743u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e3 = {
-    { 866u, 0u, 0u, 0u, NULL }, 692u, 2553u,
+    { 867u, 0u, 0u, 0u, NULL }, 692u, 2544u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e4 = {
-    { 866u, 0u, 0u, 0u, NULL }, 693u, 2091u,
+    { 867u, 0u, 0u, 0u, NULL }, 693u, 2090u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e5 = {
-    { 866u, 0u, 0u, 0u, NULL }, 694u, 2470u,
+    { 867u, 0u, 0u, 0u, NULL }, 694u, 2461u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e6 = {
-    { 866u, 0u, 0u, 0u, NULL }, 695u, 1697u,
+    { 867u, 0u, 0u, 0u, NULL }, 695u, 1696u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e7 = {
-    { 866u, 0u, 0u, 0u, NULL }, 696u, 1698u,
+    { 867u, 0u, 0u, 0u, NULL }, 696u, 1697u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e8 = {
-    { 866u, 0u, 0u, 0u, NULL }, 697u, 1740u,
+    { 867u, 0u, 0u, 0u, NULL }, 697u, 1739u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e9 = {
-    { 866u, 0u, 0u, 0u, NULL }, 698u, 1948u,
+    { 867u, 0u, 0u, 0u, NULL }, 698u, 1947u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e10 = {
-    { 866u, 0u, 0u, 0u, NULL }, 699u, 2137u,
+    { 867u, 0u, 0u, 0u, NULL }, 699u, 2136u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e11 = {
-    { 866u, 0u, 0u, 0u, NULL }, 700u, 2559u,
+    { 867u, 0u, 0u, 0u, NULL }, 700u, 2550u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e12 = {
-    { 866u, 0u, 0u, 0u, NULL }, 701u, 1193u,
+    { 867u, 0u, 0u, 0u, NULL }, 701u, 1193u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e13 = {
-    { 866u, 0u, 0u, 0u, NULL }, 702u, 1204u,
+    { 867u, 0u, 0u, 0u, NULL }, 702u, 1204u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e14 = {
-    { 866u, 0u, 0u, 0u, NULL }, 703u, 2168u,
+    { 867u, 0u, 0u, 0u, NULL }, 703u, 2167u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e15 = {
-    { 866u, 0u, 0u, 0u, NULL }, 704u, 2368u,
+    { 867u, 0u, 0u, 0u, NULL }, 704u, 2365u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e16 = {
-    { 866u, 0u, 0u, 0u, NULL }, 705u, 1554u,
+    { 867u, 0u, 0u, 0u, NULL }, 705u, 1554u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e17 = {
-    { 866u, 0u, 0u, 0u, NULL }, 706u, 1784u,
+    { 867u, 0u, 0u, 0u, NULL }, 706u, 1783u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e18 = {
-    { 866u, 0u, 0u, 0u, NULL }, 707u, 1811u,
+    { 867u, 0u, 0u, 0u, NULL }, 707u, 1810u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e19 = {
-    { 866u, 0u, 0u, 0u, NULL }, 708u, 1573u,
+    { 867u, 0u, 0u, 0u, NULL }, 708u, 1572u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e20 = {
-    { 866u, 0u, 0u, 0u, NULL }, 709u, 2574u,
+    { 867u, 0u, 0u, 0u, NULL }, 709u, 2565u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e21 = {
-    { 866u, 0u, 0u, 0u, NULL }, 710u, 1789u,
+    { 867u, 0u, 0u, 0u, NULL }, 710u, 1788u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e22 = {
-    { 866u, 0u, 0u, 0u, NULL }, 711u, 2110u,
+    { 867u, 0u, 0u, 0u, NULL }, 711u, 2109u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e23 = {
-    { 866u, 0u, 0u, 0u, NULL }, 712u, 2479u,
+    { 867u, 0u, 0u, 0u, NULL }, 712u, 2470u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e24 = {
-    { 866u, 0u, 0u, 0u, NULL }, 713u, 2550u,
+    { 867u, 0u, 0u, 0u, NULL }, 713u, 2541u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e25 = {
-    { 866u, 0u, 0u, 0u, NULL }, 714u, 1495u,
+    { 867u, 0u, 0u, 0u, NULL }, 714u, 1495u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e26 = {
-    { 866u, 0u, 0u, 0u, NULL }, 715u, 1637u,
+    { 867u, 0u, 0u, 0u, NULL }, 715u, 1636u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e27 = {
-    { 866u, 0u, 0u, 0u, NULL }, 716u, 1639u,
+    { 867u, 0u, 0u, 0u, NULL }, 716u, 1638u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e28 = {
-    { 866u, 0u, 0u, 0u, NULL }, 717u, 1613u,
+    { 867u, 0u, 0u, 0u, NULL }, 717u, 1612u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e29 = {
-    { 866u, 0u, 0u, 0u, NULL }, 718u, 1301u,
+    { 867u, 0u, 0u, 0u, NULL }, 718u, 1301u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e30 = {
-    { 866u, 0u, 0u, 0u, NULL }, 719u, 1946u,
+    { 867u, 0u, 0u, 0u, NULL }, 719u, 1945u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e31 = {
-    { 866u, 0u, 0u, 0u, NULL }, 720u, 2222u,
+    { 867u, 0u, 0u, 0u, NULL }, 720u, 2221u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e32 = {
-    { 866u, 0u, 0u, 0u, NULL }, 721u, 2489u,
+    { 867u, 0u, 0u, 0u, NULL }, 721u, 2480u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e33 = {
-    { 866u, 0u, 0u, 0u, NULL }, 722u, 1884u,
+    { 867u, 0u, 0u, 0u, NULL }, 722u, 1883u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e34 = {
-    { 866u, 0u, 0u, 0u, NULL }, 723u, 2092u,
+    { 867u, 0u, 0u, 0u, NULL }, 723u, 2091u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e35 = {
-    { 866u, 0u, 0u, 0u, NULL }, 724u, 1738u,
+    { 867u, 0u, 0u, 0u, NULL }, 724u, 1737u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e36 = {
-    { 866u, 0u, 0u, 0u, NULL }, 725u, 1179u,
+    { 867u, 0u, 0u, 0u, NULL }, 725u, 1179u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e37 = {
-    { 866u, 0u, 0u, 0u, NULL }, 726u, 2420u,
+    { 867u, 0u, 0u, 0u, NULL }, 726u, 2411u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e38 = {
-    { 866u, 0u, 0u, 0u, NULL }, 727u, 1501u,
+    { 867u, 0u, 0u, 0u, NULL }, 727u, 1501u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e39 = {
-    { 866u, 0u, 0u, 0u, NULL }, 728u, 1498u,
+    { 867u, 0u, 0u, 0u, NULL }, 728u, 1498u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e40 = {
-    { 866u, 0u, 0u, 0u, NULL }, 730u, 1945u,
+    { 867u, 0u, 0u, 0u, NULL }, 730u, 1944u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e41 = {
-    { 866u, 0u, 0u, 0u, NULL }, 731u, 1171u,
+    { 867u, 0u, 0u, 0u, NULL }, 731u, 1171u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e42 = {
-    { 866u, 0u, 0u, 0u, NULL }, 732u, 1692u,
+    { 867u, 0u, 0u, 0u, NULL }, 732u, 1691u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e43 = {
-    { 866u, 0u, 0u, 0u, NULL }, 733u, 1785u,
+    { 867u, 0u, 0u, 0u, NULL }, 733u, 1784u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e44 = {
-    { 866u, 0u, 0u, 0u, NULL }, 734u, 1290u,
+    { 867u, 0u, 0u, 0u, NULL }, 734u, 1290u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e45 = {
-    { 866u, 0u, 0u, 0u, NULL }, 735u, 1521u,
+    { 867u, 0u, 0u, 0u, NULL }, 735u, 1521u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e46 = {
-    { 866u, 0u, 0u, 0u, NULL }, 729u, 2161u,
+    { 867u, 0u, 0u, 0u, NULL }, 729u, 2160u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e47 = {
-    { 866u, 0u, 0u, 0u, NULL }, 736u, 1253u,
+    { 867u, 0u, 0u, 0u, NULL }, 736u, 1253u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e48 = {
-    { 866u, 0u, 0u, 0u, NULL }, 744u, 1926u,
+    { 867u, 0u, 0u, 0u, NULL }, 744u, 1925u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e49 = {
-    { 866u, 0u, 0u, 0u, NULL }, 737u, 1255u,
+    { 867u, 0u, 0u, 0u, NULL }, 737u, 1255u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e50 = {
-    { 866u, 0u, 0u, 0u, NULL }, 738u, 1209u,
+    { 867u, 0u, 0u, 0u, NULL }, 738u, 1209u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e51 = {
-    { 866u, 0u, 0u, 0u, NULL }, 739u, 1196u,
+    { 867u, 0u, 0u, 0u, NULL }, 739u, 1196u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e52 = {
-    { 866u, 0u, 0u, 0u, NULL }, 740u, 2760u,
+    { 867u, 0u, 0u, 0u, NULL }, 740u, 2749u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e53 = {
-    { 866u, 0u, 0u, 0u, NULL }, 741u, 1235u,
+    { 867u, 0u, 0u, 0u, NULL }, 741u, 1235u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e54 = {
-    { 866u, 0u, 0u, 0u, NULL }, 742u, 1375u,
+    { 867u, 0u, 0u, 0u, NULL }, 742u, 1375u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e55 = {
-    { 866u, 0u, 0u, 0u, NULL }, 743u, 1191u,
+    { 867u, 0u, 0u, 0u, NULL }, 743u, 1191u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e56 = {
-    { 866u, 0u, 0u, 0u, NULL }, 745u, 1194u,
+    { 867u, 0u, 0u, 0u, NULL }, 745u, 1194u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e57 = {
-    { 866u, 0u, 0u, 0u, NULL }, 746u, 1153u,
+    { 867u, 0u, 0u, 0u, NULL }, 746u, 1153u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e58 = {
-    { 866u, 0u, 0u, 0u, NULL }, 747u, 1496u,
+    { 867u, 0u, 0u, 0u, NULL }, 747u, 1496u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e59 = {
-    { 866u, 0u, 0u, 0u, NULL }, 748u, 1499u,
+    { 867u, 0u, 0u, 0u, NULL }, 748u, 1499u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e60 = {
-    { 866u, 0u, 0u, 0u, NULL }, 749u, 2455u,
+    { 867u, 0u, 0u, 0u, NULL }, 749u, 2446u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e61 = {
-    { 866u, 0u, 0u, 0u, NULL }, 750u, 2448u,
+    { 867u, 0u, 0u, 0u, NULL }, 750u, 2439u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e62 = {
-    { 866u, 0u, 0u, 0u, NULL }, 751u, 2452u,
+    { 867u, 0u, 0u, 0u, NULL }, 751u, 2443u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e63 = {
-    { 866u, 0u, 0u, 0u, NULL }, 752u, 1281u,
+    { 867u, 0u, 0u, 0u, NULL }, 752u, 1281u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e64 = {
-    { 866u, 0u, 0u, 0u, NULL }, 753u, 1229u,
+    { 867u, 0u, 0u, 0u, NULL }, 753u, 1229u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e65 = {
-    { 866u, 0u, 0u, 0u, NULL }, 754u, 1262u,
+    { 867u, 0u, 0u, 0u, NULL }, 754u, 1262u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e66 = {
-    { 866u, 0u, 0u, 0u, NULL }, 755u, 1267u,
+    { 867u, 0u, 0u, 0u, NULL }, 755u, 1267u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e67 = {
-    { 866u, 0u, 0u, 0u, NULL }, 756u, 2451u,
+    { 867u, 0u, 0u, 0u, NULL }, 756u, 2442u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e68 = {
-    { 866u, 0u, 0u, 0u, NULL }, 757u, 1585u,
+    { 867u, 0u, 0u, 0u, NULL }, 757u, 1584u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e69 = {
-    { 866u, 0u, 0u, 0u, NULL }, 758u, 1487u,
+    { 867u, 0u, 0u, 0u, NULL }, 758u, 1487u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e70 = {
-    { 866u, 0u, 0u, 0u, NULL }, 759u, 2708u,
+    { 867u, 0u, 0u, 0u, NULL }, 759u, 2697u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e71 = {
-    { 866u, 0u, 0u, 0u, NULL }, 760u, 2140u,
+    { 867u, 0u, 0u, 0u, NULL }, 760u, 2139u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e72 = {
-    { 866u, 0u, 0u, 0u, NULL }, 761u, 2141u,
+    { 867u, 0u, 0u, 0u, NULL }, 761u, 2140u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e73 = {
-    { 866u, 0u, 0u, 0u, NULL }, 762u, 1638u,
+    { 867u, 0u, 0u, 0u, NULL }, 762u, 1637u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e74 = {
-    { 866u, 0u, 0u, 0u, NULL }, 763u, 2714u,
+    { 867u, 0u, 0u, 0u, NULL }, 763u, 2703u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e75 = {
-    { 866u, 0u, 0u, 0u, NULL }, 764u, 1280u,
+    { 867u, 0u, 0u, 0u, NULL }, 764u, 1280u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e76 = {
-    { 866u, 0u, 0u, 0u, NULL }, 765u, 1305u,
+    { 867u, 0u, 0u, 0u, NULL }, 765u, 1305u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e77 = {
-    { 866u, 0u, 0u, 0u, NULL }, 766u, 2709u,
+    { 867u, 0u, 0u, 0u, NULL }, 766u, 2698u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e78 = {
-    { 866u, 0u, 0u, 0u, NULL }, 767u, 2017u,
+    { 867u, 0u, 0u, 0u, NULL }, 767u, 2016u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e79 = {
-    { 866u, 0u, 0u, 0u, NULL }, 768u, 1318u,
+    { 867u, 0u, 0u, 0u, NULL }, 768u, 1318u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e80 = {
-    { 866u, 0u, 0u, 0u, NULL }, 769u, 1271u,
+    { 867u, 0u, 0u, 0u, NULL }, 769u, 1271u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e81 = {
-    { 866u, 0u, 0u, 0u, NULL }, 770u, 1322u,
+    { 867u, 0u, 0u, 0u, NULL }, 770u, 1322u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e82 = {
-    { 866u, 0u, 0u, 0u, NULL }, 771u, 1272u,
+    { 867u, 0u, 0u, 0u, NULL }, 771u, 1272u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e83 = {
-    { 866u, 0u, 0u, 0u, NULL }, 772u, 1316u,
+    { 867u, 0u, 0u, 0u, NULL }, 772u, 1316u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e84 = {
-    { 866u, 0u, 0u, 0u, NULL }, 773u, 1317u,
+    { 867u, 0u, 0u, 0u, NULL }, 773u, 1317u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e85 = {
-    { 866u, 0u, 0u, 0u, NULL }, 774u, 1242u,
+    { 867u, 0u, 0u, 0u, NULL }, 774u, 1242u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e86 = {
-    { 866u, 0u, 0u, 0u, NULL }, 775u, 1279u,
+    { 867u, 0u, 0u, 0u, NULL }, 775u, 1279u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e87 = {
-    { 866u, 0u, 0u, 0u, NULL }, 776u, 1260u,
+    { 867u, 0u, 0u, 0u, NULL }, 776u, 1260u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e88 = {
-    { 866u, 0u, 0u, 0u, NULL }, 777u, 1241u,
+    { 867u, 0u, 0u, 0u, NULL }, 777u, 1241u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e89 = {
-    { 866u, 0u, 0u, 0u, NULL }, 778u, 1739u,
+    { 867u, 0u, 0u, 0u, NULL }, 778u, 1738u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e90 = {
-    { 866u, 0u, 0u, 0u, NULL }, 779u, 1277u,
+    { 867u, 0u, 0u, 0u, NULL }, 779u, 1277u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_5_e91 = {
-    { 866u, 0u, 0u, 0u, NULL }, 780u, 1341u,
+    { 867u, 0u, 0u, 0u, NULL }, 780u, 1341u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[92]; } vader_data_5_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 92u, 92u, 866u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 92u, 92u, 867u, 0u, { 0u, 0u, 0u },
     {
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e0 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e1 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e2 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e3 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e4 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e5 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e6 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e7 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e8 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e9 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e10,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e11,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e12,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e13,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e14,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e15,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e16,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e17,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e18,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e19,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e20,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e21,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e22,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e23,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e24,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e25,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e26,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e27,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e28,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e29,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e30,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e31,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e32,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e33,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e34,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e35,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e36,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e37,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e38,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e39,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e40,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e41,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e42,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e43,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e44,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e45,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e46,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e47,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e48,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e49,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e50,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e51,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e52,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e53,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e54,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e55,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e56,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e57,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e58,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e59,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e60,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e61,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e62,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e63,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e64,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e65,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e66,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e67,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e68,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e69,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e70,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e71,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e72,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e73,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e74,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e75,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e76,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e77,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e78,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e79,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e80,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e81,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e82,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e83,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e84,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e85,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e86,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e87,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e88,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e89,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e90,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_5_e91,
             },
@@ -8231,86 +8209,86 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_5 = {
-    { 77u, 0u, 0u, 0u, NULL }, 92u, 92u, 0u, (vader_array_buf_t*) &vader_data_5_buf,
+    { 81u, 0u, 0u, 0u, NULL }, 92u, 92u, 0u, (vader_array_buf_t*) &vader_data_5_buf,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_6_e0 = {
-    { 866u, 0u, 0u, 0u, NULL }, 535u, 1275u,
+    { 867u, 0u, 0u, 0u, NULL }, 535u, 1275u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_6_e1 = {
-    { 866u, 0u, 0u, 0u, NULL }, 536u, 1788u,
+    { 867u, 0u, 0u, 0u, NULL }, 536u, 1787u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_6_e2 = {
-    { 866u, 0u, 0u, 0u, NULL }, 537u, 1737u,
+    { 867u, 0u, 0u, 0u, NULL }, 537u, 1736u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_6_e3 = {
-    { 866u, 0u, 0u, 0u, NULL }, 538u, 2418u,
+    { 867u, 0u, 0u, 0u, NULL }, 538u, 2409u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_6_e4 = {
-    { 866u, 0u, 0u, 0u, NULL }, 539u, 1918u,
+    { 867u, 0u, 0u, 0u, NULL }, 539u, 1917u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_6_e5 = {
-    { 866u, 0u, 0u, 0u, NULL }, 540u, 2029u,
+    { 867u, 0u, 0u, 0u, NULL }, 540u, 2028u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_6_e6 = {
-    { 866u, 0u, 0u, 0u, NULL }, 541u, 1633u,
+    { 867u, 0u, 0u, 0u, NULL }, 541u, 1632u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_6_e7 = {
-    { 866u, 0u, 0u, 0u, NULL }, 542u, 2199u,
+    { 867u, 0u, 0u, 0u, NULL }, 542u, 2198u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_6_e8 = {
-    { 866u, 0u, 0u, 0u, NULL }, 543u, 1269u,
+    { 867u, 0u, 0u, 0u, NULL }, 543u, 1269u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_6_e9 = {
-    { 866u, 0u, 0u, 0u, NULL }, 544u, 1268u,
+    { 867u, 0u, 0u, 0u, NULL }, 544u, 1268u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_6_e10 = {
-    { 866u, 0u, 0u, 0u, NULL }, 545u, 1252u,
+    { 867u, 0u, 0u, 0u, NULL }, 545u, 1252u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[11]; } vader_data_6_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 11u, 11u, 866u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 11u, 11u, 867u, 0u, { 0u, 0u, 0u },
     {
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_6_e0 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_6_e1 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_6_e2 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_6_e3 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_6_e4 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_6_e5 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_6_e6 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_6_e7 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_6_e8 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_6_e9 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_6_e10,
             },
@@ -8318,122 +8296,122 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_6 = {
-    { 77u, 0u, 0u, 0u, NULL }, 11u, 11u, 0u, (vader_array_buf_t*) &vader_data_6_buf,
+    { 81u, 0u, 0u, 0u, NULL }, 11u, 11u, 0u, (vader_array_buf_t*) &vader_data_6_buf,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e0 = {
-    { 866u, 0u, 0u, 0u, NULL }, 809u, 2575u,
+    { 867u, 0u, 0u, 0u, NULL }, 809u, 2566u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e1 = {
-    { 866u, 0u, 0u, 0u, NULL }, 810u, 2558u,
+    { 867u, 0u, 0u, 0u, NULL }, 810u, 2549u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e2 = {
-    { 866u, 0u, 0u, 0u, NULL }, 811u, 2740u,
+    { 867u, 0u, 0u, 0u, NULL }, 811u, 2729u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e3 = {
-    { 866u, 0u, 0u, 0u, NULL }, 812u, 1581u,
+    { 867u, 0u, 0u, 0u, NULL }, 812u, 1580u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e4 = {
-    { 866u, 0u, 0u, 0u, NULL }, 813u, 2027u,
+    { 867u, 0u, 0u, 0u, NULL }, 813u, 2026u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e5 = {
-    { 866u, 0u, 0u, 0u, NULL }, 814u, 2224u,
+    { 867u, 0u, 0u, 0u, NULL }, 814u, 2223u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e6 = {
-    { 866u, 0u, 0u, 0u, NULL }, 815u, 2201u,
+    { 867u, 0u, 0u, 0u, NULL }, 815u, 2200u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e7 = {
-    { 866u, 0u, 0u, 0u, NULL }, 816u, 1628u,
+    { 867u, 0u, 0u, 0u, NULL }, 816u, 1627u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e8 = {
-    { 866u, 0u, 0u, 0u, NULL }, 817u, 1693u,
+    { 867u, 0u, 0u, 0u, NULL }, 817u, 1692u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e9 = {
-    { 866u, 0u, 0u, 0u, NULL }, 818u, 1181u,
+    { 867u, 0u, 0u, 0u, NULL }, 818u, 1181u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e10 = {
-    { 866u, 0u, 0u, 0u, NULL }, 819u, 2050u,
+    { 867u, 0u, 0u, 0u, NULL }, 819u, 2049u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e11 = {
-    { 866u, 0u, 0u, 0u, NULL }, 820u, 2028u,
+    { 867u, 0u, 0u, 0u, NULL }, 820u, 2027u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e12 = {
-    { 866u, 0u, 0u, 0u, NULL }, 821u, 2434u,
+    { 867u, 0u, 0u, 0u, NULL }, 821u, 2425u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e13 = {
-    { 866u, 0u, 0u, 0u, NULL }, 822u, 2429u,
+    { 867u, 0u, 0u, 0u, NULL }, 822u, 2420u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_7_e14 = {
-    { 866u, 0u, 0u, 0u, NULL }, 823u, 2145u,
+    { 867u, 0u, 0u, 0u, NULL }, 823u, 2144u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[15]; } vader_data_7_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 15u, 15u, 866u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 15u, 15u, 867u, 0u, { 0u, 0u, 0u },
     {
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e0 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e1 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e2 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e3 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e4 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e5 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e6 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e7 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e8 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e9 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e10,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e11,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e12,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e13,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_7_e14,
             },
@@ -8441,157 +8419,157 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_7 = {
-    { 77u, 0u, 0u, 0u, NULL }, 15u, 15u, 0u, (vader_array_buf_t*) &vader_data_7_buf,
+    { 81u, 0u, 0u, 0u, NULL }, 15u, 15u, 0u, (vader_array_buf_t*) &vader_data_7_buf,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_8_e0 = {
-    { 866u, 0u, 0u, 0u, NULL }, 576u, 1775u,
+    { 867u, 0u, 0u, 0u, NULL }, 576u, 1774u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_8_e1 = {
-    { 866u, 0u, 0u, 0u, NULL }, 577u, 2007u,
+    { 867u, 0u, 0u, 0u, NULL }, 577u, 2006u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_8_e2 = {
-    { 866u, 0u, 0u, 0u, NULL }, 578u, 2051u,
+    { 867u, 0u, 0u, 0u, NULL }, 578u, 2050u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_8_e3 = {
-    { 866u, 0u, 0u, 0u, NULL }, 579u, 1180u,
+    { 867u, 0u, 0u, 0u, NULL }, 579u, 1180u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_8_e4 = {
-    { 866u, 0u, 0u, 0u, NULL }, 580u, 1939u,
+    { 867u, 0u, 0u, 0u, NULL }, 580u, 1938u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_8_e5 = {
-    { 866u, 0u, 0u, 0u, NULL }, 581u, 2070u,
+    { 867u, 0u, 0u, 0u, NULL }, 581u, 2069u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_8_e6 = {
-    { 866u, 0u, 0u, 0u, NULL }, 582u, 1876u,
+    { 867u, 0u, 0u, 0u, NULL }, 582u, 1875u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_8_e7 = {
-    { 866u, 0u, 0u, 0u, NULL }, 583u, 1190u,
+    { 867u, 0u, 0u, 0u, NULL }, 583u, 1190u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_8_e8 = {
-    { 866u, 0u, 0u, 0u, NULL }, 584u, 1163u,
+    { 867u, 0u, 0u, 0u, NULL }, 584u, 1163u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[9]; } vader_data_8_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 9u, 9u, 866u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 9u, 9u, 867u, 0u, { 0u, 0u, 0u },
     {
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_8_e0 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_8_e1 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_8_e2 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_8_e3 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_8_e4 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_8_e5 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_8_e6 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_8_e7 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_8_e8 },
         },
     },
 };
 const vader_array_t vader_data_8 = {
-    { 77u, 0u, 0u, 0u, NULL }, 9u, 9u, 0u, (vader_array_buf_t*) &vader_data_8_buf,
+    { 81u, 0u, 0u, 0u, NULL }, 9u, 9u, 0u, (vader_array_buf_t*) &vader_data_8_buf,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_9_e0 = {
-    { 866u, 0u, 0u, 0u, NULL }, 562u, 2544u,
+    { 867u, 0u, 0u, 0u, NULL }, 562u, 2535u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_9_e1 = {
-    { 866u, 0u, 0u, 0u, NULL }, 563u, 2572u,
+    { 867u, 0u, 0u, 0u, NULL }, 563u, 2563u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_9_e2 = {
-    { 866u, 0u, 0u, 0u, NULL }, 564u, 2567u,
+    { 867u, 0u, 0u, 0u, NULL }, 564u, 2558u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_9_e3 = {
-    { 866u, 0u, 0u, 0u, NULL }, 565u, 1951u,
+    { 867u, 0u, 0u, 0u, NULL }, 565u, 1950u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_9_e4 = {
-    { 866u, 0u, 0u, 0u, NULL }, 566u, 1949u,
+    { 867u, 0u, 0u, 0u, NULL }, 566u, 1948u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_9_e5 = {
-    { 866u, 0u, 0u, 0u, NULL }, 567u, 2048u,
+    { 867u, 0u, 0u, 0u, NULL }, 567u, 2047u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_9_e6 = {
-    { 866u, 0u, 0u, 0u, NULL }, 568u, 2363u,
+    { 867u, 0u, 0u, 0u, NULL }, 568u, 2362u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_9_e7 = {
-    { 866u, 0u, 0u, 0u, NULL }, 569u, 2274u,
+    { 867u, 0u, 0u, 0u, NULL }, 569u, 2273u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_9_e8 = {
-    { 866u, 0u, 0u, 0u, NULL }, 570u, 1943u,
+    { 867u, 0u, 0u, 0u, NULL }, 570u, 1942u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_9_e9 = {
-    { 866u, 0u, 0u, 0u, NULL }, 571u, 1933u,
+    { 867u, 0u, 0u, 0u, NULL }, 571u, 1932u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_9_e10 = {
-    { 866u, 0u, 0u, 0u, NULL }, 572u, 1927u,
+    { 867u, 0u, 0u, 0u, NULL }, 572u, 1926u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[11]; } vader_data_9_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 11u, 11u, 866u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 11u, 11u, 867u, 0u, { 0u, 0u, 0u },
     {
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_9_e0 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_9_e1 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_9_e2 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_9_e3 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_9_e4 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_9_e5 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_9_e6 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_9_e7 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_9_e8 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             { .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_9_e9 },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_9_e10,
             },
@@ -8599,304 +8577,304 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_9 = {
-    { 77u, 0u, 0u, 0u, NULL }, 11u, 11u, 0u, (vader_array_buf_t*) &vader_data_9_buf,
+    { 81u, 0u, 0u, 0u, NULL }, 11u, 11u, 0u, (vader_array_buf_t*) &vader_data_9_buf,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e0 = {
-    { 866u, 0u, 0u, 0u, NULL }, 599u, 2546u,
+    { 867u, 0u, 0u, 0u, NULL }, 599u, 2537u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e1 = {
-    { 866u, 0u, 0u, 0u, NULL }, 600u, 1684u,
+    { 867u, 0u, 0u, 0u, NULL }, 600u, 1683u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e2 = {
-    { 866u, 0u, 0u, 0u, NULL }, 601u, 1674u,
+    { 867u, 0u, 0u, 0u, NULL }, 601u, 1673u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e3 = {
-    { 866u, 0u, 0u, 0u, NULL }, 602u, 1671u,
+    { 867u, 0u, 0u, 0u, NULL }, 602u, 1670u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e4 = {
-    { 866u, 0u, 0u, 0u, NULL }, 603u, 1673u,
+    { 867u, 0u, 0u, 0u, NULL }, 603u, 1672u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e5 = {
-    { 866u, 0u, 0u, 0u, NULL }, 604u, 1668u,
+    { 867u, 0u, 0u, 0u, NULL }, 604u, 1667u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e6 = {
-    { 866u, 0u, 0u, 0u, NULL }, 605u, 1670u,
+    { 867u, 0u, 0u, 0u, NULL }, 605u, 1669u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e7 = {
-    { 866u, 0u, 0u, 0u, NULL }, 606u, 1676u,
+    { 867u, 0u, 0u, 0u, NULL }, 606u, 1675u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e8 = {
-    { 866u, 0u, 0u, 0u, NULL }, 607u, 2465u,
+    { 867u, 0u, 0u, 0u, NULL }, 607u, 2456u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e9 = {
-    { 866u, 0u, 0u, 0u, NULL }, 608u, 2136u,
+    { 867u, 0u, 0u, 0u, NULL }, 608u, 2135u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e10 = {
-    { 866u, 0u, 0u, 0u, NULL }, 609u, 2388u,
+    { 867u, 0u, 0u, 0u, NULL }, 609u, 2379u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e11 = {
-    { 866u, 0u, 0u, 0u, NULL }, 610u, 2088u,
+    { 867u, 0u, 0u, 0u, NULL }, 610u, 2087u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e12 = {
-    { 866u, 0u, 0u, 0u, NULL }, 611u, 1659u,
+    { 867u, 0u, 0u, 0u, NULL }, 611u, 1658u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e13 = {
-    { 866u, 0u, 0u, 0u, NULL }, 612u, 2549u,
+    { 867u, 0u, 0u, 0u, NULL }, 612u, 2540u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e14 = {
-    { 866u, 0u, 0u, 0u, NULL }, 613u, 1614u,
+    { 867u, 0u, 0u, 0u, NULL }, 613u, 1613u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e15 = {
-    { 866u, 0u, 0u, 0u, NULL }, 614u, 1669u,
+    { 867u, 0u, 0u, 0u, NULL }, 614u, 1668u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e16 = {
-    { 866u, 0u, 0u, 0u, NULL }, 615u, 2089u,
+    { 867u, 0u, 0u, 0u, NULL }, 615u, 2088u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e17 = {
-    { 866u, 0u, 0u, 0u, NULL }, 616u, 2482u,
+    { 867u, 0u, 0u, 0u, NULL }, 616u, 2473u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e18 = {
-    { 866u, 0u, 0u, 0u, NULL }, 617u, 1141u,
+    { 867u, 0u, 0u, 0u, NULL }, 617u, 1141u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e19 = {
-    { 866u, 0u, 0u, 0u, NULL }, 618u, 1700u,
+    { 867u, 0u, 0u, 0u, NULL }, 618u, 1699u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e20 = {
-    { 866u, 0u, 0u, 0u, NULL }, 619u, 371u,
+    { 867u, 0u, 0u, 0u, NULL }, 619u, 371u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e21 = {
-    { 866u, 0u, 0u, 0u, NULL }, 620u, 1258u,
+    { 867u, 0u, 0u, 0u, NULL }, 620u, 1258u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e22 = {
-    { 866u, 0u, 0u, 0u, NULL }, 621u, 2459u,
+    { 867u, 0u, 0u, 0u, NULL }, 621u, 2450u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e23 = {
-    { 866u, 0u, 0u, 0u, NULL }, 622u, 1195u,
+    { 867u, 0u, 0u, 0u, NULL }, 622u, 1195u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e24 = {
-    { 866u, 0u, 0u, 0u, NULL }, 623u, 1953u,
+    { 867u, 0u, 0u, 0u, NULL }, 623u, 1952u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e25 = {
-    { 866u, 0u, 0u, 0u, NULL }, 624u, 1699u,
+    { 867u, 0u, 0u, 0u, NULL }, 624u, 1698u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e26 = {
-    { 866u, 0u, 0u, 0u, NULL }, 625u, 2237u,
+    { 867u, 0u, 0u, 0u, NULL }, 625u, 2236u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e27 = {
-    { 866u, 0u, 0u, 0u, NULL }, 626u, 1097u,
+    { 867u, 0u, 0u, 0u, NULL }, 626u, 1097u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e28 = {
-    { 866u, 0u, 0u, 0u, NULL }, 627u, 2755u,
+    { 867u, 0u, 0u, 0u, NULL }, 627u, 2744u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e29 = {
-    { 866u, 0u, 0u, 0u, NULL }, 628u, 1582u,
+    { 867u, 0u, 0u, 0u, NULL }, 628u, 1581u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e30 = {
-    { 866u, 0u, 0u, 0u, NULL }, 629u, 1537u,
+    { 867u, 0u, 0u, 0u, NULL }, 629u, 1537u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e31 = {
-    { 866u, 0u, 0u, 0u, NULL }, 630u, 1259u,
+    { 867u, 0u, 0u, 0u, NULL }, 630u, 1259u,
 };
 const struct vader_struct_vader_diagnostics_CodeInfo_t vader_data_10_e32 = {
-    { 866u, 0u, 0u, 0u, NULL }, 631u, 1137u,
+    { 867u, 0u, 0u, 0u, NULL }, 631u, 1137u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[33]; } vader_data_10_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 33u, 33u, 866u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 33u, 33u, 867u, 0u, { 0u, 0u, 0u },
     {
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e0,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e1,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e2,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e3,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e4,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e5,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e6,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e7,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e8,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e9,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e10,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e11,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e12,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e13,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e14,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e15,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e16,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e17,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e18,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e19,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e20,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e21,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e22,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e23,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e24,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e25,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e26,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e27,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e28,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e29,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e30,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e31,
             },
         },
         {
-            866u, 0u,
+            867u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_diagnostics_CodeInfo_t*) &vader_data_10_e32,
             },
@@ -8904,23 +8882,23 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_10 = {
-    { 77u, 0u, 0u, 0u, NULL }, 33u, 33u, 0u, (vader_array_buf_t*) &vader_data_10_buf,
+    { 81u, 0u, 0u, 0u, NULL }, 33u, 33u, 0u, (vader_array_buf_t*) &vader_data_10_buf,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_11_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 278u, 0u, { 0u, 0u, 0u },
-    { { 278u, 0u, { .s = 680u } }, { 278u, 0u, { .s = 2477u } } },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 282u, 0u, { 0u, 0u, 0u },
+    { { 282u, 0u, { .s = 680u } }, { 282u, 0u, { .s = 2468u } } },
 };
 const vader_array_t vader_data_11 = {
     { 15u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_11_buf,
 };
 const struct vader_struct_vader_typecheck_UnsettledCallee_t vader_data_12_e0 = {
-    { 1184u, 0u, 0u, 0u, NULL },
+    { 1183u, 0u, 0u, 0u, NULL },
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_12_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1184u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1183u, 0u, { 0u, 0u, 0u },
     {
         {
-            1184u, 0u,
+            1183u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_typecheck_UnsettledCallee_t*) &vader_data_12_e0,
             },
@@ -8928,16 +8906,16 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_12 = {
-    { 177u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_12_buf,
+    { 181u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_12_buf,
 };
 const struct vader_struct_vader_typecheck_ErroneousCallee_t vader_data_13_e0 = {
-    { 1143u, 0u, 0u, 0u, NULL },
+    { 1142u, 0u, 0u, 0u, NULL },
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_13_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1143u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1142u, 0u, { 0u, 0u, 0u },
     {
         {
-            1143u, 0u,
+            1142u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_typecheck_ErroneousCallee_t*) &vader_data_13_e0,
             },
@@ -8945,104 +8923,104 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_13 = {
-    { 157u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_13_buf,
+    { 161u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_13_buf,
 };
 const struct vader_struct_vader_typecheck_Builtin_t vader_data_14_e0 = {
-    { 1131u, 0u, 0u, 0u, NULL },
+    { 1130u, 0u, 0u, 0u, NULL },
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_14_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1131u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1130u, 0u, { 0u, 0u, 0u },
     {
         {
-            1131u, 0u,
+            1130u, 0u,
             { .obj = (void*) (struct vader_struct_vader_typecheck_Builtin_t*) &vader_data_14_e0 },
         },
     },
 };
 const vader_array_t vader_data_14 = {
-    { 152u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_14_buf,
+    { 156u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_14_buf,
 };
 const struct vader_struct_vader_typecheck_FnValue_t vader_data_15_e0 = {
-    { 1148u, 0u, 0u, 0u, NULL },
+    { 1147u, 0u, 0u, 0u, NULL },
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_15_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1148u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1147u, 0u, { 0u, 0u, 0u },
     {
         {
-            1148u, 0u,
+            1147u, 0u,
             { .obj = (void*) (struct vader_struct_vader_typecheck_FnValue_t*) &vader_data_15_e0 },
         },
     },
 };
 const vader_array_t vader_data_15 = {
-    { 160u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_15_buf,
+    { 164u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_15_buf,
 };
 const struct vader_struct_vader_types_PrimitiveType_t vader_data_16_e0 = {
-    { 1198u, 0u, 0u, 0u, NULL }, 2146u,
+    { 1197u, 0u, 0u, 0u, NULL }, 2145u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_16_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1198u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1197u, 0u, { 0u, 0u, 0u },
     {
         {
-            1198u, 0u,
+            1197u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveType_t*) &vader_data_16_e0 },
         },
     },
 };
 const vader_array_t vader_data_16 = {
-    { 186u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_16_buf,
+    { 190u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_16_buf,
 };
 const struct vader_struct_vader_types_PrimitiveType_t vader_data_17_e0 = {
-    { 1198u, 0u, 0u, 0u, NULL }, 2723u,
+    { 1197u, 0u, 0u, 0u, NULL }, 2712u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_17_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1198u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1197u, 0u, { 0u, 0u, 0u },
     {
         {
-            1198u, 0u,
+            1197u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveType_t*) &vader_data_17_e0 },
         },
     },
 };
 const vader_array_t vader_data_17 = {
-    { 186u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_17_buf,
+    { 190u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_17_buf,
 };
-const struct vader_struct_vader_types_AnyType_t vader_data_18_e0 = { { 1188u, 0u, 0u, 0u, NULL } };
+const struct vader_struct_vader_types_AnyType_t vader_data_18_e0 = { { 1187u, 0u, 0u, 0u, NULL } };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_18_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1188u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1187u, 0u, { 0u, 0u, 0u },
     {
         {
-            1188u, 0u,
+            1187u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_AnyType_t*) &vader_data_18_e0 },
         },
     },
 };
 const vader_array_t vader_data_18 = {
-    { 180u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_18_buf,
+    { 184u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_18_buf,
 };
 const struct vader_struct_vader_types_PrimitiveType_t vader_data_19_e0 = {
-    { 1198u, 0u, 0u, 0u, NULL }, 1400u,
+    { 1197u, 0u, 0u, 0u, NULL }, 1400u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_19_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1198u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1197u, 0u, { 0u, 0u, 0u },
     {
         {
-            1198u, 0u,
+            1197u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveType_t*) &vader_data_19_e0 },
         },
     },
 };
 const vader_array_t vader_data_19 = {
-    { 186u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_19_buf,
+    { 190u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_19_buf,
 };
 const struct vader_struct_vader_types_UnresolvedType_t vader_data_20_e0 = {
-    { 1206u, 0u, 0u, 0u, NULL },
+    { 1205u, 0u, 0u, 0u, NULL },
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_20_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1206u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1205u, 0u, { 0u, 0u, 0u },
     {
         {
-            1206u, 0u,
+            1205u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_types_UnresolvedType_t*) &vader_data_20_e0,
             },
@@ -9050,242 +9028,242 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_20 = {
-    { 191u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_20_buf,
+    { 195u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_20_buf,
 };
 const struct vader_struct_vader_types_NeverType_t vader_data_21_e0 = {
-    { 1196u, 0u, 0u, 0u, NULL },
+    { 1195u, 0u, 0u, 0u, NULL },
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_21_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1196u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1195u, 0u, { 0u, 0u, 0u },
     {
         {
-            1196u, 0u,
+            1195u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_NeverType_t*) &vader_data_21_e0 },
         },
     },
 };
 const vader_array_t vader_data_21 = {
-    { 184u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_21_buf,
+    { 188u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_21_buf,
 };
 const struct vader_struct_vader_types_PrimitiveType_t vader_data_22_e0 = {
-    { 1198u, 0u, 0u, 0u, NULL }, 2364u,
+    { 1197u, 0u, 0u, 0u, NULL }, 2363u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_22_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1198u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1197u, 0u, { 0u, 0u, 0u },
     {
         {
-            1198u, 0u,
+            1197u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveType_t*) &vader_data_22_e0 },
         },
     },
 };
 const vader_array_t vader_data_22 = {
-    { 186u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_22_buf,
+    { 190u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_22_buf,
 };
 const struct vader_struct_vader_types_FreeFloatType_t vader_data_23_e0 = {
-    { 1194u, 0u, 0u, 0u, NULL },
+    { 1193u, 0u, 0u, 0u, NULL },
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_23_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1194u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1193u, 0u, { 0u, 0u, 0u },
     {
         {
-            1194u, 0u,
+            1193u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_FreeFloatType_t*) &vader_data_23_e0 },
         },
     },
 };
 const vader_array_t vader_data_23 = {
-    { 182u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_23_buf,
+    { 186u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_23_buf,
 };
 const struct vader_struct_vader_types_FreeIntType_t vader_data_24_e0 = {
-    { 1195u, 0u, 0u, 0u, NULL },
+    { 1194u, 0u, 0u, 0u, NULL },
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_24_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1195u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1194u, 0u, { 0u, 0u, 0u },
     {
         {
-            1195u, 0u,
+            1194u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_FreeIntType_t*) &vader_data_24_e0 },
         },
     },
 };
 const vader_array_t vader_data_24 = {
-    { 183u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_24_buf,
+    { 187u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_24_buf,
 };
 const struct vader_struct_vader_types_PrimitiveType_t vader_data_25_e0 = {
-    { 1198u, 0u, 0u, 0u, NULL }, 488u,
+    { 1197u, 0u, 0u, 0u, NULL }, 488u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_25_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1198u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1197u, 0u, { 0u, 0u, 0u },
     {
         {
-            1198u, 0u,
+            1197u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveType_t*) &vader_data_25_e0 },
         },
     },
 };
 const vader_array_t vader_data_25 = {
-    { 186u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_25_buf,
+    { 190u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_25_buf,
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e0 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 1873u, (int64_t) UINT64_C(1), (uint8_t) UINT64_C(1),
+    { 1196u, 0u, 0u, 0u, NULL }, 1872u, (int64_t) UINT64_C(1), (uint8_t) UINT64_C(1),
     (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e1 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 1828u, (int64_t) UINT64_C(2), (uint8_t) UINT64_C(1),
+    { 1196u, 0u, 0u, 0u, NULL }, 1827u, (int64_t) UINT64_C(2), (uint8_t) UINT64_C(1),
     (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e2 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 1829u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(1),
+    { 1196u, 0u, 0u, 0u, NULL }, 1828u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(1),
     (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e3 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 1851u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1),
+    { 1196u, 0u, 0u, 0u, NULL }, 1850u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1),
     (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e4 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 1959u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1),
+    { 1196u, 0u, 0u, 0u, NULL }, 1958u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1),
     (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e5 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 2532u, (int64_t) UINT64_C(1), (uint8_t) UINT64_C(1),
+    { 1196u, 0u, 0u, 0u, NULL }, 2523u, (int64_t) UINT64_C(1), (uint8_t) UINT64_C(1),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e6 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 2511u, (int64_t) UINT64_C(2), (uint8_t) UINT64_C(1),
+    { 1196u, 0u, 0u, 0u, NULL }, 2502u, (int64_t) UINT64_C(2), (uint8_t) UINT64_C(1),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e7 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 2512u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(1),
+    { 1196u, 0u, 0u, 0u, NULL }, 2503u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(1),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e8 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 2522u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1),
+    { 1196u, 0u, 0u, 0u, NULL }, 2513u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e9 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 2577u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1),
+    { 1196u, 0u, 0u, 0u, NULL }, 2568u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(1),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e10 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 1706u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(0),
+    { 1196u, 0u, 0u, 0u, NULL }, 1705u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(0),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e11 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 1708u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(0),
+    { 1196u, 0u, 0u, 0u, NULL }, 1707u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(0),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e12 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 1400u, (int64_t) UINT64_C(1), (uint8_t) UINT64_C(0),
+    { 1196u, 0u, 0u, 0u, NULL }, 1400u, (int64_t) UINT64_C(1), (uint8_t) UINT64_C(0),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e13 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 1514u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(0),
+    { 1196u, 0u, 0u, 0u, NULL }, 1514u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(0),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e14 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 2364u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(0),
+    { 1196u, 0u, 0u, 0u, NULL }, 2363u, (int64_t) UINT64_C(4), (uint8_t) UINT64_C(0),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e15 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 2723u, (int64_t) UINT64_C(0), (uint8_t) UINT64_C(0),
+    { 1196u, 0u, 0u, 0u, NULL }, 2712u, (int64_t) UINT64_C(0), (uint8_t) UINT64_C(0),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e16 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 2146u, (int64_t) UINT64_C(0), (uint8_t) UINT64_C(0),
+    { 1196u, 0u, 0u, 0u, NULL }, 2145u, (int64_t) UINT64_C(0), (uint8_t) UINT64_C(0),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct vader_struct_vader_types_PrimitiveMeta_t vader_data_26_e17 = {
-    { 1197u, 0u, 0u, 0u, NULL }, 488u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(0),
+    { 1196u, 0u, 0u, 0u, NULL }, 488u, (int64_t) UINT64_C(8), (uint8_t) UINT64_C(0),
     (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1),
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[18]; } vader_data_26_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 18u, 18u, 1197u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 18u, 18u, 1196u, 0u, { 0u, 0u, 0u },
     {
         {
-            1197u, 0u,
+            1196u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e0 },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e1 },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e2 },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e3 },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e4 },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e5 },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e6 },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e7 },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e8 },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e9 },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e10,
             },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e11,
             },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e12,
             },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e13,
             },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e14,
             },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e15,
             },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e16,
             },
         },
         {
-            1197u, 0u,
+            1196u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_types_PrimitiveMeta_t*) &vader_data_26_e17,
             },
@@ -9293,39 +9271,39 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_26 = {
-    { 185u, 0u, 0u, 0u, NULL }, 18u, 18u, 0u, (vader_array_buf_t*) &vader_data_26_buf,
+    { 189u, 0u, 0u, 0u, NULL }, 18u, 18u, 0u, (vader_array_buf_t*) &vader_data_26_buf,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_27_e0_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 0u, { 0u, 0u, 0u },
-    { { 278u, 0u, { .s = 1919u } }, { 278u, 0u, { .s = 1829u } } },
+    { { 282u, 0u, { .s = 1918u } }, { 282u, 0u, { .s = 1828u } } },
 };
 const vader_array_t vader_data_27_e0 = {
     { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_27_e0_buf,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_27_e1_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 0u, { 0u, 0u, 0u },
-    { { 278u, 0u, { .s = 2035u } }, { 278u, 0u, { .s = 1851u } } },
+    { { 282u, 0u, { .s = 2034u } }, { 282u, 0u, { .s = 1850u } } },
 };
 const vader_array_t vader_data_27_e1 = {
     { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_27_e1_buf,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_27_e2_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 0u, { 0u, 0u, 0u },
-    { { 278u, 0u, { .s = 1760u } }, { 278u, 0u, { .s = 1706u } } },
+    { { 282u, 0u, { .s = 1759u } }, { 282u, 0u, { .s = 1705u } } },
 };
 const vader_array_t vader_data_27_e2 = {
     { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_27_e2_buf,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_27_e3_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 0u, { 0u, 0u, 0u },
-    { { 278u, 0u, { .s = 1609u } }, { 278u, 0u, { .s = 1708u } } },
+    { { 282u, 0u, { .s = 1608u } }, { 282u, 0u, { .s = 1707u } } },
 };
 const vader_array_t vader_data_27_e3 = {
     { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_27_e3_buf,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[2]; } vader_data_27_e4_buf = {
     { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, 0u, { 0u, 0u, 0u },
-    { { 278u, 0u, { .s = 1446u } }, { 278u, 0u, { .s = 2532u } } },
+    { { 282u, 0u, { .s = 1446u } }, { 282u, 0u, { .s = 2523u } } },
 };
 const vader_array_t vader_data_27_e4 = {
     { 0u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_27_e4_buf,
@@ -9344,101 +9322,101 @@ const vader_array_t vader_data_27 = {
     { 1u, 0u, 0u, 0u, NULL }, 5u, 5u, 0u, (vader_array_buf_t*) &vader_data_27_buf,
 };
 const struct vader_struct_vader_types_TypeMetaType_t vader_data_28_e0 = {
-    { 1203u, 0u, 0u, 0u, NULL },
+    { 1202u, 0u, 0u, 0u, NULL },
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_28_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1203u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1202u, 0u, { 0u, 0u, 0u },
     {
         {
-            1203u, 0u,
+            1202u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_TypeMetaType_t*) &vader_data_28_e0 },
         },
     },
 };
 const vader_array_t vader_data_28 = {
-    { 190u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_28_buf,
+    { 194u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_28_buf,
 };
-const struct vader_struct_vader_types_SelfType_t vader_data_29_e0 = { { 1199u, 0u, 0u, 0u, NULL } };
+const struct vader_struct_vader_types_SelfType_t vader_data_29_e0 = { { 1198u, 0u, 0u, 0u, NULL } };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_29_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1199u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1198u, 0u, { 0u, 0u, 0u },
     {
         {
-            1199u, 0u,
+            1198u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_SelfType_t*) &vader_data_29_e0 },
         },
     },
 };
 const vader_array_t vader_data_29 = {
-    { 187u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_29_buf,
+    { 191u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_29_buf,
 };
 const struct vader_struct_vader_types_FreeCharType_t vader_data_30_e0 = {
-    { 1193u, 0u, 0u, 0u, NULL },
+    { 1192u, 0u, 0u, 0u, NULL },
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_30_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1193u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1192u, 0u, { 0u, 0u, 0u },
     {
         {
-            1193u, 0u,
+            1192u, 0u,
             { .obj = (void*) (struct vader_struct_vader_types_FreeCharType_t*) &vader_data_30_e0 },
         },
     },
 };
 const vader_array_t vader_data_30 = {
-    { 181u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_30_buf,
+    { 185u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_30_buf,
 };
 const struct vader_struct_vader_comptime_NullValue_t vader_data_31_e0 = {
-    { 859u, 0u, 0u, 0u, NULL },
+    { 860u, 0u, 0u, 0u, NULL },
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_31_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 859u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 860u, 0u, { 0u, 0u, 0u },
     {
         {
-            859u, 0u,
+            860u, 0u,
             { .obj = (void*) (struct vader_struct_vader_comptime_NullValue_t*) &vader_data_31_e0 },
         },
     },
 };
 const vader_array_t vader_data_31 = {
-    { 75u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_31_buf,
+    { 79u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_31_buf,
 };
 const struct vader_struct_vader_comptime_BoolValue_t vader_data_32_e0 = {
-    { 845u, 0u, 0u, 0u, NULL }, (uint8_t) UINT64_C(1),
+    { 846u, 0u, 0u, 0u, NULL }, (uint8_t) UINT64_C(1),
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_32_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 845u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 846u, 0u, { 0u, 0u, 0u },
     {
         {
-            845u, 0u,
+            846u, 0u,
             { .obj = (void*) (struct vader_struct_vader_comptime_BoolValue_t*) &vader_data_32_e0 },
         },
     },
 };
 const vader_array_t vader_data_32 = {
-    { 72u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_32_buf,
+    { 76u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_32_buf,
 };
 const struct vader_struct_vader_comptime_BoolValue_t vader_data_33_e0 = {
-    { 845u, 0u, 0u, 0u, NULL }, (uint8_t) UINT64_C(0),
+    { 846u, 0u, 0u, 0u, NULL }, (uint8_t) UINT64_C(0),
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_33_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 845u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 846u, 0u, { 0u, 0u, 0u },
     {
         {
-            845u, 0u,
+            846u, 0u,
             { .obj = (void*) (struct vader_struct_vader_comptime_BoolValue_t*) &vader_data_33_e0 },
         },
     },
 };
 const vader_array_t vader_data_33 = {
-    { 72u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_33_buf,
+    { 76u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_33_buf,
 };
 const struct vader_struct_vader_lower_CfMentionKinds_t vader_data_34_e0 = {
-    { 914u, 0u, 0u, 0u, NULL }, (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
+    { 915u, 0u, 0u, 0u, NULL }, (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_34_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 914u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 915u, 0u, { 0u, 0u, 0u },
     {
         {
-            914u, 0u,
+            915u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_lower_CfMentionKinds_t*) &vader_data_34_e0,
             },
@@ -9446,16 +9424,16 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_34 = {
-    { 101u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_34_buf,
+    { 105u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_34_buf,
 };
 const struct vader_struct_vader_lower_CfMentionKinds_t vader_data_35_e0 = {
-    { 914u, 0u, 0u, 0u, NULL }, (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1),
+    { 915u, 0u, 0u, 0u, NULL }, (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1),
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_35_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 914u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 915u, 0u, { 0u, 0u, 0u },
     {
         {
-            914u, 0u,
+            915u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_lower_CfMentionKinds_t*) &vader_data_35_e0,
             },
@@ -9463,16 +9441,16 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_35 = {
-    { 101u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_35_buf,
+    { 105u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_35_buf,
 };
 const struct vader_struct_vader_lower_CfMentionKinds_t vader_data_36_e0 = {
-    { 914u, 0u, 0u, 0u, NULL }, (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1),
+    { 915u, 0u, 0u, 0u, NULL }, (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(1),
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_36_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 914u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 915u, 0u, { 0u, 0u, 0u },
     {
         {
-            914u, 0u,
+            915u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_lower_CfMentionKinds_t*) &vader_data_36_e0,
             },
@@ -9480,7 +9458,7 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_36 = {
-    { 101u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_36_buf,
+    { 105u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_36_buf,
 };
 const struct vader_struct_vader_lower_SplicedLanding_t vader_data_37_e0 = {
     { 1009u, 0u, 0u, 0u, NULL }, (uint8_t) UINT64_C(0), (uint8_t) UINT64_C(0),
@@ -9497,7 +9475,7 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_37 = {
-    { 122u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_37_buf,
+    { 126u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_37_buf,
 };
 const struct vader_struct_vader_lower_SplicedLanding_t vader_data_38_e0 = {
     { 1009u, 0u, 0u, 0u, NULL }, (uint8_t) UINT64_C(1), (uint8_t) UINT64_C(1),
@@ -9514,216 +9492,216 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_38 = {
-    { 122u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_38_buf,
+    { 126u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_38_buf,
 };
 const struct vader_struct_vader_bytecode_BcRef_t vader_data_39_e0 = {
-    { 616u, 0u, 0u, 0u, NULL }, 0u,
+    { 618u, 0u, 0u, 0u, NULL }, 0u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_39_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 616u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 618u, 0u, { 0u, 0u, 0u },
     {
         {
-            616u, 0u,
+            618u, 0u,
             { .obj = (void*) (struct vader_struct_vader_bytecode_BcRef_t*) &vader_data_39_e0 },
         },
     },
 };
 const vader_array_t vader_data_39 = {
-    { 51u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_39_buf,
+    { 55u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_39_buf,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[44]; } vader_data_40_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 44u, 44u, 278u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 44u, 44u, 282u, 0u, { 0u, 0u, 0u },
     {
-        { 278u, 0u, { .s = 1382u } },
-        { 278u, 0u, { .s = 1416u } },
-        { 278u, 0u, { .s = 1506u } },
-        { 278u, 0u, { .s = 1514u } },
-        { 278u, 0u, { .s = 1556u } },
-        { 278u, 0u, { .s = 1564u } },
-        { 278u, 0u, { .s = 1587u } },
-        { 278u, 0u, { .s = 1605u } },
-        { 278u, 0u, { .s = 1609u } },
-        { 278u, 0u, { .s = 1623u } },
-        { 278u, 0u, { .s = 1635u } },
-        { 278u, 0u, { .s = 1701u } },
-        { 278u, 0u, { .s = 1760u } },
-        { 278u, 0u, { .s = 1771u } },
-        { 278u, 0u, { .s = 1815u } },
-        { 278u, 0u, { .s = 1878u } },
-        { 278u, 0u, { .s = 1911u } },
-        { 278u, 0u, { .s = 1919u } },
-        { 278u, 0u, { .s = 2035u } },
-        { 278u, 0u, { .s = 2231u } },
-        { 278u, 0u, { .s = 2241u } },
-        { 278u, 0u, { .s = 2246u } },
-        { 278u, 0u, { .s = 2276u } },
-        { 278u, 0u, { .s = 2280u } },
-        { 278u, 0u, { .s = 2286u } },
-        { 278u, 0u, { .s = 2305u } },
-        { 278u, 0u, { .s = 2384u } },
-        { 278u, 0u, { .s = 2403u } },
-        { 278u, 0u, { .s = 2504u } },
-        { 278u, 0u, { .s = 2547u } },
-        { 278u, 0u, { .s = 2565u } },
-        { 278u, 0u, { .s = 2723u } },
-        { 278u, 0u, { .s = 2726u } },
-        { 278u, 0u, { .s = 2737u } },
-        { 278u, 0u, { .s = 844u } },
-        { 278u, 0u, { .s = 845u } },
-        { 278u, 0u, { .s = 846u } },
-        { 278u, 0u, { .s = 847u } },
-        { 278u, 0u, { .s = 848u } },
-        { 278u, 0u, { .s = 849u } },
-        { 278u, 0u, { .s = 850u } },
-        { 278u, 0u, { .s = 851u } },
-        { 278u, 0u, { .s = 852u } },
-        { 278u, 0u, { .s = 854u } },
+        { 282u, 0u, { .s = 1382u } },
+        { 282u, 0u, { .s = 1416u } },
+        { 282u, 0u, { .s = 1506u } },
+        { 282u, 0u, { .s = 1514u } },
+        { 282u, 0u, { .s = 1556u } },
+        { 282u, 0u, { .s = 1564u } },
+        { 282u, 0u, { .s = 1586u } },
+        { 282u, 0u, { .s = 1604u } },
+        { 282u, 0u, { .s = 1608u } },
+        { 282u, 0u, { .s = 1622u } },
+        { 282u, 0u, { .s = 1634u } },
+        { 282u, 0u, { .s = 1700u } },
+        { 282u, 0u, { .s = 1759u } },
+        { 282u, 0u, { .s = 1770u } },
+        { 282u, 0u, { .s = 1814u } },
+        { 282u, 0u, { .s = 1877u } },
+        { 282u, 0u, { .s = 1910u } },
+        { 282u, 0u, { .s = 1918u } },
+        { 282u, 0u, { .s = 2034u } },
+        { 282u, 0u, { .s = 2230u } },
+        { 282u, 0u, { .s = 2240u } },
+        { 282u, 0u, { .s = 2245u } },
+        { 282u, 0u, { .s = 2275u } },
+        { 282u, 0u, { .s = 2279u } },
+        { 282u, 0u, { .s = 2285u } },
+        { 282u, 0u, { .s = 2304u } },
+        { 282u, 0u, { .s = 2375u } },
+        { 282u, 0u, { .s = 2394u } },
+        { 282u, 0u, { .s = 2495u } },
+        { 282u, 0u, { .s = 2538u } },
+        { 282u, 0u, { .s = 2556u } },
+        { 282u, 0u, { .s = 2712u } },
+        { 282u, 0u, { .s = 2715u } },
+        { 282u, 0u, { .s = 2726u } },
+        { 282u, 0u, { .s = 844u } },
+        { 282u, 0u, { .s = 845u } },
+        { 282u, 0u, { .s = 846u } },
+        { 282u, 0u, { .s = 847u } },
+        { 282u, 0u, { .s = 848u } },
+        { 282u, 0u, { .s = 849u } },
+        { 282u, 0u, { .s = 850u } },
+        { 282u, 0u, { .s = 851u } },
+        { 282u, 0u, { .s = 852u } },
+        { 282u, 0u, { .s = 854u } },
     },
 };
 const vader_array_t vader_data_40 = {
     { 15u, 0u, 0u, 0u, NULL }, 44u, 44u, 0u, (vader_array_buf_t*) &vader_data_40_buf,
 };
 struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; int32_t slots[2]; } vader_data_41_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 281u, 7u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 2u, 2u, 285u, 7u, { 0u, 0u, 0u },
     { (int32_t) UINT64_C(18446744073709551615), (int32_t) UINT64_C(18446744073709551615) },
 };
 vader_array_t vader_data_41 = {
     { 16u, 0u, 0u, 0u, NULL }, 2u, 2u, 0u, (vader_array_buf_t*) &vader_data_41_buf,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e0 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 1762u,
+    { 1121u, 0u, 0u, 0u, NULL }, 1761u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e1 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 2384u,
+    { 1121u, 0u, 0u, 0u, NULL }, 2375u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e2 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 1635u,
+    { 1121u, 0u, 0u, 0u, NULL }, 1634u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e3 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 2466u,
+    { 1121u, 0u, 0u, 0u, NULL }, 2457u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e4 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 1883u,
+    { 1121u, 0u, 0u, 0u, NULL }, 1882u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e5 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 2486u,
+    { 1121u, 0u, 0u, 0u, NULL }, 2477u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e6 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 1556u,
+    { 1121u, 0u, 0u, 0u, NULL }, 1556u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e7 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 1893u,
+    { 1121u, 0u, 0u, 0u, NULL }, 1892u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e8 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 2181u,
+    { 1121u, 0u, 0u, 0u, NULL }, 2180u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e9 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 2487u,
+    { 1121u, 0u, 0u, 0u, NULL }, 2478u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e10 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 2026u,
+    { 1121u, 0u, 0u, 0u, NULL }, 2025u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e11 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 1390u,
+    { 1121u, 0u, 0u, 0u, NULL }, 1390u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e12 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 1444u,
+    { 1121u, 0u, 0u, 0u, NULL }, 1444u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e13 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 1443u,
+    { 1121u, 0u, 0u, 0u, NULL }, 1443u,
 };
 const struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t vader_data_42_e14 = {
-    { 1122u, 0u, 0u, 0u, NULL }, 2406u,
+    { 1121u, 0u, 0u, 0u, NULL }, 2397u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[15]; } vader_data_42_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 15u, 15u, 1122u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 15u, 15u, 1121u, 0u, { 0u, 0u, 0u },
     {
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e0,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e1,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e2,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e3,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e4,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e5,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e6,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e7,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e8,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e9,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e10,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e11,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e12,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e13,
             },
         },
         {
-            1122u, 0u,
+            1121u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_resolver_symbol_SymbolKindInfo_t*) &vader_data_42_e14,
             },
@@ -9731,44 +9709,44 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_42 = {
-    { 148u, 0u, 0u, 0u, NULL }, 15u, 15u, 0u, (vader_array_buf_t*) &vader_data_42_buf,
+    { 152u, 0u, 0u, 0u, NULL }, 15u, 15u, 0u, (vader_array_buf_t*) &vader_data_42_buf,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[7]; } vader_data_43_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 7u, 7u, 278u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 7u, 7u, 282u, 0u, { 0u, 0u, 0u },
     {
-        { 278u, 0u, { .s = 1829u } },
-        { 278u, 0u, { .s = 1851u } },
-        { 278u, 0u, { .s = 1708u } },
-        { 278u, 0u, { .s = 1400u } },
-        { 278u, 0u, { .s = 1514u } },
-        { 278u, 0u, { .s = 2146u } },
-        { 278u, 0u, { .s = 2225u } },
+        { 282u, 0u, { .s = 1828u } },
+        { 282u, 0u, { .s = 1850u } },
+        { 282u, 0u, { .s = 1707u } },
+        { 282u, 0u, { .s = 1400u } },
+        { 282u, 0u, { .s = 1514u } },
+        { 282u, 0u, { .s = 2145u } },
+        { 282u, 0u, { .s = 2224u } },
     },
 };
 const vader_array_t vader_data_43 = {
     { 15u, 0u, 0u, 0u, NULL }, 7u, 7u, 0u, (vader_array_buf_t*) &vader_data_43_buf,
 };
-const struct vader_struct_vader_vm_NullVal_t vader_data_44_e0 = { { 1219u, 0u, 0u, 0u, NULL } };
+const struct vader_struct_vader_vm_NullVal_t vader_data_44_e0 = { { 1218u, 0u, 0u, 0u, NULL } };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_44_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1219u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 1218u, 0u, { 0u, 0u, 0u },
     {
         {
-            1219u, 0u,
+            1218u, 0u,
             { .obj = (void*) (struct vader_struct_vader_vm_NullVal_t*) &vader_data_44_e0 },
         },
     },
 };
 const vader_array_t vader_data_44 = {
-    { 197u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_44_buf,
+    { 201u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_44_buf,
 };
 const struct vader_struct_vader_c_emit_c_ast_CUnsized_t vader_data_45_e0 = {
-    { 840u, 0u, 0u, 0u, NULL },
+    { 841u, 0u, 0u, 0u, NULL },
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_45_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 840u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 841u, 0u, { 0u, 0u, 0u },
     {
         {
-            840u, 0u,
+            841u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_CUnsized_t*) &vader_data_45_e0,
             },
@@ -9776,16 +9754,16 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_45 = {
-    { 70u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_45_buf,
+    { 74u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_45_buf,
 };
 const struct vader_struct_vader_c_emit_c_ast_CNumber_t vader_data_46_e0 = {
-    { 822u, 0u, 0u, 0u, NULL }, (int64_t) UINT64_C(0), (uint8_t) UINT64_C(1),
+    { 823u, 0u, 0u, 0u, NULL }, (int64_t) UINT64_C(0), (uint8_t) UINT64_C(1),
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_46_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 822u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 823u, 0u, { 0u, 0u, 0u },
     {
         {
-            822u, 0u,
+            823u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_CNumber_t*) &vader_data_46_e0,
             },
@@ -9793,16 +9771,16 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_46 = {
-    { 66u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_46_buf,
+    { 70u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_46_buf,
 };
 const struct vader_struct_vader_c_emit_c_ast_CVerbatim_t vader_data_47_e0 = {
-    { 841u, 0u, 0u, 0u, NULL }, 593u,
+    { 842u, 0u, 0u, 0u, NULL }, 593u,
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[1]; } vader_data_47_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 841u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 1u, 1u, 842u, 0u, { 0u, 0u, 0u },
     {
         {
-            841u, 0u,
+            842u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_CVerbatim_t*) &vader_data_47_e0,
             },
@@ -9810,169 +9788,169 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_47 = {
-    { 71u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_47_buf,
+    { 75u, 0u, 0u, 0u, NULL }, 1u, 1u, 0u, (vader_array_buf_t*) &vader_data_47_buf,
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e0 = {
-    { 823u, 0u, 0u, 0u, NULL }, 277u, (int32_t) UINT64_C(10),
+    { 824u, 0u, 0u, 0u, NULL }, 277u, (int32_t) UINT64_C(10),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e1 = {
-    { 823u, 0u, 0u, 0u, NULL }, 357u, (int32_t) UINT64_C(10),
+    { 824u, 0u, 0u, 0u, NULL }, 357u, (int32_t) UINT64_C(10),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e2 = {
-    { 823u, 0u, 0u, 0u, NULL }, 217u, (int32_t) UINT64_C(10),
+    { 824u, 0u, 0u, 0u, NULL }, 217u, (int32_t) UINT64_C(10),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e3 = {
-    { 823u, 0u, 0u, 0u, NULL }, 281u, (int32_t) UINT64_C(9),
+    { 824u, 0u, 0u, 0u, NULL }, 281u, (int32_t) UINT64_C(9),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e4 = {
-    { 823u, 0u, 0u, 0u, NULL }, 304u, (int32_t) UINT64_C(9),
+    { 824u, 0u, 0u, 0u, NULL }, 304u, (int32_t) UINT64_C(9),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e5 = {
-    { 823u, 0u, 0u, 0u, NULL }, 412u, (int32_t) UINT64_C(8),
+    { 824u, 0u, 0u, 0u, NULL }, 412u, (int32_t) UINT64_C(8),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e6 = {
-    { 823u, 0u, 0u, 0u, NULL }, 435u, (int32_t) UINT64_C(8),
+    { 824u, 0u, 0u, 0u, NULL }, 435u, (int32_t) UINT64_C(8),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e7 = {
-    { 823u, 0u, 0u, 0u, NULL }, 411u, (int32_t) UINT64_C(7),
+    { 824u, 0u, 0u, 0u, NULL }, 411u, (int32_t) UINT64_C(7),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e8 = {
-    { 823u, 0u, 0u, 0u, NULL }, 413u, (int32_t) UINT64_C(7),
+    { 824u, 0u, 0u, 0u, NULL }, 413u, (int32_t) UINT64_C(7),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e9 = {
-    { 823u, 0u, 0u, 0u, NULL }, 433u, (int32_t) UINT64_C(7),
+    { 824u, 0u, 0u, 0u, NULL }, 433u, (int32_t) UINT64_C(7),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e10 = {
-    { 823u, 0u, 0u, 0u, NULL }, 434u, (int32_t) UINT64_C(7),
+    { 824u, 0u, 0u, 0u, NULL }, 434u, (int32_t) UINT64_C(7),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e11 = {
-    { 823u, 0u, 0u, 0u, NULL }, 430u, (int32_t) UINT64_C(6),
+    { 824u, 0u, 0u, 0u, NULL }, 430u, (int32_t) UINT64_C(6),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e12 = {
-    { 823u, 0u, 0u, 0u, NULL }, 183u, (int32_t) UINT64_C(6),
+    { 824u, 0u, 0u, 0u, NULL }, 183u, (int32_t) UINT64_C(6),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e13 = {
-    { 823u, 0u, 0u, 0u, NULL }, 219u, (int32_t) UINT64_C(5),
+    { 824u, 0u, 0u, 0u, NULL }, 219u, (int32_t) UINT64_C(5),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e14 = {
-    { 823u, 0u, 0u, 0u, NULL }, 840u, (int32_t) UINT64_C(4),
+    { 824u, 0u, 0u, 0u, NULL }, 840u, (int32_t) UINT64_C(4),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e15 = {
-    { 823u, 0u, 0u, 0u, NULL }, 2769u, (int32_t) UINT64_C(3),
+    { 824u, 0u, 0u, 0u, NULL }, 2758u, (int32_t) UINT64_C(3),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e16 = {
-    { 823u, 0u, 0u, 0u, NULL }, 220u, (int32_t) UINT64_C(2),
+    { 824u, 0u, 0u, 0u, NULL }, 220u, (int32_t) UINT64_C(2),
 };
 const struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t vader_data_48_e17 = {
-    { 823u, 0u, 0u, 0u, NULL }, 2770u, (int32_t) UINT64_C(1),
+    { 824u, 0u, 0u, 0u, NULL }, 2759u, (int32_t) UINT64_C(1),
 };
 const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[18]; } vader_data_48_buf = {
-    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 18u, 18u, 823u, 0u, { 0u, 0u, 0u },
+    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, 18u, 18u, 824u, 0u, { 0u, 0u, 0u },
     {
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e0,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e1,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e2,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e3,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e4,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e5,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e6,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e7,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e8,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e9,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e10,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e11,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e12,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e13,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e14,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e15,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e16,
             },
         },
         {
-            823u, 0u,
+            824u, 0u,
             {
                 .obj = (void*) (struct vader_struct_vader_c_emit_c_ast_COperatorInfo_t*) &vader_data_48_e17,
             },
@@ -9980,7 +9958,7 @@ const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32
     },
 };
 const vader_array_t vader_data_48 = {
-    { 67u, 0u, 0u, 0u, NULL }, 18u, 18u, 0u, (vader_array_buf_t*) &vader_data_48_buf,
+    { 71u, 0u, 0u, 0u, NULL }, 18u, 18u, 0u, (vader_array_buf_t*) &vader_data_48_buf,
 };
 vader_array_t* vader_global_const_arrays[] = { &vader_data_41 };
 void* vader_global_const_objs[] = { &vader_data_41 };
@@ -9991,7 +9969,7 @@ vader_gc_frame_t vader_global_const_frame = {
 static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[1842] = {
+const vader_type_info_t vader_type_info_table[1839] = {
     [1] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
@@ -10937,20 +10915,20 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [237] = {
-        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [238] = {
-        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [239] = {
-        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [240] = {
-        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
-        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [241] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
@@ -11084,147 +11062,163 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
     },
-    [274] = { .slot_size = 4 },
-    [275] = { .slot_size = 8 },
-    [276] = { .slot_size = 1 },
-    [277] = { .slot_size = 4 },
-    [278] = { .slot_size = 16 },
-    [280] = { .slot_size = 8 },
+    [274] = {
+        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
+        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+    },
+    [275] = {
+        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
+        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+    },
+    [276] = {
+        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
+        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+    },
+    [277] = {
+        .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
+        .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
+    },
+    [278] = { .slot_size = 4 },
+    [279] = { .slot_size = 8 },
+    [280] = { .slot_size = 1 },
     [281] = { .slot_size = 4 },
-    [282] = { .slot_size = 8 },
-    [283] = { .slot_size = 8 },
-    [284] = { .slot_size = 1 },
-    [285] = { .slot_size = 2 },
-    [286] = { .slot_size = 4 },
+    [282] = { .slot_size = 16 },
+    [284] = { .slot_size = 8 },
+    [285] = { .slot_size = 4 },
+    [286] = { .slot_size = 8 },
     [287] = { .slot_size = 8 },
-    [288] = { .slot_size = 8 },
-    [289] = { .slot_size = 16 },
-    [290] = {
+    [288] = { .slot_size = 1 },
+    [289] = { .slot_size = 2 },
+    [290] = { .slot_size = 4 },
+    [291] = { .slot_size = 8 },
+    [292] = { .slot_size = 8 },
+    [293] = { .slot_size = 16 },
+    [294] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct__Cell_bool_t), .slot_size = 8,
     },
-    [291] = {
+    [295] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___Tuple_Array_u32_u32_6fc96a7e_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Array_u32_u32_6fc96a7e_t, f__0) },
         .ref_count = 1,
     },
-    [292] = {
+    [296] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_u64_u64_u64_2d035edd_t),
         .slot_size = 8,
     },
-    [293] = {
+    [297] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_std_io_1_t),
         .slot_size = 8,
     },
-    [294] = {
+    [298] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_bytecode_1_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_bytecode_1_t, f_cap_0) },
         .ref_count = 1,
     },
-    [295] = {
+    [299] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_bytecode_3_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_bytecode_3_t, f_cap_0) },
         .ref_count = 1,
     },
-    [296] = {
+    [300] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_c_emit_1_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_c_emit_1_t, f_cap_0) },
         .ref_count = 1,
     },
-    [297] = {
+    [301] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_c_emit_5_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_c_emit_5_t, f_cap_0) },
         .ref_count = 1,
     },
-    [298] = {
+    [302] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_c_emit_8_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_c_emit_8_t, f_cap_0) },
         .ref_count = 1,
     },
-    [299] = {
+    [303] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_c_emit_c_ast_1_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_c_emit_c_ast_1_t, f_cap_0) },
         .ref_count = 1,
     },
-    [300] = {
+    [304] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_effects_12_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_effects_12_t, f_cap_0) },
         .ref_count = 1,
     },
-    [301] = {
+    [305] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_effects_15_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_effects_15_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_effects_15_t, f_cap_1) },
         .ref_count = 2,
     },
-    [302] = {
+    [306] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_effects_17_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_effects_17_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_effects_17_t, f_cap_1), offsetof(vader_struct___lambda_env_vader_effects_17_t, f_cap_2) },
         .ref_count = 3,
     },
-    [303] = {
+    [307] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_effects_19_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_effects_19_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_effects_19_t, f_cap_1), offsetof(vader_struct___lambda_env_vader_effects_19_t, f_cap_2) },
         .ref_count = 3,
     },
-    [304] = {
+    [308] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_effects_21_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_effects_21_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_effects_21_t, f_cap_1), offsetof(vader_struct___lambda_env_vader_effects_21_t, f_cap_2) },
         .ref_count = 3,
     },
-    [305] = {
+    [309] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_effects_23_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_effects_23_t, f_cap_0) },
         .ref_count = 1,
     },
-    [306] = {
+    [310] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_effects_25_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_effects_25_t, f_cap_0) },
         .string_count = 1,
     },
-    [307] = {
+    [311] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_effects_4_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_effects_4_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_effects_4_t, f_cap_1), offsetof(vader_struct___lambda_env_vader_effects_4_t, f_cap_2), offsetof(vader_struct___lambda_env_vader_effects_4_t, f_cap_3), offsetof(vader_struct___lambda_env_vader_effects_4_t, f_cap_4), offsetof(vader_struct___lambda_env_vader_effects_4_t, f_cap_5) },
         .ref_count = 6,
     },
-    [308] = {
+    [312] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_effects_7_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_effects_7_t, f_cap_0) },
         .ref_count = 1,
     },
-    [309] = {
+    [313] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_fixpoint_1_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_fixpoint_1_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_fixpoint_1_t, f_cap_1) },
         .ref_count = 2,
     },
-    [310] = {
+    [314] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_fixpoint_3_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_fixpoint_3_t, f_cap_0) },
         .ref_count = 1,
     },
-    [311] = {
+    [315] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_lower_1_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_lower_1_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_lower_1_t, f_cap_1), offsetof(vader_struct___lambda_env_vader_lower_1_t, f_cap_2), offsetof(vader_struct___lambda_env_vader_lower_1_t, f_cap_3), offsetof(vader_struct___lambda_env_vader_lower_1_t, f_cap_4) },
         .ref_count = 5,
     },
-    [312] = {
+    [316] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_lower_11_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_lower_11_t, f_cap_1) },
@@ -11232,31 +11226,31 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_lower_11_t, f_cap_0) },
         .ref_count = 1,
     },
-    [313] = {
+    [317] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_lower_13_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_lower_13_t, f_cap_0) },
         .ptr_count = 1,
     },
-    [314] = {
+    [318] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_lower_15_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_lower_15_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_lower_15_t, f_cap_1) },
         .ref_count = 2,
     },
-    [315] = {
+    [319] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_lower_3_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_lower_3_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_lower_3_t, f_cap_1) },
         .ref_count = 2,
     },
-    [316] = {
+    [320] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_lower_5_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_lower_5_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_lower_5_t, f_cap_1) },
         .ref_count = 2,
     },
-    [317] = {
+    [321] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_lower_7_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_lower_7_t, f_cap_2) },
@@ -11264,73 +11258,73 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_lower_7_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_lower_7_t, f_cap_1) },
         .ref_count = 2,
     },
-    [318] = {
+    [322] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_midir_1_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_midir_1_t, f_cap_1) },
         .ref_count = 1,
     },
-    [319] = {
+    [323] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_midir_10_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_midir_10_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_midir_10_t, f_cap_1) },
         .ref_count = 2,
     },
-    [320] = {
+    [324] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_midir_12_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_midir_12_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_midir_12_t, f_cap_1) },
         .ref_count = 2,
     },
-    [321] = {
+    [325] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_midir_16_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_midir_16_t, f_cap_0) },
         .ref_count = 1,
     },
-    [322] = {
+    [326] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_midir_19_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_midir_19_t, f_cap_0) },
         .ref_count = 1,
     },
-    [323] = {
+    [327] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_midir_3_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_midir_3_t, f_cap_1) },
         .ref_count = 1,
     },
-    [324] = {
+    [328] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_midir_5_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_midir_5_t, f_cap_0) },
         .ref_count = 1,
     },
-    [325] = {
+    [329] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_midir_7_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_midir_7_t, f_cap_1) },
         .ref_count = 1,
     },
-    [326] = {
+    [330] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_typecheck_10_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_typecheck_10_t, f_cap_0) },
         .ref_count = 1,
     },
-    [327] = {
+    [331] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_typecheck_12_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_typecheck_12_t, f_cap_0) },
         .ref_count = 1,
     },
-    [328] = {
+    [332] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_typecheck_15_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_typecheck_15_t, f_cap_0) },
         .ref_count = 1,
     },
-    [329] = {
+    [333] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_typecheck_19_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_typecheck_19_t, f_cap_0) },
@@ -11338,1080 +11332,1063 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_typecheck_19_t, f_cap_1) },
         .ref_count = 1,
     },
-    [330] = {
+    [334] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_typecheck_3_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_typecheck_3_t, f_cap_1) },
         .ref_count = 1,
     },
-    [331] = {
+    [335] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_typecheck_5_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_typecheck_5_t, f_cap_0) },
         .ref_count = 1,
     },
-    [332] = {
+    [336] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___lambda_env_vader_typecheck_7_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_typecheck_7_t, f_cap_0), offsetof(vader_struct___lambda_env_vader_typecheck_7_t, f_cap_1) },
         .ref_count = 2,
     },
-    [333] = {
+    [337] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_vader_vm_2_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_vader_vm_2_t, f_cap_0) },
         .ref_count = 1,
     },
-    [334] = {
+    [338] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_json_JsonArray_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_json_JsonArray_t, f_items) },
         .ref_count = 1,
     },
-    [335] = {
+    [339] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_json_JsonBool_t),
         .slot_size = 8,
     },
-    [336] = {
+    [340] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_json_JsonError_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_json_JsonError_t, f_msg) },
         .string_count = 1,
     },
-    [337] = {
+    [341] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_json_JsonNull_t),
         .slot_size = 8,
     },
-    [338] = {
+    [342] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_json_JsonNumber_t),
         .slot_size = 8,
     },
-    [339] = {
+    [343] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_json_JsonObject_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_json_JsonObject_t, f_entries) },
         .ref_count = 1,
     },
-    [340] = {
+    [344] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_json_JsonString_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_json_JsonString_t, f_value) },
         .string_count = 1,
     },
-    [341] = {
+    [345] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_json_Parser_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_json_Parser_t, f_src) },
         .string_count = 1,
     },
-    [342] = {
+    [346] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__Any_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__Any_t, f_index) },
         .ref_count = 3,
     },
-    [343] = {
+    [347] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_index) },
         .ref_count = 3,
     },
-    [344] = {
+    [348] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__Any___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__Any___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__Any___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__Any___t, f_index) },
         .ref_count = 3,
     },
-    [345] = {
+    [349] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__ArgBound___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__ArgBound___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ArgBound___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ArgBound___t, f_index) },
         .ref_count = 3,
     },
-    [346] = {
+    [350] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections_MutableMap__i32__ArrayClear___ArrayCopy___ArrayGet___ArrayLen___ArrayNew___ArrayPush___ArrayPushAll___ArrayRemoveLast___ArrayRepeat___ArraySet___ArraySlice___BitsToF32___BitsToF64___Block___BoolAnd___BoolConst___BoolEq___BoolNe___BoolNot___BoolOr___Branch___BranchIf___BufferNew___BufferToString___BufferWriteString___Call___CallImport___CallIndirect___CharConst___CheckedArith___CheckedNeg___Convert___DataConst___DeferPopExec___DeferPush___Drop___Else___End___F32ToBits___F64Add___F64Const___F64Div___F64Eq___F64Ge___F64Gt___F64Le___F64Lt___F64Mul___F64Ne___F64Neg___F64Sub___F64ToBits___FnAddr___FnRef___I32Add___I32BitAnd___I32BitNot___I32BitOr___I32BitXor___I32Const___I32Div___I32Eq___I32Ge___I32Gt___I32Le___I32Lt___I32Mod___I32Mul___I32Ne___I32Neg___I32Shl___I32Shr___I32ShrU___I32Sub___I64Add___I64BitAnd___I64BitNot___I64BitOr___I64BitXor___I64Const___I64Div___I64Eq___I64Ge___I64Gt___I64Le___I64Lt___I64Mod___I64Mul___I64Ne___I64Neg___I64Shl___I64Shr___I64ShrU___I64Sub___If___LoadF64___LoadI32___LoadI64___LoadSlotF64___LoadSlotI32___LoadSlotI64___LoadU8___LocalField___LocalGet___LocalSet___LocalTee___Loop___MakeClosure___MemoryCopy___NullConst___RefCast___RefEq___RefNe___Retag___Return___ReturnLit___SizeOfType___StoreF64___StoreI32___StoreI64___StoreSlotF64___StoreSlotI32___StoreSlotI64___StoreU8___StringCompare___StringConst___StringEq___StringNe___StringSliceCodepoints___StructGet___StructNew___StructSet___TypeCheck___TypeConst___U32Div___U32Ge___U32Gt___U32Le___U32Lt___U32Mod___U64Div___U64Ge___U64Gt___U64Le___U64Lt___U64Mod___Unreachable___VirtualCall_t),
+        .size = sizeof(vader_struct_std_collections_MutableMap__i32__ArrayClear___ArrayCopy___ArrayGet___ArrayLen___ArrayNew___ArrayPush___ArrayPushAll___ArrayRemoveLast___ArrayRepeat___ArraySet___ArraySlice___BitsToF32___BitsToF64___Block___BoolAnd___BoolConst___BoolEq___BoolNe___BoolNot___BoolOr___Branch___BranchIf___BufferNew___BufferToString___BufferWriteString___Call___CallImport___CallIndirect___CharConst___CheckedArith___CheckedNeg___Convert___DataConst___DeferPopExec___DeferPush___Drop___Else___End___F32ToBits___F64Add___F64Const___F64Div___F64Eq___F64Ge___F64Gt___F64Le___F64Lt___F64Mul___F64Ne___F64Neg___F64Sub___F64ToBits___FnAddr___FnRef___I32Add___I32BitAnd___I32BitNot___I32BitOr___I32BitXor___I32Const___I32Div___I32Eq___I32Ge___I32Gt___I32Le___I32Lt___I32Mod___I32Mul___I32Ne___I32Neg___I32Shl___I32Shr___I32ShrU___I32Sub___I64Add___I64BitAnd___I64BitNot___I64BitOr___I64BitXor___I64Const___I64Div___I64Eq___I64Ge___I64Gt___I64Le___I64Lt___I64Mod___I64Mul___I64Ne___I64Neg___I64Shl___I64Shr___I64ShrU___I64Sub___If___LoadF64___LoadI32___LoadI64___LoadSlotF64___LoadSlotI32___LoadSlotI64___LoadU8___LocalField___LocalGet___LocalSet___LocalTee___Loop___MakeClosure___MemoryCopy___NullConst___RefCast___RefEq___RefNe___Retag___Return___ReturnLit___SizeOfType___StoreF64___StoreI32___StoreI64___StoreSlotF64___StoreSlotI32___StoreSlotI64___StoreU8___StringCompare___StringConst___StringEq___StringNe___StructGet___StructNew___StructSet___TypeCheck___TypeConst___U32Div___U32Ge___U32Gt___U32Le___U32Lt___U32Mod___U64Div___U64Ge___U64Gt___U64Le___U64Lt___U64Mod___Unreachable___VirtualCall_t),
         .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__ArrayClear___ArrayCopy___ArrayGet___ArrayLen___ArrayNew___ArrayPush___ArrayPushAll___ArrayRemoveLast___ArrayRepeat___ArraySet___ArraySlice___BitsToF32___BitsToF64___Block___BoolAnd___BoolConst___BoolEq___BoolNe___BoolNot___BoolOr___Branch___BranchIf___BufferNew___BufferToString___BufferWriteString___Call___CallImport___CallIndirect___CharConst___CheckedArith___CheckedNeg___Convert___DataConst___DeferPopExec___DeferPush___Drop___Else___End___F32ToBits___F64Add___F64Const___F64Div___F64Eq___F64Ge___F64Gt___F64Le___F64Lt___F64Mul___F64Ne___F64Neg___F64Sub___F64ToBits___FnAddr___FnRef___I32Add___I32BitAnd___I32BitNot___I32BitOr___I32BitXor___I32Const___I32Div___I32Eq___I32Ge___I32Gt___I32Le___I32Lt___I32Mod___I32Mul___I32Ne___I32Neg___I32Shl___I32Shr___I32ShrU___I32Sub___I64Add___I64BitAnd___I64BitNot___I64BitOr___I64BitXor___I64Const___I64Div___I64Eq___I64Ge___I64Gt___I64Le___I64Lt___I64Mod___I64Mul___I64Ne___I64Neg___I64Shl___I64Shr___I64ShrU___I64Sub___If___LoadF64___LoadI32___LoadI64___LoadSlotF64___LoadSlotI32___LoadSlotI64___LoadU8___LocalField___LocalGet___LocalSet___LocalTee___Loop___MakeClosure___MemoryCopy___NullConst___RefCast___RefEq___RefNe___Retag___Return___ReturnLit___SizeOfType___StoreF64___StoreI32___StoreI64___StoreSlotF64___StoreSlotI32___StoreSlotI64___StoreU8___StringCompare___StringConst___StringEq___StringNe___StringSliceCodepoints___StructGet___StructNew___StructSet___TypeCheck___TypeConst___U32Div___U32Ge___U32Gt___U32Le___U32Lt___U32Mod___U64Div___U64Ge___U64Gt___U64Le___U64Lt___U64Mod___Unreachable___VirtualCall_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ArrayClear___ArrayCopy___ArrayGet___ArrayLen___ArrayNew___ArrayPush___ArrayPushAll___ArrayRemoveLast___ArrayRepeat___ArraySet___ArraySlice___BitsToF32___BitsToF64___Block___BoolAnd___BoolConst___BoolEq___BoolNe___BoolNot___BoolOr___Branch___BranchIf___BufferNew___BufferToString___BufferWriteString___Call___CallImport___CallIndirect___CharConst___CheckedArith___CheckedNeg___Convert___DataConst___DeferPopExec___DeferPush___Drop___Else___End___F32ToBits___F64Add___F64Const___F64Div___F64Eq___F64Ge___F64Gt___F64Le___F64Lt___F64Mul___F64Ne___F64Neg___F64Sub___F64ToBits___FnAddr___FnRef___I32Add___I32BitAnd___I32BitNot___I32BitOr___I32BitXor___I32Const___I32Div___I32Eq___I32Ge___I32Gt___I32Le___I32Lt___I32Mod___I32Mul___I32Ne___I32Neg___I32Shl___I32Shr___I32ShrU___I32Sub___I64Add___I64BitAnd___I64BitNot___I64BitOr___I64BitXor___I64Const___I64Div___I64Eq___I64Ge___I64Gt___I64Le___I64Lt___I64Mod___I64Mul___I64Ne___I64Neg___I64Shl___I64Shr___I64ShrU___I64Sub___If___LoadF64___LoadI32___LoadI64___LoadSlotF64___LoadSlotI32___LoadSlotI64___LoadU8___LocalField___LocalGet___LocalSet___LocalTee___Loop___MakeClosure___MemoryCopy___NullConst___RefCast___RefEq___RefNe___Retag___Return___ReturnLit___SizeOfType___StoreF64___StoreI32___StoreI64___StoreSlotF64___StoreSlotI32___StoreSlotI64___StoreU8___StringCompare___StringConst___StringEq___StringNe___StringSliceCodepoints___StructGet___StructNew___StructSet___TypeCheck___TypeConst___U32Div___U32Ge___U32Gt___U32Le___U32Lt___U32Mod___U64Div___U64Ge___U64Gt___U64Le___U64Lt___U64Mod___Unreachable___VirtualCall_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ArrayClear___ArrayCopy___ArrayGet___ArrayLen___ArrayNew___ArrayPush___ArrayPushAll___ArrayRemoveLast___ArrayRepeat___ArraySet___ArraySlice___BitsToF32___BitsToF64___Block___BoolAnd___BoolConst___BoolEq___BoolNe___BoolNot___BoolOr___Branch___BranchIf___BufferNew___BufferToString___BufferWriteString___Call___CallImport___CallIndirect___CharConst___CheckedArith___CheckedNeg___Convert___DataConst___DeferPopExec___DeferPush___Drop___Else___End___F32ToBits___F64Add___F64Const___F64Div___F64Eq___F64Ge___F64Gt___F64Le___F64Lt___F64Mul___F64Ne___F64Neg___F64Sub___F64ToBits___FnAddr___FnRef___I32Add___I32BitAnd___I32BitNot___I32BitOr___I32BitXor___I32Const___I32Div___I32Eq___I32Ge___I32Gt___I32Le___I32Lt___I32Mod___I32Mul___I32Ne___I32Neg___I32Shl___I32Shr___I32ShrU___I32Sub___I64Add___I64BitAnd___I64BitNot___I64BitOr___I64BitXor___I64Const___I64Div___I64Eq___I64Ge___I64Gt___I64Le___I64Lt___I64Mod___I64Mul___I64Ne___I64Neg___I64Shl___I64Shr___I64ShrU___I64Sub___If___LoadF64___LoadI32___LoadI64___LoadSlotF64___LoadSlotI32___LoadSlotI64___LoadU8___LocalField___LocalGet___LocalSet___LocalTee___Loop___MakeClosure___MemoryCopy___NullConst___RefCast___RefEq___RefNe___Retag___Return___ReturnLit___SizeOfType___StoreF64___StoreI32___StoreI64___StoreSlotF64___StoreSlotI32___StoreSlotI64___StoreU8___StringCompare___StringConst___StringEq___StringNe___StringSliceCodepoints___StructGet___StructNew___StructSet___TypeCheck___TypeConst___U32Div___U32Ge___U32Gt___U32Le___U32Lt___U32Mod___U64Div___U64Ge___U64Gt___U64Le___U64Lt___U64Mod___Unreachable___VirtualCall_t, f_index) },
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__ArrayClear___ArrayCopy___ArrayGet___ArrayLen___ArrayNew___ArrayPush___ArrayPushAll___ArrayRemoveLast___ArrayRepeat___ArraySet___ArraySlice___BitsToF32___BitsToF64___Block___BoolAnd___BoolConst___BoolEq___BoolNe___BoolNot___BoolOr___Branch___BranchIf___BufferNew___BufferToString___BufferWriteString___Call___CallImport___CallIndirect___CharConst___CheckedArith___CheckedNeg___Convert___DataConst___DeferPopExec___DeferPush___Drop___Else___End___F32ToBits___F64Add___F64Const___F64Div___F64Eq___F64Ge___F64Gt___F64Le___F64Lt___F64Mul___F64Ne___F64Neg___F64Sub___F64ToBits___FnAddr___FnRef___I32Add___I32BitAnd___I32BitNot___I32BitOr___I32BitXor___I32Const___I32Div___I32Eq___I32Ge___I32Gt___I32Le___I32Lt___I32Mod___I32Mul___I32Ne___I32Neg___I32Shl___I32Shr___I32ShrU___I32Sub___I64Add___I64BitAnd___I64BitNot___I64BitOr___I64BitXor___I64Const___I64Div___I64Eq___I64Ge___I64Gt___I64Le___I64Lt___I64Mod___I64Mul___I64Ne___I64Neg___I64Shl___I64Shr___I64ShrU___I64Sub___If___LoadF64___LoadI32___LoadI64___LoadSlotF64___LoadSlotI32___LoadSlotI64___LoadU8___LocalField___LocalGet___LocalSet___LocalTee___Loop___MakeClosure___MemoryCopy___NullConst___RefCast___RefEq___RefNe___Retag___Return___ReturnLit___SizeOfType___StoreF64___StoreI32___StoreI64___StoreSlotF64___StoreSlotI32___StoreSlotI64___StoreU8___StringCompare___StringConst___StringEq___StringNe___StructGet___StructNew___StructSet___TypeCheck___TypeConst___U32Div___U32Ge___U32Gt___U32Le___U32Lt___U32Mod___U64Div___U64Ge___U64Gt___U64Le___U64Lt___U64Mod___Unreachable___VirtualCall_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ArrayClear___ArrayCopy___ArrayGet___ArrayLen___ArrayNew___ArrayPush___ArrayPushAll___ArrayRemoveLast___ArrayRepeat___ArraySet___ArraySlice___BitsToF32___BitsToF64___Block___BoolAnd___BoolConst___BoolEq___BoolNe___BoolNot___BoolOr___Branch___BranchIf___BufferNew___BufferToString___BufferWriteString___Call___CallImport___CallIndirect___CharConst___CheckedArith___CheckedNeg___Convert___DataConst___DeferPopExec___DeferPush___Drop___Else___End___F32ToBits___F64Add___F64Const___F64Div___F64Eq___F64Ge___F64Gt___F64Le___F64Lt___F64Mul___F64Ne___F64Neg___F64Sub___F64ToBits___FnAddr___FnRef___I32Add___I32BitAnd___I32BitNot___I32BitOr___I32BitXor___I32Const___I32Div___I32Eq___I32Ge___I32Gt___I32Le___I32Lt___I32Mod___I32Mul___I32Ne___I32Neg___I32Shl___I32Shr___I32ShrU___I32Sub___I64Add___I64BitAnd___I64BitNot___I64BitOr___I64BitXor___I64Const___I64Div___I64Eq___I64Ge___I64Gt___I64Le___I64Lt___I64Mod___I64Mul___I64Ne___I64Neg___I64Shl___I64Shr___I64ShrU___I64Sub___If___LoadF64___LoadI32___LoadI64___LoadSlotF64___LoadSlotI32___LoadSlotI64___LoadU8___LocalField___LocalGet___LocalSet___LocalTee___Loop___MakeClosure___MemoryCopy___NullConst___RefCast___RefEq___RefNe___Retag___Return___ReturnLit___SizeOfType___StoreF64___StoreI32___StoreI64___StoreSlotF64___StoreSlotI32___StoreSlotI64___StoreU8___StringCompare___StringConst___StringEq___StringNe___StructGet___StructNew___StructSet___TypeCheck___TypeConst___U32Div___U32Ge___U32Gt___U32Le___U32Lt___U32Mod___U64Div___U64Ge___U64Gt___U64Le___U64Lt___U64Mod___Unreachable___VirtualCall_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ArrayClear___ArrayCopy___ArrayGet___ArrayLen___ArrayNew___ArrayPush___ArrayPushAll___ArrayRemoveLast___ArrayRepeat___ArraySet___ArraySlice___BitsToF32___BitsToF64___Block___BoolAnd___BoolConst___BoolEq___BoolNe___BoolNot___BoolOr___Branch___BranchIf___BufferNew___BufferToString___BufferWriteString___Call___CallImport___CallIndirect___CharConst___CheckedArith___CheckedNeg___Convert___DataConst___DeferPopExec___DeferPush___Drop___Else___End___F32ToBits___F64Add___F64Const___F64Div___F64Eq___F64Ge___F64Gt___F64Le___F64Lt___F64Mul___F64Ne___F64Neg___F64Sub___F64ToBits___FnAddr___FnRef___I32Add___I32BitAnd___I32BitNot___I32BitOr___I32BitXor___I32Const___I32Div___I32Eq___I32Ge___I32Gt___I32Le___I32Lt___I32Mod___I32Mul___I32Ne___I32Neg___I32Shl___I32Shr___I32ShrU___I32Sub___I64Add___I64BitAnd___I64BitNot___I64BitOr___I64BitXor___I64Const___I64Div___I64Eq___I64Ge___I64Gt___I64Le___I64Lt___I64Mod___I64Mul___I64Ne___I64Neg___I64Shl___I64Shr___I64ShrU___I64Sub___If___LoadF64___LoadI32___LoadI64___LoadSlotF64___LoadSlotI32___LoadSlotI64___LoadU8___LocalField___LocalGet___LocalSet___LocalTee___Loop___MakeClosure___MemoryCopy___NullConst___RefCast___RefEq___RefNe___Retag___Return___ReturnLit___SizeOfType___StoreF64___StoreI32___StoreI64___StoreSlotF64___StoreSlotI32___StoreSlotI64___StoreU8___StringCompare___StringConst___StringEq___StringNe___StructGet___StructNew___StructSet___TypeCheck___TypeConst___U32Div___U32Ge___U32Gt___U32Le___U32Lt___U32Mod___U64Div___U64Ge___U64Gt___U64Le___U64Lt___U64Mod___Unreachable___VirtualCall_t, f_index) },
         .ref_count = 3,
     },
-    [347] = {
+    [351] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_index) },
         .ref_count = 3,
     },
-    [348] = {
+    [352] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t, f_index) },
         .ref_count = 3,
     },
-    [349] = {
+    [353] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__ClosureAlias_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__ClosureAlias_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ClosureAlias_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ClosureAlias_t, f_index) },
         .ref_count = 3,
     },
-    [350] = {
+    [354] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__ConstDecl_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__ConstDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ConstDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ConstDecl_t, f_index) },
         .ref_count = 3,
     },
-    [351] = {
+    [355] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__ConstFnWrap_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__ConstFnWrap_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ConstFnWrap_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ConstFnWrap_t, f_index) },
         .ref_count = 3,
     },
-    [352] = {
+    [356] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__ConstantUse___t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__ConstantUse___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ConstantUse___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ConstantUse___t, f_index) },
         .ref_count = 3,
     },
-    [353] = {
+    [357] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__EnvSlot_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__EnvSlot_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__EnvSlot_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__EnvSlot_t, f_index) },
         .ref_count = 3,
     },
-    [354] = {
+    [358] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__FnDecl_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__FnDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__FnDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__FnDecl_t, f_index) },
         .ref_count = 3,
     },
-    [355] = {
+    [359] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ImportInfo_t, f_index) },
         .ref_count = 3,
     },
-    [356] = {
+    [360] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t),
+        .size = sizeof(vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t),
         .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t, f_index) },
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t, f_index) },
         .ref_count = 3,
     },
-    [357] = {
+    [361] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t, f_index) },
         .ref_count = 3,
     },
-    [358] = {
+    [362] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__LoweredFnDecl_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__LoweredFnDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__LoweredFnDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__LoweredFnDecl_t, f_index) },
         .ref_count = 3,
     },
-    [359] = {
+    [363] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__LoweredIdent_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__LoweredIdent_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__LoweredIdent_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__LoweredIdent_t, f_index) },
         .ref_count = 3,
     },
-    [360] = {
-        .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections_MutableMap__i32__MutableMap_Any__Any__t),
-        .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__MutableMap_Any__Any__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__MutableMap_Any__Any__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__MutableMap_Any__Any__t, f_index) },
-        .ref_count = 3,
-    },
-    [361] = {
+    [364] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t, f_index) },
         .ref_count = 3,
     },
-    [362] = {
+    [365] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__MutableMap_string__bool__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__MutableMap_string__bool__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__MutableMap_string__bool__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__MutableMap_string__bool__t, f_index) },
         .ref_count = 3,
     },
-    [363] = {
+    [366] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__MutableSet_Any__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_Any__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_Any__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_Any__t, f_index) },
         .ref_count = 3,
     },
-    [364] = {
+    [367] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__MutableSet_i32__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_i32__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_i32__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_i32__t, f_index) },
         .ref_count = 3,
     },
-    [365] = {
+    [368] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__MutableSet_usize__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_usize__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_usize__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__MutableSet_usize__t, f_index) },
         .ref_count = 3,
     },
-    [366] = {
+    [369] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__NarrowSlot_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__NarrowSlot_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__NarrowSlot_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__NarrowSlot_t, f_index) },
         .ref_count = 3,
     },
-    [367] = {
+    [370] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__ResolvedModule_t, f_index) },
         .ref_count = 3,
     },
-    [368] = {
+    [371] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__StructDecl_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__StructDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__StructDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__StructDecl_t, f_index) },
         .ref_count = 3,
     },
-    [369] = {
+    [372] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__StructType___t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__StructType___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__StructType___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__StructType___t, f_index) },
         .ref_count = 3,
     },
-    [370] = {
+    [373] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__Symbol_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__Symbol_t, f_index) },
         .ref_count = 3,
     },
-    [371] = {
+    [374] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__SymbolTarget_t, f_index) },
         .ref_count = 3,
     },
-    [372] = {
+    [375] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__Symbol___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__Symbol___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__Symbol___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__Symbol___t, f_index) },
         .ref_count = 3,
     },
-    [373] = {
+    [376] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__TraitDecl_t, f_index) },
         .ref_count = 3,
     },
-    [374] = {
+    [377] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__TypeAliasDecl_t, f_index) },
         .ref_count = 3,
     },
-    [375] = {
+    [378] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__TypeParamBound_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__TypeParamBound_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__TypeParamBound_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__TypeParamBound_t, f_index) },
         .ref_count = 3,
     },
-    [376] = {
+    [379] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__bool_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_index) },
         .ref_count = 3,
     },
-    [377] = {
+    [380] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_index) },
         .ref_count = 3,
     },
-    [378] = {
+    [381] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__i32___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__i32___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32___t, f_index) },
         .ref_count = 3,
     },
-    [379] = {
+    [382] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__string_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__string_t, f_index) },
         .ref_count = 3,
     },
-    [380] = {
+    [383] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__string___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__string___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__string___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__string___t, f_index) },
         .ref_count = 3,
     },
-    [381] = {
+    [384] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__usize_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__usize_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__usize_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__usize_t, f_index) },
         .ref_count = 3,
     },
-    [382] = {
+    [385] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i64__bool_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i64__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i64__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i64__bool_t, f_index) },
         .ref_count = 3,
     },
-    [383] = {
+    [386] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i64__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i64__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i64__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i64__i32_t, f_index) },
         .ref_count = 3,
     },
-    [384] = {
+    [387] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__Any_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Any_t, f_index) },
         .ref_count = 3,
     },
-    [385] = {
+    [388] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_index) },
         .ref_count = 3,
     },
-    [386] = {
+    [389] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__Any___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__Any___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Any___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Any___t, f_index) },
         .ref_count = 3,
     },
-    [387] = {
+    [390] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__Any_____t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__Any_____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Any_____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Any_____t, f_index) },
         .ref_count = 3,
     },
-    [388] = {
+    [391] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__ArrayMemberUse_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__ArrayMemberUse_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ArrayMemberUse_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ArrayMemberUse_t, f_index) },
         .ref_count = 3,
     },
-    [389] = {
+    [392] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_index) },
         .ref_count = 3,
     },
-    [390] = {
+    [393] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ArrayValue___BoolValue___CharValue___FloatValue___IntValue___NullValue___StringValue___StructValue___TypeValue___VoidValue_t, f_index) },
         .ref_count = 3,
     },
-    [391] = {
+    [394] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__CFGModule_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__CFGModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__CFGModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__CFGModule_t, f_index) },
         .ref_count = 3,
     },
-    [392] = {
+    [395] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__Capture___t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__Capture___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Capture___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Capture___t, f_index) },
         .ref_count = 3,
     },
-    [393] = {
+    [396] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__DefaultThunk_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__DefaultThunk_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__DefaultThunk_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__DefaultThunk_t, f_index) },
         .ref_count = 3,
     },
-    [394] = {
+    [397] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__DiscoveredModule_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__DiscoveredModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__DiscoveredModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__DiscoveredModule_t, f_index) },
         .ref_count = 3,
     },
-    [395] = {
+    [398] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__EvaluatedProgram_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__EvaluatedProgram_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__EvaluatedProgram_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__EvaluatedProgram_t, f_index) },
         .ref_count = 3,
     },
-    [396] = {
+    [399] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__FileScope_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__FileScope_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__FileScope_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__FileScope_t, f_index) },
         .ref_count = 3,
     },
-    [397] = {
+    [400] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__FnCandidate___t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__FnCandidate___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__FnCandidate___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__FnCandidate___t, f_index) },
         .ref_count = 3,
     },
-    [398] = {
+    [401] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__FnDecl_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__FnDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__FnDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__FnDecl_t, f_index) },
         .ref_count = 3,
     },
-    [399] = {
+    [402] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__FnDecl___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__FnDecl___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__FnDecl___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__FnDecl___t, f_index) },
         .ref_count = 3,
     },
-    [400] = {
+    [403] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__GenericFnInstance_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__GenericFnInstance_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__GenericFnInstance_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__GenericFnInstance_t, f_index) },
         .ref_count = 3,
     },
-    [401] = {
+    [404] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__GenericInstance_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__GenericInstance_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__GenericInstance_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__GenericInstance_t, f_index) },
         .ref_count = 3,
     },
-    [402] = {
+    [405] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__ImplEntry___t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__ImplEntry___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ImplEntry___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ImplEntry___t, f_index) },
         .ref_count = 3,
     },
-    [403] = {
+    [406] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__ImplMethod___t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__ImplMethod___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ImplMethod___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ImplMethod___t, f_index) },
         .ref_count = 3,
     },
-    [404] = {
+    [407] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__ImplShape___t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__ImplShape___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ImplShape___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ImplShape___t, f_index) },
         .ref_count = 3,
     },
-    [405] = {
+    [408] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString_t, f_index) },
         .ref_count = 3,
     },
-    [406] = {
+    [409] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__LoadedModule_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__LoadedModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoadedModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoadedModule_t, f_index) },
         .ref_count = 3,
     },
-    [407] = {
+    [410] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoweredConstDecl___LoweredFnDecl___LoweredStructDecl_t, f_index) },
         .ref_count = 3,
     },
-    [408] = {
+    [411] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__LoweredFnDecl_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__LoweredFnDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoweredFnDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoweredFnDecl_t, f_index) },
         .ref_count = 3,
     },
-    [409] = {
+    [412] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__LoweredModule_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__LoweredModule_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoweredModule_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoweredModule_t, f_index) },
         .ref_count = 3,
     },
-    [410] = {
+    [413] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__LoweredStructDecl_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__LoweredStructDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__LoweredStructDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__LoweredStructDecl_t, f_index) },
         .ref_count = 3,
     },
-    [411] = {
+    [414] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MarkedLevel_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MarkedLevel_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MarkedLevel_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MarkedLevel_t, f_index) },
         .ref_count = 3,
     },
-    [412] = {
+    [415] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MismatchPair_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MismatchPair_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MismatchPair_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MismatchPair_t, f_index) },
         .ref_count = 3,
     },
-    [413] = {
+    [416] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any__t, f_index) },
         .ref_count = 3,
     },
-    [414] = {
-        .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any____t),
-        .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any____t, f_index) },
-        .ref_count = 3,
-    },
-    [415] = {
-        .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any______t),
-        .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any______t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any______t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_Any__Any______t, f_index) },
-        .ref_count = 3,
-    },
-    [416] = {
+    [417] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType__t, f_index) },
         .ref_count = 3,
     },
-    [417] = {
+    [418] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnCandidate____t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnCandidate____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnCandidate____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnCandidate____t, f_index) },
         .ref_count = 3,
     },
-    [418] = {
+    [419] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnDecl__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnDecl__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnDecl__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__FnDecl__t, f_index) },
         .ref_count = 3,
     },
-    [419] = {
+    [420] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__MismatchPair__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__MismatchPair__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__MismatchPair__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__MismatchPair__t, f_index) },
         .ref_count = 3,
     },
-    [420] = {
+    [421] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__Symbol__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__Symbol__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__Symbol__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__Symbol__t, f_index) },
         .ref_count = 3,
     },
-    [421] = {
+    [422] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_______t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_______t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_______t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_______t, f_index) },
         .ref_count = 3,
     },
-    [422] = {
+    [423] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_string__bool__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__bool__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__bool__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_string__bool__t, f_index) },
         .ref_count = 3,
     },
-    [423] = {
+    [424] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__BoundedImpl__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__BoundedImpl__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__BoundedImpl__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__BoundedImpl__t, f_index) },
         .ref_count = 3,
     },
-    [424] = {
+    [425] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__Symbol__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__Symbol__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__Symbol__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableMap_u64__Symbol__t, f_index) },
         .ref_count = 3,
     },
-    [425] = {
+    [426] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__MutableSet_i32__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__MutableSet_i32__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__MutableSet_i32__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__MutableSet_i32__t, f_index) },
         .ref_count = 3,
     },
-    [426] = {
+    [427] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__NarrowSlot_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__NarrowSlot_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__NarrowSlot_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__NarrowSlot_t, f_index) },
         .ref_count = 3,
     },
-    [427] = {
+    [428] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__ObservedFn_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__ObservedFn_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ObservedFn_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ObservedFn_t, f_index) },
         .ref_count = 3,
     },
-    [428] = {
+    [429] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__Span_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__Span_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Span_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Span_t, f_index) },
         .ref_count = 3,
     },
-    [429] = {
+    [430] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__Symbol_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__Symbol_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Symbol_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Symbol_t, f_index) },
         .ref_count = 3,
     },
-    [430] = {
+    [431] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__Symbol___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__Symbol___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Symbol___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Symbol___t, f_index) },
         .ref_count = 3,
     },
-    [431] = {
+    [432] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__TypedProgram_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__TypedProgram_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__TypedProgram_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__TypedProgram_t, f_index) },
         .ref_count = 3,
     },
-    [432] = {
+    [433] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__ValType___t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__ValType___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__ValType___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__ValType___t, f_index) },
         .ref_count = 3,
     },
-    [433] = {
+    [434] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string___AnyCallee___CalleeNode___KnownEffects____t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string___AnyCallee___CalleeNode___KnownEffects____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string___AnyCallee___CalleeNode___KnownEffects____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string___AnyCallee___CalleeNode___KnownEffects____t, f_index) },
         .ref_count = 3,
     },
-    [434] = {
+    [435] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType______t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType______t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType______t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string___AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType______t, f_index) },
         .ref_count = 3,
     },
-    [435] = {
+    [436] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string___AssertDecl___ConstDecl___EnumDecl___FnDecl___ImplDecl___ImportDecl___StructDecl___TraitDecl___TypeAliasDecl____t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string___AssertDecl___ConstDecl___EnumDecl___FnDecl___ImplDecl___ImportDecl___StructDecl___TraitDecl___TypeAliasDecl____t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string___AssertDecl___ConstDecl___EnumDecl___FnDecl___ImplDecl___ImportDecl___StructDecl___TraitDecl___TypeAliasDecl____t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string___AssertDecl___ConstDecl___EnumDecl___FnDecl___ImplDecl___ImportDecl___StructDecl___TraitDecl___TypeAliasDecl____t, f_index) },
         .ref_count = 3,
     },
-    [436] = {
+    [437] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__bool_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__bool_t, f_index) },
         .ref_count = 3,
     },
-    [437] = {
+    [438] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_index) },
         .ref_count = 3,
     },
-    [438] = {
+    [439] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__i32___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__i32___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__i32___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__i32___t, f_index) },
         .ref_count = 3,
     },
-    [439] = {
+    [440] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__i64_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__i64_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__i64_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__i64_t, f_index) },
         .ref_count = 3,
     },
-    [440] = {
+    [441] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__string_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__string_t, f_index) },
         .ref_count = 3,
     },
-    [441] = {
+    [442] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__string___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__string___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__string___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__string___t, f_index) },
         .ref_count = 3,
     },
-    [442] = {
+    [443] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__usize_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__usize_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__usize_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__usize_t, f_index) },
         .ref_count = 3,
     },
-    [443] = {
+    [444] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__Any_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__Any_t, f_index) },
         .ref_count = 3,
     },
-    [444] = {
+    [445] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_index) },
         .ref_count = 3,
     },
-    [445] = {
+    [446] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__Any___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__Any___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__Any___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__Any___t, f_index) },
         .ref_count = 3,
     },
-    [446] = {
+    [447] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__ArgEdge___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__ArgEdge___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__ArgEdge___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__ArgEdge___t, f_index) },
         .ref_count = 3,
     },
-    [447] = {
+    [448] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__ArrayTypeExpr___AwaitExpr___BinaryExpr___BlockExpr___BoolLitExpr___CallExpr___CastExpr___CharLitExpr___DotVariantExpr___FieldExpr___FloatLitExpr___FnTypeExpr___GenericInstExpr___IdentExpr___IfExpr___IndexExpr___IntLitExpr___IntrinsicCallExpr___LambdaExpr___MatchExpr___MutableTypeExpr___NullCoalesceExpr___NullLitExpr___RangeExpr___SeqLitExpr___StringLitExpr___StructLitExpr___UnaryExpr_t, f_index) },
         .ref_count = 3,
     },
-    [448] = {
+    [449] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__BoundedImpl_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__BoundedImpl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__BoundedImpl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__BoundedImpl_t, f_index) },
         .ref_count = 3,
     },
-    [449] = {
+    [450] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__ConstDecl_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__ConstDecl_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__ConstDecl_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__ConstDecl_t, f_index) },
         .ref_count = 3,
     },
-    [450] = {
+    [451] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__ConstState_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__ConstState_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__ConstState_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__ConstState_t, f_index) },
         .ref_count = 3,
     },
-    [451] = {
+    [452] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__ConsumerShape_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__ConsumerShape_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__ConsumerShape_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__ConsumerShape_t, f_index) },
         .ref_count = 3,
     },
-    [452] = {
+    [453] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__GeneratorState_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__GeneratorState_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__GeneratorState_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__GeneratorState_t, f_index) },
         .ref_count = 3,
     },
-    [453] = {
+    [454] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__ImplEntry_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__ImplEntry_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__ImplEntry_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__ImplEntry_t, f_index) },
         .ref_count = 3,
     },
-    [454] = {
+    [455] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__InferableSlot_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__InferableSlot_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__InferableSlot_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__InferableSlot_t, f_index) },
         .ref_count = 3,
     },
-    [455] = {
+    [456] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__MutableSet_Any__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__MutableSet_Any__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__MutableSet_Any__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__MutableSet_Any__t, f_index) },
         .ref_count = 3,
     },
-    [456] = {
+    [457] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__MutableSet_i32__t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__MutableSet_i32__t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__MutableSet_i32__t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__MutableSet_i32__t, f_index) },
         .ref_count = 3,
     },
-    [457] = {
+    [458] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__RootedEdge___t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__RootedEdge___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__RootedEdge___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__RootedEdge___t, f_index) },
         .ref_count = 3,
     },
-    [458] = {
+    [459] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__Symbol_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__Symbol_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__Symbol_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__Symbol_t, f_index) },
         .ref_count = 3,
     },
-    [459] = {
+    [460] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__bool_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__bool_t, f_index) },
         .ref_count = 3,
     },
-    [460] = {
+    [461] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__i32_t, f_index) },
         .ref_count = 3,
     },
-    [461] = {
+    [462] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__u64__usize_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__u64__usize_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__u64__usize_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__u64__usize_t, f_index) },
         .ref_count = 3,
     },
-    [462] = {
+    [463] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__Any_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__Any_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__Any_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__Any_t, f_index) },
         .ref_count = 3,
     },
-    [463] = {
+    [464] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__AnyCallee___CalleeNode___KnownEffects_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__AnyCallee___CalleeNode___KnownEffects_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__AnyCallee___CalleeNode___KnownEffects_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__AnyCallee___CalleeNode___KnownEffects_t, f_index) },
         .ref_count = 3,
     },
-    [464] = {
+    [465] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__AnyType___ArrayType___DistinctType___EnumType___FnType___FreeCharType___FreeFloatType___FreeIntType___NeverType___PrimitiveType___SelfType___StructType___TraitType___TupleType___TypeMetaType___TypeParamType___UnionType___UnresolvedType_t, f_index) },
         .ref_count = 3,
     },
-    [465] = {
+    [466] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__Any___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__Any___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__Any___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__Any___t, f_index) },
         .ref_count = 3,
     },
-    [466] = {
+    [467] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__BoundMember___Builtin___DirectFn___EachOf___ErroneousCallee___FnValue___TraitMember___UnsettledCallee_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__BoundMember___Builtin___DirectFn___EachOf___ErroneousCallee___FnValue___TraitMember___UnsettledCallee_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__BoundMember___Builtin___DirectFn___EachOf___ErroneousCallee___FnValue___TraitMember___UnsettledCallee_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__BoundMember___Builtin___DirectFn___EachOf___ErroneousCallee___FnValue___TraitMember___UnsettledCallee_t, f_index) },
         .ref_count = 3,
     },
-    [467] = {
+    [468] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__FnCandidate_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__FnCandidate_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__FnCandidate_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__FnCandidate_t, f_index) },
         .ref_count = 3,
     },
-    [468] = {
+    [469] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__ImplEntry_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__ImplEntry_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__ImplEntry_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__ImplEntry_t, f_index) },
         .ref_count = 3,
     },
-    [469] = {
+    [470] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__ImplMethod_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__ImplMethod_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__ImplMethod_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__ImplMethod_t, f_index) },
         .ref_count = 3,
     },
-    [470] = {
+    [471] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__ImplMethod___t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__ImplMethod___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__ImplMethod___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__ImplMethod___t, f_index) },
         .ref_count = 3,
     },
-    [471] = {
+    [472] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__IntLitExpr_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__IntLitExpr_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__IntLitExpr_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__IntLitExpr_t, f_index) },
         .ref_count = 3,
     },
-    [472] = {
+    [473] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections_MutableMap__usize__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t),
+        .size = sizeof(vader_struct_std_collections_MutableMap__usize__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t),
         .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStringSlice___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t, f_index) },
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__LoweredArrayLen___LoweredArrayLit___LoweredArrayPush___LoweredArraySlice___LoweredBinary___LoweredBlock___LoweredBoolLit___LoweredCall___LoweredCast___LoweredCellGet___LoweredCellNew___LoweredCharLit___LoweredDataConst___LoweredFieldAccess___LoweredFloatLit___LoweredIdent___LoweredIf___LoweredIndex___LoweredIntLit___LoweredIntrinsicCall___LoweredMakeClosure___LoweredNullLit___LoweredStringLit___LoweredStructLit___LoweredTypeCheck___LoweredTypeConst___LoweredUnary___LoweredUnreachable___LoweredVirtualCall_t, f_index) },
         .ref_count = 3,
     },
-    [473] = {
+    [474] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__NodeRecord_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__NodeRecord_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__NodeRecord_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__NodeRecord_t, f_index) },
         .ref_count = 3,
     },
-    [474] = {
+    [475] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__Root___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__Root___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__Root___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__Root___t, f_index) },
         .ref_count = 3,
     },
-    [475] = {
+    [476] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__Span_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__Span_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__Span_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__Span_t, f_index) },
         .ref_count = 3,
     },
-    [476] = {
+    [477] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__StaticMember_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__StaticMember_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__StaticMember_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__StaticMember_t, f_index) },
         .ref_count = 3,
     },
-    [477] = {
+    [478] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__Symbol_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__Symbol_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__Symbol_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__Symbol_t, f_index) },
         .ref_count = 3,
     },
-    [478] = {
+    [479] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__WidenedArgument_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__WidenedArgument_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__WidenedArgument_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__WidenedArgument_t, f_index) },
         .ref_count = 3,
     },
-    [479] = {
+    [480] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__bool_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__bool_t, f_index) },
         .ref_count = 3,
     },
-    [480] = {
+    [481] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__i32_t, f_index) },
         .ref_count = 3,
     },
-    [481] = {
+    [482] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__string_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__string_t, f_index) },
         .ref_count = 3,
     },
-    [482] = {
+    [483] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__usize_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__usize_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__usize_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__usize_t, f_index) },
         .ref_count = 3,
     },
-    [483] = {
+    [484] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__usize__usize___t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__usize__usize___t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__usize__usize___t, f_evals), offsetof(vader_struct_std_collections_MutableMap__usize__usize___t, f_index) },
         .ref_count = 3,
     },
-    [484] = {
+    [485] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableSet__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableSet__i32_t, f_inner) },
         .ref_count = 1,
     },
-    [485] = {
+    [486] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableSet__i64_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableSet__i64_t, f_inner) },
         .ref_count = 1,
     },
-    [486] = {
+    [487] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableSet__string_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableSet__string_t, f_inner) },
         .ref_count = 1,
     },
-    [487] = {
+    [488] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableSet__u64_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableSet__u64_t, f_inner) },
         .ref_count = 1,
     },
-    [488] = {
+    [489] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableSet__usize_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableSet__usize_t, f_inner) },
         .ref_count = 1,
     },
-    [489] = {
+    [490] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
-    [490] = {
+    [491] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Dec64_t),
         .slot_size = 8,
     },
-    [491] = {
+    [492] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_DecimalParts_t),
         .slot_size = 8,
     },
-    [492] = {
+    [493] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__usize_t),
+        .slot_size = 8,
+    },
+    [494] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_SlowParts_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_core_SlowParts_t, f_d) },
         .ref_count = 1,
     },
-    [493] = {
+    [495] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_io_IOError_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_io_IOError_t, f_msg) },
         .string_count = 1,
     },
-    [494] = {
+    [496] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_string_ParseError_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_string_ParseError_t, f_msg) },
         .string_count = 1,
     },
-    [495] = {
+    [497] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_string_StringChars_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_string_StringChars_t, f_s) },
         .string_count = 1,
     },
-    [496] = {
+    [498] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_string_builder_StringBuilder_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_string_builder_StringBuilder_t, f_parts) },
         .ref_count = 1,
     },
-    [497] = {
+    [499] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_ArrayTypeExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ArrayTypeExpr_t, f_element) },
@@ -12419,7 +12396,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ArrayTypeExpr_t, f_span) },
         .ref_count = 1,
     },
-    [498] = {
+    [500] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_AsBinding_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_AsBinding_t, f_name) },
@@ -12427,7 +12404,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_AsBinding_t, f_span) },
         .ref_count = 1,
     },
-    [499] = {
+    [501] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_AssertDecl_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_AssertDecl_t, f_condition), offsetof(vader_struct_toolchain_ast_AssertDecl_t, f_message) },
@@ -12435,7 +12412,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_AssertDecl_t, f_span), offsetof(vader_struct_toolchain_ast_AssertDecl_t, f_decorators) },
         .ref_count = 2,
     },
-    [500] = {
+    [502] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_AssignStmt_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_AssignStmt_t, f_target), offsetof(vader_struct_toolchain_ast_AssignStmt_t, f_value) },
@@ -12443,7 +12420,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_AssignStmt_t, f_span) },
         .ref_count = 1,
     },
-    [501] = {
+    [503] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_AwaitExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_AwaitExpr_t, f_inner) },
@@ -12451,7 +12428,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_AwaitExpr_t, f_span) },
         .ref_count = 1,
     },
-    [502] = {
+    [504] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_BinaryExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_BinaryExpr_t, f_left), offsetof(vader_struct_toolchain_ast_BinaryExpr_t, f_right), offsetof(vader_struct_toolchain_ast_BinaryExpr_t, f_bind_as) },
@@ -12459,7 +12436,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_BinaryExpr_t, f_span) },
         .ref_count = 1,
     },
-    [503] = {
+    [505] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_BlockExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_BlockExpr_t, f_trailing) },
@@ -12467,13 +12444,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_BlockExpr_t, f_span), offsetof(vader_struct_toolchain_ast_BlockExpr_t, f_stmts) },
         .ref_count = 2,
     },
-    [504] = {
+    [506] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_BoolLitExpr_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_BoolLitExpr_t, f_span) },
         .ref_count = 1,
     },
-    [505] = {
+    [507] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_BreakStmt_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_BreakStmt_t, f_label) },
@@ -12481,7 +12458,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_BreakStmt_t, f_span) },
         .ref_count = 1,
     },
-    [506] = {
+    [508] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_CallArg_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_CallArg_t, f_name), offsetof(vader_struct_toolchain_ast_CallArg_t, f_value) },
@@ -12489,7 +12466,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_CallArg_t, f_span) },
         .ref_count = 1,
     },
-    [507] = {
+    [509] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_CallExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_CallExpr_t, f_callee) },
@@ -12497,7 +12474,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_CallExpr_t, f_span), offsetof(vader_struct_toolchain_ast_CallExpr_t, f_args) },
         .ref_count = 2,
     },
-    [508] = {
+    [510] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_CastExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_CastExpr_t, f_target), offsetof(vader_struct_toolchain_ast_CastExpr_t, f_value) },
@@ -12505,13 +12482,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_CastExpr_t, f_span) },
         .ref_count = 1,
     },
-    [509] = {
+    [511] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_CharLitExpr_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_CharLitExpr_t, f_span) },
         .ref_count = 1,
     },
-    [510] = {
+    [512] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_ConstDecl_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_ty), offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_value), offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_comptime_body) },
@@ -12521,7 +12498,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_span), offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_ConstDecl_t, f_decorators) },
         .ref_count = 3,
     },
-    [511] = {
+    [513] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_ContinueStmt_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ContinueStmt_t, f_label) },
@@ -12529,7 +12506,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ContinueStmt_t, f_span) },
         .ref_count = 1,
     },
-    [512] = {
+    [514] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_Decorator_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_Decorator_t, f_name) },
@@ -12537,13 +12514,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_Decorator_t, f_span), offsetof(vader_struct_toolchain_ast_Decorator_t, f_args) },
         .ref_count = 2,
     },
-    [513] = {
+    [515] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_DeferBlockBody_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_DeferBlockBody_t, f_block) },
         .ref_count = 1,
     },
-    [514] = {
+    [516] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_DeferStmt_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_DeferStmt_t, f_body) },
@@ -12551,13 +12528,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_DeferStmt_t, f_span) },
         .ref_count = 1,
     },
-    [515] = {
+    [517] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_DeferStmtBody_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_DeferStmtBody_t, f_stmt) },
         .ptr_count = 1,
     },
-    [516] = {
+    [518] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_DestructureAssignStmt_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_DestructureAssignStmt_t, f_value) },
@@ -12565,23 +12542,23 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_DestructureAssignStmt_t, f_span), offsetof(vader_struct_toolchain_ast_DestructureAssignStmt_t, f_targets) },
         .ref_count = 2,
     },
-    [517] = {
+    [519] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_DestructureImport_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_DestructureImport_t, f_names) },
         .ref_count = 1,
     },
-    [518] = {
+    [520] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_DestructureVar_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_DestructureVar_t, f_pattern) },
         .ptr_count = 1,
     },
-    [519] = {
+    [521] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_DiscardVar_t),
         .slot_size = 8,
     },
-    [520] = {
+    [522] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_DotVariantExpr_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_DotVariantExpr_t, f_variant) },
@@ -12589,7 +12566,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_DotVariantExpr_t, f_span), offsetof(vader_struct_toolchain_ast_DotVariantExpr_t, f_variant_span) },
         .ref_count = 2,
     },
-    [521] = {
+    [523] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_EnumDecl_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_name) },
@@ -12597,7 +12574,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_span), offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_header), offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_variants), offsetof(vader_struct_toolchain_ast_EnumDecl_t, f_decorators) },
         .ref_count = 5,
     },
-    [522] = {
+    [524] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_EnumVariant_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_EnumVariant_t, f_value), offsetof(vader_struct_toolchain_ast_EnumVariant_t, f_value_span), offsetof(vader_struct_toolchain_ast_EnumVariant_t, f_data) },
@@ -12607,7 +12584,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_EnumVariant_t, f_span) },
         .ref_count = 1,
     },
-    [523] = {
+    [525] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_EnumVariantPattern_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_EnumVariantPattern_t, f_variant) },
@@ -12615,7 +12592,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_EnumVariantPattern_t, f_span) },
         .ref_count = 1,
     },
-    [524] = {
+    [526] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_ExprStmt_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ExprStmt_t, f_expr) },
@@ -12623,7 +12600,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ExprStmt_t, f_span) },
         .ref_count = 1,
     },
-    [525] = {
+    [527] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_FieldExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_FieldExpr_t, f_target) },
@@ -12633,13 +12610,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_FieldExpr_t, f_span), offsetof(vader_struct_toolchain_ast_FieldExpr_t, f_field_span) },
         .ref_count = 2,
     },
-    [526] = {
+    [528] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_FloatLitExpr_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_FloatLitExpr_t, f_span) },
         .ref_count = 1,
     },
-    [527] = {
+    [529] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_FnDecl_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_FnDecl_t, f_return_type), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_body) },
@@ -12649,7 +12626,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_FnDecl_t, f_span), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_params), offsetof(vader_struct_toolchain_ast_FnDecl_t, f_decorators) },
         .ref_count = 5,
     },
-    [528] = {
+    [530] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_FnParam_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_FnParam_t, f_ty), offsetof(vader_struct_toolchain_ast_FnParam_t, f_default_value) },
@@ -12659,7 +12636,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_FnParam_t, f_span), offsetof(vader_struct_toolchain_ast_FnParam_t, f_decorators) },
         .ref_count = 2,
     },
-    [529] = {
+    [531] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_FnTypeExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_FnTypeExpr_t, f_return_type) },
@@ -12667,7 +12644,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_FnTypeExpr_t, f_span), offsetof(vader_struct_toolchain_ast_FnTypeExpr_t, f_params), offsetof(vader_struct_toolchain_ast_FnTypeExpr_t, f_params_mutable) },
         .ref_count = 3,
     },
-    [530] = {
+    [532] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_ForStmt_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ForStmt_t, f_label), offsetof(vader_struct_toolchain_ast_ForStmt_t, f_form) },
@@ -12675,7 +12652,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ForStmt_t, f_span), offsetof(vader_struct_toolchain_ast_ForStmt_t, f_body) },
         .ref_count = 2,
     },
-    [531] = {
+    [533] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_GenericInstExpr_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_GenericInstExpr_t, f_callee) },
@@ -12683,7 +12660,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_GenericInstExpr_t, f_span), offsetof(vader_struct_toolchain_ast_GenericInstExpr_t, f_type_args) },
         .ref_count = 2,
     },
-    [532] = {
+    [534] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_IdentExpr_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IdentExpr_t, f_name) },
@@ -12691,19 +12668,19 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IdentExpr_t, f_span) },
         .ref_count = 1,
     },
-    [533] = {
+    [535] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_IfElseBlock_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IfElseBlock_t, f_block) },
         .ref_count = 1,
     },
-    [534] = {
+    [536] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_IfElseIf_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IfElseIf_t, f_branch) },
         .ref_count = 1,
     },
-    [535] = {
+    [537] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_IfExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IfExpr_t, f_cond), offsetof(vader_struct_toolchain_ast_IfExpr_t, f_else_branch) },
@@ -12711,7 +12688,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IfExpr_t, f_span), offsetof(vader_struct_toolchain_ast_IfExpr_t, f_then_block) },
         .ref_count = 2,
     },
-    [536] = {
+    [538] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_ImplDecl_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_for_type) },
@@ -12721,7 +12698,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_span), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_trait_name_span), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_trait_args), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_members), offsetof(vader_struct_toolchain_ast_ImplDecl_t, f_decorators) },
         .ref_count = 6,
     },
-    [537] = {
+    [539] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_ImportDecl_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ImportDecl_t, f_binding) },
@@ -12731,7 +12708,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ImportDecl_t, f_span), offsetof(vader_struct_toolchain_ast_ImportDecl_t, f_decorators) },
         .ref_count = 2,
     },
-    [538] = {
+    [540] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_ImportName_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ImportName_t, f_alias) },
@@ -12741,13 +12718,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ImportName_t, f_span) },
         .ref_count = 1,
     },
-    [539] = {
+    [541] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_InFor_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_InFor_t, f_loop_var), offsetof(vader_struct_toolchain_ast_InFor_t, f_iter) },
         .ptr_count = 2,
     },
-    [540] = {
+    [542] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_IndexExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IndexExpr_t, f_target), offsetof(vader_struct_toolchain_ast_IndexExpr_t, f_index) },
@@ -12755,17 +12732,17 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IndexExpr_t, f_span) },
         .ref_count = 1,
     },
-    [541] = {
+    [543] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_InfiniteFor_t),
         .slot_size = 8,
     },
-    [542] = {
+    [544] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_IntLitExpr_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IntLitExpr_t, f_span) },
         .ref_count = 1,
     },
-    [543] = {
+    [545] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_IntrinsicCallExpr_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IntrinsicCallExpr_t, f_name) },
@@ -12773,7 +12750,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IntrinsicCallExpr_t, f_span), offsetof(vader_struct_toolchain_ast_IntrinsicCallExpr_t, f_name_span), offsetof(vader_struct_toolchain_ast_IntrinsicCallExpr_t, f_args) },
         .ref_count = 3,
     },
-    [544] = {
+    [546] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_IsPattern_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IsPattern_t, f_ty), offsetof(vader_struct_toolchain_ast_IsPattern_t, f_inner) },
@@ -12781,7 +12758,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_IsPattern_t, f_span) },
         .ref_count = 1,
     },
-    [545] = {
+    [547] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_LambdaExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_LambdaExpr_t, f_return_type) },
@@ -12789,7 +12766,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_LambdaExpr_t, f_span), offsetof(vader_struct_toolchain_ast_LambdaExpr_t, f_params), offsetof(vader_struct_toolchain_ast_LambdaExpr_t, f_body) },
         .ref_count = 3,
     },
-    [546] = {
+    [548] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_LetStmt_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_LetStmt_t, f_binding), offsetof(vader_struct_toolchain_ast_LetStmt_t, f_ty), offsetof(vader_struct_toolchain_ast_LetStmt_t, f_value) },
@@ -12797,7 +12774,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_LetStmt_t, f_span) },
         .ref_count = 1,
     },
-    [547] = {
+    [549] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_LiteralPattern_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_LiteralPattern_t, f_value) },
@@ -12805,7 +12782,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_LiteralPattern_t, f_span) },
         .ref_count = 1,
     },
-    [548] = {
+    [550] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_MatchArm_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_MatchArm_t, f_pattern), offsetof(vader_struct_toolchain_ast_MatchArm_t, f_guard), offsetof(vader_struct_toolchain_ast_MatchArm_t, f_body) },
@@ -12813,7 +12790,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_MatchArm_t, f_span) },
         .ref_count = 1,
     },
-    [549] = {
+    [551] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_MatchExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_MatchExpr_t, f_scrutinee), offsetof(vader_struct_toolchain_ast_MatchExpr_t, f_bind_as) },
@@ -12821,7 +12798,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_MatchExpr_t, f_span), offsetof(vader_struct_toolchain_ast_MatchExpr_t, f_arms) },
         .ref_count = 2,
     },
-    [550] = {
+    [552] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_ModuleDecl_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ModuleDecl_t, f_name) },
@@ -12829,7 +12806,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ModuleDecl_t, f_span), offsetof(vader_struct_toolchain_ast_ModuleDecl_t, f_name_span) },
         .ref_count = 2,
     },
-    [551] = {
+    [553] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_MutableTypeExpr_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_MutableTypeExpr_t, f_inner) },
@@ -12837,13 +12814,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_MutableTypeExpr_t, f_span) },
         .ref_count = 1,
     },
-    [552] = {
+    [554] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_NamedNamespaceImport_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_NamedNamespaceImport_t, f_name) },
         .string_count = 1,
     },
-    [553] = {
+    [555] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_NamedVar_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_NamedVar_t, f_name) },
@@ -12851,7 +12828,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_NamedVar_t, f_span) },
         .ref_count = 1,
     },
-    [554] = {
+    [556] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_NullCoalesceExpr_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_NullCoalesceExpr_t, f_left), offsetof(vader_struct_toolchain_ast_NullCoalesceExpr_t, f_fallback) },
@@ -12859,19 +12836,19 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_NullCoalesceExpr_t, f_span) },
         .ref_count = 1,
     },
-    [555] = {
+    [557] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_NullLitExpr_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_NullLitExpr_t, f_span) },
         .ref_count = 1,
     },
-    [556] = {
+    [558] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_OrPattern_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_OrPattern_t, f_span), offsetof(vader_struct_toolchain_ast_OrPattern_t, f_patterns) },
         .ref_count = 2,
     },
-    [557] = {
+    [559] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_PatternBinding_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_PatternBinding_t, f_name) },
@@ -12879,13 +12856,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_PatternBinding_t, f_span) },
         .ref_count = 1,
     },
-    [558] = {
+    [560] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_PatternLiteral_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_PatternLiteral_t, f_value) },
         .ptr_count = 1,
     },
-    [559] = {
+    [561] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_PlaceTarget_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_PlaceTarget_t, f_place) },
@@ -12893,7 +12870,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_PlaceTarget_t, f_span) },
         .ref_count = 1,
     },
-    [560] = {
+    [562] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_Program_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_Program_t, f_module) },
@@ -12903,7 +12880,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_Program_t, f_span), offsetof(vader_struct_toolchain_ast_Program_t, f_decls) },
         .ref_count = 2,
     },
-    [561] = {
+    [563] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_RangeExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_RangeExpr_t, f_lower), offsetof(vader_struct_toolchain_ast_RangeExpr_t, f_upper) },
@@ -12911,7 +12888,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_RangeExpr_t, f_span) },
         .ref_count = 1,
     },
-    [562] = {
+    [564] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_RangePattern_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_RangePattern_t, f_lower), offsetof(vader_struct_toolchain_ast_RangePattern_t, f_upper) },
@@ -12919,7 +12896,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_RangePattern_t, f_span) },
         .ref_count = 1,
     },
-    [563] = {
+    [565] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_RestBinding_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_RestBinding_t, f_name) },
@@ -12927,7 +12904,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_RestBinding_t, f_span), offsetof(vader_struct_toolchain_ast_RestBinding_t, f_name_span) },
         .ref_count = 2,
     },
-    [564] = {
+    [566] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_RestTarget_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_RestTarget_t, f_place) },
@@ -12935,7 +12912,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_RestTarget_t, f_span) },
         .ref_count = 1,
     },
-    [565] = {
+    [567] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_ReturnStmt_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ReturnStmt_t, f_value) },
@@ -12943,13 +12920,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_ReturnStmt_t, f_span) },
         .ref_count = 1,
     },
-    [566] = {
+    [568] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_SeqLitExpr_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_SeqLitExpr_t, f_span), offsetof(vader_struct_toolchain_ast_SeqLitExpr_t, f_elements) },
         .ref_count = 2,
     },
-    [567] = {
+    [569] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_SimpleBinding_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_SimpleBinding_t, f_name) },
@@ -12957,13 +12934,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_SimpleBinding_t, f_span), offsetof(vader_struct_toolchain_ast_SimpleBinding_t, f_name_span) },
         .ref_count = 2,
     },
-    [568] = {
+    [570] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_StringLitExpr_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StringLitExpr_t, f_span), offsetof(vader_struct_toolchain_ast_StringLitExpr_t, f_parts) },
         .ref_count = 2,
     },
-    [569] = {
+    [571] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_StringLitInterp_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StringLitInterp_t, f_expr) },
@@ -12971,7 +12948,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StringLitInterp_t, f_span) },
         .ref_count = 1,
     },
-    [570] = {
+    [572] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_StringLitText_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StringLitText_t, f_value) },
@@ -12979,7 +12956,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StringLitText_t, f_span) },
         .ref_count = 1,
     },
-    [571] = {
+    [573] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_StructDecl_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructDecl_t, f_name) },
@@ -12987,7 +12964,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructDecl_t, f_span), offsetof(vader_struct_toolchain_ast_StructDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_StructDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_StructDecl_t, f_fields), offsetof(vader_struct_toolchain_ast_StructDecl_t, f_decorators) },
         .ref_count = 5,
     },
-    [572] = {
+    [574] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_StructField_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructField_t, f_ty), offsetof(vader_struct_toolchain_ast_StructField_t, f_default_v) },
@@ -12997,7 +12974,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructField_t, f_span) },
         .ref_count = 1,
     },
-    [573] = {
+    [575] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_StructLitExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructLitExpr_t, f_type_name) },
@@ -13005,7 +12982,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructLitExpr_t, f_span), offsetof(vader_struct_toolchain_ast_StructLitExpr_t, f_items) },
         .ref_count = 2,
     },
-    [574] = {
+    [576] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_StructLitField_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructLitField_t, f_value) },
@@ -13015,7 +12992,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructLitField_t, f_span), offsetof(vader_struct_toolchain_ast_StructLitField_t, f_name_span) },
         .ref_count = 2,
     },
-    [575] = {
+    [577] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_StructLitSpread_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructLitSpread_t, f_expr) },
@@ -13023,13 +13000,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructLitSpread_t, f_span) },
         .ref_count = 1,
     },
-    [576] = {
+    [578] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_StructPattern_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructPattern_t, f_span), offsetof(vader_struct_toolchain_ast_StructPattern_t, f_fields) },
         .ref_count = 2,
     },
-    [577] = {
+    [579] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_StructPatternField_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructPatternField_t, f_value) },
@@ -13039,7 +13016,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_StructPatternField_t, f_span), offsetof(vader_struct_toolchain_ast_StructPatternField_t, f_name_span) },
         .ref_count = 2,
     },
-    [578] = {
+    [580] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_TraitDecl_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_requires) },
@@ -13049,13 +13026,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_span), offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_members), offsetof(vader_struct_toolchain_ast_TraitDecl_t, f_decorators) },
         .ref_count = 5,
     },
-    [579] = {
+    [581] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_TupleBinding_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_TupleBinding_t, f_span), offsetof(vader_struct_toolchain_ast_TupleBinding_t, f_elements) },
         .ref_count = 2,
     },
-    [580] = {
+    [582] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_TypeAliasDecl_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_aliased) },
@@ -13065,7 +13042,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_span), offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_name_span), offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_type_params), offsetof(vader_struct_toolchain_ast_TypeAliasDecl_t, f_decorators) },
         .ref_count = 4,
     },
-    [581] = {
+    [583] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_TypeParam_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_TypeParam_t, f_bound), offsetof(vader_struct_toolchain_ast_TypeParam_t, f_default_v) },
@@ -13075,7 +13052,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_TypeParam_t, f_span) },
         .ref_count = 1,
     },
-    [582] = {
+    [584] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_UnaryExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_UnaryExpr_t, f_operand) },
@@ -13083,35 +13060,35 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_UnaryExpr_t, f_span) },
         .ref_count = 1,
     },
-    [583] = {
+    [585] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_WhileFor_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_WhileFor_t, f_cond) },
         .ptr_count = 1,
     },
-    [584] = {
+    [586] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_WildcardBinding_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_WildcardBinding_t, f_span) },
         .ref_count = 1,
     },
-    [585] = {
+    [587] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_WildcardImport_t),
         .slot_size = 8,
     },
-    [586] = {
+    [588] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_toolchain_ast_WildcardPattern_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_WildcardPattern_t, f_span) },
         .ref_count = 1,
     },
-    [587] = {
+    [589] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_WildcardTarget_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_WildcardTarget_t, f_span) },
         .ref_count = 1,
     },
-    [588] = {
+    [590] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_ast_YieldStmt_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_YieldStmt_t, f_value) },
@@ -13119,19 +13096,19 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_ast_YieldStmt_t, f_span) },
         .ref_count = 1,
     },
-    [589] = {
+    [591] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_span_Position_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_span_Position_t, f_file) },
         .string_count = 1,
     },
-    [590] = {
+    [592] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_toolchain_span_Span_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_toolchain_span_Span_t, f_start), offsetof(vader_struct_toolchain_span_Span_t, f_end) },
         .ref_count = 2,
     },
-    [591] = {
+    [593] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bootstrap_CfgBytecode_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bootstrap_CfgBytecode_t, f_entry) },
@@ -13139,13 +13116,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bootstrap_CfgBytecode_t, f_pre_diags), offsetof(vader_struct_vader_bootstrap_CfgBytecode_t, f_lower_diags), offsetof(vader_struct_vader_bootstrap_CfgBytecode_t, f_module) },
         .ref_count = 3,
     },
-    [592] = {
+    [594] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_bootstrap_EvaluatedPipeline_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_loaded), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_typed), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_evaluated), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_resolver_diags), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_typecheck_diags), offsetof(vader_struct_vader_bootstrap_EvaluatedPipeline_t, f_comptime_diags) },
         .ref_count = 6,
     },
-    [593] = {
+    [595] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bootstrap_LoweredEntry_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bootstrap_LoweredEntry_t, f_entry) },
@@ -13153,51 +13130,51 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bootstrap_LoweredEntry_t, f_lowered), offsetof(vader_struct_vader_bootstrap_LoweredEntry_t, f_pre_diags), offsetof(vader_struct_vader_bootstrap_LoweredEntry_t, f_lower_diags) },
         .ref_count = 3,
     },
-    [594] = {
+    [596] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_ArrayClear_t),
         .slot_size = 8,
     },
-    [595] = {
+    [597] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_ArrayCopy_t),
         .slot_size = 8,
     },
-    [596] = {
+    [598] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_ArrayGet_t),
         .slot_size = 8,
     },
-    [597] = {
+    [599] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_ArrayLen_t),
         .slot_size = 8,
     },
-    [598] = {
+    [600] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_ArrayNew_t),
         .slot_size = 8,
     },
-    [599] = {
+    [601] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_ArrayPush_t),
         .slot_size = 8,
     },
-    [600] = {
+    [602] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_ArrayPushAll_t),
         .slot_size = 8,
     },
-    [601] = {
+    [603] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_bytecode_ArrayRemoveLast_t), .slot_size = 8,
     },
-    [602] = {
+    [604] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_ArrayRepeat_t),
         .slot_size = 8,
     },
-    [603] = {
+    [605] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_ArraySet_t),
         .slot_size = 8,
     },
-    [604] = {
+    [606] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_ArraySlice_t),
         .slot_size = 8,
     },
-    [605] = {
+    [607] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_bytecode_BcAggregateData_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcAggregateData_t, f_element_type_name) },
@@ -13205,29 +13182,29 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcAggregateData_t, f_elements) },
         .ref_count = 1,
     },
-    [606] = {
+    [608] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcArray_t),
         .slot_size = 8,
     },
-    [607] = {
+    [609] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcExport_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcExport_t, f_extern_name) },
         .string_count = 1,
     },
-    [608] = {
+    [610] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcField_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcField_t, f_name) },
         .string_count = 1,
     },
-    [609] = {
+    [611] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcFn_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcFn_t, f_params) },
         .ref_count = 1,
     },
-    [610] = {
+    [612] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcFunction_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcFunction_t, f_name) },
@@ -13235,7 +13212,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcFunction_t, f_signature), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_locals), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_body), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_debug), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_jump_table), offsetof(vader_struct_vader_bytecode_BcFunction_t, f_source_pc) },
         .ref_count = 6,
     },
-    [611] = {
+    [613] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcImport_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcImport_t, f_extern_name), offsetof(vader_struct_vader_bytecode_BcImport_t, f_mangled_name), offsetof(vader_struct_vader_bytecode_BcImport_t, f_c_header), offsetof(vader_struct_vader_bytecode_BcImport_t, f_c_library) },
@@ -13243,47 +13220,47 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcImport_t, f_signature) },
         .ref_count = 1,
     },
-    [612] = {
+    [614] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcLocal_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcLocal_t, f_name) },
         .string_count = 1,
     },
-    [613] = {
+    [615] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcPeepholeOut_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcPeepholeOut_t, f_body), offsetof(vader_struct_vader_bytecode_BcPeepholeOut_t, f_jump_table), offsetof(vader_struct_vader_bytecode_BcPeepholeOut_t, f_debug) },
         .ref_count = 3,
     },
-    [614] = {
+    [616] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcPrimData_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcPrimData_t, f_items) },
         .ref_count = 1,
     },
-    [615] = {
+    [617] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcPrimitive_t),
         .slot_size = 8,
     },
-    [616] = {
+    [618] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcRef_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcRef_t, f_trait_name) },
         .string_count = 1,
     },
-    [617] = {
+    [619] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcSignature_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcSignature_t, f_params), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_results), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_param_types), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_result_types), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_param_names), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_param_mutable), offsetof(vader_struct_vader_bytecode_BcSignature_t, f_param_by_address) },
         .ref_count = 7,
     },
-    [618] = {
+    [620] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcStrData_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcStrData_t, f_values) },
         .ref_count = 1,
     },
-    [619] = {
+    [621] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcStruct_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcStruct_t, f_name), offsetof(vader_struct_vader_bytecode_BcStruct_t, f_c_name) },
@@ -13291,13 +13268,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcStruct_t, f_fields) },
         .ref_count = 1,
     },
-    [620] = {
+    [622] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcUnion_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcUnion_t, f_variants) },
         .ref_count = 1,
     },
-    [621] = {
+    [623] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcValArray_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcValArray_t, f_element_type_name) },
@@ -13305,79 +13282,79 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcValArray_t, f_elements) },
         .ref_count = 1,
     },
-    [622] = {
+    [624] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcValPrim_t),
         .slot_size = 8,
     },
-    [623] = {
+    [625] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcValStr_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcValStr_t, f_value) },
         .string_count = 1,
     },
-    [624] = {
+    [626] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BcValStruct_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BcValStruct_t, f_fields) },
         .ref_count = 1,
     },
-    [625] = {
+    [627] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BitsToF32_t),
         .slot_size = 8,
     },
-    [626] = {
+    [628] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BitsToF64_t),
         .slot_size = 8,
     },
-    [627] = {
+    [629] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_Block_t),
         .slot_size = 8,
     },
-    [628] = {
+    [630] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BoolAnd_t),
         .slot_size = 8,
     },
-    [629] = {
+    [631] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BoolConst_t),
         .slot_size = 8,
     },
-    [630] = {
+    [632] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BoolEq_t),
         .slot_size = 8,
     },
-    [631] = {
+    [633] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BoolNe_t),
         .slot_size = 8,
     },
-    [632] = {
+    [634] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BoolNot_t),
         .slot_size = 8,
     },
-    [633] = {
+    [635] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BoolOr_t),
         .slot_size = 8,
     },
-    [634] = {
+    [636] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_Branch_t),
         .slot_size = 8,
     },
-    [635] = {
+    [637] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BranchIf_t),
         .slot_size = 8,
     },
-    [636] = {
+    [638] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_BufferNew_t),
         .slot_size = 8,
     },
-    [637] = {
+    [639] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_bytecode_BufferToString_t), .slot_size = 8,
     },
-    [638] = {
+    [640] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_bytecode_BufferWriteString_t), .slot_size = 8,
     },
-    [639] = {
+    [641] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_bytecode_BytecodeModule_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_name) },
@@ -13385,7 +13362,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_types), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_strings), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_data_pool), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_functions), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_imports), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_exports), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_impl_table), offsetof(vader_struct_vader_bytecode_BytecodeModule_t, f_vtables) },
         .ref_count = 8,
     },
-    [640] = {
+    [642] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_CLayout_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_CLayout_t, f_unknown_field) },
@@ -13393,543 +13370,539 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_CLayout_t, f_offsets) },
         .ref_count = 1,
     },
-    [641] = {
+    [643] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_Call_t),
         .slot_size = 8,
     },
-    [642] = {
+    [644] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_CallImport_t),
         .slot_size = 8,
     },
-    [643] = {
+    [645] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_CallIndirect_t),
         .slot_size = 8,
     },
-    [644] = {
+    [646] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_CharConst_t),
         .slot_size = 8,
     },
-    [645] = {
+    [647] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_CheckedArith_t),
         .slot_size = 8,
     },
-    [646] = {
+    [648] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_CheckedNeg_t),
         .slot_size = 8,
     },
-    [647] = {
+    [649] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_Convert_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_Convert_t, f_from_name) },
         .string_count = 1,
     },
-    [648] = {
+    [650] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_DataConst_t),
         .slot_size = 8,
     },
-    [649] = {
+    [651] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_DebugPos_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_DebugPos_t, f_file) },
         .string_count = 1,
     },
-    [650] = {
+    [652] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_DeferPopExec_t),
         .slot_size = 8,
     },
-    [651] = {
+    [653] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_DeferPush_t),
         .slot_size = 8,
     },
-    [652] = {
+    [654] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_Drop_t),
         .slot_size = 8,
     },
-    [653] = {
+    [655] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_Else_t),
         .slot_size = 8,
     },
-    [654] = {
+    [656] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_EmitOptions_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_EmitOptions_t, f_keep_mangles) },
         .ref_count = 1,
     },
-    [655] = {
+    [657] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_EmitterCtx_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_types), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_type_key), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_type_hash), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_type_by_slot), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_strings), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_string_key), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_functions), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_function_index_by_symbol_id), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_function_index_by_mangle), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_imports), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_import_index_by_symbol_id), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_import_index_by_mangle), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_exports), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_pinned_types), offsetof(vader_struct_vader_bytecode_EmitterCtx_t, f_pinned_types_by_fn) },
         .ref_count = 15,
     },
-    [656] = {
+    [658] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_End_t),
         .slot_size = 8,
     },
-    [657] = {
+    [659] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F32ToBits_t),
         .slot_size = 8,
     },
-    [658] = {
+    [660] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64Add_t),
         .slot_size = 8,
     },
-    [659] = {
+    [661] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64Const_t),
         .slot_size = 8,
     },
-    [660] = {
+    [662] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64Div_t),
         .slot_size = 8,
     },
-    [661] = {
+    [663] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64Eq_t),
         .slot_size = 8,
     },
-    [662] = {
+    [664] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64Ge_t),
         .slot_size = 8,
     },
-    [663] = {
+    [665] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64Gt_t),
         .slot_size = 8,
     },
-    [664] = {
+    [666] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64Le_t),
         .slot_size = 8,
     },
-    [665] = {
+    [667] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64Lt_t),
         .slot_size = 8,
     },
-    [666] = {
+    [668] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64Mul_t),
         .slot_size = 8,
     },
-    [667] = {
+    [669] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64Ne_t),
         .slot_size = 8,
     },
-    [668] = {
+    [670] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64Neg_t),
         .slot_size = 8,
     },
-    [669] = {
+    [671] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64Sub_t),
         .slot_size = 8,
     },
-    [670] = {
+    [672] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_F64ToBits_t),
         .slot_size = 8,
     },
-    [671] = {
+    [673] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_FnAddr_t),
         .slot_size = 8,
     },
-    [672] = {
+    [674] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_FnRef_t),
         .slot_size = 8,
     },
-    [673] = {
+    [675] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Add_t),
         .slot_size = 8,
     },
-    [674] = {
+    [676] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32BitAnd_t),
         .slot_size = 8,
     },
-    [675] = {
+    [677] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32BitNot_t),
         .slot_size = 8,
     },
-    [676] = {
+    [678] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32BitOr_t),
         .slot_size = 8,
     },
-    [677] = {
+    [679] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32BitXor_t),
         .slot_size = 8,
     },
-    [678] = {
+    [680] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Const_t),
         .slot_size = 8,
     },
-    [679] = {
+    [681] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Div_t),
         .slot_size = 8,
     },
-    [680] = {
+    [682] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Eq_t),
         .slot_size = 8,
     },
-    [681] = {
+    [683] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Ge_t),
         .slot_size = 8,
     },
-    [682] = {
+    [684] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Gt_t),
         .slot_size = 8,
     },
-    [683] = {
+    [685] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Le_t),
         .slot_size = 8,
     },
-    [684] = {
+    [686] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Lt_t),
         .slot_size = 8,
     },
-    [685] = {
+    [687] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Mod_t),
         .slot_size = 8,
     },
-    [686] = {
+    [688] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Mul_t),
         .slot_size = 8,
     },
-    [687] = {
+    [689] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Ne_t),
         .slot_size = 8,
     },
-    [688] = {
+    [690] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Neg_t),
         .slot_size = 8,
     },
-    [689] = {
+    [691] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Shl_t),
         .slot_size = 8,
     },
-    [690] = {
+    [692] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Shr_t),
         .slot_size = 8,
     },
-    [691] = {
+    [693] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32ShrU_t),
         .slot_size = 8,
     },
-    [692] = {
+    [694] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I32Sub_t),
         .slot_size = 8,
     },
-    [693] = {
+    [695] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Add_t),
         .slot_size = 8,
     },
-    [694] = {
+    [696] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64BitAnd_t),
         .slot_size = 8,
     },
-    [695] = {
+    [697] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64BitNot_t),
         .slot_size = 8,
     },
-    [696] = {
+    [698] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64BitOr_t),
         .slot_size = 8,
     },
-    [697] = {
+    [699] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64BitXor_t),
         .slot_size = 8,
     },
-    [698] = {
+    [700] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Const_t),
         .slot_size = 8,
     },
-    [699] = {
+    [701] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Div_t),
         .slot_size = 8,
     },
-    [700] = {
+    [702] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Eq_t),
         .slot_size = 8,
     },
-    [701] = {
+    [703] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Ge_t),
         .slot_size = 8,
     },
-    [702] = {
+    [704] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Gt_t),
         .slot_size = 8,
     },
-    [703] = {
+    [705] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Le_t),
         .slot_size = 8,
     },
-    [704] = {
+    [706] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Lt_t),
         .slot_size = 8,
     },
-    [705] = {
+    [707] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Mod_t),
         .slot_size = 8,
     },
-    [706] = {
+    [708] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Mul_t),
         .slot_size = 8,
     },
-    [707] = {
+    [709] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Ne_t),
         .slot_size = 8,
     },
-    [708] = {
+    [710] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Neg_t),
         .slot_size = 8,
     },
-    [709] = {
+    [711] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Shl_t),
         .slot_size = 8,
     },
-    [710] = {
+    [712] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Shr_t),
         .slot_size = 8,
     },
-    [711] = {
+    [713] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64ShrU_t),
         .slot_size = 8,
     },
-    [712] = {
+    [714] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_I64Sub_t),
         .slot_size = 8,
     },
-    [713] = {
+    [715] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_If_t),
         .slot_size = 8,
     },
-    [714] = {
+    [716] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_ImplEntry_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_ImplEntry_t, f_trait_name) },
         .string_count = 1,
     },
-    [715] = {
+    [717] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_LoadF64_t),
         .slot_size = 8,
     },
-    [716] = {
+    [718] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_LoadI32_t),
         .slot_size = 8,
     },
-    [717] = {
+    [719] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_LoadI64_t),
         .slot_size = 8,
     },
-    [718] = {
+    [720] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_LoadSlotF64_t),
         .slot_size = 8,
     },
-    [719] = {
+    [721] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_LoadSlotI32_t),
         .slot_size = 8,
     },
-    [720] = {
+    [722] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_LoadSlotI64_t),
         .slot_size = 8,
     },
-    [721] = {
+    [723] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_LoadU8_t),
         .slot_size = 8,
     },
-    [722] = {
+    [724] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_LocalField_t),
         .slot_size = 8,
     },
-    [723] = {
+    [725] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_LocalGet_t),
         .slot_size = 8,
     },
-    [724] = {
+    [726] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_LocalSet_t),
         .slot_size = 8,
     },
-    [725] = {
+    [727] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_LocalTee_t),
         .slot_size = 8,
     },
-    [726] = {
+    [728] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_Loop_t),
         .slot_size = 8,
     },
-    [727] = {
+    [729] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_MakeClosure_t),
         .slot_size = 8,
     },
-    [728] = {
+    [730] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_MemoryCopy_t),
         .slot_size = 8,
     },
-    [729] = {
+    [731] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_NullConst_t),
         .slot_size = 8,
     },
-    [730] = {
+    [732] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_OperandRef_t),
         .slot_size = 8,
     },
-    [731] = {
+    [733] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_RefCast_t),
         .slot_size = 8,
     },
-    [732] = {
+    [734] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_RefEq_t),
         .slot_size = 8,
     },
-    [733] = {
+    [735] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_RefNe_t),
         .slot_size = 8,
     },
-    [734] = {
+    [736] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_Retag_t),
         .slot_size = 8,
     },
-    [735] = {
+    [737] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_Return_t),
         .slot_size = 8,
     },
-    [736] = {
+    [738] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_ReturnLit_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_ReturnLit_t, f_value) },
         .ptr_count = 1,
     },
-    [737] = {
+    [739] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_SizeOfType_t),
         .slot_size = 8,
     },
-    [738] = {
+    [740] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_SlotRange_t),
         .slot_size = 8,
     },
-    [739] = {
+    [741] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StoreF64_t),
         .slot_size = 8,
     },
-    [740] = {
+    [742] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StoreI32_t),
         .slot_size = 8,
     },
-    [741] = {
+    [743] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StoreI64_t),
         .slot_size = 8,
     },
-    [742] = {
+    [744] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StoreSlotF64_t),
         .slot_size = 8,
     },
-    [743] = {
+    [745] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StoreSlotI32_t),
         .slot_size = 8,
     },
-    [744] = {
+    [746] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StoreSlotI64_t),
         .slot_size = 8,
     },
-    [745] = {
+    [747] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StoreU8_t),
         .slot_size = 8,
     },
-    [746] = {
+    [748] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StringCompare_t),
         .slot_size = 8,
     },
-    [747] = {
+    [749] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StringConst_t),
         .slot_size = 8,
     },
-    [748] = {
+    [750] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StringEq_t),
         .slot_size = 8,
     },
-    [749] = {
+    [751] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StringNe_t),
         .slot_size = 8,
     },
-    [750] = {
-        .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_vader_bytecode_StringSliceCodepoints_t), .slot_size = 8,
-    },
-    [751] = {
+    [752] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StructGet_t),
         .slot_size = 8,
     },
-    [752] = {
+    [753] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StructNew_t),
         .slot_size = 8,
     },
-    [753] = {
+    [754] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_StructSet_t),
         .slot_size = 8,
     },
-    [754] = {
+    [755] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_TypeCheck_t),
         .slot_size = 8,
     },
-    [755] = {
+    [756] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_TypeConst_t),
         .slot_size = 8,
     },
-    [756] = {
+    [757] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_U32Div_t),
         .slot_size = 8,
     },
-    [757] = {
+    [758] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_U32Ge_t),
         .slot_size = 8,
     },
-    [758] = {
+    [759] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_U32Gt_t),
         .slot_size = 8,
     },
-    [759] = {
+    [760] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_U32Le_t),
         .slot_size = 8,
     },
-    [760] = {
+    [761] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_U32Lt_t),
         .slot_size = 8,
     },
-    [761] = {
+    [762] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_U32Mod_t),
         .slot_size = 8,
     },
-    [762] = {
+    [763] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_U64Div_t),
         .slot_size = 8,
     },
-    [763] = {
+    [764] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_U64Ge_t),
         .slot_size = 8,
     },
-    [764] = {
+    [765] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_U64Gt_t),
         .slot_size = 8,
     },
-    [765] = {
+    [766] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_U64Le_t),
         .slot_size = 8,
     },
-    [766] = {
+    [767] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_U64Lt_t),
         .slot_size = 8,
     },
-    [767] = {
+    [768] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_U64Mod_t),
         .slot_size = 8,
     },
-    [768] = {
+    [769] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_Unreachable_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_Unreachable_t, f_reason) },
         .string_count = 1,
     },
-    [769] = {
+    [770] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_VirtualCall_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_VirtualCall_t, f_vtable_key) },
         .string_count = 1,
     },
-    [770] = {
+    [771] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_VtableEntry_t),
         .slot_size = 8,
     },
-    [771] = {
+    [772] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_bytecode_VtableRow_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_VtableRow_t, f_key) },
@@ -13937,7 +13910,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_bytecode_VtableRow_t, f_entries) },
         .ref_count = 1,
     },
-    [772] = {
+    [773] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_BoundArray_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_BoundArray_t, f_pointer) },
@@ -13945,13 +13918,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_BoundArray_t, f_name) },
         .string_count = 1,
     },
-    [773] = {
+    [774] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_BranchTargets_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_BranchTargets_t, f_continue_targets), offsetof(vader_struct_vader_c_emit_BranchTargets_t, f_break_targets) },
         .ref_count = 2,
     },
-    [774] = {
+    [775] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_CProgram_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_CProgram_t, f_header), offsetof(vader_struct_vader_c_emit_CProgram_t, f_imports), offsetof(vader_struct_vader_c_emit_CProgram_t, f_globals) },
@@ -13959,13 +13932,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_CProgram_t, f_units), offsetof(vader_struct_vader_c_emit_CProgram_t, f_unit_names) },
         .ref_count = 2,
     },
-    [775] = {
+    [776] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_EmitCtx_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_module), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_struct_c_names), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_atom_ids), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_atom_table), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_may_alloc), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_import_may_collect), offsetof(vader_struct_vader_c_emit_EmitCtx_t, f_internal_fns) },
         .ref_count = 7,
     },
-    [776] = {
+    [777] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_EmitOptions_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_EmitOptions_t, f_entry_mangled) },
@@ -13973,109 +13946,109 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_EmitOptions_t, f_atom_universe) },
         .ref_count = 1,
     },
-    [777] = {
+    [778] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_FnState_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_FnState_t, f_ctx), offsetof(vader_struct_vader_c_emit_FnState_t, f_function), offsetof(vader_struct_vader_c_emit_FnState_t, f_root), offsetof(vader_struct_vader_c_emit_FnState_t, f_stack), offsetof(vader_struct_vader_c_emit_FnState_t, f_temporaries), offsetof(vader_struct_vader_c_emit_FnState_t, f_scopes), offsetof(vader_struct_vader_c_emit_FnState_t, f_continue_targets), offsetof(vader_struct_vader_c_emit_FnState_t, f_break_targets), offsetof(vader_struct_vader_c_emit_FnState_t, f_push_caches), offsetof(vader_struct_vader_c_emit_FnState_t, f_bound_arrays), offsetof(vader_struct_vader_c_emit_FnState_t, f_stack_storages), offsetof(vader_struct_vader_c_emit_FnState_t, f_open_nodes) },
         .ref_count = 12,
     },
-    [778] = {
+    [779] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_FnValueUsage_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_FnValueUsage_t, f_fn_ref_type), offsetof(vader_struct_vader_c_emit_FnValueUsage_t, f_is_closure) },
         .ref_count = 2,
     },
-    [779] = {
+    [780] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_ForwardedResult_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_ForwardedResult_t, f_capture), offsetof(vader_struct_vader_c_emit_ForwardedResult_t, f_settle), offsetof(vader_struct_vader_c_emit_ForwardedResult_t, f_returned) },
         .ptr_count = 3,
     },
-    [780] = {
+    [781] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_PoolArray_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_PoolArray_t, f_name) },
         .string_count = 1,
     },
-    [781] = {
+    [782] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_PushCache_t),
         .slot_size = 8,
     },
-    [782] = {
+    [783] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_ScopeInfo_t),
         .slot_size = 8,
     },
-    [783] = {
+    [784] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_SlotFill_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_SlotFill_t, f_cty) },
         .string_count = 1,
     },
-    [784] = {
+    [785] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_StackExpr_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_StackExpr_t, f_expression) },
         .ptr_count = 1,
     },
-    [785] = {
+    [786] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_StackLit_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_StackLit_t, f_expression) },
         .ptr_count = 1,
     },
-    [786] = {
+    [787] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_StackLocalRef_t),
         .slot_size = 8,
     },
-    [787] = {
+    [788] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_StackStorage_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_StackStorage_t, f_cname), offsetof(vader_struct_vader_c_emit_StackStorage_t, f_storage) },
         .string_count = 2,
     },
-    [788] = {
+    [789] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_StackTemporary_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_StackTemporary_t, f_temporary) },
         .ref_count = 1,
     },
-    [789] = {
+    [790] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_StructOffsets_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_StructOffsets_t, f_ptr_offsets), offsetof(vader_struct_vader_c_emit_StructOffsets_t, f_str_offsets), offsetof(vader_struct_vader_c_emit_StructOffsets_t, f_ref_offsets) },
         .ref_count = 3,
     },
-    [790] = {
+    [791] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CAddressOf_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CAddressOf_t, f_operand) },
         .ptr_count = 1,
     },
-    [791] = {
+    [792] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CAssign_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CAssign_t, f_target), offsetof(vader_struct_vader_c_emit_c_ast_CAssign_t, f_value), offsetof(vader_struct_vader_c_emit_c_ast_CAssign_t, f_operator) },
         .ptr_count = 3,
     },
-    [792] = {
+    [793] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CBinary_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CBinary_t, f_left), offsetof(vader_struct_vader_c_emit_c_ast_CBinary_t, f_right) },
         .ptr_count = 2,
     },
-    [793] = {
+    [794] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CBlock_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CBlock_t, f_body) },
         .ref_count = 1,
     },
-    [794] = {
+    [795] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CBreak_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CBreak_t, f_condition) },
         .ptr_count = 1,
     },
-    [795] = {
+    [796] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CCall_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CCall_t, f_callee) },
@@ -14083,7 +14056,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CCall_t, f_arguments) },
         .ref_count = 1,
     },
-    [796] = {
+    [797] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CCase_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CCase_t, f_value) },
@@ -14091,7 +14064,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CCase_t, f_body) },
         .ref_count = 1,
     },
-    [797] = {
+    [798] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CCast_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CCast_t, f_value) },
@@ -14099,13 +14072,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CCast_t, f_types) },
         .ref_count = 1,
     },
-    [798] = {
+    [799] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CCastToTypeOf_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CCastToTypeOf_t, f_model), offsetof(vader_struct_vader_c_emit_c_ast_CCastToTypeOf_t, f_value) },
         .ptr_count = 2,
     },
-    [799] = {
+    [800] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CCompoundLiteral_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CCompoundLiteral_t, f_type) },
@@ -14113,19 +14086,19 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CCompoundLiteral_t, f_elements) },
         .ref_count = 1,
     },
-    [800] = {
+    [801] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CConditional_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CConditional_t, f_condition), offsetof(vader_struct_vader_c_emit_c_ast_CConditional_t, f_then_value), offsetof(vader_struct_vader_c_emit_c_ast_CConditional_t, f_else_value) },
         .ptr_count = 3,
     },
-    [801] = {
+    [802] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CContinue_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CContinue_t, f_condition) },
         .ptr_count = 1,
     },
-    [802] = {
+    [803] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CDeclaration_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CDeclaration_t, f_type) },
@@ -14133,7 +14106,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CDeclaration_t, f_declarators) },
         .ref_count = 1,
     },
-    [803] = {
+    [804] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CDeclarator_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CDeclarator_t, f_length), offsetof(vader_struct_vader_c_emit_c_ast_CDeclarator_t, f_value) },
@@ -14141,7 +14114,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CDeclarator_t, f_name) },
         .string_count = 1,
     },
-    [804] = {
+    [805] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CDefine_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CDefine_t, f_value) },
@@ -14149,7 +14122,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CDefine_t, f_name) },
         .string_count = 1,
     },
-    [805] = {
+    [806] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CDesignated_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CDesignated_t, f_value) },
@@ -14157,25 +14130,25 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CDesignated_t, f_designator) },
         .string_count = 1,
     },
-    [806] = {
+    [807] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CDirective_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CDirective_t, f_text) },
         .string_count = 1,
     },
-    [807] = {
+    [808] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CExpressionStatement_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CExpressionStatement_t, f_expression) },
         .ptr_count = 1,
     },
-    [808] = {
+    [809] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CField_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CField_t, f_type), offsetof(vader_struct_vader_c_emit_c_ast_CField_t, f_name) },
         .string_count = 2,
     },
-    [809] = {
+    [810] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CFor_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CFor_t, f_label), offsetof(vader_struct_vader_c_emit_c_ast_CFor_t, f_end_label) },
@@ -14183,13 +14156,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CFor_t, f_body) },
         .ref_count = 1,
     },
-    [810] = {
+    [811] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CFunction_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CFunction_t, f_signature), offsetof(vader_struct_vader_c_emit_c_ast_CFunction_t, f_prologue), offsetof(vader_struct_vader_c_emit_c_ast_CFunction_t, f_body) },
         .ref_count = 3,
     },
-    [811] = {
+    [812] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CFunctionPointerTypedef_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CFunctionPointerTypedef_t, f_result), offsetof(vader_struct_vader_c_emit_c_ast_CFunctionPointerTypedef_t, f_name) },
@@ -14197,7 +14170,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CFunctionPointerTypedef_t, f_parameters) },
         .ref_count = 1,
     },
-    [812] = {
+    [813] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CGlobal_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CGlobal_t, f_type) },
@@ -14205,7 +14178,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CGlobal_t, f_declarator) },
         .ref_count = 1,
     },
-    [813] = {
+    [814] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CGoto_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CGoto_t, f_condition) },
@@ -14213,7 +14186,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CGoto_t, f_label) },
         .string_count = 1,
     },
-    [814] = {
+    [815] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CIf_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CIf_t, f_condition), offsetof(vader_struct_vader_c_emit_c_ast_CIf_t, f_else_block) },
@@ -14223,39 +14196,39 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CIf_t, f_then_block) },
         .ref_count = 1,
     },
-    [815] = {
+    [816] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CInclude_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CInclude_t, f_path) },
         .string_count = 1,
     },
-    [816] = {
+    [817] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CIndex_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CIndex_t, f_base), offsetof(vader_struct_vader_c_emit_c_ast_CIndex_t, f_index) },
         .ptr_count = 2,
     },
-    [817] = {
+    [818] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CInitializerList_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CInitializerList_t, f_elements) },
         .ref_count = 1,
     },
-    [818] = {
+    [819] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CIntegerLiteral_t), .slot_size = 8,
     },
-    [819] = {
+    [820] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CLocal_t),
         .slot_size = 8,
     },
-    [820] = {
+    [821] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CMacroStatement_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CMacroStatement_t, f_call) },
         .ref_count = 1,
     },
-    [821] = {
+    [822] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CMember_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CMember_t, f_base) },
@@ -14263,41 +14236,41 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CMember_t, f_member) },
         .string_count = 1,
     },
-    [822] = {
+    [823] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CNumber_t),
         .slot_size = 8,
     },
-    [823] = {
+    [824] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_COperatorInfo_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_COperatorInfo_t, f_spelling) },
         .string_count = 1,
     },
-    [824] = {
+    [825] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CParameter_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CParameter_t, f_type), offsetof(vader_struct_vader_c_emit_c_ast_CParameter_t, f_name) },
         .string_count = 2,
     },
-    [825] = {
+    [826] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CParenthesized_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CParenthesized_t, f_inner) },
         .ptr_count = 1,
     },
-    [826] = {
+    [827] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CPrinter_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CPrinter_t, f_out) },
         .ref_count = 1,
     },
-    [827] = {
+    [828] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CPrototype_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CPrototype_t, f_signature) },
         .ref_count = 1,
     },
-    [828] = {
+    [829] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CReturn_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CReturn_t, f_value) },
@@ -14307,7 +14280,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CReturn_t, f_stores) },
         .ref_count = 1,
     },
-    [829] = {
+    [830] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CScope_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CScope_t, f_label), offsetof(vader_struct_vader_c_emit_c_ast_CScope_t, f_end_label) },
@@ -14315,19 +14288,19 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CScope_t, f_body) },
         .ref_count = 1,
     },
-    [830] = {
+    [831] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CSection_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CSection_t, f_comment), offsetof(vader_struct_vader_c_emit_c_ast_CSection_t, f_items) },
         .ref_count = 2,
     },
-    [831] = {
+    [832] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CSequence_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CSequence_t, f_parts) },
         .ref_count = 1,
     },
-    [832] = {
+    [833] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CSignature_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CSignature_t, f_result), offsetof(vader_struct_vader_c_emit_c_ast_CSignature_t, f_name) },
@@ -14335,7 +14308,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CSignature_t, f_parameters) },
         .ref_count = 1,
     },
-    [833] = {
+    [834] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CStaticAssert_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CStaticAssert_t, f_condition) },
@@ -14343,13 +14316,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CStaticAssert_t, f_message) },
         .ref_count = 1,
     },
-    [834] = {
+    [835] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CStringLiterals_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CStringLiterals_t, f_literals) },
         .ref_count = 1,
     },
-    [835] = {
+    [836] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CStructDefinition_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CStructDefinition_t, f_name) },
@@ -14357,13 +14330,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CStructDefinition_t, f_fields) },
         .ref_count = 1,
     },
-    [836] = {
+    [837] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CStructForward_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CStructForward_t, f_name) },
         .string_count = 1,
     },
-    [837] = {
+    [838] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CSwitch_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CSwitch_t, f_subject), offsetof(vader_struct_vader_c_emit_c_ast_CSwitch_t, f_default_body) },
@@ -14371,11 +14344,11 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CSwitch_t, f_cases) },
         .ref_count = 1,
     },
-    [838] = {
+    [839] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_CTemporary_t), .slot_size = 8,
     },
-    [839] = {
+    [840] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CUnary_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CUnary_t, f_operand) },
@@ -14383,17 +14356,17 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CUnary_t, f_operator) },
         .string_count = 1,
     },
-    [840] = {
+    [841] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CUnsized_t),
         .slot_size = 8,
     },
-    [841] = {
+    [842] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CVerbatim_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CVerbatim_t, f_text) },
         .string_count = 1,
     },
-    [842] = {
+    [843] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_c_emit_c_ast_CWhile_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CWhile_t, f_condition) },
@@ -14403,13 +14376,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_CWhile_t, f_body) },
         .ref_count = 1,
     },
-    [843] = {
+    [844] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_c_emit_c_ast_TemporaryUsage_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_c_emit_c_ast_TemporaryUsage_t, f_uses), offsetof(vader_struct_vader_c_emit_c_ast_TemporaryUsage_t, f_first), offsetof(vader_struct_vader_c_emit_c_ast_TemporaryUsage_t, f_last) },
         .ref_count = 3,
     },
-    [844] = {
+    [845] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_ArrayValue_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_ArrayValue_t, f_element_type_name) },
@@ -14417,51 +14390,51 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_ArrayValue_t, f_elements) },
         .ref_count = 1,
     },
-    [845] = {
+    [846] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_BoolValue_t),
         .slot_size = 8,
     },
-    [846] = {
+    [847] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_CharValue_t),
         .slot_size = 8,
     },
-    [847] = {
+    [848] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_comptime_ComptimeContext_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_ComptimeContext_t, f_typed), offsetof(vader_struct_vader_comptime_ComptimeContext_t, f_bindings) },
         .ref_count = 2,
     },
-    [848] = {
+    [849] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_ComptimeOrder_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_ComptimeOrder_t, f_order), offsetof(vader_struct_vader_comptime_ComptimeOrder_t, f_cycle_diags) },
         .ref_count = 2,
     },
-    [849] = {
+    [850] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_EvalResult_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_EvalResult_t, f_value), offsetof(vader_struct_vader_comptime_EvalResult_t, f_diag) },
         .ptr_count = 2,
     },
-    [850] = {
+    [851] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_comptime_EvaluatedProgram_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_EvaluatedProgram_t, f_typed), offsetof(vader_struct_vader_comptime_EvaluatedProgram_t, f_comptime_decls) },
         .ref_count = 2,
     },
-    [851] = {
+    [852] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_comptime_EvaluatedProject_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_typed), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_modules), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_file_baked_consts), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_file_exprs), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_instances), offsetof(vader_struct_vader_comptime_EvaluatedProject_t, f_vm_required) },
         .ref_count = 6,
     },
-    [852] = {
+    [853] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_FloatValue_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_FloatValue_t, f_type_name) },
         .string_count = 1,
     },
-    [853] = {
+    [854] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_comptime_GenericInstance_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_GenericInstance_t, f_display_key) },
@@ -14469,19 +14442,19 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_GenericInstance_t, f_symbol), offsetof(vader_struct_vader_comptime_GenericInstance_t, f_args) },
         .ref_count = 2,
     },
-    [854] = {
+    [855] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_comptime_InstanceRegistry_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_InstanceRegistry_t, f_by_key), offsetof(vader_struct_vader_comptime_InstanceRegistry_t, f_order) },
         .ref_count = 2,
     },
-    [855] = {
+    [856] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_IntValue_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_IntValue_t, f_type_name) },
         .string_count = 1,
     },
-    [856] = {
+    [857] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_MonoEntry_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_MonoEntry_t, f_decl), offsetof(vader_struct_vader_comptime_MonoEntry_t, f_symbol), offsetof(vader_struct_vader_comptime_MonoEntry_t, f_module), offsetof(vader_struct_vader_comptime_MonoEntry_t, f_vtable_slot) },
@@ -14491,29 +14464,29 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_MonoEntry_t, f_subst), offsetof(vader_struct_vader_comptime_MonoEntry_t, f_type_arguments) },
         .ref_count = 2,
     },
-    [857] = {
+    [858] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_NodeRecord_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_NodeRecord_t, f_decl), offsetof(vader_struct_vader_comptime_NodeRecord_t, f_dependency_ids) },
         .ref_count = 2,
     },
-    [858] = {
+    [859] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_Nodes_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_Nodes_t, f_by_id), offsetof(vader_struct_vader_comptime_Nodes_t, f_order), offsetof(vader_struct_vader_comptime_Nodes_t, f_by_symbol) },
         .ref_count = 3,
     },
-    [859] = {
+    [860] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_NullValue_t),
         .slot_size = 8,
     },
-    [860] = {
+    [861] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_StringValue_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_StringValue_t, f_value) },
         .string_count = 1,
     },
-    [861] = {
+    [862] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_StructValue_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_StructValue_t, f_type_name) },
@@ -14521,13 +14494,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_StructValue_t, f_fields) },
         .ref_count = 1,
     },
-    [862] = {
+    [863] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_TypeValue_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_TypeValue_t, f_value) },
         .ptr_count = 1,
     },
-    [863] = {
+    [864] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_comptime_VmRequiredDecl_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_VmRequiredDecl_t, f_decl_type) },
@@ -14537,23 +14510,23 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_VmRequiredDecl_t, f_span) },
         .ref_count = 1,
     },
-    [864] = {
+    [865] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_VoidValue_t),
         .slot_size = 8,
     },
-    [865] = {
+    [866] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_comptime_VtableSlot_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_comptime_VtableSlot_t, f_trait_key), offsetof(vader_struct_vader_comptime_VtableSlot_t, f_method) },
         .string_count = 2,
     },
-    [866] = {
+    [867] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_diagnostics_CodeInfo_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_diagnostics_CodeInfo_t, f_id), offsetof(vader_struct_vader_diagnostics_CodeInfo_t, f_message) },
         .string_count = 2,
     },
-    [867] = {
+    [868] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_diagnostics_Diagnostic_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_diagnostics_Diagnostic_t, f_detail) },
@@ -14561,53 +14534,53 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_diagnostics_Diagnostic_t, f_code), offsetof(vader_struct_vader_diagnostics_Diagnostic_t, f_primary) },
         .ref_count = 2,
     },
-    [868] = {
+    [869] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_Access_t),
         .slot_size = 8,
     },
-    [869] = {
+    [870] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_AnyCallee_t),
         .slot_size = 8,
     },
-    [870] = {
+    [871] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_CalleeIndex_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_CalleeIndex_t, f_functions), offsetof(vader_struct_vader_effects_CalleeIndex_t, f_nodes), offsetof(vader_struct_vader_effects_CalleeIndex_t, f_bodyless), offsetof(vader_struct_vader_effects_CalleeIndex_t, f_frozen_views), offsetof(vader_struct_vader_effects_CalleeIndex_t, f_constants), offsetof(vader_struct_vader_effects_CalleeIndex_t, f_defaults), offsetof(vader_struct_vader_effects_CalleeIndex_t, f_impls), offsetof(vader_struct_vader_effects_CalleeIndex_t, f_paths), offsetof(vader_struct_vader_effects_CalleeIndex_t, f_project), offsetof(vader_struct_vader_effects_CalleeIndex_t, f_members), offsetof(vader_struct_vader_effects_CalleeIndex_t, f_unknown) },
         .ref_count = 11,
     },
-    [871] = {
+    [872] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_CalleeNode_t),
         .slot_size = 8,
     },
-    [872] = {
+    [873] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_Clock_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_Clock_t, f_grew_at), offsetof(vader_struct_vader_effects_Clock_t, f_evaluated_at) },
         .ref_count = 2,
     },
-    [873] = {
+    [874] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_ConstantUse_t),
         .slot_size = 8,
     },
-    [874] = {
+    [875] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_EffectSummary_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_EffectSummary_t, f_index), offsetof(vader_struct_vader_effects_EffectSummary_t, f_facts), offsetof(vader_struct_vader_effects_EffectSummary_t, f_unsettled), offsetof(vader_struct_vader_effects_EffectSummary_t, f_frozen), offsetof(vader_struct_vader_effects_EffectSummary_t, f_fresh), offsetof(vader_struct_vader_effects_EffectSummary_t, f_widenings) },
         .ref_count = 6,
     },
-    [875] = {
+    [876] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_EvalCtx_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_EvalCtx_t, f_facts), offsetof(vader_struct_vader_effects_EvalCtx_t, f_paths), offsetof(vader_struct_vader_effects_EvalCtx_t, f_components), offsetof(vader_struct_vader_effects_EvalCtx_t, f_any) },
         .ref_count = 4,
     },
-    [876] = {
+    [877] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_Flow_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_Flow_t, f_copy) },
         .ptr_count = 1,
     },
-    [877] = {
+    [878] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_FrozenBody_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_FrozenBody_t, f_initialises) },
@@ -14615,7 +14588,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_FrozenBody_t, f_skeleton), offsetof(vader_struct_vader_effects_FrozenBody_t, f_roots), offsetof(vader_struct_vader_effects_FrozenBody_t, f_typed) },
         .ref_count = 3,
     },
-    [878] = {
+    [879] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_FrozenRoot_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_FrozenRoot_t, f_constant), offsetof(vader_struct_vader_effects_FrozenRoot_t, f_type) },
@@ -14625,7 +14598,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_FrozenRoot_t, f_span) },
         .ref_count = 1,
     },
-    [879] = {
+    [880] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_FrozenSite_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_FrozenSite_t, f_module), offsetof(vader_struct_vader_effects_FrozenSite_t, f_root) },
@@ -14633,19 +14606,19 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_FrozenSite_t, f_span) },
         .ref_count = 1,
     },
-    [880] = {
+    [881] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_FrozenSites_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_FrozenSites_t, f_sites), offsetof(vader_struct_vader_effects_FrozenSites_t, f_bodies), offsetof(vader_struct_vader_effects_FrozenSites_t, f_written), offsetof(vader_struct_vader_effects_FrozenSites_t, f_fresh), offsetof(vader_struct_vader_effects_FrozenSites_t, f_kept_by_constants) },
         .ref_count = 5,
     },
-    [881] = {
+    [882] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_Function_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_Function_t, f_decl), offsetof(vader_struct_vader_effects_Function_t, f_typed) },
         .ref_count = 2,
     },
-    [882] = {
+    [883] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_Initialiser_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_Initialiser_t, f_value), offsetof(vader_struct_vader_effects_Initialiser_t, f_initialises) },
@@ -14653,79 +14626,79 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_Initialiser_t, f_typed) },
         .ref_count = 1,
     },
-    [883] = {
+    [884] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_KnownEffects_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_KnownEffects_t, f_params) },
         .ref_count = 1,
     },
-    [884] = {
+    [885] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_Mark_t),
         .slot_size = 8,
     },
-    [885] = {
+    [886] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_ParamEffects_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_ParamEffects_t, f_accesses), offsetof(vader_struct_vader_effects_ParamEffects_t, f_keys) },
         .ref_count = 2,
     },
-    [886] = {
+    [887] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_PathNode_t),
         .slot_size = 8,
     },
-    [887] = {
+    [888] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_PathTable_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_PathTable_t, f_nodes), offsetof(vader_struct_vader_effects_PathTable_t, f_step_names), offsetof(vader_struct_vader_effects_PathTable_t, f_step_ids), offsetof(vader_struct_vader_effects_PathTable_t, f_children), offsetof(vader_struct_vader_effects_PathTable_t, f_cuts), offsetof(vader_struct_vader_effects_PathTable_t, f_joins) },
         .ref_count = 6,
     },
-    [888] = {
+    [889] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_effects_PendingWidening_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_PendingWidening_t, f_site), offsetof(vader_struct_vader_effects_PendingWidening_t, f_targets) },
         .ref_count = 2,
     },
-    [889] = {
+    [890] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_Root_t),
         .slot_size = 8,
     },
-    [890] = {
+    [891] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_RootCase_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_RootCase_t, f_body), offsetof(vader_struct_vader_effects_RootCase_t, f_paths), offsetof(vader_struct_vader_effects_RootCase_t, f_held), offsetof(vader_struct_vader_effects_RootCase_t, f_marked), offsetof(vader_struct_vader_effects_RootCase_t, f_lent) },
         .ref_count = 5,
     },
-    [891] = {
+    [892] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_RootEffects_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_RootEffects_t, f_marked), offsetof(vader_struct_vader_effects_RootEffects_t, f_lent), offsetof(vader_struct_vader_effects_RootEffects_t, f_took), offsetof(vader_struct_vader_effects_RootEffects_t, f_mixed) },
         .ref_count = 4,
     },
-    [892] = {
+    [893] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_Site_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_Site_t, f_targets), offsetof(vader_struct_vader_effects_Site_t, f_args) },
         .ref_count = 2,
     },
-    [893] = {
+    [894] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_Skeleton_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_Skeleton_t, f_flows), offsetof(vader_struct_vader_effects_Skeleton_t, f_sites), offsetof(vader_struct_vader_effects_Skeleton_t, f_marks), offsetof(vader_struct_vader_effects_Skeleton_t, f_seeds) },
         .ref_count = 4,
     },
-    [894] = {
+    [895] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_SlotRoots_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_SlotRoots_t, f_roots), offsetof(vader_struct_vader_effects_SlotRoots_t, f_seen) },
         .ref_count = 2,
     },
-    [895] = {
+    [896] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_WalkCtx_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_WalkCtx_t, f_s), offsetof(vader_struct_vader_effects_WalkCtx_t, f_typed), offsetof(vader_struct_vader_effects_WalkCtx_t, f_index), offsetof(vader_struct_vader_effects_WalkCtx_t, f_slots), offsetof(vader_struct_vader_effects_WalkCtx_t, f_frozen), offsetof(vader_struct_vader_effects_WalkCtx_t, f_widenings), offsetof(vader_struct_vader_effects_WalkCtx_t, f_roots) },
         .ref_count = 7,
     },
-    [896] = {
+    [897] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_effects_WideningSite_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_WideningSite_t, f_callee), offsetof(vader_struct_vader_effects_WideningSite_t, f_breaking) },
@@ -14735,23 +14708,23 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_effects_WideningSite_t, f_span) },
         .ref_count = 1,
     },
-    [897] = {
+    [898] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_fixpoint_Graph_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_fixpoint_Graph_t, f_successors) },
         .ref_count = 1,
     },
-    [898] = {
+    [899] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_fixpoint_TarjanWalk_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_fixpoint_TarjanWalk_t, f_order), offsetof(vader_struct_vader_fixpoint_TarjanWalk_t, f_low), offsetof(vader_struct_vader_fixpoint_TarjanWalk_t, f_on_stack), offsetof(vader_struct_vader_fixpoint_TarjanWalk_t, f_stack), offsetof(vader_struct_vader_fixpoint_TarjanWalk_t, f_frame_nodes), offsetof(vader_struct_vader_fixpoint_TarjanWalk_t, f_frame_tried) },
         .ref_count = 6,
     },
-    [899] = {
+    [900] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lexer_InterpFrame_t),
         .slot_size = 8,
     },
-    [900] = {
+    [901] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lexer_Lexer_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lexer_Lexer_t, f_pending_newline) },
@@ -14761,7 +14734,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lexer_Lexer_t, f_tokens), offsetof(vader_struct_vader_lexer_Lexer_t, f_errors), offsetof(vader_struct_vader_lexer_Lexer_t, f_interp_stack) },
         .ref_count = 3,
     },
-    [901] = {
+    [902] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lexer_Token_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lexer_Token_t, f_value) },
@@ -14771,7 +14744,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lexer_Token_t, f_span) },
         .ref_count = 1,
     },
-    [902] = {
+    [903] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_lower_AggregateDataPoolEntry_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_AggregateDataPoolEntry_t, f_element_type_name) },
@@ -14779,13 +14752,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_AggregateDataPoolEntry_t, f_literal) },
         .ref_count = 1,
     },
-    [903] = {
+    [904] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_AnalyzeCtx_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_AnalyzeCtx_t, f_aliases), offsetof(vader_struct_vader_lower_AnalyzeCtx_t, f_closures), offsetof(vader_struct_vader_lower_AnalyzeCtx_t, f_escaped), offsetof(vader_struct_vader_lower_AnalyzeCtx_t, f_bound) },
         .ref_count = 4,
     },
-    [904] = {
+    [905] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_ArrayMemberUse_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_ArrayMemberUse_t, f_element) },
@@ -14793,7 +14766,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_ArrayMemberUse_t, f_member_span) },
         .ref_count = 1,
     },
-    [905] = {
+    [906] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_BlockCtx_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_BlockCtx_t, f_loop_id) },
@@ -14801,7 +14774,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_BlockCtx_t, f_defers) },
         .ref_count = 1,
     },
-    [906] = {
+    [907] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_BodyTemplate_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_BodyTemplate_t, f_element_type), offsetof(vader_struct_vader_lower_BodyTemplate_t, f_pattern) },
@@ -14811,7 +14784,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_BodyTemplate_t, f_binding_symbol), offsetof(vader_struct_vader_lower_BodyTemplate_t, f_user_body) },
         .ref_count = 2,
     },
-    [907] = {
+    [908] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_BveCtx_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_BveCtx_t, f_usize_ty), offsetof(vader_struct_vader_lower_BveCtx_t, f_u8_ty) },
@@ -14819,13 +14792,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_BveCtx_t, f_byte_len_sym), offsetof(vader_struct_vader_lower_BveCtx_t, f_byte_at_sym), offsetof(vader_struct_vader_lower_BveCtx_t, f_candidates), offsetof(vader_struct_vader_lower_BveCtx_t, f_disq), offsetof(vader_struct_vader_lower_BveCtx_t, f_bound), offsetof(vader_struct_vader_lower_BveCtx_t, f_reassigned) },
         .ref_count = 6,
     },
-    [908] = {
+    [909] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_CallTarget_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_CallTarget_t, f_callee), offsetof(vader_struct_vader_lower_CallTarget_t, f_owner), offsetof(vader_struct_vader_lower_CallTarget_t, f_decl), offsetof(vader_struct_vader_lower_CallTarget_t, f_args) },
         .ref_count = 4,
     },
-    [909] = {
+    [910] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_CalleeMismatch_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_CalleeMismatch_t, f_recorded), offsetof(vader_struct_vader_lower_CalleeMismatch_t, f_observed) },
@@ -14833,13 +14806,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_CalleeMismatch_t, f_span) },
         .ref_count = 1,
     },
-    [910] = {
+    [911] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_CalleeVerifier_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_CalleeVerifier_t, f_mismatches), offsetof(vader_struct_vader_lower_CalleeVerifier_t, f_seen), offsetof(vader_struct_vader_lower_CalleeVerifier_t, f_members) },
         .ref_count = 3,
     },
-    [911] = {
+    [912] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_Capture_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_Capture_t, f_type) },
@@ -14847,23 +14820,23 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_Capture_t, f_symbol) },
         .ref_count = 1,
     },
-    [912] = {
+    [913] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_CellInit_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_CellInit_t, f_value), offsetof(vader_struct_vader_lower_CellInit_t, f_slot_type) },
         .ptr_count = 2,
     },
-    [913] = {
+    [914] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_CfAppend_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_CfAppend_t, f_span), offsetof(vader_struct_vader_lower_CfAppend_t, f_target), offsetof(vader_struct_vader_lower_CfAppend_t, f_args) },
         .ref_count = 3,
     },
-    [914] = {
+    [915] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_CfMentionKinds_t),
         .slot_size = 8,
     },
-    [915] = {
+    [916] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_ClosureAlias_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_ClosureAlias_t, f_env_type) },
@@ -14871,13 +14844,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_ClosureAlias_t, f_fn_sym) },
         .ref_count = 1,
     },
-    [916] = {
+    [917] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_ClosureAnalysis_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_ClosureAnalysis_t, f_cell_symbols), offsetof(vader_struct_vader_lower_ClosureAnalysis_t, f_lambda_captures), offsetof(vader_struct_vader_lower_ClosureAnalysis_t, f_defer_captures) },
         .ref_count = 3,
     },
-    [917] = {
+    [918] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_ConstFnWrap_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_ConstFnWrap_t, f_call_type) },
@@ -14885,25 +14858,25 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_ConstFnWrap_t, f_fn_symbol) },
         .ref_count = 1,
     },
-    [918] = {
+    [919] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_ConsumerCall_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_ConsumerCall_t, f_target), offsetof(vader_struct_vader_lower_ConsumerCall_t, f_signature), offsetof(vader_struct_vader_lower_ConsumerCall_t, f_shape), offsetof(vader_struct_vader_lower_ConsumerCall_t, f_subst), offsetof(vader_struct_vader_lower_ConsumerCall_t, f_chain), offsetof(vader_struct_vader_lower_ConsumerCall_t, f_instance) },
         .ref_count = 6,
     },
-    [919] = {
+    [920] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_ConsumerShape_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_ConsumerShape_t, f_symbol), offsetof(vader_struct_vader_lower_ConsumerShape_t, f_type_params) },
         .ref_count = 2,
     },
-    [920] = {
+    [921] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_CountedLoop_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_CountedLoop_t, f_body), offsetof(vader_struct_vader_lower_CountedLoop_t, f_turns) },
         .ref_count = 2,
     },
-    [921] = {
+    [922] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_DefaultThunk_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_DefaultThunk_t, f_type) },
@@ -14911,19 +14884,19 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_DefaultThunk_t, f_symbol) },
         .ref_count = 1,
     },
-    [922] = {
+    [923] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_EntryTypes_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_EntryTypes_t, f_typed), offsetof(vader_struct_vader_lower_EntryTypes_t, f_subst) },
         .ref_count = 2,
     },
-    [923] = {
+    [924] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_EnumTable_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_EnumTable_t, f_enum_type), offsetof(vader_struct_vader_lower_EnumTable_t, f_symbol) },
         .ref_count = 2,
     },
-    [924] = {
+    [925] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_EnvSlot_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_EnvSlot_t, f_value_type) },
@@ -14931,13 +14904,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_EnvSlot_t, f_field) },
         .string_count = 1,
     },
-    [925] = {
+    [926] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_FluentCombinator_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_FluentCombinator_t, f_receiver), offsetof(vader_struct_vader_lower_FluentCombinator_t, f_fn_arg) },
         .ptr_count = 2,
     },
-    [926] = {
+    [927] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_FnLowerCtx_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_return_type), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_lifted_context), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_gen_inline_sink), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_instance), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_inline_consumer) },
@@ -14945,7 +14918,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_project), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_entry), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_typed), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_subst), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_types), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_blocks), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_comptime_bindings), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_bound_operands), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_pending_awaits), offsetof(vader_struct_vader_lower_FnLowerCtx_t, f_jump_frames) },
         .ref_count = 10,
     },
-    [927] = {
+    [928] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_GenBuild_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_GenBuild_t, f_state_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_i32_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_step), offsetof(vader_struct_vader_lower_GenBuild_t, f_result_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_suspended_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_async_any_ty), offsetof(vader_struct_vader_lower_GenBuild_t, f_resume_erased_ty) },
@@ -14953,7 +14926,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_GenBuild_t, f_self_sym), offsetof(vader_struct_vader_lower_GenBuild_t, f_span), offsetof(vader_struct_vader_lower_GenBuild_t, f_states), offsetof(vader_struct_vader_lower_GenBuild_t, f_field_map), offsetof(vader_struct_vader_lower_GenBuild_t, f_fields), offsetof(vader_struct_vader_lower_GenBuild_t, f_loop_stack), offsetof(vader_struct_vader_lower_GenBuild_t, f_fn_ctx) },
         .ref_count = 7,
     },
-    [928] = {
+    [929] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_GenComboLayer_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_GenComboLayer_t, f_arg_sym), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_arg_expr), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_arg_slot), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_output_elem) },
@@ -14961,7 +14934,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_GenComboLayer_t, f_decl), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_subst), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_owner), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_loopvar), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_inner), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_instance), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_prelude), offsetof(vader_struct_vader_lower_GenComboLayer_t, f_extra_sources) },
         .ref_count = 8,
     },
-    [929] = {
+    [930] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_GenInlineSink_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_GenInlineSink_t, f_element_type) },
@@ -14971,25 +14944,25 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_GenInlineSink_t, f_binding_symbol), offsetof(vader_struct_vader_lower_GenInlineSink_t, f_body) },
         .ref_count = 2,
     },
-    [930] = {
+    [931] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_GenSourceBinding_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_GenSourceBinding_t, f_source), offsetof(vader_struct_vader_lower_GenSourceBinding_t, f_loopvar), offsetof(vader_struct_vader_lower_GenSourceBinding_t, f_inner), offsetof(vader_struct_vader_lower_GenSourceBinding_t, f_prelude) },
         .ref_count = 4,
     },
-    [931] = {
+    [932] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_GenSourceCall_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_GenSourceCall_t, f_decl), offsetof(vader_struct_vader_lower_GenSourceCall_t, f_owner), offsetof(vader_struct_vader_lower_GenSourceCall_t, f_signature), offsetof(vader_struct_vader_lower_GenSourceCall_t, f_subst), offsetof(vader_struct_vader_lower_GenSourceCall_t, f_args), offsetof(vader_struct_vader_lower_GenSourceCall_t, f_instance) },
         .ref_count = 6,
     },
-    [932] = {
+    [933] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_GenSourceLoop_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_GenSourceLoop_t, f_loopvar_span), offsetof(vader_struct_vader_lower_GenSourceLoop_t, f_inner), offsetof(vader_struct_vader_lower_GenSourceLoop_t, f_prelude) },
         .ref_count = 3,
     },
-    [933] = {
+    [934] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_lower_GenericFnInstance_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_GenericFnInstance_t, f_mangled), offsetof(vader_struct_vader_lower_GenericFnInstance_t, f_owner_module) },
@@ -14997,13 +14970,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_GenericFnInstance_t, f_fn_symbol), offsetof(vader_struct_vader_lower_GenericFnInstance_t, f_type_args) },
         .ref_count = 2,
     },
-    [934] = {
+    [935] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_ImplMemberMatch_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_ImplMemberMatch_t, f_entry), offsetof(vader_struct_vader_lower_ImplMemberMatch_t, f_member) },
         .ref_count = 2,
     },
-    [935] = {
+    [936] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_InlineConsumer_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_InlineConsumer_t, f_result_type) },
@@ -15011,7 +14984,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_InlineConsumer_t, f_param), offsetof(vader_struct_vader_lower_InlineConsumer_t, f_chain), offsetof(vader_struct_vader_lower_InlineConsumer_t, f_result) },
         .ref_count = 3,
     },
-    [936] = {
+    [937] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_InlineInstance_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_InlineInstance_t, f_label_suffix) },
@@ -15019,7 +14992,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_InlineInstance_t, f_clones) },
         .ref_count = 1,
     },
-    [937] = {
+    [938] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_IterChain_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_IterChain_t, f_range_lower), offsetof(vader_struct_vader_lower_IterChain_t, f_range_upper), offsetof(vader_struct_vader_lower_IterChain_t, f_element_type), offsetof(vader_struct_vader_lower_IterChain_t, f_array_expr), offsetof(vader_struct_vader_lower_IterChain_t, f_source), offsetof(vader_struct_vader_lower_IterChain_t, f_gen_layer), offsetof(vader_struct_vader_lower_IterChain_t, f_gen_source), offsetof(vader_struct_vader_lower_IterChain_t, f_iter_expr), offsetof(vader_struct_vader_lower_IterChain_t, f_bound_lower), offsetof(vader_struct_vader_lower_IterChain_t, f_bound_upper), offsetof(vader_struct_vader_lower_IterChain_t, f_bound_source) },
@@ -15027,13 +15000,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_IterChain_t, f_span) },
         .ref_count = 1,
     },
-    [938] = {
+    [939] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_JumpFrame_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_JumpFrame_t, f_exit), offsetof(vader_struct_vader_lower_JumpFrame_t, f_resume) },
         .ptr_count = 2,
     },
-    [939] = {
+    [940] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LiftedFnContext_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LiftedFnContext_t, f_env_type) },
@@ -15041,7 +15014,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LiftedFnContext_t, f_env_symbol), offsetof(vader_struct_vader_lower_LiftedFnContext_t, f_captures) },
         .ref_count = 2,
     },
-    [940] = {
+    [941] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoopBinding_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoopBinding_t, f_pattern) },
@@ -15051,7 +15024,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoopBinding_t, f_symbol) },
         .ref_count = 1,
     },
-    [941] = {
+    [942] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoopFrame_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoopFrame_t, f_label) },
@@ -15059,7 +15032,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoopFrame_t, f_step) },
         .ref_count = 1,
     },
-    [942] = {
+    [943] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoopTurns_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoopTurns_t, f_start), offsetof(vader_struct_vader_lower_LoopTurns_t, f_bound) },
@@ -15067,7 +15040,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoopTurns_t, f_counter) },
         .ref_count = 1,
     },
-    [943] = {
+    [944] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LowerProjectCtx_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_callee_verifier) },
@@ -15075,7 +15048,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_evaluated), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_loaded), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_typed), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_impls), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_fn_symbols), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_opt_misses), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_instance_bindings), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_inlining_callees), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_clone_origins), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_consumers), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_non_consumers), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_core_symbols), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_core_enum_types), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_module_symbol_cache), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_comptime_value_by_symbol_id), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_local_symbol_indices), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_closures), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_synth_decls), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_concat_fn_syms), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_entry_decls), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_default_thunks), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_expanding_defaults), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_enum_data_consts), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_enum_value_consts), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_enum_table_order), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_lambda_seq), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_fn_instances), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_fn_instances_order), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_seen_mangled), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_nongeneric_imported_fns), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_nongeneric_imported_order), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_nongeneric_imported_consts), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_nongeneric_imported_const_order), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_materialized_impl_keys), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_materialized_struct_mangles), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_referenced_impl_mangles), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_virtually_dispatched_traits), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_constructed_struct_symbols), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_array_member_uses), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_pending_generic_impl_recv), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_seen_generic_impl_recv), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_generic_collected), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_generic_processed), offsetof(vader_struct_vader_lower_LowerProjectCtx_t, f_diags) },
         .ref_count = 44,
     },
-    [944] = {
+    [945] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredArrayLen_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredArrayLen_t, f_type), offsetof(vader_struct_vader_lower_LoweredArrayLen_t, f_target) },
@@ -15083,7 +15056,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredArrayLen_t, f_span) },
         .ref_count = 1,
     },
-    [945] = {
+    [946] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredArrayLit_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredArrayLit_t, f_type) },
@@ -15091,7 +15064,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredArrayLit_t, f_span), offsetof(vader_struct_vader_lower_LoweredArrayLit_t, f_elements) },
         .ref_count = 2,
     },
-    [946] = {
+    [947] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredArrayPush_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredArrayPush_t, f_type), offsetof(vader_struct_vader_lower_LoweredArrayPush_t, f_target), offsetof(vader_struct_vader_lower_LoweredArrayPush_t, f_value) },
@@ -15099,7 +15072,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredArrayPush_t, f_span) },
         .ref_count = 1,
     },
-    [947] = {
+    [948] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_lower_LoweredArraySlice_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_type), offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_target), offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_lo), offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_hi) },
@@ -15107,7 +15080,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredArraySlice_t, f_span) },
         .ref_count = 1,
     },
-    [948] = {
+    [949] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredAssign_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredAssign_t, f_target), offsetof(vader_struct_vader_lower_LoweredAssign_t, f_value) },
@@ -15115,7 +15088,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredAssign_t, f_span) },
         .ref_count = 1,
     },
-    [949] = {
+    [950] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredAwait_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredAwait_t, f_target_type), offsetof(vader_struct_vader_lower_LoweredAwait_t, f_awaited) },
@@ -15123,7 +15096,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredAwait_t, f_span), offsetof(vader_struct_vader_lower_LoweredAwait_t, f_target) },
         .ref_count = 2,
     },
-    [950] = {
+    [951] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredBinary_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredBinary_t, f_type), offsetof(vader_struct_vader_lower_LoweredBinary_t, f_left), offsetof(vader_struct_vader_lower_LoweredBinary_t, f_right) },
@@ -15131,7 +15104,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredBinary_t, f_span) },
         .ref_count = 1,
     },
-    [951] = {
+    [952] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredBlock_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredBlock_t, f_type), offsetof(vader_struct_vader_lower_LoweredBlock_t, f_trailing) },
@@ -15139,7 +15112,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredBlock_t, f_span), offsetof(vader_struct_vader_lower_LoweredBlock_t, f_stmts) },
         .ref_count = 2,
     },
-    [952] = {
+    [953] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredBoolLit_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredBoolLit_t, f_type) },
@@ -15147,7 +15120,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredBoolLit_t, f_span) },
         .ref_count = 1,
     },
-    [953] = {
+    [954] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredBreak_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredBreak_t, f_label) },
@@ -15155,7 +15128,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredBreak_t, f_span) },
         .ref_count = 1,
     },
-    [954] = {
+    [955] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredCall_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredCall_t, f_type), offsetof(vader_struct_vader_lower_LoweredCall_t, f_callee) },
@@ -15163,7 +15136,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredCall_t, f_span), offsetof(vader_struct_vader_lower_LoweredCall_t, f_args) },
         .ref_count = 2,
     },
-    [955] = {
+    [956] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredCast_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredCast_t, f_type), offsetof(vader_struct_vader_lower_LoweredCast_t, f_value) },
@@ -15171,7 +15144,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredCast_t, f_span) },
         .ref_count = 1,
     },
-    [956] = {
+    [957] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredCellGet_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredCellGet_t, f_type), offsetof(vader_struct_vader_lower_LoweredCellGet_t, f_target), offsetof(vader_struct_vader_lower_LoweredCellGet_t, f_value_type) },
@@ -15179,7 +15152,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredCellGet_t, f_span) },
         .ref_count = 1,
     },
-    [957] = {
+    [958] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredCellNew_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredCellNew_t, f_type), offsetof(vader_struct_vader_lower_LoweredCellNew_t, f_value), offsetof(vader_struct_vader_lower_LoweredCellNew_t, f_value_type) },
@@ -15187,7 +15160,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredCellNew_t, f_span) },
         .ref_count = 1,
     },
-    [958] = {
+    [959] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredCellSet_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredCellSet_t, f_target), offsetof(vader_struct_vader_lower_LoweredCellSet_t, f_value), offsetof(vader_struct_vader_lower_LoweredCellSet_t, f_value_type) },
@@ -15195,7 +15168,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredCellSet_t, f_span) },
         .ref_count = 1,
     },
-    [959] = {
+    [960] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredCharLit_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredCharLit_t, f_type) },
@@ -15203,7 +15176,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredCharLit_t, f_span) },
         .ref_count = 1,
     },
-    [960] = {
+    [961] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredConstDecl_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredConstDecl_t, f_type), offsetof(vader_struct_vader_lower_LoweredConstDecl_t, f_value) },
@@ -15213,7 +15186,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredConstDecl_t, f_origin) },
         .ref_count = 1,
     },
-    [961] = {
+    [962] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredContinue_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredContinue_t, f_label) },
@@ -15221,7 +15194,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredContinue_t, f_span) },
         .ref_count = 1,
     },
-    [962] = {
+    [963] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredDataConst_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredDataConst_t, f_type) },
@@ -15229,13 +15202,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredDataConst_t, f_span) },
         .ref_count = 1,
     },
-    [963] = {
+    [964] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_lower_LoweredDeferPopExec_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredDeferPopExec_t, f_span) },
         .ref_count = 1,
     },
-    [964] = {
+    [965] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredDeferPush_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredDeferPush_t, f_thunk) },
@@ -15243,7 +15216,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredDeferPush_t, f_span) },
         .ref_count = 1,
     },
-    [965] = {
+    [966] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredExprStmt_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredExprStmt_t, f_expr) },
@@ -15251,7 +15224,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredExprStmt_t, f_span) },
         .ref_count = 1,
     },
-    [966] = {
+    [967] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_lower_LoweredFieldAccess_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredFieldAccess_t, f_type), offsetof(vader_struct_vader_lower_LoweredFieldAccess_t, f_target) },
@@ -15261,7 +15234,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredFieldAccess_t, f_span) },
         .ref_count = 1,
     },
-    [967] = {
+    [968] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredFloatLit_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredFloatLit_t, f_type) },
@@ -15269,7 +15242,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredFloatLit_t, f_span) },
         .ref_count = 1,
     },
-    [968] = {
+    [969] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredFnDecl_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_return_type), offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_body) },
@@ -15279,7 +15252,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_params), offsetof(vader_struct_vader_lower_LoweredFnDecl_t, f_origin) },
         .ref_count = 2,
     },
-    [969] = {
+    [970] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredIdent_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredIdent_t, f_type) },
@@ -15287,7 +15260,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredIdent_t, f_span), offsetof(vader_struct_vader_lower_LoweredIdent_t, f_symbol) },
         .ref_count = 2,
     },
-    [970] = {
+    [971] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredIf_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredIf_t, f_type), offsetof(vader_struct_vader_lower_LoweredIf_t, f_cond), offsetof(vader_struct_vader_lower_LoweredIf_t, f_else_block) },
@@ -15295,7 +15268,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredIf_t, f_span), offsetof(vader_struct_vader_lower_LoweredIf_t, f_then_block) },
         .ref_count = 2,
     },
-    [971] = {
+    [972] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredIndex_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredIndex_t, f_type), offsetof(vader_struct_vader_lower_LoweredIndex_t, f_target), offsetof(vader_struct_vader_lower_LoweredIndex_t, f_index) },
@@ -15303,7 +15276,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredIndex_t, f_span) },
         .ref_count = 1,
     },
-    [972] = {
+    [973] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredIntLit_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredIntLit_t, f_type) },
@@ -15311,7 +15284,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredIntLit_t, f_span) },
         .ref_count = 1,
     },
-    [973] = {
+    [974] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_lower_LoweredIntrinsicCall_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredIntrinsicCall_t, f_type) },
@@ -15321,7 +15294,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredIntrinsicCall_t, f_span), offsetof(vader_struct_vader_lower_LoweredIntrinsicCall_t, f_args) },
         .ref_count = 2,
     },
-    [974] = {
+    [975] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_lower_LoweredLabelledBlock_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredLabelledBlock_t, f_label) },
@@ -15329,7 +15302,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredLabelledBlock_t, f_span), offsetof(vader_struct_vader_lower_LoweredLabelledBlock_t, f_body) },
         .ref_count = 2,
     },
-    [975] = {
+    [976] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredLet_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredLet_t, f_type), offsetof(vader_struct_vader_lower_LoweredLet_t, f_value) },
@@ -15339,7 +15312,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredLet_t, f_span), offsetof(vader_struct_vader_lower_LoweredLet_t, f_symbol) },
         .ref_count = 2,
     },
-    [976] = {
+    [977] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredLoop_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredLoop_t, f_label), offsetof(vader_struct_vader_lower_LoweredLoop_t, f_cond), offsetof(vader_struct_vader_lower_LoweredLoop_t, f_turns) },
@@ -15347,7 +15320,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredLoop_t, f_span), offsetof(vader_struct_vader_lower_LoweredLoop_t, f_body), offsetof(vader_struct_vader_lower_LoweredLoop_t, f_step) },
         .ref_count = 3,
     },
-    [977] = {
+    [978] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_lower_LoweredMakeClosure_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredMakeClosure_t, f_type), offsetof(vader_struct_vader_lower_LoweredMakeClosure_t, f_env) },
@@ -15355,7 +15328,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredMakeClosure_t, f_span), offsetof(vader_struct_vader_lower_LoweredMakeClosure_t, f_fn_symbol) },
         .ref_count = 2,
     },
-    [978] = {
+    [979] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredModule_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredModule_t, f_module_id), offsetof(vader_struct_vader_lower_LoweredModule_t, f_display_path) },
@@ -15363,7 +15336,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredModule_t, f_decls) },
         .ref_count = 1,
     },
-    [979] = {
+    [980] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredNullLit_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredNullLit_t, f_type) },
@@ -15371,7 +15344,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredNullLit_t, f_span) },
         .ref_count = 1,
     },
-    [980] = {
+    [981] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredParam_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredParam_t, f_type) },
@@ -15381,7 +15354,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredParam_t, f_symbol) },
         .ref_count = 1,
     },
-    [981] = {
+    [982] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredProject_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredProject_t, f_entry) },
@@ -15389,7 +15362,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredProject_t, f_modules), offsetof(vader_struct_vader_lower_LoweredProject_t, f_vtable_entries), offsetof(vader_struct_vader_lower_LoweredProject_t, f_data_pool), offsetof(vader_struct_vader_lower_LoweredProject_t, f_const_fn_wrap), offsetof(vader_struct_vader_lower_LoweredProject_t, f_const_inline), offsetof(vader_struct_vader_lower_LoweredProject_t, f_const_fresh_wrap), offsetof(vader_struct_vader_lower_LoweredProject_t, f_trait_membership) },
         .ref_count = 7,
     },
-    [982] = {
+    [983] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredReturn_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredReturn_t, f_value) },
@@ -15397,7 +15370,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredReturn_t, f_span) },
         .ref_count = 1,
     },
-    [983] = {
+    [984] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_lower_LoweredStringLit_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredStringLit_t, f_type) },
@@ -15405,14 +15378,6 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredStringLit_t, f_value) },
         .string_count = 1,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredStringLit_t, f_span) },
-        .ref_count = 1,
-    },
-    [984] = {
-        .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_vader_lower_LoweredStringSlice_t), .slot_size = 8,
-        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_type), offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_target), offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_lo), offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_hi) },
-        .ptr_count = 4,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_lower_LoweredStringSlice_t, f_span) },
         .ref_count = 1,
     },
     [985] = {
@@ -15974,14 +15939,6 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_count = 1,
     },
     [1063] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_InstrStringSlice_t),
-        .slot_size = 8,
-        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_InstrStringSlice_t, f_type) },
-        .ptr_count = 1,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_InstrStringSlice_t, f_span) },
-        .ref_count = 1,
-    },
-    [1064] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_InstrStructNew_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_InstrStructNew_t, f_type) },
@@ -15989,7 +15946,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_InstrStructNew_t, f_span), offsetof(vader_struct_vader_midir_InstrStructNew_t, f_fields) },
         .ref_count = 2,
     },
-    [1065] = {
+    [1064] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_InstrTypeCheck_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_InstrTypeCheck_t, f_check_type) },
@@ -15997,7 +15954,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_InstrTypeCheck_t, f_span) },
         .ref_count = 1,
     },
-    [1066] = {
+    [1065] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_InstrTypeConst_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_InstrTypeConst_t, f_type), offsetof(vader_struct_vader_midir_InstrTypeConst_t, f_value_type) },
@@ -16005,7 +15962,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_InstrTypeConst_t, f_span) },
         .ref_count = 1,
     },
-    [1067] = {
+    [1066] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_InstrUnOp_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_InstrUnOp_t, f_type) },
@@ -16013,7 +15970,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_InstrUnOp_t, f_span) },
         .ref_count = 1,
     },
-    [1068] = {
+    [1067] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_InstrVirtualCall_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_dst), offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_type) },
@@ -16023,13 +15980,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_span), offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_args), offsetof(vader_struct_vader_midir_InstrVirtualCall_t, f_param_types) },
         .ref_count = 3,
     },
-    [1069] = {
+    [1068] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_Liveness_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_Liveness_t, f_live_in), offsetof(vader_struct_vader_midir_Liveness_t, f_live_out) },
         .ref_count = 2,
     },
-    [1070] = {
+    [1069] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_LoopFrame_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_LoopFrame_t, f_label) },
@@ -16037,7 +15994,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_LoopFrame_t, f_step) },
         .ref_count = 1,
     },
-    [1071] = {
+    [1070] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_MutableBlock_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_MutableBlock_t, f_terminator) },
@@ -16045,57 +16002,57 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_MutableBlock_t, f_instructions), offsetof(vader_struct_vader_midir_MutableBlock_t, f_span) },
         .ref_count = 2,
     },
-    [1072] = {
+    [1071] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_OperandEdges_t),
         .slot_size = 8,
     },
-    [1073] = {
+    [1072] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_PendingBranch_t),
         .slot_size = 8,
     },
-    [1074] = {
+    [1073] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_ProjectCtx_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_ProjectCtx_t, f_strings), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_string_index), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_const_fn_wrap), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_const_inline), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_const_fresh_wrap), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_extern_callbacks), offsetof(vader_struct_vader_midir_ProjectCtx_t, f_diags) },
         .ref_count = 7,
     },
-    [1075] = {
+    [1074] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_ScheduleHints_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_ScheduleHints_t, f_skip_set), offsetof(vader_struct_vader_midir_ScheduleHints_t, f_skip_first_get), offsetof(vader_struct_vader_midir_ScheduleHints_t, f_skip_terminator_get) },
         .ref_count = 3,
     },
-    [1076] = {
+    [1075] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_ScopeFrame_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_ScopeFrame_t, f_kind) },
         .string_count = 1,
     },
-    [1077] = {
+    [1076] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_StructureShape_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_StructureShape_t, f_rpo_index), offsetof(vader_struct_vader_midir_StructureShape_t, f_loop_header), offsetof(vader_struct_vader_midir_StructureShape_t, f_merge), offsetof(vader_struct_vader_midir_StructureShape_t, f_merges), offsetof(vader_struct_vader_midir_StructureShape_t, f_exits), offsetof(vader_struct_vader_midir_StructureShape_t, f_copied) },
         .ref_count = 6,
     },
-    [1078] = {
+    [1077] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_TermBranch_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_TermBranch_t, f_span) },
         .ref_count = 1,
     },
-    [1079] = {
+    [1078] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_TermCondBranch_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_TermCondBranch_t, f_span) },
         .ref_count = 1,
     },
-    [1080] = {
+    [1079] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_TermReturn_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_TermReturn_t, f_span), offsetof(vader_struct_vader_midir_TermReturn_t, f_values) },
         .ref_count = 2,
     },
-    [1081] = {
+    [1080] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_midir_TermUnreachable_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_TermUnreachable_t, f_reason) },
@@ -16103,52 +16060,52 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_midir_TermUnreachable_t, f_span) },
         .ref_count = 1,
     },
-    [1082] = {
+    [1081] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_parser_CommaList__Any_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_CommaList__Any_t, f_items) },
         .ref_count = 1,
     },
-    [1083] = {
+    [1082] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_parser_CommaList__CallArg_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_CommaList__CallArg_t, f_items) },
         .ref_count = 1,
     },
-    [1084] = {
+    [1083] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_parser_CommaList__ImportName_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_CommaList__ImportName_t, f_items) },
         .ref_count = 1,
     },
-    [1085] = {
+    [1084] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_parser_CommaList__StructLitField___StructLitSpread_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_CommaList__StructLitField___StructLitSpread_t, f_items) },
         .ref_count = 1,
     },
-    [1086] = {
+    [1085] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_parser_CompoundOpResult_t), .slot_size = 8,
     },
-    [1087] = {
+    [1086] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_parser_FnBodyTail_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_FnBodyTail_t, f_body) },
         .ptr_count = 1,
     },
-    [1088] = {
+    [1087] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_parser_FnSignature_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_FnSignature_t, f_params), offsetof(vader_struct_vader_parser_FnSignature_t, f_type_params) },
         .ref_count = 2,
     },
-    [1089] = {
+    [1088] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_parser_InfixOpDescr_t),
         .slot_size = 8,
     },
-    [1090] = {
+    [1089] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_parser_IntrinsicSpec_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_IntrinsicSpec_t, f_name), offsetof(vader_struct_vader_parser_IntrinsicSpec_t, f_result) },
@@ -16156,7 +16113,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_IntrinsicSpec_t, f_args) },
         .ref_count = 1,
     },
-    [1091] = {
+    [1090] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_parser_ModuleHeader_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_ModuleHeader_t, f_name) },
@@ -16164,17 +16121,17 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_ModuleHeader_t, f_name_span) },
         .ref_count = 1,
     },
-    [1092] = {
+    [1091] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_parser_NodeIdFactory_t),
         .slot_size = 8,
     },
-    [1093] = {
+    [1092] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_parser_ParsedSource_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_ParsedSource_t, f_program), offsetof(vader_struct_vader_parser_ParsedSource_t, f_tokens), offsetof(vader_struct_vader_parser_ParsedSource_t, f_errors), offsetof(vader_struct_vader_parser_ParsedSource_t, f_id_factory) },
         .ref_count = 4,
     },
-    [1094] = {
+    [1093] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_parser_Parser_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_Parser_t, f_shr_pending_half) },
@@ -16184,7 +16141,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_Parser_t, f_tokens), offsetof(vader_struct_vader_parser_Parser_t, f_errors), offsetof(vader_struct_vader_parser_Parser_t, f_pending_decls) },
         .ref_count = 3,
     },
-    [1095] = {
+    [1094] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_parser_StringLitInfo_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_StringLitInfo_t, f_text) },
@@ -16192,19 +16149,19 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_parser_StringLitInfo_t, f_span) },
         .ref_count = 1,
     },
-    [1096] = {
+    [1095] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_pipeline_check_CheckedProject_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_pipeline_check_CheckedProject_t, f_result), offsetof(vader_struct_vader_pipeline_check_CheckedProject_t, f_effects) },
         .ref_count = 2,
     },
-    [1097] = {
+    [1096] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_resolver_CollectedModule_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_CollectedModule_t, f_symbols), offsetof(vader_struct_vader_resolver_CollectedModule_t, f_fn_overloads), offsetof(vader_struct_vader_resolver_CollectedModule_t, f_imports), offsetof(vader_struct_vader_resolver_CollectedModule_t, f_import_paths), offsetof(vader_struct_vader_resolver_CollectedModule_t, f_files) },
         .ref_count = 5,
     },
-    [1098] = {
+    [1097] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_resolver_DiscoveredModule_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_DiscoveredModule_t, f_name), offsetof(vader_struct_vader_resolver_DiscoveredModule_t, f_folder) },
@@ -16212,7 +16169,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_DiscoveredModule_t, f_files) },
         .ref_count = 1,
     },
-    [1099] = {
+    [1098] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_FileImports_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_FileImports_t, f_file) },
@@ -16220,13 +16177,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_FileImports_t, f_paths), offsetof(vader_struct_vader_resolver_FileImports_t, f_excludes), offsetof(vader_struct_vader_resolver_FileImports_t, f_bindings) },
         .ref_count = 3,
     },
-    [1100] = {
+    [1099] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_FileScope_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_FileScope_t, f_root), offsetof(vader_struct_vader_resolver_FileScope_t, f_ambiguous) },
         .ref_count = 2,
     },
-    [1101] = {
+    [1100] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_FolderBucket_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_FolderBucket_t, f_name) },
@@ -16234,7 +16191,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_FolderBucket_t, f_first_decl_span), offsetof(vader_struct_vader_resolver_FolderBucket_t, f_files) },
         .ref_count = 2,
     },
-    [1102] = {
+    [1101] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_ImportInfo_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_ImportInfo_t, f_imported_name) },
@@ -16244,25 +16201,25 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_ImportInfo_t, f_binding_span) },
         .ref_count = 1,
     },
-    [1103] = {
+    [1102] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_resolver_ImportTargetTable_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_ImportTargetTable_t, f_symbol_targets), offsetof(vader_struct_vader_resolver_ImportTargetTable_t, f_namespace_targets), offsetof(vader_struct_vader_resolver_ImportTargetTable_t, f_missing) },
         .ref_count = 3,
     },
-    [1104] = {
+    [1103] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_IncludePath_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_IncludePath_t, f_dir), offsetof(vader_struct_vader_resolver_IncludePath_t, f_prefix) },
         .string_count = 2,
     },
-    [1105] = {
+    [1104] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_LoadedModule_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_LoadedModule_t, f_module), offsetof(vader_struct_vader_resolver_LoadedModule_t, f_collected), offsetof(vader_struct_vader_resolver_LoadedModule_t, f_node_id_factory), offsetof(vader_struct_vader_resolver_LoadedModule_t, f_discarded_bodies) },
         .ref_count = 4,
     },
-    [1106] = {
+    [1105] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_LoadedProject_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_LoadedProject_t, f_project_root) },
@@ -16272,13 +16229,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_LoadedProject_t, f_modules), offsetof(vader_struct_vader_resolver_LoadedProject_t, f_factory), offsetof(vader_struct_vader_resolver_LoadedProject_t, f_diags) },
         .ref_count = 3,
     },
-    [1107] = {
+    [1106] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_Manifest_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_Manifest_t, f_include_paths) },
         .ref_count = 1,
     },
-    [1108] = {
+    [1107] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_Module_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_Module_t, f_id), offsetof(vader_struct_vader_resolver_Module_t, f_display_path), offsetof(vader_struct_vader_resolver_Module_t, f_module_name) },
@@ -16286,13 +16243,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_Module_t, f_files) },
         .ref_count = 1,
     },
-    [1109] = {
+    [1108] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_MutableDecl_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_MutableDecl_t, f_syms), offsetof(vader_struct_vader_resolver_MutableDecl_t, f_span) },
         .ref_count = 2,
     },
-    [1110] = {
+    [1109] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_ResolveState_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_ResolveState_t, f_lambda_frame) },
@@ -16302,13 +16259,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_ResolveState_t, f_idents), offsetof(vader_struct_vader_resolver_ResolveState_t, f_immutable_locals), offsetof(vader_struct_vader_resolver_ResolveState_t, f_immutable_borrows), offsetof(vader_struct_vader_resolver_ResolveState_t, f_type_param_bounds), offsetof(vader_struct_vader_resolver_ResolveState_t, f_mutable_decls), offsetof(vader_struct_vader_resolver_ResolveState_t, f_reassigned), offsetof(vader_struct_vader_resolver_ResolveState_t, f_declared_locals), offsetof(vader_struct_vader_resolver_ResolveState_t, f_rebind_log), offsetof(vader_struct_vader_resolver_ResolveState_t, f_loop_rebinds), offsetof(vader_struct_vader_resolver_ResolveState_t, f_closure_rebound), offsetof(vader_struct_vader_resolver_ResolveState_t, f_diags), offsetof(vader_struct_vader_resolver_ResolveState_t, f_scope), offsetof(vader_struct_vader_resolver_ResolveState_t, f_factory), offsetof(vader_struct_vader_resolver_ResolveState_t, f_ambiguous), offsetof(vader_struct_vader_resolver_ResolveState_t, f_file_scopes) },
         .ref_count = 15,
     },
-    [1111] = {
+    [1110] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_ResolvedFile_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_idents), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_immutable_locals), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_immutable_borrows), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_rebind_free), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_loop_rebinds), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_closure_rebound), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_type_param_bounds), offsetof(vader_struct_vader_resolver_ResolvedFile_t, f_diags) },
         .ref_count = 8,
     },
-    [1112] = {
+    [1111] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_resolver_ResolvedModule_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_path), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_display_path) },
@@ -16316,13 +16273,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_symbols), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_import_bindings), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_idents), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_immutable_locals), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_immutable_borrows), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_rebind_free), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_loop_rebinds), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_closure_rebound), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_fn_overloads), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_imports_to), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_alias_types), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_alias_decls), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_type_param_bounds), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_diags), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_deprecated_messages), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_namespace_member_types), offsetof(vader_struct_vader_resolver_ResolvedModule_t, f_namespace_private_members) },
         .ref_count = 17,
     },
-    [1113] = {
+    [1112] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_Scope_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_Scope_t, f_frames) },
         .ref_count = 1,
     },
-    [1114] = {
+    [1113] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_SearchRoots_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_SearchRoots_t, f_project_root), offsetof(vader_struct_vader_resolver_SearchRoots_t, f_entry) },
@@ -16330,7 +16287,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_SearchRoots_t, f_paths) },
         .ref_count = 1,
     },
-    [1115] = {
+    [1114] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_SourceFile_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_SourceFile_t, f_path), offsetof(vader_struct_vader_resolver_SourceFile_t, f_content) },
@@ -16338,19 +16295,19 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_SourceFile_t, f_program), offsetof(vader_struct_vader_resolver_SourceFile_t, f_id_factory) },
         .ref_count = 2,
     },
-    [1116] = {
+    [1115] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_StampCtx_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_StampCtx_t, f_file) },
         .string_count = 1,
     },
-    [1117] = {
+    [1116] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_Subst_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_Subst_t, f_entries) },
         .ref_count = 1,
     },
-    [1118] = {
+    [1117] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_SymbolTarget_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_SymbolTarget_t, f_module_id) },
@@ -16358,13 +16315,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_SymbolTarget_t, f_symbol) },
         .ref_count = 1,
     },
-    [1119] = {
+    [1118] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_resolver_TargetSelectors_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_TargetSelectors_t, f_os) },
         .ref_count = 1,
     },
-    [1120] = {
+    [1119] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_resolver_symbol_Symbol_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_symbol_Symbol_t, f_defined_at) },
@@ -16372,25 +16329,25 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_symbol_Symbol_t, f_name), offsetof(vader_struct_vader_resolver_symbol_Symbol_t, f_module), offsetof(vader_struct_vader_resolver_symbol_Symbol_t, f_module_name) },
         .string_count = 3,
     },
-    [1121] = {
+    [1120] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_resolver_symbol_SymbolFactory_t), .slot_size = 8,
     },
-    [1122] = {
+    [1121] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_resolver_symbol_SymbolKindInfo_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_resolver_symbol_SymbolKindInfo_t, f_label) },
         .string_count = 1,
     },
-    [1123] = {
+    [1122] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_target_AllTargets_t),
         .slot_size = 8,
     },
-    [1124] = {
+    [1123] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_target_Target_t),
         .slot_size = 8,
     },
-    [1125] = {
+    [1124] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_ArgBound_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ArgBound_t, f_name) },
@@ -16398,7 +16355,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ArgBound_t, f_traits) },
         .ref_count = 1,
     },
-    [1126] = {
+    [1125] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_ArgEdge_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ArgEdge_t, f_root), offsetof(vader_struct_vader_typecheck_ArgEdge_t, f_arg_ty) },
@@ -16408,13 +16365,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ArgEdge_t, f_call) },
         .ref_count = 1,
     },
-    [1127] = {
+    [1126] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_ArgPick_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ArgPick_t, f_best), offsetof(vader_struct_vader_typecheck_ArgPick_t, f_rival) },
         .ptr_count = 2,
     },
-    [1128] = {
+    [1127] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_BlockNarrow_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_BlockNarrow_t, f_static_ty), offsetof(vader_struct_vader_typecheck_BlockNarrow_t, f_else_ty) },
@@ -16422,7 +16379,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_BlockNarrow_t, f_field_key) },
         .string_count = 1,
     },
-    [1129] = {
+    [1128] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_BoundMember_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_BoundMember_t, f_trait_key), offsetof(vader_struct_vader_typecheck_BoundMember_t, f_member) },
@@ -16430,7 +16387,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_BoundMember_t, f_trait_args) },
         .ref_count = 1,
     },
-    [1130] = {
+    [1129] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_BoundedImpl_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_BoundedImpl_t, f_trait_key) },
@@ -16438,35 +16395,35 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_BoundedImpl_t, f_bounds) },
         .ref_count = 1,
     },
-    [1131] = {
+    [1130] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_Builtin_t),
         .slot_size = 8,
     },
-    [1132] = {
+    [1131] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_CallSites_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_CallSites_t, f_calls_in_fn), offsetof(vader_struct_vader_typecheck_CallSites_t, f_calls), offsetof(vader_struct_vader_typecheck_CallSites_t, f_operators), offsetof(vader_struct_vader_typecheck_CallSites_t, f_index_reads), offsetof(vader_struct_vader_typecheck_CallSites_t, f_index_writes), offsetof(vader_struct_vader_typecheck_CallSites_t, f_conversions), offsetof(vader_struct_vader_typecheck_CallSites_t, f_iterator_conversions), offsetof(vader_struct_vader_typecheck_CallSites_t, f_iterator_steps), offsetof(vader_struct_vader_typecheck_CallSites_t, f_displays) },
         .ref_count = 9,
     },
-    [1133] = {
+    [1132] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_CheckResult_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_CheckResult_t, f_typed), offsetof(vader_struct_vader_typecheck_CheckResult_t, f_impls), offsetof(vader_struct_vader_typecheck_CheckResult_t, f_others), offsetof(vader_struct_vader_typecheck_CheckResult_t, f_all_modules) },
         .ref_count = 4,
     },
-    [1134] = {
+    [1133] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_ConstTyping_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ConstTyping_t, f_decl) },
         .ref_count = 1,
     },
-    [1135] = {
+    [1134] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_ConstWalk_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ConstWalk_t, f_decls), offsetof(vader_struct_vader_typecheck_ConstWalk_t, f_states), offsetof(vader_struct_vader_typecheck_ConstWalk_t, f_typing), offsetof(vader_struct_vader_typecheck_ConstWalk_t, f_diags) },
         .ref_count = 4,
     },
-    [1136] = {
+    [1135] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_DeadDecl_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_DeadDecl_t, f_name) },
@@ -16474,19 +16431,19 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_DeadDecl_t, f_name_span) },
         .ref_count = 1,
     },
-    [1137] = {
+    [1136] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_DefaultFill_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_DefaultFill_t, f_filling), offsetof(vader_struct_vader_typecheck_DefaultFill_t, f_filled), offsetof(vader_struct_vader_typecheck_DefaultFill_t, f_consts) },
         .ref_count = 3,
     },
-    [1138] = {
+    [1137] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_DependencyFrame_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_DependencyFrame_t, f_decl), offsetof(vader_struct_vader_typecheck_DependencyFrame_t, f_reads) },
         .ref_count = 2,
     },
-    [1139] = {
+    [1138] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_DirectFn_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_DirectFn_t, f_bindings) },
@@ -16494,29 +16451,29 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_DirectFn_t, f_decl) },
         .ref_count = 1,
     },
-    [1140] = {
+    [1139] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_EachOf_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_EachOf_t, f_callees) },
         .ref_count = 1,
     },
-    [1141] = {
+    [1140] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_EnclosingLoop_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_EnclosingLoop_t, f_binding), offsetof(vader_struct_vader_typecheck_EnclosingLoop_t, f_label) },
         .ptr_count = 2,
     },
-    [1142] = {
+    [1141] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_EnumHeader_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_EnumHeader_t, f_repr), offsetof(vader_struct_vader_typecheck_EnumHeader_t, f_data) },
         .ptr_count = 2,
     },
-    [1143] = {
+    [1142] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_ErroneousCallee_t), .slot_size = 8,
     },
-    [1144] = {
+    [1143] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_FieldChainStatic_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_FieldChainStatic_t, f_static_ty) },
@@ -16524,7 +16481,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_FieldChainStatic_t, f_field_key) },
         .string_count = 1,
     },
-    [1145] = {
+    [1144] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_FillingDefault_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_FillingDefault_t, f_field) },
@@ -16532,7 +16489,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_FillingDefault_t, f_decl), offsetof(vader_struct_vader_typecheck_FillingDefault_t, f_span) },
         .ref_count = 2,
     },
-    [1146] = {
+    [1145] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_FnCandidate_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_FnCandidate_t, f_decl) },
@@ -16540,7 +16497,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_FnCandidate_t, f_ty), offsetof(vader_struct_vader_typecheck_FnCandidate_t, f_symbol) },
         .ref_count = 2,
     },
-    [1147] = {
+    [1146] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_FnContext_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_FnContext_t, f_return_type), offsetof(vader_struct_vader_typecheck_FnContext_t, f_self_type), offsetof(vader_struct_vader_typecheck_FnContext_t, f_yield_type), offsetof(vader_struct_vader_typecheck_FnContext_t, f_inferred_return) },
@@ -16548,23 +16505,23 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_FnContext_t, f_type_params_in_scope) },
         .ref_count = 1,
     },
-    [1148] = {
+    [1147] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_FnValue_t),
         .slot_size = 8,
     },
-    [1149] = {
+    [1148] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_ForwardingGraph_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ForwardingGraph_t, f_nodes), offsetof(vader_struct_vader_typecheck_ForwardingGraph_t, f_observing), offsetof(vader_struct_vader_typecheck_ForwardingGraph_t, f_successors) },
         .ref_count = 3,
     },
-    [1150] = {
+    [1149] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_FreshReads_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_FreshReads_t, f_uses), offsetof(vader_struct_vader_typecheck_FreshReads_t, f_constants) },
         .ref_count = 2,
     },
-    [1151] = {
+    [1150] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_GeneratorState_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_GeneratorState_t, f_element) },
@@ -16572,7 +16529,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_GeneratorState_t, f_symbol) },
         .ref_count = 1,
     },
-    [1152] = {
+    [1151] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_ImplEntry_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ImplEntry_t, f_for_type) },
@@ -16582,7 +16539,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ImplEntry_t, f_decl), offsetof(vader_struct_vader_typecheck_ImplEntry_t, f_trait_symbol), offsetof(vader_struct_vader_typecheck_ImplEntry_t, f_trait_args) },
         .ref_count = 3,
     },
-    [1153] = {
+    [1152] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_ImplMethod_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ImplMethod_t, f_ty), offsetof(vader_struct_vader_typecheck_ImplMethod_t, f_decl), offsetof(vader_struct_vader_typecheck_ImplMethod_t, f_trait_symbol) },
@@ -16592,13 +16549,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ImplMethod_t, f_trait_args) },
         .ref_count = 1,
     },
-    [1154] = {
+    [1153] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_ImplRegistry_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ImplRegistry_t, f_by_target), offsetof(vader_struct_vader_typecheck_ImplRegistry_t, f_by_decl), offsetof(vader_struct_vader_typecheck_ImplRegistry_t, f_by_member), offsetof(vader_struct_vader_typecheck_ImplRegistry_t, f_all), offsetof(vader_struct_vader_typecheck_ImplRegistry_t, f_by_base), offsetof(vader_struct_vader_typecheck_ImplRegistry_t, f_specialized_args), offsetof(vader_struct_vader_typecheck_ImplRegistry_t, f_overloaded_bases) },
         .ref_count = 7,
     },
-    [1155] = {
+    [1154] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_ImplShape_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ImplShape_t, f_for_ty) },
@@ -16606,7 +16563,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ImplShape_t, f_args), offsetof(vader_struct_vader_typecheck_ImplShape_t, f_span) },
         .ref_count = 2,
     },
-    [1156] = {
+    [1155] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_ImportedFnSig_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ImportedFnSig_t, f_local), offsetof(vader_struct_vader_typecheck_ImportedFnSig_t, f_key) },
@@ -16614,7 +16571,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ImportedFnSig_t, f_span) },
         .ref_count = 1,
     },
-    [1157] = {
+    [1156] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_InferableSlot_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_InferableSlot_t, f_owner) },
@@ -16624,7 +16581,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_InferableSlot_t, f_span), offsetof(vader_struct_vader_typecheck_InferableSlot_t, f_written) },
         .ref_count = 2,
     },
-    [1158] = {
+    [1157] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_IsNarrow_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_IsNarrow_t, f_static_ty), offsetof(vader_struct_vader_typecheck_IsNarrow_t, f_then_ty), offsetof(vader_struct_vader_typecheck_IsNarrow_t, f_else_ty) },
@@ -16632,19 +16589,19 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_IsNarrow_t, f_field_key) },
         .string_count = 1,
     },
-    [1159] = {
+    [1158] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_LevelGap_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_LevelGap_t, f_want) },
         .ptr_count = 1,
     },
-    [1160] = {
+    [1159] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_LeverWalk_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_LeverWalk_t, f_typed), offsetof(vader_struct_vader_typecheck_LeverWalk_t, f_roots) },
         .ref_count = 2,
     },
-    [1161] = {
+    [1160] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_MarkCause_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_MarkCause_t, f_what), offsetof(vader_struct_vader_typecheck_MarkCause_t, f_via) },
@@ -16652,13 +16609,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_MarkCause_t, f_span) },
         .ref_count = 1,
     },
-    [1162] = {
+    [1161] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_MarkedLevel_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_MarkedLevel_t, f_path), offsetof(vader_struct_vader_typecheck_MarkedLevel_t, f_cause) },
         .ref_count = 2,
     },
-    [1163] = {
+    [1162] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_NamedDeclLookup_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_NamedDeclLookup_t, f_trait_decl) },
@@ -16666,7 +16623,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_NamedDeclLookup_t, f_other_kind) },
         .string_count = 1,
     },
-    [1164] = {
+    [1163] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_NamedDeclRefs_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_NamedDeclRefs_t, f_name) },
@@ -16674,25 +16631,25 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_NamedDeclRefs_t, f_name_span), offsetof(vader_struct_vader_typecheck_NamedDeclRefs_t, f_decorators), offsetof(vader_struct_vader_typecheck_NamedDeclRefs_t, f_refs) },
         .ref_count = 3,
     },
-    [1165] = {
+    [1164] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_NarrowSlot_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_NarrowSlot_t, f_ty) },
         .ptr_count = 1,
     },
-    [1166] = {
+    [1165] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_NarrowState_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_NarrowState_t, f_bindings), offsetof(vader_struct_vader_typecheck_NarrowState_t, f_fields), offsetof(vader_struct_vader_typecheck_NarrowState_t, f_kill_gens), offsetof(vader_struct_vader_typecheck_NarrowState_t, f_field_kill_gens), offsetof(vader_struct_vader_typecheck_NarrowState_t, f_calling_right_operands), offsetof(vader_struct_vader_typecheck_NarrowState_t, f_binding_scrutinee) },
         .ref_count = 6,
     },
-    [1167] = {
+    [1166] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_ParamInference_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ParamInference_t, f_slots), offsetof(vader_struct_vader_typecheck_ParamInference_t, f_pending), offsetof(vader_struct_vader_typecheck_ParamInference_t, f_needs), offsetof(vader_struct_vader_typecheck_ParamInference_t, f_edges), offsetof(vader_struct_vader_typecheck_ParamInference_t, f_by_root), offsetof(vader_struct_vader_typecheck_ParamInference_t, f_marks) },
         .ref_count = 6,
     },
-    [1168] = {
+    [1167] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_PendingNeed_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_PendingNeed_t, f_want) },
@@ -16700,7 +16657,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_PendingNeed_t, f_cause) },
         .ref_count = 1,
     },
-    [1169] = {
+    [1168] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_PushedNarrow_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_PushedNarrow_t, f_prev) },
@@ -16708,29 +16665,29 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_PushedNarrow_t, f_field_key) },
         .string_count = 1,
     },
-    [1170] = {
+    [1169] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_ReprRange_t),
         .slot_size = 8,
     },
-    [1171] = {
+    [1170] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_RootedEdge_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_RootedEdge_t, f_edge) },
         .ref_count = 1,
     },
-    [1172] = {
+    [1171] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_SlotRoot_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_SlotRoot_t, f_holder) },
         .ptr_count = 1,
     },
-    [1173] = {
+    [1172] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_StaticMember_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_StaticMember_t, f_owner) },
         .ptr_count = 1,
     },
-    [1174] = {
+    [1173] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_Substitution_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_Substitution_t, f_self_type) },
@@ -16738,7 +16695,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_Substitution_t, f_type_params) },
         .ref_count = 1,
     },
-    [1175] = {
+    [1174] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_TagMember_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_TagMember_t, f_self_hazard) },
@@ -16746,13 +16703,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_TagMember_t, f_member) },
         .ref_count = 1,
     },
-    [1176] = {
+    [1175] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_TraitMember_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_TraitMember_t, f_trait_key), offsetof(vader_struct_vader_typecheck_TraitMember_t, f_member) },
         .string_count = 2,
     },
-    [1177] = {
+    [1176] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_TypeMember_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_TypeMember_t, f_ty) },
@@ -16762,7 +16719,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_TypeMember_t, f_decl), offsetof(vader_struct_vader_typecheck_TypeMember_t, f_trait_args) },
         .ref_count = 2,
     },
-    [1178] = {
+    [1177] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_TypeParamBound_t), .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_TypeParamBound_t, f_name) },
@@ -16770,7 +16727,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_TypeParamBound_t, f_traits) },
         .ref_count = 1,
     },
-    [1179] = {
+    [1178] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_TypedProgram_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_import_targets), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_range_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_field_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_async_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_equals_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_run_async_main_symbol), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_current_fn_ctx), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_param_inference) },
@@ -16778,13 +16735,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_resolved), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_expr_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_into_coercions), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_local_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_empty_array_inits), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_decl_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_impl_method_decl_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_param_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_type_expr_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_trait_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_fn_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_trait_decl_owners), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_impl_methods), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_narrow), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_expr_kinds), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_external_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_namespace_exports), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_namespace_export_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_imported_fn_overloads), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_iter_element_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_index_target_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_index_key_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_index_set_key_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_index_set_value_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_ufcs_receiver_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_chosen_fns), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_chosen_impl_methods), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_overloaded_members), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_literals_past_default), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_static_members), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_type_param_bound_traits), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_bounds), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_impl_method_traits), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_field_types), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_implemented_traits), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_impl_bounds), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_traits_by_sym), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_struct_trait_args), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_instance_impl_bases), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_node_spans), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_generator_states), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_extern_symbols), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_let_type_aliases), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_local_init_source), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_loop_var_iterable), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_local_annotation), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_const_decls), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_fn_needs_concrete_instances), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_fn_observes_type_params), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_fn_display_dispatches), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_enum_data_reads), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_widened_arguments), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_loop_stack), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_loop_target_labels), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_jump_labels), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_jump_targets), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_const_walk), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_callees), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_call_sites), offsetof(vader_struct_vader_typecheck_TypedProgram_t, f_local_bound_to) },
         .ref_count = 61,
     },
-    [1180] = {
+    [1179] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_TypedProject_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_TypedProject_t, f_modules), offsetof(vader_struct_vader_typecheck_TypedProject_t, f_fresh) },
         .ref_count = 2,
     },
-    [1181] = {
+    [1180] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_UfcsResult_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_UfcsResult_t, f_curried), offsetof(vader_struct_vader_typecheck_UfcsResult_t, f_rival) },
@@ -16792,13 +16749,13 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_UfcsResult_t, f_winner) },
         .ref_count = 1,
     },
-    [1182] = {
+    [1181] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_UnionLeftover_t), .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_UnionLeftover_t, f_pattern), offsetof(vader_struct_vader_typecheck_UnionLeftover_t, f_actual) },
         .ptr_count = 2,
     },
-    [1183] = {
+    [1182] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_UnmetBound_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_UnmetBound_t, f_arg) },
@@ -16808,39 +16765,39 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_UnmetBound_t, f_bound), offsetof(vader_struct_vader_typecheck_UnmetBound_t, f_required) },
         .ref_count = 2,
     },
-    [1184] = {
+    [1183] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_UnsettledCallee_t), .slot_size = 8,
     },
-    [1185] = {
+    [1184] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_ValueReads_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_ValueReads_t, f_consts), offsetof(vader_struct_vader_typecheck_ValueReads_t, f_literals) },
         .ref_count = 2,
     },
-    [1186] = {
+    [1185] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_vader_typecheck_WidenedArgument_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_WidenedArgument_t, f_span) },
         .ref_count = 1,
     },
-    [1187] = {
+    [1186] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_typecheck_WrittenMark_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_typecheck_WrittenMark_t, f_path), offsetof(vader_struct_vader_typecheck_WrittenMark_t, f_bang) },
         .ref_count = 2,
     },
-    [1188] = {
+    [1187] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_AnyType_t),
         .slot_size = 8,
     },
-    [1189] = {
+    [1188] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_ArrayType_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_ArrayType_t, f_element) },
         .ptr_count = 1,
     },
-    [1190] = {
+    [1189] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_DistinctType_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_DistinctType_t, f_backing) },
@@ -16848,7 +16805,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_DistinctType_t, f_symbol) },
         .ref_count = 1,
     },
-    [1191] = {
+    [1190] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_EnumType_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_EnumType_t, f_data), offsetof(vader_struct_vader_types_EnumType_t, f_written_width) },
@@ -16858,7 +16815,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_EnumType_t, f_symbol), offsetof(vader_struct_vader_types_EnumType_t, f_indices), offsetof(vader_struct_vader_types_EnumType_t, f_values) },
         .ref_count = 3,
     },
-    [1192] = {
+    [1191] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_FnType_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_FnType_t, f_return_type) },
@@ -16866,77 +16823,77 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_FnType_t, f_params), offsetof(vader_struct_vader_types_FnType_t, f_params_mutable) },
         .ref_count = 2,
     },
-    [1193] = {
+    [1192] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_FreeCharType_t),
         .slot_size = 8,
     },
-    [1194] = {
+    [1193] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_FreeFloatType_t),
         .slot_size = 8,
     },
-    [1195] = {
+    [1194] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_FreeIntType_t),
         .slot_size = 8,
     },
-    [1196] = {
+    [1195] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_NeverType_t),
         .slot_size = 8,
     },
-    [1197] = {
+    [1196] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_PrimitiveMeta_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_PrimitiveMeta_t, f_name) },
         .string_count = 1,
     },
-    [1198] = {
+    [1197] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_PrimitiveType_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_PrimitiveType_t, f_name) },
         .string_count = 1,
     },
-    [1199] = {
+    [1198] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_SelfType_t),
         .slot_size = 8,
     },
-    [1200] = {
+    [1199] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_StructType_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_StructType_t, f_symbol), offsetof(vader_struct_vader_types_StructType_t, f_args) },
         .ref_count = 2,
     },
-    [1201] = {
+    [1200] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_TraitType_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_TraitType_t, f_symbol), offsetof(vader_struct_vader_types_TraitType_t, f_args) },
         .ref_count = 2,
     },
-    [1202] = {
+    [1201] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_TupleType_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_TupleType_t, f_elements) },
         .ref_count = 1,
     },
-    [1203] = {
+    [1202] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_TypeMetaType_t),
         .slot_size = 8,
     },
-    [1204] = {
+    [1203] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_TypeParamType_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_TypeParamType_t, f_symbol) },
         .ref_count = 1,
     },
-    [1205] = {
+    [1204] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_UnionType_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_types_UnionType_t, f_variants) },
         .ref_count = 1,
     },
-    [1206] = {
+    [1205] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_types_UnresolvedType_t),
         .slot_size = 8,
     },
-    [1207] = {
+    [1206] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_ArrayVal_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_ArrayVal_t, f_raw) },
@@ -16944,84 +16901,84 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_ArrayVal_t, f_elements) },
         .ref_count = 1,
     },
-    [1208] = {
+    [1207] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_Blocks_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_Blocks_t, f_leaders), offsetof(vader_struct_vader_vm_Blocks_t, f_block_at), offsetof(vader_struct_vader_vm_Blocks_t, f_entry_depth), offsetof(vader_struct_vader_vm_Blocks_t, f_entry), offsetof(vader_struct_vader_vm_Blocks_t, f_work), offsetof(vader_struct_vader_vm_Blocks_t, f_queued) },
         .ref_count = 6,
     },
-    [1209] = {
+    [1208] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_DebugController_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_DebugController_t, f_output_sink), offsetof(vader_struct_vader_vm_DebugController_t, f_breakpoints), offsetof(vader_struct_vader_vm_DebugController_t, f_on_pause) },
         .ref_count = 3,
     },
-    [1210] = {
+    [1209] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_DebugSession_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_DebugSession_t, f_controller) },
         .ref_count = 1,
     },
-    [1211] = {
+    [1210] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_ErrorVal_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_ErrorVal_t, f_message) },
         .string_count = 1,
     },
-    [1212] = {
+    [1211] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_FnVal_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_FnVal_t, f_env) },
         .ptr_count = 1,
     },
-    [1213] = {
+    [1212] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_Frame_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_Frame_t, f_stack), offsetof(vader_struct_vader_vm_Frame_t, f_payload), offsetof(vader_struct_vader_vm_Frame_t, f_tag) },
         .ref_count = 3,
     },
-    [1214] = {
+    [1213] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_FunctionTags_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_FunctionTags_t, f_depth), offsetof(vader_struct_vader_vm_FunctionTags_t, f_stack) },
         .ref_count = 2,
     },
-    [1215] = {
+    [1214] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_FusedBranch_t),
         .slot_size = 8,
     },
-    [1216] = {
+    [1215] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_HostOk_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_HostOk_t, f_value) },
         .ptr_count = 1,
     },
-    [1217] = {
+    [1216] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_LentArray_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_LentArray_t, f_target) },
         .ref_count = 1,
     },
-    [1218] = {
+    [1217] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_LentStruct_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_LentStruct_t, f_target), offsetof(vader_struct_vader_vm_LentStruct_t, f_fields) },
         .ref_count = 2,
     },
-    [1219] = {
+    [1218] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_NullVal_t),
         .slot_size = 8,
     },
-    [1220] = {
+    [1219] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_ObjVal_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_ObjVal_t, f_bytes), offsetof(vader_struct_vader_vm_ObjVal_t, f_slots) },
         .ref_count = 2,
     },
-    [1221] = {
+    [1220] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_Ok_t), .slot_size = 8,
     },
-    [1222] = {
+    [1221] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_PauseCtx_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_PauseCtx_t, f_reason) },
@@ -17029,7 +16986,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_PauseCtx_t, f_frames) },
         .ref_count = 1,
     },
-    [1223] = {
+    [1222] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_PauseFrame_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_PauseFrame_t, f_function_name), offsetof(vader_struct_vader_vm_PauseFrame_t, f_file) },
@@ -17037,7 +16994,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_PauseFrame_t, f_locals) },
         .ref_count = 1,
     },
-    [1224] = {
+    [1223] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_PauseVar_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_PauseVar_t, f_name), offsetof(vader_struct_vader_vm_PauseVar_t, f_value) },
@@ -17045,11 +17002,11 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_PauseVar_t, f_children) },
         .ref_count = 1,
     },
-    [1225] = {
+    [1224] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_Pending_t),
         .slot_size = 8,
     },
-    [1226] = {
+    [1225] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_RegFunction_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_RegFunction_t, f_name) },
@@ -17057,7 +17014,7 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_RegFunction_t, f_ops), offsetof(vader_struct_vader_vm_RegFunction_t, f_words), offsetof(vader_struct_vader_vm_RegFunction_t, f_origin), offsetof(vader_struct_vader_vm_RegFunction_t, f_kinds), offsetof(vader_struct_vader_vm_RegFunction_t, f_consts), offsetof(vader_struct_vader_vm_RegFunction_t, f_const_tags), offsetof(vader_struct_vader_vm_RegFunction_t, f_values), offsetof(vader_struct_vader_vm_RegFunction_t, f_boxed), offsetof(vader_struct_vader_vm_RegFunction_t, f_virtuals), offsetof(vader_struct_vader_vm_RegFunction_t, f_virtual_rows), offsetof(vader_struct_vader_vm_RegFunction_t, f_texts) },
         .ref_count = 11,
     },
-    [1227] = {
+    [1226] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_RegMachine_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_RegMachine_t, f_debug), offsetof(vader_struct_vader_vm_RegMachine_t, f_null_value) },
@@ -17065,72 +17022,73 @@ const vader_type_info_t vader_type_info_table[1842] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_RegMachine_t, f_bits), offsetof(vader_struct_vader_vm_RegMachine_t, f_tags), offsetof(vader_struct_vader_vm_RegMachine_t, f_refs), offsetof(vader_struct_vader_vm_RegMachine_t, f_run), offsetof(vader_struct_vader_vm_RegMachine_t, f_scratch), offsetof(vader_struct_vader_vm_RegMachine_t, f_frame_code), offsetof(vader_struct_vader_vm_RegMachine_t, f_frame_base), offsetof(vader_struct_vader_vm_RegMachine_t, f_frame_return), offsetof(vader_struct_vader_vm_RegMachine_t, f_defers) },
         .ref_count = 9,
     },
-    [1228] = {
+    [1227] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_RegModule_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_RegModule_t, f_functions) },
         .ref_count = 1,
     },
-    [1229] = {
+    [1228] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_RunHost_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_RunHost_t, f_gc_state), offsetof(vader_struct_vader_vm_RunHost_t, f_sched_state), offsetof(vader_struct_vader_vm_RunHost_t, f_obj_handles) },
         .ref_count = 3,
     },
-    [1230] = {
+    [1229] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_Scalar_t),
         .slot_size = 8,
     },
-    [1231] = {
+    [1230] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_StackEffect_t),
         .slot_size = 8,
     },
-    [1232] = {
+    [1231] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_StructVal_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_StructVal_t, f_fields) },
         .ref_count = 1,
     },
-    [1233] = {
+    [1232] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_TagContext_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_TagContext_t, f_module), offsetof(vader_struct_vader_vm_TagContext_t, f_type_tags), offsetof(vader_struct_vader_vm_TagContext_t, f_virtual_results) },
         .ref_count = 3,
     },
-    [1234] = {
+    [1233] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_Translation_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_Translation_t, f_code), offsetof(vader_struct_vader_vm_Translation_t, f_operands), offsetof(vader_struct_vader_vm_Translation_t, f_stack), offsetof(vader_struct_vader_vm_Translation_t, f_jumps), offsetof(vader_struct_vader_vm_Translation_t, f_source_pc), offsetof(vader_struct_vader_vm_Translation_t, f_import_ids) },
         .ref_count = 6,
     },
-    [1235] = {
+    [1234] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_Trap_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_Trap_t, f_message) },
         .string_count = 1,
     },
-    [1236] = {
+    [1235] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_TypeVal_t),
         .slot_size = 8,
     },
-    [1237] = {
+    [1236] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_ValueOk_t),
         .slot_size = 8,
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_ValueOk_t, f_value) },
         .ptr_count = 1,
     },
-    [1238] = {
+    [1237] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_VerifyError_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_VerifyError_t, f_function), offsetof(vader_struct_vader_vm_VerifyError_t, f_message) },
         .string_count = 2,
     },
-    [1239] = {
+    [1238] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_vader_vm_VmState_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_vader_vm_VmState_t, f_bc), offsetof(vader_struct_vader_vm_VmState_t, f_data_pool), offsetof(vader_struct_vader_vm_VmState_t, f_fn_index_by_name), offsetof(vader_struct_vader_vm_VmState_t, f_import_ids), offsetof(vader_struct_vader_vm_VmState_t, f_reg) },
         .ref_count = 5,
     },
+    [1239] = { .slot_size = 16 },
     [1240] = { .slot_size = 16 },
     [1241] = { .slot_size = 16 },
     [1242] = { .slot_size = 16 },
@@ -17730,8 +17688,5 @@ const vader_type_info_t vader_type_info_table[1842] = {
     [1836] = { .slot_size = 16 },
     [1837] = { .slot_size = 16 },
     [1838] = { .slot_size = 16 },
-    [1839] = { .slot_size = 16 },
-    [1840] = { .slot_size = 16 },
-    [1841] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 1842;
+const size_t vader_type_info_count = 1839;

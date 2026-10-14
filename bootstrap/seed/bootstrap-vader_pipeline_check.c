@@ -81,7 +81,7 @@ void* vader_pipeline_check_check_project(void* l0, void* l1, bool l2) {
     l5 = vader_effects_widening_diagnostics(l4, l3);
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l5);
     vader_struct_vader_pipeline_check_CheckedProject_t* _a0_obj = (vader_struct_vader_pipeline_check_CheckedProject_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check_CheckedProject_t));
-    vader_obj_header_init(_a0_obj, 1096u);
+    vader_obj_header_init(_a0_obj, 1095u);
     _a0_obj->f_result = l3;
     _a0_obj->f_effects = l4;
     t0 = (void*) _a0_obj;

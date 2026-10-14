@@ -43,14 +43,14 @@ static void* vader_diagnostics_dedup_diagnostics(void* l0) {
         vader_gc_top, 0u, 6u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(15u, 0u, 0u, 278u);
+    vader_array_t* _a0_arr = vader_array_new(15u, 0u, 0u, 282u);
     l1 = (void*) _a0_arr;
-    vader_array_t* _a1_arr = vader_array_new(13u, 0u, 12u, 276u);
+    vader_array_t* _a1_arr = vader_array_new(13u, 0u, 12u, 280u);
     l2 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(16u, 0u, 7u, 281u);
+    vader_array_t* _a2_arr = vader_array_new(16u, 0u, 7u, 285u);
     l3 = (void*) _a2_arr;
     vader_struct_std_collections_MutableMap__string__bool_t* _a3_obj = (vader_struct_std_collections_MutableMap__string__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__string__bool_t));
-    vader_obj_header_init(_a3_obj, 436u);
+    vader_obj_header_init(_a3_obj, 437u);
     _a3_obj->f_ekeys = l1;
     _a3_obj->f_evals = l2;
     _a3_obj->f_index = l3;
@@ -59,10 +59,10 @@ static void* vader_diagnostics_dedup_diagnostics(void* l0) {
     _a3_obj->f_tombs = (size_t) 0;
     t0 = (void*) _a3_obj;
     vader_struct_std_collections_MutableSet__string_t* _a4_obj = (vader_struct_std_collections_MutableSet__string_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableSet__string_t));
-    vader_obj_header_init(_a4_obj, 486u);
+    vader_obj_header_init(_a4_obj, 487u);
     _a4_obj->f_inner = t0;
     l1 = (void*) _a4_obj;
-    vader_array_t* _a5_arr = vader_array_new(78u, 0u, 13u, 867u);
+    vader_array_t* _a5_arr = vader_array_new(82u, 0u, 13u, 868u);
     l2 = (void*) _a5_arr;
     l3 = l0;
     l4 = ((vader_array_t*) l3)->length;
@@ -113,21 +113,21 @@ static vader_string_t vader_diagnostics_diag_key(void* l0) {
     l4 = (size_t) 0;
     l7 = ((int64_t) (int32_t) ((int32_t) (uint8_t) ((vader_struct_vader_diagnostics_Diagnostic_t*) l0)->f_severity));
     l4 = std_core_write_int(l6, l4, l7);
-    l4 = std_core_write_string_at(l6, l4, 2769u);
+    l4 = std_core_write_string_at(l6, l4, 2758u);
     l4 = std_core_write_string_at(l6, l4, l1);
-    l4 = std_core_write_string_at(l6, l4, 2769u);
+    l4 = std_core_write_string_at(l6, l4, 2758u);
     l4 = std_core_write_string_at(l6, l4, l2);
-    l4 = std_core_write_string_at(l6, l4, 2769u);
+    l4 = std_core_write_string_at(l6, l4, 2758u);
     t1 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l0)->f_primary)->f_start)->f_offset;
     t0 = ((int64_t) (size_t) t1);
     l8 = (uint64_t) (int64_t) t0;
     l4 = std_core_write_unsigned(l6, l4, l8);
-    l4 = std_core_write_string_at(l6, l4, 2769u);
+    l4 = std_core_write_string_at(l6, l4, 2758u);
     t1 = ((vader_struct_toolchain_span_Position_t*) ((vader_struct_toolchain_span_Span_t*) ((vader_struct_vader_diagnostics_Diagnostic_t*) l0)->f_primary)->f_end)->f_offset;
     t0 = ((int64_t) (size_t) t1);
     l8 = (uint64_t) (int64_t) t0;
     l4 = std_core_write_unsigned(l6, l4, l8);
-    l4 = std_core_write_string_at(l6, l4, 2769u);
+    l4 = std_core_write_string_at(l6, l4, 2758u);
     l4 = std_core_write_string_at(l6, l4, l3);
     t2 = std_core_finish_buffer(l6, l4);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -201,16 +201,16 @@ static void vader_diagnostics_format_diagnostic(void* l0, void* l1, bool l2, vad
     vader_gc_top = &gc_frame;
     l5 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_severity;
     if (l5 == INT32_C(0)) {
-        l4 = 1650u;
+        l4 = 1649u;
     } else if (l5 == INT32_C(1)) {
-        l4 = 2731u;
+        l4 = 2720u;
     } else if (l5 == INT32_C(2)) {
-        l4 = 1910u;
+        l4 = 1909u;
     } else {
         if (!(l5 == INT32_C(3))) {
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
         }
-        l4 = 1825u;
+        l4 = 1824u;
     }
     if (l2) {
         l5 = ((vader_struct_vader_diagnostics_Diagnostic_t*) l1)->f_severity;
@@ -344,7 +344,7 @@ static void* vader_diagnostics_new_diagnostic(uint8_t l0, void* l1, void* l2, va
     };
     vader_gc_top = &gc_frame;
     vader_struct_vader_diagnostics_Diagnostic_t* _a0_obj = (vader_struct_vader_diagnostics_Diagnostic_t*) vader_gc_alloc(sizeof(vader_struct_vader_diagnostics_Diagnostic_t));
-    vader_obj_header_init(_a0_obj, 867u);
+    vader_obj_header_init(_a0_obj, 868u);
     _a0_obj->f_severity = l0;
     _a0_obj->f_code = l1;
     _a0_obj->f_detail = l3;
@@ -376,10 +376,14 @@ void* vader_diagnostics_parser_error(uint8_t l0, void* l1, vader_string_t l2) {
 static vader_string_t vader_diagnostics_relative_to(vader_string_t l0, vader_string_t l1) {
     vader_string_t l2 = 0;
     size_t l3, l4;
+    void* l5 = NULL;
     bool t0;
     vader_string_t t1 = 0;
+    void** gc_raw_roots[1] = { &l5 };
     vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 4u, gc_atom_roots };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
+    };
     vader_gc_top = &gc_frame;
     t0 = std_string_is_empty(l1);
     if (t0) {
@@ -397,7 +401,15 @@ static vader_string_t vader_diagnostics_relative_to(vader_string_t l0, vader_str
     }
     l3 = std_core_len(l2);
     l4 = std_core_len(l0);
-    t1 = vader_string_slice_codepoints(l0, l3, l4);
+    vader_struct_std_core_Range__usize_t* _a0_obj = (vader_struct_std_core_Range__usize_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Range__usize_t));
+    vader_obj_header_init(_a0_obj, 493u);
+    _a0_obj->f_start = l3;
+    _a0_obj->f_end = l4;
+    _a0_obj->f_inclusive = false;
+    _a0_obj->f_done = false;
+    _a0_obj->f_cursor = l3;
+    l5 = (void*) _a0_obj;
+    t1 = std_core_string_Index_at_1(l0, l5);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -433,10 +445,10 @@ static vader_string_t vader_diagnostics_render_diagnostics(void* l0, bool l1, bo
     } else {
         l5 = ((vader_array_t*) l3)->length;
     }
-    vader_array_t* _a0_arr = vader_array_new(15u, 0u, 0u, 278u);
+    vader_array_t* _a0_arr = vader_array_new(15u, 0u, 0u, 282u);
     t1 = (void*) _a0_arr;
     vader_struct_std_string_builder_StringBuilder_t* _a1_obj = (vader_struct_std_string_builder_StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string_builder_StringBuilder_t));
-    vader_obj_header_init(_a1_obj, 496u);
+    vader_obj_header_init(_a1_obj, 498u);
     _a1_obj->f_parts = t1;
     l4 = (void*) _a1_obj;
     std_string_builder_append(l4, 5u);
@@ -463,7 +475,7 @@ static vader_string_t vader_diagnostics_render_diagnostics(void* l0, bool l1, bo
         std_string_builder_append_char(l4, 10u);
         l7 = std_core_new_byte_buffer((size_t) 47);
         l8 = (size_t) 0;
-        l8 = std_core_write_string_at(l7, l8, 2778u);
+        l8 = std_core_write_string_at(l7, l8, 2767u);
         t0 = ((vader_array_t*) l3)->length;
         t2 = vader_chk_sub(usize, t0, l5);
         t3 = t2;
