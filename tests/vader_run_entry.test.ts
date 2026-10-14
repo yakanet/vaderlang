@@ -5,6 +5,9 @@
 // file was named. The regression: `vader run dir/b.vader` silently ran
 // `dir/a.vader`'s `main`. See `vader/cli/main.vader::entry_index_for_file`.
 //
+// A module that declares no `main` has nothing to start at: `run` and `build`
+// refuse it, naming the file.
+//
 // Each `main` returns a DISTINCT exit code so the assertion needs no stdlib
 // (no `std/io`/`std/core` resolution from a tmp dir outside the project
 // manifest) — the process exit code is the entry fn's return value.
@@ -36,6 +39,25 @@ test("run picks the main of the named file, not the folder's first", async () =>
     // Naming the first file still runs its own main (exit 7).
     const alpha = await runCli(["run", join(dir, "alpha.vader")], undefined, MEDIUM_BUILD);
     expect(alpha.exit).toBe(7);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}, LONG_BUILD);
+
+const NO_MAIN = `module "scratch"\nshout :: fn() -> i32 {\n    return 3\n}\n`;
+
+test("run and build refuse a module that declares no main", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "vader-no-main-"));
+  try {
+    const file = join(dir, "lib.vader");
+    writeFileSync(file, NO_MAIN);
+    const run = await runCli(["run", file], undefined, MEDIUM_BUILD);
+    expect(run.exit).toBe(1);
+    expect(run.stderr).toContain("declares no `main`");
+    const build = await runCli(["build", "--emit=c", "--out=-", file], undefined, MEDIUM_BUILD);
+    expect(build.exit).toBe(1);
+    expect(build.stdout).toBe("");
+    expect(build.stderr).toContain("declares no `main`");
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

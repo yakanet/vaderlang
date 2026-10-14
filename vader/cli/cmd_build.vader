@@ -189,7 +189,7 @@ build_bytecode_text :: fn(
 ) -> i32 {
     b :: prepare_cfg_bytecode_with(file, false, include_path_flags, target, verify)
     // Same gate as every other emit path: errors abort, warnings still print.
-    if !flush_build_diags(b.pre_diags, b.lower_diags) {
+    if !ready_to_emit(b, "build", file) {
         return 2
     }
     out :: if out_flag != "" {
@@ -232,10 +232,24 @@ prepared_module :: fn(file: Path, release: bool, include_path_flags: string[], t
     b :: prepare_cfg_bytecode_with(
         file, !release, include_path_flags, target, verify, proves_bounds(release),
     )
-    if !flush_build_diags(b.pre_diags, b.lower_diags) {
+    if !ready_to_emit(b, "build", file) {
         return null
     }
     return b
+}
+
+// Whether a prepared program may be emitted or run: no error among its
+// diagnostics, which print either way, and an entry point. A module without
+// `main` has nothing to start at.
+ready_to_emit :: fn(b: CfgBytecode, command: string, file: Path) -> bool {
+    if !flush_build_diags(b.pre_diags, b.lower_diags) {
+        return false
+    }
+    if b.entry != "" {
+        return true
+    }
+    eprintln("vader ${command}: `${file}` declares no `main`, the function a program starts at")
+    return false
 }
 
 // Render the merged pipeline diagnostics to stderr and report whether the

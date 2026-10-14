@@ -1,4 +1,4 @@
 # stderr
-vader vm: no entry function (index=0)
+vader vm: no entry function (index=-1)
 # exit
 1

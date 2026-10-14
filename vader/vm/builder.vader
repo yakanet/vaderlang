@@ -242,7 +242,7 @@ export set_main :: fn(self: ModuleBuilder, function_index: i32) -> void {
 export finish :: fn(self: ModuleBuilder) -> bc.BytecodeModule {
     main_index: i32 = self.main_index[0]
     if main_index < 0 {
-        main_index = builder_main_by_suffix(self.functions)
+        main_index = find_main_by_suffix_bc(self.functions)
     }
     if main_index >= 0 && usize(main_index) < self.functions.len() {
         self.functions[usize(main_index)].is_main = true
@@ -260,15 +260,6 @@ export finish :: fn(self: ModuleBuilder) -> bc.BytecodeModule {
         .impl_table = self.impl_table,
         .vtables    = no_vtables,
     }
-}
-
-/// First `$main`-suffixed fn index, or 0 when none — the builder's
-/// last-resort entry pick (mirrors `find_main_by_suffix_bc`).
-builder_main_by_suffix :: fn(functions: bc.BcFunction[]) -> i32 {
-    for i in 0..<functions.len() {
-        if functions[i].name.ends_with(r"$main") { return i32(i) }
-    }
-    return 0
 }
 
 // --------------------------------------------------------------- function

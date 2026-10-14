@@ -65,7 +65,7 @@ run_source :: fn(file: Path, host_argv: string[]) -> i32 {
     // function" trap that buries the real diagnostic ; and a lowering or CFG error
     // puts an `unreachable` where it could not lower, which would cut the function
     // short with nothing said.
-    if !flush_build_diags(prepared.pre_diags, prepared.lower_diags) {
+    if !ready_to_emit(prepared, "run", file) {
         return 1
     }
     // Feed the in-hand `BytecodeModule` straight to the VM — no `.virt` text

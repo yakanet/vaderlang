@@ -1118,13 +1118,13 @@ find_main_by_suffix_bc :: fn(functions: bc.BcFunction[]) -> i32 {
 // the per-element bit-pattern decoder they share.
 
 // The entry is the `is_main` fn (set by `parse_virt_bc` from `export main N` or
-// the `$main`-suffix fallback) ; default to 0 — `parse_virt`'s historical
-// last-resort when no entry is identified.
+// the `$main`-suffix fallback) ; -1 when there is none, which `exec_entry` refuses
+// rather than run an arbitrary function.
 reduce_main_index :: fn(funcs: bc.BcFunction[]) -> i32 {
     for i in 0..<funcs.len() {
         if funcs[i].is_main { return i32(i) }
     }
-    return 0
+    return -1
 }
 
 // One header per pool entry, stamped with the type_id its `data.const` sites read

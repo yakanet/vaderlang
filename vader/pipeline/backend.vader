@@ -80,6 +80,9 @@ export dump_scope :: fn(module_filter: string[], loaded: LoadedProject) -> strin
 /// @return       `<module>$main`, or "" when the entry has no `main`.
 export entry_main_name :: fn(typed: TypedProject, entry: string) -> string {
     tp :: typed.modules[entry] ?? return ""
+    if "main" !in tp.resolved.fn_overloads {
+        return ""
+    }
     return "${mangle_module_id(tp.resolved.display_path)}\$main"
 }
 
