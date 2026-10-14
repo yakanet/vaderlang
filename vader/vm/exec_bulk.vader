@@ -9,7 +9,6 @@
 
 module "vader/vm"
 
-import "std/string"
 bc :: import "vader/bytecode"
 
 /// Clamp a signed operand to a non-negative index. A negative count or offset is
@@ -148,29 +147,11 @@ exec_string_slice_codepoints :: fn(frame: Frame) -> Trap | null {
     if s_box  is Trap { return s_box  }
     if lo_box is Trap { return lo_box }
     if hi_box is Trap { return hi_box }
-    s :: string(s_box)
-    // Walk UTF-8 to compute byte offsets for codepoint
-    // indices `lo` and `hi`, clamping to the codepoint
-    // count so out-of-bounds ranges produce a clamped
-    // substring rather than trapping.
-    lo_cp :: clamp_nonneg(i32(lo_box))
-    hi_cp :: clamp_nonneg(i32(hi_box))
-    n_bytes :: s.byte_len()
-    cursor: usize = 0
-    seen:   usize = 0
-    byte_lo: usize = n_bytes
-    byte_hi: usize = n_bytes
-    for cursor < n_bytes {
-        if seen == lo_cp { byte_lo = cursor }
-        if seen == hi_cp { byte_hi = cursor }
-        [_c, width] :: s.codepoint_at_byte(cursor)
-        cursor = cursor + width
-        seen   = seen + 1
-    }
-    if seen <= lo_cp { byte_lo = n_bytes }
-    if seen <= hi_cp { byte_hi = n_bytes }
-    if byte_hi < byte_lo { byte_hi = byte_lo }
-    push_val(frame, frame.sp - 3, StringVal(s.byte_slice(byte_lo, byte_hi)))
+    // The VM's own native slice, so the VM walks the string as native code does:
+    // out-of-range bounds clamp to the codepoint count instead of trapping.
+    lo :: clamp_nonneg(i32(lo_box))
+    hi :: clamp_nonneg(i32(hi_box))
+    push_val(frame, frame.sp - 3, StringVal(string(s_box)[lo..<hi]))
     frame.sp = frame.sp - 2
     frame.pc = frame.pc + 1
     return null

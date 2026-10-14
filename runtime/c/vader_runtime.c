@@ -3378,16 +3378,15 @@ void vader_array_clear(vader_array_t* a) {
 
 /* ----------------------------------------------------------------- std/string */
 
-/* Walk the UTF-8 buffer counting codepoints ; return the byte offset of
- * the `cp_index`-th codepoint, clamped to the atom's length. Invalid
+/* Walk the UTF-8 buffer counting codepoints from byte `i` ; return the byte
+ * offset `count` codepoints further, clamped to the atom's length. Invalid
  * continuation bytes count as 1-byte codepoints (mirrors
- * `vader_string_char_at`'s truncated-UTF-8 handling). O(n) in `cp_index`. */
-static size_t vader_string_codepoint_byte_offset(vader_string_t s, size_t cp_index) {
+ * `vader_string_char_at`'s truncated-UTF-8 handling). O(n) in `count`. */
+static size_t vader_string_codepoint_advance(vader_string_t s, size_t i, size_t count) {
     const char* data = vader_atom_data(s);
     size_t len = vader_atom_len(s);
     size_t cp = 0;
-    size_t i  = 0;
-    while (i < len && cp < cp_index) {
+    while (i < len && cp < count) {
         uint8_t b = (uint8_t) data[i];
         size_t step;
         if (b < 0x80u)       step = 1;
@@ -3402,14 +3401,18 @@ static size_t vader_string_codepoint_byte_offset(vader_string_t s, size_t cp_ind
     return i;
 }
 
+static size_t vader_string_codepoint_byte_offset(vader_string_t s, size_t cp_index) {
+    return vader_string_codepoint_advance(s, 0, cp_index);
+}
+
 /* `string[lo..<hi]` semantic : `lo` and `hi` are codepoint indices.
  * Returns the canonical atom for the byte range (intern-deduped or
  * fresh slice atom borrowing into the parent buffer). */
 vader_string_t vader_string_slice_codepoints(vader_string_t s, size_t cp_lo, size_t cp_hi) {
     if (cp_hi < cp_lo) cp_hi = cp_lo;
     size_t byte_lo = vader_string_codepoint_byte_offset(s, cp_lo);
-    size_t byte_hi = vader_string_codepoint_byte_offset(s, cp_hi);
-    if (byte_hi <= byte_lo) return VADER_ATOM_EMPTY;
+    size_t byte_hi = vader_string_codepoint_advance(s, byte_lo, cp_hi - cp_lo);
+    if (byte_hi == byte_lo) return VADER_ATOM_EMPTY;
     return vader_atom_slice(s, byte_lo, byte_hi - byte_lo);
 }
 

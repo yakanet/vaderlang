@@ -155,19 +155,15 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         i :: read_i32   (stack[arg_base + 1], at_pc, "string[] index")
         if s is Trap { return s }
         if i is Trap { return i }
-        // Walk UTF-8 until the `i`-th codepoint, then decode it. An out-of-range
-        // (or negative, wrapping huge) index traps, with the message the native
-        // runtime raises (`vader_string_codepoint_at`, runtime/c/vader_runtime.c).
-        text :: string(s)
-        target :: usize(i)
-        cursor: usize = 0
-        seen:   usize = 0
-        n :: text.byte_len()
-        for cursor < n {
-            [cp, width] :: text.codepoint_at_byte(cursor)
-            if seen == target { return HostOk { .value = CharVal(cp) } }
-            cursor = cursor + width
-            seen   = seen + 1
+        // The VM's own native `s[i]` would trap the whole process past the end, so
+        // the codepoint is read off the native one-codepoint slice, empty exactly
+        // where `s[i]` traps: the VM then walks the string as native code does.
+        if i >= 0 {
+            at :: usize(i)
+            one :: string(s)[at..<at + 1]
+            if one.byte_len() > 0 {
+                return HostOk { .value = CharVal(one[0]) }
+            }
         }
         return Trap { .message = "string codepoint index out of bounds" }
     }
