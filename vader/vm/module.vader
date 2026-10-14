@@ -101,10 +101,6 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
     if mistyped != null {
         return mistyped
     }
-    reg :: translate_module(bc_mod, facts, debug)
-    if reg is VerifyError {
-        return reg
-    }
     import_ids: bc.IntrinsicId[]: [] * bc_mod.imports.len()
     for imp in bc_mod.imports {
         if imp.is_extern {
@@ -112,6 +108,10 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
         } else {
             import_ids.push(bc.intrinsic_id_for(imp.mangled_name))
         }
+    }
+    reg :: translate_module(bc_mod, import_ids, facts, debug)
+    if reg is VerifyError {
+        return reg
     }
     by_name :: MutableMap<string, i32> {}
     for i in 0..<bc_mod.functions.len() {

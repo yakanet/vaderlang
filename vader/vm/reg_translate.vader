@@ -41,22 +41,27 @@ Translation :: struct {
     jumps: i64[]!
     /// `BcFunction.source_pc` of the function translated.
     source_pc: i32[]
+    /// `VmState.import_ids`.
+    import_ids: bc.IntrinsicId[]
 }
 
 /// Translate every function of `module`.
 ///
-/// @param module  a module `prepare` accepted.
-/// @param facts   its inferred tags, index-aligned with `module.functions`.
-/// @param debug   whether a debugger drives the run: each source position gets a
-///                `Line` op, where the debugger may stop.
-/// @return        one `RegFunction` per function.
-/// @error         a `VerifyError` for a function the register engine cannot run:
-///                an op with no register form, or an operand past its encoding
-///                (`pack_operands`).
-translate_module :: fn(module: bc.BytecodeModule, facts: FunctionTags[], debug: bool) -> RegModule | VerifyError {
+/// @param module      a module `prepare` accepted.
+/// @param import_ids  `VmState.import_ids`, index-aligned with `module.imports`.
+/// @param facts       its inferred tags, index-aligned with `module.functions`.
+/// @param debug       whether a debugger drives the run: each source position gets
+///                    a `Line` op, where the debugger may stop.
+/// @return            one `RegFunction` per function.
+/// @error             a `VerifyError` for a function the register engine cannot
+///                    run: an op with no register form, or an operand past its
+///                    encoding (`pack_operands`).
+translate_module :: fn(
+    module: bc.BytecodeModule, import_ids: bc.IntrinsicId[], facts: FunctionTags[], debug: bool,
+) -> RegModule | VerifyError {
     functions: RegFunction[]: [] * module.functions.len()
     for i in 0..<module.functions.len() {
-        code :: translate_function(module, i32(i), facts[i], debug)
+        code :: translate_function(module, import_ids, i32(i), facts[i], debug)
         if code is VerifyError {
             return code
         }
@@ -67,7 +72,11 @@ translate_module :: fn(module: bc.BytecodeModule, facts: FunctionTags[], debug: 
 
 // The function translated.
 translate_function :: fn(
-    module: bc.BytecodeModule, index: i32, ft: FunctionTags, debug: bool,
+    module: bc.BytecodeModule,
+    import_ids: bc.IntrinsicId[],
+    index: i32,
+    ft: FunctionTags,
+    debug: bool,
 ) -> RegFunction | VerifyError {
     f :: module.functions[usize(index)]
     n :: f.body.len()
@@ -103,6 +112,7 @@ translate_function :: fn(
         .retarget = -1,
         .source_pc = f.source_pc,
         .jumps    = [],
+        .import_ids = import_ids,
     }
     leader :: bc.mark_jump_targets(f.jump_table, n)
     start: i64[]: [0] * (n + 1)
@@ -284,6 +294,9 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             emit(t, pc, .Return, operand(t, 1), 0, 0)
         }
         is bc.CallImport -> {
+            if string_byte_op(t, pc, t.import_ids[usize(op.index)]) {
+                return true
+            }
             signature :: module.imports[usize(op.index)].signature
             flush(t, pc)
             base :: pop_to(t, signature.params.len())
@@ -377,6 +390,30 @@ boxed :: fn(t: Translation, pc: usize, op: bc.Op, pops: usize, pushes: usize) ->
     for i in 0..<pushes {
         push_register(t, base + i32(i))
     }
+}
+
+// `byte_len` and `byte_at`, what `s.bytes().len()` and a non-escaping `s.bytes()[i]`
+// lower to, read a string in place: an op of their own spares them the generic
+// import call. Answers whether the import `id` was one of them.
+string_byte_op :: fn(t: Translation, pc: usize, id: bc.IntrinsicId) -> bool {
+    if id == .ByteLen {
+        s :: operand(t, 1)
+        dst :: pop_to(t, 1)
+        emit(t, pc, .StringByteLen, dst, s, 0)
+        push_register(t, dst)
+        t.retarget = i64(t.code.ops.len() - 1)
+        return true
+    }
+    if id == .ByteAt {
+        index :: operand(t, 1)
+        s :: operand(t, 2)
+        dst :: pop_to(t, 2)
+        emit(t, pc, .StringByteAt, dst, s, index)
+        push_register(t, dst)
+        t.retarget = i64(t.code.ops.len() - 1)
+        return true
+    }
+    return false
 }
 
 // Push the string `op` names, built once.

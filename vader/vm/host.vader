@@ -117,26 +117,9 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     }
     match id {
     // ---- std/string family ----------------------------------------------
-    .ByteLen -> {
-        // Internal fold target — `s.bytes().len()` lowers to a std_core$byte_len
-        // import. String-only (a `u8[]` uses `.len()` directly).
-        s :: read_string(stack[arg_base], at_pc, "byte_len")
-        if s is Trap { return s }
-        return HostOk { .value = I32Val(i32(string(s).bytes().len())) }
-    }
-    .ByteAt -> {
-        // Header-free byte read — the fold target for a non-escaping `s.bytes()[i]`.
-        // Bounds-checked to match the native `vader_string_byte_at` / `s.bytes()[i]`.
-        s :: read_string(stack[arg_base    ], at_pc, "byte_at receiver")
-        i :: read_i32   (stack[arg_base + 1], at_pc, "byte_at index")
-        if s is Trap { return s }
-        if i is Trap { return i }
-        bs  :: string(s).bytes()
-        idx :: usize(i)
-        if idx >= bs.len() {
-            return Trap { .message = "byte index out of bounds" }
-        }
-        return HostOk { .value = I32Val(i32(bs[idx])) }
+    .ByteLen | .ByteAt -> {
+        // Run as the `StringByteLen` / `StringByteAt` register ops: translation
+        // leaves them no `call.import`, so one reaching here is unbound.
     }
     .BytesToString -> {
         // bytes→string : the native interns the bytes verbatim (no UTF-8

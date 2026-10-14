@@ -497,6 +497,20 @@ reg_call :: fn(
                     return failed
                 }
             }
+            .StringByteLen -> {
+                at :: base + usize(operand_b(w))
+                s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "byte_len", "string")
+                set_i32(bits, tags, base, operand_a(w), i32(s.byte_len()))
+            }
+            .StringByteAt -> {
+                at :: base + usize(operand_b(w))
+                s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "byte_at", "string")
+                index :: i32_of(bits, base, operand_c(w))
+                if index < 0 || usize(index) >= s.byte_len() {
+                    return Trap { .message = "byte index out of bounds" }
+                }
+                set_i32(bits, tags, base, operand_a(w), i32(s.byte_at(usize(index))))
+            }
             .Trap -> { return Trap { .message = f.texts[usize(operand_a(w))] } }
             .DeferPush -> {
                 closure :: register_value(m, base + usize(operand_a(w)))
@@ -560,12 +574,12 @@ reg_call :: fn(
             }
             .Length -> {
                 at :: base + usize(operand_b(w))
-                array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, "array.len")
+                array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, "array.len", "array")
                 set_i32(bits, tags, base, operand_a(w), i32(array.length))
             }
             .Append -> {
                 at :: base + usize(operand_a(w))
-                array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, "array.push")
+                array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, "array.push", "array")
                 // Tested here as well: `detach_array_view` sets up its GC frame before
                 // its own test, and almost no array pushed to is a view.
                 if array.raw != null || is_array_view(array) {
@@ -732,10 +746,24 @@ array_at :: fn(m: RegMachine, at: usize) -> ArrayVal! | null {
     return null
 }
 
-// The trap for an array op whose receiver register `at` holds no array.
-receiver_trap :: fn(m: RegMachine, at: usize, f: RegFunction, pc: usize, label: string) -> Trap {
+// The string in register `at`, or `null`.
+string_at :: fn(m: RegMachine, at: usize) -> string | null {
+    if m.tags[at] == .Ref {
+        v :: m.refs[at]
+        if v is StringVal {
+            return string(v)
+        }
+    }
+    return null
+}
+
+// The trap for an op whose receiver register `at` holds no `expected` value.
+receiver_trap :: fn(
+    m: RegMachine, at: usize, f: RegFunction, pc: usize, label: string, expected: string,
+) -> Trap {
     got :: describe_value_tag(register_value(m, at))
-    return Trap { .message = "${label} receiver at pc=${f.origin[pc]}: expected array, got ${got}" }
+    where :: "${label} receiver at pc=${f.origin[pc]}"
+    return Trap { .message = "${where}: expected ${expected}, got ${got}" }
 }
 
 // The pc of a trap message is read only once the op traps: `f.origin[pc]`.
@@ -801,7 +829,7 @@ element_trap :: fn(
 ) -> Trap {
     label :: element_label(op)
     at :: base + usize(array_reg)
-    array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, label)
+    array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, label, "array")
     index :: i32(m.bits[base + usize(index_reg)])
     origin :: f.origin[pc]
     return Trap { .message = "${label} index ${index} out of bounds (len=${array.length}) at pc=${origin}" }
@@ -1225,6 +1253,7 @@ set_bool :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: boo
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/string"
 import "std/testing"
 
 // A module whose `main` runs `ops`, its local 0 an `i32[]` holding `[1, 2, 3]`.
@@ -1237,7 +1266,12 @@ array_module :: fn(ops: string[]) -> bc.BytecodeModule | null {
         body = "${body}  ${op}\n"
     }
     header :: "module demo\ntype 0 primitive i32\ntype 1 array 0\nfn 0 main () -> i32\n"
-    parsed :: parse_virt_bc("${header}${body}end\nexport main 0\n")
+    return parse_test_module("${header}${body}end\nexport main 0\n")
+}
+
+// `text` parsed as a module, the test failing when it does not parse.
+parse_test_module :: fn(text: string) -> bc.BytecodeModule | null {
+    parsed :: parse_virt_bc(text)
     if parsed is VirtParseError {
         assert(false, "the test module parses: ${parsed.reason}")
         return null
@@ -1288,4 +1322,46 @@ test_array_element_write_out_of_bounds_traps :: fn() -> void {
     ]) ?? return
     expected :: "store_slot index 5 out of bounds (len=3)"
     assert(expected in trap_message(module), "a[5] = 9 traps")
+}
+
+// A module whose `main` returns the byte length of "héllo" plus its byte at `index`.
+string_byte_module :: fn(index: i32) -> bc.BytecodeModule | null {
+    lines :: [
+        "module demo",
+        "type 0 primitive i32",
+        "type 1 primitive u8",
+        "type 2 primitive usize",
+        "type 3 primitive string",
+        "string 0 \"héllo\"",
+        r"import 0 byte_len std_core$byte_len result_type=2 param_types=3 param_mutable=0"
+            + " param_by_address= (string) -> usize",
+        r"import 1 byte_at std_core$byte_at result_type=1 param_types=3,2 param_mutable=0,0"
+            + " param_by_address= (string,usize) -> u8",
+        "fn 0 main () -> i32",
+        "  string.const 0",
+        "  call.import 0",
+        "  usize.to_i32",
+        "  string.const 0",
+        "  i64.const ${index}",
+        "  call.import 1",
+        "  u8.to_i32",
+        "  i32.checked_add",
+        "  return",
+        "end",
+        "export main 0",
+    ]
+    return parse_test_module("${lines.join("\n")}\n")
+}
+
+@test
+test_string_bytes_read_in_place :: fn() -> void {
+    // "héllo" = 68 C3 A9 6C 6C 6F: six bytes, 0xA9 at 2.
+    module :: string_byte_module(2) ?? return
+    assert_eq(exec_value(module), 6 + 0xA9)
+}
+
+@test
+test_string_byte_out_of_bounds_traps :: fn() -> void {
+    module :: string_byte_module(6) ?? return
+    assert_eq(trap_message(module), "byte index out of bounds")
 }
