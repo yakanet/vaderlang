@@ -712,6 +712,20 @@ export default_if_free :: fn(t: Type) -> Type {
     }
 }
 
+/// `t` with each free literal defaulted, a union's members included: what a binding
+/// no annotation pins holds (`if a { 300 } else { null }` is a `null | i32`), as its
+/// literals lower at their default.
+///
+/// @param t  the type the binding's value was given.
+export default_free_members :: fn(t: Type) -> Type {
+    variants :: union_variants(t) ?? return default_if_free(t)
+    out: Type[]: []
+    for v in variants {
+        out.push(default_if_free(v))
+    }
+    return union_of(out)
+}
+
 /// Dispatch key for trait-impl side-tables (`struct_implemented_traits`,
 /// `struct_trait_args`). Defaults Free* first so a `7` literal keys the
 /// same as `i32` for impls like `i32 implements Doubler`.

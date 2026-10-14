@@ -3,8 +3,9 @@
 // pins must fit the `i32` it defaults to wherever it sits, a range pattern's
 // bounds the scrutinee's type, the bounds of `x in lo..=hi` the type of `x`, a free
 // literal a `match` arm or an `if` branch gives the type its siblings settle the
-// result to (a shift's amount included), and a free argument or UFCS receiver the
-// parameter type its call settles it at.
+// result to (a shift's amount included, one held in a union or a `??`, and one beside
+// a union sibling), and a free argument or UFCS receiver the parameter type its call
+// settles it at.
 module "snippet"
 
 export LEAST: i8: -128
@@ -48,6 +49,21 @@ export branch :: fn(flag: bool) -> u8 {
 export shifted :: fn(flag: bool) -> u8 {
     k :: if flag { u8(7) } else { 1 << 300 }
     return k
+}
+
+export optional :: fn(a: bool, b: bool) -> bool {
+    k :: if a { u8(7) } else if b { 300 } else { null }
+    return k == null
+}
+
+export beside_optional :: fn(a: bool, m: u8 | null) -> bool {
+    k :: if a { m } else { 300 }
+    return k == null
+}
+
+export coalesced :: fn(c: bool, b: bool) -> bool {
+    k :: if c { u8(1) } else { (if b { 300 } else { null }) ?? 5 }
+    return k == 1
 }
 
 pick :: fn<T>(a: T, b: T) -> T = a

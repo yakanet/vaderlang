@@ -439,7 +439,7 @@ export check_fn_body :: fn(
                 typecheck_error(.RecursiveExprBodiedFn, fn_decl.name_span, "`${fn_decl.name}`"),
             )
         } else {
-            defaulted :: default_if_free(got)
+            defaulted :: default_free_members(got)
             patch_fn_return_type(fn_decl, defaulted, typed)
         }
     } else {
@@ -675,7 +675,7 @@ check_let :: fn(
     record_local_producer(s, typed)
     declared: Type = TY_UNRESOLVED
     if ann == null {
-        declared = default_if_free(got)
+        declared = default_free_members(got)
     } else {
         declared = ann
         if !flows_into(got, ann, s.value, typed) {

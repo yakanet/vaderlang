@@ -4,8 +4,11 @@
 // result would be a union of the two, compared and computed with as one. The
 // literal itself is built at that type, through nested blocks, `if`s, `else if`s,
 // `match`es and arithmetic, so `250 + 5` stays a `u8`, `9_000_000_000` is not an
-// `i32` and `1 << 40` is shifted as a `u64`. An arm that reads its narrowed
-// scrutinee is not typed a second time.
+// `i32` and `1 << 40` is shifted as a `u64`. A branch whose type is a union holding
+// a free literal (`{integer} | null`) settles that member at its sibling's type, so
+// the result is a `u8 | null` whose `u8` tests as one; a sibling that is a union
+// (`u8 | null`) offers its `u8`, and a `??` settles both its sides. An arm that
+// reads its narrowed scrutinee is not typed a second time.
 
 module "snippet"
 
@@ -49,6 +52,30 @@ arithmetic :: fn(s: Probe | Wide) -> u64 {
     return k
 }
 
+optional :: fn(a: bool, b: bool) -> string {
+    k :: if a { u8(1) } else if b { 200 } else { null }
+    if k is u8 {
+        return "u8 ${k}"
+    }
+    if k == null {
+        return "null"
+    }
+    return "other"
+}
+
+beside_optional :: fn(a: bool, m: u8 | null) -> string {
+    k :: if a { m } else { 200 }
+    if k is u8 {
+        return "u8 ${k}"
+    }
+    return "other"
+}
+
+coalesced :: fn(c: bool, b: bool) -> u8 {
+    k :: if c { u8(1) } else { (if b { 200 } else { null }) ?? 5 }
+    return k
+}
+
 main :: fn() -> i32 {
     out: u8[]: [65]
     last :: if out.len() > 0 { out[out.len() - 1] } else { '(' }
@@ -73,5 +100,9 @@ main :: fn() -> i32 {
     println("if, i64 or int: ${wide_if(false)}")
     probes :: "${arithmetic(Probe { .flag = true })} ${arithmetic(Probe { .flag = false })}"
     println("arithmetic: ${probes} ${arithmetic(Wide { .n = 3 })}")
+    println("optional: ${optional(true, false)} ${optional(false, true)} ${optional(false, false)}")
+    println("beside optional: ${beside_optional(false, null)} ${beside_optional(true, u8(7))}")
+    both :: "${coalesced(false, true)} ${coalesced(false, false)}"
+    println("coalesced: ${both} ${coalesced(true, true)}")
     return 0
 }

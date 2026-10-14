@@ -36,9 +36,10 @@ export report_mixed_mutability :: fn(joined: Type, span: Span, diags: Diagnostic
 /// one — mirroring the binary-operator coercion (`binary.vader::numeric_result`).
 /// Without this, an unannotated `::` binding (`expected = null`) escapes as a
 /// union with no arithmetic defined on it (T3017). Unrelated branches fall back
-/// to the plain union. The value of a coerced branch takes its new type too, so
-/// that its literals are built at it and must fit it (T3066):
-/// `k :: if flag { u8(7) } else { 300 }` is refused.
+/// to the plain union. A union branch settles its free member the same way
+/// (`if b { 300 } else { null }` beside a `u8` is a `u8 | null`). The value of a
+/// coerced branch takes its new type too, so that its literals are built at it and
+/// must fit it (T3066): `k :: if flag { u8(7) } else { 300 }` is refused.
 ///
 /// @param values  the expression each branch gives, in source order.
 /// @param types   the branches' types, in the same order.
@@ -50,28 +51,59 @@ join_branch_types :: fn(
 ) -> Type {
     settled: Type[]: []
     for i in 0..<types.len() {
-        if !is_free_numeric(types[i]) {
-            settled.push(types[i])
-            continue
-        }
-        t :: repin_free(types[i], types)
-        if !is_free_numeric(t) {
-            settle_free_value(values[i], t, typed, diags)
-        }
-        settled.push(t)
+        settled.push(settle_branch(values[i], types[i], types, typed, diags))
     }
     return union_of(settled)
 }
 
-// `t` as the first of `siblings` it is a free literal of, `t` itself otherwise —
-// a concrete `t` among them.
-repin_free :: fn(t: Type, siblings: Type[]) -> Type {
+// The type a branch giving `value` of type `t` takes among `siblings`, its value
+// settled with it: a free literal, or the free member of a union reached through a
+// block, an `if` or a `match` (`{integer} | null`), takes the type the first
+// sibling offers its family.
+settle_branch :: fn(
+    value: AST.Expr,
+    t: Type,
+    siblings: Type[],
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    free :: free_member(t) ?? return t
+    if t is UnionType && !settles_through(value) {
+        return t
+    }
     for sibling in siblings {
-        if sibling is PrimitiveType && literal_family_holds(t, sibling.name) {
-            return sibling
-        }
+        to :: family_member(sibling, free) ?? continue
+        settle_free_value(value, to, typed, diags)
+        return settled_type(t, to) ?? t
     }
     return t
+}
+
+// `t` when it is a free literal, the first free member of a union ; null otherwise.
+free_member :: fn(t: Type) -> Type | null {
+    if is_free_numeric(t) {
+        return t
+    }
+    variants :: union_variants(t) ?? return null
+    for v in variants {
+        if is_free_numeric(v) {
+            return v
+        }
+    }
+    return null
+}
+
+// The concrete type `sibling` offers the free literal `free`: itself when it is of
+// `free`'s family, or the member a union settles such a literal on
+// (`union_literal_member`: `u8 | null` offers its `u8`).
+family_member :: fn(sibling: Type, free: Type) -> PrimitiveType | null {
+    if sibling is UnionType {
+        return union_literal_member(free, sibling)
+    }
+    if sibling is PrimitiveType && literal_family_holds(free, sibling.name) {
+        return sibling
+    }
+    return null
 }
 
 /// Type-check an `IfExpr`. `expected` flows into both branches so

@@ -89,21 +89,27 @@ check_literal_bounds :: fn(
 // inferred again: a node already concrete, a nested condition or a diverging arm
 // among them, is left alone. Both operands of a free arithmetic or bitwise
 // operator take `t`, a shift's amount included, as they would from a typed slot
-// (`binary.vader::op_expected_ctx`).
+// (`binary.vader::op_expected_ctx`). A block, an `if` or a `match` typed as a union
+// holding a free literal (`{integer} | null`) records the union with `t` in place
+// of that member, and its branches are settled in turn.
 settle_free_value :: fn(e: AST.Expr, t: Type, typed: TypedProgram, diags: Diagnostic[]) -> void {
     recorded :: typed.expr_types[e.id] ?? return
-    if t !is PrimitiveType || !literal_family_holds(recorded, t.name) {
+    if t !is PrimitiveType {
         return
     }
-    record_expr(typed, e, t)
+    if recorded is UnionType && !settles_through(e) {
+        return
+    }
+    settled :: settled_type(recorded, t) ?? return
+    record_expr(typed, e, settled)
     // @partial: every other free node is a literal, whose bounds are checked, or a
     // node with no operand to follow.
     @partial match e {
-        is AST.BlockExpr  -> {
+        is AST.BlockExpr        -> {
             tail :: e.trailing ?? return
             settle_free_value(tail, t, typed, diags)
         }
-        is AST.IfExpr     -> {
+        is AST.IfExpr           -> {
             settle_free_value(e.then_block, t, typed, diags)
             match e.else_branch as eb {
                 is AST.IfElseBlock -> { settle_free_value(eb.block, t, typed, diags) }
@@ -111,18 +117,49 @@ settle_free_value :: fn(e: AST.Expr, t: Type, typed: TypedProgram, diags: Diagno
                 is null            -> {}
             }
         }
-        is AST.MatchExpr  -> {
+        is AST.MatchExpr        -> {
             for arm in e.arms {
                 settle_free_value(arm.body, t, typed, diags)
             }
         }
-        is AST.UnaryExpr  -> { settle_free_value(e.operand, t, typed, diags) }
-        is AST.BinaryExpr -> {
+        is AST.UnaryExpr        -> { settle_free_value(e.operand, t, typed, diags) }
+        is AST.NullCoalesceExpr -> {
+            settle_free_value(e.left, t, typed, diags)
+            fallback :: AST.coalesce_fallback_expr(e.fallback) ?? return
+            settle_free_value(fallback, t, typed, diags)
+        }
+        is AST.BinaryExpr       -> {
             settle_free_value(e.left, t, typed, diags)
             settle_free_value(e.right, t, typed, diags)
         }
-        _                 -> { check_literal_bounds(e, t, typed, diags) }
+        _                       -> { check_literal_bounds(e, t, typed, diags) }
     }
+}
+
+// Whether settling a union that holds a free literal reaches the literal through
+// `e`: a block, an `if`, a `match` or a `??`, which the walk descends. A name keeps
+// the type its storage was given.
+settles_through :: fn(e: AST.Expr) -> bool =
+    e is AST.BlockExpr || e is AST.IfExpr || e is AST.MatchExpr || e is AST.NullCoalesceExpr
+
+// `recorded` with its free literal of `t`'s family read as `t`: the type itself, or
+// the member of a union (`{integer} | null` is `u8 | null`) ; null when it holds no
+// such literal.
+settled_type :: fn(recorded: Type, t: PrimitiveType) -> Type | null {
+    variants: Type[]: []
+    found := false
+    for v in union_variants(recorded) ?? [recorded] {
+        if literal_family_holds(v, t.name) {
+            variants.push(t)
+            found = true
+        } else {
+            variants.push(v)
+        }
+    }
+    if !found {
+        return null
+    }
+    return union_of(variants)
 }
 
 // T3066 for each literal past its default still free once the module's bodies are
