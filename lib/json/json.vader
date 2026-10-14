@@ -62,25 +62,18 @@ JsonError implements Error {
 
 Parser :: struct {
     src: string
-    // Byte view of `src`, held once so the scan never re-fetches it.
-    bytes: u8[]
     pos: usize
-    eof: usize
 }
 
-new_parser :: fn(s: string) -> Parser! {
-    return Parser { .src = s, .bytes = s.bytes(), .pos = 0, .eof = s.bytes().len() }
-}
+new_parser :: fn(s: string) -> Parser! = Parser { .src = s, .pos = 0 }
 
-at_end :: fn(p: Parser) -> bool {
-    return p.pos >= p.eof
-}
+at_end :: fn(p: Parser) = p.pos >= p.src.byte_len()
 
 peek_byte :: fn(p: Parser) -> char {
-    if p.pos >= p.eof {
+    if at_end(p) {
         return '\0'
     }
-    return p.bytes.utf8_decode(p.pos)
+    return p.src.char_at_byte(p.pos)
 }
 
 advance :: fn(p: Parser) -> void {
@@ -113,14 +106,13 @@ expect_byte :: fn(p: Parser, expected: char) -> JsonError | null {
 }
 
 match_keyword :: fn(p: Parser, kw: string) -> bool {
-    kb :: kw.bytes()
-    n :: kb.len()
-    if p.pos + n > p.eof {
+    n :: kw.byte_len()
+    if p.pos + n > p.src.byte_len() {
         return false
     }
     // Byte-level keyword match (JSON keywords `true`/`false`/`null` are ASCII).
     for i in 0..<n {
-        if p.bytes[p.pos + i] != kb[i] {
+        if p.src.byte_at(p.pos + i) != kw.byte_at(i) {
             return false
         }
     }
@@ -240,7 +232,7 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
             advance(p)
         }
     }
-    raw :: p.bytes[start..<p.pos].bytes_to_string()
+    raw :: p.src.byte_slice(start, p.pos)
     parsed :: raw.parse_float()
     match parsed {
         is f64 -> {
@@ -266,15 +258,15 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
 parse_string :: fn(p: Parser) -> string | JsonError {
     if expect_byte(p, '"') is JsonError as e { return e }
     start :: p.pos
-    for scan in p.pos..<p.eof {
-        b :: p.bytes[scan]
+    for scan in p.pos..<p.src.byte_len() {
+        b :: p.src.byte_at(scan)
         if b == '"' {
             p.pos = scan + 1
-            return p.bytes[start..<scan].bytes_to_string()
+            return p.src.byte_slice(start, scan)
         }
         if b == '\\' {
             sb :: StringBuilder {}
-            sb.append(p.bytes[start..<scan].bytes_to_string())
+            sb.append(p.src.byte_slice(start, scan))
             p.pos = scan
             return parse_string_with_escapes(p, sb)
         }
@@ -293,7 +285,7 @@ parse_string :: fn(p: Parser) -> string | JsonError {
 /// @error     `JsonError` on unterminated input or a bad escape.
 parse_string_with_escapes :: fn(p: Parser, sb: StringBuilder) -> string | JsonError {
     for !at_end(p) {
-        b :: p.bytes[p.pos]
+        b :: p.src.byte_at(p.pos)
         if b == '"' {
             advance(p)
             return sb.to_string()
@@ -332,10 +324,10 @@ parse_string_with_escapes :: fn(p: Parser, sb: StringBuilder) -> string | JsonEr
             // The bytes up to the next quote or escape, copied undecoded : a
             // multi-byte UTF-8 sequence passes through intact.
             run :: p.pos
-            for !at_end(p) && p.bytes[p.pos] != '"' && p.bytes[p.pos] != '\\' {
+            for !at_end(p) && p.src.byte_at(p.pos) != '"' && p.src.byte_at(p.pos) != '\\' {
                 advance(p)
             }
-            sb.append(p.bytes[run..<p.pos].bytes_to_string())
+            sb.append(p.src.byte_slice(run, p.pos))
         }
     }
     return fail(p, "unterminated string")
@@ -345,12 +337,12 @@ parse_string_with_escapes :: fn(p: Parser, sb: StringBuilder) -> string | JsonEr
 // already consumed), advancing `p.pos` by 4 on success. Returns the 0..0xFFFF
 // value, or -1 (without advancing) on incomplete input / a non-hex digit.
 read_hex4 :: fn(p: Parser) -> i32 {
-    if p.pos + 4 > p.eof {
+    if p.pos + 4 > p.src.byte_len() {
         return -1
     }
     v := 0
     for k in usize(0)..<4 {
-        d :: hex_digit_value(p.bytes.utf8_decode(p.pos + k))
+        d :: hex_digit_value(p.src.char_at_byte(p.pos + k))
         if d < 0 {
             return -1
         }
@@ -378,7 +370,9 @@ decode_unicode_escape :: fn(p: Parser, sb: StringBuilder) -> bool {
         return true
     }
     if hi.is_high_surrogate() {
-        if p.pos + 2 <= p.eof && p.bytes[p.pos] == '\\' && p.bytes[p.pos + 1] == 'u' {
+        if p.pos + 2 <= p.src.byte_len()
+            && p.src.byte_at(p.pos) == '\\'
+            && p.src.byte_at(p.pos + 1) == 'u' {
             saved :: p.pos
             p.pos = p.pos + 2
             lo_val :: read_hex4(p)
@@ -499,17 +493,21 @@ export parse :: fn(input: string) -> JsonValue | JsonError {
 // bytes are ever escaped, so a multi-byte UTF-8 sequence passes through intact.
 write_string :: fn(sb: StringBuilder, s: string, close: string) -> void {
     sb.append("\"")
-    b :: s.bytes()
+    n :: s.byte_len()
     run: usize = 0
-    for i in 0..<b.len() {
-        escape :: escape_of(b[i]) ?? continue
+    for i in 0..<n {
+        escape :: escape_of(s.byte_at(i)) ?? continue
         if run < i {
-            sb.append(b[run..<i].bytes_to_string())
+            sb.append(s.byte_slice(run, i))
         }
         sb.append(escape)
         run = i + 1
     }
-    sb.append(if run == 0 { s } else { b[run..<b.len()].bytes_to_string() })
+    if run == 0 {
+        sb.append(s)
+    } else {
+        sb.append(s.byte_slice(run, n))
+    }
     sb.append(close)
 }
 

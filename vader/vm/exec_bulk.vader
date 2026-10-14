@@ -155,8 +155,7 @@ exec_string_slice_codepoints :: fn(frame: Frame) -> Trap | null {
     // substring rather than trapping.
     lo_cp :: clamp_nonneg(i32(lo_box))
     hi_cp :: clamp_nonneg(i32(hi_box))
-    sb :: s.bytes()
-    n_bytes :: sb.len()
+    n_bytes :: s.byte_len()
     cursor: usize = 0
     seen:   usize = 0
     byte_lo: usize = n_bytes
@@ -164,14 +163,14 @@ exec_string_slice_codepoints :: fn(frame: Frame) -> Trap | null {
     for cursor < n_bytes {
         if seen == lo_cp { byte_lo = cursor }
         if seen == hi_cp { byte_hi = cursor }
-        [_c, width] :: sb.utf8_decode_len(cursor)
+        [_c, width] :: s.codepoint_at_byte(cursor)
         cursor = cursor + width
         seen   = seen + 1
     }
     if seen <= lo_cp { byte_lo = n_bytes }
     if seen <= hi_cp { byte_hi = n_bytes }
     if byte_hi < byte_lo { byte_hi = byte_lo }
-    push_val(frame, frame.sp - 3, StringVal(sb[byte_lo..<byte_hi].bytes_to_string()))
+    push_val(frame, frame.sp - 3, StringVal(s.byte_slice(byte_lo, byte_hi)))
     frame.sp = frame.sp - 2
     frame.pc = frame.pc + 1
     return null

@@ -682,11 +682,11 @@ A negative integer literal is one value (§Default integer), so `x: i64: -9_223_
 
 - Internals: an **interned atom id** — `vader_string_t` is a `u32`, 4 bytes, copied on assignment. `==` is an integer compare and hashing is the identity; the bytes live once in a global atom table (`docs/ATOM_INTERNING.md`). The `(ptr, len)` fat value this used to be went out with atom interning.
 - Immutable. Concatenation allocates.
-- `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). For the **byte** length, take a view and ask its length: `s.bytes().len()` — written inline like that, the lowerer folds it to an O(1) byte-length primitive (no view materialised). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `s.bytes().len()` for byte arithmetic.
+- `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). For the **byte** length, `s.byte_len()` (O(1)); `s.bytes().len()` written inline folds to the same primitive. Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `byte_len()` for byte arithmetic.
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`); pair with `for c in s.chars()` for a true Unicode loop.
-- `bytes()` returns the UTF-8 byte sequence as `u8[]` — read-only, since a return takes the default; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); the `const` is what keeps that view sound — writes are rejected at compile time (T3042) since the shared bytes are immutable. On the VM the bytes are **copied** into a materialised array (VM arrays box every slot and cannot alias a raw byte buffer) — same observable values, just not zero-copy. Iteration works through `for b in s.bytes()` via the built-in array iterator. Strings iterate by **codepoint** by default — `string implements Into<Iterator<char>!>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); use `for b in s.bytes()` to walk raw bytes.
+- `bytes()` returns the UTF-8 byte sequence as `u8[]`, read-only since a return takes the default, for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); writes to it are rejected at compile time (T3042), which keeps the view sound since the shared bytes are immutable. On the VM the array reads the interned bytes in place until a write copies them. To read a string's bytes, the string itself answers (`byte_len`, `byte_at`, `byte_slice`, below): no view to hold. Iteration works through `for b in s.bytes()` via the built-in array iterator. Strings iterate by **codepoint** by default: `string implements Into<Iterator<char>!>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); use `for b in s.bytes()` to walk raw bytes.
 - `is_empty()` — sugar for `s.bytes().len() == 0` (codepoint count and byte count agree on emptiness).
-- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`). Walking from the start is O(i); pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, take a view with `s.bytes()` (a `const u8[]`) and index it — `s.bytes()[i] -> u8` for the raw byte, `s.bytes()[lo..<hi].bytes_to_string()` to slice a byte range back into a string (the inverse of `bytes()`, O(1) on the borrowed view). `byte_decode_at(i) -> char` decodes the UTF-8 codepoint starting at byte offset `i` (used by lexers, JSON parsers, LSP transport; byte-view consumers that hold the view call `decode_codepoint_at(bs, i)` instead). There is no `IndexSet` impl; strings are immutable.
+- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`). Walking from the start is O(i); pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, read the string in place: `s.byte_at(i) -> u8` for the raw byte, `s.byte_slice(lo, hi)` for the substring between two byte offsets, `s.char_at_byte(i) -> char` and `s.codepoint_at_byte(i) -> [char, usize]` (the codepoint and its byte width) to decode the UTF-8 codepoint starting at byte offset `i` (lexers, JSON and regex parsers). A continuation byte at `i` decodes as `U+FFFD`, a sequence cut short by the end as `U+0000`. There is no `IndexSet` impl; strings are immutable.
 - Literals stored in the binary's data section.
 
 ### Arrays
@@ -3557,13 +3557,16 @@ parse_float :: fn(s: string) -> f64 | ParseError     // pure-Vader, correctly ro
 // Codepoint walkers. `s[i]` (Index impl in std/core) is the primary access form.
 len              :: fn(s: string) -> usize                      // codepoint count, allocation-free
 chars            :: fn(s: string) -> StringChars                // StringChars implements Iterator<char>
-decode_codepoint :: fn(s: string, i: usize) -> [char, usize]    // (codepoint, byte width)
 
-// Byte access (raw UTF-8 — for ASCII / binary protocols / BOM detection).
-bytes          :: fn(s: string) -> u8[]                   // UTF-8 bytes; zero-copy borrowed view on native, materialised copy on the VM
-bytes_to_string :: fn(bs: u8[]) -> string                 // inverse of bytes(); `s.bytes()[lo..<hi].bytes_to_string()` is the byte-indexed substring (O(1) on the borrowed view)
-byte_decode_at :: fn(s: string, i: usize) -> char               // decode UTF-8 codepoint at byte offset (for byte-cursor parsers)
-decode_codepoint_at :: fn(bs: u8[], i: usize) -> [char, usize]  // byte-view codepoint decode; advance a held-view cursor by the returned width
+// Byte access (raw UTF-8), read in place. `byte_len`, `byte_at`, `byte_slice`,
+// `bytes` and `bytes_to_string` live in the prelude (`std/core`).
+byte_len          :: fn(s: string) -> usize                         // byte length, O(1)
+byte_at           :: fn(s: string, i: usize) -> u8                  // the byte at `i`; traps past the end
+byte_slice        :: fn(s: string, start: usize, end: usize) -> string  // bytes `start..<end` as a string
+char_at_byte      :: fn(s: string, i: usize) -> char                // UTF-8 codepoint starting at byte offset `i`
+codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize]       // the same, with its byte width
+bytes             :: fn(s: string) -> u8[]                          // UTF-8 bytes as an array
+bytes_to_string   :: fn(bs: u8[]) -> string                         // inverse of bytes()
 
 // Indexing helpers. `min_index` / `from` and the result use `isize` so the
 // `-1`-on-miss sentinel stays expressible without a `usize | null`.

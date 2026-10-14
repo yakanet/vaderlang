@@ -416,7 +416,7 @@ test_value_abi_takes_two_words :: fn() -> void {
 
 @test
 test_value_abi_takes_twelve_bytes :: fn() -> void {
-    // `utf8_decode_len`'s shape — the one an 8-byte bound would have missed.
+    // `codepoint_at_byte`'s shape: the one an 8-byte bound would have missed.
     decoded :: mk_tuple([mk_primitive("char"), mk_primitive("usize")], true)
     assert_eq(value_abi_type_size(decoded), 12)
 }

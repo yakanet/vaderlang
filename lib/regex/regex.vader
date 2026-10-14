@@ -121,9 +121,7 @@ export InstAnchorEnd :: struct {}
 // =========================================================================
 
 Parser :: struct {
-    // Pattern bytes (held once at `compile`) — all parsing works on the
-    // byte view, so the pattern's `string` is never re-fetched.
-    bytes:          u8[]
+    pattern:        string
     cursor:         usize
     insts:          Inst[]!
     next_group_id:  usize
@@ -143,7 +141,7 @@ MAX_GROUP_DEPTH: usize: 200
 /// and unanchored during `find` / `find_all` / `replace_all`.
 export compile :: fn(pattern: string) -> Pattern | RegexError {
     p :: Parser {
-        .bytes = pattern.bytes(),
+        .pattern = pattern,
         .cursor = 0,
         .insts = [],
         .next_group_id = 1,
@@ -155,8 +153,9 @@ export compile :: fn(pattern: string) -> Pattern | RegexError {
     p.insts.push(InstSave { .slot = 0 })
     parse_outcome :: parse_alternation(p)
     if parse_outcome is RegexError { return parse_outcome }
-    if p.cursor < p.bytes.len() {
-        return RegexError { .msg = "unexpected character '${p.bytes.utf8_decode(p.cursor)}'", .position = p.cursor }
+    if !at_end(p) {
+        c :: p.pattern.char_at_byte(p.cursor)
+        return RegexError { .msg = "unexpected character '${c}'", .position = p.cursor }
     }
     p.insts.push(InstSave { .slot = 1 })
     p.insts.push(InstMatch {})
@@ -164,11 +163,21 @@ export compile :: fn(pattern: string) -> Pattern | RegexError {
     return Pattern { .insts = p.insts, .group_count = p.next_group_id - 1 }
 }
 
+// The pattern byte at the cursor, `0` past its end: no guard compares against `0`.
+peek :: fn(p: Parser) -> u8 {
+    if at_end(p) {
+        return 0
+    }
+    return p.pattern.byte_at(p.cursor)
+}
+
+at_end :: fn(p: Parser) = p.cursor >= p.pattern.byte_len()
+
 parse_alternation :: fn(p: Parser) -> RegexError | null {
     branch_start :: p.insts.len()
     err1 :: parse_concat(p)
     if err1 is RegexError { return err1 }
-    if p.cursor >= p.bytes.len() || p.bytes[p.cursor] != '|' {
+    if peek(p) != '|' {
         return null
     }
 
@@ -181,7 +190,7 @@ parse_alternation :: fn(p: Parser) -> RegexError | null {
     branch_offsets.push(branches_buf.len())
     p.insts = truncate_to(p.insts, branch_start)
 
-    for p.cursor < p.bytes.len() && p.bytes[p.cursor] == '|' {
+    for peek(p) == '|' {
         p.cursor = p.cursor + 1
         next_start :: p.insts.len()
         err :: parse_concat(p)
@@ -245,8 +254,8 @@ push_fragment_rebased :: fn(dst: Inst[], src: Inst[], lo: usize, hi: usize, old_
 }
 
 parse_concat :: fn(p: Parser) -> RegexError | null {
-    for p.cursor < p.bytes.len() {
-        b :: p.bytes[p.cursor]
+    for !at_end(p) {
+        b :: peek(p)
         if b == ')' || b == '|' { break }
         err :: parse_atom_with_quantifier(p)
         if err is RegexError { return err }
@@ -258,8 +267,7 @@ parse_atom_with_quantifier :: fn(p: Parser) -> RegexError | null {
     atom_start :: p.insts.len()
     err :: parse_atom(p)
     if err is RegexError { return err }
-    if p.cursor >= p.bytes.len() { return null }
-    q :: p.bytes[p.cursor]
+    q :: peek(p)
     if q == '*' {
         p.cursor = p.cursor + 1
         apply_star(p, atom_start)
@@ -335,7 +343,7 @@ REPEAT_MAX: usize: 1000
 PROGRAM_MAX: usize: 100_000
 
 apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
-    if p.bytes[p.cursor] != '{' { return null }
+    if peek(p) != '{' { return null }
     save_cursor :: p.cursor
     p.cursor = p.cursor + 1
     n_outcome :: parse_decimal_usize(p)
@@ -344,17 +352,17 @@ apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
     m: usize = n
     has_comma: bool = false
     has_upper: bool = false
-    if p.cursor < p.bytes.len() && p.bytes[p.cursor] == ',' {
+    if peek(p) == ',' {
         p.cursor = p.cursor + 1
         has_comma = true
-        if p.cursor < p.bytes.len() && p.bytes[p.cursor] != '}' {
+        if !at_end(p) && peek(p) != '}' {
             m_outcome :: parse_decimal_usize(p)
             if m_outcome is RegexError { return m_outcome }
             m = m_outcome
             has_upper = true
         }
     }
-    if p.cursor >= p.bytes.len() || p.bytes[p.cursor] != '}' {
+    if peek(p) != '}' {
         return RegexError { .msg = "unterminated {n,m}", .position = save_cursor }
     }
     p.cursor = p.cursor + 1
@@ -411,10 +419,10 @@ apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
 }
 
 parse_atom :: fn(p: Parser) -> RegexError | null {
-    if p.cursor >= p.bytes.len() {
+    if at_end(p) {
         return RegexError { .msg = "unexpected end of pattern", .position = p.cursor }
     }
-    b :: p.bytes[p.cursor]
+    b :: peek(p)
     if b == '(' {
         p.depth = p.depth + 1
         if p.depth > MAX_GROUP_DEPTH {
@@ -426,7 +434,7 @@ parse_atom :: fn(p: Parser) -> RegexError | null {
         p.insts.push(InstSave { .slot = 2 * group_id })
         err :: parse_alternation(p)
         if err is RegexError { return err }
-        if p.cursor >= p.bytes.len() || p.bytes[p.cursor] != ')' {
+        if peek(p) != ')' {
             return RegexError { .msg = "unterminated group", .position = p.cursor }
         }
         p.cursor = p.cursor + 1
@@ -457,7 +465,7 @@ parse_atom :: fn(p: Parser) -> RegexError | null {
     }
     // Otherwise : a literal byte. Decode the codepoint at this offset to
     // emit `InstChar` so the matcher and the pattern stay codepoint-aligned.
-    [c, advance] :: p.bytes.utf8_decode_len(p.cursor)
+    [c, advance] :: p.pattern.codepoint_at_byte(p.cursor)
     p.cursor = p.cursor + advance
     p.insts.push(InstChar { .c = c })
     return null
@@ -465,10 +473,10 @@ parse_atom :: fn(p: Parser) -> RegexError | null {
 
 parse_escape :: fn(p: Parser) -> RegexError | null {
     p.cursor = p.cursor + 1
-    if p.cursor >= p.bytes.len() {
+    if at_end(p) {
         return RegexError { .msg = "trailing backslash", .position = p.cursor }
     }
-    e :: p.bytes[p.cursor]
+    e :: peek(p)
     p.cursor = p.cursor + 1
     if e == 'n' {
         p.insts.push(InstChar { .c = '\n' })
@@ -515,15 +523,17 @@ parse_char_class :: fn(p: Parser) -> RegexError | null {
     start_pos :: p.cursor
     p.cursor = p.cursor + 1
     negated: bool = false
-    if p.cursor < p.bytes.len() && p.bytes[p.cursor] == '^' {
+    if peek(p) == '^' {
         negated = true
         p.cursor = p.cursor + 1
     }
     ranges: CharRange[]: []
-    for p.cursor < p.bytes.len() && p.bytes[p.cursor] != ']' {
+    for !at_end(p) && peek(p) != ']' {
         lo_c :: read_class_char(p)
         if lo_c is RegexError { return lo_c }
-        is_range :: p.cursor < p.bytes.len() && p.bytes[p.cursor] == '-' && p.cursor + 1 < p.bytes.len() && p.bytes[p.cursor + 1] != ']'
+        is_range :: p.cursor + 1 < p.pattern.byte_len()
+            && peek(p) == '-'
+            && p.pattern.byte_at(p.cursor + 1) != ']'
         if is_range {
             p.cursor = p.cursor + 1
             hi_c :: read_class_char(p)
@@ -533,7 +543,7 @@ parse_char_class :: fn(p: Parser) -> RegexError | null {
             ranges.push(CharRange { .lo = lo_c, .hi = lo_c })
         }
     }
-    if p.cursor >= p.bytes.len() {
+    if at_end(p) {
         return RegexError { .msg = "unterminated character class", .position = start_pos }
     }
     p.cursor = p.cursor + 1
@@ -542,34 +552,36 @@ parse_char_class :: fn(p: Parser) -> RegexError | null {
 }
 
 read_class_char :: fn(p: Parser) -> char | RegexError {
-    if p.cursor >= p.bytes.len() {
+    if at_end(p) {
         return RegexError { .msg = "unexpected end inside character class", .position = p.cursor }
     }
-    b :: p.bytes[p.cursor]
+    b :: peek(p)
     if b == '\\' {
         p.cursor = p.cursor + 1
-        if p.cursor >= p.bytes.len() {
+        if at_end(p) {
             return RegexError { .msg = "trailing backslash inside class", .position = p.cursor }
         }
-        e :: p.bytes[p.cursor]
+        e :: peek(p)
         p.cursor = p.cursor + 1
         if e == 'n' { return '\n' }
         if e == 't' { return '\t' }
         if e == 'r' { return '\r' }
         return char(u32(e))
     }
-    [c, advance] :: p.bytes.utf8_decode_len(p.cursor)
+    [c, advance] :: p.pattern.codepoint_at_byte(p.cursor)
     p.cursor = p.cursor + advance
     return c
 }
 
+at_digit :: fn(p: Parser) = peek(p) >= '0' && peek(p) <= '9'
+
 parse_decimal_usize :: fn(p: Parser) -> usize | RegexError {
-    if p.cursor >= p.bytes.len() || p.bytes[p.cursor] < '0' || p.bytes[p.cursor] > '9' {
+    if !at_digit(p) {
         return RegexError { .msg = "expected digit", .position = p.cursor }
     }
     acc: usize = 0
-    for p.cursor < p.bytes.len() && p.bytes[p.cursor] >= '0' && p.bytes[p.cursor] <= '9' {
-        acc = acc * 10 + usize(p.bytes[p.cursor] - '0')
+    for at_digit(p) {
+        acc = acc * 10 + usize(peek(p) - '0')
         p.cursor = p.cursor + 1
     }
     return acc
@@ -594,11 +606,7 @@ space_class_ranges :: fn() -> CharRange[] {
 }
 
 // Number of UTF-8 bytes occupied by the codepoint starting at `offset`.
-// Width-only wrapper over the shared `utf8_decode_len` (std/string).
-codepoint_byte_advance :: fn(bs: u8[], offset: usize) -> usize {
-    [c, width] :: bs.utf8_decode_len(offset)
-    return width
-}
+codepoint_byte_advance :: fn(s: string, offset: usize) = s.char_at_byte(offset).codepoint_byte_len()
 
 // These wrap the built-in zero-copy slice + `push_all` intrinsic. The earlier
 // hand-rolled element loops existed because the generic `std/iter.slice` /
@@ -621,18 +629,18 @@ truncate_to :: fn(arr: Inst[], n: usize) = extract_range(arr, 0, n)
 
 /// True iff `input` is matched by `pattern` from offset 0 to its end
 /// (anchored on both sides).
-export matches :: fn(self: Pattern, input: string) = run_vm(self, input.bytes(), 0, true) is Match
+export matches :: fn(self: Pattern, input: string) = run_vm(self, input, 0, true) != null
 
 /// Find the first match anywhere in `input` (leftmost). Returns `null`
 /// when there's no match.
 export find :: fn(self: Pattern, input: string) -> Match | null {
-    ib :: input.bytes()
+    n :: input.byte_len()
     start: usize = 0
-    for start <= ib.len() {
-        m :: run_at(self, ib, start)
+    for start <= n {
+        m :: run_at(self, input, start)
         if m is Match { return m }
-        if start == ib.len() { return null }
-        start = start + codepoint_byte_advance(ib, start)
+        if start == n { return null }
+        start = start + codepoint_byte_advance(input, start)
     }
     return null
 }
@@ -640,22 +648,22 @@ export find :: fn(self: Pattern, input: string) -> Match | null {
 /// All non-overlapping matches in `input`, left-to-right. Empty matches
 /// advance by one codepoint to avoid an infinite loop.
 export find_all :: fn(self: Pattern, input: string) -> Match[] {
-    ib :: input.bytes()
+    n :: input.byte_len()
     out: Match[]: []
     start: usize = 0
-    for start <= ib.len() {
-        m :: run_at(self, ib, start)
+    for start <= n {
+        m :: run_at(self, input, start)
         if m is Match {
             out.push(m)
             if m.end == start {
-                if start >= ib.len() { return out }
-                start = start + codepoint_byte_advance(ib, start)
+                if start >= n { return out }
+                start = start + codepoint_byte_advance(input, start)
             } else {
                 start = m.end
             }
         } else {
-            if start >= ib.len() { return out }
-            start = start + codepoint_byte_advance(ib, start)
+            if start >= n { return out }
+            start = start + codepoint_byte_advance(input, start)
         }
     }
     return out
@@ -664,32 +672,30 @@ export find_all :: fn(self: Pattern, input: string) -> Match[] {
 /// Replace every non-overlapping match with `repl`. Supports `$0..$9`
 /// backrefs inside `repl`.
 export replace_all :: fn(self: Pattern, input: string, repl: string) -> string {
-    ib :: input.bytes()
-    rb :: repl.bytes()
     sb :: StringBuilder {}
     cursor: usize = 0
     matches_found :: self.find_all(input)
     for i in 0..<matches_found.len() {
         m :: matches_found[i]
         // Append the gap before this match.
-        sb.append(ib[cursor..<m.start].bytes_to_string())
+        sb.append(input.byte_slice(cursor, m.start))
         // Expand backrefs in the replacement.
-        expand_replacement(sb, rb, m)
+        expand_replacement(sb, repl, m)
         cursor = m.end
     }
-    if cursor < ib.len() {
-        sb.append(ib[cursor..<ib.len()].bytes_to_string())
+    if cursor < input.byte_len() {
+        sb.append(input.byte_slice(cursor, input.byte_len()))
     }
     return sb.to_string()
 }
 
-expand_replacement :: fn(sb: StringBuilder, rb: u8[], m: Match) -> void {
-    n :: rb.len()
+expand_replacement :: fn(sb: StringBuilder, repl: string, m: Match) -> void {
+    n :: repl.byte_len()
     i: usize = 0
     for i < n {
-        b :: rb[i]
+        b :: repl.byte_at(i)
         if b == '$' && i + 1 < n {
-            d :: rb[i + 1]
+            d :: repl.byte_at(i + 1)
             if d >= '0' && d <= '9' {
                 gi :: usize(d - '0')
                 if gi < m.groups.len() {
@@ -699,7 +705,7 @@ expand_replacement :: fn(sb: StringBuilder, rb: u8[], m: Match) -> void {
                 continue
             }
         }
-        [c, w] :: rb.utf8_decode_len(i)
+        [c, w] :: repl.codepoint_at_byte(i)
         sb.append_char(c)
         i = i + w
     }
@@ -714,19 +720,28 @@ Thread :: struct {
     groups: usize[]
 }
 
-// Sentinel for "this slot was never written". `_u64` is mandatory :
-// without it the literal defaults to a signed type and rounds through
-// f64, so the sentinel collides with valid offsets on native.
-SLOT_UNSET :: usize(0xFFFF_FFFF_FFFF_FFFF)
+// Sentinel for "this slot was never written".
+SLOT_UNSET: usize: 0xFFFF_FFFF_FFFF_FFFF
 
-run_at :: fn(p: Pattern, input: u8[], start: usize) = run_vm(p, input, start, false)
+// The leftmost-first match from `start`, its groups sliced out of `input`. Slots 0
+// and 1 are always written: the program opens with `InstSave 0` and saves slot 1
+// right before its only `InstMatch`.
+run_at :: fn(p: Pattern, input: string, start: usize) -> Match | null {
+    groups :: run_vm(p, input, start, false) ?? return null
+    return Match {
+        .start  = groups[0],
+        .end    = groups[1],
+        .groups = captured_groups(groups, input),
+    }
+}
 
 /// One Thompson-VM run from `start`. `full` selects full-match semantics :
 /// an `InstMatch` only counts when the whole input is consumed, and a
 /// shorter match does NOT cut lower-priority threads — `a|ab` must still
 /// try `ab` after `a` matched a prefix (leftmost-first would otherwise
-/// make `matches` depend on alternative order).
-run_vm :: fn(p: Pattern, input: u8[], start: usize, full: bool) -> Match | null {
+/// make `matches` depend on alternative order). Answers the group slots of the
+/// match, or `null`.
+run_vm :: fn(p: Pattern, input: string, start: usize, full: bool) -> usize[] | null {
     slots :: 2 * (p.group_count + 1)
     current: Thread[] = []
     next: Thread[] = []
@@ -739,14 +754,17 @@ run_vm :: fn(p: Pattern, input: u8[], start: usize, full: bool) -> Match | null 
 
     seed_groups: usize[]: [SLOT_UNSET] * slots
     add_thread(current, 0, seed_groups, p, input, start, seen, gen)
+    n :: input.byte_len()
 
-    matched: Match | null = null
+    // The groups of the last thread to match. A greedy pattern matches again at
+    // every step, so the caller slices the groups once the run is over.
+    winner: usize[] | null = null
     pos := start
-    for pos <= input.len() {
+    for pos <= n {
         c_at_pos: char = ' '
         bytes_consumed: usize = 0
-        if pos < input.len() {
-            [c, w] :: input.utf8_decode_len(pos)
+        if pos < n {
+            [c, w] :: input.codepoint_at_byte(pos)
             c_at_pos = c
             bytes_consumed = w
         }
@@ -756,17 +774,17 @@ run_vm :: fn(p: Pattern, input: u8[], start: usize, full: bool) -> Match | null 
             inst :: p.insts[t.pc]
             match inst {
                 is InstChar -> {
-                    if pos < input.len() && c_at_pos == inst.c {
+                    if pos < n && c_at_pos == inst.c {
                         add_thread(next, t.pc + 1, t.groups, p, input, pos + bytes_consumed, seen, gen + 1)
                     }
                 }
                 is InstAny -> {
-                    if pos < input.len() && c_at_pos != '\n' {
+                    if pos < n && c_at_pos != '\n' {
                         add_thread(next, t.pc + 1, t.groups, p, input, pos + bytes_consumed, seen, gen + 1)
                     }
                 }
                 is InstClass -> {
-                    if pos < input.len() && class_matches(inst, c_at_pos) {
+                    if pos < n && class_matches(inst, c_at_pos) {
                         add_thread(next, t.pc + 1, t.groups, p, input, pos + bytes_consumed, seen, gen + 1)
                     }
                 }
@@ -775,12 +793,8 @@ run_vm :: fn(p: Pattern, input: u8[], start: usize, full: bool) -> Match | null 
                     // records nor cuts lower-priority threads — an
                     // alternative ordered later may still consume the
                     // whole input.
-                    if !full || pos == input.len() {
-                        matched = Match {
-                            .start  = if t.groups.len() > 0 { resolve_slot(t.groups[0], start) } else { start },
-                            .end    = if t.groups.len() > 1 { resolve_slot(t.groups[1], pos) } else { pos },
-                            .groups = captured_groups(t, input),
-                        }
+                    if !full || pos == n {
+                        winner = t.groups
                         // Higher-priority threads run first ; once one matches
                         // we discard lower-priority threads to mirror leftmost-
                         // first semantics.
@@ -797,7 +811,7 @@ run_vm :: fn(p: Pattern, input: u8[], start: usize, full: bool) -> Match | null 
             }
             t_idx = t_idx + 1
         }
-        if pos == input.len() { break }
+        if pos == n { break }
         current = next
         next = []
         gen = gen + 1
@@ -807,7 +821,7 @@ run_vm :: fn(p: Pattern, input: u8[], start: usize, full: bool) -> Match | null 
         if current.len() == 0 { break }
         pos = pos + bytes_consumed
     }
-    return matched
+    return winner
 }
 
 class_matches :: fn(inst: InstClass, c: char) -> bool {
@@ -840,7 +854,16 @@ WorkItem :: struct {
     groups: usize[]
 }
 
-add_thread :: fn(out: Thread[], start_pc: usize, start_groups: usize[], p: Pattern, input: u8[], pos: usize, seen: usize[], gen: usize) -> void {
+add_thread :: fn(
+    out: Thread[],
+    start_pc: usize,
+    start_groups: usize[],
+    p: Pattern,
+    input: string,
+    pos: usize,
+    seen: usize[],
+    gen: usize,
+) -> void {
     // Iterative epsilon-closure (was recursive). A long ACYCLIC epsilon chain —
     // e.g. the N chained `InstSplit` a `a?`×N pattern compiles to — recursed one
     // frame per link and blew the stack (VM trap at 1024 frames) even though
@@ -875,7 +898,9 @@ add_thread :: fn(out: Thread[], start_pc: usize, start_groups: usize[], p: Patte
                 if pos == 0 { stack.push(WorkItem { .pc = pc + 1, .groups = groups }) }
             }
             is InstAnchorEnd -> {
-                if pos == input.len() { stack.push(WorkItem { .pc = pc + 1, .groups = groups }) }
+                if pos == input.byte_len() {
+                    stack.push(WorkItem { .pc = pc + 1, .groups = groups })
+                }
             }
             is InstChar | InstAny | InstClass | InstMatch -> {
                 out.push(Thread { .pc = pc, .groups = groups })
@@ -884,21 +909,16 @@ add_thread :: fn(out: Thread[], start_pc: usize, start_groups: usize[], p: Patte
     }
 }
 
-resolve_slot :: fn(slot_value: usize, fallback: usize) -> usize {
-    if slot_value == SLOT_UNSET { return fallback }
-    return slot_value
-}
-
-captured_groups :: fn(t: Thread, input: u8[]) -> string[] {
-    n_groups :: t.groups.len() / 2
+captured_groups :: fn(groups: usize[], input: string) -> string[] {
+    n_groups :: groups.len() / 2
     out: string[]: []
     for i in 0..<n_groups {
-        lo_slot :: t.groups[2 * i]
-        hi_slot :: t.groups[2 * i + 1]
+        lo_slot :: groups[2 * i]
+        hi_slot :: groups[2 * i + 1]
         if lo_slot == SLOT_UNSET || hi_slot == SLOT_UNSET {
             out.push("")
         } else {
-            out.push(input[lo_slot..<hi_slot].bytes_to_string())
+            out.push(input.byte_slice(lo_slot, hi_slot))
         }
     }
     return out

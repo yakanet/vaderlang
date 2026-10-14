@@ -794,7 +794,7 @@ try_get_element :: fn(
     }
     raw :: array.raw
     if raw != null {
-        set_i32(m.bits, m.tags, base, dst, i32(raw[array.offset + usize(index)]))
+        set_i32(m.bits, m.tags, base, dst, i32(raw.byte_at(array.offset + usize(index))))
         return true
     }
     set_register(m, base + usize(dst), array.elements[array.offset + usize(index)])

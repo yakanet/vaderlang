@@ -31,8 +31,8 @@
 //       (`.len()`) or `LoweredIndex.target` (`[i]`) — any other occurrence (return,
 //       argument, field, capture, reassign) disqualifies it,
 //   (4) the local is bound exactly once.
-// Field receivers (`l.src.bytes()`) are excluded by (1) — the lexer already
-// hoists that view into `Lexer.bytes` once. Bounds semantics are preserved:
+// Field receivers (`l.src.bytes()`) are excluded by (1): code that keeps a string
+// in a field reads it with `byte_at` itself. Bounds semantics are preserved:
 // `byte_at` traps on `i >= byte_len(s)`, matching `s.bytes()[i]`.
 //
 // Runs as a whole-body pass. Modelled on `devirt_fn_ref.vader`; every

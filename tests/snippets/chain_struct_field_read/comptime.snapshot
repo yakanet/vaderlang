@@ -19,6 +19,7 @@
   __genstate_take<i32>
   __genstate_skip<i32>
   ArrayOps<T>
+  Into<Target>
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
@@ -48,7 +49,6 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
-  Into<Target>
   Add<Rhs, Out>
   MutableSet<i32>
   MutableSet<T>

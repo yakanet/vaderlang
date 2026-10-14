@@ -196,12 +196,11 @@ bytes_match_at :: fn(sb: u8[], off: usize, subb: u8[], m: usize) -> bool {
 ///                   accept every position.
 /// @return           byte offset of the latest match, or `-1` if absent.
 export last_index_of :: fn(s: string, c: char, min_index: isize) -> isize {
-    sb :: s.bytes()
-    n :: sb.len()
+    n :: s.byte_len()
     last: isize = -1
     i: usize = 0
     for i < n {
-        [cp, width] :: sb.utf8_decode_len(i)
+        [cp, width] :: s.codepoint_at_byte(i)
         if isize(i) >= min_index && cp == c { last = isize(i) }
         i += width
     }
@@ -218,11 +217,10 @@ export last_index_of :: fn(s: string, c: char, min_index: isize) -> isize {
 /// @param from  earliest leading-byte position considered.
 /// @return      byte offset of the match, or `-1` if absent.
 export index_of :: fn(s: string, c: char, from: usize) -> isize {
-    sb :: s.bytes()
-    n :: sb.len()
+    n :: s.byte_len()
     i := from
     for i < n {
-        [cp, width] :: sb.utf8_decode_len(i)
+        [cp, width] :: s.codepoint_at_byte(i)
         if cp == c { return isize(i) }
         i += width
     }
@@ -378,40 +376,23 @@ to_lower_cp :: fn(cp: u32) -> u32 = match cp {
 }
 
 /// Uppercase `s` over ASCII and the Latin-1 Supplement (`a..z`, `à..þ`, `ÿ`).
-/// UTF-8 aware — walks codepoints via a byte cursor (no `chars()` iterator),
-/// re-emitting an unchanged codepoint's raw bytes and only re-encoding the
-/// remapped ones. Codepoints outside those ranges (incl. `ß`, non-Latin
-/// scripts) pass through unchanged ; no full Unicode case tables.
+/// UTF-8 aware: codepoints outside those ranges (incl. `ß`, non-Latin scripts)
+/// pass through unchanged ; no full Unicode case tables.
 export to_upper :: fn(s: string) -> string {
     sb :: StringBuilder {}
-    bs :: s.bytes()
-    n  :: bs.len()
-    i: usize = 0
-    for i < n {
-        [c, w] :: bs.utf8_decode_len(i)
-        // Re-emitting an unchanged codepoint via `append_char` reproduces its
-        // canonical UTF-8 bytes — identical to slicing them back out.
+    for c in s {
         sb.append_char(char(to_upper_cp(u32(c))))
-        i = i + w
     }
     return sb.to_string()
 }
 
 /// Lowercase `s` over ASCII and the Latin-1 Supplement (`A..Z`, `À..Þ`, `Ÿ`).
-/// UTF-8 aware — walks codepoints via a byte cursor (no `chars()` iterator),
-/// re-emitting an unchanged codepoint's raw bytes and only re-encoding the
-/// remapped ones. Codepoints outside those ranges pass through unchanged ;
-/// no full Unicode case tables.
+/// UTF-8 aware: codepoints outside those ranges pass through unchanged ; no full
+/// Unicode case tables.
 export to_lower :: fn(s: string) -> string {
     sb :: StringBuilder {}
-    bs :: s.bytes()
-    n  :: bs.len()
-    i: usize = 0
-    for i < n {
-        [c, w] :: bs.utf8_decode_len(i)
-        // See `to_upper` — `append_char` re-emits the canonical bytes.
+    for c in s {
         sb.append_char(char(to_lower_cp(u32(c))))
-        i = i + w
     }
     return sb.to_string()
 }
@@ -560,15 +541,14 @@ export trim_prefix :: fn(s: string, prefix: string) -> string {
 export decode_escapes :: fn(body: string) -> string {
     if !body.contains("\\") { return body }
     out :: StringBuilder {}
-    bs :: body.bytes()
-    n :: bs.len()
+    n :: body.byte_len()
     i: usize = 0
     for i < n {
-        b :: bs[i]
+        b :: body.byte_at(i)
         if b != '\\' {
             // Not a backslash — copy the whole codepoint (it may be multibyte ;
             // a per-byte slice would split a UTF-8 sequence).
-            [c, w] :: bs.utf8_decode_len(i)
+            [c, w] :: body.codepoint_at_byte(i)
             out.append_char(c)
             i += w
             continue
@@ -578,7 +558,7 @@ export decode_escapes :: fn(body: string) -> string {
             i += 1
             continue
         }
-        next :: bs[i + 1]
+        next :: body.byte_at(i + 1)
         if      next == 'n'  { out.append("\n") }
         else if next == 't'  { out.append("\t") }
         else if next == 'r'  { out.append("\r") }
@@ -587,7 +567,7 @@ export decode_escapes :: fn(body: string) -> string {
         else if next == '0'  { out.append("\0") }
         else {
             // Unknown escape — drop the backslash, copy the following codepoint.
-            [c, w] :: bs.utf8_decode_len(i + 1)
+            [c, w] :: body.codepoint_at_byte(i + 1)
             out.append_char(c)
             i += 1 + w
             continue
@@ -885,17 +865,18 @@ import "std/testing"
     assert_eq(i, want.len())
 }
 
-@test test_chars_invalid_bytes_decode_as_a_byte_view :: fn() -> void {
-    // A stray continuation byte, then a three-byte lead cut short by the end.
+@test test_chars_invalid_bytes :: fn() -> void {
+    // A stray continuation byte decodes as U+FFFD and steps over the width of
+    // U+FFFD, three bytes ; a lead cut short by the end decodes as U+0000 and
+    // steps one byte.
     s :: bytes_to_string([0x61, 0xA9, 0x62, 0x63, 0x64, 0xE2, 0x82])
-    bs :: s.bytes()
+    want :: ['a', REPLACEMENT_CHAR, 'd', char(0), REPLACEMENT_CHAR]
     i: usize = 0
     for c in s {
-        [want, width] :: bs.utf8_decode_len(i)
-        assert_eq(c, want)
-        i += width
+        assert_eq(c, want[i])
+        i += 1
     }
-    assert(i >= bs.len(), "the iterator walks to the end of the string")
+    assert_eq(i, want.len())
 }
 
 @test test_last_index_of :: fn() -> void {

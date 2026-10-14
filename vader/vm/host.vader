@@ -156,17 +156,15 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if s is Trap { return s }
         if i is Trap { return i }
         // Walk UTF-8 until the `i`-th codepoint, then decode it. An out-of-range
-        // (or negative, wrapping huge) index traps — aligning the VM on the
-        // native runtime (`vader_string_codepoint_at`, runtime/c/vader_runtime.c),
-        // which raises the same message. Previously the VM baked U+0000, so an
-        // OOB `s[i]` at comptime silently produced a NUL codepoint.
-        sb :: string(s).bytes()
+        // (or negative, wrapping huge) index traps, with the message the native
+        // runtime raises (`vader_string_codepoint_at`, runtime/c/vader_runtime.c).
+        text :: string(s)
         target :: usize(i)
         cursor: usize = 0
         seen:   usize = 0
-        n :: sb.len()
+        n :: text.byte_len()
         for cursor < n {
-            [cp, width] :: sb.utf8_decode_len(cursor)
+            [cp, width] :: text.codepoint_at_byte(cursor)
             if seen == target { return HostOk { .value = CharVal(cp) } }
             cursor = cursor + width
             seen   = seen + 1
@@ -363,7 +361,7 @@ debug_std_descriptor :: fn(which: i64) -> i64 = if which == 0xFFFF_FFF4 { 2 } el
 array_bytes :: fn(a: ArrayVal, count: usize, at_pc: i32, label: string) -> u8[] | Trap {
     raw :: a.raw
     if raw != null {
-        return raw[a.offset..<a.offset + count]
+        return raw.bytes()[a.offset..<a.offset + count]
     }
     bs: u8[]: []
     for i in 0..<count {
@@ -552,7 +550,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             if raw != null {
                 // A string's own bytes, read-only as the native view is: lent as
                 // they are, and nothing travels back.
-                data.push_all(raw[v.offset..<v.offset + v.length])
+                data.push_all(raw.bytes()[v.offset..<v.offset + v.length])
             } else {
                 borrowed.push(LentArray { .target = v, .at = data.len(), .element = elem })
                 for j in 0..<v.length {

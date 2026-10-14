@@ -116,6 +116,16 @@ export finish_buffer :: fn(self: Buffer, len: usize) -> string = self.intern_str
 /// @error traps when `i >= byte_len(s)`, matching `s.bytes()[i]`.
 @intrinsic export byte_at :: fn(s: string, i: usize) -> u8
 
+/// The bytes of `s` from offset `start` up to `end`, excluded, as a string. Offsets
+/// count bytes, where `s[i]` counts codepoints. Like any slice, offsets past the
+/// end clamp to it, and an `end` before `start` gives the empty string.
+///
+/// @param s      source string.
+/// @param start  first byte offset, included.
+/// @param end    byte offset where the slice stops, excluded.
+export byte_slice :: fn(s: string, start: usize, end: usize) -> string =
+    s.bytes()[start..<end].bytes_to_string()
+
 /// Write `s`'s bytes at `off` ; return `off + s.bytes().len()`.
 export write_string_at :: fn(self: Buffer, off: usize, s: string) -> usize {
     self.write_string(off, s)
@@ -210,7 +220,9 @@ export utf8_encode :: fn(c: char) -> u8[] {
 /// Borrow the UTF-8 bytes of a string as a read-only `u8[]` view — the canonical
 /// string→bytes primitive, inverse of `bytes_to_string`. Host intrinsic backed
 /// by `vader_string_bytes_view` (no new runtime symbol) ; a zero-copy borrowed
-/// view of the interned bytes on native, a fresh copy on the VM.
+/// view of the interned bytes on native, read in place on the VM until a write
+/// copies it. To read a string's bytes, `byte_len`, `byte_at` and `byte_slice` take
+/// the string itself.
 /// @param s  source string.
 /// @return   a read-only `u8[]` over the UTF-8 bytes of `s`.
 @intrinsic export bytes :: fn(s: string) -> u8[]
