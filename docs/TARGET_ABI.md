@@ -296,10 +296,11 @@ accessor retirement, Inc1-4 — open-coded at every emit site).
 What is kept by design (§2/§4 primitives, NOT "unfinished retirement"): the
 `vader_array_t`/`vader_array_buf_t` storage + its GC-tracing internals
 (`store_slot`/`box_slots`/`make_borrowed`/`resolve`/`resolve_buf`/…),
-`vader_array_push`/`slice`/`new`/`len`, the atom table + `vader_atom_*`, the
-codepoint atom-slice `vader_string_slice_codepoints`, `vader_string_bytes_view`/
-`as_string`/`byte_len`/`codepoint_at`/`parse_float`, and the platform-syscall
-file. A new target implements the ABI (the opcode set + memory opcodes + the
+`vader_array_push`/`slice`/`new`/`len`, the atom table + `vader_atom_*`,
+`vader_string_bytes_view`/`as_string`/`byte_len`/`byte_at`/`byte_slice`/
+`parse_float`, and the platform-syscall file. A string's codepoints (`s[i]`,
+`s[lo..<hi]`) are Vader over `byte_len`, `byte_at` and `byte_slice`
+(`std/core/utf8.vader`). A new target implements the ABI (the opcode set + memory opcodes + the
 kept primitives + the syscall file) and gets the whole stdlib for free.
 
 ## Caveats (decide before implementing)

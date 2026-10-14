@@ -232,7 +232,7 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
         is bc.StructSet | bc.ArrayPush | bc.ArrayPushAll -> effect(2, 0)
         is bc.ArraySet | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.StoreSlotI32
          | bc.StoreSlotI64 | bc.StoreSlotF64 | bc.BufferWriteString -> effect(3, 0)
-        is bc.ArraySlice | bc.StringSliceCodepoints -> effect(3, 1)
+        is bc.ArraySlice -> effect(3, 1)
         is bc.ArrayCopy | bc.MemoryCopy -> effect(5, 0)
         is bc.Drop | bc.ArrayClear | bc.DeferPush -> effect(1, 0)
         is bc.Block | bc.Loop | bc.End | bc.DeferPopExec -> effect(0, 0)

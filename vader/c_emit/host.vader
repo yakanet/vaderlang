@@ -607,7 +607,6 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[]! {
     .ByteLen -> { return [returning("vader_string_byte_len", [a0])] }
     .ByteAt -> { return [returning("vader_string_byte_at", [a0, a1])] }
     .ByteSlice -> { return [returning("vader_string_byte_slice", [a0, a1, argument(2)])] }
-    .StringIndexAt -> { return [returning("vader_string_codepoint_at", [a0, a1])] }
     .Bytes -> {
         u8 :: prim_tag(types, .U8)
         if u8 < 0 { return [trap("bytes: no u8 type")] }

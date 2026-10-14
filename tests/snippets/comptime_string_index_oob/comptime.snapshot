@@ -25,4 +25,4 @@
   Range<T>
 
 # Diagnostics
-[14:8] error[C4002] comptime evaluation panicked: string codepoint index out of bounds
+[11:8] error[C4002] comptime evaluation panicked: byte index out of bounds

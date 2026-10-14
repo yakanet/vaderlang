@@ -126,7 +126,6 @@ export Op :: Unreachable
     | StringEq
     | StringNe
     | StringCompare
-    | StringSliceCodepoints
     | RefEq
     | RefNe
     | Drop
@@ -635,11 +634,6 @@ export StringNe :: struct {}
 /// is codepoint order ; a proper prefix orders first. Backs `string implements
 /// Comparable`.
 export StringCompare :: struct {}
-/// Pop a string and two `usize` (lo, hi) ; push the codepoint-indexed
-/// substring as a fresh `StringVal`. Implements the codepoint slice
-/// form `s[r]` where `r : Range[usize]`. Out-of-bounds clamps (no
-/// trap). Walks UTF-8 — O(n) in the byte length.
-export StringSliceCodepoints :: struct {}
 /// Pop two references ; push `BoolVal` for identity equality — `===` on two
 /// objects, and `==` on two boxes. `vm/value.vader::value_ref_eq` compares a boxed
 /// scalar by value and a heap value by identity.

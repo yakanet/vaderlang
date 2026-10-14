@@ -302,12 +302,6 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
             .target = remap_local(m, ins.target), .lo = remap_local(m, ins.lo), .hi = remap_local(m, ins.hi),
         }
     }
-    if ins is InstrStringSlice {
-        return InstrStringSlice {
-            .span = ins.span, .dst = remap_local(m, ins.dst), .type = ins.type,
-            .target = remap_local(m, ins.target), .lo = remap_local(m, ins.lo), .hi = remap_local(m, ins.hi),
-        }
-    }
     if ins is InstrStructNew {
         return InstrStructNew {
             .span = ins.span, .dst = remap_local(m, ins.dst), .type = ins.type,
@@ -424,9 +418,6 @@ with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction {
     }
     if ins is InstrArraySlice {
         return InstrArraySlice { ...ins, .dst = new_dst }
-    }
-    if ins is InstrStringSlice {
-        return InstrStringSlice { ...ins, .dst = new_dst }
     }
     if ins is InstrStructNew {
         return InstrStructNew { ...ins, .dst = new_dst }

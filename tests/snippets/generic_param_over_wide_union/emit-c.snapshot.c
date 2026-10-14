@@ -47,7 +47,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[17] = {
+const vader_type_info_t vader_type_info_table[14] = {
     [1] = { .slot_size = 16 },
     [2] = { .slot_size = 4 },
     [3] = { .slot_size = 16 },
@@ -57,26 +57,20 @@ const vader_type_info_t vader_type_info_table[17] = {
     },
     [5] = { .slot_size = 16 },
     [6] = { .slot_size = 16 },
-    [7] = { .slot_size = 16 },
-    [8] = { .slot_size = 1 },
-    [9] = { .slot_size = 8 },
-    [10] = {
+    [7] = { .slot_size = 1 },
+    [8] = { .slot_size = 8 },
+    [9] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
-    [11] = { .slot_size = 8 },
-    [12] = {
+    [10] = { .slot_size = 8 },
+    [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [14] = { .slot_size = 8 },
-    [15] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
-    },
-    [16] = { .slot_size = 16 },
+    [13] = { .slot_size = 8 },
 };
-const size_t vader_type_info_count = 17;
+const size_t vader_type_info_count = 14;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
@@ -86,7 +80,7 @@ static size_t vader_host_std_core_byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 12u, 8u);
+    return (void*) vader_string_bytes_view(a0, 11u, 7u);
 }
 
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) {
@@ -142,7 +136,7 @@ static int32_t snippet_main(void) {
     };
     vader_gc_top = &gc_frame;
 #line 28 "tests/snippets/generic_param_over_wide_union/_main.vader"
-    vader_array_t* _a0_arr = vader_array_new(15u, 5u, 0u, 16u);
+    vader_array_t* _a0_arr = vader_array_new(4u, 5u, 0u, 5u);
     vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 4u] = vader_box_i32(2u, INT32_C(3));
     vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 3u] = vader_box_obj(0u, NULL);
     vader_array_box_slots(_a0_arr->buf)[_a0_arr->offset + 2u] = vader_box_i32(2u, INT32_C(2));

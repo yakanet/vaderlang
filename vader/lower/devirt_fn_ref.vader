@@ -168,7 +168,6 @@ analyze_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
         is LoweredArrayLen -> { analyze_expr(e.target, ctx) }
         is LoweredArrayPush -> { analyze_expr(e.target, ctx) analyze_expr(e.value, ctx) }
         is LoweredArraySlice -> { analyze_expr(e.target, ctx) analyze_expr(e.lo, ctx) analyze_expr(e.hi, ctx) }
-        is LoweredStringSlice -> { analyze_expr(e.target, ctx) analyze_expr(e.lo, ctx) analyze_expr(e.hi, ctx) }
         is LoweredCast -> { analyze_expr(e.value, ctx) }
         is LoweredTypeCheck -> { analyze_expr(e.value, ctx) }
         is LoweredIntrinsicCall -> { for a in e.args { analyze_expr(a, ctx) } }
@@ -281,7 +280,6 @@ rewrite_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
         is LoweredArrayLen -> { rewrite_expr(e.target, ctx) }
         is LoweredArrayPush -> { rewrite_expr(e.target, ctx) rewrite_expr(e.value, ctx) }
         is LoweredArraySlice -> { rewrite_expr(e.target, ctx) rewrite_expr(e.lo, ctx) rewrite_expr(e.hi, ctx) }
-        is LoweredStringSlice -> { rewrite_expr(e.target, ctx) rewrite_expr(e.lo, ctx) rewrite_expr(e.hi, ctx) }
         is LoweredCast -> { rewrite_expr(e.value, ctx) }
         is LoweredTypeCheck -> { rewrite_expr(e.value, ctx) }
         is LoweredIntrinsicCall -> { for a in e.args { rewrite_expr(a, ctx) } }

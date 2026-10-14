@@ -150,23 +150,6 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // `StringBuilder implements Display` moved to pure Vader in Target ABI S3 ;
     // the resolver materialises its body (a byte-Buffer read + `bytes_to_string`),
     // so the VM runs a real fn — there is no host shim to dispatch here.
-    .StringIndexAt -> {
-        s :: read_string(stack[arg_base    ], at_pc, "string[] receiver")
-        i :: read_i32   (stack[arg_base + 1], at_pc, "string[] index")
-        if s is Trap { return s }
-        if i is Trap { return i }
-        // The VM's own native `s[i]` would trap the whole process past the end, so
-        // the codepoint is read off the native one-codepoint slice, empty exactly
-        // where `s[i]` traps: the VM then walks the string as native code does.
-        if i >= 0 {
-            at :: usize(i)
-            one :: string(s)[at..<at + 1]
-            if one.byte_len() > 0 {
-                return HostOk { .value = CharVal(one[0]) }
-            }
-        }
-        return Trap { .message = "string codepoint index out of bounds" }
-    }
     // ---- std/core Display + Equals intrinsics ----------------------------
     // `string implements Hash` is now pure Vader (FNV-1a-64 over `bytes()`,
     // `std/core/primitives.vader`) — the host arm + the old 31-bit `fnv1a31_low`
@@ -1123,8 +1106,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     .SchedNow | .SchedArm | .SchedPark -> true
     // Pure : the baked value depends only on the args, never external state.
     .ByteLen | .ByteAt | .ByteSlice -> false
-    .Bytes | .BytesToString | .StringIndexAt | .StringHash
-        | .StringEquals -> false
+    .Bytes | .BytesToString | .StringHash | .StringEquals -> false
     .PrimIntEquals | .PrimDisplayToString -> false
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false
     .AbortPanic -> false

@@ -402,7 +402,6 @@ export binary_op_name :: fn(op: LoweredBinaryOp) -> string = match op {
 expr_kind_label :: fn(expr: LoweredExpr) -> string = @partial match expr {
     is LoweredArrayLen     -> "LoweredArrayLen"
     is LoweredArrayPush    -> if expr.cached { "LoweredArrayPush cached" } else { "LoweredArrayPush" }
-    is LoweredStringSlice  -> "LoweredStringSlice"
     is LoweredCellNew      -> "LoweredCellNew"
     is LoweredCellGet      -> "LoweredCellGet"
     is LoweredMakeClosure  -> "LoweredMakeClosure"

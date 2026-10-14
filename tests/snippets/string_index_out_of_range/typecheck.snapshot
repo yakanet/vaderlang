@@ -2,13 +2,13 @@
 
 ## tests/snippets/string_index_out_of_range
   FnDecl         main                 :: fn() -> i32
-  expr 13:13    StringLitExpr  :: string
-  expr 15:11    IdentExpr      :: string
-  expr 15:11    IndexExpr      :: char
-  expr 15:16    IdentExpr      :: i32
-  expr 16:13    StringLitExpr  :: string
-  expr 16:16    CallExpr       :: i32
-  expr 16:16    IdentExpr      :: type
-  expr 16:20    IdentExpr      :: char
-  expr 16:5     CallExpr       :: void
-  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 11:13    StringLitExpr  :: string
+  expr 13:11    IdentExpr      :: string
+  expr 13:11    IndexExpr      :: char
+  expr 13:16    IdentExpr      :: usize
+  expr 14:13    StringLitExpr  :: string
+  expr 14:16    CallExpr       :: i32
+  expr 14:16    IdentExpr      :: type
+  expr 14:20    IdentExpr      :: char
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void

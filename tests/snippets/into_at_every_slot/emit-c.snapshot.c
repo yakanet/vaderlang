@@ -1336,13 +1336,13 @@ static vader_string_t std_string_trim(vader_string_t l0) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 325 "lib/std/string/string.vader"
+#line 316 "lib/std/string/string.vader"
     l1 = vader_host_std_core_bytes(l0);
-#line 326 "lib/std/string/string.vader"
+#line 317 "lib/std/string/string.vader"
     l2 = ((vader_array_t*) l1)->length;
-#line 327 "lib/std/string/string.vader"
+#line 318 "lib/std/string/string.vader"
     l3 = (size_t) 0;
-#line 328 "lib/std/string/string.vader"
+#line 319 "lib/std/string/string.vader"
     while ((l3 < l2)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
@@ -1356,7 +1356,7 @@ static vader_string_t std_string_trim(vader_string_t l0) {
         t3 = vader_chk_add(usize, l3, INT64_C(1));
         l3 = (size_t) (int64_t) t3;
     }
-#line 330 "lib/std/string/string.vader"
+#line 321 "lib/std/string/string.vader"
     while ((l2 > l3)) {
         t3 = vader_chk_sub(usize, l2, INT64_C(1));
         l4 = (size_t) (int64_t) t3;
@@ -1372,7 +1372,7 @@ static vader_string_t std_string_trim(vader_string_t l0) {
         t3 = vader_chk_sub(usize, l2, INT64_C(1));
         l2 = (size_t) (int64_t) t3;
     }
-#line 331 "lib/std/string/string.vader"
+#line 322 "lib/std/string/string.vader"
     vader_array_t* _a2_arr = vader_array_slice((vader_array_t*) l1, (size_t) l3, (size_t) l2);
     t4 = (void*) _a2_arr;
     t5 = vader_host_std_core_bytes_to_string(t4);
@@ -1381,7 +1381,7 @@ static vader_string_t std_string_trim(vader_string_t l0) {
 
 static bool std_string_is_white_byte(uint8_t l0) {
     bool l1;
-#line 174 "lib/std/string/string.vader"
+#line 165 "lib/std/string/string.vader"
     if (l0 == INT32_C(32)) {
         l1 = true;
     } else {

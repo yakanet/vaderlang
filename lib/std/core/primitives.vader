@@ -116,15 +116,15 @@ export finish_buffer :: fn(self: Buffer, len: usize) -> string = self.intern_str
 /// @error traps when `i >= byte_len(s)`, matching `s.bytes()[i]`.
 @intrinsic export byte_at :: fn(s: string, i: usize) -> u8
 
-/// The bytes of `s` from offset `start` up to `end`, excluded, as a string. Offsets
-/// count bytes, where `s[i]` counts codepoints. Like any slice, offsets past the
-/// end clamp to it, and an `end` before `start` gives the empty string.
+/// The bytes of `s` from offset `start` up to `end`, excluded, as a string: an
+/// `@intrinsic` slice of the interned atom, nothing copied. Offsets count bytes,
+/// where `s[i]` counts codepoints. Like any slice, offsets past the end clamp to
+/// it, and an `end` before `start` gives the empty string.
 ///
 /// @param s      source string.
 /// @param start  first byte offset, included.
 /// @param end    byte offset where the slice stops, excluded.
-export byte_slice :: fn(s: string, start: usize, end: usize) -> string =
-    s.bytes()[start..<end].bytes_to_string()
+@intrinsic export byte_slice :: fn(s: string, start: usize, end: usize) -> string
 
 /// Write `s`'s bytes at `off` ; return `off + s.bytes().len()`.
 export write_string_at :: fn(self: Buffer, off: usize, s: string) -> usize {
@@ -184,31 +184,6 @@ export write_bool :: fn(self: Buffer, off: usize, b: bool) -> usize {
     return self.write_string_at(off, "false")
 }
 
-/// Encode a Unicode codepoint to its UTF-8 bytes (pure arithmetic), for
-/// interning via `bytes_to_string` or appending into a byte buffer.
-/// @param c  the codepoint to encode (`u32(c)` ≤ `0x10FFFF`).
-/// @return   the 1–4 UTF-8 bytes encoding `c`.
-export utf8_encode :: fn(c: char) -> u8[] {
-    cp :: u32(c)
-    out: u8[]: []
-    if cp < 0x80 {
-        out.push(u8(cp))
-    } else if cp < 0x800 {
-        out.push(u8(0xC0 | (cp >> 6)))
-        out.push(u8(0x80 | (cp & 0x3F)))
-    } else if cp < 0x10000 {
-        out.push(u8(0xE0 | (cp >> 12)))
-        out.push(u8(0x80 | ((cp >> 6) & 0x3F)))
-        out.push(u8(0x80 | (cp & 0x3F)))
-    } else {
-        out.push(u8(0xF0 | (cp >> 18)))
-        out.push(u8(0x80 | ((cp >> 12) & 0x3F)))
-        out.push(u8(0x80 | ((cp >> 6) & 0x3F)))
-        out.push(u8(0x80 | (cp & 0x3F)))
-    }
-    return out
-}
-
 /// Materialise a `string` from verbatim UTF-8 bytes — the canonical bytes→string
 /// primitive (inverse of `bytes`). Host intrinsic backed by `vader_string_as_string`
 /// (the runtime symbol kept its name) ; O(1) on a borrowed `bytes()` slice, O(n) on
@@ -226,19 +201,6 @@ export utf8_encode :: fn(c: char) -> u8[] {
 /// @param s  source string.
 /// @return   a read-only `u8[]` over the UTF-8 bytes of `s`.
 @intrinsic export bytes :: fn(s: string) -> u8[]
-
-/// Codepoint length of `s` — the number of Unicode codepoints, not bytes.
-/// A core primitive of the `string` type (the auto-imported prelude), so
-/// `s.len()` works without importing `std/string`. Walks the UTF-8 bytes and
-/// counts the non-continuation bytes (those whose top two bits are not `10`),
-/// allocating no iterator. O(n) in the byte length.
-/// @param s  source string.
-/// @return   the codepoint count.
-export len :: fn(s: string) -> usize {
-    n: usize = 0
-    for b in s.bytes() { if (b & 0xC0) != 0x80 { n += 1 } }
-    return n
-}
 
 i8     implements Display -> format_signed(i64(self))
 i16    implements Display -> format_signed(i64(self))
@@ -461,10 +423,9 @@ f64 implements One -> 1.0
 // so no dedicated `StringConcat` op is needed. The `+` operator never reaches
 // this body : it is special-cased in the typechecker (`typecheck/binary.vader`
 // — `string + string -> string`) and lowered to the same StringBuilder chain
-// directly (`lower/lower_binary.vader`). `Index(usize, char)` returns the
-// Unicode codepoint at byte offset `i` — strings are immutable so there's no
-// `IndexSet` to pair with. Number formatting (`to_hex`, `to_bin`) lives in
-// `std/numbers` so it can use `std/string_builder`.
+// directly (`lower/lower_binary.vader`). `s[i]` and `s[lo..<hi]` are in
+// `utf8.vader`; strings are immutable, so there is no `IndexSet`. Number
+// formatting (`to_hex`, `to_bin`) lives in `std/numbers` so it can use
+// `std/string_builder`.
 
 string implements Add -> "${self}${other}"
-@intrinsic string implements Index<usize, char>

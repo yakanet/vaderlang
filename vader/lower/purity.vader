@@ -79,7 +79,7 @@ new_purity_ctx :: fn(project: LoweredProject) -> PurityCtx! {
 //     `push`: may allocate and change a length, a call to a pure fn excepted
 //     (`call_may_disturb`);
 //   - an ALLOCATION (`LoweredArrayLit` / `StructLit` / `CellNew` / `MakeClosure` /
-//     `ArraySlice` / `StringSlice`), save a tuple literal within the value ABI
+//     `ArraySlice`), save a tuple literal within the value ABI
 //     (`value_abi_type_size`), which crosses in registers (c_emit still re-checks
 //     the push cache on the op stream that ships);
 //   - a SUSPEND point (`yield` / `await`): on resume a GC may have run, or another
@@ -128,7 +128,7 @@ expr_may_disturb :: fn(ctx: PurityCtx, e: LoweredExpr) -> bool = match e {
     is LoweredCall -> call_may_disturb(ctx, e)
     is LoweredVirtualCall | LoweredIntrinsicCall | LoweredArrayPush -> true
     is LoweredArrayLit | LoweredCellNew | LoweredMakeClosure -> true
-    is LoweredArraySlice | LoweredStringSlice -> true
+    is LoweredArraySlice -> true
     // A tuple of primitives within the value ABI crosses in registers, never on
     // the heap; any other struct literal allocates.
     is LoweredStructLit -> value_abi_type_size(e.type) < 0 || fields_may_disturb(ctx, e.fields)

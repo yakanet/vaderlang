@@ -83,6 +83,22 @@
             }
           },
           {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
+            "type": {
+              "kind": "IdentExpr",
+              "name": "usize"
+            },
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "6n"
+            }
+          },
+          {
             "kind": "ForStmt",
             "label": null,
             "form": {
@@ -96,8 +112,8 @@
                   "value": "0n"
                 },
                 "upper": {
-                  "kind": "IntLitExpr",
-                  "value": "6n"
+                  "kind": "IdentExpr",
+                  "name": "n"
                 }
               }
             },

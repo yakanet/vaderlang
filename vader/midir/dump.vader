@@ -92,7 +92,6 @@ dump_instr :: fn(ins: Instruction) -> string {
         is InstrArrayLen    -> { return "%${ins.dst} = array_len %${ins.target}" }
         is InstrArrayPush   -> { return "array_push %${ins.target}, %${ins.value}" }
         is InstrArraySlice  -> { return "%${ins.dst} = array_slice %${ins.target}[%${ins.lo}..%${ins.hi}] :${display_type(ins.type)}" }
-        is InstrStringSlice -> { return "%${ins.dst} = string_slice_cp %${ins.target}[%${ins.lo}..%${ins.hi}] :${display_type(ins.type)}" }
         is InstrStructNew   -> {
             tag :: if ins.stack { "[stack]" } else { "" }
             args :: dump_args(ins.fields)

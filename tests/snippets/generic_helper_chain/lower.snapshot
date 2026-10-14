@@ -61,7 +61,7 @@
   struct snippet$Box__i32 { value: i32 }
   struct snippet$Box__string { value: string }
   struct snippet$Box__Box_i32_ { value: Any }
-  struct snippet$Box__Box_string_ { value: Any }
+  struct snippet$Box__Box_string_ { value: Box<string> }
   fn snippet$inner__i32(x: i32) -> i32
     return x :i32
   fn snippet$inner__string(x: string) -> string
@@ -98,7 +98,7 @@
       }
   fn snippet$outer__string(x: string) -> Box<Box<string>>
     return
-      Box<Box<Any>>! {
+      Box<Box<string>>! {
         value:
           call :Box<string>
             callee:

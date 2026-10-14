@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$main() -> i32
     let word: string = "abc" :string
-    let idx: i32 = int(10) :i32
+    let idx: usize = int(10) :usize
     let ch: char =
       call :char
         callee:
@@ -11,7 +11,7 @@
         arg0:
           word :string
         arg1:
-          idx :i32
+          idx :usize
     call :void
       callee:
         std_io$println__string :void

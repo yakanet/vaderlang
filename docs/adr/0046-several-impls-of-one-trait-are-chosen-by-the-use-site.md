@@ -9,6 +9,10 @@ call-site record names at the use site, which the lowering calls ; the per-node
 tables below (`picked_impl_members`, `picked_index_writes`,
 `bounded_dispatch_args`) are gone, and so is the lookup by name.
 
+**Amended by [0061](0061-a-strings-codepoints-are-read-in-vader.md) (2026-10-14)**:
+`lib/` now implements `Index` twice on `string`, so the first consequence below no
+longer holds, and the instances built from `string` stay concrete.
+
 ## Context
 
 A receiver may implement one trait several times at different arguments:

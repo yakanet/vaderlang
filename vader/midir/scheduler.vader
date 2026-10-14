@@ -126,7 +126,6 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
         is InstrArrayLen    -> { return ins.target }
         is InstrArrayPush   -> { return ins.target }
         is InstrArraySlice  -> { return ins.target }
-        is InstrStringSlice -> { return ins.target }
         is InstrStructNew   -> { if ins.fields.len() > 0 { return ins.fields[0] }
             return null }
         is InstrArrayNew -> { if ins.elements.len() > 0 { return ins.elements[0] }

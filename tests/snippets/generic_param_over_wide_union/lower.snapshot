@@ -195,17 +195,17 @@
               arg1:
                 __off_4 :usize
     return int(0) :i32
-  fn snippet$first_present__i32___string(xs: (Any | null)[]) -> Any | null
+  fn snippet$first_present__i32___string(xs: (i32 | null | string)[]) -> i32 | null | string
     block :void
-      let __for_arr_0: (Any | null)[] = xs :(Any | null)[]
+      let __for_arr_0: (i32 | null | string)[] = xs :(i32 | null | string)[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
       loop while (<…>)
-        let x: Any | null =
-          index :Any | null
+        let x: i32 | null | string =
+          index :i32 | null | string
             on:
-              __for_arr_0 :(Any | null)[]
+              __for_arr_0 :(i32 | null | string)[]
             ix:
               __for_i_2 :usize
         ~>
@@ -213,11 +213,11 @@
             cond:
               not :bool
                 is null :bool
-                  x :Any | null
+                  x :i32 | null | string
             then:
               return
-                cast → Any
-                  x :Any | null
+                cast → i32 | string
+                  x :i32 | null | string
       step
         assign
           target:

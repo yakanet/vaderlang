@@ -391,8 +391,8 @@ pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = matc
     is bc.NullConst -> TAGS_NULL
     is bc.CheckedArith | bc.CheckedNeg -> integer_tags(op.kind)
     is bc.StringConst | bc.DataConst | bc.TypeConst | bc.FnRef | bc.FnAddr | bc.MakeClosure
-     | bc.StructNew | bc.ArrayNew | bc.ArrayRepeat | bc.ArraySlice | bc.StringSliceCodepoints
-     | bc.BufferNew | bc.BufferToString -> TAGS_REF
+     | bc.StructNew | bc.ArrayNew | bc.ArrayRepeat | bc.ArraySlice | bc.BufferNew
+     | bc.BufferToString -> TAGS_REF
     is bc.LocalGet -> state[usize(op.slot)]
     is bc.LocalTee | bc.Retag -> top
     // No run-time check: a target that no incoming tag reaches marks a dead path,
@@ -456,7 +456,6 @@ accepted_tags :: fn(op: bc.Op, back: usize) -> u8 | null = match op {
      | bc.ArraySlice | bc.DataConst | bc.RefCast | bc.Retag | bc.Convert | bc.TypeCheck
      | bc.TypeConst | bc.DeferPush | bc.DeferPopExec | bc.SizeOfType | bc.BoolEq | bc.BoolNe
      | bc.BoolAnd | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.StringCompare
-     | bc.StringSliceCodepoints
      | bc.RefEq | bc.RefNe | bc.Drop | bc.Block | bc.Loop | bc.If | bc.Else | bc.End | bc.Branch
      | bc.BranchIf | bc.Return | bc.ReturnLit | bc.BufferNew | bc.LoadU8 | bc.LoadI32 | bc.LoadI64
      | bc.LoadF64 | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.MemoryCopy

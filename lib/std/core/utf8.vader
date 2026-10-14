@@ -1,0 +1,220 @@
+// std/core/utf8 — a string's codepoints, over its bytes.
+//
+// The UTF-8 encoder and decoder, the codepoint count `len`, and the codepoint walk
+// behind `s[i]` and `s[lo..<hi]`, written over the three string primitives every
+// backend provides: `byte_len`, `byte_at` and `byte_slice`. The rest of the codec
+// (widths of a `char`, surrogates, `chars`) is in `std/string`.
+
+module "std/core"
+
+// ---- constants ------------------------------------------------------------
+
+/// Unicode replacement character (U+FFFD): the standard stand-in for an
+/// undecodable byte or an unpaired UTF-16 surrogate.
+export REPLACEMENT_CHAR :: char(0xFFFD)
+
+// ---- byte classification --------------------------------------------------
+
+/// True when `b` is a UTF-8 continuation byte (`0x80..0xBF`): the trailing bytes
+/// of a multi-byte sequence, never a leading byte. Its complement identifies the
+/// bytes that start a codepoint, which is how codepoint columns are counted.
+export is_utf8_continuation :: fn(b: u8) -> bool = b >= 0x80 && b < 0xC0
+
+/// Byte length (1–4) of the UTF-8 codepoint led by `b`. A continuation or
+/// otherwise-invalid leading byte returns 1 so a malformed stream still advances
+/// one byte at a time rather than stalling. See `codepoint_byte_len` for the
+/// width from a `char` (the encode direction).
+export utf8_lead_len :: fn(b: u8) -> usize {
+    if b < 0x80 { return 1 }   // ASCII
+    if b < 0xC0 { return 1 }   // stray continuation byte: advance one, defensively
+    if b < 0xE0 { return 2 }
+    if b < 0xF0 { return 3 }
+    return 4
+}
+
+// ---- encode ---------------------------------------------------------------
+
+/// Encode a Unicode codepoint to its UTF-8 bytes (pure arithmetic), for
+/// interning via `bytes_to_string` or appending into a byte buffer.
+/// @param c  the codepoint to encode (`u32(c)` ≤ `0x10FFFF`).
+/// @return   the 1–4 UTF-8 bytes encoding `c`.
+export utf8_encode :: fn(c: char) -> u8[] {
+    cp :: u32(c)
+    out: u8[]: []
+    if cp < 0x80 {
+        out.push(u8(cp))
+    } else if cp < 0x800 {
+        out.push(u8(0xC0 | (cp >> 6)))
+        out.push(u8(0x80 | (cp & 0x3F)))
+    } else if cp < 0x10000 {
+        out.push(u8(0xE0 | (cp >> 12)))
+        out.push(u8(0x80 | ((cp >> 6) & 0x3F)))
+        out.push(u8(0x80 | (cp & 0x3F)))
+    } else {
+        out.push(u8(0xF0 | (cp >> 18)))
+        out.push(u8(0x80 | ((cp >> 12) & 0x3F)))
+        out.push(u8(0x80 | ((cp >> 6) & 0x3F)))
+        out.push(u8(0x80 | (cp & 0x3F)))
+    }
+    return out
+}
+
+// ---- decode ---------------------------------------------------------------
+
+/// Decode the UTF-8 codepoint at byte offset `i` of a string, read in place. A
+/// continuation byte at `i` decodes as `U+FFFD` ; a truncated multi-byte sequence
+/// as `U+0000`. The byte-cursor counterpart of `s[i]`, which indexes by codepoint.
+/// @param s  the source string.
+/// @param i  byte offset. Traps if `i >= s.byte_len()`.
+export char_at_byte :: fn(s: string, i: usize) -> char {
+    b :: s.byte_at(i)
+    if b < 0x80 {
+        return char(b)
+    }
+    return decode_tail(s, b, i)
+}
+
+// The non-ASCII half of `char_at_byte`: the codepoint the byte `b` at byte `i` of
+// `s` leads.
+decode_tail :: fn(s: string, b: u8, i: usize) -> char {
+    if b.is_utf8_continuation() {
+        return REPLACEMENT_CHAR
+    }
+    rem :: s.byte_len() - i
+    if b < 0xE0 {
+        if rem < 2 {
+            return char(0)
+        }
+        b1 :: s.byte_at(i + 1)
+        return char(((u32(b) & 0x1F) << 6) + (u32(b1) & 0x3F))
+    }
+    if b < 0xF0 {
+        if rem < 3 {
+            return char(0)
+        }
+        b1 :: s.byte_at(i + 1)
+        b2 :: s.byte_at(i + 2)
+        return char(((u32(b) & 0x0F) << 12) + ((u32(b1) & 0x3F) << 6) + (u32(b2) & 0x3F))
+    }
+    if rem < 4 {
+        return char(0)
+    }
+    b1 :: s.byte_at(i + 1)
+    b2 :: s.byte_at(i + 2)
+    b3 :: s.byte_at(i + 3)
+    return char(((u32(b) & 0x07) << 18) + ((u32(b1) & 0x3F) << 12) +
+        ((u32(b2) & 0x3F) << 6) + (u32(b3) & 0x3F))
+}
+
+// ---- codepoint index ------------------------------------------------------
+
+/// Codepoint length of `s`: the number of Unicode codepoints, not bytes. In the
+/// prelude, so `s.len()` works without importing `std/string`. Walks the UTF-8
+/// bytes and counts the non-continuation bytes (those whose top two bits are not
+/// `10`), allocating no iterator. O(n) in the byte length.
+/// @param s  source string.
+/// @return   the codepoint count.
+export len :: fn(s: string) -> usize {
+    n: usize = 0
+    for b in s.bytes() {
+        if (b & 0xC0) != 0x80 {
+            n += 1
+        }
+    }
+    return n
+}
+
+// The byte offset `count` codepoints past byte `start` of `s`, clamped to its end: a
+// codepoint spans the width its lead byte announces, a stray continuation byte one.
+codepoint_offset :: fn(s: string, start: usize, count: usize) -> usize {
+    n :: s.byte_len()
+    i := start
+    k: usize = 0
+    for i < n && k < count {
+        i += utf8_lead_len(s.byte_at(i))
+        k += 1
+    }
+    if i > n {
+        return n
+    }
+    return i
+}
+
+// The codepoints `r` spans, none when it ends before it starts.
+codepoint_count :: fn(r: Range<usize>) -> usize {
+    end := r.end
+    if r.inclusive {
+        end += 1
+    }
+    if end < r.start {
+        return 0
+    }
+    return end - r.start
+}
+
+/// `s[i]`: the codepoint at codepoint index `i`, found by walking `s` from its
+/// start. Traps past the last codepoint, where the walk lands on the length.
+string implements Index<usize, char> {
+    at :: fn(self, i: usize) -> char = self.char_at_byte(codepoint_offset(self, 0, i))
+}
+
+/// `s[lo..<hi]` and `s[lo..=hi]`: the codepoints of a range, as a string. Bounds past
+/// the end clamp to it, and a range ending before it starts gives the empty string.
+string implements Index<Range<usize>, string> {
+    at :: fn(self, r: Range<usize>) -> string {
+        lo :: codepoint_offset(self, 0, r.start)
+        return self.byte_slice(lo, codepoint_offset(self, lo, codepoint_count(r)))
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_utf8_lead_len :: fn() -> void {
+    assert_eq(utf8_lead_len(0x41), 1)   // 'A'
+    assert_eq(utf8_lead_len(0xC3), 2)   // 'é' lead byte
+    assert_eq(utf8_lead_len(0xE2), 3)   // 3-byte lead
+    assert_eq(utf8_lead_len(0xF0), 4)   // 4-byte (astral) lead
+    assert_eq(utf8_lead_len(0x80), 1)   // stray continuation byte → 1
+}
+
+@test test_is_utf8_continuation :: fn() -> void {
+    assert(!is_utf8_continuation(0x41), "ASCII is not a continuation byte")
+    assert(!is_utf8_continuation(0xC3), "a leading byte is not a continuation byte")
+    assert(is_utf8_continuation(0xA9), "0xA9 is a continuation byte")
+}
+
+@test test_char_at_byte :: fn() -> void {
+    // "héllo" = h C3 A9 l l o : offset 1 is the lead byte of 'é'.
+    assert_eq(char_at_byte("héllo", 0), 'h')
+    assert_eq(char_at_byte("héllo", 1), 'é')
+    // Offset 2 lands on a continuation byte → U+FFFD.
+    assert_eq(char_at_byte("héllo", 2), REPLACEMENT_CHAR)
+}
+
+@test test_char_at_byte_every_width :: fn() -> void {
+    // "€😀" = E2 82 AC F0 9F 98 80.
+    assert_eq(char_at_byte("€😀", 0), '€')
+    assert_eq(char_at_byte("€😀", 3), '😀')
+}
+
+@test test_char_at_byte_truncated :: fn() -> void {
+    // A three-byte lead with one byte left after it.
+    assert_eq(char_at_byte(bytes_to_string([0x61, 0xE2, 0x82]), 1), char(0))
+}
+
+@test test_string_index_every_width :: fn() -> void {
+    // "aé€😀": one codepoint of each UTF-8 width.
+    assert_eq("aé€😀"[0], 'a')
+    assert_eq("aé€😀"[1], 'é')
+    assert_eq("aé€😀"[2], '€')
+    assert_eq("aé€😀"[3], '😀')
+}
+
+@test test_string_slice_by_codepoints :: fn() -> void {
+    assert_eq("aé€😀"[1..<3], "é€")
+    assert_eq("aé€😀"[1..=3], "é€😀")
+    assert_eq("aé€😀"[2..<99], "€😀")
+    assert_eq("aé€😀"[3..<1], "")
+}

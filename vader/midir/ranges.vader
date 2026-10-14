@@ -194,7 +194,7 @@ transfer :: fn(ctx: RangeContext, s: RangeState, ins: Instruction) -> void {
         // A value the analysis does not follow.
         is InstrCall | InstrCallIndirect | InstrVirtualCall | InstrIntrinsic | InstrDeferPopExec
             | InstrFnRef | InstrFnAddr | InstrFieldGet | InstrFieldSet | InstrArrayGet
-            | InstrArraySet | InstrArrayPush | InstrArraySlice | InstrStringSlice | InstrStructNew
+            | InstrArraySet | InstrArrayPush | InstrArraySlice | InstrStructNew
             | InstrArrayNew | InstrDataConst | InstrTypeCheck | InstrTypeConst | InstrCellNew
             | InstrCellGet | InstrCellSet | InstrMakeClosure | InstrDeferPush -> {
             forget_written(s, ins)

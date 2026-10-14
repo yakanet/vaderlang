@@ -9,7 +9,7 @@ import "vader/types"
 AST :: import "toolchain/ast"
 
 /// Type-check the read `target[index]` : an array's element, a bound's or an impl's
-/// `Index` result, a string's `char`, a slice for a `Range` index.
+/// `Index` result, a slice for a `Range` index on an array.
 export infer_index :: fn(
     e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
@@ -21,35 +21,16 @@ export infer_index :: fn(
     dispatched :: dispatched_index_args(e, target, index_trait, typed, diags)
     // Pin a free-literal index key to the key type K so `m[9000000000]` on a
     // `MutableMap<i64, _>` doesn't default to i32 and silently truncate. `null` for
-    // arrays/strings — the index there is just an integer.
+    // an array, whose index is just an integer.
     key_ty :: if dispatched != null {
         dispatched[0]
     } else {
-        index_key_expected(target, index_trait, typed)
+        index_key_expected(e.index, target, index_trait, typed)
     }
     index :: check_expr_fn(e.index, key_ty, typed, diags)
     if target is UnresolvedType {
         record_site(typed, e, .IndexRead, ERRONEOUS_CALLEE)
         return TY_UNRESOLVED
-    }
-    // `"hello"[1]`: codepoint indexing on string returns char, through the
-    // `@intrinsic` member of `string implements Index`.
-    // `"hello"[r]` where `r: Range<T>`: codepoint slice returning string.
-    if target is PrimitiveType {
-        if target.name == "string" {
-            if is_range_type(index) {
-                record_site(typed, e, .IndexRead, BUILTIN_CALLEE)
-                return TY_STRING
-            }
-            record_site(
-                typed, e, .IndexRead, first_member_callee(typed, target, index_trait, METHOD_AT),
-            )
-            if !is_integer_index(index) {
-                diags.push(typecheck_error(.TypeMismatch, e.index.span,
-                    "string index must be an integer, got ${display_type(index)}"))
-            }
-            return mk_primitive("char")
-        }
     }
     // A `Range` index on an array, or on an array-backed distinct, slices it : no
     // impl of a distinct's own takes a `Range` key.
@@ -67,6 +48,9 @@ export infer_index :: fn(
         return dispatched[1]
     }
     picked :: pick_index_member(e, target, index_trait, index, typed, diags)
+    if picked is UnresolvedType {
+        return TY_UNRESOLVED
+    }
     if picked != null {
         _ :: reject_unmet_impl_bounds(target, index_trait, .TraitNotSatisfied, e.span, typed, diags)
         return picked.return_type
@@ -101,7 +85,7 @@ export infer_index :: fn(
 }
 
 // T3001 when the key of `x[k]` is no `key`, the key type the receiver's `Index` /
-// `IndexSet` takes ; a null `key` (an array, a string) asks nothing more.
+// `IndexSet` takes ; a null `key` (an array) asks nothing more.
 reject_index_key :: fn(
     index: AST.Expr, index_ty: Type, key: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
@@ -230,14 +214,23 @@ export bounded_trait_args :: fn(bound: AST.Expr, trait_key: string, typed: Typed
     return null
 }
 
-/// The key type K `target[k]` takes through its own impl of `trait_key`, or null for
-/// an array or a string, which take an integer, and a receiver with none. A receiver
+/// The key type K `target[index]` takes through its own impl of `trait_key`, or null
+/// for an array, which takes an integer, and a receiver with none. A receiver
 /// dispatching through the trait takes the trait's key (`dispatched_index_args`).
 /// It pins a free-literal key and judges any other (`reject_index_key`).
-index_key_expected :: fn(target: Type, trait_key: string, typed: TypedProgram) -> Type | null {
-    // Several impls take several keys : the key picks one (`pick_index_member`).
-    if trait_members(typed, target, trait_key, index_method(trait_key)).len() > 1 {
-        return null
+///
+/// @param index      the key expression.
+/// @param trait_key  `Index` for a read, `IndexSet` for a write.
+/// @return           with several impls, whose key picks one (`pick_index_member`):
+///                   the `Range` key of the only impl taking one when `index` is a
+///                   range literal, so its bounds settle to that key's integer, and
+///                   null otherwise.
+index_key_expected :: fn(
+    index: AST.Expr, target: Type, trait_key: string, typed: TypedProgram,
+) -> Type | null {
+    members :: trait_members(typed, target, trait_key, index_method(trait_key))
+    if members.len() > 1 {
+        return range_literal_key(index, members, target, typed)
     }
     keys :: if trait_key == core_trait_key(TRAIT_INDEX_SET) {
         typed.index_set_key_types
@@ -245,6 +238,27 @@ index_key_expected :: fn(target: Type, trait_key: string, typed: TypedProgram) -
         typed.index_key_types
     }
     return index_param(target, keys, typed)
+}
+
+// The `Range` key of the only member of `members` taking one, when `index` is a
+// range literal ; null otherwise.
+range_literal_key :: fn(
+    index: AST.Expr, members: ImplMethod[], target: Type, typed: TypedProgram,
+) -> Type | null {
+    if index !is AST.RangeExpr {
+        return null
+    }
+    ranges: Type[]: []
+    for m in members {
+        sig :: impl_member_type(m, target, typed)
+        if sig is FnType && sig.params.len() > 0 && is_range_type(sig.params[0]) {
+            ranges.push(sig.params[0])
+        }
+    }
+    if ranges.len() == 1 {
+        return ranges[0]
+    }
+    return null
 }
 
 // The member `x[i]` calls through `trait_key` : `at` for `Index`, `set_at` for
@@ -260,7 +274,8 @@ index_role :: fn(trait_key: string) -> CallRole =
 /// picks (`Index<i32, Row>` beside `Index<Point, Cell>`), its signature on
 /// `receiver` without the receiver. The member is filed as the site, which the
 /// lowering calls, the only one when one impl offers it. Null when at most one impl
-/// offers it, or none takes the key (T3001) or two do (T3032).
+/// offers it ; unresolved, the diagnostic filed, when none takes the key (T3001) or
+/// two do (T3032).
 ///
 /// @param trait_key  `Index` for a read, `IndexSet` for a write.
 pick_index_member :: fn(
@@ -270,7 +285,7 @@ pick_index_member :: fn(
     key_ty: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-) -> FnType | null {
+) -> FnType | UnresolvedType | null {
     members :: trait_members(typed, receiver, trait_key, index_method(trait_key))
     role :: index_role(trait_key)
     if members.len() == 1 {
@@ -284,26 +299,29 @@ pick_index_member :: fn(
         sigs.push(impl_member_type(m, receiver, typed))
     }
     pick :: pick_by_first_arg(sigs, key_ty, 1, typed)
-    impls :: "`${trait_key_name(trait_key)}` on ${display_type(receiver)}"
-    key :: "`${display_type(key_ty)}`"
-    if pick.rival != null {
-        diags.push(typecheck_error(
-            .AmbiguousOverload, e.index.span, "several impls of ${impls} take a key ${key}",
-        ))
-        record_site(typed, e, role, ERRONEOUS_CALLEE)
-        return null
-    }
     index :: pick.best
-    if index == null {
-        diags.push(typecheck_error(
-            .TypeMismatch, e.index.span, "no impl of ${impls} takes a key ${key}",
-        ))
+    if pick.rival != null || index == null {
+        impls :: "`${trait_key_name(trait_key)}` on ${display_type(receiver)}"
+        key :: "`${display_type(key_ty)}`"
+        diags.push(unpicked_index_error(pick.rival != null, e, impls, key))
         record_site(typed, e, role, ERRONEOUS_CALLEE)
-        return null
+        return TY_UNRESOLVED
     }
     record_site(typed, e, role, member_callee(members[index].decl, receiver))
     sig :: sigs[index]
     return if sig is FnType { sig } else { null }
+}
+
+// T3032 at the key of `e` when several impls take it, T3001 when none does.
+unpicked_index_error :: fn(
+    ambiguous: bool, e: AST.IndexExpr, impls: string, key: string,
+) -> Diagnostic {
+    if ambiguous {
+        return typecheck_error(
+            .AmbiguousOverload, e.index.span, "several impls of ${impls} take a key ${key}",
+        )
+    }
+    return typecheck_error(.TypeMismatch, e.index.span, "no impl of ${impls} takes a key ${key}")
 }
 
 /// Resolved write-value type V for an `m[k] = v` target, or null when

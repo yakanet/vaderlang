@@ -358,7 +358,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 }
 
 static uint64_t std_core_u8_Hash_hash(uint8_t l0) {
-#line 301 "lib/std/core/primitives.vader"
+#line 263 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (uint8_t) l0);
 }
 

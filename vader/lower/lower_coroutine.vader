@@ -807,7 +807,6 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr! {
         is LoweredArrayLen -> LoweredArrayLen { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target) }
         is LoweredArrayPush -> LoweredArrayPush { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .value = gb_route_expr(gb, e.value) }
         is LoweredArraySlice -> LoweredArraySlice { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .lo = gb_route_expr(gb, e.lo), .hi = gb_route_expr(gb, e.hi) }
-        is LoweredStringSlice -> LoweredStringSlice { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .lo = gb_route_expr(gb, e.lo), .hi = gb_route_expr(gb, e.hi) }
         is LoweredCast -> LoweredCast { .span = e.span, .type = e.type, .value = gb_route_expr(gb, e.value) }
         is LoweredTypeCheck -> LoweredTypeCheck { .span = e.span, .type = e.type, .value = gb_route_expr(gb, e.value), .check_type = e.check_type }
         is LoweredIntrinsicCall -> {

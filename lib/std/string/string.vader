@@ -128,15 +128,6 @@ string implements Contains<string> {
     contains :: fn(self, sub: string) -> bool { return byte_contains(self, sub) }
 }
 
-// `len` (codepoint count) moved to `std/core` (the prelude) so `s.len()`
-// resolves without importing `std/string`. It was the one string method the
-// typer hardcoded as a primitive (`primitive_method_type`) while the lowerer
-// could only reach it via free-fn UFCS over loaded modules — a mismatch that
-// miscompiled `s.len()` to invalid C unless std/string happened to be loaded.
-// Now a plain core free fn (byte-walk) ; callers drop it from their
-// `import "std/string"` lists. Part of the wider core/string/utf8 layering
-// reorg — see the header of `unicode.vader` for the frozen split.
-
 /// Comparator suitable for `sort(arr, compare_ascending)` : `a < b` as a
 /// function value — byte order, which is codepoint order in UTF-8.
 /// @param a  left string.

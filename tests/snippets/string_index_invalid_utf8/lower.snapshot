@@ -15,8 +15,9 @@
             int(100) :u8
             int(226) :u8
             int(130) :u8
+    let n: usize = int(6) :usize
     block :void
-      let i: i32 = int(0) :i32
+      let i: usize = int(0) :usize
       loop while (<…>)
         ~>
           call :void
@@ -30,17 +31,17 @@
                   arg0:
                     s :string
                   arg1:
-                    i :i32
+                    i :usize
       step
         assign
           target:
-            i :i32
+            i :usize
           value:
-            add :i32
+            add :usize
               l:
-                i :i32
+                i :usize
               r:
-                int(1) :i32
+                int(1) :usize
     call :void
       callee:
         std_io$println__usize :void
@@ -49,7 +50,19 @@
           callee:
             byte_len :usize
           arg0:
-            LoweredStringSlice
+            call :string
+              callee:
+                std_core$string$Index$at$1 :string
+              arg0:
+                s :string
+              arg1:
+                Range<usize>! {
+                  start: int(1) :usize
+                  end: int(3) :usize
+                  inclusive: false
+                  done: false
+                  cursor: int(1) :usize
+                }
     call :void
       callee:
         std_io$println__usize :void
@@ -58,7 +71,19 @@
           callee:
             byte_len :usize
           arg0:
-            LoweredStringSlice
+            call :string
+              callee:
+                std_core$string$Index$at$1 :string
+              arg0:
+                s :string
+              arg1:
+                Range<usize>! {
+                  start: int(2) :usize
+                  end: int(10) :usize
+                  inclusive: false
+                  done: false
+                  cursor: int(2) :usize
+                }
     call :void
       callee:
         std_io$println__usize :void
@@ -67,5 +92,17 @@
           callee:
             byte_len :usize
           arg0:
-            LoweredStringSlice
+            call :string
+              callee:
+                std_core$string$Index$at$1 :string
+              arg0:
+                s :string
+              arg1:
+                Range<usize>! {
+                  start: int(4) :usize
+                  end: int(2) :usize
+                  inclusive: false
+                  done: false
+                  cursor: int(4) :usize
+                }
     return int(0) :i32

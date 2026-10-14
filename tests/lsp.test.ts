@@ -1995,7 +1995,7 @@ test("lsp: goto-def reaches a method on a built-in receiver", async () => {
 
 // The other half of a built-in receiver, and the one that has NO owning
 // declaration to point at: `len(s: string)` is a free function in
-// `primitives.vader`, reached by UFCS, not a member of any trait. `type_symbol`
+// `utf8.vader`, reached by UFCS, not a member of any trait. `type_symbol`
 // declines on a primitive, so this used to fall through to the name-based
 // lookup — which is blind to the receiver's type and answered `array.vader`
 // (`ArrayOps.len`), because that is what the folder enumeration served first.
@@ -2017,7 +2017,7 @@ test("lsp: goto-def on a string receiver reaches the free fn, not the array trai
   ]);
   const loc = results[0]!.result as { uri: string } | null;
   expect(loc).not.toBeNull();
-  expect(loc!.uri.split("/").pop()).toBe("primitives.vader");
+  expect(loc!.uri.split("/").pop()).toBe("utf8.vader");
 });
 
 // Ctrl+click on a STRUCT FIELD. Only the struct's own name was indexed, so

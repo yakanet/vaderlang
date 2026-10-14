@@ -21,19 +21,19 @@
   __genstate_map<i32>
   __genstate_take<i32>
   __genstate_skip<i32>
-  JoinAll<E | U>
-  JoinAll<E | U>
-  JoinAll<T>
-  JoinAll<T>
-  JoinAll<T>
-  JoinAll<T>
-  TryJoinAll<U, E>
-  TryJoinAll<U, E>
-  TryJoinAll<U, E>
-  Race<T>
-  Race<T>
-  Race<T>
   ArrayOps<T>
+  JoinAll<E | U>
+  JoinAll<E | U>
+  JoinAll<T>
+  JoinAll<T>
+  JoinAll<T>
+  JoinAll<T>
+  TryJoinAll<U, E>
+  TryJoinAll<U, E>
+  TryJoinAll<U, E>
+  Race<T>
+  Race<T>
+  Race<T>
   JoinAny<U, E>
   JoinAny<U, E>
   JoinAny<U, E>

@@ -627,7 +627,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 }
 
 static uint64_t std_core_usize_Hash_hash(size_t l0) {
-#line 305 "lib/std/core/primitives.vader"
+#line 267 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (size_t) l0);
 }
 

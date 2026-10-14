@@ -792,13 +792,45 @@
           a :f64
         r:
           b :f64
-  fn snippet$same__f64___string(a: Any, b: Any) -> bool
+  fn snippet$same__f64___string(a: f64 | string, b: f64 | string) -> bool
     ~>
-      vcall std_core$Equals.equals :bool
-        recv:
-          a :Any
-        arg0:
-          b :Any
+      or :bool
+        l:
+          and :bool
+            l:
+              and :bool
+                l:
+                  is f64 :bool
+                    a :f64 | string
+                r:
+                  is f64 :bool
+                    b :f64 | string
+            r:
+              eq :bool
+                l:
+                  cast → f64
+                    a :f64 | string
+                r:
+                  cast → f64
+                    b :f64 | string
+        r:
+          and :bool
+            l:
+              and :bool
+                l:
+                  is string :bool
+                    a :f64 | string
+                r:
+                  is string :bool
+                    b :f64 | string
+            r:
+              eq :bool
+                l:
+                  cast → string
+                    a :f64 | string
+                r:
+                  cast → string
+                    b :f64 | string
   fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
     let c0: usize =
       call :usize

@@ -112,11 +112,6 @@ for_each_lowered_expr :: fn(e: LoweredExpr, visit: fn(Type) -> void) -> void {
             for_each_lowered_expr(e.lo, visit)
             for_each_lowered_expr(e.hi, visit)
         }
-        is LoweredStringSlice -> {
-            for_each_lowered_expr(e.target, visit)
-            for_each_lowered_expr(e.lo, visit)
-            for_each_lowered_expr(e.hi, visit)
-        }
         is LoweredCast -> { for_each_lowered_expr(e.value, visit) }
         is LoweredTypeCheck -> {
             for_each_lowered_expr(e.value, visit)
@@ -265,11 +260,6 @@ ref_expr :: fn(e: LoweredExpr, visit_fn: fn(i32, string) -> void, visit_virtual:
             ref_expr(e.lo, visit_fn, visit_virtual)
             ref_expr(e.hi, visit_fn, visit_virtual)
         }
-        is LoweredStringSlice -> {
-            ref_expr(e.target, visit_fn, visit_virtual)
-            ref_expr(e.lo, visit_fn, visit_virtual)
-            ref_expr(e.hi, visit_fn, visit_virtual)
-        }
         is LoweredCast -> ref_expr(e.value, visit_fn, visit_virtual)
         is LoweredTypeCheck -> ref_expr(e.value, visit_fn, visit_virtual)
         is LoweredIntrinsicCall -> { for a in e.args { ref_expr(a, visit_fn, visit_virtual) } }
@@ -394,11 +384,6 @@ stmt_node_expr :: fn(e: LoweredExpr, visit: fn(LoweredStmt) -> void) -> void {
             stmt_node_expr(e.value, visit)
         }
         is LoweredArraySlice -> {
-            stmt_node_expr(e.target, visit)
-            stmt_node_expr(e.lo, visit)
-            stmt_node_expr(e.hi, visit)
-        }
-        is LoweredStringSlice -> {
             stmt_node_expr(e.target, visit)
             stmt_node_expr(e.lo, visit)
             stmt_node_expr(e.hi, visit)

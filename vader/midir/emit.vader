@@ -1272,14 +1272,6 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         emit_result(ctx, pos, ins.dst, ins.span)
         return
     }
-    if ins is InstrStringSlice {
-        emit_first_get(ctx, pos, ins.target, ins.span)
-        emit_get(ctx, ins.lo, ins.span)
-        emit_get(ctx, ins.hi, ins.span)
-        push_emit(ctx, StringSliceCodepoints {}, ins.span)
-        emit_result(ctx, pos, ins.dst, ins.span)
-        return
-    }
     if ins is InstrStructNew {
         type_index :: intern_type(ins.type, ctx.project)
         emit_operands_into(ctx, pos, ins.fields, union_fields_of(ctx.project, type_index), ins.span)

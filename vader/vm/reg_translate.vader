@@ -441,7 +441,7 @@ is_boxed :: fn(op: bc.Op) = op is bc.FnRef | bc.MakeClosure | bc.StructNew | bc.
     | bc.ArrayRepeat | bc.ArrayPushAll | bc.ArrayCopy | bc.ArrayRemoveLast | bc.ArrayClear | bc.DataConst
     | bc.Convert | bc.SizeOfType | bc.I32Eq | bc.I32Ne | bc.BoolEq | bc.BoolNe
     | bc.BoolAnd | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.StringCompare
-    | bc.StringSliceCodepoints | bc.RefEq
+    | bc.RefEq
     | bc.RefNe | bc.TypeCheck | bc.TypeConst | bc.BufferNew | bc.LoadU8 | bc.LoadI32 | bc.LoadI64
     | bc.LoadF64 | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.MemoryCopy
     | bc.BufferToString | bc.BufferWriteString | bc.F64ToBits | bc.BitsToF64 | bc.F32ToBits | bc.BitsToF32

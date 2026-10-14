@@ -193,7 +193,7 @@ drop_bound_for_local :: fn(s: FnState, slot: i32) -> void {
 op_may_collect :: fn(op: vm.Op, import_may_collect: bool[]) -> bool = match op {
     is vm.StructNew -> !op.stack
     is vm.CallImport -> import_may_collect[usize(op.index)]
-    is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.StringSliceCodepoints | vm.BufferToString | vm.MakeClosure | vm.CallIndirect | vm.VirtualCall | vm.FnAddr -> true
+    is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.BufferToString | vm.MakeClosure | vm.CallIndirect | vm.VirtualCall | vm.FnAddr -> true
     is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Retag | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.StringCompare | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear | vm.CheckedArith | vm.CheckedNeg -> false
 }
 
@@ -622,7 +622,6 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.StringEq              -> push_cmp(s, .Equal, .String)
         is vm.StringNe              -> push_cmp(s, .NotEqual, .String)
         is vm.StringCompare         -> emit_string_compare(s)
-        is vm.StringSliceCodepoints -> emit_string_slice(s)
         is vm.RefEq                 -> push_binop_any(s, .Equal, .Bool)
         is vm.RefNe                 -> push_binop_any(s, .NotEqual, .Bool)
         is vm.DeferPush             -> emit_defer_push(s)
@@ -2849,12 +2848,10 @@ array_element_tag :: fn(types: BcType[], type_index: i32) -> i32 {
 // ---- strings --------------------------------------------------------------
 //
 // Strings are interned atoms (`vader_string_t` = `u32`), so `string.eq` / `.ne`
-// are plain `==` / `!=` (atom identity == value equality). Codepoint slicing
-// (`s[lo..<hi]`) routes to `vader_string_slice_codepoints` (a kept zero-copy
-// atom-slice primitive ; `emit_string_slice`). Concatenation (`+`), `Display`,
-// and `${…}` interpolation are now pure Vader (StringBuilder over a byte
-// `Buffer`) — no string/builder runtime family here anymore. `ref.eq` compares
-// boxed `ref` / `any` via `vader_box_eq`.
+// are plain `==` / `!=` (atom identity == value equality). Codepoint access
+// (`s[i]`, `s[lo..<hi]`) is Vader over the `byte_*` host intrinsics;
+// concatenation (`+`), `Display` and `${…}` interpolation are Vader over a byte
+// `Buffer`. `ref.eq` compares boxed `ref` / `any` via `vader_box_eq`.
 
 /// Push a boxed-reference equality (`ref.eq` / `ref.ne`). Two boxes compare
 /// through `vader_box_eq` (tag + payload word), since C can't compare
@@ -2889,20 +2886,4 @@ emit_string_compare :: fn(s: FnState) -> void {
     left :: pop(s)
     arguments :: [operand_as(s, left, .String), operand_as(s, right, .String)]
     push_expr(s, .I32, call("vader_string_compare", arguments))
-}
-
-/// `string.slice_codepoints` — pop string + lo + hi, push the codepoint
-/// substring (a fresh interned string).
-emit_string_slice :: fn(s: FnState) -> void {
-    hi :: pop(s)
-    lo :: pop(s)
-    str :: pop(s)
-    push_into_temporary(
-        s,
-        call(
-            "vader_string_slice_codepoints",
-            [expression_of(str), expression_of(lo), expression_of(hi)],
-        ),
-        .String,
-    )
 }

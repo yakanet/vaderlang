@@ -258,12 +258,12 @@ static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
 }
 
 static uint64_t std_core_i32_Hash_hash(int32_t l0) {
-#line 298 "lib/std/core/primitives.vader"
+#line 260 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
 }
 
 static uint64_t std_core_usize_Hash_hash(size_t l0) {
-#line 305 "lib/std/core/primitives.vader"
+#line 267 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (size_t) l0);
 }
 

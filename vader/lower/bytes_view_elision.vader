@@ -315,11 +315,6 @@ bve_analyze_expr :: fn(e: LoweredExpr, ctx: BveCtx) -> void {
             bve_analyze_expr(e.lo, ctx)
             bve_analyze_expr(e.hi, ctx)
         }
-        is LoweredStringSlice -> {
-            bve_analyze_expr(e.target, ctx)
-            bve_analyze_expr(e.lo, ctx)
-            bve_analyze_expr(e.hi, ctx)
-        }
         is LoweredCast -> { bve_analyze_expr(e.value, ctx) }
         is LoweredTypeCheck -> { bve_analyze_expr(e.value, ctx) }
         is LoweredIntrinsicCall -> {
@@ -494,12 +489,6 @@ bve_rewrite_expr :: fn(e: LoweredExpr, ctx: BveCtx) -> LoweredExpr! {
             return e
         }
         is LoweredArraySlice -> {
-            e.target = bve_rewrite_expr(e.target, ctx)
-            e.lo = bve_rewrite_expr(e.lo, ctx)
-            e.hi = bve_rewrite_expr(e.hi, ctx)
-            return e
-        }
-        is LoweredStringSlice -> {
             e.target = bve_rewrite_expr(e.target, ctx)
             e.lo = bve_rewrite_expr(e.lo, ctx)
             e.hi = bve_rewrite_expr(e.hi, ctx)

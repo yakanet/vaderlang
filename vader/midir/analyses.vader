@@ -60,7 +60,7 @@ export instruction_runs_code :: fn(ins: Instruction) -> bool = match ins {
     is InstrCall | InstrCallIndirect | InstrVirtualCall | InstrIntrinsic | InstrDeferPopExec -> true
     is InstrConst | InstrBinOp | InstrUnOp | InstrFnRef | InstrFnAddr | InstrFieldGet -> false
     is InstrFieldSet | InstrArrayGet | InstrArraySet | InstrArrayLen | InstrArrayPush -> false
-    is InstrArraySlice | InstrStringSlice | InstrStructNew | InstrArrayNew | InstrDataConst -> false
+    is InstrArraySlice | InstrStructNew | InstrArrayNew | InstrDataConst -> false
     is InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet -> false
     is InstrCellSet | InstrMakeClosure | InstrMove | InstrDeferPush -> false
 }
@@ -108,11 +108,6 @@ export for_each_read_local :: fn(ins: Instruction, visit: fn(LocalId) -> void) -
             visit(ins.value)
         }
         is InstrArraySlice -> {
-            visit(ins.target)
-            visit(ins.lo)
-            visit(ins.hi)
-        }
-        is InstrStringSlice -> {
             visit(ins.target)
             visit(ins.lo)
             visit(ins.hi)
@@ -453,7 +448,6 @@ export dst_of :: fn(ins: Instruction) -> LocalId | null {
         is InstrArrayGet          -> { return ins.dst }
         is InstrArrayLen          -> { return ins.dst }
         is InstrArraySlice        -> { return ins.dst }
-        is InstrStringSlice       -> { return ins.dst }
         is InstrStructNew         -> { return ins.dst }
         is InstrArrayNew          -> { return ins.dst }
         is InstrTypeCheck         -> { return ins.dst }

@@ -1058,7 +1058,7 @@ index_write_slot :: fn(
     key_ty :: if dispatched != null {
         dispatched[0]
     } else {
-        index_key_expected(receiver_ty, set_trait, typed)
+        index_key_expected(ix.index, receiver_ty, set_trait, typed)
     }
     index_ty :: check_expr_fn(ix.index, key_ty, typed, diags)
     arr :: stored_array(receiver_ty, typed)
@@ -1100,6 +1100,9 @@ index_write_slot :: fn(
     }
     // Files the member, the only one or the one the key picks.
     picked :: pick_index_member(ix, receiver_ty, set_trait, index_ty, typed, diags)
+    if picked is UnresolvedType {
+        return null
+    }
     if picked != null && picked.params.len() > 1 {
         return picked.params[1]
     }

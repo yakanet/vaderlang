@@ -178,7 +178,7 @@ cf_expr_mentions :: fn(e: LoweredExpr, symbol_id: i32, kinds: CfMentionKinds) ->
     is LoweredArrayPush   ->
         (kinds.push_target && cf_expr_mentions(e.target, symbol_id, kinds))
             || cf_expr_mentions(e.value, symbol_id, kinds)
-    is LoweredArraySlice | LoweredStringSlice ->
+    is LoweredArraySlice ->
         cf_expr_mentions(e.target, symbol_id, kinds)
             || cf_expr_mentions(e.lo, symbol_id, kinds)
             || cf_expr_mentions(e.hi, symbol_id, kinds)

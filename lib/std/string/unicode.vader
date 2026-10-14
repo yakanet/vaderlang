@@ -1,46 +1,19 @@
-// std/string/unicode — the UTF-8 byte ↔ codepoint codec.
+// std/string/unicode — the codepoint side of the UTF-8 codec.
 //
-// The low-level Unicode primitives every byte-cursor consumer shares: decode a
-// codepoint at a byte offset, measure a sequence's width, classify a byte. Split
-// out of `string.vader` (same `module "std/string"`) so the codec has one home
-// instead of being reinvented in the lexer, the LSP, the JSON parser and regex.
-//
-// Layering (frozen 2026-06-16):
-// the *encoder* `utf8_encode` and the codepoint counter `len` stay in `std/core`
-// (the prelude — char's Display needs the encoder, and core imports nothing);
-// the *decoder* + width/classification helpers live here in `std/string`. The
-// richer codepoint-string API (`chars`, `StringChars`) stays in `string.vader`.
+// The width a `char` takes once encoded, a decode that answers that width
+// (`codepoint_at_byte`), and UTF-16 surrogates. The encoder, the decoder, the byte
+// classification, `len` and `s[i]` sit in the prelude (`std/core/utf8.vader`); the
+// codepoint iterator (`chars`, `StringChars`) in `string.vader`.
 
 module "std/string"
 
 // ---- constants ------------------------------------------------------------
 
-/// Unicode replacement character (U+FFFD) — the standard stand-in for an
-/// undecodable byte or an unpaired UTF-16 surrogate.
-export REPLACEMENT_CHAR :: char(0xFFFD)
-
 /// The highest valid Unicode scalar value (U+10FFFF). Codepoints above this are
 /// invalid ; `\u{...}` escapes past it are rejected, and encoders clamp to 4 bytes.
 export MAX_CODEPOINT :: char(0x10FFFF)
 
-// ---- byte classification --------------------------------------------------
-
-/// True when `b` is a UTF-8 continuation byte (`0x80..0xBF`) — the trailing bytes
-/// of a multi-byte sequence, never a leading byte. Its complement identifies the
-/// bytes that start a codepoint, which is how codepoint columns are counted.
-export is_utf8_continuation :: fn(b: u8) -> bool = b >= 0x80 && b < 0xC0
-
-/// Byte length (1–4) of the UTF-8 codepoint led by `b`. A continuation or
-/// otherwise-invalid leading byte returns 1 so a malformed stream still advances
-/// one byte at a time rather than stalling. See `codepoint_byte_len` for the
-/// width from a `char` (the encode direction).
-export utf8_lead_len :: fn(b: u8) -> usize {
-    if b < 0x80 { return 1 }   // ASCII
-    if b < 0xC0 { return 1 }   // stray continuation byte — advance one, defensively
-    if b < 0xE0 { return 2 }
-    if b < 0xF0 { return 3 }
-    return 4
-}
+// ---- widths ---------------------------------------------------------------
 
 /// UTF-8 encoded byte length (1–4) of codepoint `c`:
 ///   - `U+0000..U+007F`     → 1 byte
@@ -62,19 +35,6 @@ export codepoint_byte_len :: fn(c: char) -> usize {
 
 // ---- decode ---------------------------------------------------------------
 
-/// Decode the UTF-8 codepoint at byte offset `i` of a string, read in place. A
-/// continuation byte at `i` decodes as `U+FFFD` ; a truncated multi-byte sequence
-/// as `U+0000`. The byte-cursor counterpart of `s[i]`, which indexes by codepoint.
-/// @param s  the source string.
-/// @param i  byte offset. Traps if `i >= s.byte_len()`.
-export char_at_byte :: fn(s: string, i: usize) -> char {
-    b :: s.byte_at(i)
-    if b < 0x80 {
-        return char(b)
-    }
-    return decode_tail(s, b, i)
-}
-
 /// Decode the UTF-8 sequence at byte offset `i` of a string into a codepoint and
 /// its encoded byte length, read in place. Advance the caller's cursor by the
 /// returned `n` to land on the next leading byte.
@@ -84,38 +44,6 @@ export char_at_byte :: fn(s: string, i: usize) -> char {
 export codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize] {
     c :: s.char_at_byte(i)
     return [c, c.codepoint_byte_len()]
-}
-
-// The non-ASCII half of `char_at_byte`: the codepoint the byte `b` at byte `i` of
-// `s` leads.
-decode_tail :: fn(s: string, b: u8, i: usize) -> char {
-    if b.is_utf8_continuation() {
-        return REPLACEMENT_CHAR
-    }
-    rem :: s.byte_len() - i
-    if b < 0xE0 {
-        if rem < 2 {
-            return char(0)
-        }
-        b1 :: s.byte_at(i + 1)
-        return char(((u32(b) & 0x1F) << 6) + (u32(b1) & 0x3F))
-    }
-    if b < 0xF0 {
-        if rem < 3 {
-            return char(0)
-        }
-        b1 :: s.byte_at(i + 1)
-        b2 :: s.byte_at(i + 2)
-        return char(((u32(b) & 0x0F) << 12) + ((u32(b1) & 0x3F) << 6) + (u32(b2) & 0x3F))
-    }
-    if rem < 4 {
-        return char(0)
-    }
-    b1 :: s.byte_at(i + 1)
-    b2 :: s.byte_at(i + 2)
-    b3 :: s.byte_at(i + 3)
-    return char(((u32(b) & 0x07) << 18) + ((u32(b1) & 0x3F) << 12) +
-        ((u32(b2) & 0x3F) << 6) + (u32(b3) & 0x3F))
 }
 
 // ---- UTF-16 surrogates ----------------------------------------------------
@@ -158,43 +86,10 @@ export combine_surrogates :: fn(hi: char, lo: char) -> char =
 
 import "std/testing"
 
-@test test_utf8_lead_len :: fn() -> void {
-    assert_eq(utf8_lead_len(0x41), 1)   // 'A'
-    assert_eq(utf8_lead_len(0xC3), 2)   // 'é' lead byte
-    assert_eq(utf8_lead_len(0xE2), 3)   // 3-byte lead
-    assert_eq(utf8_lead_len(0xF0), 4)   // 4-byte (astral) lead
-    assert_eq(utf8_lead_len(0x80), 1)   // stray continuation byte → 1
-}
-
-@test test_is_utf8_continuation :: fn() -> void {
-    assert(!is_utf8_continuation(0x41), "ASCII is not a continuation byte")
-    assert(!is_utf8_continuation(0xC3), "a leading byte is not a continuation byte")
-    assert(is_utf8_continuation(0xA9), "0xA9 is a continuation byte")
-}
-
 @test test_codepoint_byte_len :: fn() -> void {
     assert_eq(codepoint_byte_len('A'), 1)
     assert_eq(codepoint_byte_len('é'), 2)
     assert_eq(codepoint_byte_len('😀'), 4)
-}
-
-@test test_char_at_byte :: fn() -> void {
-    // "héllo" = h C3 A9 l l o : offset 1 is the lead byte of 'é'.
-    assert_eq(char_at_byte("héllo", 0), 'h')
-    assert_eq(char_at_byte("héllo", 1), 'é')
-    // Offset 2 lands on a continuation byte → U+FFFD.
-    assert_eq(char_at_byte("héllo", 2), REPLACEMENT_CHAR)
-}
-
-@test test_char_at_byte_every_width :: fn() -> void {
-    // "€😀" = E2 82 AC F0 9F 98 80.
-    assert_eq(char_at_byte("€😀", 0), '€')
-    assert_eq(char_at_byte("€😀", 3), '😀')
-}
-
-@test test_char_at_byte_truncated :: fn() -> void {
-    // A three-byte lead with one byte left after it.
-    assert_eq(char_at_byte(bytes_to_string([0x61, 0xE2, 0x82]), 1), char(0))
 }
 
 @test test_codepoint_at_byte :: fn() -> void {

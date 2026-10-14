@@ -52,7 +52,10 @@
               "kind": "SimpleBinding",
               "name": "idx"
             },
-            "type": null,
+            "type": {
+              "kind": "IdentExpr",
+              "name": "usize"
+            },
             "value": {
               "kind": "IntLitExpr",
               "value": "10n"

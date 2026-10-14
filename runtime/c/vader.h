@@ -1455,9 +1455,10 @@ vader_array_t* vader_string_bytes_view(vader_string_t s, uint32_t arr_type, uint
  * packed bytes and interns a copy (O(n)). Bytes are taken verbatim, no UTF-8
  * validation. Backs `std/string::as_string`. */
 vader_string_t vader_string_as_string(vader_array_t* a);
-/* Codepoint-indexed counterparts. `vader_string_codepoint_at` traps
- * on OOB ; `vader_string_slice_codepoints` clamps. Both walk UTF-8
- * from the start (O(n) in the target index). */
+/* Called only by the bootstrap seed's C, which predates `s[i]` and `s[lo..<hi]`
+ * written in Vader: they go once the seed no longer calls them.
+ * `vader_string_codepoint_at` traps on OOB ; `vader_string_slice_codepoints`
+ * clamps. Both walk UTF-8 from the start (O(n) in the target index). */
 vader_char_t   vader_string_codepoint_at(vader_string_t s, size_t cp_index);
 vader_string_t vader_string_slice_codepoints(vader_string_t s, size_t cp_lo, size_t cp_hi);
 

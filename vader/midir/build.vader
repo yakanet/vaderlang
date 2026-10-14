@@ -805,7 +805,6 @@ build_expr :: fn(fn_ctx: FnCtx, e: LoweredExpr) -> LocalId | null {
         is LoweredArrayLen      -> { return build_array_len(fn_ctx, e) }
         is LoweredArrayPush     -> { return build_array_push(fn_ctx, e) }
         is LoweredArraySlice    -> { return build_array_slice(fn_ctx, e) }
-        is LoweredStringSlice   -> { return build_string_slice(fn_ctx, e) }
         is LoweredCellNew       -> { return build_cell_new(fn_ctx, e) }
         is LoweredCellGet       -> { return build_cell_get(fn_ctx, e) }
         is LoweredMakeClosure   -> { return build_make_closure(fn_ctx, e) }
@@ -1411,20 +1410,6 @@ build_array_slice :: fn(fn_ctx: FnCtx, e: LoweredArraySlice) -> LocalId | null {
     if hi is null { return null }
     dst :: fresh_tmp(fn_ctx, "slice", e.type)
     emit(fn_ctx, InstrArraySlice {
-        .dst = dst, .type = e.type, .target = target, .lo = lo, .hi = hi, .span = e.span,
-    })
-    return dst
-}
-
-build_string_slice :: fn(fn_ctx: FnCtx, e: LoweredStringSlice) -> LocalId | null {
-    target :: build_expr(fn_ctx, e.target)
-    lo :: build_expr(fn_ctx, e.lo)
-    hi :: build_expr(fn_ctx, e.hi)
-    if target is null { return null }
-    if lo is null { return null }
-    if hi is null { return null }
-    dst :: fresh_tmp(fn_ctx, "cp_slice", e.type)
-    emit(fn_ctx, InstrStringSlice {
         .dst = dst, .type = e.type, .target = target, .lo = lo, .hi = hi, .span = e.span,
     })
     return dst

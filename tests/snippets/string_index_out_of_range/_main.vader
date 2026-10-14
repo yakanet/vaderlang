@@ -1,9 +1,7 @@
-// Codepoint indexing past the end of a string traps on BOTH backends :
-// the VM's `.StringIndexAt` host arm (vader/vm/host.vader) and the
-// native `vader_string_codepoint_at` (runtime/c/vader_runtime.c) both raise
-// `string codepoint index out of bounds`. Regression guard for audit item B4 :
-// the VM previously baked U+0000 on an out-of-range index, silently diverging
-// from native (grave at comptime, where the NUL was baked into the program).
+// Codepoint indexing past the end of a string traps on BOTH backends: the walk
+// behind `s[i]` (`std/core/utf8.vader`) stops at the string's length, and reading
+// the byte there raises `byte index out of bounds`. The VM once baked U+0000 on an
+// out-of-range index, silently diverging from native code.
 
 module "snippet"
 
@@ -11,7 +9,7 @@ import "std/io"
 
 main :: fn() -> i32 {
     word :: "abc"
-    idx :: 10
+    idx: usize: 10
     ch :: word[idx]
     println("${i32(ch)}")
     return 0

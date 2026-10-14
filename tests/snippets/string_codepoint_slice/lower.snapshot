@@ -7,38 +7,122 @@
       callee:
         std_io$println__string :void
       arg0:
-        LoweredStringSlice
+        call :string
+          callee:
+            std_core$string$Index$at$1 :string
+          arg0:
+            s :string
+          arg1:
+            Range<usize>! {
+              start: int(0) :usize
+              end: int(2) :usize
+              inclusive: false
+              done: false
+              cursor: int(0) :usize
+            }
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        LoweredStringSlice
+        call :string
+          callee:
+            std_core$string$Index$at$1 :string
+          arg0:
+            s :string
+          arg1:
+            Range<usize>! {
+              start: int(1) :usize
+              end: int(3) :usize
+              inclusive: false
+              done: false
+              cursor: int(1) :usize
+            }
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        LoweredStringSlice
+        call :string
+          callee:
+            std_core$string$Index$at$1 :string
+          arg0:
+            s :string
+          arg1:
+            Range<usize>! {
+              start: int(0) :usize
+              end: int(5) :usize
+              inclusive: false
+              done: false
+              cursor: int(0) :usize
+            }
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        LoweredStringSlice
+        call :string
+          callee:
+            std_core$string$Index$at$1 :string
+          arg0:
+            s :string
+          arg1:
+            Range<usize>! {
+              start: int(2) :usize
+              end: int(4) :usize
+              inclusive: true
+              done: false
+              cursor: int(2) :usize
+            }
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        LoweredStringSlice
+        call :string
+          callee:
+            std_core$string$Index$at$1 :string
+          arg0:
+            s :string
+          arg1:
+            Range<usize>! {
+              start: int(0) :usize
+              end: int(99) :usize
+              inclusive: false
+              done: false
+              cursor: int(0) :usize
+            }
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        LoweredStringSlice
+        call :string
+          callee:
+            std_core$string$Index$at$1 :string
+          arg0:
+            s :string
+          arg1:
+            Range<usize>! {
+              start: int(99) :usize
+              end: int(99) :usize
+              inclusive: false
+              done: false
+              cursor: int(99) :usize
+            }
     let a: string = "hello" :string
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        LoweredStringSlice
+        call :string
+          callee:
+            std_core$string$Index$at$1 :string
+          arg0:
+            a :string
+          arg1:
+            Range<usize>! {
+              start: int(1) :usize
+              end: int(4) :usize
+              inclusive: false
+              done: false
+              cursor: int(1) :usize
+            }
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

@@ -239,24 +239,15 @@ lower_assign_target :: fn(ctx: FnLowerCtx, target: Expr) -> LoweredExpr! {
 
 // `arr[lo..<hi]` / `arr[lo..=hi]` over an array-typed receiver lowers
 // to `LoweredArraySlice` (zero-copy view). Other index expressions
-// (single-element access, user IndexExpr on structs) keep the
-// generic `LoweredIndex` shape.
+// (single-element access, an impl's `Index`) keep the generic
+// `LoweredIndex` shape or call the member the key picked.
 
 lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr! {
     target_type :: ctx.types.expr_type(expr.target)
-    is_range :: index_is_range(ctx, expr.index)
-    if is_range {
-        // `arr[r]` → zero-copy `LoweredArraySlice` ; `s[r]` (string) →
-        // codepoint-range `LoweredStringSlice`.
-        if array_backing(target_type) != null {
-            sliced :: try_lower_range_slice(ctx, expr, type, false)
-            if sliced != null { return observed(ctx, expr, .IndexRead, sliced) }
-        }
-        if target_type is PrimitiveType {
-            if target_type.name == "string" {
-                sliced :: try_lower_range_slice(ctx, expr, type, true)
-                if sliced != null { return observed(ctx, expr, .IndexRead, sliced) }
-            }
+    if array_backing(target_type) != null {
+        sliced :: try_lower_range_slice(ctx, expr, type)
+        if sliced != null {
+            return observed(ctx, expr, .IndexRead, sliced)
         }
     }
     // What the index calls, as the typecheck recorded it. A receiver dispatching
@@ -293,36 +284,22 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr! 
     return observed(ctx, expr, .IndexRead, element)
 }
 
-
-index_is_range :: fn(ctx: FnLowerCtx, index_expr: Expr) -> bool {
-    if index_expr is RangeExpr { return true }
-    idx_type :: ctx.types.expr_type(index_expr)
-    if idx_type is StructType { return idx_type.symbol.name == STRUCT_RANGE }
-    return false
-}
-
-// Build the slice node — `LoweredStringSlice` for codepoint-range string
-// slicing, `LoweredArraySlice` for the zero-copy array view. The two
-// share an identical shape ; only the runtime op downstream differs.
-mk_slice_node :: fn(as_string: bool, span: Span, type: Type, target: LoweredExpr, lo: LoweredExpr, hi: LoweredExpr) -> LoweredExpr! {
-    if as_string {
-        return LoweredStringSlice {
-            .span = span, .type = type, .target = target, .lo = lo, .hi = hi,
-        }
-    }
-    return LoweredArraySlice {
-        .span = span, .type = type, .target = target, .lo = lo, .hi = hi,
-    }
-}
-
-try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type, as_string: bool) -> LoweredExpr! | null {
+// The zero-copy view `arr[r]` for a `Range` index, literal or value ; null for any
+// other index.
+try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr! | null {
     match expr.index as range_lit {
         is RangeExpr -> {
             target_lowered :: lower_expr(ctx, expr.target)
             lo_value :: cast_to_usize(lower_expr(ctx, range_lit.lower), range_lit.span)
             hi_raw   :: cast_to_usize(lower_expr(ctx, range_lit.upper), range_lit.span)
             hi_value :: adjust_hi_inclusive(hi_raw, range_lit.inclusive, range_lit.span)
-            return mk_slice_node(as_string, expr.span, type, target_lowered, lo_value, hi_value)
+            return LoweredArraySlice {
+                .span = expr.span,
+                .type = type,
+                .target = target_lowered,
+                .lo = lo_value,
+                .hi = hi_value,
+            }
         }
         _            -> {}
     }
@@ -361,7 +338,13 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type, as_str
         stmts.push(range_binding)
         return LoweredBlock {
             .span = span, .type = type, .stmts = stmts,
-            .trailing = mk_slice_node(as_string, span, type, target, lo_value, hi_value),
+            .trailing = LoweredArraySlice {
+                .span = span,
+                .type = type,
+                .target = target,
+                .lo = lo_value,
+                .hi = hi_value,
+            },
         }
     }
     return null

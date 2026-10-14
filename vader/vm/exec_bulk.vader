@@ -139,24 +139,6 @@ exec_string_compare :: fn(frame: Frame) -> Trap | null {
     return null
 }
 
-/// `string.slice_codepoints` — a codepoint-indexed substring.
-exec_string_slice_codepoints :: fn(frame: Frame) -> Trap | null {
-    s_box  :: read_string(peek_val(frame, frame.sp - 3), frame.pc, "string.slice_codepoints receiver")
-    lo_box :: read_i32   (peek_val(frame, frame.sp - 2), frame.pc, "string.slice_codepoints lo")
-    hi_box :: read_i32   (peek_val(frame, frame.sp - 1), frame.pc, "string.slice_codepoints hi")
-    if s_box  is Trap { return s_box  }
-    if lo_box is Trap { return lo_box }
-    if hi_box is Trap { return hi_box }
-    // The VM's own native slice, so the VM walks the string as native code does:
-    // out-of-range bounds clamp to the codepoint count instead of trapping.
-    lo :: clamp_nonneg(i32(lo_box))
-    hi :: clamp_nonneg(i32(hi_box))
-    push_val(frame, frame.sp - 3, StringVal(string(s_box)[lo..<hi]))
-    frame.sp = frame.sp - 2
-    frame.pc = frame.pc + 1
-    return null
-}
-
 /// `buffer.write_string` — copy string bytes into a buffer at an offset.
 exec_buffer_write_string :: fn(frame: Frame) -> Trap | null {
     // Pop buffer + off + string ; memcpy the string's bytes into the

@@ -275,21 +275,25 @@ static size_t std_core_len(vader_string_t l0) {
     size_t l1, l2, l3;
     uint8_t t0;
     int64_t t1;
-#line 238 "lib/std/core/primitives.vader"
+#line 118 "lib/std/core/utf8.vader"
     l1 = (size_t) 0;
-#line 239 "lib/std/core/primitives.vader"
+#line 119 "lib/std/core/utf8.vader"
     l2 = vader_host_std_core_byte_len(l0);
     l3 = (size_t) 0;
     while ((l3 < l2)) {
         t0 = vader_host_std_core_byte_at(l0, l3);
+#line 120 "lib/std/core/utf8.vader"
         if ((t0 & INT32_C(192)) != INT32_C(128)) {
+#line 121 "lib/std/core/utf8.vader"
             t1 = vader_chk_add(usize, l1, INT64_C(1));
             l1 = (size_t) (int64_t) t1;
+#line 120 "lib/std/core/utf8.vader"
         }
+#line 119 "lib/std/core/utf8.vader"
         t1 = (l3 + INT64_C(1));
         l3 = (size_t) (int64_t) t1;
     }
-#line 240 "lib/std/core/primitives.vader"
+#line 124 "lib/std/core/utf8.vader"
     return l1;
 }
 

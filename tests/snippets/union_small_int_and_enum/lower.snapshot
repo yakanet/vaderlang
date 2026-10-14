@@ -304,11 +304,11 @@
           arg0:
             local :string | u8
     let seen: MutableSet<string | u8>! =
-      MutableSet<Any>! {
+      MutableSet<string | u8>! {
         inner:
-          MutableMap<Any, bool>! {
+          MutableMap<string | u8, bool>! {
             ekeys:
-              array :Any[]!
+              array :(string | u8)[]!
             evals:
               array :bool[]!
             index:

@@ -1,4 +1,4 @@
 # stderr
-vader vm: string codepoint index out of bounds
+vader vm: byte index out of bounds
 # exit
 1

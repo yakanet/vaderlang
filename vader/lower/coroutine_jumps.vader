@@ -174,12 +174,6 @@ gb_retarget_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr! = match e {
         .lo = gb_retarget_expr(gb, e.lo),
         .hi = gb_retarget_expr(gb, e.hi),
     }
-    is LoweredStringSlice -> LoweredStringSlice {
-        ...e,
-        .target = gb_retarget_expr(gb, e.target),
-        .lo = gb_retarget_expr(gb, e.lo),
-        .hi = gb_retarget_expr(gb, e.hi),
-    }
     is LoweredCellNew -> LoweredCellNew { ...e, .value = gb_retarget_expr(gb, e.value) }
     is LoweredCellGet -> LoweredCellGet { ...e, .target = gb_retarget_expr(gb, e.target) }
     is LoweredMakeClosure -> LoweredMakeClosure { ...e, .env = gb_retarget_expr(gb, e.env) }
