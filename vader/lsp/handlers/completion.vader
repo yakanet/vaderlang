@@ -43,17 +43,18 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
 
             // Member access (`receiver.<cursor>`) → Tier 2 : the receiver's
             // struct fields + impl methods, resolved through the typed cache.
-            dot :: member_context(idx.line_index, line0, char0)
+            li :: idx.line_index
+            dot :: member_context(li, line0, char0)
             if dot != null {
-                lead :: is_leading_dot(idx.line_index, line0, dot)
-                skey :: dot_after_brace_or_comma(idx.line_index, line0, dot)
-                return member_completion(state, uri, line0, dot, lead, skey)
+                lead :: is_leading_dot(li.source, dot)
+                skey :: dot_after_brace_or_comma(li.source, dot)
+                return member_completion(state, uri, line0, span_column(li, line0, dot), lead, skey)
             }
 
             // Tier 1 : in-scope identifiers + keywords. LSP positions are
             // 0-based ; the indexer's spans are 1-based.
             line :: line0 + 1
-            col  :: char0 + 1
+            col  :: lsp_span_column(li, line0, char0)
 
             items: JsonValue[]: []
             seen :: MutableMap<string, bool> {}
@@ -181,9 +182,9 @@ strip_binding_prefix :: fn(sig: string) -> string {
 
 /// Detect a member-access completion at the cursor. Scans back over any partial
 /// member identifier already typed ; if a `.` precedes it, returns that dot's
-/// 1-based column (the receiver ends just before it). Returns `null` when the
-/// cursor isn't completing a member. `line0` / `char0` are 0-based (LSP).
-member_context :: fn(li: LineIndex, line0: i32, char0: i32) -> i32 | null {
+/// byte offset in the source (the receiver ends just before it). Returns `null`
+/// when the cursor isn't completing a member. `line0` / `char0` are 0-based (LSP).
+member_context :: fn(li: LineIndex, line0: i32, char0: i32) -> usize | null {
     i := li_offset(li, line0, char0)
     if i > li.source.byte_len() { i = li.source.byte_len() }
     for i > 0 {
@@ -191,9 +192,7 @@ member_context :: fn(li: LineIndex, line0: i32, char0: i32) -> i32 | null {
     }
     if i == 0 { return null }
     if li.source.byte_at(i - 1) != '.' { return null }
-    dot_off :: i - 1
-    ls :: line_start_offset(li.source, dot_off)
-    return i32(dot_off - ls) + 1
+    return i - 1
 }
 
 // Member completions for `receiver.<cursor>` : the receiver's struct fields and
@@ -331,40 +330,34 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     return completion_list(items)
 }
 
-// True when the dot at 1-based `dot_col` on `line0` is a LEADING dot — an enum
-// literal `.Variant`, not a member access `recv.field`. Decided from the source
-// byte before the dot (skipping whitespace): a value end (`ident` / `)` / `]`)
-// means member access ; anything else (`(`, `,`, `=`, `{`, `>` from `->`, start
-// of input) means the dot opens an enum literal whose type comes from context.
-is_leading_dot :: fn(li: LineIndex, line0: i32, dot_col: i32) -> bool {
-    // The byte IMMEDIATELY before the dot (no whitespace skip): a member access
-    // is `recv.field` with the value glued to the dot, so a value end (ident /
-    // `)` / `]`) right before it means member access. A space / `(` / `=` / `{`
-    // / keyword-gap (`return .`) / start-of-input means a leading dot.
-    dot_off :: li_offset(li, line0, dot_col - 1)
+// True when the dot at byte `dot_off` is a LEADING dot, an enum literal `.Variant`,
+// not a member access `recv.field`. Decided from the byte IMMEDIATELY before the
+// dot, with no whitespace skip: a member access glues its value to the dot, so a
+// value end (ident, `)`, `]`) means member access; a space, `(`, `=`, `{`, a
+// keyword gap (`return .`) or the start of input means a leading dot.
+is_leading_dot :: fn(source: string, dot_off: usize) -> bool {
     if dot_off == 0 { return true }
-    b :: li.source.byte_at(dot_off - 1)
+    b :: source.byte_at(dot_off - 1)
     if is_ident_byte(b) { return false }
     if b == ')' || b == ']' { return false }
     return true
 }
 
-// The source byte before the dot at 1-based `dot_col` on `line0`, skipping
-// whitespace ; 0 at the start of input. Shared by the leading-dot classifiers.
-byte_before_dot :: fn(li: LineIndex, line0: i32, dot_col: i32) -> u8 {
-    dot_off :: li_offset(li, line0, dot_col - 1)
+// The source byte before the dot at byte `dot_off`, skipping whitespace ; 0 at
+// the start of input. Shared by the leading-dot classifiers.
+byte_before_dot :: fn(source: string, dot_off: usize) -> u8 {
     if dot_off == 0 { return 0 }
     i := dot_off - 1
     for i > 0 {
-        if li.source.byte_at(i) == ' ' || li.source.byte_at(i) == '\t' { i = i - 1 } else { break }
+        if source.byte_at(i) == ' ' || source.byte_at(i) == '\t' { i = i - 1 } else { break }
     }
-    return li.source.byte_at(i)
+    return source.byte_at(i)
 }
 
 // True when the dot opens a struct-literal field key — the byte before it (after
 // whitespace) is `{` or `,` (`S { .field` / `, .field`). A subset of is_leading_dot.
-dot_after_brace_or_comma :: fn(li: LineIndex, line0: i32, dot_col: i32) -> bool {
-    b :: byte_before_dot(li, line0, dot_col)
+dot_after_brace_or_comma :: fn(source: string, dot_off: usize) -> bool {
+    b :: byte_before_dot(source, dot_off)
     return b == '{' || b == ','
 }
 
@@ -782,18 +775,14 @@ test_import_ci_kind_casing :: fn() -> void {
 
 @test
 test_member_context_detects_dot :: fn() -> void {
-    // "p.x" — cursor after `x` (0-based char 3) ; the `.` sits at 1-based col 2.
-    dc :: member_context(new_line_index("p.x", .Utf8), 0, 3)
-    if dc == null { assert(false, "expected member context after a dot") }
-    else { assert_eq(dc, 2) }
+    // "p.x": cursor after `x` (0-based char 3) ; the `.` sits at byte 1.
+    assert(member_context(new_line_index("p.x", .Utf8), 0, 3) == 1, "the dot at byte 1")
 }
 
 @test
 test_member_context_detects_dot_no_partial :: fn() -> void {
-    // "p." — cursor right after the dot (char 2). Dot at 1-based col 2.
-    dc :: member_context(new_line_index("p.", .Utf8), 0, 2)
-    if dc == null { assert(false, "trailing dot is a member context") }
-    else { assert_eq(dc, 2) }
+    // "p.": cursor right after the dot (char 2). Dot at byte 1.
+    assert(member_context(new_line_index("p.", .Utf8), 0, 2) == 1, "a trailing dot")
 }
 
 @test

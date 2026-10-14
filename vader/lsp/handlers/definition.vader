@@ -133,9 +133,8 @@ member_by_type :: fn(
     cached :: typed_project_for(state, file_path)
     entry :: cached.project.modules[cached.project.entry] ?? return null
     sf :: source_file_for_path(entry.module.files, file_path) ?? return null
-    // LSP positions are 0-based ; the AST is 1-based.
-    l :: line + 1
-    at_cursor :: find_expr_at(sf.program.decls, l, character + 1, cached.result.typed)
+    [l, column] :: state.span_point(file_path, line, character)
+    at_cursor :: find_expr_at(sf.program.decls, l, column, cached.result.typed)
     // A UFCS call typecheck resolved names the fn it chose : the receiver's type
     // alone does not tell `last(arr: T[])` from `last(it: Iterator<T>)`, two
     // overloads declared side by side.

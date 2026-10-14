@@ -18,7 +18,7 @@ export REPLACEMENT_CHAR :: char(0xFFFD)
 /// True when `b` is a UTF-8 continuation byte (`0x80..0xBF`): the trailing bytes
 /// of a multi-byte sequence, never a leading byte. Its complement identifies the
 /// bytes that start a codepoint, which is how codepoint columns are counted.
-export is_utf8_continuation :: fn(b: u8) -> bool = b >= 0x80 && b < 0xC0
+export is_utf8_continuation :: fn(b: u8) -> bool = (b & 0xC0) == 0x80
 
 /// Byte length (1–4) of the UTF-8 codepoint led by `b`. A continuation or
 /// otherwise-invalid leading byte returns 1 so a malformed stream still advances

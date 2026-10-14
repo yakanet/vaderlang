@@ -36,9 +36,7 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
     entry :: project.modules[project.entry] ?? return JsonNull {}
     sf :: source_file_for_path(entry.module.files, file_path) ?? return JsonNull {}
 
-    // LSP positions are 0-based ; AST spans are 1-based.
-    target_line :: line + 1
-    target_col  :: char + 1
+    [target_line, target_col] :: state.span_point(file_path, line, char)
     call :: find_enclosing_call(sf.program.decls, target_line, target_col) ?? return JsonNull {}
 
     sig :: build_signature(call, result.typed) ?? return JsonNull {}

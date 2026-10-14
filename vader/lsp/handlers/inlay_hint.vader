@@ -231,14 +231,12 @@ collect_from_expr :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> void {
 
 /// Emit a ghost `.into()` hint when `e`'s value is implicitly coerced via
 /// `Into` (recorded by the typechecker in `typed.into_coercions`, keyed by
-/// `Expr.id`). Anchors right after the value : `span.end` is 1-based and
-/// exclusive, so 0-based column `end.column - 1` lands immediately past the
-/// last char and the zero-padding label reads as `value.into()`.
+/// `Expr.id`). Anchors at the exclusive end of the value, so the zero-padding
+/// label reads as `value.into()`.
 check_into_hint :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> void {
     if ctx.typed.into_coercions[e.id] is null { return }
     line :: e.span.end.line - 1
-    col  :: e.span.end.column - 1
-    out.push(build_hint(line, col, ".into()"))
+    out.push(build_hint(line, li_character(ctx.li, line, e.span.end.offset), ".into()"))
 }
 
 // ---- hint emission -------------------------------------------------------

@@ -696,6 +696,48 @@ test("lsp: member completion on a trailing dot (mid-edit, no member yet)", async
   expect(labels.has("return")).toBe(false);
 }, { timeout: MEDIUM_BUILD });
 
+// A multi-byte character before the receiver on its line: the receiver is found
+// by its codepoint column, which a byte column overshoots.
+const NON_ASCII_MEMBER_SOURCE = `module "lsp_test"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+pick :: fn(label: string, v: i32) -> i32 = v
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1, .y = 2 }
+    return pick("éé", p.x)
+}
+`;
+
+test("lsp: member completion after a multi-byte character on the line", async () => {
+  // Line 11 = `    return pick("éé", p.x)` ; the dot is at character 23, so a cursor
+  // at character 24 completes a member of `p`.
+  const results = await driveLsp(NON_ASCII_MEMBER_SOURCE, [
+    { method: "textDocument/completion", position: { line: 11, character: 24 } },
+  ]);
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+  expect(labels.has("x")).toBe(true);
+  expect(labels.has("y")).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
+// An astral character is two UTF-16 units but one codepoint: a position after it
+// on its line maps to a smaller `Span` column than its LSP character plus one.
+const ASTRAL_SOURCE = NON_ASCII_MEMBER_SOURCE.replace(`"éé"`, `"😀"`);
+
+test("lsp: references after an astral character on the line", async () => {
+  // Line 11 = `    return pick("😀", p.x)` ; `p` is at UTF-16 character 22.
+  const results = await driveLsp(ASTRAL_SOURCE, [
+    { method: "textDocument/references", position: { line: 11, character: 22 } },
+  ]);
+  const refs = results[0]!.result as Location[];
+  expect(refs.map((r) => r.range.start)).toContainEqual({ line: 11, character: 22 });
+}, { timeout: MEDIUM_BUILD });
+
 // Member completion when the receiver's type is declared in an IMPORTED module
 // (not the entry file). Regression guard: the field lookup must go through the
 // project-wide struct registry, not just the entry file's struct decls.

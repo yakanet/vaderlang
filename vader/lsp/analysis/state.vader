@@ -185,11 +185,26 @@ export source_for_path :: fn(self: ServerState, path: string) -> string {
     return ""
 }
 
-/// A `LineIndex` for the file at `path` in the negotiated encoding, built from
-/// the overlay-or-disk source. The single resolution point for encoding a
-/// cross-file span's `character` offsets.
-export line_index_for_path :: fn(self: ServerState, path: string) -> LineIndex =
-    new_line_index(self.source_for_path(path), self.position_encoding)
+/// A `LineIndex` for the file at `path` in the negotiated encoding: the open
+/// document's own, or one built from the disk source. The single resolution
+/// point for encoding a cross-file span's `character` offsets.
+export line_index_for_path :: fn(self: ServerState, path: string) -> LineIndex {
+    open :: self.indices[path_to_uri(path)]
+    if open != null {
+        return open.line_index
+    }
+    return new_line_index(self.source_for_path(path), self.position_encoding)
+}
+
+/// The 1-based line and codepoint column a `Span` gives the LSP position
+/// `(line, character)` of the file at `path`: what the AST lookups compare
+/// against, whatever `character` unit the client negotiated.
+/// @param path       the document's filesystem path.
+/// @param line       0-based LSP line.
+/// @param character  0-based LSP character in the negotiated encoding.
+/// @return           `[line, column]`, both 1-based.
+export span_point :: fn(self: ServerState, path: string, line: i32, character: i32) -> [i32, i32] =
+    [line + 1, lsp_span_column(self.line_index_for_path(path), line, character)]
 
 /// Look up the per-document index for `uri`. Returns `null` when the
 /// document was never opened, or after didClose. The two callers

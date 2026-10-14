@@ -2714,10 +2714,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
 
 static bool std_core_is_utf8_continuation(uint8_t l0) {
 #line 21 "lib/std/core/utf8.vader"
-    if ((l0 >= INT32_C(128))) {
-        return (l0 < INT32_C(192));
-    }
-    return false;
+    return (l0 & INT32_C(192)) == INT32_C(128);
 }
 
 static uint32_t std_core_b2u32(bool l0) {

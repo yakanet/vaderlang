@@ -35,9 +35,10 @@ export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonVa
     entry :: cached.project.modules[cached.project.entry] ?? return JsonArray { .items = [] }
     sf :: source_file_for_path(entry.module.files, file_path) ?? return JsonArray { .items = [] }
 
-    // LSP positions are 0-based ; the AST is 1-based. Anchor on the range start.
-    line :: range_field(params, "start", "line") + 1
-    col  :: range_field(params, "start", "character") + 1
+    // Anchor on the range start.
+    [line, col] :: state.span_point(
+        file_path, range_field(params, "start", "line"), range_field(params, "start", "character"),
+    )
     ctx :: ActionCtx { .source = sf.content }
     li :: new_line_index(sf.content, state.position_encoding)
 

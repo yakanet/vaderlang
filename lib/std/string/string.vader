@@ -504,9 +504,8 @@ export trim_prefix :: fn(s: string, prefix: string) -> string {
 
 /// Decode the common C-style escape sequences in `body` :
 ///   `\n` → LF, `\t` → TAB, `\r` → CR, `\"` → `"`, `\\` → `\`, `\0` → NUL.
-/// A backslash at the very end of `body` is preserved verbatim. Strings
-/// that don't contain a backslash skip the per-byte rebuild and return
-/// the original slice unchanged.
+/// A backslash at the very end of `body` is preserved verbatim. A string
+/// with no backslash is returned as it is, without a copy.
 ///
 /// @note Lenient. Unknown escapes (e.g. `\q`) drop the leading backslash
 ///       and pass the following byte through (`"a\\qb"` → `"aqb"`).
@@ -522,39 +521,39 @@ export decode_escapes :: fn(body: string) -> string {
     if !body.contains("\\") { return body }
     out :: StringBuilder {}
     n :: body.byte_len()
+    // `run` starts the literal bytes not yet copied. They go out as one slice when
+    // an escape ends them, so the text between escapes passes unchanged, valid
+    // UTF-8 or not. A trailing backslash stays in the last slice.
+    run: usize = 0
     i: usize = 0
-    for i < n {
-        b :: body.byte_at(i)
-        if b != '\\' {
-            // Not a backslash — copy the whole codepoint (it may be multibyte ;
-            // a per-byte slice would split a UTF-8 sequence).
-            [c, w] :: body.codepoint_at_byte(i)
-            out.append_char(c)
-            i += w
-            continue
-        }
-        if i + 1 >= n {
-            out.append("\\")
+    for i + 1 < n {
+        if body.byte_at(i) != '\\' {
             i += 1
             continue
         }
-        next :: body.byte_at(i + 1)
-        if      next == 'n'  { out.append("\n") }
-        else if next == 't'  { out.append("\t") }
-        else if next == 'r'  { out.append("\r") }
-        else if next == '"'  { out.append("\"") }
-        else if next == '\\' { out.append("\\") }
-        else if next == '0'  { out.append("\0") }
-        else {
-            // Unknown escape — drop the backslash, copy the following codepoint.
-            [c, w] :: body.codepoint_at_byte(i + 1)
-            out.append_char(c)
-            i += 1 + w
-            continue
+        out.append(body.byte_slice(run, i))
+        meaning :: escape_meaning(body.byte_at(i + 1))
+        if meaning == null {
+            run = i + 1
+        } else {
+            out.append(meaning)
+            run = i + 2
         }
-        i += 2
+        i = run
     }
+    out.append(body.byte_slice(run, n))
     return out.to_string()
+}
+
+// What the escape `\` followed by `b` stands for, or null when `b` names none.
+escape_meaning :: fn(b: u8) -> string | null = match b {
+    'n'  -> "\n"
+    't'  -> "\t"
+    'r'  -> "\r"
+    '"'  -> "\""
+    '\\' -> "\\"
+    '0'  -> "\0"
+    _    -> null
 }
 
 /// Replace every codepoint that satisfies `pred` with `replacement`.
@@ -883,6 +882,12 @@ import "std/testing"
     assert_eq(decode_escapes("\\\"q\\\""),   "\"q\"")
     assert_eq(decode_escapes("a\\qb"),       "aqb")            // unknown escape : drop the backslash
     assert_eq(decode_escapes("trailing\\"),  "trailing\\")     // dangling backslash preserved
+}
+
+@test test_decode_escapes_copies_the_text_between_escapes :: fn() -> void {
+    assert_eq(decode_escapes("é\\n€"), "é\n€")
+    // A stray continuation byte stays as it is, and the escape after it decodes.
+    assert_eq(decode_escapes(bytes_to_string([0x80, 0x5C, 0x6E])), bytes_to_string([0x80, 0x0A]))
 }
 
 @test test_compare_ascending :: fn() -> void {

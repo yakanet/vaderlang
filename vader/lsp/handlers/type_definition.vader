@@ -35,11 +35,8 @@ export handle_type_definition :: fn(state: ServerState, params: JsonValue) -> Js
     entry :: cached.project.modules[cached.project.entry] ?? return JsonNull {}
     sf :: source_file_for_path(entry.module.files, file_path) ?? return JsonNull {}
 
-    // LSP positions are 0-based ; the Vader AST is 1-based.
-    found :: find_expr_at(
-        sf.program.decls, cursor_field(params, "line") + 1,
-        cursor_field(params, "character") + 1, cached.result.typed,
-    ) ?? return JsonNull {}
+    [line, column] :: state.span_point(file_path, position_line(params), position_character(params))
+    found :: find_expr_at(sf.program.decls, line, column, cached.result.typed) ?? return JsonNull {}
     ty :: cached.result.typed.expr_types[found.id] ?? return JsonNull {}
 
     sym :: type_symbol(ty) ?? return JsonNull {}

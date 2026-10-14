@@ -944,10 +944,7 @@ static uint32_t std_core_decode_tail(vader_string_t l0, uint8_t l1, size_t l2) {
 
 static bool std_core_is_utf8_continuation(uint8_t l0) {
 #line 21 "lib/std/core/utf8.vader"
-    if ((l0 >= INT32_C(128))) {
-        return (l0 < INT32_C(192));
-    }
-    return false;
+    return (l0 & INT32_C(192)) == INT32_C(128);
 }
 
 static vader_box_t std_collections_MutableMap_Index_at__i32__bool(void* l0, int32_t l1) {

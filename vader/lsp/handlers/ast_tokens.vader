@@ -37,13 +37,13 @@ import "toolchain/span"
 is_primitive_type_name :: fn(name: string) -> bool =
     (is_primitive_name(name) && name != "null") || name == "type"
 
-/// Parse `source` and walk every AST node, pushing a `RawToken` for each
-/// identifier. The walk runs in two phases — the AST walker tags every
+/// Parse the source `li` indexes and walk every AST node, pushing a `RawToken`
+/// for each identifier. The walk runs in two phases: the AST walker tags every
 /// ident by position, then the resolver-refinement pass overrides
 /// tokens whose ident resolves to a Symbol with a kind that Phase 1
 /// couldn't infer (most notably Param vs Local).
-collect_ast_idents :: fn(source: string, uri: string, out: RawToken[]) -> void {
-    parsed :: parse_source(source, uri)
+collect_ast_idents :: fn(li: LineIndex, uri: string, out: RawToken[]) -> void {
+    parsed :: parse_source(li.source, uri)
     program :: parsed.program
     // Soft keyword : `module "..."` on the first non-trivial line is
     // not a `Kw*` token at the lexer level (it stays an Ident). Surface
@@ -56,7 +56,7 @@ collect_ast_idents :: fn(source: string, uri: string, out: RawToken[]) -> void {
     for d in program.decls {
         walk_decl(d, out)
     }
-    refine_via_resolver(program, uri, out, source)
+    refine_via_resolver(program, uri, out, li)
 }
 
 push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken[]) -> void {
@@ -86,23 +86,20 @@ push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken[]) -> void {
 ///
 /// Sibling-file and imported names remain unresolved (they need the project's
 /// module graph) and keep the `Variable` fallback.
-refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken[], source: string) -> void {
+refine_via_resolver :: fn(
+    program: AST.Program, uri: string, out: RawToken[], li: LineIndex,
+) -> void {
     factory :: SymbolFactory {}
     collected :: collect_module_no_index(program, uri, factory)
     none :: MutableMap<string, Symbol> {}
     seed :: file_root_scope(none, collected, collected.files[0], MutableMap<string, LoadedModule> {}, none)
     resolved :: resolve_program(program, seed, uri, factory)
-    // `idents` is keyed by `Span.hash()` = (file, line, **codepoint column**),
-    // matching the resolver/parser columns. RawTokens now carry only byte
-    // offsets (`col` is 0 until the later `reencode_columns` pass), so derive
-    // the 1-based codepoint column from `start_offset` via a utf-32 index —
-    // the only encoding whose `character` unit is the codepoint (astral = 1).
-    cp_index :: new_line_index(source, .Utf32)
     for i in 0..<out.len() {
         rt :: out[i]
-        // Construct a zero-width span at this token's 1-based codepoint position
-        // in the resolved file's URI so the hash matches the stored key.
-        col :: li_character(cp_index, rt.line, rt.start_offset) + 1
+        // `idents` is keyed by `Span.hash()` = (file, line, codepoint column), so
+        // the probe is a zero-width span at the token's start in the resolved
+        // file. A RawToken carries only byte offsets until `reencode_columns`.
+        col :: span_column(li, rt.line, rt.start_offset)
         probe_pos :: Position { .file = uri, .offset = 0, .line = rt.line + 1, .column = col }
         probe :: Span { .start = probe_pos, .end = probe_pos }
         hit :: resolved.idents[probe.hash()]

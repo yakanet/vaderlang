@@ -573,7 +573,10 @@ read_class_char :: fn(p: Parser) -> char | RegexError {
     return c
 }
 
-at_digit :: fn(p: Parser) = peek(p) >= '0' && peek(p) <= '9'
+at_digit :: fn(p: Parser) = is_digit_byte(peek(p))
+
+// True when `b` is an ASCII decimal digit.
+is_digit_byte :: fn(b: u8) = b >= '0' && b <= '9'
 
 parse_decimal_usize :: fn(p: Parser) -> usize | RegexError {
     if !at_digit(p) {
@@ -691,24 +694,25 @@ export replace_all :: fn(self: Pattern, input: string, repl: string) -> string {
 
 expand_replacement :: fn(sb: StringBuilder, repl: string, m: Match) -> void {
     n :: repl.byte_len()
+    // `run` starts the literal bytes not yet copied. They go out as one slice when
+    // a group reference ends them, so the text around the references passes
+    // unchanged, valid UTF-8 or not.
+    run: usize = 0
     i: usize = 0
-    for i < n {
-        b :: repl.byte_at(i)
-        if b == '$' && i + 1 < n {
-            d :: repl.byte_at(i + 1)
-            if d >= '0' && d <= '9' {
-                gi :: usize(d - '0')
-                if gi < m.groups.len() {
-                    sb.append(m.groups[gi])
-                }
-                i = i + 2
-                continue
-            }
+    for i + 1 < n {
+        if repl.byte_at(i) != '$' || !is_digit_byte(repl.byte_at(i + 1)) {
+            i += 1
+            continue
         }
-        [c, w] :: repl.codepoint_at_byte(i)
-        sb.append_char(c)
-        i = i + w
+        sb.append(repl.byte_slice(run, i))
+        gi :: usize(repl.byte_at(i + 1) - '0')
+        if gi < m.groups.len() {
+            sb.append(m.groups[gi])
+        }
+        i += 2
+        run = i
     }
+    sb.append(repl.byte_slice(run, n))
 }
 
 // =========================================================================
@@ -1116,6 +1120,19 @@ import "std/testing"
             assert_eq(p.replace_all("a1b22c333", "X"), "aXbXcX")
         }
         is RegexError -> assert(false, "compile \\d+ failed")
+    }
+}
+
+@test test_replace_all_copies_the_text_between_groups :: fn() -> void {
+    p :: compile("(b)")
+    match p {
+        is Pattern -> {
+            assert_eq(p.replace_all("abc", "é$1€"), "aéb€c")
+            // A stray continuation byte stays as it is, and `$1` after it expands.
+            out :: p.replace_all("abc", bytes_to_string([0x80, 0x24, 0x31]))
+            assert_eq(out, bytes_to_string([0x61, 0x80, 0x62, 0x63]))
+        }
+        is RegexError -> assert(false, "compile (b) failed")
     }
 }
 

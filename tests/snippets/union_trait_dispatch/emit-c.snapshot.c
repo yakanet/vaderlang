@@ -3958,10 +3958,7 @@ static bool std_core_multiple_of_power_of_2(uint64_t l0, int32_t l1) {
 
 static bool std_core_is_utf8_continuation(uint8_t l0) {
 #line 21 "lib/std/core/utf8.vader"
-    if ((l0 >= INT32_C(128))) {
-        return (l0 < INT32_C(192));
-    }
-    return false;
+    return (l0 & INT32_C(192)) == INT32_C(128);
 }
 
 static uint32_t std_core_mul_shift_32(uint32_t l0, uint64_t l1, int32_t l2) {

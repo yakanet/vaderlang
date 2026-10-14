@@ -24,9 +24,8 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
     cached :: typed_project_for(state, file_path)
     index :: build_reference_index(cached.project, cached.result)
 
-    // LSP positions are 0-based ; the Vader AST is 1-based.
-    line :: cursor_field(params, "line") + 1
-    target :: site_at(index, file_path, line, cursor_field(params, "character") + 1)
+    [line, column] :: state.span_point(file_path, position_line(params), position_character(params))
+    target :: site_at(index, file_path, line, column)
     if target == null { return JsonArray { .items = [] } }
 
     include_decl :: include_declaration(params)

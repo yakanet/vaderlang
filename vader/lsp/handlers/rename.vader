@@ -34,9 +34,8 @@ export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> Jso
     if file_path == "" { return JsonNull {} }
     cached :: typed_project_for(state, file_path)
     index :: build_reference_index(cached.project, cached.result)
-    site :: renameable_at(index, file_path, params) ?? return JsonNull {}
-    li :: state.line_index_for_path(file_path)
-    return range_json(site.span.span_to_range_json(li))
+    site :: renameable_at(state, index, file_path, params) ?? return JsonNull {}
+    return range_json(site.span.span_to_range_json(state.line_index_for_path(file_path)))
 }
 
 /// Compute the project-wide `WorkspaceEdit` renaming the symbol under the cursor
@@ -52,7 +51,7 @@ export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
 
     cached :: typed_project_for(state, file_path)
     index :: build_reference_index(cached.project, cached.result)
-    site :: renameable_at(index, file_path, params) ?? return JsonNull {}
+    site :: renameable_at(state, index, file_path, params) ?? return JsonNull {}
 
     sources :: build_source_map(cached.project)
     old_name :: span_text(sources, site.span)
@@ -64,9 +63,11 @@ export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
 }
 
 // The site under the cursor of `params`, when its target may be renamed.
-renameable_at :: fn(index: ReferenceIndex, file: string, params: JsonValue) -> RefSite | null {
-    line :: cursor_field(params, "line") + 1
-    site :: site_at(index, file, line, cursor_field(params, "character") + 1) ?? return null
+renameable_at :: fn(
+    state: ServerState, index: ReferenceIndex, file: string, params: JsonValue,
+) -> RefSite | null {
+    [line, column] :: state.span_point(file, position_line(params), position_character(params))
+    site :: site_at(index, file, line, column) ?? return null
     if site.key in index.fixed {
         return null
     }

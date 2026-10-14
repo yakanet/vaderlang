@@ -50,8 +50,8 @@ export handle_implementation :: fn(state: ServerState, params: JsonValue) -> Jso
         return JsonNull {}
     }
     project :: union_project_for(state, file_path)
-    name :: target_group_name_at(project, file_path,
-        cursor_field(params, "line") + 1, cursor_field(params, "character") + 1)
+    [line, column] :: state.span_point(file_path, position_line(params), position_character(params))
+    name :: target_group_name_at(project, file_path, line, column)
     if name == "" {
         return JsonNull {}
     }

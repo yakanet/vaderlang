@@ -108,7 +108,34 @@ count_units :: fn(source: string, from: usize, to: usize, encoding: PositionEnco
 /// @param line         0-based line the offset sits on.
 /// @param byte_offset  absolute UTF-8 byte offset of the position.
 /// @return             the 0-based character in the negotiated encoding.
-export li_character :: fn(li: LineIndex, line: i32, byte_offset: usize) -> i32 {
+export li_character :: fn(li: LineIndex, line: i32, byte_offset: usize) -> i32 =
+    character_in(li, line, byte_offset, li.encoding)
+
+/// The 1-based column a `Span` gives byte `byte_offset` of 0-based `line`: the
+/// codepoints before it on the line, plus one. The AST is searched by that column,
+/// whatever `character` unit the client negotiated.
+/// @param li           the document index.
+/// @param line         0-based line the offset sits on.
+/// @param byte_offset  absolute UTF-8 byte offset.
+/// @return             the 1-based codepoint column.
+export span_column :: fn(li: LineIndex, line: i32, byte_offset: usize) -> i32 =
+    character_in(li, line, byte_offset, .Utf32) + 1
+
+/// The `Span` column of an LSP `(line, character)`: see `span_column`.
+/// @param li         the document index.
+/// @param line       0-based LSP line.
+/// @param character  0-based LSP character in the negotiated encoding.
+/// @return           the 1-based codepoint column.
+export lsp_span_column :: fn(li: LineIndex, line: i32, character: i32) -> i32 =
+    span_column(li, line, li_offset(li, line, character))
+
+// The units of `encoding` between the start of `line` and `byte_offset`.
+character_in :: fn(
+    li: LineIndex,
+    line: i32,
+    byte_offset: usize,
+    encoding: PositionEncoding,
+) -> i32 {
     if line < 0 || usize(line) >= li.line_starts.len() {
         return 0
     }
@@ -116,7 +143,7 @@ export li_character :: fn(li: LineIndex, line: i32, byte_offset: usize) -> i32 {
     if byte_offset <= line_start {
         return 0
     }
-    return count_units(li.source, line_start, byte_offset, li.encoding)
+    return count_units(li.source, line_start, byte_offset, encoding)
 }
 
 /// Incoming : the absolute UTF-8 byte offset for an LSP `(line, character)`.

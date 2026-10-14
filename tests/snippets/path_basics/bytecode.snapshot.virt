@@ -741,15 +741,11 @@ end
 
 fn 10 std_core$is_utf8_continuation (u8) -> bool
   local.get 0   ; arg 0
+  i32.const 192
+  i32.bitand
   i32.const 128
-  u32.ge
-  if $L0 void
-    local.get 0   ; arg 0
-    i32.const 192
-    u32.lt
-    return
-  end $L0
-  return.lit bool.const false
+  i32.eq
+  return
 end
 
 fn 11 std_core$string$Index$at (string,usize) -> char

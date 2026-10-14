@@ -145,7 +145,7 @@ cut_head :: fn(text: string, limit: usize) -> string {
     }
     if end > limit {
         end = limit
-        for end > 0 && (text.byte_at(end) & 0xC0) == 0x80 {
+        for end > 0 && text.byte_at(end).is_utf8_continuation() {
             end -= 1
         }
     }

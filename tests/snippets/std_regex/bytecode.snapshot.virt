@@ -1039,18 +1039,21 @@ end
 
 fn 12 std_core$is_utf8_continuation (u8) -> bool
   local.get 0   ; arg 0
+  i32.const 192
+  i32.bitand
   i32.const 128
-  u32.ge
-  if $L0 void
-    local.get 0   ; arg 0
-    i32.const 192
-    u32.lt
-    return
-  end $L0
-  return.lit bool.const false
+  i32.eq
+  return
 end
 
-fn 13 std_core$utf8_encode (char) -> ref
+fn 13 std_core$char$Display$to_string (char) -> string
+  local.get 0   ; arg 0
+  call 14   ; std_core$utf8_encode
+  call.import 3   ; std_core$bytes_to_string
+  return
+end
+
+fn 14 std_core$utf8_encode (char) -> ref
   local cp u32
   local out ref
   local $cast_7 u8
@@ -1220,13 +1223,6 @@ fn 13 std_core$utf8_encode (char) -> ref
     end $L2
   end $L1
   local.get 2   ; out
-  return
-end
-
-fn 14 std_core$char$Display$to_string (char) -> string
-  local.get 0   ; arg 0
-  call 13   ; std_core$utf8_encode
-  call.import 3   ; std_core$bytes_to_string
   return
 end
 
@@ -1421,7 +1417,7 @@ fn 20 regex$compile (string) -> any
     local.get 5   ; $field_15
     local.get 6   ; $field_16
     call 10   ; std_core$char_at_byte
-    call 14   ; std_core$char$Display$to_string
+    call 13   ; std_core$char$Display$to_string
     local.set 5   ; $field_15
     string.const 63   ; "unexpected character '"
     local.get 5   ; $field_15
@@ -1592,7 +1588,7 @@ fn 22 regex$replace_all (ref,string,string) -> string
       local.set 10   ; $call_18
       local.get 3   ; sb
       local.get 10   ; $call_18
-      call 54   ; std_string_builder$append
+      call 55   ; std_string_builder$append
       local.get 3   ; sb
       local.get 2   ; arg 2
       local.get 8   ; m
@@ -1624,7 +1620,7 @@ fn 22 regex$replace_all (ref,string,string) -> string
     local.set 10   ; $call_18
     local.get 3   ; sb
     local.get 10   ; $call_18
-    call 54   ; std_string_builder$append
+    call 55   ; std_string_builder$append
     local.get 3   ; sb
     call 56   ; std_string_builder$StringBuilder$Display$to_string
     return
@@ -1727,7 +1723,7 @@ fn 23 regex$run_vm (ref,string,usize,bool) -> any
         if $L3 void
           local.get 1   ; arg 1
           local.get 11   ; pos
-          call 52   ; std_string$codepoint_at_byte
+          call 53   ; std_string$codepoint_at_byte
           local.set 33   ; $call_elem_112
           local.set 12   ; c_at_pos
           local.get 33   ; $call_elem_112
@@ -2008,7 +2004,7 @@ fn 25 regex$codepoint_byte_advance (string,usize) -> usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 10   ; std_core$char_at_byte
-  call 53   ; std_string$codepoint_byte_len
+  call 54   ; std_string$codepoint_byte_len
   return
 end
 
@@ -2305,99 +2301,108 @@ end
 
 fn 28 regex$expand_replacement (ref,string,ref) -> void
   local n usize
+  local run usize
   local i usize
-  local $add_checked_16 usize
-  local d u8
+  local or_res bool
+  local $add_checked_18 usize
+  local $call_24 string
+  local $add_checked_26 usize
   local gi usize
-  local $len_28 usize
-  local $idx_31 string
-  local c char
-  local w usize
-  local $call_elem_42 usize
+  local $len_33 usize
+  local $idx_36 string
   local.get 1   ; arg 1
   call.import 0   ; std_core$byte_len
   local.set 3   ; n
   i64.const 0
-  local.set 4   ; i
+  local.set 4   ; run
+  i64.const 0
+  local.set 5   ; i
   loop $L0 void
-    local.get 4   ; i
+    local.get 5   ; i
+    i64.const 1
+    usize.checked_add
     local.get 3   ; n
     u64.lt
     if $L1 void
       local.get 1   ; arg 1
-      local.get 4   ; i
+      local.get 5   ; i
       call.import 1   ; std_core$byte_at
       i32.const 36
-      i32.eq
+      i32.ne
       if $L2 void
-        local.get 4   ; i
+        bool.const true
+        local.set 6   ; or_res
+      else
+        local.get 5   ; i
         i64.const 1
         usize.checked_add
-        local.get 3   ; n
-        u64.lt
-        if $L3 void
-          local.get 4   ; i
-          i64.const 1
-          usize.checked_add
-          local.set 5   ; $add_checked_16
-          local.get 1   ; arg 1
-          local.get 5   ; $add_checked_16
-          call.import 1   ; std_core$byte_at
-          local.tee 6   ; d
-          i32.const 48
-          u32.ge
-          if $L4 void
-            local.get 6   ; d
-            i32.const 57
-            u32.le
-            if $L5 void
-              local.get 6   ; d
-              i32.const 48
-              u8.checked_sub
-              u8.to_i64
-              local.set 7   ; gi
-              local.field 2 13 2   ; arg 2 regex$Match.groups
-              array.len
-              local.set 8   ; $len_28
-              local.get 7   ; gi
-              local.get 8   ; $len_28
-              u64.lt
-              if $L6 void
-                local.field 2 13 2   ; arg 2 regex$Match.groups
-                local.get 7   ; gi
-                array.get 25   ; string[]
-                ref.cast 1   ; string
-                local.set 9   ; $idx_31
-                local.get 0   ; arg 0
-                local.get 9   ; $idx_31
-                call 54   ; std_string_builder$append
-              end $L6
-              local.get 4   ; i
-              i64.const 2
-              usize.checked_add
-              local.set 4   ; i
-              br $L0
-            end $L5
-          end $L4
-        end $L3
+        local.set 7   ; $add_checked_18
+        local.get 1   ; arg 1
+        local.get 7   ; $add_checked_18
+        call.import 1   ; std_core$byte_at
+        call 38   ; regex$is_digit_byte
+        bool.not
+        local.set 6   ; or_res
       end $L2
+      local.get 6   ; or_res
+      if $L3 void
+        local.get 5   ; i
+        i64.const 1
+        usize.checked_add
+        local.set 5   ; i
+        br $L0
+      end $L3
       local.get 1   ; arg 1
-      local.get 4   ; i
-      call 52   ; std_string$codepoint_at_byte
-      local.set 12   ; $call_elem_42
-      local.set 10   ; c
-      local.get 12   ; $call_elem_42
-      local.set 11   ; w
+      local.get 4   ; run
+      local.get 5   ; i
+      call.import 2   ; std_core$byte_slice
+      local.set 8   ; $call_24
       local.get 0   ; arg 0
-      local.get 10   ; c
-      call 55   ; std_string_builder$append_char
-      local.get 4   ; i
-      local.get 11   ; w
+      local.get 8   ; $call_24
+      call 55   ; std_string_builder$append
+      local.get 5   ; i
+      i64.const 1
       usize.checked_add
-      local.set 4   ; i
+      local.set 9   ; $add_checked_26
+      local.get 1   ; arg 1
+      local.get 9   ; $add_checked_26
+      call.import 1   ; std_core$byte_at
+      i32.const 48
+      u8.checked_sub
+      u8.to_i64
+      local.set 10   ; gi
+      local.field 2 13 2   ; arg 2 regex$Match.groups
+      array.len
+      local.set 11   ; $len_33
+      local.get 10   ; gi
+      local.get 11   ; $len_33
+      u64.lt
+      if $L4 void
+        local.field 2 13 2   ; arg 2 regex$Match.groups
+        local.get 10   ; gi
+        array.get 25   ; string[]
+        ref.cast 1   ; string
+        local.set 12   ; $idx_36
+        local.get 0   ; arg 0
+        local.get 12   ; $idx_36
+        call 55   ; std_string_builder$append
+      end $L4
+      local.get 5   ; i
+      i64.const 2
+      usize.checked_add
+      local.tee 5   ; i
+      local.set 4   ; run
       br $L0
     end $L1
   end $L0
+  local.get 1   ; arg 1
+  local.get 4   ; run
+  local.get 3   ; n
+  call.import 2   ; std_core$byte_slice
+  local.set 8   ; $call_24
+  local.get 0   ; arg 0
+  local.get 8   ; $call_24
+  call 55   ; std_string_builder$append
   return
 end
 
@@ -2773,7 +2778,7 @@ fn 33 regex$parse_concat (ref) -> any
         i32.eq
         br_if $L0
         local.get 0   ; arg 0
-        call 38   ; regex$parse_atom_with_quantifier
+        call 39   ; regex$parse_atom_with_quantifier
         local.tee 2   ; err
         type_check 15   ; regex$RegexError
         if $L3 void
@@ -2923,7 +2928,20 @@ fn 37 regex$push_fragment_rebased (ref,ref,usize,usize,usize) -> void
   return
 end
 
-fn 38 regex$parse_atom_with_quantifier (ref) -> any
+fn 38 regex$is_digit_byte (u8) -> bool
+  local.get 0   ; arg 0
+  i32.const 48
+  u32.ge
+  if $L0 void
+    local.get 0   ; arg 0
+    i32.const 57
+    u32.le
+    return
+  end $L0
+  return.lit bool.const false
+end
+
+fn 39 regex$parse_atom_with_quantifier (ref) -> any
   local atom_start usize
   local err any
   local q u8
@@ -2932,7 +2950,7 @@ fn 38 regex$parse_atom_with_quantifier (ref) -> any
   array.len
   local.set 1   ; atom_start
   local.get 0   ; arg 0
-  call 39   ; regex$parse_atom
+  call 40   ; regex$parse_atom
   local.tee 2   ; err
   type_check 15   ; regex$RegexError
   if $L0 void
@@ -2956,7 +2974,7 @@ fn 38 regex$parse_atom_with_quantifier (ref) -> any
     struct.set 19 1   ; regex$Parser.cursor
     local.get 0   ; arg 0
     local.get 1   ; atom_start
-    call 40   ; regex$apply_star
+    call 41   ; regex$apply_star
     return.lit null.const
   end $L1
   local.get 3   ; q
@@ -2973,7 +2991,7 @@ fn 38 regex$parse_atom_with_quantifier (ref) -> any
     struct.set 19 1   ; regex$Parser.cursor
     local.get 0   ; arg 0
     local.get 1   ; atom_start
-    call 41   ; regex$apply_plus
+    call 42   ; regex$apply_plus
     return.lit null.const
   end $L2
   local.get 3   ; q
@@ -2990,7 +3008,7 @@ fn 38 regex$parse_atom_with_quantifier (ref) -> any
     struct.set 19 1   ; regex$Parser.cursor
     local.get 0   ; arg 0
     local.get 1   ; atom_start
-    call 42   ; regex$apply_optional
+    call 43   ; regex$apply_optional
     return.lit null.const
   end $L3
   local.get 3   ; q
@@ -3002,11 +3020,11 @@ fn 38 regex$parse_atom_with_quantifier (ref) -> any
   end $L4
   local.get 0   ; arg 0
   local.get 1   ; atom_start
-  call 43   ; regex$apply_counted
+  call 44   ; regex$apply_counted
   return
 end
 
-fn 39 regex$parse_atom (ref) -> any
+fn 40 regex$parse_atom (ref) -> any
   local $field_3 usize
   local b u8
   local __buf_0 ref
@@ -3231,7 +3249,7 @@ fn 39 regex$parse_atom (ref) -> any
   i32.eq
   if $L8 void
     local.get 0   ; arg 0
-    call 44   ; regex$parse_char_class
+    call 45   ; regex$parse_char_class
     return
   end $L8
   local.get 2   ; b
@@ -3247,7 +3265,7 @@ fn 39 regex$parse_atom (ref) -> any
     local.set 1   ; $field_3
     local.get 5   ; $call_27
     local.get 1   ; $field_3
-    call 52   ; std_string$codepoint_at_byte
+    call 53   ; std_string$codepoint_at_byte
     local.set 6   ; $add_checked_37
     local.set 9   ; c
     local.get 6   ; $add_checked_37
@@ -3271,11 +3289,11 @@ fn 39 regex$parse_atom (ref) -> any
     return.lit null.const
   end $L9
   local.get 0   ; arg 0
-  call 45   ; regex$parse_escape
+  call 46   ; regex$parse_escape
   return
 end
 
-fn 40 regex$apply_star (ref,usize) -> void
+fn 41 regex$apply_star (ref,usize) -> void
   local $field_2 ref
   local $len_4 usize
   local $call_8 ref
@@ -3317,7 +3335,7 @@ fn 40 regex$apply_star (ref,usize) -> void
   local.field 0 19 2   ; arg 0 regex$Parser.insts
   local.get 2   ; $field_2
   local.get 1   ; arg 1
-  call 46   ; regex$push_atom_rebased
+  call 47   ; regex$push_atom_rebased
   local.field 0 19 2   ; arg 0 regex$Parser.insts
   local.set 2   ; $field_2
   local.get 3   ; $len_4
@@ -3342,7 +3360,7 @@ fn 40 regex$apply_star (ref,usize) -> void
   return
 end
 
-fn 41 regex$apply_plus (ref,usize) -> void
+fn 42 regex$apply_plus (ref,usize) -> void
   local split_pos usize
   local $field_5 ref
   local $struct_8 ref
@@ -3375,7 +3393,7 @@ fn 41 regex$apply_plus (ref,usize) -> void
   return
 end
 
-fn 42 regex$apply_optional (ref,usize) -> void
+fn 43 regex$apply_optional (ref,usize) -> void
   local $field_2 ref
   local $len_4 usize
   local $call_8 ref
@@ -3412,7 +3430,7 @@ fn 42 regex$apply_optional (ref,usize) -> void
   local.field 0 19 2   ; arg 0 regex$Parser.insts
   local.get 2   ; $field_2
   local.get 1   ; arg 1
-  call 46   ; regex$push_atom_rebased
+  call 47   ; regex$push_atom_rebased
   local.field 0 19 2   ; arg 0 regex$Parser.insts
   array.len
   local.set 3   ; $len_4
@@ -3433,7 +3451,7 @@ fn 42 regex$apply_optional (ref,usize) -> void
   return
 end
 
-fn 43 regex$apply_counted (ref,usize) -> any
+fn 44 regex$apply_counted (ref,usize) -> any
   local save_cursor usize
   local $add_checked_10 usize
   local n_outcome any
@@ -3467,7 +3485,7 @@ fn 43 regex$apply_counted (ref,usize) -> any
   local.get 3   ; $add_checked_10
   struct.set 19 1   ; regex$Parser.cursor
   local.get 0   ; arg 0
-  call 47   ; regex$parse_decimal_usize
+  call 48   ; regex$parse_decimal_usize
   local.tee 4   ; n_outcome
   type_check 15   ; regex$RegexError
   if $L1 void
@@ -3508,7 +3526,7 @@ fn 43 regex$apply_counted (ref,usize) -> any
       i32.ne
       if $L4 void
         local.get 0   ; arg 0
-        call 47   ; regex$parse_decimal_usize
+        call 48   ; regex$parse_decimal_usize
         local.tee 4   ; n_outcome
         type_check 15   ; regex$RegexError
         if $L5 void
@@ -3620,7 +3638,7 @@ fn 43 regex$apply_counted (ref,usize) -> any
       local.field 0 19 2   ; arg 0 regex$Parser.insts
       local.get 10   ; __buf_0
       local.get 1   ; arg 1
-      call 46   ; regex$push_atom_rebased
+      call 47   ; regex$push_atom_rebased
       local.get 8   ; $add_checked_27
       i64.const 1
       i64.add
@@ -3663,7 +3681,7 @@ fn 43 regex$apply_counted (ref,usize) -> any
         local.field 0 19 2   ; arg 0 regex$Parser.insts
         local.get 10   ; __buf_0
         local.get 1   ; arg 1
-        call 46   ; regex$push_atom_rebased
+        call 47   ; regex$push_atom_rebased
         local.get 5   ; m
         i64.const 1
         i64.add
@@ -3728,7 +3746,7 @@ fn 43 regex$apply_counted (ref,usize) -> any
       local.field 0 19 2   ; arg 0 regex$Parser.insts
       local.get 10   ; __buf_0
       local.get 1   ; arg 1
-      call 46   ; regex$push_atom_rebased
+      call 47   ; regex$push_atom_rebased
       local.field 0 19 2   ; arg 0 regex$Parser.insts
       local.set 10   ; __buf_0
       local.get 3   ; $add_checked_10
@@ -3791,7 +3809,7 @@ fn 43 regex$apply_counted (ref,usize) -> any
   return
 end
 
-fn 44 regex$parse_char_class (ref) -> any
+fn 45 regex$parse_char_class (ref) -> any
   local start_pos usize
   local $add_checked_5 usize
   local negated bool
@@ -3856,7 +3874,7 @@ fn 44 regex$parse_char_class (ref) -> any
           br $L1
         end $L4
         local.get 0   ; arg 0
-        call 48   ; regex$read_class_char
+        call 49   ; regex$read_class_char
         local.tee 5   ; lo_c
         type_check 15   ; regex$RegexError
         if $L5 void
@@ -3917,7 +3935,7 @@ fn 44 regex$parse_char_class (ref) -> any
           local.get 11   ; $add_checked_47
           struct.set 19 1   ; regex$Parser.cursor
           local.get 0   ; arg 0
-          call 48   ; regex$read_class_char
+          call 49   ; regex$read_class_char
           local.tee 12   ; hi_c
           type_check 15   ; regex$RegexError
           if $L9 void
@@ -3986,7 +4004,7 @@ fn 44 regex$parse_char_class (ref) -> any
   return
 end
 
-fn 45 regex$parse_escape (ref) -> any
+fn 46 regex$parse_escape (ref) -> any
   local $add_checked_3 usize
   local e u8
   local $field_15 ref
@@ -4107,7 +4125,7 @@ fn 45 regex$parse_escape (ref) -> any
   if $L6 void
     local.field 0 19 2   ; arg 0 regex$Parser.insts
     local.set 3   ; $field_15
-    call 49   ; regex$word_class_ranges
+    call 50   ; regex$word_class_ranges
     bool.const false
     struct.new 24   ; regex$InstClass
     local.set 4   ; $struct_17
@@ -4122,7 +4140,7 @@ fn 45 regex$parse_escape (ref) -> any
   if $L7 void
     local.field 0 19 2   ; arg 0 regex$Parser.insts
     local.set 3   ; $field_15
-    call 49   ; regex$word_class_ranges
+    call 50   ; regex$word_class_ranges
     bool.const true
     struct.new 24   ; regex$InstClass
     local.set 4   ; $struct_17
@@ -4137,7 +4155,7 @@ fn 45 regex$parse_escape (ref) -> any
   if $L8 void
     local.field 0 19 2   ; arg 0 regex$Parser.insts
     local.set 3   ; $field_15
-    call 50   ; regex$space_class_ranges
+    call 51   ; regex$space_class_ranges
     bool.const false
     struct.new 24   ; regex$InstClass
     local.set 4   ; $struct_17
@@ -4165,7 +4183,7 @@ fn 45 regex$parse_escape (ref) -> any
   end $L9
   local.field 0 19 2   ; arg 0 regex$Parser.insts
   local.set 3   ; $field_15
-  call 50   ; regex$space_class_ranges
+  call 51   ; regex$space_class_ranges
   bool.const true
   struct.new 24   ; regex$InstClass
   local.set 4   ; $struct_17
@@ -4175,7 +4193,7 @@ fn 45 regex$parse_escape (ref) -> any
   return.lit null.const
 end
 
-fn 46 regex$push_atom_rebased (ref,ref,usize) -> void
+fn 47 regex$push_atom_rebased (ref,ref,usize) -> void
   local $len_4 usize
   local.get 1   ; arg 1
   array.len
@@ -4189,13 +4207,13 @@ fn 46 regex$push_atom_rebased (ref,ref,usize) -> void
   return
 end
 
-fn 47 regex$parse_decimal_usize (ref) -> any
+fn 48 regex$parse_decimal_usize (ref) -> any
   local $field_3 usize
   local $mul_checked_9 usize
   local $cast_13 usize
   local $add_checked_17 usize
   local.get 0   ; arg 0
-  call 51   ; regex$at_digit
+  call 52   ; regex$at_digit
   if $L0 void
   else
     local.field 0 19 1   ; arg 0 regex$Parser.cursor
@@ -4210,7 +4228,7 @@ fn 47 regex$parse_decimal_usize (ref) -> any
   local.set 1   ; $field_3
   loop $L1 void
     local.get 0   ; arg 0
-    call 51   ; regex$at_digit
+    call 52   ; regex$at_digit
     if $L2 void
       local.get 1   ; $field_3
       i64.const 10
@@ -4242,7 +4260,7 @@ fn 47 regex$parse_decimal_usize (ref) -> any
   return
 end
 
-fn 48 regex$read_class_char (ref) -> any
+fn 49 regex$read_class_char (ref) -> any
   local $field_3 usize
   local e u8
   local $field_32 string
@@ -4274,7 +4292,7 @@ fn 48 regex$read_class_char (ref) -> any
     local.set 4   ; $field_33
     local.get 3   ; $field_32
     local.get 4   ; $field_33
-    call 52   ; std_string$codepoint_at_byte
+    call 53   ; std_string$codepoint_at_byte
     local.set 6   ; $call_elem_43
     local.set 5   ; c
     local.get 6   ; $call_elem_43
@@ -4353,7 +4371,7 @@ fn 48 regex$read_class_char (ref) -> any
   return
 end
 
-fn 49 regex$word_class_ranges () -> ref
+fn 50 regex$word_class_ranges () -> ref
   local $struct_2 ref
   local $struct_5 ref
   local $struct_8 ref
@@ -4382,7 +4400,7 @@ fn 49 regex$word_class_ranges () -> ref
   return
 end
 
-fn 50 regex$space_class_ranges () -> ref
+fn 51 regex$space_class_ranges () -> ref
   local $struct_2 ref
   local $struct_5 ref
   local $struct_8 ref
@@ -4411,36 +4429,28 @@ fn 50 regex$space_class_ranges () -> ref
   return
 end
 
-fn 51 regex$at_digit (ref) -> bool
+fn 52 regex$at_digit (ref) -> bool
   local.get 0   ; arg 0
   call 34   ; regex$peek
-  i32.const 48
-  u32.ge
-  if $L0 void
-    local.get 0   ; arg 0
-    call 34   ; regex$peek
-    i32.const 57
-    u32.le
-    return
-  end $L0
-  return.lit bool.const false
+  call 38   ; regex$is_digit_byte
+  return
 end
 
-fn 52 std_string$codepoint_at_byte (string,usize) -> (char,usize)
+fn 53 std_string$codepoint_at_byte (string,usize) -> (char,usize)
   local c char
   local $call_4 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 10   ; std_core$char_at_byte
   local.tee 2   ; c
-  call 53   ; std_string$codepoint_byte_len
+  call 54   ; std_string$codepoint_byte_len
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
   return
 end
 
-fn 53 std_string$codepoint_byte_len (char) -> usize
+fn 54 std_string$codepoint_byte_len (char) -> usize
   local cp u32
   local.get 0   ; arg 0
   char.to_i32
@@ -4466,24 +4476,9 @@ fn 53 std_string$codepoint_byte_len (char) -> usize
   return.lit i64.const 3
 end
 
-fn 54 std_string_builder$append (ref,string) -> void
+fn 55 std_string_builder$append (ref,string) -> void
   local.field 0 21 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.get 1   ; arg 1
-  array.push 1   ; string
-  return
-end
-
-fn 55 std_string_builder$append_char (ref,char) -> void
-  local $field_2 ref
-  local $call_4 string
-  local.field 0 21 0   ; arg 0 std_string_builder$StringBuilder.parts
-  local.set 2   ; $field_2
-  local.get 1   ; arg 1
-  call 13   ; std_core$utf8_encode
-  call.import 3   ; std_core$bytes_to_string
-  local.set 3   ; $call_4
-  local.get 2   ; $field_2
-  local.get 3   ; $call_4
   array.push 1   ; string
   return
 end
