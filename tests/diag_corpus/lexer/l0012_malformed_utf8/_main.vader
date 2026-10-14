@@ -1,0 +1,8 @@
+// The byte E9, an `e` with an acute accent saved in Latin-1, does not decode as
+// UTF-8: L0012.
+module "snippet"
+
+main :: fn() -> i32 {
+    // café
+    return 0
+}

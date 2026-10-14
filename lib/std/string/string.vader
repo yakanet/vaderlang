@@ -1,8 +1,6 @@
 // std/string — string operations.
 //
 // All string operations treat strings as immutable UTF-8 byte sequences.
-// Width-based helpers (`pad_start`, `pad_end`) measure width in bytes, not
-// codepoints — accurate for ASCII, approximate for non-ASCII content.
 
 module "std/string"
 
@@ -212,15 +210,20 @@ export index_of :: fn(s: string, c: char, from: usize) -> isize {
 /// `split_where`.
 /// @param s    source string.
 /// @param sep  separator (matched byte-wise). Empty `sep` yields one
-///             single-byte segment per byte of `s`.
-/// @return     array of segments ; never empty (at minimum, `[""]`).
+///             segment per codepoint of `s`, holding the bytes
+///             `codepoint_at_byte` steps over.
+/// @return     array of segments ; never empty (at minimum, `[""]`), save
+///             `split("", "")`, which has no codepoint to give.
 export split :: fn(s: string, sep: string) -> string[]! {
     out: string[]: []
     n :: s.byte_len()
     m :: sep.byte_len()
     if m == 0 {
-        for i in 0..<n {
-            out.push(s.byte_slice(i, i + 1))
+        at: usize = 0
+        for at < n {
+            next :: at + s.codepoint_at_byte(at).1
+            out.push(s.byte_slice(at, next))
+            at = next
         }
         return out
     }
@@ -444,15 +447,15 @@ export parse_float :: fn(s: string) -> f64 | ParseError {
     return r
 }
 
-/// Pad `s` on the LEFT with copies of `fill` until its byte length
-/// reaches `width`. Returns `s` unchanged when it's already at least
-/// `width` bytes long. Width counts bytes ; accurate for ASCII,
-/// approximate for non-ASCII content.
+/// Pad `s` on the LEFT with copies of `fill` until it holds `width`
+/// codepoints. Returns `s` unchanged when it already holds at least
+/// `width`. A codepoint is not a terminal column: a wide CJK glyph or a
+/// combining mark still counts one.
 /// @param s      source string.
-/// @param width  target byte length.
-/// @param fill   pad character (ASCII recommended).
+/// @param width  target length in codepoints.
+/// @param fill   pad character.
 export pad_start :: fn(s: string, width: usize, fill: char) -> string {
-    n :: s.byte_len()
+    n :: s.len()
     if n >= width {
         return s
     }
@@ -464,10 +467,13 @@ export pad_start :: fn(s: string, width: usize, fill: char) -> string {
     return sb.to_string()
 }
 
-/// Pad `s` on the RIGHT with copies of `fill` until its byte length
-/// reaches `width`. Symmetric with `pad_start`.
+/// Pad `s` on the RIGHT with copies of `fill` until it holds `width`
+/// codepoints. Symmetric with `pad_start`.
+/// @param s      source string.
+/// @param width  target length in codepoints.
+/// @param fill   pad character.
 export pad_end :: fn(s: string, width: usize, fill: char) -> string {
-    n :: s.byte_len()
+    n :: s.len()
     if n >= width {
         return s
     }
@@ -762,10 +768,11 @@ import "std/testing"
     parts_mid :: split("a,,b", ",")
     assert_eq(parts_mid.len(), 3)
     assert_eq(parts_mid[1], "")
-    // Empty separator → one segment per byte.
-    parts_bytes :: split("abc", "")
-    assert_eq(parts_bytes.len(), 3)
-    assert_eq(parts_bytes[0], "a")
+    // Empty separator → one segment per codepoint.
+    parts_chars :: split("aé€", "")
+    assert_eq(parts_chars.len(), 3)
+    assert_eq(parts_chars[1], "é")
+    assert_eq(parts_chars.join(""), "aé€")
     // Multi-char separator.
     parts_multi :: split("a::b::c", "::")
     assert_eq(parts_multi.len(), 3)
@@ -826,6 +833,8 @@ import "std/testing"
     assert_eq(pad_start("42", 5, '0'), "00042")
     assert_eq(pad_end("hi", 5, '.'), "hi...")
     assert_eq(pad_start("already long", 3, 'x'), "already long")
+    // The width counts codepoints, the fill included.
+    assert_eq(pad_end("é", 3, '·'), "é··")
 }
 
 @test test_trim_prefix_suffix :: fn() -> void {

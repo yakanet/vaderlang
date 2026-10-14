@@ -267,7 +267,7 @@ format_variants :: fn(items: i32[]) -> string {
 /// can carry anything.
 quote_ident :: fn(s: string) -> string {
     if is_simple_ident(s) { return s }
-    return "${json_escape(s)}"
+    return quote_string(s)
 }
 
 is_simple_ident :: fn(s: string) -> bool {
@@ -280,24 +280,6 @@ is_simple_ident :: fn(s: string) -> bool {
         }
     }
     return true
-}
-
-/// Minimal JSON-style string escape for the quote_ident fallback path.
-/// Mirrors `JSON.stringify(s)` for the byte ranges relevant to bytecode
-/// dumps (no full Unicode escape — bytecode names stay ASCII-safe in
-/// practice).
-json_escape :: fn(s: string) -> string {
-    sb :: StringBuilder {}
-    sb.append_char('"')
-    n :: s.byte_len()
-    for i in 0..<n {
-        b :: s.byte_at(i)
-        if b == '"' { sb.append("\\\"") }
-        else if b == '\\' { sb.append("\\\\") }
-        else { sb.append_char(char(u32(b))) }
-    }
-    sb.append_char('"')
-    return "${sb}"
 }
 
 write_strings :: fn(sb: StringBuilder, strings: string[]) -> void {

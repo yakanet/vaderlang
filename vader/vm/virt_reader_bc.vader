@@ -469,8 +469,8 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
     open :: after_struct.index_of('{', 0)
     raw_name :: before_first(after_struct, '{').trim()
     // The dump `quote_ident`-wraps a name carrying chars outside [A-Za-z0-9_$.]
-    // (e.g. the `/` of a path-qualified synthetic Cell struct) in `"..."` with
-    // json-escapes ; unquote so `sanitise` derives the same C identifier as the
+    // (e.g. the `/` of a path-qualified synthetic Cell struct) in `"..."` by
+    // `quote_string` ; unquote so `sanitise` derives the same C identifier as the
     // direct-source build.
     // `Name as "struct timespec"` — the mirrored C type, absent on an ordinary
     // struct. Split before unquoting: both halves are quoted independently.
@@ -1051,9 +1051,9 @@ primitive_index_for :: fn(types: bc.BcType[], val: bc.ValType) -> i32 {
 }
 
 /// Strip the dump's `quote_ident` wrapping from a struct or trait name: a
-/// `"..."`-quoted name (`"std/core.Error"`) is unquoted + json-unescaped (the
-/// escape set matches dump's `json_escape` — `\"` / `\\` — which
-/// `decode_escapes` understands). A bare name passes through unchanged.
+/// `"..."`-quoted name (`"std/core.Error"`) is unquoted, its escapes read back by
+/// `decode_escapes` (the dump writes it with `quote_string`). A bare name passes
+/// through unchanged.
 unquote_name :: fn(s: string) -> string {
     n :: s.byte_len()
     if n >= 2 && s.byte_at(0) == '"' && s.byte_at(n - 1) == '"' {

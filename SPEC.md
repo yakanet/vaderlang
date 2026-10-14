@@ -173,7 +173,7 @@ Code in `@comptime` context can:
 
 ### Source encoding
 
-UTF-8. A leading BOM is silently ignored.
+UTF-8. A leading BOM is silently ignored and takes no column. A file holding a byte sequence that does not decode as UTF-8 is L0012, reported once, at its first malformed run, with the count; the lexer reads each run as a U+FFFD one column wide and goes on (§Strings, *Malformed UTF-8*).
 
 ### Shebang
 
@@ -687,7 +687,7 @@ A negative integer literal is one value (§Default integer), so `x: i64: -9_223_
 - `bytes()` returns the UTF-8 byte sequence as `u8[]`, read-only since a return takes the default, for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); writes to it are rejected at compile time (T3042), which keeps the view sound since the shared bytes are immutable. On the VM the array reads the interned bytes in place until a write copies them. `bytes()` is for handing the bytes to code that takes a `u8[]`; to read them, the string itself answers (`byte_len`, `byte_at`, `byte_slice`, below), with no view to allocate. Strings iterate by **codepoint** by default: `string implements Into<Iterator<char>!>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); the byte loop is `for i in 0..<s.byte_len() { b :: s.byte_at(i) }`.
 - `is_empty()` — sugar for `s.byte_len() == 0` (codepoint count and byte count agree on emptiness).
 - **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`); the key is a `usize` or a free literal, as for any `Index` impl, and an index past the last codepoint stops the run. **Slicing** `s[lo..<hi]` (or `s[lo..=hi]`) returns the codepoints of the range as a string (via `string implements Index<Range<usize>, string>`): bounds past the end clamp to it, and a range that ends before it starts gives `""`. Both walk from the start: `s[i]` is O(i); pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, read the string in place: `s.byte_at(i) -> u8` for the raw byte, `s.byte_slice(lo, hi)` for the substring between two byte offsets, `s.codepoint_at_byte(i) -> [char, usize]` to decode the UTF-8 codepoint starting at byte offset `i` into the codepoint and the bytes it spans (lexers and regex parsers; `.0` keeps the codepoint alone). There is no `IndexSet` impl; strings are immutable.
-- **Malformed UTF-8.** Nothing validates the bytes a string is made from (`bytes_to_string`, `read_file_string`, a `byte_slice` that cuts a codepoint). Every codepoint walk decodes them one way, the substitution Unicode recommends and WHATWG decoders apply: a malformed run is one `U+FFFD` spanning the longest prefix of a well-formed sequence, and at least one byte. Overlong forms, surrogates and codepoints past U+10FFFF are malformed, and `utf8_encode` (behind `append_char` and a `char`'s `Display`) writes a `char` holding one as `U+FFFD`, so what it writes decodes back. So `s.len()` is the number of codepoints `for c in s` yields and the number of valid `s[i]`, on any bytes. The compiler reads source the same way: a malformed run in a literal is a `U+FFFD`, one column wide.
+- **Malformed UTF-8.** Nothing validates the bytes a string is made from (`bytes_to_string`, `read_file_string`, a `byte_slice` that cuts a codepoint). Every codepoint walk decodes them one way, the substitution Unicode recommends and WHATWG decoders apply: a malformed run is one `U+FFFD` spanning the longest prefix of a well-formed sequence, and at least one byte. Overlong forms, surrogates and codepoints past U+10FFFF are malformed, and `utf8_encode` (behind `append_char` and a `char`'s `Display`) writes a `char` holding one as `U+FFFD`, so what it writes decodes back. So `s.len()` is the number of codepoints `for c in s` yields and the number of valid `s[i]`, on any bytes. The compiler reads source the same way (§Source encoding).
 - Literals stored in the binary's data section.
 
 ### Arrays
@@ -3534,7 +3534,7 @@ I/O is **synchronous blocking** only in MVP.
 
 ### `std/string`
 
-Width-based helpers (`pad_start`, `pad_end`) measure bytes, not codepoints.
+Width-based helpers (`pad_start`, `pad_end`) count codepoints, as `len` does; a codepoint is not a terminal column (a wide CJK glyph or a combining mark still counts one).
 
 ```vader
 // Core access (intrinsics — no body in Vader).
@@ -3543,7 +3543,7 @@ contains    :: fn(s: string, sub: string) -> bool      // the `Contains<string>`
 starts_with :: fn(s: string, prefix: string) -> bool
 ends_with   :: fn(s: string, suffix: string) -> bool
 matches_at  :: fn(s: string, offset: usize, sub: string) -> bool  // `sub` at byte `offset`
-split       :: fn(s: string, sep: string) -> string[]
+split       :: fn(s: string, sep: string) -> string[]       // an empty `sep` gives one segment per codepoint
 trim        :: fn(s: string) -> string
 to_upper    :: fn(s: string) -> string
 to_lower    :: fn(s: string) -> string

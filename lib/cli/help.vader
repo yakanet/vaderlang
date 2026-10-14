@@ -151,7 +151,7 @@ flag_description :: fn(spec: FlagSpec) -> string =
 column_of :: fn(labels: string[]) -> usize {
     widest: usize = 0
     for l in labels {
-        len :: l.byte_len()
+        len :: l.len()
         if len > widest {
             widest = len
         }
@@ -163,16 +163,10 @@ column_of :: fn(labels: string[]) -> usize {
     return want
 }
 
-// Right-pad `s` to `width` bytes. A label longer than the column keeps its own
-// length plus one space rather than being truncated — a long name should
+// Right-pad `s` to `width` codepoints. A label longer than the column keeps its
+// own length plus one space rather than being truncated: a long name should
 // misalign, not disappear.
-pad_to :: fn(s: string, width: usize) -> string {
-    len :: s.byte_len()
-    if len >= width {
-        return "${s} "
-    }
-    return "${s}${" ".repeat(width - len)}"
-}
+pad_to :: fn(s: string, width: usize) = pad_end("${s} ", width, ' ')
 
 // ---- tests ----------------------------------------------------------------
 
@@ -283,9 +277,9 @@ sample_commands :: fn() -> CommandSpec[] = [
         labels.push(flag_label(f))
     }
     width :: column_of(labels)
-    expected :: pad_to(labels[0], width).byte_len()
+    expected :: pad_to(labels[0], width).len()
     for l in labels {
-        assert_eq(pad_to(l, width).byte_len(), expected)
+        assert_eq(pad_to(l, width).len(), expected)
     }
     assert(expected >= MIN_DESCRIPTION_COLUMN, "the floor is respected")
 }

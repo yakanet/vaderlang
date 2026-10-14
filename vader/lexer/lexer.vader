@@ -45,6 +45,11 @@ export Lexer :: struct {
     // A statement-ending line break not emitted yet : the next token decides
     // whether it ends the statement (`emit`).
     pending_newline: Span | null = null
+    // How many malformed UTF-8 runs the file holds and where the first starts, for
+    // its one L0012 (ADR 0063). Scalars only, so that `advance` allocates nothing
+    // and keeps no GC frame.
+    malformed_utf8_runs: i32 = 0
+    malformed_utf8_at: usize = 0
     tokens: Token[]!
     errors: Diagnostic[]!
     interp_stack: InterpFrame![]!
@@ -134,11 +139,45 @@ peek_at :: fn(l: Lexer, n: usize) -> char {
     return l.src.codepoint_at_byte(p).0
 }
 
+// True when `c`, decoded from `width` bytes led by `lead`, stands for a malformed
+// run: the one well-formed U+FFFD is `EF BF BD`, three bytes from `EF`.
+is_malformed_utf8 :: fn(c: char, width: usize, lead: u8) =
+    c == REPLACEMENT_CHAR && !(lead == 0xEF && width == 3)
+
+// The span of the file's first malformed run, found again by walking to it: the
+// lexer keeps only its offset.
+first_malformed_utf8 :: fn(l: Lexer) -> Span {
+    r :: new_lexer(l.src, l.file)
+    r.skip_bom()
+    for r.pos < l.malformed_utf8_at {
+        r.advance(1)
+    }
+    start :: r.position_here()
+    r.advance(1)
+    return r.error_span(start)
+}
+
+// A UTF-8 BOM may open the file: it is no program text and takes no column.
+skip_bom :: fn(l: Lexer) -> void {
+    if l.peek() == '\u{FEFF}' {
+        l.pos = 3
+    }
+}
+
+// The detail of the file's L0012: how many runs it stands for.
+malformed_utf8_detail :: fn(runs: i32) -> string {
+    if runs == 1 {
+        return ""
+    }
+    return "the first of ${runs} malformed runs in the file"
+}
+
 position_here :: fn(l: Lexer) =
     Position { .file = l.file, .offset = l.pos, .line = l.line, .column = l.col }
 
 // Advance `pos` past `n` codepoints, as `codepoint_at_byte` decodes them: each is
-// one column, a malformed run included. Newlines reset col to 1 as usual.
+// one column, a malformed run included, which counts toward the file's L0012.
+// Newlines reset col to 1 as usual.
 advance :: fn(l: Lexer, n: usize) -> void {
     for 0..<n {
         if l.pos >= l.src.byte_len() {
@@ -146,8 +185,15 @@ advance :: fn(l: Lexer, n: usize) -> void {
         }
         b :: l.src.byte_at(l.pos)
         if b >= 0x80 {
+            [c, width] :: l.src.codepoint_at_byte(l.pos)
+            if is_malformed_utf8(c, width, b) {
+                if l.malformed_utf8_runs == 0 {
+                    l.malformed_utf8_at = l.pos
+                }
+                l.malformed_utf8_runs = l.malformed_utf8_runs + 1
+            }
             l.col = l.col + 1
-            l.pos = l.pos + l.src.codepoint_at_byte(l.pos).1
+            l.pos = l.pos + width
             continue
         }
         if b == '\n' {
@@ -939,18 +985,20 @@ lex_one :: fn(l: Lexer) -> void {
         l.push_error(.StrayBackslash, l.error_span(start), "")
         return
     }
+    // A malformed run is the file's L0012, not an unexpected character.
+    width :: l.src.codepoint_at_byte(l.pos).1
+    malformed :: is_malformed_utf8(c, width, l.src.byte_at(l.pos))
     l.advance(1)
-    l.push_error(.UnexpectedCharacter, l.error_span(start), "")
+    if !malformed {
+        l.push_error(.UnexpectedCharacter, l.error_span(start), "")
+    }
 }
 
 // ---- public entry ---------------------------------------------------------
 
 export tokenize :: fn(source: string, file: string) -> Lexer {
     l :: new_lexer(source, file)
-    // A UTF-8 BOM may open the file: it is no program text and takes no column.
-    if l.peek() == '\u{FEFF}' {
-        l.pos = 3
-    }
+    l.skip_bom()
     // Shebang: only allowed on line 1 and silently dropped.
     if l.line == 1 && l.peek() == '#' && l.peek_at(1) == '!' {
         for !l.at_end() && l.peek() != '\n' {
@@ -959,6 +1007,10 @@ export tokenize :: fn(source: string, file: string) -> Lexer {
     }
     for !l.at_end() {
         l.lex_one()
+    }
+    if l.malformed_utf8_runs > 0 {
+        detail :: malformed_utf8_detail(l.malformed_utf8_runs)
+        l.push_error(.MalformedUtf8, l.first_malformed_utf8(), detail)
     }
     here :: l.position_here()
     eof_span :: Span { .start = here, .end = here }
@@ -995,9 +1047,11 @@ import "std/testing"
 }
 
 @test test_tokenize_malformed_utf8_in_a_string :: fn() -> void {
-    // `"x<80>y"`: the stray byte decodes as U+FFFD and the closing quote stays one.
+    // `"x<80>y"`: the stray byte is L0012, decodes as U+FFFD, and the closing quote
+    // stays one.
     l :: tokenize(bytes_to_string([0x22, 0x78, 0x80, 0x79, 0x22]), "test.vader")
-    assert_eq(l.errors.len(), 0)
+    assert_eq(l.errors.len(), 1)
+    assert_eq(l.errors[0].code.id, "L0012")
     assert(l.tokens[1].kind == .StringPart, "one string part")
     assert_eq(l.tokens[1].text, "x\u{FFFD}y")
     assert(l.tokens[2].kind == .StringEnd, "the quote closes the string")
@@ -1024,6 +1078,28 @@ import "std/testing"
     l :: tokenize("'\\é'", "test.vader")
     assert_eq(l.errors.len(), 1)
     assert_eq(l.errors[0].code.id, "L0004")
+}
+
+@test test_tokenize_malformed_utf8_once_per_file :: fn() -> void {
+    // `x <E9> "<E9>"`: two runs, one L0012 at the first, and no L0001 for it.
+    l :: tokenize(bytes_to_string([0x78, 0x20, 0xE9, 0x20, 0x22, 0xE9, 0x22]), "test.vader")
+    assert_eq(l.errors.len(), 1)
+    assert_eq(l.errors[0].code.id, "L0012")
+    assert_eq(l.errors[0].primary.start.column, 3)
+    assert_eq(l.errors[0].detail, "the first of 2 malformed runs in the file")
+}
+
+@test test_tokenize_replacement_char_spelled_out :: fn() -> void {
+    // A U+FFFD written in the source is well-formed UTF-8.
+    l :: tokenize("\"\u{FFFD}x\"", "test.vader")
+    assert_eq(l.errors.len(), 0)
+}
+
+@test test_tokenize_truncated_replacement_char :: fn() -> void {
+    // `"<EF BF>"`: two of the three bytes of a U+FFFD, a malformed run.
+    l :: tokenize(bytes_to_string([0x22, 0xEF, 0xBF, 0x22]), "test.vader")
+    assert_eq(l.errors.len(), 1)
+    assert_eq(l.errors[0].code.id, "L0012")
 }
 
 @test test_tokenize_bom_takes_no_column :: fn() -> void {

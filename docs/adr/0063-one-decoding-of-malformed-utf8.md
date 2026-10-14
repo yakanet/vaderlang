@@ -43,8 +43,10 @@ its `y` and its closing quote (L0002).
 
 - `s.len()` is the number of codepoints `for c in s` yields and the number of
   valid `s[i]`, on any bytes.
-- A source file with malformed bytes compiles; a malformed run in a literal is a
-  U+FFFD. No diagnostic reports it.
+- A source file with malformed bytes is one L0012, at its first malformed run, with
+  the count: a file saved in Latin-1 would otherwise give one error per accented
+  letter. The lexer reads each run as a U+FFFD and goes on, so the rest of the
+  file is still checked.
 - Measured on 2026-10-14, `--release` natively and on the VM, 64 KB texts,
   alternated runs (native ×4000, VM ×40), before → after:
 

@@ -43,6 +43,7 @@ export LexerCode :: enum(CodeInfo) {
     InvalidUnicodeCodepointEscape   { .id = "L0009", .message = "invalid Unicode codepoint escape" },
     InterpolationExpressionExpected { .id = "L0010", .message = "interpolation expression must follow `\${`" },
     IntegerLiteralOverflow          { .id = "L0011", .message = "integer literal exceeds the u64 range" },
+    MalformedUtf8                   { .id = "L0012", .message = "malformed UTF-8" },
 }
 
 // Typecheck-pass codes. New codes are appended ; retired IDs may be reused —
