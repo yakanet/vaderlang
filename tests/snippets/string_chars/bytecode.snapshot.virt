@@ -39,9 +39,9 @@ fn 0 snippet$main () -> i32
   local n i32
   local __off_7 usize
   local $cast_45 i64
-  local $cast_51 u64
-  local $call_elem_68 char
-  local $call_elem_69 u8
+  local $cast_52 u64
+  local $call_elem_69 char
+  local $call_elem_70 u8
   string.const 0   ; "-- ascii --"
   call 13   ; std_io$println__string
   string.const 1   ; "vader"
@@ -50,14 +50,14 @@ fn 0 snippet$main () -> i32
   loop $L0 void
     local.get 0   ; __iter_0
     call 15   ; std_string$StringChars$Iterator$next$v
-    local.set 6   ; $call_elem_69
-    local.set 5   ; $call_elem_68
-    local.get 6   ; $call_elem_69
+    local.set 6   ; $call_elem_70
+    local.set 5   ; $call_elem_69
+    local.get 6   ; $call_elem_70
     i32.const 1
     i32.eq
     if $L1 void
     else
-      local.get 5   ; $call_elem_68
+      local.get 5   ; $call_elem_69
       call 7   ; std_core$char$Display$to_string
       call 13   ; std_io$println__string
       br $L0
@@ -71,14 +71,14 @@ fn 0 snippet$main () -> i32
   loop $L2 void
     local.get 0   ; __iter_0
     call 15   ; std_string$StringChars$Iterator$next$v
-    local.set 6   ; $call_elem_69
-    local.set 5   ; $call_elem_68
-    local.get 6   ; $call_elem_69
+    local.set 6   ; $call_elem_70
+    local.set 5   ; $call_elem_69
+    local.get 6   ; $call_elem_70
     i32.const 1
     i32.eq
     if $L3 void
     else
-      local.get 5   ; $call_elem_68
+      local.get 5   ; $call_elem_69
       call 7   ; std_core$char$Display$to_string
       call 13   ; std_io$println__string
       br $L2
@@ -92,9 +92,9 @@ fn 0 snippet$main () -> i32
   loop $L4 void
     local.get 0   ; __iter_0
     call 15   ; std_string$StringChars$Iterator$next$v
-    local.set 6   ; $call_elem_69
+    local.set 6   ; $call_elem_70
     drop
-    local.get 6   ; $call_elem_69
+    local.get 6   ; $call_elem_70
     i32.const 1
     i32.eq
     if $L5 void
@@ -130,12 +130,13 @@ fn 0 snippet$main () -> i32
   call 4   ; std_core$write_string_at
   local.set 2   ; __off_7
   string.const 4   ; "héllo"
-  call.import 0   ; std_core$byte_len
+  call.import 3   ; std_core$bytes
+  array.len
   usize.to_i64
-  local.set 4   ; $cast_51
+  local.set 4   ; $cast_52
   local.get 0   ; __iter_0
   local.get 2   ; __off_7
-  local.get 4   ; $cast_51
+  local.get 4   ; $cast_52
   call 6   ; std_core$write_unsigned
   local.set 2   ; __off_7
   local.get 0   ; __iter_0
@@ -150,9 +151,9 @@ fn 0 snippet$main () -> i32
   loop $L6 void
     local.get 0   ; __iter_0
     call 15   ; std_string$StringChars$Iterator$next$v
-    local.set 6   ; $call_elem_69
+    local.set 6   ; $call_elem_70
     drop
-    local.get 6   ; $call_elem_69
+    local.get 6   ; $call_elem_70
     i32.const 1
     i32.eq
     if $L7 void

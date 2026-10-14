@@ -12,7 +12,7 @@
               callee:
                 new_byte_buffer :Buffer
               arg0:
-                int(27) :usize
+                int(53) :usize
           let __off_1: usize = int(0) :usize
           assign
             target:
@@ -26,7 +26,7 @@
                 arg1:
                   __off_1 :usize
                 arg2:
-                  "inline=" :string
+                  "string=" :string
           assign
             target:
               __off_1 :usize
@@ -42,9 +42,36 @@
                   cast → u64
                     call :usize
                       callee:
-                        byte_len :fn(string) -> usize
+                        byte_len :usize
                       arg0:
                         "abc" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " view=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
           ~>
             call :string
               callee:

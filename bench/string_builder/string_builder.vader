@@ -20,6 +20,6 @@ main :: fn() -> i32 {
         sb.append(FRAGMENT)
     }
     result :: sb.to_string()
-    println("string_builder N=${N} len=${result.bytes().len()}")
+    println("string_builder N=${N} len=${result.byte_len()}")
     return 0
 }

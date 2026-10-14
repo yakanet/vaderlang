@@ -392,9 +392,8 @@ boxed :: fn(t: Translation, pc: usize, op: bc.Op, pops: usize, pushes: usize) ->
     }
 }
 
-// `byte_len`, `byte_at` and `byte_slice` read a string in place (the first two
-// are also what `s.bytes().len()` and a non-escaping `s.bytes()[i]` lower to): an
-// op of their own spares them the generic import call. Answers whether the import
+// `byte_len`, `byte_at` and `byte_slice` read a string in place: an op of their
+// own spares them the generic import call. Answers whether the import
 // `id` was one of them.
 string_byte_op :: fn(t: Translation, pc: usize, id: bc.IntrinsicId) -> bool {
     if id == .ByteLen {

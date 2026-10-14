@@ -3,11 +3,9 @@
 /// pure-Vader Buffer-backed concat rather than `main`'s `vader_string_concat`
 /// host intrinsic, so this measures the off-runtime concat path.
 ///
-/// The checksum sums `bytes().len()` (the zero-copy byte-view length, an array
-/// length) rather than `len()` : the latter desugars to `chars().count()`,
-/// which currently trips an unrelated c-emit codegen bug (an indirect-call
-/// callee lowered to literal `0` — see TODO). For ASCII the two are equal, so
-/// the checksum is unchanged.
+/// The checksum sums `byte_len()` rather than the codepoint count `len()`: the
+/// loop measures the concatenation, not a walk over its result. For ASCII the
+/// two are equal.
 
 module "main"
 
@@ -20,7 +18,7 @@ main :: fn() -> i32 {
         s = s + "bcd"
         s = s + "efgh"
         s = s + "ijklm"
-        total = total + s.bytes().len()
+        total = total + s.byte_len()
     }
     println("str_concat ${total}")
     return 0

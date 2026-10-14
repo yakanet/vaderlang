@@ -257,9 +257,9 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
     int64_t t0;
-#line 131 "lib/std/core/primitives.vader"
+#line 129 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-#line 132 "lib/std/core/primitives.vader"
+#line 130 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     t0 = vader_chk_add(usize, l1, l3);
     return (size_t) (int64_t) t0;
@@ -267,12 +267,12 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
 
 static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     size_t t0;
-#line 183 "lib/std/core/primitives.vader"
+#line 181 "lib/std/core/primitives.vader"
     if (!(l2)) {
-#line 184 "lib/std/core/primitives.vader"
+#line 182 "lib/std/core/primitives.vader"
         t0 = std_core_write_string_at(l0, l1, 3u);
         return t0;
-#line 183 "lib/std/core/primitives.vader"
+#line 181 "lib/std/core/primitives.vader"
     }
     t0 = std_core_write_string_at(l0, l1, 2u);
     return t0;
@@ -376,7 +376,7 @@ static vader_string_t std_core_i32_Display_to_string(int32_t l0) {
     vader_string_t* gc_atom_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 207 "lib/std/core/primitives.vader"
+#line 205 "lib/std/core/primitives.vader"
     t0 = std_core_format_signed(((int64_t) (int32_t) l0));
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

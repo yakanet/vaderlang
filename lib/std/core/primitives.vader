@@ -103,15 +103,13 @@ export new_byte_buffer :: fn(cap: usize) -> Buffer = cap.new_buffer()
 /// Intern the buffer's leading `len` bytes as a `string` (one atom-table copy).
 export finish_buffer :: fn(self: Buffer, len: usize) -> string = self.intern_string(len)
 
-/// Byte length of `s` (its UTF-8 byte count) — an `@intrinsic` host fn that is
-/// also the fold target for `s.bytes().len()` (see `lower_call.vader`).
-/// String-only: a `u8[]` uses `.len()` directly.
+/// Byte length of `s` (its UTF-8 byte count), an `@intrinsic` read straight off
+/// the interned atom. String-only: a `u8[]` uses `.len()` directly.
 @intrinsic export byte_len :: fn(s: string) -> usize
 
 /// The byte at index `i` of `s` — an `@intrinsic` header-free read straight off
-/// the interned atom, no read-only `u8[]` view materialised. The fold target for a
-/// non-escaping `s.bytes()` bound to a local and indexed (see
-/// `lower/bytes_view_elision.vader`), the peer of `byte_len` for the `[i]` case.
+/// the interned atom, no read-only `u8[]` view materialised: how code reads a
+/// string's bytes, the peer of `byte_len` for the `[i]` case.
 ///
 /// @error traps when `i >= byte_len(s)`, matching `s.bytes()[i]`.
 @intrinsic export byte_at :: fn(s: string, i: usize) -> u8

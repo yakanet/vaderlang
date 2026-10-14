@@ -114,7 +114,7 @@ StringChars implements Iterator<char> {
 export chars :: fn(s: string) -> StringChars! = StringChars { .s = s }
 
 // `for c in s` desugars to `for c in s.into()` via this impl — codepoints
-// are the default unit. Byte iteration stays opt-in via `s.bytes()`.
+// are the default unit. A byte loop indexes the string: `s.byte_at(i)`.
 string implements Into<Iterator<char>!> {
     into :: fn(self) -> Iterator<char>! = self.chars()
 }

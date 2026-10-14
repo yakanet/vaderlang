@@ -682,9 +682,9 @@ A negative integer literal is one value (§Default integer), so `x: i64: -9_223_
 
 - Internals: an **interned atom id** — `vader_string_t` is a `u32`, 4 bytes, copied on assignment. `==` is an integer compare and hashing is the identity; the bytes live once in a global atom table (`docs/ATOM_INTERNING.md`). The `(ptr, len)` fat value this used to be went out with atom interning.
 - Immutable. Concatenation allocates.
-- `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). For the **byte** length, `s.byte_len()` (O(1)); `s.bytes().len()` written inline folds to the same primitive. Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `byte_len()` for byte arithmetic.
+- `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). For the **byte** length, `s.byte_len()` (O(1), no view). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `byte_len()` for byte arithmetic.
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`); pair with `for c in s.chars()` for a true Unicode loop.
-- `bytes()` returns the UTF-8 byte sequence as `u8[]`, read-only since a return takes the default, for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); writes to it are rejected at compile time (T3042), which keeps the view sound since the shared bytes are immutable. On the VM the array reads the interned bytes in place until a write copies them. To read a string's bytes, the string itself answers (`byte_len`, `byte_at`, `byte_slice`, below): no view to hold. Iteration works through `for b in s.bytes()` via the built-in array iterator. Strings iterate by **codepoint** by default: `string implements Into<Iterator<char>!>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); use `for b in s.bytes()` to walk raw bytes.
+- `bytes()` returns the UTF-8 byte sequence as `u8[]`, read-only since a return takes the default, for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); writes to it are rejected at compile time (T3042), which keeps the view sound since the shared bytes are immutable. On the VM the array reads the interned bytes in place until a write copies them. `bytes()` is for handing the bytes to code that takes a `u8[]`; to read them, the string itself answers (`byte_len`, `byte_at`, `byte_slice`, below), with no view to allocate. Strings iterate by **codepoint** by default: `string implements Into<Iterator<char>!>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); the byte loop is `for i in 0..<s.byte_len() { b :: s.byte_at(i) }`.
 - `is_empty()` — sugar for `s.byte_len() == 0` (codepoint count and byte count agree on emptiness).
 - **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`); the key is a `usize` or a free literal, as for any `Index` impl, and an index past the last codepoint stops the run. **Slicing** `s[lo..<hi]` (or `s[lo..=hi]`) returns the codepoints of the range as a string (via `string implements Index<Range<usize>, string>`): bounds past the end clamp to it, and a range that ends before it starts gives `""`. Both walk from the start, a codepoint spanning the width its lead byte announces and a stray continuation byte counting as one: `s[i]` is O(i); pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, read the string in place: `s.byte_at(i) -> u8` for the raw byte, `s.byte_slice(lo, hi)` for the substring between two byte offsets, `s.char_at_byte(i) -> char` and `s.codepoint_at_byte(i) -> [char, usize]` (the codepoint and its byte width) to decode the UTF-8 codepoint starting at byte offset `i` (lexers, JSON and regex parsers). A continuation byte at `i` decodes as `U+FFFD`, a sequence cut short by the end as `U+0000`. There is no `IndexSet` impl; strings are immutable.
 - Literals stored in the binary's data section.
@@ -1724,11 +1724,8 @@ Tutu  implements Toto<i32, i64> -> i64(self + other)
 // Block form — multi-statement body.
 string implements Hash {
     h: u64 = 14695981039346656037
-    n: usize = self.bytes().len()
-    i: usize = 0
-    for i < n {
-        h = (h ^ u64(self[i])) * 1099511628211
-        i = i + 1
+    for i in 0..<self.byte_len() {
+        h = (h ^ u64(self.byte_at(i))) * 1099511628211
     }
     return h
 }

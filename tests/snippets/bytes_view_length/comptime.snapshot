@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/byte_len_fold
+## tests/snippets/bytes_view_length
 
 ## generic instances
   __genstate_array_iter<T>

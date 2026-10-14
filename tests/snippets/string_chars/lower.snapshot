@@ -189,11 +189,7 @@
                   __off_7 :usize
                 arg2:
                   cast → u64
-                    call :usize
-                      callee:
-                        byte_len :fn(string) -> usize
-                      arg0:
-                        "héllo" :string
+                    LoweredArrayLen
           ~>
             call :string
               callee:

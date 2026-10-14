@@ -49,10 +49,10 @@ fn 0 snippet$main () -> i32
   local c char
   local w usize
   local __p_11 string
-  local $call_106 usize
+  local $call_112 usize
   local __off_13 usize
-  local $cast_121 u64
-  local $call_elem_177 usize
+  local $cast_127 u64
+  local $call_elem_183 usize
   i64.const 57
   call 3   ; std_core$new_byte_buffer
   local.set 0   ; __buf_0
@@ -78,7 +78,8 @@ fn 0 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 1   ; __off_1
   string.const 1   ; "vader"
-  call.import 0   ; std_core$byte_len
+  call.import 3   ; std_core$bytes
+  array.len
   usize.to_i64
   local.set 2   ; $cast_9
   local.get 0   ; __buf_0
@@ -115,7 +116,8 @@ fn 0 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 1   ; __off_1
   string.const 4   ; "héllo"
-  call.import 0   ; std_core$byte_len
+  call.import 3   ; std_core$bytes
+  array.len
   usize.to_i64
   local.set 2   ; $cast_9
   local.get 0   ; __buf_0
@@ -152,7 +154,8 @@ fn 0 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 1   ; __off_1
   string.const 6   ; "你好嗎？"
-  call.import 0   ; std_core$byte_len
+  call.import 3   ; std_core$bytes
+  array.len
   usize.to_i64
   local.set 2   ; $cast_9
   local.get 0   ; __buf_0
@@ -189,7 +192,8 @@ fn 0 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 1   ; __off_1
   string.const 8   ; "a😀b"
-  call.import 0   ; std_core$byte_len
+  call.import 3   ; std_core$bytes
+  array.len
   usize.to_i64
   local.set 2   ; $cast_9
   local.get 0   ; __buf_0
@@ -226,7 +230,8 @@ fn 0 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 1   ; __off_1
   string.const 10   ; ""
-  call.import 0   ; std_core$byte_len
+  call.import 3   ; std_core$bytes
+  array.len
   usize.to_i64
   local.set 2   ; $cast_9
   local.get 0   ; __buf_0
@@ -240,7 +245,8 @@ fn 0 snippet$main () -> i32
   call 14   ; std_io$println__string
   string.const 11   ; "你好"
   local.tee 3   ; s
-  call.import 0   ; std_core$byte_len
+  call.import 3   ; std_core$bytes
+  array.len
   local.set 1   ; __off_1
   i64.const 0
   local.set 4   ; i
@@ -252,17 +258,17 @@ fn 0 snippet$main () -> i32
       local.get 3   ; s
       local.get 4   ; i
       call 15   ; std_string$codepoint_at_byte
-      local.set 11   ; $call_elem_177
+      local.set 11   ; $call_elem_183
       local.set 5   ; c
-      local.get 11   ; $call_elem_177
+      local.get 11   ; $call_elem_183
       local.set 6   ; w
       local.get 5   ; c
       call 10   ; std_core$char$Display$to_string
       local.tee 7   ; __p_11
       call.import 0   ; std_core$byte_len
-      local.set 8   ; $call_106
+      local.set 8   ; $call_112
       i64.const 56
-      local.get 8   ; $call_106
+      local.get 8   ; $call_112
       i64.add
       call 3   ; std_core$new_byte_buffer
       local.set 0   ; __buf_0
@@ -298,10 +304,10 @@ fn 0 snippet$main () -> i32
       local.set 9   ; __off_13
       local.get 6   ; w
       usize.to_i64
-      local.set 10   ; $cast_121
+      local.set 10   ; $cast_127
       local.get 0   ; __buf_0
       local.get 9   ; __off_13
-      local.get 10   ; $cast_121
+      local.get 10   ; $cast_127
       call 6   ; std_core$write_unsigned
       local.set 9   ; __off_13
       local.get 0   ; __buf_0

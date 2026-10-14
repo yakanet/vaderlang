@@ -38,7 +38,7 @@ export PositionEncoding :: enum(u8) {
 /// first byte (`line_starts[0] == 0`), so `(line, character)` conversions do an
 /// O(1) line lookup then walk only that line's bytes.
 export LineIndex :: struct {
-    /// The document text. Bytes are read through `source.bytes()` (zero-copy).
+    /// The document text, read in place with `byte_at`.
     source:      string
     /// Negotiated character-counting unit.
     encoding:    PositionEncoding

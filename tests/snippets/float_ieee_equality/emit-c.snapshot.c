@@ -529,9 +529,9 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
     int64_t t0;
-#line 131 "lib/std/core/primitives.vader"
+#line 129 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-#line 132 "lib/std/core/primitives.vader"
+#line 130 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     t0 = vader_chk_add(usize, l1, l3);
     return (size_t) (int64_t) t0;
@@ -539,12 +539,12 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
 
 static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     size_t t0;
-#line 183 "lib/std/core/primitives.vader"
+#line 181 "lib/std/core/primitives.vader"
     if (!(l2)) {
-#line 184 "lib/std/core/primitives.vader"
+#line 182 "lib/std/core/primitives.vader"
         t0 = std_core_write_string_at(l0, l1, 12u);
         return t0;
-#line 183 "lib/std/core/primitives.vader"
+#line 181 "lib/std/core/primitives.vader"
     }
     t0 = std_core_write_string_at(l0, l1, 11u);
     return t0;

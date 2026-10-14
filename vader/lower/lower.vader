@@ -258,11 +258,6 @@ lower_project_impl :: fn(
     // dispatch (the `.map(f).filter(p)` iterator-fusion regression). The direct
     // calls it produces are what `push_cache_tag` needs to see a pure callback.
     devirtualize_fn_refs(project)
-    // Elide non-escaping `s.bytes()` views bound to a local and only read via
-    // `.len()` / `[i]` — rewrite those to the header-free `byte_len` / `byte_at`
-    // intrinsics and drop the borrowed-view header alloc. See
-    // `bytes_view_elision.vader`.
-    elide_bytes_views(project, project_ctx)
     // Route non-scalar const decls to their read sites : bulky array consts
     // become synthetic `__const_<name>` accessor fns (resolved by a `call` in
     // `build_ident`), every other const is recorded for inline rebuild. Runs

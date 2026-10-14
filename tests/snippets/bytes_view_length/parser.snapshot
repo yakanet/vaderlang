@@ -43,7 +43,31 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "inline="
+                        "value": "string="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "StringLitExpr",
+                              "parts": [
+                                {
+                                  "kind": "text",
+                                  "value": "abc"
+                                }
+                              ]
+                            },
+                            "field": "byte_len"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " view="
                       },
                       {
                         "kind": "interp",

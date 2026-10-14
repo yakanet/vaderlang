@@ -1,0 +1,26 @@
+# Typecheck
+
+## tests/snippets/bytes_view_length
+  FnDecl         main                 :: fn() -> i32
+  expr 10:11    CallExpr       :: u8[]
+  expr 10:11    FieldExpr      :: fn() -> u8[]
+  expr 10:11    StringLitExpr  :: string
+  expr 11:13    StringLitExpr  :: string
+  expr 11:21    CallExpr       :: usize
+  expr 11:21    FieldExpr      :: fn() -> usize
+  expr 11:21    IdentExpr      :: u8[]
+  expr 11:39    IdentExpr      :: u8[]
+  expr 11:39    IndexExpr      :: u8
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(T) -> void
+  expr 7:13     StringLitExpr  :: string
+  expr 7:23     CallExpr       :: usize
+  expr 7:23     FieldExpr      :: fn() -> usize
+  expr 7:23     StringLitExpr  :: string
+  expr 7:48     CallExpr       :: u8[]
+  expr 7:48     CallExpr       :: usize
+  expr 7:48     FieldExpr      :: fn() -> u8[]
+  expr 7:48     FieldExpr      :: fn() -> usize
+  expr 7:48     StringLitExpr  :: string
+  expr 7:5      CallExpr       :: void
+  expr 7:5      IdentExpr      :: fn(T) -> void

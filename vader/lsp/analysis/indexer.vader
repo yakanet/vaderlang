@@ -587,7 +587,7 @@ ix_walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
             // Params live for the whole body. `FnParam.span` covers
             // the whole `name: T = default` form ; goto-def should
             // land on the name alone, so we synthesise a narrower
-            // span by stretching `name.bytes().len()` past the start.
+            // span by stretching `name.byte_len()` past the start.
             for p in f.params {
                 name_span :: name_span_from(p.span.start, p.name)
                 sig :: param_signature_slice(p.span, p.name, source)

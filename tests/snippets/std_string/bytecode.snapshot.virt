@@ -45,9 +45,9 @@ fn 0 snippet$main () -> i32
   local s string
   local __buf_0 ref
   local __off_1 usize
-  local $cast_8 u64
-  local $call_23 bool
-  local $cast_51 usize
+  local $cast_9 u64
+  local $call_24 bool
+  local $cast_52 usize
   string.const 0   ; "  Hello, World!  "
   local.set 0   ; s
   i64.const 20
@@ -56,12 +56,13 @@ fn 0 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; s
-  call.import 0   ; std_core$byte_len
+  call.import 4   ; std_core$bytes
+  array.len
   usize.to_i64
-  local.set 3   ; $cast_8
+  local.set 3   ; $cast_9
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 3   ; $cast_8
+  local.get 3   ; $cast_9
   call 5   ; std_core$write_unsigned
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
@@ -85,10 +86,10 @@ fn 0 snippet$main () -> i32
   string.const 3   ; "foobar"
   string.const 4   ; "oba"
   call 30   ; std_string$string$Contains$contains
-  local.set 4   ; $call_23
+  local.set 4   ; $call_24
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 4   ; $call_23
+  local.get 4   ; $call_24
   call 6   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
@@ -103,10 +104,10 @@ fn 0 snippet$main () -> i32
   string.const 3   ; "foobar"
   string.const 5   ; "foo"
   call 21   ; std_string$starts_with
-  local.set 4   ; $call_23
+  local.set 4   ; $call_24
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 4   ; $call_23
+  local.get 4   ; $call_24
   call 6   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
@@ -121,10 +122,10 @@ fn 0 snippet$main () -> i32
   string.const 3   ; "foobar"
   string.const 6   ; "bar"
   call 22   ; std_string$ends_with
-  local.set 4   ; $call_23
+  local.set 4   ; $call_24
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 4   ; $call_23
+  local.get 4   ; $call_24
   call 6   ; std_core$write_bool
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
@@ -139,10 +140,10 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __off_1
   i32.const 11
   i32.to_i64
-  local.set 5   ; $cast_51
+  local.set 5   ; $cast_52
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 5   ; $cast_51
+  local.get 5   ; $cast_52
   array.slice 9   ; u8[]
   call.import 3   ; std_core$bytes_to_string
   call 17   ; std_io$println__string

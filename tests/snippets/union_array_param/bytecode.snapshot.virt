@@ -31,7 +31,8 @@ fn 0 snippet$byte_count (any) -> usize
   end $L0
   local.get 0   ; arg 0
   ref.cast 2   ; string
-  call.import 0   ; std_core$byte_len
+  call.import 1   ; std_core$bytes
+  array.len
   return
 end
 

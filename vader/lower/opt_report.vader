@@ -2,15 +2,14 @@
 //
 // The optimisation passes under `lower/` are SHAPE RECOGNISERS: each tries to
 // match a form, and returns `null` when it doesn't, falling through to a
-// general path that is correct but slower. There are 304 such bail-outs, and
-// not one of them says so — so a program can miss every fast path in the
-// compiler and look, from the outside, exactly like one that hits them all.
+// general path that is correct but slower. None of these bail-outs says so, so a
+// program can miss every fast path in the compiler and look, from the outside,
+// exactly like one that hits them all.
 //
 // This records the FALL, not the refusal. A pass declines many times on its way
-// to a decision (`lower_iter_fusion` alone has 40 refusal points); what a reader
-// needs is the single place where it has exhausted its attempts and the general
-// path takes over. That is ~10 sites instead of 304, and it answers the question
-// the refusals cannot: how often does a real program miss this, and where.
+// to a decision; what a reader needs is the single place where it has exhausted
+// its attempts and the general path takes over. That answers the question the
+// refusals cannot: how often does a real program miss this, and where.
 //
 // Inert unless `$VADER_OPT_REPORT` is set — the env is read once per lowering
 // run and cached on `LowerProjectCtx`, so a disabled report costs one bool test

@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted (2026-10-04).
+Accepted (2026-10-04). The `bytes_view_elision` pass mentioned below was removed
+by [0062](0062-the-lowering-no-longer-rewrites-bytes-by-name.md) (2026-10-14).
 
 ## Context
 

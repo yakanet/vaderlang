@@ -22,8 +22,7 @@ PASSES :: 15
 
 main :: fn() -> i32 {
     text :: repeat(LINE, usize(REPS))
-    data :: text.bytes()
-    nb: usize: data.len()
+    nb :: text.byte_len()
     words: i64 = 0
     lines: i64 = 0
     total: i64 = 0
@@ -32,7 +31,7 @@ main :: fn() -> i32 {
         ln: i64 = 0
         in_word := false
         for i in 0..<nb {
-            b :: data[i]
+            b :: text.byte_at(i)
             if b == '\n' {
                 ln += 1
             }

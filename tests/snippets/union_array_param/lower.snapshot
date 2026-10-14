@@ -8,12 +8,7 @@
           x :string | u8[]
       then:
         return
-          call :usize
-            callee:
-              byte_len :fn(string) -> usize
-            arg0:
-              cast → string
-                x :string | u8[]
+          LoweredArrayLen
     return
       LoweredArrayLen
   fn snippet$main() -> i32

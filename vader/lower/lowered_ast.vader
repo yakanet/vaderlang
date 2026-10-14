@@ -564,8 +564,7 @@ export LoweredDataConst :: struct {
 /// prelude (`std/core/array.vader`), and `lower_call` turns every call on an
 /// array receiver into this node rather than a `LoweredCall`. Being the op
 /// itself, it needs no callee resolution and no inlining pass to collapse, and
-/// `push_reserve` and `bytes_view_elision` can
-/// pattern-match a loop bound / a view read directly on it. Also filled into the
+/// `push_reserve` can pattern-match a loop bound directly on it. Also filled into the
 /// `length` field when `for x in arr` is auto-wrapped into an `ArrayIter<T>`.
 export LoweredArrayLen :: struct {
     span:   Span

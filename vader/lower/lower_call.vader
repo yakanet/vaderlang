@@ -355,46 +355,6 @@ try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> Lo
 }
 
 
-// `s.bytes().len()` → `byte_len(s)`. Returns the rewritten call when
-// `target` is a direct `std/string::bytes` call (a bound view is a
-// `LoweredIdent` and doesn't match), else null so the caller falls back to
-// `LoweredArrayLen`. The internal `byte_len` host fn is resolved from
-// std/string's symbol table.
-fold_bytes_len :: fn(ctx: FnLowerCtx, target: LoweredExpr, span: Span) -> LoweredExpr! | null {
-    // Cheap structural gate first — short-circuits the vast majority of
-    // `.len()` sites (plain arrays) before touching the symbol table.
-    if target is LoweredCall {
-        if target.callee is LoweredIdent as ci {
-            if target.args.len() == 1 {
-                // `bytes` moved to std/core in the S3 ABI reorg (std/string
-                // imports std/string_builder, which needs `bytes`, so it can't
-                // live in std/string without a cycle). The fold looked it up in
-                // std/string and silently never fired — every `s.bytes().len()`
-                // allocated a borrowed-view header just to read its length.
-                bytes_sym :: module_export(ctx.project, "std/core", "bytes")
-                byte_len_sym :: module_export(ctx.project, "std/core", "byte_len")
-                if bytes_sym == null { return null }
-                if byte_len_sym == null { return null }
-                // The call site may carry an import-binding symbol ; resolve
-                // it to the canonical std/string `bytes` before comparing.
-                resolved_callee :: follow_import_binding(ctx, ci.symbol)
-                if resolved_callee.id == bytes_sym.id {
-                    return LoweredCall {
-                        .span = span, .type = mk_primitive("usize"),
-                        .callee = LoweredIdent {
-                            .span = span,
-                            .type = mk_fn([TY_STRING], mk_primitive("usize")),
-                            .symbol = byte_len_sym,
-                        },
-                        .args = [target.args[0]],
-                    }
-                }
-            }
-        }
-    }
-    return null
-}
-
 // Detect `arr.push(x)` / `arr.len()` and emit the dedicated op. Returns
 // null when the receiver isn't an array or the field isn't a recognised
 // array intrinsic — caller falls back to the generic call path.
@@ -414,19 +374,10 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
     // is the backing array at runtime.
     array :: array_backing(ctx.types.expr_type(callee.target)) ?? return null
     if callee.field == "len" && call.args.len() == 0 {
-        len_target :: lower_expr(ctx, callee.target)
-        // `s.bytes().len()` → `byte_len(s)` : fold the inline form to the O(1) host
-        // primitive so it doesn't alloc a borrowed-view header just to read the
-        // length. Held views (`bs.len()`) have a `LoweredIdent` target and don't
-        // match.
-        folded :: fold_bytes_len(ctx, len_target, call.span)
-        if folded != null {
-            return folded
-        }
         return LoweredArrayLen {
             .span = call.span,
             .type = mk_primitive("usize"),
-            .target = len_target,
+            .target = lower_expr(ctx, callee.target),
         }
     }
     if callee.field == "push" && call.args.len() == 1 {

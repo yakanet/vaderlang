@@ -71,11 +71,7 @@
                   __off_1 :usize
                 arg2:
                   cast → u64
-                    call :usize
-                      callee:
-                        byte_len :fn(string) -> usize
-                      arg0:
-                        "vader" :string
+                    LoweredArrayLen
           ~>
             call :string
               callee:
@@ -153,11 +149,7 @@
                   __off_3 :usize
                 arg2:
                   cast → u64
-                    call :usize
-                      callee:
-                        byte_len :fn(string) -> usize
-                      arg0:
-                        "héllo" :string
+                    LoweredArrayLen
           ~>
             call :string
               callee:
@@ -235,11 +227,7 @@
                   __off_5 :usize
                 arg2:
                   cast → u64
-                    call :usize
-                      callee:
-                        byte_len :fn(string) -> usize
-                      arg0:
-                        "你好嗎？" :string
+                    LoweredArrayLen
           ~>
             call :string
               callee:
@@ -317,11 +305,7 @@
                   __off_7 :usize
                 arg2:
                   cast → u64
-                    call :usize
-                      callee:
-                        byte_len :fn(string) -> usize
-                      arg0:
-                        "a😀b" :string
+                    LoweredArrayLen
           ~>
             call :string
               callee:
@@ -399,11 +383,7 @@
                   __off_9 :usize
                 arg2:
                   cast → u64
-                    call :usize
-                      callee:
-                        byte_len :fn(string) -> usize
-                      arg0:
-                        "" :string
+                    LoweredArrayLen
           ~>
             call :string
               callee:
@@ -414,11 +394,7 @@
                 __off_9 :usize
     let s: string = "你好" :string
     let n: usize =
-      call :usize
-        callee:
-          byte_len :fn(string) -> usize
-        arg0:
-          s :string
+      LoweredArrayLen
     let i: usize = int(0) :usize
     loop while (<…>)
       let __tup_10: [char, usize] =
