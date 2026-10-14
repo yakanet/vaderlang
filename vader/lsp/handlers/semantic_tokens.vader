@@ -201,7 +201,7 @@ make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken! {
         .tok_type     = i32(TokenType.Comment),
         .modifiers    = modifiers,
         .start_offset = c.offset,
-        .end_offset   = c.offset + c.text.bytes().len(),
+        .end_offset   = c.offset + c.text.byte_len(),
     }
 }
 
@@ -216,8 +216,8 @@ make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken! {
 // from `comment.line.documentation.vader` ; only the tag fragments
 // receive semantic-token treatment.
 collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]) -> void {
-    text_bytes :: c.text.bytes()
-    n :: text_bytes.len()
+    text :: c.text
+    n :: text.byte_len()
     i: usize = 0
     line :: c.line - 1   // 0-based
     // Each fragment's absolute byte offset is `c.offset + <index into text>` ;
@@ -225,17 +225,17 @@ collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]) -> void {
     // encoding, so an indented doc line and a multi-byte narrative before the tag
     // (`/// café @param x`) both land correctly with no manual bookkeeping.
     for i < n {
-        if text_bytes[i] != '@' {
+        if text.byte_at(i) != '@' {
             i = i + 1
             continue
         }
         // Try to match `@param name`, `@return`, `@error`, `@example`.
-        tag_end :: scan_ident_end(text_bytes, i + 1)
+        tag_end :: scan_ident_end(text, i + 1)
         if tag_end == i + 1 {
             i = i + 1
             continue
         }
-        tag_name :: text_bytes[i + 1..<tag_end].bytes_to_string()
+        tag_name :: text.byte_slice(i + 1, tag_end)
         is_known :: tag_name == "param" || tag_name == "return" || tag_name == "error" || tag_name == "example"
         if !is_known {
             i = tag_end
@@ -254,10 +254,10 @@ collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]) -> void {
         if tag_name == "param" {
             // Skip whitespace then capture an identifier.
             j: usize = i
-            for j < n && (text_bytes[j] == ' ' || text_bytes[j] == '\t') {
+            for j < n && (text.byte_at(j) == ' ' || text.byte_at(j) == '\t') {
                 j = j + 1
             }
-            name_end :: scan_ident_end(text_bytes, j)
+            name_end :: scan_ident_end(text, j)
             if name_end > j {
                 out.push(RawToken {
                     .line         = line,
@@ -274,10 +274,10 @@ collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]) -> void {
     }
 }
 
-scan_ident_end :: fn(bs: u8[], start: usize) -> usize {
-    n :: bs.len()
+scan_ident_end :: fn(text: string, start: usize) -> usize {
+    n :: text.byte_len()
     j := start
-    for j < n && is_ident_byte(bs[j]) {
+    for j < n && is_ident_byte(text.byte_at(j)) {
         j = j + 1
     }
     return j

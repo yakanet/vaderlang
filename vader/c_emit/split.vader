@@ -408,7 +408,7 @@ module_stem_of :: fn(name: string) -> string {
     if at < 0 {
         return ""
     }
-    return name.bytes()[0..<usize(at)].bytes_to_string()
+    return name.byte_slice(0, usize(at))
 }
 
 /// Fn indices sorted by mangled name — the deterministic visit order.

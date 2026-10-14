@@ -59,17 +59,17 @@ export DecodedKey :: struct {
 ESC: u8: 0x1B
 DEL: u8: 0x7F
 
-/// Decode the first keypress in `bytes`, starting at `from`.
+/// Decode the first keypress in `burst`, starting at byte `from`.
 ///
-/// @param bytes  the burst as read from the terminal.
-/// @param from   index to decode at; must be < `bytes.len()`.
+/// @param burst  the bytes as read from the terminal.
+/// @param from   byte offset to decode at; must be < `burst.byte_len()`.
 /// @return       the press and the byte count it took — never 0, so a caller
 ///               looping over a burst always advances.
-export decode_key :: fn(bytes: u8[], from: usize) -> DecodedKey {
-    b :: bytes[from]
-    remaining :: bytes.len() - from
+export decode_key :: fn(burst: string, from: usize) -> DecodedKey {
+    b :: burst.byte_at(from)
+    remaining :: burst.byte_len() - from
     if b == ESC {
-        return decode_escape(bytes, from, remaining)
+        return decode_escape(burst, from, remaining)
     }
     // `\r` is what Enter sends in raw mode (ICRNL is off, so it is not
     // translated); `\n` is accepted too, for a terminal that sends it.
@@ -93,7 +93,7 @@ export decode_key :: fn(bytes: u8[], from: usize) -> DecodedKey {
     if b < 0x20 {
         return one(.Unknown)
     }
-    return decode_char(bytes, from, remaining)
+    return decode_char(burst, from, remaining)
 }
 
 // A single-byte press.
@@ -108,11 +108,11 @@ one :: fn(key: Key) = DecodedKey {
 // `ESC` and what follows it. A lone `ESC` — nothing else in the burst — is the
 // Escape key; `ESC [` and `ESC O` open a sequence. `ESC O` is the application
 // cursor mode some terminals switch to, and it carries the same four letters.
-decode_escape :: fn(bytes: u8[], from: usize, remaining: usize) -> DecodedKey {
+decode_escape :: fn(burst: string, from: usize, remaining: usize) -> DecodedKey {
     if remaining == 1 {
         return one(.Escape)
     }
-    intro :: bytes[from + 1]
+    intro :: burst.byte_at(from + 1)
     if intro != '[' && intro != 'O' {
         // `ESC` followed by something that does not open a sequence: report the
         // Escape and let the next byte decode on its own.
@@ -121,7 +121,7 @@ decode_escape :: fn(bytes: u8[], from: usize, remaining: usize) -> DecodedKey {
     if remaining == 2 {
         return one(.Escape)
     }
-    final :: bytes[from + 2]
+    final :: burst.byte_at(from + 2)
     arrow :: arrow_for(final)
     if arrow != .Unknown {
         return DecodedKey {
@@ -133,7 +133,7 @@ decode_escape :: fn(bytes: u8[], from: usize, remaining: usize) -> DecodedKey {
     // Anything else in that family is consumed whole and reported as Unknown, so
     // a stray function key cannot leak its digits into a text field.
     if final >= '0' && final <= '9' {
-        return decode_tilde(bytes, from, remaining)
+        return decode_tilde(burst, from, remaining)
     }
     return DecodedKey {
         .press = KeyPress { .key = .Unknown, .text = "" },
@@ -154,13 +154,13 @@ arrow_for :: fn(final: u8) -> Key = match final {
 
 // `ESC [ <digits> ~`. Consumes through the `~` so the rest of the burst decodes
 // cleanly even when the key is one nothing here names.
-decode_tilde :: fn(bytes: u8[], from: usize, remaining: usize) -> DecodedKey {
+decode_tilde :: fn(burst: string, from: usize, remaining: usize) -> DecodedKey {
     // The WHOLE number, not its first digit: `1~` is Home but `15~` is F5, and
     // reading one digit made the two the same key.
     code := 0
     n := usize(2)
     for n < remaining {
-        b :: bytes[from + n]
+        b :: burst.byte_at(from + n)
         if b == '~' {
             n += 1
             break
@@ -184,23 +184,13 @@ decode_tilde :: fn(bytes: u8[], from: usize, remaining: usize) -> DecodedKey {
 // A printable character, taken as a WHOLE codepoint: a UTF-8 lead byte says how
 // many continuation bytes follow, and reporting them separately would put half a
 // character into a text field.
-decode_char :: fn(bytes: u8[], from: usize, remaining: usize) -> DecodedKey {
-    width :: codepoint_width(bytes[from])
+decode_char :: fn(burst: string, from: usize, remaining: usize) -> DecodedKey {
+    width :: utf8_lead_len(burst.byte_at(from))
     take :: if width > remaining { remaining } else { width }
     return DecodedKey {
-        .press = KeyPress { .key = .Char, .text = bytes_to_string(bytes[from..<from + take]) },
+        .press = KeyPress { .key = .Char, .text = burst.byte_slice(from, from + take) },
         .consumed = take,
     }
-}
-
-// Bytes in the codepoint a UTF-8 lead byte opens. A continuation or invalid byte
-// counts as 1, so decoding always advances.
-codepoint_width :: fn(lead: u8) -> usize {
-    if lead < 0x80 { return 1 }
-    if lead >= 0xF0 { return 4 }
-    if lead >= 0xE0 { return 3 }
-    if lead >= 0xC0 { return 2 }
-    return 1
 }
 
 /// Decode a whole burst into the presses it holds.
@@ -208,11 +198,10 @@ codepoint_width :: fn(lead: u8) -> usize {
 /// @param burst  bytes as returned by `std/tty::read_keys`.
 /// @return       every press in order; empty when `burst` is empty.
 export decode_burst :: fn(burst: string) -> KeyPress[] {
-    bytes :: burst.bytes()
     out: KeyPress[]: []
     i := usize(0)
-    for i < bytes.len() {
-        d :: decode_key(bytes, i)
+    for i < burst.byte_len() {
+        d :: decode_key(burst, i)
         out.push(d.press)
         i += d.consumed
     }

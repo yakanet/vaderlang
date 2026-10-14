@@ -140,10 +140,10 @@ build_source_map :: fn(project: LoadedProject) -> MutableMap<string, string> {
 // degenerate. Module paths + identifiers are ASCII, so a byte slice is exact.
 span_text :: fn(sources: MutableMap<string, string>, sp: Span) -> string {
     content :: sources[sp.start.file] ?? return ""
-    cb :: content.bytes()
-    if sp.start.offset >= sp.end.offset { return "" }
-    if sp.end.offset > cb.len() { return "" }
-    return cb[sp.start.offset..<sp.end.offset].bytes_to_string()
+    if sp.end.offset > content.byte_len() {
+        return ""
+    }
+    return content.byte_slice(sp.start.offset, sp.end.offset)
 }
 
 // ---- params helpers ------------------------------------------------------

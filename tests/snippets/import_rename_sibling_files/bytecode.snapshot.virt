@@ -16,9 +16,10 @@ string 3 " c "
 string 4 " d "
 string 5 "\n"
 import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=6 param_mutable=0 param_by_address= (ref) -> string
-import 2 bytes std_core$bytes result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=1,6,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 1 byte_at std_core$byte_at result_type=4 param_types=2,5 param_mutable=0,0 param_by_address= (string,usize) -> u8
+import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,5,5 param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string
+import 3 bytes std_core$bytes result_type=6 param_types=2 param_mutable=0 param_by_address= (string) -> ref
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=1,6,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 7 std_core$ByteAccess
 export main 0
 
@@ -113,7 +114,7 @@ fn 6 std_io$write (u8,string) -> void
   local n i32
   local $cast_16 usize
   local.get 1   ; arg 1
-  call.import 2   ; std_core$bytes
+  call.import 3   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -167,14 +168,14 @@ fn 7 std_io$write_bytes (u8,ref,usize) -> i32
     i32.const 1
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call.import 3   ; system_posix$sys_write
+    call.import 4   ; system_posix$sys_write
     isize.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 3   ; system_posix$sys_write
+  call.import 4   ; system_posix$sys_write
   isize.to_i32
   return
 end
@@ -192,72 +193,66 @@ fn 8 std_io$println__string (string) -> void
 end
 
 fn 9 std_string$trim (string) -> string
-  local sb ref
   local n usize
   local lo usize
-  local $sub_checked_15 usize
+  local $sub_checked_13 usize
   local.get 0   ; arg 0
-  call.import 2   ; std_core$bytes
-  local.tee 1   ; sb
-  array.len
-  local.set 2   ; n
+  call.import 0   ; std_core$byte_len
+  local.set 1   ; n
   i64.const 0
-  local.set 3   ; lo
+  local.set 2   ; lo
   block $L0 void
     loop $L1 void
-      local.get 3   ; lo
-      local.get 2   ; n
+      local.get 2   ; lo
+      local.get 1   ; n
       u64.lt
       if $L2 void
-        local.get 1   ; sb
-        local.get 3   ; lo
-        array.get 6   ; u8[]
-        ref.cast 4   ; u8
+        local.get 0   ; arg 0
+        local.get 2   ; lo
+        call.import 1   ; std_core$byte_at
         call 10   ; std_string$is_white_byte
         if $L3 void
         else
           br $L0
         end $L3
-        local.get 3   ; lo
+        local.get 2   ; lo
         i64.const 1
         usize.checked_add
-        local.set 3   ; lo
+        local.set 2   ; lo
         br $L1
       end $L2
     end $L1
   end $L0
   block $L4 void
     loop $L5 void
-      local.get 2   ; n
-      local.get 3   ; lo
+      local.get 1   ; n
+      local.get 2   ; lo
       u64.gt
       if $L6 void
-        local.get 2   ; n
+        local.get 1   ; n
         i64.const 1
         usize.checked_sub
-        local.set 4   ; $sub_checked_15
-        local.get 1   ; sb
-        local.get 4   ; $sub_checked_15
-        array.get 6   ; u8[]
-        ref.cast 4   ; u8
+        local.set 3   ; $sub_checked_13
+        local.get 0   ; arg 0
+        local.get 3   ; $sub_checked_13
+        call.import 1   ; std_core$byte_at
         call 10   ; std_string$is_white_byte
         if $L7 void
         else
           br $L4
         end $L7
-        local.get 2   ; n
+        local.get 1   ; n
         i64.const 1
         usize.checked_sub
-        local.set 2   ; n
+        local.set 1   ; n
         br $L5
       end $L6
     end $L5
   end $L4
-  local.get 1   ; sb
-  local.get 3   ; lo
-  local.get 2   ; n
-  array.slice 6   ; u8[]
-  call.import 1   ; std_core$bytes_to_string
+  local.get 0   ; arg 0
+  local.get 2   ; lo
+  local.get 1   ; n
+  call.import 2   ; std_core$byte_slice
   return
 end
 

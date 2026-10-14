@@ -234,9 +234,8 @@ import_name_text :: fn(n: AST.ImportName) -> string {
     return n.name + " as " + a
 }
 
-source_slice :: fn(source: string, span: Span) -> string {
-    return source.bytes()[span.start.offset..<span.end.offset].bytes_to_string()
-}
+source_slice :: fn(source: string, span: Span) -> string =
+    source.byte_slice(span.start.offset, span.end.offset)
 
 // ---- tests ----------------------------------------------------------------
 

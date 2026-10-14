@@ -73,7 +73,7 @@ export parent :: fn(self: Path) -> Path {
         // Root: keep the leading "/" so parent of "/foo" is "/".
         return Path(SEP_STR)
     }
-    return Path(s.bytes()[0..<usize(idx)].bytes_to_string())
+    return Path(s.byte_slice(0, usize(idx)))
 }
 
 /// Last segment (filename or directory name). For a path with no
@@ -86,8 +86,7 @@ export filename :: fn(self: Path) -> string {
     if idx < 0 {
         return s
     }
-    rb :: s.bytes()
-    return rb[usize(idx) + 1..<rb.len()].bytes_to_string()
+    return s.byte_slice(usize(idx) + 1, s.byte_len())
 }
 
 /// The two halves of a filename, as returned by `basename`.
@@ -141,7 +140,7 @@ export name :: fn(self: Path) -> string {
     if idx < 0 {
         return fname
     }
-    return fname.bytes()[0..<usize(idx)].bytes_to_string()
+    return fname.byte_slice(0, usize(idx))
 }
 
 /// The final segment's extension, without the dot.
@@ -163,8 +162,7 @@ export extension :: fn(self: Path) -> string {
     if idx < 0 {
         return ""
     }
-    fb :: fname.bytes()
-    return fb[usize(idx) + 1..<fb.len()].bytes_to_string()
+    return fname.byte_slice(usize(idx) + 1, fname.byte_len())
 }
 
 // ---- combinators ----------------------------------------------------------

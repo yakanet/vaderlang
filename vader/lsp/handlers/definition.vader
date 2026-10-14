@@ -26,6 +26,7 @@ import "vader/lsp/analysis"
 import "toolchain/span"
 AST :: import "toolchain/ast"
 import "std/io"
+import "std/string"
 import "vader/resolver"
 
 /// Resolve goto-def for the position carried in `params`. Returns
@@ -265,7 +266,7 @@ alias_before :: fn(index: DocIndex, offset: usize) -> string | null {
     if offset < 2 {
         return null
     }
-    bytes :: index.source.bytes()
+    source :: index.source
     end :: offset - 1
     for [alias, path] in index.namespace_aliases {
         n :: alias.byte_len()
@@ -273,30 +274,17 @@ alias_before :: fn(index: DocIndex, offset: usize) -> string | null {
             continue
         }
         start :: end - n
-        if !bytes_equal_at(bytes, start, alias) {
+        if !source.matches_at(start, alias) {
             continue
         }
         // The match must be the WHOLE receiver: `MyAST.Foo` must not match an
         // alias called `AST`.
-        if start > 0 {
-            b :: bytes[start - 1]
-            if is_word_byte(b) {
-                continue
-            }
+        if start > 0 && is_word_byte(source.byte_at(start - 1)) {
+            continue
         }
         return path
     }
     return null
-}
-
-bytes_equal_at :: fn(bytes: u8[], start: usize, text: string) -> bool {
-    tb :: text.bytes()
-    for i in 0..<tb.len() {
-        if bytes[start + i] != tb[i] {
-            return false
-        }
-    }
-    return true
 }
 
 is_word_byte :: fn(b: u8) -> bool = (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z')
@@ -322,12 +310,11 @@ follows_a_dot :: fn(source: string, offset: usize) -> bool {
     if offset == 0 {
         return false
     }
-    bytes :: source.bytes()
-    if bytes[offset - 1] != '.' {
+    if source.byte_at(offset - 1) != '.' {
         return false
     }
     if offset >= 2 {
-        if bytes[offset - 2] == '.' {
+        if source.byte_at(offset - 2) == '.' {
             return false
         }
     }

@@ -746,10 +746,7 @@ type_expr_slice :: fn(t: Expr, source: string) -> string {
         is ArrayTypeExpr     -> t.span
         is MutableTypeExpr   -> t.span
     }
-    if sp.end.offset > sp.start.offset {
-        return source.bytes()[sp.start.offset..<sp.end.offset].bytes_to_string().trim()
-    }
-    return ""
+    return source.byte_slice(sp.start.offset, sp.end.offset).trim()
 }
 
 ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
@@ -879,16 +876,15 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
 // signatures (`x :: expr` form). Caps at `upper` so we don't read past
 // the enclosing block.
 slice_to_eol :: fn(source: string, start: usize, upper: usize) -> string {
-    sb :: source.bytes()
-    cap :: sb.len()
+    cap :: source.byte_len()
     up: usize: if upper > cap { cap } else { upper }
     cursor: usize = start
     for cursor < up {
-        b :: sb[cursor]
+        b :: source.byte_at(cursor)
         if b == '\n' { break }
         cursor = cursor + 1
     }
-    return sb[start..<cursor].bytes_to_string().trim()
+    return source.byte_slice(start, cursor).trim()
 }
 
 // Slice the source for a span — used to render `x: T` for params and
@@ -896,7 +892,7 @@ slice_to_eol :: fn(source: string, start: usize, upper: usize) -> string {
 // degenerate spans.
 param_signature_slice :: fn(span: Span, fallback: string, source: string) -> string {
     if span.end.offset > span.start.offset {
-        return source.bytes()[span.start.offset..<span.end.offset].bytes_to_string().trim()
+        return source.byte_slice(span.start.offset, span.end.offset).trim()
     }
     return fallback
 }
@@ -941,9 +937,8 @@ leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string
 }
 
 whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
-    sb :: source.bytes()
     for cursor in start..<end {
-        b :: sb[cursor]
+        b :: source.byte_at(cursor)
         if b != ' ' && b != '\t' && b != '\n' && b != '\r' {
             return false
         }
@@ -952,14 +947,13 @@ whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
 }
 
 strip_doc_prefix :: fn(text: string) -> string {
-    tb :: text.bytes()
-    n :: tb.len()
+    n :: text.byte_len()
     if n < 3 { return text }
     cursor: usize = 3
-    if cursor < n && tb[cursor] == ' ' {
+    if cursor < n && text.byte_at(cursor) == ' ' {
         cursor = cursor + 1
     }
-    return tb[cursor..<n].bytes_to_string()
+    return text.byte_slice(cursor, n)
 }
 
 // ---- token-based position resolution -------------------------------------

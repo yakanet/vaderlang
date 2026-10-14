@@ -65,39 +65,37 @@ export ModuleHeader :: struct {
 }
 
 export parse_module_header :: fn(source: string, file: string) -> ModuleHeader | null {
-    // Hold the byte view once — every scan below indexes through `sb`.
-    sb :: source.bytes()
-    n :: sb.len()
+    n :: source.byte_len()
     i: usize = 0
     // UTF-8 BOM (EF BB BF) — skip it exactly like the main lexer's `tokenize`
     // does. Without this the byte-scan reads `0xEF` as the first non-trivial
     // byte, fails to match `module`, and the caller reports a misleading
     // R2020 (missing module decl) on a file that has one.
-    if n >= 3 && sb[0] == 0xEF && sb[1] == 0xBB && sb[2] == 0xBF {
+    if source.matches_at(0, "\u{FEFF}") {
         i = 3
     }
     // Optional shebang on first line.
-    if i + 1 < n && sb[i] == '#' && sb[i + 1] == '!' {
-        i = skip_to_eol(sb, i, n)
+    if source.matches_at(i, "#!") {
+        i = skip_to_eol(source, i)
     }
     // Skip whitespace + line/block comments until we hit the first
     // non-trivial token. Bail out early past a reasonable header-size
     // budget to avoid scanning the entire file when no decl exists.
     budget :: header_budget(n)
     for i < budget {
-        c :: sb[i]
+        c :: source.byte_at(i)
         if c == ' ' || c == '\t' || c == '\n' || c == '\r' {
             i = i + 1
             continue
         }
         // Line comment `// ...`
-        if c == '/' && i + 1 < n && sb[i + 1] == '/' {
-            i = skip_to_eol(sb, i, n)
+        if source.matches_at(i, "//") {
+            i = skip_to_eol(source, i)
             continue
         }
         // Block comment `/* ... */`
-        if c == '/' && i + 1 < n && sb[i + 1] == '*' {
-            i = skip_block_comment(sb, i + 2, n)
+        if source.matches_at(i, "/*") {
+            i = skip_block_comment(source, i + 2)
             continue
         }
         break
@@ -105,29 +103,33 @@ export parse_module_header :: fn(source: string, file: string) -> ModuleHeader |
     // Match `module "<name>"` at the current position. Anything else
     // means no header decl (callers may still treat it as a tolerant
     // pre-Phase-7 file).
-    if i + 7 > n { return null }
-    if sb[i]     != 'm' { return null }
-    if sb[i + 1] != 'o' { return null }
-    if sb[i + 2] != 'd' { return null }
-    if sb[i + 3] != 'u' { return null }
-    if sb[i + 4] != 'l' { return null }
-    if sb[i + 5] != 'e' { return null }
-    i = i + 6
+    if !source.matches_at(i, "module") {
+        return null
+    }
+    i = i + "module".byte_len()
     // Whitespace between `module` and the string literal.
     for i < n {
-        c :: sb[i]
+        c :: source.byte_at(i)
         if c == ' ' || c == '\t' {
             i = i + 1
             continue
         }
         break
     }
-    if i >= n || sb[i] != '"' { return null }      // opening "
+    // The opening `"`.
+    if !source.matches_at(i, "\"") {
+        return null
+    }
     i = i + 1
     name_start :: i
-    for i < n && sb[i] != '"' { i = i + 1 }
-    if i >= n { return null }                                       // unterminated
-    name :: sb[name_start..<i].bytes_to_string()
+    for i < n && source.byte_at(i) != '"' {
+        i = i + 1
+    }
+    // Unterminated.
+    if i >= n {
+        return null
+    }
+    name :: source.byte_slice(name_start, i)
     return ModuleHeader { .name = name, .name_span = empty_file_span(file) }
 }
 
@@ -140,19 +142,25 @@ header_budget :: fn(n: usize) -> usize {
     return cap
 }
 
-skip_to_eol :: fn(sb: u8[], from: usize, n: usize) -> usize {
+skip_to_eol :: fn(source: string, from: usize) -> usize {
+    n :: source.byte_len()
     i := from
-    for i < n && sb[i] != '\n' { i = i + 1 }
-    if i < n { i = i + 1 }
+    for i < n && source.byte_at(i) != '\n' {
+        i = i + 1
+    }
+    if i < n {
+        i = i + 1
+    }
     return i
 }
 
-skip_block_comment :: fn(sb: u8[], from: usize, n: usize) -> usize {
+skip_block_comment :: fn(source: string, from: usize) -> usize {
+    n :: source.byte_len()
     i := from
     depth: i32 = 1
     for i + 1 < n && depth > 0 {
-        c0 :: sb[i]
-        c1 :: sb[i + 1]
+        c0 :: source.byte_at(i)
+        c1 :: source.byte_at(i + 1)
         if c0 == '/' && c1 == '*' {
             depth = depth + 1
             i = i + 2

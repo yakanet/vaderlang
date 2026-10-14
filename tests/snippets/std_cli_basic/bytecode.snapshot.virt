@@ -1962,7 +1962,7 @@ fn 25 cli$value_list (ref) -> string
   end $L0
   local.get 1   ; $arr_1
   string.const 58   ; ", "
-  call 40   ; std_string$join
+  call 41   ; std_string$join
   return
 end
 
@@ -2098,7 +2098,7 @@ fn 31 std_collections$rehash__string__string (ref,usize) -> void
       local.get 4   ; e
       array.get 11   ; string[]
       ref.cast 2   ; string
-      call 43   ; std_core$string$Hash$hash_vt
+      call 44   ; std_core$string$Hash$hash_vt
       local.tee 6   ; perturb
       local.get 3   ; __for_discard_0
       call 28   ; std_collections$first_slot
@@ -2258,7 +2258,7 @@ fn 33 std_collections$put__string__string (ref,string,string) -> void
     call 31   ; std_collections$rehash__string__string
   end $L0
   local.get 1   ; arg 1
-  call 43   ; std_core$string$Hash$hash_vt
+  call 44   ; std_core$string$Hash$hash_vt
   local.set 6   ; perturb
   local.field 0 16 3   ; arg 0 std_collections$MutableMap__string__string.mask
   ref.cast 6   ; usize
@@ -2391,7 +2391,7 @@ fn 34 std_collections$get__string__string (ref,string) -> any
     return.lit null.const
   end $L0
   local.get 1   ; arg 1
-  call 43   ; std_core$string$Hash$hash_vt
+  call 44   ; std_core$string$Hash$hash_vt
   local.set 2   ; perturb
   local.field 0 16 3   ; arg 0 std_collections$MutableMap__string__string.mask
   ref.cast 6   ; usize
@@ -2454,51 +2454,11 @@ fn 34 std_collections$get__string__string (ref,string) -> any
 end
 
 fn 35 std_string$starts_with (string,string) -> bool
-  local pl usize
-  local $call_4 usize
-  local $call_10 u8
-  local $call_11 u8
-  local.get 1   ; arg 1
-  call.import 0   ; std_core$byte_len
-  local.set 2   ; pl
   local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
-  local.set 3   ; $call_4
-  local.get 2   ; pl
-  local.get 3   ; $call_4
-  u64.gt
-  if $L0 void
-    return.lit bool.const false
-  end $L0
   i64.const 0
-  local.set 3   ; $call_4
-  loop $L1 void
-    local.get 3   ; $call_4
-    local.get 2   ; pl
-    u64.lt
-    if $L2 void
-      local.get 0   ; arg 0
-      local.get 3   ; $call_4
-      call.import 1   ; std_core$byte_at
-      local.set 4   ; $call_10
-      local.get 1   ; arg 1
-      local.get 3   ; $call_4
-      call.import 1   ; std_core$byte_at
-      local.set 5   ; $call_11
-      local.get 4   ; $call_10
-      local.get 5   ; $call_11
-      i32.ne
-      if $L3 void
-        return.lit bool.const false
-      end $L3
-      local.get 3   ; $call_4
-      i64.const 1
-      i64.add
-      local.set 3   ; $call_4
-      br $L1
-    end $L2
-  end $L1
-  return.lit bool.const true
+  local.get 1   ; arg 1
+  call 38   ; std_string$matches_at
+  return
 end
 
 fn 36 std_string$index_of (string,char,usize) -> isize
@@ -2519,7 +2479,7 @@ fn 36 std_string$index_of (string,char,usize) -> isize
     if $L1 void
       local.get 0   ; arg 0
       local.get 4   ; i
-      call 38   ; std_string$codepoint_at_byte
+      call 39   ; std_string$codepoint_at_byte
       local.set 7   ; $call_elem_18
       local.set 5   ; cp
       local.get 7   ; $call_elem_18
@@ -2670,21 +2630,85 @@ fn 37 std_string$parse_int (string) -> any
   return
 end
 
-fn 38 std_string$codepoint_at_byte (string,usize) -> (char,usize)
+fn 38 std_string$matches_at (string,usize,string) -> bool
+  local m usize
+  local $call_5 usize
+  local $add_checked_14 usize
+  local $call_15 u8
+  local $call_16 u8
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; m
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 4   ; $call_5
+  local.get 1   ; arg 1
+  local.get 4   ; $call_5
+  u64.gt
+  if $L0 void
+    return.lit bool.const false
+  end $L0
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.get 1   ; arg 1
+  usize.checked_sub
+  local.set 4   ; $call_5
+  local.get 3   ; m
+  local.get 4   ; $call_5
+  u64.gt
+  if $L1 void
+    return.lit bool.const false
+  end $L1
+  i64.const 0
+  local.set 4   ; $call_5
+  loop $L2 void
+    local.get 4   ; $call_5
+    local.get 3   ; m
+    u64.lt
+    if $L3 void
+      local.get 1   ; arg 1
+      local.get 4   ; $call_5
+      usize.checked_add
+      local.set 5   ; $add_checked_14
+      local.get 0   ; arg 0
+      local.get 5   ; $add_checked_14
+      call.import 1   ; std_core$byte_at
+      local.set 6   ; $call_15
+      local.get 2   ; arg 2
+      local.get 4   ; $call_5
+      call.import 1   ; std_core$byte_at
+      local.set 7   ; $call_16
+      local.get 6   ; $call_15
+      local.get 7   ; $call_16
+      i32.ne
+      if $L4 void
+        return.lit bool.const false
+      end $L4
+      local.get 4   ; $call_5
+      i64.const 1
+      i64.add
+      local.set 4   ; $call_5
+      br $L2
+    end $L3
+  end $L2
+  return.lit bool.const true
+end
+
+fn 39 std_string$codepoint_at_byte (string,usize) -> (char,usize)
   local c char
   local $call_4 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 12   ; std_core$char_at_byte
   local.tee 2   ; c
-  call 39   ; std_string$codepoint_byte_len
+  call 40   ; std_string$codepoint_byte_len
   local.set 3   ; $call_4
   local.get 2   ; c
   local.get 3   ; $call_4
   return
 end
 
-fn 39 std_string$codepoint_byte_len (char) -> usize
+fn 40 std_string$codepoint_byte_len (char) -> usize
   local cp u32
   local.get 0   ; arg 0
   char.to_i32
@@ -2710,7 +2734,7 @@ fn 39 std_string$codepoint_byte_len (char) -> usize
   return.lit i64.const 3
 end
 
-fn 40 std_string$join (ref,string) -> string
+fn 41 std_string$join (ref,string) -> string
   local sb ref
   local i usize
   local __for_hi_0 usize
@@ -2734,7 +2758,7 @@ fn 40 std_string$join (ref,string) -> string
       if $L2 void
         local.get 2   ; sb
         local.get 1   ; arg 1
-        call 41   ; std_string_builder$append
+        call 42   ; std_string_builder$append
       end $L2
       local.get 0   ; arg 0
       local.get 3   ; i
@@ -2743,7 +2767,7 @@ fn 40 std_string$join (ref,string) -> string
       local.set 5   ; $idx_12
       local.get 2   ; sb
       local.get 5   ; $idx_12
-      call 41   ; std_string_builder$append
+      call 42   ; std_string_builder$append
       local.get 3   ; i
       i64.const 1
       i64.add
@@ -2752,18 +2776,18 @@ fn 40 std_string$join (ref,string) -> string
     end $L1
   end $L0
   local.get 2   ; sb
-  call 42   ; std_string_builder$StringBuilder$Display$to_string
+  call 43   ; std_string_builder$StringBuilder$Display$to_string
   return
 end
 
-fn 41 std_string_builder$append (ref,string) -> void
+fn 42 std_string_builder$append (ref,string) -> void
   local.field 0 24 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.get 1   ; arg 1
   array.push 2   ; string
   return
 end
 
-fn 42 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 43 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -2865,7 +2889,7 @@ fn 42 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   return
 end
 
-fn 43 std_core$string$Hash$hash_vt (string) -> u64
+fn 44 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0   ; arg 0
   call.import 4   ; std_core$string$Hash$hash
   return

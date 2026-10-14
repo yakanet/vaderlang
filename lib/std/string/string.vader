@@ -12,52 +12,55 @@ import "std/math"
 /// True for the empty string. Equivalent to `s.byte_len() == 0` but
 /// reads cleanly at call sites — emptiness is the same in byte and
 /// codepoint views.
-export is_empty :: fn(s: string) -> bool = s.bytes().len() == 0
+export is_empty :: fn(s: string) -> bool = s.byte_len() == 0
 
 /// True iff `sub` appears anywhere in `s`. Byte-wise scan. Module-private —
 /// callers go through `sub in s` (Contains impl below) or UFCS
 /// `s.contains(sub)`. Named distinctly from the trait method (`contains`) to
 /// avoid shadowing it inside the impl body.
 byte_contains :: fn(s: string, sub: string) -> bool {
-    sb :: s.bytes()
-    subb :: sub.bytes()
-    n :: sb.len()
-    m :: subb.len()
+    n :: s.byte_len()
+    m :: sub.byte_len()
     if m == 0 { return true }
     if m > n  { return false }
-    first :: subb[0]
+    first :: sub.byte_at(0)
     for i in 0..<n - m + 1 {
-        if sb[i] == first && bytes_match_at(sb, i, subb, m) {
+        // The first byte is compared here: `matches_at` is called only where it matches.
+        if s.byte_at(i) == first && s.matches_at(i, sub) {
             return true
         }
     }
     return false
 }
 
-/// True iff `s` starts with `prefix`. Byte-wise comparison.
-export starts_with :: fn(s: string, prefix: string) -> bool {
-    sb :: s.bytes()
-    pb :: prefix.bytes()
-    pl :: pb.len()
-    if pl > sb.len() { return false }
-    for i in 0..<pl {
-        if sb[i] != pb[i] { return false }
+/// True when `sub` occurs in `s` at byte `offset`. False when `sub` would run past
+/// the end of `s`.
+///
+/// @param s       the string read.
+/// @param offset  byte offset into `s`.
+/// @param sub     the bytes expected there.
+export matches_at :: fn(s: string, offset: usize, sub: string) -> bool {
+    m :: sub.byte_len()
+    if offset > s.byte_len() || m > s.byte_len() - offset {
+        return false
+    }
+    for j in 0..<m {
+        if s.byte_at(offset + j) != sub.byte_at(j) {
+            return false
+        }
     }
     return true
 }
 
+/// True iff `s` starts with `prefix`. Byte-wise comparison.
+export starts_with :: fn(s: string, prefix: string) -> bool = s.matches_at(0, prefix)
+
 /// True iff `s` ends with `suffix`. Byte-wise comparison.
 export ends_with :: fn(s: string, suffix: string) -> bool {
-    sb :: s.bytes()
-    fb :: suffix.bytes()
-    sl :: fb.len()
-    n  :: sb.len()
-    if sl > n { return false }
-    off :: n - sl
-    for i in 0..<sl {
-        if sb[off + i] != fb[i] { return false }
+    if suffix.byte_len() > s.byte_len() {
+        return false
     }
-    return true
+    return s.matches_at(s.byte_len() - suffix.byte_len(), suffix)
 }
 
 // `bytes` (string→read-only `u8[]` view) moved to `std/core` (the prelude) in
@@ -164,16 +167,6 @@ to_lower_byte :: fn(c: u8) -> u8 {
 // `is_white_char`, used by the trim family.
 is_white_byte :: fn(b: u8) = b == ' ' || b == '\t' || b == '\n' || b == '\r'
 
-// True iff the `m` bytes of `subb` match `sb` starting at byte offset `off`.
-// Starts at byte 1: every caller has already compared byte 0.
-// Takes byte views (not strings) so the caller holds them once across the scan.
-bytes_match_at :: fn(sb: u8[], off: usize, subb: u8[], m: usize) -> bool {
-    for j in 1..<m {
-        if sb[off + j] != subb[j] { return false }
-    }
-    return true
-}
-
 /// Byte offset of the *last* occurrence of `c` in `s` at or after
 /// `min_index`. Walks codepoint-by-codepoint (UTF-8 safe — the byte
 /// cursor advances by each codepoint's encoded width), tracking the
@@ -228,30 +221,28 @@ export index_of :: fn(s: string, c: char, from: usize) -> isize {
 /// @return     array of segments ; never empty (at minimum, `[""]`).
 export split :: fn(s: string, sep: string) -> string[]! {
     out: string[]: []
-    sb :: s.bytes()
-    sepb :: sep.bytes()
-    n :: sb.len()
-    m :: sepb.len()
+    n :: s.byte_len()
+    m :: sep.byte_len()
     if m == 0 {
         for i in 0..<n {
-            out.push(sb[i..<i + 1].bytes_to_string())
+            out.push(s.byte_slice(i, i + 1))
         }
         return out
     }
-    first :: sepb[0]
+    first :: sep.byte_at(0)
     start: usize = 0
     i: usize = 0
     for i + m <= n {
         // `m == 1` skips the call: the first byte is the whole separator.
-        if sb[i] == first && (m == 1 || bytes_match_at(sb, i, sepb, m)) {
-            out.push(sb[start..<i].bytes_to_string())
+        if s.byte_at(i) == first && (m == 1 || s.matches_at(i, sep)) {
+            out.push(s.byte_slice(start, i))
             i += m
             start = i
         } else {
             i += 1
         }
     }
-    out.push(sb[start..<n].bytes_to_string())
+    out.push(s.byte_slice(start, n))
     return out
 }
 
@@ -313,13 +304,16 @@ export contains_char :: fn(s: string, c: char) = s.index_of(c, 0) >= 0
 /// Strip leading and trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`,
 /// `'\r'`). Unicode whitespace is not recognised in MVP.
 export trim :: fn(s: string) -> string {
-    sb :: s.bytes()
-    n :: sb.len()
+    n :: s.byte_len()
     lo: usize = 0
-    for lo < n && is_white_byte(sb[lo]) { lo = lo + 1 }
+    for lo < n && is_white_byte(s.byte_at(lo)) {
+        lo += 1
+    }
     hi := n
-    for hi > lo && is_white_byte(sb[hi - 1]) { hi = hi - 1 }
-    return sb[lo..<hi].bytes_to_string()
+    for hi > lo && is_white_byte(s.byte_at(hi - 1)) {
+        hi -= 1
+    }
+    return s.byte_slice(lo, hi)
 }
 
 /// Strip leading ASCII whitespace (`' '`, `'\t'`, `'\n'`, `'\r'`) only ;
@@ -327,11 +321,12 @@ export trim :: fn(s: string) -> string {
 /// @param s  source string.
 /// @return   `s` with its leading whitespace removed.
 export left_trim :: fn(s: string) -> string {
-    sb :: s.bytes()
-    n :: sb.len()
+    n :: s.byte_len()
     lo: usize = 0
-    for lo < n && is_white_byte(sb[lo]) { lo = lo + 1 }
-    return sb[lo..<n].bytes_to_string()
+    for lo < n && is_white_byte(s.byte_at(lo)) {
+        lo += 1
+    }
+    return s.byte_slice(lo, n)
 }
 
 /// Strip trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`, `'\r'`) only ;
@@ -339,10 +334,11 @@ export left_trim :: fn(s: string) -> string {
 /// @param s  source string.
 /// @return   `s` with its trailing whitespace removed.
 export right_trim :: fn(s: string) -> string {
-    sb :: s.bytes()
-    hi := sb.len()
-    for hi > 0 && is_white_byte(sb[hi - 1]) { hi = hi - 1 }
-    return sb[0..<hi].bytes_to_string()
+    hi := s.byte_len()
+    for hi > 0 && is_white_byte(s.byte_at(hi - 1)) {
+        hi -= 1
+    }
+    return s.byte_slice(0, hi)
 }
 
 // Codepoint-level uppercase over ASCII + the Latin-1 Supplement letters
@@ -462,7 +458,7 @@ export parse_float :: fn(s: string) -> f64 | ParseError {
 /// @param width  target byte length.
 /// @param fill   pad character (ASCII recommended).
 export pad_start :: fn(s: string, width: usize, fill: char) -> string {
-    n :: s.bytes().len()
+    n :: s.byte_len()
     if n >= width {
         return s
     }
@@ -477,7 +473,7 @@ export pad_start :: fn(s: string, width: usize, fill: char) -> string {
 /// Pad `s` on the RIGHT with copies of `fill` until its byte length
 /// reaches `width`. Symmetric with `pad_start`.
 export pad_end :: fn(s: string, width: usize, fill: char) -> string {
-    n :: s.bytes().len()
+    n :: s.byte_len()
     if n >= width {
         return s
     }
@@ -497,8 +493,7 @@ export pad_end :: fn(s: string, width: usize, fill: char) -> string {
 /// Trims at most one occurrence.
 export trim_suffix :: fn(s: string, suffix: string) -> string {
     if s.ends_with(suffix) {
-        bs :: s.bytes()
-        return bs[0..<bs.len() - suffix.bytes().len()].bytes_to_string()
+        return s.byte_slice(0, s.byte_len() - suffix.byte_len())
     }
     return s
 }
@@ -507,8 +502,7 @@ export trim_suffix :: fn(s: string, suffix: string) -> string {
 /// Trims at most one occurrence.
 export trim_prefix :: fn(s: string, prefix: string) -> string {
     if s.starts_with(prefix) {
-        bs :: s.bytes()
-        return bs[prefix.bytes().len()..<bs.len()].bytes_to_string()
+        return s.byte_slice(prefix.byte_len(), s.byte_len())
     }
     return s
 }
@@ -685,6 +679,14 @@ import "std/testing"
     assert(!starts_with("hello", "world"), "does not start_with world")
     assert(ends_with("hello", "llo"), "ends_with llo")
     assert(!ends_with("hello", "world"), "does not end_with world")
+}
+
+@test test_matches_at :: fn() -> void {
+    assert("hello".matches_at(1, "ell"), "ell at 1")
+    assert(!"hello".matches_at(2, "ell"), "ell not at 2")
+    assert("hello".matches_at(5, ""), "empty at the end")
+    assert(!"hello".matches_at(3, "lol"), "runs past the end")
+    assert(!"hello".matches_at(9, ""), "offset past the end")
 }
 
 @test test_trim :: fn() -> void {

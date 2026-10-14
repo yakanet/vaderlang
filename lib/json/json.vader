@@ -106,17 +106,10 @@ expect_byte :: fn(p: Parser, expected: char) -> JsonError | null {
 }
 
 match_keyword :: fn(p: Parser, kw: string) -> bool {
-    n :: kw.byte_len()
-    if p.pos + n > p.src.byte_len() {
+    if !p.src.matches_at(p.pos, kw) {
         return false
     }
-    // Byte-level keyword match (JSON keywords `true`/`false`/`null` are ASCII).
-    for i in 0..<n {
-        if p.src.byte_at(p.pos + i) != kw.byte_at(i) {
-            return false
-        }
-    }
-    p.pos = p.pos + n
+    p.pos += kw.byte_len()
     return true
 }
 

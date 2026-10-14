@@ -473,10 +473,9 @@ find_mirror_marker :: fn(s: string) -> isize {
 /// @param rest  the text after `type N `, starting at `struct `.
 /// @return      the parsed struct, or why the line could not be read.
 parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
-    rb :: rest.bytes()
-    after_struct :: rb["struct ".bytes().len()..<rb.len()].bytes_to_string()
+    after_struct :: rest.trim_prefix("struct ")
     open :: after_struct.index_of('{', 0)
-    raw_name :: if open < 0 { after_struct.trim() } else { after_struct.bytes()[0..<usize(open)].bytes_to_string().trim() }
+    raw_name :: before_first(after_struct, '{').trim()
     // The dump `quote_ident`-wraps a name carrying chars outside [A-Za-z0-9_$.]
     // (e.g. the `/` of a path-qualified synthetic Cell struct) in `"..."` with
     // json-escapes ; unquote so `sanitise` derives the same C identifier as the
@@ -487,25 +486,24 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
     c_name :: if marker < 0 {
         ""
     } else {
-        tail :: raw_name.bytes()[usize(marker) + 5..<raw_name.bytes().len()].bytes_to_string()
+        tail :: raw_name.byte_slice(usize(marker) + 5, raw_name.byte_len())
         end :: tail.index_of('"', 0)
-        if end < 0 { "" } else { tail.bytes()[0..<usize(end)].bytes_to_string() }
+        if end < 0 { "" } else { tail.byte_slice(0, usize(end)) }
     }
     bare :: if marker < 0 {
         raw_name
     } else {
-        raw_name.bytes()[0..<usize(marker)].bytes_to_string()
+        raw_name.byte_slice(0, usize(marker))
     }
     name :: unquote_name(bare)
     fields: bc.BcField[]: []
     if open >= 0 {
-        asb :: after_struct.bytes()
         close :: after_struct.index_of('}', 0)
         if close < 0 || close <= open + 1 {
             return DirectiveError { .reason = "struct `${name}`: field list is not closed by `}`" }
         }
-        inner :: asb[usize(open) + 1..<usize(close)].bytes_to_string().trim()
-        if inner.bytes().len() > 0 {
+        inner :: after_struct.byte_slice(usize(open) + 1, usize(close)).trim()
+        if inner.byte_len() > 0 {
             for part in inner.split(",") {
                 pt :: part.trim()
                 colon :: pt.index_of(':', 0)
@@ -561,10 +559,9 @@ parse_union_type_bc :: fn(rest: string) -> bc.BcUnion {
 parse_import_decl_bc :: fn(
     cleaned: string, imports: bc.BcImport[], types: bc.BcType[],
 ) -> DirectiveError | null {
-    cb :: cleaned.bytes()
-    after :: cb["import ".bytes().len()..<cb.len()].bytes_to_string()
+    after :: cleaned.trim_prefix("import ")
     open :: after.index_of('(', 0)
-    head_part :: if open < 0 { after } else { after.bytes()[0..<usize(open)].bytes_to_string() }
+    head_part :: before_first(after, '(')
     parts :: head_part.trim().split(" ")
     is_extern := false
     name_i: usize = 1
@@ -581,12 +578,12 @@ parse_import_decl_bc :: fn(
     c_library :: if colon < 0 {
         ""
     } else {
-        raw_name.bytes()[0..<usize(colon)].bytes_to_string()
+        raw_name.byte_slice(0, usize(colon))
     }
     extern_name :: if colon < 0 {
         raw_name
     } else {
-        raw_name.bytes()[usize(colon) + 1..<raw_name.bytes().len()].bytes_to_string()
+        raw_name.byte_slice(usize(colon) + 1, raw_name.byte_len())
     }
     mangled :: parts[name_i + 1]
     sig: bc.BcSignature: if open < 0 {
@@ -598,7 +595,7 @@ parse_import_decl_bc :: fn(
             .param_names = [],
         }
     } else {
-        parse_signature_bc(after.bytes()[usize(open)..<after.bytes().len()].bytes_to_string(), types)
+        parse_signature_bc(after.byte_slice(usize(open), after.byte_len()), types)
     }
     // Attributes written between the mangled name and the signature —
     // `header=<...>` and `result_type=<n>`, in either order and both optional.
