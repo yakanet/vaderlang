@@ -117,7 +117,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     }
     match id {
     // ---- std/string family ----------------------------------------------
-    .ByteLen | .ByteAt | .ByteSlice -> {
+    .ByteLen | .ByteAt | .ByteSlice | .IsAscii -> {
         // Run as register ops of their own (`string_byte_op`): translation leaves
         // them no `call.import`, so one reaching here is unbound.
     }
@@ -1105,7 +1105,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     // (you cannot `sleep` while baking a constant).
     .SchedNow | .SchedArm | .SchedPark -> true
     // Pure : the baked value depends only on the args, never external state.
-    .ByteLen | .ByteAt | .ByteSlice -> false
+    .ByteLen | .ByteAt | .ByteSlice | .IsAscii -> false
     .Bytes | .BytesToString | .StringHash | .StringEquals -> false
     .PrimIntEquals | .PrimDisplayToString -> false
     .RuntimeCollect | .RuntimeCollections | .RuntimeBytesUsed | .RuntimeBytesCopied -> false

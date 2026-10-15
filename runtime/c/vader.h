@@ -162,6 +162,7 @@ void           vader_cstr_free_for(vader_string_t s, const char* p);
 /* Entry flags — packed into `vader_atom_entry_t.flags`. */
 #define VADER_ATOM_FLAG_PERM  ((vader_u16_t) 0x0001u)  /* never collected */
 #define VADER_ATOM_FLAG_MARK  ((vader_u16_t) 0x0002u)  /* transient GC bit */
+#define VADER_ATOM_FLAG_ASCII ((vader_u16_t) 0x0004u)  /* every byte below 0x80 */
 
 /* Layout : 32 bytes on 64-bit (4 + 4 + 4 + 2 + 2 + 8 + 8). The `data` field
  * is materialised at insert time — for an owner atom it points at a
@@ -1414,6 +1415,11 @@ static inline uint64_t vader_string_hash(vader_string_t s) {
 }
 static inline size_t vader_string_byte_len(vader_string_t s) {
     return vader_atom_len(s);
+}
+/* Whether every byte of `s` is ASCII, so that a byte offset is a codepoint index:
+ * a flag set when the atom is created. */
+static inline bool vader_string_is_ascii(vader_string_t s) {
+    return (vader_atom_entries[s].flags & VADER_ATOM_FLAG_ASCII) != 0;
 }
 /* Header-free byte read : the `i`-th UTF-8 byte of `s`, straight off the interned
  * atom (no `const u8[]` view alloc). Bounds-checked to match `s.bytes()[i]`.

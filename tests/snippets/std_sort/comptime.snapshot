@@ -50,6 +50,7 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<K, V>
+  Index<I, T>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -60,7 +61,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  Index<I, T>
   IndexSet<I, T>
   Contains<T>
   Iterator<i32[]>

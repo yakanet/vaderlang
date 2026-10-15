@@ -513,6 +513,11 @@ reg_call :: fn(
                 }
                 set_i32(bits, tags, base, operand_a(w), i32(s.byte_at(usize(index))))
             }
+            .StringIsAscii -> {
+                at :: base + usize(operand_b(w))
+                s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "is_ascii", "string")
+                set_bool(bits, tags, base, operand_a(w), s.is_ascii())
+            }
             .StringByteSlice -> {
                 at :: base + usize(operand_a(w))
                 s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "byte_slice", "string")
@@ -1346,7 +1351,7 @@ test_array_element_write_out_of_bounds_traps :: fn() -> void {
 }
 
 // A module whose `main` runs `body` with the string constant 0, "héllo" (68 C3 A9 6C
-// 6C 6F), and the imports `byte_len` 0, `byte_at` 1 and `byte_slice` 2.
+// 6C 6F), and the imports `byte_len` 0, `byte_at` 1, `byte_slice` 2 and `is_ascii` 3.
 string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
     header :: [
         "module demo",
@@ -1354,6 +1359,7 @@ string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
         "type 1 primitive u8",
         "type 2 primitive usize",
         "type 3 primitive string",
+        "type 4 primitive bool",
         "string 0 \"héllo\"",
         r"import 0 byte_len std_core$byte_len result_type=2 param_types=3 param_mutable=0"
             + " param_by_address= (string) -> usize",
@@ -1361,6 +1367,8 @@ string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
             + " param_by_address= (string,usize) -> u8",
         r"import 2 byte_slice std_core$byte_slice result_type=3 param_types=3,2,2"
             + " param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string",
+        r"import 3 is_ascii std_core$is_ascii result_type=4 param_types=3 param_mutable=0"
+            + " param_by_address= (string) -> bool",
         "fn 0 main () -> i32",
     ]
     return parse_test_module("${header.join("\n")}\n  ${body.join("\n  ")}\nend\nexport main 0\n")
@@ -1460,4 +1468,30 @@ test_string_byte_slice_clamps_its_bounds :: fn() -> void {
     assert_eq(exec_value(past_the_end), 2)
     end_before_start :: slice_length_module(5, 2) ?? return
     assert_eq(exec_value(end_before_start), 0)
+}
+
+@test
+test_string_is_ascii_runs_in_registers :: fn() -> void {
+    // 1 when "llo", the bytes 3..<6 of "héllo", is ASCII and "héllo" is not.
+    module :: string_module([
+        "string.const 0",
+        "i64.const 3",
+        "i64.const 6",
+        "call.import 2",
+        "call.import 3",
+        r"if $L0 void",
+        "  string.const 0",
+        "  call.import 3",
+        r"  if $L1 void",
+        "    i32.const 2",
+        "    return",
+        r"  end $L1",
+        "  i32.const 1",
+        "  return",
+        r"end $L0",
+        "i32.const 0",
+        "return",
+    ]) ?? return
+    assert_eq(exec_value(module), 1)
+    assert(main_runs(module, .StringIsAscii), "`is_ascii` runs as `StringIsAscii`")
 }

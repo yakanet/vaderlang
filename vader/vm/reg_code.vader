@@ -175,11 +175,13 @@ RegOp :: enum(i32) {
     // Call host import `a` with its arguments from r[b] ; its result lands in r[b].
     CallImport
     // r[a] <- the byte length of the string in r[b] ; r[a] <- byte r[c] of the
-    // string in r[b] ; r[a] <- the bytes r[b]..<r[c] of the string in r[a]: the
-    // `byte_len`, `byte_at` and `byte_slice` imports, run in place.
+    // string in r[b] ; r[a] <- the bytes r[b]..<r[c] of the string in r[a] ;
+    // r[a] <- whether the string in r[b] is ASCII: the `byte_len`, `byte_at`,
+    // `byte_slice` and `is_ascii` imports, run in place.
     StringByteLen
     StringByteAt
     StringByteSlice
+    StringIsAscii
     // Stop the run with texts[a].
     Trap
     // Push the closure in r[a] on the run's defer stack.

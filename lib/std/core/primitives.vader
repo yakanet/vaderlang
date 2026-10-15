@@ -124,6 +124,19 @@ export finish_buffer :: fn(self: Buffer, len: usize) -> string = self.intern_str
 /// @param end    byte offset where the slice stops, excluded.
 @intrinsic export byte_slice :: fn(s: string, start: usize, end: usize) -> string
 
+/// Whether every byte of `s` is ASCII (below 0x80): each byte is then one codepoint,
+/// and a byte offset is a codepoint index.
+///
+/// @param s  the string to test.
+export is_ascii :: fn(s: string) -> bool {
+    for i in 0..<s.byte_len() {
+        if s.byte_at(i) >= 0x80 {
+            return false
+        }
+    }
+    return true
+}
+
 /// Write `s`'s bytes at `off` ; return `off + s.byte_len()`.
 export write_string_at :: fn(self: Buffer, off: usize, s: string) -> usize {
     self.write_string(off, s)
@@ -427,3 +440,16 @@ f64 implements One -> 1.0
 // `std/string_builder`.
 
 string implements Add -> "${self}${other}"
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_is_ascii :: fn() -> void {
+    assert("".is_ascii(), "the empty string is ASCII")
+    assert("hello".is_ascii(), "\"hello\" is ASCII")
+    assert(!"héllo".is_ascii(), "\"héllo\" is not ASCII")
+    assert("héllo".byte_slice(3, 6).is_ascii(), "an ASCII slice of a string that is not")
+    assert(!bytes_to_string([0x61, 0xFF]).is_ascii(), "a malformed byte is not ASCII")
+}

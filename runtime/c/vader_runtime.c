@@ -697,6 +697,7 @@ static int  g_atom_profile = 0;
 /* Forward decls — implementations below cluster by concern. */
 static void        vader_atom_install_empty(void);
 static uint64_t    vader_atom_hash64(const char* data, size_t len);
+static vader_u16_t vader_atom_ascii_flag(const char* data, size_t len);
 static void        vader_atom_bucket_install(vader_atom_t a);
 static void        vader_ensure_stdio_binary(void);
 
@@ -779,11 +780,12 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
          * pass — cheaper than running through `vader_atom_intern` and
          * its hash-lookup-then-install dance for each one. */
         for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
-            const vader_atom_entry_t* e = &vader_atom_entries[i];
+            vader_atom_entry_t* e = &vader_atom_entries[i];
             /* Codegen's positional comptime-table literals omit `hash` (it
-             * zero-fills) — recompute it here so comptime atoms hash like any
-             * interned string. */
-            vader_atom_entries[i].hash = vader_atom_hash64(e->data, e->len);
+             * zero-fills) and the ASCII flag: derive both here so comptime
+             * atoms read like any interned string. */
+            e->hash   = vader_atom_hash64(e->data, e->len);
+            e->flags |= vader_atom_ascii_flag(e->data, e->len);
             vader_atom_bucket_install(i);
         }
     }
@@ -797,7 +799,7 @@ static void vader_atom_install_empty(void) {
     e->parent        = 0;
     e->parent_offset = 0;
     e->len           = 0;
-    e->flags         = VADER_ATOM_FLAG_PERM;
+    e->flags         = VADER_ATOM_FLAG_PERM | VADER_ATOM_FLAG_ASCII;
     e->_pad          = 0;
     e->data          = "";
     e->hash          = vader_atom_hash64("", 0);
@@ -855,6 +857,18 @@ static uint64_t vader_atom_hash64(const char* data, size_t len) {
         h *= 1099511628211ull;
     }
     return h;
+}
+
+/* `VADER_ATOM_FLAG_ASCII` when every byte of `data[0..len]` is below 0x80, else 0.
+ * Run when an atom is created, never on a lookup that finds one. Without an early
+ * exit, the C compiler vectorises the loop. */
+static vader_u16_t vader_atom_ascii_flag(const char* data, size_t len) {
+    vader_u8_t bits = 0;
+    for (size_t i = 0; i < len; ++i) {
+        bits |= (vader_u8_t) data[i];
+    }
+    if (bits >= 0x80u) return 0;
+    return VADER_ATOM_FLAG_ASCII;
 }
 
 /* Bucket probe — returns the matching atom id or VADER_ATOM_EMPTY (0)
@@ -958,7 +972,7 @@ static vader_atom_t vader_atom_install_owner(char* buf, size_t len, uint64_t has
     e->parent        = 0;
     e->parent_offset = 0;
     e->len           = (vader_u32_t) len;
-    e->flags         = 0;
+    e->flags         = vader_atom_ascii_flag(buf, len);
     e->_pad          = 0;
     e->data          = buf;
     e->hash          = hash;
@@ -1023,13 +1037,15 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
      * allocation. NUL-term at data[len] is NOT guaranteed (the byte
      * past the slice belongs to the parent buffer and may be any
      * value) — `vader_atom_to_cstr` handles slice atoms by duplicating
-     * to a heap NUL-term copy. */
+     * to a heap NUL-term copy. A slice of ASCII bytes is ASCII. */
+    vader_u16_t ascii = vader_atom_entries[parent].flags & VADER_ATOM_FLAG_ASCII;
+    if (ascii == 0) ascii = vader_atom_ascii_flag(candidate, len);
     vader_atom_t a = vader_atom_alloc_slot();
     vader_atom_entry_t* e = &vader_atom_entries[a];
     e->parent        = root;
     e->parent_offset = (vader_u32_t) root_offset;
     e->len           = (vader_u32_t) len;
-    e->flags         = 0;
+    e->flags         = ascii;
     e->_pad          = 0;
     e->data          = candidate;
     e->hash          = hash;

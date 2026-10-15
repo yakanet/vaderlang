@@ -392,17 +392,15 @@ boxed :: fn(t: Translation, pc: usize, op: bc.Op, pops: usize, pushes: usize) ->
     }
 }
 
-// `byte_len`, `byte_at` and `byte_slice` read a string in place: an op of their
-// own spares them the generic import call. Answers whether the import
+// `byte_len`, `byte_at`, `byte_slice` and `is_ascii` read a string in place: an op
+// of their own spares them the generic import call. Answers whether the import
 // `id` was one of them.
 string_byte_op :: fn(t: Translation, pc: usize, id: bc.IntrinsicId) -> bool {
     if id == .ByteLen {
-        s :: operand(t, 1)
-        dst :: pop_to(t, 1)
-        emit(t, pc, .StringByteLen, dst, s, 0)
-        push_register(t, dst)
-        t.retarget = i64(t.code.ops.len() - 1)
-        return true
+        return one_argument_string_op(t, pc, .StringByteLen)
+    }
+    if id == .IsAscii {
+        return one_argument_string_op(t, pc, .StringIsAscii)
     }
     if id == .ByteAt {
         index :: operand(t, 1)
@@ -425,6 +423,17 @@ string_byte_op :: fn(t: Translation, pc: usize, id: bc.IntrinsicId) -> bool {
         return true
     }
     return false
+}
+
+// Translate an import that reads the string on top of the stack into `op`, its
+// result in the string's register.
+one_argument_string_op :: fn(t: Translation, pc: usize, op: RegOp) -> bool {
+    s :: operand(t, 1)
+    dst :: pop_to(t, 1)
+    emit(t, pc, op, dst, s, 0)
+    push_register(t, dst)
+    t.retarget = i64(t.code.ops.len() - 1)
+    return true
 }
 
 // Push the string `op` names, built once.

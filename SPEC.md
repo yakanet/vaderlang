@@ -3557,11 +3557,12 @@ parse_float :: fn(s: string) -> f64 | ParseError     // pure-Vader, correctly ro
 len              :: fn(s: string) -> usize                      // codepoint count, allocation-free
 chars            :: fn(s: string) -> StringChars                // StringChars implements Iterator<char>
 
-// Byte access (raw UTF-8), read in place. `byte_len`, `byte_at`, `byte_slice`,
+// Byte access (raw UTF-8), read in place. `byte_len`, `byte_at`, `byte_slice`, `is_ascii`,
 // `codepoint_at_byte`, `bytes` and `bytes_to_string` live in the prelude (`std/core`).
 byte_len          :: fn(s: string) -> usize                         // byte length, O(1)
 byte_at           :: fn(s: string, i: usize) -> u8                  // the byte at `i`; traps past the end
 byte_slice        :: fn(s: string, start: usize, end: usize) -> string  // bytes `start..<end` as a string
+is_ascii          :: fn(s: string) -> bool                          // every byte below 0x80
 codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize]       // the codepoint at byte `i`, the bytes it spans
 bytes             :: fn(s: string) -> u8[]                          // UTF-8 bytes as an array
 bytes_to_string   :: fn(bs: u8[]) -> string                         // inverse of bytes()
