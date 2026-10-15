@@ -127,6 +127,10 @@ static uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) {
     return vader_string_byte_at(a0, a1);
 }
 
+static bool vader_host_std_core_is_ascii(vader_string_t a0) {
+    return vader_string_is_ascii(a0);
+}
+
 static void* vader_host_std_core_bytes(vader_string_t a0) {
     return (void*) vader_string_bytes_view(a0, 12u, 8u);
 }
@@ -279,40 +283,48 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 static size_t std_core_len(vader_string_t l0) {
     size_t l1, l2, l3, l5, l6;
     uint8_t l4;
-    int64_t t0;
-    uint32_t t1;
-    size_t t2;
-#line 146 "lib/std/core/utf8.vader"
+    bool t0;
+    int64_t t1;
+    uint32_t t2;
+    size_t t3;
+#line 144 "lib/std/core/utf8.vader"
     l1 = vader_host_std_core_byte_len(l0);
-#line 147 "lib/std/core/utf8.vader"
-    l2 = std_core_ascii_prefix(l0);
-#line 148 "lib/std/core/utf8.vader"
-    l3 = l2;
-#line 149 "lib/std/core/utf8.vader"
-    while ((l2 < l1)) {
-#line 150 "lib/std/core/utf8.vader"
-        l4 = vader_host_std_core_byte_at(l0, l2);
-#line 151 "lib/std/core/utf8.vader"
-        if ((l4 < INT32_C(128))) {
-#line 152 "lib/std/core/utf8.vader"
-            t0 = vader_chk_add(usize, l2, INT64_C(1));
-            l2 = (size_t) (int64_t) t0;
-#line 151 "lib/std/core/utf8.vader"
-#line 154 "lib/std/core/utf8.vader"
-        } else {
-            std_core_decode_tail(l0, l4, l2, &t1, &t2);
-            l6 = t2;
-            l5 = l6;
-            t0 = vader_chk_add(usize, l2, l5);
-            l2 = (size_t) (int64_t) t0;
-#line 151 "lib/std/core/utf8.vader"
-        }
-#line 156 "lib/std/core/utf8.vader"
-        t0 = vader_chk_add(usize, l3, INT64_C(1));
-        l3 = (size_t) (int64_t) t0;
-#line 149 "lib/std/core/utf8.vader"
+#line 145 "lib/std/core/utf8.vader"
+    t0 = vader_host_std_core_is_ascii(l0);
+    if (t0) {
+#line 146 "lib/std/core/utf8.vader"
+        return l1;
+#line 145 "lib/std/core/utf8.vader"
     }
-#line 158 "lib/std/core/utf8.vader"
+#line 150 "lib/std/core/utf8.vader"
+    l2 = std_core_ascii_prefix(l0);
+#line 151 "lib/std/core/utf8.vader"
+    l3 = l2;
+#line 152 "lib/std/core/utf8.vader"
+    while ((l2 < l1)) {
+#line 153 "lib/std/core/utf8.vader"
+        l4 = vader_host_std_core_byte_at(l0, l2);
+#line 154 "lib/std/core/utf8.vader"
+        if ((l4 < INT32_C(128))) {
+#line 155 "lib/std/core/utf8.vader"
+            t1 = vader_chk_add(usize, l2, INT64_C(1));
+            l2 = (size_t) (int64_t) t1;
+#line 154 "lib/std/core/utf8.vader"
+#line 157 "lib/std/core/utf8.vader"
+        } else {
+            std_core_decode_tail(l0, l4, l2, &t2, &t3);
+            l6 = t3;
+            l5 = l6;
+            t1 = vader_chk_add(usize, l2, l5);
+            l2 = (size_t) (int64_t) t1;
+#line 154 "lib/std/core/utf8.vader"
+        }
+#line 159 "lib/std/core/utf8.vader"
+        t1 = vader_chk_add(usize, l3, INT64_C(1));
+        l3 = (size_t) (int64_t) t1;
+#line 152 "lib/std/core/utf8.vader"
+    }
+#line 161 "lib/std/core/utf8.vader"
     return l3;
 }
 
@@ -342,9 +354,9 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
     size_t l3;
     int64_t t0;
-#line 142 "lib/std/core/primitives.vader"
+#line 136 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-#line 143 "lib/std/core/primitives.vader"
+#line 137 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     t0 = vader_chk_add(usize, l1, l3);
     return (size_t) (int64_t) t0;
@@ -357,48 +369,48 @@ static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2) {
     int64_t t0;
     uint64_t t1;
     int32_t t2;
-#line 173 "lib/std/core/primitives.vader"
+#line 167 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
-#line 174 "lib/std/core/primitives.vader"
+#line 168 "lib/std/core/primitives.vader"
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
-#line 175 "lib/std/core/primitives.vader"
+#line 169 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(usize, l1, INT64_C(1));
         return (size_t) (int64_t) t0;
+#line 167 "lib/std/core/primitives.vader"
+    }
+#line 171 "lib/std/core/primitives.vader"
+    l3 = (size_t) 0;
+#line 172 "lib/std/core/primitives.vader"
+    l4 = l2;
+#line 173 "lib/std/core/primitives.vader"
+    while (l4 != INT64_C(0)) {
+#line 174 "lib/std/core/primitives.vader"
+        t0 = vader_chk_add(usize, l3, INT64_C(1));
+        l3 = (size_t) (int64_t) t0;
+#line 175 "lib/std/core/primitives.vader"
+        l4 = vader_div_u64(l4, INT64_C(10));
 #line 173 "lib/std/core/primitives.vader"
     }
 #line 177 "lib/std/core/primitives.vader"
-    l3 = (size_t) 0;
-#line 178 "lib/std/core/primitives.vader"
-    l4 = l2;
-#line 179 "lib/std/core/primitives.vader"
-    while (l4 != INT64_C(0)) {
-#line 180 "lib/std/core/primitives.vader"
-        t0 = vader_chk_add(usize, l3, INT64_C(1));
-        l3 = (size_t) (int64_t) t0;
-#line 181 "lib/std/core/primitives.vader"
-        l4 = vader_div_u64(l4, INT64_C(10));
-#line 179 "lib/std/core/primitives.vader"
-    }
-#line 183 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(usize, l1, l3);
     l5 = (size_t) (int64_t) t0;
-#line 184 "lib/std/core/primitives.vader"
+#line 178 "lib/std/core/primitives.vader"
     while (l2 != INT64_C(0)) {
-#line 185 "lib/std/core/primitives.vader"
+#line 179 "lib/std/core/primitives.vader"
         t0 = vader_chk_sub(usize, l5, INT64_C(1));
         l5 = (size_t) (int64_t) t0;
-#line 186 "lib/std/core/primitives.vader"
+#line 180 "lib/std/core/primitives.vader"
         t1 = vader_mod_u64(l2, INT64_C(10));
         t2 = (((int32_t) (uint64_t) t1) & INT32_C(255));
         l6 = (uint8_t) (int32_t) t2;
         t2 = vader_chk_add(u8, INT32_C(48), l6);
         l7 = (uint8_t) (int32_t) t2;
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l5, (uint8_t) l7);
-#line 187 "lib/std/core/primitives.vader"
+#line 181 "lib/std/core/primitives.vader"
         l2 = vader_div_u64(l2, INT64_C(10));
-#line 184 "lib/std/core/primitives.vader"
+#line 178 "lib/std/core/primitives.vader"
     }
-#line 189 "lib/std/core/primitives.vader"
+#line 183 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(usize, l1, l3);
     return (size_t) (int64_t) t0;
 }
@@ -408,44 +420,44 @@ static size_t std_core_ascii_prefix(vader_string_t l0) {
     uint8_t l3, l6;
     int64_t t0;
     int32_t t1;
-#line 168 "lib/std/core/utf8.vader"
+#line 171 "lib/std/core/utf8.vader"
     l1 = vader_host_std_core_byte_len(l0);
-#line 169 "lib/std/core/utf8.vader"
+#line 172 "lib/std/core/utf8.vader"
     l2 = (size_t) 0;
-#line 170 "lib/std/core/utf8.vader"
+#line 173 "lib/std/core/utf8.vader"
     for (;;) {
         t0 = vader_chk_add(usize, l2, INT64_C(64));
         if ((t0 <= l1)) {
-#line 171 "lib/std/core/utf8.vader"
+#line 174 "lib/std/core/utf8.vader"
             l3 = (uint8_t) 0;
-#line 172 "lib/std/core/utf8.vader"
+#line 175 "lib/std/core/utf8.vader"
             l4 = l2;
             t0 = vader_chk_add(usize, l2, INT64_C(64));
             l5 = (size_t) (int64_t) t0;
             while ((l4 < l5)) {
-#line 173 "lib/std/core/utf8.vader"
+#line 176 "lib/std/core/utf8.vader"
                 l6 = vader_host_std_core_byte_at(l0, l4);
                 t1 = (l3 | l6);
                 l3 = (uint8_t) (int32_t) t1;
-#line 172 "lib/std/core/utf8.vader"
+#line 175 "lib/std/core/utf8.vader"
                 t0 = (l4 + INT64_C(1));
                 l4 = (size_t) (int64_t) t0;
             }
-#line 175 "lib/std/core/utf8.vader"
-            if ((l3 >= INT32_C(128))) {
-#line 176 "lib/std/core/utf8.vader"
-                return l2;
-#line 175 "lib/std/core/utf8.vader"
-            }
 #line 178 "lib/std/core/utf8.vader"
+            if ((l3 >= INT32_C(128))) {
+#line 179 "lib/std/core/utf8.vader"
+                return l2;
+#line 178 "lib/std/core/utf8.vader"
+            }
+#line 181 "lib/std/core/utf8.vader"
             t0 = vader_chk_add(usize, l2, INT64_C(64));
             l2 = (size_t) (int64_t) t0;
-#line 170 "lib/std/core/utf8.vader"
+#line 173 "lib/std/core/utf8.vader"
             continue;
         }
         break;
     }
-#line 180 "lib/std/core/utf8.vader"
+#line 183 "lib/std/core/utf8.vader"
     return l2;
 }
 

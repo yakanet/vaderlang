@@ -98,12 +98,16 @@ typedef struct {
                                     if owner */
     vader_u32_t len;             /* string length in bytes */
     vader_u16_t flags;           /* bit 0 = PERM (never collected) ;
-                                    bit 1 = MARK (transient GC bit) */
+                                    bit 1 = MARK (transient GC bit) ;
+                                    bit 2 = ASCII (every byte below 0x80,
+                                    set when the atom is created) */
     vader_u16_t _pad;
     const char* data;            /* materialised pointer : owner = own malloc,
                                     slice = parent.data + parent_offset.
-                                    Always NUL-terminated at data[len]. */
-} vader_atom_entry_t;             /* 24 B */
+                                    An owner is NUL-terminated at data[len],
+                                    a slice is not. */
+    uint64_t    hash;            /* FNV-1a-64 of the bytes, cached at insert */
+} vader_atom_entry_t;             /* 32 B */
 
 typedef struct {
     vader_atom_entry_t* entries;

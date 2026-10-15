@@ -15,6 +15,7 @@ string 3 "Eve"
 string 4 "Hey"
 import 0 byte_len std_core$byte_len result_type=6 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 byte_at std_core$byte_at result_type=5 param_types=1,6 param_mutable=0,0 param_by_address= (string,usize) -> u8
+import 2 is_ascii std_core$is_ascii result_type=4 param_types=1 param_mutable=0 param_by_address= (string) -> bool
 impl 8 std_core$ByteAccess
 export main 3
 
@@ -166,27 +167,33 @@ fn 6 std_core$len (string) -> usize
   local i usize
   local count usize
   local b u8
-  local $field_14 usize
-  local $call_elem_19 usize
+  local $field_15 usize
+  local $call_elem_20 usize
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
   local.set 1   ; n
   local.get 0   ; arg 0
+  call.import 2   ; std_core$is_ascii
+  if $L0 void
+    local.get 1   ; n
+    return
+  end $L0
+  local.get 0   ; arg 0
   call 7   ; std_core$ascii_prefix
   local.tee 2   ; i
   local.set 3   ; count
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; i
     local.get 1   ; n
     u64.lt
-    if $L1 void
+    if $L2 void
       local.get 0   ; arg 0
       local.get 2   ; i
       call.import 1   ; std_core$byte_at
       local.tee 4   ; b
       i32.const 128
       u32.lt
-      if $L2 void
+      if $L3 void
         local.get 2   ; i
         i64.const 1
         usize.checked_add
@@ -196,22 +203,22 @@ fn 6 std_core$len (string) -> usize
         local.get 4   ; b
         local.get 2   ; i
         call 8   ; std_core$decode_tail
-        local.set 6   ; $call_elem_19
+        local.set 6   ; $call_elem_20
         drop
-        local.get 6   ; $call_elem_19
-        local.set 5   ; $field_14
+        local.get 6   ; $call_elem_20
+        local.set 5   ; $field_15
         local.get 2   ; i
-        local.get 5   ; $field_14
+        local.get 5   ; $field_15
         usize.checked_add
         local.set 2   ; i
-      end $L2
+      end $L3
       local.get 3   ; count
       i64.const 1
       usize.checked_add
       local.set 3   ; count
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   local.get 3   ; count
   return
 end

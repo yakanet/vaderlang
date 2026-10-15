@@ -125,17 +125,11 @@ export finish_buffer :: fn(self: Buffer, len: usize) -> string = self.intern_str
 @intrinsic export byte_slice :: fn(s: string, start: usize, end: usize) -> string
 
 /// Whether every byte of `s` is ASCII (below 0x80): each byte is then one codepoint,
-/// and a byte offset is a codepoint index.
+/// and a byte offset is a codepoint index. The runtime records it when the string is
+/// made, so the answer reads no byte.
 ///
 /// @param s  the string to test.
-export is_ascii :: fn(s: string) -> bool {
-    for i in 0..<s.byte_len() {
-        if s.byte_at(i) >= 0x80 {
-            return false
-        }
-    }
-    return true
-}
+@intrinsic export is_ascii :: fn(s: string) -> bool
 
 /// Write `s`'s bytes at `off` ; return `off + s.byte_len()`.
 export write_string_at :: fn(self: Buffer, off: usize, s: string) -> usize {

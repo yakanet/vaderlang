@@ -1,9 +1,9 @@
 // std/core/utf8 — a string's codepoints, over its bytes.
 //
 // The UTF-8 encoder and decoder, the codepoint count `len`, and the codepoint walk
-// behind `s[i]` and `s[lo..<hi]`, written over the three string primitives every
-// backend provides: `byte_len`, `byte_at` and `byte_slice`. The rest of the codec
-// (widths of a `char`, surrogates, `chars`) is in `std/string`.
+// behind `s[i]` and `s[lo..<hi]`, written over the four string primitives every
+// backend provides: `byte_len`, `byte_at`, `byte_slice` and `is_ascii`. The rest of
+// the codec (widths of a `char`, surrogates, `chars`) is in `std/string`.
 
 module "std/core"
 
@@ -137,13 +137,16 @@ decode_tail :: fn(s: string, b: u8, i: usize) -> [char, usize] {
 /// Codepoint length of `s`: the number of Unicode codepoints, not bytes. In the
 /// prelude, so `s.len()` works without importing `std/string`. Counts the steps
 /// of `codepoint_at_byte` over the bytes, so it is the number of codepoints `for c
-/// in s` yields. O(n) in the byte length.
+/// in s` yields. O(1) on an ASCII string, else O(n) in the byte length.
 /// @param s  source string.
 /// @return   the codepoint count.
 export len :: fn(s: string) -> usize {
-    // Its own walk rather than `walk_codepoints`, whose step budget is a second
-    // test on every byte.
     n :: s.byte_len()
+    if s.is_ascii() {
+        return n
+    }
+    // Its own walk rather than `codepoint_offset`, whose step budget is a second
+    // test on every byte.
     i := ascii_prefix(s)
     count := i
     for i < n {
@@ -181,13 +184,9 @@ ascii_prefix :: fn(s: string) -> usize {
 }
 
 // The byte offset `count` codepoints past byte `start` of `s`, clamped to its end.
-codepoint_offset :: fn(s: string, start: usize, count: usize) -> usize =
-    walk_codepoints(s, start, count).0
-
-// Step `count` codepoints from byte `start` of `s`, fewer if it ends first: the byte
-// offset reached and the steps taken. Steps through `decode_tail` without building
-// the pair for an ASCII byte, which the VM would pay for at every one.
-walk_codepoints :: fn(s: string, start: usize, count: usize) -> [usize, usize] {
+// Steps through `decode_tail` without building the pair for an ASCII byte, which the
+// VM would pay for at every one.
+codepoint_offset :: fn(s: string, start: usize, count: usize) -> usize {
     n :: s.byte_len()
     i := start
     k: usize = 0
@@ -200,7 +199,7 @@ walk_codepoints :: fn(s: string, start: usize, count: usize) -> [usize, usize] {
         }
         k += 1
     }
-    return [i, k]
+    return i
 }
 
 // The codepoints `r` spans, none when it ends before it starts.
@@ -216,15 +215,25 @@ codepoint_count :: fn(r: Range<usize>) -> usize {
 }
 
 /// `s[i]`: the codepoint at codepoint index `i`, found by walking `s` from its
-/// start. Traps past the last codepoint, where the walk lands on the length.
+/// start; in an ASCII string, the byte at `i`. Traps past the last codepoint, where
+/// the walk lands on the length.
 string implements Index<usize, char> {
-    at :: fn(self, i: usize) -> char = self.codepoint_at_byte(codepoint_offset(self, 0, i)).0
+    at :: fn(self, i: usize) -> char {
+        if self.is_ascii() {
+            return char(self.byte_at(i))
+        }
+        return self.codepoint_at_byte(codepoint_offset(self, 0, i)).0
+    }
 }
 
-/// `s[lo..<hi]` and `s[lo..=hi]`: the codepoints of a range, as a string. Bounds past
-/// the end clamp to it, and a range ending before it starts gives the empty string.
+/// `s[lo..<hi]` and `s[lo..=hi]`: the codepoints of a range, as a string; in an ASCII
+/// string, the bytes of the range. Bounds past the end clamp to it, and a range
+/// ending before it starts gives the empty string.
 string implements Index<Range<usize>, string> {
     at :: fn(self, r: Range<usize>) -> string {
+        if self.is_ascii() {
+            return self.byte_slice(r.start, r.start + codepoint_count(r))
+        }
         lo :: codepoint_offset(self, 0, r.start)
         return self.byte_slice(lo, codepoint_offset(self, lo, codepoint_count(r)))
     }

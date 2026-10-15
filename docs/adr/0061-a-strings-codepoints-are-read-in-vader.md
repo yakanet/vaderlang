@@ -9,6 +9,9 @@ receiver, `Index` on `string`.
 walk steps by the bytes `codepoint_at_byte` decodes, not by the width the lead byte
 announces: "the walk is unchanged" below no longer holds on malformed bytes.
 
+**Amended by [0065](0065-an-ascii-string-is-indexed-by-its-bytes.md) (2026-10-15)**:
+an ASCII string is not walked; `len`, `s[i]` and `s[lo..<hi]` read its bytes.
+
 ## Context
 
 A backend had to provide two codepoint walks besides the bytes of a string: `s[i]`

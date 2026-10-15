@@ -133,10 +133,11 @@ data 2 u64 hex"00000000000000000000000000000010000000000000000000000000000000140
 import 0 byte_len std_core$byte_len result_type=8 param_types=1 param_mutable=0 param_by_address= (string) -> usize
 import 1 byte_at std_core$byte_at result_type=7 param_types=1,8 param_mutable=0,0 param_by_address= (string,usize) -> u8
 import 2 byte_slice std_core$byte_slice result_type=1 param_types=1,8,8 param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string
-import 3 bytes_to_string std_core$bytes_to_string result_type=1 param_types=13 param_mutable=0 param_by_address= (ref) -> string
-import 4 bytes std_core$bytes result_type=13 param_types=1 param_mutable=0 param_by_address= (string) -> ref
-import 5 hash std_core$string$Hash$hash result_type=4 param_types=1 param_mutable=0 param_by_address= (string) -> u64
-import 6 extern write system_posix$sys_write header=<unistd.h> result_type=44 param_types=3,13,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 3 is_ascii std_core$is_ascii result_type=6 param_types=1 param_mutable=0 param_by_address= (string) -> bool
+import 4 bytes_to_string std_core$bytes_to_string result_type=1 param_types=13 param_mutable=0 param_by_address= (ref) -> string
+import 5 bytes std_core$bytes result_type=13 param_types=1 param_mutable=0 param_by_address= (string) -> ref
+import 6 hash std_core$string$Hash$hash result_type=4 param_types=1 param_mutable=0 param_by_address= (string) -> u64
+import 7 extern write system_posix$sys_write header=<unistd.h> result_type=44 param_types=3,13,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
 impl 11 std_core$ByteAccess
 impl 33 std_core$Display
 impl 49 std_core$Index
@@ -1715,27 +1716,33 @@ fn 13 std_core$len (string) -> usize
   local i usize
   local count usize
   local b u8
-  local $field_14 usize
-  local $call_elem_19 usize
+  local $field_15 usize
+  local $call_elem_20 usize
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
   local.set 1   ; n
   local.get 0   ; arg 0
+  call.import 3   ; std_core$is_ascii
+  if $L0 void
+    local.get 1   ; n
+    return
+  end $L0
+  local.get 0   ; arg 0
   call 23   ; std_core$ascii_prefix
   local.tee 2   ; i
   local.set 3   ; count
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; i
     local.get 1   ; n
     u64.lt
-    if $L1 void
+    if $L2 void
       local.get 0   ; arg 0
       local.get 2   ; i
       call.import 1   ; std_core$byte_at
       local.tee 4   ; b
       i32.const 128
       u32.lt
-      if $L2 void
+      if $L3 void
         local.get 2   ; i
         i64.const 1
         usize.checked_add
@@ -1745,22 +1752,22 @@ fn 13 std_core$len (string) -> usize
         local.get 4   ; b
         local.get 2   ; i
         call 24   ; std_core$decode_tail
-        local.set 6   ; $call_elem_19
+        local.set 6   ; $call_elem_20
         drop
-        local.get 6   ; $call_elem_19
-        local.set 5   ; $field_14
+        local.get 6   ; $call_elem_20
+        local.set 5   ; $field_15
         local.get 2   ; i
-        local.get 5   ; $field_14
+        local.get 5   ; $field_15
         usize.checked_add
         local.set 2   ; i
-      end $L2
+      end $L3
       local.get 3   ; count
       i64.const 1
       usize.checked_add
       local.set 3   ; count
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   local.get 3   ; count
   return
 end
@@ -4857,7 +4864,7 @@ fn 53 std_io$write (u8,string) -> void
   local n i32
   local $cast_16 usize
   local.get 1   ; arg 1
-  call.import 4   ; std_core$bytes
+  call.import 5   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -4911,14 +4918,14 @@ fn 54 std_io$write_bytes (u8,ref,usize) -> i32
     i32.const 1
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call.import 6   ; system_posix$sys_write
+    call.import 7   ; system_posix$sys_write
     isize.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 6   ; system_posix$sys_write
+  call.import 7   ; system_posix$sys_write
   isize.to_i32
   return
 end
@@ -7159,7 +7166,7 @@ fn 95 std_string_builder$append_char (ref,char) -> void
   local.set 2   ; $field_2
   local.get 1   ; arg 1
   call 9   ; std_core$utf8_encode
-  call.import 3   ; std_core$bytes_to_string
+  call.import 4   ; std_core$bytes_to_string
   local.set 3   ; $call_4
   local.get 2   ; $field_2
   local.get 3   ; $call_4
@@ -7172,7 +7179,7 @@ fn 96 std_string_builder$append_repeated (ref,char,i32) -> void
   local _ i32
   local.get 1   ; arg 1
   call 9   ; std_core$utf8_encode
-  call.import 3   ; std_core$bytes_to_string
+  call.import 4   ; std_core$bytes_to_string
   local.set 3   ; s
   i32.const 0
   local.set 4   ; _
@@ -7946,6 +7953,6 @@ end
 
 fn 110 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0   ; arg 0
-  call.import 5   ; std_core$string$Hash$hash
+  call.import 6   ; std_core$string$Hash$hash
   return
 end

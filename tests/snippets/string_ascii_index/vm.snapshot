@@ -1,0 +1,19 @@
+# stdout
+literal: ascii true, len 5
+accented literal: ascii false, len 5
+built: ascii true, len 5
+ASCII slice of an accented string: ascii true, len 4
+slice ending inside a codepoint: ascii false, len 6
+ASCII slice of that slice: ascii true, len 3
+bytes: ascii true, len 3
+malformed bytes: ascii false, len 2
+made after collection 0: ascii true, len 6
+accented, made after collection 0: ascii false, len 8
+made after collection 1: ascii true, len 6
+accented, made after collection 1: ascii false, len 8
+made after collection 2: ascii true, len 6
+accented, made after collection 2: ascii false, len 8
+q quick fox brown |
+é quïck ck
+# exit
+0

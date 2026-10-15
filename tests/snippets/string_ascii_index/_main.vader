@@ -1,0 +1,42 @@
+// A string records whether its bytes are all ASCII when it is made, and `len`,
+// `s[i]` and `s[lo..<hi]` then count bytes instead of walking codepoints. Every
+// way a string is made must leave the right answer: a literal, a built string, a
+// slice of a string that is not ASCII and a slice of that slice, bytes interned
+// verbatim, and strings made in slots a collection freed, whichever flag the
+// string that held the slot had.
+module "snippet"
+
+import "std/io"
+import "std/runtime"
+import "std/string"
+
+show :: fn(label: string, s: string) -> void {
+    println("${label}: ascii ${s.is_ascii()}, len ${s.len()}")
+}
+
+main :: fn() -> i32 {
+    show("literal", "hello")
+    show("accented literal", "héllo")
+    show("built", ["ab", "cd"].join("-"))
+    mixed :: "héllo wörld"
+    show("ASCII slice of an accented string", mixed.byte_slice(3, 7))
+    show("slice ending inside a codepoint", mixed.byte_slice(3, 9))
+    show("ASCII slice of that slice", mixed.byte_slice(3, 9).byte_slice(1, 4))
+    show("bytes", bytes_to_string([0x61, 0x62, 0x63]))
+    show("malformed bytes", bytes_to_string([0x61, 0xFF]))
+    for round in 0..<3 {
+        garbage: string[]: []
+        for i in 0..<300 {
+            garbage.push("é${i}-${round}")
+            garbage.push("ascii${i}-${round}")
+        }
+        collect()
+        show("made after collection ${round}", "fresh${round}")
+        show("accented, made after collection ${round}", "frâiche${round}")
+    }
+    text :: "the quick brown fox"
+    println("${text[4]} ${text[4..<9]} ${text[16..<99]} ${text[10..=14]} ${text[9..<4]}|")
+    accented :: "thé quïck"
+    println("${accented[2]} ${accented[4..<9]} ${accented[7..<99]}")
+    return 0
+}

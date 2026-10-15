@@ -435,6 +435,9 @@ const C_PARITY = new Set<string>([
   // `s[i]` and `s[lo..<hi]` walk malformed UTF-8 the same way on the VM, which
   // calls its own native string code, as in the runtime.
   "string_index_invalid_utf8",
+  // The ASCII flag a string carries is set by the runtime natively and read
+  // through the host on the VM: `len`, `s[i]` and slices must agree.
+  "string_ascii_index",
   // A distinct's own `Equals` answers whichever side of `==` it sits on.
   "distinct_equality_either_side",
   // Without an impl of its own, a distinct orders through its backing's.

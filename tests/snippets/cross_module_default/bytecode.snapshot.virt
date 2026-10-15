@@ -55,17 +55,18 @@ string 31 "\n"
 import 0 byte_len std_core$byte_len result_type=7 param_types=4 param_mutable=0 param_by_address= (string) -> usize
 import 1 byte_at std_core$byte_at result_type=6 param_types=4,7 param_mutable=0,0 param_by_address= (string,usize) -> u8
 import 2 byte_slice std_core$byte_slice result_type=4 param_types=4,7,7 param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string
-import 3 bytes_to_string std_core$bytes_to_string result_type=4 param_types=11 param_mutable=0 param_by_address= (ref) -> string
-import 4 bytes std_core$bytes result_type=11 param_types=4 param_mutable=0 param_by_address= (string) -> ref
-import 5 extern getenv std_env$get_env header=<stdlib.h> result_type=15 param_types=4 param_mutable=0 param_by_address= (string) -> any
-import 6 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=1,11,7 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-import 7 extern vader_last_errno system_posix$sys_last_errno result_type=1 () -> i32
-import 8 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=19 param_mutable=0 param_by_address= (pointer) -> i32
-import 9 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=18 param_types=4,4 param_mutable=0,0 param_by_address= (string,string) -> any
-import 10 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=19 param_mutable=0 param_by_address= (pointer) -> i32
-import 11 extern fread system_posix$sys_fread header=<stdio.h> result_type=7 param_types=11,7,7,19 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-import 12 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=7 param_types=11,7,7,19 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-import 13 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=4 param_mutable=0 param_by_address= (string) -> i32
+import 3 is_ascii std_core$is_ascii result_type=5 param_types=4 param_mutable=0 param_by_address= (string) -> bool
+import 4 bytes_to_string std_core$bytes_to_string result_type=4 param_types=11 param_mutable=0 param_by_address= (ref) -> string
+import 5 bytes std_core$bytes result_type=11 param_types=4 param_mutable=0 param_by_address= (string) -> ref
+import 6 extern getenv std_env$get_env header=<stdlib.h> result_type=15 param_types=4 param_mutable=0 param_by_address= (string) -> any
+import 7 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=1,11,7 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 8 extern vader_last_errno system_posix$sys_last_errno result_type=1 () -> i32
+import 9 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=19 param_mutable=0 param_by_address= (pointer) -> i32
+import 10 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=18 param_types=4,4 param_mutable=0,0 param_by_address= (string,string) -> any
+import 11 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=19 param_mutable=0 param_by_address= (pointer) -> i32
+import 12 extern fread system_posix$sys_fread header=<stdio.h> result_type=7 param_types=11,7,7,19 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 13 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=7 param_types=11,7,7,19 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 14 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=4 param_mutable=0 param_by_address= (string) -> i32
 impl 8 std_core$ByteAccess
 impl 13 std_core$Error
 export main 0
@@ -234,27 +235,33 @@ fn 3 std_core$len (string) -> usize
   local i usize
   local count usize
   local b u8
-  local $field_14 usize
-  local $call_elem_19 usize
+  local $field_15 usize
+  local $call_elem_20 usize
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
   local.set 1   ; n
   local.get 0   ; arg 0
+  call.import 3   ; std_core$is_ascii
+  if $L0 void
+    local.get 1   ; n
+    return
+  end $L0
+  local.get 0   ; arg 0
   call 8   ; std_core$ascii_prefix
   local.tee 2   ; i
   local.set 3   ; count
-  loop $L0 void
+  loop $L1 void
     local.get 2   ; i
     local.get 1   ; n
     u64.lt
-    if $L1 void
+    if $L2 void
       local.get 0   ; arg 0
       local.get 2   ; i
       call.import 1   ; std_core$byte_at
       local.tee 4   ; b
       i32.const 128
       u32.lt
-      if $L2 void
+      if $L3 void
         local.get 2   ; i
         i64.const 1
         usize.checked_add
@@ -264,22 +271,22 @@ fn 3 std_core$len (string) -> usize
         local.get 4   ; b
         local.get 2   ; i
         call 9   ; std_core$decode_tail
-        local.set 6   ; $call_elem_19
+        local.set 6   ; $call_elem_20
         drop
-        local.get 6   ; $call_elem_19
-        local.set 5   ; $field_14
+        local.get 6   ; $call_elem_20
+        local.set 5   ; $field_15
         local.get 2   ; i
-        local.get 5   ; $field_14
+        local.get 5   ; $field_15
         usize.checked_add
         local.set 2   ; i
-      end $L2
+      end $L3
       local.get 3   ; count
       i64.const 1
       usize.checked_add
       local.set 3   ; count
-      br $L0
-    end $L1
-  end $L0
+      br $L1
+    end $L2
+  end $L1
   local.get 3   ; count
   return
 end
@@ -764,7 +771,7 @@ end
 
 fn 11 std_io$temp_dir () -> string
   string.const 6   ; "TMPDIR"
-  call.import 5   ; std_env$get_env
+  call.import 6   ; std_env$get_env
   call 16   ; std_io$temp_dir_of
   return
 end
@@ -772,7 +779,7 @@ end
 fn 12 std_io$write_file_string (string,string) -> any
   local $call_2 ref
   local.get 1   ; arg 1
-  call.import 4   ; std_core$bytes
+  call.import 5   ; std_core$bytes
   local.set 2   ; $call_2
   local.get 0   ; arg 0
   local.get 2   ; $call_2
@@ -782,7 +789,7 @@ end
 
 fn 13 std_io$remove_file (string) -> any
   local.get 0   ; arg 0
-  call.import 13   ; system_posix$sys_unlink
+  call.import 14   ; system_posix$sys_unlink
   i32.const 0
   i32.ne
   if $L0 void
@@ -805,7 +812,7 @@ fn 14 std_io$read_file_string (string,usize) -> any
   else
     local.get 2   ; r
     ref.cast 11   ; u8[]
-    call.import 3   ; std_core$bytes_to_string
+    call.import 4   ; std_core$bytes_to_string
     retag 4   ; string
     return
   end $L0
@@ -824,7 +831,7 @@ fn 15 std_io$write (u8,string) -> void
   local n i32
   local $cast_16 usize
   local.get 1   ; arg 1
-  call.import 4   ; std_core$bytes
+  call.import 5   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -933,7 +940,7 @@ fn 17 std_io$write_file_bytes (string,ref) -> any
   end $L0
   local.get 0   ; arg 0
   string.const 11   ; "wb"
-  call.import 9   ; system_posix$sys_fopen
+  call.import 10   ; system_posix$sys_fopen
   local.tee 5   ; __coalesce_1
   type_check 0   ; null
   if $L3 void
@@ -956,7 +963,7 @@ fn 17 std_io$write_file_bytes (string,ref) -> any
     i64.const 1
     local.get 2   ; i
     local.get 4   ; f
-    call.import 12   ; system_posix$sys_fwrite
+    call.import 13   ; system_posix$sys_fwrite
     local.set 2   ; i
     local.get 1   ; arg 1
     array.len
@@ -969,14 +976,14 @@ fn 17 std_io$write_file_bytes (string,ref) -> any
       call 18   ; std_io$last_io_error
       local.set 6   ; err
       local.get 4   ; f
-      call.import 10   ; system_posix$sys_fclose
+      call.import 11   ; system_posix$sys_fclose
       drop
       local.get 6   ; err
       return
     end $L5
   end $L4
   local.get 4   ; f
-  call.import 10   ; system_posix$sys_fclose
+  call.import 11   ; system_posix$sys_fclose
   i32.const 0
   i32.ne
   if $L6 void
@@ -993,7 +1000,7 @@ fn 18 std_io$last_io_error (string) -> ref
   local kind u8
   local if_res i32
   local reason string
-  call.import 7   ; system_posix$sys_last_errno
+  call.import 8   ; system_posix$sys_last_errno
   local.set 1   ; e
   i32.const 0
   local.set 2   ; kind
@@ -1138,7 +1145,7 @@ fn 19 std_io$read_file_bytes (string,usize) -> any
   local $len_32 usize
   local.get 0   ; arg 0
   string.const 15   ; "rb"
-  call.import 9   ; system_posix$sys_fopen
+  call.import 10   ; system_posix$sys_fopen
   local.tee 3   ; __coalesce_0
   type_check 0   ; null
   if $L0 void
@@ -1164,7 +1171,7 @@ fn 19 std_io$read_file_bytes (string,usize) -> any
     i64.const 1
     local.get 6   ; $len_18
     local.get 2   ; f
-    call.import 11   ; system_posix$sys_fread
+    call.import 12   ; system_posix$sys_fread
     local.tee 7   ; n
     i64.const 0
     u64.gt
@@ -1184,7 +1191,7 @@ fn 19 std_io$read_file_bytes (string,usize) -> any
     u64.gt
     if $L3 void
       local.get 2   ; f
-      call.import 10   ; system_posix$sys_fclose
+      call.import 11   ; system_posix$sys_fclose
       drop
       string.const 17   ; "file too large"
       i32.const 0
@@ -1203,7 +1210,7 @@ fn 19 std_io$read_file_bytes (string,usize) -> any
       br $L1
     end $L4
     local.get 2   ; f
-    call.import 8   ; system_posix$sys_ferror
+    call.import 9   ; system_posix$sys_ferror
     i32.const 0
     i32.ne
     if $L5 void
@@ -1215,7 +1222,7 @@ fn 19 std_io$read_file_bytes (string,usize) -> any
       local.set 3   ; __coalesce_0
     end $L5
     local.get 2   ; f
-    call.import 10   ; system_posix$sys_fclose
+    call.import 11   ; system_posix$sys_fclose
     drop
     local.get 3   ; __coalesce_0
     type_check 0   ; null
@@ -1238,14 +1245,14 @@ fn 20 std_io$write_bytes (u8,ref,usize) -> i32
     i32.const 1
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call.import 6   ; system_posix$sys_write
+    call.import 7   ; system_posix$sys_write
     isize.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 6   ; system_posix$sys_write
+  call.import 7   ; system_posix$sys_write
   isize.to_i32
   return
 end
