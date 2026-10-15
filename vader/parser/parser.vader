@@ -529,22 +529,20 @@ parse_optional_module_decl :: fn(p: Parser) -> ModuleDecl! | null {
 ///
 /// @param name  the declared module path.
 export is_valid_module_name :: fn(name: string) -> bool {
+    // An empty name ends expecting a segment: it is refused like a trailing `/`.
     expect_segment_start := true
-    seen_any := false
-    for c in name.chars() {
-        seen_any = true
+    for c in name {
         if expect_segment_start {
-            if !c.is_module_segment_start() { return false }
-            expect_segment_start = false
-        } else {
-            if c == '/' {
-                expect_segment_start = true
-            } else {
-                if !c.is_module_segment_continue() { return false }
+            if !c.is_module_segment_start() {
+                return false
             }
+            expect_segment_start = false
+        } else if c == '/' {
+            expect_segment_start = true
+        } else if !c.is_module_segment_continue() {
+            return false
         }
     }
-    if !seen_any { return false }
     return !expect_segment_start
 }
 
@@ -4117,4 +4115,16 @@ header_arity :: fn(src: string) -> usize {
     assert(a.data != null && a.data.len() == 2, "`A` should carry two fields")
     assert(a.value is i64 && a.value == 200, "`A` should keep its explicit value")
     assert(e.variants[1].data == null, "`B` should carry no data")
+}
+
+@test test_is_valid_module_name :: fn() -> void {
+    assert(is_valid_module_name("std/core"), "`std/core` is a module name")
+    assert(is_valid_module_name("a/b_2"), "a segment continues with digits and `_`")
+    assert(!is_valid_module_name(""), "an empty name is refused")
+    assert(!is_valid_module_name("a/"), "a trailing `/` is refused")
+    assert(!is_valid_module_name("/a"), "a leading `/` is refused")
+    assert(!is_valid_module_name("a//b"), "an empty segment is refused")
+    assert(!is_valid_module_name("2a"), "a segment starts with a letter")
+    assert(!is_valid_module_name("Std"), "a segment is lowercase")
+    assert(!is_valid_module_name("a-b"), "`-` is refused")
 }
