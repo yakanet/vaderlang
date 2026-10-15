@@ -73,7 +73,12 @@ export summarise_effects :: fn(project: LoadedProject, checked: CheckResult) -> 
         }
     }
     note_initialisers(index, frozen, widenings)
-    settle_frozen(frozen, facts, index.paths, components)
+    settled :: TraceCtx {
+        .index = index,
+        .skeletons = skeletons,
+        .facts = facts,
+    }
+    settle_frozen(frozen, settled, components)
     return EffectSummary {
         .index = index,
         .facts = facts,
@@ -94,7 +99,7 @@ note_initialisers :: fn(
 ) -> void {
     for init in chain(index.constants, index.defaults) {
         ctx :: initialiser_ctx(index, frozen, widenings, init)
-        ctx.escape(ctx.value(init.value), .Stored)
+        ctx.escape(ctx.value(init.value), .Stored, init.value.span)
         ctx.note_frozen_body(-1, init.initialises)
     }
 }

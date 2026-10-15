@@ -91,3 +91,39 @@ export hands_back :: fn(c: Cfg) -> Cfg = c
 export bumps_what_a_call_returns :: fn() -> void {
     bump(hands_back(CFG))
 }
+
+export set :: fn(c: Cfg) -> void {
+    c.n = 0
+}
+
+// A recursive call lends the value on before the write: its chain still ends at it.
+export fill :: fn(c: Cfg, k: i32) -> void {
+    if k > 0 {
+        fill(c, k - 1)
+    }
+    set(c)
+}
+
+export fills_a_constant :: fn() -> void {
+    fill(CFG, 3)
+}
+
+export Node :: struct {
+    v: i32
+    kids: Node[]
+}
+
+export TREE :: Node { .v = 0, .kids = [Node { .v = 1, .kids = [] }] }
+
+// A recursive walk lends a part of the value on: the cut path that stands for the
+// tree keeps the chain to the write.
+export clear :: fn(n: Node) -> void {
+    for c in n.kids {
+        c.v = 0
+        clear(c)
+    }
+}
+
+export clears_a_constant :: fn() -> void {
+    clear(TREE)
+}

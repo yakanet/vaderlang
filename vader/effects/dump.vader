@@ -95,17 +95,38 @@ write_frozen :: fn(sb: StringBuilder, frozen: FrozenSite[], scope: string[]) -> 
     ]
     counts :: kinds.len().filled(() -> 0)
     for site in sort(sites, (a, b) -> in_source_order(a.module, a.span, b.module, b.span)) {
-        position :: site.span.start
         label :: frozen_label(site.kind)
-        sb.append("  ${site.module} ${position.line}:${position.column} ${label} ${site.root}")
+        sb.append("  ${position_of(site.module, site.span)} ${label} ${site.root}")
         if site.mixed {
             sb.append(" (mixed)")
         }
         sb.append("\n")
+        chain :: site.chain
+        if chain != null {
+            write_chain(sb, chain)
+        }
         counts[usize(site.kind)] += 1
     }
     write_totals(sb, kinds.map(frozen_label).collect(), counts)
 }
+
+// A fault's chain under its site, one line per call, then the write.
+write_chain :: fn(sb: StringBuilder, chain: FaultChain) -> void {
+    for hop in chain.via {
+        sb.append("    via ${hop.callee} (`${hop.param}`) ${position_of(hop.module, hop.span)}\n")
+    }
+    write :: chain.write ?? return
+    sb.append("    ${write.label}")
+    by :: write.by
+    if by != null {
+        sb.append(" by ${by}")
+    }
+    sb.append(" ${position_of(write.module, write.span)}\n")
+}
+
+// `module line:column`.
+position_of :: fn(module: string, span: Span) -> string =
+    "${module} ${span.start.line}:${span.start.column}"
 
 // Whether a site of module `a_module` at `a` comes before one of `b_module` at `b`:
 // by module, then in source order.
@@ -147,8 +168,7 @@ write_widenings :: fn(
     verdicts :: [WideningVerdict.Covariant, WideningVerdict.Breaks, WideningVerdict.UnknownCallee]
     counts :: verdicts.len().filled(() -> 0)
     for site in sort(sites, (a, b) -> in_source_order(a.module, a.span, b.module, b.span)) {
-        position :: site.span.start
-        sb.append("  ${site.module} ${position.line}:${position.column} depth ${site.depth}")
+        sb.append("  ${position_of(site.module, site.span)} depth ${site.depth}")
         sb.append(" ${verdict_label(site.verdict)}")
         if site.breaking != null {
             sb.append(": ${access_label(paths, site.breaking, "argument")}")

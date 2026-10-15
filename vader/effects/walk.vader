@@ -75,7 +75,7 @@ skeleton_of :: fn(
     }
     body :: decl.body ?? return ctx.s
     result :: ctx.block_value(body)
-    ctx.escape(result, .Returned)
+    ctx.escape(result, .Returned, body.span)
     ctx.note_frozen_body(node, null)
     return ctx.s
 }
@@ -89,7 +89,7 @@ stmt :: fn(ctx: WalkCtx, s: AST.Stmt) -> void {
         is AST.DestructureAssignStmt -> { ctx.destructure_assign(s) }
         is AST.ExprStmt              -> { ctx.discard(s.expr) }
         is AST.ReturnStmt            -> { ctx.return_stmt(s) }
-        is AST.YieldStmt             -> { ctx.escape(ctx.value(s.value), .Stored) }
+        is AST.YieldStmt             -> { ctx.escape(ctx.value(s.value), .Stored, s.span) }
         is AST.ForStmt               -> { ctx.for_stmt(s) }
         is AST.BreakStmt | AST.ContinueStmt -> {}
         is AST.DeferStmt             -> { ctx.defer_stmt(s) }
@@ -98,7 +98,7 @@ stmt :: fn(ctx: WalkCtx, s: AST.Stmt) -> void {
 
 return_stmt :: fn(ctx: WalkCtx, s: AST.ReturnStmt) -> void {
     value :: s.value ?? return
-    ctx.escape(ctx.value(value), ctx.return_effect())
+    ctx.escape(ctx.value(value), ctx.return_effect(), s.span)
 }
 
 // A `return` hands its value to the caller ; inside a lambda, to whoever calls the
@@ -141,7 +141,7 @@ loop_element :: fn(ctx: WalkCtx, iter: AST.Expr, iterable: usize | null) -> usiz
         return ctx.step_slot(iterable, ELEMENT)
     }
     iterator :: ctx.converted_by(ctx.site_callee(.IterInto, iter.id), iterable, iter)
-    return ctx.call(ctx.site_callee(.IterNext, iter.id), [iterator])
+    return ctx.call(ctx.site_callee(.IterNext, iter.id), [iterator], iter.span)
 }
 
 // Whether a `for` over `iter` binds the elements of an array, with no iterator.
@@ -171,13 +171,14 @@ assign :: fn(ctx: WalkCtx, place: AST.Expr, value: usize | null) -> void {
         is AST.IdentExpr -> { ctx.assign_name(place, value) }
         is AST.FieldExpr -> {
             ctx.note_write(place.target)
-            ctx.mark(ctx.value(place.target), ctx.index.paths.path_to(field_step(place)), .Assigned)
-            ctx.escape(value, .Stored)
+            field :: ctx.index.paths.path_to(field_step(place))
+            ctx.mark(ctx.value(place.target), field, .Assigned, place.span)
+            ctx.escape(value, .Stored, place.span)
         }
         is AST.IndexExpr -> { ctx.assign_element(place, value) }
         _                -> {
             ctx.discard(place)
-            ctx.escape(value, .Stored)
+            ctx.escape(value, .Stored, place.span)
         }
     }
 }
@@ -187,7 +188,7 @@ assign :: fn(ctx: WalkCtx, place: AST.Expr, value: usize | null) -> void {
 assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: usize | null) -> void {
     slot :: ctx.ident_value(name)
     if slot == null {
-        ctx.escape(value, .Stored)
+        ctx.escape(value, .Stored, name.span)
     } else if value != null {
         ctx.bind_copy(slot, value, name.span)
     }
@@ -201,11 +202,11 @@ assign_element :: fn(ctx: WalkCtx, place: AST.IndexExpr, value: usize | null) ->
     index :: ctx.value(place.index)
     writer :: ctx.site_callee(.IndexWrite, place.id)
     if writer != null && writer !is Builtin && writer !is ErroneousCallee {
-        _ :: ctx.call(writer, [target, index, value], [null, place.index, null])
+        _ :: ctx.call(writer, [target, index, value], place.span, [null, place.index, null])
         return
     }
-    ctx.mark(target, ctx.index.paths.path_to(ELEMENT), .Assigned)
-    ctx.escape(value, .Stored)
+    ctx.mark(target, ctx.index.paths.path_to(ELEMENT), .Assigned, place.span)
+    ctx.escape(value, .Stored, place.span)
 }
 
 // ---- bindings -------------------------------------------------------------
@@ -246,16 +247,17 @@ local_slot :: fn(ctx: WalkCtx, id: i32) -> usize {
 
 // ---- helpers --------------------------------------------------------------
 
-// The function does `effect` at `path` below `value`, when it holds anything lent.
-mark :: fn(ctx: WalkCtx, value: usize | null, path: i32, effect: Effect) -> void {
+// The function does `effect` at `path` below `value`, at `at`, when `value` holds
+// anything lent.
+mark :: fn(ctx: WalkCtx, value: usize | null, path: i32, effect: Effect, at: Span) -> void {
     if value != null {
-        ctx.s.add_mark(value, path, effect)
+        ctx.s.add_mark(value, path, effect, at)
     }
 }
 
-// `value` leaves the call, kept (`.Stored`) or returned.
-escape :: fn(ctx: WalkCtx, value: usize | null, effect: Effect) -> void =
-    ctx.mark(value, ROOT, effect)
+// `value` leaves the call at `at`, kept (`.Stored`) or returned.
+escape :: fn(ctx: WalkCtx, value: usize | null, effect: Effect, at: Span) -> void =
+    ctx.mark(value, ROOT, effect, at)
 
 // A slot holding what `value` holds one `step` down, null when `value` is.
 step_slot :: fn(ctx: WalkCtx, value: usize | null, step: string) -> usize | null {
@@ -285,13 +287,14 @@ union_of :: fn(ctx: WalkCtx, values: (usize | null)[]) -> usize | null {
 site_callee :: fn(ctx: WalkCtx, role: CallRole, id: usize) -> Callee | null =
     sites_of(ctx.typed.call_sites, role)[id]
 
-// A call to `callee` handing it `args` by its parameters' positions ; its result's
-// slot, or null when there is no call, or one that runs nothing. `sources` are the
-// expressions the arguments come from, where the walk has them.
+// A call at `at` to `callee` handing it `args` by its parameters' positions ; its
+// result's slot, or null when there is no call, or one that runs nothing. `sources`
+// are the expressions the arguments come from, where the walk has them.
 call :: fn(
     ctx: WalkCtx,
     callee: Callee | null,
     args: (usize | null)[],
+    at: Span,
     sources: (AST.Expr | null)[] = [],
 ) -> usize | null {
     c :: callee ?? return null
@@ -304,7 +307,7 @@ call :: fn(
         ctx.note_known_writes(targets, q, source)
         ctx.note_widened(c, targets, q, source)
     }
-    return ctx.s.add_site(targets, args)
+    return ctx.s.add_site(targets, args, c, at)
 }
 
 // The step a field access takes: an element of a tuple for `t.0`.

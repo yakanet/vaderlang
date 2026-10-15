@@ -15,9 +15,10 @@
 //
 // A copy is left out when nothing in the program writes a value of a type it can
 // reach. A use that needs its copy reads a fresh value of its constant
-// (`FreshReads`, for the lowering). The faults are not diagnostics yet: the sites
-// are dumped beside the rights the typecheck still enforces, so that the two can be
-// compared.
+// (`FreshReads`, for the lowering). A fault carries the calls its value is lent
+// down and the write they end at (`origin.vader`). The faults are not diagnostics
+// yet: the sites are dumped beside the rights the typecheck still enforces, so that
+// the two can be compared.
 
 module "vader/effects"
 
@@ -59,6 +60,8 @@ export FrozenSite :: struct {
     /// A binding that takes a frozen value or another one, `x :: f() ?? CONST`: its
     /// copy belongs where the frozen value is chosen, not at the binding.
     mixed: bool = false
+    /// For a fault, the calls from the site down to the write, and the write.
+    chain: FaultChain | null = null
 }
 
 /// The frozen sites of a project, and what deciding them waits for.
@@ -281,20 +284,15 @@ fields_may_be_written :: fn(
 /// Decide every root of the bodies that use a frozen value, the summary settled.
 ///
 /// @param frozen      the bodies and the program's writes.
-/// @param facts       per node, what each function does with its parameters.
-/// @param paths       the summary's paths.
+/// @param settled     the functions, their skeletons and what each does with its
+///                    parameters, to follow a fault to its write.
 /// @param components  per node, its strongly connected component.
-settle_frozen :: fn(
-    frozen: FrozenSites,
-    facts: ParamEffects[][],
-    paths: PathTable,
-    components: i32[],
-) -> void {
+settle_frozen :: fn(frozen: FrozenSites, settled: TraceCtx, components: i32[]) -> void {
     for body in frozen.bodies {
-        ctx :: body_ctx(body, facts, paths, components)
+        ctx :: body_ctx(body, settled.facts, settled.index.paths, components)
         effects :: evaluate_roots(body.skeleton, ctx)
         for r in body.roots {
-            frozen.decide(body, r, effects, paths)
+            frozen.decide(body, r, effects, settled)
         }
     }
     frozen.spread_fresh()
@@ -344,19 +342,27 @@ decide :: fn(
     body: FrozenBody,
     r: FrozenRoot,
     effects: RootEffects,
-    paths: PathTable,
+    settled: TraceCtx,
 ) -> void {
     held :: held_by(r, effects) ?? return
     c :: RootCase {
         .body = body,
-        .paths = paths,
+        .paths = settled.index.paths,
         .held = held,
         .marked = effects.marked[r.root].accesses,
         .lent = effects.lent[r.root].accesses,
     }
     frozen.note_kept_by_constant(c, r)
     kind :: frozen.outcome(c, r) ?? return
-    frozen.record(body, r, kind, body.root_record(held[0].param).label, r.root in effects.mixed)
+    site :: FrozenSite {
+        .span = r.span,
+        .module = body.typed.resolved.display_path,
+        .kind = kind,
+        .root = body.root_record(held[0].param).label,
+        .mixed = r.root in effects.mixed,
+        .chain = fault_chain(settled, body, r, effects, kind),
+    }
+    frozen.sites.push(site)
     if frozen.reads_fresh(c, kind) {
         for h in held {
             frozen.read_fresh(body.root_record(h.param))
@@ -490,24 +496,38 @@ step_type :: fn(typed: TypedProgram, t: Type | null, name: string) -> Type | nul
     return declared_struct_field_type(t, name, typed)
 }
 
-// Record a site of kind `kind` for root `r` of `body`.
-record :: fn(
-    frozen: FrozenSites,
+// The chain of a fault of root `r` of `body`, from its first access that modifies
+// the value: one the body marks for a write fault, one a call lends it for a call
+// fault ; null for any other outcome.
+fault_chain :: fn(
+    settled: TraceCtx,
     body: FrozenBody,
     r: FrozenRoot,
+    effects: RootEffects,
     kind: FrozenKind,
-    label: string,
-    mixed: bool = false,
-) -> void {
-    site :: FrozenSite {
-        .span = r.span,
-        .module = body.typed.resolved.display_path,
-        .kind = kind,
-        .root = label,
-        .mixed = mixed,
+) -> FaultChain | null {
+    set :: fault_set(effects, r.root, kind) ?? return null
+    for i in 0..<set.accesses.len() {
+        if modifies(set.accesses[i]) {
+            start :: Link {
+                .s = body.skeleton,
+                .module = body.typed.resolved.display_path,
+                .effects = set,
+                .name = r.label,
+            }
+            return trace(settled, start, i)
+        }
     }
-    frozen.sites.push(site)
+    return null
 }
+
+// The set a fault of `kind` on root `root` comes from.
+fault_set :: fn(effects: RootEffects, root: usize, kind: FrozenKind) -> ParamEffects | null =
+    match kind {
+        .WriteFault -> effects.marked[root]
+        .CallFault  -> effects.lent[root]
+        .UnknownCall | .Copy | .ElidedCopy | .SharedBinding -> null
+    }
 
 // The record of extra root `root` of `body`.
 root_record :: fn(body: FrozenBody, root: usize) -> FrozenRoot =

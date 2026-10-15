@@ -106,11 +106,13 @@ test("the effect summary gives each fixture function its accesses", async () => 
 /**
  * A site section of the dump (`# frozen`, `# variance`): each site without its
  * module and position, in source order, then the line of totals that closes it.
+ * The chain the dump writes under a fault is left out (`faultChainsOf`).
  */
 function sectionSitesOf(dump: string, header: string): string[] {
   const section = dump.slice(dump.indexOf(`\n${header}\n`) + 1);
   const out: string[] = [];
   for (const line of section.split("\n").slice(1)) {
+    if (line.startsWith("    ")) continue;
     const site = line.match(/^ {2}\S+ \d+:\d+ (.*)$/)?.[1];
     if (site !== undefined) {
       out.push(site);
@@ -141,7 +143,47 @@ test("the frozen checks give each use of a frozen value its outcome", async () =
     "copy elided UNTOUCHED",
     "copy CFG",
     "call fault CFG",
-    "write fault: 1, call fault: 3, unknown call: 1, copy: 3, copy elided: 1, binding shared: 4",
+    "call fault CFG",
+    "call fault TREE",
+    "write fault: 1, call fault: 5, unknown call: 1, copy: 3, copy elided: 1, binding shared: 4",
+  ]);
+}, MEDIUM_BUILD);
+
+/**
+ * Each fault of the `# frozen` section with the chain the dump writes under it,
+ * the positions left out: `[site, [via …, write]]`.
+ */
+function faultChainsOf(dump: string): [string, string[]][] {
+  const section = dump.slice(dump.indexOf("\n# frozen\n") + 1);
+  const out: [string, string[]][] = [];
+  for (const line of section.split("\n").slice(1)) {
+    const step = line.match(/^ {4}(.*) \S+ \d+:\d+$/)?.[1];
+    const last = out[out.length - 1];
+    if (step !== undefined && last !== undefined) {
+      last[1].push(step);
+      continue;
+    }
+    const site = line.match(/^ {2}\S+ \d+:\d+ (.*fault.*)$/)?.[1];
+    if (site !== undefined) out.push([site, []]);
+    else if (!line.startsWith("  ")) break;
+  }
+  return out;
+}
+
+// A fault names what modifies the frozen value: the calls it is lent down, each
+// with the parameter that takes it, and the write at the end, through a recursive
+// call too, at the parameter (`fill`) or below it (`clear`, whose cut path stands
+// for the tree).
+test("each frozen fault leads down its calls to the write", async () => {
+  const r = await runCli(["dump", "--stage=effects", FROZEN], undefined, MEDIUM_BUILD);
+  expect(r.exit).toBe(0);
+  expect(faultChainsOf(r.stdout)).toEqual([
+    ["write fault CFG", ["assigned CFG.n"]],
+    ["call fault TABLE", ["resized TABLE by `push`"]],
+    ["call fault CFG", ["via `bump` (`c`)", "assigned c.n"]],
+    ["call fault CFG", ["via `bump` (`c`)", "assigned c.n"]],
+    ["call fault CFG", ["via `fill` (`c`)", "via `set` (`c`)", "assigned c.n"]],
+    ["call fault TREE", ["via `clear` (`n`)", "assigned n.kids[]…"]],
   ]);
 }, MEDIUM_BUILD);
 

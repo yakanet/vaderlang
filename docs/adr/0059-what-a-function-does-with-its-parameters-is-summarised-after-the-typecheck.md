@@ -7,6 +7,10 @@ checks. Their faults are observed only, in `vader dump --stage=effects`, beside 
 rights the typecheck still enforces; their copies are made (2026-10-14). Moving
 the rights out of the types onto them is a later decision.
 
+**Extended by [0066](0066-an-access-keeps-the-constraint-that-put-it-in-its-set.md)
+(2026-10-15)**: each access keeps the constraint that put it in its set, and a fault
+names the calls and the write that modify the value.
+
 ## Context
 
 ADR 0053 freezes the value of a module constant and a view of a string's bytes.

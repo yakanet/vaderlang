@@ -298,34 +298,54 @@ export Access :: struct {
 }
 
 /// What a function may do with everything a caller lends one parameter: the
-/// accesses, each once.
+/// accesses, each once, and why each is there.
 export ParamEffects :: struct {
     accesses: Access[]! = []
+    /// Two words per access, in the order of `accesses`: the constraint that put it
+    /// there, and the access of the callee a call carries (`origin.vader`).
+    @internal
+    origins: i64[]! = []
     @internal
     keys: MutableSet<i64>! = MutableSet<i64> {}
 }
 
 access_key :: fn(a: Access) -> i64 = i64(a.path) * 8 + i64(usize(a.effect))
 
-// Add `a` to `effects`, which nothing covers yet ; for a fixed set built by hand.
-insert :: fn(effects: ParamEffects, a: Access) -> void {
+// Add `a` to `effects`, which nothing covers yet, put there by the constraint `how`
+// carrying the callee's access `then` ; with no constraint, for a fixed set built
+// by hand.
+insert :: fn(effects: ParamEffects, a: Access, how: i64 = FIXED, then: i64 = NO_ACCESS) -> void {
     if effects.keys.add(access_key(a)) {
         effects.accesses.push(a)
+        effects.origins.push(how)
+        effects.origins.push(then)
     }
 }
 
-// Add `a` to `effects` ; false when it held it already, or the same effect at a
-// path that stands for `a.path`. A path that stands for deeper ones drops the
-// accesses it covers, which keeps a recursive walk of a tree from naming every
-// path below it.
-include :: fn(t: PathTable, effects: ParamEffects, a: Access) -> bool {
+// Add `a` to `effects`, put there by `how` carrying `then` ; false when it held it
+// already, or the same effect at a path that stands for `a.path`: an access keeps
+// the first origin it gets. A path that stands for deeper ones drops the accesses
+// it covers, which keeps a recursive walk of a tree from naming every path below it,
+// and takes the origin of the first it drops: that one was there before it, so a
+// chain of origins through it ends (`origin.vader`).
+include :: fn(
+    t: PathTable,
+    effects: ParamEffects,
+    a: Access,
+    how: i64 = FIXED,
+    then: i64 = NO_ACCESS,
+) -> bool {
     if t.covered(effects, a) {
         return false
     }
     if t.nodes[a.path].deeper {
-        t.drop_covered(effects, a)
+        dropped :: t.drop_covered(effects, a)
+        if dropped != null {
+            effects.insert(a, dropped.0, dropped.1)
+            return true
+        }
     }
-    effects.insert(a)
+    effects.insert(a, how, then)
     return true
 }
 
@@ -354,21 +374,49 @@ holds :: fn(effects: ParamEffects, path: i32, effect: Effect) -> bool {
     return access_key(a) in effects.keys
 }
 
-// Drop from `effects` every access of `a`'s effect that `a.path` stands for. Most
-// cut paths cover nothing yet: the set is rebuilt only when one does.
-drop_covered :: fn(t: PathTable, effects: ParamEffects, a: Access) -> void {
+// Drop from `effects` every access of `a`'s effect that `a.path` stands for ; the
+// origin of the first it drops, null when it drops none. Most cut paths cover
+// nothing yet: the set is rebuilt only when one does.
+drop_covered :: fn(t: PathTable, effects: ParamEffects, a: Access) -> [i64, i64] | null {
     if !effects.accesses.any_match((x) -> t.covers(a, x)) {
-        return
+        return null
     }
+    first: usize | null = null
     kept: Access[]: []
-    for x in effects.accesses {
-        if t.covers(a, x) {
-            effects.keys.remove(access_key(x))
-        } else {
+    origins: i64[]: []
+    for i in 0..<effects.accesses.len() {
+        x :: effects.accesses[i]
+        if !t.covers(a, x) {
             kept.push(x)
+            origins.push(effects.constraint_at(i))
+            origins.push(effects.carried_at(i))
+        } else {
+            effects.keys.remove(access_key(x))
+            if first == null {
+                first = i
+            }
         }
     }
+    dropped :: first ?? return null
+    origin: [i64, i64]: [effects.constraint_at(dropped), effects.carried_at(dropped)]
     effects.accesses = kept
+    effects.origins = origins
+    return origin
+}
+
+// The constraint that put the access at index `i` of `effects` there.
+constraint_at :: fn(effects: ParamEffects, i: usize) -> i64 = effects.origins[2 * i]
+
+// The callee's access the constraint of the access at index `i` carries.
+carried_at :: fn(effects: ParamEffects, i: usize) -> i64 = effects.origins[2 * i + 1]
+
+// Whether `x`, at a cut path, covers the access whose key is `key` (`covers`).
+covers_key :: fn(t: PathTable, x: Access, key: i64) -> bool {
+    path :: i32(key / 8)
+    if !t.nodes[x.path].deeper || x.path == path || i64(usize(x.effect)) != key % 8 {
+        return false
+    }
+    return t.extends(path, x.path)
 }
 
 // Whether `a`, at a path standing for deeper ones, covers another access `x`.
@@ -378,8 +426,8 @@ covers :: fn(t: PathTable, a: Access, x: Access) -> bool =
 // Add every access of `from` to `into` ; false when `into` covered them all.
 include_all :: fn(t: PathTable, into: ParamEffects, from: ParamEffects) -> bool {
     grew := false
-    for a in from.accesses {
-        if t.include(into, a) {
+    for i in 0..<from.accesses.len() {
+        if t.include(into, from.accesses[i], from.constraint_at(i), from.carried_at(i)) {
             grew = true
         }
     }
@@ -489,6 +537,30 @@ test_include_of_a_cut_path_drops_what_it_covers :: fn() -> void {
     t.include(effects, Access { .path = path_of(t, ["c"]), .effect = .Assigned })
     t.include(effects, Access { .path = t.cut(path_of(t, ["a"])), .effect = .Assigned })
     assert_eq(effects.accesses.len(), 2)
+}
+
+@test
+test_include_keeps_the_first_origin :: fn() -> void {
+    t :: PathTable {}
+    effects :: ParamEffects {}
+    stored :: Access { .path = ROOT, .effect = .Stored }
+    t.include(effects, stored, mark_origin(0))
+    t.include(effects, stored, mark_origin(1))
+    assert_eq(effects.constraint_at(0), mark_origin(0))
+}
+
+@test
+test_drop_covered_keeps_each_origin_with_its_access :: fn() -> void {
+    t :: PathTable {}
+    effects :: ParamEffects {}
+    assigned :: (path: i32) -> Access { .path = path, .effect = .Assigned }
+    t.include(effects, assigned(path_of(t, ["a", "b"])), mark_origin(0))
+    t.include(effects, assigned(path_of(t, ["c"])), mark_origin(1))
+    t.include(effects, assigned(t.cut(path_of(t, ["a"]))), mark_origin(2))
+    assert_eq(effects.origins.len(), 4)
+    assert_eq(effects.constraint_at(0), mark_origin(1))
+    // The cut path stands for `.a.b`, and takes its origin.
+    assert_eq(effects.constraint_at(1), mark_origin(0))
 }
 
 @test
