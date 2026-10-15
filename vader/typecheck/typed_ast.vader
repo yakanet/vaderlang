@@ -393,11 +393,11 @@ export TypedProgram :: struct {
     /// its entries does not count the module's files.
     imported_fn_overloads: MutableMap<string, MutableMap<string, FnCandidate[]!>!>!
 
-    /// `impl_base_key(for_ty) → element` for every `X implements
-    /// Iterator<T>` impl reached during type-checking — the impl's own `T`,
-    /// which a reader substitutes against the instance's arguments. Consumed by
-    /// `stmt.vader::for_in_element` so `for c in some_iter` binds
-    /// `c` to T.
+    /// `impl_base_key(for_ty) → element` for every `X implements Iterator<T>` impl
+    /// reached during type-checking, and every `X implements Into<Iterator<T>>` of an
+    /// `X` that is no iterator itself: the impl's own `T`, which a reader substitutes
+    /// against the instance's arguments. Consumed by `stmt.vader::for_in_element` so
+    /// `for c in some_iter` binds `c` to T.
     iter_element_types: MutableMap<string, Type>!
 
     /// `impl_base_key(for_ty) → T` for every `X implements Index<I, T>`

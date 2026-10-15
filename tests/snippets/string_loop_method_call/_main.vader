@@ -1,0 +1,20 @@
+// string_loop_method_call: the variable of `for c in s` is a `char`, so a
+// function of this module taking a `char` is called on it in method form.
+
+module "snippet"
+
+import "std/io"
+import "std/string"
+
+is_vowel :: fn(c: char) -> bool = c == 'a' || c == 'e' || c == 'é' || c == 'o'
+
+main :: fn() -> i32 {
+    vowels := 0
+    for c in "héllo, vader" {
+        if c.is_vowel() {
+            vowels += 1
+        }
+    }
+    println(vowels)
+    return 0
+}

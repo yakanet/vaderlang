@@ -2669,9 +2669,8 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
     if ab != null {
         return ab.element
     }
-    // @partial: only structs (Range, Iterator<T> wrappers), distincts, enums and
-    // `Iterator` trait values remain iterable here — `array_backing` already
-    // returned for every array ; other types yield an unresolved element.
+    // @partial: `array_backing` already returned for every array; a type no arm
+    // names has no element.
     @partial match iter_ty {
         is StructType -> {
             // A `generator`'s `<fn>$State<E>` carries the concrete element as its
@@ -2700,8 +2699,8 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             decl :: typed.struct_decls[iter_ty.symbol.id] ?? return elem
             return substitute_by_name(elem, decl.type_params, iter_ty.args)
         }
-        // A distinct or an enum keeps its own `Iterator` impl, recorded under its
-        // declaration ; a distinct without one iterates through its backing.
+        // A distinct keeps its own `Iterator` impl, recorded under its declaration ;
+        // a distinct without one iterates through its backing.
         is DistinctType -> {
             own :: impl_side(typed, typed.iter_element_types, iter_ty, "")
             if own != null {
@@ -2709,10 +2708,10 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             }
             return for_in_element(iter_ty.backing, typed)
         }
-        is EnumType -> {
-            elements :: typed.iter_element_types
-            element :: impl_side(typed, elements, iter_ty, "") ?? return TY_UNRESOLVED
-            return element
+        // An enum or a primitive finds its element under its own `Iterator` impl,
+        // or its `Into` toward one (`string`).
+        is EnumType | PrimitiveType -> {
+            return impl_side(typed, typed.iter_element_types, iter_ty, "") ?? TY_UNRESOLVED
         }
         is TraitType  -> {
             // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
@@ -2734,10 +2733,10 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
 }
 
 // A receiver `for_in_element` found no element for, that is not merely a type
-// still to be decided — an unresolved one carries its own diagnostic, a type
+// still to be decided (an unresolved one carries its own diagnostic, a type
 // parameter or `Self` is iterated per instance, an erased `Any` is not ours to
-// judge, `never` is dead code — nor a string, which the lowering walks by
-// codepoint without an element type here.
+// judge, `never` is dead code), nor a string, whose element comes from the
+// `into` of `std/string`: without that module, the lowering reports it (M5001).
 is_known_non_iterable :: fn(t: Type) -> bool {
     if t is UnresolvedType | TypeParamType | SelfType | AnyType | NeverType {
         return false

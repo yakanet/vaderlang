@@ -1,0 +1,26 @@
+# Typecheck
+
+## tests/snippets/string_loop_method_call
+  FnDecl         is_vowel             :: fn(char) -> bool
+  FnDecl         main                 :: fn() -> i32
+  expr 13:14    StringLitExpr  :: string
+  expr 14:12    CallExpr       :: bool
+  expr 14:12    FieldExpr      :: fn() -> bool
+  expr 14:12    IdentExpr      :: char
+  expr 14:9     IfExpr         :: void
+  expr 15:13    BinaryExpr     :: i32
+  expr 15:13    IdentExpr      :: i32
+  expr 18:13    IdentExpr      :: i32
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 9:35     BinaryExpr     :: bool
+  expr 9:35     BinaryExpr     :: bool
+  expr 9:35     BinaryExpr     :: bool
+  expr 9:35     BinaryExpr     :: bool
+  expr 9:35     IdentExpr      :: char
+  expr 9:47     BinaryExpr     :: bool
+  expr 9:47     IdentExpr      :: char
+  expr 9:59     BinaryExpr     :: bool
+  expr 9:59     IdentExpr      :: char
+  expr 9:71     BinaryExpr     :: bool
+  expr 9:71     IdentExpr      :: char

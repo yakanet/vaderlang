@@ -1,0 +1,136 @@
+# Lower
+
+## snippet
+  fn snippet$is_vowel(c: char) -> bool
+    ~>
+      or :bool
+        l:
+          or :bool
+            l:
+              or :bool
+                l:
+                  eq :bool
+                    l:
+                      c :char
+                    r:
+                      char(0x61)
+                r:
+                  eq :bool
+                    l:
+                      c :char
+                    r:
+                      char(0x65)
+            r:
+              eq :bool
+                l:
+                  c :char
+                r:
+                  char(0xe9)
+        r:
+          eq :bool
+            l:
+              c :char
+            r:
+              char(0x6f)
+  fn snippet$main() -> i32
+    let vowels: i32 = int(0) :i32
+    block :void
+      let self: string = "héllo, vader" :string
+      let i: usize = int(0) :usize
+      loop while (<…>)
+        let b: u8 =
+          call :u8
+            callee:
+              byte_at :u8
+            arg0:
+              self :string
+            arg1:
+              i :usize
+        ~>
+          if :void
+            cond:
+              lt :bool
+                l:
+                  b :u8
+                r:
+                  int(128) :u8
+            then:
+              assign
+                target:
+                  i :usize
+                value:
+                  add_checked :usize
+                    l:
+                      i :usize
+                    r:
+                      int(1) :usize
+              let c: char =
+                cast → char
+                  b :u8
+              if :void
+                cond:
+                  call :bool
+                    callee:
+                      is_vowel :bool
+                    arg0:
+                      c :char
+                then:
+                  assign
+                    target:
+                      vowels :i32
+                    value:
+                      add_checked :i32
+                        l:
+                          vowels :i32
+                        r:
+                          int(1) :i32
+            else:
+              let __tup_0: [char, usize] =
+                call :[char, usize]
+                  callee:
+                    decode_tail :fn(string, u8, usize) -> [char, usize]
+                  arg0:
+                    self :string
+                  arg1:
+                    b :u8
+                  arg2:
+                    i :usize
+              let c: char =
+                ._0 :char
+                  __tup_0 :[char, usize]
+              let width: usize =
+                ._1 :usize
+                  __tup_0 :[char, usize]
+              assign
+                target:
+                  i :usize
+                value:
+                  add_checked :usize
+                    l:
+                      i :usize
+                    r:
+                      width :usize
+              let c: char = c :char
+              if :void
+                cond:
+                  call :bool
+                    callee:
+                      is_vowel :bool
+                    arg0:
+                      c :char
+                then:
+                  assign
+                    target:
+                      vowels :i32
+                    value:
+                      add_checked :i32
+                        l:
+                          vowels :i32
+                        r:
+                          int(1) :i32
+    call :void
+      callee:
+        std_io$println__i32 :void
+      arg0:
+        vowels :i32
+    return int(0) :i32

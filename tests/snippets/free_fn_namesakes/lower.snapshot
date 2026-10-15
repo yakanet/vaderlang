@@ -74,9 +74,11 @@
                 callee:
                   std_io$println__string :void
                 arg0:
-                  vcall std_core$Display.to_string :string
-                    recv:
-                      c :?
+                  call :string
+                    callee:
+                      std_core$char$Display$to_string :string
+                    arg0:
+                      c :char
             else:
               let __tup_0: [char, usize] =
                 call :[char, usize]
@@ -108,9 +110,11 @@
                 callee:
                   std_io$println__string :void
                 arg0:
-                  vcall std_core$Display.to_string :string
-                    recv:
-                      c :?
+                  call :string
+                    callee:
+                      std_core$char$Display$to_string :string
+                    arg0:
+                      c :char
     return int(0) :i32
   fn __lambda_snippet_0(x: i32) -> string
     ~>

@@ -1,7 +1,7 @@
 // A free fn named like what a call runs never takes its place : a field holding a
 // fn value is called through that value beside a `render` that accepts the
-// receiver's base, and a string is stepped through std's `chars` beside a local
-// one.
+// receiver's base, and a string is walked through std's `into` beside a local
+// `chars`.
 
 module "snippet"
 
