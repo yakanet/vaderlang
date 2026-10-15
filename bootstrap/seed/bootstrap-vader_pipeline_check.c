@@ -47,23 +47,23 @@ void* vader_pipeline_check_assemble_typed_project(void* l0) {
     l2 = ((vader_struct_vader_typecheck_CheckResult_t*) l2)->f_all_modules;
     l3 = ((vader_struct_std_collections_MutableMap__string__TypedProgram_t*) l2)->f_ekeys;
     l5 = ((vader_struct_std_collections_MutableMap__string__TypedProgram_t*) l2)->f_evals;
-    l6 = ((vader_struct_std_collections_MutableMap__string__TypedProgram_t*) l2)->f_size;
-    l7 = (size_t) 0;
-    while (!((l7 >= l6))) {
+    l6 = (size_t) 0;
+    l7 = ((vader_struct_std_collections_MutableMap__string__TypedProgram_t*) l2)->f_size;
+    while ((l6 < l7)) {
         vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l7)
-        t2 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l7];
+        VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l6)
+        t2 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l6];
         l4 = t2.payload.s;
         vader_array_t* _a2_slotarr = ((vader_array_t*) l5);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l7)
-        l2 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l7);
+        VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l6)
+        l2 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l6);
         l8 = l4;
         l9 = l2;
-        t1 = (l7 + INT64_C(1));
-        l7 = (size_t) (int64_t) t1;
         std_collections_MutableMap_IndexSet_set_at__string__Any(((vader_struct_vader_typecheck_TypedProject_t*) l1)->f_modules, l8, vader_ref_box(l9));
+        t1 = (l6 + INT64_C(1));
+        l6 = (size_t) (int64_t) t1;
     }
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -81,7 +81,7 @@ void* vader_pipeline_check_check_project(void* l0, void* l1, bool l2) {
     l5 = vader_effects_widening_diagnostics(l4, l3);
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l5);
     vader_struct_vader_pipeline_check_CheckedProject_t* _a0_obj = (vader_struct_vader_pipeline_check_CheckedProject_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check_CheckedProject_t));
-    vader_obj_header_init(_a0_obj, 1095u);
+    vader_obj_header_init(_a0_obj, 1091u);
     _a0_obj->f_result = l3;
     _a0_obj->f_effects = l4;
     t0 = (void*) _a0_obj;
