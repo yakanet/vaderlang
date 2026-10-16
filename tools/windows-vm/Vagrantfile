@@ -64,10 +64,23 @@ Vagrant.configure("2") do |config|
   # pushes the tree onto the guest's own NTFS instead.
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
+  cpus   = Integer(ENV.fetch("VADER_WIN_CPUS",   "6"))
+  memory = Integer(ENV.fetch("VADER_WIN_MEMORY", "8192"))
+
+  # Listed first, so a fresh `vagrant up` picks it when usable: VMware Fusion,
+  # with the vagrant-vmware-desktop plugin and the Vagrant VMware Utility service.
+  # An existing guest keeps the provider it was created with.
+  config.vm.provider "vmware_desktop" do |vmware|
+    vmware.gui                = false
+    vmware.vmx["displayName"] = "vader-windows"
+    vmware.vmx["numvcpus"]    = cpus.to_s
+    vmware.vmx["memsize"]     = memory.to_s
+  end
+
   config.vm.provider "virtualbox" do |vb|
     vb.gui    = false
-    vb.cpus   = Integer(ENV.fetch("VADER_WIN_CPUS",   "6"))
-    vb.memory = Integer(ENV.fetch("VADER_WIN_MEMORY", "8192"))
+    vb.cpus   = cpus
+    vb.memory = memory
   end
 
   # privileged: false is load-bearing -- a privileged Windows provisioner runs

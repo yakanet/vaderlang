@@ -23,13 +23,19 @@ day comes; the OS underneath stays real either way.
 ## One-time setup
 
 ```sh
-brew install --cask vagrant           # 2.4+, for box_architecture support
-brew install --cask virtualbox        # 7.2+, a supported Apple Silicon build
-cd tools/windows-vm && vagrant up     # ~15 GB box download, then provisioning
+brew install --cask vagrant                    # 2.4+, for box_architecture support
+brew install --cask vmware-fusion              # the faster provider
+brew install --cask vagrant-vmware-utility
+vagrant plugin install vagrant-vmware-desktop
+cd tools/windows-vm && vagrant up              # ~15 GB box download, then provisioning
 ```
 
-Both are `pkg` casks, so each asks for your password once. No Vagrant plugin is
-needed: VirtualBox is the built-in provider.
+The casks are `pkg` installers, so each asks for your password once. The
+Vagrantfile lists VMware Fusion first, so a fresh `vagrant up` picks it when the
+plugin and the utility are there. VirtualBox (7.2+, `brew install --cask
+virtualbox`) also works and needs no plugin; `vagrant up --provider=virtualbox`
+forces it. An existing guest keeps the provider it was created with: switching
+means `vagrant destroy` first.
 
 `vagrant up` boots the guest headless and installs, from pinned upstream zips:
 
