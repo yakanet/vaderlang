@@ -1,5 +1,5 @@
-// A tuple's element cannot be written, whether the tuple sits in a read-only
-// slot, in an owned local, or behind a distinct, and whether the write is plain,
+// A tuple's element cannot be written, whether the tuple sits in an annotated
+// local, in an inferred one, or behind a distinct, and whether the write is plain,
 // compound or a destructuring target. T3101 at each write. A struct held in an
 // element is still a struct, written as any other.
 module "snippet"
@@ -13,13 +13,13 @@ Box :: struct {
 main :: fn() -> i32 {
     t: [i32, i32]: [1, 2]
     t.0 = 5
-    owned :: [3, "x"]
-    owned.0 += 4
+    inferred :: [3, "x"]
+    inferred.0 += 4
     p :: Pair([3, 4])
     p.0 = 6
     n := 0
     [t.1, n] = [7, 8]
     boxed: [Box, i32]: [Box { .x = 1 }, 2]
     boxed.0.x = 9
-    return t.0 + owned.0 + p.0 + n + boxed.0.x
+    return t.0 + inferred.0 + p.0 + n + boxed.0.x
 }

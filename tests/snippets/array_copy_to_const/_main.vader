@@ -2,7 +2,7 @@
 // `array_push_all_const`, and the same defect one function further down.
 //
 // A module const materialises its array with BOXED slots (24-byte `vader_box_t`)
-// while `dst: Item[]! = [...]` allocates KIND_REF slots (8-byte raw pointers).
+// while `dst: Item[]: [...]` allocates KIND_REF slots (8-byte raw pointers).
 // `vader_array_push_all` learned to compare the two `element_kind`s and route the
 // mismatch through the boxed form ; `vader_array_copy`, written directly below
 // it, asked `vader_array_src_region` for the source kind and width and then read

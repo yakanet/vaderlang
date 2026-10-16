@@ -1,4 +1,4 @@
-// Diag snippet: INTRINSICS-shaped — a read-only `Spec[]` whose struct has a STRING
+// Diag snippet: INTRINSICS-shaped, a `Spec[]` constant whose struct has a STRING
 // field, a NESTED ARRAY-of-enum field, and another string. Exercises recursive
 // aggregate baking at depth > 1. Expected: prints "cast", "2", "1", exits 0.
 

@@ -5,8 +5,7 @@ import "std/io"
 // A const is typed at its first read when that comes before its declaration : a
 // const reading one declared further down, a fn reading a const that calls a fn,
 // a const calling a fn declared after it whose return its body infers.
-// A callback a trait types `fn(Self)` lends a read-only `Self`, which an impl writes
-// `fn(Inner)`.
+// A callback a trait types `fn(Self)` is written `fn(Inner)` by an impl.
 
 Inner :: struct {
     n: i32

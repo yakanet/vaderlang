@@ -141,7 +141,7 @@ static void* __const_snippet_LIST(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 14 "tests/snippets/type_param_least_rights/_main.vader"
+#line 13 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(1u, 2u, 7u, 2u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(20);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
@@ -154,7 +154,7 @@ static void* snippet_make(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 20 "tests/snippets/type_param_least_rights/_main.vader"
+#line 19 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(1u, 3u, 7u, 2u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(2);
@@ -187,39 +187,39 @@ static int32_t snippet_main(void) {
         vader_gc_top, 1u, 8u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 23 "tests/snippets/type_param_least_rights/_main.vader"
+#line 22 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     vader_struct_snippet_Cfg_t* _a0_obj = (vader_struct_snippet_Cfg_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Cfg_t));
     vader_obj_header_init(_a0_obj, 6u);
     _a0_obj->f_n = INT32_C(7);
     l0 = (void*) _a0_obj;
-#line 13 "tests/snippets/type_param_least_rights/_main.vader"
+#line 12 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     t0 = (void*) &vader_data_0;
     vader_array_t* _a1_slotarr = ((vader_array_t*) t0);
     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
     l1 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) INT64_C(0));
-#line 24 "tests/snippets/type_param_least_rights/_main.vader"
+#line 23 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     t1 = snippet_pick__Cfg(vader_ref_box(l0), vader_ref_box(l1));
     l0 = t1.payload.obj;
-#line 25 "tests/snippets/type_param_least_rights/_main.vader"
+#line 24 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     l1 = snippet_make();
-#line 14 "tests/snippets/type_param_least_rights/_main.vader"
+#line 13 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     l2 = (void*) &vader_data_1;
-#line 26 "tests/snippets/type_param_least_rights/_main.vader"
+#line 25 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     t1 = snippet_pick__Cfg(vader_ref_box(l1), vader_ref_box(l2));
     l2 = t1.payload.obj;
-#line 14 "tests/snippets/type_param_least_rights/_main.vader"
+#line 13 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     t0 = (void*) &vader_data_1;
-#line 27 "tests/snippets/type_param_least_rights/_main.vader"
+#line 26 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     t1 = snippet_pick__Cfg(vader_ref_box(t0), vader_ref_box(l1));
     l3 = t1.payload.obj;
-#line 28 "tests/snippets/type_param_least_rights/_main.vader"
+#line 27 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     l4 = __const_snippet_LIST();
     l4 = snippet_pair__i32__(vader_ref_box(l1), vader_ref_box(l4));
     l5 = (((vader_obj_header_t*) l4)->type_index == 4u ? ((vader_struct___Tuple_Any_Any_7e2af780_t*) l4)->f__0.payload.obj : ((vader_struct___Tuple_Array_i32_Array_i32__40b28492_t*) l4)->f__0);
     l4 = (((vader_obj_header_t*) l4)->type_index == 4u ? ((vader_struct___Tuple_Any_Any_7e2af780_t*) l4)->f__1.payload.obj : ((vader_struct___Tuple_Array_i32_Array_i32__40b28492_t*) l4)->f__1);
-#line 29 "tests/snippets/type_param_least_rights/_main.vader"
+#line 28 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     vader_array_push_i32((vader_array_t*) l1, INT32_C(4));
-#line 30 "tests/snippets/type_param_least_rights/_main.vader"
+#line 29 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     l6 = std_core_new_byte_buffer((size_t) 125);
     l7 = (size_t) 0;
     t2 = ((vader_struct_snippet_Cfg_t*) l0)->f_n;
@@ -252,12 +252,12 @@ static int32_t snippet_main(void) {
     l7 = std_core_write_unsigned(l6, l7, l9);
     t5 = std_core_finish_buffer(l6, l7);
     std_io_println__string(t5);
-#line 31 "tests/snippets/type_param_least_rights/_main.vader"
+#line 30 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
 static vader_box_t snippet_pick__Cfg(vader_box_t l0, vader_box_t l1) {
-#line 16 "tests/snippets/type_param_least_rights/_main.vader"
+#line 15 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     return l1;
 }
 
@@ -267,7 +267,7 @@ static void* snippet_pair__i32__(vader_box_t l0, vader_box_t l1) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 18 "tests/snippets/type_param_least_rights/_main.vader"
+#line 17 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     vader_struct___Tuple_Any_Any_7e2af780_t* _a0_obj = (vader_struct___Tuple_Any_Any_7e2af780_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Any_Any_7e2af780_t));
     vader_obj_header_init(_a0_obj, 4u);
     _a0_obj->f__0 = l0;

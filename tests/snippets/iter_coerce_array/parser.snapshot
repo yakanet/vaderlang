@@ -305,7 +305,7 @@
             "mutable": false,
             "binding": {
               "kind": "SimpleBinding",
-              "name": "typed_iter_mut"
+              "name": "typed_iter"
             },
             "type": {
               "kind": "GenericInstExpr",
@@ -402,7 +402,7 @@
                     "name": null,
                     "value": {
                       "kind": "IdentExpr",
-                      "name": "typed_iter_mut"
+                      "name": "typed_iter"
                     },
                     "spread": false
                   }

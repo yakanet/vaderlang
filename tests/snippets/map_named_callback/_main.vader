@@ -1,7 +1,5 @@
-// A named fn whose signature is read-only is a valid callback for a generic
-// combinator: `rs.map(keys)` with `keys :: fn(Rec) -> string[]`. The `T` / `U`
-// positions of `map`'s `fn(T) -> U` take the argument's own mutability, as the
-// lambda `(r) -> keys(r)` already does.
+// A named fn is a valid callback for a generic combinator: `rs.map(keys)` with
+// `keys :: fn(Rec) -> string[]`, as the lambda `(r) -> keys(r)` is.
 
 module "snippet"
 

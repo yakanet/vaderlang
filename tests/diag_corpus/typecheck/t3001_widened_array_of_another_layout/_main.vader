@@ -1,9 +1,10 @@
-// A read-only array view must read the buffer its source wrote. An `i32[]`
-// stores raw words, a `Circle[]` or a `([i32, i32] | null)[]` raw references
-// (a tuple is a heap object), while a view over a union holding a non-reference
-// reads boxes : T3001 at each argument. A view over a union of references and
-// `null`, or over a boxed source, reads the slots as they are and is accepted.
-// A tuple's fields are read with no test at all, so its elements are invariant.
+// An array argument widened for a callee that only reads it must read the buffer
+// its source wrote. An `i32[]` stores raw words, a `Circle[]` or a
+// `([i32, i32] | null)[]` raw references (a tuple is a heap object), while a
+// parameter whose element union holds a non-reference reads boxes : T3001 at each
+// argument. A union of references and `null`, or a boxed source, reads the slots
+// as they are and is accepted. A tuple's fields are read with no test at all, so
+// its elements are invariant.
 module "snippet"
 
 Circle :: struct {

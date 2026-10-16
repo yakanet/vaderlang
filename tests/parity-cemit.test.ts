@@ -309,7 +309,7 @@ const C_PARITY = new Set<string>([
   // members by their tag : method, index, `in`, operator.
   "union_trait_dispatch",
   // Consts read before their declaration, by a const and by a fn ; a `fn(Self)`
-  // callback an impl writes with its own read-only type.
+  // callback an impl writes with its own type.
   "const_read_before_its_declaration",
   // Consts nothing reads : their data-pool entries are pruned with their types.
   "const_never_read",
@@ -448,9 +448,9 @@ const C_PARITY = new Set<string>([
   "distinct_orders_as_backing",
   // A distinct's own `Index` / `IndexSet` wins over its backing, trait by trait.
   "distinct_own_index",
-  // A type parameter bound at two rights takes the lesser ; the instance the
-  // lowerer picks keeps the first, and the code must not depend on it.
-  "type_param_least_rights",
+  // A constant and a local bind one type parameter ; the instance the lowerer
+  // picks keeps the first, and the code must not depend on it.
+  "type_param_bound_by_constant_and_local",
   "generic_enum_same_name",
   // An enum with variant data stores its variant's rank : its value tables and
   // the conversion back to the written value, inside a generic instance too.

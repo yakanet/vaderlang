@@ -1,9 +1,8 @@
-// A mutable `(i32 | string)[]` must NOT accept an `i32[]` reference: arrays
-// are reference-aliased (SPEC §Arrays), so a write through the wider alias
-// (`b[0] = "hello"`) would store a string into the shared i32 buffer —
-// corruption on native, a VM trap. Mutable arrays are element-invariant;
-// covariance is reserved for the read-only case, which is why both slots
-// carry `!` here — unmarked, they would be read-only and the init legal.
+// A `(i32 | string)[]` slot must NOT take an `i32[]` reference: arrays are
+// reference-aliased (SPEC §Arrays), so a write through the wider alias
+// (`b[0] = "hello"`) would store a string into the shared i32 buffer: corruption
+// on native, a VM trap. A slot's element type is invariant; only an argument
+// widens, for a callee that does not write it.
 module "snippet"
 
 main :: fn() -> i32 {

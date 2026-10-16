@@ -1,0 +1,29 @@
+// A generic array constructor's return is seen by
+// `lower_mono_fn::returns_typeparam_array`, the gate that force-concretes
+// `clone`/`collect`/`map`/`sort`-shaped fns: a `T = i32` instance builds an
+// I32-kind buffer instead of the erased BOXED one. A blind gate leaves the instance
+// erased, its buffer built at BOXED width, and its reads come back null: a SIGSEGV
+// with no diagnostic at all.
+//
+// Two instantiations at different widths, one of them a struct element, so an
+// erased buffer shows up as a null read rather than a silently wrong number.
+module "snippet"
+
+import "std/io"
+
+Tag :: struct { n: i32 }
+
+dup :: fn<T>(src: T[]) -> T[] {
+    out: T[]: [] * src.len()
+    out.push_all(src)
+    return out
+}
+
+main :: fn() -> i32 {
+    ints :: dup([4, 5, 6])
+    tags :: dup([Tag { .n = 7 }, Tag { .n = 8 }])
+    // The caller writes the array it was handed.
+    ints.push(9)
+    println("${ints.len()} ${ints[3]} ${tags.len()} ${tags[1].n}")
+    return 0
+}

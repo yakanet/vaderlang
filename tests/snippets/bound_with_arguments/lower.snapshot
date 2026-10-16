@@ -509,7 +509,7 @@
                 arg1:
                   __off_14 :usize
                 arg2:
-                  "mutable impl: " :string
+                  "writing impl: " :string
           assign
             target:
               __off_14 :usize

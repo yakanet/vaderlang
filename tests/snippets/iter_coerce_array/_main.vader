@@ -2,7 +2,7 @@
 // argument, a `let` with an explicit type annotation, and a `return` from a fn
 // typed `Iterator<T>`. Without it the typecheck emits T3001.
 //
-// The coercion goes through the blanket `T[] implements<T> Into<Iterator<T>!>`
+// The coercion goes through the blanket `T[] implements<T> Into<Iterator<T>>`
 // in `std/core`, whose `into` hands back the `array_iter` generator. `walk`
 // below drives `next()` by hand, so the snapshots pin the step shape as well as
 // the coercion.
@@ -34,10 +34,10 @@ main :: fn() -> i32 {
     // Call-arg coercion: [i32] flows into Iterator(i32) param.
     a :: walk([10, 20, 30])
 
-    // Let coercion — `walk` advances the iterator, so the slot says `!`.
-    typed_iter_mut: Iterator<i32>: [1, 2, 3, 4]
+    // Let coercion.
+    typed_iter: Iterator<i32>: [1, 2, 3, 4]
     typed_iter_spaced: Iterator<i32> : [5, 6, 7]
-    b :: walk(typed_iter_mut) + walk(typed_iter_spaced)
+    b :: walk(typed_iter) + walk(typed_iter_spaced)
 
     // Return coercion: make_iter wraps its inner array on the way out.
     c :: walk(make_iter())

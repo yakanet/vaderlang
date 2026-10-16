@@ -1,4 +1,4 @@
-// Diag snippet: a read-only `Pair[]` (named struct, prim + string fields)
+// Diag snippet: a `Pair[]` constant (named struct, prim + string fields)
 // bakes into the data pool as a recursive aggregate value — no per-use struct.new
 // + array.new. Expected: prints "beta" then "10", exits 0.
 

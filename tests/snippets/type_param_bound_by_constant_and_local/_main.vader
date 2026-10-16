@@ -1,7 +1,6 @@
-// Two arguments binding one type parameter at different rights bind it to the rights
-// both hold, whichever comes first : `pick(got, LIST)` is accepted as `pick(LIST, got)`
-// is, and hands back a read-only `i32[]`. The instance runs as the read-only one would,
-// and `got` stays the caller's own mutable array.
+// A constant and a local bind one type parameter, whichever comes first:
+// `pick(got, LIST)` is accepted as `pick(LIST, got)` is, and `got` stays the
+// caller's own array, which it then pushes into.
 module "snippet"
 
 import "std/io"

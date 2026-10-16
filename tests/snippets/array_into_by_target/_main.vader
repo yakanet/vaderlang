@@ -2,12 +2,11 @@ module "snippet"
 
 import "std/io"
 
-// An array converted implicitly goes through the `into` toward its slot's type:
-// `Mon[] implements Into<Label>` toward a `Label`, and core's
-// `T[] implements<T> Into<Iterator<T>!>` toward an `Iterator<Mon>!` — not
-// `Mon[] implements Into<Iterator<Label>!>`, which converts toward another
-// iterator — as an argument, a receiver and a declared slot. Each conversion takes the rights of
-// its own `into`: the owned iterator fills a `!` slot from a read-only const.
+// An array converted implicitly goes through the `into` toward its slot's type, as
+// an argument, a receiver and a declared slot: `Mon[] implements Into<Label>`
+// toward a `Label`, core's `T[] implements<T> Into<Iterator<T>>` toward an
+// `Iterator<Mon>` rather than `Mon[] implements Into<Iterator<Label>>`. The source
+// is a module constant.
 
 Mon :: struct {
     v: i32

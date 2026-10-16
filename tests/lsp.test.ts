@@ -358,8 +358,8 @@ test("lsp: hover joins a signature wrapped across lines", async () => {
 
 // A method-syntax call of a generic fn binds its type parameters with the receiver
 // AND the arguments, as the free call does. The hover shows that binding, not the
-// one the receiver alone gave : `local` is a mutable `Cfg`, `ORIGIN` a read-only one,
-// and `T` binds to the read-only `Cfg` both accept.
+// one the receiver alone gave : `local` and `ORIGIN` are both a `Cfg`, and `T`
+// binds to it.
 const UFCS_GENERIC_SOURCE = `module "main"
 
 Cfg :: struct {

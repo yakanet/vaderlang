@@ -1,5 +1,4 @@
-// Writing an incompatible type into an array element — T3063. The slot is
-// marked `!` so the write is permitted and the ELEMENT type is what fails.
+// Writing a `string` into an `i32[]` element: T3063.
 module "snippet"
 
 main :: fn() -> i32 {

@@ -4,23 +4,14 @@
 // reference becomes a `call` to it. Guards the Vader-emitter side of that path
 // (the suite never exercises the Vader emitter outside VADER_SELF_EMIT).
 //
-// The GENERIC struct element is LOAD-BEARING — do not "clean it up" to a plain
-// `Spec`. Every module const is read-only (`auto_freeze_module_const` for the
-// unannotated ones, the read-only default for the annotated ones), so the pool
-// would otherwise bake this array and leave fn-wrap with no regression guard.
-// `inline_consts::is_bakeable_struct` refuses a struct carrying type args
-// (`st.args.len() > 0`), which is what keeps this const on the fn-wrap path.
-//
-// A `!` used to serve the same purpose here, but a marker on a module const is
-// now T3076 unless it is an array of VALUE elements — a struct element would put
-// a heap pointer in a static buffer the GC never traces.
+// The GENERIC struct element is LOAD-BEARING: every module const is frozen, so the
+// pool would bake a plain `Spec[]` and leave fn-wrap with no regression guard;
+// `inline_consts::is_bakeable_struct` refuses a struct carrying type args.
 
 module "snippet"
 
 import "std/io"
 
-// Generic on purpose : a type-arg-carrying struct is not bakeable, so the array
-// takes the fn-wrap accessor instead of a data-pool entry.
 Spec :: struct<T> {
     name: string
     code: T

@@ -1,0 +1,67 @@
+# Typecheck
+
+## tests/snippets/map_named_callback
+  FnDecl         keys                 :: fn(Rec) -> string[]
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Rec                  :: Rec
+  FnDecl         same                 :: fn(Rec) -> Rec
+  expr 11:34    SeqLitExpr     :: string[]
+  expr 11:35    FieldExpr      :: string
+  expr 11:35    IdentExpr      :: Rec
+  expr 11:43    StringLitExpr  :: string
+  expr 11:46    FieldExpr      :: string
+  expr 11:46    IdentExpr      :: Rec
+  expr 13:29    IdentExpr      :: Rec
+  expr 16:11    SeqLitExpr     :: Rec[]
+  expr 16:12    StructLitExpr  :: Rec
+  expr 16:26    StringLitExpr  :: string
+  expr 16:33    StructLitExpr  :: Rec
+  expr 16:47    StringLitExpr  :: string
+  expr 17:11    CallExpr       :: __genstate_map<string[]>
+  expr 17:11    CallExpr       :: string[][]
+  expr 17:11    FieldExpr      :: fn() -> string[][]
+  expr 17:11    FieldExpr      :: fn(fn(Rec) -> string[]) -> Iterator<string[]>
+  expr 17:11    IdentExpr      :: Rec[]
+  expr 17:18    IdentExpr      :: fn(Rec) -> string[]
+  expr 18:13    StringLitExpr  :: string
+  expr 18:23    CallExpr       :: usize
+  expr 18:23    FieldExpr      :: fn() -> usize
+  expr 18:23    IdentExpr      :: string[][]
+  expr 18:35    IdentExpr      :: string[][]
+  expr 18:35    IndexExpr      :: string
+  expr 18:35    IndexExpr      :: string[]
+  expr 18:47    IdentExpr      :: string[][]
+  expr 18:47    IndexExpr      :: string
+  expr 18:47    IndexExpr      :: string[]
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 19:11    CallExpr       :: __genstate_map<string[]>
+  expr 19:11    CallExpr       :: string[][]
+  expr 19:11    FieldExpr      :: fn() -> string[][]
+  expr 19:11    FieldExpr      :: fn(fn(Rec) -> string[]) -> Iterator<string[]>
+  expr 19:11    IdentExpr      :: Rec[]
+  expr 19:18    LambdaExpr     :: fn(Rec) -> string[]
+  expr 19:25    CallExpr       :: string[]
+  expr 19:25    IdentExpr      :: fn(Rec) -> string[]
+  expr 19:30    IdentExpr      :: Rec
+  expr 20:13    StringLitExpr  :: string
+  expr 20:24    CallExpr       :: usize
+  expr 20:24    FieldExpr      :: fn() -> usize
+  expr 20:24    IdentExpr      :: string[][]
+  expr 20:36    IdentExpr      :: string[][]
+  expr 20:36    IndexExpr      :: string
+  expr 20:36    IndexExpr      :: string[]
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:11    CallExpr       :: Rec[]
+  expr 21:11    CallExpr       :: __genstate_map<Rec>
+  expr 21:11    FieldExpr      :: fn() -> Rec[]
+  expr 21:11    FieldExpr      :: fn(fn(Rec) -> Rec) -> Iterator<Rec>
+  expr 21:11    IdentExpr      :: Rec[]
+  expr 21:18    IdentExpr      :: fn(Rec) -> Rec
+  expr 22:13    StringLitExpr  :: string
+  expr 22:24    FieldExpr      :: string
+  expr 22:24    IdentExpr      :: Rec[]
+  expr 22:24    IndexExpr      :: Rec
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void

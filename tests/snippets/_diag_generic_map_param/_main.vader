@@ -6,20 +6,18 @@
 // orphan `ref MutableMap` slot per reference instead of pointing at the
 // representative.
 //
-// Captures the §9 self-host audit Class A residual: the representative
+// Captures a residual of the self-host bytecode parity audit: the representative
 // struct DECL now materialises correctly (see _diag_stdlib_struct_instance),
 // but generic-body / signature type-references to that struct are not erased
 // to all-Any, so they don't resolve onto the representative slot. The struct
-// field on `Counter` keeps the concrete `MutableMap(string, i32)` shape alive
-// (matching TS), so the orphan `ref MutableMap` is the isolated divergence.
+// field on `Counter` keeps the concrete `MutableMap(string, i32)` shape alive,
+// so the orphan `ref MutableMap` is the isolated divergence.
 
 module "snippet"
 
 import "std/collections"
 
 Counter :: struct {
-    // Marked: `bump` mutates it in place, and a field takes the read-only
-    // default like any other written type.
     counts: MutableMap<string, i32>
 }
 

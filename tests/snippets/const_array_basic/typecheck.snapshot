@@ -4,16 +4,16 @@
   ConstDecl      DIGITS               :: i32[]
   FnDecl         main                 :: fn() -> i32
   FnDecl         read_first           :: fn(i32[]) -> i32
-  expr 12:12    IdentExpr      :: i32[]
-  expr 12:12    IndexExpr      :: i32
-  expr 17:14    SeqLitExpr     :: i32[]
-  expr 18:13    StringLitExpr  :: string
-  expr 18:22    CallExpr       :: i32
-  expr 18:22    IdentExpr      :: fn(i32[]) -> i32
-  expr 18:33    IdentExpr      :: i32[]
-  expr 18:44    CallExpr       :: i32
-  expr 18:44    IdentExpr      :: fn(i32[]) -> i32
-  expr 18:5     CallExpr       :: void
-  expr 18:5     IdentExpr      :: fn(T) -> void
-  expr 18:55    IdentExpr      :: i32[]
-  expr 9:11     SeqLitExpr     :: i32[]
+  expr 11:12    IdentExpr      :: i32[]
+  expr 11:12    IndexExpr      :: i32
+  expr 15:14    SeqLitExpr     :: i32[]
+  expr 16:13    StringLitExpr  :: string
+  expr 16:22    CallExpr       :: i32
+  expr 16:22    IdentExpr      :: fn(i32[]) -> i32
+  expr 16:33    IdentExpr      :: i32[]
+  expr 16:44    CallExpr       :: i32
+  expr 16:44    IdentExpr      :: fn(i32[]) -> i32
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 16:55    IdentExpr      :: i32[]
+  expr 8:11     SeqLitExpr     :: i32[]

@@ -52,7 +52,7 @@ static const char vader_atom_blob[] =
     "self impl: " "\0"
     "partial bound: " "\0"
     "array: " "\0"
-    "mutable impl: " "\0"
+    "writing impl: " "\0"
     "nan" "\0"
     "-inf" "\0"
     "inf" "\0"
@@ -914,7 +914,7 @@ static void* snippet_Money_Add_add(void* l0, void* l1) {
     void** gc_raw_roots[3] = { &l0, &l1, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 23 "tests/snippets/bound_with_arguments/_main.vader"
+#line 21 "tests/snippets/bound_with_arguments/_main.vader"
     l2 = ((vader_struct_snippet_Money_t*) l0)->f_cents;
     l3 = ((vader_struct_snippet_Money_t*) l1)->f_cents;
     t0 = vader_chk_add(i64, l2, l3);
@@ -932,7 +932,7 @@ static void* snippet_Points_Add_add(void* l0, void* l1) {
     void** gc_raw_roots[3] = { &l0, &l1, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 31 "tests/snippets/bound_with_arguments/_main.vader"
+#line 29 "tests/snippets/bound_with_arguments/_main.vader"
     l2 = ((vader_struct_snippet_Points_t*) l0)->f_n;
     l3 = ((vader_struct_snippet_Points_t*) l1)->f_n;
     t0 = vader_chk_add(i32, l2, l3);
@@ -950,7 +950,7 @@ static void* snippet_Grams_Add_add(void* l0, void* l1) {
     void** gc_raw_roots[3] = { &l0, &l1, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 39 "tests/snippets/bound_with_arguments/_main.vader"
+#line 37 "tests/snippets/bound_with_arguments/_main.vader"
     l2 = ((vader_struct_snippet_Grams_t*) l0)->f_g;
     l3 = ((vader_struct_snippet_Grams_t*) l1)->f_g;
     t0 = vader_chk_add(i32, l2, l3);
@@ -963,9 +963,9 @@ static void* snippet_Grams_Add_add(void* l0, void* l1) {
 
 static int32_t snippet_Cfg_Sink_put(void* l0, void* l1) {
     int32_t t0;
-#line 66 "tests/snippets/bound_with_arguments/_main.vader"
+#line 64 "tests/snippets/bound_with_arguments/_main.vader"
     ((vader_struct_snippet_Cfg_t*) l1)->f_n = INT32_C(9);
-#line 67 "tests/snippets/bound_with_arguments/_main.vader"
+#line 65 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = ((vader_struct_snippet_Cfg_t*) l1)->f_n;
     return t0;
 }
@@ -993,7 +993,7 @@ static int32_t snippet_main(void) {
         vader_gc_top, 1u, 5u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 75 "tests/snippets/bound_with_arguments/_main.vader"
+#line 73 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = snippet_twice__f64(2.5);
     l0 = std_core_f64_Display_to_string(t0);
     l1 = vader_host_std_core_byte_len(l0);
@@ -1010,12 +1010,12 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_string_at(l2, l1, l0);
     t2 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t2);
-#line 76 "tests/snippets/bound_with_arguments/_main.vader"
+#line 74 "tests/snippets/bound_with_arguments/_main.vader"
     vader_struct_snippet_Money_t* _a0_obj = (vader_struct_snippet_Money_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Money_t));
     vader_obj_header_init(_a0_obj, 1u);
     _a0_obj->f_cents = INT64_C(7);
     l2 = (void*) _a0_obj;
-#line 77 "tests/snippets/bound_with_arguments/_main.vader"
+#line 75 "tests/snippets/bound_with_arguments/_main.vader"
     l5 = std_core_new_byte_buffer((size_t) 55);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l5, l1, 3u);
@@ -1032,7 +1032,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l5, l1, l3);
     t2 = std_core_finish_buffer(l5, l1);
     std_io_println__string(t2);
-#line 78 "tests/snippets/bound_with_arguments/_main.vader"
+#line 76 "tests/snippets/bound_with_arguments/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) 34);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l2, l1, 4u);
@@ -1046,7 +1046,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l2, l1, l3);
     t2 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t2);
-#line 79 "tests/snippets/bound_with_arguments/_main.vader"
+#line 77 "tests/snippets/bound_with_arguments/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) 31);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l2, l1, 5u);
@@ -1060,7 +1060,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l2, l1, l3);
     t2 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t2);
-#line 80 "tests/snippets/bound_with_arguments/_main.vader"
+#line 78 "tests/snippets/bound_with_arguments/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) 35);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l2, l1, 6u);
@@ -1074,7 +1074,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l2, l1, l3);
     t2 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t2);
-#line 81 "tests/snippets/bound_with_arguments/_main.vader"
+#line 79 "tests/snippets/bound_with_arguments/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) 27);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l2, l1, 7u);
@@ -1096,7 +1096,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_unsigned(l2, l1, l4);
     t2 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t2);
-#line 82 "tests/snippets/bound_with_arguments/_main.vader"
+#line 80 "tests/snippets/bound_with_arguments/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) 34);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l2, l1, 8u);
@@ -1109,14 +1109,14 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l2, l1, l3);
     t2 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t2);
-#line 83 "tests/snippets/bound_with_arguments/_main.vader"
+#line 81 "tests/snippets/bound_with_arguments/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
 static size_t snippet____Count_count__Money(void* l0, void* l1) {
     size_t l2, l3;
     int64_t t0;
-#line 51 "tests/snippets/bound_with_arguments/_main.vader"
+#line 49 "tests/snippets/bound_with_arguments/_main.vader"
     l2 = ((vader_array_t*) l0)->length;
     l3 = ((vader_array_t*) l1)->length;
     t0 = vader_chk_add(usize, l2, l3);
@@ -1125,7 +1125,7 @@ static size_t snippet____Count_count__Money(void* l0, void* l1) {
 
 static int32_t snippet_feed__Cfg(void* l0) {
     int32_t t0;
-#line 71 "tests/snippets/bound_with_arguments/_main.vader"
+#line 69 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = snippet_Cfg_Sink_put(l0, l0);
     return t0;
 }
@@ -1135,7 +1135,7 @@ static vader_box_t snippet_twice__Any(vader_box_t l0) {
     vader_box_t* gc_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 42 "tests/snippets/bound_with_arguments/_main.vader"
+#line 40 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = vader_vt_std_core_Add__add(l0, l0);
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1145,7 +1145,7 @@ static void* snippet_twice__Grams(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 42 "tests/snippets/bound_with_arguments/_main.vader"
+#line 40 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = snippet_Grams_Add_add(l0, l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1155,7 +1155,7 @@ static void* snippet_twice__Money(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 42 "tests/snippets/bound_with_arguments/_main.vader"
+#line 40 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = snippet_Money_Add_add(l0, l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1165,26 +1165,26 @@ static void* snippet_twice__Points(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 42 "tests/snippets/bound_with_arguments/_main.vader"
+#line 40 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = snippet_Points_Add_add(l0, l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static double snippet_twice__f64(double l0) {
-#line 42 "tests/snippets/bound_with_arguments/_main.vader"
+#line 40 "tests/snippets/bound_with_arguments/_main.vader"
     return (l0 + l0);
 }
 
 static int32_t snippet_twice__i32(int32_t l0) {
     int32_t t0;
-#line 42 "tests/snippets/bound_with_arguments/_main.vader"
+#line 40 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = vader_chk_add(i32, l0, l0);
     return t0;
 }
 
 static uint64_t snippet_twice__u64(uint64_t l0) {
     int64_t t0;
-#line 42 "tests/snippets/bound_with_arguments/_main.vader"
+#line 40 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = vader_chk_add(u64, l0, l0);
     return (uint64_t) (int64_t) t0;
 }
@@ -1194,14 +1194,14 @@ static vader_box_t snippet_relay__Points(vader_box_t l0) {
     vader_box_t* gc_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 44 "tests/snippets/bound_with_arguments/_main.vader"
+#line 42 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = snippet_twice__Any(l0);
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static size_t snippet_both__Money__(void* l0) {
     size_t t0;
-#line 54 "tests/snippets/bound_with_arguments/_main.vader"
+#line 52 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = snippet____Count_count__Money(l0, l0);
     return t0;
 }

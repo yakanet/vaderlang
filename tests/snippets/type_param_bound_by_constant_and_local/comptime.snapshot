@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/type_param_least_rights
+## tests/snippets/type_param_bound_by_constant_and_local
   @comptime  LIST                 = [10_i32, 20_i32]
 
 ## generic instances

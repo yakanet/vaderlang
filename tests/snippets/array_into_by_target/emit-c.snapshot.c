@@ -244,29 +244,29 @@ static int32_t snippet_drain(vader_box_t l0) {
     void** gc_raw_roots[1] = { &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 35 "tests/snippets/array_into_by_target/_main.vader"
+#line 34 "tests/snippets/array_into_by_target/_main.vader"
     l1 = INT32_C(0);
-#line 36 "tests/snippets/array_into_by_target/_main.vader"
+#line 35 "tests/snippets/array_into_by_target/_main.vader"
     l2 = l0;
     for (;;) {
         t0 = vader_vt_std_core_Iterator__next(l2);
         l3 = t0.payload.obj;
         if (!(((vader_struct___Tuple_Struct_snippet_Mon_u8_6dc654f4_t*) l3)->f__1 == INT32_C(1))) {
-#line 37 "tests/snippets/array_into_by_target/_main.vader"
+#line 36 "tests/snippets/array_into_by_target/_main.vader"
             l4 = ((vader_struct_snippet_Mon_t*) ((vader_struct___Tuple_Struct_snippet_Mon_u8_6dc654f4_t*) l3)->f__0)->f_v;
             l1 = vader_chk_add(i32, l1, l4);
-#line 36 "tests/snippets/array_into_by_target/_main.vader"
+#line 35 "tests/snippets/array_into_by_target/_main.vader"
             continue;
         }
         break;
     }
-#line 39 "tests/snippets/array_into_by_target/_main.vader"
+#line 38 "tests/snippets/array_into_by_target/_main.vader"
     { int32_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t snippet_show(void* l0) {
     vader_string_t t0;
-#line 42 "tests/snippets/array_into_by_target/_main.vader"
+#line 41 "tests/snippets/array_into_by_target/_main.vader"
     t0 = ((vader_struct_snippet_Label_t*) l0)->f_s;
     return t0;
 }
@@ -290,88 +290,88 @@ static int32_t snippet_main(void) {
         vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 44 "tests/snippets/array_into_by_target/_main.vader"
+#line 43 "tests/snippets/array_into_by_target/_main.vader"
     t0 = (void*) &vader_data_0;
-#line 47 "tests/snippets/array_into_by_target/_main.vader"
+#line 46 "tests/snippets/array_into_by_target/_main.vader"
     t1 = snippet____Into_into__Mon(t0);
     t2 = snippet_show(t1);
     std_io_println__string(t2);
-#line 48 "tests/snippets/array_into_by_target/_main.vader"
+#line 47 "tests/snippets/array_into_by_target/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 20);
     l1 = (size_t) 0;
-#line 44 "tests/snippets/array_into_by_target/_main.vader"
+#line 43 "tests/snippets/array_into_by_target/_main.vader"
     l2 = (void*) &vader_data_0;
-#line 35 "tests/snippets/array_into_by_target/_main.vader"
+#line 34 "tests/snippets/array_into_by_target/_main.vader"
     l3 = INT32_C(0);
-#line 48 "tests/snippets/array_into_by_target/_main.vader"
+#line 47 "tests/snippets/array_into_by_target/_main.vader"
     l4 = ((vader_array_t*) l2)->length;
     l5 = (size_t) 0;
-#line 36 "tests/snippets/array_into_by_target/_main.vader"
+#line 35 "tests/snippets/array_into_by_target/_main.vader"
     while ((l5 < l4)) {
-#line 48 "tests/snippets/array_into_by_target/_main.vader"
+#line 47 "tests/snippets/array_into_by_target/_main.vader"
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
         t0 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l5);
-#line 37 "tests/snippets/array_into_by_target/_main.vader"
+#line 36 "tests/snippets/array_into_by_target/_main.vader"
         l6 = ((vader_struct_snippet_Mon_t*) t0)->f_v;
         l3 = vader_chk_add(i32, l3, l6);
-#line 48 "tests/snippets/array_into_by_target/_main.vader"
+#line 47 "tests/snippets/array_into_by_target/_main.vader"
         t3 = (l5 + INT64_C(1));
         l5 = (size_t) (int64_t) t3;
-#line 36 "tests/snippets/array_into_by_target/_main.vader"
-#line 48 "tests/snippets/array_into_by_target/_main.vader"
-#line 36 "tests/snippets/array_into_by_target/_main.vader"
+#line 35 "tests/snippets/array_into_by_target/_main.vader"
+#line 47 "tests/snippets/array_into_by_target/_main.vader"
+#line 35 "tests/snippets/array_into_by_target/_main.vader"
     }
-#line 48 "tests/snippets/array_into_by_target/_main.vader"
+#line 47 "tests/snippets/array_into_by_target/_main.vader"
     l7 = ((int64_t) (int32_t) l3);
     l1 = std_core_write_int(l0, l1, l7);
     t2 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t2);
-#line 49 "tests/snippets/array_into_by_target/_main.vader"
+#line 48 "tests/snippets/array_into_by_target/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 20);
     l1 = (size_t) 0;
-#line 44 "tests/snippets/array_into_by_target/_main.vader"
+#line 43 "tests/snippets/array_into_by_target/_main.vader"
     l2 = (void*) &vader_data_0;
-#line 35 "tests/snippets/array_into_by_target/_main.vader"
+#line 34 "tests/snippets/array_into_by_target/_main.vader"
     l3 = INT32_C(0);
-#line 49 "tests/snippets/array_into_by_target/_main.vader"
+#line 48 "tests/snippets/array_into_by_target/_main.vader"
     l4 = ((vader_array_t*) l2)->length;
     l5 = (size_t) 0;
-#line 36 "tests/snippets/array_into_by_target/_main.vader"
+#line 35 "tests/snippets/array_into_by_target/_main.vader"
     while ((l5 < l4)) {
-#line 49 "tests/snippets/array_into_by_target/_main.vader"
+#line 48 "tests/snippets/array_into_by_target/_main.vader"
         vader_array_t* _a1_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
         t0 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
-#line 37 "tests/snippets/array_into_by_target/_main.vader"
+#line 36 "tests/snippets/array_into_by_target/_main.vader"
         l6 = ((vader_struct_snippet_Mon_t*) t0)->f_v;
         l3 = vader_chk_add(i32, l3, l6);
-#line 49 "tests/snippets/array_into_by_target/_main.vader"
+#line 48 "tests/snippets/array_into_by_target/_main.vader"
         t3 = (l5 + INT64_C(1));
         l5 = (size_t) (int64_t) t3;
-#line 36 "tests/snippets/array_into_by_target/_main.vader"
-#line 49 "tests/snippets/array_into_by_target/_main.vader"
-#line 36 "tests/snippets/array_into_by_target/_main.vader"
+#line 35 "tests/snippets/array_into_by_target/_main.vader"
+#line 48 "tests/snippets/array_into_by_target/_main.vader"
+#line 35 "tests/snippets/array_into_by_target/_main.vader"
     }
-#line 49 "tests/snippets/array_into_by_target/_main.vader"
+#line 48 "tests/snippets/array_into_by_target/_main.vader"
     l7 = ((int64_t) (int32_t) l3);
     l1 = std_core_write_int(l0, l1, l7);
     t2 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t2);
-#line 44 "tests/snippets/array_into_by_target/_main.vader"
+#line 43 "tests/snippets/array_into_by_target/_main.vader"
     t0 = (void*) &vader_data_0;
-#line 50 "tests/snippets/array_into_by_target/_main.vader"
+#line 49 "tests/snippets/array_into_by_target/_main.vader"
     t1 = snippet____Into_into__Mon(t0);
-#line 51 "tests/snippets/array_into_by_target/_main.vader"
+#line 50 "tests/snippets/array_into_by_target/_main.vader"
     t2 = ((vader_struct_snippet_Label_t*) t1)->f_s;
     std_io_println__string(t2);
-#line 44 "tests/snippets/array_into_by_target/_main.vader"
+#line 43 "tests/snippets/array_into_by_target/_main.vader"
     t0 = (void*) &vader_data_0;
-#line 52 "tests/snippets/array_into_by_target/_main.vader"
+#line 51 "tests/snippets/array_into_by_target/_main.vader"
     l8 = std_core____Into_into__Mon(t0);
-#line 53 "tests/snippets/array_into_by_target/_main.vader"
+#line 52 "tests/snippets/array_into_by_target/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 20);
     l1 = (size_t) 0;
     t4 = snippet_drain(l8);
@@ -379,13 +379,13 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l7);
     t2 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t2);
-#line 44 "tests/snippets/array_into_by_target/_main.vader"
+#line 43 "tests/snippets/array_into_by_target/_main.vader"
     t0 = (void*) &vader_data_0;
-#line 54 "tests/snippets/array_into_by_target/_main.vader"
+#line 53 "tests/snippets/array_into_by_target/_main.vader"
     t1 = snippet____Into_into__Mon(t0);
     t2 = ((vader_struct_snippet_Label_t*) t1)->f_s;
     std_io_println__string(t2);
-#line 55 "tests/snippets/array_into_by_target/_main.vader"
+#line 54 "tests/snippets/array_into_by_target/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -408,7 +408,7 @@ static void* snippet___genstate_labels_Iterator_next(void* l0) {
         vader_gc_top, 0u, 7u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 24 "tests/snippets/array_into_by_target/_main.vader"
+#line 23 "tests/snippets/array_into_by_target/_main.vader"
     for (;;) {
         t0 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -423,37 +423,37 @@ static void* snippet___genstate_labels_Iterator_next(void* l0) {
             if (t0 == INT32_C(2)) {
                 l1 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_s3;
                 l2 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_s2;
-#line 25 "tests/snippets/array_into_by_target/_main.vader"
+#line 24 "tests/snippets/array_into_by_target/_main.vader"
                 if ((l1 < l2)) {
-#line 24 "tests/snippets/array_into_by_target/_main.vader"
+#line 23 "tests/snippets/array_into_by_target/_main.vader"
                     ((vader_struct_snippet___genstate_labels_t*) l0)->f_state = INT32_C(5);
-#line 25 "tests/snippets/array_into_by_target/_main.vader"
 #line 24 "tests/snippets/array_into_by_target/_main.vader"
+#line 23 "tests/snippets/array_into_by_target/_main.vader"
                 } else {
                     ((vader_struct_snippet___genstate_labels_t*) l0)->f_state = INT32_C(1);
-#line 25 "tests/snippets/array_into_by_target/_main.vader"
-                }
 #line 24 "tests/snippets/array_into_by_target/_main.vader"
+                }
+#line 23 "tests/snippets/array_into_by_target/_main.vader"
             } else {
                 t0 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_state;
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_s3;
-#line 25 "tests/snippets/array_into_by_target/_main.vader"
+#line 24 "tests/snippets/array_into_by_target/_main.vader"
                     t2 = (t1 + INT64_C(1));
                     l3 = (size_t) (int64_t) t2;
                     ((vader_struct_snippet___genstate_labels_t*) l0)->f_s3 = l3;
-#line 24 "tests/snippets/array_into_by_target/_main.vader"
+#line 23 "tests/snippets/array_into_by_target/_main.vader"
                     ((vader_struct_snippet___genstate_labels_t*) l0)->f_state = INT32_C(2);
                 } else {
                     t0 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_state;
                     if (t0 == INT32_C(4)) {
                         ((vader_struct_snippet___genstate_labels_t*) l0)->f_state = INT32_C(3);
-#line 26 "tests/snippets/array_into_by_target/_main.vader"
+#line 25 "tests/snippets/array_into_by_target/_main.vader"
                         l4 = std_core_new_byte_buffer((size_t) 21);
                         l5 = (size_t) 0;
                         l5 = std_core_write_string_at(l4, l5, 1u);
-#line 24 "tests/snippets/array_into_by_target/_main.vader"
-#line 26 "tests/snippets/array_into_by_target/_main.vader"
+#line 23 "tests/snippets/array_into_by_target/_main.vader"
+#line 25 "tests/snippets/array_into_by_target/_main.vader"
                         t0 = ((vader_struct_snippet_Mon_t*) ((vader_struct_snippet___genstate_labels_t*) l0)->f_s4)->f_v;
                         l6 = ((int64_t) (int32_t) t0);
                         l5 = std_core_write_int(l4, l5, l6);
@@ -462,7 +462,7 @@ static void* snippet___genstate_labels_Iterator_next(void* l0) {
                         vader_obj_header_init(_a0_obj, 3u);
                         _a0_obj->f_s = t3;
                         t4 = (void*) _a0_obj;
-#line 24 "tests/snippets/array_into_by_target/_main.vader"
+#line 23 "tests/snippets/array_into_by_target/_main.vader"
                         vader_struct___Tuple_Struct_snippet_Label_u8_66b63bc9_t* _a1_obj = (vader_struct___Tuple_Struct_snippet_Label_u8_66b63bc9_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Struct_snippet_Label_u8_66b63bc9_t));
                         vader_obj_header_init(_a1_obj, 6u);
                         _a1_obj->f__0 = t4;
@@ -474,14 +474,14 @@ static void* snippet___genstate_labels_Iterator_next(void* l0) {
                     if (t0 == INT32_C(5)) {
                         l7 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_s1;
                         l8 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_s3;
-#line 25 "tests/snippets/array_into_by_target/_main.vader"
+#line 24 "tests/snippets/array_into_by_target/_main.vader"
                         vader_array_t* _a2_slotarr = ((vader_array_t*) l7);
                         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l8)
                         l9 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l8);
                         ((vader_struct_snippet___genstate_labels_t*) l0)->f_s4 = l9;
                         VADER_WRITE_BARRIER((vader_struct_snippet___genstate_labels_t*) l0);
-#line 24 "tests/snippets/array_into_by_target/_main.vader"
+#line 23 "tests/snippets/array_into_by_target/_main.vader"
                         ((vader_struct_snippet___genstate_labels_t*) l0)->f_state = INT32_C(4);
                     } else {
                         t0 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_state;
@@ -495,15 +495,15 @@ static void* snippet___genstate_labels_Iterator_next(void* l0) {
                             { void* __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
                         }
                         l10 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_s0;
-#line 25 "tests/snippets/array_into_by_target/_main.vader"
+#line 24 "tests/snippets/array_into_by_target/_main.vader"
                         ((vader_struct_snippet___genstate_labels_t*) l0)->f_s1 = l10;
                         VADER_WRITE_BARRIER((vader_struct_snippet___genstate_labels_t*) l0);
+#line 23 "tests/snippets/array_into_by_target/_main.vader"
 #line 24 "tests/snippets/array_into_by_target/_main.vader"
-#line 25 "tests/snippets/array_into_by_target/_main.vader"
                         l11 = ((vader_array_t*) ((vader_struct_snippet___genstate_labels_t*) l0)->f_s1)->length;
                         ((vader_struct_snippet___genstate_labels_t*) l0)->f_s2 = l11;
                         ((vader_struct_snippet___genstate_labels_t*) l0)->f_s3 = (size_t) 0;
-#line 24 "tests/snippets/array_into_by_target/_main.vader"
+#line 23 "tests/snippets/array_into_by_target/_main.vader"
                         ((vader_struct_snippet___genstate_labels_t*) l0)->f_state = INT32_C(2);
                     }
                 }
@@ -528,7 +528,7 @@ static void* snippet____Into_into__Mon(void* l0) {
         vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 21 "tests/snippets/array_into_by_target/_main.vader"
+#line 20 "tests/snippets/array_into_by_target/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 22);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 2u);

@@ -5,6 +5,6 @@ default impl: 8
 self impl: 12
 partial bound: 10
 array: 4
-mutable impl: 9
+writing impl: 9
 # exit
 0

@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/generic_readonly_argument
+## tests/snippets/generic_argument_from_constant
 
 ## generic instances
   __genstate_array_iter<T>

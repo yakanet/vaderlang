@@ -1,4 +1,4 @@
-// Diag snippet: a read-only `f64[]` (and `f32[]`) bakes into the
+// Diag snippet: an `f64[]` (and `f32[]`) constant bakes into the
 // data pool — the producer reinterprets each float literal's IEEE-754 bits at
 // the element's natural width. Expected: prints "2.5" then "0.25", exits 0.
 

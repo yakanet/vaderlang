@@ -1,5 +1,5 @@
 // A bound names traits, joined by `&` : a union in it is R2042, also under an `&`
-// and in a trait's `requires`. `poke`'s body is checked against `Bump!`, the bound
+// and in a trait's `requires`. `poke`'s body is checked against `Bump`, the bound
 // without its `null`, so R2042 is its only error.
 module "snippet"
 

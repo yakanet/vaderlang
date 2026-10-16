@@ -1,0 +1,48 @@
+# Typecheck
+
+## tests/snippets/generic_argument_from_constant
+  StructDecl     Box                  :: Box<T>
+  FnDecl         double               :: fn(Point) -> i32
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      ORIGIN               :: Point
+  StructDecl     Point                :: Point
+  FnDecl         show                 :: fn(T) -> i32
+  FnDecl         through_param        :: fn(Point) -> i32
+  FnDecl         wrap                 :: fn(T) -> Box<T>
+  expr 16:11    StructLitExpr  :: Point
+  expr 20:33    StructLitExpr  :: Box<T>
+  expr 20:47    IdentExpr      :: T
+  expr 22:40    BinaryExpr     :: i32
+  expr 22:40    CallExpr       :: i32
+  expr 22:40    IdentExpr      :: fn(T) -> i32
+  expr 22:45    IdentExpr      :: Point
+  expr 22:50    CallExpr       :: Box<Point>
+  expr 22:50    FieldExpr      :: Point
+  expr 22:50    FieldExpr      :: i32
+  expr 22:50    IdentExpr      :: fn(T) -> Box<T>
+  expr 22:55    IdentExpr      :: Point
+  expr 24:33    BinaryExpr     :: i32
+  expr 24:33    FieldExpr      :: i32
+  expr 24:33    IdentExpr      :: Point
+  expr 27:18    SeqLitExpr     :: Point[]
+  expr 27:19    IdentExpr      :: Point
+  expr 27:27    StructLitExpr  :: Point
+  expr 28:21    CallExpr       :: __genstate_map<i32>
+  expr 28:21    CallExpr       :: i32[]
+  expr 28:21    FieldExpr      :: fn() -> i32[]
+  expr 28:21    FieldExpr      :: fn(fn(Point) -> i32) -> Iterator<i32>
+  expr 28:21    IdentExpr      :: Point[]
+  expr 28:28    IdentExpr      :: fn(Point) -> i32
+  expr 29:13    StringLitExpr  :: string
+  expr 29:16    CallExpr       :: i32
+  expr 29:16    IdentExpr      :: fn(T) -> i32
+  expr 29:21    IdentExpr      :: Point[]
+  expr 29:28    CallExpr       :: i32
+  expr 29:28    IdentExpr      :: fn(Point) -> i32
+  expr 29:42    IdentExpr      :: Point
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 29:53    IdentExpr      :: i32[]
+  expr 29:53    IndexExpr      :: i32
+  expr 29:67    IdentExpr      :: i32[]
+  expr 29:67    IndexExpr      :: i32

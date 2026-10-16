@@ -976,10 +976,7 @@
               "kind": "SimpleBinding",
               "name": "kept"
             },
-            "type": {
-              "kind": "IdentExpr",
-              "name": "Money"
-            },
+            "type": null,
             "value": {
               "kind": "StructLitExpr",
               "typeName": {
@@ -1370,7 +1367,7 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "mutable impl: "
+                        "value": "writing impl: "
                       },
                       {
                         "kind": "interp",

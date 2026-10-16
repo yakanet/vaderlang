@@ -61,7 +61,7 @@ The last two pass `lowers_rights = false` to the unification.
 
 The lowerer's own unification is unchanged. It keeps the first binding to pick
 the instance, and an instance's code does not depend on rights. The snippet
-`type_param_least_rights` runs such a call in the VM and natively.
+`type_param_bound_by_constant_and_local` runs such a call in the VM and natively.
 
 ## Consequences
 

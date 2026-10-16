@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/map_named_readonly_callback
+## tests/snippets/map_named_callback
 
 ## generic instances
   __genstate_array_iter<T>

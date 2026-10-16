@@ -130,19 +130,19 @@ static int32_t snippet_main(void) {
         vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 16 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 15 "tests/snippets/const_read_before_its_declaration/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 104);
     l1 = (size_t) 0;
-#line 31 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 30 "tests/snippets/const_read_before_its_declaration/_main.vader"
     t0 = (void*) &vader_data_0;
     vader_array_t* _a0_slotarr = ((vader_array_t*) t0);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     t0 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) INT64_C(0));
-#line 23 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 22 "tests/snippets/const_read_before_its_declaration/_main.vader"
     vader_array_t* _a1_arr = vader_array_new(3u, 1u, 13u, 2u);
     ((void**) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = t0;
     t0 = (void*) _a1_arr;
-#line 16 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 15 "tests/snippets/const_read_before_its_declaration/_main.vader"
     vader_array_t* _a2_slotarr = ((vader_array_t*) t0);
     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT32_C(0))
@@ -151,32 +151,32 @@ static int32_t snippet_main(void) {
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     l1 = std_core_write_string_at(l0, l1, 1u);
-#line 31 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 30 "tests/snippets/const_read_before_its_declaration/_main.vader"
     t0 = (void*) &vader_data_0;
     vader_array_t* _a3_slotarr = ((vader_array_t*) t0);
     VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
     t0 = vader_array_ref_load_obj(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) INT64_C(0));
-#line 25 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 24 "tests/snippets/const_read_before_its_declaration/_main.vader"
     t1 = ((vader_struct_snippet_Inner_t*) t0)->f_n;
     t2 = vader_chk_add(i32, t1, INT32_C(1));
-#line 16 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 15 "tests/snippets/const_read_before_its_declaration/_main.vader"
     l2 = ((int64_t) (int32_t) t2);
     l1 = std_core_write_int(l0, l1, l2);
     l1 = std_core_write_string_at(l0, l1, 1u);
-#line 29 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 28 "tests/snippets/const_read_before_its_declaration/_main.vader"
     t0 = snippet_make(INT32_C(4));
-#line 16 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 15 "tests/snippets/const_read_before_its_declaration/_main.vader"
     t1 = ((vader_struct_snippet_Inner_t*) t0)->f_n;
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     l1 = std_core_write_string_at(l0, l1, 1u);
-#line 29 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 28 "tests/snippets/const_read_before_its_declaration/_main.vader"
     t0 = snippet_make(INT32_C(4));
-#line 27 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 26 "tests/snippets/const_read_before_its_declaration/_main.vader"
     vader_array_t* _a4_arr = vader_array_new(3u, 1u, 13u, 2u);
     ((void**) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = t0;
     t0 = (void*) _a4_arr;
-#line 16 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 15 "tests/snippets/const_read_before_its_declaration/_main.vader"
     vader_array_t* _a5_slotarr = ((vader_array_t*) t0);
     VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a5_slotarr, INT32_C(0))
@@ -185,9 +185,9 @@ static int32_t snippet_main(void) {
     l2 = ((int64_t) (int32_t) t1);
     l1 = std_core_write_int(l0, l1, l2);
     l1 = std_core_write_string_at(l0, l1, 1u);
-#line 35 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 34 "tests/snippets/const_read_before_its_declaration/_main.vader"
     t0 = snippet_build();
-#line 16 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 15 "tests/snippets/const_read_before_its_declaration/_main.vader"
     vader_array_t* _a6_slotarr = ((vader_array_t*) t0);
     VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a6_slotarr, INT32_C(0))
@@ -197,15 +197,15 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l2);
     t3 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t3);
-#line 31 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 30 "tests/snippets/const_read_before_its_declaration/_main.vader"
     t0 = (void*) &vader_data_0;
     vader_array_t* _a7_slotarr = ((vader_array_t*) t0);
     VADER_ARRAY_RESOLVE_BUF(_a7_slotarr)
     l0 = vader_array_ref_load_obj(_a7_slotarr->buf, _a7_slotarr->offset + (size_t) INT64_C(0));
-#line 17 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 16 "tests/snippets/const_read_before_its_declaration/_main.vader"
     l3 = (void*) &vader_fn_static___lambda_snippet_0;
     snippet_Inner_Visit_visit(l0, l3);
-#line 20 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 19 "tests/snippets/const_read_before_its_declaration/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -214,7 +214,7 @@ static void* snippet_make(int32_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 33 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 32 "tests/snippets/const_read_before_its_declaration/_main.vader"
     vader_struct_snippet_Inner_t* _a0_obj = (vader_struct_snippet_Inner_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Inner_t));
     vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_n = l0;
@@ -227,7 +227,7 @@ static void* snippet_build(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 37 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 36 "tests/snippets/const_read_before_its_declaration/_main.vader"
     vader_struct_snippet_Inner_t* _a0_obj = (vader_struct_snippet_Inner_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Inner_t));
     vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_n = INT32_C(9);
@@ -242,10 +242,10 @@ static void snippet_Inner_Visit_visit(void* l0, void* l1) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 45 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 44 "tests/snippets/const_read_before_its_declaration/_main.vader"
     vader_fn_t* _a0_fnobj = (vader_fn_t*) l1;
     ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_ref_box(l0));
-#line 44 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 43 "tests/snippets/const_read_before_its_declaration/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -261,7 +261,7 @@ static void __lambda_snippet_0(void* l0) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 18 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 17 "tests/snippets/const_read_before_its_declaration/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 26);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 2u);
@@ -270,7 +270,7 @@ static void __lambda_snippet_0(void* l0) {
     l2 = std_core_write_int(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t1);
-#line 17 "tests/snippets/const_read_before_its_declaration/_main.vader"
+#line 16 "tests/snippets/const_read_before_its_declaration/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 

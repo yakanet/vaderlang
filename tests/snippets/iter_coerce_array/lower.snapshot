@@ -66,7 +66,7 @@
                 int(10) :i32
                 int(20) :i32
                 int(30) :i32
-    let typed_iter_mut: Iterator<i32> =
+    let typed_iter: Iterator<i32> =
       call :Iterator<i32>
         callee:
           std_core$[]$Into$into__i32 :Iterator<i32>
@@ -92,7 +92,7 @@
             callee:
               walk :fn(Iterator<i32>) -> i32
             arg0:
-              typed_iter_mut :Iterator<i32>
+              typed_iter :Iterator<i32>
         r:
           call :i32
             callee:

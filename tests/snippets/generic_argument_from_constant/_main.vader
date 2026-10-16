@@ -1,6 +1,5 @@
-// A read-only value fits a bare type parameter : `T` is bound to it, rights
-// included, so `show(p)` accepts a borrowed `p` and `wrap(p)` hands back a
-// read-only `Box<Point>` rather than a writable alias.
+// A constant binds a bare type parameter as a local does: `through_param(ORIGIN)`
+// hands it to `show` and `wrap`.
 module "snippet"
 
 import "std/io"

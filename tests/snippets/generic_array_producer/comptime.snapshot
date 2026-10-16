@@ -1,6 +1,6 @@
 # Comptime
 
-## tests/snippets/generic_array_producer_marked
+## tests/snippets/generic_array_producer
 
 ## generic instances
   __genstate_array_iter<T>

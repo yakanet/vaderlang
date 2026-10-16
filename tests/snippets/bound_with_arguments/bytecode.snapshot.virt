@@ -33,7 +33,7 @@ string 3 "default impl: "
 string 4 "self impl: "
 string 5 "partial bound: "
 string 6 "array: "
-string 7 "mutable impl: "
+string 7 "writing impl: "
 string 8 "nan"
 string 9 "-inf"
 string 10 "inf"
@@ -346,7 +346,7 @@ fn 4 snippet$main () -> i32
   local.set 1   ; $call_7
   local.get 2   ; __buf_1
   local.get 1   ; $call_7
-  string.const 7   ; "mutable impl: "
+  string.const 7   ; "writing impl: "
   call 19   ; std_core$write_string_at
   local.set 1   ; $call_7
   i32.const 1
