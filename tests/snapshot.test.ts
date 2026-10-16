@@ -19,7 +19,8 @@ import { LONG_BUILD } from "./cli-bin.ts";
 // true throughout: the CLI reads the entry file from disk to resolve imports.
 const PHASES = [
   { name: "lexer",     snap: "lexer.snapshot",     dump: dumpLexerViaVader,     usePath: true },
-  { name: "parser",    snap: "parser.snapshot",    dump: dumpParserViaVader,    usePath: true },
+  // One JSON document: `snapshot.ts::astDumpAsJson`.
+  { name: "parser",    snap: "parser.snapshot.json",  dump: dumpParserViaVader,  usePath: true },
   { name: "typecheck", snap: "typecheck.snapshot", dump: dumpTypecheckViaVader, usePath: true },
   { name: "comptime",  snap: "comptime.snapshot",  dump: dumpComptimeViaVader,  usePath: true },
   { name: "lower",     snap: "lower.snapshot",     dump: dumpLowerViaVader,     usePath: true },

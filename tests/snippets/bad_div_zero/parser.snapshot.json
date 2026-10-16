@@ -1,0 +1,61 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ConstDecl",
+        "name": "BOOM",
+        "visibility": "public",
+        "type": null,
+        "value": {
+          "kind": "BinaryExpr",
+          "op": "div",
+          "left": {
+            "kind": "IntLitExpr",
+            "value": "10n"
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "0n"
+          }
+        },
+        "decorators": [
+          {
+            "name": "comptime",
+            "args": []
+          }
+        ]
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IdentExpr",
+                "name": "BOOM"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

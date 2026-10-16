@@ -1,0 +1,69 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ConstDecl",
+        "name": "ANSWER",
+        "visibility": "public",
+        "type": null,
+        "value": {
+          "kind": "BinaryExpr",
+          "op": "mul",
+          "left": {
+            "kind": "BinaryExpr",
+            "op": "add",
+            "left": {
+              "kind": "IntLitExpr",
+              "value": "40n"
+            },
+            "right": {
+              "kind": "IntLitExpr",
+              "value": "2n"
+            }
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "1n"
+          }
+        },
+        "decorators": [
+          {
+            "name": "comptime",
+            "args": []
+          }
+        ]
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IdentExpr",
+                "name": "ANSWER"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

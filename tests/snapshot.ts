@@ -168,7 +168,30 @@ export async function dumpLexerViaVader(_source: string, entryPath: string, _mod
 }
 
 export async function dumpParserViaVader(_source: string, entryPath: string, _modules?: readonly string[]): Promise<string> {
-  return runVaderDump("ast", entryPath);
+  return astDumpAsJson(await runVaderDump("ast", entryPath));
+}
+
+// The `ast` dump as one JSON document, `{ "ast": …, "diagnostics": [ "…" ] }`, so the
+// snapshot reads as JSON in an editor. The CLI prints `# AST`, the tree, then
+// `# Diagnostics` and one line per diagnostic when there are any. The tree is
+// spliced in as text, never re-serialised, so a float keeps the compiler's
+// rendering rather than JavaScript's. A failed run is kept as it is, so its diff
+// says why.
+function astDumpAsJson(dump: string): string {
+  const head = "# AST\n";
+  if (!dump.startsWith(head)) return dump;
+  const [tree = "", diagnostics = ""] = dump.slice(head.length).split("\n# Diagnostics\n");
+  const lines = diagnostics.split("\n").filter((l) => l !== "");
+  const json = `{\n  "ast": ${nested(tree.trim())},\n`
+    + `  "diagnostics": ${nested(JSON.stringify(lines, null, 2))}\n}\n`;
+  // Throws when the splice breaks the document.
+  JSON.parse(json);
+  return json;
+}
+
+// `text` indented as the value of a field of the document's root object.
+function nested(text: string): string {
+  return text.replaceAll("\n", "\n  ");
 }
 
 export async function dumpLowerViaVader(_source: string, entryPath: string, modules?: readonly string[]): Promise<string> {

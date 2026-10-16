@@ -1,0 +1,77 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "FnDecl",
+        "name": "bad",
+        "visibility": "public",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "BinaryExpr",
+                "op": "eq",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "a"
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "b"
+                }
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "NullLitExpr"
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "IdentExpr",
+                "name": "c"
+              }
+            },
+            {
+              "kind": "AssignStmt",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "x"
+              },
+              "value": {
+                "kind": "BinaryExpr",
+                "op": "add",
+                "left": {
+                  "kind": "IntLitExpr",
+                  "value": "1n"
+                },
+                "right": {
+                  "kind": "NullLitExpr"
+                }
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": [
+    "[4:12] error[P1003] expected an expression: got `==`",
+    "[4:12] error[P1010] non-associative operator chained: chained ``==``",
+    "[5:13] error[P1003] expected an expression: got `+`"
+  ]
+}
