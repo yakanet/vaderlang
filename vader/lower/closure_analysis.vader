@@ -149,7 +149,7 @@ WalkCtx :: struct {
 // Build the owned-scope (param ids) for a function or lambda. Both
 // callers feed `FnParam[]` — `FnDecl.params` and `LambdaExpr.params`
 // share the same element type, so this single helper covers both.
-collect_owned_scope_for_params :: fn(params: AST.FnParam[], symbol_index: MutableMap<u64, Symbol>) -> MutableSet<i32>! {
+collect_owned_scope_for_params :: fn(params: AST.FnParam[], symbol_index: MutableMap<u64, Symbol>) -> MutableSet<i32> {
     scope :: empty_scope()
     for ast_param in params {
         symbol :: lookup_symbol_by_span(symbol_index, ast_param.span)
@@ -161,7 +161,7 @@ collect_owned_scope_for_params :: fn(params: AST.FnParam[], symbol_index: Mutabl
     return scope
 }
 
-empty_scope :: fn() -> MutableSet<i32>! {
+empty_scope :: fn() -> MutableSet<i32> {
     return MutableSet<i32> {}
 }
 

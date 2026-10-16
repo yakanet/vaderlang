@@ -12,7 +12,7 @@ import "std/collections"
 import "std/io"
 
 Counts :: struct {
-    by_name: MutableMap<string, i32>!
+    by_name: MutableMap<string, i32>
 }
 
 main :: fn() -> i32 {

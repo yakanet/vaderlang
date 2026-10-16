@@ -189,10 +189,10 @@
   expr 77:22    SeqLitExpr     :: [i32, string]!
   expr 77:26    StringLitExpr  :: string
   expr 81:20    SeqLitExpr     :: i32[]!
-  expr 83:20    BinaryExpr     :: string[]!
+  expr 83:20    BinaryExpr     :: string[]
   expr 83:20    SeqLitExpr     :: string[]!
   expr 83:21    StringLitExpr  :: string
-  expr 84:20    BinaryExpr     :: bool[]!
+  expr 84:20    BinaryExpr     :: bool[]
   expr 84:20    SeqLitExpr     :: bool[]!
   expr 86:20    SeqLitExpr     :: Spec[]!
   expr 89:12    IdentExpr      :: usize

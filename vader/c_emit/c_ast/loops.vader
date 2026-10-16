@@ -155,7 +155,7 @@ loop_of :: fn(scope: CScope) -> CStatement {
 
 // `branch` without its closing `continue`, between the loop body's leading and
 // trailing directives.
-spliced :: fn(statements: CStatement[], lead: usize, trail: usize, branch: CBlock) -> CBlock! {
+spliced :: fn(statements: CStatement[], lead: usize, trail: usize, branch: CBlock) -> CBlock {
     body :: CBlock { .body = [] }
     body.body.push_all(statements[0..<lead])
     continuing :: statements_end(branch.body) - 1

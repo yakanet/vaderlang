@@ -55,7 +55,7 @@ import "vader/bytecode"
 /// @param temporaries  every temp of the body, indexed by id ; each receives
 ///                     its `slot`.
 /// @return             the ValType of each slot, indexed by slot.
-export coalesce_temporaries :: fn(root: CBlock, temporaries: CTemporary[]) -> ValType[]! {
+export coalesce_temporaries :: fn(root: CBlock, temporaries: CTemporary[]) -> ValType[] {
     n :: temporaries.len()
     if n == 0 {
         return []
@@ -109,9 +109,9 @@ order_by_first :: fn(first: i32[]) -> usize[] {
 /// Per temp id : how many times it is used, and the first / last statement
 /// position it is used at (-1 = unused).
 TemporaryUsage :: struct {
-    uses: i32[]!
-    first: i32[]!
-    last: i32[]!
+    uses: i32[]
+    first: i32[]
+    last: i32[]
     /// The position of the statement being scanned.
     position: i32 = -1
 }
@@ -327,8 +327,8 @@ import "std/testing"
 
 // A body built over temps `0..<count`, coalesced, then printed.
 TestBody :: struct {
-    temporaries: CTemporary![]!
-    root: CBlock!
+    temporaries: CTemporary[]
+    root: CBlock
 }
 
 // `count` temps of class `.Ref`, temp 1 of class `second`.

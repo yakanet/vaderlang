@@ -69,7 +69,7 @@
     return total :i32
   fn snippet$drain(it: Iterator<i32>) -> i32[]
     return
-      block :i32[]!
+      block :i32[]
         let self: Iterator<i32> = it :Iterator<i32>
         let f: fn(i32) -> i32 = triple :fn(i32) -> i32
         let out: i32[] =

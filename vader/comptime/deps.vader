@@ -46,23 +46,23 @@ export sort_comptime_decls :: fn(
 // `ConstDecl.id` (the AST node-id minted at parse time).
 NodeRecord :: struct {
     decl:    AST.ConstDecl
-    dependency_ids: usize[]!
+    dependency_ids: usize[]
 }
 
 Nodes :: struct {
     // `ConstDecl.id -> NodeRecord`. Insertion order tracked separately
     // because `MutableMap` iteration order is bucket-dependent and
     // we want stable topo output for snapshot determinism.
-    by_id:   MutableMap<usize, NodeRecord!>!
-    order:   usize[]!
+    by_id:   MutableMap<usize, NodeRecord>
+    order:   usize[]
     // `Symbol.id -> ConstDecl.id` reverse lookup so the walker can map
     // a resolved IdentExpr back to a participating decl in O(1).
-    by_symbol:  MutableMap<i32, usize>!
+    by_symbol:  MutableMap<i32, usize>
 }
 
-collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes! {
+collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
     nodes :: Nodes {
-        .by_id  = MutableMap<usize, NodeRecord!> {},
+        .by_id  = MutableMap<usize, NodeRecord> {},
         .order  = [],
         .by_symbol = MutableMap<i32, usize> {},
     }

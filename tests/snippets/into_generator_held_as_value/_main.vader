@@ -12,8 +12,8 @@ Deck :: struct {
     n: i32
 }
 
-Deck implements Into<Iterator<i32>!> {
-    into :: fn(self) -> Iterator<i32>! {
+Deck implements Into<Iterator<i32>> {
+    into :: fn(self) -> Iterator<i32> {
         for i in 0..<self.n {
             yield i * 10
         }

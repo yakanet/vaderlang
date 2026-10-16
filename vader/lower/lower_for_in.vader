@@ -41,9 +41,9 @@ import "toolchain/span"
 /// @return             the lowered stmt (a block wrapping the loop).
 export lower_for_in :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
-) -> LoweredStmt! {
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
+) -> LoweredStmt {
     span :: for_stmt.span
     // Fast path : `for x in <chain>` where `<chain>` is generator combinators
     // (`map` / `filter` / …) over a range, an array, a generator call, or an
@@ -201,7 +201,7 @@ resolve_loop_label :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt) -> string | nul
     return instance_label(ctx, if injected != null { injected } else { for_stmt.label })
 }
 
-build_break_stmts :: fn(span: Span) -> LoweredStmt![] {
+build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
     out: LoweredStmt[]: []
     out.push(LoweredBreak { .span = span, .label = null })
     return out
@@ -219,7 +219,7 @@ build_break_stmts :: fn(span: Span) -> LoweredStmt![] {
 bind_loop_var :: fn(
     ctx: FnLowerCtx, binding_symbol: Symbol, name: string, pattern: AST.LetBinding | null,
     value: LoweredExpr, value_type: Type, span: Span,
-) -> LoweredStmt![] {
+) -> LoweredStmt[] {
     out: LoweredStmt[]: []
     if pattern is AST.TupleBinding {
         elem_sym :: fresh_synthetic_symbol(ctx, "for_elem")
@@ -242,14 +242,14 @@ bind_loop_var :: fn(
 // spliced in the generator's own ctx where those leaf symbols don't resolve.
 export emit_for_pattern_destructure :: fn(
     ctx: FnLowerCtx, tup: AST.TupleBinding, elem_sym: Symbol, elem_type: Type, span: Span,
-) -> LoweredStmt![] {
+) -> LoweredStmt[] {
     out: LoweredStmt[]: []
     elem_ref :: LoweredIdent { .span = span, .type = elem_type, .symbol = elem_sym }
     emit_let_binding_leaves(ctx, tup, elem_ref, elem_type, span, out)
     return out
 }
 
-build_body_stmts :: fn(bind_stmts: LoweredStmt[], user_body: LoweredBlock) -> LoweredStmt![] {
+build_body_stmts :: fn(bind_stmts: LoweredStmt[], user_body: LoweredBlock) -> LoweredStmt[] {
     out: LoweredStmt[]: []
     out.push_all(bind_stmts)
     for stmt in user_body.stmts { out.push(stmt) }
@@ -267,7 +267,7 @@ into_iterator :: fn(
     iterable: LoweredExpr,
     element: Type,
     span: Span,
-) -> LoweredExpr! {
+) -> LoweredExpr {
     iterator :: iterator_of(ctx, element) ?? return iterable
     return recorded_conversion(ctx, site, .IterInto, iterable, iterator, span)
 }
@@ -335,7 +335,7 @@ build_step_call :: fn(
     iter_type: Type,
     step_union: Type,
     span: Span,
-) -> LoweredExpr! {
+) -> LoweredExpr {
     if iter_type is TraitType && iter_type.symbol.name == TRAIT_ITERATOR {
         args: LoweredExpr[]: []
         return LoweredVirtualCall {
@@ -440,9 +440,9 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 try_lower_for_in_raw_array :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
     iter_lowered: LoweredExpr, iter_type: Type,
-    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
-) -> LoweredStmt! | null {
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
+) -> LoweredStmt | null {
     array_elem_type: Type = TY_UNRESOLVED
     // Arrays — and array-backed distinct newtypes via `array_backing` — iterate
     // by index over the value (which is the backing array at runtime).
@@ -531,9 +531,9 @@ try_lower_for_in_raw_array :: fn(
 // the slow path (Iterator step dispatch).
 try_lower_for_in_int_range :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
-) -> LoweredStmt! | null {
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
+) -> LoweredStmt | null {
     range :: extract_range(in_form.iter) ?? return null
     raw_lower :: ctx.types.expr_type(range.lower)
     raw_upper :: ctx.types.expr_type(range.upper)
@@ -634,7 +634,7 @@ extract_range :: fn(iter: AST.Expr) -> AST.RangeExpr | null {
 // `0..<nu` where `nu: u64`), the typer left it at i32 / FreeInt
 // default. Rewrite the LoweredIntLit's type to the loop counter's
 // width so the dump shows `int(0) :u64` instead of `int(0) :i32`.
-widen_int_lit :: fn(e: LoweredExpr, t: Type) -> LoweredExpr! {
+widen_int_lit :: fn(e: LoweredExpr, t: Type) -> LoweredExpr {
     if e is LoweredIntLit {
         return LoweredIntLit { .span = e.span, .type = t, .value = e.value }
     }
@@ -649,8 +649,8 @@ cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {
 
 // The test and the step of a counted loop over `lo..<hi` / `lo..=hi`.
 RangeLoopControl :: struct {
-    cond: LoweredExpr!
-    step: LoweredStmt![]
+    cond: LoweredExpr
+    step: LoweredStmt[]
 }
 
 // An inclusive range whose `hi` may be the counter type's maximum cannot test
@@ -696,7 +696,7 @@ compare_counter :: fn(
     op: LoweredBinaryOp,
     hi: LoweredExpr,
     span: Span,
-) -> LoweredExpr! = LoweredBinary {
+) -> LoweredExpr = LoweredBinary {
     .span = span,
     .type = TY_BOOL,
     .op = op,

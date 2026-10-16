@@ -23,7 +23,7 @@
   expr 47:9     StructLitExpr  :: Item!
   expr 49:22    IdentExpr      :: Item[]
   expr 49:5     CallExpr       :: void
-  expr 49:5     FieldExpr      :: fn(usize, Item[]!, usize, usize) -> void
+  expr 49:5     FieldExpr      :: fn(usize, Item[], usize, usize) -> void
   expr 49:5     IdentExpr      :: Item[]
   expr 50:15    IdentExpr      :: Item[]
   expr 51:17    StringLitExpr  :: string
@@ -44,7 +44,7 @@
   expr 58:9     StructLitExpr  :: Item!
   expr 60:22    IdentExpr      :: Item[]
   expr 60:5     CallExpr       :: void
-  expr 60:5     FieldExpr      :: fn(usize, Item[]!, usize, usize) -> void
+  expr 60:5     FieldExpr      :: fn(usize, Item[], usize, usize) -> void
   expr 60:5     IdentExpr      :: Item[]
   expr 61:13    StringLitExpr  :: string
   expr 61:16    FieldExpr      :: string

@@ -10,7 +10,7 @@ import "std/collections"
 import "std/io"
 
 Log :: struct {
-    lines: string[]! = []
+    lines: string[] = []
 }
 
 Log implements IndexSet<string, i32> {
@@ -26,7 +26,7 @@ fill :: fn(store: IndexSet<string, i32>) -> void {
 
 peek :: fn(store: Index<string, i32 | null>, key: string) -> i32 = store[key] ?? -1
 
-pair_into :: fn<C: IndexSet<string, i32>!>(c: C) -> void {
+pair_into :: fn<C: IndexSet<string, i32>>(c: C) -> void {
     [c["x"], c["y"]] = [3, 4]
 }
 
@@ -34,7 +34,7 @@ put_wide :: fn(store: IndexSet<i64, i32>) -> void {
     store[9000000000] = 7
 }
 
-put_wider :: fn<C: IndexSet<i64, i32>!>(c: C) -> void {
+put_wider :: fn<C: IndexSet<i64, i32>>(c: C) -> void {
     c[9000000001] = 8
 }
 

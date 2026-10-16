@@ -169,7 +169,7 @@
               ~>
                 int(1024) :usize
         let chunk: i32[] =
-          @array.repeat :i32[]!
+          @array.repeat :i32[]
             array :i32[]
             reserve :usize
         block :void
@@ -222,7 +222,7 @@
                       target:
                         chunk :i32[]
                       value:
-                        @array.repeat :i32[]!
+                        @array.repeat :i32[]
                           array :i32[]
                           reserve :usize
         if :void
@@ -316,11 +316,11 @@
           inner:
             MutableMap<i32, bool>! {
               ekeys:
-                array :i32[]!
+                array :i32[]
               evals:
-                array :bool[]!
+                array :bool[]
               index:
-                array :i32[]!
+                array :i32[]
               mask: int(0) :usize
               size: int(0) :usize
               tombs: int(0) :usize

@@ -240,20 +240,17 @@
       "traitName": "Into",
       "traitArgs": [
         {
-          "kind": "MutableTypeExpr",
-          "inner": {
-            "kind": "GenericInstExpr",
-            "callee": {
+          "kind": "GenericInstExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "Iterator"
+          },
+          "typeArgs": [
+            {
               "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
-                "kind": "IdentExpr",
-                "name": "Label"
-              }
-            ]
-          }
+              "name": "Label"
+            }
+          ]
         }
       ],
       "members": [
@@ -271,20 +268,17 @@
             }
           ],
           "returnType": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "Iterator"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "Iterator"
-              },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "Label"
-                }
-              ]
-            }
+                "name": "Label"
+              }
+            ]
           },
           "body": {
             "kind": "BlockExpr",

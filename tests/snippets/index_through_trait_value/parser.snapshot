@@ -31,13 +31,10 @@
         {
           "name": "lines",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "string"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "string"
             }
           },
           "visibility": "public",
@@ -336,24 +333,21 @@
         {
           "name": "C",
           "bound": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "IndexSet"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "IndexSet"
+                "name": "string"
               },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "string"
-                },
-                {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
-              ]
-            }
+              {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            ]
           },
           "isComptimeValue": false
         }
@@ -504,24 +498,21 @@
         {
           "name": "C",
           "bound": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "IndexSet"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "IndexSet"
+                "name": "i64"
               },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "i64"
-                },
-                {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
-              ]
-            }
+              {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            ]
           },
           "isComptimeValue": false
         }

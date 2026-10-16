@@ -5,7 +5,7 @@
     let s: Stack<i32>! =
       Stack<i32>! {
         data:
-          array :i32[]!
+          array :i32[]
         size: int(0) :i32
       }
     call :void
@@ -212,7 +212,7 @@
     return
       index :i32
         on:
-          .data :i32[]!
+          .data :i32[]
             self :Stack<i32>
         ix:
           .size :i32

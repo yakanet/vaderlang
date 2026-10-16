@@ -769,7 +769,7 @@ export impl_side :: fn<V>(
 /// @param t       the receiver asked about.
 /// @param suffix  appended to both keys : `"::member"`, or `""` for a key alone.
 export impl_side_list :: fn(
-    typed: TypedProgram, table: MutableMap<string, string[]!>, t: Type, suffix: string,
+    typed: TypedProgram, table: MutableMap<string, string[]>, t: Type, suffix: string,
 ) -> string[] {
     base :: table["${dispatch_key(t)}${suffix}"] ?? []
     own_key :: own_impl_key(typed, t) ?? return base

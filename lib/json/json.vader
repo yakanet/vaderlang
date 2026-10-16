@@ -65,7 +65,7 @@ Parser :: struct {
     pos: usize
 }
 
-new_parser :: fn(s: string) -> Parser! = Parser { .src = s, .pos = 0 }
+new_parser :: fn(s: string) -> Parser = Parser { .src = s, .pos = 0 }
 
 at_end :: fn(p: Parser) = p.pos >= p.src.byte_len()
 

@@ -19,11 +19,11 @@ AST :: import "toolchain/ast"
 // A walk over the defaults literals fill in.
 DefaultFill :: struct {
     /// The defaults being filled in, outermost first.
-    filling: FillingDefault[]! = []
+    filling: FillingDefault[] = []
     /// The defaults filled in already, by their field's span hash.
-    filled: MutableSet<u64>! = MutableSet<u64> {}
+    filled: MutableSet<u64> = MutableSet<u64> {}
     /// The consts the filled-in defaults name.
-    consts: AST.ConstDecl![]! = []
+    consts: AST.ConstDecl[] = []
 }
 
 FillingDefault :: struct {

@@ -106,7 +106,7 @@ export format_variant_head :: fn(source: string, v: p.EnumVariant) -> string {
 }
 
 // A comment-free printer that keeps every construct on one line.
-head_printer :: fn(source: string) -> Printer! {
+head_printer :: fn(source: string) -> Printer {
     h :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     h.flat = true
     return h

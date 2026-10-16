@@ -1,12 +1,12 @@
 # Lower
 
 ## snippet
-  struct snippet$Cell { slots: i32[]! }
+  struct snippet$Cell { slots: i32[] }
   fn snippet$Cell$Index$at(self: Cell!, i: usize) -> i32
     ~>
       index :i32
         on:
-          .slots :i32[]!
+          .slots :i32[]
             self :Cell
         ix:
           i :usize
@@ -15,7 +15,7 @@
       target:
         index :i32
           on:
-            .slots :i32[]!
+            .slots :i32[]
               self :Cell
           ix:
             i :usize
@@ -25,7 +25,7 @@
     let cell: Cell! =
       Cell! {
         slots:
-          array :i32[]!
+          array :i32[]
             int(10) :i32
             int(20) :i32
             int(30) :i32

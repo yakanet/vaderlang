@@ -86,18 +86,18 @@ Skeleton :: struct {
     /// The function's parameters, which are its first slots.
     params: usize
     slots: usize
-    flows: Flow[]! = []
-    sites: Site[]! = []
-    marks: Mark[]! = []
+    flows: Flow[] = []
+    sites: Site[] = []
+    marks: Mark[] = []
     /// How many roots the skeleton holds besides its parameters.
     extra: usize = 0
     /// Extra root → the slot it starts in. A binding copies these roots rather than
     /// aliasing them ; a copy root starts in no slot.
-    seeds: MutableMap<usize, usize>! = MutableMap<usize, usize> {}
+    seeds: MutableMap<usize, usize> = MutableMap<usize, usize> {}
 }
 
 /// The skeleton of a function of `params` parameters, before its body is walked.
-new_skeleton :: fn(params: usize) -> Skeleton! = Skeleton { .params = params, .slots = params }
+new_skeleton :: fn(params: usize) -> Skeleton = Skeleton { .params = params, .slots = params }
 
 /// A slot that holds nothing yet.
 fresh_slot :: fn(s: Skeleton) -> usize {
@@ -178,7 +178,7 @@ add_site :: fn(
 /// What an evaluation reads besides the skeleton.
 EvalCtx :: struct {
     /// Per node of the call graph, what the function does with each parameter.
-    facts: ParamEffects![]![]
+    facts: ParamEffects[][]
     paths: PathTable
     /// Per node, its strongly connected component ; empty when unknown.
     components: i32[] = []
@@ -190,10 +190,10 @@ EvalCtx :: struct {
 
 /// The roots of every slot during one evaluation, each root of a slot once.
 SlotRoots :: struct {
-    roots: Root[]![]!
+    roots: Root[][]
     /// The skeleton's root count, which spaces the keys of `seen`.
     root_count: i64
-    seen: MutableSet<i64>! = MutableSet<i64> {}
+    seen: MutableSet<i64> = MutableSet<i64> {}
 }
 
 /// What the function does with each of its parameters, its callees doing what
@@ -202,7 +202,7 @@ SlotRoots :: struct {
 /// @param s    the function's skeleton.
 /// @param ctx  the callees' facts and the summary's paths.
 /// @return     one set per parameter.
-evaluate :: fn(s: Skeleton, ctx: EvalCtx) -> ParamEffects![] {
+evaluate :: fn(s: Skeleton, ctx: EvalCtx) -> ParamEffects[] {
     slots :: settled_slots(s, ctx, false)
     out :: s.params.filled(() -> ParamEffects {})
     apply_constraints(s, slots, ctx, out, out)
@@ -218,7 +218,7 @@ RootEffects :: struct {
     lent: ParamEffects[]
     /// Per copy root, the seeded roots it took the place of, each at the path the
     /// copy holds below it.
-    took: MutableMap<usize, Root[]!>
+    took: MutableMap<usize, Root[]>
     /// The copy roots whose binding let another root through besides.
     mixed: MutableSet<usize>
 }
@@ -234,7 +234,7 @@ evaluate_roots :: fn(s: Skeleton, ctx: EvalCtx) -> RootEffects {
     marked :: count.filled(() -> ParamEffects {})
     lent :: count.filled(() -> ParamEffects {})
     apply_constraints(s, slots, ctx, marked, lent)
-    took :: MutableMap<usize, Root[]!> {}
+    took :: MutableMap<usize, Root[]> {}
     mixed :: MutableSet<usize> {}
     for f in s.flows {
         copy :: f.copy ?? continue
@@ -309,7 +309,7 @@ settled_slots :: fn(s: Skeleton, ctx: EvalCtx, extra: bool) -> SlotRoots {
     return slots
 }
 
-no_roots :: fn() -> Root[]! = []
+no_roots :: fn() -> Root[] = []
 
 // Add `r` to slot `slot` ; false when it held it already.
 include_root :: fn(slots: SlotRoots, slot: usize, r: Root) -> bool {

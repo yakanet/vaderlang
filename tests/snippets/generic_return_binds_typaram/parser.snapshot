@@ -27,13 +27,10 @@
       ],
       "params": [],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
-            "kind": "IdentExpr",
-            "name": "T"
-          }
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "T"
         }
       },
       "body": {

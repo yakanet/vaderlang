@@ -25,7 +25,7 @@ sum_both :: fn(a: Iterator<i32>, b: Iterator<i32>) -> i32 {
 }
 
 Adder :: trait {
-    add_all :: fn(self, xs: Iterator<i32>!) -> i32
+    add_all :: fn(self, xs: Iterator<i32>) -> i32
 }
 
 Tally :: struct {

@@ -1081,9 +1081,9 @@
                                                 __self_2 :__asyncstate_snippet_0!
                                             value:
                                               cast → Async<Any>!
-                                                call :Async<null>!
+                                                call :Async<null>
                                                   callee:
-                                                    sleep :fn(i64) -> Async<null>!
+                                                    sleep :fn(i64) -> Async<null>
                                                   arg0:
                                                     int(0) :i64
                                           assign
@@ -1583,7 +1583,7 @@
                                 arg0:
                                   "window fused" :string
                                 arg1:
-                                  block :i32[]!
+                                  block :i32[]
                                     let self: i32[] =
                                       .s17 :i32[]
                                         __self_21 :__asyncstate_snippet_2!
@@ -1677,7 +1677,7 @@
                                 arg0:
                                   "window lazy" :string
                                 arg1:
-                                  block :i32[]!
+                                  block :i32[]
                                     let self: Iterator<i32[]> =
                                       .s18 :__genstate_window<i32[]>!
                                         __self_21 :__asyncstate_snippet_2!
@@ -2478,7 +2478,7 @@
                                                                                                                                                                 arg0:
                                                                                                                                                                   "pairs fused" :string
                                                                                                                                                                 arg1:
-                                                                                                                                                                  block :i32[]!
+                                                                                                                                                                  block :i32[]
                                                                                                                                                                     let n: i32 = int(5) :i32
                                                                                                                                                                     let stop: i32 = int(3) :i32
                                                                                                                                                                     let f: fn(i32) -> i32 = double :fn(i32) -> i32
@@ -2575,7 +2575,7 @@
                                                                                                                                                                 arg0:
                                                                                                                                                                   "pairs lazy" :string
                                                                                                                                                                 arg1:
-                                                                                                                                                                  block :i32[]!
+                                                                                                                                                                  block :i32[]
                                                                                                                                                                     let self: Iterator<i32> =
                                                                                                                                                                       .s0 :__genstate_pairs_until<i32>!
                                                                                                                                                                         __self_21 :__asyncstate_snippet_2!

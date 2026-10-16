@@ -55,7 +55,7 @@ export InlineInstance :: struct {
 ///                   inlining it again from inside its own body would never end.
 new_inline_instance :: fn(
     project: LowerProjectCtx, callee_id: i32, decl: AST.FnDecl, owner: TypedProgram,
-) -> InlineInstance! | null {
+) -> InlineInstance | null {
     if callee_id in project.inlining_callees {
         return null
     }
@@ -186,7 +186,7 @@ origin_symbol_id :: fn(project: LowerProjectCtx, symbol: Symbol) -> i32 =
 bind_instance_param :: fn(
     ctx: FnLowerCtx, instance: InlineInstance, owner: TypedProgram, p: AST.FnParam, value: LoweredExpr,
     slot: Type,
-) -> LoweredStmt! {
+) -> LoweredStmt {
     symbol :: lookup_local_symbol(ctx.project, owner.resolved, p.span) ?? panic(
         "inlined call: parameter `${p.name}` has no symbol",
     )
@@ -197,7 +197,7 @@ bind_instance_param :: fn(
 // substitution and its instance's names.
 instance_ctx :: fn(
     ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram, subst: Substitution, instance: InlineInstance,
-) -> FnLowerCtx! {
+) -> FnLowerCtx {
     return_type :: substitute(return_type_of(decl, make_entry_types(owner, subst)), subst)
     inner :: new_fn_lower_ctx(ctx.project, stub_entry(decl, owner), owner, subst, return_type)
     inner.instance = instance
@@ -231,7 +231,7 @@ instance_exit_label :: fn(instance: InlineInstance) -> string = r"$exit" + insta
 ///
 /// @param instance  the instance to leave.
 /// @param span      the jump's span.
-leave_instance :: fn(instance: InlineInstance, span: Span) -> LoweredStmt! {
+leave_instance :: fn(instance: InlineInstance, span: Span) -> LoweredStmt {
     instance.exited = true
     return LoweredBreak { .span = span, .label = instance_exit_label(instance) }
 }
@@ -242,7 +242,7 @@ leave_instance :: fn(instance: InlineInstance, span: Span) -> LoweredStmt! {
 /// @param instance  the inlined instance.
 /// @param span      span of the block when one is built.
 /// @param stmts     the instance's emitted statements.
-wrap_instance_exit :: fn(instance: InlineInstance, span: Span, stmts: LoweredStmt[]) -> LoweredStmt![] {
+wrap_instance_exit :: fn(instance: InlineInstance, span: Span, stmts: LoweredStmt[]) -> LoweredStmt[] {
     if !instance.exited {
         return stmts
     }
@@ -254,7 +254,7 @@ wrap_instance_exit :: fn(instance: InlineInstance, span: Span, stmts: LoweredStm
 /// @param label  the block's label.
 /// @param span   the block's span.
 /// @param stmts  the block's statements.
-labelled_block :: fn(label: string, span: Span, stmts: LoweredStmt[]) -> LoweredStmt! =
+labelled_block :: fn(label: string, span: Span, stmts: LoweredStmt[]) -> LoweredStmt =
     LoweredLabelledBlock { .span = span, .label = label, .body = arm_block(stmts, span) }
 
 // ---- tests ----------------------------------------------------------------

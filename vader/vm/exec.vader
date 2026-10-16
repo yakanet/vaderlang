@@ -46,10 +46,10 @@ STEP_BUDGET_UNREACHABLE: i64: 1 << 62
 /// the logical top ; `pc` is the op's original pc, for trap messages.
 Frame :: struct {
     /// Live handles, not copies: an `ArrayVal` here is the object `array.push`
-    /// grows in place, so the ELEMENT carries the marker too.
-    stack:          Value![]!
-    payload:        i64[]!
-    tag:            StackTag[]!
+    /// grows in place.
+    stack:          Value[]
+    payload:        i64[]
+    tag:            StackTag[]
     sp:             usize
     pc:             i32
 }
@@ -68,8 +68,7 @@ StackTag :: enum(u8) { I32, I64, F64, Bool, Char, Null, Ref }
 
 /// What a `.Null` slot reads back as, shared by every read. A slot that STORES a null
 /// (a grown refs column, an element, a field) takes a `NullVal` it owns instead,
-/// `RegMachine.null_value` or a fresh `NullVal {}`: those slots are `Value!`, and a
-/// module const is read-only.
+/// `RegMachine.null_value` or a fresh `NullVal {}`.
 NULL_VALUE :: NullVal {}
 
 /// True when `t` marks a value `read_i32` accepts (i32 / char / i64 carriers).
@@ -173,9 +172,8 @@ push_val :: fn(frame: Frame, cursor: usize, value: Value) -> void {
 peek_val :: fn(frame: Frame, idx: usize) -> Value =
     if frame.tag[idx] == .Null { NULL_VALUE } else { peek_owned(frame, idx) }
 
-// `peek_val` for a caller that keeps the value in a `!` slot : a null it stores must
-// be its own.
-peek_owned :: fn(frame: Frame, idx: usize) -> Value! = match frame.tag[idx] {
+// `peek_val` for a caller that stores the value: a null it stores is its own.
+peek_owned :: fn(frame: Frame, idx: usize) -> Value = match frame.tag[idx] {
     .Ref  -> frame.stack[idx]
     .I32  -> I32Val(i32(frame.payload[idx]))
     .I64  -> I64Val(frame.payload[idx])
@@ -192,14 +190,13 @@ peek_owned :: fn(frame: Frame, idx: usize) -> Value! = match frame.tag[idx] {
 /// not the unboxed copy `peek_val` hands out. Only a `.Ref` slot can hold an
 /// array, which is why this reads `frame.stack` directly.
 ///
-/// @param frame  the executing frame — mutable, because the rights on the value
-///               can only come from the frame that owns it.
+/// @param frame  the executing frame.
 /// @param idx    slot index within the frame, as for `peek_val`.
 /// @param at_pc  informational — the pc quoted in the trap message.
 /// @param label  informational — names the operand in the trap message.
 /// @return       the writable `ArrayVal`, or a `Trap` when the slot holds
 ///               anything else.
-peek_array_mut :: fn(frame: Frame, idx: usize, at_pc: i32, label: string) -> ArrayVal! | Trap! {
+peek_array_mut :: fn(frame: Frame, idx: usize, at_pc: i32, label: string) -> ArrayVal | Trap {
     if frame.tag[idx] == .Ref {
         v :: frame.stack[idx]
         if v is ArrayVal {
@@ -245,7 +242,7 @@ DEBUG_MAX_ELEMS: usize: 64
 // `[0..params)` are params (no source names in `BcSignature` → `arg0`, `arg1`,
 // …) ; `locals[k]` lives at slot `params + k`. Accurate when the target is
 // compiled `optimize = false` (no slot coalescing) — the DAP compile's mode.
-project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule) -> PauseVar[]! {
+project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod: bc.BytecodeModule) -> PauseVar[] {
     param_count :: fn_body.signature.params.len()
     total_slots :: param_count + fn_body.locals.len()
     // Per-slot [first, last] touch pc — a slot's live window. A local shows only
@@ -326,7 +323,7 @@ project_var :: fn(name: string, v: Value, bc_mod: bc.BytecodeModule, depth: i32)
 // Project a struct's fields, naming each from the module type table's
 // `BcStruct.fields` (falling back to `field<i>` if the entry isn't a struct or
 // is shorter than the value's field list).
-project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar[]! {
+project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar[] {
     out: PauseVar[]: []
     names: string[]: []
     if usize(s.type_id) < bc_mod.types.len() {
@@ -354,7 +351,7 @@ project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32)
 ///                        (`"call.indirect"`, `"defer.pop_exec"`, …).
 /// @return                `null` on success, `Trap` if out of range.
 /// @error                 `function_index < 0` or `>= functions.len()`.
-validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: i32, op_label: string) -> Trap! | null {
+validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: i32, op_label: string) -> Trap | null {
     if is_fn_index_out_of_range(function_index, functions) {
         return fn_index_trap(function_index, at_pc, op_label)
     }
@@ -450,7 +447,7 @@ build_main_args :: fn(
     entry: bc.BcFunction,
     host_argv: string[],
     string_array_type_id: i32,
-) -> Value![] | Trap {
+) -> Value[] | Trap {
     out: Value[]: []
     params :: entry.signature.params
     if params.len() == 0 {
@@ -466,9 +463,6 @@ build_main_args :: fn(
         message :: "entry function '${entry.name}' takes a ${class}, but the host passes a string[]"
         return Trap { .message = message }
     }
-    // Pushed per branch rather than through a joined local : the fallback is a fresh
-    // literal (mutable) and `host_argv` a read-only one, a join the seed compiler
-    // refuses.
     if host_argv.len() == 0 {
         out.push(string_array_to_value(["<vader-vm>"], string_array_type_id))
     } else {
@@ -536,7 +530,7 @@ export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
 // truncates slots and returns itself (`Narrow`). Non-narrow ValTypes return `v`
 // unchanged — `i32` / `i64` (and the unsigned `u32` / `u64`, read back through the
 // unsigned view) already wrap at their width via native `i32` / `i64` overflow.
-narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value! {
+narrow_mask :: fn(v: Value, vt: bc.ValType) -> Value {
     // Only the sub-32-bit widths need masking ; i32/i64 (and the unsigned u32/u64
     // read back through the unsigned view) already wrap at their width.
     if !bc.is_narrow_valtype(vt) { return v }
@@ -852,12 +846,12 @@ do_memory_copy :: fn(frame: Frame) -> Trap | null {
 /// (index 0 is `now`), and the handle source of `buffer.new`. Boxed cells, since
 /// `dispatch_import` and `build_buffer` update them in place.
 RunHost :: struct {
-    gc_state:    usize[]!
-    sched_state: usize[]!
-    obj_handles: i32[]!
+    gc_state:    usize[]
+    sched_state: usize[]
+    obj_handles: i32[]
 }
 
-new_run_host :: fn() -> RunHost! = RunHost { .gc_state = [0], .sched_state = [0], .obj_handles = [0] }
+new_run_host :: fn() -> RunHost = RunHost { .gc_state = [0], .sched_state = [0], .obj_handles = [0] }
 
 // The trap of a comptime run past its step budget.
 budget_trap :: fn(budget: i64) = Trap {

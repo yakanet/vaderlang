@@ -71,9 +71,9 @@ IterChain :: struct {
     // `bind_chain_operands` : a Range's bounds, an Array's source array, an
     // OpaqueIter's iterator. Null until then — the AST fields above are what
     // the binding lowers, these are what the emitters use.
-    bound_lower:  LoweredExpr! | null = null
-    bound_upper:  LoweredExpr! | null = null
-    bound_source: LoweredExpr! | null = null
+    bound_lower:  LoweredExpr | null = null
+    bound_upper:  LoweredExpr | null = null
+    bound_source: LoweredExpr | null = null
 }
 
 // Build an `OpaqueIter` chain bottom over an `Iterator`-typed receiver, iterated
@@ -99,9 +99,9 @@ mk_generator_chain :: fn(source: IterChain, gen_layer: GenComboLayer, span: Span
 // (`generator` combinators over a range, an array or a generator source).
 try_lower_chain_fusion :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
-) -> LoweredStmt! | null {
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
+) -> LoweredStmt | null {
     // The loop over an inlined consumer's parameter drains the call's chain,
     // whose operands the call site bound.
     consumed :: consumed_chain(ctx, in_form.iter)
@@ -152,7 +152,7 @@ BodyTemplate :: struct {
     binding_name:   string
     binding_symbol: Symbol
     element_type:   Type
-    user_body:      LoweredBlock!
+    user_body:      LoweredBlock
     /// Destructuring loop var (`for [k, v] in <chain>`). Set only on the
     /// user-facing template built from the `InFor` ; the intermediate combinator
     /// stages bind a fresh single element, so they leave it null.
@@ -397,7 +397,7 @@ chain_element_type :: fn(chain: IterChain) -> Type = match chain.kind {
 // the layer built on it, a layer's source before its argument. Returns the chain
 // with the values its loops read in `bound_*` — `emit_fused_chain` reads those.
 bind_chain_operands :: fn(
-    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
+    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     out: LoweredStmt[],
 ) -> IterChain = match chain.kind {
     .Range      -> bind_range_operands(ctx, chain, recurse, out)
@@ -410,7 +410,7 @@ bind_chain_operands :: fn(
 // A loop body may run before either bound is read : `hi` is read at every step,
 // and a range that is `chain`'s second source starts after the first one's loop.
 bind_range_operands :: fn(
-    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
+    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     out: LoweredStmt[],
 ) -> IterChain {
     lower :: chain.range_lower ?? return chain
@@ -423,7 +423,7 @@ bind_range_operands :: fn(
 // Always bound to a fresh `fuse_arr`, invariant or not — the local the loop reads
 // its length and every element from.
 bind_array_operand :: fn(
-    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
+    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     out: LoweredStmt[],
 ) -> IterChain {
     src :: chain.array_expr ?? return chain
@@ -434,7 +434,7 @@ bind_array_operand :: fn(
 
 // The iterator is the loop's cursor, so it always gets a local of its own.
 bind_opaque_iter_operand :: fn(
-    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
+    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     out: LoweredStmt[],
 ) -> IterChain {
     src :: chain.iter_expr ?? return chain
@@ -447,7 +447,7 @@ bind_opaque_iter_operand :: fn(
 // argument — prepared for its parameter's slot as a call would, and bound to the
 // combinator's own param symbol, which its inlined body reads.
 bind_layer_operands :: fn(
-    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
+    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     out: LoweredStmt[],
 ) -> IterChain {
     src :: chain.source ?? return chain
@@ -485,8 +485,8 @@ UNBOUND_CHAIN :: "fused chain emitted before `bind_chain_operands` bound its ope
 emit_fused_chain :: fn(
     ctx: FnLowerCtx, chain: IterChain, outer_span: Span,
     template: BodyTemplate,
-    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
-) -> LoweredStmt![] = match chain.kind {
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredStmt[] = match chain.kind {
     .Range      -> emit_fused_range(ctx, chain, outer_span, template)
     .Array      -> emit_fused_array(ctx, chain, outer_span, template)
     .Generator  -> emit_fused_gen_combinator(ctx, chain, outer_span, template, recurse)
@@ -502,7 +502,7 @@ emit_fused_chain :: fn(
 emit_fused_opaque_iter :: fn(
     ctx: FnLowerCtx, chain: IterChain, outer_span: Span,
     template: BodyTemplate,
-) -> LoweredStmt![] {
+) -> LoweredStmt[] {
     span :: chain.span
     iter_ref :: chain.bound_source ?? panic(UNBOUND_CHAIN)
     iter_type :: type_of(iter_ref)
@@ -559,7 +559,7 @@ emit_fused_opaque_iter :: fn(
 emit_fused_range :: fn(
     ctx: FnLowerCtx, range_chain: IterChain, outer_span: Span,
     template: BodyTemplate,
-) -> LoweredStmt![] {
+) -> LoweredStmt[] {
     span :: range_chain.span
     int_type :: range_chain.element_type
     lo :: range_chain.bound_lower ?? panic(UNBOUND_CHAIN)
@@ -609,7 +609,7 @@ emit_fused_range :: fn(
 emit_fused_array :: fn(
     ctx: FnLowerCtx, array_chain: IterChain, outer_span: Span,
     template: BodyTemplate,
-) -> LoweredStmt![] {
+) -> LoweredStmt[] {
     span :: array_chain.span
     elem_type :: array_chain.element_type
     arr_ref :: array_chain.bound_source ?? panic(UNBOUND_CHAIN)

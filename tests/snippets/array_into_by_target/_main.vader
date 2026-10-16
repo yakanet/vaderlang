@@ -27,8 +27,8 @@ labels :: fn(xs: Mon[]) -> Iterator<Label> {
     }
 }
 
-Mon[] implements Into<Iterator<Label>!> {
-    into :: fn(self) -> Iterator<Label>! = labels(self)
+Mon[] implements Into<Iterator<Label>> {
+    into :: fn(self) -> Iterator<Label> = labels(self)
 }
 
 drain :: fn(it: Iterator<Mon>) -> i32 {

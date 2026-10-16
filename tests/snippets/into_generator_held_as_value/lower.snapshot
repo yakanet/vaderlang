@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Deck { n: i32 }
-  fn snippet$Deck$Into$into(self: Deck!) -> Iterator<i32>!
+  fn snippet$Deck$Into$into(self: Deck!) -> Iterator<i32>
     return
       __gen_state_snippet_0! {
         s0: self :Deck!
@@ -94,9 +94,9 @@
                   n: int(4) :i32
                 }
     let letters: Iterator<char> =
-      call :Iterator<char>!
+      call :Iterator<char>
         callee:
-          std_string$string$Into$into :Iterator<char>!
+          std_string$string$Into$into :Iterator<char>
         arg0:
           "héllo" :string
     call :void

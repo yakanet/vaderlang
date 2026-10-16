@@ -3,13 +3,13 @@ module "snippet"
 import "std/io"
 
 export Stack :: struct<T> {
-    data: T[]!
+    data: T[]
     size: i32
 }
 
 export Stackable :: trait<T> {
-    push     :: fn(self!, value: T) -> void
-    pop      :: fn(self!) -> T
+    push     :: fn(self, value: T) -> void
+    pop      :: fn(self) -> T
     len      :: fn(self) -> i32
     is_empty :: fn(self) -> bool
 }

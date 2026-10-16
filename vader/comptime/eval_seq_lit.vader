@@ -14,7 +14,7 @@ AST :: import "toolchain/ast"
 
 export evaluate_seq_lit :: fn(
     expr: AST.SeqLitExpr, context: ComptimeContext,
-    recurse: fn(AST.Expr, ComptimeContext!) -> EvalResult,
+    recurse: fn(AST.Expr, ComptimeContext) -> EvalResult,
 ) -> EvalResult {
     elements: ComptimeValue[]: []
     for el in expr.elements {

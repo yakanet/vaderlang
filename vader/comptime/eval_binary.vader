@@ -25,7 +25,7 @@ AST :: import "toolchain/ast"
 /// @return            the combined value or a diagnostic.
 export evaluate_binary_expr :: fn(
     expr: AST.BinaryExpr, context: ComptimeContext,
-    recurse: fn(AST.Expr, ComptimeContext!) -> EvalResult,
+    recurse: fn(AST.Expr, ComptimeContext) -> EvalResult,
 ) -> EvalResult {
     left_result :: recurse(expr.left, context)
     left :: left_result.value ?? return left_result
@@ -144,7 +144,7 @@ combine_binary :: fn(
 /// @return         the result value or a diagnostic.
 export evaluate_unary_expr :: fn(
     expr: AST.UnaryExpr, context: ComptimeContext,
-    recurse: fn(AST.Expr, ComptimeContext!) -> EvalResult,
+    recurse: fn(AST.Expr, ComptimeContext) -> EvalResult,
 ) -> EvalResult {
     inner :: recurse(expr.operand, context)
     operand :: inner.value ?? return inner

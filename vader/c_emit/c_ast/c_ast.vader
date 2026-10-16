@@ -100,15 +100,15 @@ export CReturn :: struct {
 /// A sequence of statements, written one level deeper than the construct that
 /// holds it.
 export CBlock :: struct {
-    body: CStatement[]!
+    body: CStatement[]
 }
 
 /// `if (condition) { … } else { … }`. An `else` whose only statement is an
 /// `if` prints as `else if` (`write_if`).
 export CIf :: struct {
     condition: CExpression
-    then_block: CBlock!
-    else_block: CBlock! | null = null
+    then_block: CBlock
+    else_block: CBlock | null = null
     /// The label after the closing brace (`} end_N: ;`), when a `goto` exits
     /// past the `if` ; `""` for none.
     end_label: string = ""
@@ -143,7 +143,7 @@ export CCaseStatement :: CExpressionStatement | CReturn | CGoto
 export CScope :: struct {
     /// The label before the opening brace ; `""` for none.
     label: string = ""
-    body: CBlock!
+    body: CBlock
     /// The label after the closing brace (`} end_N: ;`), when a `goto` exits
     /// past the scope ; `""` for none.
     end_label: string = ""
@@ -154,7 +154,7 @@ export CWhile :: struct {
     /// The label before `while`, when a `goto` from an inner loop continues
     /// this one ; `""` for none.
     label: string = ""
-    body: CBlock!
+    body: CBlock
     condition: CExpression
     /// The label after the closing brace ; `""` for none.
     end_label: string = ""
@@ -164,7 +164,7 @@ export CWhile :: struct {
 export CFor :: struct {
     /// The label before `for` ; `""` for none.
     label: string = ""
-    body: CBlock!
+    body: CBlock
     /// The label after the closing brace ; `""` for none.
     end_label: string = ""
 }
@@ -486,7 +486,7 @@ export binary :: fn(
 /// `&operand`.
 ///
 /// @param operand  the object whose address is taken.
-export address_of :: fn(operand: CExpression) -> CExpression! = CAddressOf { .operand = operand }
+export address_of :: fn(operand: CExpression) -> CExpression = CAddressOf { .operand = operand }
 
 /// `(type) value`.
 ///

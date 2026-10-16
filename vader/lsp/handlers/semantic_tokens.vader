@@ -97,7 +97,7 @@ collect_token_kinds :: fn(source: string, uri: string, out: RawToken[]) -> void 
 // Build a `RawToken` for `t` with the given semantic type. The token loop
 // computes the type (with the `!is` / `!in` Bang override) and calls this so the
 // span arithmetic lives in one place.
-raw_of_type :: fn(t: Token, tt: i32) -> RawToken! {
+raw_of_type :: fn(t: Token, tt: i32) -> RawToken {
     sp :: t.span
     return RawToken {
         .line         = sp.start.line - 1,
@@ -170,7 +170,7 @@ collect_comment_kinds :: fn(source: string, out: RawToken[]) -> void {
 //     comment (documentation modifier), `@param`/`@return`/etc. as
 //     decorator (documentation modifier), `@param`'s name as parameter
 //     (documentation modifier).
-comment_to_raw :: fn(c: Comment) -> RawToken![] {
+comment_to_raw :: fn(c: Comment) -> RawToken[] {
     out: RawToken[]: []
     // Base case : non-doc comments emit a single comment-typed token.
     match c.kind {
@@ -191,7 +191,7 @@ comment_to_raw :: fn(c: Comment) -> RawToken![] {
     }
 }
 
-make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken! {
+make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
     // `Comment` carries no end column, so derive the end from the text's byte
     // length ; `reencode_columns` turns the offsets into col + length.
     return RawToken {

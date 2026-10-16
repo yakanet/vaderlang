@@ -64,7 +64,7 @@ settle_const_read :: fn(sym: Symbol, span: Span, typed: TypedProgram) -> void {
 }
 
 // The walk's declaration of the module const `sym`.
-walk_decl_of :: fn(sym: Symbol, typed: TypedProgram) -> AST.ConstDecl! | null {
+walk_decl_of :: fn(sym: Symbol, typed: TypedProgram) -> AST.ConstDecl | null {
     declared :: typed.const_decls[sym.id] ?? return null
     return typed.const_walk.decls[declared.span.hash()]
 }
@@ -138,15 +138,15 @@ closes_reported_cycle :: fn(key: u64, cd: AST.ConstDecl, walk: ConstWalk) -> boo
 
 // One const of the depth-first walk below, with the next of its reads to visit.
 DependencyFrame :: struct {
-    decl: AST.ConstDecl!
-    reads: AST.ConstDecl![]
+    decl: AST.ConstDecl
+    reads: AST.ConstDecl[]
     next: usize = 0
 }
 
 // `root` and the consts of this walk it reads, not yet typed, each after the ones it
 // reads : a depth-first post-order, kept on an explicit stack so a long chain costs
 // no call depth. In a cycle, the read that closes it reports it (T3099).
-consts_in_dependency_order :: fn(root: AST.ConstDecl, typed: TypedProgram) -> AST.ConstDecl![] {
+consts_in_dependency_order :: fn(root: AST.ConstDecl, typed: TypedProgram) -> AST.ConstDecl[] {
     out: AST.ConstDecl[]: []
     walk :: typed.const_walk
     if root.span.hash() in walk.states {
@@ -172,11 +172,11 @@ consts_in_dependency_order :: fn(root: AST.ConstDecl, typed: TypedProgram) -> AS
     return out
 }
 
-frame_of :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> DependencyFrame! =
+frame_of :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> DependencyFrame =
     DependencyFrame { .decl = decl, .reads = const_reads(decl.value, typed) }
 
 // The consts of this walk the value `e` names directly (`value_reads`).
-const_reads :: fn(e: AST.Expr, typed: TypedProgram) -> AST.ConstDecl![] =
+const_reads :: fn(e: AST.Expr, typed: TypedProgram) -> AST.ConstDecl[] =
     value_reads(e, typed).consts
 
 // What a value names directly, through operators, field and index reads, calls,
@@ -184,8 +184,8 @@ const_reads :: fn(e: AST.Expr, typed: TypedProgram) -> AST.ConstDecl![] =
 // omitted fields take their defaults (`field_defaults.vader`). A read under any
 // other form is typed on demand instead (`settle_const_read`).
 ValueReads :: struct {
-    consts: AST.ConstDecl![]! = []
-    literals: AST.StructLitExpr[]! = []
+    consts: AST.ConstDecl[] = []
+    literals: AST.StructLitExpr[] = []
 }
 
 value_reads :: fn(e: AST.Expr, typed: TypedProgram) -> ValueReads {

@@ -20,21 +20,21 @@ Counter :: struct {
 }
 
 Holder :: struct {
-    items: i32[]!
+    items: i32[]
 }
 
 Row :: struct {
-    cells: i32[]!
+    cells: i32[]
 }
 
 // Hands its argument back, so a receiver evaluated twice would still write it.
-pick :: fn(c: Counter) -> Counter! {
+pick :: fn(c: Counter) -> Counter {
     println("pick")
     return c
 }
 
 Cell :: struct {
-    slots: i32[]!
+    slots: i32[]
 }
 
 Cell implements Index<usize, i32> {
@@ -48,17 +48,17 @@ Cell implements IndexSet<usize, i32> {
 }
 
 // The same write through a type-param bound : a virtual `at` then `set_at`.
-bump_nth :: fn<C: Index<usize, i32> & IndexSet<usize, i32>!>(c: C, i: usize) {
+bump_nth :: fn<C: Index<usize, i32> & IndexSet<usize, i32>>(c: C, i: usize) {
     c[slot(i)] += 100
 }
 
 // Its read is an `at` call, so a place under it evaluates it once.
 Shelf :: struct {
-    items: Counter![]
+    items: Counter[]
 }
 
-Shelf implements Index<usize, Counter!> {
-    at :: fn(self, i: usize) -> Counter! {
+Shelf implements Index<usize, Counter> {
+    at :: fn(self, i: usize) -> Counter {
         println("at ${i}")
         return self.items[i]
     }
@@ -68,7 +68,7 @@ Shelf implements Index<usize, Counter!> {
 // compound form, so it too evaluates the index once.
 Stepper :: trait {
     step :: fn(self) -> i32
-    advance :: fn(self, xs: i32[]!) -> void {
+    advance :: fn(self, xs: i32[]) -> void {
         xs[slot(0)] += self.step()
     }
 }
@@ -107,7 +107,7 @@ main :: fn() -> i32 {
     cell :: Cell { .slots = [1, 2, 3] }
     cell[slot(2)] -= 1
     println("cell = ${cell[2]}")
-    bump_nth<Cell!>(cell, 0)
+    bump_nth<Cell>(cell, 0)
     println("bounded = ${cell[0]}")
 
     // The rhs rebinds the index through a closure : the write still lands on the

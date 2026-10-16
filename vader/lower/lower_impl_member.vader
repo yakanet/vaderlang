@@ -47,7 +47,7 @@ is_identity_member :: fn(m: FnDecl) -> bool {
 /// `LoweredCall` exactly as before. The single hook every "resolve impl member +
 /// build call" site should route through (P2 will extend it to general
 /// expression bodies via value-substitution).
-build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr! {
+build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr {
     // Identity uses `self` exactly once, so returning the (already-lowered)
     // receiver evaluates it once — no temp / double-eval concern.
     if member.is_identity && args.len() == 1 { return args[0] }
@@ -329,7 +329,7 @@ virtual_call :: fn(
     type: Type,
     span: Span,
     param_types: Type[] = [],
-) -> LoweredVirtualCall! {
+) -> LoweredVirtualCall {
     ctx.project.virtually_dispatched_traits.add(trait_key)
     surface_array_variants(ctx, type_of(receiver), trait_key, method)
     return LoweredVirtualCall {
@@ -403,7 +403,7 @@ type_surface_name :: fn(t: Type) -> string = match t {
 /// through `try_into` ; the lowered arg is then handed back verbatim only when
 /// the cast is a true identity — unwrapping a distinct still stamps its target,
 /// see `emit_value_cast`.
-try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr! | null {
+try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     if call.args.len() != 1 { return null }
     if call.callee !is IdentExpr && ctx.types.expr_type(call.callee) is TypeMetaType {
         return emit_value_cast(ctx, call, type)
@@ -435,7 +435,7 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
 /// by the direct-ident path (`try_lower_cast_call`) and the namespace path
 /// (`nsM.T(value)` in `try_lower_namespace_call`). The caller has already
 /// confirmed this is a cast (type-shaped callee / TypeMetaType) with one arg.
-emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr! {
+emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     // The cast itself calls nothing ; an `into` it runs is its value's site.
     observe_no_call(ctx, call, .Call, "cast")
     // The checked type, not the lowered one : a variant literal lowers to its

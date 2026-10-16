@@ -15,12 +15,6 @@
 // compiler. Stopping at the type-checker is the whole point, not an
 // optimisation. `cargo check` draws the line in the same place.
 //
-// ⚠️ `--target` is effectively REQUIRED on code that uses `@target`, until the
-// reseed lands. With no flag there is no target, so nothing selects and every
-// body of a group survives — which then collides as T3053 on perfectly valid
-// code. The default ("this machine") needs `host_target()`, hence `current_os()`,
-// an intrinsic the committed seed does not know. TODO tracks it with the rest.
-//
 // Why not `dump --stage=typed-ast`: that is an INSPECTION tool. It prints the
 // AST on stdout and exits 0 whatever the diagnostics say, deliberately — you
 // want to see the tree despite the errors. A gate wants the opposite: nothing on

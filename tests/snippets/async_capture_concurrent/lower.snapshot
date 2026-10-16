@@ -199,9 +199,9 @@
                                         __self_2 :__asyncstate_snippet_2!
                                     value:
                                       cast → Async<Any>!
-                                        call :Async<null>!
+                                        call :Async<null>
                                           callee:
-                                            sleep :fn(i64) -> Async<null>!
+                                            sleep :fn(i64) -> Async<null>
                                           arg0:
                                             int(1) :i64
                                   assign
@@ -303,7 +303,7 @@
           __self_2 :__asyncstate_snippet_2!
       value:
         int(-1) :i32
-  struct __asyncstate_snippet_3 { s0: i32[]!, s1: i32[]!, s2: i32[]!, s3: usize, s4: usize, s5: i32, awaited: Async<Any>!, state: i32 }
+  struct __asyncstate_snippet_3 { s0: i32[], s1: i32[], s2: i32[], s3: usize, s4: usize, s5: i32, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_3$Async$resume(self: __asyncstate_snippet_3!) -> i32 | Suspended!
     loop :dispatch$
       if :void
@@ -404,7 +404,7 @@
                             value:
                               index :i32
                                 on:
-                                  .s2 :i32[]!
+                                  .s2 :i32[]
                                     __self_6 :__asyncstate_snippet_3!
                                 ix:
                                   .s4 :usize
@@ -473,10 +473,10 @@
                             then:
                               assign
                                 target:
-                                  .s2 :i32[]!
+                                  .s2 :i32[]
                                     __self_6 :__asyncstate_snippet_3!
                                 value:
-                                  .s1 :i32[]!
+                                  .s1 :i32[]
                                     __self_6 :__asyncstate_snippet_3!
                               assign
                                 target:
@@ -508,10 +508,10 @@
                                 then:
                                   assign
                                     target:
-                                      .s1 :i32[]!
+                                      .s1 :i32[]
                                         __self_6 :__asyncstate_snippet_3!
                                     value:
-                                      .s0 :i32[]!
+                                      .s0 :i32[]
                                         __self_6 :__asyncstate_snippet_3!
                                   assign
                                     target:
@@ -545,10 +545,10 @@
                                         else:
                                           assign
                                             target:
-                                              .s0 :i32[]!
+                                              .s0 :i32[]
                                                 __self_6 :__asyncstate_snippet_3!
                                             value:
-                                              cast → i32[]!
+                                              cast → i32[]
                                                 __resumed_7 :Any | Suspended!
                                           assign
                                             target:
@@ -572,9 +572,9 @@
                                                 __self_6 :__asyncstate_snippet_3!
                                             value:
                                               cast → Async<Any>!
-                                                call :Async<i32[]!>!
+                                                call :Async<i32[]>
                                                   callee:
-                                                    std_async$join_all__i32 :Async<i32[]!>!
+                                                    std_async$join_all__i32 :Async<i32[]>
                                                   arg0:
                                                     array :Async<i32>![]
                                                       call :Async<i32>!

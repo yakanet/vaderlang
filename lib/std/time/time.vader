@@ -62,7 +62,7 @@ FILETIME_TO_UNIX_MS: i64: 11_644_473_600_000
 
 @target(.Windows)
 now_unix_ms :: fn() -> i64 {
-    ft: i64[]! = [0]
+    ft: i64[] = [0]
     get_system_time_precise_as_file_time(ft)
     // 100-ns ticks -> ms, then rebase. Dividing first is exact: the offset is a
     // whole number of milliseconds.
@@ -84,11 +84,11 @@ monotonic_ns :: fn() -> i64 {
 
 @target(.Windows)
 monotonic_ns :: fn() -> i64 {
-    freq: i64[]! = [0]
+    freq: i64[] = [0]
     if !query_performance_frequency(freq) || freq[0] == 0 {
         return 0
     }
-    counter: i64[]! = [0]
+    counter: i64[] = [0]
     if !query_performance_counter(counter) {
         return 0
     }

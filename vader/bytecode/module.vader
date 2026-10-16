@@ -39,10 +39,10 @@ export BcFunction :: struct {
     name: string
     is_main: bool
     signature: BcSignature
-    locals: BcLocal[]!
-    body: Op[]!
-    debug: (DebugPos | null)[]!
-    jump_table: i32[]!
+    locals: BcLocal[]
+    body: Op[]
+    debug: (DebugPos | null)[]
+    jump_table: i32[]
     /// The pc each op of `body` had as emitted, when the VM rewrote the body
     /// before running it (`vader/vm/inline_leaf.vader`) ; empty when `body` is as
     /// emitted. Trap messages name that pc, the one `vader dump` shows.
@@ -213,7 +213,7 @@ export VtableEntry :: struct {
 /// One `(trait, method) → entries[]` row of the vtable table.
 export VtableRow :: struct {
     key: string                      // "<trait_key>.<method>", `std/core.Display.to_string`
-    entries: VtableEntry[]!
+    entries: VtableEntry[]
 }
 
 /// Top-level holder. Read-only after construction.

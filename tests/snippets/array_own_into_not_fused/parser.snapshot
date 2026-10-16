@@ -257,20 +257,17 @@
       "traitName": "Into",
       "traitArgs": [
         {
-          "kind": "MutableTypeExpr",
-          "inner": {
-            "kind": "GenericInstExpr",
-            "callee": {
+          "kind": "GenericInstExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "Iterator"
+          },
+          "typeArgs": [
+            {
               "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
-                "kind": "IdentExpr",
-                "name": "Mon"
-              }
-            ]
-          }
+              "name": "Mon"
+            }
+          ]
         }
       ],
       "members": [
@@ -288,20 +285,17 @@
             }
           ],
           "returnType": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "Iterator"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "Iterator"
-              },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "Mon"
-                }
-              ]
-            }
+                "name": "Mon"
+              }
+            ]
           },
           "body": {
             "kind": "BlockExpr",
@@ -343,20 +337,17 @@
       "traitName": "Into",
       "traitArgs": [
         {
-          "kind": "MutableTypeExpr",
-          "inner": {
-            "kind": "GenericInstExpr",
-            "callee": {
+          "kind": "GenericInstExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "Iterator"
+          },
+          "typeArgs": [
+            {
               "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
-                "kind": "IdentExpr",
-                "name": "Label"
-              }
-            ]
-          }
+              "name": "Label"
+            }
+          ]
         }
       ],
       "members": [
@@ -374,20 +365,17 @@
             }
           ],
           "returnType": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "Iterator"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "Iterator"
-              },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "Label"
-                }
-              ]
-            }
+                "name": "Label"
+              }
+            ]
           },
           "body": {
             "kind": "BlockExpr",
@@ -538,20 +526,17 @@
       "traitName": "Into",
       "traitArgs": [
         {
-          "kind": "MutableTypeExpr",
-          "inner": {
-            "kind": "GenericInstExpr",
-            "callee": {
+          "kind": "GenericInstExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "Iterator"
+          },
+          "typeArgs": [
+            {
               "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
-                "kind": "IdentExpr",
-                "name": "Pt"
-              }
-            ]
-          }
+              "name": "Pt"
+            }
+          ]
         }
       ],
       "members": [
@@ -569,20 +554,17 @@
             }
           ],
           "returnType": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "Iterator"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "Iterator"
-              },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "Pt"
-                }
-              ]
-            }
+                "name": "Pt"
+              }
+            ]
           },
           "body": {
             "kind": "BlockExpr",

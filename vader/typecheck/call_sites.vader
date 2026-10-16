@@ -118,22 +118,22 @@ export CallRole :: enum {
 export CallSites :: struct {
     /// The calls written in each function, by its declaration's id. A lambda's are
     /// its enclosing function's, whose instances it shares.
-    calls_in_fn: MutableMap<usize, usize[]!>! = MutableMap<usize, usize[]!> {}
-    calls: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
-    operators: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
-    index_reads: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
-    index_writes: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
-    conversions: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
-    iterator_conversions: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
-    iterator_steps: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
-    displays: MutableMap<usize, Callee>! = MutableMap<usize, Callee> {}
+    calls_in_fn: MutableMap<usize, usize[]> = MutableMap<usize, usize[]> {}
+    calls: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    operators: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    index_reads: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    index_writes: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    conversions: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    iterator_conversions: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    iterator_steps: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    displays: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
 }
 
 /// The table of the sites playing `role`.
 ///
 /// @param sites  a module's sites (`TypedProgram.call_sites`).
 /// @param role   the part the sites play.
-export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<usize, Callee>! = match role {
+export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<usize, Callee> = match role {
     .Call       -> sites.calls
     .Operator   -> sites.operators
     .IndexRead  -> sites.index_reads

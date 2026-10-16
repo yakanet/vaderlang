@@ -26,7 +26,7 @@ Holder :: struct { l: Label }
 
 fallback :: fn(x: Label | null) -> Label = x ?? Celsius { .v = 4 }
 
-labels :: fn() -> Iterator<Label>! {
+labels :: fn() -> Iterator<Label> {
     yield Celsius { .v = 5 }
 }
 

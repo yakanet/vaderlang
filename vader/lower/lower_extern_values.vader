@@ -58,7 +58,7 @@ lower_extern_through_values :: fn(
     fn_decl: FnDecl,
     params: LoweredParam[],
     return_type: Type,
-) -> LoweredFnDecl! {
+) -> LoweredFnDecl {
     ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type)
     span :: fn_decl.span
     import_symbol :: synthetic_symbol(next_synthetic_id(ctx), .Fn, import_mangle(entry.mangled))
@@ -124,7 +124,7 @@ import_mangle :: fn(mangled: string) -> string = "${mangled}\$extern_import"
 crossing_width :: fn(e: EnumType) -> string = e.written_width ?? value_element_width(e.values)
 
 // `return call`, or `call` alone when nothing comes back.
-forwarding_block :: fn(call: LoweredExpr, return_type: Type, span: Span) -> LoweredBlock! {
+forwarding_block :: fn(call: LoweredExpr, return_type: Type, span: Span) -> LoweredBlock {
     if is_void(return_type) {
         return LoweredBlock {
             .span = span,

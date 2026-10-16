@@ -72,8 +72,8 @@ Child :: struct {
     in_use:    bool  = false
     done:      bool  = false
     exit_code: i32   = 0
-    out:       u8[]! = []
-    err:       u8[]! = []
+    out:       u8[] = []
+    err:       u8[] = []
     proc:      i64   = 0
     out_h:     i64   = -1
     err_h:     i64   = -1
@@ -81,11 +81,9 @@ Child :: struct {
     err_eof:   bool  = false
 }
 
-// The elements are READ-ONLY: a mutable module const may carry the marker on the
-// array level only (T3076), because its elements are emitted as static storage.
-// So a slot is updated by REPLACING it rather than by writing a field. The
-// captured buffers survive that: `out` and `err` carry their own `!`, so the
-// drain appends through a read-only `Child` without the struct being writable.
+// The children `spawn` started, by handle. A slot is replaced as a whole when its
+// state changes (`with_eof`, `finished`) ; the drain appends to `out` and `err` in
+// place.
 CHILDREN: Child[]!: []
 
 // Windows handles, three words per child — process, stdout read end, stderr read
@@ -256,7 +254,7 @@ close_pair :: fn(fds: i32[]) -> void {
 drain_pipe :: fn(child: i64, which: usize, into: u8[]) -> bool
 
 @target(.Linux, .Darwin)
-drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool {
+drain_pipe :: fn(child: i64, which: usize, into: u8[]) -> bool {
     c :: CHILDREN[usize(child)]
     fd :: if which == 1 { i32(c.out_h) } else { i32(c.err_h) }
     chunk: u8[]: [0] * DRAIN_CHUNK
@@ -329,10 +327,8 @@ spawn_poll :: fn(handle: i64) -> i32 {
     return code
 }
 
-/// The same slot with its two EOF flags refreshed.
-///
-/// A slot is replaced rather than written into — see `CHILDREN` — and this is
-/// the only field pair a poll changes while the child is still alive.
+/// The same slot with its two EOF flags refreshed: the only field pair a poll
+/// changes while the child is still alive.
 ///
 /// @param c        the slot as it stands.
 /// @param out_eof  whether stdout is drained and closed.
@@ -449,7 +445,7 @@ spawn_start :: fn(argv: string[]) -> i64 {
 ///
 /// @param argv  the words.
 /// @return      the command line, NUL-terminated.
-command_line_bytes :: fn(argv: string[]) -> u8[]! {
+command_line_bytes :: fn(argv: string[]) -> u8[] {
     out: u8[]: []
     for i in 0..<argv.len() {
         if i > 0 {
@@ -529,7 +525,7 @@ needs_quoting :: fn(word: u8[]) -> bool {
 }
 
 @target(.Windows)
-drain_pipe :: fn(child: i64, which: usize, into: u8[]!) -> bool {
+drain_pipe :: fn(child: i64, which: usize, into: u8[]) -> bool {
     h :: win_handle(child, which)
     chunk: u8[]: [0] * DRAIN_CHUNK
     avail: u32[]: [0]
@@ -711,7 +707,7 @@ SpawnAsync implements Async<ProcessResult | ProcessError> {
 /// @return       an awaitable completing with the `ProcessResult`.
 /// @error        `ProcessError` on launch failure, a killing signal, or empty
 ///               `argv`.
-export spawn_async :: fn(argv: string[]) -> Async<ProcessResult | ProcessError>! =
+export spawn_async :: fn(argv: string[]) -> Async<ProcessResult | ProcessError> =
     SpawnAsync { .argv = argv }
 
 /// Run `argv[0]` with `argv[1..]`, BLOCK until exit, and return the exit code

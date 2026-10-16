@@ -19,7 +19,7 @@ AST :: import "toolchain/ast"
 export infer_lambda :: fn(
     e: AST.LambdaExpr, expected: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     expected_fn: FnType | null = null
     match expected {

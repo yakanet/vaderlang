@@ -95,15 +95,14 @@
 [20:17-20:20] ident          "i32"
 [20:20-20:21] lbracket       "["
 [20:21-20:22] rbracket       "]"
-[20:22-20:23] bang           "!"
-[20:24-20:25] assign         "="
-[20:26-20:27] lbracket       "["
-[20:27-20:28] int_literal    "1" =1n
-[20:28-20:29] comma          ","
-[20:30-20:31] int_literal    "2" =2n
-[20:31-20:32] comma          ","
-[20:33-20:34] int_literal    "3" =3n
-[20:34-20:35] rbracket       "]"
+[20:23-20:24] assign         "="
+[20:25-20:26] lbracket       "["
+[20:26-20:27] int_literal    "1" =1n
+[20:27-20:28] comma          ","
+[20:29-20:30] int_literal    "2" =2n
+[20:30-20:31] comma          ","
+[20:32-20:33] int_literal    "3" =3n
+[20:33-20:34] rbracket       "]"
 [21:1-21:1  ] newline        "\n"
 [22:1-22:5  ] ident          "main"
 [22:6-22:8  ] decl_const     "::"

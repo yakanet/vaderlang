@@ -280,7 +280,7 @@ GenSourceBinding :: struct {
     loop_id: usize          // the loop's `ForStmt.id`, in the generator's module
     loopvar: Symbol         // the loop's binding variable
     inner:   AST.BlockExpr  // the loop body (contains the yield)
-    prelude: AST.Stmt![]     // state `let`s ahead of this loop (a counter, a seen-set)
+    prelude: AST.Stmt[]     // state `let`s ahead of this loop (a counter, a seen-set)
 }
 
 // The inlined body of a generator combinator layer, carried on `IterChain`.
@@ -295,8 +295,8 @@ GenComboLayer :: struct {
     arg_expr:    AST.Expr | null // the call's non-self DATA argument (map's `f`, …) ; null as above
     arg_slot:    Type | null     // the DATA param's type under `subst`, its argument's slot ; null as above
     output_elem: Type            // the combinator's yielded element type
-    instance:    InlineInstance!    // the names this layer's body lowers under
-    prelude:     AST.Stmt![]      // state `let`s ahead of the primary source loop
+    instance:    InlineInstance    // the names this layer's body lowers under
+    prelude:     AST.Stmt[]      // state `let`s ahead of the primary source loop
     // Additional source loops beyond the primary `self` loop, in body order —
     // one per extra source param (`chain`'s `other`). Empty for every single-
     // source combinator (map / filter / take / skip / indexed / flat_map).
@@ -417,7 +417,7 @@ GenSourceLoop :: struct {
     loop_id:      usize
     loopvar_span: Span
     inner:        AST.BlockExpr
-    prelude:      AST.Stmt![]
+    prelude:      AST.Stmt[]
 }
 
 // Split a generator combinator body into its ordered source loops. Each top-level
@@ -524,8 +524,8 @@ emit_fused_gen_combinator :: fn(
     chain: IterChain,
     outer_span: Span,
     template: BodyTemplate,
-    recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
-) -> LoweredStmt![] {
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredStmt[] {
     src :: chain.source
     layer :: chain.gen_layer
     if src is null { return [] }
@@ -561,8 +561,8 @@ emit_fused_gen_combinator :: fn(
 // fused source loop binding the loop var to each element.
 fuse_source_loop :: fn(
     ctx: FnLowerCtx, gen_ctx: FnLowerCtx, binding: GenSourceBinding,
-    outer_span: Span, span: Span, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
-) -> LoweredStmt![] {
+    outer_span: Span, span: Span, recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredStmt[] {
     // The loop over the source is the source's consumer: its own jumps land in
     // the source's code.
     gen_ctx.jump_frames.push(chain_jump_frame(binding.loop_id, binding.source))
@@ -603,7 +603,7 @@ GenSourceCall :: struct {
     subst:     Substitution
     /// The call's arguments in parameter order — a UFCS receiver first.
     args:      AST.Expr[]
-    instance:  InlineInstance!
+    instance:  InlineInstance
 }
 
 // `call` as a chain source when it calls a generator with every parameter given
@@ -728,7 +728,7 @@ gen_source_subst :: fn(ctx: FnLowerCtx, target: CallTarget, call: AST.CallExpr) 
 // parameter's slot as a call would: a `T[]` reaching an `Iterator<T>` parameter
 // is read through `Iterator.next` by the body, so it must arrive wrapped.
 bind_gen_source_operands :: fn(
-    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx!, AST.Expr) -> LoweredExpr!,
+    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     out: LoweredStmt[],
 ) -> IterChain {
     gs :: chain.gen_source ?? return chain
@@ -743,7 +743,7 @@ bind_gen_source_operands :: fn(
 
 // The generator's body lowered in its own ctx — its module, its instance — with
 // `template` installed as the `yield` sink.
-emit_fused_gen_source :: fn(ctx: FnLowerCtx, chain: IterChain, template: BodyTemplate) -> LoweredStmt![] {
+emit_fused_gen_source :: fn(ctx: FnLowerCtx, chain: IterChain, template: BodyTemplate) -> LoweredStmt[] {
     gs :: chain.gen_source ?? panic(UNBOUND_CHAIN)
     body :: gs.decl.body ?? panic("generator source: the generator has no body")
     gen_ctx :: inline_gen_ctx(ctx, gs.decl, gs.owner, gs.subst, gs.instance, template, chain.span)
@@ -756,7 +756,7 @@ emit_fused_gen_source :: fn(ctx: FnLowerCtx, chain: IterChain, template: BodyTem
 inline_gen_ctx :: fn(
     ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram, subst: Substitution,
     instance: InlineInstance, template: BodyTemplate, span: Span,
-) -> FnLowerCtx! {
+) -> FnLowerCtx {
     gen_ctx :: instance_ctx(ctx, decl, owner, subst, instance)
     gen_ctx.gen_inline_sink = build_gen_sink(
         ctx, template.pattern, template.binding_symbol, template.binding_name,

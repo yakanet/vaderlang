@@ -977,7 +977,7 @@ tokenize_agg :: fn(s: string) -> string[] {
 /// The `.virt` carries only ValType names ; `param_types` / `result_type`
 /// (BcType indices) are reconstructed via `primitive_index_for` — exact for
 /// primitive slots, `0` for ref/any (which `c_emit` doesn't tag).
-parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature! {
+parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
     open :: line.index_of('(', 0)
     close :: line.index_of(')', 0)
     params: bc.ValType[]: []
@@ -1096,9 +1096,8 @@ reduce_main_index :: fn(funcs: bc.BcFunction[]) -> i32 {
 
 // One header per pool entry, stamped with the type_id its `data.const` sites read
 // it at (`type_ids`, from `bc.data_pool_type_ids`) — or `-1` for a writable entry,
-// which then never matches a site and gets a fresh header per read. The `!` on the
-// element is storage: `exec` pushes a read-only entry's header onto `Frame.stack`.
-reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[], type_ids: i32[]) -> ArrayVal![] {
+// which then never matches a site and gets a fresh header per read.
+reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[], type_ids: i32[]) -> ArrayVal[] {
     out: ArrayVal[]: []
     for i in 0..<entries.len() {
         e :: entries[i]
@@ -1123,7 +1122,7 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[], type_ids: 
 // Materialise one recursive baked value into a VM `Value`. Struct identity is
 // resolved from `symbol_id` against the module type table ; nested arrays carry
 // type_id 0 (the VM is loosely typed — field access reads positionally).
-bc_value_to_vm :: fn(v: bc.BcDataValue, types: bc.BcType[]) -> Value! {
+bc_value_to_vm :: fn(v: bc.BcDataValue, types: bc.BcType[]) -> Value {
     if v is bc.BcValStr { return StringVal(v.value) }
     if v is bc.BcValPrim { return value_from_bits(v.kind, v.bits) }
     if v is bc.BcValStruct {
@@ -1152,7 +1151,7 @@ type_id_for_symbol :: fn(types: bc.BcType[], symbol_id: i32) -> i32 {
 // `virt_reader::read_data_item`, reading from the materialised `u64` rather than
 // a hex byte slice. f32/f64 bit-cast the low bits (f32 held in an `F64Val`, as
 // elsewhere in the VM) ; `Boxed` never appears in a primitive data pool.
-value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value! {
+value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value {
     if kind == .U8   { return I32Val(i32(bits & 0xff)) }
     if kind == .I8   {
         b :: bits & 0xff

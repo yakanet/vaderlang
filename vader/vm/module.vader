@@ -24,8 +24,8 @@ export VmState :: struct {
     /// `bc.data_pool`. A read-only entry's header is stamped with the type_id its
     /// `data.const` sites use and handed out as is — nothing writes through a
     /// read-only array. A writable entry carries `-1` and gets a fresh header per
-    /// read. The `!` on the element is storage, as on `Frame.stack`.
-    data_pool:  ArrayVal![]
+    /// read.
+    data_pool:  ArrayVal[]
     /// Entry fn's index in `bc.functions`.
     main_index: i32
     /// The `string[]` ArrayType index — stamped onto every host-produced string

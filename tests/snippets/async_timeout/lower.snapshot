@@ -199,9 +199,9 @@
                                         __self_2 :__asyncstate_snippet_2!
                                     value:
                                       cast → Async<Any>!
-                                        call :Async<null>!
+                                        call :Async<null>
                                           callee:
-                                            sleep :fn(i64) -> Async<null>!
+                                            sleep :fn(i64) -> Async<null>
                                           arg0:
                                             int(100) :i64
                                   assign
@@ -487,9 +487,9 @@
                                             __self_1 :__asyncstate_snippet_3!
                                         value:
                                           cast → Async<Any>!
-                                            call :Async<string | TimeoutError>!
+                                            call :Async<string | TimeoutError>
                                               callee:
-                                                std_async$timeout__string :Async<string | TimeoutError>!
+                                                std_async$timeout__string :Async<string | TimeoutError>
                                               arg0:
                                                 int(10) :i64
                                               arg1:

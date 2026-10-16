@@ -5,7 +5,7 @@
 module "snippet"
 
 Bump :: trait {
-    bump :: fn(self!) -> void
+    bump :: fn(self) -> void
 }
 
 Remake :: trait {

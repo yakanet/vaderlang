@@ -60,23 +60,23 @@ export NarrowState :: struct {
     /// `narrow_for_binding`, which falls back to the static type when no
     /// narrowing is in effect or the entry's generation is stale. Producers live
     /// in `expr_if.vader`, `match_expr.vader` and `stmt.vader`.
-    bindings: MutableMap<i32, NarrowSlot>! = MutableMap<i32, NarrowSlot> {}
+    bindings: MutableMap<i32, NarrowSlot> = MutableMap<i32, NarrowSlot> {}
 
     /// Per-field narrowed type stack, keyed by `"${receiver_sym_id}#${field_name}"`.
     /// Mirrors `bindings` but for `expr.field` chains: when
     /// `if b.items != null { ... }` activates a narrowing in the then-branch,
     /// `field.vader::infer_field` reads this to return `i32[]` rather than
     /// `i32[] | null`.
-    fields: MutableMap<string, NarrowSlot>! = MutableMap<string, NarrowSlot> {}
+    fields: MutableMap<string, NarrowSlot> = MutableMap<string, NarrowSlot> {}
 
     /// Kill generation per binding slot — bumped by `invalidate_narrow_on_assign`
     /// when a reassignment invalidates the binding's active narrowing. Entries
     /// pushed at an older generation are ignored by `narrow_for_binding`,
     /// including the stacked `prev` values a later `pop_narrow` would restore.
-    kill_gens: MutableMap<i32, i32>! = MutableMap<i32, i32> {}
+    kill_gens: MutableMap<i32, i32> = MutableMap<i32, i32> {}
 
     /// Kill generation per field-chain slot; mirrors `kill_gens` for `fields`.
-    field_kill_gens: MutableMap<string, i32>! = MutableMap<string, i32> {}
+    field_kill_gens: MutableMap<string, i32> = MutableMap<string, i32> {}
 
     /// How many calls `retire_narrowings_across_call` has counted, so a caller can
     /// tell whether checking an expression ran one.
@@ -84,7 +84,7 @@ export NarrowState :: struct {
 
     /// `&&` / `||` nodes whose right operand ran a call : what the left operand
     /// narrowed does not hold past it.
-    calling_right_operands: MutableSet<usize>! = MutableSet<usize> {}
+    calling_right_operands: MutableSet<usize> = MutableSet<usize> {}
 }
 
 

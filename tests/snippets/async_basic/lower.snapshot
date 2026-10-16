@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$double(x: i32) -> Async<i32>!
+  fn snippet$double(x: i32) -> Async<i32>
     ~>
       Ready<i32>! {
         v:
@@ -157,9 +157,9 @@
                                 __self_1 :__asyncstate_snippet_0!
                             value:
                               cast → Async<Any>!
-                                call :Async<i32>!
+                                call :Async<i32>
                                   callee:
-                                    double :fn(i32) -> Async<i32>!
+                                    double :fn(i32) -> Async<i32>
                                   arg0:
                                     .s0 :i32
                                       __self_1 :__asyncstate_snippet_0!

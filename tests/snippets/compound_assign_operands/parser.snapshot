@@ -108,13 +108,10 @@
         {
           "name": "items",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "i32"
             }
           },
           "visibility": "public",
@@ -132,13 +129,10 @@
         {
           "name": "cells",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "i32"
             }
           },
           "visibility": "public",
@@ -164,11 +158,8 @@
         }
       ],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "IdentExpr",
-          "name": "Counter"
-        }
+        "kind": "IdentExpr",
+        "name": "Counter"
       },
       "body": {
         "kind": "BlockExpr",
@@ -219,13 +210,10 @@
         {
           "name": "slots",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "i32"
             }
           },
           "visibility": "public",
@@ -416,24 +404,21 @@
               ]
             },
             "right": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "GenericInstExpr",
-                "callee": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "IndexSet"
+              },
+              "typeArgs": [
+                {
                   "kind": "IdentExpr",
-                  "name": "IndexSet"
+                  "name": "usize"
                 },
-                "typeArgs": [
-                  {
-                    "kind": "IdentExpr",
-                    "name": "usize"
-                  },
-                  {
-                    "kind": "IdentExpr",
-                    "name": "i32"
-                  }
-                ]
-              }
+                {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              ]
             }
           },
           "isComptimeValue": false
@@ -538,11 +523,8 @@
           "type": {
             "kind": "ArrayTypeExpr",
             "element": {
-              "kind": "MutableTypeExpr",
-              "inner": {
-                "kind": "IdentExpr",
-                "name": "Counter"
-              }
+              "kind": "IdentExpr",
+              "name": "Counter"
             }
           },
           "visibility": "public",
@@ -565,11 +547,8 @@
           "name": "usize"
         },
         {
-          "kind": "MutableTypeExpr",
-          "inner": {
-            "kind": "IdentExpr",
-            "name": "Counter"
-          }
+          "kind": "IdentExpr",
+          "name": "Counter"
         }
       ],
       "members": [
@@ -596,11 +575,8 @@
             }
           ],
           "returnType": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "Counter"
-            }
+            "kind": "IdentExpr",
+            "name": "Counter"
           },
           "body": {
             "kind": "BlockExpr",
@@ -705,13 +681,10 @@
             {
               "name": "xs",
               "type": {
-                "kind": "MutableTypeExpr",
-                "inner": {
-                  "kind": "ArrayTypeExpr",
-                  "element": {
-                    "kind": "IdentExpr",
-                    "name": "i32"
-                  }
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "i32"
                 }
               },
               "defaultValue": null,
@@ -2022,11 +1995,8 @@
                 },
                 "typeArgs": [
                   {
-                    "kind": "MutableTypeExpr",
-                    "inner": {
-                      "kind": "IdentExpr",
-                      "name": "Cell"
-                    }
+                    "kind": "IdentExpr",
+                    "name": "Cell"
                   }
                 ]
               },

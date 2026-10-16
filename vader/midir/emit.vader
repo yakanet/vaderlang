@@ -281,7 +281,7 @@ is_mutable_slot :: fn(t: Type) -> bool = type_grants_mutation(t)
 /// rewritten `body` / `debug` / `jump_table` — a pass can't mutate `f` in place
 /// (Vader structs are by-value). Collapses the identical field-by-field rebuild
 /// each `BcPeepholeOut`-returning pass in Pass 3 would otherwise repeat inline.
-with_peephole_out :: fn(f: BcFunction, out: BcPeepholeOut) -> BcFunction! = BcFunction {
+with_peephole_out :: fn(f: BcFunction, out: BcPeepholeOut) -> BcFunction = BcFunction {
     ...f,
     .body = out.body,
     .debug = out.debug,
@@ -584,7 +584,7 @@ has_receiver :: fn(row: VtableRow, type_index: i32) -> bool {
 // Builds the module's impl table : one BcImplEntry per (struct_type_index,
 // trait_name) seen in the vtable entries. Sole builder — the CFG emit path is
 // the only bytecode emit path there is.
-build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]!>, ctx: EmitterCtx) -> BcImplEntry[] {
+build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]>, ctx: EmitterCtx) -> BcImplEntry[] {
     out: BcImplEntry[]: []
     seen :: MutableMap<string, bool> {}
     for entry in entries {
@@ -652,13 +652,13 @@ PendingBranch :: struct {
 /// Per-fn structurer state.
 FnEmitCfg :: struct {
     fn_: CFGFunction
-    pinned_types_bucket: i32[]!
+    pinned_types_bucket: i32[]
     slot: BcFunction
-    project: EmitterCtx!
+    project: EmitterCtx
     string_index_map: i32[]
     local_to_slot: i32[]
-    scopes: ScopeFrame[]!
-    pending: PendingBranch[]!
+    scopes: ScopeFrame[]
+    pending: PendingBranch[]
     hints: ScheduleHints
     /// When false, the two push helpers store `null` in `slot.debug` instead
     /// of building a `DebugPos` per op — see `EmitOptions.want_debug`. Only

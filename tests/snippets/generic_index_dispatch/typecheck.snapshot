@@ -5,13 +5,13 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         read_nth             :: fn(C, usize) -> i32
   FnDecl         write_nth            :: fn(C, usize, i32) -> void
-  expr 21:39    FieldExpr      :: i32[]!
+  expr 21:39    FieldExpr      :: i32[]
   expr 21:39    IdentExpr      :: Cell
   expr 21:39    IndexExpr      :: i32
   expr 21:50    IdentExpr      :: usize
   expr 26:20    IdentExpr      :: usize
   expr 26:25    IdentExpr      :: i32
-  expr 26:9     FieldExpr      :: i32[]!
+  expr 26:9     FieldExpr      :: i32[]
   expr 26:9     IdentExpr      :: Cell
   expr 26:9     IndexExpr      :: i32
   expr 31:63    IdentExpr      :: C
@@ -21,7 +21,7 @@
   expr 35:5     IdentExpr      :: C
   expr 35:7     IdentExpr      :: usize
   expr 39:13    StructLitExpr  :: Cell!
-  expr 39:29    SeqLitExpr     :: i32[]!
+  expr 39:29    SeqLitExpr     :: i32[]
   expr 42:13    StringLitExpr  :: string
   expr 42:28    IdentExpr      :: Cell!
   expr 42:28    IndexExpr      :: i32
@@ -40,7 +40,7 @@
   expr 47:44    IdentExpr      :: Cell!
   expr 47:5     CallExpr       :: void
   expr 47:5     IdentExpr      :: fn(T) -> void
-  expr 48:22    IdentExpr      :: Cell!
+  expr 48:21    IdentExpr      :: Cell!
   expr 48:5     CallExpr       :: void
   expr 48:5     GenericInstExpr :: fn(C, usize, i32) -> void
   expr 48:5     IdentExpr      :: fn(C, usize, i32) -> void

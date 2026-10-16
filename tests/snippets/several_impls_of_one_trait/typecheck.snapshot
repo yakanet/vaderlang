@@ -36,17 +36,17 @@
   expr 131:34   FieldExpr      :: T
   expr 131:34   FieldExpr      :: fn() -> string
   expr 131:34   IdentExpr      :: Wrap<T>
-  expr 134:39   CallExpr       :: T
-  expr 134:39   FieldExpr      :: fn(string) -> T
+  expr 134:39   CallExpr       :: readonly T
+  expr 134:39   FieldExpr      :: fn(string) -> readonly T
   expr 134:39   IdentExpr      :: T
   expr 134:46   StringLitExpr  :: string
-  expr 141:37   FieldExpr      :: i32[]!
+  expr 141:37   FieldExpr      :: i32[]
   expr 141:37   IdentExpr      :: Sheet
   expr 141:37   IndexExpr      :: i32
   expr 141:48   IdentExpr      :: i32
   expr 146:20   IdentExpr      :: i32
   expr 146:25   IdentExpr      :: i32
-  expr 146:9    FieldExpr      :: i32[]!
+  expr 146:9    FieldExpr      :: i32[]
   expr 146:9    IdentExpr      :: Sheet
   expr 146:9    IndexExpr      :: i32
   expr 151:43   StringLitExpr  :: string
@@ -76,11 +76,11 @@
   expr 180:17   FieldExpr      :: i32
   expr 180:17   IdentExpr      :: Counter
   expr 180:25   DotVariantExpr :: Continuation
-  expr 185:45   CallExpr       :: Iterator<string>!
-  expr 185:45   FieldExpr      :: fn() -> Iterator<string>!
-  expr 185:45   SeqLitExpr     :: string[]!
-  expr 185:46   StringLitExpr  :: string
-  expr 185:51   StringLitExpr  :: string
+  expr 185:44   CallExpr       :: Iterator<string>
+  expr 185:44   FieldExpr      :: fn() -> Iterator<string>
+  expr 185:44   SeqLitExpr     :: string[]!
+  expr 185:45   StringLitExpr  :: string
+  expr 185:50   StringLitExpr  :: string
   expr 193:43   IdentExpr      :: Pile<T>
   expr 197:39   IdentExpr      :: Pile<T>
   expr 19:39    StructLitExpr  :: Vec2!
@@ -116,8 +116,8 @@
   expr 206:5    CallExpr       :: void
   expr 206:5    IdentExpr      :: fn(T) -> void
   expr 207:10   StructLitExpr  :: Grid!
-  expr 207:26   SeqLitExpr     :: i32[]!
-  expr 207:46   SeqLitExpr     :: string[]!
+  expr 207:26   SeqLitExpr     :: i32[]
+  expr 207:46   SeqLitExpr     :: string[]
   expr 207:47   StringLitExpr  :: string
   expr 208:5    IdentExpr      :: Grid!
   expr 209:14   StringLitExpr  :: string
@@ -142,26 +142,26 @@
   expr 212:49   IdentExpr      :: Bag!
   expr 212:5    CallExpr       :: void
   expr 212:5    IdentExpr      :: fn(T) -> void
-  expr 213:10   CallExpr       :: Vec2!
-  expr 213:10   FieldExpr      :: fn(f64) -> Vec2!
+  expr 213:10   CallExpr       :: Vec2
+  expr 213:10   FieldExpr      :: fn(f64) -> Vec2
   expr 213:10   IdentExpr      :: Vec2!
-  expr 214:10   CallExpr       :: Vec2!
-  expr 214:10   FieldExpr      :: fn(string) -> Vec2!
+  expr 214:10   CallExpr       :: Vec2
+  expr 214:10   FieldExpr      :: fn(string) -> Vec2
   expr 214:10   IdentExpr      :: Vec2!
   expr 214:20   StringLitExpr  :: string
   expr 215:13   StringLitExpr  :: string
   expr 215:16   FieldExpr      :: f64
-  expr 215:16   IdentExpr      :: Vec2!
+  expr 215:16   IdentExpr      :: Vec2
   expr 215:23   FieldExpr      :: f64
-  expr 215:23   IdentExpr      :: Vec2!
+  expr 215:23   IdentExpr      :: Vec2
   expr 215:30   CallExpr       :: string
   expr 215:30   IdentExpr      :: fn(T) -> string
-  expr 215:38   IdentExpr      :: Vec2!
+  expr 215:38   IdentExpr      :: Vec2
   expr 215:44   CallExpr       :: string
   expr 215:44   IdentExpr      :: fn(T) -> string
   expr 215:5    CallExpr       :: void
   expr 215:5    IdentExpr      :: fn(T) -> void
-  expr 215:52   IdentExpr      :: Vec2!
+  expr 215:52   IdentExpr      :: Vec2
   expr 216:12   StructLitExpr  :: Mon!
   expr 217:13   CallExpr       :: Tag
   expr 217:13   FieldExpr      :: fn() -> Tag
@@ -207,7 +207,7 @@
   expr 225:5    CallExpr       :: void
   expr 225:5    IdentExpr      :: fn(T) -> void
   expr 226:14   StructLitExpr  :: Sheet!
-  expr 226:31   SeqLitExpr     :: i32[]!
+  expr 226:31   SeqLitExpr     :: i32[]
   expr 227:5    IdentExpr      :: Sheet!
   expr 228:13   StringLitExpr  :: string
   expr 228:16   IdentExpr      :: Sheet!
@@ -252,24 +252,24 @@
   expr 241:9    IdentExpr      :: fn(T) -> void
   expr 26:39    BinaryExpr     :: T
   expr 26:39    IdentExpr      :: T
-  expr 34:37    FieldExpr      :: i32[]!
+  expr 34:37    FieldExpr      :: i32[]
   expr 34:37    IdentExpr      :: Grid
   expr 34:37    IndexExpr      :: i32
   expr 34:48    IdentExpr      :: i32
   expr 38:43    StringLitExpr  :: string
   expr 38:46    IdentExpr      :: string
-  expr 38:51    FieldExpr      :: string[]!
+  expr 38:51    FieldExpr      :: string[]
   expr 38:51    IdentExpr      :: Grid
   expr 38:51    IndexExpr      :: string
   expr 43:20    IdentExpr      :: i32
   expr 43:25    IdentExpr      :: i32
-  expr 43:9     FieldExpr      :: i32[]!
+  expr 43:9     FieldExpr      :: i32[]
   expr 43:9     IdentExpr      :: Grid
   expr 43:9     IndexExpr      :: i32
   expr 49:25    StringLitExpr  :: string
   expr 49:28    IdentExpr      :: string
   expr 49:33    IdentExpr      :: string
-  expr 49:9     FieldExpr      :: string[]!
+  expr 49:9     FieldExpr      :: string[]
   expr 49:9     IdentExpr      :: Grid
   expr 49:9     IndexExpr      :: string
   expr 58:44    BinaryExpr     :: bool
@@ -279,10 +279,10 @@
   expr 62:47    BinaryExpr     :: bool
   expr 62:47    IdentExpr      :: string
   expr 62:52    StringLitExpr  :: string
-  expr 75:35    StructLitExpr  :: Vec2!
-  expr 75:47    IdentExpr      :: f64
-  expr 75:55    IdentExpr      :: f64
-  expr 79:38    StructLitExpr  :: Vec2!
+  expr 75:34    StructLitExpr  :: Vec2!
+  expr 75:46    IdentExpr      :: f64
+  expr 75:54    IdentExpr      :: f64
+  expr 79:37    StructLitExpr  :: Vec2!
   expr 83985:1  StringLitExpr  :: string
   expr 83985:4  CallExpr       :: string
   expr 83985:5  FieldExpr      :: fn() -> string

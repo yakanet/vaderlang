@@ -186,7 +186,7 @@ run_pause_loop :: fn(ctx: PauseCtx, seq_cell: i32[], bps: MutableMap<string, Mut
     // Variables-view expansion registry : `variablesReference` → the vars to
     // return. Scope refs are `frame_id + 1` (see `scopes_body`) ; child refs are
     // minted above the frame range as aggregates are expanded.
-    var_refs :: MutableMap<i32, PauseVar[]!> {}
+    var_refs :: MutableMap<i32, PauseVar[]> {}
     for fi in 0..<ctx.frames.len() { var_refs[i32(fi) + 1] = ctx.frames[fi].locals }
     next_ref :: [i32(ctx.frames.len()) + 1]
     for {
@@ -374,7 +374,7 @@ scopes_body :: fn(frame_id: i32) -> JsonValue {
 // children is itself expandable — mint a fresh reference, register its
 // children, and hand VSCode that reference so a later `variables` call descends.
 // Leaves get `variablesReference: 0`.
-variables_body :: fn(var_refs: MutableMap<i32, PauseVar[]!>, next_ref: i32[], reference: i32) -> JsonValue {
+variables_body :: fn(var_refs: MutableMap<i32, PauseVar[]>, next_ref: i32[], reference: i32) -> JsonValue {
     vars: JsonValue[]: []
     entries :: var_refs[reference]
     if entries != null {

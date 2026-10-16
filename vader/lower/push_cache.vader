@@ -102,7 +102,7 @@ is_fresh_array :: fn(value: LoweredExpr) -> bool {
 // Entering a loop, an array minted OUTSIDE it loses its standing if anything in
 // the body hands it away — the body runs again with that reference still live,
 // where a statement after a non-loop keeps its ordering.
-pc_live_entering :: fn(live: i32[], lp: LoweredLoop) -> i32[]! {
+pc_live_entering :: fn(live: i32[], lp: LoweredLoop) -> i32[] {
     kept: i32[]: []
     for sym in live {
         if !cf_stmt_mentions(lp, sym, CF_ESCAPE_ONLY) {

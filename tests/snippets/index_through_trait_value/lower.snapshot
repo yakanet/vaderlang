@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  struct snippet$Log { lines: string[]! }
+  struct snippet$Log { lines: string[] }
   fn snippet$Log$IndexSet$set_at(self: Log!, key: string, value: i32) -> void
     ~>
       LoweredArrayPush
@@ -54,11 +54,11 @@
     let m: MutableMap<string, i32>! =
       MutableMap<string, i32>! {
         ekeys:
-          array :string[]!
+          array :string[]
         evals:
-          array :i32[]!
+          array :i32[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -248,7 +248,7 @@
     let l: Log! =
       Log! {
         lines:
-          array :string[]!
+          array :string[]
       }
     call :void
       callee:
@@ -293,14 +293,14 @@
           let __p_5: string =
             index :string
               on:
-                .lines :string[]!
+                .lines :string[]
                   l :Log!
               ix:
                 int(0) :i32
           let __p_6: string =
             index :string
               on:
-                .lines :string[]!
+                .lines :string[]
                   l :Log!
               ix:
                 int(3) :i32
@@ -404,11 +404,11 @@
     let wide: MutableMap<i64, i32>! =
       MutableMap<i64, i32>! {
         ekeys:
-          array :i64[]!
+          array :i64[]
         evals:
-          array :i32[]!
+          array :i32[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize

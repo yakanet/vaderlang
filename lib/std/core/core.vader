@@ -57,14 +57,14 @@ export Hash :: trait {
 /// width plus `char` — concrete `+ 1` / codepoint-bump logic lives in each
 /// primitive's `Step` impl instead of being repeated per `Range<T>` impl.
 export Step :: trait {
-    step :: fn(self) -> Self!
+    step :: fn(self) -> Self
 }
 
 /// Explicit deep copy. `clone(x)` (free function) dispatches into this
 /// when `T: Clone` ; primitive types don't need it (value-typed by
 /// default).
 export Clone :: trait {
-    clone :: fn(self) -> Self!
+    clone :: fn(self) -> Self
 }
 
 /// Type-to-type conversion. Two surfaces :
@@ -105,7 +105,7 @@ export Rem :: trait<Rhs = Self, Out = Self> { rem :: fn(self, other: Rhs) -> Out
 /// member : called on the type, `T.zero()` in a body bounded by `T: Zero`.
 export Zero :: trait {
     /// The value `z` for which `z + x == x`.
-    zero :: fn() -> Self!
+    zero :: fn() -> Self
 }
 
 /// Whether `self` is its type's zero, compared with `==`.
@@ -117,7 +117,7 @@ export is_zero :: fn<T: Zero & Equals>(self: T) -> bool = self == T.zero()
 /// static member, like `Zero.zero`.
 export One :: trait {
     /// The value `u` for which `u * x == x`.
-    one :: fn() -> Self!
+    one :: fn() -> Self
 }
 
 /// Bit-level view of a float as its raw IEEE 754 integer pattern. This is NOT a
@@ -161,7 +161,7 @@ export Index :: trait<I, T> {
 }
 /// Indexed write — `a[i] = v`. Symmetric with `Index`.
 export IndexSet :: trait<I, T> {
-    set_at :: fn(self!, i: I, v: T)
+    set_at :: fn(self, i: I, v: T)
 }
 
 /// Membership test. `x in coll` desugars to `coll.contains(x)` ;
@@ -195,7 +195,7 @@ export Continuation :: enum(u8) {
 /// hands over whatever `T` it has rather than manufacturing one, and no consumer
 /// may read it before testing the `Continuation`.
 export Iterator :: trait<T> {
-    next :: fn(self!) -> [T, Continuation]
+    next :: fn(self) -> [T, Continuation]
 }
 
 /// Base trait for every error type usable in `T | Error` returns and the
@@ -235,7 +235,7 @@ export Async :: trait<T> {
     /// yet ready. Synthesised per `async fn` by lowering. The resumed value
     /// is delivered out-of-band (a synthesised erased frame slot the scheduler
     /// sets before each call), so this signature stays source-clean.
-    resume :: fn(self!) -> T | Suspended
+    resume :: fn(self) -> T | Suspended
 
     /// Tear the awaitable down without completing it : run any pending `defer`s
     /// (LIFO), recursively cancel the child it is parked on, and retire it.
@@ -324,8 +324,8 @@ export array_iter :: fn<T>(arr: T[]) -> Iterator<T> {
 // Blanket Into impls live here so the orphan rule passes — Into is owned
 // by std/core, the source shapes (`T[]`, bounded `T`) aren't.
 
-T[] implements<T> Into<Iterator<T>!> {
-    into :: fn(self) -> Iterator<T>! {
+T[] implements<T> Into<Iterator<T>> {
+    into :: fn(self) -> Iterator<T> {
         return array_iter(self)
     }
 }
@@ -352,11 +352,11 @@ T[] implements<T: Equals> Contains<T> {
 /// impl-key (`impl_base_key`), and the lowerer devirtualises BOTH forms to the
 /// `array.repeat` intrinsic, which preserves the preallocation form and shallow
 /// ref-element semantics. The body is the logical repeat fallback for any path the
-/// devirt can't statically reach. The return is a fresh `T[]!` the caller owns.
+/// devirt can't statically reach. The return is a fresh array the caller owns.
 /// Blanket impl (orphan rule : `Mul` is std/core's, `T[]` isn't), mirroring
 /// `Into` / `Contains`.
 T[] implements<T> Mul<usize> {
-    mul :: fn(self, other: usize) -> T[]! {
+    mul :: fn(self, other: usize) -> T[] {
         out: T[]: []
         for _ in 0..<other { out.push_all(self) }
         return out

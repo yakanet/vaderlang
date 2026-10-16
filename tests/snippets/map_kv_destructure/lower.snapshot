@@ -5,11 +5,11 @@
     let m: MutableMap<string, i32>! =
       MutableMap<string, i32>! {
         ekeys:
-          array :string[]!
+          array :string[]
         evals:
-          array :i32[]!
+          array :i32[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -44,11 +44,11 @@
     let sum: i32 = int(0) :i32
     block :void
       let self: MutableMap<string, i32> = m :MutableMap<string, i32>!
-      let keys: string[]! =
-        .ekeys :string[]!
+      let keys: string[] =
+        .ekeys :string[]
           self :MutableMap<string, i32>
-      let values: i32[]! =
-        .evals :i32[]!
+      let values: i32[] =
+        .evals :i32[]
           self :MutableMap<string, i32>
       block :void
         let i: usize = int(0) :usize
@@ -61,13 +61,13 @@
               _0:
                 index :string
                   on:
-                    keys :string[]!
+                    keys :string[]
                   ix:
                     i :usize
               _1:
                 index :i32
                   on:
-                    values :i32[]!
+                    values :i32[]
                   ix:
                     i :usize
             }

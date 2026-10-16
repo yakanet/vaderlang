@@ -21,7 +21,7 @@ import "vader/resolver"
 /// @param scope    the display paths to render, each with its submodules
 ///                 (`module_in_scope`).
 export dump_effects :: fn(summary: EffectSummary, scope: string[]) -> string {
-    by_module :: MutableMap<string, i32[]!> {}
+    by_module :: MutableMap<string, i32[]> {}
     for node in 0..<summary.index.functions.len() {
         path :: summary.index.functions[node].typed.resolved.display_path
         if !module_in_scope(path, scope) {

@@ -5,11 +5,11 @@
     let mu8: MutableMap<u8, i32>! =
       MutableMap<u8, i32>! {
         ekeys:
-          array :u8[]!
+          array :u8[]
         evals:
-          array :i32[]!
+          array :i32[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -203,11 +203,11 @@
     let mu16: MutableMap<u16, i32>! =
       MutableMap<u16, i32>! {
         ekeys:
-          array :u16[]!
+          array :u16[]
         evals:
-          array :i32[]!
+          array :i32[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -370,11 +370,11 @@
     let mi16: MutableMap<i16, i32>! =
       MutableMap<i16, i32>! {
         ekeys:
-          array :i16[]!
+          array :i16[]
         evals:
-          array :i32[]!
+          array :i32[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -537,11 +537,11 @@
     let mc: MutableMap<char, i32>! =
       MutableMap<char, i32>! {
         ekeys:
-          array :char[]!
+          array :char[]
         evals:
-          array :i32[]!
+          array :i32[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -736,11 +736,11 @@
     let mi64: MutableMap<i64, i32>! =
       MutableMap<i64, i32>! {
         ekeys:
-          array :i64[]!
+          array :i64[]
         evals:
-          array :i32[]!
+          array :i32[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -858,11 +858,11 @@
     let mus: MutableMap<usize, i32>! =
       MutableMap<usize, i32>! {
         ekeys:
-          array :usize[]!
+          array :usize[]
         evals:
-          array :i32[]!
+          array :i32[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize

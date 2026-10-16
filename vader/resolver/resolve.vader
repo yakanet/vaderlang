@@ -43,7 +43,7 @@ export ResolvedModule :: struct {
     /// order. Two files may each bind the same name ; a binding's span names its
     /// file.
     import_bindings: Symbol[] = []
-    idents:  MutableMap<u64, Symbol>!
+    idents:  MutableMap<u64, Symbol>
     /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
     /// Consumed by stmt.vader::check_assign to surface T3041.
     immutable_locals: MutableMap<i32, bool>
@@ -57,22 +57,22 @@ export ResolvedModule :: struct {
     /// `fn_overloads[name]` carries every Symbol minted for a given
     /// fn name — only one of which lands in `symbols`. The typecheck
     /// dump iterates this to surface every overload.
-    fn_overloads: MutableMap<string, Symbol[]!>
+    fn_overloads: MutableMap<string, Symbol[]>
     /// `imports_to[sym.id]` follows an ImportBinding symbol to its
     /// concrete exported counterpart. Lets `type_from_expr` resolve
     /// `ParseError` to the real struct symbol on the std/string side
     /// instead of the local import binding. Populated by the
     /// typecheck orchestrator after `wire_imports`.
-    imports_to: MutableMap<i32, Symbol>!
+    imports_to: MutableMap<i32, Symbol>
     /// `alias_types[sym.id]` carries the resolved Type for any
     /// `TypeAlias` symbol (local or imported). Lets `type_from_expr`
     /// expand `Maybe<T>` to `T | null` instead of leaving it as a
     /// placeholder StructType. Populated by the typecheck orchestrator.
-    alias_types: MutableMap<i32, Type>!
+    alias_types: MutableMap<i32, Type>
     /// `alias_decls[sym.id]` carries the `TypeAliasDecl` AST node so
     /// `type_from_expr` can substitute the alias's type-params when
     /// instantiated (e.g. `Maybe(i32)` → `i32 | null`).
-    alias_decls: MutableMap<i32, TypeAliasDecl>!
+    alias_decls: MutableMap<i32, TypeAliasDecl>
     /// `type_param_bounds[type_param_sym.id]` → bound TypeExpr (e.g.
     /// `fn[T: Add]` records the `Add` ident here). Consumed by
     /// `field.vader` so `x.method()` on a bounded TypeParam can
@@ -80,24 +80,24 @@ export ResolvedModule :: struct {
     type_param_bounds: MutableMap<i32, Expr>
     /// R-code diagnostics emitted during body resolution.
     /// Forwarded to the typecheck CLI's `# Diagnostics` block.
-    diags: Diagnostic[]!
+    diags: Diagnostic[]
     /// `Symbol.id → message` for every decl annotated with
     /// `@deprecated("...")`. `expr.vader` reads this when an
     /// IdentExpr references a deprecated decl and emits W0001.
-    deprecated_messages: MutableMap<i32, string>!
+    deprecated_messages: MutableMap<i32, string>
     /// `namespace_sym.id → field_name → Type` for every `P :: import
     /// "..."` namespace binding. Lets `type_from_expr`'s FieldExpr
     /// arm resolve `P.Decl` in type position without needing
     /// TypedProgram. Populated by the typecheck orchestrator after
     /// `namespace_exports` builds. Holds EXPORTED members only.
-    namespace_member_types: MutableMap<i32, MutableMap<string, Type>>!
+    namespace_member_types: MutableMap<i32, MutableMap<string, Type>>
     /// `namespace_sym.id → private-member-name → true` for every
     /// `P :: import "..."` binding : the PRIVATE (non-`export`) members
     /// of the target module. Lets a `P.private` access fire R2008 —
     /// matching the destructured-import check in `wire.vader` — instead
     /// of silently degrading to unresolved. Populated alongside
     /// `namespace_member_types`.
-    namespace_private_members: MutableMap<i32, MutableMap<string, bool>>!
+    namespace_private_members: MutableMap<i32, MutableMap<string, bool>>
 }
 
 export ResolvedProject :: struct {
@@ -110,7 +110,7 @@ export ResolvedProject :: struct {
 /// @param program      the file's program.
 /// @param module_path  the module's id, also its display path.
 /// @param factory      mints the module's symbols.
-export resolve_module :: fn(program: Program, module_path: string, factory: SymbolFactory) -> ResolvedModule! {
+export resolve_module :: fn(program: Program, module_path: string, factory: SymbolFactory) -> ResolvedModule {
     collected :: collect_module_no_index(program, module_path, factory)
     file :: SourceFile {
         .path       = program.file,
@@ -146,7 +146,7 @@ export resolve_module_files :: fn(
     files: SourceFile[], module_path: string, display_path: string, factory: SymbolFactory,
     collected: CollectedModule, name_index: MutableMap<string, LoadedModule>,
     core_seed: MutableMap<string, Symbol>,
-) -> ResolvedModule! {
+) -> ResolvedModule {
     builtins :: make_builtin_scope(factory)
     scopes :: MutableMap<string, FileScope> {}
     programs: Program[]: []
@@ -217,7 +217,7 @@ export file_imports :: fn(collected: CollectedModule, file: string) -> FileImpor
 export file_root_scope :: fn(
     builtins: MutableMap<string, Symbol>, collected: CollectedModule, imports: FileImports,
     name_index: MutableMap<string, LoadedModule>, core_seed: MutableMap<string, Symbol>,
-) -> MutableMap<string, Symbol>! {
+) -> MutableMap<string, Symbol> {
     root :: MutableMap<string, Symbol> {}
     for [name, sym] in builtins { root[name] = sym }
     for [name, sym] in imports.bindings { root[name] = sym }

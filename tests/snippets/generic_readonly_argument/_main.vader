@@ -18,7 +18,7 @@ ORIGIN :: Point { .x = 3 }
 
 show :: fn<T>(v: T) -> i32 = 1
 
-wrap :: fn<T>(v: T) -> Box<T>! = Box<T> { .v = v }
+wrap :: fn<T>(v: T) -> Box<T> = Box<T> { .v = v }
 
 through_param :: fn(p: Point) -> i32 = show(p) + wrap(p).v.x
 

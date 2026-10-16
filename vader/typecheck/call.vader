@@ -50,7 +50,7 @@ pick_overload :: fn(
     initial: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     callee :: c.callee
     if callee !is AST.IdentExpr {
@@ -136,7 +136,7 @@ pick_member_overload :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     field :: c.callee
     if field !is AST.FieldExpr {
@@ -180,7 +180,7 @@ pick_member_index :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> usize | null {
     if c.args.len() > 0 {
         arg0 :: check_expr_fn(c.args[0].value, null, typed, [])
@@ -300,11 +300,7 @@ export overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
         return 0
     }
     if param0 is UnionType {
-        // `const` earns its keep here : the two branches join a read-only field and
-        // a fresh literal, and an inferred `::` join is not a plain array — the
-        // for-in below then falls to the iterator path and the lowerer panics on an
-        // unresolved `next`. Pinning the slot read-only keeps it one array type.
-        arg_vars: Type[]: if arg0 is UnionType as au { au.variants } else { [arg0] }
+        arg_vars :: union_variants(arg0) ?? [arg0]
         score: i32 = 0
         for av in arg_vars {
             for pv in param0.variants {
@@ -426,7 +422,7 @@ seed_explicit_type_args :: fn(
 // express `...rest`), or an error —
 // T3003 too many / positional-after-named, T3004 unknown name, T3005 missing
 // required, T3025 a named arg duplicating a filled slot.
-normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnostic[]) -> AST.CallArg[]! | null {
+normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnostic[]) -> AST.CallArg[] | null {
     for pr in params {
         if pr.variadic {
             return null
@@ -860,7 +856,7 @@ check_generic_arg :: fn(
     held: MutableSet<i32> | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     param_ty :: substitute_map(callee_ty.params[i], bindings)
     arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
@@ -884,7 +880,7 @@ export infer_call :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     // The calls nested in the callee's target and in the arguments each set
     // `callee_field_id` in turn : each puts back the one it found, so the member
@@ -900,7 +896,7 @@ type_call :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     if c.callee is AST.FieldExpr {
         typed.callee_field_id = c.callee.id
@@ -1258,7 +1254,7 @@ cast_call_target :: fn(
     c: AST.CallExpr,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     target :: type_from_expr(c.callee, typed.resolved, diags)
     // The cast itself calls nothing ; an `into` it runs is its value's site.
@@ -1632,7 +1628,7 @@ check_args_no_expected :: fn(
     c: AST.CallExpr,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     for a in c.args {
         check_expr_fn(a.value, null, typed, diags)
@@ -1666,7 +1662,7 @@ call_check_stub :: fn(
 // Parse + resolve + check `src`, then find the first `CallExpr` reached
 // by a depth-first walk of the last decl's body via the shared
 // `find_first_in_block` walker.
-first_call_in_last_fn :: fn(src: string) -> CallFixture! {
+first_call_in_last_fn :: fn(src: string) -> CallFixture {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
@@ -1691,7 +1687,7 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture! {
     return CallFixture { .typed = result.typed, .call = null }
 }
 
-accept_call :: fn(e: AST.Expr) -> AST.Expr! | null {
+accept_call :: fn(e: AST.Expr) -> AST.Expr | null {
     if e is AST.CallExpr {
         return e
     }
@@ -1699,8 +1695,8 @@ accept_call :: fn(e: AST.Expr) -> AST.Expr! | null {
 }
 
 CallFixture :: struct {
-    typed: TypedProgram!
-    call: AST.CallExpr! | null
+    typed: TypedProgram
+    call: AST.CallExpr | null
 }
 
 @test

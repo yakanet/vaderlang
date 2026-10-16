@@ -18,9 +18,9 @@
   expr 26:28    StringLitExpr  :: string
   expr 26:32    FieldExpr      :: i32
   expr 26:32    IdentExpr      :: Mon
-  expr 31:44    CallExpr       :: __genstate_labels<Label>!
-  expr 31:44    IdentExpr      :: fn(Mon[]) -> Iterator<Label>
-  expr 31:51    IdentExpr      :: Mon![]
+  expr 31:43    CallExpr       :: __genstate_labels<Label>!
+  expr 31:43    IdentExpr      :: fn(Mon[]) -> Iterator<Label>
+  expr 31:50    IdentExpr      :: Mon![]
   expr 36:14    IdentExpr      :: Iterator<Mon>
   expr 37:14    FieldExpr      :: i32
   expr 37:14    IdentExpr      :: Mon

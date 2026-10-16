@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$LoadError { reason: string }
-  fn snippet$fetch() -> Async<i32>!
+  fn snippet$fetch() -> Async<i32>
     ~>
       Ready<i32>! {
         v: int(5) :i32
@@ -240,9 +240,9 @@
                                 __self_1 :__asyncstate_snippet_0!
                             value:
                               cast → Async<Any>!
-                                call :Async<i32>!
+                                call :Async<i32>
                                   callee:
-                                    fetch :fn() -> Async<i32>!
+                                    fetch :fn() -> Async<i32>
                           assign
                             target:
                               .state :i32

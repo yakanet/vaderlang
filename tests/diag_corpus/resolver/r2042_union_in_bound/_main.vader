@@ -4,10 +4,10 @@
 module "snippet"
 
 Bump :: trait {
-    bump :: fn(self!) -> void
+    bump :: fn(self) -> void
 }
 
-export poke :: fn<T: Bump! | null>(x: T) -> void {
+export poke :: fn<T: Bump | null>(x: T) -> void {
     x.bump()
 }
 

@@ -148,20 +148,17 @@
         }
       ],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "GenericInstExpr",
-          "callee": {
+        "kind": "GenericInstExpr",
+        "callee": {
+          "kind": "IdentExpr",
+          "name": "Box"
+        },
+        "typeArgs": [
+          {
             "kind": "IdentExpr",
-            "name": "Box"
-          },
-          "typeArgs": [
-            {
-              "kind": "IdentExpr",
-              "name": "T"
-            }
-          ]
-        }
+            "name": "T"
+          }
+        ]
       },
       "body": {
         "kind": "BlockExpr",

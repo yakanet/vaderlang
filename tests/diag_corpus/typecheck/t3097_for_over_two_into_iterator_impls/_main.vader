@@ -7,12 +7,12 @@ Two :: struct {
     n: i32
 }
 
-Two implements Into<Iterator<i32>!> {
-    into :: fn(self) -> Iterator<i32>! = [1, 2].into()
+Two implements Into<Iterator<i32>> {
+    into :: fn(self) -> Iterator<i32> = [1, 2].into()
 }
 
-Two implements Into<Iterator<string>!> {
-    into :: fn(self) -> Iterator<string>! = ["a", "b"].into()
+Two implements Into<Iterator<string>> {
+    into :: fn(self) -> Iterator<string> = ["a", "b"].into()
 }
 
 main :: fn() -> i32 {

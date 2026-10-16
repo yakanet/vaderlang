@@ -54,10 +54,10 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let cloned: i32[]! =
-      call :i32[]!
+    let cloned: i32[] =
+      call :i32[]
         callee:
-          std_iter$clone__i32 :i32[]!
+          std_iter$clone__i32 :i32[]
         arg0:
           nums :i32[]!
     call :void
@@ -100,7 +100,7 @@
                   cast → i64
                     index :i32
                       on:
-                        cloned :i32[]!
+                        cloned :i32[]
                       ix:
                         int(0) :i32
           ~>

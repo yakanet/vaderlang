@@ -9,8 +9,8 @@
         r:
           int(1) :i32
   fn snippet$main() -> i32
-    let kept: i32[]! =
-      block :i32[]!
+    let kept: i32[] =
+      block :i32[]
         let pred: fn(i32) -> bool = keep :fn(i32) -> bool
         let out: i32[] =
           array :i32[]

@@ -140,9 +140,9 @@
                                 __self_3 :__asyncstate_snippet_2!
                             value:
                               cast → Async<Any>!
-                                call :Async<null>!
+                                call :Async<null>
                                   callee:
-                                    sleep :fn(i64) -> Async<null>!
+                                    sleep :fn(i64) -> Async<null>
                                   arg0:
                                     int(1) :i64
                           assign
@@ -228,9 +228,9 @@
                                             __self_3 :__asyncstate_snippet_2!
                                         value:
                                           cast → Async<Any>!
-                                            call :Async<null>!
+                                            call :Async<null>
                                               callee:
-                                                sleep :fn(i64) -> Async<null>!
+                                                sleep :fn(i64) -> Async<null>
                                               arg0:
                                                 int(1) :i64
                                       assign

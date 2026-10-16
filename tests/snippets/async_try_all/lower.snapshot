@@ -223,9 +223,9 @@
                                             __self_1 :__asyncstate_snippet_0!
                                         value:
                                           cast → Async<Any>!
-                                            call :Async<null>!
+                                            call :Async<null>
                                               callee:
-                                                sleep :fn(i64) -> Async<null>!
+                                                sleep :fn(i64) -> Async<null>
                                               arg0:
                                                 .s1 :i64
                                                   __self_1 :__asyncstate_snippet_0!
@@ -707,9 +707,9 @@
                                                                             __self_7 :__asyncstate_snippet_1!
                                                                         value:
                                                                           cast → Async<Any>!
-                                                                            call :Async<(i32 | Outage)[] | Error>!
+                                                                            call :Async<(i32 | Outage)[] | Error>
                                                                               callee:
-                                                                                std_async$try_join_all__i32__Any :Async<(i32 | Outage)[] | Error>!
+                                                                                std_async$try_join_all__i32__Any :Async<(i32 | Outage)[] | Error>
                                                                               arg0:
                                                                                 array :Async<i32 | Outage>![]
                                                                                   call :Async<i32 | Outage>!
@@ -879,9 +879,9 @@
                                                                                                 __self_7 :__asyncstate_snippet_1!
                                                                                             value:
                                                                                               cast → Async<Any>!
-                                                                                                call :Async<(i32 | Outage)[] | Error>!
+                                                                                                call :Async<(i32 | Outage)[] | Error>
                                                                                                   callee:
-                                                                                                    std_async$try_join_all__i32__Any :Async<(i32 | Outage)[] | Error>!
+                                                                                                    std_async$try_join_all__i32__Any :Async<(i32 | Outage)[] | Error>
                                                                                                   arg0:
                                                                                                     array :Async<i32 | Outage>![]
                                                                                                       call :Async<i32 | Outage>!

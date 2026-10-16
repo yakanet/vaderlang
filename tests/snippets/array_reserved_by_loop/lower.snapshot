@@ -588,9 +588,9 @@
                                 __self_4 :__asyncstate_snippet_0!
                             value:
                               cast → Async<Any>!
-                                call :Async<null>!
+                                call :Async<null>
                                   callee:
-                                    sleep :fn(i64) -> Async<null>!
+                                    sleep :fn(i64) -> Async<null>
                                   arg0:
                                     int(0) :i64
                           assign
@@ -966,7 +966,7 @@
                                 arg0:
                                   "collect" :string
                                 arg1:
-                                  block :i64[]!
+                                  block :i64[]
                                     let __fuse_arr_0: i32[]! =
                                       .s0 :i32[]!
                                         __self_8 :__asyncstate_snippet_1!
@@ -1011,7 +1011,7 @@
                                 arg0:
                                   "collect range" :string
                                 arg1:
-                                  block :i64[]!
+                                  block :i64[]
                                     let f: fn(i32) -> i64 = square :fn(i32) -> i64
                                     let out: i64[] =
                                       @array.repeat :i64[]

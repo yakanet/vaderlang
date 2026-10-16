@@ -11,7 +11,7 @@ Ready<T> implements Async<T> {
 
 LoadError :: struct { reason: string }
 
-fetch :: fn() -> Async<i32>! = Ready<i32> { .v = 5 }
+fetch :: fn() -> Async<i32> = Ready<i32> { .v = 5 }
 
 load :: fn(fail: bool) -> Async<i32 | LoadError> {
     if fail {

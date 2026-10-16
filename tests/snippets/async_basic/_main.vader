@@ -12,7 +12,7 @@ Ready<T> implements Async<T> {
 }
 
 // A factory: no `await`, returns an awaitable directly (not a coroutine).
-double :: fn(x: i32) -> Async<i32>! = Ready<i32> { .v = x + x }
+double :: fn(x: i32) -> Async<i32> = Ready<i32> { .v = x + x }
 
 // A coroutine: it awaits, so it is async and must return `Async<T>`.
 add_one :: fn(x: i32) -> Async<i32> {

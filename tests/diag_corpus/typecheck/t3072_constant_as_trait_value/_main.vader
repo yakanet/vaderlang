@@ -3,7 +3,7 @@
 module "snippet"
 
 Bump :: trait {
-    bump :: fn(self!) -> void
+    bump :: fn(self) -> void
 }
 
 Cfg :: struct {

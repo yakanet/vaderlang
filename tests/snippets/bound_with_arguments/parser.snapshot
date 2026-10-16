@@ -718,11 +718,8 @@
       "traitName": "Sink",
       "traitArgs": [
         {
-          "kind": "MutableTypeExpr",
-          "inner": {
-            "kind": "IdentExpr",
-            "name": "Cfg"
-          }
+          "kind": "IdentExpr",
+          "name": "Cfg"
         }
       ],
       "members": [

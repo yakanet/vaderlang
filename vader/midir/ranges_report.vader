@@ -24,8 +24,8 @@ VerdictCounts :: struct {
 
 /// The verdicts of every function of one module, or of the whole project.
 RangeTally :: struct {
-    accesses: VerdictCounts! = VerdictCounts {}
-    checked: VerdictCounts! = VerdictCounts {}
+    accesses: VerdictCounts = VerdictCounts {}
+    checked: VerdictCounts = VerdictCounts {}
     /// Functions whose analysis did not settle.
     gave_up: i32 = 0
 }

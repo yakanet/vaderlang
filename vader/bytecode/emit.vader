@@ -129,7 +129,7 @@ export drop_unbranched_blocks :: fn(function: BcFunction) -> BcPeepholeOut {
 /// Remap a jump_table from old PC space to new PC space using a
 /// per-old-PC `old_to_new` map (entries < 0 mark removed ops).
 /// New entries default to -1.
-export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[]! {
+export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[] {
     new_jt: i32[]: []
     for p in 0..<new_len { new_jt.push(-1) }
     old_n :: old_jt.len()
@@ -181,9 +181,9 @@ export mark_jump_targets :: fn(jump_table: i32[], n: usize) -> bool[] {
 /// c-emit's per-op `#line` walk and the VM debug hook read the right
 /// source position after the rewrite.
 export BcPeepholeOut :: struct {
-    body:       Op[]!
-    jump_table: i32[]!
-    debug:      (DebugPos | null)[]!
+    body:       Op[]
+    jump_table: i32[]
+    debug:      (DebugPos | null)[]
 }
 
 /// `function`'s three tables, unchanged — what a peephole returns when it
@@ -208,7 +208,7 @@ export bc_peephole_unchanged :: fn(function: BcFunction) -> BcPeepholeOut = BcPe
 /// @param old_to_new  per-old-PC new PC, `< 0` for removed ops.
 /// @param new_len     length of the rewritten body.
 /// @return            a fresh debug table of length `new_len`.
-remap_debug :: fn(old_debug: (DebugPos | null)[], old_to_new: i32[], new_len: usize) -> (DebugPos | null)[]! {
+remap_debug :: fn(old_debug: (DebugPos | null)[], old_to_new: i32[], new_len: usize) -> (DebugPos | null)[] {
     // `old_debug` and `old_to_new` are always parallel to the old body (both
     // grown one entry per op), so a plain walk over `old_debug` is safe.
     new_debug: (DebugPos | null)[]: [null] * new_len
@@ -483,7 +483,7 @@ push_or_assign :: fn(items: Op[], sp: usize, value: Op) -> void {
 /// the get site when the const's type differs from the slot's — is not
 /// yet handled. Most CFG-emit cases use matching types, so the MVP covers
 /// the common path.
-export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction! {
+export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
     param_count :: function.signature.params.len()
     total_slots :: param_count + function.locals.len()
     if total_slots <= param_count { return function }
@@ -624,7 +624,7 @@ const_fills_slot :: fn(cv: ConstOp, slot: ValType) -> bool {
 /// value stays on stack for the next op, but the local itself is never
 /// read). Drop those writes and shrink the locals table so the C-emit
 /// (and the dump) stops mentioning slots no one consumes.
-export drop_dead_stores :: fn(function: BcFunction) -> BcFunction! {
+export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     param_count :: function.signature.params.len()
     total_slots :: param_count + function.locals.len()
     reads: i32[]: []
@@ -754,7 +754,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction! {
 /// @param import_index  its slot in the import table (the `call.import` target
 ///                      when no dedicated op exists).
 /// @return              the wrapper's op list (`local.get`* + op/import + return).
-export build_intrinsic_wrapper_body :: fn(imp: BcImport, import_index: i32) -> Op[]! {
+export build_intrinsic_wrapper_body :: fn(imp: BcImport, import_index: i32) -> Op[] {
     body: Op[]: []
     for i in 0..<imp.signature.params.len() {
         body.push(LocalGet { .slot = i32(i) })

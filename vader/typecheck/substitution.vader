@@ -14,14 +14,14 @@ import "vader/types"
 /// `self` rebinds `Self` to its concrete carrier inside an impl ;
 /// callers leave it `null` for non-impl entries.
 export Substitution :: struct {
-    type_params: MutableMap<i32, Type>!
+    type_params: MutableMap<i32, Type>
     self_type:   Type | null
 }
 
 /// Build an empty substitution. Cheap — both fields start empty and
 /// `substitute` short-circuits when no entry matches.
 /// @return  a fresh substitution with no type-param bindings.
-export new_substitution :: fn() -> Substitution! {
+export new_substitution :: fn() -> Substitution {
     return Substitution {
         .type_params = MutableMap<i32, Type> {},
         .self_type   = null,

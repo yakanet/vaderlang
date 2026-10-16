@@ -32,7 +32,7 @@ export mark_proven_accesses :: fn(p: CFGProject) -> CFGProject {
 }
 
 // `fn_` with every access the analysis proves marked `bounds_safe`.
-mark_in_function :: fn(fn_: CFGFunction, shrinks: fn(Instruction) -> bool) -> CFGFunction! {
+mark_in_function :: fn(fn_: CFGFunction, shrinks: fn(Instruction) -> bool) -> CFGFunction {
     proven :: proven_accesses(fn_, shrinks)
     if proven.len() == 0 {
         return CFGFunction { ...fn_ }

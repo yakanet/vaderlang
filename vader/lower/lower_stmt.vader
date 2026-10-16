@@ -26,7 +26,7 @@ import "toolchain/span"
 /// @return              the lowered block.
 export lower_block :: fn(
     ctx: FnLowerCtx, block: BlockExpr, is_fn_root: bool, loop_id: usize | null,
-) -> LoweredBlock! {
+) -> LoweredBlock {
     entry_depth :: ctx.blocks.len()
     ctx.blocks.push(new_block_ctx(is_fn_root, loop_id))
     stmts: LoweredStmt[]: []
@@ -90,7 +90,7 @@ lower_trailing :: fn(
     ctx: FnLowerCtx,
     trailing: Expr | null,
     is_fn_root: bool,
-) -> LoweredExpr! | null {
+) -> LoweredExpr | null {
     if trailing == null { return null }
     if is_fn_root {
         return lower_for_slot(ctx, trailing, ctx.return_type, trailing.span)
@@ -357,7 +357,7 @@ ensure_local_symbol_index :: fn(
 
 
 // `return`, after every defer pending up to the fn root.
-lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt! {
+lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt {
     span :: return_stmt.span
     value: LoweredExpr | null: if return_stmt.value == null {
         null
@@ -386,7 +386,7 @@ evaluate_then_drain :: fn(
     drain: LoweredStmt,
     name: string,
     out: LoweredStmt[],
-) -> LoweredExpr! | null {
+) -> LoweredExpr | null {
     read: LoweredExpr | null = null
     if value != null {
         if is_void(type_of(value)) {
@@ -423,7 +423,7 @@ stmt_diverges :: fn(s: LoweredStmt) -> bool {
 
 // One `defer.pop_exec N` over the defers of every open BlockCtx — all of them up
 // to the fn root, what a `return` leaves. Null when none is pending.
-pop_defers_to_fn_root :: fn(ctx: FnLowerCtx, span: Span) -> LoweredStmt! | null {
+pop_defers_to_fn_root :: fn(ctx: FnLowerCtx, span: Span) -> LoweredStmt | null {
     total: i32 = 0
     for b in ctx.blocks { total += i32(b.defers.len()) }
     if total == 0 {
@@ -436,7 +436,7 @@ pop_defers_to_fn_root :: fn(ctx: FnLowerCtx, span: Span) -> LoweredStmt! | null 
 // fusion splices into a producer's code, where it may have to land elsewhere.
 lower_jump :: fn(
     ctx: FnLowerCtx, jump_id: usize, written: string | null, is_break: bool, span: Span,
-) -> LoweredStmt! {
+) -> LoweredStmt {
     spliced :: spliced_jump(ctx, jump_id, written, is_break, span)
     if spliced != null {
         return spliced
@@ -480,7 +480,7 @@ drain_defers_to_loop :: fn(
 
 // Dispatch by for-form : infinite-for and while-for lower here ; for-in
 // (and a while-for that desugars to one) delegates to `lower_for_in`.
-lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt! {
+lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
     // `@comptime for x in <arr> { body }` — unroll at lower time when
     // the iter folds to a `LoweredArrayLit`. Threads the per-iter
     // substitution through `ctx.comptime_bindings` so `lower_ident`
@@ -535,7 +535,7 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt! {
 // Reject a `@comptime for` the lowerer can't unroll : surface the reason as a
 // compile-time diagnostic (M5010) — so it fails the build rather than trapping at
 // runtime — and return a defensive `unreachable` (never executed, the build errors).
-comptime_for_reject :: fn(ctx: FnLowerCtx, span: Span, reason: string) -> LoweredStmt! {
+comptime_for_reject :: fn(ctx: FnLowerCtx, span: Span, reason: string) -> LoweredStmt {
     ctx.project.diags.push(lower_error(.ComptimeForNotUnrollable, span, reason))
     return LoweredExprStmt {
         .span = span,
@@ -543,7 +543,7 @@ comptime_for_reject :: fn(ctx: FnLowerCtx, span: Span, reason: string) -> Lowere
     }
 }
 
-lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) -> LoweredStmt! {
+lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) -> LoweredStmt {
     span :: for_stmt.span
     if in_form.loop_var is DestructureVar {
         return comptime_for_reject(ctx, span, "`@comptime for` does not support `[k, v]` destructure")

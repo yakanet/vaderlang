@@ -144,7 +144,7 @@
       arg0:
         "map fused" :string
       arg1:
-        block :i32[]!
+        block :i32[]
           let self: i32[] = a :i32[]!
           let other: i32[] = b :i32[]!
           let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
@@ -216,7 +216,7 @@
       arg0:
         "map lazy" :string
       arg1:
-        block :i32[]!
+        block :i32[]
           let self: Iterator<[i32, i32]> = lazy_map :__genstate_zip<[i32, i32]>!
           let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
           let out: i32[] =
@@ -472,7 +472,7 @@
       arg0:
         "take fused" :string
       arg1:
-        block :i32[]!
+        block :i32[]
           let self: i32[] = a :i32[]!
           let other: i32[] = b :i32[]!
           let n: usize = int(2) :usize

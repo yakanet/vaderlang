@@ -108,13 +108,13 @@ StringChars implements Iterator<char> {
 ///
 /// @param s  source string.
 /// @return   a `StringChars` iterator over its codepoints.
-export chars :: fn(s: string) -> StringChars! = StringChars { .s = s }
+export chars :: fn(s: string) -> StringChars = StringChars { .s = s }
 
 // `for c in s` desugars to `for c in s.into()` via this impl — codepoints
 // are the default unit. A byte loop indexes the string: `s.byte_at(i)`. A
 // generator, so a `for` inlines this walk instead of stepping an iterator.
-string implements Into<Iterator<char>!> {
-    into :: fn(self) -> Iterator<char>! {
+string implements Into<Iterator<char>> {
+    into :: fn(self) -> Iterator<char> {
         i: usize = 0
         // The length is read at every turn rather than held in a local, so the C
         // compiler sees the bound `byte_at` checks against and drops that check.
@@ -233,7 +233,7 @@ export index_of :: fn(s: string, c: char, from: usize) -> isize {
 ///             `codepoint_at_byte` steps over.
 /// @return     array of segments ; never empty (at minimum, `[""]`), save
 ///             `split("", "")`, which has no codepoint to give.
-export split :: fn(s: string, sep: string) -> string[]! {
+export split :: fn(s: string, sep: string) -> string[] {
     out: string[]: []
     n :: s.byte_len()
     m :: sep.byte_len()

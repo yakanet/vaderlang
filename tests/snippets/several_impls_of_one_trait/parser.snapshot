@@ -315,13 +315,10 @@
         {
           "name": "cells",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "i32"
             }
           },
           "visibility": "public",
@@ -330,13 +327,10 @@
         {
           "name": "names",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "string"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "string"
             }
           },
           "visibility": "public",
@@ -880,11 +874,8 @@
             }
           ],
           "returnType": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "Self"
-            }
+            "kind": "IdentExpr",
+            "name": "Self"
           },
           "body": null,
           "decorators": []
@@ -1012,11 +1003,8 @@
             }
           ],
           "returnType": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "Vec2"
-            }
+            "kind": "IdentExpr",
+            "name": "Vec2"
           },
           "body": {
             "kind": "BlockExpr",
@@ -1085,11 +1073,8 @@
             }
           ],
           "returnType": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "IdentExpr",
-              "name": "Vec2"
-            }
+            "kind": "IdentExpr",
+            "name": "Vec2"
           },
           "body": {
             "kind": "BlockExpr",
@@ -1867,13 +1852,10 @@
         {
           "name": "cells",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "i32"
             }
           },
           "visibility": "public",
@@ -2514,20 +2496,17 @@
       "traitName": "Into",
       "traitArgs": [
         {
-          "kind": "MutableTypeExpr",
-          "inner": {
-            "kind": "GenericInstExpr",
-            "callee": {
+          "kind": "GenericInstExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "Iterator"
+          },
+          "typeArgs": [
+            {
               "kind": "IdentExpr",
-              "name": "Iterator"
-            },
-            "typeArgs": [
-              {
-                "kind": "IdentExpr",
-                "name": "string"
-              }
-            ]
-          }
+              "name": "string"
+            }
+          ]
         }
       ],
       "members": [
@@ -2545,20 +2524,17 @@
             }
           ],
           "returnType": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "Iterator"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "Iterator"
-              },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "string"
-                }
-              ]
-            }
+                "name": "string"
+              }
+            ]
           },
           "body": {
             "kind": "BlockExpr",

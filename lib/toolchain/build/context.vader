@@ -52,7 +52,7 @@ export BuildContext :: struct {
     /// Module search roots, GCC `-I` style, highest precedence first. Left
     /// empty by `new_build_context` — a driver either fills it or calls
     /// `load_from_vader_config`.
-    include_paths:  string[]!
+    include_paths:  string[]
     /// Folder holding the `vader` executable that started this build, and
     /// therefore its `stdlib/` and `runtime/c/`. Passed as `args[2]`.
     ///
@@ -87,25 +87,25 @@ export BuildContext :: struct {
     target:         BuildTarget
     /// C emitted by a `.C`-targeted drain, in queue order.
     @internal
-    c_sources:      string[]! = []
+    c_sources:      string[] = []
     /// Modules the driver asked for in the CURRENT round, awaiting a flush.
     /// Emptied by `flush_generated` once the round reaches `BeforeEmit` — the
     /// driver has had every chance to emit by then.
     @internal
-    pending:        GeneratedModule[]! = []
+    pending:        GeneratedModule[] = []
     /// Generated files written this build, in the order they landed. The sweep
     /// runs before the first round, so this set is authoritative for this run.
     @internal
-    generated:      string[]! = []
+    generated:      string[] = []
     /// Entry files, in the order `add_build_file` queued them. Read by the
     /// driver loop, never written directly — the order is what makes a build
     /// reproducible, so it stays behind `add_build_file`.
     @internal
-    build_files:    string[]! = []
+    build_files:    string[] = []
     /// Diagnostics the driver reported, in the order it reported them. Drained
     /// by the compiler once the driver returns.
     @internal
-    diagnostics:    Diagnostic[]! = []
+    diagnostics:    Diagnostic[] = []
 }
 
 /// Where generated modules land, relative to the project root.
@@ -131,7 +131,7 @@ export DEFAULT_GENERATED_ROOT :: GENERATED_ROOT_DIR
 /// @return      a context with `project_root` set (empty when `args` carried
 ///              none) and no include paths. Returned MUTABLE: the whole contract
 ///              is that the driver fills it in.
-export new_build_context :: fn(args: string[]) -> BuildContext! = BuildContext {
+export new_build_context :: fn(args: string[]) -> BuildContext = BuildContext {
     .project_root   = project_root_from(args),
     .toolchain_root = arg_or_empty(args, 2),
     .include_paths  = [],

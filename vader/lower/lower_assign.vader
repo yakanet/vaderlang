@@ -11,7 +11,7 @@ import "vader/typecheck"
 import "vader/types"
 import "toolchain/span"
 
-lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt! {
+lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
     // A bare name has no operands ; a field or an element does.
     if compound_assign_op(assign_stmt) != null && !(assign_stmt.target is IdentExpr) {
         return lower_compound_assign(ctx, assign_stmt)
@@ -25,11 +25,11 @@ lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt! {
 // place — are evaluated once, ahead of the statement, then the write and the read
 // of `lhs op rhs` both lower them to that one value (`bound_operands`). The place
 // itself is read twice : a name, a field or an array element does no work.
-lower_compound_assign :: fn(ctx: FnLowerCtx, s: AssignStmt) -> LoweredStmt! {
+lower_compound_assign :: fn(ctx: FnLowerCtx, s: AssignStmt) -> LoweredStmt {
     // A compound assignment in a block of `rhs` gets a table of its own ; this one
     // is back before this statement's write lowers.
     outer :: ctx.bound_operands
-    ctx.bound_operands = MutableMap<usize, LoweredExpr!> {}
+    ctx.bound_operands = MutableMap<usize, LoweredExpr> {}
     stmts: LoweredStmt[]: []
     bind_place_operands(ctx, s.target, stmts)
     stmts.push(lower_assign_one(ctx, s.target, lower_expr(ctx, s.value), s.span))
@@ -87,7 +87,7 @@ bind_place_operand :: fn(ctx: FnLowerCtx, operand: Expr, out: LoweredStmt[]) -> 
 /// corrupt the captured slot.
 lower_assign_one :: fn(
     ctx: FnLowerCtx, target: Expr, value: LoweredExpr, span: Span,
-) -> LoweredStmt! {
+) -> LoweredStmt {
     via_index_set :: try_lower_index_set_assign(ctx, target, value, span)
     if via_index_set != null { return via_index_set }
     // Reassignment to a captured local : write into its cell rather than
@@ -101,7 +101,7 @@ lower_assign_one :: fn(
 
 try_lower_cell_set_assign :: fn(
     ctx: FnLowerCtx, assign_target: Expr, value: LoweredExpr, span: Span,
-) -> LoweredStmt! | null {
+) -> LoweredStmt | null {
     target_ident :: as_ident(assign_target) ?? return null
     if target_ident is IdentExpr {
         symbol :: resolve_ident(ctx, target_ident.span) ?? return null
@@ -125,7 +125,7 @@ try_lower_cell_set_assign :: fn(
 // `[a, b] = [b, a]` assign `a = b` and then read the NEW `a` back into `b`.
 // The source is bound once too, so `[a, b] = f()` calls `f` a single time. A
 // `_` reads nothing; a `...rest` builds its fresh tail array in the read phase.
-lower_destructuring_assign :: fn(ctx: FnLowerCtx, s: DestructureAssignStmt) -> LoweredStmt! {
+lower_destructuring_assign :: fn(ctx: FnLowerCtx, s: DestructureAssignStmt) -> LoweredStmt {
     span :: s.span
     value_ty :: ctx.types.expr_type(s.value)
     src_sym :: fresh_synthetic_symbol(ctx, "destr_src")
@@ -187,7 +187,7 @@ destructured_leaf :: fn(
     place_type: Type,
     span: Span,
     index: usize,
-) -> LoweredExpr! {
+) -> LoweredExpr {
     if ctx.typed.into_coercions[place.id] == null {
         return build_leaf_access(src, backing, place_type, span, index, null)
     }
@@ -211,7 +211,7 @@ element_type_at :: fn(backing: Type, index: usize, fallback: Type) -> Type {
 /// `lower_ident` applies on use-site reads. The bytecode emitter resolves
 /// assignment slots via the raw `LoweredIdent` ; a cast in target position
 /// breaks that pattern match.
-lower_assign_target :: fn(ctx: FnLowerCtx, target: Expr) -> LoweredExpr! {
+lower_assign_target :: fn(ctx: FnLowerCtx, target: Expr) -> LoweredExpr {
     if target is IdentExpr {
         symbol :: resolve_ident(ctx, target.span)
         if symbol is Symbol {
@@ -242,7 +242,7 @@ lower_assign_target :: fn(ctx: FnLowerCtx, target: Expr) -> LoweredExpr! {
 // (single-element access, an impl's `Index`) keep the generic
 // `LoweredIndex` shape or call the member the key picked.
 
-lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr! {
+lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
     target_type :: ctx.types.expr_type(expr.target)
     if array_backing(target_type) != null {
         sliced :: try_lower_range_slice(ctx, expr, type)
@@ -286,7 +286,7 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr! 
 
 // The zero-copy view `arr[r]` for a `Range` index, literal or value ; null for any
 // other index.
-try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr! | null {
+try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr | null {
     match expr.index as range_lit {
         is RangeExpr -> {
             target_lowered :: lower_expr(ctx, expr.target)
@@ -350,7 +350,7 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
     return null
 }
 
-adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr, inclusive: LoweredExpr, span: Span) -> LoweredExpr! {
+adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr, inclusive: LoweredExpr, span: Span) -> LoweredExpr {
     usize_ty :: mk_primitive("usize")
     delta :: LoweredIf {
         .span = span, .type = usize_ty, .cond = inclusive,
@@ -369,7 +369,7 @@ adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr, inclusive: LoweredExpr, span:
     }
 }
 
-cast_to_usize :: fn(value: LoweredExpr, span: Span) -> LoweredExpr! {
+cast_to_usize :: fn(value: LoweredExpr, span: Span) -> LoweredExpr {
     // No-op when already usize.
     vt :: type_of(value)
     if vt is PrimitiveType {
@@ -378,7 +378,7 @@ cast_to_usize :: fn(value: LoweredExpr, span: Span) -> LoweredExpr! {
     return LoweredCast { .span = span, .type = mk_primitive("usize"), .value = value }
 }
 
-adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> LoweredExpr! {
+adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> LoweredExpr {
     if !inclusive { return hi }
     return LoweredBinary {
         .span = span, .type = mk_primitive("usize"), .op = .Add,
@@ -389,7 +389,7 @@ adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> Lower
 
 try_lower_index_set_assign :: fn(
     ctx: FnLowerCtx, assign_target: Expr, value: LoweredExpr, span: Span,
-) -> LoweredStmt! | null {
+) -> LoweredStmt | null {
     target :: assign_target
     // @partial: only an `m[k]` (IndexExpr) LHS can be an IndexSet assign; every
     // other Expr target → null (handled by the regular assign path).

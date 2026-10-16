@@ -50,13 +50,10 @@
         }
       ],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
-            "kind": "IdentExpr",
-            "name": "T"
-          }
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "T"
         }
       },
       "body": {
@@ -157,13 +154,10 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "i32"
         }
       },
       "body": {

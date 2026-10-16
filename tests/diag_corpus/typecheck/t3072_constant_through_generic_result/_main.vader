@@ -14,7 +14,7 @@ Box :: struct<T> {
 ORIGIN :: Point { .x = 1 }
 TABLE :: [Point { .x = 1 }]
 
-wrap :: fn<T>(v: T) -> Box<T>! = Box<T> { .v = v }
+wrap :: fn<T>(v: T) -> Box<T> = Box<T> { .v = v }
 
 peek :: fn<T>(xs: T[]) -> T = xs[0]
 

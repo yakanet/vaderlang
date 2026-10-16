@@ -61,7 +61,7 @@ Sink :: trait<E> {
     put :: fn(self, e: E) -> i32
 }
 
-Cfg implements Sink<Cfg!> {
+Cfg implements Sink<Cfg> {
     put :: fn(self, e: Cfg) -> i32 {
         e.n = 9
         return e.n

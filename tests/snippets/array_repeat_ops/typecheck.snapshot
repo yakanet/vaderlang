@@ -2,13 +2,13 @@
 
 ## tests/snippets/array_repeat_ops
   FnDecl         main                 :: fn() -> i32
-  expr 23:14    BinaryExpr     :: i32[]!
+  expr 23:14    BinaryExpr     :: i32[]
   expr 23:14    SeqLitExpr     :: i32[]!
   expr 24:28    BinaryExpr     :: bool
-  expr 24:28    IdentExpr      :: i32[]!
+  expr 24:28    IdentExpr      :: i32[]
   expr 24:28    IndexExpr      :: i32
   expr 24:45    BinaryExpr     :: bool
-  expr 24:45    IdentExpr      :: i32[]!
+  expr 24:45    IdentExpr      :: i32[]
   expr 24:45    IndexExpr      :: i32
   expr 24:5     IfExpr         :: void
   expr 24:61    IdentExpr      :: i32
@@ -19,14 +19,14 @@
   expr 24:8     BinaryExpr     :: bool
   expr 24:8     CallExpr       :: usize
   expr 24:8     FieldExpr      :: fn() -> usize
-  expr 24:8     IdentExpr      :: i32[]!
-  expr 26:13    BinaryExpr     :: i32[]!
+  expr 24:8     IdentExpr      :: i32[]
+  expr 26:13    BinaryExpr     :: i32[]
   expr 26:13    SeqLitExpr     :: i32[]!
   expr 27:27    BinaryExpr     :: bool
-  expr 27:27    IdentExpr      :: i32[]!
+  expr 27:27    IdentExpr      :: i32[]
   expr 27:27    IndexExpr      :: i32
   expr 27:43    BinaryExpr     :: bool
-  expr 27:43    IdentExpr      :: i32[]!
+  expr 27:43    IdentExpr      :: i32[]
   expr 27:43    IndexExpr      :: i32
   expr 27:5     IfExpr         :: void
   expr 27:58    IdentExpr      :: i32
@@ -37,21 +37,21 @@
   expr 27:8     BinaryExpr     :: bool
   expr 27:8     CallExpr       :: usize
   expr 27:8     FieldExpr      :: fn() -> usize
-  expr 27:8     IdentExpr      :: i32[]!
-  expr 30:11    BinaryExpr     :: i32[]!
+  expr 27:8     IdentExpr      :: i32[]
+  expr 30:11    BinaryExpr     :: i32[]
   expr 30:11    SeqLitExpr     :: i32[]!
   expr 31:25    BinaryExpr     :: bool
-  expr 31:25    IdentExpr      :: i32[]!
+  expr 31:25    IdentExpr      :: i32[]
   expr 31:25    IndexExpr      :: i32
   expr 31:39    BinaryExpr     :: bool
-  expr 31:39    IdentExpr      :: i32[]!
+  expr 31:39    IdentExpr      :: i32[]
   expr 31:39    IndexExpr      :: i32
   expr 31:5     IfExpr         :: void
   expr 31:53    BinaryExpr     :: bool
-  expr 31:53    IdentExpr      :: i32[]!
+  expr 31:53    IdentExpr      :: i32[]
   expr 31:53    IndexExpr      :: i32
   expr 31:67    BinaryExpr     :: bool
-  expr 31:67    IdentExpr      :: i32[]!
+  expr 31:67    IdentExpr      :: i32[]
   expr 31:67    IndexExpr      :: i32
   expr 31:8     BinaryExpr     :: bool
   expr 31:8     BinaryExpr     :: bool
@@ -60,11 +60,11 @@
   expr 31:8     BinaryExpr     :: bool
   expr 31:8     CallExpr       :: usize
   expr 31:8     FieldExpr      :: fn() -> usize
-  expr 31:8     IdentExpr      :: i32[]!
+  expr 31:8     IdentExpr      :: i32[]
   expr 31:80    IdentExpr      :: i32
   expr 31:87    BinaryExpr     :: i32
   expr 31:87    IdentExpr      :: i32
-  expr 34:17    BinaryExpr     :: i32[]!
+  expr 34:17    BinaryExpr     :: i32[]
   expr 34:17    SeqLitExpr     :: i32[]
   expr 35:25    IdentExpr      :: i32
   expr 35:32    BinaryExpr     :: i32
@@ -150,32 +150,32 @@
   expr 48:85    IdentExpr      :: i32
   expr 48:92    BinaryExpr     :: i32
   expr 48:92    IdentExpr      :: i32
-  expr 51:12    BinaryExpr     :: i32[]!
+  expr 51:12    BinaryExpr     :: i32[]
   expr 51:12    SeqLitExpr     :: i32[]!
   expr 52:12    SeqLitExpr     :: i32[]!
-  expr 53:20    IdentExpr      :: i32[]!
+  expr 53:20    IdentExpr      :: i32[]
   expr 53:5     CallExpr       :: void
-  expr 53:5     FieldExpr      :: fn(usize, i32[]!, usize, usize) -> void
+  expr 53:5     FieldExpr      :: fn(usize, i32[], usize, usize) -> void
   expr 53:5     IdentExpr      :: i32[]!
   expr 54:23    BinaryExpr     :: bool
-  expr 54:23    IdentExpr      :: i32[]!
+  expr 54:23    IdentExpr      :: i32[]
   expr 54:23    IndexExpr      :: i32
   expr 54:39    BinaryExpr     :: bool
-  expr 54:39    IdentExpr      :: i32[]!
+  expr 54:39    IdentExpr      :: i32[]
   expr 54:39    IndexExpr      :: i32
   expr 54:5     IfExpr         :: void
   expr 54:55    BinaryExpr     :: bool
-  expr 54:55    IdentExpr      :: i32[]!
+  expr 54:55    IdentExpr      :: i32[]
   expr 54:55    IndexExpr      :: i32
   expr 54:71    BinaryExpr     :: bool
-  expr 54:71    IdentExpr      :: i32[]!
+  expr 54:71    IdentExpr      :: i32[]
   expr 54:71    IndexExpr      :: i32
   expr 54:8     BinaryExpr     :: bool
   expr 54:8     BinaryExpr     :: bool
   expr 54:8     BinaryExpr     :: bool
   expr 54:8     BinaryExpr     :: bool
   expr 54:8     BinaryExpr     :: bool
-  expr 54:8     IdentExpr      :: i32[]!
+  expr 54:8     IdentExpr      :: i32[]
   expr 54:8     IndexExpr      :: i32
   expr 54:85    IdentExpr      :: i32
   expr 54:92    BinaryExpr     :: i32
@@ -183,7 +183,7 @@
   expr 57:11    SeqLitExpr     :: i32[]!
   expr 58:19    IdentExpr      :: i32[]!
   expr 58:5     CallExpr       :: void
-  expr 58:5     FieldExpr      :: fn(usize, i32[]!, usize, usize) -> void
+  expr 58:5     FieldExpr      :: fn(usize, i32[], usize, usize) -> void
   expr 58:5     IdentExpr      :: i32[]!
   expr 59:22    BinaryExpr     :: bool
   expr 59:22    IdentExpr      :: i32[]!

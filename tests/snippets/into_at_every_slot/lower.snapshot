@@ -134,7 +134,7 @@
               ~>
                 cast → Label
                   __coalesce_0 :Label | null
-  fn snippet$labels() -> Iterator<Label>!
+  fn snippet$labels() -> Iterator<Label>
     return
       __genstate_labels! {
         state: int(1) :i32
@@ -236,11 +236,11 @@
     let m: MutableMap<string, Label>! =
       MutableMap<string, Any>! {
         ekeys:
-          array :string[]!
+          array :string[]
         evals:
-          array :Any[]!
+          array :Any[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize

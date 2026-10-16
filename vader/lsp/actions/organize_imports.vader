@@ -135,7 +135,7 @@ ImportEntry :: struct {
 
 render_import_block :: fn(run: AST.ImportDecl[]) -> string {
     // Merge modifier lists by path ; collect namespace imports (dedup exact).
-    modifiers :: MutableMap<string, AST.ImportName![]!> {}
+    modifiers :: MutableMap<string, AST.ImportName[]> {}
     modifier_paths: string[]: []
     ns_entries: ImportEntry[]: []
     ns_seen :: MutableMap<string, bool> {}

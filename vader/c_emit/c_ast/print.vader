@@ -20,7 +20,7 @@ INDENT_WIDTH: usize: 4
 /// so an emitter can produce C only as a tree.
 export CPrinter :: struct {
     @internal
-    out: StringBuilder! = StringBuilder {}
+    out: StringBuilder = StringBuilder {}
     /// A section was printed : the next one starts after a blank line.
     @internal
     started: bool = false
@@ -1090,7 +1090,7 @@ test_print_block_spells_a_switch :: fn() -> void {
 }
 
 // `count` names, `name_number_0` onwards.
-names :: fn(count: i32) -> CExpression[]! {
+names :: fn(count: i32) -> CExpression[] {
     out: CExpression[]: []
     for k in 0..<count {
         out.push(verbatim("name_number_${k}"))

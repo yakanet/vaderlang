@@ -27,12 +27,12 @@ labels :: fn(xs: Mon[]) -> Iterator<Label> {
     }
 }
 
-Mon[] implements Into<Iterator<Mon>!> {
-    into :: fn(self) -> Iterator<Mon>! = scaled(self)
+Mon[] implements Into<Iterator<Mon>> {
+    into :: fn(self) -> Iterator<Mon> = scaled(self)
 }
 
-Mon[] implements Into<Iterator<Label>!> {
-    into :: fn(self) -> Iterator<Label>! = labels(self)
+Mon[] implements Into<Iterator<Label>> {
+    into :: fn(self) -> Iterator<Label> = labels(self)
 }
 
 Pt :: struct {
@@ -45,8 +45,8 @@ shifted :: fn(ps: Pt[]) -> Iterator<Pt> {
     }
 }
 
-Pt[] implements Into<Iterator<Pt>!> {
-    into :: fn(self) -> Iterator<Pt>! = shifted(self)
+Pt[] implements Into<Iterator<Pt>> {
+    into :: fn(self) -> Iterator<Pt> = shifted(self)
 }
 
 drain :: fn(it: Iterator<Mon>) -> i32 {

@@ -20,25 +20,25 @@ bc :: import "vader/bytecode"
 
 // The register file and frame stack of one run.
 RegMachine :: struct {
-    bits:  i64[]!
-    tags:  StackTag[]!
-    refs:  Value![]!
-    run:   RunHost!
+    bits:  i64[]
+    tags:  StackTag[]
+    refs:  Value[]
+    run:   RunHost
     /// Holds a `Boxed` op's operands while `apply_boxed` runs it.
-    scratch: Frame!
+    scratch: Frame
     /// Per frame: the function, the first register of its window, and the pc its
     /// caller resumes at.
-    frame_code:   RegFunction[]!
-    frame_base:   usize[]!
-    frame_return: usize[]!
+    frame_code:   RegFunction[]
+    frame_base:   usize[]
+    frame_return: usize[]
     /// The closures `defer` pushed, for the whole run ; the live ones are
     /// `defers[0 ..< defer_count]`.
-    defers:      Value![]!
+    defers:      Value[]
     defer_count: usize
     /// The debugger driving the run, or `null`.
-    debug: DebugSession! | null
+    debug: DebugSession | null
     /// What a `.Null` register reads as, built once so the read allocates nothing.
-    null_value: Value! = NullVal {}
+    null_value: Value = NullVal {}
 }
 
 // A debugger's state across the stops of one run.
@@ -61,7 +61,7 @@ reserve_registers :: fn(m: RegMachine, count: usize) -> void {
 }
 
 // The value of register `at`, boxed.
-register_value :: fn(m: RegMachine, at: usize) -> Value! = match m.tags[at] {
+register_value :: fn(m: RegMachine, at: usize) -> Value = match m.tags[at] {
     .Ref  -> m.refs[at]
     .I32  -> I32Val(i32(m.bits[at]))
     .I64  -> I64Val(m.bits[at])
@@ -751,7 +751,7 @@ reg_call :: fn(
 // The array register `at` holds, writable (the in-place ops grow or overwrite the
 // very object the register holds), or null when it holds something else. Allocates
 // nothing, so a caller on a hot path takes no GC frame for it.
-array_at :: fn(m: RegMachine, at: usize) -> ArrayVal! | null {
+array_at :: fn(m: RegMachine, at: usize) -> ArrayVal | null {
     if m.tags[at] == .Ref {
         v :: m.refs[at]
         if v is ArrayVal {
@@ -977,7 +977,7 @@ resolve_virtual :: fn(
 }
 
 // A frame with room for the operands and results of any boxed op.
-scratch_frame :: fn() -> Frame! {
+scratch_frame :: fn() -> Frame {
     width: usize: 8
     return Frame {
         .stack   = width.filled(() -> NullVal {}),
@@ -1096,7 +1096,7 @@ run_defers :: fn(
 }
 
 // The fn value a deferred closure holds, checked to take exactly its environment.
-defer_thunk :: fn(state: VmState, closure: Value, origin: i32, label: string) -> FnVal! | Trap {
+defer_thunk :: fn(state: VmState, closure: Value, origin: i32, label: string) -> FnVal | Trap {
     if closure !is FnVal {
         // The label is built only for the trap.
         return read_fn(closure, origin, "${label} entry")

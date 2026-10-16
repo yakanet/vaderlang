@@ -26,8 +26,8 @@ Vec2 implements Mul<Vec2> {
 twice :: fn<T: Mul<f64>>(v: T) -> T = v * 2.0
 
 Grid :: struct {
-    cells: i32[]!
-    names: string[]!
+    cells: i32[]
+    names: string[]
 }
 
 Grid implements Index<i32, i32> {
@@ -63,7 +63,7 @@ Bag implements Contains<string> {
 }
 
 Make :: trait<From> {
-    make :: fn(x: From) -> Self!
+    make :: fn(x: From) -> Self
 }
 
 Describe :: trait<T> {
@@ -72,11 +72,11 @@ Describe :: trait<T> {
 }
 
 Vec2 implements Make<f64> {
-    make :: fn(x: f64) -> Vec2! = Vec2 { .x = x, .y = x }
+    make :: fn(x: f64) -> Vec2 = Vec2 { .x = x, .y = x }
 }
 
 Vec2 implements Make<string> {
-    make :: fn(x: string) -> Vec2! = Vec2 { .x = 42.0, .y = 0.0 }
+    make :: fn(x: string) -> Vec2 = Vec2 { .x = 42.0, .y = 0.0 }
 }
 
 Vec2 implements Describe<i32> {
@@ -134,7 +134,7 @@ Wrap<T> implements<T: Describe<string>> Show {
 built :: fn<T: Make<string>>() -> T = T.make("s")
 
 Sheet :: struct {
-    cells: i32[]!
+    cells: i32[]
 }
 
 Sheet implements Index<i32, i32> {
@@ -181,8 +181,8 @@ Counter implements Iterator<i32> {
     }
 }
 
-Counter implements Into<Iterator<string>!> {
-    into :: fn(self) -> Iterator<string>! = ["a", "b"].into()
+Counter implements Into<Iterator<string>> {
+    into :: fn(self) -> Iterator<string> = ["a", "b"].into()
 }
 
 Pile :: struct<T> {

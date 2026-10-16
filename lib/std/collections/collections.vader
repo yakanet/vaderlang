@@ -51,15 +51,15 @@ export MutableMap :: struct<K: Hash & Equals, V> {
     /// Dense entry keys in insertion order. `ekeys[i]` pairs with `evals[i]`.
     /// `[size, ekeys.len())` are spare slots freed by `remove`, reused by `put`.
     @internal
-    ekeys: K[]! = []
+    ekeys: K[] = []
     /// Dense entry values, parallel to `ekeys`.
     @internal
-    evals: V[]! = []
+    evals: V[] = []
     /// Open-addressed hash table : slot → entry position + 1 ; `EMPTY_SLOT`
     /// (0) = free, `TOMB_SLOT` (-1) = tombstone. Length is a power of two,
     /// lazily allocated to `MINIMAL_INDEX_COUNT` on first insert.
     @internal
-    index: i32[]! = []
+    index: i32[] = []
     /// `index.len() - 1` — bitmask for the power-of-two slot count.
     @internal
     mask:  usize = 0
@@ -312,8 +312,8 @@ export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
 // dense entry arrays by index, with no snapshot. Mutating `self` while an iterator
 // is live is UB.
 
-MutableMap<K, V> implements<K, V> Into<Iterator<[K, V]>!> {
-    into :: fn(self) -> Iterator<[K, V]>! {
+MutableMap<K, V> implements<K, V> Into<Iterator<[K, V]>> {
+    into :: fn(self) -> Iterator<[K, V]> {
         // Held in locals: a loop body that calls out would otherwise reload them
         // from `self` at every entry.
         keys :: self.ekeys
@@ -336,7 +336,7 @@ MutableMap<K, V> implements<K, V> Into<Iterator<[K, V]>!> {
 export MutableSet :: struct<T: Hash & Equals> {
     /// Backing map. Defaults empty so `MutableSet<T> {}` is a valid literal.
     @internal
-    inner: MutableMap<T, bool>! = MutableMap<T, bool> {}
+    inner: MutableMap<T, bool> = MutableMap<T, bool> {}
 }
 
 /// Insert `value`. Returns `true` if `value` was newly added, `false` if it
@@ -379,8 +379,8 @@ MutableSet<T> implements<T: Hash & Equals> Contains<T> -> value in self.inner
 // only when the iterator escapes). Walks the backing map's dense key array by
 // index. Same undefined-behaviour caveat on concurrent mutation.
 
-MutableSet<T> implements<T> Into<Iterator<T>!> {
-    into :: fn(self) -> Iterator<T>! {
+MutableSet<T> implements<T> Into<Iterator<T>> {
+    into :: fn(self) -> Iterator<T> {
         // Held in a local, as `MutableMap`'s `into` holds its arrays.
         keys :: self.inner.ekeys
         for i in 0..<self.inner.size {

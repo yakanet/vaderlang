@@ -87,16 +87,16 @@ export FrozenSite :: struct {
 
 /// The frozen sites of a project, and what deciding them waits for.
 FrozenSites :: struct {
-    sites: FrozenSite[]! = []
+    sites: FrozenSite[] = []
     /// The bodies that use a frozen value, decided once the summary is settled.
-    bodies: FrozenBody[]! = []
+    bodies: FrozenBody[] = []
     /// The kinds of value some site of the program writes (`written_keys`).
-    written: MutableSet<string>! = MutableSet<string> {}
+    written: MutableSet<string> = MutableSet<string> {}
     /// The uses that read a fresh value of their constant, decided with the sites.
-    fresh: FreshReads! = FreshReads {}
+    fresh: FreshReads = FreshReads {}
     /// Constant symbol id → the uses of other constants its value keeps, which a
     /// fresh value of it reads fresh too (`spread_fresh`).
-    kept_by_constants: MutableMap<i32, ConstantUse[]!>! = MutableMap<i32, ConstantUse[]!> {}
+    kept_by_constants: MutableMap<i32, ConstantUse[]> = MutableMap<i32, ConstantUse[]> {}
 }
 
 /// A root of a skeleton that the frozen checks decide: a use of a frozen value, or

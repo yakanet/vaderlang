@@ -3,15 +3,15 @@
 ## snippet
   fn snippet$main() -> i32
     let numbers: i32[] =
-      call :i32[]!
+      call :i32[]
         callee:
-          snippet$empty_of__i32 :i32[]!
+          snippet$empty_of__i32 :i32[]
     LoweredArrayPush
     LoweredArrayPush
     let words: string[] =
-      call :string[]!
+      call :string[]
         callee:
-          snippet$empty_of__string :string[]!
+          snippet$empty_of__string :string[]
     LoweredArrayPush
     call :void
       callee:
@@ -210,11 +210,11 @@
               arg1:
                 __off_4 :usize
     return int(0) :i32
-  fn snippet$empty_of__i32() -> i32[]!
+  fn snippet$empty_of__i32() -> i32[]
     let out: i32[] =
       array :i32[]
     return out :i32[]
-  fn snippet$empty_of__string() -> string[]!
+  fn snippet$empty_of__string() -> string[]
     let out: string[] =
       array :string[]
     return out :string[]

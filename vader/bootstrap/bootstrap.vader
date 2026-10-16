@@ -162,7 +162,7 @@ merge_diagnostics :: fn(head: Diagnostic[], extra: Diagnostic[]) -> Diagnostic[]
 /// Lowered IR plus the few bits the CFG → bytecode tail still needs, with the
 /// `EvaluatedPipeline` (`loaded` + `typed` + `evaluated`) already out of scope.
 LoweredEntry :: struct {
-    lowered:     LoweredProject!
+    lowered:     LoweredProject
     /// Entry-fn mangle (`…$main`) for the `export main` directive.
     entry:       string
     /// Loader + resolver + typecheck + comptime diags, canonical order.
@@ -173,7 +173,7 @@ LoweredEntry :: struct {
 // Run load → typecheck → comptime → lower, resolve the entry-fn name and
 // harvest the diagnostics, then return — letting the `EvaluatedPipeline` and
 // its per-module side-table maps leave scope before the CFG → bytecode tail.
-lower_to_entry :: fn(file: string) -> LoweredEntry! {
+lower_to_entry :: fn(file: string) -> LoweredEntry {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[]: []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)

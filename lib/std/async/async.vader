@@ -52,7 +52,7 @@ Sleep implements Async<null> {
 ///
 /// @param ms  the minimum delay, in milliseconds.
 /// @return    an awaitable that completes once the delay elapses.
-export sleep :: fn(ms: i64) -> Async<null>! = Sleep { .ms = ms }
+export sleep :: fn(ms: i64) -> Async<null> = Sleep { .ms = ms }
 
 // ---- entry driver ---------------------------------------------------------
 
@@ -107,17 +107,17 @@ earlier :: fn(a: i64, b: i64) = if a < b { a } else { b }
 /// only the children whose `wake_at` has passed. No cancellation in v1, so
 /// `join_all` waits for every child (failure latency = the slowest child).
 JoinAll :: struct<T> {
-    children: Async<T>![]
+    children: Async<T>[]
     /// Completed results keyed by input index ; an index is present iff its
     /// child is done. `results.len() == children.len()` ⇒ all joined.
-    results:  MutableMap<usize, T>!
+    results:  MutableMap<usize, T>
     /// The `wake_at` each child last reported, by input index ; `NEVER` once it
     /// is done.
-    wake_at:  i64[]!
+    wake_at:  i64[]
 }
 
-JoinAll<T> implements Async<T[]!> {
-    resume :: fn(self) -> T[]! | Suspended {
+JoinAll<T> implements Async<T[]> {
+    resume :: fn(self) -> T[] | Suspended {
         n :: self.children.len()
         now :: sched_now()
         next: i64 = NEVER
@@ -155,7 +155,7 @@ JoinAll<T> implements Async<T[]!> {
 ///
 /// @param xs  the awaitables to join.
 /// @return    an awaitable of the results, index-aligned with `xs`.
-export join_all :: fn<T>(xs: Async<T>[]) -> Async<T[]!>! = new_join_all(xs)
+export join_all :: fn<T>(xs: Async<T>[]) -> Async<T[]> = new_join_all(xs)
 
 // The driver behind `join_all` and `try_join_all`: nothing joined, every child due.
 new_join_all :: fn<T>(xs: Async<T>[]) = JoinAll<T> {
@@ -172,7 +172,7 @@ new_join_all :: fn<T>(xs: Async<T>[]) = JoinAll<T> {
 /// error. Returns that array verbatim on success, so each element keeps its
 /// original boxed form (no `U[]` rebuild).
 TryJoinAll :: struct<U, E> {
-    inner: JoinAll<U | E>!
+    inner: JoinAll<U | E>
 }
 
 TryJoinAll<U, E> implements Async<(U | E)[] | Error> {
@@ -198,7 +198,7 @@ TryJoinAll<U, E> implements Async<(U | E)[] | Error> {
 ///
 /// @param xs  the fallible awaitables to join.
 /// @return    the results in input order, or the first `Error`.
-export try_join_all :: fn<U, E>(xs: Async<U | E>[]) -> Async<(U | E)[] | Error>! =
+export try_join_all :: fn<U, E>(xs: Async<U | E>[]) -> Async<(U | E)[] | Error> =
     TryJoinAll<U, E> { .inner = new_join_all(xs) }
 
 // ---- race -----------------------------------------------------------------
@@ -208,9 +208,9 @@ export try_join_all :: fn<U, E>(xs: Async<U | E>[]) -> Async<(U | E)[] | Error>!
 /// distinguish), cancels all the others and completes with its result.
 /// Deterministic tie-break : the lowest input index wins within a tick.
 Race :: struct<T> {
-    children: Async<T>![]
+    children: Async<T>[]
     /// The `wake_at` each child last reported, by input index.
-    wake_at:  i64[]!
+    wake_at:  i64[]
 }
 
 Race<T> implements Async<T> {
@@ -245,7 +245,7 @@ Race<T> implements Async<T> {
 ///
 /// @param xs  the awaitables to race.
 /// @return    an awaitable of the first to settle.
-export race :: fn<T>(xs: Async<T>[]) -> Async<T>! = Race<T> {
+export race :: fn<T>(xs: Async<T>[]) -> Async<T> = Race<T> {
     .children = xs,
     .wake_at = [0] * xs.len(),
 }
@@ -256,10 +256,10 @@ export race :: fn<T>(xs: Async<T>[]) -> Async<T>! = Race<T> {
 /// the child is retired and the others keep running. Completes with the FIRST
 /// SUCCESS (cancelling the losers), or — if every child fails — the last error.
 JoinAny :: struct<U, E> {
-    children: Async<U | E>![]
+    children: Async<U | E>[]
     /// The `wake_at` each child last reported, by input index ; `NEVER` once it
     /// settled as an error.
-    wake_at:  i64[]!
+    wake_at:  i64[]
     /// How many children settled as an error.
     failed:   usize = 0
     /// The most recent error — returned if every child ends up failing.
@@ -314,7 +314,7 @@ JoinAny<U, E> implements Async<U | E> {
 ///
 /// @param xs  the fallible awaitables to race for a success.
 /// @return    the first successful result, or the last error if all fail.
-export join_any :: fn<U, E>(xs: Async<U | E>[]) -> Async<U | E>! =
+export join_any :: fn<U, E>(xs: Async<U | E>[]) -> Async<U | E> =
     JoinAny<U, E> { .children = xs, .wake_at = [0] * xs.len() }
 
 // ---- timeout --------------------------------------------------------------
@@ -335,8 +335,8 @@ TimeoutError implements Error {
 /// child's value, or a `TimeoutError` once the timer fires — and the loser is
 /// cancelled.
 Timeout :: struct<T> {
-    child: Async<T>!
-    timer: Async<null>!
+    child: Async<T>
+    timer: Async<null>
     ms:    i64
 }
 
@@ -369,5 +369,5 @@ Timeout<T> implements Async<T | TimeoutError> {
 /// @param ms  the deadline, in milliseconds.
 /// @param x   the awaitable to bound.
 /// @return    `x`'s result, or a `TimeoutError` if the deadline elapses first.
-export timeout :: fn<T>(ms: i64, x: Async<T>) -> Async<T | TimeoutError>! =
+export timeout :: fn<T>(ms: i64, x: Async<T>) -> Async<T | TimeoutError> =
     Timeout<T> { .child = x, .timer = sleep(ms), .ms = ms }

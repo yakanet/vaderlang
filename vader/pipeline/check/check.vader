@@ -77,7 +77,7 @@ export assemble_typed_project :: fn(checked: CheckedProject) -> TypedProject {
 /// the compiler wouldn't — and vice-versa. The only thing layered on top is the
 /// LSP's per-file presentation filter (drop other files' spans).
 export FileCheck :: struct {
-    project: LoadedProject!
+    project: LoadedProject
     result: CheckResult
     /// The effect summary of the project (`CheckedProject.effects`).
     effects: Fx.EffectSummary

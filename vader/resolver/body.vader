@@ -29,8 +29,8 @@ import "toolchain/span"
 /// What one file of a module sees at its top level : its root scope, and the
 /// names two of its wildcard imports both export (R2031).
 export FileScope :: struct {
-    root:      MutableMap<string, Symbol>!
-    ambiguous: MutableMap<string, string[]!>
+    root:      MutableMap<string, Symbol>
+    ambiguous: MutableMap<string, string[]>
 }
 
 /// Resolution output. `idents` keys every resolved `AST.IdentExpr`
@@ -42,7 +42,7 @@ export FileScope :: struct {
 export ResolvedFile :: struct {
     /// Every `AST.IdentExpr` reached during the body walk, span-keyed
     /// via `Span.hash()`.
-    idents:    MutableMap<u64, Symbol>!
+    idents:    MutableMap<u64, Symbol>
     /// `Symbol.id` set for every Local minted from a `name :: ...`
     /// binding (`mutable = false`). `name :=` ones don't appear here.
     /// Read by typecheck's check_assign for T3041.
@@ -67,7 +67,7 @@ export ResolvedFile :: struct {
     type_param_bounds: MutableMap<i32, AST.Expr>
     /// R-code diagnostics emitted during body resolution
     /// (unresolved ident, reserved name, …).
-    diags: Diagnostic[]!
+    diags: Diagnostic[]
 }
 
 /// Build a `ResolvedFile` for `program`. `top_level_seed` provides
@@ -82,7 +82,7 @@ export resolve_program :: fn(
     scopes :: MutableMap<string, FileScope> {}
     scopes[program.file] = FileScope {
         .root      = top_level_seed,
-        .ambiguous = MutableMap<string, string[]!> {},
+        .ambiguous = MutableMap<string, string[]> {},
     }
     return resolve_module_programs([program], scopes, module_path, factory)
 }
@@ -111,7 +111,7 @@ export resolve_module_programs :: fn(
         .scope = new_scope(MutableMap<string, Symbol> {}),
         .module_path = module_path,
         .factory = factory,
-        .ambiguous = MutableMap<string, string[]!> {},
+        .ambiguous = MutableMap<string, string[]> {},
     }
     for program in programs {
         scope :: file_scopes[program.file] ?? panic("resolver: no scope for `${program.file}`")
@@ -135,32 +135,32 @@ export resolve_module_programs :: fn(
 // ---- internal state -------------------------------------------------------
 
 ResolveState :: struct {
-    idents:           MutableMap<u64, Symbol>!
-    immutable_locals: MutableMap<i32, bool>!
-    type_param_bounds: MutableMap<i32, AST.Expr>!
+    idents:           MutableMap<u64, Symbol>
+    immutable_locals: MutableMap<i32, bool>
+    type_param_bounds: MutableMap<i32, AST.Expr>
     /// W0015 candidates, in declaration order — one entry per `:=` statement.
-    mutable_decls:    MutableDecl[]!
+    mutable_decls:    MutableDecl[]
     /// Symbol ids an assignment rebinds. Read once the file is walked.
-    reassigned:       MutableSet<i32>!
+    reassigned:       MutableSet<i32>
     /// Every local and parameter the walk declared, for `rebind_free_locals`.
-    declared_locals:  i32[]! = []
+    declared_locals:  i32[] = []
     /// The rebinds made inside the `for` statements being walked, in walk order,
     /// so each loop reads the ones its body made. Emptied when the outermost ends.
-    rebind_log:       i32[]! = []
+    rebind_log:       i32[] = []
     loop_depth:       i32 = 0
-    loop_rebinds:     MutableMap<u64, MutableSet<i32>>! = MutableMap<u64, MutableSet<i32>> {}
+    loop_rebinds:     MutableMap<u64, MutableSet<i32>> = MutableMap<u64, MutableSet<i32>> {}
     /// The scope's frame count when the walk entered the innermost enclosing
     /// lambda : a name bound below it is declared outside. Null outside any lambda.
     lambda_frame:     i32 | null = null
-    closure_rebound:  MutableSet<i32>! = MutableSet<i32> {}
-    diags:            Diagnostic[]!
-    scope:            Scope!
+    closure_rebound:  MutableSet<i32> = MutableSet<i32> {}
+    diags:            Diagnostic[]
+    scope:            Scope
     module_path:      string
-    factory:          SymbolFactory!
+    factory:          SymbolFactory
     /// Names two+ wildcard imports of the file being walked both export
     /// (`name -> modules`). Consulted by `walk_expr` to fire R2031 on an
     /// unqualified reference that resolves to one of them.
-    ambiguous:        MutableMap<string, string[]!>
+    ambiguous:        MutableMap<string, string[]>
     /// Every file of the module → its scope.
     file_scopes:      MutableMap<string, FileScope>
 }

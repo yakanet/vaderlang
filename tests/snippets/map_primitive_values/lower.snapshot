@@ -5,11 +5,11 @@
     let mu8: MutableMap<string, u8>! =
       MutableMap<string, u8>! {
         ekeys:
-          array :string[]!
+          array :string[]
         evals:
-          array :u8[]!
+          array :u8[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -148,11 +148,11 @@
     let mbool: MutableMap<string, bool>! =
       MutableMap<string, bool>! {
         ekeys:
-          array :string[]!
+          array :string[]
         evals:
-          array :bool[]!
+          array :bool[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -286,11 +286,11 @@
     let mchar: MutableMap<string, char>! =
       MutableMap<string, char>! {
         ekeys:
-          array :string[]!
+          array :string[]
         evals:
-          array :char[]!
+          array :char[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -365,11 +365,11 @@
     let mf32: MutableMap<string, f32>! =
       MutableMap<string, f32>! {
         ekeys:
-          array :string[]!
+          array :string[]
         evals:
-          array :f32[]!
+          array :f32[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -423,11 +423,11 @@
     let mf64: MutableMap<string, f64>! =
       MutableMap<string, f64>! {
         ekeys:
-          array :string[]!
+          array :string[]
         evals:
-          array :f64[]!
+          array :f64[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -481,11 +481,11 @@
     let mi16: MutableMap<string, i16>! =
       MutableMap<string, i16>! {
         ekeys:
-          array :string[]!
+          array :string[]
         evals:
-          array :i16[]!
+          array :i16[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -571,11 +571,11 @@
     let mu16: MutableMap<string, u16>! =
       MutableMap<string, u16>! {
         ekeys:
-          array :string[]!
+          array :string[]
         evals:
-          array :u16[]!
+          array :u16[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -661,11 +661,11 @@
     let mi64: MutableMap<string, i64>! =
       MutableMap<string, i64>! {
         ekeys:
-          array :string[]!
+          array :string[]
         evals:
-          array :i64[]!
+          array :i64[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize

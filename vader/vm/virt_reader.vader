@@ -46,12 +46,12 @@ import "vader/types"
 /// `scopes` and `pending` are reused across functions (only their
 /// cursors reset to 0).
 ParserState :: struct {
-    ops:        bc.Op[]!
-    table:      i32[]!
-    scopes:     ScopeEntry[]!
-    scope_sp:   usize[]!
-    pending:    PendingBranch[]!
-    pending_sp: usize[]!
+    ops:        bc.Op[]
+    table:      i32[]
+    scopes:     ScopeEntry[]
+    scope_sp:   usize[]
+    pending:    PendingBranch[]
+    pending_sp: usize[]
 }
 
 /// Strip a trailing `; ...` comment (the .virt format glues a source-
@@ -131,7 +131,7 @@ after_first :: fn(s: string, c: char) -> string {
 ///
 /// @param csv  string body, e.g. `"1,2,3"` or `""`.
 /// @return     parsed ids, in order.
-parse_int_list :: fn(csv: string) -> i32[]! {
+parse_int_list :: fn(csv: string) -> i32[] {
     ids: i32[]: []
     if csv.byte_len() == 0 { return ids }
     parts :: csv.split(",")

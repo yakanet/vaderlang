@@ -344,7 +344,7 @@ NamedDeclRefs :: struct {
     visibility: AST.Visibility
     decorators: AST.Decorator[]
     is_fn: bool
-    refs: string[]!
+    refs: string[]
 }
 
 // Collect the reference names of a top-level decl. For the six NAMED kinds
@@ -455,7 +455,7 @@ named_head :: fn(
 bfs_reachable :: fn(
     root_names: string[],
     seed_refs: string[],
-    refs_by_name: MutableMap<string, string[]!>,
+    refs_by_name: MutableMap<string, string[]>,
 ) -> MutableSet<string> {
     reachable :: MutableSet<string> {}
     work :: chain(root_names, seed_refs).collect()
@@ -499,7 +499,7 @@ export check_dead_code :: fn(
     diags: Diagnostic[],
     discarded: AST.FnDecl[] = [],
 ) -> void {
-    refs_by_name :: MutableMap<string, string[]!> {}
+    refs_by_name :: MutableMap<string, string[]> {}
     root_names: string[]: []
     seed_refs: string[]: []
     flaggable: DeadDecl[]: []
@@ -524,7 +524,7 @@ export check_dead_code :: fn(
 }
 
 // Append `refs` to the edge set for `name` (overloads share a name → merge).
-register_refs :: fn(m: MutableMap<string, string[]!>, name: string, refs: string[]) -> void {
+register_refs :: fn(m: MutableMap<string, string[]>, name: string, refs: string[]) -> void {
     cur :: m[name]
     if cur == null {
         m[name] = refs
@@ -578,7 +578,7 @@ export DeadExport :: struct {
 /// @param decls  the merged top-level decls of every non-stdlib module.
 /// @return       every dead exported fn, in the order encountered.
 export dead_exports :: fn(decls: AST.Decl[], discarded: AST.FnDecl[] = []) -> DeadExport[] {
-    refs_by_name :: MutableMap<string, string[]!> {}
+    refs_by_name :: MutableMap<string, string[]> {}
     root_names: string[]: []
     seed_refs: string[]: []
     flaggable: DeadExport[]: []

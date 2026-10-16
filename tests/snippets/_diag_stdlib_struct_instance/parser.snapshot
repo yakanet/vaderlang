@@ -31,24 +31,21 @@
         {
           "name": "by_name",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "MutableMap"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "MutableMap"
+                "name": "string"
               },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "string"
-                },
-                {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
-              ]
-            }
+              {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            ]
           },
           "visibility": "public",
           "default": null

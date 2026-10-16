@@ -2,18 +2,18 @@
 
 ## tests/snippets/async_basic
   FnDecl         add_one              :: fn(i32) -> Async<i32>
-  FnDecl         double               :: fn(i32) -> Async<i32>!
+  FnDecl         double               :: fn(i32) -> Async<i32>
   FnDecl         main                 :: fn() -> i32
   StructDecl     Ready                :: Ready<T>!
   expr 11:50    FieldExpr      :: T
   expr 11:50    IdentExpr      :: Ready<T>
-  expr 15:39    StructLitExpr  :: Ready<i32>!
-  expr 15:57    BinaryExpr     :: i32
-  expr 15:57    IdentExpr      :: i32
-  expr 15:61    IdentExpr      :: i32
+  expr 15:38    StructLitExpr  :: Ready<i32>!
+  expr 15:56    BinaryExpr     :: i32
+  expr 15:56    IdentExpr      :: i32
+  expr 15:60    IdentExpr      :: i32
   expr 19:10    AwaitExpr      :: i32
-  expr 19:16    CallExpr       :: Async<i32>!
-  expr 19:16    IdentExpr      :: fn(i32) -> Async<i32>!
+  expr 19:16    CallExpr       :: Async<i32>
+  expr 19:16    IdentExpr      :: fn(i32) -> Async<i32>
   expr 19:23    IdentExpr      :: i32
   expr 20:12    BinaryExpr     :: i32
   expr 20:12    IdentExpr      :: i32

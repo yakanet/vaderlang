@@ -268,11 +268,11 @@
     let by_color: MutableMap<Color, i32>! =
       MutableMap<Any, i32>! {
         ekeys:
-          array :Any[]!
+          array :Any[]
         evals:
-          array :i32[]!
+          array :i32[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -446,11 +446,11 @@
     let by_status: MutableMap<HttpStatus, string>! =
       MutableMap<HttpStatus, string>! {
         ekeys:
-          array :HttpStatus[]!
+          array :HttpStatus[]
         evals:
-          array :string[]!
+          array :string[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize

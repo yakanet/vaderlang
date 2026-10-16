@@ -715,20 +715,17 @@
         }
       ],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "GenericInstExpr",
-          "callee": {
+        "kind": "GenericInstExpr",
+        "callee": {
+          "kind": "IdentExpr",
+          "name": "Async"
+        },
+        "typeArgs": [
+          {
             "kind": "IdentExpr",
-            "name": "Async"
-          },
-          "typeArgs": [
-            {
-              "kind": "IdentExpr",
-              "name": "string"
-            }
-          ]
-        }
+            "name": "string"
+          }
+        ]
       },
       "body": {
         "kind": "BlockExpr",

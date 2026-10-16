@@ -28,8 +28,8 @@ export GenericInstance :: struct {
 /// preserves insertion order so callers can iterate deterministically
 /// before the final sort.
 export InstanceRegistry :: struct {
-    by_key: MutableMap<string, GenericInstance>! = MutableMap<string, GenericInstance> {}
-    order:  GenericInstance![]! = []
+    by_key: MutableMap<string, GenericInstance> = MutableMap<string, GenericInstance> {}
+    order:  GenericInstance[] = []
 }
 
 /// Register `(symbol, args)` if not already present. Returns the

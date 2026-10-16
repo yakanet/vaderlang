@@ -21,20 +21,20 @@
   expr 17:34    IdentExpr      :: Error
   expr 17:9     CallExpr       :: void
   expr 17:9     IdentExpr      :: fn(T) -> void
-  expr 20:16    CallExpr       :: IOError | string[]!
-  expr 20:16    IdentExpr      :: fn(string) -> IOError | string[]!
+  expr 20:16    CallExpr       :: IOError | string[]
+  expr 20:16    IdentExpr      :: fn(string) -> IOError | string[]
   expr 20:25    CallExpr       :: string
   expr 20:25    IdentExpr      :: fn() -> string
   expr 21:19    IdentExpr      :: IOError!
   expr 21:5     IfExpr         :: void
   expr 21:8     BinaryExpr     :: bool
-  expr 21:8     IdentExpr      :: IOError | string[]!
+  expr 21:8     IdentExpr      :: IOError | string[]
   expr 22:17    StringLitExpr  :: string
   expr 22:37    FieldExpr      :: string
   expr 22:37    IdentExpr      :: IOError
   expr 22:9     CallExpr       :: void
   expr 22:9     IdentExpr      :: fn(T) -> void
-  expr 27:14    IdentExpr      :: string[]!
+  expr 27:14    IdentExpr      :: string[]
   expr 28:12    BinaryExpr     :: bool
   expr 28:12    IdentExpr      :: string
   expr 28:17    IdentExpr      :: string

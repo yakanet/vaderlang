@@ -99,7 +99,7 @@ export infer_if :: fn(
     e: AST.IfExpr, expected: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     cond_ty :: check_expr_fn(e.cond, TY_BOOL, typed, diags)
     if !is_assignable(cond_ty, TY_BOOL) {
@@ -143,7 +143,7 @@ check_else_with_narrow :: fn(
     block: AST.BlockExpr, cond: AST.Expr,
     expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     pushed :: push_cond_narrows(cond, false, typed, diag_sink())
     result :: check_block(block, expected, typed, diags, ctx, check_expr_fn)
@@ -154,7 +154,7 @@ check_else_with_narrow :: fn(
 check_else_branch_expr :: fn(
     inner: AST.Expr, cond: AST.Expr,
     expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     pushed :: push_cond_narrows(cond, false, typed, diag_sink())
     result :: check_expr_fn(inner, expected, typed, diags)
@@ -234,7 +234,7 @@ or_leaves :: fn(cond: AST.Expr, typed: TypedProgram, out: IsNarrow[]) -> bool {
 /// @param diags  receives what detecting a LONE leaf reports ; the leaves of a
 ///               compound condition report to a sink, their operands having
 ///               been checked already.
-push_cond_narrows :: fn(cond: AST.Expr, truth: bool, typed: TypedProgram, diags: Diagnostic[]) -> PushedNarrow[]! {
+push_cond_narrows :: fn(cond: AST.Expr, truth: bool, typed: TypedProgram, diags: Diagnostic[]) -> PushedNarrow[] {
     pushed: PushedNarrow[]: []
     push_cond_narrows_into(cond, truth, typed, diags, pushed)
     return pushed
@@ -501,12 +501,12 @@ expr_if_check_stub :: fn(
     }
 }
 
-accept_if :: fn(e: AST.Expr) -> AST.Expr! | null {
+accept_if :: fn(e: AST.Expr) -> AST.Expr | null {
     if e is AST.IfExpr { return e }
     return null
 }
 
-first_if_in_last_fn :: fn(src: string) -> AST.IfExpr! | null {
+first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
     parsed :: parse_source(src, "t.vader")
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
@@ -524,7 +524,7 @@ first_if_in_last_fn :: fn(src: string) -> AST.IfExpr! | null {
     return null
 }
 
-checked :: fn(src: string) -> TypedProgram! {
+checked :: fn(src: string) -> TypedProgram {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)

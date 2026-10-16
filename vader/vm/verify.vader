@@ -43,7 +43,7 @@ export display_verify_error :: fn(e: VerifyError) -> string = "${e.message} at p
 /// @return        the deepest the operand stack gets in each function, index-aligned
 ///                with `module.functions` — what a frame's stack is sized to.
 /// @error         a `VerifyError` naming the function, the pc and the first defect.
-export verify_module :: fn(module: bc.BytecodeModule) -> usize[]! | VerifyError {
+export verify_module :: fn(module: bc.BytecodeModule) -> usize[] | VerifyError {
     depths: usize[]: [] * module.functions.len()
     for f in module.functions {
         found :: verify_function(module, f)
@@ -60,7 +60,7 @@ export verify_module :: fn(module: bc.BytecodeModule) -> usize[]! | VerifyError 
 ///
 /// @param module  the module to verify.
 /// @return        the first defect of each failing function, in body order.
-export verify_all :: fn(module: bc.BytecodeModule) -> VerifyError[]! {
+export verify_all :: fn(module: bc.BytecodeModule) -> VerifyError[] {
     out: VerifyError[]: []
     for f in module.functions {
         found :: verify_function(module, f)

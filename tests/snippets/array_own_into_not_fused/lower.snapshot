@@ -173,9 +173,9 @@
     let sum: i32 = int(0) :i32
     block :void
       let self: Iterator<Pt> =
-        call :Iterator<Pt>!
+        call :Iterator<Pt>
           callee:
-            snippet$[]$Into$into__Pt$2 :Iterator<Pt>!
+            snippet$[]$Into$into__Pt$2 :Iterator<Pt>
           arg0:
             ps :Pt![]!
       let f: fn(Pt) -> i32 = __lambda_snippet_0 :fn(Pt) -> i32
@@ -874,21 +874,21 @@
     ~>
       .x :i32
         p :Pt
-  fn snippet$[]$Into$into__Mon(self: Mon[]!) -> Iterator<Mon>!
+  fn snippet$[]$Into$into__Mon(self: Mon[]!) -> Iterator<Mon>
     ~>
       call :__genstate_scaled<Mon>!
         callee:
           scaled :fn(Mon[]) -> Iterator<Mon>
         arg0:
           self :Mon![]
-  fn snippet$[]$Into$into__Mon$1(self: Mon[]!) -> Iterator<Label>!
+  fn snippet$[]$Into$into__Mon$1(self: Mon[]!) -> Iterator<Label>
     ~>
       call :__genstate_labels<Label>!
         callee:
           labels :fn(Mon[]) -> Iterator<Label>
         arg0:
           self :Mon![]
-  fn snippet$[]$Into$into__Pt$2(self: Pt![]!) -> Iterator<Pt>!
+  fn snippet$[]$Into$into__Pt$2(self: Pt![]!) -> Iterator<Pt>
     ~>
       call :__genstate_shifted<Pt>!
         callee:

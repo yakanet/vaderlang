@@ -6,7 +6,7 @@
   TraitDecl      Stackable            :: Stackable<T>!
   expr 19:24    IdentExpr      :: T
   expr 19:9     CallExpr       :: void
-  expr 19:9     FieldExpr      :: T[]!
+  expr 19:9     FieldExpr      :: T[]
   expr 19:9     FieldExpr      :: fn(T) -> void
   expr 19:9     IdentExpr      :: Stack<T>
   expr 20:21    BinaryExpr     :: i32
@@ -19,7 +19,7 @@
   expr 23:21    IdentExpr      :: Stack<T>
   expr 23:9     FieldExpr      :: i32
   expr 23:9     IdentExpr      :: Stack<T>
-  expr 24:16    FieldExpr      :: T[]!
+  expr 24:16    FieldExpr      :: T[]
   expr 24:16    IdentExpr      :: Stack<T>
   expr 24:16    IndexExpr      :: T
   expr 24:26    FieldExpr      :: i32
@@ -30,7 +30,7 @@
   expr 30:16    FieldExpr      :: i32
   expr 30:16    IdentExpr      :: Stack<T>
   expr 35:10    StructLitExpr  :: Stack<i32>!
-  expr 35:31    SeqLitExpr     :: i32[]!
+  expr 35:31    SeqLitExpr     :: i32[]
   expr 36:5     CallExpr       :: void
   expr 36:5     FieldExpr      :: fn(i32) -> void
   expr 36:5     IdentExpr      :: Stack<i32>!

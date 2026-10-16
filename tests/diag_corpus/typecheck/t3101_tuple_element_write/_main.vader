@@ -19,7 +19,7 @@ main :: fn() -> i32 {
     p.0 = 6
     n := 0
     [t.1, n] = [7, 8]
-    boxed: [Box!, i32]: [Box { .x = 1 }, 2]
+    boxed: [Box, i32]: [Box { .x = 1 }, 2]
     boxed.0.x = 9
     return t.0 + owned.0 + p.0 + n + boxed.0.x
 }

@@ -464,19 +464,19 @@ static bool std_core_content_equals__i32(void* l0, void* l1) {
     size_t l2, l3;
     int32_t l4, l5;
     int64_t t0;
-#line 119 "lib/std/core/array.vader"
+#line 117 "lib/std/core/array.vader"
     l2 = ((vader_array_t*) l0)->length;
     l3 = ((vader_array_t*) l1)->length;
     if (l2 != l3) {
-#line 120 "lib/std/core/array.vader"
+#line 118 "lib/std/core/array.vader"
         return false;
-#line 119 "lib/std/core/array.vader"
+#line 117 "lib/std/core/array.vader"
     }
-#line 122 "lib/std/core/array.vader"
+#line 120 "lib/std/core/array.vader"
     l2 = (size_t) 0;
     l3 = ((vader_array_t*) l0)->length;
     while ((l2 < l3)) {
-#line 123 "lib/std/core/array.vader"
+#line 121 "lib/std/core/array.vader"
         vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l2)
@@ -486,15 +486,15 @@ static bool std_core_content_equals__i32(void* l0, void* l1) {
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l2)
         l5 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2];
         if (l4 != l5) {
-#line 124 "lib/std/core/array.vader"
-            return false;
-#line 123 "lib/std/core/array.vader"
-        }
 #line 122 "lib/std/core/array.vader"
+            return false;
+#line 121 "lib/std/core/array.vader"
+        }
+#line 120 "lib/std/core/array.vader"
         t0 = (l2 + INT64_C(1));
         l2 = (size_t) (int64_t) t0;
     }
-#line 127 "lib/std/core/array.vader"
+#line 125 "lib/std/core/array.vader"
     return true;
 }
 

@@ -46,7 +46,7 @@ import "vader/comptime"
 mk_async_method_decl :: fn(
     fn_ctx: FnLowerCtx, module_seg: string, state_sym: Symbol, self_sym: Symbol,
     state_ty: Type, method: string, return_ty: Type, body: LoweredBlock,
-) -> LoweredFnDecl! {
+) -> LoweredFnDecl {
     mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ASYNC}$${method}"
     sym :: Symbol {
         .id = next_synthetic_id(fn_ctx), .kind = .Fn, .name = mangled,
@@ -125,7 +125,7 @@ async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBl
 export lower_async_fn :: fn(
     fn_ctx: FnLowerCtx, fn_decl: FnDecl, params: LoweredParam[],
     lowered_body: LoweredBlock, result_type: Type, is_main: bool,
-) -> LoweredBlock! {
+) -> LoweredBlock {
     span :: fn_decl.span
     i32_ty :: mk_primitive("i32")
 
@@ -238,7 +238,7 @@ export lower_async_fn :: fn(
 async_main_driver :: fn(
     fn_ctx: FnLowerCtx, construct: LoweredExpr, async_sym: Symbol,
     suspended_ty: Type, resume_ty: Type, result_type: Type, span: Span,
-) -> LoweredBlock! {
+) -> LoweredBlock {
     async_ty :: mk_trait(async_sym, [result_type], false)
     run_sym :: fn_ctx.typed.run_async_main_symbol
     if run_sym != null {

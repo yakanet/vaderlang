@@ -200,25 +200,25 @@ RegFunction :: struct {
     index:     i32
     /// The ops ; op `k`'s operands are packed in `words[k]` (`pack_operands`).
     /// Flat columns, so fetching an op follows no pointer.
-    ops:       RegOp[]!
-    words:     i64[]!
+    ops:       RegOp[]
+    words:     i64[]
     /// Original pc of each op, for trap messages.
-    origin:    i32[]!
+    origin:    i32[]
     /// The integer type of each checked op, `.Void` for the other ops.
-    kinds:     bc.ValType[]!
+    kinds:     bc.ValType[]
     /// The function's scalar constants, loaded into the registers from `slots`
     /// when a frame starts.
-    consts:    i64[]!
-    const_tags: StackTag[]!
+    consts:    i64[]
+    const_tags: StackTag[]
     /// The references `ConstRef` loads.
-    values:    Value![]!
+    values:    Value[]
     /// The ops `Boxed` runs.
-    boxed:     bc.Op[]!
+    boxed:     bc.Op[]
     /// The calls `VirtualCall` dispatches, and the vtable row of each (`-1` when
     /// no row has its key).
-    virtuals:  bc.VirtualCall[]!
-    virtual_rows: i32[]!
-    texts:     string[]!
+    virtuals:  bc.VirtualCall[]
+    virtual_rows: i32[]
+    texts:     string[]
     /// Parameters, locals, then one register per operand-stack depth.
     registers: usize
     /// `signature.params.len()` — the arity the call arm checks a fn value or a

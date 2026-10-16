@@ -22,34 +22,34 @@ AST :: import "toolchain/ast"
 /// bodyless function does.
 export CalleeIndex :: struct {
     /// Per node, the function and the module that typed it.
-    functions: Function[]! = []
+    functions: Function[] = []
     /// Declaration id → node, for each function with a body.
-    nodes: MutableMap<usize, i32>! = MutableMap<usize, i32> {}
+    nodes: MutableMap<usize, i32> = MutableMap<usize, i32> {}
     /// Declaration id → what a bodyless function does.
-    bodyless: MutableMap<usize, CallTarget>! = MutableMap<usize, CallTarget> {}
+    bodyless: MutableMap<usize, CallTarget> = MutableMap<usize, CallTarget> {}
     /// The declarations of the intrinsics that hand back a frozen view
     /// (`makes_frozen_view`).
-    frozen_views: MutableSet<usize>! = MutableSet<usize> {}
+    frozen_views: MutableSet<usize> = MutableSet<usize> {}
     /// The nodes that return a view, found once the facts are settled
     /// (`spread_views`).
-    view_nodes: MutableSet<i32>! = MutableSet<i32> {}
+    view_nodes: MutableSet<i32> = MutableSet<i32> {}
     /// The structs some enum keeps its variant data in, by symbol id.
-    variant_data: MutableSet<i32>! = MutableSet<i32> {}
+    variant_data: MutableSet<i32> = MutableSet<i32> {}
     /// Every module constant's initialiser, which may hand a frozen value on.
-    constants: Initialiser[]! = []
+    constants: Initialiser[] = []
     /// Every struct field default, which every struct built without the field keeps.
-    defaults: Initialiser[]! = []
+    defaults: Initialiser[] = []
     /// The impls of every module, each resolved in the module that declares it.
-    impls: ImplRegistry! = ImplRegistry {}
+    impls: ImplRegistry = ImplRegistry {}
     /// Every path the summary names.
-    paths: PathTable! = PathTable {}
+    paths: PathTable = PathTable {}
     /// The loaded project, whose modules hold the symbols a namespace alias names.
     project: LoadedProject
     /// `trait_key.member` → the members of that name of every impl of the trait.
-    members: MutableMap<string, CallTarget[]>! = MutableMap<string, CallTarget[]> {}
+    members: MutableMap<string, CallTarget[]> = MutableMap<string, CallTarget[]> {}
     /// Bodyless functions the compiler knows nothing of while they are lent a value
     /// that holds references: each is assumed to do anything with it.
-    unknown: string[]! = []
+    unknown: string[] = []
 }
 
 /// A function with a body.
@@ -75,7 +75,7 @@ export Initialiser :: struct {
 /// @param modules  the typed modules, by the same key as `project.modules`.
 index_functions :: fn(
     project: LoadedProject, modules: MutableMap<string, TypedProgram>,
-) -> CalleeIndex! {
+) -> CalleeIndex {
     index :: CalleeIndex { .project = project }
     for [id, loaded] in project.modules {
         typed :: modules[id] ?? continue
@@ -316,7 +316,7 @@ ffi_call_effects :: fn(elements: i32) -> ParamEffects[] =
 none :: fn() -> ParamEffects = ParamEffects {}
 
 // The single access `effect` at `path`.
-effects_of :: fn(effect: Effect, path: i32) -> ParamEffects! {
+effects_of :: fn(effect: Effect, path: i32) -> ParamEffects {
     effects :: ParamEffects {}
     effects.insert(Access { .path = path, .effect = effect })
     return effects

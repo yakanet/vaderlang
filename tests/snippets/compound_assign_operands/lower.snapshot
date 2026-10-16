@@ -51,21 +51,21 @@
                 __off_1 :usize
     return i :usize
   struct snippet$Counter { count: i32 }
-  struct snippet$Holder { items: i32[]! }
-  struct snippet$Row { cells: i32[]! }
-  fn snippet$pick(c: Counter) -> Counter!
+  struct snippet$Holder { items: i32[] }
+  struct snippet$Row { cells: i32[] }
+  fn snippet$pick(c: Counter) -> Counter
     call :void
       callee:
         std_io$println__string :void
       arg0:
         "pick" :string
     return c :Counter
-  struct snippet$Cell { slots: i32[]! }
+  struct snippet$Cell { slots: i32[] }
   fn snippet$Cell$Index$at(self: Cell!, i: usize) -> i32
     ~>
       index :i32
         on:
-          .slots :i32[]!
+          .slots :i32[]
             self :Cell
         ix:
           i :usize
@@ -74,14 +74,14 @@
       target:
         index :i32
           on:
-            .slots :i32[]!
+            .slots :i32[]
               self :Cell
           ix:
             i :usize
       value:
         v :i32
-  struct snippet$Shelf { items: Counter![] }
-  fn snippet$Shelf$Index$at(self: Shelf!, i: usize) -> Counter!
+  struct snippet$Shelf { items: Counter[] }
+  fn snippet$Shelf$Index$at(self: Shelf!, i: usize) -> Counter
     call :void
       callee:
         std_io$println__string :void
@@ -130,9 +130,9 @@
               arg1:
                 __off_1 :usize
     return
-      index :Counter!
+      index :Counter
         on:
-          .items :Counter![]
+          .items :Counter[]
             self :Shelf
         ix:
           i :usize
@@ -140,7 +140,7 @@
   fn snippet$Two$Stepper$step(self: Two!) -> i32
     ~>
       int(2) :i32
-  fn snippet$Two$Stepper$advance(self: Two!, xs: i32[]!) -> void
+  fn snippet$Two$Stepper$advance(self: Two!, xs: i32[]) -> void
     block :void
       let __place_operand_0: usize =
         call :usize
@@ -152,7 +152,7 @@
         target:
           index :i32
             on:
-              xs :i32[]!
+              xs :i32[]
             ix:
               __place_operand_0 :usize
         value:
@@ -160,7 +160,7 @@
             l:
               index :i32
                 on:
-                  xs :i32[]!
+                  xs :i32[]
                 ix:
                   __place_operand_0 :usize
             r:
@@ -315,7 +315,7 @@
     let holder: Holder! =
       Holder! {
         items:
-          array :i32[]!
+          array :i32[]
             int(1) :i32
             int(2) :i32
       }
@@ -330,7 +330,7 @@
         target:
           index :i32
             on:
-              .items :i32[]!
+              .items :i32[]
                 holder :Holder!
             ix:
               __place_operand_3 :usize
@@ -339,7 +339,7 @@
             l:
               index :i32
                 on:
-                  .items :i32[]!
+                  .items :i32[]
                     holder :Holder!
                 ix:
                   __place_operand_3 :usize
@@ -385,7 +385,7 @@
                   cast → i64
                     index :i32
                       on:
-                        .items :i32[]!
+                        .items :i32[]
                           holder :Holder!
                       ix:
                         int(0) :i32
@@ -417,7 +417,7 @@
                   cast → i64
                     index :i32
                       on:
-                        .items :i32[]!
+                        .items :i32[]
                           holder :Holder!
                       ix:
                         int(1) :i32
@@ -433,13 +433,13 @@
       array :Row[]
         Row! {
           cells:
-            array :i32[]!
+            array :i32[]
               int(0) :i32
               int(0) :i32
         }
         Row! {
           cells:
-            array :i32[]!
+            array :i32[]
               int(0) :i32
               int(0) :i32
         }
@@ -460,7 +460,7 @@
         target:
           index :i32
             on:
-              .cells :i32[]!
+              .cells :i32[]
                 index :Row
                   on:
                     rows :Row[]
@@ -473,7 +473,7 @@
             l:
               index :i32
                 on:
-                  .cells :i32[]!
+                  .cells :i32[]
                     index :Row
                       on:
                         rows :Row[]
@@ -523,7 +523,7 @@
                   cast → i64
                     index :i32
                       on:
-                        .cells :i32[]!
+                        .cells :i32[]
                           index :Row
                             on:
                               rows :Row[]
@@ -542,7 +542,7 @@
     let shelf: Shelf! =
       Shelf! {
         items:
-          array :Counter![]
+          array :Counter[]
             Counter! {
               count: int(1) :i32
             }
@@ -551,10 +551,10 @@
             }
       }
     block :void
-      let __place_operand_10: Counter! =
-        call :Counter!
+      let __place_operand_10: Counter =
+        call :Counter
           callee:
-            snippet$Shelf$Index$at :Counter!
+            snippet$Shelf$Index$at :Counter
           arg0:
             shelf :Shelf!
           arg1:
@@ -566,12 +566,12 @@
       assign
         target:
           .count :i32
-            __place_operand_10 :Counter!
+            __place_operand_10 :Counter
         value:
           add_checked :i32
             l:
               .count :i32
-                __place_operand_10 :Counter!
+                __place_operand_10 :Counter
             r:
               int(10) :i32
     call :void
@@ -613,9 +613,9 @@
                 arg2:
                   cast → i64
                     .count :i32
-                      index :Counter!
+                      index :Counter
                         on:
-                          .items :Counter![]
+                          .items :Counter[]
                             shelf :Shelf!
                         ix:
                           int(1) :i32
@@ -632,21 +632,21 @@
         count: int(0) :i32
       }
     block :void
-      let __place_operand_13: Counter! =
-        call :Counter!
+      let __place_operand_13: Counter =
+        call :Counter
           callee:
-            pick :fn(Counter) -> Counter!
+            pick :fn(Counter) -> Counter
           arg0:
             shared :Counter!
       assign
         target:
           .count :i32
-            __place_operand_13 :Counter!
+            __place_operand_13 :Counter
         value:
           add_checked :i32
             l:
               .count :i32
-                __place_operand_13 :Counter!
+                __place_operand_13 :Counter
             r:
               int(3) :i32
     call :void
@@ -753,7 +753,7 @@
     let cell: Cell! =
       Cell! {
         slots:
-          array :i32[]!
+          array :i32[]
             int(1) :i32
             int(2) :i32
             int(3) :i32

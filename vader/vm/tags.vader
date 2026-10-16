@@ -47,10 +47,10 @@ FunctionTags :: struct {
     /// The deepest the operand stack gets: the sets each pc takes in `stack`.
     deepest: usize
     /// Operand-stack depth before each pc, `-1` where no path reaches it.
-    depth:   i64[]!
+    depth:   i64[]
     /// For each pc, `deepest` sets: the stack cells from the bottom. A slot's tags
     /// are not kept — every read of a slot lands on the stack.
-    stack:   u8[]!
+    stack:   u8[]
 }
 
 /// The tag set of the stack cell `back` places below the top, before `pc` —
@@ -168,7 +168,7 @@ element_tags :: fn(ctx: TagContext, type_id: i32) -> u8 {
 ///
 /// @param module  a module `verify_module` accepted.
 /// @param depths  its result: the deepest stack of each function.
-infer_module_tags :: fn(module: bc.BytecodeModule, depths: usize[]) -> FunctionTags[]! {
+infer_module_tags :: fn(module: bc.BytecodeModule, depths: usize[]) -> FunctionTags[] {
     ctx :: new_tag_context(module)
     out: FunctionTags[]: [] * module.functions.len()
     for i in 0..<module.functions.len() {
@@ -219,20 +219,20 @@ infer_function_tags :: fn(ctx: TagContext, f: bc.BcFunction, deepest: usize) -> 
 Blocks :: struct {
     width:       usize
     /// First pc of each block, ascending.
-    leaders:     usize[]!
+    leaders:     usize[]
     /// Block index of each pc that starts one, `-1` elsewhere.
-    block_at:    i64[]!
-    entry_depth: i64[]!
+    block_at:    i64[]
+    entry_depth: i64[]
     /// `width` sets per block: slots, then the stack from the bottom.
-    entry:       u8[]!
-    work:        usize[]!
+    entry:       u8[]
+    work:        usize[]
     /// True while a block waits in `work`.
-    queued:      bool[]!
+    queued:      bool[]
 }
 
 // A block starts at pc 0, at every jump target, and after every op that does not
 // fall through alone.
-new_blocks :: fn(module: bc.BytecodeModule, f: bc.BcFunction, width: usize) -> Blocks! {
+new_blocks :: fn(module: bc.BytecodeModule, f: bc.BcFunction, width: usize) -> Blocks {
     n :: f.body.len()
     leader: bool[]: [false] * n
     leader[0] = true

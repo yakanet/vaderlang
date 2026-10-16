@@ -23,7 +23,7 @@ DISPLAYABLE_FILE_PREFIX :: "<displayable>:"
 /// variant renders as its own name.
 ///
 /// @param program  one parsed file, before node ids are assigned.
-export with_displayable_impls :: fn(program: AST.Program) -> AST.Program! {
+export with_displayable_impls :: fn(program: AST.Program) -> AST.Program {
     generated: AST.Decl[]: []
     for d in program.decls {
         if d is AST.EnumDecl {
@@ -40,7 +40,7 @@ export with_displayable_impls :: fn(program: AST.Program) -> AST.Program! {
 // The impl reports at the decorator — a conflict with a written impl, an
 // "implementations" lookup — since its own spans name no real file. It carries
 // the decorator too, which is how a conflict says where the impl came from.
-displayable_impl :: fn(e: AST.EnumDecl, decorator: AST.Decorator, file: string) -> AST.Decl! {
+displayable_impl :: fn(e: AST.EnumDecl, decorator: AST.Decorator, file: string) -> AST.Decl {
     sb :: StringBuilder {}
     sb.append("${e.name} implements Display {\n")
     sb.append("    to_string :: fn(self) -> string = match self {\n")

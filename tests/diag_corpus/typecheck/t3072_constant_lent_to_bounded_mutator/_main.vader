@@ -4,7 +4,7 @@
 module "snippet"
 
 Bump :: trait {
-    bump :: fn(self!) -> void
+    bump :: fn(self) -> void
 }
 
 Cfg :: struct {
@@ -19,7 +19,7 @@ Cfg implements Bump {
 
 CFG :: Cfg { .n = 1 }
 
-poke :: fn<T: Bump!>(x: T) -> void {
+poke :: fn<T: Bump>(x: T) -> void {
     x.bump()
 }
 

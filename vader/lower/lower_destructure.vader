@@ -221,7 +221,7 @@ emit_tail_copy :: fn(
 /// @param type  the value type the read yields.
 /// @param span  span for the emitted nodes.
 /// @return      a `LoweredCellGet` when `sym` lives in a cell, else a plain ident.
-export read_local_cell_aware :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr! {
+export read_local_cell_aware :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr {
     if lives_in_cell(ctx, sym.id) {
         cell_ref :: LoweredIdent { .span = span, .type = TY_UNRESOLVED, .symbol = sym }
         return LoweredCellGet { .span = span, .type = type, .target = cell_ref, .value_type = type }
@@ -334,7 +334,7 @@ destructure_backing :: fn(t: Type) -> Type {
 build_leaf_access :: fn(
     target: LoweredExpr, target_type: Type, elem_type: Type, span: Span, index: usize,
     field_names: string[] | null,
-) -> LoweredExpr! {
+) -> LoweredExpr {
     if target_type is ArrayType {
         return LoweredIndex {
             .span = span, .type = elem_type, .target = target,

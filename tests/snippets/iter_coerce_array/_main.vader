@@ -25,7 +25,7 @@ walk :: fn(it: Iterator<i32>) -> i32 {
     return sum
 }
 
-make_iter :: fn() -> Iterator<i32>! {
+make_iter :: fn() -> Iterator<i32> {
     arr :: [100, 200, 300]
     return arr   // Array → Iterator return coercion
 }

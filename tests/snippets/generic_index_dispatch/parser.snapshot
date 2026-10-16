@@ -23,13 +23,10 @@
         {
           "name": "slots",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "i32"
             }
           },
           "visibility": "public",
@@ -269,24 +266,21 @@
         {
           "name": "C",
           "bound": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "IndexSet"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "IndexSet"
+                "name": "usize"
               },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "usize"
-                },
-                {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
-              ]
-            }
+              {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            ]
           },
           "isComptimeValue": false
         }
@@ -569,11 +563,8 @@
                 },
                 "typeArgs": [
                   {
-                    "kind": "MutableTypeExpr",
-                    "inner": {
-                      "kind": "IdentExpr",
-                      "name": "Cell"
-                    }
+                    "kind": "IdentExpr",
+                    "name": "Cell"
                   }
                 ]
               },

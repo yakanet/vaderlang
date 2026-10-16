@@ -72,11 +72,11 @@
     let by_alpha: MutableMap<Status, i64>! =
       MutableMap<Status, i64>! {
         ekeys:
-          array :Status[]!
+          array :Status[]
         evals:
-          array :i64[]!
+          array :i64[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -84,11 +84,11 @@
     let by_beta: MutableMap<Status, i64>! =
       MutableMap<Status, i64>! {
         ekeys:
-          array :Status[]!
+          array :Status[]
         evals:
-          array :i64[]!
+          array :i64[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize

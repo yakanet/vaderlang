@@ -17,7 +17,7 @@ import "toolchain/span"
 // to the variant, so the following `type_check` constant-folds. Returning the
 // cast's inner union value keeps the runtime tag intact (the narrowing is a
 // compile-time view, so the check on the original box is what we want).
-strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr! {
+strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr {
     if e is LoweredCast {
         if type_of(e.value) is UnionType { return e.value }
     }
@@ -25,7 +25,7 @@ strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr! {
 }
 
 // `!cond` when `negate`, else `cond`.
-maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr! {
+maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr {
     if negate {
         return LoweredUnary {
             .span = span,
@@ -37,7 +37,7 @@ maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr! 
     return cond
 }
 
-lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr! {
+lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr {
     // `expr is T` lowers to a runtime tag check ; the RHS is a type
     // expression, not a value. The `bind_as` parsing is handled inside
     // `if x is T as alias` where the if's then-branch consumes the
@@ -241,7 +241,7 @@ collect_concat_operands :: fn(ctx: FnLowerCtx, e: Expr, out: LoweredExpr[]) -> v
     out.push(lower_expr(ctx, e))
 }
 
-try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr! | null {
+try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr | null {
     info :: op_trait_method(binary.op) ?? return null
     if info is OpTraitInfo {
         left_ty :: ctx.types.expr_type(binary.left)
@@ -335,7 +335,7 @@ contains_call :: fn(
     coll: LoweredExpr,
     element: LoweredExpr,
     span: Span,
-) -> LoweredExpr! {
+) -> LoweredExpr {
     if target is RecordedVirtual {
         return virtual_call(ctx, target.trait_key, METHOD_CONTAINS, coll, [element], TY_BOOL, span)
     }
@@ -348,7 +348,7 @@ contains_call :: fn(
 // patterns from `op_trait_method`.
 lower_op_overload_via_vcall :: fn(
     ctx: FnLowerCtx, binary: BinaryExpr, type: Type, oti: OpTraitInfo,
-) -> LoweredExpr! | null {
+) -> LoweredExpr | null {
     lowered_left  :: lower_expr(ctx, binary.left)
     args: LoweredExpr[]: [lower_expr(ctx, binary.right)]
     // The call's own result : `compare`'s `i32`, `equals`' `bool`, else the
@@ -406,7 +406,7 @@ op_trait_method :: fn(op: BinaryOp) -> OpTraitInfo | null {
     return null
 }
 
-try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr! | null {
+try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | null {
     union_operand: Expr | null = null
     if is_null_lit(binary.left) && is_union_with_null(ctx.types.expr_type(binary.right)) {
         union_operand = binary.right

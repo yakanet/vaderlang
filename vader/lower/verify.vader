@@ -167,7 +167,7 @@ captured_one :: fn() -> MutableSet<i32> {
     return captured
 }
 
-bare :: fn() -> LoweredExpr! = LoweredBoolLit { .span = empty_span(), .type = TY_BOOL, .value = true }
+bare :: fn() -> LoweredExpr = LoweredBoolLit { .span = empty_span(), .type = TY_BOOL, .value = true }
 
 @test
 test_verify_functions_defined_once_reports_the_second_body :: fn() -> void {

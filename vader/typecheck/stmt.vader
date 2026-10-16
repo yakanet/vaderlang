@@ -24,7 +24,7 @@ export check_block :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     // Track flow-narrowing pushed by divergent guards (`if x is T
     // { return … }`) so subsequent stmts see the complement type ; each
@@ -96,7 +96,7 @@ export check_stmt :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     match stmt {
         is AST.LetStmt               -> { check_let(stmt, typed, diags, check_expr_fn) }
@@ -365,7 +365,7 @@ if_has_yield :: fn(i: AST.IfExpr) -> bool {
 }
 
 // The symbol ids of the type parameters `params` declares.
-type_param_ids :: fn(params: AST.TypeParam[], typed: TypedProgram) -> i32[]! {
+type_param_ids :: fn(params: AST.TypeParam[], typed: TypedProgram) -> i32[] {
     ids: i32[]: []
     for tp in params {
         sym :: typed.resolved.idents[tp.span.hash()] ?? continue
@@ -384,7 +384,7 @@ export check_fn_body :: fn(
     body: AST.BlockExpr,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
     impl_type_params: i32[] = [],
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
@@ -621,7 +621,7 @@ fits_slot :: fn(got: Type, expected: Type, value: AST.Expr | null, typed: TypedP
 // Resolve the effective fn-context: the arg-side `ctx` when present, else the
 // walk-global `current_fn_ctx` (the recursive `infer_if` / `infer_match` paths
 // pass `ctx = null`, so the body's return / yield targets need this fallback).
-resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext! | null {
+resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext | null {
     if ctx != null {
         return ctx
     }
@@ -634,7 +634,7 @@ check_let :: fn(
     s: AST.LetStmt,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     ann: Type | null = null
     written_ty :: s.ty
@@ -709,7 +709,7 @@ check_assign :: fn(
     s: AST.AssignStmt,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     // T3041 : bare-ident assignment to a `::`-bound local or a module constant.
     // Surface the diag and skip the value-side typing so the dump doesn't carry
@@ -829,7 +829,7 @@ check_destructuring_assign :: fn(
     s: AST.DestructureAssignStmt,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     // `[] = v` — P1023 already reported it.
     if s.targets.len() == 0 {
@@ -923,7 +923,7 @@ place_slot :: fn(
     place: AST.Expr,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     if place !is AST.IndexExpr {
         return check_expr_fn(place, null, typed, diags)
@@ -964,7 +964,7 @@ index_write_slot :: fn(
     ix: AST.IndexExpr,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type | null {
     set_trait :: core_trait_key(TRAIT_INDEX_SET)
     receiver_ty :: check_expr_fn(ix.target, null, typed, diags)
@@ -1044,7 +1044,7 @@ reject_field_write :: fn(
     field: AST.FieldExpr,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> bool {
     _ :: check_expr_fn(field.target, null, typed, diags)
     // `Color.Red = v`, `Point.x = v` : what a type names is no place (T3082).
@@ -1118,7 +1118,7 @@ check_destructure_target :: fn(
     elem_ty: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     if target is AST.IdentExpr {
         if reject_const_reassign(target, typed, diags) {
@@ -1198,7 +1198,7 @@ check_return :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     effective :: resolve_ctx(ctx, typed)
     // Generator: `return <value>` is a mistake (produce via `yield` — T3058);
@@ -1252,7 +1252,7 @@ check_yield :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     effective :: resolve_ctx(ctx, typed)
     if effective != null && effective.is_generator {
@@ -1286,7 +1286,7 @@ check_for :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     binding: string | null = null
     // What the loop repeats (a condition, the body) runs after the body's own
@@ -1481,7 +1481,7 @@ check_defer :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     // `defer` inside a generator is still forbidden in v1 — a generator can be
     // abandoned mid-iteration, and the runtime has no drop hook to fire pending
@@ -1506,7 +1506,7 @@ check_defer :: fn(
     return
 }
 
-outside_loops :: fn(ctx: FnContext | null) -> FnContext! | null {
+outside_loops :: fn(ctx: FnContext | null) -> FnContext | null {
     if ctx is null {
         return null
     }
@@ -1515,7 +1515,7 @@ outside_loops :: fn(ctx: FnContext | null) -> FnContext! | null {
 
 // ---- support --------------------------------------------------------------
 
-bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext! | null {
+bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
     if ctx is null {
         return null
     }
@@ -1859,7 +1859,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     return null
 }
 
-diag_sink_stmt :: fn() -> Diagnostic[]! { return [] }
+diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
 
 // The type written on the right of an `is`, carrying the immutability of the
 // slot it is subtracted from. Same rationale as `match_expr::pattern_type_of`.

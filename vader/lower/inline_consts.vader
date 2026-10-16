@@ -346,7 +346,7 @@ const_accessor_symbol :: fn(orig_sym: Symbol, synth_id: i32) -> Symbol = Symbol 
 // block whose trailing expression is the const's value, and the origin reuses
 // the const's MonoEntry with the symbol swapped for the `fn_symbol` built by
 // `const_accessor_symbol`.
-synthesize_const_fn :: fn(cd: LoweredConstDecl, fn_symbol: Symbol) -> LoweredFnDecl! {
+synthesize_const_fn :: fn(cd: LoweredConstDecl, fn_symbol: Symbol) -> LoweredFnDecl {
     synth_entry :: MonoEntry {
         .id             = cd.origin.id,
         .is_main        = false,

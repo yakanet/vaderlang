@@ -163,7 +163,7 @@ is_push_onto :: fn(e: LoweredExpr, out: Symbol) -> bool =
 // difference is a wrapping `usize` one, exact under the `start <= bound` guard: in
 // the counter's own type it may not fit (`-100..<100` over an `i8`). Two literal
 // bounds wrap too, the count being a hint: a span past `i64` reserves nothing.
-trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr! {
+trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr {
     start :: turns.start
     bound :: turns.bound
     inclusive :: turns.inclusive
@@ -192,7 +192,7 @@ trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr! {
     }
 }
 
-usize_difference :: fn(bound: LoweredExpr, start: LoweredExpr, span: Span) -> LoweredExpr! {
+usize_difference :: fn(bound: LoweredExpr, start: LoweredExpr, span: Span) -> LoweredExpr {
     if is_int_lit(start, 0) {
         return cast_to_usize(bound, span)
     }
@@ -205,7 +205,7 @@ usize_difference :: fn(bound: LoweredExpr, start: LoweredExpr, span: Span) -> Lo
     }
 }
 
-plus_one :: fn(e: LoweredExpr, span: Span) -> LoweredExpr! = LoweredBinary {
+plus_one :: fn(e: LoweredExpr, span: Span) -> LoweredExpr = LoweredBinary {
     .span = span,
     .type = mk_primitive("usize"),
     .op = .Add,
@@ -229,7 +229,7 @@ reads_local :: fn(e: LoweredExpr, symbol: Symbol) -> bool {
 
 is_usize :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "usize"
 
-usize_lit :: fn(value: i64, span: Span) -> LoweredExpr! = LoweredIntLit {
+usize_lit :: fn(value: i64, span: Span) -> LoweredExpr = LoweredIntLit {
     .span = span,
     .type = mk_primitive("usize"),
     .value = value,
@@ -241,7 +241,7 @@ usize_lit :: fn(value: i64, span: Span) -> LoweredExpr! = LoweredIntLit {
 // and an array's length are the values a counter loop starts from or runs to ;
 // a call may not be re-run early. Read early, a value some `let` in between does
 // change only mis-sizes the capacity.
-hoisted :: fn(e: LoweredExpr, lets: LoweredLet[]) -> LoweredExpr! | null {
+hoisted :: fn(e: LoweredExpr, lets: LoweredLet[]) -> LoweredExpr | null {
     if e is LoweredIntLit {
         return e
     }

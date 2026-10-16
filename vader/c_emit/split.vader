@@ -169,7 +169,7 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, header_name: str
 }
 
 // A printer opening a unit that reads the shared header.
-including :: fn(header_name: string) -> CPrinter! {
+including :: fn(header_name: string) -> CPrinter {
     printer :: CPrinter {}
     printer.print_item(CInclude { .path = header_name })
     return printer
@@ -333,7 +333,7 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
     // file and lost every function but the last — a link failure listing
     // undefined `vader_fn_lift_*`, and only in projects with enough bare names
     // to straddle a module.
-    of_module :: MutableMap<string, i32[]!> {}
+    of_module :: MutableMap<string, i32[]> {}
     for idx in sorted_fn_indices(fns) {
         m :: module_stem_of(fns[usize(idx)].name)
         cur :: of_module[m]
@@ -351,7 +351,7 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
 }
 
 // The module stems, sorted — the deterministic unit order.
-sorted_module_stems :: fn(of_module: MutableMap<string, i32[]!>) -> string[] {
+sorted_module_stems :: fn(of_module: MutableMap<string, i32[]>) -> string[] {
     stems: string[]: []
     for [m, _] in of_module {
         stems.push(m)

@@ -11,7 +11,7 @@ RESUMES: i64[]!: [0]
 
 // An awaitable counting the resumes it forwards to `inner`.
 Counted :: struct {
-    inner: Async<null>!
+    inner: Async<null>
 }
 
 Counted implements Async<null> {

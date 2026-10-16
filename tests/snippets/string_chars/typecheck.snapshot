@@ -9,15 +9,15 @@
   expr 14:13    StringLitExpr  :: string
   expr 14:5     CallExpr       :: void
   expr 14:5     IdentExpr      :: fn(T) -> void
-  expr 15:14    CallExpr       :: StringChars!
-  expr 15:14    FieldExpr      :: fn() -> StringChars!
+  expr 15:14    CallExpr       :: StringChars
+  expr 15:14    FieldExpr      :: fn() -> StringChars
   expr 15:14    StringLitExpr  :: string
   expr 16:17    StringLitExpr  :: string
   expr 16:20    IdentExpr      :: char
   expr 16:9     CallExpr       :: void
   expr 16:9     IdentExpr      :: fn(T) -> void
-  expr 21:14    CallExpr       :: StringChars!
-  expr 21:14    FieldExpr      :: fn() -> StringChars!
+  expr 21:14    CallExpr       :: StringChars
+  expr 21:14    FieldExpr      :: fn() -> StringChars
   expr 21:14    StringLitExpr  :: string
   expr 22:13    BinaryExpr     :: i32
   expr 22:13    IdentExpr      :: i32
@@ -34,8 +34,8 @@
   expr 27:13    StringLitExpr  :: string
   expr 27:5     CallExpr       :: void
   expr 27:5     IdentExpr      :: fn(T) -> void
-  expr 28:14    CallExpr       :: StringChars!
-  expr 28:14    FieldExpr      :: fn() -> StringChars!
+  expr 28:14    CallExpr       :: StringChars
+  expr 28:14    FieldExpr      :: fn() -> StringChars
   expr 28:14    StringLitExpr  :: string
   expr 29:17    StringLitExpr  :: string
   expr 29:9     CallExpr       :: void
@@ -46,6 +46,6 @@
   expr 8:13     StringLitExpr  :: string
   expr 8:5      CallExpr       :: void
   expr 8:5      IdentExpr      :: fn(T) -> void
-  expr 9:14     CallExpr       :: StringChars!
-  expr 9:14     FieldExpr      :: fn() -> StringChars!
+  expr 9:14     CallExpr       :: StringChars
+  expr 9:14     FieldExpr      :: fn() -> StringChars
   expr 9:14     StringLitExpr  :: string

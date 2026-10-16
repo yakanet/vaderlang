@@ -5,7 +5,7 @@
     let sb: StringBuilder! =
       StringBuilder! {
         parts:
-          array :string[]!
+          array :string[]
       }
     call :void
       callee:
@@ -47,7 +47,7 @@
     let sb2: StringBuilder! =
       StringBuilder! {
         parts:
-          array :string[]!
+          array :string[]
       }
     call :void
       callee:
@@ -82,7 +82,7 @@
     let sb3: StringBuilder! =
       StringBuilder! {
         parts:
-          array :string[]!
+          array :string[]
       }
     call :void
       callee:
@@ -104,7 +104,7 @@
     let sb4: StringBuilder! =
       StringBuilder! {
         parts:
-          array :string[]!
+          array :string[]
       }
     call :void
       callee:
@@ -133,7 +133,7 @@
     let sb5: StringBuilder! =
       StringBuilder! {
         parts:
-          array :string[]!
+          array :string[]
       }
     call :void
       callee:

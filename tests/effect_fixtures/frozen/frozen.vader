@@ -18,7 +18,7 @@ export Untouched :: struct {
 }
 
 export Holder :: struct {
-    cfg: Cfg!
+    cfg: Cfg
 }
 
 export CFG :: Cfg { .n = 1 }

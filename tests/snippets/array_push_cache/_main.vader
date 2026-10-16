@@ -16,7 +16,7 @@ import "std/io"
 import "std/iter"
 
 // The shape the pass exists for: nothing in the body but the push.
-tight :: fn(n: i32) -> i32[]! {
+tight :: fn(n: i32) -> i32[] {
     out: i32[]: []
     for i in 0..<n {
         out.push(i * 2)
@@ -25,7 +25,7 @@ tight :: fn(n: i32) -> i32[]! {
 }
 
 // A reserved array (`[] * n`) is as fresh as a literal: cached too.
-reserved :: fn(n: i32) -> i32[]! {
+reserved :: fn(n: i32) -> i32[] {
     out: i32[]: [] * usize(n)
     for i in 0..<n {
         out.push(i * 3)
@@ -36,7 +36,7 @@ reserved :: fn(n: i32) -> i32[]! {
 // A call in the body can allocate, so the buffer may move under the cache.
 mk :: fn(i: i32) -> string = "v${i}"
 
-allocates :: fn(n: i32) -> string[]! {
+allocates :: fn(n: i32) -> string[] {
     out: string[]: []
     for i in 0..<n {
         out.push(mk(i))
@@ -45,7 +45,7 @@ allocates :: fn(n: i32) -> string[]! {
 }
 
 // The body READS the array, so the cached length would have to be visible to it.
-reads_itself :: fn(n: i32) -> i32[]! {
+reads_itself :: fn(n: i32) -> i32[] {
     out: i32[]: []
     for i in 0..<n {
         out.push(i)
@@ -58,7 +58,7 @@ reads_itself :: fn(n: i32) -> i32[]! {
 
 // A `break` of the loop reaches the write-back like the normal exit does: midir
 // compiles it as a fall-through to the loop's end.
-with_break :: fn(n: i32) -> i32[]! {
+with_break :: fn(n: i32) -> i32[] {
     out: i32[]: []
     for i in 0..<n {
         if i == 3 {
@@ -71,7 +71,7 @@ with_break :: fn(n: i32) -> i32[]! {
 
 // A `break` between two pushes: the last round's first push has landed and its
 // second has not, so the length must count exactly one of them.
-break_mid :: fn(a: i32[]) -> i32[]! {
+break_mid :: fn(a: i32[]) -> i32[] {
     out: i32[]: []
     for x in a {
         out.push(x)
@@ -112,7 +112,7 @@ break_outer :: fn(n: i32) -> i32 {
 
 // Boxed elements: the collector scans `buf->length` slots here, so a stale
 // length would lose references rather than just returning a wrong count.
-boxed :: fn(n: i32) -> string[]! {
+boxed :: fn(n: i32) -> string[] {
     out: string[]: []
     for _ in 0..<n {
         out.push("x")
@@ -124,7 +124,7 @@ boxed :: fn(n: i32) -> string[]! {
 // declines it — `base` is a second way to reach the same storage. Pushing into
 // a view detaches it, which is what keeps the ANSWER right either way ; the
 // analysis does not get to lean on that.
-into_view :: fn() -> i32[]! {
+into_view :: fn() -> i32[] {
     base: i32[]: [10, 20, 30, 40, 50]
     v: i32[]: base[1..<3]
     for i in 0..<3 {
@@ -182,7 +182,7 @@ widths :: fn(n: i32) -> string {
     return "${bt}/${st}/${i32(ft)}"
 }
 
-Holder :: struct { items: i32[]! }
+Holder :: struct { items: i32[] }
 
 // Reads the array through the reference the HOLDER kept, while never naming
 // `out`. A name-based check passes this and the lifted form then hands back a

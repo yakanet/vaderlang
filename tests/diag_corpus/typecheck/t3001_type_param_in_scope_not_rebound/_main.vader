@@ -45,7 +45,7 @@ through_trait_value :: fn<T>(s: Sink<T>, v: T) -> void {
 }
 
 Bag :: struct<T> {
-    items: T[]!
+    items: T[]
 }
 
 Bag<T> implements<T> Sink<T> {

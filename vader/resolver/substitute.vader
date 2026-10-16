@@ -22,11 +22,11 @@ import "toolchain/span"
 /// Name → replacement TypeExpr. Built by callers (materialize entry
 /// points) and passed once through the substitution walker.
 export Subst :: struct {
-    entries: MutableMap<string, AST.TypeExpr!>!
+    entries: MutableMap<string, AST.TypeExpr>
 }
 
-export new_subst :: fn() -> Subst! {
-    return Subst { .entries = MutableMap<string, AST.TypeExpr!> {} }
+export new_subst :: fn() -> Subst {
+    return Subst { .entries = MutableMap<string, AST.TypeExpr> {} }
 }
 
 /// Bind `name` → `replacement`. `replacement` is treated as the
@@ -37,7 +37,7 @@ export bind :: fn(self: Subst, name: string, replacement: AST.TypeExpr) -> void 
     self.entries[name] = replacement
 }
 
-lookup_subst :: fn(self: Subst, name: string) -> AST.TypeExpr! | null {
+lookup_subst :: fn(self: Subst, name: string) -> AST.TypeExpr | null {
     return self.entries[name]
 }
 
@@ -50,7 +50,7 @@ lookup_subst :: fn(self: Subst, name: string) -> AST.TypeExpr! | null {
 // @partial: only type-position Expr variants are reconstructed; all value-level
 // variants pass through unchanged (a type-position walker never reaches them — see
 // the trailing `_ -> expr` comment).
-export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeExpr! {
+export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeExpr {
     @partial match expr {
         is AST.IdentExpr -> {
             replacement :: lookup_subst(subst, expr.name) ?? return clone_ident(expr)
@@ -134,7 +134,7 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
     }
 }
 
-clone_ident :: fn(e: AST.IdentExpr) -> AST.IdentExpr! = AST.IdentExpr {
+clone_ident :: fn(e: AST.IdentExpr) -> AST.IdentExpr = AST.IdentExpr {
     ...e,
     .id = AST.UNASSIGNED_NODE_ID,
 }
@@ -231,7 +231,7 @@ test_substitute_recurses_into_generic_inst :: fn() -> void {
     }
 }
 
-make_ident :: fn(name: string) -> AST.IdentExpr! {
+make_ident :: fn(name: string) -> AST.IdentExpr {
     return AST.IdentExpr {
         .span = empty_span(),
         .id = AST.UNASSIGNED_NODE_ID,

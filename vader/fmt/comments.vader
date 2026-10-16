@@ -62,7 +62,7 @@ TRIPLE_QUOTE :: "\"\"\""
 /// String literals are skipped so a `"contains // pseudo-comment"` literal
 /// doesn't fool the scanner.
 /// @param source source code
-export scan_comments :: fn(source: string) -> CommentMap! {
+export scan_comments :: fn(source: string) -> CommentMap {
     out: Comment[]: []
     n :: source.byte_len()
     i: usize = 0

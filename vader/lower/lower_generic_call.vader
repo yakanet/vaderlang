@@ -31,7 +31,7 @@ follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
 
 // A call to a top-level generic fn lowers to a direct call to its monomorphized
 // instance, at the type arguments the typecheck recorded (`emit_generic_fn_call`).
-try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr! | null {
+try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     // Explicit-args generic call : `identity<i32>(42)`. The callee
     // is a GenericInstExpr whose inner callee is the fn IdentExpr.
     // Type args come from the GenericInstExpr's type_args slot.
@@ -76,7 +76,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
 // falls through to its non-generic handling).
 emit_generic_fn_call :: fn(
     ctx: FnLowerCtx, call: CallExpr, type: Type, fn_sym: Symbol, params: Type[], callee_span: Span,
-) -> LoweredExpr! | null {
+) -> LoweredExpr | null {
     mangled :: recorded_instance_mangle(ctx, call, fn_sym) ?? return null
     lowered_args :: lower_call_args(ctx, call.args, params, 0)
     return LoweredCall {
@@ -175,7 +175,7 @@ register_fn_instance_mangle :: fn(
 register_and_emit_generic_call :: fn(
     ctx: FnLowerCtx, call: CallExpr, type: Type,
     fn_sym: Symbol, concrete_args: Type[], callee_span: Span,
-) -> LoweredExpr! {
+) -> LoweredExpr {
     mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args)
     lowered_args: LoweredExpr[]: []
     for ca in call.args { lowered_args.push(lower_converted(ctx, ca.value)) }

@@ -278,7 +278,7 @@ close_over_field_shapes :: fn(
     project: LoweredProject,
 ) -> void {
     materialized :: new_string_set()
-    seen_pushed :: MutableMap<i32, StructType[]!> {}
+    seen_pushed :: MutableMap<i32, StructType[]> {}
     worklist: StructType[]: []
     collect :: (sub: Type) -> push_struct_shape(sub, worklist, seen_pushed)
     for [_, mod] in project.modules {
@@ -324,7 +324,7 @@ MAX_FIELD_SHAPES :: 4096
 /// `type_list_equals` reads `ArrayType.immutable`) — the surplus is dropped
 /// there. It must never be COARSER : that would drop a shape nothing
 /// materialises.
-push_struct_shape :: fn(t: Type, out: StructType[], seen: MutableMap<i32, StructType[]!>) -> void {
+push_struct_shape :: fn(t: Type, out: StructType[], seen: MutableMap<i32, StructType[]>) -> void {
     if t !is StructType  { return }
     if has_type_param(t) { return }
     shapes :: seen[t.symbol.id]

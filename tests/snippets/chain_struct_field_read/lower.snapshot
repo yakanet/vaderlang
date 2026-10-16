@@ -19,8 +19,8 @@
           name: "c" :string
           value: int(3) :i32
         }
-    let merged: Rec[]! =
-      block :Rec[]!
+    let merged: Rec[] =
+      block :Rec[]
         let __fuse_arr_0: Rec[] = a :Rec[]
         let __fuse_arr_1: Rec[] = b :Rec[]
         let out: Rec[] =
@@ -120,7 +120,7 @@
               arg1:
                 __off_4 :usize
     block :void
-      let __for_arr_5: Rec[]! = merged :Rec[]!
+      let __for_arr_5: Rec[] = merged :Rec[]
       let __for_len_6: usize =
         LoweredArrayLen
       let __for_i_7: usize = int(0) :usize
@@ -128,7 +128,7 @@
         let r: Rec =
           index :Rec
             on:
-              __for_arr_5 :Rec[]!
+              __for_arr_5 :Rec[]
             ix:
               __for_i_7 :usize
         ~>
@@ -214,8 +214,8 @@
                 __for_i_7 :usize
               r:
                 int(1) :usize
-    let doubled: Rec![]! =
-      block :Rec![]!
+    let doubled: Rec![] =
+      block :Rec![]
         let __fuse_arr_11: Rec[] = a :Rec[]
         let f: fn(Rec) -> Rec! = __lambda_snippet_0 :fn(Rec) -> Rec!
         let out: Rec![] =
@@ -253,7 +253,7 @@
         ~>
           out :Rec![]
     block :void
-      let __for_arr_13: Rec![]! = doubled :Rec![]!
+      let __for_arr_13: Rec![] = doubled :Rec![]
       let __for_len_14: usize =
         LoweredArrayLen
       let __for_i_15: usize = int(0) :usize
@@ -261,7 +261,7 @@
         let r: Rec! =
           index :Rec!
             on:
-              __for_arr_13 :Rec![]!
+              __for_arr_13 :Rec![]
             ix:
               __for_i_15 :usize
         ~>
@@ -360,9 +360,9 @@
                 __for_i_15 :usize
               r:
                 int(1) :usize
-    let kept: Rec[]! =
-      block :Rec[]!
-        let __fuse_arr_19: Rec[]! = merged :Rec[]!
+    let kept: Rec[] =
+      block :Rec[]
+        let __fuse_arr_19: Rec[] = merged :Rec[]
         let pred: fn(Rec) -> bool = __lambda_snippet_1 :fn(Rec) -> bool
         let out: Rec[] =
           array :Rec[]
@@ -374,7 +374,7 @@
             let x: Rec =
               index :Rec
                 on:
-                  __fuse_arr_19 :Rec[]!
+                  __fuse_arr_19 :Rec[]
                 ix:
                   __fuse_i_1 :usize
             ~>
@@ -401,7 +401,7 @@
         ~>
           out :Rec[]
     block :void
-      let __for_arr_21: Rec[]! = kept :Rec[]!
+      let __for_arr_21: Rec[] = kept :Rec[]
       let __for_len_22: usize =
         LoweredArrayLen
       let __for_i_23: usize = int(0) :usize
@@ -409,7 +409,7 @@
         let r: Rec =
           index :Rec
             on:
-              __for_arr_21 :Rec[]!
+              __for_arr_21 :Rec[]
             ix:
               __for_i_23 :usize
         ~>

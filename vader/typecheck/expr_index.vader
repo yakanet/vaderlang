@@ -12,7 +12,7 @@ AST :: import "toolchain/ast"
 /// `Index` result, a slice for a `Range` index on an array.
 export infer_index :: fn(
     e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     target :: check_expr_fn(e.target, null, typed, diags)
     // Each route below files what it runs.

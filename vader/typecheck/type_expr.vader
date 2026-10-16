@@ -285,7 +285,7 @@ lower_call_in_type_position :: fn(
 // said nothing ; and an impl's `Sink<Cfg>` must compare with a slot's.
 written_type_args :: fn(
     written: AST.TypeExpr[], resolved: ResolvedModule, diags: Diagnostic[],
-) -> Type[]! {
+) -> Type[] {
     out: Type[]: []
     for a in written {
         out.push(apply_readonly_default(type_from_expr(a, resolved, diags), a))

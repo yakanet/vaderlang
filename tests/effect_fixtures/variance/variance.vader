@@ -55,15 +55,15 @@ export counts_rows :: fn(rows: (Circle | null)[][]) -> i32 {
 
 export keeps_a_row :: fn(rows: (Circle | null)[][]) -> Holder = Holder { .items = rows[0] }
 
-export pushes_null :: fn(xs: (Circle | null)[]!) -> void {
+export pushes_null :: fn(xs: (Circle | null)[]) -> void {
     xs.push(null)
 }
 
-export drops_last :: fn(xs: (Circle | null)[]!) -> void {
+export drops_last :: fn(xs: (Circle | null)[]) -> void {
     _ :: xs.remove_last()
 }
 
-export calls :: fn(circles: Circle[]!, rows: Circle[][], f: fn((Circle | null)[]) -> void) -> void {
+export calls :: fn(circles: Circle[], rows: Circle[][], f: fn((Circle | null)[]) -> void) -> void {
     _ :: counts(circles)
     _ :: keeps(circles)
     _ :: returns(circles)

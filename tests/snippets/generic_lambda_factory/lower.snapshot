@@ -1,9 +1,9 @@
 # Lower
 
 ## snippet
-  fn snippet$new_row() -> i32[]!
+  fn snippet$new_row() -> i32[]
     ~>
-      array :i32[]!
+      array :i32[]
   const snippet$ROWS: usize =
     int(40) :usize
   const snippet$PER_ROW: usize =
@@ -128,9 +128,9 @@
     return bad :i32
   fn snippet$main() -> i32
     let lambda_rows: i32[][] =
-      call :i32[][]!
+      call :i32[][]
         callee:
-          snippet$build__i32__ :i32[][]!
+          snippet$build__i32__ :i32[][]
         arg0:
           int(40) :usize
         arg1:
@@ -192,13 +192,13 @@
               arg1:
                 __off_1 :usize
     let named_rows: i32[][] =
-      call :i32[]![]!
+      call :i32[][]
         callee:
-          snippet$build__i32__ :i32[]![]!
+          snippet$build__i32__ :i32[][]
         arg0:
           int(40) :usize
         arg1:
-          new_row :fn() -> i32[]!
+          new_row :fn() -> i32[]
     call :void
       callee:
         fill :fn(i32[][]) -> void
@@ -259,9 +259,9 @@
   fn __lambda_snippet_0() -> i32[]
     ~>
       array :i32[]
-  fn snippet$build__i32__(n: usize, make: fn() -> i32[]) -> i32[][]!
+  fn snippet$build__i32__(n: usize, make: fn() -> i32[]) -> i32[][]
     let out: i32[][] =
-      @array.repeat :i32[][]!
+      @array.repeat :i32[][]
         array :i32[][]
         n :usize
     block :void

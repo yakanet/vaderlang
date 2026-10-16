@@ -43,8 +43,8 @@
   expr 39:16    CallExpr       :: i32
   expr 39:16    IdentExpr      :: fn(string) -> i32
   expr 39:21    StringLitExpr  :: string
-  expr 45:11    CallExpr       :: Async<null>!
-  expr 45:11    IdentExpr      :: fn(i64) -> Async<null>!
+  expr 45:11    CallExpr       :: Async<null>
+  expr 45:11    IdentExpr      :: fn(i64) -> Async<null>
   expr 45:5     AwaitExpr      :: null
   expr 46:13    StringLitExpr  :: string
   expr 46:22    IdentExpr      :: string

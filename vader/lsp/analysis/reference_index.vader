@@ -179,9 +179,9 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
 // The sites gathered so far, the spans already holding a named site, and the
 // targets whose name a trait fixes.
 IndexBuilder :: struct {
-    sites: RefSite[]! = []
-    named: MutableSet<u64>! = MutableSet<u64> {}
-    fixed: MutableSet<i64>! = MutableSet<i64> {}
+    sites: RefSite[] = []
+    named: MutableSet<u64> = MutableSet<u64> {}
+    fixed: MutableSet<i64> = MutableSet<i64> {}
 }
 
 // Add `site` unless its span already holds a named site.
@@ -222,15 +222,15 @@ target_key :: fn(typed: TypedProgram, sym: Symbol) -> i64 {
 // The fns the record names at one node : the call's, and those run without being
 // named.
 RecordedFns :: struct {
-    called: AST.FnDecl[]! = []
-    implicit: AST.FnDecl[]! = []
+    called: AST.FnDecl[] = []
+    implicit: AST.FnDecl[] = []
 }
 
 // The fns the typecheck recorded in `typed`, by node : one pass over the record's
 // tables rather than a lookup per role at every node. A member materialised from a
 // trait default has no source of its own.
-recorded_fns :: fn(typed: TypedProgram) -> MutableMap<usize, RecordedFns!> {
-    out :: MutableMap<usize, RecordedFns!> {}
+recorded_fns :: fn(typed: TypedProgram) -> MutableMap<usize, RecordedFns> {
+    out :: MutableMap<usize, RecordedFns> {}
     for role in all_roles() {
         for [id, callee] in sites_of(typed.call_sites, role) {
             for decl in named_decls(callee) {
@@ -249,7 +249,7 @@ recorded_fns :: fn(typed: TypedProgram) -> MutableMap<usize, RecordedFns!> {
     return out
 }
 
-new_recorded :: fn(out: MutableMap<usize, RecordedFns!>, id: usize) -> RecordedFns! {
+new_recorded :: fn(out: MutableMap<usize, RecordedFns>, id: usize) -> RecordedFns {
     fresh :: RecordedFns {}
     out[id] = fresh
     return fresh
@@ -313,9 +313,9 @@ add_namespace_member :: fn(index: IndexBuilder, typed: TypedProgram, e: AST.Fiel
 // member a source declares.
 
 Collected :: struct {
-    spans: Span[]! = []
-    nodes: AST.Expr[]! = []
-    members: AST.FnDecl[]! = []
+    spans: Span[] = []
+    nodes: AST.Expr[] = []
+    members: AST.FnDecl[] = []
 }
 
 collect_decl_idents :: fn(d: AST.Decl, out: Collected) -> void {

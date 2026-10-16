@@ -286,7 +286,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // pins drop with it (so `prune_unused_types` no longer roots arg types
     // only a dead fn referenced), and a folded mangle-duplicate merges its
     // (empty) pins onto the canonical.
-    new_pins_by_fn :: MutableMap<i32, i32[]!> {}
+    new_pins_by_fn :: MutableMap<i32, i32[]> {}
     for [old_fn, pins] in ctx.pinned_types_by_fn {
         if usize(old_fn) >= remap.len() { continue }
         new_fn :: remap[usize(old_fn)]
@@ -404,7 +404,7 @@ export remap_idx :: fn(remap: i32[], idx: i32) -> i32 {
 }
 
 /// `remap_idx` over a list — a signature's `result_types`, a struct's fields.
-export remap_type_indices :: fn(remap: i32[], indices: i32[]) -> i32[]! =
+export remap_type_indices :: fn(remap: i32[], indices: i32[]) -> i32[] =
     indices.map((i) -> remap_idx(remap, i)).collect()
 
 /// The type-table index an op carries, or -1 when it carries none.

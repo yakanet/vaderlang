@@ -10,7 +10,7 @@ Cfg :: struct {
 CFG :: Cfg { .count = 1 }
 
 Merges :: trait {
-    absorb :: fn(self!, other: Cfg!) -> void
+    absorb :: fn(self, other: Cfg) -> void
 }
 
 Cfg implements Merges {

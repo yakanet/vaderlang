@@ -86,7 +86,7 @@ export find_async_module_id :: fn(project: LoadedProject) -> string | null {
 ///                        list (`FileImports.excludes`) — skipped here.
 export seed_wildcard_exports :: fn(
     root: MutableMap<string, Symbol>, name_index: MutableMap<string, LoadedModule>,
-    wildcard_paths: string[], excludes: MutableMap<string, string[]!>,
+    wildcard_paths: string[], excludes: MutableMap<string, string[]>,
 ) -> void {
     for path in wildcard_paths {
         target :: name_index[path] ?? continue
@@ -131,10 +131,10 @@ export wildcard_exposes :: fn(sym: Symbol, dropped: string[] | null) -> bool {
 /// unqualified reference actually resolves to one of these ambiguous names.
 export wildcard_ambiguities :: fn(
     name_index: MutableMap<string, LoadedModule>, wildcard_paths: string[],
-    excludes: MutableMap<string, string[]!>,
+    excludes: MutableMap<string, string[]>,
     base: MutableMap<string, Symbol>,
-) -> MutableMap<string, string[]!> {
-    providers :: MutableMap<string, string[]!> {}
+) -> MutableMap<string, string[]> {
+    providers :: MutableMap<string, string[]> {}
     if wildcard_paths.len() < 2 {
         return providers
     }
@@ -165,7 +165,7 @@ export wildcard_ambiguities :: fn(
             }
         }
     }
-    out :: MutableMap<string, string[]!> {}
+    out :: MutableMap<string, string[]> {}
     for [name, mods] in providers {
         if mods.len() >= 2 { out[name] = mods }
     }

@@ -26,14 +26,14 @@ RangeFlow :: struct {
     /// reached yet. A stored state is never changed in place, so one may be
     /// shared by several blocks, and is settled (`settle_intervals`): an edge it
     /// covers adds nothing to it.
-    states: (RangeState | null)[]!
+    states: (RangeState | null)[]
     /// The blocks a retreating edge enters: the loop headers, where the
     /// analysis widens.
     headers: bool[]
     /// Per loop header, the times its state widened so far.
-    widenings: i32[]!
+    widenings: i32[]
     /// Per block, whether its state changed since the block was last walked.
-    dirty: bool[]!
+    dirty: bool[]
     /// The integer constants of the function, ascending: where widening stops.
     thresholds: i64[]
 }

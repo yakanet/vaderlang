@@ -1390,10 +1390,10 @@
   fn snippet$chars_indexed_continue() -> void
     let fused: i32 = int(0) :i32
     block :void
-      let __fuse_iter_1: StringChars! =
-        call :StringChars!
+      let __fuse_iter_1: StringChars =
+        call :StringChars
           callee:
-            chars :StringChars!
+            chars :StringChars
           arg0:
             "fused" :string
       let i: usize = int(0) :usize
@@ -1403,7 +1403,7 @@
             callee:
               std_string$StringChars$Iterator$next :[char, Continuation]!
             arg0:
-              __fuse_iter_1 :StringChars!
+              __fuse_iter_1 :StringChars
         if :void
           cond:
             eq :bool
@@ -1464,9 +1464,9 @@
         callee:
           std_iter$indexed__char :__genstate_indexed<[char, usize]>!
         arg0:
-          call :StringChars!
+          call :StringChars
             callee:
-              chars :StringChars!
+              chars :StringChars
             arg0:
               "fused" :string
     block :void
@@ -3864,9 +3864,9 @@
                                                             __self_6 :__asyncstate_snippet_0!
                                                         value:
                                                           cast → Async<Any>!
-                                                            call :Async<null>!
+                                                            call :Async<null>
                                                               callee:
-                                                                sleep :fn(i64) -> Async<null>!
+                                                                sleep :fn(i64) -> Async<null>
                                                               arg0:
                                                                 int(1) :i64
                                                       assign
@@ -4299,9 +4299,9 @@
                                                                     __self_5 :__asyncstate_snippet_1!
                                                                 value:
                                                                   cast → Async<Any>!
-                                                                    call :Async<null>!
+                                                                    call :Async<null>
                                                                       callee:
-                                                                        sleep :fn(i64) -> Async<null>!
+                                                                        sleep :fn(i64) -> Async<null>
                                                                       arg0:
                                                                         int(1) :i64
                                                               assign

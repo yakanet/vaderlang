@@ -27,10 +27,10 @@ Pending :: struct {
 
 // The translation of one function in progress.
 Translation :: struct {
-    code:  RegFunction!
+    code:  RegFunction
     /// Each op's `a`, `b`, `c`, packed into `code.words` once the jumps are patched.
-    operands: i32[]!
-    stack: Pending[]!
+    operands: i32[]
+    stack: Pending[]
     /// First register of the operand stack: after the slots and the constants.
     stack_base: usize
     /// Index of the last op while nothing has come after it: a `local.set` may
@@ -38,7 +38,7 @@ Translation :: struct {
     /// `-1` otherwise.
     retarget: i64
     /// Jumps to patch: the op index, then the original target pc.
-    jumps: i64[]!
+    jumps: i64[]
     /// `BcFunction.source_pc` of the function translated.
     source_pc: i32[]
     /// `VmState.import_ids`.

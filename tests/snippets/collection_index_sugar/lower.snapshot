@@ -5,11 +5,11 @@
     let m: MutableMap<string, i32>! =
       MutableMap<string, i32>! {
         ekeys:
-          array :string[]!
+          array :string[]
         evals:
-          array :i32[]!
+          array :i32[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize
@@ -195,11 +195,11 @@
         inner:
           MutableMap<i32, bool>! {
             ekeys:
-              array :i32[]!
+              array :i32[]
             evals:
-              array :bool[]!
+              array :bool[]
             index:
-              array :i32[]!
+              array :i32[]
             mask: int(0) :usize
             size: int(0) :usize
             tombs: int(0) :usize

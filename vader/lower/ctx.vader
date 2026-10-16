@@ -51,9 +51,9 @@ export Capture :: struct {
 /// keys by symbol id, which IS project-global-unique (one shared factory),
 /// so it needs no qualification.
 export ClosureAnalysis :: struct {
-    cell_symbols: MutableSet<i32>!
-    lambda_captures:  MutableMap<string, Capture[]>!
-    defer_captures:   MutableMap<string, Capture[]>!
+    cell_symbols: MutableSet<i32>
+    lambda_captures:  MutableMap<string, Capture[]>
+    defer_captures:   MutableMap<string, Capture[]>
 }
 
 /// Module-qualified key for the closure-analysis capture maps. Combines the
@@ -100,63 +100,63 @@ export LowerProjectCtx :: struct {
     /// Mixed / Erased) consistently with the materialiser (`lower_mono_fn`). Same
     /// `TypedProject` the materialiser already consumes — exposed earlier here.
     typed:               TypedProject
-    impls:               ImplRegistry!
+    impls:               ImplRegistry
     /// Every free fn's symbol, in the module that declares it, keyed by its
     /// declaration's node id : the typecheck's record names a fn by its declaration,
     /// a call names it by its symbol (`populate_fn_symbols`).
-    fn_symbols:          MutableMap<usize, Symbol>! = MutableMap<usize, Symbol> {}
+    fn_symbols:          MutableMap<usize, Symbol> = MutableMap<usize, Symbol> {}
 
     /// `$VADER_OPT_REPORT` is on — read once at construction so each fall site
     /// costs a bool test rather than an environment lookup. See `opt_report.vader`.
     opt_report:          bool = false
     /// Where an optimisation pass handed over to its general path. Only filled
     /// when `opt_report` is on ; never a diagnostic, never gates a build.
-    opt_misses:          OptMiss[]! = []
+    opt_misses:          OptMiss[] = []
     /// The callee verifier's state, null unless `$VADER_VERIFY_CALLEES` is set. See
     /// `verify_callees.vader`.
-    callee_verifier:     CalleeVerifier! | null = null
+    callee_verifier:     CalleeVerifier | null = null
 
     /// The bindings each inlined callee declares, keyed by its id (its symbol's,
     /// or an impl member's from `impl_member_ids`), gathered once per callee
     /// (`declared_bindings`).
-    instance_bindings:   MutableMap<i32, Symbol[]>! = MutableMap<i32, Symbol[]> {}
+    instance_bindings:   MutableMap<i32, Symbol[]> = MutableMap<i32, Symbol[]> {}
     /// The callees whose body is being inlined right now — generators and
     /// iterator consumers alike. Inlining one of them again, from inside its own
     /// body, would never end.
-    inlining_callees:    MutableSet<i32>! = MutableSet<i32> {}
+    inlining_callees:    MutableSet<i32> = MutableSet<i32> {}
     /// The id each inlined impl member's instances are keyed on, by its
     /// declaration's id: a member has no resolver symbol to lend its own.
-    impl_member_ids:     MutableMap<usize, i32>! = MutableMap<usize, i32> {}
+    impl_member_ids:     MutableMap<usize, i32> = MutableMap<usize, i32> {}
     /// Instance clone id → the resolver's id for the same binding: the key of
     /// every resolver table indexed by symbol id (`origin_symbol_id`).
-    clone_origins:       MutableMap<i32, i32>! = MutableMap<i32, i32> {}
+    clone_origins:       MutableMap<i32, i32> = MutableMap<i32, i32> {}
     /// How each callee known to consume an iterator argument does it, keyed by
     /// its declaration's span (`inline_consumer.vader`).
-    consumers:           MutableMap<u64, ConsumerShape>! = MutableMap<u64, ConsumerShape> {}
+    consumers:           MutableMap<u64, ConsumerShape> = MutableMap<u64, ConsumerShape> {}
     /// The callees known to consume none, keyed the same way.
-    non_consumers:       MutableSet<u64>! = MutableSet<u64> {}
+    non_consumers:       MutableSet<u64> = MutableSet<u64> {}
 
     /// `name -> Symbol` from `std/core` (cached once at construction
     /// so trait / struct lookups don't re-walk the module map).
-    core_symbols:        MutableMap<string, Symbol>!
+    core_symbols:        MutableMap<string, Symbol>
     /// Resolved `EnumType`s for `core_symbols` entries of enum kind. Separate
     /// because resolving one means finding the module that TYPED it, and the
     /// answer is project-global — see `find_core_enum`.
-    core_enum_types:     MutableMap<string, Type>!
+    core_enum_types:     MutableMap<string, Type>
 
     /// Global `symbol_id -> ComptimeValue` index over every loaded
     /// module's `evaluated.modules[*].comptime_decls`. Populated once
     /// at the start of `lower_project` so per-ident const-baked lookups
     /// in `lower_expr.vader::lower_ident` run in O(1) instead of
     /// walking every module's map per call.
-    comptime_value_by_symbol_id: MutableMap<i32, ComptimeValue>!
+    comptime_value_by_symbol_id: MutableMap<i32, ComptimeValue>
 
     /// Per-module `defined_span_key -> Symbol` cache, lazily populated
     /// by `lookup_local_symbol`. The naive shape walked
     /// `resolved.idents.values()` then `resolved.symbols` per call
     /// (O(idents + symbols) per let / param) ; the index turns each
     /// lookup into a constant-time probe.
-    local_symbol_indices: MutableMap<string, MutableMap<u64, Symbol>>!
+    local_symbol_indices: MutableMap<string, MutableMap<u64, Symbol>>
 
     /// Free-variable analysis output, populated by `closure_analysis`.
     /// A closure-free project leaves it empty (no captures).
@@ -168,7 +168,7 @@ export LowerProjectCtx :: struct {
     /// `lower.vader::lower_module` brackets each module's walk with a window and
     /// `lower_finish.vader::drain_synth_window` pushes the window's decls into
     /// that module, so the emit picks them up alongside user decls.
-    synth_decls:         LoweredDecl![]!
+    synth_decls:         LoweredDecl[]
 
     /// Synthetic `concat_N` fns, keyed by arity. The string `+`-concat and
     /// all-string `${}` lowering route an N-leaf chain to one shared
@@ -177,7 +177,7 @@ export LowerProjectCtx :: struct {
     /// `get_or_create_concat`. Caching keeps it ONE shared fn per arity (no
     /// inline bloat at the call sites) and replaces the hand-written
     /// `concat2/3/4` + the >4 StringBuilder cliff.
-    concat_fn_syms:      MutableMap<i32, Symbol>!
+    concat_fn_syms:      MutableMap<i32, Symbol>
     /// Project-global synthesised decls — the `concat_N` fns, the field-default
     /// thunks and what their bodies lifted — in synthesis order. A project-GLOBAL
     /// cached decl can't ride the per-window `synth_decls` sink (whose
@@ -185,23 +185,23 @@ export LowerProjectCtx :: struct {
     /// inside a deduped generic instance would be stranded). They are collected here
     /// and drained ONCE, unconditionally, into the entry module after the lowering
     /// fixpoint (`drain_entry_decls`).
-    entry_decls:         LoweredDecl![]!
+    entry_decls:         LoweredDecl[]
     /// Field-default thunks, by name (`lower_field_default.vader`).
-    default_thunks:      MutableMap<string, DefaultThunk>! = MutableMap<string, DefaultThunk> {}
+    default_thunks:      MutableMap<string, DefaultThunk> = MutableMap<string, DefaultThunk> {}
     /// The defaults being lowered in place right now, by their field's span hash :
     /// a literal reaching one of them again calls its thunk.
-    expanding_defaults:  MutableSet<u64>! = MutableSet<u64> {}
+    expanding_defaults:  MutableSet<u64> = MutableSet<u64> {}
     /// Enum symbol id → the synthetic read-only const holding that enum's
     /// variant data, one slot per rank. Minted at the first read
     /// (`enum_table_const`) so every read shares one symbol.
-    enum_data_consts:    MutableMap<i32, Symbol>!
+    enum_data_consts:    MutableMap<i32, Symbol>
     /// Enum symbol id → the const holding that enum's written values, one slot
     /// per rank — for an enum with variant data whose values are not
     /// consecutive. Minted like `enum_data_consts`.
-    enum_value_consts:   MutableMap<i32, Symbol>!
+    enum_value_consts:   MutableMap<i32, Symbol>
     /// Tables due, in first-read order. `materialize_enum_tables` lowers each
     /// from `enum_table_cursor` on, inside the lowering fixpoint.
-    enum_table_order:    EnumTable[]!
+    enum_table_order:    EnumTable[]
     enum_table_cursor:   usize
 
     /// Monotonically-decreasing counter for synthetic symbol IDs.
@@ -217,7 +217,7 @@ export LowerProjectCtx :: struct {
     /// changes, so a function reached by one target alone renumbers every
     /// lambda behind it and modules whose code is identical emit different C.
     /// Keyed per module, a module that does not change keeps its names.
-    lambda_seq:          MutableMap<string, i32>!
+    lambda_seq:          MutableMap<string, i32>
 
     /// Monotonically-increasing counter for synthetic `MonoEntry` IDs,
     /// separated from the symbol-id pool so minting an entry doesn't
@@ -230,14 +230,14 @@ export LowerProjectCtx :: struct {
     /// `lower_project` as one `LoweredFnDecl` per instance.
     /// `fn_instances_order` preserves insertion order so the dump
     /// stays deterministic.
-    fn_instances:        MutableMap<string, GenericFnInstance>!
-    fn_instances_order:  GenericFnInstance[]!
+    fn_instances:        MutableMap<string, GenericFnInstance>
+    fn_instances_order:  GenericFnInstance[]
     /// Claimed instance mangles, for `uniq` overload disambiguation. Two
     /// same-name/same-arity overloads (`collect(arr: T[])` vs
     /// `collect(it: Iterator<T>)`) share a base mangle ; the second to
     /// register gets a `_1` suffix so the `dump_bytecode → parse_virt`
     /// round-trip keeps distinct fn names.
-    seen_mangled:        MutableMap<string, bool>!
+    seen_mangled:        MutableMap<string, bool>
 
     /// NON-generic free fns observed at call sites (UFCS or direct) in any
     /// non-entry module. Such modules are lowered lazily, so unless harvested
@@ -247,8 +247,8 @@ export LowerProjectCtx :: struct {
     /// emits one `LoweredFnDecl` per harvested symbol (body lowered, or
     /// `null` for `@extern` → import table). Keyed by `fn_symbol.id` for
     /// dedup ; `_order` preserves discovery order for a deterministic dump.
-    nongeneric_imported_fns:   MutableMap<i32, bool>!
-    nongeneric_imported_order: Symbol[]!
+    nongeneric_imported_fns:   MutableMap<i32, bool>
+    nongeneric_imported_order: Symbol[]
     /// Resume cursor into `nongeneric_imported_order` for
     /// `materialize_nongeneric_imported_fns`. Persisted so the
     /// materialise↔surface fixpoint loop drains newly-harvested fns
@@ -266,8 +266,8 @@ export LowerProjectCtx :: struct {
     /// like any user const (scalar → inline, bulky array → fn-wrap accessor).
     /// Keyed by `const_symbol.id` for dedup ; `_order` preserves discovery
     /// order for a deterministic dump.
-    nongeneric_imported_consts:       MutableMap<i32, bool>!
-    nongeneric_imported_const_order:  Symbol[]!
+    nongeneric_imported_consts:       MutableMap<i32, bool>
+    nongeneric_imported_const_order:  Symbol[]
     /// Resume cursor into `nongeneric_imported_const_order`, persisted across
     /// the materialise↔surface fixpoint so a const harvested late (e.g. one
     /// referenced only by a surfaced stdlib fn body) is lowered without
@@ -282,7 +282,7 @@ export LowerProjectCtx :: struct {
     /// which picks the single surviving body regardless of the original
     /// instance's concrete args. Also holds `"impl_member::<mangle>"`, the
     /// claim on a non-generic impl member (`claim_impl_member`).
-    materialized_impl_keys: MutableSet<string>!
+    materialized_impl_keys: MutableSet<string>
 
     /// Mangles of every monomorphized struct decl `materialize_struct_instance`
     /// has pushed. Two jobs. It makes that function idempotent — the receiver
@@ -293,7 +293,7 @@ export LowerProjectCtx :: struct {
     /// the whole `ref`-orphan bug class (a fn whose receiver has no struct decl
     /// interns as a bare `ref`, and its first field access panics in
     /// `midir/emit`).
-    materialized_struct_mangles: MutableSet<string>!
+    materialized_struct_mangles: MutableSet<string>
 
     /// Mangles of impl-member calls actually resolved during lowering
     /// (recorded by `find_impl_member_for`). The post-lowering
@@ -301,7 +301,7 @@ export LowerProjectCtx :: struct {
     /// stdlib impl members a concrete call references — surfacing ALL of
     /// them would intern unused signature types and shift the type table
     /// for unrelated snippets.
-    referenced_impl_mangles: MutableSet<string>!
+    referenced_impl_mangles: MutableSet<string>
 
     /// Trait names reached by an ERASED virtual dispatch (op-overload on a
     /// `T`/`Any` operand, a bounded-trait method call on an erased receiver,
@@ -313,7 +313,7 @@ export LowerProjectCtx :: struct {
     /// trait (the mono model materialises every non-generic impl member
     /// upfront then DCEs to the dispatched keys). Empty for snippets
     /// with no erased primitive dispatch → no surfacing, no snapshot drift.
-    virtually_dispatched_traits: MutableSet<string>!
+    virtually_dispatched_traits: MutableSet<string>
 
     /// Symbol ids of struct types a value of which can be INHABITED at runtime :
     /// constructed by a `lower_struct_lit`, OR produced by a callee's return type
@@ -325,7 +325,7 @@ export LowerProjectCtx :: struct {
     /// implements Error`) gets its impl members in the vtable ONLY when a value
     /// of it can exist, NOT for every snippet that merely dispatches the trait —
     /// otherwise an inhabitable-nowhere struct would bloat the table.
-    constructed_struct_symbols: MutableSet<i32>!
+    constructed_struct_symbols: MutableSet<i32>
 
     /// Array impl-member call sites (`x in arr` → `T[] implements Contains`,
     /// `[T]`-to-`Iterator` coercion → `T[] implements Into`) : maps the call-site
@@ -336,7 +336,7 @@ export LowerProjectCtx :: struct {
     /// `contains`'s `==` devirtualises to the element primop). An array impl has
     /// no struct instance to drive the regular generic-impl materialiser, so it
     /// keys off this table instead.
-    array_member_uses: MutableMap<string, ArrayMemberUse>!
+    array_member_uses: MutableMap<string, ArrayMemberUse>
 
     /// Erased generic-struct impl-member receivers (`MutableMap<Any, bool>`)
     /// discovered by `find_impl_member_for` — their instance never reaches
@@ -344,10 +344,10 @@ export LowerProjectCtx :: struct {
     /// inside the `drain_generic_fn_instances` fixpoint so the impl
     /// bodies' transitive free-fn harvests stay on the same cursor. Struct
     /// analogue of `array_member_uses`.
-    pending_generic_impl_recv: GenericInstance![]!
+    pending_generic_impl_recv: GenericInstance[]
     /// Receiver keys already queued, so each erased instance is queued once
     /// (bounds the queue + avoids redundant per-receiver module scans).
-    seen_generic_impl_recv: MutableSet<string>!
+    seen_generic_impl_recv: MutableSet<string>
 
     /// Resumable state for the generic-fn-instance materialiser, split into a
     /// build phase (`drain_generic_fn_instances`) and a one-shot flush
@@ -360,12 +360,12 @@ export LowerProjectCtx :: struct {
     /// rounds ; the flush sorts + erasure-dedups + pushes it ONCE after the
     /// fixpoint converges, so emission order is a single deterministic sort.
     @internal
-    generic_collected:   PendingFnInstance![]!
-    generic_processed:   MutableMap<string, bool>!
+    generic_collected:   PendingFnInstance[]
+    generic_processed:   MutableMap<string, bool>
     generic_fn_cursor:   usize
     generic_recv_cursor: usize
 
-    diags:               Diagnostic[]!
+    diags:               Diagnostic[]
 }
 
 /// Per-(generic fn, concrete args) instance captured at a call site.
@@ -383,7 +383,7 @@ export GenericFnInstance :: struct {
 /// queues that the lowering passes populate as they run.
 /// @param evaluated  the comptime engine's output for this project.
 /// @return           a fresh project context with empty side-tables.
-export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, typed: TypedProject) -> LowerProjectCtx! {
+export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, typed: TypedProject) -> LowerProjectCtx {
     return LowerProjectCtx {
         .opt_report          = opt_report_enabled(),
         .callee_verifier     = new_callee_verifier(),
@@ -441,7 +441,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
 /// set on the body of a loop — both fields drive `break` / `continue` /
 /// `return` defer replay semantics.
 export BlockCtx :: struct {
-    defers:     Stmt[]!
+    defers:     Stmt[]
     is_fn_root: bool
     /// The `ForStmt.id` of the loop this block is the body of; null for any
     /// other block. A jump drains defers up to the body of the loop it targets.
@@ -493,7 +493,7 @@ export LiftedFnContext :: struct {
 /// `@comptime for x in arr { … }` substitutions active inside an
 /// unrolled body.
 export FnLowerCtx :: struct {
-    project:            LowerProjectCtx!
+    project:            LowerProjectCtx
     entry:              MonoEntry
     typed:              TypedProgram
     subst:              Substitution
@@ -504,7 +504,7 @@ export FnLowerCtx :: struct {
     types:              EntryTypes
 
     return_type:        Type
-    blocks:             BlockCtx[]!
+    blocks:             BlockCtx[]
 
     /// Monotonically-increasing counter used to mint unique synthetic
     /// hint suffixes per fn body. Reset at fn entry so two parallel
@@ -520,14 +520,14 @@ export FnLowerCtx :: struct {
     /// loop-var symbol's id, the value is the per-iter literal that
     /// replaces every reference to `x` in the body. Pushed at unroll
     /// entry, popped at exit ; shape mirrors `narrowed` in typecheck.
-    comptime_bindings:  MutableMap<i32, LoweredExpr!>!
+    comptime_bindings:  MutableMap<i32, LoweredExpr>
 
     /// The operands of a compound assignment's place, evaluated once ahead of
     /// it : keyed by AST node id, the value `lower_expr` returns for that node
     /// while the statement is lowered, so the write and the read in
     /// `lhs op rhs` share one evaluation. Transient — `lower_compound_assign`
     /// removes its entries once the statement is lowered.
-    bound_operands:     MutableMap<usize, LoweredExpr!>! = MutableMap<usize, LoweredExpr!> {}
+    bound_operands:     MutableMap<usize, LoweredExpr> = MutableMap<usize, LoweredExpr> {}
 
     /// True while lowering a `generator` body: `lower_stmt` emits a
     /// transient `LoweredYield` marker for `yield e` (consumed by the
@@ -546,7 +546,7 @@ export FnLowerCtx :: struct {
     /// (respecting a per-block watermark, so an enclosing `if`-condition's await
     /// isn't stolen by an arm body) into statement position just before the
     /// statement that used their value.
-    pending_awaits:     LoweredStmt![]! = []
+    pending_awaits:     LoweredStmt[] = []
 
     /// Non-null while INLINING a generator body into the chain that consumes it
     /// (a chain source or layer, `lower_generator_fusion.vader`): `lower_stmt`
@@ -559,7 +559,7 @@ export FnLowerCtx :: struct {
 
     /// Non-null while lowering an inlined body — a generator's or an iterator
     /// consumer's: the names that instance lowers under (`inline_instance.vader`).
-    instance:           InlineInstance! | null = null
+    instance:           InlineInstance | null = null
 
     /// Non-null while lowering the body of an inlined iterator consumer
     /// (`inline_consumer.vader`): the loop over its consumed parameter drains the
@@ -570,7 +570,7 @@ export FnLowerCtx :: struct {
     /// The loops whose body is being lowered for splicing into a producer's code,
     /// innermost last (`fusion_jumps.vader`). Each describes one module's loops:
     /// a context lowering another module's code starts with none.
-    jump_frames:        JumpFrame![]! = []
+    jump_frames:        JumpFrame[] = []
 }
 
 /// The consumer side of a generator inline. Installed on
@@ -616,7 +616,7 @@ InlineConsumer :: struct {
 export new_fn_lower_ctx :: fn(
     project: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, return_type: Type,
-) -> FnLowerCtx! {
+) -> FnLowerCtx {
     return FnLowerCtx {
         .project           = project,
         .entry             = entry,
@@ -627,7 +627,7 @@ export new_fn_lower_ctx :: fn(
         .blocks            = [],
         .uniq              = 0,
         .lifted_context    = null,
-        .comptime_bindings = MutableMap<i32, LoweredExpr!> {},
+        .comptime_bindings = MutableMap<i32, LoweredExpr> {},
     }
 }
 

@@ -2,17 +2,17 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let a: Rng! =
-      call :Rng!
+    let a: Rng =
+      call :Rng
         callee:
-          new_seeded :fn(u64) -> Rng!
+          new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
             int(42) :u64
-    let b: Rng! =
-      call :Rng!
+    let b: Rng =
+      call :Rng
         callee:
-          new_seeded :fn(u64) -> Rng!
+          new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
             int(42) :u64
@@ -27,13 +27,13 @@
                 callee:
                   next_u64 :u64
                 arg0:
-                  a :Rng!
+                  a :Rng
             r:
               call :u64
                 callee:
                   next_u64 :u64
                 arg0:
-                  b :Rng!
+                  b :Rng
         then:
           assign
             target:
@@ -95,10 +95,10 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let z: Rng! =
-      call :Rng!
+    let z: Rng =
+      call :Rng
         callee:
-          new_seeded :fn(u64) -> Rng!
+          new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
             int(0) :u64
@@ -113,7 +113,7 @@
                 callee:
                   next_u64 :u64
                 arg0:
-                  z :Rng!
+                  z :Rng
             r:
               cast → u64
                 int(0) :u64
@@ -178,10 +178,10 @@
                 __buf_2 :Buffer
               arg1:
                 __off_3 :usize
-    let r: Rng! =
-      call :Rng!
+    let r: Rng =
+      call :Rng
         callee:
-          new_seeded :fn(u64) -> Rng!
+          new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
             int(7) :u64
@@ -193,7 +193,7 @@
           callee:
             range_i32 :i32
           arg0:
-            r :Rng!
+            r :Rng
           arg1:
             int(10) :i32
           arg2:
@@ -279,10 +279,10 @@
                 __buf_4 :Buffer
               arg1:
                 __off_5 :usize
-    let u: Rng! =
-      call :Rng!
+    let u: Rng =
+      call :Rng
         callee:
-          new_seeded :fn(u64) -> Rng!
+          new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
             int(123) :u64
@@ -294,7 +294,7 @@
           callee:
             unit_f64 :f64
           arg0:
-            u :Rng!
+            u :Rng
       if :void
         cond:
           lt :bool
@@ -376,10 +376,10 @@
                 __buf_6 :Buffer
               arg1:
                 __off_7 :usize
-    let s: Rng! =
-      call :Rng!
+    let s: Rng =
+      call :Rng
         callee:
-          new_seeded :fn(u64) -> Rng!
+          new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
             int(99) :u64
@@ -397,7 +397,7 @@
       callee:
         random$shuffle__i32 :void
       arg0:
-        s :Rng!
+        s :Rng
       arg1:
         arr :i32[]
     call :void
@@ -526,10 +526,10 @@
                 __buf_13 :Buffer
               arg1:
                 __off_14 :usize
-    let bs: Rng! =
-      call :Rng!
+    let bs: Rng =
+      call :Rng
         callee:
-          new_seeded :fn(u64) -> Rng!
+          new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
             int(2026) :u64
@@ -542,7 +542,7 @@
           callee:
             next_bool :bool
           arg0:
-            bs :Rng!
+            bs :Rng
       if :void
         cond:
           bx :bool

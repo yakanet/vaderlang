@@ -17,10 +17,10 @@ import "vader/fixpoint"
 // function observes. Declaration ids are project-wide.
 ForwardingGraph :: struct {
     /// Declaration id → node.
-    nodes: MutableMap<usize, i32>!
+    nodes: MutableMap<usize, i32>
     /// Per node, whether its function observes its type parameters.
-    observing: bool[]!
-    successors: i32[]![]!
+    observing: bool[]
+    successors: i32[][]
 }
 
 // Mark every function that hands its own type parameters to one observing them

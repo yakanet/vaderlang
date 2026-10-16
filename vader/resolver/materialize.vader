@@ -98,7 +98,7 @@ export materialize_default_members :: fn(
 synth_with_body :: fn(
     method: AST.FnDecl, subst: Subst,
     decorators: AST.Decorator[], body: AST.BlockExpr, stamp: StampCtx, id: usize,
-) -> AST.FnDecl! {
+) -> AST.FnDecl {
     return AST.FnDecl {
         .span = method.span,
         .id = id,
@@ -129,7 +129,7 @@ synth_with_body :: fn(
 /// Substitute params, anchoring each at a deterministic `<clone>` span from
 /// `stamp` (shared with the cloned body). Used for default-method clones so
 /// the param Symbols agree with the body's span-keyed `idents` entries.
-substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: StampCtx) -> AST.FnParam![]! {
+substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: StampCtx) -> AST.FnParam[] {
     out: AST.FnParam[]: []
     for p in params {
         out.push(AST.FnParam {
@@ -158,7 +158,7 @@ synth_clone_span :: fn(factory: NodeIdFactory) -> Span {
 /// span-keyed `param_types` table.
 substitute_params_disambiguated :: fn(
     params: AST.FnParam[], subst: Subst, self_span: Span, factory: NodeIdFactory,
-) -> AST.FnParam![]! {
+) -> AST.FnParam[] {
     out: AST.FnParam[]: []
     for p in params {
         span :: if p.name == "self" { self_span } else { synth_clone_span(factory) }
@@ -267,7 +267,7 @@ build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
 
 synth_signature :: fn(
     method: AST.FnDecl, name_span: Span, subst: Subst, decorators: AST.Decorator[], id: usize,
-) -> AST.FnDecl! {
+) -> AST.FnDecl {
     return AST.FnDecl {
         .span = method.span,
         .id = id,
@@ -285,7 +285,7 @@ synth_signature :: fn(
     }
 }
 
-substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam![]! {
+substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam[] {
     out: AST.FnParam[]: []
     for p in params {
         out.push(AST.FnParam {
@@ -297,12 +297,12 @@ substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam![]! 
     return out
 }
 
-substitute_opt_type :: fn(t: AST.TypeExpr | null, subst: Subst) -> AST.TypeExpr! | null {
+substitute_opt_type :: fn(t: AST.TypeExpr | null, subst: Subst) -> AST.TypeExpr | null {
     if t == null { return null }
     return substitute_type_expr(t, subst)
 }
 
-intrinsic_decorator :: fn(span: Span) -> AST.Decorator![] {
+intrinsic_decorator :: fn(span: Span) -> AST.Decorator[] {
     args: AST.Expr[]: []
     return [AST.Decorator { .span = span, .id = AST.UNASSIGNED_NODE_ID, .name = "intrinsic", .args = args }]
 }
@@ -415,7 +415,7 @@ find_trait :: fn(decls: AST.Decl[], name: string) -> AST.TraitDecl | null {
     return null
 }
 
-find_impl :: fn(decls: AST.Decl[]) -> AST.ImplDecl! | null {
+find_impl :: fn(decls: AST.Decl[]) -> AST.ImplDecl | null {
     for d in decls {
         match d {
             is AST.ImplDecl -> { return d }

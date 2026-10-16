@@ -137,7 +137,7 @@ export indirect_call_drops_length :: fn(xs: i32[], f: fn(i32) -> i32) -> i32 {
 }
 
 /// Takes `pop` as a value.
-export shortening_callback :: fn() -> fn(i32[]!) -> void = pop
+export shortening_callback :: fn() -> fn(i32[]) -> void = pop
 
 /// An unsigned decrement behind `n > 0`: proven.
 export guarded_decrement :: fn(n: usize) -> usize {

@@ -29,13 +29,10 @@
         {
           "name": "data",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "T"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "T"
             }
           },
           "visibility": "public",
@@ -76,8 +73,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             },
             {
               "name": "value",
@@ -106,8 +102,7 @@
               "name": "self",
               "type": null,
               "defaultValue": null,
-              "variadic": false,
-              "mutable": true
+              "variadic": false
             }
           ],
           "returnType": {

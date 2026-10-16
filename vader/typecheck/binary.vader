@@ -28,7 +28,7 @@ export infer_binary :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     // `[lhs] * n` array-repeat : when an array result is expected, thread the
     // expectation into the LHS so an empty `[]` (or a `[lit]` whose element is a
@@ -123,7 +123,7 @@ export infer_null_coalesce :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     left_ty :: check_expr_fn(e.left, null, typed, diags)
     result :: subtract_type(left_ty, TY_NULL)
@@ -501,7 +501,7 @@ distinct_op_fallback :: fn(
     right: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    recheck: fn(AST.BinaryExpr, Type, Type, TypedProgram!, Diagnostic[]!) -> Type,
+    recheck: fn(AST.BinaryExpr, Type, Type, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type | null {
     if left !is DistinctType && right !is DistinctType {
         return null
@@ -1275,7 +1275,7 @@ repin_operand :: fn(
     other: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     if equals_type(narrow_for_expected(got, other), got) {
         return got
@@ -1437,7 +1437,7 @@ narrow :: fn(got: Type, expected: Type | null) -> Type {
     return got
 }
 
-accept_binary :: fn(e: AST.Expr) -> AST.Expr! | null {
+accept_binary :: fn(e: AST.Expr) -> AST.Expr | null {
     if e is AST.BinaryExpr {
         return e
     }
@@ -1473,11 +1473,11 @@ expect_binary :: fn(src: string) -> ExpectedBinary {
 }
 
 ExpectedBinary :: struct {
-    typed: TypedProgram!
-    bin: AST.BinaryExpr!
+    typed: TypedProgram
+    bin: AST.BinaryExpr
 }
 
-synthetic_binary :: fn() -> AST.BinaryExpr! {
+synthetic_binary :: fn() -> AST.BinaryExpr {
     sp :: empty_span()
     int_lit: AST.Expr: AST.IntLitExpr {
         .span = sp,

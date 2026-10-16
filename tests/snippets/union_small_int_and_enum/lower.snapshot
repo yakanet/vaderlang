@@ -308,11 +308,11 @@
         inner:
           MutableMap<string | u8, bool>! {
             ekeys:
-              array :(string | u8)[]!
+              array :(string | u8)[]
             evals:
-              array :bool[]!
+              array :bool[]
             index:
-              array :i32[]!
+              array :i32[]
             mask: int(0) :usize
             size: int(0) :usize
             tombs: int(0) :usize

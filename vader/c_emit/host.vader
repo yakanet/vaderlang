@@ -596,7 +596,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport) -> CFunction {
 // overloads — plus non-intrinsics fall through to the @extern forwarder or to a
 // loud trap (compiler/runtime version skew). Exhaustive, so a new IntrinsicId
 // trips T3013 here.
-shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[]! {
+shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     a0 :: argument(0)
     a1 :: argument(1)
     match intrinsic_id_for(imp.mangled_name) {
@@ -711,7 +711,7 @@ size_as_address :: fn(size: CExpression) -> CExpression = cast("void*", cast("ui
 /// string arg per FFI call). A `string` result is INTERNED before the frees,
 /// not merely captured: the pointer can aim INTO an argument, so holding it
 /// across the free was exactly the use-after-free this claimed to prevent.
-user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[]! {
+user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     sig :: imp.signature
     call_args: CExpression[]: []
     before: CStatement[]: []

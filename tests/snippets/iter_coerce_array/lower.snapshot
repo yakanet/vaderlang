@@ -40,16 +40,16 @@
                   r:
                     v :i32
     return sum :i32
-  fn snippet$make_iter() -> Iterator<i32>!
+  fn snippet$make_iter() -> Iterator<i32>
     let arr: i32[]! =
       array :i32[]!
         int(100) :i32
         int(200) :i32
         int(300) :i32
     return
-      call :Iterator<i32>!
+      call :Iterator<i32>
         callee:
-          std_core$[]$Into$into__i32 :Iterator<i32>!
+          std_core$[]$Into$into__i32 :Iterator<i32>
         arg0:
           arr :i32[]!
   fn snippet$main() -> i32
@@ -104,9 +104,9 @@
         callee:
           walk :fn(Iterator<i32>) -> i32
         arg0:
-          call :Iterator<i32>!
+          call :Iterator<i32>
             callee:
-              make_iter :fn() -> Iterator<i32>!
+              make_iter :fn() -> Iterator<i32>
     call :void
       callee:
         std_io$println__string :void

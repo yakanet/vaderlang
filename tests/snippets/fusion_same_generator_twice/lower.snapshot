@@ -1946,10 +1946,10 @@
     let s: string = "hello, fused world" :string
     let fused: usize =
       block :usize
-        let __fuse_iter_0: StringChars! =
-          call :StringChars!
+        let __fuse_iter_0: StringChars =
+          call :StringChars
             callee:
-              chars :StringChars!
+              chars :StringChars
             arg0:
               s :string
         let pred: fn(char) -> bool = __lambda_snippet_0 :fn(char) -> bool
@@ -1962,7 +1962,7 @@
                 callee:
                   std_string$StringChars$Iterator$next :[char, Continuation]!
                 arg0:
-                  __fuse_iter_0 :StringChars!
+                  __fuse_iter_0 :StringChars
             if :void
               cond:
                 eq :bool
@@ -2016,9 +2016,9 @@
             callee:
               std_iter$filter__char :__genstate_filter<char>!
             arg0:
-              call :StringChars!
+              call :StringChars
                 callee:
-                  chars :StringChars!
+                  chars :StringChars
                 arg0:
                   s :string
             arg1:

@@ -38,17 +38,17 @@ GenBuild :: struct {
     step: StepShape | null = null
     span:     Span
     /// Finalized states — `states[k]` is the if-arm body for `self.state == k`.
-    states:   LoweredStmt![]![]!
+    states:   LoweredStmt[][]
     /// Spilled symbol id → its `g$State` field name (params + all locals).
-    field_map: MutableMap<i32, string>!
+    field_map: MutableMap<i32, string>
     /// `g$State` fields for the spilled symbols (in declaration order),
     /// excluding the trailing `state: i32`.
-    fields:    LoweredStructField[]!
+    fields:    LoweredStructField[]
     /// Enclosing-loop targets for `break` / `continue` resolution.
-    loop_stack: LoopFrame[]!
+    loop_stack: LoopFrame[]
     /// The fn-lowering context — used to mint per-drive-state temporaries
     /// (async) ; the generator path sets it too but never reads it.
-    fn_ctx:    FnLowerCtx!
+    fn_ctx:    FnLowerCtx
     /// True when the body has any `defer` — set during spill collection. Gates
     /// the per-frame `__defers` field : defer thunks are pushed onto it (not the
     /// global stack, which corrupts across concurrent suspended coroutines) and
@@ -84,7 +84,7 @@ LoopFrame :: struct {
     exit:   i64
     /// Runs before every jump to `header`. Leaves only, so it joins the state
     /// that reaches the jump instead of costing a dispatch round of its own.
-    step:   LoweredStmt![]
+    step:   LoweredStmt[]
     /// A loop inside the statement being retargeted (`coroutine_jumps.vader`): it
     /// runs within one state, so a jump that resolves to it stays as written, and
     /// `header` / `exit` / `step` are unused.
@@ -130,15 +130,15 @@ gb_resolve_loop_frame :: fn(gb: GenBuild, label: string | null) -> LoopFrame {
 }
 
 // `self` read: `LoweredIdent` over the single minted self symbol.
-gb_self_read :: fn(gb: GenBuild) -> LoweredExpr! =
+gb_self_read :: fn(gb: GenBuild) -> LoweredExpr =
     LoweredIdent { .span = gb.span, .type = gb.state_ty, .symbol = gb.self_sym }
 
 // `self.<field>` access.
-gb_field :: fn(gb: GenBuild, name: string, ty: Type) -> LoweredExpr! =
+gb_field :: fn(gb: GenBuild, name: string, ty: Type) -> LoweredExpr =
     LoweredFieldAccess { .span = gb.span, .type = ty, .target = gb_self_read(gb), .field = name }
 
 // `self.state = n`.
-gb_set_state :: fn(gb: GenBuild, n: i64) -> LoweredStmt! =
+gb_set_state :: fn(gb: GenBuild, n: i64) -> LoweredStmt =
     LoweredAssign {
         .span = gb.span,
         .target = gb_field(gb, "state", gb.i32_ty),
@@ -146,7 +146,7 @@ gb_set_state :: fn(gb: GenBuild, n: i64) -> LoweredStmt! =
     }
 
 // `self.state == n` (bool).
-gb_state_eq :: fn(gb: GenBuild, n: i64) -> LoweredExpr! =
+gb_state_eq :: fn(gb: GenBuild, n: i64) -> LoweredExpr =
     LoweredBinary {
         .span = gb.span, .type = TY_BOOL, .op = .Eq,
         .left = gb_field(gb, "state", gb.i32_ty),
@@ -154,7 +154,7 @@ gb_state_eq :: fn(gb: GenBuild, n: i64) -> LoweredExpr! =
     }
 
 // `return <step carrying e>`.
-gb_yield_return :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredStmt! {
+gb_yield_return :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredStmt {
     shape :: gb.step ?? return LoweredReturn { .span = gb.span, .value = e }
     return LoweredReturn {
         .span = gb.span, .value = step_of_value(shape, e, gb.span, gb.fn_ctx),
@@ -162,7 +162,7 @@ gb_yield_return :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredStmt! {
 }
 
 // `return <done step>`.
-gb_done_return :: fn(gb: GenBuild) -> LoweredStmt! {
+gb_done_return :: fn(gb: GenBuild) -> LoweredStmt {
     shape :: gb.step ?? return LoweredReturn {
         .span = gb.span,
         .value = LoweredNullLit { .span = gb.span, .type = TY_NULL },
@@ -174,7 +174,7 @@ gb_done_return :: fn(gb: GenBuild) -> LoweredStmt! {
 
 // A bare `null` value expression — the done-marker a void `async fn` completes
 // with (its result normalizes to `null`, so `resume` returns `null | Suspended`).
-gb_null_lit :: fn(gb: GenBuild) -> LoweredExpr! =
+gb_null_lit :: fn(gb: GenBuild) -> LoweredExpr =
     LoweredNullLit { .span = gb.span, .type = TY_NULL }
 
 // ---- async seams (Model A — recursive self-drive) -------------------------
@@ -186,12 +186,12 @@ gb_null_lit :: fn(gb: GenBuild) -> LoweredExpr! =
 ASYNC_AWAITED_FIELD :: "awaited"
 
 // `self.awaited` (erased `Async<Any>`).
-gb_awaited_field :: fn(gb: GenBuild) -> LoweredExpr! =
+gb_awaited_field :: fn(gb: GenBuild) -> LoweredExpr =
     gb_field(gb, ASYNC_AWAITED_FIELD, gb.async_any_ty)
 
 // `self.awaited = <child>` — store the awaited `Async<T'>` into the erased slot
 // (a name-based trait-arg erasure ; the cast is a fat-pointer no-op).
-gb_store_awaited :: fn(gb: GenBuild, awaited: LoweredExpr) -> LoweredStmt! =
+gb_store_awaited :: fn(gb: GenBuild, awaited: LoweredExpr) -> LoweredStmt =
     LoweredAssign {
         .span = gb.span, .target = gb_awaited_field(gb),
         .value = LoweredCast { .span = gb.span, .type = gb.async_any_ty, .value = awaited },
@@ -200,7 +200,7 @@ gb_store_awaited :: fn(gb: GenBuild, awaited: LoweredExpr) -> LoweredStmt! =
 // `return Suspended { .wake_at = 0 }` — a coroutine resumed after it completed.
 // Drivers retire a finished child and never resume it, so only a stray resume
 // lands here; `0` (unknown) keeps such a driver from waiting on it forever.
-gb_suspend_return :: fn(gb: GenBuild) -> LoweredStmt! {
+gb_suspend_return :: fn(gb: GenBuild) -> LoweredStmt {
     wake_at :: LoweredIntLit { .span = gb.span, .type = mk_primitive("i64"), .value = 0 }
     fields :: [LoweredStructLitField { .name = "wake_at", .value = wake_at }]
     return LoweredReturn {
@@ -215,7 +215,7 @@ gb_suspend_return :: fn(gb: GenBuild) -> LoweredStmt! {
 // NEXT resume), a completed result binds into `target_field` and falls through
 // to `cont`. The child's value is read back through its own `resume`'s return
 // channel — no external injection (Model A).
-gb_drive_state :: fn(gb: GenBuild, target_field: string, target_type: Type, cont: i64) -> LoweredStmt![]! {
+gb_drive_state :: fn(gb: GenBuild, target_field: string, target_type: Type, cont: i64) -> LoweredStmt[] {
     r_sym :: fresh_synthetic_symbol(gb.fn_ctx, "resumed")
     r_ref :: LoweredIdent { .span = gb.span, .type = gb.resume_erased_ty, .symbol = r_sym }
     // r :: self.awaited.resume()   (virtual — Any | Suspended)
@@ -428,14 +428,14 @@ gb_result_is_void :: fn(gb: GenBuild) = is_void(gb.result_ty)
 // ---- dispatch synthesis ---------------------------------------------------
 
 // Wrap an expr as a single-stmt block.
-gb_wrap :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredBlock! =
+gb_wrap :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredBlock =
     LoweredBlock { .span = gb.span, .type = TY_VOID, .stmts = [LoweredExprStmt { .span = gb.span, .expr = e }], .trailing = null }
 
-gb_block :: fn(gb: GenBuild, stmts: LoweredStmt[]) -> LoweredBlock! =
+gb_block :: fn(gb: GenBuild, stmts: LoweredStmt[]) -> LoweredBlock =
     LoweredBlock { .span = gb.span, .type = TY_VOID, .stmts = stmts, .trailing = null }
 
 // Build `if state==i { states[i] } else if state==i+1 { … } else { return null }`.
-gb_dispatch :: fn(gb: GenBuild, i: i64) -> LoweredExpr! {
+gb_dispatch :: fn(gb: GenBuild, i: i64) -> LoweredExpr {
     then_block :: gb_block(gb, gb.states[usize(i)])
     else_block: LoweredBlock: if i + 1 < i64(gb.states.len()) {
         gb_wrap(gb, gb_dispatch(gb, i + 1))
@@ -454,7 +454,7 @@ gb_dispatch :: fn(gb: GenBuild, i: i64) -> LoweredExpr! {
 }
 
 // The `next()` body: `loop { <dispatch> }`.
-gb_next_body :: fn(gb: GenBuild) -> LoweredBlock! {
+gb_next_body :: fn(gb: GenBuild) -> LoweredBlock {
     dispatch :: gb_dispatch(gb, 0)
     loop :: LoweredLoop {
         .span = gb.span,
@@ -482,7 +482,7 @@ gb_is_cell :: fn(gb: GenBuild, sym_id: i32) =
 // reads it back through the same `$Cell<T>`. Delegates to the canonical
 // cell-wrap (`lower_cell_init`), which returns any other param's raw value
 // verbatim, so the same path `let` locals and cell params take is reused.
-gb_param_construct_value :: fn(gb: GenBuild, param: LoweredParam) -> LoweredExpr! {
+gb_param_construct_value :: fn(gb: GenBuild, param: LoweredParam) -> LoweredExpr {
     read :: LoweredIdent { .span = gb.span, .type = param.type, .symbol = param.symbol }
     return lower_cell_init(gb.fn_ctx, param.symbol, read, param.type, gb.span).value
 }
@@ -505,11 +505,11 @@ gb_defer_thunk_ty :: fn() -> Type = mk_fn([], TY_VOID)
 gb_defers_ty :: fn() -> Type = mk_array(gb_defer_thunk_ty(), false)
 
 // `self.__defers`.
-gb_defers_field :: fn(gb: GenBuild) -> LoweredExpr! = gb_field(gb, GB_DEFERS_FIELD, gb_defers_ty())
+gb_defers_field :: fn(gb: GenBuild) -> LoweredExpr = gb_field(gb, GB_DEFERS_FIELD, gb_defers_ty())
 
 // `self.__defers.len()` (usize). `span` attributes it — `dpe.span` at a
 // structured exit, `gb.span` for the teardown drain.
-gb_defers_len :: fn(gb: GenBuild, span: Span) -> LoweredExpr! =
+gb_defers_len :: fn(gb: GenBuild, span: Span) -> LoweredExpr =
     LoweredArrayLen { .span = span, .type = mk_primitive("usize"), .target = gb_defers_field(gb) }
 
 // Drain the top `count` defer thunks LIFO, then truncate. `count` is static (the
@@ -590,7 +590,7 @@ gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]) -> void {
 // defers), so cancel is a no-op there. (2) Drain every pending `defer` LIFO. (3)
 // Retire the frame (`state = DONE_STATE`) so a stray later resume falls to
 // dispatch's trailing `Suspended` and a repeat cancel finds nothing to do.
-gb_cancel_body :: fn(gb: GenBuild) -> LoweredBlock! {
+gb_cancel_body :: fn(gb: GenBuild) -> LoweredBlock {
     stmts: LoweredStmt[]: []
     // if self.awaited is null { } else { self.awaited.cancel() }
     // The field is declared `Async<Any>` (non-null) but seeded null, so this
@@ -697,7 +697,7 @@ gb_add_field :: fn(gb: GenBuild, sym: Symbol, ty: Type) -> void {
 
 // ---- routing (spilled local/param refs → self.<field>) --------------------
 
-gb_route_block :: fn(gb: GenBuild, block: LoweredBlock) -> LoweredBlock! {
+gb_route_block :: fn(gb: GenBuild, block: LoweredBlock) -> LoweredBlock {
     out: LoweredStmt[]: []
     for s in block.stmts { gb_route_stmt(gb, s, out) }
     new_trailing :: if block.trailing == null { null } else { gb_route_expr(gb, block.trailing) }
@@ -758,7 +758,7 @@ gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]) -> void {
 }
 
 // Fields listed, not spread — same reason as `gb_route_stmt`.
-gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr! {
+gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
     match e {
         is LoweredIdent -> {
             name :: gb.field_map[e.symbol.id] ?? return e

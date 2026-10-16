@@ -84,7 +84,7 @@ export last :: fn<T>(it: Iterator<T>) -> T | null {
 /// Drain `it` into a fresh array. Pair with the lazy combinators
 /// (`it.filter(p).map(f).collect()`) when a snapshot is required ;
 /// `for x in it` consumes directly without the intermediate array.
-export collect :: fn<T>(it: Iterator<T>) -> T[]! {
+export collect :: fn<T>(it: Iterator<T>) -> T[] {
     out: T[]: []
     for x in it {
         out.push(x)
@@ -154,7 +154,7 @@ export product :: fn<T: Mul & One>(self: Iterator<T>) -> T {
 /// Naming overlaps with the `Clone` trait in `std/core` (currently
 /// without implementors). When `T[] implements Clone` lands, this free
 /// fn becomes the impl — `arr.clone()` resolves identically either way.
-export clone :: fn<T>(arr: T[]) -> T[]! {
+export clone :: fn<T>(arr: T[]) -> T[] {
     out: T[]: [] * arr.len()
     out.push_all(arr)
     return out

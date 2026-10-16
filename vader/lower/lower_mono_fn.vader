@@ -146,7 +146,7 @@ PendingFnInstance :: struct {
     /// body (`get__string` vs `get__i32`) is a distinct concrete fn whose
     /// call sites target the per-key mangle.
     dispatches:   bool
-    decl:         LoweredFnDecl!
+    decl:         LoweredFnDecl
     /// `project_ctx.synth_decls` window `[synth_start, synth_end)` of the
     /// lambda/defer lifted fns spawned while lowering this instance's body.
     /// Drained into `module_id` at push time (skipped for deduped siblings)
@@ -178,7 +178,7 @@ lower_generator_body :: fn(
     project_ctx: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, fn_decl: FnDecl, gen_body: BlockExpr,
     params: LoweredParam[], return_type: Type,
-) -> LoweredBlock! {
+) -> LoweredBlock {
     gen_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type)
     gen_ctx.in_generator = true
     lowered :: lower_block(gen_ctx, gen_body, true, null)
@@ -195,7 +195,7 @@ lower_async_body :: fn(
     project_ctx: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, fn_decl: FnDecl, async_body: BlockExpr,
     params: LoweredParam[], result_type: Type, is_main: bool,
-) -> LoweredBlock! {
+) -> LoweredBlock {
     async_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, result_type)
     async_ctx.in_async = true
     lowered :: lower_block(async_ctx, async_body, true, null)
@@ -210,7 +210,7 @@ lower_async_body :: fn(
 build_fn_instance_decl :: fn(
     inst: GenericFnInstance, key: string, loaded: LoadedProject, typed: TypedProject,
     project_ctx: LowerProjectCtx, diags: Diagnostic[],
-) -> PendingFnInstance! | null {
+) -> PendingFnInstance | null {
     // Bracket the synth_decls this instance's body lowering spawns (lambdas /
     // defers) so the push loop can drain exactly this window — see
     // `drain_synth_window`. The early-return (null) paths below don't lower a

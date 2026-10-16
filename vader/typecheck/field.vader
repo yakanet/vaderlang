@@ -30,7 +30,7 @@ export infer_field :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     // Namespace-import field access — `mod.foo` where `mod` is an
     // import binding. Runs before the recursive target check.
@@ -1847,7 +1847,7 @@ field_check_stub :: fn(
     }
 }
 
-accept_field :: fn(e: AST.Expr) -> AST.Expr! | null {
+accept_field :: fn(e: AST.Expr) -> AST.Expr | null {
     if e is AST.FieldExpr {
         return e
     }
@@ -1855,11 +1855,11 @@ accept_field :: fn(e: AST.Expr) -> AST.Expr! | null {
 }
 
 FieldFixture :: struct {
-    typed: TypedProgram!
-    field: AST.FieldExpr! | null
+    typed: TypedProgram
+    field: AST.FieldExpr | null
 }
 
-first_field_in_last_fn :: fn(src: string) -> FieldFixture! {
+first_field_in_last_fn :: fn(src: string) -> FieldFixture {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)

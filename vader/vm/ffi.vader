@@ -53,7 +53,7 @@ module "vader/vm"
 ///                string otherwise — an atom id cannot travel through the frame,
 ///                since nothing on the Vader side can turn one back into a
 ///                `string`.
-@intrinsic export ffi_call :: fn(fn_ptr: usize, desc: u8[], frame: u8[]!, nfixed: i64) -> string
+@intrinsic export ffi_call :: fn(fn_ptr: usize, desc: u8[], frame: u8[], nfixed: i64) -> string
 
 // ---- tests ----------------------------------------------------------------
 

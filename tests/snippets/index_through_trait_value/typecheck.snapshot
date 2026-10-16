@@ -8,13 +8,13 @@
   FnDecl         peek                 :: fn(Index<string, i32 | null>, string) -> i32
   FnDecl         put_wide             :: fn(IndexSet<i64, i32>) -> void
   FnDecl         put_wider            :: fn(C) -> void
-  expr 13:24    SeqLitExpr     :: string[]!
+  expr 13:23    SeqLitExpr     :: string[]
   expr 18:25    StringLitExpr  :: string
   expr 18:28    IdentExpr      :: string
   expr 18:35    IdentExpr      :: i32
   expr 18:9     CallExpr       :: void
   expr 18:9     FieldExpr      :: fn(string) -> void
-  expr 18:9     FieldExpr      :: string[]!
+  expr 18:9     FieldExpr      :: string[]
   expr 18:9     IdentExpr      :: Log
   expr 23:11    StringLitExpr  :: string
   expr 23:5     IdentExpr      :: IndexSet<string, i32>
@@ -79,12 +79,12 @@
   expr 49:13    StringLitExpr  :: string
   expr 49:16    CallExpr       :: usize
   expr 49:16    FieldExpr      :: fn() -> usize
-  expr 49:16    FieldExpr      :: string[]!
+  expr 49:16    FieldExpr      :: string[]
   expr 49:16    IdentExpr      :: Log!
-  expr 49:33    FieldExpr      :: string[]!
+  expr 49:33    FieldExpr      :: string[]
   expr 49:33    IdentExpr      :: Log!
   expr 49:33    IndexExpr      :: string
-  expr 49:47    FieldExpr      :: string[]!
+  expr 49:47    FieldExpr      :: string[]
   expr 49:47    IdentExpr      :: Log!
   expr 49:47    IndexExpr      :: string
   expr 49:5     CallExpr       :: void

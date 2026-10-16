@@ -56,20 +56,17 @@
         {
           "name": "inner",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "Async"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "Async"
-              },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "null"
-                }
-              ]
-            }
+                "name": "null"
+              }
+            ]
           },
           "visibility": "public",
           "default": null

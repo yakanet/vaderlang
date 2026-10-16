@@ -27,8 +27,8 @@
         Rec! {
           name: "b" :string
         }
-    let ks: string[][]! =
-      block :string[][]!
+    let ks: string[][] =
+      block :string[][]
         let __fuse_arr_0: Rec![]! = rs :Rec![]!
         let f: fn(Rec!) -> string[] = keys :fn(Rec) -> string[]
         let out: string[][] =
@@ -75,7 +75,7 @@
               on:
                 index :string[]
                   on:
-                    ks :string[][]!
+                    ks :string[][]
                   ix:
                     int(1) :i32
               ix:
@@ -85,7 +85,7 @@
               on:
                 index :string[]
                   on:
-                    ks :string[][]!
+                    ks :string[][]
                   ix:
                     int(1) :i32
               ix:
@@ -200,8 +200,8 @@
                 __buf_4 :Buffer
               arg1:
                 __off_5 :usize
-    let ls: string[][]! =
-      block :string[][]!
+    let ls: string[][] =
+      block :string[][]
         let __fuse_arr_6: Rec![]! = rs :Rec![]!
         let f: fn(Rec!) -> string[] = __lambda_snippet_0 :fn(Rec) -> string[]
         let out: string[][] =
@@ -248,7 +248,7 @@
               on:
                 index :string[]
                   on:
-                    ls :string[][]!
+                    ls :string[][]
                   ix:
                     int(0) :i32
               ix:
@@ -329,8 +329,8 @@
                 __buf_9 :Buffer
               arg1:
                 __off_10 :usize
-    let ss: Rec[]! =
-      block :Rec[]!
+    let ss: Rec[] =
+      block :Rec[]
         let __fuse_arr_11: Rec![]! = rs :Rec![]!
         let f: fn(Rec!) -> Rec = same :fn(Rec) -> Rec
         let out: Rec[] =
@@ -380,7 +380,7 @@
             .name :string
               index :Rec
                 on:
-                  ss :Rec[]!
+                  ss :Rec[]
                 ix:
                   int(1) :i32
     return int(0) :i32

@@ -111,7 +111,7 @@ initialiser_ctx :: fn(
     frozen: FrozenSites,
     widenings: PendingWidening[],
     init: Initialiser,
-) -> WalkCtx! = WalkCtx {
+) -> WalkCtx = WalkCtx {
     .s = new_skeleton(0),
     .typed = init.typed,
     .index = index,
@@ -146,9 +146,9 @@ callee_nodes :: fn(s: Skeleton) -> i32[] {
 // has nothing new to read, and its step can stop there.
 Clock :: struct {
     now: i64 = 0
-    grew_at: i64[]!
+    grew_at: i64[]
     /// 0 for a node never evaluated.
-    evaluated_at: i64[]!
+    evaluated_at: i64[]
 }
 
 // Whether `node`, whose calls run `callees`, may find its fact moved.

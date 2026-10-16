@@ -13,11 +13,11 @@ export Point :: struct {
 }
 
 export Holder :: struct {
-    inner: Point!
-    items: Point![]!
+    inner: Point
+    items: Point[]
 }
 
-export origin :: fn() -> Point! = Point { .x = 0, .y = 0 }
+export origin :: fn() -> Point = Point { .x = 0, .y = 0 }
 
 // ---- writes ---------------------------------------------------------------
 
@@ -73,7 +73,7 @@ export through_alias :: fn(s: Point | Holder) -> void {
     }
 }
 
-export items_of :: fn(s: Point | Holder) -> Point![]! | null {
+export items_of :: fn(s: Point | Holder) -> Point[] | null {
     if s is Holder {
         return s.items
     }
@@ -84,7 +84,7 @@ export items_of :: fn(s: Point | Holder) -> Point![]! | null {
 
 export returns_param :: fn(p: Point) -> Point = p
 
-export returns_field :: fn(h: Holder) -> Point! = h.inner
+export returns_field :: fn(h: Holder) -> Point = h.inner
 
 export writes_what_a_callee_returns :: fn(h: Holder) -> void {
     returns_field(h).x = 2
@@ -120,7 +120,7 @@ export recurses_back :: fn(xs: Point[], n: i32) -> void {
 }
 
 export Bump :: trait {
-    bump :: fn(self!) -> void
+    bump :: fn(self) -> void
 }
 
 Point implements Bump {
@@ -139,7 +139,7 @@ export through_a_trait_value :: fn(b: Bump) -> void {
     b.bump()
 }
 
-export through_a_bound :: fn<T: Bump!>(t: T) -> void {
+export through_a_bound :: fn<T: Bump>(t: T) -> void {
     t.bump()
 }
 
@@ -151,7 +151,7 @@ export into_a_map :: fn(m: MutableMap<string, Point>, p: Point) -> void {
 
 export concatenates :: fn(a: Point[], b: Point[]) -> Point[] = a + b
 
-export bumps_an_entry :: fn(m: MutableMap<string, Point!>) -> void {
+export bumps_an_entry :: fn(m: MutableMap<string, Point>) -> void {
     p :: m["a"] ?? return
     p.x = 1
 }

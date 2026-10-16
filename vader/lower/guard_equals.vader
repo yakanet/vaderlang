@@ -65,7 +65,7 @@ guard_equals_slots :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) 
 }
 
 // `other is R && impl(self, other)`.
-guard_for :: fn(d: LoweredFnDecl, receiver: Type, project_ctx: LowerProjectCtx) -> LoweredDecl! {
+guard_for :: fn(d: LoweredFnDecl, receiver: Type, project_ctx: LowerProjectCtx) -> LoweredDecl {
     span :: empty_span()
     self_param :: guard_param("self", receiver, project_ctx)
     other_param :: guard_param("other", TY_ANY, project_ctx)

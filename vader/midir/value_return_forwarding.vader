@@ -22,7 +22,7 @@ import "vader/resolver/symbol"
 // slot, and forwards to a copy that carries the scalarised shape. The forwarding
 // body is an ordinary call, so the call-site rewrite rebuilds the object for it
 // — no bespoke code.
-scalarised_forms :: fn(f: CFGFunction, shape: ReturnShape | null) -> CFGFunction![] {
+scalarised_forms :: fn(f: CFGFunction, shape: ReturnShape | null) -> CFGFunction[] {
     if shape == null {
         return [f]
     }
@@ -56,7 +56,7 @@ scalarised_copy :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction = CFGF
 // Its signature, mangle and origin are untouched, so every vtable row, `fn.ref`
 // and `fn.addr` naming it still resolves to this function and still sees the
 // shape it was compiled against.
-forwarding_body :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction! {
+forwarding_body :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction {
     // Only the params and the result are named by this body. Params occupy slots
     // `0..<params.len()` (`build.vader` writes them at entry), so the rest of the
     // original's table would arrive dead and cost `eliminate_dead_cfg` a full

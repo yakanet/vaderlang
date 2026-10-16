@@ -50,7 +50,7 @@ string implements Loud {
 shout :: fn(x: i32 | string) -> string = x.loud()
 
 Log :: struct {
-    lines: string[]!
+    lines: string[]
 }
 
 Log implements IndexSet<string, i32> {
@@ -65,7 +65,7 @@ put :: fn(target: MutableMap<string, i32> | Log) -> void {
 }
 
 Tally :: struct {
-    counts: MutableMap<string, i32>!
+    counts: MutableMap<string, i32>
 }
 
 Tally implements Index<string, i32> {
@@ -79,7 +79,7 @@ Tally implements IndexSet<string, i32> {
 }
 
 Cell :: struct {
-    cells: i32[]!
+    cells: i32[]
 }
 
 Cell implements Index<string, i32> {

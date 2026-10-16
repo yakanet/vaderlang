@@ -36,8 +36,8 @@ import "toolchain/span"
 /// @return              the lowered defer.push stmt.
 export lower_defer :: fn(
     ctx: FnLowerCtx, defer_stmt: AST.DeferStmt,
-    block_lowerer: fn(FnLowerCtx!, AST.BlockExpr, bool, usize | null) -> LoweredBlock!,
-) -> LoweredStmt! {
+    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
+) -> LoweredStmt {
     captures :: lookup_defer_captures(ctx, defer_stmt)
     lifted_symbol :: fresh_lifted_defer_symbol(ctx, false)
     env_symbol    :: fresh_lifted_defer_symbol(ctx, true)

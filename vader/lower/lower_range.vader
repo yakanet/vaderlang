@@ -25,8 +25,8 @@ import "vader/types"
 /// @return             the lowered struct literal (or unreachable on miss).
 export lower_range_expr :: fn(
     ctx: FnLowerCtx, expr: RangeExpr, result_type: Type,
-    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr!,
-) -> LoweredExpr! {
+    recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
+) -> LoweredExpr {
     range_symbol :: ctx.project.core_symbols[STRUCT_RANGE]
     match range_symbol {
         is null -> {
@@ -49,9 +49,9 @@ export lower_range_expr :: fn(
 
 build_range_lit :: fn(
     expr: RangeExpr, result_type: Type,
-    recurse: fn(FnLowerCtx!, Expr) -> LoweredExpr!,
+    recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
     ctx: FnLowerCtx,
-) -> LoweredExpr! {
+) -> LoweredExpr {
     span :: expr.span
     // `start` and `cursor` both take the lower bound, which is evaluated once.
     stmts: LoweredStmt[]: []

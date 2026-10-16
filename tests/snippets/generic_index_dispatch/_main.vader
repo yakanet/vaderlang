@@ -14,7 +14,7 @@ import "std/io"
 
 // A tiny cell over a backing array : `at` reads a slot, `set_at` writes one.
 Cell :: struct {
-    slots: i32[]!
+    slots: i32[]
 }
 
 Cell implements Index<usize, i32> {
@@ -31,7 +31,7 @@ Cell implements IndexSet<usize, i32> {
 read_nth :: fn<C: Index<usize, i32>>(c: C, i: usize) -> i32 = c[i]
 
 // Generic write through the `IndexSet` bound.
-write_nth :: fn<C: IndexSet<usize, i32>!>(c: C, i: usize, v: i32) {
+write_nth :: fn<C: IndexSet<usize, i32>>(c: C, i: usize, v: i32) {
     c[i] = v
 }
 
@@ -45,7 +45,7 @@ main :: fn() -> i32 {
 
     // Generic-bounded dispatch — the fixed operator path.
     println("generic_read=${read_nth<Cell>(cell, 2)}")
-    write_nth<Cell!>(cell, 2, 77)
+    write_nth<Cell>(cell, 2, 77)
     println("generic_after_write=${read_nth<Cell>(cell, 2)}")
 
     return 0

@@ -65,23 +65,23 @@ export ImplEntry :: struct {
 export ImplRegistry :: struct {
     /// Entries keyed `"${target}::${trait_key}"` — several when concrete
     /// instantiations (`Box<i32>`, `Box<string>`) each implement the trait.
-    by_target: MutableMap<string, ImplEntry[]!>! = MutableMap<string, ImplEntry[]!> {}
+    by_target: MutableMap<string, ImplEntry[]> = MutableMap<string, ImplEntry[]> {}
     /// Every entry, keyed by its impl's `span.hash()` — unique project-wide.
-    by_decl: MutableMap<u64, ImplEntry>! = MutableMap<u64, ImplEntry> {}
+    by_decl: MutableMap<u64, ImplEntry> = MutableMap<u64, ImplEntry> {}
     /// Every entry, keyed by the node id of each member it declares, a materialised
     /// one included (`member_entry`).
-    by_member: MutableMap<usize, ImplEntry>! = MutableMap<usize, ImplEntry> {}
+    by_member: MutableMap<usize, ImplEntry> = MutableMap<usize, ImplEntry> {}
     /// Every entry the registry has seen — used by the lowerer to drive
     /// virtual dispatch over trait-typed receivers.
-    all: ImplEntry[]! = []
+    all: ImplEntry[] = []
     /// Entries keyed by their `target`, every trait together.
-    by_base: MutableMap<string, ImplEntry[]!>! = MutableMap<string, ImplEntry[]!> {}
+    by_base: MutableMap<string, ImplEntry[]> = MutableMap<string, ImplEntry[]> {}
     /// `impl_type_key` of every type an impl on one instance is built from
     /// (`MonType` for `Wrapper<MonType>`) — see `is_specialized_arg`.
-    specialized_args: MutableSet<string>! = MutableSet<string> {}
+    specialized_args: MutableSet<string> = MutableSet<string> {}
     /// `target` of every base two impls of one trait cover whole (`Vec2 implements
     /// Mul<f64>` beside `Mul<Vec2>`) — see `is_specialized_arg`.
-    overloaded_bases: MutableSet<string>! = MutableSet<string> {}
+    overloaded_bases: MutableSet<string> = MutableSet<string> {}
 }
 
 /// Harvest the `ImplDecl`s of `program_decls` into a fresh registry.
@@ -163,7 +163,7 @@ collect_impl :: fn(self: ImplRegistry, impl_: ImplDecl, resolved: ResolvedModule
     }
 }
 
-push_entry :: fn(table: MutableMap<string, ImplEntry[]!>, key: string, entry: ImplEntry) -> void {
+push_entry :: fn(table: MutableMap<string, ImplEntry[]>, key: string, entry: ImplEntry) -> void {
     found :: table[key]
     if found == null {
         table[key] = [entry]
@@ -211,7 +211,7 @@ impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
 /// @param impl_     the impl declaration.
 /// @param resolved  the module that declares it, whose `idents` bind the names.
 /// @return          the ids, explicit parameters first.
-export impl_type_param_ids :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> i32[]! {
+export impl_type_param_ids :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> i32[] {
     ids: i32[]: []
     for tp in impl_.type_params {
         sym :: resolved.idents[tp.span.hash()] ?? continue

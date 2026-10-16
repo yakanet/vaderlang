@@ -82,7 +82,7 @@ Money implements Equals {
 }
 
 export Grid :: struct {
-    cells: i32[]!
+    cells: i32[]
 }
 
 Grid implements Index<usize, i32> {
@@ -139,8 +139,8 @@ export Deck :: struct {
     size: i32
 }
 
-Deck implements Into<Iterator<i32>!> {
-    into :: fn(self) -> Iterator<i32>! = Countdown { .n = self.size }
+Deck implements Into<Iterator<i32>> {
+    into :: fn(self) -> Iterator<i32> = Countdown { .n = self.size }
 }
 
 evens :: fn(limit: i32) -> Iterator<i32> {
@@ -316,7 +316,7 @@ export for_char_range :: fn() -> usize {
     return n
 }
 
-export for_bounded :: fn<T: Iterator<i32>!>(t: T) -> usize {
+export for_bounded :: fn<T: Iterator<i32>>(t: T) -> usize {
     n: usize = 0
     for _ in t {
         n += 1

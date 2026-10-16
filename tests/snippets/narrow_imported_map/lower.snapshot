@@ -5,11 +5,11 @@
     let m: MutableMap<i32, i32 | Wrap>! =
       MutableMap<i32, Any>! {
         ekeys:
-          array :i32[]!
+          array :i32[]
         evals:
-          array :Any[]!
+          array :Any[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize

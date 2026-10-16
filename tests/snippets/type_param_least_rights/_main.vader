@@ -17,7 +17,7 @@ pick :: fn<T>(a: T, b: T) -> T = b
 
 pair :: fn<T>(a: T, b: T) -> [T, T] = [a, b]
 
-make :: fn() -> i32[]! = [1, 2, 3]
+make :: fn() -> i32[] = [1, 2, 3]
 
 main :: fn() -> i32 {
     local :: Cfg { .n = 7 }

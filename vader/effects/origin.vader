@@ -82,7 +82,7 @@ export FaultWrite :: struct {
 /// The calls from a fault down to the write, and the write ; no write when the
 /// chain cannot be followed to one.
 export FaultChain :: struct {
-    via: FaultHop[]! = []
+    via: FaultHop[] = []
     write: FaultWrite | null = null
 }
 
@@ -91,7 +91,7 @@ TraceCtx :: struct {
     index: CalleeIndex
     /// Per node, the skeleton of its body.
     skeletons: Skeleton[]
-    facts: ParamEffects![]![]
+    facts: ParamEffects[][]
 }
 
 // Where an access of a chain sits: the skeleton that put it in its set, the module

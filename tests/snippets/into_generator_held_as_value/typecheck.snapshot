@@ -27,8 +27,8 @@
   expr 40:19    StructLitExpr  :: Deck!
   expr 40:5     CallExpr       :: void
   expr 40:5     IdentExpr      :: fn(T) -> void
-  expr 41:30    CallExpr       :: Iterator<char>!
-  expr 41:30    FieldExpr      :: fn() -> Iterator<char>!
+  expr 41:30    CallExpr       :: Iterator<char>
+  expr 41:30    FieldExpr      :: fn() -> Iterator<char>
   expr 41:30    StringLitExpr  :: string
   expr 42:13    CallExpr       :: u32
   expr 42:13    IdentExpr      :: fn(Iterator<char>) -> u32

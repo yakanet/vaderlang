@@ -45,10 +45,10 @@
                     cast → Error
                       written :IOError | null
         return int(1) :i32
-    let entries: IOError | string[]! =
-      call :IOError | string[]!
+    let entries: IOError | string[] =
+      call :IOError | string[]
         callee:
-          read_dir :fn(string) -> IOError | string[]!
+          read_dir :fn(string) -> IOError | string[]
         arg0:
           call :string
             callee:
@@ -56,7 +56,7 @@
     if :void
       cond:
         is IOError! :bool
-          entries :IOError | string[]!
+          entries :IOError | string[]
       then:
         call :void
           callee:
@@ -70,14 +70,14 @@
               arg1:
                 .msg :string
                   cast → IOError
-                    entries :IOError | string[]!
+                    entries :IOError | string[]
         return int(1) :i32
     let listed: bool = false
     let reopened: bool = false
     block :void
-      let __for_arr_0: string[]! =
-        cast → string[]!
-          entries :IOError | string[]!
+      let __for_arr_0: string[] =
+        cast → string[]
+          entries :IOError | string[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -85,7 +85,7 @@
         let e: string =
           index :string
             on:
-              __for_arr_0 :string[]!
+              __for_arr_0 :string[]
             ix:
               __for_i_2 :usize
         if :void

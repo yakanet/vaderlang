@@ -61,23 +61,23 @@ import "std/string"
 /// array so member methods can `self.strings.push(...)` without taking
 /// `self` by reference (Vader arrays are heap-allocated references).
 export ModuleBuilder :: struct {
-    strings: string[]!
+    strings: string[]
     /// Intern map for `strings` — keyed by the source string, valued
     /// with the pool index. Avoids O(n) lookups when interning the
     /// same string twice from caller code.
-    string_index: MutableMap<string, i32>!
-    types: bc.BcType[]!
-    imports: bc.BcImport[]!
-    functions: bc.BcFunction![]!
-    impl_table: bc.ImplEntry[]!
-    data_pool: bc.BcDataEntry[]!
-    main_index: i32[]!
+    string_index: MutableMap<string, i32>
+    types: bc.BcType[]
+    imports: bc.BcImport[]
+    functions: bc.BcFunction[]
+    impl_table: bc.ImplEntry[]
+    data_pool: bc.BcDataEntry[]
+    main_index: i32[]
 }
 
 /// Fresh, empty builder. `main_index` is held in a 1-element `i32[]` so
 /// `set_main` can mutate it from a member fn that takes `self` by value
 /// (Vader arrays are heap-allocated and shared by reference).
-export new_module_builder :: fn() -> ModuleBuilder! {
+export new_module_builder :: fn() -> ModuleBuilder {
     return ModuleBuilder {
         .strings      = [],
         .string_index = MutableMap<string, i32> {},
@@ -294,14 +294,14 @@ export FunctionBuilder :: struct {
     /// Class of each parameter, in slot order.
     params: bc.ValType[]
     local_count: usize
-    ops: bc.Op[]!
-    table: i32[]!
+    ops: bc.Op[]
+    table: i32[]
     @internal
-    scopes: ScopeEntry[]!
-    scope_sp: usize[]!
+    scopes: ScopeEntry[]
+    scope_sp: usize[]
     @internal
-    pending: PendingBranch[]!
-    pending_sp: usize[]!
+    pending: PendingBranch[]
+    pending_sp: usize[]
 }
 
 /// Fresh function builder with one argument slot per entry of `params`,
@@ -316,7 +316,7 @@ export FunctionBuilder :: struct {
 /// @return                 a FunctionBuilder ready to receive ops.
 export new_function_builder :: fn(
     name: string, params: bc.ValType[], local_count: usize,
-) -> FunctionBuilder! {
+) -> FunctionBuilder {
     return FunctionBuilder {
         .name            = name,
         .params          = params,

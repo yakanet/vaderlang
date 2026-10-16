@@ -2,7 +2,7 @@
 
 ## tests/snippets/iter_coerce_array
   FnDecl         main                 :: fn() -> i32
-  FnDecl         make_iter            :: fn() -> Iterator<i32>!
+  FnDecl         make_iter            :: fn() -> Iterator<i32>
   FnDecl         walk                 :: fn(Iterator<i32>) -> i32
   expr 17:9     IdentExpr      :: bool
   expr 18:19    CallExpr       :: [i32, Continuation]
@@ -34,8 +34,8 @@
   expr 40:38    IdentExpr      :: Iterator<i32>
   expr 43:10    CallExpr       :: i32
   expr 43:10    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 43:15    CallExpr       :: Iterator<i32>!
-  expr 43:15    IdentExpr      :: fn() -> Iterator<i32>!
+  expr 43:15    CallExpr       :: Iterator<i32>
+  expr 43:15    IdentExpr      :: fn() -> Iterator<i32>
   expr 45:13    StringLitExpr  :: string
   expr 45:18    IdentExpr      :: i32
   expr 45:25    IdentExpr      :: i32

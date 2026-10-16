@@ -52,8 +52,8 @@ itm_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
 // final else block.
 IfChain :: struct {
     conds:      AST.BinaryExpr[]
-    blocks:     AST.BlockExpr![]
-    else_block: AST.BlockExpr!
+    blocks:     AST.BlockExpr[]
+    else_block: AST.BlockExpr
 }
 
 is_match_convertible :: fn(ifx: AST.IfExpr) -> bool {
@@ -84,7 +84,7 @@ scrutinee_name :: fn(c: AST.BinaryExpr) -> string {
 // Descend the else-if chain : collect each `is` / `==` condition + its block,
 // and the final else block. Returns null when a condition isn't an Is/Eq binary
 // or there's no final else (can't form an exhaustive match).
-analyze_if :: fn(ifx: AST.IfExpr) -> IfChain! | null {
+analyze_if :: fn(ifx: AST.IfExpr) -> IfChain | null {
     conds:  AST.BinaryExpr[]: []
     blocks: AST.BlockExpr[]: []
     cur := ifx
@@ -114,7 +114,7 @@ analyze_if :: fn(ifx: AST.IfExpr) -> IfChain! | null {
 
 // Synthesise the match from the chain : one arm per condition (reusing each
 // block as the arm body), plus a wildcard arm for the final else.
-build_match :: fn(ifx: AST.IfExpr, ch: IfChain) -> AST.MatchExpr! {
+build_match :: fn(ifx: AST.IfExpr, ch: IfChain) -> AST.MatchExpr {
     arms: AST.MatchArm[]: []
     i := 0
     for c in ch.conds {
@@ -136,7 +136,7 @@ build_match :: fn(ifx: AST.IfExpr, ch: IfChain) -> AST.MatchExpr! {
 }
 
 // `x is T` → `is T` ; `x == v` → the literal pattern `v`.
-cond_to_pattern :: fn(c: AST.BinaryExpr) -> AST.Pattern! {
+cond_to_pattern :: fn(c: AST.BinaryExpr) -> AST.Pattern {
     if c.op == .Is {
         return AST.IsPattern { .span = c.span, .ty = c.right, .inner = null }
     }

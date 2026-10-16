@@ -1161,7 +1161,7 @@ boxed_parameters :: fn(first: CParameter, count: usize) -> CParameter[] {
 ///
 /// @param slots   the parameters' stack classes.
 /// @param prefix  the name every parameter shares, before its index.
-value_parameters :: fn(slots: ValType[], prefix: string) -> CParameter[]! {
+value_parameters :: fn(slots: ValType[], prefix: string) -> CParameter[] {
     parameters: CParameter[]: []
     for i in 0..<slots.len() {
         type :: c_type_for_val_bare(slots[i])
@@ -1306,12 +1306,12 @@ info_row :: fn(index: usize, members: CExpression[]) -> CExpression = designated
 /// holds `offsetof` expressions.
 StructOffsets :: struct {
     /// Box-bearing fields.
-    ptr_offsets: string[]!
+    ptr_offsets: string[]
     /// Raw `vader_string_t` fields — the string GC marks them independently of
     /// the box-aliased Cheney walk.
-    str_offsets: string[]!
+    str_offsets: string[]
     /// Nullable-ref slots that store a raw `void*`.
-    ref_offsets: string[]!
+    ref_offsets: string[]
 }
 
 empty_struct_offsets :: fn() -> StructOffsets {
@@ -1423,7 +1423,7 @@ emit_main :: fn(ctx: EmitCtx, printer: CPrinter, entry_mangled: string) -> void 
 }
 
 // The statements of `int main`.
-main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[]! {
+main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[] {
     unused_arguments: CStatement[]: [
         CExpressionStatement { .expression = cast("void", verbatim("argc")) },
         CExpressionStatement { .expression = cast("void", verbatim("argv")) },

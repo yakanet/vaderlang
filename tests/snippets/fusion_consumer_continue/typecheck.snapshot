@@ -57,10 +57,10 @@
   expr 129:5    IdentExpr      :: fn(T) -> void
   expr 129:57   IdentExpr      :: i32
   expr 129:68   IdentExpr      :: i32
-  expr 134:19   CallExpr       :: StringChars!
+  expr 134:19   CallExpr       :: StringChars
   expr 134:19   CallExpr       :: __genstate_indexed<[char, usize]>!
   expr 134:19   FieldExpr      :: fn() -> Iterator<[char, usize]>
-  expr 134:19   FieldExpr      :: fn() -> StringChars!
+  expr 134:19   FieldExpr      :: fn() -> StringChars
   expr 134:19   StringLitExpr  :: string
   expr 135:12   BinaryExpr     :: bool
   expr 135:12   IdentExpr      :: char
@@ -70,10 +70,10 @@
   expr 138:22   IdentExpr      :: usize
   expr 138:9    BinaryExpr     :: i32
   expr 138:9    IdentExpr      :: i32
-  expr 141:11   CallExpr       :: StringChars!
+  expr 141:11   CallExpr       :: StringChars
   expr 141:11   CallExpr       :: __genstate_indexed<[char, usize]>!
   expr 141:11   FieldExpr      :: fn() -> Iterator<[char, usize]>
-  expr 141:11   FieldExpr      :: fn() -> StringChars!
+  expr 141:11   FieldExpr      :: fn() -> StringChars
   expr 141:11   StringLitExpr  :: string
   expr 142:19   IdentExpr      :: __genstate_indexed<[char, usize]>!
   expr 143:12   BinaryExpr     :: bool
@@ -268,8 +268,8 @@
   expr 255:19   CallExpr       :: __genstate_indexed<[i32, usize]>!
   expr 255:19   FieldExpr      :: fn() -> Iterator<[i32, usize]>
   expr 255:19   IdentExpr      :: i32[]
-  expr 256:15   CallExpr       :: Async<null>!
-  expr 256:15   IdentExpr      :: fn(i64) -> Async<null>!
+  expr 256:15   CallExpr       :: Async<null>
+  expr 256:15   IdentExpr      :: fn(i64) -> Async<null>
   expr 256:9    AwaitExpr      :: null
   expr 257:12   BinaryExpr     :: bool
   expr 257:12   IdentExpr      :: i32
@@ -284,8 +284,8 @@
   expr 267:14   FieldExpr      :: fn() -> Iterator<[i32, usize]>
   expr 267:14   IdentExpr      :: i32[]
   expr 268:19   IdentExpr      :: __genstate_indexed<[i32, usize]>!
-  expr 269:15   CallExpr       :: Async<null>!
-  expr 269:15   IdentExpr      :: fn(i64) -> Async<null>!
+  expr 269:15   CallExpr       :: Async<null>
+  expr 269:15   IdentExpr      :: fn(i64) -> Async<null>
   expr 269:9    AwaitExpr      :: null
   expr 26:17    BinaryExpr     :: string
   expr 26:17    IdentExpr      :: string

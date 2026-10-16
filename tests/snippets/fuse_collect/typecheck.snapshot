@@ -4,8 +4,8 @@
   FnDecl         main                 :: fn() -> i32
   expr 15:11    CallExpr       :: __genstate_filter<i32>!
   expr 15:11    CallExpr       :: __genstate_map<i32>!
-  expr 15:11    CallExpr       :: i32[]!
-  expr 15:11    FieldExpr      :: fn() -> i32[]!
+  expr 15:11    CallExpr       :: i32[]
+  expr 15:11    FieldExpr      :: fn() -> i32[]
   expr 15:11    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 15:11    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 15:11    SeqLitExpr     :: i32[]!
@@ -18,18 +18,18 @@
   expr 16:13    StringLitExpr  :: string
   expr 16:20    CallExpr       :: usize
   expr 16:20    FieldExpr      :: fn() -> usize
-  expr 16:20    IdentExpr      :: i32[]!
-  expr 16:36    IdentExpr      :: i32[]!
+  expr 16:20    IdentExpr      :: i32[]
+  expr 16:36    IdentExpr      :: i32[]
   expr 16:36    IndexExpr      :: i32
-  expr 16:49    IdentExpr      :: i32[]!
+  expr 16:49    IdentExpr      :: i32[]
   expr 16:49    IndexExpr      :: i32
   expr 16:5     CallExpr       :: void
   expr 16:5     IdentExpr      :: fn(T) -> void
-  expr 16:62    IdentExpr      :: i32[]!
+  expr 16:62    IdentExpr      :: i32[]
   expr 16:62    IndexExpr      :: i32
   expr 19:12    CallExpr       :: __genstate_filter<i32>!
-  expr 19:12    CallExpr       :: i32[]!
-  expr 19:12    FieldExpr      :: fn() -> i32[]!
+  expr 19:12    CallExpr       :: i32[]
+  expr 19:12    FieldExpr      :: fn() -> i32[]
   expr 19:12    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 19:12    RangeExpr      :: Range<i32>!
   expr 19:27    LambdaExpr     :: fn(i32) -> bool
@@ -39,10 +39,10 @@
   expr 20:13    StringLitExpr  :: string
   expr 20:21    CallExpr       :: usize
   expr 20:21    FieldExpr      :: fn() -> usize
-  expr 20:21    IdentExpr      :: i32[]!
-  expr 20:37    IdentExpr      :: i32[]!
+  expr 20:21    IdentExpr      :: i32[]
+  expr 20:37    IdentExpr      :: i32[]
   expr 20:37    IndexExpr      :: i32
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(T) -> void
-  expr 20:50    IdentExpr      :: i32[]!
+  expr 20:50    IdentExpr      :: i32[]
   expr 20:50    IndexExpr      :: i32

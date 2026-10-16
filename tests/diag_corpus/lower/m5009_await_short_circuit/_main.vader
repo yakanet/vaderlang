@@ -5,7 +5,7 @@ Ready<T> implements Async<T> {
     resume :: fn(self) -> T | Suspended { return self.v }
 }
 
-flag_of :: fn() -> Async<bool>! = Ready<bool> { .v = true }
+flag_of :: fn() -> Async<bool> = Ready<bool> { .v = true }
 
 // `await` in a `&&` RHS runs conditionally — hoisting it to a statement would
 // run it unconditionally. v1 diagnoses M5009. `combine` awaits, so it is

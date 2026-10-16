@@ -39,13 +39,10 @@
         }
       ],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "i32"
         }
       },
       "body": {
@@ -153,13 +150,10 @@
         }
       ],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "i32"
         }
       },
       "body": {
@@ -331,13 +325,10 @@
         }
       ],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
-            "kind": "IdentExpr",
-            "name": "string"
-          }
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "string"
         }
       },
       "body": {
@@ -450,13 +441,10 @@
         }
       ],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "i32"
         }
       },
       "body": {
@@ -609,13 +597,10 @@
         }
       ],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "i32"
         }
       },
       "body": {
@@ -748,13 +733,10 @@
         }
       ],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "i32"
         }
       },
       "body": {
@@ -1251,13 +1233,10 @@
         }
       ],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
-            "kind": "IdentExpr",
-            "name": "string"
-          }
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "string"
         }
       },
       "body": {
@@ -1352,13 +1331,10 @@
       "typeParams": [],
       "params": [],
       "returnType": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
-            "kind": "IdentExpr",
-            "name": "i32"
-          }
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "i32"
         }
       },
       "body": {
@@ -2312,13 +2288,10 @@
         {
           "name": "items",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "i32"
             }
           },
           "visibility": "public",

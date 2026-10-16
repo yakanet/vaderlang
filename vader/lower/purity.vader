@@ -18,9 +18,9 @@ import "std/collections"
 /// guard: a fn is stamped impure on entry (a re-entrant query reads that) and
 /// overwritten with its real verdict before returning.
 PurityCtx :: struct {
-    by_mangle: MutableMap<string, LoweredFnDecl>!
-    by_sym_id: MutableMap<i32, LoweredFnDecl>!
-    memo:      MutableMap<string, bool>!
+    by_mangle: MutableMap<string, LoweredFnDecl>
+    by_sym_id: MutableMap<i32, LoweredFnDecl>
+    memo:      MutableMap<string, bool>
 }
 
 /// Whether `fd` cannot run a collection or change an array's length: its body
@@ -50,7 +50,7 @@ is_pure_fn :: fn(ctx: PurityCtx, fd: LoweredFnDecl) -> bool {
 // id, so indexing an instance by it would collide (last-wins) and could resolve a
 // callee to the WRONG instance. An instance is therefore only reachable via its
 // (unique) mangle; a callee found by neither key stays conservatively impure.
-new_purity_ctx :: fn(project: LoweredProject) -> PurityCtx! {
+new_purity_ctx :: fn(project: LoweredProject) -> PurityCtx {
     by_mangle :: MutableMap<string, LoweredFnDecl> {}
     by_sym_id :: MutableMap<i32, LoweredFnDecl> {}
     for [_, m] in project.modules {
@@ -220,7 +220,7 @@ import "toolchain/span"
 // the ctx, resolves callees by mangle / symbol id; the rest of the MonoEntry /
 // LoweredFnDecl shape is inert filler here.
 
-purity_test_ctx :: fn() -> PurityCtx! = PurityCtx {
+purity_test_ctx :: fn() -> PurityCtx = PurityCtx {
     .by_mangle = MutableMap<string, LoweredFnDecl> {},
     .by_sym_id = MutableMap<i32, LoweredFnDecl> {},
     .memo = MutableMap<string, bool> {},
@@ -235,7 +235,7 @@ test_fn_symbol :: fn(id: i32, name: string) -> Symbol = Symbol {
     .defined_at = null,
 }
 
-test_fn_decl :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl! {
+test_fn_decl :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl {
     // MonoEntry shape mirrors `synth_mono_entry` (lower_lambda.vader) — kept inline
     // because that helper needs a FnLowerCtx the fixture deliberately doesn't build.
     return LoweredFnDecl {
@@ -257,13 +257,13 @@ test_fn_decl :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl! {
 }
 
 // `return 0` — no allocation, no call : pure.
-purity_test_pure_return :: fn() -> LoweredStmt! = LoweredReturn {
+purity_test_pure_return :: fn() -> LoweredStmt = LoweredReturn {
     .span = empty_span(),
     .value = LoweredIntLit { .span = empty_span(), .type = TY_VOID, .value = 0 },
 }
 
 // `return [0]` — an array literal allocates : impure.
-purity_test_alloc_return :: fn() -> LoweredStmt! = LoweredReturn {
+purity_test_alloc_return :: fn() -> LoweredStmt = LoweredReturn {
     .span = empty_span(),
     .value = LoweredArrayLit {
         .span = empty_span(), .type = TY_VOID,
@@ -272,7 +272,7 @@ purity_test_alloc_return :: fn() -> LoweredStmt! = LoweredReturn {
 }
 
 // `return callee()` — a bare call to `callee`.
-purity_test_call_return :: fn(callee: Symbol) -> LoweredStmt! = LoweredReturn {
+purity_test_call_return :: fn(callee: Symbol) -> LoweredStmt = LoweredReturn {
     .span = empty_span(),
     .value = LoweredCall {
         .span = empty_span(), .type = TY_VOID,

@@ -22,9 +22,9 @@
   expr 105:9    CallExpr       :: void
   expr 105:9    FieldExpr      :: fn(i32) -> void
   expr 105:9    IdentExpr      :: i32[]
-  expr 107:12   CallExpr       :: Point![]!
+  expr 107:12   CallExpr       :: Point![]
   expr 107:12   CallExpr       :: __genstate_map<Point!>!
-  expr 107:12   FieldExpr      :: fn() -> Point![]!
+  expr 107:12   FieldExpr      :: fn() -> Point![]
   expr 107:12   FieldExpr      :: fn(fn(i32) -> Point!) -> Iterator<Point!>
   expr 107:12   IdentExpr      :: i32[]
   expr 107:18   LambdaExpr     :: fn(i32) -> Point!
@@ -120,7 +120,7 @@
   expr 118:73   IdentExpr      :: __genstate_map<i64>!
   expr 119:12   CallExpr       :: __genstate_filter<Point!>!
   expr 119:12   FieldExpr      :: fn(fn(Point!) -> bool) -> Iterator<Point!>
-  expr 119:12   IdentExpr      :: Point![]!
+  expr 119:12   IdentExpr      :: Point![]
   expr 119:23   LambdaExpr     :: fn(Point) -> bool
   expr 119:30   BinaryExpr     :: bool
   expr 119:30   FieldExpr      :: i32
@@ -130,7 +130,7 @@
   expr 120:14   FieldExpr      :: fn(fn(Point!) -> bool) -> Iterator<Point!>
   expr 120:14   FieldExpr      :: fn(fn(Point!) -> bool) -> null | Point!
   expr 120:14   FieldExpr      :: i32
-  expr 120:14   IdentExpr      :: Point![]!
+  expr 120:14   IdentExpr      :: Point![]
   expr 120:14   NullCoalesceExpr :: Point!
   expr 120:25   LambdaExpr     :: fn(Point) -> bool
   expr 120:32   BinaryExpr     :: bool
@@ -157,20 +157,20 @@
   expr 121:66   StructLitExpr  :: Point!
   expr 122:15   CallExpr       :: __genstate_filter<Point!>!
   expr 122:15   FieldExpr      :: fn(fn(Point!) -> bool) -> Iterator<Point!>
-  expr 122:15   IdentExpr      :: Point![]!
+  expr 122:15   IdentExpr      :: Point![]
   expr 122:26   LambdaExpr     :: fn(Point) -> bool
   expr 122:33   BinaryExpr     :: bool
   expr 122:33   BinaryExpr     :: i32
   expr 122:33   FieldExpr      :: i32
   expr 122:33   IdentExpr      :: Point
   expr 123:13   StringLitExpr  :: string
-  expr 123:31   CallExpr       :: Point![]!
+  expr 123:31   CallExpr       :: Point![]
   expr 123:31   CallExpr       :: __genstate_filter<Point!>!
   expr 123:31   CallExpr       :: usize
-  expr 123:31   FieldExpr      :: fn() -> Point![]!
+  expr 123:31   FieldExpr      :: fn() -> Point![]
   expr 123:31   FieldExpr      :: fn() -> usize
   expr 123:31   FieldExpr      :: fn(fn(Point!) -> bool) -> Iterator<Point!>
-  expr 123:31   IdentExpr      :: Point![]!
+  expr 123:31   IdentExpr      :: Point![]
   expr 123:42   LambdaExpr     :: fn(Point) -> bool
   expr 123:49   BinaryExpr     :: bool
   expr 123:49   BinaryExpr     :: i32
@@ -178,9 +178,9 @@
   expr 123:49   IdentExpr      :: Point
   expr 123:5    CallExpr       :: void
   expr 123:5    IdentExpr      :: fn(T) -> void
-  expr 123:82   CallExpr       :: Point![]!
+  expr 123:82   CallExpr       :: Point![]
   expr 123:82   CallExpr       :: usize
-  expr 123:82   FieldExpr      :: fn() -> Point![]!
+  expr 123:82   FieldExpr      :: fn() -> Point![]
   expr 123:82   FieldExpr      :: fn() -> usize
   expr 123:82   IdentExpr      :: __genstate_filter<Point!>!
   expr 125:14   CallExpr       :: __genstate_map<string>!

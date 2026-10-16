@@ -134,9 +134,9 @@
   expr 52:13    StringLitExpr  :: string
   expr 52:26    CallExpr       :: __genstate_filter<i32>!
   expr 52:26    CallExpr       :: i32[]
-  expr 52:26    CallExpr       :: i32[]!
+  expr 52:26    CallExpr       :: i32[]
   expr 52:26    CallExpr       :: usize
-  expr 52:26    FieldExpr      :: fn() -> i32[]!
+  expr 52:26    FieldExpr      :: fn() -> i32[]
   expr 52:26    FieldExpr      :: fn() -> usize
   expr 52:26    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 52:26    IdentExpr      :: fn(string, i32[]) -> i32[]

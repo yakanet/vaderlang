@@ -35,11 +35,11 @@
     let seen: MutableMap<Label | Point, string>! =
       MutableMap<Any, string>! {
         ekeys:
-          array :Any[]!
+          array :Any[]
         evals:
-          array :string[]!
+          array :string[]
         index:
-          array :i32[]!
+          array :i32[]
         mask: int(0) :usize
         size: int(0) :usize
         tombs: int(0) :usize

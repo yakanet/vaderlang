@@ -50,10 +50,10 @@ zero_span :: fn(path: string) = Span {
 /// consumers merge these into their `# Diagnostics` block.
 export LoadedProject :: struct {
     entry:        string
-    modules:      MutableMap<string, LoadedModule!>
-    factory:      SymbolFactory!
+    modules:      MutableMap<string, LoadedModule>
+    factory:      SymbolFactory
     project_root: string | null
-    diags:        Diagnostic[]!
+    diags:        Diagnostic[]
 }
 
 /// Empty placeholder — used by test fixtures that construct downstream
@@ -61,7 +61,7 @@ export LoadedProject :: struct {
 export empty_loaded_project :: fn() -> LoadedProject {
     return LoadedProject {
         .entry        = "",
-        .modules      = MutableMap<string, LoadedModule!> {},
+        .modules      = MutableMap<string, LoadedModule> {},
         .factory      = SymbolFactory {},
         .project_root = null,
         .diags        = [],
@@ -76,7 +76,7 @@ export empty_loaded_project :: fn() -> LoadedProject {
 export LoadedModule :: struct {
     module:          Module
     collected:       CollectedModule
-    node_id_factory: NodeIdFactory!
+    node_id_factory: NodeIdFactory
     /// Bodies target selection dropped. Kept so W0007 can still see what they
     /// referenced: a helper called only from another platform's body is not dead
     /// code, and reporting it as such is a false positive on exactly the code
@@ -89,7 +89,7 @@ export LoadedModule :: struct {
 /// Reads every module from disk.
 export load_project :: fn(
     entry_path: string, include_path_flags: string[], selection: Selection | null = null,
-) -> LoadedProject! {
+) -> LoadedProject {
     return load_project_with_overlay(
         entry_path, MutableMap<string, string> {}, include_path_flags, selection)
 }
@@ -114,7 +114,7 @@ export load_project :: fn(
 export load_project_with_overlay :: fn(
     entry_path: string, overlay: MutableMap<string, string>,
     include_path_flags: string[], selection: Selection | null = null,
-) -> LoadedProject! {
+) -> LoadedProject {
     factory :: SymbolFactory {}
     // ONE node-id factory for the whole project so AST node ids are globally
     // unique across modules (see `parse_module_files`). Threaded into every
@@ -148,7 +148,7 @@ export load_project_with_overlay :: fn(
     } else {
         view
     }
-    modules :: MutableMap<string, LoadedModule!> {}
+    modules :: MutableMap<string, LoadedModule> {}
     loader_diags: Diagnostic[]: []
     roots :: search_roots(entry, include_path_flags, loader_diags)
     project_root :: roots.project_root
@@ -293,7 +293,7 @@ export search_roots :: fn(
 // declares the enums the constants name; loads it first if the natural BFS did
 // not, so that `VADER_OS` is available to a program that never imported anything.
 load_baked_target :: fn(
-    modules: MutableMap<string, LoadedModule!>, bases: IncludePath[],
+    modules: MutableMap<string, LoadedModule>, bases: IncludePath[],
     index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
     overlay: MutableMap<string, string>, factory: SymbolFactory,
     node_factory: NodeIdFactory, target: Target,
@@ -324,7 +324,7 @@ load_baked_target :: fn(
 // without diverging from the ingestion logic.
 drain_load_queue :: fn(
     queue: DiscoveredModule[], bases: IncludePath[],
-    modules: MutableMap<string, LoadedModule!>, factory: SymbolFactory,
+    modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,
     index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
     overlay: MutableMap<string, string>, node_factory: NodeIdFactory,
     // NO default: it would make "I forgot" and "I mean no target" the same
@@ -362,7 +362,7 @@ drain_load_queue :: fn(
 // cycle is invisible there ; a separate three-colour DFS over the resolved
 // import graph surfaces it. SPEC §11 forbids cyclic imports.
 detect_import_cycles :: fn(
-    modules: MutableMap<string, LoadedModule!>,
+    modules: MutableMap<string, LoadedModule>,
     index: MutableMap<string, DiscoveredModule>,
     diags: Diagnostic[],
 ) -> void {
@@ -374,7 +374,7 @@ detect_import_cycles :: fn(
 }
 
 walk_import_cycle :: fn(
-    id: string, modules: MutableMap<string, LoadedModule!>,
+    id: string, modules: MutableMap<string, LoadedModule>,
     index: MutableMap<string, DiscoveredModule>,
     state: MutableMap<string, i32>, diags: Diagnostic[],
 ) -> void {
@@ -404,7 +404,7 @@ walk_import_cycle :: fn(
 // the right span.
 ingest_module :: fn(
     m: DiscoveredModule, bases: IncludePath[],
-    modules: MutableMap<string, LoadedModule!>, factory: SymbolFactory,
+    modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,
     index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
     overlay: MutableMap<string, string>, node_factory: NodeIdFactory,
     target: Target | null,
@@ -594,7 +594,7 @@ entry_folder_of :: fn(path: string) -> string {
     return folder
 }
 
-has_module :: fn(modules: MutableMap<string, LoadedModule!>, id: string) -> bool {
+has_module :: fn(modules: MutableMap<string, LoadedModule>, id: string) -> bool {
     return !(modules[id] is null)
 }
 

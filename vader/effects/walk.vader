@@ -29,27 +29,27 @@ AST :: import "toolchain/ast"
 
 /// The state of the walk of one body.
 WalkCtx :: struct {
-    s: Skeleton!
+    s: Skeleton
     typed: TypedProgram
     index: CalleeIndex
     /// Symbol id → slot, for the parameters that hold references and the locals.
-    slots: MutableMap<i32, usize>! = MutableMap<i32, usize> {}
+    slots: MutableMap<i32, usize> = MutableMap<i32, usize> {}
     /// How many lambdas the walk is inside.
     lambda_depth: i32 = 0
     /// Where the walk notes what it does with frozen values (`frozen.vader`).
-    frozen: FrozenSites!
+    frozen: FrozenSites
     /// Where the walk notes the arguments the typecheck widened (`variance.vader`).
-    widenings: PendingWidening[]!
+    widenings: PendingWidening[]
     /// The roots the frozen checks decide: each use of a frozen value, each binding.
-    roots: FrozenRoot[]! = []
+    roots: FrozenRoot[] = []
     /// The name nodes a write lands below, `c` in `c.n = 0` or `c.n += 1`: no read.
-    place_bases: MutableSet<usize>! = MutableSet<usize> {}
+    place_bases: MutableSet<usize> = MutableSet<usize> {}
     /// The slots that hold nothing but frozen values: a use of a constant or of an
     /// enum's variant data, a step below such a slot, a join of such slots.
-    pure: MutableSet<usize>! = MutableSet<usize> {}
+    pure: MutableSet<usize> = MutableSet<usize> {}
     /// The locals and parameters a write into may be seen through, by symbol id:
     /// those the body reads, and those that may hold anything but frozen values.
-    seen_names: MutableSet<i32>! = MutableSet<i32> {}
+    seen_names: MutableSet<i32> = MutableSet<i32> {}
 }
 
 /// The skeleton of `decl`'s body.

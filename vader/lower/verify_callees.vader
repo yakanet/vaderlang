@@ -31,18 +31,18 @@ export VERIFY_CALLEES_VAR :: "VADER_VERIFY_CALLEES"
 /// The verifier's state for one lowering run.
 export CalleeVerifier :: struct {
     /// Where the lowering chose another callee than the record.
-    mismatches: CalleeMismatch[]! = []
+    mismatches: CalleeMismatch[] = []
     /// The (node, role, choice) already reported.
-    seen: MutableSet<string>! = MutableSet<string> {}
+    seen: MutableSet<string> = MutableSet<string> {}
     /// How many choices were compared with the record ; a site lowered twice counts
     /// twice.
     observed: i32 = 0
     /// Mangle → the impl member a call by that name runs (`note_member_origin`).
-    members: MutableMap<string, ObservedFn>! = MutableMap<string, ObservedFn> {}
+    members: MutableMap<string, ObservedFn> = MutableMap<string, ObservedFn> {}
 }
 
 /// A verifier when `$VADER_VERIFY_CALLEES` is set, else null.
-export new_callee_verifier :: fn() -> CalleeVerifier! | null {
+export new_callee_verifier :: fn() -> CalleeVerifier | null {
     if !env_flag_set(VERIFY_CALLEES_VAR) {
         return null
     }
@@ -105,7 +105,7 @@ export CalleeMismatch :: struct {
 /// @param node     the site's node, as the typecheck keyed it.
 /// @param role     the part the site plays at it.
 /// @param lowered  what the lowering made of it.
-observed :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, lowered: LoweredExpr) -> LoweredExpr! {
+observed :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, lowered: LoweredExpr) -> LoweredExpr {
     observe_lowered(ctx, node, role, lowered)
     return lowered
 }
@@ -252,7 +252,7 @@ walked_in_place :: fn(
     iter: Expr,
     what: string,
     lowered: LoweredStmt,
-) -> LoweredStmt! {
+) -> LoweredStmt {
     observe_no_call(ctx, iter, .IterInto, what)
     observe_no_call(ctx, iter, .IterNext, what)
     return lowered
@@ -514,7 +514,7 @@ render_callee_report :: fn(project: LowerProjectCtx) -> string {
     if verifier.mismatches.len() == 0 {
         return "${header}: none (${observations})\n"
     }
-    groups :: MutableMap<string, MutableMap<string, MismatchPair!>!> {}
+    groups :: MutableMap<string, MutableMap<string, MismatchPair>> {}
     for m in verifier.mismatches {
         recorded :: recorded_kind(m.recorded)
         key :: "${role_label(m.role)}: recorded ${recorded}, lowered ${observed_kind(m.observed)}"
@@ -545,10 +545,10 @@ MismatchPair :: struct {
 }
 
 new_group :: fn(
-    groups: MutableMap<string, MutableMap<string, MismatchPair!>!>,
+    groups: MutableMap<string, MutableMap<string, MismatchPair>>,
     key: string,
-) -> MutableMap<string, MismatchPair!>! {
-    fresh :: MutableMap<string, MismatchPair!> {}
+) -> MutableMap<string, MismatchPair> {
+    fresh :: MutableMap<string, MismatchPair> {}
     groups[key] = fresh
     return fresh
 }

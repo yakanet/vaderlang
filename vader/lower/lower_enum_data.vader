@@ -34,7 +34,7 @@ import "vader/types"
 /// @return           the slot, typed as the enum's read-only data.
 export lower_enum_data_slot :: fn(
     ctx: FnLowerCtx, value: LoweredExpr, enum_type: EnumType, span: Span,
-) -> LoweredExpr! {
+) -> LoweredExpr {
     data :: enum_type.data ?? return stub(span, TY_UNRESOLVED, "enum without variant data")
     return LoweredIndex {
         .span   = span,
@@ -59,7 +59,7 @@ export lower_enum_data_slot :: fn(
 /// @param span       the conversion.
 export lower_enum_data_read :: fn(
     ctx: FnLowerCtx, node: usize, value: LoweredExpr, enum_type: EnumType, span: Span,
-) -> LoweredExpr! {
+) -> LoweredExpr {
     slot :: lower_enum_data_slot(ctx, value, enum_type, span)
     if node !in ctx.project.typed.fresh.uses {
         return slot
@@ -90,7 +90,7 @@ export lower_enum_data_read :: fn(
 /// @param source   the expression, for its checked type.
 /// @param lowered  `source`, lowered.
 /// @return         an `i64` holding the written value, or `lowered`.
-export as_written_value :: fn(ctx: FnLowerCtx, source: Expr, lowered: LoweredExpr) -> LoweredExpr! {
+export as_written_value :: fn(ctx: FnLowerCtx, source: Expr, lowered: LoweredExpr) -> LoweredExpr {
     enum_type :: enum_type_or_unwrap(ctx, ctx.types.expr_type(source))
     if enum_type is EnumType && enum_type.data != null {
         return lower_enum_value(ctx, lowered, enum_type, source.span)
@@ -103,7 +103,7 @@ export as_written_value :: fn(ctx: FnLowerCtx, source: Expr, lowered: LoweredExp
 // read of `<Enum>$value`.
 lower_enum_value :: fn(
     ctx: FnLowerCtx, value: LoweredExpr, enum_type: EnumType, span: Span,
-) -> LoweredExpr! {
+) -> LoweredExpr {
     values :: enum_type.values
     i64_type :: mk_primitive("i64")
     if value is LoweredIntLit {
@@ -134,7 +134,7 @@ lower_enum_value :: fn(
     }
 }
 
-rank_of :: fn(value: LoweredExpr, span: Span) -> LoweredExpr! =
+rank_of :: fn(value: LoweredExpr, span: Span) -> LoweredExpr =
     LoweredCast { .span = span, .type = mk_primitive("i64"), .value = value }
 
 is_consecutive :: fn(values: i64[]) -> bool {
@@ -213,7 +213,7 @@ export materialize_enum_tables :: fn(
 // data struct, at its rank.
 lower_data_table :: fn(
     decl: EnumDecl, due: EnumTable, typed: TypedProgram, project_ctx: LowerProjectCtx,
-) -> LoweredConstDecl! | null {
+) -> LoweredConstDecl | null {
     data :: due.enum_type.data ?? return null
     table_type :: mk_array(data, true)
     entry :: table_entry(decl, due, typed)
@@ -238,7 +238,7 @@ lower_data_table :: fn(
 }
 
 // The `<Enum>$value` const : each variant's written value, at its rank.
-lower_value_table :: fn(decl: EnumDecl, due: EnumTable, typed: TypedProgram) -> LoweredConstDecl! {
+lower_value_table :: fn(decl: EnumDecl, due: EnumTable, typed: TypedProgram) -> LoweredConstDecl {
     values :: due.enum_type.values
     element :: mk_primitive(value_element_width(values))
     elements: LoweredExpr[]: []

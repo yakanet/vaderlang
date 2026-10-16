@@ -92,7 +92,7 @@ export coalesce_fallback_expr :: fn(f: CoalesceFallback) -> Expr | null = match 
 ///
 /// For the walkers that visit a statement's sub-expressions and have no use for
 /// each element's kind.
-export assign_places :: fn(s: DestructureAssignStmt) -> Expr![] {
+export assign_places :: fn(s: DestructureAssignStmt) -> Expr[] {
     out: Expr[]: []
     for t in s.targets {
         match t {
@@ -140,8 +140,8 @@ export Program :: struct {
     id:      usize = UNASSIGNED_NODE_ID
     /// The `module "..."` declaration. Null when absent — the parser
     /// is tolerant ; the resolver's scan emits R2020 on absence.
-    module:  ModuleDecl! | null = null
-    decls:   Decl![]
+    module:  ModuleDecl | null = null
+    decls:   Decl[]
 }
 
 /// The `module "<name>"` decl that opens every `.vader` file. Carries
@@ -166,14 +166,14 @@ export TypeParam :: struct {
     span:               Span
     id:                 usize = UNASSIGNED_NODE_ID
     name:               string
-    bound:              TypeExpr! | null
+    bound:              TypeExpr | null
     /// Default type for this parameter, from `<T = Default>`. Honored when an
     /// impl supplies fewer trait-args than the trait declares — the trailing
     /// params fill from their defaults at impl materialization
     /// (`resolver/materialize.vader::build_subst`). Defaults on struct / fn /
     /// alias params parse but are not yet filled at their use sites (those
     /// instantiations error rather than default). `null` = no default.
-    default:            TypeExpr! | null = null
+    default:            TypeExpr | null = null
     is_comptime_value:  bool
 }
 
@@ -182,7 +182,7 @@ export Decorator :: struct {
     span: Span
     id:   usize = UNASSIGNED_NODE_ID
     name: string
-    args: Expr![]
+    args: Expr[]
 }
 
 /// Whether `decs` carries the decorator called `name`.
@@ -214,7 +214,7 @@ export ImportDecl :: struct {
     id:         usize = UNASSIGNED_NODE_ID
     path:       string
     binding:    ImportBinding
-    decorators: Decorator![]
+    decorators: Decorator[]
 }
 
 /// `name :: import "..."` — namespace binding ; members reached via `name.X`.
@@ -226,7 +226,7 @@ export NamedNamespaceImport :: struct {
 /// it as `y`, `z as _` is a pure exclusion. A plain name (no `as`) is an error
 /// (R2033) — the wildcard already brings every export.
 export DestructureImport :: struct {
-    names: ImportName![]
+    names: ImportName[]
     /// True when the source wrote a trailing comma before `}`. Drives the
     /// formatter's Dart-style layout: present -> one name per line.
     trailing_comma: bool = false
@@ -265,11 +265,11 @@ export FnDecl :: struct {
     name:                  string
     name_span:             Span
     visibility:            Visibility
-    type_params:           TypeParam![]
-    params:                FnParam![]!
-    return_type:           TypeExpr! | null
-    body:                  BlockExpr! | null
-    decorators:            Decorator![]
+    type_params:           TypeParam[]
+    params:                FnParam[]
+    return_type:           TypeExpr | null
+    body:                  BlockExpr | null
+    decorators:            Decorator[]
     sam_synthetic:         bool
     is_expression_bodied:  bool
     /// `true` when this FnDecl was synthesised by `materialize_default_members`
@@ -299,8 +299,8 @@ export FnParam :: struct {
     id:            usize = UNASSIGNED_NODE_ID
     name:          string
     // Optional in lambdas.
-    ty:            TypeExpr! | null
-    default_value: Expr! | null
+    ty:            TypeExpr | null
+    default_value: Expr | null
     variadic:      bool
     /// `!` suffix on the NAME (`buf: u8[]`!, `self!`) — the caller grants this
     /// parameter permission to mutate its referent. Carried on the name rather
@@ -331,9 +331,9 @@ export StructDecl :: struct {
     name:          string
     name_span:     Span
     visibility:    Visibility
-    type_params:   TypeParam![]
-    fields:        StructField![]
-    decorators:    Decorator![]
+    type_params:   TypeParam[]
+    fields:        StructField[]
+    decorators:    Decorator[]
 }
 
 /// One field of a struct.
@@ -344,10 +344,10 @@ export StructField :: struct {
     span:       Span
     id:         usize = UNASSIGNED_NODE_ID
     name:       string
-    ty:         TypeExpr!
+    ty:         TypeExpr
     visibility: Visibility
     // Optional default value used when a struct literal omits this field.
-    default:    Expr! | null
+    default:    Expr | null
 }
 
 // ---- Enum -----------------------------------------------------------------
@@ -363,9 +363,9 @@ export EnumDecl :: struct {
     /// The parenthesised header as written : empty, `(width)`, `(data)` or
     /// `(data, width)`. Which role a lone argument plays depends on what it
     /// resolves to, so the typechecker decides, not the parser.
-    header:     TypeExpr![]
-    variants:   EnumVariant![]
-    decorators: Decorator![]
+    header:     TypeExpr[]
+    variants:   EnumVariant[]
+    decorators: Decorator[]
 }
 
 /// One variant of an enum, with its explicit value when the source gave one.
@@ -380,7 +380,7 @@ export EnumVariant :: struct {
     value_span:  Span | null
     /// The `{ .f = v }` block as written, checked against the header's data
     /// type ; null when the variant has none.
-    data:        StructLitItem![] | null = null
+    data:        StructLitItem[] | null = null
 }
 
 // ---- Trait ----------------------------------------------------------------
@@ -395,15 +395,15 @@ export TraitDecl :: struct {
     name:        string
     name_span:   Span
     visibility:  Visibility
-    type_params: TypeParam![]
+    type_params: TypeParam[]
     /// The supertrait bound, for either form — `Numeric :: trait<T> = Add & Sub`
     /// (alias form, `members` empty) or `Hashable :: trait<T> : Hash & Eq { … }`
     /// (methods plus composition). A parsed type expression: typically a
     /// `BinaryExpr(.BitAnd)` chain over trait names, though a single trait
     /// reference is valid too. `null` for a plain `trait { … }`.
-    requires:    TypeExpr! | null
-    members:     FnDecl![]
-    decorators:  Decorator![]
+    requires:    TypeExpr | null
+    members:     FnDecl[]
+    decorators:  Decorator[]
 }
 
 // ---- Impl -----------------------------------------------------------------
@@ -415,13 +415,13 @@ export TraitDecl :: struct {
 export ImplDecl :: struct {
     span:             Span
     id:               usize = UNASSIGNED_NODE_ID
-    type_params:      TypeParam![]
-    for_type:         TypeExpr!
+    type_params:      TypeParam[]
+    for_type:         TypeExpr
     trait_name:       string
     trait_name_span:  Span
-    trait_args:       TypeExpr![]
-    members:          FnDecl![]!
-    decorators:       Decorator![]
+    trait_args:       TypeExpr[]
+    members:          FnDecl[]
+    decorators:       Decorator[]
 }
 
 // ---- TypeAlias ------------------------------------------------------------
@@ -436,9 +436,9 @@ export TypeAliasDecl :: struct {
     name:        string
     name_span:   Span
     visibility:  Visibility
-    type_params: TypeParam![]
-    aliased:     TypeExpr!
-    decorators:  Decorator![]
+    type_params: TypeParam[]
+    aliased:     TypeExpr
+    decorators:  Decorator[]
 }
 
 // ---- Const ----------------------------------------------------------------
@@ -453,9 +453,9 @@ export ConstDecl :: struct {
     name:       string
     name_span:  Span
     visibility: Visibility
-    ty:         TypeExpr! | null
-    value:      Expr!
-    decorators: Decorator![]
+    ty:         TypeExpr | null
+    value:      Expr
+    decorators: Decorator[]
     /// Original `@comptime` operand for the `NAME :: @comptime <expr>` sugar,
     /// kept so the formatter re-emits the surface form rather than the
     /// desugared `__comptime_NAME()` call. Non-null marks this const as a
@@ -472,9 +472,9 @@ export ConstDecl :: struct {
 export AssertDecl :: struct {
     span:       Span
     id:         usize = UNASSIGNED_NODE_ID
-    condition:  Expr!
+    condition:  Expr
     message:    string | null
-    decorators: Decorator![]
+    decorators: Decorator[]
 }
 
 // ============================================================================
@@ -489,9 +489,9 @@ export LetStmt :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
     mutable: bool
-    binding: LetBinding!
-    ty:      TypeExpr! | null
-    value:   Expr!
+    binding: LetBinding
+    ty:      TypeExpr | null
+    value:   Expr
 }
 
 /// A local bound to one name — a leaf of the recursive binding tree, whose other
@@ -511,7 +511,7 @@ export SimpleBinding :: struct {
 export TupleBinding :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
-    elements: LetBinding![]
+    elements: LetBinding[]
 }
 
 /// A discarded local, `_ :: e`.
@@ -538,8 +538,8 @@ export RestBinding :: struct {
 export DestructureAssignStmt :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
-    targets: AssignTarget![]
-    value:   Expr!
+    targets: AssignTarget[]
+    value:   Expr
 }
 
 /// A place written by a destructuring assignment — a name, a field or an index.
@@ -548,7 +548,7 @@ export DestructureAssignStmt :: struct {
 export PlaceTarget :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
-    place: Expr!
+    place: Expr
 }
 
 /// A discarded element of a destructuring assignment, `_`.
@@ -564,7 +564,7 @@ export WildcardTarget :: struct {
 export RestTarget :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
-    place: Expr!
+    place: Expr
 }
 
 /// An assignment to an existing place, `target = value`.
@@ -574,8 +574,8 @@ export RestTarget :: struct {
 export AssignStmt :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
-    target: Expr!
-    value:  Expr!
+    target: Expr
+    value:  Expr
 }
 
 /// The operator of a compound assignment `lhs op= rhs`, or null for a plain one.
@@ -609,14 +609,14 @@ export is_arith_op :: fn(op: BinaryOp) -> bool = match op {
 export ExprStmt :: struct {
     span: Span
     id:   usize = UNASSIGNED_NODE_ID
-    expr: Expr!
+    expr: Expr
 }
 
 /// A `return`, with no value for a `void` function.
 export ReturnStmt :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
-    value: Expr! | null
+    value: Expr | null
 }
 
 /// `yield expr` inside a `generator` fn body — emit one element and suspend.
@@ -626,7 +626,7 @@ export ReturnStmt :: struct {
 export YieldStmt :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
-    value: Expr!
+    value: Expr
 }
 
 /// A loop in any of its three forms — see `ForForm`.
@@ -636,8 +636,8 @@ export ForStmt :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
     label: string | null
-    form:  ForForm!
-    body:  BlockExpr!
+    form:  ForForm
+    body:  BlockExpr
     /// `@comptime for x in <arr> { … }` — unroll at lower time. False for
     /// every other form.
     is_comptime: bool = false
@@ -646,11 +646,11 @@ export ForStmt :: struct {
 /// The `for { ... }` form — no condition, exited by `break` or `return`.
 export InfiniteFor :: struct {}
 /// The `for cond { ... }` form.
-export WhileFor    :: struct { cond: Expr! }
+export WhileFor    :: struct { cond: Expr }
 /// The `for x in xs { ... }` form.
 export InFor       :: struct {
     loop_var: LoopVar
-    iter:     Expr!
+    iter:     Expr
 }
 
 /// The loop variable of a `for … in …`. A union so the mutually exclusive
@@ -661,7 +661,7 @@ export LoopVar :: NamedVar | DestructureVar | DiscardVar
 /// `for x in …` — and the explicit discard `for _ in coll` (name == `"_"`).
 export NamedVar       :: struct { name: string, span: Span }
 /// `for [k, v] in …` — the leaves bind against the iterable's element type.
-export DestructureVar :: struct { pattern: LetBinding! }
+export DestructureVar :: struct { pattern: LetBinding }
 /// `for <range>` — no user variable is written (the iterable is the range
 /// itself). Also the lower-synthesised varless `for <coll>` (while→for sugar).
 export DiscardVar     :: struct {}
@@ -688,9 +688,9 @@ export DeferStmt :: struct {
 }
 
 /// A `defer` deferring one statement.
-export DeferStmtBody  :: struct { stmt: Stmt! }
+export DeferStmtBody  :: struct { stmt: Stmt }
 /// A `defer` deferring a block.
-export DeferBlockBody :: struct { block: BlockExpr! }
+export DeferBlockBody :: struct { block: BlockExpr }
 
 /// Anything that can appear as a statement in a block.
 ///
@@ -786,13 +786,13 @@ export CharLitExpr :: struct {
 export StringLitExpr :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
-    parts: StringLitPart![]
+    parts: StringLitPart[]
 }
 
 /// A run of literal text inside a string literal.
 export StringLitText   :: struct { value: string, span: Span, id: usize = UNASSIGNED_NODE_ID }
 /// An interpolated `${...}` inside a string literal.
-export StringLitInterp :: struct { expr:  Expr!,   span: Span, id: usize = UNASSIGNED_NODE_ID }
+export StringLitInterp :: struct { expr:  Expr,   span: Span, id: usize = UNASSIGNED_NODE_ID }
 
 /// The text of `e` when it is a string literal of one run of text, with no
 /// interpolation: what a name spelled out at build time reads (`@field(x, "n")`).
@@ -835,8 +835,8 @@ export IdentExpr :: struct {
 export CallExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
-    callee: Expr!
-    args:   CallArg![]!
+    callee: Expr
+    args:   CallArg[]
     /// Source wrote a trailing comma before `)` — formatter keeps it exploded.
     trailing_comma: bool = false
 }
@@ -848,7 +848,7 @@ export CallArg :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
     name:   string | null
-    value:  Expr!
+    value:  Expr
     /// Reserved for argument-spread `f(...xs)` — not parsed yet, so always
     /// `false` today. The consumers (printer / dump / ufcs) already honour it
     /// so the feature only needs `parse_call_args` to set it.
@@ -861,7 +861,7 @@ export CallArg :: struct {
 export FieldExpr :: struct {
     span:       Span
     id:         usize = UNASSIGNED_NODE_ID
-    target:     Expr!
+    target:     Expr
     field:      string
     field_span: Span
     // True when the field was written as an integer literal (`t.0`). Used by
@@ -873,8 +873,8 @@ export FieldExpr :: struct {
 export IndexExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
-    target: Expr!
-    index:  Expr!
+    target: Expr
+    index:  Expr
 }
 
 // ---- operators ------------------------------------------------------------
@@ -891,7 +891,7 @@ export UnaryExpr :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
     op:      UnaryOp
-    operand: Expr!
+    operand: Expr
 }
 
 /// Which infix operator a `BinaryExpr` applies.
@@ -963,8 +963,8 @@ export BinaryExpr :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
     op:    BinaryOp
-    left:  Expr!
-    right: Expr!
+    left:  Expr
+    right: Expr
     /// When `op == BinaryOp.Is`, the optional binding parsed from
     /// `… is T as <ident>`. The binding lives in the enclosing `if`'s
     /// then-branch. Always `null` when `op != Is`.
@@ -980,8 +980,8 @@ export BinaryExpr :: struct {
 export NullCoalesceExpr :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
-    left:     Expr!
-    fallback: CoalesceFallback!
+    left:     Expr
+    fallback: CoalesceFallback
 }
 
 // ---- control-flow expressions --------------------------------------------
@@ -993,15 +993,15 @@ export NullCoalesceExpr :: struct {
 export IfExpr :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
-    cond:        Expr!
-    then_block:  BlockExpr!
-    else_branch: IfElse! | null
+    cond:        Expr
+    then_block:  BlockExpr
+    else_branch: IfElse | null
 }
 
 /// An `else if`, holding the next branch.
-export IfElseIf    :: struct { branch: IfExpr! }
+export IfElseIf    :: struct { branch: IfExpr }
 /// A final `else` block.
-export IfElseBlock :: struct { block:  BlockExpr! }
+export IfElseBlock :: struct { block:  BlockExpr }
 
 /// A `match` over a scrutinee.
 ///
@@ -1010,8 +1010,8 @@ export IfElseBlock :: struct { block:  BlockExpr! }
 export MatchExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
-    scrutinee: Expr!
-    arms:      MatchArm![]
+    scrutinee: Expr
+    arms:      MatchArm[]
     // `@partial match x { … }` opts out of exhaustiveness — no T3013
     // fires for missing variants. Default `false` keeps the regular
     // exhaustive-by-default behaviour ; the dump suppresses the field
@@ -1033,9 +1033,9 @@ export MatchExpr :: struct {
 export MatchArm :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
-    pattern: Pattern!
-    guard:   Expr! | null
-    body:    Expr!
+    pattern: Pattern
+    guard:   Expr | null
+    body:    Expr
 }
 
 /// A braced block.
@@ -1045,8 +1045,8 @@ export MatchArm :: struct {
 export BlockExpr :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
-    stmts:    Stmt![]
-    trailing: Expr! | null
+    stmts:    Stmt[]
+    trailing: Expr | null
 }
 
 // ---- lambdas / literals --------------------------------------------------
@@ -1055,9 +1055,9 @@ export BlockExpr :: struct {
 export LambdaExpr :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
-    params:      FnParam![]
-    return_type: TypeExpr! | null
-    body:        BlockExpr!
+    params:      FnParam[]
+    return_type: TypeExpr | null
+    body:        BlockExpr
     /// True when the source wrote a trailing comma after the last parameter.
     trailing_comma: bool = false
 }
@@ -1069,8 +1069,8 @@ export LambdaExpr :: struct {
 export StructLitExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
-    type_name: TypeExpr!
-    items:     (StructLitField! | StructLitSpread!)[]
+    type_name: TypeExpr
+    items:     (StructLitField | StructLitSpread)[]
     /// True when the source wrote a trailing comma before `}`. The formatter
     /// reads it as a "keep exploded" directive (Dart-style block layout).
     trailing_comma: bool = false
@@ -1085,14 +1085,14 @@ export StructLitField :: struct {
     id:        usize = UNASSIGNED_NODE_ID
     name:      string
     name_span: Span
-    value:     Expr!
+    value:     Expr
 }
 
 /// A `...expr` entry of a struct literal.
 export StructLitSpread :: struct {
     span: Span
     id:   usize = UNASSIGNED_NODE_ID
-    expr: Expr!
+    expr: Expr
 }
 
 /// An array or tuple literal, `[a, b, c]`.
@@ -1102,7 +1102,7 @@ export StructLitSpread :: struct {
 export SeqLitExpr :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
-    elements: Expr![]
+    elements: Expr[]
     /// True when the source wrote a trailing comma before `]`. Drives the
     /// formatter's Dart-style layout: present -> one element per line.
     trailing_comma: bool = false
@@ -1113,8 +1113,8 @@ export RangeExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
     inclusive: bool
-    lower:     Expr!
-    upper:     Expr!
+    lower:     Expr
+    upper:     Expr
 }
 
 // ---- error / cast / generic / variant -----------------------------------
@@ -1125,7 +1125,7 @@ export RangeExpr :: struct {
 export AwaitExpr :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
-    inner: Expr!
+    inner: Expr
 }
 
 /// An explicit conversion, `T(value)`.
@@ -1135,16 +1135,16 @@ export AwaitExpr :: struct {
 export CastExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
-    target: TypeExpr!
-    value:  Expr!
+    target: TypeExpr
+    value:  Expr
 }
 
 /// An explicit type-argument list, `f[i32]` or `Vec[T]`.
 export GenericInstExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
-    callee:    Expr!
-    type_args: TypeExpr![]
+    callee:    Expr
+    type_args: TypeExpr[]
 }
 
 /// A call to a compiler intrinsic — `@size_of(T)`, `@type_name(T)`, `@file("path")`.
@@ -1157,7 +1157,7 @@ export IntrinsicCallExpr :: struct {
     id:        usize = UNASSIGNED_NODE_ID
     name:      string
     name_span: Span
-    args:      Expr![]!
+    args:      Expr[]
     /// Source wrote a trailing comma before `)` — formatter keeps it exploded.
     trailing_comma: bool = false
 }
@@ -1181,15 +1181,15 @@ export DotVariantExpr :: struct {
 export IsPattern :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
-    ty:    TypeExpr!
-    inner: Pattern! | null
+    ty:    TypeExpr
+    inner: Pattern | null
 }
 
 /// A struct destructuring pattern.
 export StructPattern :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
-    fields: StructPatternField![]
+    fields: StructPatternField[]
 }
 
 /// One field of a struct pattern.
@@ -1198,13 +1198,13 @@ export StructPatternField :: struct {
     id:        usize = UNASSIGNED_NODE_ID
     name:      string
     name_span: Span
-    value:     PatternFieldValue!
+    value:     PatternFieldValue
 }
 
 /// A struct-pattern field bound to a name.
 export PatternBinding :: struct { name: string, span: Span, id: usize = UNASSIGNED_NODE_ID }
 /// A struct-pattern field matched against a literal.
-export PatternLiteral :: struct { value: Expr! }
+export PatternLiteral :: struct { value: Expr }
 
 /// The `_` pattern.
 ///
@@ -1225,7 +1225,7 @@ export EnumVariantPattern :: struct {
 export LiteralPattern :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
-    value: Expr!
+    value: Expr
 }
 
 /// Range pattern : `'a'..='z' -> …`, `0..<10 -> …`. Matches when a scalar
@@ -1238,8 +1238,8 @@ export RangePattern :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID
     inclusive: bool
-    lower:     Expr!
-    upper:     Expr!
+    lower:     Expr
+    upper:     Expr
 }
 
 /// Or-pattern : `.A | .B -> …`, `1 | 2 | 3 -> …`. Matches when ANY alternative
@@ -1250,7 +1250,7 @@ export RangePattern :: struct {
 export OrPattern :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
-    patterns: Pattern![]
+    patterns: Pattern[]
 }
 
 // ============================================================================
@@ -1264,14 +1264,14 @@ export OrPattern :: struct {
 export FnTypeExpr :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
-    params:      TypeExpr![]
+    params:      TypeExpr[]
     /// `!` suffix per parameter TYPE (`fn(u8[]!) -> void`) — a fn type has no
     /// parameter names, so the mutation marker lands on the type here, where the
     /// declaration side spells it on the name (`FnParam.mutable`). Empty means no
     /// parameter is marked ; it is never a same-length all-`false` vector, so
     /// "unmarked" stays a single representation.
     params_mutable: bool[] = []
-    return_type: TypeExpr! | null
+    return_type: TypeExpr | null
 }
 
 /// An array type as written, `T[]` — type-only.
@@ -1282,7 +1282,7 @@ export FnTypeExpr :: struct {
 export ArrayTypeExpr :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
-    element: TypeExpr!
+    element: TypeExpr
 }
 
 /// Postfix `T!` — "mutation through this slot is allowed", one level of the
@@ -1298,7 +1298,7 @@ export ArrayTypeExpr :: struct {
 export MutableTypeExpr :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
-    inner:    TypeExpr!
+    inner:    TypeExpr
 }
 
 // ============================================================================

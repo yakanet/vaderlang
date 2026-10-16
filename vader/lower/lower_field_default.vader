@@ -33,7 +33,7 @@ import "vader/types"
 ///                     literal sits inside the expansion of that same default.
 lower_field_default :: fn(
     default_ctx: FnLowerCtx, st: StructType, field: StructField, default: Expr, field_type: Type,
-) -> LoweredExpr! {
+) -> LoweredExpr {
     expanding :: default_ctx.project.expanding_defaults
     key :: field.span.hash()
     if !expanding.add(key) {

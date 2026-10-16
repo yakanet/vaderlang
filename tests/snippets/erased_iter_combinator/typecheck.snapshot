@@ -23,8 +23,8 @@
   expr 20:9     IdentExpr      :: i32
   expr 22:12    IdentExpr      :: i32
   expr 26:12    CallExpr       :: __genstate_map<i32>!
-  expr 26:12    CallExpr       :: i32[]!
-  expr 26:12    FieldExpr      :: fn() -> i32[]!
+  expr 26:12    CallExpr       :: i32[]
+  expr 26:12    FieldExpr      :: fn() -> i32[]
   expr 26:12    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 26:12    IdentExpr      :: Iterator<i32>
   expr 26:19    IdentExpr      :: fn(i32) -> i32

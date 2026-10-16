@@ -351,8 +351,8 @@
                         std_core$f64$Display$to_string :string
                       arg0:
                         h :f64
-    let lengths: usize[]! =
-      block :usize[]!
+    let lengths: usize[] =
+      block :usize[]
         let s: string = "pq" :string
         let f: fn(string) -> usize = __lambda_snippet_0 :fn(string) -> usize
         let out: usize[] =
@@ -493,7 +493,7 @@
                   cast → u64
                     index :usize
                       on:
-                        lengths :usize[]!
+                        lengths :usize[]
                       ix:
                         int(0) :i32
           ~>

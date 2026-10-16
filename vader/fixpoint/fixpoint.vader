@@ -87,12 +87,12 @@ export components_bottom_up :: fn(g: Graph) -> i32[][] {
 // on `stack`. Its own frames pair a node with how many of its successors it has
 // tried.
 TarjanWalk :: struct {
-    order: i32[]!
-    low: i32[]!
-    on_stack: bool[]!
-    stack: i32[]!
-    frame_nodes: i32[]!
-    frame_tried: usize[]!
+    order: i32[]
+    low: i32[]
+    on_stack: bool[]
+    stack: i32[]
+    frame_nodes: i32[]
+    frame_tried: usize[]
     next_rank: i32 = 0
 }
 

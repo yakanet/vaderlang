@@ -14,22 +14,22 @@ import "std/collections"
 RangeState :: struct {
     /// Local → its interval, for a local known narrower than its type ; a local
     /// with no entry holds any value of its type.
-    intervals: MutableMap<LocalId, Interval>!
+    intervals: MutableMap<LocalId, Interval>
     /// `fact_key(x, y)` → the least `c` known with `x - y <= c`.
-    differences: MutableMap<u64, i64>!
+    differences: MutableMap<u64, i64>
     /// Local → the array local whose length it is at most.
-    lengths: MutableMap<LocalId, LocalId>!
+    lengths: MutableMap<LocalId, LocalId>
 }
 
 /// A state knowing nothing: every local holds any value of its type.
-new_range_state :: fn() -> RangeState! = RangeState {
+new_range_state :: fn() -> RangeState = RangeState {
     .intervals = MutableMap<LocalId, Interval> {},
     .differences = MutableMap<u64, i64> {},
     .lengths = MutableMap<LocalId, LocalId> {},
 }
 
 /// A copy of `s` the caller may change without touching `s`.
-copy_range_state :: fn(s: RangeState) -> RangeState! {
+copy_range_state :: fn(s: RangeState) -> RangeState {
     out :: new_range_state()
     for [local, iv] in s.intervals {
         out.intervals[local] = iv
@@ -59,7 +59,7 @@ fact_right :: fn(key: u64) -> LocalId = LocalId(i32(key & 0xFFFF_FFFF))
 ///
 /// @param a  the state at the end of one path.
 /// @param b  the state at the end of the other.
-join_range_states :: fn(a: RangeState, b: RangeState) -> RangeState! {
+join_range_states :: fn(a: RangeState, b: RangeState) -> RangeState {
     out :: new_range_state()
     for [local, iv] in a.intervals {
         theirs :: b.intervals[local] ?? continue

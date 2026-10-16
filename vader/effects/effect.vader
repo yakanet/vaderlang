@@ -52,24 +52,24 @@ PathNode :: struct {
 /// Every path a summary names, each by an id.
 export PathTable :: struct {
     @internal
-    nodes: PathNode[]! = first_paths()
+    nodes: PathNode[] = first_paths()
     @internal
-    step_names: string[]! = []
+    step_names: string[] = []
     @internal
-    step_ids: MutableMap<string, i32>! = MutableMap<string, i32> {}
+    step_ids: MutableMap<string, i32> = MutableMap<string, i32> {}
     /// (parent, step) → the path one step below the parent.
     @internal
-    children: MutableMap<i64, i32>! = MutableMap<i64, i32> {}
+    children: MutableMap<i64, i32> = MutableMap<i64, i32> {}
     /// A path → the same path standing for deeper ones too.
     @internal
-    cuts: MutableMap<i32, i32>! = first_cuts()
+    cuts: MutableMap<i32, i32> = first_cuts()
     /// (p, q) → `p` then `q`.
     @internal
-    joins: MutableMap<i64, i32>! = MutableMap<i64, i32> {}
+    joins: MutableMap<i64, i32> = MutableMap<i64, i32> {}
 }
 
 // `ROOT` and `EVERYWHERE`, the paths of every table.
-first_paths :: fn() -> PathNode[]! = [
+first_paths :: fn() -> PathNode[] = [
     PathNode { .parent = ROOT, .step = 0, .length = 0 },
     PathNode {
         .parent = ROOT,
@@ -80,7 +80,7 @@ first_paths :: fn() -> PathNode[]! = [
 ]
 
 // `EVERYWHERE` stands for `ROOT` and everything below it.
-first_cuts :: fn() -> MutableMap<i32, i32>! {
+first_cuts :: fn() -> MutableMap<i32, i32> {
     cuts :: MutableMap<i32, i32> {}
     cuts[ROOT] = EVERYWHERE
     return cuts
@@ -317,13 +317,13 @@ export Access :: struct {
 /// What a function may do with everything a caller lends one parameter: the
 /// accesses, each once, and why each is there.
 export ParamEffects :: struct {
-    accesses: Access[]! = []
+    accesses: Access[] = []
     /// Two words per access, in the order of `accesses`: the constraint that put it
     /// there, and the access of the callee a call carries (`origin.vader`).
     @internal
-    origins: i64[]! = []
+    origins: i64[] = []
     @internal
-    keys: MutableSet<i64>! = MutableSet<i64> {}
+    keys: MutableSet<i64> = MutableSet<i64> {}
 }
 
 access_key :: fn(a: Access) -> i64 = i64(a.path) * 8 + i64(usize(a.effect))
@@ -453,7 +453,7 @@ include_all :: fn(t: PathTable, into: ParamEffects, from: ParamEffects) -> bool 
 
 // The accesses of a parameter nothing is known of: changed by unseen code, and
 // kept, anywhere below it.
-any_effects :: fn() -> ParamEffects! {
+any_effects :: fn() -> ParamEffects {
     effects :: ParamEffects {}
     effects.insert(Access { .path = EVERYWHERE, .effect = .Unknown })
     effects.insert(Access { .path = EVERYWHERE, .effect = .Stored })

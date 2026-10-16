@@ -45,7 +45,7 @@ export cmd_fix :: fn(args: string[]) -> i32 {
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
     overlay :: MutableMap<string, string> {}
     checked :: check_file(file.as_string(), overlay, include_path_flags, false, target)
-    bangs :: MutableMap<string, usize[]!> {}
+    bangs :: MutableMap<string, usize[]> {}
     for d in checked.diags {
         if !removes_marker(d) {
             continue

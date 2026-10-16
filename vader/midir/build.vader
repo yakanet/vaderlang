@@ -25,8 +25,8 @@ import "std/abort"
 /// Project-level interning context — accumulates strings into a single
 /// pool shared by every fn's CFG.
 ProjectCtx :: struct {
-    strings:      string[]!
-    string_index: MutableMap<string, i32>!
+    strings:      string[]
+    string_index: MutableMap<string, i32>
     /// Const symbol id → accessor fn (fn-wrap bucket), forwarded from the
     /// `LoweredProject` so `build_ident` can lower a const reference to a
     /// `call` on its synthetic `__const_<name>` fn.
@@ -51,10 +51,10 @@ ProjectCtx :: struct {
     /// recovery value is a `TermUnreachable` that replaces the whole entry block
     /// — the surrounding code vanishes with nothing to read. `lower_ident` was
     /// made loud for that exact reason after two bisections ; this is its twin.
-    diags: Diagnostic[]!
+    diags: Diagnostic[]
 }
 
-new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx! {
+new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx {
     externs :: MutableMap<i32, MutableSet<usize>> {}
     for [_, m] in lp.modules {
         for d in m.decls {
@@ -100,7 +100,7 @@ intern_string_pool :: fn(ctx: ProjectCtx, s: string) -> i32 {
 /// `terminator` (set once). `freeze_block` converts to the final form.
 MutableBlock :: struct {
     id:           BlockId
-    instructions: Instruction[]!
+    instructions: Instruction[]
     terminator:   Terminator | null
     span:         Span
 }
@@ -121,15 +121,15 @@ LoopFrame :: struct {
 /// construction ; null means control already left (Return / Unreachable
 /// terminator emitted).
 FnCtx :: struct {
-    project:         ProjectCtx!
+    project:         ProjectCtx
     mangled:         string
     origin:          MonoEntry
     return_type:     Type
     params:          CFGParam[]
-    locals:          CFGLocal[]!
-    local_by_sym_id: MutableMap<i32, LocalId>!
-    blocks:          MutableBlock![]!
-    loop_stack:      LoopFrame[]!
+    locals:          CFGLocal[]
+    local_by_sym_id: MutableMap<i32, LocalId>
+    blocks:          MutableBlock[]
+    loop_stack:      LoopFrame[]
     current:         BlockId | null
 }
 
@@ -146,7 +146,7 @@ import "vader/comptime"
 /// @param diags  accumulator for what the build reports: an identifier it cannot
 ///               place (M5007), with an `unreachable` put in its place.
 /// @return       a fresh `CFGProject` with one entry per lowered module.
-export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]) -> CFGProject! {
+export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]) -> CFGProject {
     ctx :: new_project_ctx(lp, diags)
     modules :: MutableMap<string, CFGModule> {}
     for [module_id, m] in lp.modules {
@@ -442,7 +442,7 @@ make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
 /// Convert one body-having `LoweredFnDecl` into a `CFGFunction`.
 /// Returns `null` for bodyless fns (caller routes them through
 /// `make_extern_decl` instead).
-convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction! | null {
+convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | null {
     if d.body is null { return null }
     body :: d.body
 

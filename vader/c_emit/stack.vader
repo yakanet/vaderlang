@@ -95,13 +95,13 @@ FnState :: struct {
     ctx:      EmitCtx
     function: BcFunction
     /// The function body, the `CFunction`'s once the walk is done.
-    root:     CBlock!
+    root:     CBlock
     /// Virtual operand stack — the top of stack is the last element.
-    stack:    StackVal[]!
+    stack:    StackVal[]
     /// Every temp minted by `new_temporary`, indexed by id — the one object
     /// each use of it shares, so `coalesce_temporaries` renames them all at
     /// once. Allocation is monotone : a temp is never recycled during the walk.
-    temporaries: CTemporary![]!
+    temporaries: CTemporary[]
     /// Monotone `_aN` scratch allocator for struct storage / call args.
     /// Never recycled, so it can't collide with a reused name.
     aux_counter: i32
@@ -135,14 +135,14 @@ FnState :: struct {
     /// Loops whose array state is currently lifted into C locals, innermost
     /// last. Pushed by the `Loop` opener that planned one, popped by its `end`.
     /// See `push_cache_emit.vader`.
-    push_caches: PushCache[]!
+    push_caches: PushCache[]
     /// Header cache : the `_slotarrK` locals already bound to an array header
     /// in this straight-line region. A second slot access on the same array
     /// expression reuses one instead of binding (and guarding) a fresh local.
     /// Cleared at every GC safepoint / control-flow op and on reassignment of
     /// the array's local (see `invalidate_header_cache`) — a `_slotarrK` is
     /// not a GC root, so a stale entry would point at a moved header.
-    bound_arrays: BoundArray[]!
+    bound_arrays: BoundArray[]
     /// Set by the walk driver when the current `call` / `call.import` op is
     /// immediately followed by a `drop` — its non-void result is emitted as a
     /// bare statement (like a void call) instead of `tN = call(...);` + an
@@ -157,14 +157,14 @@ FnState :: struct {
     /// The GC scans each object's FIELDS in place so its captured heap refs are
     /// forwarded across a safepoint (else they dangle — the walk_elements
     /// closure-env use-after-forward bug).
-    stack_storages: StackStorage[]!
+    stack_storages: StackStorage[]
     /// The `if` / scope nodes the walk is inside, innermost last. Statements
     /// go to the innermost one's open block (`current_block`), or to `root`.
-    open_nodes: COpenNode![]!
+    open_nodes: COpenNode[]
 }
 
 /// Fresh state for walking `function` into a statement tree.
-new_fn_state :: fn(ctx: EmitCtx, function: BcFunction) -> FnState! = FnState {
+new_fn_state :: fn(ctx: EmitCtx, function: BcFunction) -> FnState = FnState {
     .ctx = ctx,
     .function = function,
     .root = CBlock { .body = [] },
@@ -244,7 +244,7 @@ COpenNode :: CIf | CScope
 // tree and `open_nodes` hold the SAME objects — statements pushed while a node
 // is open land in the tree — so `CBlock`, `CIf` and `CScope` must stay
 // reference types.
-current_block :: fn(s: FnState) -> CBlock! {
+current_block :: fn(s: FnState) -> CBlock {
     if s.open_nodes.len() == 0 {
         return s.root
     }

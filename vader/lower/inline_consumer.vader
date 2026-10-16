@@ -41,7 +41,7 @@ export ConsumerShape :: struct {
 /// @param call  the call expression.
 /// @param type  the call's result type from typecheck.
 /// @return      a block-expression evaluating to the call's result, or null.
-export try_inline_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type: Type) -> LoweredExpr! | null {
+export try_inline_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type: Type) -> LoweredExpr | null {
     if is_known_non_consumer(ctx, call) {
         return null
     }
@@ -76,7 +76,7 @@ ConsumerCall :: struct {
     shape:     ConsumerShape
     subst:     Substitution
     chain:     IterChain
-    instance:  InlineInstance!
+    instance:  InlineInstance
 }
 
 // ---- the shape ----------------------------------------------------------------
@@ -272,7 +272,7 @@ consumer_subst :: fn(
 // ---- the inlined body -------------------------------------------------------
 
 // `{ <arguments, in parameter order>; [let result]; <body>; <result> }`.
-emit_inlined_consumer :: fn(ctx: FnLowerCtx, call: ConsumerCall, type: Type, span: Span) -> LoweredExpr! {
+emit_inlined_consumer :: fn(ctx: FnLowerCtx, call: ConsumerCall, type: Type, span: Span) -> LoweredExpr {
     stmts: LoweredStmt[]: []
     chain :: bind_consumer_arguments(ctx, call, stmts)
     decl :: call.target.decl
@@ -313,7 +313,7 @@ emit_inlined_consumer :: fn(ctx: FnLowerCtx, call: ConsumerCall, type: Type, spa
     return result_block(stmts, tail, type, span)
 }
 
-result_block :: fn(stmts: LoweredStmt[], trailing: LoweredExpr | null, type: Type, span: Span) -> LoweredExpr! =
+result_block :: fn(stmts: LoweredStmt[], trailing: LoweredExpr | null, type: Type, span: Span) -> LoweredExpr =
     LoweredBlock {
         .span = span,
         .type = type,
@@ -365,7 +365,7 @@ value_tail :: fn(body: AST.BlockExpr) -> AST.BlockExpr {
 // it is, a statement.
 slot_result :: fn(
     ctx: FnLowerCtx, node: AST.Expr, value: LoweredExpr, type: Type, span: Span,
-) -> LoweredExpr! {
+) -> LoweredExpr {
     if is_void(type) {
         return value
     }
@@ -375,13 +375,13 @@ slot_result :: fn(
 // The body's trailing value `raw`, lowered from `node`, in the call's result slot.
 consumed_value :: fn(
     ctx: FnLowerCtx, node: AST.Expr | null, raw: LoweredExpr | null, type: Type, span: Span,
-) -> LoweredExpr! | null {
+) -> LoweredExpr | null {
     value :: raw ?? return null
     source :: node ?? return value
     return slot_result(ctx, source, value, type, span)
 }
 
-assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr, span: Span) -> LoweredStmt! {
+assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr, span: Span) -> LoweredStmt {
     if is_void(type) {
         return LoweredExprStmt { .span = span, .expr = value }
     }

@@ -504,13 +504,10 @@
         {
           "name": "lines",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "string"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "string"
             }
           },
           "visibility": "public",
@@ -744,24 +741,21 @@
         {
           "name": "counts",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "GenericInstExpr",
-              "callee": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "MutableMap"
+            },
+            "typeArgs": [
+              {
                 "kind": "IdentExpr",
-                "name": "MutableMap"
+                "name": "string"
               },
-              "typeArgs": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "string"
-                },
-                {
-                  "kind": "IdentExpr",
-                  "name": "i32"
-                }
-              ]
-            }
+              {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            ]
           },
           "visibility": "public",
           "default": null
@@ -950,13 +944,10 @@
         {
           "name": "cells",
           "type": {
-            "kind": "MutableTypeExpr",
-            "inner": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "i32"
-              }
+            "kind": "ArrayTypeExpr",
+            "element": {
+              "kind": "IdentExpr",
+              "name": "i32"
             }
           },
           "visibility": "public",

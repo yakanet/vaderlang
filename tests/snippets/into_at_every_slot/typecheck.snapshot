@@ -8,7 +8,7 @@
   FnDecl         first                :: fn(T, Label) -> string
   StructDecl     Holder               :: Holder!
   StructDecl     Label                :: Label!
-  FnDecl         labels               :: fn() -> Iterator<Label>!
+  FnDecl         labels               :: fn() -> Iterator<Label>
   FnDecl         main                 :: fn() -> i32
   FnDecl         returned             :: fn(Celsius) -> Label
   TraitDecl      Shower               :: Shower!
@@ -106,7 +106,7 @@
   expr 71:5     CallExpr       :: void
   expr 71:5     IdentExpr      :: fn(T) -> void
   expr 72:14    CallExpr       :: __genstate_labels<Label>!
-  expr 72:14    IdentExpr      :: fn() -> Iterator<Label>!
+  expr 72:14    IdentExpr      :: fn() -> Iterator<Label>
   expr 73:17    StringLitExpr  :: string
   expr 73:27    FieldExpr      :: string
   expr 73:27    IdentExpr      :: Label

@@ -41,7 +41,7 @@ CallNode :: CFGFunction | CFGExternDecl | IndirectCalls | ForeignCallbacks | Unk
 CalleeIndex :: struct {
     resolution: CfgResolution
     /// `vtable_key` → the nodes a virtual call through that key may land on.
-    virtual_targets: MutableMap<string, i32[]!>!
+    virtual_targets: MutableMap<string, i32[]>
     indirect: i32
     foreign_callbacks: i32
     unknown: i32
@@ -68,7 +68,7 @@ build_call_graph :: fn(p: CFGProject) -> CallGraph {
     nodes.push(UnknownCallee {})
     index :: CalleeIndex {
         .resolution = resolution,
-        .virtual_targets = MutableMap<string, i32[]!> {},
+        .virtual_targets = MutableMap<string, i32[]> {},
         .indirect = indirect,
         .foreign_callbacks = indirect + 1,
         .unknown = indirect + 2,
@@ -99,7 +99,7 @@ TakenFunctions :: struct {
     as_addresses: MutableSet<i32>
 }
 
-new_target_list :: fn(index: CalleeIndex, key: string) -> i32[]! {
+new_target_list :: fn(index: CalleeIndex, key: string) -> i32[] {
     fresh: i32[]: []
     index.virtual_targets[key] = fresh
     return fresh

@@ -209,9 +209,9 @@
                                         __self_2 :__asyncstate_snippet_2!
                                     value:
                                       cast → Async<Any>!
-                                        call :Async<null>!
+                                        call :Async<null>
                                           callee:
-                                            sleep :fn(i64) -> Async<null>!
+                                            sleep :fn(i64) -> Async<null>
                                           arg0:
                                             .s1 :i64
                                               __self_2 :__asyncstate_snippet_2!
@@ -414,9 +414,9 @@
                                 __self_1 :__asyncstate_snippet_3!
                             value:
                               cast → Async<Any>!
-                                call :Async<string>!
+                                call :Async<string>
                                   callee:
-                                    std_async$race__string :Async<string>!
+                                    std_async$race__string :Async<string>
                                   arg0:
                                     array :Async<string>![]
                                       call :Async<string>!

@@ -50,9 +50,9 @@ export Lexer :: struct {
     // and keeps no GC frame.
     malformed_utf8_runs: i32 = 0
     malformed_utf8_at: usize = 0
-    tokens: Token[]!
-    errors: Diagnostic[]!
-    interp_stack: InterpFrame![]!
+    tokens: Token[]
+    errors: Diagnostic[]
+    interp_stack: InterpFrame[]
 }
 
 new_lexer :: fn(source: string, file: string) = Lexer {
@@ -607,7 +607,7 @@ lex_char :: fn(l: Lexer) -> void {
 // ---- string literals ------------------------------------------------------
 
 // Top of the interp stack, or null when not currently inside an interpolation.
-top_interp :: fn(l: Lexer) -> InterpFrame! | null {
+top_interp :: fn(l: Lexer) -> InterpFrame | null {
     n :: l.interp_stack.len()
     if n == 0 { return null }
     return l.interp_stack[n - 1]
