@@ -134,9 +134,7 @@ declare_decl :: fn(
                 typed,
                 resolved.path,
                 factory,
-                // A declared type is the mutable form ; immutability is a property
-                // of a SLOT (a parameter without `!`), never of the declaration.
-                (sym: Symbol, args: Type[]) -> mk_struct(sym, args, false),
+                mk_struct,
             )
             // Index the struct decl by symbol id so `field.vader` can
             // walk fields without re-traversing the program AST.
@@ -154,12 +152,7 @@ declare_decl :: fn(
                 // exported struct expose their type through the interface.
                 struct_public :: decl.visibility == .Public
                 for f in decl.fields {
-                    // A field is read-only unless its type says otherwise — same
-                    // default as a parameter, and for the same reason : a field is
-                    // a slot others reach through. `!` reopens the level that needs
-                    // it (`stmts: LoweredStmt![]` = rewrite the elements in place,
-                    // `buf: u8[]!` = append to the array itself).
-                    fty :: apply_readonly_default(type_from_expr(f.ty, resolved, diags), f.ty)
+                    fty :: type_from_expr(f.ty, resolved, diags)
                     fields_map[f.name] = fty
                     if struct_public && f.visibility == .Public {
                         report_private_leak(fty, f.ty.span, decl.name, "exposes a field of type", diags)
@@ -178,7 +171,7 @@ declare_decl :: fn(
                 typed,
                 resolved.path,
                 factory,
-                (sym: Symbol, args: Type[]) -> mk_trait(sym, args, false),
+                mk_trait,
             )
             sym :: by_name[decl.name]
             if sym is Symbol {
@@ -239,11 +232,7 @@ declare_fn :: fn(
     // Match by span so each overload gets its own decl_types entry.
     sym :: lookup_fn_symbol_by_span(decl, resolved, by_name)
     if sym is Symbol {
-        typed.decl_types[sym.id] = FnType {
-            .params         = params,
-            .params_mutable = params_mutable_of(decl.params),
-            .return_type    = return_type,
-        }
+        typed.decl_types[sym.id] = mk_fn(params, return_type)
         typed.fn_decls[sym.id] = decl
     }
     if decl.name == "main" {
@@ -1137,16 +1126,9 @@ declare_fn_param :: fn(
         )
         return TY_UNRESOLVED
     }
-    written :: apply_readonly_default(type_from_expr(ty, resolved, diags), ty)
-    // `@c_out` : C writes through the parameter, and its type grants what a written
-    // `!` would.
-    resolved_ty :: if AST.decorators_have(p.decorators, "c_out") {
-        with_immutable(written, false)
-    } else {
-        written
-    }
-    typed.param_types[p.span.hash()] = resolved_ty
-    return resolved_ty
+    written :: type_from_expr(ty, resolved, diags)
+    typed.param_types[p.span.hash()] = written
+    return written
 }
 
 declare_fn_return :: fn(
@@ -1163,10 +1145,7 @@ declare_fn_return :: fn(
         }
         return TY_VOID
     }
-    // A return hands the caller a slot too, so it takes the same default : the value
-    // handed back is read-only unless the type says `!`. That is what makes `const`
-    // unnecessary in return position — it WAS the default all along.
-    return apply_readonly_default(type_from_expr(rt, resolved, diags), rt)
+    return type_from_expr(rt, resolved, diags)
 }
 
 declare_enum :: fn(
@@ -1211,109 +1190,14 @@ declare_const :: fn(
     sym :: lookup_sym_by_name(resolved, decl.name) ?? return
     typed.const_decls[sym.id] = decl
     annotation :: decl.ty
-    match annotation {
-        is null -> {
-            if is_type_expr(decl.value, resolved) {
-                alias_ty :: type_from_expr(decl.value, resolved, diags)
-                resolved.alias_types[sym.id] = alias_for(sym, alias_ty, decl)
-                typed.decl_types[sym.id] = TY_TYPE
-            }
-        }
-        // A module const's ANNOTATION is a written slot, so it takes the read-only
-        // default like any other: `X: u32[]: [...]` is frozen, `X: u32[]!: [...]` is
-        // a module variable (`Symbol.module_variable`). The UNANNOTATED path gets the
-        // same type through `auto_freeze_module_const`.
-        _       -> {
-            ty :: apply_readonly_default(type_from_expr(annotation, resolved, diags), annotation)
-            reject_mutable_module_const(ty, annotation, diags)
-            if sym.module_variable {
-                reject_baked_elements_of_variable(ty, decl.value, diags)
-            }
-            typed.decl_types[sym.id] = ty
-        }
+    if annotation != null {
+        typed.decl_types[sym.id] = type_from_expr(annotation, resolved, diags)
+    } else if is_type_expr(decl.value, resolved) {
+        alias_ty :: type_from_expr(decl.value, resolved, diags)
+        resolved.alias_types[sym.id] = alias_for(sym, alias_ty, decl)
+        typed.decl_types[sym.id] = TY_TYPE
     }
 }
-
-// A `!` on a module const asks for real storage: a writable global, initialised
-// once, that grows like any other array (`emit_global_const_roots` roots it, so a
-// reallocated buffer is forwarded, not collected). The marker goes on the array
-// level, the one the data pool can make writable: a marker below it, or on a const
-// that is no array (a bare struct or map isn't pooled at all), is T3076. The first
-// elements of an aggregate one are `reject_baked_elements_of_variable`'s business.
-reject_mutable_module_const :: fn(
-    ty: Type, annotation: AST.TypeExpr, diags: Diagnostic[],
-) -> void {
-    // Keyed on the WRITTEN marker, never on `type_is_immutable` : a primitive
-    // carries no mutability bit, so `type_is_immutable(i32)` is false and every
-    // ordinary `MAX: i32: 42` would look mutable. Scanned at EVERY level, because
-    // `Spec![]` is as misleading as `Spec[]!` — writing through it is T3070 either
-    // way (a module const's path root is frozen), so the marker promises nothing.
-    if !marks_unstorable(annotation) {
-        return
-    }
-    // A scalar marker is T3075's business (`i32!` grants nothing anywhere, not
-    // just here) — don't double-report.
-    if is_value_only_type(ty) {
-        return
-    }
-    if ty is ArrayType {
-        diags.push(typecheck_error(
-            .ModuleConstMutableElement, annotation.span,
-            "`${display_type(ty)}`: the marker belongs on the ARRAY level only, the "
-            + "level the data pool can make writable"))
-        return
-    }
-    diags.push(typecheck_error(
-        .ModuleConstMutableElement, annotation.span,
-        "`${display_type(ty)}`: only an ARRAY can be a mutable module const ; drop "
-        + "the `!` to get the read-only form"))
-}
-
-// A module variable is written all the way down, but a value the compiler bakes for
-// it lies in read-only data: the elements of a literal, or of a value folded at
-// build time, are emitted as read-only statics, and a write into one would land in
-// `.rodata`. One whose elements hold a part a write reaches starts empty and is
-// filled by the program, its elements then its own. T3076.
-reject_baked_elements_of_variable :: fn(ty: Type, value: AST.Expr, diags: Diagnostic[]) -> void {
-    if ty !is ArrayType || !holds_writable_part(ty.element) {
-        return
-    }
-    if is_empty_literal(value) {
-        return
-    }
-    diags.push(typecheck_error(
-        .ModuleConstMutableElement, value.span,
-        "`${display_type(ty)}` starts empty (`[]`) : the elements of its value would be "
-        + "read-only data ; push them",
-    ))
-}
-
-// Whether a value of type `t` holds a part a write reaches: a struct or an array,
-// alone or inside a tuple, a union or a distinct. A tuple's own element is never
-// written (T3101).
-holds_writable_part :: fn(t: Type) -> bool = match t {
-    is StructType | ArrayType -> true
-    is TupleType              -> t.elements.any_match(holds_writable_part)
-    is UnionType              -> t.variants.any_match(holds_writable_part)
-    is DistinctType           -> holds_writable_part(t.backing)
-    is PrimitiveType | EnumType | FnType | NeverType | TraitType | TypeParamType | SelfType
-     | AnyType | UnresolvedType | TypeMetaType | FreeIntType | FreeFloatType | FreeCharType -> false
-}
-
-// Whether `value` is an empty array literal, or the repeat of one (`[] * n`).
-is_empty_literal :: fn(value: AST.Expr) -> bool {
-    if value is AST.SeqLitExpr {
-        return value.elements.len() == 0
-    }
-    if value is AST.BinaryExpr && value.op == .Mul {
-        return is_empty_literal(value.left)
-    }
-    return false
-}
-
-// A written marker T3076 refuses : any but the module variable's `X: T[]!`.
-marks_unstorable :: fn(w: AST.TypeExpr) -> bool =
-    AST.type_expr_marks_mutable_anywhere(w) && !declares_module_variable(w)
 
 /// Resolve the type a `Name :: <type-expr>` declaration registers. A primitive,
 /// array, struct or tuple RHS (`Name :: i64`, `BigInt :: u32[]`) becomes a
@@ -1323,13 +1207,10 @@ marks_unstorable :: fn(w: AST.TypeExpr) -> bool =
 /// @param sym       the declared name's symbol.
 /// @param alias_ty  the RHS, resolved.
 /// @param decl      the declaration — its RHS as written, and its decorators.
-/// @return          the distinct type, its backing's children at the read-only
-///                  default a written slot's take (`Grid :: Cfg[]` holds read-only
-///                  `Cfg`s) and its own level left to the slot that names it ; or
-///                  `alias_ty` itself for a transparent alias.
+/// @return          the distinct type, or `alias_ty` itself for a transparent alias.
 alias_for :: fn(sym: Symbol, alias_ty: Type, decl: AST.ConstDecl) -> Type {
     if distinct_backing(alias_ty, decl.decorators) {
-        return mk_distinct(sym, readonly_children(alias_ty, decl.value))
+        return mk_distinct(sym, alias_ty)
     }
     return alias_ty
 }
@@ -1439,8 +1320,7 @@ classify_enum_header :: fn(decl: AST.EnumDecl, resolved: ResolvedModule, diags: 
     if decl.header.len() == 0 {
         return EnumHeader {}
     }
-    // The data is constant : read-only, like any written type.
-    first :: apply_readonly_default(type_from_expr(decl.header[0], resolved, diags), decl.header[0])
+    first :: type_from_expr(decl.header[0], resolved, diags)
     if decl.header.len() == 1 {
         if first is StructType {
             return EnumHeader { .data = first }
@@ -1510,7 +1390,7 @@ Point :: struct {
     y: i32
 }
 """
-    assert_eq(declared_type(src, "Point"), "Point!")
+    assert_eq(declared_type(src, "Point"), "Point")
 }
 
 @test
@@ -1520,7 +1400,7 @@ Wrap :: struct<T> {
     value: T
 }
 """
-    assert_eq(declared_type(src, "Wrap"), "Wrap<T>!")
+    assert_eq(declared_type(src, "Wrap"), "Wrap<T>")
 }
 
 @test

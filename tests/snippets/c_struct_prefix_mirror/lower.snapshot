@@ -2,19 +2,19 @@
 
 ## snippet
   struct snippet$TimeVal { tv_sec: i64 }
-  fn snippet$sys_gettimeofday(tv: TimeVal!, tz: CPointer | null) -> i32
+  fn snippet$sys_gettimeofday(tv: TimeVal, tz: CPointer | null) -> i32
     <extern / signature only>
   fn snippet$main() -> i32
-    let tv: TimeVal! =
-      TimeVal! {
+    let tv: TimeVal =
+      TimeVal {
         tv_sec: int(0) :i64
       }
     let rc: i32 =
       call :i32
         callee:
-          sys_gettimeofday :fn(TimeVal!, CPointer | null) -> i32
+          sys_gettimeofday :fn(TimeVal, CPointer | null) -> i32
         arg0:
-          tv :TimeVal!
+          tv :TimeVal
         arg1:
           null
     call :void
@@ -104,7 +104,7 @@
                   gt :bool
                     l:
                       .tv_sec :i64
-                        tv :TimeVal!
+                        tv :TimeVal
                     r:
                       int(1600000000) :i64
           ~>

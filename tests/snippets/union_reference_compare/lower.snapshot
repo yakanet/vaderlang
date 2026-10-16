@@ -22,7 +22,7 @@
             int(1) :i32
       then:
         return
-          Circle! {
+          Circle {
             r: int(1) :i32
           }
     if :void
@@ -34,7 +34,7 @@
             int(2) :i32
       then:
         return
-          Square! {
+          Square {
             side: int(1) :i32
           }
     return null

@@ -11,7 +11,7 @@
   fn snippet$fancy_or_plain(x: Wrapper<MonType> | Wrapper<Other>) -> string
     if :void
       cond:
-        is Fancy! :bool
+        is Fancy :bool
           x :Wrapper<MonType> | Wrapper<Other>
       then:
         return
@@ -21,17 +21,17 @@
                 x :Wrapper<MonType> | Wrapper<Other>
     return "plain" :string
   fn snippet$main() -> i32
-    let m: MonType! =
-      MonType! {
+    let m: MonType =
+      MonType {
         n: int(7) :i32
       }
-    let o: Other! =
-      Other! {
+    let o: Other =
+      Other {
         s: "o" :string
       }
-    let wm: Wrapper<MonType>! =
-      Wrapper<MonType>! {
-        inner: m :MonType!
+    let wm: Wrapper<MonType> =
+      Wrapper<MonType> {
+        inner: m :MonType
       }
     call :void
       callee:
@@ -45,7 +45,7 @@
               callee:
                 snippet$Wrapper$Poke$poke__MonType$1 :string
               arg0:
-                wm :Wrapper<MonType>!
+                wm :Wrapper<MonType>
           arg1:
             " " :string
           arg2:
@@ -53,11 +53,11 @@
               callee:
                 snippet$Wrapper$Poke$poke__Any :string
               arg0:
-                call :Wrapper<Other!>
+                call :Wrapper<Other>
                   callee:
-                    snippet$wrap__Other :Wrapper<Other!>
+                    snippet$wrap__Other :Wrapper<Other>
                   arg0:
-                    o :Other!
+                    o :Other
           arg3:
             " " :string
           arg4:
@@ -94,7 +94,7 @@
               callee:
                 show :fn(Poke) -> string
               arg0:
-                wm :Wrapper<MonType>!
+                wm :Wrapper<MonType>
           arg1:
             " " :string
           arg2:
@@ -102,11 +102,11 @@
               callee:
                 show :fn(Poke) -> string
               arg0:
-                call :Wrapper<Other!>
+                call :Wrapper<Other>
                   callee:
-                    snippet$wrap__Other :Wrapper<Other!>
+                    snippet$wrap__Other :Wrapper<Other>
                   arg0:
-                    o :Other!
+                    o :Other
           arg3:
             " " :string
           arg4:
@@ -114,7 +114,7 @@
               callee:
                 snippet$relay__snippet_MonType :string
               arg0:
-                m :MonType!
+                m :MonType
           arg5:
             " " :string
           arg6:
@@ -122,7 +122,7 @@
               callee:
                 snippet$relay__Other :string
               arg0:
-                o :Other!
+                o :Other
           arg7:
             " " :string
           arg8:
@@ -143,7 +143,7 @@
               callee:
                 snippet$bounded__Wrapper_MonType_ :string
               arg0:
-                wm :Wrapper<MonType>!
+                wm :Wrapper<MonType>
           arg1:
             " " :string
           arg2:
@@ -151,11 +151,11 @@
               callee:
                 snippet$bounded__Wrapper_Other_ :string
               arg0:
-                call :Wrapper<Other!>
+                call :Wrapper<Other>
                   callee:
-                    snippet$wrap__Other :Wrapper<Other!>
+                    snippet$wrap__Other :Wrapper<Other>
                   arg0:
-                    o :Other!
+                    o :Other
           arg3:
             " " :string
           arg4:
@@ -163,7 +163,7 @@
               callee:
                 snippet$both__Wrapper_MonType_ :string
               arg0:
-                wm :Wrapper<MonType>!
+                wm :Wrapper<MonType>
           arg5:
             " " :string
           arg6:
@@ -176,13 +176,13 @@
                     snippet$wrap__i32 :Wrapper<i32>
                   arg0:
                     int(5) :i32
-    let ms: MonType![]! =
-      array :MonType![]!
-        m :MonType!
-    let os: Other![]! =
-      array :Other![]!
-        o :Other!
-        o :Other!
+    let ms: MonType[] =
+      array :MonType[]
+        m :MonType
+    let os: Other[] =
+      array :Other[]
+        o :Other
+        o :Other
     call :void
       callee:
         std_io$println__string :void
@@ -195,7 +195,7 @@
               callee:
                 snippet$[]$Poke$poke__MonType :string
               arg0:
-                ms :MonType![]!
+                ms :MonType[]
           arg1:
             " " :string
           arg2:
@@ -203,7 +203,7 @@
               callee:
                 snippet$[]$Poke$poke__Other$1 :string
               arg0:
-                os :Other![]!
+                os :Other[]
           arg3:
             " " :string
           arg4:
@@ -211,11 +211,11 @@
               callee:
                 snippet$[]$Poke$poke__MonType :string
               arg0:
-                call :MonType![]
+                call :MonType[]
                   callee:
-                    snippet$pair__MonType :MonType![]
+                    snippet$pair__MonType :MonType[]
                   arg0:
-                    m :MonType!
+                    m :MonType
           arg5:
             " " :string
           arg6:
@@ -223,11 +223,11 @@
               callee:
                 snippet$[]$Poke$poke__Other$1 :string
               arg0:
-                call :Other![]
+                call :Other[]
                   callee:
-                    snippet$pair__Other :Other![]
+                    snippet$pair__Other :Other[]
                   arg0:
-                    o :Other!
+                    o :Other
     call :void
       callee:
         std_io$println__string :void
@@ -240,7 +240,7 @@
               callee:
                 show :fn(Poke) -> string
               arg0:
-                ms :MonType![]!
+                ms :MonType[]
           arg1:
             " " :string
           arg2:
@@ -248,7 +248,7 @@
               callee:
                 show :fn(Poke) -> string
               arg0:
-                os :Other![]!
+                os :Other[]
           arg3:
             " " :string
           arg4:
@@ -256,7 +256,7 @@
               callee:
                 snippet$bounded__MonType__ :string
               arg0:
-                ms :MonType![]!
+                ms :MonType[]
           arg5:
             " " :string
           arg6:
@@ -264,7 +264,7 @@
               callee:
                 snippet$bounded__Other__ :string
               arg0:
-                os :Other![]!
+                os :Other[]
     call :void
       callee:
         std_io$println__string :void
@@ -277,7 +277,7 @@
               callee:
                 fancy_or_plain :fn(Wrapper<MonType> | Wrapper<Other>) -> string
               arg0:
-                wm :Wrapper<MonType>!
+                wm :Wrapper<MonType>
           arg1:
             " " :string
           arg2:
@@ -285,14 +285,14 @@
               callee:
                 fancy_or_plain :fn(Wrapper<MonType> | Wrapper<Other>) -> string
               arg0:
-                call :Wrapper<Other!>
+                call :Wrapper<Other>
                   callee:
-                    snippet$wrap__Other :Wrapper<Other!>
+                    snippet$wrap__Other :Wrapper<Other>
                   arg0:
-                    o :Other!
+                    o :Other
     return int(0) :i32
   struct snippet$Wrapper__i32 { inner: i32 }
-  fn snippet$Wrapper$Poke$poke__i32$2(self: Wrapper<i32>!) -> string
+  fn snippet$Wrapper$Poke$poke__i32$2(self: Wrapper<i32>) -> string
     ~>
       block :string
         let __buf_0: Buffer =
@@ -338,18 +338,18 @@
               __buf_0 :Buffer
             arg1:
               __off_1 :usize
-  fn snippet$Wrapper$Tag$tag__i32(self: Wrapper<i32>!) -> string
+  fn snippet$Wrapper$Tag$tag__i32(self: Wrapper<i32>) -> string
     ~>
       "tag" :string
   struct snippet$Wrapper__string { inner: string }
-  fn snippet$Wrapper$Poke$poke__string(self: Wrapper<string>!) -> string
+  fn snippet$Wrapper$Poke$poke__string(self: Wrapper<string>) -> string
     ~>
       "generic" :string
-  fn snippet$Wrapper$Tag$tag__string(self: Wrapper<string>!) -> string
+  fn snippet$Wrapper$Tag$tag__string(self: Wrapper<string>) -> string
     ~>
       "tag" :string
   struct snippet$Wrapper__MonType { inner: MonType }
-  fn snippet$Wrapper$Poke$poke__MonType$1(self: Wrapper<MonType>!) -> string
+  fn snippet$Wrapper$Poke$poke__MonType$1(self: Wrapper<MonType>) -> string
     ~>
       block :string
         let __buf_0: Buffer =
@@ -396,10 +396,10 @@
               __buf_0 :Buffer
             arg1:
               __off_1 :usize
-  fn snippet$Wrapper$Tag$tag__snippet_MonType(self: Wrapper<MonType>!) -> string
+  fn snippet$Wrapper$Tag$tag__snippet_MonType(self: Wrapper<MonType>) -> string
     ~>
       "tag" :string
-  fn snippet$Wrapper$Fancy$fancy__MonType(self: Wrapper<MonType>!) -> string
+  fn snippet$Wrapper$Fancy$fancy__MonType(self: Wrapper<MonType>) -> string
     ~>
       block :string
         let __buf_0: Buffer =
@@ -447,13 +447,13 @@
             arg1:
               __off_1 :usize
   struct snippet$Wrapper__Other { inner: Any }
-  fn snippet$Wrapper$Poke$poke__Any(self: Wrapper<Any>!) -> string
+  fn snippet$Wrapper$Poke$poke__Any(self: Wrapper<Any>) -> string
     ~>
       "generic" :string
-  fn snippet$Wrapper$Tag$tag__Any(self: Wrapper<Any>!) -> string
+  fn snippet$Wrapper$Tag$tag__Any(self: Wrapper<Any>) -> string
     ~>
       "tag" :string
-  fn snippet$[]$Poke$poke__MonType(self: MonType![]!) -> string
+  fn snippet$[]$Poke$poke__MonType(self: MonType[]) -> string
     ~>
       block :string
         let __buf_0: Buffer =
@@ -498,7 +498,7 @@
               __buf_0 :Buffer
             arg1:
               __off_1 :usize
-  fn snippet$[]$Poke$poke__Other$1(self: Other![]!) -> string
+  fn snippet$[]$Poke$poke__Other$1(self: Other[]) -> string
     ~>
       block :string
         let __buf_0: Buffer =
@@ -545,35 +545,35 @@
               __off_1 :usize
   fn snippet$wrap__Any(x: Any) -> Wrapper<Any>
     ~>
-      Wrapper<Any>! {
+      Wrapper<Any> {
         inner: x :Any
       }
-  fn snippet$wrap__snippet_MonType(x: MonType!) -> Wrapper<MonType!>
+  fn snippet$wrap__snippet_MonType(x: MonType) -> Wrapper<MonType>
     ~>
-      Wrapper<MonType!>! {
-        inner: x :MonType!
+      Wrapper<MonType> {
+        inner: x :MonType
       }
   fn snippet$wrap__i32(x: i32) -> Wrapper<i32>
     ~>
-      Wrapper<i32>! {
+      Wrapper<i32> {
         inner: x :i32
       }
   fn snippet$wrap__string(x: string) -> Wrapper<string>
     ~>
-      Wrapper<string>! {
+      Wrapper<string> {
         inner: x :string
       }
-  fn snippet$relay__snippet_MonType(x: MonType!) -> string
+  fn snippet$relay__snippet_MonType(x: MonType) -> string
     ~>
       call :string
         callee:
           show :fn(Poke) -> string
         arg0:
-          call :Wrapper<MonType!>
+          call :Wrapper<MonType>
             callee:
-              snippet$wrap__snippet_MonType :Wrapper<MonType!>
+              snippet$wrap__snippet_MonType :Wrapper<MonType>
             arg0:
-              x :MonType!
+              x :MonType
   fn snippet$relay__Other(x: Any) -> string
     ~>
       call :string
@@ -596,45 +596,45 @@
               snippet$wrap__i32 :Wrapper<i32>
             arg0:
               x :i32
-  fn snippet$pair__MonType(x: MonType!) -> MonType![]
+  fn snippet$pair__MonType(x: MonType) -> MonType[]
     ~>
-      array :MonType![]
-        x :MonType!
-        x :MonType!
-  fn snippet$pair__Other(x: Other!) -> Other![]
+      array :MonType[]
+        x :MonType
+        x :MonType
+  fn snippet$pair__Other(x: Other) -> Other[]
     ~>
-      array :Other![]
-        x :Other!
-        x :Other!
-  fn snippet$bounded__MonType__(x: MonType![]!) -> string
+      array :Other[]
+        x :Other
+        x :Other
+  fn snippet$bounded__MonType__(x: MonType[]) -> string
     ~>
       call :string
         callee:
           snippet$[]$Poke$poke__MonType :string
         arg0:
-          x :MonType![]!
-  fn snippet$bounded__Other__(x: Other![]!) -> string
+          x :MonType[]
+  fn snippet$bounded__Other__(x: Other[]) -> string
     ~>
       call :string
         callee:
           snippet$[]$Poke$poke__Other$1 :string
         arg0:
-          x :Other![]!
-  fn snippet$bounded__Wrapper_MonType_(x: Wrapper<MonType>!) -> string
+          x :Other[]
+  fn snippet$bounded__Wrapper_MonType_(x: Wrapper<MonType>) -> string
     ~>
       call :string
         callee:
           snippet$Wrapper$Poke$poke__MonType$1 :string
         arg0:
-          x :Wrapper<MonType>!
-  fn snippet$bounded__Wrapper_Other_(x: Wrapper<Other!>) -> string
+          x :Wrapper<MonType>
+  fn snippet$bounded__Wrapper_Other_(x: Wrapper<Other>) -> string
     ~>
       call :string
         callee:
           snippet$Wrapper$Poke$poke__Any :string
         arg0:
-          x :Wrapper<Other!>
-  fn snippet$both__Wrapper_MonType_(x: Wrapper<MonType>!) -> string
+          x :Wrapper<Other>
+  fn snippet$both__Wrapper_MonType_(x: Wrapper<MonType>) -> string
     ~>
       call :string
         callee:
@@ -644,7 +644,7 @@
             callee:
               snippet$Wrapper$Poke$poke__MonType$1 :string
             arg0:
-              x :Wrapper<MonType>!
+              x :Wrapper<MonType>
         arg1:
           "/" :string
         arg2:
@@ -652,7 +652,7 @@
             callee:
               snippet$Wrapper$Tag$tag__snippet_MonType :string
             arg0:
-              x :Wrapper<MonType>!
+              x :Wrapper<MonType>
   fn snippet$both__Wrapper_i32_(x: Wrapper<i32>) -> string
     ~>
       call :string

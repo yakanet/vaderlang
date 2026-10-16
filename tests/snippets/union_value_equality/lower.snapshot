@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Point { x: i32 }
-  fn snippet$Point$Equals$equals(self: Point!, other: Point) -> bool
+  fn snippet$Point$Equals$equals(self: Point, other: Point) -> bool
     ~>
       eq :bool
         l:
@@ -12,7 +12,7 @@
           .x :i32
             other :Point
   struct snippet$Label { text: string }
-  fn snippet$Label$Equals$equals(self: Label!, other: Label) -> bool
+  fn snippet$Label$Equals$equals(self: Label, other: Label) -> bool
     ~>
       eq :bool
         l:
@@ -21,7 +21,7 @@
         r:
           .text :string
             other :Label
-  fn snippet$Pair$Equals$equals(self: Pair!, other: Pair) -> bool
+  fn snippet$Pair$Equals$equals(self: Pair, other: Pair) -> bool
     ~>
       eq :bool
         l:
@@ -31,23 +31,23 @@
           ._0 :i32
             other :Pair
   fn snippet$main() -> i32
-    let p: Point! =
-      Point! {
+    let p: Point =
+      Point {
         x: int(1) :i32
       }
-    let q: Point! =
-      Point! {
+    let q: Point =
+      Point {
         x: int(1) :i32
       }
-    let r: Point! =
-      Point! {
+    let r: Point =
+      Point {
         x: int(2) :i32
       }
-    let s1: Label | Point = p :Point!
-    let s2: Label | Point = q :Point!
-    let s3: Label | Point = r :Point!
+    let s1: Label | Point = p :Point
+    let s2: Label | Point = q :Point
+    let s3: Label | Point = r :Point
     let s4: Label | Point =
-      Label! {
+      Label {
         text: "a" :string
       }
     call :void
@@ -358,7 +358,7 @@
                           cast → Point
                             s1 :Label | Point
                         arg1:
-                          q :Point!
+                          q :Point
           assign
             target:
               __off_3 :usize
@@ -393,7 +393,7 @@
                         callee:
                           snippet$Point$Equals$equals :bool
                         arg0:
-                          q :Point!
+                          q :Point
                         arg1:
                           cast → Point
                             s1 :Label | Point
@@ -434,7 +434,7 @@
                           cast → Point
                             s4 :Label | Point
                         arg1:
-                          q :Point!
+                          q :Point
           ~>
             call :string
               callee:
@@ -517,7 +517,7 @@
                 __buf_4 :Buffer
               arg1:
                 __off_5 :usize
-    let o1: null | Point = p :Point!
+    let o1: null | Point = p :Point
     let o2: null | Point = null
     let o3: null | Point = null
     call :void
@@ -556,7 +556,7 @@
                           cast → Point
                             o1 :null | Point
                         arg1:
-                          q :Point!
+                          q :Point
           assign
             target:
               __off_7 :usize
@@ -701,9 +701,9 @@
                     callee:
                       snippet$same_opt__Point :bool
                     arg0:
-                      p :Point!
+                      p :Point
                     arg1:
-                      q :Point!
+                      q :Point
           assign
             target:
               __off_9 :usize
@@ -735,7 +735,7 @@
                     arg0:
                       null
                     arg1:
-                      q :Point!
+                      q :Point
           assign
             target:
               __off_9 :usize
@@ -765,9 +765,9 @@
                     callee:
                       snippet$same_opt__Point :bool
                     arg0:
-                      r :Point!
+                      r :Point
                     arg1:
-                      q :Point!
+                      q :Point
           ~>
             call :string
               callee:
@@ -804,13 +804,13 @@
                     callee:
                       snippet$same_pair__Point :bool
                     arg0:
-                      [Point!, i32]! {
-                        _0: p :Point!
+                      [Point, i32] {
+                        _0: p :Point
                         _1: int(1) :i32
                       }
                     arg1:
-                      [Point!, i32]! {
-                        _0: q :Point!
+                      [Point, i32] {
+                        _0: q :Point
                         _1: int(1) :i32
                       }
           assign
@@ -842,13 +842,13 @@
                     callee:
                       snippet$same_pair__Point :bool
                     arg0:
-                      [Point!, i32]! {
-                        _0: p :Point!
+                      [Point, i32] {
+                        _0: p :Point
                         _1: int(1) :i32
                       }
                     arg1:
-                      [Point!, i32]! {
-                        _0: r :Point!
+                      [Point, i32] {
+                        _0: r :Point
                         _1: int(1) :i32
                       }
           ~>
@@ -859,13 +859,13 @@
                 __buf_10 :Buffer
               arg1:
                 __off_11 :usize
-    let t1: [i32, Label | Point]! =
-      [i32, Label | Point]! {
+    let t1: [i32, Label | Point] =
+      [i32, Label | Point] {
         _0: int(1) :i32
         _1: s1 :Label | Point
       }
-    let t2: [i32, Label | Point]! =
-      [i32, Label | Point]! {
+    let t2: [i32, Label | Point] =
+      [i32, Label | Point] {
         _0: int(1) :i32
         _1: s2 :Label | Point
       }
@@ -898,10 +898,10 @@
                       eq :bool
                         l:
                           ._0 :i32
-                            t1 :[i32, Label | Point]!
+                            t1 :[i32, Label | Point]
                         r:
                           ._0 :i32
-                            t2 :[i32, Label | Point]!
+                            t2 :[i32, Label | Point]
                     r:
                       or :bool
                         l:
@@ -911,11 +911,11 @@
                                 l:
                                   is Label :bool
                                     ._1 :Label | Point
-                                      t1 :[i32, Label | Point]!
+                                      t1 :[i32, Label | Point]
                                 r:
                                   is Label :bool
                                     ._1 :Label | Point
-                                      t2 :[i32, Label | Point]!
+                                      t2 :[i32, Label | Point]
                             r:
                               call :bool
                                 callee:
@@ -923,11 +923,11 @@
                                 arg0:
                                   cast → Label
                                     ._1 :Label | Point
-                                      t1 :[i32, Label | Point]!
+                                      t1 :[i32, Label | Point]
                                 arg1:
                                   cast → Label
                                     ._1 :Label | Point
-                                      t2 :[i32, Label | Point]!
+                                      t2 :[i32, Label | Point]
                         r:
                           and :bool
                             l:
@@ -935,11 +935,11 @@
                                 l:
                                   is Point :bool
                                     ._1 :Label | Point
-                                      t1 :[i32, Label | Point]!
+                                      t1 :[i32, Label | Point]
                                 r:
                                   is Point :bool
                                     ._1 :Label | Point
-                                      t2 :[i32, Label | Point]!
+                                      t2 :[i32, Label | Point]
                             r:
                               call :bool
                                 callee:
@@ -947,11 +947,11 @@
                                 arg0:
                                   cast → Point
                                     ._1 :Label | Point
-                                      t1 :[i32, Label | Point]!
+                                      t1 :[i32, Label | Point]
                                 arg1:
                                   cast → Point
                                     ._1 :Label | Point
-                                      t2 :[i32, Label | Point]!
+                                      t2 :[i32, Label | Point]
           ~>
             call :string
               callee:
@@ -1149,8 +1149,8 @@
               arg1:
                 __off_17 :usize
     let boxed: Box<Point> | null =
-      Box<Any>! {
-        value: p :Point!
+      Box<Any> {
+        value: p :Point
       }
     call :void
       callee:
@@ -1177,9 +1177,9 @@
                   __off_21 :usize
                 arg2:
                   block :bool
-                    let __eq_r_18: Box<Any>! =
-                      Box<Any>! {
-                        value: q :Point!
+                    let __eq_r_18: Box<Any> =
+                      Box<Any> {
+                        value: q :Point
                       }
                     ~>
                       and :bool
@@ -1195,7 +1195,7 @@
                               cast → Box<Point>
                                 boxed :Box<Point> | null
                             arg1:
-                              __eq_r_18 :Box<Any>!
+                              __eq_r_18 :Box<Any>
           assign
             target:
               __off_21 :usize
@@ -1222,9 +1222,9 @@
                   __off_21 :usize
                 arg2:
                   block :bool
-                    let __eq_r_19: Box<Any>! =
-                      Box<Any>! {
-                        value: r :Point!
+                    let __eq_r_19: Box<Any> =
+                      Box<Any> {
+                        value: r :Point
                       }
                     ~>
                       and :bool
@@ -1240,7 +1240,7 @@
                               cast → Box<Point>
                                 boxed :Box<Point> | null
                             arg1:
-                              __eq_r_19 :Box<Any>!
+                              __eq_r_19 :Box<Any>
           ~>
             call :string
               callee:
@@ -1300,7 +1300,7 @@
                 __off_23 :usize
     return int(0) :i32
   struct snippet$Box__Point { value: Any }
-  fn snippet$Box$Equals$equals__Any(self: Box<Any>!, other: Box<Any>) -> bool
+  fn snippet$Box$Equals$equals__Any(self: Box<Any>, other: Box<Any>) -> bool
     ~>
       vcall std_core$Equals.equals :bool
         recv:

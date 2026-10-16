@@ -86,10 +86,10 @@ string 17 "]"
 string 18 "0"
 string 19 ""
 string 20 "\n"
-import 0 byte_len std_core$byte_len result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=28 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 hash std_core$string$Hash$hash result_type=3 param_types=2 param_mutable=0 param_by_address= (string) -> u64
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=37 param_types=1,28,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=9 param_types=2 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=28 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 2 hash std_core$string$Hash$hash result_type=3 param_types=2 param_c_out= param_by_address= (string) -> u64
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=37 param_types=1,28,9 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 4 std_core$Contains
 impl 4 std_core$Iterator
 impl 8 std_core$Contains

@@ -5,7 +5,7 @@
     ~>
       if :i32
         cond:
-          is Square! :bool
+          is Square :bool
             s :Circle | Square
         then:
           ~>
@@ -28,10 +28,10 @@
   fn snippet$main() -> i32
     let shapes: (Circle | Square)[] =
       array :(Circle | Square)[]
-        Square! {
+        Square {
           side: int(2) :i32
         }
-        Circle! {
+        Circle {
           r: int(1) :i32
         }
     block :void
@@ -257,7 +257,7 @@
     ~>
       if :i32
         cond:
-          is Square! :bool
+          is Square :bool
             s :Circle | Square
         then:
           ~>

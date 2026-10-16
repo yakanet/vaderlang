@@ -142,7 +142,7 @@ reject_variant_data_reference :: fn(
     for [name, t] in fields {
         if !is_value_only_type(t) {
             detail :: "the data of `${decl.name}` holds `${name}: " +
-                "${display_type(strip_mutability(t))}`, which every read of it would share"
+                "${display_type(t)}`, which every read of it would share"
             diags.push(typecheck_error(.VariantDataHoldsReference, decl.name_span, detail))
             return
         }

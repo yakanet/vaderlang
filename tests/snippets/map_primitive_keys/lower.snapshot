@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let mu8: MutableMap<u8, i32>! =
-      MutableMap<u8, i32>! {
+    let mu8: MutableMap<u8, i32> =
+      MutableMap<u8, i32> {
         ekeys:
           array :u8[]
         evals:
@@ -21,7 +21,7 @@
           callee:
             std_collections$MutableMap$IndexSet$set_at__u8__i32 :void
           arg0:
-            mu8 :MutableMap<u8, i32>!
+            mu8 :MutableMap<u8, i32>
           arg1:
             cast → u8
               i :i32
@@ -83,7 +83,7 @@
                       callee:
                         std_collections$len__u8__i32 :usize
                       arg0:
-                        mu8 :MutableMap<u8, i32>!
+                        mu8 :MutableMap<u8, i32>
           assign
             target:
               __off_1 :usize
@@ -114,7 +114,7 @@
                       callee:
                         snippet$get_or__u8 :i32
                       arg0:
-                        mu8 :MutableMap<u8, i32>!
+                        mu8 :MutableMap<u8, i32>
                       arg1:
                         cast → u8
                           int(7) :u8
@@ -150,7 +150,7 @@
                       callee:
                         snippet$get_or__u8 :i32
                       arg0:
-                        mu8 :MutableMap<u8, i32>!
+                        mu8 :MutableMap<u8, i32>
                       arg1:
                         cast → u8
                           int(19) :u8
@@ -186,7 +186,7 @@
                       callee:
                         snippet$get_or__u8 :i32
                       arg0:
-                        mu8 :MutableMap<u8, i32>!
+                        mu8 :MutableMap<u8, i32>
                       arg1:
                         cast → u8
                           int(200) :u8
@@ -200,8 +200,8 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let mu16: MutableMap<u16, i32>! =
-      MutableMap<u16, i32>! {
+    let mu16: MutableMap<u16, i32> =
+      MutableMap<u16, i32> {
         ekeys:
           array :u16[]
         evals:
@@ -216,7 +216,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__u16__i32 :void
       arg0:
-        mu16 :MutableMap<u16, i32>!
+        mu16 :MutableMap<u16, i32>
       arg1:
         int(1) :u16
       arg2:
@@ -225,7 +225,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__u16__i32 :void
       arg0:
-        mu16 :MutableMap<u16, i32>!
+        mu16 :MutableMap<u16, i32>
       arg1:
         int(50000) :u16
       arg2:
@@ -234,7 +234,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__u16__i32 :void
       arg0:
-        mu16 :MutableMap<u16, i32>!
+        mu16 :MutableMap<u16, i32>
       arg1:
         int(12345) :u16
       arg2:
@@ -281,7 +281,7 @@
                       callee:
                         snippet$get_or__u16 :i32
                       arg0:
-                        mu16 :MutableMap<u16, i32>!
+                        mu16 :MutableMap<u16, i32>
                       arg1:
                         cast → u16
                           int(50000) :u16
@@ -317,7 +317,7 @@
                       callee:
                         snippet$get_or__u16 :i32
                       arg0:
-                        mu16 :MutableMap<u16, i32>!
+                        mu16 :MutableMap<u16, i32>
                       arg1:
                         cast → u16
                           int(12345) :u16
@@ -353,7 +353,7 @@
                       callee:
                         snippet$get_or__u16 :i32
                       arg0:
-                        mu16 :MutableMap<u16, i32>!
+                        mu16 :MutableMap<u16, i32>
                       arg1:
                         cast → u16
                           int(7) :u16
@@ -367,8 +367,8 @@
                 __buf_2 :Buffer
               arg1:
                 __off_3 :usize
-    let mi16: MutableMap<i16, i32>! =
-      MutableMap<i16, i32>! {
+    let mi16: MutableMap<i16, i32> =
+      MutableMap<i16, i32> {
         ekeys:
           array :i16[]
         evals:
@@ -383,7 +383,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__i16__i32 :void
       arg0:
-        mi16 :MutableMap<i16, i32>!
+        mi16 :MutableMap<i16, i32>
       arg1:
         int(-1000) :i16
       arg2:
@@ -392,7 +392,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__i16__i32 :void
       arg0:
-        mi16 :MutableMap<i16, i32>!
+        mi16 :MutableMap<i16, i32>
       arg1:
         int(1000) :i16
       arg2:
@@ -401,7 +401,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__i16__i32 :void
       arg0:
-        mi16 :MutableMap<i16, i32>!
+        mi16 :MutableMap<i16, i32>
       arg1:
         int(-1) :i16
       arg2:
@@ -448,7 +448,7 @@
                       callee:
                         snippet$get_or__i16 :i32
                       arg0:
-                        mi16 :MutableMap<i16, i32>!
+                        mi16 :MutableMap<i16, i32>
                       arg1:
                         cast → i16
                           int(-1000) :i16
@@ -484,7 +484,7 @@
                       callee:
                         snippet$get_or__i16 :i32
                       arg0:
-                        mi16 :MutableMap<i16, i32>!
+                        mi16 :MutableMap<i16, i32>
                       arg1:
                         cast → i16
                           int(1000) :i16
@@ -520,7 +520,7 @@
                       callee:
                         snippet$get_or__i16 :i32
                       arg0:
-                        mi16 :MutableMap<i16, i32>!
+                        mi16 :MutableMap<i16, i32>
                       arg1:
                         cast → i16
                           int(-1) :i16
@@ -534,8 +534,8 @@
                 __buf_4 :Buffer
               arg1:
                 __off_5 :usize
-    let mc: MutableMap<char, i32>! =
-      MutableMap<char, i32>! {
+    let mc: MutableMap<char, i32> =
+      MutableMap<char, i32> {
         ekeys:
           array :char[]
         evals:
@@ -550,7 +550,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__char__i32 :void
       arg0:
-        mc :MutableMap<char, i32>!
+        mc :MutableMap<char, i32>
       arg1:
         char(0x61)
       arg2:
@@ -559,7 +559,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__char__i32 :void
       arg0:
-        mc :MutableMap<char, i32>!
+        mc :MutableMap<char, i32>
       arg1:
         char(0x5a)
       arg2:
@@ -568,7 +568,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__char__i32 :void
       arg0:
-        mc :MutableMap<char, i32>!
+        mc :MutableMap<char, i32>
       arg1:
         char(0xe9)
       arg2:
@@ -615,7 +615,7 @@
                       callee:
                         snippet$get_or__char :i32
                       arg0:
-                        mc :MutableMap<char, i32>!
+                        mc :MutableMap<char, i32>
                       arg1:
                         char(0x61)
                       arg2:
@@ -650,7 +650,7 @@
                       callee:
                         snippet$get_or__char :i32
                       arg0:
-                        mc :MutableMap<char, i32>!
+                        mc :MutableMap<char, i32>
                       arg1:
                         char(0x5a)
                       arg2:
@@ -685,7 +685,7 @@
                       callee:
                         snippet$get_or__char :i32
                       arg0:
-                        mc :MutableMap<char, i32>!
+                        mc :MutableMap<char, i32>
                       arg1:
                         char(0xe9)
                       arg2:
@@ -720,7 +720,7 @@
                       callee:
                         snippet$get_or__char :i32
                       arg0:
-                        mc :MutableMap<char, i32>!
+                        mc :MutableMap<char, i32>
                       arg1:
                         char(0x71)
                       arg2:
@@ -733,8 +733,8 @@
                 __buf_6 :Buffer
               arg1:
                 __off_7 :usize
-    let mi64: MutableMap<i64, i32>! =
-      MutableMap<i64, i32>! {
+    let mi64: MutableMap<i64, i32> =
+      MutableMap<i64, i32> {
         ekeys:
           array :i64[]
         evals:
@@ -751,7 +751,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__i64__i32 :void
       arg0:
-        mi64 :MutableMap<i64, i32>!
+        mi64 :MutableMap<i64, i32>
       arg1:
         kbig :i64
       arg2:
@@ -760,7 +760,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__i64__i32 :void
       arg0:
-        mi64 :MutableMap<i64, i32>!
+        mi64 :MutableMap<i64, i32>
       arg1:
         knegbig :i64
       arg2:
@@ -807,7 +807,7 @@
                       callee:
                         snippet$get_or__i64 :i32
                       arg0:
-                        mi64 :MutableMap<i64, i32>!
+                        mi64 :MutableMap<i64, i32>
                       arg1:
                         kbig :i64
                       arg2:
@@ -842,7 +842,7 @@
                       callee:
                         snippet$get_or__i64 :i32
                       arg0:
-                        mi64 :MutableMap<i64, i32>!
+                        mi64 :MutableMap<i64, i32>
                       arg1:
                         knegbig :i64
                       arg2:
@@ -855,8 +855,8 @@
                 __buf_8 :Buffer
               arg1:
                 __off_9 :usize
-    let mus: MutableMap<usize, i32>! =
-      MutableMap<usize, i32>! {
+    let mus: MutableMap<usize, i32> =
+      MutableMap<usize, i32> {
         ekeys:
           array :usize[]
         evals:
@@ -874,7 +874,7 @@
           callee:
             std_collections$MutableMap$IndexSet$set_at__usize__i32 :void
           arg0:
-            mus :MutableMap<usize, i32>!
+            mus :MutableMap<usize, i32>
           arg1:
             cast → usize
               j :i32
@@ -936,7 +936,7 @@
                       callee:
                         std_collections$len__usize__i32 :usize
                       arg0:
-                        mus :MutableMap<usize, i32>!
+                        mus :MutableMap<usize, i32>
           assign
             target:
               __off_11 :usize
@@ -967,7 +967,7 @@
                       callee:
                         snippet$get_or__usize :i32
                       arg0:
-                        mus :MutableMap<usize, i32>!
+                        mus :MutableMap<usize, i32>
                       arg1:
                         cast → usize
                           int(0) :usize
@@ -1003,7 +1003,7 @@
                       callee:
                         snippet$get_or__usize :i32
                       arg0:
-                        mus :MutableMap<usize, i32>!
+                        mus :MutableMap<usize, i32>
                       arg1:
                         cast → usize
                           int(39) :usize
@@ -1039,7 +1039,7 @@
                       callee:
                         snippet$get_or__usize :i32
                       arg0:
-                        mus :MutableMap<usize, i32>!
+                        mus :MutableMap<usize, i32>
                       arg1:
                         cast → usize
                           int(99) :usize

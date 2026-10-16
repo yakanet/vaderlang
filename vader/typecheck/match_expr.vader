@@ -170,7 +170,7 @@ export infer_match :: fn(
         guarded :: arm.guard != null || is_constrained(arm.pattern)
         match arm.pattern as pattern {
             is AST.IsPattern          -> {
-                matched :: pattern_type_of(pattern.ty, remaining, typed, scratch_diags())
+                matched :: pattern_type_of(pattern.ty, typed, scratch_diags())
                 check_is_test_target(matched, pattern.span, typed, diags)
                 if is_overlap_checkable(scrut_ty) && is_overlap_checkable(matched) {
                     if !types_overlap(scrut_ty, matched) {
@@ -244,7 +244,7 @@ export infer_match :: fn(
             is AST.OrPattern          -> {
                 for sub in pattern.patterns {
                     if sub is AST.IsPattern {
-                        tested :: pattern_type_of(sub.ty, remaining, typed, scratch_diags())
+                        tested :: pattern_type_of(sub.ty, typed, scratch_diags())
                         check_is_test_target(tested, sub.span, typed, diags)
                     }
                 }
@@ -259,7 +259,7 @@ export infer_match :: fn(
                         if sub is AST.IsPattern && !is_constrained(sub) {
                             remaining = subtract_type_with_impls(
                                 remaining,
-                                pattern_type_of(sub.ty, remaining, typed, scratch_diags()),
+                                pattern_type_of(sub.ty, typed, scratch_diags()),
                                 typed,
                             )
                         }
@@ -361,15 +361,8 @@ is_never :: fn(t: Type) -> bool {
     return false
 }
 
-// The type an `is T` pattern denotes, carrying the immutability of the
-// scrutinee it is tested against.
+// The type an `is T` pattern denotes.
 //
-// A pattern writes a bare type NAME, which has no mutability of its own — taken
-// verbatim it costs twice over: the arm would see a MUTABLE `Cfg` where the
-// scrutinee holds a read-only borrow (laundering it), and `subtract_type` would
-// no longer recognise the variant it just matched, so `remaining` would stop
-// shrinking and exhaustiveness (T3013) would misfire. Mirrors the `is` operator
-// in `expr_if.vader`.
 // `diags` is the sink `type_from_expr` writes into. Three of the four callers pass
 // a throwaway one because they RE-DERIVE a pattern already lowered elsewhere, and a
 // real sink there would report the same type four times ; only `bind_pattern_types`,
@@ -377,16 +370,14 @@ is_never :: fn(t: Type) -> bool {
 // diagnostic raised while lowering an arm pattern was dropped on the floor — an
 // `is Alias.Nope` compiled clean and took a branch under the VM that native never
 // takes.
-pattern_type_of :: fn(ty: AST.Expr, scrut: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
-    narrowed :: type_from_expr(ty, typed.resolved, diags)
-    return narrowed_with_rights(narrowed, scrut, typed.type_param_bound_traits)
-}
+pattern_type_of :: fn(ty: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type =
+    type_from_expr(ty, typed.resolved, diags)
 
 arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Type | null {
     // Only `is T` / wildcard arms narrow the scrutinee; literal / range /
     // enum-variant / struct / or patterns carry no slot narrowing.
     match p {
-        is AST.IsPattern -> { return pattern_type_of(p.ty, remaining, typed, scratch_diags()) }
+        is AST.IsPattern -> { return pattern_type_of(p.ty, typed, scratch_diags()) }
         is AST.WildcardPattern -> { return remaining }
         is AST.StructPattern | AST.EnumVariantPattern | AST.LiteralPattern | AST.RangePattern | AST.OrPattern -> { return null }
     }
@@ -430,7 +421,7 @@ bind_pattern_types :: fn(
 ) -> void {
     match p {
         is AST.IsPattern      -> {
-            narrowed :: pattern_type_of(p.ty, scrut, typed, diags)
+            narrowed :: pattern_type_of(p.ty, typed, diags)
             // Nested pattern (e.g. `is T { x, y }`) — recurse
             // with the narrowed type so inner StructPattern bindings
             // pick up T's field types.

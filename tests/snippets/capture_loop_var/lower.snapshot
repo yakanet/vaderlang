@@ -20,8 +20,8 @@
         r:
           int(0) :i32
   fn snippet$main() -> i32
-    let labels: string[]! =
-      array :string[]!
+    let labels: string[] =
+      array :string[]
         "a" :string
         "b" :string
         "c" :string
@@ -30,7 +30,7 @@
         array :(fn() -> void)[]
         LoweredArrayLen
     block :void
-      let __for_arr_0: string[]! = labels :string[]!
+      let __for_arr_0: string[] = labels :string[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -38,7 +38,7 @@
         let label: string =
           index :string
             on:
-              __for_arr_0 :string[]!
+              __for_arr_0 :string[]
             ix:
               __for_i_2 :usize
         ~>
@@ -233,7 +233,7 @@
         int(8) :i64
     return int(0) :i32
   struct __lambda_env_snippet_1 { cap_0: string }
-  fn __lambda_snippet_0(__env_3: __lambda_env_snippet_1!) -> void
+  fn __lambda_snippet_0(__env_3: __lambda_env_snippet_1) -> void
     ~>
       call :void
         callee:
@@ -246,9 +246,9 @@
               "thunk " :string
             arg1:
               .cap_0 :string
-                __env_3 :__lambda_env_snippet_1!
+                __env_3 :__lambda_env_snippet_1
   struct __defer_env_snippet_3 { cap_0: i32 }
-  fn __defer_snippet_2(__env_7: __defer_env_snippet_3!) -> void
+  fn __defer_snippet_2(__env_7: __defer_env_snippet_3) -> void
     ~>
       call :void
         callee:
@@ -289,7 +289,7 @@
                   arg2:
                     cast → i64
                       .cap_0 :i32
-                        __env_7 :__defer_env_snippet_3!
+                        __env_7 :__defer_env_snippet_3
             ~>
               call :string
                 callee:
@@ -299,7 +299,7 @@
                 arg1:
                   __off_1 :usize
   struct __lambda_env_snippet_5 { cap_0: i32 }
-  fn __lambda_snippet_4(__env_10: __lambda_env_snippet_5!) -> void
+  fn __lambda_snippet_4(__env_10: __lambda_env_snippet_5) -> void
     ~>
       call :void
         callee:
@@ -340,7 +340,7 @@
                   arg2:
                     cast → i64
                       .cap_0 :i32
-                        __env_10 :__lambda_env_snippet_5!
+                        __env_10 :__lambda_env_snippet_5
             ~>
               call :string
                 callee:
@@ -350,7 +350,7 @@
                 arg1:
                   __off_1 :usize
   struct __defer_env_snippet_7 { cap_0: i32 }
-  fn __defer_snippet_6(__env_14: __defer_env_snippet_7!) -> void
+  fn __defer_snippet_6(__env_14: __defer_env_snippet_7) -> void
     ~>
       call :void
         callee:
@@ -391,7 +391,7 @@
                   arg2:
                     cast → i64
                       .cap_0 :i32
-                        __env_14 :__defer_env_snippet_7!
+                        __env_14 :__defer_env_snippet_7
             ~>
               call :string
                 callee:
@@ -401,7 +401,7 @@
                 arg1:
                   __off_1 :usize
   struct __lambda_env_snippet_10 { cap_0: i64 }
-  fn __lambda_snippet_9(__env_0: __lambda_env_snippet_10!) -> void
+  fn __lambda_snippet_9(__env_0: __lambda_env_snippet_10) -> void
     ~>
       call :void
         callee:
@@ -441,7 +441,7 @@
                     __off_1 :usize
                   arg2:
                     .cap_0 :i64
-                      __env_0 :__lambda_env_snippet_10!
+                      __env_0 :__lambda_env_snippet_10
             ~>
               call :string
                 callee:
@@ -451,8 +451,8 @@
                 arg1:
                   __off_1 :usize
   fn __lambda_snippet_8(n: i64) -> void
-    let twice: __lambda_env_snippet_10! =
-      __lambda_env_snippet_10! {
+    let twice: __lambda_env_snippet_10 =
+      __lambda_env_snippet_10 {
         cap_0: n :i64
       }
     ~>
@@ -460,7 +460,7 @@
         callee:
           __lambda_snippet_9 :fn() -> void
         arg0:
-          twice :__lambda_env_snippet_10!
+          twice :__lambda_env_snippet_10
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

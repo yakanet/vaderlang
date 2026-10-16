@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/numeric_context_sensitivity
-  StructDecl     Counter              :: Counter!
+  StructDecl     Counter              :: Counter
   FnDecl         main                 :: fn() -> i32
   expr 30:13    StringLitExpr  :: string
   expr 30:24    IdentExpr      :: i8
@@ -38,12 +38,12 @@
   expr 42:28    IdentExpr      :: isize
   expr 42:5     CallExpr       :: void
   expr 42:5     IdentExpr      :: fn(T) -> void
-  expr 45:10    StructLitExpr  :: Counter!
+  expr 45:10    StructLitExpr  :: Counter
   expr 46:13    StringLitExpr  :: string
   expr 46:27    FieldExpr      :: usize
-  expr 46:27    IdentExpr      :: Counter!
+  expr 46:27    IdentExpr      :: Counter
   expr 46:40    FieldExpr      :: isize
-  expr 46:40    IdentExpr      :: Counter!
+  expr 46:40    IdentExpr      :: Counter
   expr 46:5     CallExpr       :: void
   expr 46:5     IdentExpr      :: fn(T) -> void
   expr 49:5     IfExpr         :: void
@@ -64,7 +64,7 @@
   expr 59:15    IdentExpr      :: i32[]
   expr 60:12    IdentExpr      :: i32[]
   expr 60:12    IndexExpr      :: i32[]
-  expr 60:16    RangeExpr      :: Range<usize>!
+  expr 60:16    RangeExpr      :: Range<usize>
   expr 60:20    BinaryExpr     :: usize
   expr 60:20    IdentExpr      :: usize
   expr 61:13    StringLitExpr  :: string

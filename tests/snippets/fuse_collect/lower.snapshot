@@ -4,8 +4,8 @@
   fn snippet$main() -> i32
     let ys: i32[] =
       block :i32[]
-        let __fuse_arr_0: i32[]! =
-          array :i32[]!
+        let __fuse_arr_0: i32[] =
+          array :i32[]
             int(1) :i32
             int(2) :i32
             int(3) :i32
@@ -24,7 +24,7 @@
             let x: i32 =
               index :i32
                 on:
-                  __fuse_arr_0 :i32[]!
+                  __fuse_arr_0 :i32[]
                 ix:
                   __fuse_i_1 :usize
             let x: i32 =

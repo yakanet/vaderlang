@@ -56,8 +56,8 @@
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn snippet$main() -> i32
     block :void
-      let __for_arr_0: Level[]! =
-        array :Level[]!
+      let __for_arr_0: Level[] =
+        array :Level[]
           int(-128) :i8
           int(-1) :i8
           int(0) :i8
@@ -69,7 +69,7 @@
         let l: Level =
           index :Level
             on:
-              __for_arr_0 :Level[]!
+              __for_arr_0 :Level[]
             ix:
               __for_i_2 :usize
         ~>

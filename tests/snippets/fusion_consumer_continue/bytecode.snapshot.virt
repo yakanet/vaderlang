@@ -94,14 +94,14 @@ string 16 "chain + continue x from an inner loop, sum: "
 string 17 "async indexed + continue, index sum: "
 string 18 "async deadlock: a task is suspended with nothing left to wake it"
 string 19 "\n"
-import 0 byte_len std_core$byte_len result_type=18 param_types=17 param_mutable=0 param_by_address= (string) -> usize
-import 1 byte_at std_core$byte_at result_type=9 param_types=17,18 param_mutable=0,0 param_by_address= (string,usize) -> u8
-import 2 bytes std_core$bytes result_type=33 param_types=17 param_mutable=0 param_by_address= (string) -> ref
+import 0 byte_len std_core$byte_len result_type=18 param_types=17 param_c_out= param_by_address= (string) -> usize
+import 1 byte_at std_core$byte_at result_type=9 param_types=17,18 param_c_out= param_by_address= (string,usize) -> u8
+import 2 bytes std_core$bytes result_type=33 param_types=17 param_c_out= param_by_address= (string) -> ref
 import 3 sched_now std_runtime$sched_now result_type=30 () -> i64
-import 4 sched_arm std_runtime$sched_arm result_type=1 param_types=30 param_mutable=0 param_by_address= (i64) -> void
+import 4 sched_arm std_runtime$sched_arm result_type=1 param_types=30 param_c_out= param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=3 () -> i32
-import 6 panic std_abort$panic result_type=1 param_types=17 param_mutable=0 param_by_address= (string) -> void
-import 7 extern write system_posix$sys_write header=<unistd.h> result_type=65 param_types=3,33,18 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 6 panic std_abort$panic result_type=1 param_types=17 param_c_out= param_by_address= (string) -> void
+import 7 extern write system_posix$sys_write header=<unistd.h> result_type=65 param_types=3,33,18 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 7 std_core$Iterator
 impl 10 std_core$Iterator
 impl 11 std_core$Iterator

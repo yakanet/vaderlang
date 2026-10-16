@@ -1,11 +1,11 @@
 # Typecheck
 
 ## tests/snippets/or_narrowing
-  StructDecl     Bird                 :: Bird!
+  StructDecl     Bird                 :: Bird
   FnDecl         bird_name            :: fn(Bird) -> string
-  StructDecl     Cat                  :: Cat!
+  StructDecl     Cat                  :: Cat
   FnDecl         describe             :: fn(i32) -> string
-  StructDecl     Dog                  :: Dog!
+  StructDecl     Dog                  :: Dog
   ConstDecl      Furry                :: type
   FnDecl         furry_name           :: fn(Cat | Dog) -> string
   FnDecl         furry_or_bird        :: fn(Bird | Cat) -> string
@@ -16,19 +16,19 @@
   expr 19:5     IfExpr         :: void
   expr 19:8     BinaryExpr     :: bool
   expr 19:8     IdentExpr      :: i32
-  expr 20:16    StructLitExpr  :: Dog!
+  expr 20:16    StructLitExpr  :: Dog
   expr 20:30    StringLitExpr  :: string
   expr 22:5     IfExpr         :: void
   expr 22:8     BinaryExpr     :: bool
   expr 22:8     IdentExpr      :: i32
-  expr 23:16    StructLitExpr  :: Cat!
+  expr 23:16    StructLitExpr  :: Cat
   expr 23:30    StringLitExpr  :: string
-  expr 25:12    StructLitExpr  :: Bird!
+  expr 25:12    StructLitExpr  :: Bird
   expr 25:27    StringLitExpr  :: string
   expr 28:40    IfExpr         :: string
   expr 28:43    BinaryExpr     :: bool
   expr 28:43    IdentExpr      :: Cat | Dog
-  expr 28:48    IdentExpr      :: Dog!
+  expr 28:48    IdentExpr      :: Dog
   expr 28:54    FieldExpr      :: string
   expr 28:54    IdentExpr      :: Dog
   expr 28:70    FieldExpr      :: string
@@ -38,10 +38,10 @@
   expr 33:10    CallExpr       :: Bird | Cat | Dog
   expr 33:10    IdentExpr      :: fn(i32) -> Bird | Cat | Dog
   expr 33:15    IdentExpr      :: i32
-  expr 34:13    IdentExpr      :: Dog!
+  expr 34:13    IdentExpr      :: Dog
   expr 34:20    BinaryExpr     :: bool
   expr 34:20    IdentExpr      :: Bird | Cat
-  expr 34:25    IdentExpr      :: Cat!
+  expr 34:25    IdentExpr      :: Cat
   expr 34:5     IfExpr         :: never
   expr 34:8     BinaryExpr     :: bool
   expr 34:8     BinaryExpr     :: bool
@@ -57,7 +57,7 @@
   expr 45:10    CallExpr       :: Bird | Cat | Dog
   expr 45:10    IdentExpr      :: fn(i32) -> Bird | Cat | Dog
   expr 45:15    IdentExpr      :: i32
-  expr 46:13    IdentExpr      :: Dog!
+  expr 46:13    IdentExpr      :: Dog
   expr 46:20    IdentExpr      :: bool
   expr 46:5     IfExpr         :: void
   expr 46:8     BinaryExpr     :: bool
@@ -71,7 +71,7 @@
   expr 52:48    IfExpr         :: string
   expr 52:51    BinaryExpr     :: bool
   expr 52:51    IdentExpr      :: Bird | Cat
-  expr 52:56    IdentExpr      :: Cat!
+  expr 52:56    IdentExpr      :: Cat
   expr 52:62    FieldExpr      :: string
   expr 52:62    IdentExpr      :: Cat
   expr 52:78    FieldExpr      :: string

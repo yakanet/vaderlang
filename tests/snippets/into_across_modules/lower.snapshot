@@ -9,8 +9,8 @@
         r:
           int(1) :i32
   fn snippet$main() -> i32
-    let m: Meters! =
-      Meters! {
+    let m: Meters =
+      Meters {
         v: int(41) :i32
       }
     call :void
@@ -46,7 +46,7 @@
                           callee:
                             snippet_units$Meters$Into$into :i32
                           arg0:
-                            m :Meters!
+                            m :Meters
           ~>
             call :string
               callee:
@@ -107,7 +107,7 @@
           c1 :usize
 
 ## snippet/units
-  fn snippet_units$Meters$Into$into(self: Meters!) -> i32
+  fn snippet_units$Meters$Into$into(self: Meters) -> i32
     ~>
       .v :i32
         self :Meters

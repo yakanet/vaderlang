@@ -18,9 +18,9 @@ type 15 primitive isize
 string 0 "w="
 string 1 "n="
 string 2 "\n"
-import 0 byte_len std_core$byte_len result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=13 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=4,13,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=9 param_types=2 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=13 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=15 param_types=4,13,9 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 5 std_core$Into
 impl 10 std_core$ByteAccess
 export main 2

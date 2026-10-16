@@ -23,8 +23,8 @@
           .value :i32
             b :Box<i32>
   fn snippet$main() -> i32
-    let b: Box<i32>! =
-      Box<i32>! {
+    let b: Box<i32> =
+      Box<i32> {
         value: int(7) :i32
         render: __lambda_snippet_0 :fn(i32) -> string
       }
@@ -36,7 +36,7 @@
           callee:
             through_field :fn(Box<i32>) -> string
           arg0:
-            b :Box<i32>!
+            b :Box<i32>
     block :void
       let self: string = "ab" :string
       let i: usize = int(0) :usize

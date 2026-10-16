@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$Foo$Bar$baz(self: Foo!) -> i32
+  fn snippet$Foo$Bar$baz(self: Foo) -> i32
     return
       .value :i32
         self :Foo

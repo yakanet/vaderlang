@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Rgb { r: i32 }
-  fn snippet$Rgb$Equals$equals(self: Rgb!, other: Rgb) -> bool
+  fn snippet$Rgb$Equals$equals(self: Rgb, other: Rgb) -> bool
     ~>
       eq :bool
         l:
@@ -11,7 +11,7 @@
         r:
           .r :i32
             other :Rgb
-  fn snippet$Row$Equals$equals(self: Row!, other: Row) -> bool
+  fn snippet$Row$Equals$equals(self: Row, other: Row) -> bool
     ~>
       call :bool
         callee:
@@ -48,14 +48,14 @@
                   __off_7 :usize
                 arg2:
                   block :bool
-                    let __eq_l_0: Row! =
-                      cast → Row!
-                        array :Row!
+                    let __eq_l_0: Row =
+                      cast → Row
+                        array :Row
                           int(1) :i32
                           int(2) :i32
-                    let __eq_r_1: Row! =
-                      cast → Row!
-                        array :Row!
+                    let __eq_r_1: Row =
+                      cast → Row
+                        array :Row
                           int(1) :i32
                           int(2) :i32
                     ~>
@@ -63,9 +63,9 @@
                         callee:
                           snippet$Row$Equals$equals :bool
                         arg0:
-                          __eq_l_0 :Row!
+                          __eq_l_0 :Row
                         arg1:
-                          __eq_r_1 :Row!
+                          __eq_r_1 :Row
           assign
             target:
               __off_7 :usize
@@ -92,14 +92,14 @@
                   __off_7 :usize
                 arg2:
                   block :bool
-                    let __eq_l_2: Row! =
-                      cast → Row!
-                        array :Row!
+                    let __eq_l_2: Row =
+                      cast → Row
+                        array :Row
                           int(1) :i32
                           int(2) :i32
-                    let __eq_r_3: Row! =
-                      cast → Row!
-                        array :Row!
+                    let __eq_r_3: Row =
+                      cast → Row
+                        array :Row
                           int(2) :i32
                           int(1) :i32
                     ~>
@@ -107,9 +107,9 @@
                         callee:
                           snippet$Row$Equals$equals :bool
                         arg0:
-                          __eq_l_2 :Row!
+                          __eq_l_2 :Row
                         arg1:
-                          __eq_r_3 :Row!
+                          __eq_r_3 :Row
           assign
             target:
               __off_7 :usize
@@ -136,13 +136,13 @@
                   __off_7 :usize
                 arg2:
                   block :bool
-                    let __eq_l_4: Row! =
-                      cast → Row!
-                        array :Row!
+                    let __eq_l_4: Row =
+                      cast → Row
+                        array :Row
                           int(1) :i32
-                    let __eq_r_5: Row! =
-                      cast → Row!
-                        array :Row!
+                    let __eq_r_5: Row =
+                      cast → Row
+                        array :Row
                           int(1) :i32
                     ~>
                       not :bool
@@ -150,9 +150,9 @@
                           callee:
                             snippet$Row$Equals$equals :bool
                           arg0:
-                            __eq_l_4 :Row!
+                            __eq_l_4 :Row
                           arg1:
-                            __eq_r_5 :Row!
+                            __eq_r_5 :Row
           ~>
             call :string
               callee:
@@ -161,9 +161,9 @@
                 __buf_6 :Buffer
               arg1:
                 __off_7 :usize
-    let one: Color! =
-      cast → Color!
-        Rgb! {
+    let one: Color =
+      cast → Color
+        Rgb {
           r: int(1) :i32
         }
     call :void
@@ -191,9 +191,9 @@
                   __off_11 :usize
                 arg2:
                   block :bool
-                    let __eq_r_8: Color! =
-                      cast → Color!
-                        Rgb! {
+                    let __eq_r_8: Color =
+                      cast → Color
+                        Rgb {
                           r: int(1) :i32
                         }
                     ~>
@@ -201,9 +201,9 @@
                         callee:
                           snippet$Rgb$Equals$equals :bool
                         arg0:
-                          one :Color!
+                          one :Color
                         arg1:
-                          __eq_r_8 :Color!
+                          __eq_r_8 :Color
           assign
             target:
               __off_11 :usize
@@ -230,9 +230,9 @@
                   __off_11 :usize
                 arg2:
                   block :bool
-                    let __eq_r_9: Color! =
-                      cast → Color!
-                        Rgb! {
+                    let __eq_r_9: Color =
+                      cast → Color
+                        Rgb {
                           r: int(2) :i32
                         }
                     ~>
@@ -240,9 +240,9 @@
                         callee:
                           snippet$Rgb$Equals$equals :bool
                         arg0:
-                          one :Color!
+                          one :Color
                         arg1:
-                          __eq_r_9 :Color!
+                          __eq_r_9 :Color
           ~>
             call :string
               callee:
@@ -259,9 +259,9 @@
           callee:
             std_core$[]$Display$to_string__i32 :string
           arg0:
-            cast → i32[]!
-              cast → Row!
-                array :Row!
+            cast → i32[]
+              cast → Row
+                array :Row
                   int(1) :i32
                   int(2) :i32
     return int(0) :i32

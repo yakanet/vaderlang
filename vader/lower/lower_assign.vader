@@ -155,7 +155,7 @@ lower_destructuring_assign :: fn(ctx: FnLowerCtx, s: DestructureAssignStmt) -> L
                 // The typechecker only lets a rest through over an array source.
                 arr :: array_backing(value_ty) ?? continue
                 elem_ty :: ctx.types.apply(arr.element)
-                tail_ty :: mk_array(elem_ty, false)
+                tail_ty :: mk_array(elem_ty)
                 tmp :: fresh_synthetic_symbol(ctx, "destr_rest")
                 stmts.push(LoweredLet {
                     .span = span, .name = tmp.name, .symbol = tmp, .type = tail_ty,

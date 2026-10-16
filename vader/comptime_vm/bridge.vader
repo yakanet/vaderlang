@@ -87,7 +87,7 @@ array_to_comptime :: fn(array: Vm.ArrayVal, ty: Type, span: Span) -> Ct.Comptime
         if bridged is Diagnostic { return bridged }
         elements.push(bridged)
     }
-    return Ct.ArrayValue { .elements = elements, .element_type_name = display_type_key(elem_ty) }
+    return Ct.ArrayValue { .elements = elements, .element_type_name = display_type(elem_ty) }
 }
 
 // Element type of an array type ; falls back to `ty` itself for a non-array
@@ -136,7 +136,7 @@ display_bridged :: fn(value: Vm.Value, ty: Type, span: Span) -> string {
         Vm.I32Val(3),
     ]
     array :: Vm.ArrayVal { .type_id = 0, .elements = elems, .offset = 0, .length = 3 }
-    ty :: mk_array(mk_primitive("u32"), false)
+    ty :: mk_array(mk_primitive("u32"))
     assert_eq(display_bridged(array, ty, s), "[1_u32, 2_u32, 3_u32]")
 }
 

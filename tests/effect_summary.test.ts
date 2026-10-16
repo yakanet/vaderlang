@@ -212,9 +212,9 @@ test("each frozen fault leads down its calls to the write", async () => {
 }, MEDIUM_BUILD);
 
 // A constant reached through a namespace alias or renamed by its import is a use
-// like a bare one, and a module variable is judged in the module that declares it:
-// a name bound to it shares the global, which the run shows.
-test("the frozen checks see constants and module variables of another module", async () => {
+// like a bare one. A singleton's instance is no constant: a name bound to it
+// shares the instance, which the run shows.
+test("the frozen checks see constants and singletons of another module", async () => {
   const r = await runCli(["dump", "--stage=effects", IMPORTED], undefined, MEDIUM_BUILD);
   expect(r.exit).toBe(0);
   expect(r.stdout).not.toContain("# Diagnostics");

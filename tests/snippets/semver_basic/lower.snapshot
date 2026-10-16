@@ -13,7 +13,7 @@
       ~>
         if :void
           cond:
-            is Version! :bool
+            is Version :bool
               __scrut_0 :ParseError | Version
           then:
             ~>
@@ -66,7 +66,7 @@
                     ~>
                       if :void
                         cond:
-                          is VersionRange! :bool
+                          is VersionRange :bool
                             __scrut_1 :ParseError | VersionRange
                         then:
                           ~>
@@ -98,7 +98,7 @@
                           ~>
                             if :void
                               cond:
-                                is ParseError! :bool
+                                is ParseError :bool
                                   __scrut_1 :ParseError | VersionRange
                               then:
                                 ~>
@@ -127,7 +127,7 @@
             ~>
               if :void
                 cond:
-                  is ParseError! :bool
+                  is ParseError :bool
                     __scrut_0 :ParseError | Version
                 then:
                   ~>
@@ -166,7 +166,7 @@
         ~>
           if :never
             cond:
-              is Version! :bool
+              is Version :bool
                 __scrut_0 :ParseError | Version
             then:
               ~>
@@ -178,13 +178,13 @@
               ~>
                 if :never
                   cond:
-                    is ParseError! :bool
+                    is ParseError :bool
                       __scrut_0 :ParseError | Version
                   then:
                     ~>
                       block :void
                         return
-                          Version! {
+                          Version {
                             major: int(0) :i32
                             minor: int(0) :i32
                             patch: int(0) :i32

@@ -2,29 +2,29 @@
 
 ## tests/snippets/bound_with_arguments
   FnDecl         both                 :: fn(T) -> usize
-  StructDecl     Cfg                  :: Cfg!
-  TraitDecl      Count                :: Count<E>!
+  StructDecl     Cfg                  :: Cfg
+  TraitDecl      Count                :: Count<E>
   FnDecl         feed                 :: fn(T) -> i32
-  StructDecl     Grams                :: Grams!
+  StructDecl     Grams                :: Grams
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Money                :: Money!
-  StructDecl     Points               :: Points!
+  StructDecl     Money                :: Money
+  StructDecl     Points               :: Points
   FnDecl         relay                :: fn(T) -> T
-  TraitDecl      Sink                 :: Sink<E>!
+  TraitDecl      Sink                 :: Sink<E>
   FnDecl         twice                :: fn(T) -> T
-  expr 23:46    StructLitExpr  :: Money!
+  expr 23:46    StructLitExpr  :: Money
   expr 23:63    BinaryExpr     :: i64
   expr 23:63    FieldExpr      :: i64
   expr 23:63    IdentExpr      :: Money
   expr 23:76    FieldExpr      :: i64
   expr 23:76    IdentExpr      :: Money
-  expr 31:48    StructLitExpr  :: Points!
+  expr 31:48    StructLitExpr  :: Points
   expr 31:62    BinaryExpr     :: i32
   expr 31:62    FieldExpr      :: i32
   expr 31:62    IdentExpr      :: Points
   expr 31:71    FieldExpr      :: i32
   expr 31:71    IdentExpr      :: Points
-  expr 39:46    StructLitExpr  :: Grams!
+  expr 39:46    StructLitExpr  :: Grams
   expr 39:59    BinaryExpr     :: i32
   expr 39:59    FieldExpr      :: i32
   expr 39:59    IdentExpr      :: Grams
@@ -39,7 +39,7 @@
   expr 51:46    BinaryExpr     :: usize
   expr 51:46    CallExpr       :: usize
   expr 51:46    FieldExpr      :: fn() -> usize
-  expr 51:46    IdentExpr      :: Money![]
+  expr 51:46    IdentExpr      :: Money[]
   expr 51:59    CallExpr       :: usize
   expr 51:59    FieldExpr      :: fn() -> usize
   expr 51:59    IdentExpr      :: Money[]
@@ -65,12 +65,12 @@
   expr 75:5     IdentExpr      :: fn(T) -> void
   expr 75:55    CallExpr       :: f64
   expr 75:55    FieldExpr      :: fn() -> f64
-  expr 76:18    StructLitExpr  :: Money!
+  expr 76:18    StructLitExpr  :: Money
   expr 77:13    StringLitExpr  :: string
-  expr 77:30    CallExpr       :: Money!
+  expr 77:30    CallExpr       :: Money
   expr 77:30    FieldExpr      :: i64
   expr 77:30    IdentExpr      :: fn(T) -> T
-  expr 77:36    StructLitExpr  :: Money!
+  expr 77:36    StructLitExpr  :: Money
   expr 77:5     CallExpr       :: void
   expr 77:5     IdentExpr      :: fn(T) -> void
   expr 77:67    CallExpr       :: Money
@@ -78,37 +78,37 @@
   expr 77:67    IdentExpr      :: fn(T) -> T
   expr 77:73    IdentExpr      :: Money
   expr 78:13    StringLitExpr  :: string
-  expr 78:30    CallExpr       :: Points!
+  expr 78:30    CallExpr       :: Points
   expr 78:30    FieldExpr      :: i32
   expr 78:30    IdentExpr      :: fn(T) -> T
-  expr 78:36    StructLitExpr  :: Points!
+  expr 78:36    StructLitExpr  :: Points
   expr 78:5     CallExpr       :: void
   expr 78:5     IdentExpr      :: fn(T) -> void
   expr 79:13    StringLitExpr  :: string
-  expr 79:27    CallExpr       :: Grams!
+  expr 79:27    CallExpr       :: Grams
   expr 79:27    FieldExpr      :: i32
   expr 79:27    IdentExpr      :: fn(T) -> T
-  expr 79:33    StructLitExpr  :: Grams!
+  expr 79:33    StructLitExpr  :: Grams
   expr 79:5     CallExpr       :: void
   expr 79:5     IdentExpr      :: fn(T) -> void
   expr 80:13    StringLitExpr  :: string
-  expr 80:31    CallExpr       :: Points!
+  expr 80:31    CallExpr       :: Points
   expr 80:31    FieldExpr      :: i32
   expr 80:31    IdentExpr      :: fn(T) -> T
-  expr 80:37    StructLitExpr  :: Points!
+  expr 80:37    StructLitExpr  :: Points
   expr 80:5     CallExpr       :: void
   expr 80:5     IdentExpr      :: fn(T) -> void
   expr 81:13    StringLitExpr  :: string
   expr 81:23    CallExpr       :: usize
   expr 81:23    IdentExpr      :: fn(T) -> usize
-  expr 81:28    SeqLitExpr     :: Money![]!
-  expr 81:29    StructLitExpr  :: Money!
+  expr 81:28    SeqLitExpr     :: Money[]
+  expr 81:29    StructLitExpr  :: Money
   expr 81:5     CallExpr       :: void
   expr 81:5     IdentExpr      :: fn(T) -> void
-  expr 81:51    StructLitExpr  :: Money!
+  expr 81:51    StructLitExpr  :: Money
   expr 82:13    StringLitExpr  :: string
   expr 82:30    CallExpr       :: i32
   expr 82:30    IdentExpr      :: fn(T) -> i32
-  expr 82:35    StructLitExpr  :: Cfg!
+  expr 82:35    StructLitExpr  :: Cfg
   expr 82:5     CallExpr       :: void
   expr 82:5     IdentExpr      :: fn(T) -> void

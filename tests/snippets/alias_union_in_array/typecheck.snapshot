@@ -18,12 +18,12 @@
   expr 24:26    IdentExpr      :: Dog
   expr 29:18    SeqLitExpr     :: (Cat | Dog)[]
   expr 30:14    IdentExpr      :: (Cat | Dog)[]
-  expr 30:20    StructLitExpr  :: Cat!
+  expr 30:20    StructLitExpr  :: Cat
   expr 30:34    StringLitExpr  :: string
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn((Cat | Dog)[], Cat | Dog) -> void
   expr 31:14    IdentExpr      :: (Cat | Dog)[]
-  expr 31:20    StructLitExpr  :: Dog!
+  expr 31:20    StructLitExpr  :: Dog
   expr 31:34    StringLitExpr  :: string
   expr 31:5     CallExpr       :: void
   expr 31:5     IdentExpr      :: fn((Cat | Dog)[], Cat | Dog) -> void
@@ -35,6 +35,6 @@
   expr 33:9     IdentExpr      :: fn(T) -> void
 
 ## tests/snippets/alias_union_in_array/types
-  StructDecl     Cat                  :: Cat!
-  StructDecl     Dog                  :: Dog!
+  StructDecl     Cat                  :: Cat
+  StructDecl     Dog                  :: Dog
   ConstDecl      Pet                  :: type

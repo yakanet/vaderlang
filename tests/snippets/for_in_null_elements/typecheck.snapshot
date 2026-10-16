@@ -24,9 +24,9 @@
   expr 37:5     CallExpr       :: void
   expr 37:5     IdentExpr      :: fn(T) -> void
   expr 37:55    IdentExpr      :: i32
-  expr 39:11    CallExpr       :: __genstate_maybe<i32 | null>!
+  expr 39:11    CallExpr       :: __genstate_maybe<i32 | null>
   expr 39:11    IdentExpr      :: fn() -> Iterator<i32 | null>
-  expr 43:14    IdentExpr      :: __genstate_maybe<i32 | null>!
+  expr 43:14    IdentExpr      :: __genstate_maybe<i32 | null>
   expr 44:17    BinaryExpr     :: i32
   expr 44:17    IdentExpr      :: i32
   expr 44:9     IdentExpr      :: i32

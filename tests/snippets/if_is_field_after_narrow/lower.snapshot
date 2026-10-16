@@ -7,7 +7,7 @@
   fn snippet$type_id_of(v: ArrayVal | IntVal | StructVal) -> i32
     if :void
       cond:
-        is StructVal! :bool
+        is StructVal :bool
           v :ArrayVal | IntVal | StructVal
       then:
         return
@@ -16,7 +16,7 @@
               v :ArrayVal | IntVal | StructVal
     if :void
       cond:
-        is ArrayVal! :bool
+        is ArrayVal :bool
           v :ArrayVal | IntVal | StructVal
       then:
         return
@@ -27,7 +27,7 @@
   fn snippet$first_item(v: ArrayVal | IntVal | StructVal) -> i32
     if :void
       cond:
-        is ArrayVal! :bool
+        is ArrayVal :bool
           v :ArrayVal | IntVal | StructVal
       then:
         return
@@ -41,7 +41,7 @@
     return int(-1) :i32
   fn snippet$main() -> i32
     let s: ArrayVal | IntVal | StructVal =
-      StructVal! {
+      StructVal {
         type_id: int(100) :i32
         fields:
           array :i32[]
@@ -49,7 +49,7 @@
             int(2) :i32
       }
     let a: ArrayVal | IntVal | StructVal =
-      ArrayVal! {
+      ArrayVal {
         type_id: int(200) :i32
         items:
           array :i32[]
@@ -57,7 +57,7 @@
             int(43) :i32
       }
     let i: ArrayVal | IntVal | StructVal =
-      IntVal! {
+      IntVal {
         value: int(7) :i32
       }
     call :void

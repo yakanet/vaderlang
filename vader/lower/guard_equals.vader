@@ -50,7 +50,7 @@ guard_equals_slots :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) 
             if slot.trait_key != equals_key || slot.method != METHOD_EQUALS || d.params.len() != 2 {
                 continue
             }
-            receiver :: strip_mutability(d.params[0].type)
+            receiver :: d.params[0].type
             if !carries_own_tag(receiver) {
                 continue
             }

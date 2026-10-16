@@ -6,8 +6,8 @@
     block :void
       let __iter_0: Iterator<i32> = a :Iterator<i32>
       loop
-        let __step_1: [i32, Continuation]! =
-          vcall std_core$Iterator.next :[i32, Continuation]!
+        let __step_1: [i32, Continuation] =
+          vcall std_core$Iterator.next :[i32, Continuation]
             recv:
               __iter_0 :Iterator<i32>
         if :void
@@ -15,7 +15,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[i32, Continuation]!
+                  __step_1 :[i32, Continuation]
               r:
                 int(1) :u8
           then:
@@ -23,7 +23,7 @@
           else:
             let x: i32 =
               ._0 :i32
-                __step_1 :[i32, Continuation]!
+                __step_1 :[i32, Continuation]
             assign
               target:
                 total :i32
@@ -36,8 +36,8 @@
     block :void
       let __iter_2: Iterator<i32> = b :Iterator<i32>
       loop
-        let __step_3: [i32, Continuation]! =
-          vcall std_core$Iterator.next :[i32, Continuation]!
+        let __step_3: [i32, Continuation] =
+          vcall std_core$Iterator.next :[i32, Continuation]
             recv:
               __iter_2 :Iterator<i32>
         if :void
@@ -45,7 +45,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_3 :[i32, Continuation]!
+                  __step_3 :[i32, Continuation]
               r:
                 int(1) :u8
           then:
@@ -53,7 +53,7 @@
           else:
             let y: i32 =
               ._0 :i32
-                __step_3 :[i32, Continuation]!
+                __step_3 :[i32, Continuation]
             assign
               target:
                 total :i32
@@ -65,15 +65,15 @@
                     y :i32
     return total :i32
   struct snippet$Tally { base: i32 }
-  fn snippet$Tally$Adder$add_all(self: Tally!, xs: Iterator<i32>) -> i32
+  fn snippet$Tally$Adder$add_all(self: Tally, xs: Iterator<i32>) -> i32
     let out: i32 =
       .base :i32
         self :Tally
     block :void
       let __iter_0: Iterator<i32> = xs :Iterator<i32>
       loop
-        let __step_1: [i32, Continuation]! =
-          vcall std_core$Iterator.next :[i32, Continuation]!
+        let __step_1: [i32, Continuation] =
+          vcall std_core$Iterator.next :[i32, Continuation]
             recv:
               __iter_0 :Iterator<i32>
         if :void
@@ -81,7 +81,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[i32, Continuation]!
+                  __step_1 :[i32, Continuation]
               r:
                 int(1) :u8
           then:
@@ -89,7 +89,7 @@
           else:
             let x: i32 =
               ._0 :i32
-                __step_1 :[i32, Continuation]!
+                __step_1 :[i32, Continuation]
             assign
               target:
                 out :i32
@@ -101,13 +101,13 @@
                     x :i32
     return out :i32
   fn snippet$main() -> i32
-    let xs: i32[]! =
-      array :i32[]!
+    let xs: i32[] =
+      array :i32[]
         int(1) :i32
         int(2) :i32
         int(3) :i32
-    let ys: i32[]! =
-      array :i32[]!
+    let ys: i32[] =
+      array :i32[]
         int(10) :i32
         int(20) :i32
     call :void
@@ -149,13 +149,13 @@
                 arg2:
                   cast → i64
                     block :i32
-                      let __fuse_arr_0: i32[]! = xs :i32[]!
+                      let __fuse_arr_0: i32[] = xs :i32[]
                       let b: Iterator<i32> =
                         call :Iterator<i32>
                           callee:
                             std_core$[]$Into$into__i32 :Iterator<i32>
                           arg0:
-                            ys :i32[]!
+                            ys :i32[]
                       let total: i32 = int(0) :i32
                       block :void
                         let __fuse_len_0: usize =
@@ -165,7 +165,7 @@
                           let x: i32 =
                             index :i32
                               on:
-                                __fuse_arr_0 :i32[]!
+                                __fuse_arr_0 :i32[]
                               ix:
                                 __fuse_i_1 :usize
                           assign
@@ -190,8 +190,8 @@
                       block :void
                         let __iter_2: Iterator<i32> = b :Iterator<i32>
                         loop
-                          let __step_3: [i32, Continuation]! =
-                            vcall std_core$Iterator.next :[i32, Continuation]!
+                          let __step_3: [i32, Continuation] =
+                            vcall std_core$Iterator.next :[i32, Continuation]
                               recv:
                                 __iter_2 :Iterator<i32>
                           if :void
@@ -199,7 +199,7 @@
                               eq :bool
                                 l:
                                   ._1 :Continuation
-                                    __step_3 :[i32, Continuation]!
+                                    __step_3 :[i32, Continuation]
                                 r:
                                   int(1) :u8
                             then:
@@ -207,7 +207,7 @@
                             else:
                               let y: i32 =
                                 ._0 :i32
-                                  __step_3 :[i32, Continuation]!
+                                  __step_3 :[i32, Continuation]
                               assign
                                 target:
                                   total :i32
@@ -246,13 +246,13 @@
                 arg2:
                   cast → i64
                     block :i32
-                      let __fuse_arr_2: i32[]! = xs :i32[]!
+                      let __fuse_arr_2: i32[] = xs :i32[]
                       let b: Iterator<i32> =
                         call :Iterator<i32>
                           callee:
                             std_core$[]$Into$into__i32 :Iterator<i32>
                           arg0:
-                            ys :i32[]!
+                            ys :i32[]
                       let total: i32 = int(0) :i32
                       block :void
                         let __fuse_len_0: usize =
@@ -262,7 +262,7 @@
                           let x: i32 =
                             index :i32
                               on:
-                                __fuse_arr_2 :i32[]!
+                                __fuse_arr_2 :i32[]
                               ix:
                                 __fuse_i_1 :usize
                           assign
@@ -287,8 +287,8 @@
                       block :void
                         let __iter_2: Iterator<i32> = b :Iterator<i32>
                         loop
-                          let __step_3: [i32, Continuation]! =
-                            vcall std_core$Iterator.next :[i32, Continuation]!
+                          let __step_3: [i32, Continuation] =
+                            vcall std_core$Iterator.next :[i32, Continuation]
                               recv:
                                 __iter_2 :Iterator<i32>
                           if :void
@@ -296,7 +296,7 @@
                               eq :bool
                                 l:
                                   ._1 :Continuation
-                                    __step_3 :[i32, Continuation]!
+                                    __step_3 :[i32, Continuation]
                                 r:
                                   int(1) :u8
                             then:
@@ -304,7 +304,7 @@
                             else:
                               let y: i32 =
                                 ._0 :i32
-                                  __step_3 :[i32, Continuation]!
+                                  __step_3 :[i32, Continuation]
                               assign
                                 target:
                                   total :i32
@@ -324,8 +324,8 @@
                 __buf_4 :Buffer
               arg1:
                 __off_5 :usize
-    let t: Tally! =
-      Tally! {
+    let t: Tally =
+      Tally {
         base: int(100) :i32
       }
     call :void
@@ -370,13 +370,13 @@
                       callee:
                         snippet$Tally$Adder$add_all :i32
                       arg0:
-                        t :Tally!
+                        t :Tally
                       arg1:
                         call :Iterator<i32>
                           callee:
                             std_core$[]$Into$into__i32 :Iterator<i32>
                           arg0:
-                            xs :i32[]!
+                            xs :i32[]
           assign
             target:
               __off_7 :usize

@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/in_range_element
-  StructDecl     Bag                  :: Bag!
+  StructDecl     Bag                  :: Bag
   FnDecl         blank                :: fn(u8) -> bool
   FnDecl         byte                 :: fn(u8) -> bool
   FnDecl         has_big              :: fn(C) -> bool
@@ -13,24 +13,24 @@
   FnDecl         wide                 :: fn(i64) -> bool
   expr 12:30    BinaryExpr     :: bool
   expr 12:30    IdentExpr      :: i64
-  expr 12:35    RangeExpr      :: Range<i64>!
+  expr 12:35    RangeExpr      :: Range<i64>
   expr 14:29    BinaryExpr     :: bool
   expr 14:29    BinaryExpr     :: bool
   expr 14:29    IdentExpr      :: u8
-  expr 14:34    RangeExpr      :: Range<u8>!
+  expr 14:34    RangeExpr      :: Range<u8>
   expr 14:47    BinaryExpr     :: bool
   expr 14:47    IdentExpr      :: u8
-  expr 14:52    RangeExpr      :: Range<u8>!
+  expr 14:52    RangeExpr      :: Range<u8>
   expr 16:33    BinaryExpr     :: bool
   expr 16:33    BinaryExpr     :: bool
   expr 16:33    IdentExpr      :: Meters
-  expr 16:38    RangeExpr      :: Range<i64>!
+  expr 16:38    RangeExpr      :: Range<i64>
   expr 16:47    BinaryExpr     :: bool
   expr 16:47    IdentExpr      :: Meters
-  expr 16:53    RangeExpr      :: Range<i64>!
+  expr 16:53    RangeExpr      :: Range<i64>
   expr 18:30    BinaryExpr     :: bool
   expr 18:30    IdentExpr      :: u8
-  expr 18:35    SeqLitExpr     :: u8[]!
+  expr 18:35    SeqLitExpr     :: u8[]
   expr 25:48    BinaryExpr     :: bool
   expr 25:48    IdentExpr      :: i64
   expr 25:57    FieldExpr      :: i64[]
@@ -42,11 +42,11 @@
   expr 32:45    BinaryExpr     :: bool
   expr 32:45    BinaryExpr     :: bool
   expr 32:45    IdentExpr      :: usize
-  expr 32:50    SeqLitExpr     :: usize[]!
+  expr 32:50    SeqLitExpr     :: usize[]
   expr 32:60    BinaryExpr     :: bool
   expr 32:60    IdentExpr      :: Meters
-  expr 32:65    SeqLitExpr     :: i64[]!
-  expr 35:20    RangeExpr      :: Range<i64>!
+  expr 32:65    SeqLitExpr     :: i64[]
+  expr 35:20    RangeExpr      :: Range<i64>
   expr 36:16    SeqLitExpr     :: i64[]
   expr 37:13    StringLitExpr  :: string
   expr 37:16    CallExpr       :: bool
@@ -90,15 +90,15 @@
   expr 40:68    IdentExpr      :: fn(usize, Meters) -> bool
   expr 40:78    CallExpr       :: Meters
   expr 40:78    IdentExpr      :: type
-  expr 41:12    StructLitExpr  :: Bag!
+  expr 41:12    StructLitExpr  :: Bag
   expr 41:27    SeqLitExpr     :: i64[]
   expr 42:13    StringLitExpr  :: string
   expr 42:16    CallExpr       :: bool
   expr 42:16    IdentExpr      :: fn(C) -> bool
-  expr 42:24    IdentExpr      :: Bag!
+  expr 42:24    IdentExpr      :: Bag
   expr 42:32    CallExpr       :: bool
   expr 42:32    IdentExpr      :: fn(Contains<i64>) -> bool
-  expr 42:46    IdentExpr      :: Bag!
+  expr 42:46    IdentExpr      :: Bag
   expr 42:5     CallExpr       :: void
   expr 42:5     IdentExpr      :: fn(T) -> void
   expr 43:13    StringLitExpr  :: string

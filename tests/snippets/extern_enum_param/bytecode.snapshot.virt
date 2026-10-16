@@ -11,11 +11,11 @@ type 8 primitive void
 type 9 primitive isize
 string 0 " "
 string 1 "\n"
-import 0 extern abs snippet$abs_sign header=<stdlib.h> result_type=1 param_types=1 param_mutable=0 param_by_address= (i32) -> i32
-import 1 extern labs snippet$labs_wide header=<stdlib.h> result_type=4 param_types=3 param_mutable=0 param_by_address= (u8) -> i64
-import 2 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
-import 3 bytes std_core$bytes result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=1,7,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 extern abs snippet$abs_sign header=<stdlib.h> result_type=1 param_types=1 param_c_out= param_by_address= (i32) -> i32
+import 1 extern labs snippet$labs_wide header=<stdlib.h> result_type=4 param_types=3 param_c_out= param_by_address= (u8) -> i64
+import 2 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> usize
+import 3 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=1,7,5 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 6 std_core$ByteAccess
 export main 0
 

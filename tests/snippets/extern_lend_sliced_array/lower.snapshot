@@ -8,7 +8,7 @@
           collect :fn() -> void
   fn snippet$slice_set_cb(cb: fn(i32) -> void) -> void
     <extern / signature only>
-  fn snippet$slice_fill(q: i32[]!, n: usize) -> void
+  fn snippet$slice_fill(q: i32[], n: usize) -> void
     <extern / signature only>
   fn snippet$main() -> i32
     let ys: i32[] =
@@ -38,7 +38,7 @@
         churn :fn(i32) -> void
     call :void
       callee:
-        slice_fill :fn(i32[]!, usize) -> void
+        slice_fill :fn(i32[], usize) -> void
       arg0:
         ys :i32[]
       arg1:
@@ -209,7 +209,7 @@
             int(6) :i32
     call :void
       callee:
-        slice_fill :fn(i32[]!, usize) -> void
+        slice_fill :fn(i32[], usize) -> void
       arg0:
         xs :i32[]
       arg1:

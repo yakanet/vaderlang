@@ -99,7 +99,7 @@ StringChars implements Iterator<char> {
 }
 
 /// Iterate `s` codepoint-by-codepoint, as an iterator value: `for c in s`
-/// walks the same codepoints through the `Into<Iterator<char>!>` impl below,
+/// walks the same codepoints through the `Into<Iterator<char>>` impl below,
 /// without one. It walks `s` once, where `s[i]` walks from the start at
 /// every index.
 ///

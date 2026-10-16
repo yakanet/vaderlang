@@ -17,7 +17,7 @@
                 g :Group
           else:
             ~>
-              array :(A | B)[]!
+              array :(A | B)[]
                 one :A | B
       let __for_len_1: usize =
         LoweredArrayLen
@@ -50,14 +50,14 @@
                 int(1) :usize
     return total :i32
   fn snippet$main() -> i32
-    let g: Group! =
-      Group! {
+    let g: Group =
+      Group {
         items:
           array :(A | B)[]
-            A! {
+            A {
               n: int(1) :i32
             }
-            B! {
+            B {
               m: int(2) :i32
             }
       }
@@ -90,9 +90,9 @@
                       callee:
                         count :fn(Group, A | B, bool) -> i32
                       arg0:
-                        g :Group!
+                        g :Group
                       arg1:
-                        A! {
+                        A {
                           n: int(0) :i32
                         }
                       arg2:
@@ -134,9 +134,9 @@
                       callee:
                         count :fn(Group, A | B, bool) -> i32
                       arg0:
-                        g :Group!
+                        g :Group
                       arg1:
-                        B! {
+                        B {
                           m: int(0) :i32
                         }
                       arg2:

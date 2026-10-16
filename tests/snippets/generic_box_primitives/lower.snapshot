@@ -2,48 +2,48 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let bu8: Box<u8>! =
-      Box<u8>! {
+    let bu8: Box<u8> =
+      Box<u8> {
         v: int(200) :u8
       }
-    let bb: Box<bool>! =
-      Box<bool>! {
+    let bb: Box<bool> =
+      Box<bool> {
         v: true
       }
-    let bc: Box<char>! =
-      Box<char>! {
+    let bc: Box<char> =
+      Box<char> {
         v: char(0x5a)
       }
-    let bf32: Box<f32>! =
-      Box<f32>! {
+    let bf32: Box<f32> =
+      Box<f32> {
         v: float(3.5) :f32
       }
-    let bf64: Box<f64>! =
-      Box<f64>! {
+    let bf64: Box<f64> =
+      Box<f64> {
         v: float(2.25) :f64
       }
-    let bi16: Box<i16>! =
-      Box<i16>! {
+    let bi16: Box<i16> =
+      Box<i16> {
         v: int(-1000) :i16
       }
-    let bu16: Box<u16>! =
-      Box<u16>! {
+    let bu16: Box<u16> =
+      Box<u16> {
         v: int(50000) :u16
       }
-    let bi64: Box<i64>! =
-      Box<i64>! {
+    let bi64: Box<i64> =
+      Box<i64> {
         v: int(9000000000) :i64
       }
-    let bus: Box<usize>! =
-      Box<usize>! {
+    let bus: Box<usize> =
+      Box<usize> {
         v: int(42) :usize
       }
-    let bi32: Box<i32>! =
-      Box<i32>! {
+    let bi32: Box<i32> =
+      Box<i32> {
         v: int(-7) :i32
       }
-    let bs: Box<string>! =
-      Box<string>! {
+    let bs: Box<string> =
+      Box<string> {
         v: "hi" :string
       }
     call :void
@@ -57,21 +57,21 @@
                 std_core$char$Display$to_string :string
               arg0:
                 .v :char
-                  bc :Box<char>!
+                  bc :Box<char>
           let __p_1: string =
             call :string
               callee:
                 std_core$f32$Display$to_string :string
               arg0:
                 .v :f32
-                  bf32 :Box<f32>!
+                  bf32 :Box<f32>
           let __p_2: string =
             call :string
               callee:
                 std_core$f64$Display$to_string :string
               arg0:
                 .v :f64
-                  bf64 :Box<f64>!
+                  bf64 :Box<f64>
           let __buf_3: Buffer =
             call :Buffer
               callee:
@@ -130,7 +130,7 @@
                 arg2:
                   cast → u64
                     .v :u8
-                      bu8 :Box<u8>!
+                      bu8 :Box<u8>
           assign
             target:
               __off_4 :usize
@@ -157,7 +157,7 @@
                   __off_4 :usize
                 arg2:
                   .v :bool
-                    bb :Box<bool>!
+                    bb :Box<bool>
           assign
             target:
               __off_4 :usize
@@ -251,7 +251,7 @@
         block :string
           let __p_5: string =
             .v :string
-              bs :Box<string>!
+              bs :Box<string>
           let __buf_6: Buffer =
             call :Buffer
               callee:
@@ -294,7 +294,7 @@
                 arg2:
                   cast → i64
                     .v :i16
-                      bi16 :Box<i16>!
+                      bi16 :Box<i16>
           assign
             target:
               __off_7 :usize
@@ -322,7 +322,7 @@
                 arg2:
                   cast → u64
                     .v :u16
-                      bu16 :Box<u16>!
+                      bu16 :Box<u16>
           assign
             target:
               __off_7 :usize
@@ -349,7 +349,7 @@
                   __off_7 :usize
                 arg2:
                   .v :i64
-                    bi64 :Box<i64>!
+                    bi64 :Box<i64>
           assign
             target:
               __off_7 :usize
@@ -377,7 +377,7 @@
                 arg2:
                   cast → u64
                     .v :usize
-                      bus :Box<usize>!
+                      bus :Box<usize>
           assign
             target:
               __off_7 :usize
@@ -405,7 +405,7 @@
                 arg2:
                   cast → i64
                     .v :i32
-                      bi32 :Box<i32>!
+                      bi32 :Box<i32>
           assign
             target:
               __off_7 :usize
@@ -454,7 +454,7 @@
                   callee:
                     snippet$unwrap__char :char
                   arg0:
-                    bc :Box<char>!
+                    bc :Box<char>
           let __p_9: string =
             call :string
               callee:
@@ -464,13 +464,13 @@
                   callee:
                     snippet$unwrap__f32 :f32
                   arg0:
-                    bf32 :Box<f32>!
+                    bf32 :Box<f32>
           let __p_10: string =
             call :string
               callee:
                 snippet$unwrap__string :string
               arg0:
-                bs :Box<string>!
+                bs :Box<string>
           let __buf_11: Buffer =
             call :Buffer
               callee:
@@ -532,7 +532,7 @@
                       callee:
                         snippet$unwrap__u8 :u8
                       arg0:
-                        bu8 :Box<u8>!
+                        bu8 :Box<u8>
           assign
             target:
               __off_12 :usize
@@ -562,7 +562,7 @@
                     callee:
                       snippet$unwrap__bool :bool
                     arg0:
-                      bb :Box<bool>!
+                      bb :Box<bool>
           assign
             target:
               __off_12 :usize
@@ -645,7 +645,7 @@
                       callee:
                         snippet$unwrap__i16 :i16
                       arg0:
-                        bi16 :Box<i16>!
+                        bi16 :Box<i16>
           assign
             target:
               __off_12 :usize
@@ -675,7 +675,7 @@
                     callee:
                       snippet$unwrap__i64 :i64
                     arg0:
-                      bi64 :Box<i64>!
+                      bi64 :Box<i64>
           assign
             target:
               __off_12 :usize

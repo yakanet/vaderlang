@@ -600,9 +600,8 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
                 // `for [k, v] in …` binds each pattern leaf ; `for x in …` binds
                 // the single var ; `for <range>` (DiscardVar) binds nothing.
                 // The minted Symbol is recorded in `idents` under the loop var's own
-                // span — same reason as a fn param: a later pass (typecheck's
-                // `mark_loop_var_borrow`) needs to reach it without re-walking the
-                // body to find a use site.
+                // span, as a fn param's is, so a later pass reaches it without
+                // re-walking the body to find a use site.
                 is AST.NamedVar       -> {
                     sym :: self.bind_local_checked(.Local, nv.name, nv.span)
                     self.idents[nv.span.hash()] = sym
@@ -818,7 +817,6 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
             self.walk_opt_expr(e.return_type)
         }
         is AST.ArrayTypeExpr -> { self.walk_expr(e.element) }
-        is AST.MutableTypeExpr -> { self.walk_expr(e.inner) }
         is AST.IntLitExpr -> {}
         is AST.FloatLitExpr -> {}
         is AST.BoolLitExpr -> {}

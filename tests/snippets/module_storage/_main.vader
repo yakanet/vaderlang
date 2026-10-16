@@ -1,0 +1,140 @@
+// tests/snippets/module_storage — where a module's constants and its state live.
+//
+// A module constant is frozen. Its value is inlined at each use site, fn-wrapped
+// behind a synthetic accessor, or baked into the data pool as a `static const`
+// blob in `.rodata`, shared process-wide. A module's state lives in the instance
+// of a `@singleton`, held by a global slot that a permanent GC frame roots by what
+// it holds.
+//
+// VM/native EQUIVALENCE is the point of this snippet, and both harnesses share
+// `vm.snapshot` as their oracle. On the native side alone, writing through a
+// `static const` lands in `.rodata`: a segfault, not a diagnostic.
+//
+// The `collect()` calls are calibrated: an explicit collection, since allocation
+// churn this small stays below the young arena, and enough runtime-built strings
+// that their atom ids are no longer on the C stack, where the conservative scan
+// would keep them alive by accident.
+
+module "snippet"
+
+import "std/io"
+import "std/runtime"
+
+Spec :: struct {
+    name: string
+    code: i32
+}
+
+Mode :: enum(u8) { Fast, Small }
+
+// ---- constants: frozen, inlined or baked into `.rodata` -------------------
+
+// Primitive: inlined at each use site, no pool entry.
+MAX: i32: 42
+// Inferred, no annotation at all.
+GREETING :: "hello"
+// Enum: a value through and through, like a primitive.
+MODE: Mode: .Fast
+// Annotated -> pooled.
+DIGITS: string[]: ["0", "1", "2"]
+// Unannotated -> same storage.
+LIMITS :: [10, 20, 30]
+// Struct elements pool as an aggregate.
+SPECS: Spec[]: [
+    Spec { .name = "alpha", .code = 1 },
+    Spec { .name = "beta",  .code = 2 },
+]
+// A lone struct is baked too: the single element of an aggregate entry, each
+// read a `pool[k][0]` pointer to one read-only static.
+ORIGIN: Spec: Spec { .name = "origin", .code = 0 }
+PAIR: [i32, string]: [7, "seven"]
+
+// ---- state: singletons, rooted for the collector ---------------------------
+
+@singleton
+counts :: fn() -> i32[] = [0, 0, 0]
+
+@singleton
+slots :: fn() -> string[] = [""] * 24
+
+@singleton
+flags :: fn() -> bool[] = [false] * 4
+
+// An aggregate instance: the program fills it.
+@singleton
+queue :: fn() -> Spec[] = []
+
+bump :: fn(i: usize) -> void {
+    counts()[i] += 1
+}
+
+main :: fn() -> i32 {
+    println("${MAX} ${GREETING} ${MODE == .Fast}")
+    println("${DIGITS[1]} ${LIMITS[2]} ${SPECS[1].name} ${ORIGIN.name}")
+    println("${PAIR.0}${PAIR.1}")
+
+    // Writes through the instance persist across calls: one shared allocation.
+    bump(0)
+    bump(0)
+    bump(2)
+    println("counts=${counts()[0]},${counts()[1]},${counts()[2]}")
+
+    // RUNTIME-built strings: their atoms are not permanent, so they survive the
+    // collection below only because the instance is reachable from a root.
+    names :: slots()
+    for i in 0..<24 {
+        names[i] = "runtime-slot-${i}"
+    }
+    collect()
+    lost := 0
+    for i in 0..<24 {
+        if slots()[i] != "runtime-slot-${i}" {
+            lost += 1
+        }
+    }
+    println("slots=${slots()[0]}/${slots()[23]} lost=${lost}/24 collected=${collections() > 0}")
+
+    flags()[2] = true
+    println("flags=${flags()[0]},${flags()[2]} len=${flags().len()}")
+
+    // GROWTH past the initial capacity: the buffer is reallocated on the GC heap,
+    // and the global slot is what keeps the array alive across the collection.
+    table :: counts()
+    for i in 0..<40 {
+        table.push(i32(i))
+    }
+    collect()
+    grown := 0
+    for i in 0..<40 {
+        if counts()[i + 3] == i32(i) {
+            grown += 1
+        }
+    }
+    println("grown=${grown}/40 len=${counts().len()}")
+
+    pending :: queue()
+    pending.push(Spec { .name = "seed", .code = 0 })
+    pending[0] = Spec { .name = "replaced-${1 + 1}", .code = 5 }
+    pending[0].code = 6
+    for i in 0..<8 {
+        pending.push(Spec { .name = "q-${i}", .code = i32(i) })
+    }
+    collect()
+    queue_ok := 0
+    if queue()[0].name == "replaced-2" {
+        queue_ok += 1
+    }
+    for i in 0..<8 {
+        if queue()[i + 1].name == "q-${i}" {
+            queue_ok += 1
+        }
+    }
+    println("queue=${queue_ok}/9 len=${queue().len()} code=${queue()[0].code}")
+
+    total := 0
+    for v in LIMITS {
+        total += v
+    }
+    println("total=${total}")
+    return 0
+}

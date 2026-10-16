@@ -369,16 +369,13 @@ export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
     }
 }
 
-/// `textDocument/didClose` handler. MutableMap has no remove ; overwrite
-/// with empty and treat empty as "closed" downstream. Push an empty
+/// `textDocument/didClose` handler. Drops the document and pushes an empty
 /// diagnostics array so the client clears any squiggles.
 export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
     uri :: get_string(td, "uri")
     if uri.byte_len() == 0 { return }
-    // Removed rather than blanked. `remove` needs a `MutableMap<K, V>!`, which
-    // is why the placeholders were written; `self` is `ServerState!` here, so
-    // it is reachable. A blanked entry still answers as a real one.
+    // Removed rather than blanked: a blanked entry still answers as a real one.
     self.docs.remove(uri)
     if is_virt_uri(uri) {
         self.virt_line_indices.remove(uri)

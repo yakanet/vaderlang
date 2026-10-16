@@ -95,7 +95,6 @@ export span_of :: fn(expr: AST.Expr) -> Span = match expr {
     is AST.DotVariantExpr    -> expr.span
     is AST.FnTypeExpr        -> expr.span
     is AST.ArrayTypeExpr     -> expr.span
-    is AST.MutableTypeExpr   -> expr.span
 }
 
 // ---- tests ----------------------------------------------------------------

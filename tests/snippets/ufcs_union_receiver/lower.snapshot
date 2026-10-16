@@ -9,7 +9,7 @@
         ~>
           if :string
             cond:
-              is Circle! :bool
+              is Circle :bool
                 s :Circle | Square
             then:
               ~>
@@ -75,7 +75,7 @@
               ~>
                 if :string
                   cond:
-                    is Square! :bool
+                    is Square :bool
                       s :Circle | Square
                   then:
                     ~>
@@ -146,7 +146,7 @@
         ~>
           if :i32
             cond:
-              is Circle! :bool
+              is Circle :bool
                 s :Circle | Square
             then:
               ~>
@@ -167,7 +167,7 @@
               ~>
                 if :i32
                   cond:
-                    is Square! :bool
+                    is Square :bool
                       s :Circle | Square
                   then:
                     ~>
@@ -185,11 +185,11 @@
                       unreachable("non-exhaustive match (T3013 should have caught this)") :i32
   fn snippet$main() -> i32
     let a: Circle | Square =
-      Circle! {
+      Circle {
         radius: int(5) :i32
       }
     let b: Circle | Square =
-      Square! {
+      Square {
         side: int(4) :i32
       }
     call :void

@@ -4,8 +4,8 @@
   struct snippet$Adder { f: fn(i32) -> i32 }
   fn snippet$main() -> i32
     let base: i32 = int(50) :i32
-    let a: Adder! =
-      Adder! {
+    let a: Adder =
+      Adder {
         f:
           LoweredMakeClosure
       }
@@ -13,15 +13,15 @@
       call :i32
         callee:
           .f :fn(i32) -> i32
-            a :Adder!
+            a :Adder
         arg0:
           int(3) :i32
   struct __lambda_env_snippet_1 { cap_0: i32 }
-  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!, x: i32) -> i32
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1, x: i32) -> i32
     ~>
       add_checked :i32
         l:
           .cap_0 :i32
-            __env_0 :__lambda_env_snippet_1!
+            __env_0 :__lambda_env_snippet_1
         r:
           x :i32

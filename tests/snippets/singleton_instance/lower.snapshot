@@ -4,7 +4,7 @@
   struct snippet$Counter { n: i32 }
   fn __const_snippet$DEFAULT() -> Counter
     ~>
-      Counter! {
+      Counter {
         n: int(10) :i32
       }
   fn snippet$counter() -> Counter
@@ -481,7 +481,7 @@
       arg0:
         "counter built" :string
     return
-      Counter! {
+      Counter {
         n: int(0) :i32
       }
   fn snippet$log$singleton() -> string[]

@@ -46,7 +46,7 @@ const SNIPPETS = [
   "implicit_dot_variant",
   "not_paren",
   "precedence_parens",
-  // Holds `(fn() -> void)[]!` — a fn type under a TYPE postfix, which the
+  // Holds `(fn() -> void)[]`, a fn type under a TYPE postfix, which the
   // printer corrupted for as long as this file was not in the list. A
   // committed snippet pins the shape better than an invented source does.
   "capture_loop_var",
@@ -77,18 +77,15 @@ async function astDump(path: string): Promise<string> {
 // ---------------------------------------------------------------------------
 const REGRESSIONS: { name: string; source: string }[] = [
   {
-    // Operands the TYPE postfixes `[]` / `!` must keep parenthesised. The
-    // printer enumerated its own short list here instead of asking the
-    // predicate the value postfixes use, so three shapes round-tripped to
-    // source that means something else — a fn type most visibly, since its
-    // result extends right and `(fn(i64) -> i64)[]!` came back as a fn
-    // RETURNING an array.
+    // Operands the TYPE postfix `[]` must keep parenthesised: a fn type most
+    // visibly, since its result extends right and `(fn(i64) -> i64)[]` would
+    // come back as a fn RETURNING an array.
     name: "parenthesised_postfix_element",
     source: `module "reg/parenthesised_postfix_element"
 
 apply_all :: fn(fns: (fn(i64) -> i64)[], seed: i64) -> i64 = seed
 
-boxed :: fn() -> (fn(i64) -> i64)[]! = []
+boxed :: fn() -> (fn(i64) -> i64)[] = []
 
 ranged :: fn() -> i32 {
     a :: (0..<3)[]
@@ -198,47 +195,6 @@ f :: fn() -> u64 {
 S :: struct {
     a: (fn(string, string) -> void) | null
     c: i32 | (fn() -> void) | string
-}
-`,
-  },
-  {
-    // Mutable-parameter marker `!`. It has TWO surfaces for one notion, and each
-    // must survive a round-trip: on the TYPE (`buf: u8[]!`, including inside a fn
-    // type, `fn(u8[]!) -> void`, where there are no parameter names at all), and on
-    // `self!`, the one place it still rides the name — `self` has no written type to
-    // hang it on. Dropping either silently widens a read-only borrow into a mutable
-    // slot.
-    //
-    // `buf!: u8[]` was the original spelling and is now P1031: this fixture kept it
-    // for a while after the marker moved onto the type, and nothing said so, because
-    // the whole file sat behind an opt-in gate.
-    name: "mutable_param_marker",
-    source: `module "reg/mutable_param_marker"
-
-Counter :: struct {
-    count: i32
-}
-
-Bumpable :: trait {
-    bump :: fn(self!, by: i32) -> void
-}
-
-Counter implements Bumpable {
-    bump :: fn(self!, by: i32) -> void {
-        self.count += by
-    }
-}
-
-fill :: fn(buf: u8[]!, byte: u8) -> void {
-    buf.push(byte)
-}
-
-apply :: fn(f: fn(u8[]!) -> void, xs: u8[]!) -> void {
-    f(xs)
-}
-
-mixed :: fn(a: u8[], b: u8[]!, c: i32) -> void {
-    b.push(c)
 }
 `,
   },

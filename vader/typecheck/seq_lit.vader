@@ -95,7 +95,7 @@ infer_against_tuple :: fn(
         for i in n..<e.elements.len() {
             elem_types.push(check_expr_fn(e.elements[i], null, typed, diags))
         }
-        return mk_tuple(default_each(elem_types), false)
+        return mk_tuple(default_each(elem_types))
     }
     elem_types: Type[]: []
     for i in 0..<e.elements.len() {
@@ -116,9 +116,9 @@ infer_against_tuple :: fn(
     // literal does (`infer_against_array`) : the invariant tuple rule
     // (`is_assignable_tuple`) then accepts the init.
     if fits_tuple_slots(elem_types, tup, typed) {
-        return mk_tuple(tup.elements, false)
+        return tup
     }
-    return mk_tuple(elem_types, false)
+    return mk_tuple(elem_types)
 }
 
 // Whether every element type fits its slot of `tup`, a trait slot through an impl,
@@ -159,9 +159,9 @@ infer_against_array :: fn(
     // so generic inference still pins `T` from the actual elements (`call.vader`
     // doesn't thread such a hint here).
     if !type_contains_type_param(arr.element) && fits_or_implements(actual, arr.element, typed) {
-        return mk_array(arr.element, arr.immutable)
+        return arr
     }
-    return mk_array(actual, arr.immutable)
+    return mk_array(actual)
 }
 
 infer_no_expected :: fn(
@@ -172,7 +172,7 @@ infer_no_expected :: fn(
 ) -> Type {
     elem_types :: walk_elements(e, null, typed, diags, check_expr_fn)
     if elem_types.len() == 0 {
-        return mk_array(TY_UNRESOLVED, false)
+        return mk_array(TY_UNRESOLVED)
     }
     widened :: default_each(elem_types)
     merged :: union_of(widened)
@@ -180,9 +180,9 @@ infer_no_expected :: fn(
     // all share one type are an array of it, even when that type is itself a
     // union : `[shape]` with `shape: A | B` is a `(A | B)[]`, not a 1-tuple.
     if merged is UnionType && !all_same_type(widened) {
-        return mk_tuple(widened, false)
+        return mk_tuple(widened)
     }
-    return mk_array(merged, false)
+    return mk_array(merged)
 }
 
 
@@ -195,8 +195,6 @@ walk_elements :: fn(
     diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type[] {
-    // A loop, not `map` : a lambda parameter is read-only, and `check_expr_fn` records
-    // into the element it checks.
     out: Type[]: []
     for el in e.elements {
         out.push(check_expr_fn(el, hint, typed, diags))
@@ -206,10 +204,10 @@ walk_elements :: fn(
 
 default_each :: fn(types: Type[]) -> Type[] = types.map((t) -> default_if_free(t)).collect()
 
-// Same type up to mutability — the rule `union_of` merges variants by.
+// Same type, the rule `union_of` merges variants by.
 all_same_type :: fn(types: Type[]) -> bool {
     for t in types {
-        if !equals_type_shape(t, types[0]) {
+        if !equals_type(t, types[0]) {
             return false
         }
     }
@@ -316,7 +314,7 @@ test_seq_homogeneous_int_returns_array :: fn() -> void {
     es :: expect_seq(src)
     diags: Diagnostic[]: []
     ty :: infer_seq_lit(es.sl, null, es.typed, diags, seq_lit_check_stub)
-    assert_eq(display_type(ty), "i32[]!")
+    assert_eq(display_type(ty), "i32[]")
 }
 
 @test
@@ -325,7 +323,7 @@ test_seq_heterogeneous_returns_tuple :: fn() -> void {
     es :: expect_seq(src)
     diags: Diagnostic[]: []
     ty :: infer_seq_lit(es.sl, null, es.typed, diags, seq_lit_check_stub)
-    assert_eq(display_type(ty), "[i32, string]!")
+    assert_eq(display_type(ty), "[i32, string]")
 }
 
 @test
@@ -333,9 +331,9 @@ test_seq_with_expected_array_narrows :: fn() -> void {
     src :: "f :: fn() -> i64[] { return [1, 2, 3] }"
     es :: expect_seq(src)
     diags: Diagnostic[]: []
-    expected: Type: mk_array(mk_primitive("i64"), false)
+    expected: Type: mk_array(mk_primitive("i64"))
     ty :: infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
-    assert_eq(display_type(ty), "i64[]!")
+    assert_eq(display_type(ty), "i64[]")
 }
 
 @test
@@ -343,9 +341,9 @@ test_seq_empty_with_array_expected :: fn() -> void {
     src :: "f :: fn() -> i32[] { return [] }"
     es :: expect_seq(src)
     diags: Diagnostic[]: []
-    expected: Type: mk_array(mk_primitive("i32"), false)
+    expected: Type: mk_array(mk_primitive("i32"))
     ty :: infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
-    assert_eq(display_type(ty), "i32[]!")
+    assert_eq(display_type(ty), "i32[]")
 }
 
 @test
@@ -353,7 +351,7 @@ test_seq_tuple_arity_mismatch_emits_T3001 :: fn() -> void {
     src :: "f :: fn() -> [i32, i32] { return [1, 2, 3] }"
     es :: expect_seq(src)
     diags: Diagnostic[]: []
-    expected: Type: mk_tuple([mk_primitive("i32"), mk_primitive("i32")], false)
+    expected: Type: mk_tuple([mk_primitive("i32"), mk_primitive("i32")])
     infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
     found := false
     for d in diags {

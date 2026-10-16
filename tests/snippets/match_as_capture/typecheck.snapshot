@@ -4,7 +4,7 @@
   FnDecl         deferred             :: fn(i32 | Point) -> fn() -> i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         mixed                :: fn(i32 | Point) -> i32
-  StructDecl     Point                :: Point!
+  StructDecl     Point                :: Point
   expr 12:12    MatchExpr      :: fn() -> i32
   expr 12:18    IdentExpr      :: i32 | Point
   expr 13:23    LambdaExpr     :: fn() -> i32
@@ -27,7 +27,7 @@
   expr 24:12    IdentExpr      :: fn() -> i32
   expr 28:10    CallExpr       :: fn() -> i32
   expr 28:10    IdentExpr      :: fn(i32 | Point) -> fn() -> i32
-  expr 28:19    StructLitExpr  :: Point!
+  expr 28:19    StructLitExpr  :: Point
   expr 29:13    StringLitExpr  :: string
   expr 29:16    CallExpr       :: i32
   expr 29:16    IdentExpr      :: fn() -> i32
@@ -43,7 +43,7 @@
   expr 32:13    StringLitExpr  :: string
   expr 32:16    CallExpr       :: i32
   expr 32:16    IdentExpr      :: fn(i32 | Point) -> i32
-  expr 32:22    StructLitExpr  :: Point!
+  expr 32:22    StructLitExpr  :: Point
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(T) -> void
   expr 33:13    StringLitExpr  :: string

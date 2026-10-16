@@ -27,11 +27,10 @@ and `ref <trait>` / `ref _` — a reference whose concrete type is known only at
 ### `string <index> "<text>"`
 Declares entry `<index>` of the string table, read by `string.const`.
 
-### `data <index> [mut] <kind> …`
-Declares entry `<index>` of the data pool, read by `data.const`: a pre-built array.
-`<kind> hex"…"` holds scalar elements as little-endian bytes, `str "a" "b" …` strings,
-`structs` and `agg` structured elements. `mut` marks a writable global rather than
-read-only data.
+### `data <index> <kind> …`
+Declares entry `<index>` of the data pool, read by `data.const`: a pre-built read-only
+array. `<kind> hex"…"` holds scalar elements as little-endian bytes, `str "a" "b" …`
+strings, `structs` and `agg` structured elements.
 
 ### `global <index> <type> <name>`
 Declares global slot `<index>`, read by `global.get` and written by `global.set`: storage

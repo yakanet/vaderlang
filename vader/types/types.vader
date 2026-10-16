@@ -21,11 +21,6 @@ export PrimitiveType :: struct {
 export StructType :: struct {
     symbol: Symbol
     args:   Type[]
-    /// When true, mutation through this slot is rejected at typecheck — same
-    /// role as `ArrayType.immutable`, and like it the bit stops at the bytecode
-    /// boundary (`type_intern_key` / `bc_type_of` / `val_type_of_type` ignore
-    /// it, so an immutable struct has the layout of a mutable one).
-    immutable: bool
 }
 
 export EnumType :: struct {
@@ -68,10 +63,6 @@ export DistinctType :: struct {
 export TraitType :: struct {
     symbol:    Symbol
     args:      Type[]
-    /// Same role as `StructType.immutable` : a read-only trait value refuses its
-    /// `self!` members. Ignored by type identity and by the bytecode. No default, so
-    /// a rebuild that forgets it does not compile — copy it with `...t`.
-    immutable: bool
 }
 
 export UnionType :: struct {
@@ -81,37 +72,20 @@ export UnionType :: struct {
 
 export FnType :: struct {
     params:      Type[]
-    /// Per-parameter `!` mutation marker (`fn(u8[]!) -> void`). A parallel vector
-    /// rather than a bit inside each param `Type`, so the notion stays confined to
-    /// this one IR node — `StructType` / `TupleType` / … and the whole
-    /// substitute / unify / erase machinery keep ignoring it.
-    ///
-    /// Empty means no parameter is marked ; it is never a same-length all-`false`
-    /// vector. Every constructor that rebuilds an `FnType` from another must carry
-    /// it over (`mk_fn_like`) or the marker is silently lost.
-    params_mutable: bool[] = []
     return_type: Type
 }
 
 export ArrayType :: struct {
-    element:   Type
-    /// When true, mutation through this slot is rejected at typecheck.
-    immutable: bool
+    element: Type
 }
 
 export TupleType :: struct {
     /// Heterogeneous fixed-arity sequence (≥ 2 elements).
-    elements:  Type[]
-    /// When true, mutation through this slot is rejected at typecheck. See
-    /// `StructType.immutable`.
-    immutable: bool
+    elements: Type[]
 }
 
 export TypeParamType :: struct {
     symbol: Symbol
-    /// Set on a read-only view of `T` : an unmarked `Self` reached through `T`
-    /// (`-> Self`, `fn(Self)`). A written `T` never carries it.
-    immutable: bool = false
 }
 
 export TypeMetaType :: struct {}
@@ -459,229 +433,35 @@ export METHOD_SET_AT    :: "set_at"
 
 export mk_primitive :: fn(name: string) -> Type = PrimitiveType { .name = name }
 
-/// A nominal struct type. `immutable` is a REQUIRED parameter, deliberately —
-/// the same discipline `mk_array` enforces. A field default would let a rebuild
-/// site (substitution, `Self` resolution, distinct-stripping) drop the bit in
-/// silence, which is exactly how the previous chantier lost `FnParam.mutable`
-/// through AST cloning. Deriving from an existing struct ⇒ pass `s.immutable` ;
-/// minting a fresh one ⇒ `false` (a value is mutable unless a slot says otherwise).
-export mk_struct :: fn(symbol: Symbol, args: Type[], immutable: bool) -> Type =
-    StructType { .symbol = symbol, .args = args, .immutable = immutable }
+/// A nominal struct type.
+export mk_struct :: fn(symbol: Symbol, args: Type[]) -> Type =
+    StructType { .symbol = symbol, .args = args }
 
-/// A fresh trait type ; a rebuild from an existing one spreads it (`...t`) instead,
-/// which keeps its read-only bit.
-///
-/// @param immutable  the bit — `false` for the raw type a written slot then defaults.
-export mk_trait :: fn(symbol: Symbol, args: Type[], immutable: bool) -> Type = TraitType {
-    .symbol = symbol,
-    .args = args,
-    .immutable = immutable,
-}
+/// A trait type, instantiated at `args`.
+export mk_trait :: fn(symbol: Symbol, args: Type[]) -> Type =
+    TraitType { .symbol = symbol, .args = args }
 
 /// Distinct (newtype) over `backing` — see `DistinctType`. `backing` is a
-/// primitive, an array, a struct or a tuple (`distinct_backing` decides), and
-/// holds the distinct's read-only bit.
+/// primitive, an array, a struct or a tuple (`distinct_backing` decides).
 export mk_distinct :: fn(symbol: Symbol, backing: Type) -> Type = DistinctType { .symbol = symbol, .backing = backing }
 
-export mk_array :: fn(element: Type, immutable: bool) -> Type = ArrayType { .element = element, .immutable = immutable }
-
-/// Rebuild an `FnType` from `src`, carrying its `params_mutable` vector over.
-///
-/// Use this — not `mk_fn` — whenever the result derives from an existing fn type
-/// (substitution, `Self` resolution, distinct-stripping). `mk_fn` yields an
-/// unmarked vector, so reaching for it on a derived type drops the `!` markers
-/// silently, which is exactly how a marked callback would slip past the
-/// contravariance check.
-///
-/// A parameter `src` wrote as a type parameter, bare or as a union variant, lends
-/// what it is now bound to : `fn(T)` with `T` bound to `Cfg!` mutates its argument,
-/// and is marked so, as is `fn(T | null)`.
-///
-/// @param src     the fn type the result derives from.
-/// @param params  the rewritten parameter types — must keep `src`'s arity and order.
-/// @param ret     the rewritten return type.
-export mk_fn_like :: fn(src: FnType, params: Type[], ret: Type) -> FnType {
-    if !relays_any(src, params) {
-        return FnType { .params = params, .params_mutable = src.params_mutable, .return_type = ret }
-    }
-    marks: bool[]: []
-    for i in 0..<params.len() {
-        marks.push(param_mutable_at(src, i) || relays_at(src, params, i))
-    }
-    return FnType { .params = params, .params_mutable = marks, .return_type = ret }
-}
-
-/// Whether parameter `i` of `f` carries the `!` mutation marker. Reads through the
-/// parallel vector's "empty means none marked" convention, so an unmarked fn type
-/// answers false without allocating a same-length all-`false` run.
-///
-/// @param f  the fn type.
-/// @param i  the parameter's index.
-export param_mutable_at :: fn(f: FnType, i: usize) -> bool {
-    if i >= f.params_mutable.len() {
-        return false
-    }
-    return f.params_mutable[i]
-}
-
-// Parameter `i`, written with a type parameter at its top level — bare, or as a
-// variant (`T | null`) — now bound, in full, to a type of which some variant grants
-// mutation : marked as `x: Cfg! | Other` would be.
-relays_at :: fn(src: FnType, params: Type[], i: usize) -> bool =
-    type_param_at_top(src.params[i]) && !type_param_at_top(params[i]) &&
-        type_may_grant_mutation(params[i])
-
-/// Whether `t` is a type parameter, or a union holding one as a variant — a `T` at
-/// the top level of a parameter or an argument.
-///
-/// @param t  the type to ask.
-export type_param_at_top :: fn(t: Type) -> bool {
-    if t is UnionType {
-        for v in t.variants {
-            if v is TypeParamType {
-                return true
-            }
-        }
-        return false
-    }
-    return t is TypeParamType
-}
-
-// Scanned first so the common case — nothing to relay — allocates no marker vector.
-relays_any :: fn(src: FnType, params: Type[]) -> bool {
-    for i in 0..<params.len() {
-        if relays_at(src, params, i) {
-            return true
-        }
-    }
-    return false
-}
+export mk_array :: fn(element: Type) -> Type = ArrayType { .element = element }
 
 /// Rebuild an `FnType` that DROPS its leading parameter (UFCS curries the
-/// receiver away), shifting the marker vector by one so the remaining markers
-/// stay aligned with the remaining parameters.
+/// receiver away).
 ///
 /// @param src  the fn type before the receiver is dropped ; it has one at least.
-export mk_fn_drop_self :: fn(src: FnType) -> FnType {
-    marks: bool[]: if src.params_mutable.len() > 1 {
-        src.params_mutable[1..<src.params_mutable.len()]
-    } else {
-        []
-    }
-    return FnType {
-        .params         = src.params[1..<src.params.len()],
-        .params_mutable = if true in marks { marks } else { [] },
-        .return_type    = src.return_type,
-    }
+export mk_fn_drop_self :: fn(src: FnType) -> FnType = FnType {
+    .params      = src.params[1..<src.params.len()],
+    .return_type = src.return_type,
 }
 
-/// A tuple type. `immutable` is required for the same reason as in `mk_struct`.
-export mk_tuple :: fn(elements: Type[], immutable: bool) -> Type =
-    TupleType { .elements = elements, .immutable = immutable }
+/// A tuple type, one element type per position.
+export mk_tuple :: fn(elements: Type[]) -> Type = TupleType { .elements = elements }
 
-export mk_fn :: fn(params: Type[], return_type: Type) -> Type {
-    return FnType { .params = params, .return_type = return_type }
-}
-
-/// Whether mutation through a slot of type `t` is rejected at typecheck.
-///
-/// Only the three REFERENCE shapes and a trait value carry the bit — a primitive, an
-/// enum or a distinct-over-primitive is a value, copied into the slot, so "the
-/// referent is read-only" has no meaning for it. A `DistinctType` answers for its backing,
-/// where its bit lives : `strip_distinct` and the `*_backing` unwraps hand the
-/// backing out as it is, bit included.
-export type_is_immutable :: fn(t: Type) -> bool = match t {
-    is ArrayType     -> t.immutable
-    is StructType    -> t.immutable
-    is TupleType     -> t.immutable
-    is TraitType     -> t.immutable
-    is TypeParamType -> t.immutable
-    is DistinctType  -> type_is_immutable(t.backing)
-    is PrimitiveType | EnumType | UnionType | FnType
-     | TypeMetaType | SelfType | UnresolvedType | FreeIntType | FreeFloatType
-     | FreeCharType | NeverType | AnyType -> false
-}
-
-/// Whether `t` EXPLICITLY grants mutation at its own level — what `!` writes.
-///
-/// NOT the complement of `type_is_immutable`: a primitive carries no bit either
-/// way, so neither answers true for it. On a union the bit lives on the variants
-/// (`with_immutable` distributes it), so the union grants mutation only when every
-/// variant carrying a bit does (`carries_mutability_bit`).
-///
-/// @param t  the type to ask.
-export type_grants_mutation :: fn(t: Type) -> bool = match t {
-    is ArrayType    -> !t.immutable
-    is StructType   -> !t.immutable
-    is TupleType    -> !t.immutable
-    is UnionType    -> variants_grant_mutation(t.variants)
-    is DistinctType -> type_grants_mutation(t.backing)
-    is TraitType    -> !t.immutable
-    is PrimitiveType | EnumType | FnType | TypeParamType | TypeMetaType
-     | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
-     | NeverType | AnyType -> false
-}
-
-/// Whether ANY level of `t` could hand out mutation — the "some variant" dual of
-/// `type_grants_mutation`. False for a scalar, a frozen array / struct / tuple / trait
-/// value, or a union of those ; a distinct type answers for its backing.
-///
-/// An unbound type parameter answers false: inside a generic body `T` grants
-/// nothing, and the call that binds it is where an argument is judged. `Self` or an
-/// unresolved type answers true — nothing is known yet.
-///
-/// @param t  the type to ask.
-export type_may_grant_mutation :: fn(t: Type) -> bool = match t {
-    is ArrayType | StructType | TupleType | TraitType -> !type_is_immutable(t)
-    is UnionType     -> any_variant(t.variants, type_may_grant_mutation)
-    is DistinctType  -> type_may_grant_mutation(t.backing)
-    is SelfType | AnyType | UnresolvedType -> true
-    is PrimitiveType | EnumType | FnType | TypeParamType | TypeMetaType | FreeIntType
-     | FreeFloatType | FreeCharType | NeverType -> false
-}
-
-any_variant :: fn(variants: Type[], holds: fn(Type) -> bool) -> bool {
-    for v in variants {
-        if holds(v) {
-            return true
-        }
-    }
-    return false
-}
-
-variants_grant_mutation :: fn(variants: Type[]) -> bool =
-    any_variant(variants, carries_mutability_bit) && !any_variant(variants, type_withholds_mutation)
-
-/// Whether `t` carries a mutability marker of its own level — the three reference
-/// shapes, a trait value, a union, whose variants carry theirs, and a distinct over
-/// one of them, whose backing holds its bit. A primitive, an enum or `null` is a value, copied
-/// out : `with_immutable` leaves it alone, so `Value!` over `ArrayVal | BoolVal`
-/// reads as `ArrayVal! | BoolVal`.
-///
-/// @param t  the type to ask.
-export carries_mutability_bit :: fn(t: Type) -> bool =
-    t is ArrayType | StructType | TupleType | UnionType | TraitType ||
-        (t is DistinctType && carries_mutability_bit(t.backing))
-
-/// Whether some level `t` hands out is read-only by its own marker : a frozen array,
-/// struct, tuple or trait value, or a union holding one (`Point | null` from an
-/// unmarked return). Unlike `type_is_immutable`, which a union answers false, this is
-/// the question a mutation of the VALUE asks.
-///
-/// @param t  the type to ask.
-export type_withholds_mutation :: fn(t: Type) -> bool {
-    // A loop, not `any_variant` : a fn value here gives every caller a GC root
-    // frame.
-    if t is UnionType {
-        for v in t.variants {
-            if type_is_immutable(v) {
-                return true
-            }
-        }
-        return false
-    }
-    return type_is_immutable(t)
-}
+/// A function type.
+export mk_fn :: fn(params: Type[], return_type: Type) -> FnType =
+    FnType { .params = params, .return_type = return_type }
 
 /// Raw union constructor. Callers that need flattening + dedup must go
 /// through `union_of` in `type_ops.vader`.
@@ -711,20 +491,19 @@ export is_null_type :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "nu
 // ---- display --------------------------------------------------------------
 
 /// Render `t` as a human-readable string. The format is fixed so dumps
-/// stay stable across snapshots.
+/// stay stable across snapshots, and side tables keyed on a rendered type use it.
 ///
-/// Fast path : leaf types whose display form is a single constant
-/// string skip the builder entirely. Profiling showed `display_type`
-/// was the top source of small-string allocs (`string` 66×, `void`
-/// 20×, every primitive 5–10× per typecheck) because each call went
-/// through `StringBuilder {} + append + to_string` even for primitives
-/// whose name was already a canonical `.rodata` literal.
+/// Fast path : a type whose rendering is a name it already holds skips the
+/// builder, which costs two allocations before the first character.
 export display_type :: fn(t: Type) -> string {
     match t {
-        is PrimitiveType  -> { return t.name }
-        is TypeParamType  -> { if !t.immutable { return t.symbol.name } }
-        is EnumType       -> { return t.symbol.name }
-        is DistinctType   -> { if !type_grants_mutation(t) { return t.symbol.name } }
+        is PrimitiveType                           -> { return t.name }
+        is EnumType | DistinctType | TypeParamType -> { return t.symbol.name }
+        is StructType | TraitType                  -> {
+            if t.args.len() == 0 {
+                return t.symbol.name
+            }
+        }
         is UnresolvedType -> { return "?" }
         is NeverType      -> { return "never" }
         is FreeIntType    -> { return "{integer}" }
@@ -737,37 +516,6 @@ export display_type :: fn(t: Type) -> string {
     }
     sb :: StringBuilder {}
     sb.write_type(t)
-    return sb.to_string()
-}
-
-/// Render `t` WITHOUT any mutability marker — the key form.
-///
-/// Every side-table keyed on a rendered type must use this: mutability is not
-/// part of what such a table is keyed on, so rendering it would look up
-/// `"Cfg!"` where registration wrote `"Cfg"` and the lookup would miss —
-/// silently, since a miss just means "nothing recorded".
-export display_type_key :: fn(t: Type) -> string {
-    // Fast path, and it reaches FURTHER than `display_type`'s : with the
-    // mutability marker off, a nominal type with no args renders to the name it
-    // already carries. `StringBuilder {}` costs two allocations before the first
-    // character (the struct, then its `parts`), so the builder existed only to
-    // hand back a string the type was holding.
-    match t {
-        is PrimitiveType -> {
-            return t.name
-        }
-        is EnumType | DistinctType | TypeParamType -> {
-            return t.symbol.name
-        }
-        is StructType | TraitType                  -> {
-            if t.args.len() == 0 {
-                return t.symbol.name
-            }
-        }
-        _                                          -> {}  // fall through for composite types
-    }
-    sb :: StringBuilder {}
-    sb.write_type_mut(t, false)
     return sb.to_string()
 }
 
@@ -792,39 +540,19 @@ export impl_base_key :: fn(t: Type) -> string {
     @partial match t {
         is StructType | TraitType | EnumType | DistinctType -> { return declaration_key(t.symbol) }
         is ArrayType -> { return "[]" }
-        // A KEY, so the mutability-free rendering : a tuple / fn / union receiver
-        // must key the same whether or not its slot is mutable, else registration
-        // and lookup drift and the dispatch misses in silence.
-        _ -> { return display_type_key(t) }
+        _ -> { return display_type(t) }
     }
 }
 
 
-write_type :: fn(sb: StringBuilder, t: Type) -> void { sb.write_type_mut(t, true) }
-
-// `show_mut = false` renders the SHAPE only — see `display_type_key`.
-write_type_mut :: fn(sb: StringBuilder, t: Type, show_mut: bool) -> void {
+write_type :: fn(sb: StringBuilder, t: Type) -> void {
     match t {
-        is PrimitiveType -> { sb.append(t.name) }
-        is StructType    -> {
-            sb.write_named_mut(t.symbol.name, t.args, show_mut)
-            if show_mut && !t.immutable { sb.append_char('!') }
-        }
+        is PrimitiveType  -> { sb.append(t.name) }
+        is StructType     -> { sb.write_named(t.symbol.name, t.args) }
         is EnumType       -> { sb.append(t.symbol.name) }
-        is DistinctType   -> {
-            sb.append(t.symbol.name)
-            if show_mut && type_grants_mutation(t) { sb.append_char('!') }
-        }
-        is TraitType      -> {
-            sb.write_named_mut(t.symbol.name, t.args, show_mut)
-            if show_mut && !t.immutable { sb.append_char('!') }
-        }
-        is TypeParamType  -> {
-            // A read-only view has no spelling of its own : a written `T` is the
-            // type parameter itself.
-            if show_mut && t.immutable { sb.append("readonly ") }
-            sb.append(t.symbol.name)
-        }
+        is DistinctType   -> { sb.append(t.symbol.name) }
+        is TraitType      -> { sb.write_named(t.symbol.name, t.args) }
+        is TypeParamType  -> { sb.append(t.symbol.name) }
         is TypeMetaType   -> { sb.append("type") }
         is SelfType       -> { sb.append("Self") }
         is UnresolvedType -> { sb.append("?") }
@@ -838,56 +566,40 @@ write_type_mut :: fn(sb: StringBuilder, t: Type, show_mut: bool) -> void {
             // bare fn types like `fn() -> A`.
             needs_parens :: t.element is UnionType || t.element is FnType
             if needs_parens { sb.append_char('(') }
-            sb.write_type_mut(t.element, show_mut)
+            sb.write_type(t.element)
             if needs_parens { sb.append_char(')') }
             sb.append("[]")
-            // A SUFFIX, and on the mutable form — exactly what the source spells.
-            // The old `const ` prefix was ambiguous in the two places it mattered:
-            // on a union it read as governing every variant (`u8[] | Err`
-            // marks only the array — the bit is distributed), and on a nested
-            // array it attached to the wrong level (`Array(const Array(i32))`
-            // printed `i32[][]`, suggesting the OUTER array was frozen).
-            if show_mut && !t.immutable { sb.append_char('!') }
         }
         is TupleType -> {
             sb.append_char('[')
-            sb.write_type_list_mut(t.elements, ", ", show_mut)
+            sb.write_type_list(t.elements, ", ")
             sb.append_char(']')
-            if show_mut && !t.immutable { sb.append_char('!') }
         }
         is FnType -> {
             sb.append("fn(")
-            first := true
-            for i in 0..<t.params.len() {
-                if !first { sb.append(", ") }
-                first = false
-                // The marker now rides the param's TYPE, which renders its own
-                // `!` just above — `params_mutable` is the same fact recorded a
-                // second time, so rendering it too printed `Cfg[]!!`.
-                sb.write_type_mut(t.params[i], show_mut)
-            }
+            sb.write_type_list(t.params, ", ")
             sb.append(") -> ")
-            sb.write_type_mut(t.return_type, show_mut)
+            sb.write_type(t.return_type)
         }
-        is UnionType -> { sb.write_type_list_mut(t.variants, " | ", show_mut) }
+        is UnionType -> { sb.write_type_list(t.variants, " | ") }
         is AnyType   -> { sb.append("Any") }
     }
 }
 
-write_named_mut :: fn(sb: StringBuilder, name: string, args: Type[], show_mut: bool) -> void {
+write_named :: fn(sb: StringBuilder, name: string, args: Type[]) -> void {
     sb.append(name)
     if args.len() == 0 { return }
     sb.append_char('<')
-    sb.write_type_list_mut(args, ", ", show_mut)
+    sb.write_type_list(args, ", ")
     sb.append_char('>')
 }
 
-write_type_list_mut :: fn(sb: StringBuilder, items: Type[], sep: string, show_mut: bool) -> void {
+write_type_list :: fn(sb: StringBuilder, items: Type[], sep: string) -> void {
     first := true
     for it in items {
         if !first { sb.append(sep) }
         first = false
-        sb.write_type_mut(it, show_mut)
+        sb.write_type(it)
     }
 }
 
@@ -899,15 +611,9 @@ write_type_list_mut :: fn(sb: StringBuilder, items: Type[], sep: string, show_mu
 export canonical_key :: fn(t: Type) -> string {
     match t {
         is PrimitiveType -> { return "p${t.name}" }
-        // No immutability marker: the bit is outside struct / tuple identity
-        // (`equals_type`), so it must stay out of the key too — else one type
-        // would answer to two keys and every side-table keyed on it would split.
         is StructType -> { return "s${t.symbol.id}<${canonical_args_key(t.args)}>" }
         is TraitType  -> { return "t${t.symbol.id}<${canonical_args_key(t.args)}>" }
-        is ArrayType  -> {
-            if t.immutable { return "ac(${canonical_key(t.element)})" }
-            return "am(${canonical_key(t.element)})"
-        }
+        is ArrayType  -> { return "a(${canonical_key(t.element)})" }
         is TupleType      -> { return "T<${canonical_args_key(t.elements)}>" }
         is FnType         -> { return "F<${canonical_args_key(t.params)}>>${canonical_key(t.return_type)}" }
         is UnionType      -> { return "U<${canonical_args_key(t.variants)}>" }
@@ -1028,11 +734,13 @@ export strip_distinct :: fn(t: Type) -> Type {
     if t is PrimitiveType { return t }
     if !contains_distinct(t) { return t }
     if t is DistinctType { return strip_distinct(t.backing) }
-    if t is StructType { return mk_struct(t.symbol, strip_distinct_each(t.args), t.immutable) }
+    if t is StructType { return mk_struct(t.symbol, strip_distinct_each(t.args)) }
     if t is TraitType { return TraitType { ...t, .args = strip_distinct_each(t.args) } }
-    if t is ArrayType { return mk_array(strip_distinct(t.element), t.immutable) }
-    if t is TupleType { return mk_tuple(strip_distinct_each(t.elements), t.immutable) }
-    if t is FnType { return mk_fn_like(t, strip_distinct_each(t.params), strip_distinct(t.return_type)) }
+    if t is ArrayType { return mk_array(strip_distinct(t.element)) }
+    if t is TupleType { return mk_tuple(strip_distinct_each(t.elements)) }
+    if t is FnType {
+        return mk_fn(strip_distinct_each(t.params), strip_distinct(t.return_type))
+    }
     if t is UnionType { return mk_union(strip_distinct_each(t.variants)) }
     return t
 }
@@ -1175,28 +883,16 @@ test_display_primitive :: fn() -> void {
 
 @test
 test_display_array :: fn() -> void {
-    // The marker is a SUFFIX on the MUTABLE form — exactly what the source spells,
-    // so a dump round-trips as written. The read-only form is bare (it is the
-    // default), and `display_type_key` drops the marker for side-table keys.
-    mut_arr :: mk_array(mk_primitive("i32"), false)
-    assert_eq(display_type(mut_arr), "i32[]!")
-    // the KEY form never carries the marker — that is what keeps a side table
-    // keyed the same whether the slot is mutable or not
-    assert_eq(display_type_key(mut_arr), "i32[]")
-    ro :: mk_array(mk_primitive("i32"), true)
-    assert_eq(display_type(ro), "i32[]")
-    // Nested : each level carries its own marker, which the old `const ` prefix
-    // could not express (it printed `i32[][]` for a frozen INNER array).
-    outer_mut :: mk_array(mk_array(mk_primitive("i32"), true), false)
-    assert_eq(display_type(outer_mut), "i32[][]!")
+    assert_eq(display_type(mk_array(mk_primitive("i32"))), "i32[]")
+    assert_eq(display_type(mk_array(mk_array(mk_primitive("i32")))), "i32[][]")
 }
 
 @test
 test_display_tuple :: fn() -> void {
     el0: Type: mk_primitive("i32")
     el1: Type: mk_primitive("string")
-    t :: mk_tuple([el0, el1], false)
-    assert_eq(display_type(t), "[i32, string]!")
+    t :: mk_tuple([el0, el1])
+    assert_eq(display_type(t), "[i32, string]")
 }
 
 @test
@@ -1221,16 +917,16 @@ test_display_struct_with_args :: fn() -> void {
     sym :: factory.make(.Struct, "MutableMap", "test", "test", .Public, null)
     a0: Type: mk_primitive("string")
     a1: Type: mk_primitive("i32")
-    s :: mk_struct(sym, [a0, a1], false)
-    assert_eq(display_type(s), "MutableMap<string, i32>!")
+    s :: mk_struct(sym, [a0, a1])
+    assert_eq(display_type(s), "MutableMap<string, i32>")
 }
 
 @test
 test_display_struct_without_args :: fn() -> void {
     factory :: SymbolFactory {}
     sym :: factory.make(.Struct, "Point", "test", "test", .Public, null)
-    s :: mk_struct(sym, [], false)
-    assert_eq(display_type(s), "Point!")
+    s :: mk_struct(sym, [])
+    assert_eq(display_type(s), "Point")
 }
 
 @test
@@ -1293,7 +989,7 @@ test_slot_size_of_a_default_enum_is_four :: fn() -> void {
 @test
 test_slot_size_of_a_concrete_ref_is_a_word :: fn() -> void {
     // Since T12 a struct field emits `void*`, not a `vader_box_t`.
-    assert_eq(slot_byte_size(mk_array(mk_primitive("i32"), false)), REF_SLOT_BYTES)
+    assert_eq(slot_byte_size(mk_array(mk_primitive("i32"))), REF_SLOT_BYTES)
 }
 
 @test
@@ -1339,11 +1035,11 @@ slot_size_test_sym :: fn() -> Symbol = Symbol {
 @test
 test_display_nested :: fn() -> void {
     // fn(i32[], string) -> i32 | null
-    arr: Type: mk_array(mk_primitive("i32"), false)
+    arr: Type: mk_array(mk_primitive("i32"))
     str: Type: mk_primitive("string")
     i32_t: Type: mk_primitive("i32")
     null_t: Type: mk_primitive("null")
     ret :: mk_union([i32_t, null_t])
     f :: mk_fn([arr, str], ret)
-    assert_eq(display_type(f), "fn(i32[]!, string) -> i32 | null")
+    assert_eq(display_type(f), "fn(i32[], string) -> i32 | null")
 }

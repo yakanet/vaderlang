@@ -101,7 +101,7 @@ type_for_result :: fn(name: string, typed: TypedProgram) -> Type {
     if name == "bool"       { return TY_BOOL }
     if name == "string"     { return TY_STRING }
     if name == "type"       { return TY_TYPE }
-    if name == "type_array" { return mk_array(TY_TYPE, false) }
+    if name == "type_array" { return mk_array(TY_TYPE) }
     if name == "field_array" {
         // `@fields(T) -> Field[]` — `Field` lives in std/core
         // (auto-imported). Fall back to Unresolved when std/core
@@ -109,7 +109,7 @@ type_for_result :: fn(name: string, typed: TypedProgram) -> Type {
         field_sym :: typed.field_symbol
         match field_sym {
             is null -> { return TY_UNRESOLVED }
-            is Symbol -> { return mk_array(mk_struct(field_sym, [], immutable = false), immutable = false) }
+            is Symbol -> { return mk_array(mk_struct(field_sym, [])) }
         }
     }
     return TY_UNRESOLVED

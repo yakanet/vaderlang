@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Age { years: i32 }
-  fn snippet$Age$Display$to_string(self: Age!) -> string
+  fn snippet$Age$Display$to_string(self: Age) -> string
     ~>
       block :string
         let __buf_0: Buffer =
@@ -78,7 +78,7 @@
           arg0:
             "Ada" :string
           arg1:
-            Age! {
+            Age {
               years: int(36) :i32
             }
     return int(0) :i32

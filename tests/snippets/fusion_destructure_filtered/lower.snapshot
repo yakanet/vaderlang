@@ -14,38 +14,38 @@
           int(20) :i32
   fn snippet$main() -> i32
     let lazy: string = "" :string
-    let it: __genstate_filter<[i32, usize]>! =
-      call :__genstate_filter<[i32, usize]>!
+    let it: __genstate_filter<[i32, usize]> =
+      call :__genstate_filter<[i32, usize]>
         callee:
-          std_iter$filter___i32__usize_ :__genstate_filter<[i32, usize]>!
+          std_iter$filter___i32__usize_ :__genstate_filter<[i32, usize]>
         arg0:
-          call :__genstate_indexed<[i32, usize]>!
+          call :__genstate_indexed<[i32, usize]>
             callee:
-              std_iter$indexed__i32 :__genstate_indexed<[i32, usize]>!
+              std_iter$indexed__i32 :__genstate_indexed<[i32, usize]>
             arg0:
               call :Iterator<T>
                 callee:
                   std_core$[]$Into$into__i32 :Iterator<T>
                 arg0:
-                  array :i32[]!
+                  array :i32[]
                     int(10) :i32
                     int(20) :i32
                     int(30) :i32
         arg1:
           not_twenty :fn([i32, usize]) -> bool
     block :void
-      let __iter_1: Iterator<[i32, usize]>! = it :__genstate_filter<[i32, usize]>!
+      let __iter_1: Iterator<[i32, usize]> = it :__genstate_filter<[i32, usize]>
       loop
-        let __step_2: [[i32, usize], Continuation]! =
-          vcall std_core$Iterator.next :[[i32, usize], Continuation]!
+        let __step_2: [[i32, usize], Continuation] =
+          vcall std_core$Iterator.next :[[i32, usize], Continuation]
             recv:
-              __iter_1 :Iterator<[i32, usize]>!
+              __iter_1 :Iterator<[i32, usize]>
         if :void
           cond:
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_2 :[[i32, usize], Continuation]!
+                  __step_2 :[[i32, usize], Continuation]
               r:
                 int(1) :u8
           then:
@@ -53,7 +53,7 @@
           else:
             let __for_elem_3: [i32, usize] =
               ._0 :[i32, usize]
-                __step_2 :[[i32, usize], Continuation]!
+                __step_2 :[[i32, usize], Continuation]
             let x: i32 =
               ._0 :i32
                 __for_elem_3 :[i32, usize]
@@ -153,8 +153,8 @@
             lazy :string
     let fused: string = "" :string
     block :void
-      let __fuse_arr_9: i32[]! =
-        array :i32[]!
+      let __fuse_arr_9: i32[] =
+        array :i32[]
           int(10) :i32
           int(20) :i32
           int(30) :i32
@@ -167,11 +167,11 @@
         let x: i32 =
           index :i32
             on:
-              __fuse_arr_9 :i32[]!
+              __fuse_arr_9 :i32[]
             ix:
               __fuse_i_12 :usize
         let x: [i32, usize] =
-          [i32, usize]! {
+          [i32, usize] {
             _0: x :i32
             _1: i :usize
           }

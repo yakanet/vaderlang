@@ -2,13 +2,13 @@
 
 ## snippet
   struct snippet$Foo { x: i32 }
-  fn snippet$Foo$Scored$score(self: Foo!) -> i32
+  fn snippet$Foo$Scored$score(self: Foo) -> i32
     ~>
       .x :i32
         self :Foo
   fn snippet$main() -> i32
-    let fa: Foo! =
-      Foo! {
+    let fa: Foo =
+      Foo {
         x: int(7) :i32
       }
     call :void
@@ -40,7 +40,7 @@
                       callee:
                         snippet$Foo$Scored$score :i32
                       arg0:
-                        fa :Foo!
+                        fa :Foo
           ~>
             call :string
               callee:

@@ -13,7 +13,7 @@
           arg0:
             s :string
           arg1:
-            Range<usize>! {
+            Range<usize> {
               start: int(0) :usize
               end: int(2) :usize
               inclusive: false
@@ -30,7 +30,7 @@
           arg0:
             s :string
           arg1:
-            Range<usize>! {
+            Range<usize> {
               start: int(1) :usize
               end: int(3) :usize
               inclusive: false
@@ -47,7 +47,7 @@
           arg0:
             s :string
           arg1:
-            Range<usize>! {
+            Range<usize> {
               start: int(0) :usize
               end: int(5) :usize
               inclusive: false
@@ -64,7 +64,7 @@
           arg0:
             s :string
           arg1:
-            Range<usize>! {
+            Range<usize> {
               start: int(2) :usize
               end: int(4) :usize
               inclusive: true
@@ -81,7 +81,7 @@
           arg0:
             s :string
           arg1:
-            Range<usize>! {
+            Range<usize> {
               start: int(0) :usize
               end: int(99) :usize
               inclusive: false
@@ -98,7 +98,7 @@
           arg0:
             s :string
           arg1:
-            Range<usize>! {
+            Range<usize> {
               start: int(99) :usize
               end: int(99) :usize
               inclusive: false
@@ -116,7 +116,7 @@
           arg0:
             a :string
           arg1:
-            Range<usize>! {
+            Range<usize> {
               start: int(1) :usize
               end: int(4) :usize
               inclusive: false

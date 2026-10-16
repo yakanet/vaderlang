@@ -1,19 +1,19 @@
 # Typecheck
 
 ## tests/snippets/array_push_all_const
-  StructDecl     Inner                :: Inner!
-  StructDecl     Item                 :: Item!
+  StructDecl     Inner                :: Inner
+  StructDecl     Item                 :: Item
   ConstDecl      ITEMS                :: Item[]
   FnDecl         main                 :: fn() -> i32
   expr 36:16    SeqLitExpr     :: Item[]
   expr 37:20    StringLitExpr  :: string
   expr 37:38    SeqLitExpr     :: Inner[]
-  expr 37:39    StructLitExpr  :: Inner!
-  expr 37:5     StructLitExpr  :: Item!
+  expr 37:39    StructLitExpr  :: Inner
+  expr 37:5     StructLitExpr  :: Item
   expr 37:54    StringLitExpr  :: string
   expr 38:20    StringLitExpr  :: string
   expr 38:39    SeqLitExpr     :: Inner[]
-  expr 38:5     StructLitExpr  :: Item!
+  expr 38:5     StructLitExpr  :: Item
   expr 42:18    SeqLitExpr     :: Item[]
   expr 43:18    IdentExpr      :: Item[]
   expr 43:5     CallExpr       :: void

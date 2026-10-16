@@ -4,9 +4,9 @@
   EnumDecl       Day                  :: Day
   FnDecl         main                 :: fn() -> i32
   ConstDecl      Maybe                :: type
-  StructDecl     None                 :: None!
+  StructDecl     None                 :: None
   FnDecl         show_day             :: fn(Day) -> string
-  StructDecl     Some                 :: Some!
+  StructDecl     Some                 :: Some
   expr 19:12    MatchExpr      :: string
   expr 19:18    IdentExpr      :: Day
   expr 20:23    StringLitExpr  :: string
@@ -27,7 +27,7 @@
   expr 33:29    CallExpr       :: string
   expr 33:29    IdentExpr      :: fn(Day) -> string
   expr 33:38    IdentExpr      :: Day
-  expr 36:15    StructLitExpr  :: Some!
+  expr 36:15    StructLitExpr  :: Some
   expr 37:11    IdentExpr      :: None | Some
   expr 37:5     MatchExpr      :: void
   expr 38:21    CallExpr       :: void
@@ -38,7 +38,7 @@
   expr 39:21    CallExpr       :: void
   expr 39:21    IdentExpr      :: fn(T) -> void
   expr 39:29    StringLitExpr  :: string
-  expr 41:15    StructLitExpr  :: None!
+  expr 41:15    StructLitExpr  :: None
   expr 42:11    IdentExpr      :: None | Some
   expr 42:5     MatchExpr      :: void
   expr 43:21    CallExpr       :: void

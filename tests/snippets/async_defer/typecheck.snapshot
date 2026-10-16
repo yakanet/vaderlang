@@ -19,6 +19,6 @@
   expr 15:5     CallExpr       :: void
   expr 15:5     IdentExpr      :: fn(T) -> void
   expr 20:10    AwaitExpr      :: i32
-  expr 20:16    CallExpr       :: Async<i32>!
+  expr 20:16    CallExpr       :: Async<i32>
   expr 20:16    IdentExpr      :: fn(string) -> Async<i32>
   expr 20:21    StringLitExpr  :: string

@@ -4,7 +4,7 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         products             :: fn(i32[], i32[]) -> i64[]
   expr 11:17    SeqLitExpr     :: i64[]
-  expr 12:19    CallExpr       :: __genstate_zip<[i32, i32]>!
+  expr 12:19    CallExpr       :: __genstate_zip<[i32, i32]>
   expr 12:19    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
   expr 12:23    IdentExpr      :: i32[]
   expr 12:26    IdentExpr      :: i32[]

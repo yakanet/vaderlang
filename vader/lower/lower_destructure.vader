@@ -155,7 +155,7 @@ emit_rest_loop :: fn(
     // The resolver indexes a rest binding's Symbol by `span` (not
     // `name_span` like simple bindings — see resolver `bind_let_binding`).
     rest_sym :: resolve_binding(ctx, rest.span) ?? return
-    array_type :: mk_array(elem_type, false)
+    array_type :: mk_array(elem_type)
     empty_arr :: LoweredArrayLit { .span = rest.span, .type = array_type, .elements = [] }
     out.push(cell_aware_let(ctx, rest_sym, rest.name, empty_arr, array_type, rest.span))
     rest_ref :: read_local_cell_aware(ctx, rest_sym, array_type, span)

@@ -276,7 +276,7 @@ collect_expr_deps :: fn(
         // Type expressions. A type mentions a const only through a generic
         // argument, and `GenericInstExpr` above already descends into those; the
         // written form itself contributes no dependency.
-        is AST.FnTypeExpr | AST.ArrayTypeExpr | AST.MutableTypeExpr -> {}
+        is AST.FnTypeExpr | AST.ArrayTypeExpr -> {}
     }
 }
 

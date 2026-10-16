@@ -18,7 +18,7 @@
               ~>
                 if :string
                   cond:
-                    is P! :bool
+                    is P :bool
                       a :null | P | Q
                   then:
                     ~>
@@ -71,7 +71,7 @@
                     ~>
                       if :string
                         cond:
-                          is Q! :bool
+                          is Q :bool
                             a :null | P | Q
                         then:
                           ~>
@@ -96,7 +96,7 @@
           callee:
             show :fn(null | P | Q) -> string
           arg0:
-            P! {
+            P {
               x: int(42) :i32
             }
     call :void
@@ -107,7 +107,7 @@
           callee:
             show :fn(null | P | Q) -> string
           arg0:
-            Q! {
+            Q {
               y: "hello" :string
             }
     call :void

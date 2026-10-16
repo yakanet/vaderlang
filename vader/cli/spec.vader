@@ -387,13 +387,6 @@ export COMMANDS: CommandSpec[]: [
         .tail = .None,
     },
     CommandSpec {
-        .name = "fix",
-        .summary = "Remove the `!` the compiler deduces or nothing needs",
-        .usage = "<file>",
-        .flags = CHECK_FLAGS,
-        .tail = .None,
-    },
-    CommandSpec {
         .name = "lint",
         .summary = "Project-wide lints kept out of the default build",
         .usage = "<file>",

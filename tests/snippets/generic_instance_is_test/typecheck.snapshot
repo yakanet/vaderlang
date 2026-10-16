@@ -3,7 +3,7 @@
 ## tests/snippets/generic_instance_is_test
   FnDecl         describe             :: fn(Spec<bool> | Spec<string>) -> string
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Spec                 :: Spec<T>!
+  StructDecl     Spec                 :: Spec<T>
   expr 11:58    MatchExpr      :: string
   expr 11:64    IdentExpr      :: Spec<bool> | Spec<string>
   expr 12:24    StringLitExpr  :: string
@@ -18,10 +18,10 @@
   expr 13:60    IdentExpr      :: Spec<string>
   expr 17:43    SeqLitExpr     :: (Spec<bool> | Spec<string>)[]
   expr 18:30    StringLitExpr  :: string
-  expr 18:9     StructLitExpr  :: Spec<bool>!
+  expr 18:9     StructLitExpr  :: Spec<bool>
   expr 19:32    StringLitExpr  :: string
   expr 19:46    StringLitExpr  :: string
-  expr 19:9     StructLitExpr  :: Spec<string>!
+  expr 19:9     StructLitExpr  :: Spec<string>
   expr 21:14    IdentExpr      :: (Spec<bool> | Spec<string>)[]
   expr 22:12    BinaryExpr     :: bool
   expr 22:12    IdentExpr      :: Spec<bool> | Spec<string>

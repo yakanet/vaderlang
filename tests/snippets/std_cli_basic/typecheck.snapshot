@@ -7,13 +7,13 @@
   expr 10:50    StringLitExpr  :: string
   expr 11:22    StringLitExpr  :: string
   expr 11:41    StringLitExpr  :: string
-  expr 14:13    SeqLitExpr     :: string[]!
+  expr 14:13    SeqLitExpr     :: string[]
   expr 14:14    StringLitExpr  :: string
   expr 14:27    StringLitExpr  :: string
   expr 14:43    StringLitExpr  :: string
   expr 15:10    CallExpr       :: ParsedArgs
   expr 15:10    IdentExpr      :: fn(string[], FlagSpec[]) -> ParsedArgs
-  expr 15:16    IdentExpr      :: string[]!
+  expr 15:16    IdentExpr      :: string[]
   expr 15:22    IdentExpr      :: FlagSpec[]
   expr 17:13    StringLitExpr  :: string
   expr 17:23    CallExpr       :: usize
@@ -151,5 +151,5 @@
   expr 8:47     DotVariantExpr :: FlagKind
   expr 8:62     StringLitExpr  :: string
   expr 8:83     StringLitExpr  :: string
-  expr 8:9      StructLitExpr  :: FlagSpec!
-  expr 9:9      StructLitExpr  :: FlagSpec!
+  expr 8:9      StructLitExpr  :: FlagSpec
+  expr 9:9      StructLitExpr  :: FlagSpec

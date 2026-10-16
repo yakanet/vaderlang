@@ -622,7 +622,7 @@ parse_import_decl_bc :: fn(
     c_variadic_fixed: i32 = -1
     result_type: i32 = 0
     param_types: i32[]: []
-    param_mutable: bool[]: []
+    param_c_out: bool[]: []
     param_by_address: bool[]: []
     for i in (name_i + 2)..<parts.len() {
         attr :: parts[i]
@@ -647,9 +647,9 @@ parse_import_decl_bc :: fn(
                 param_types.push(if parsed is ParseError { 0 } else { i32(parsed) })
             }
         }
-        if attr.starts_with("param_mutable=") {
-            for field in attr.trim_prefix("param_mutable=").split(",") {
-                param_mutable.push(field == "1")
+        if attr.starts_with("param_c_out=") {
+            for field in attr.trim_prefix("param_c_out=").split(",") {
+                param_c_out.push(field == "1")
             }
         }
         if attr.starts_with("param_by_address=") {
@@ -683,10 +683,10 @@ parse_import_decl_bc :: fn(
         .param_names = sig.param_names,
         // Same rule as `param_types`: a list that does not cover every parameter
         // is not trusted, the flags being read positionally.
-        .param_mutable = if param_mutable.len() == sig.params.len() {
-            param_mutable
+        .param_c_out = if param_c_out.len() == sig.params.len() {
+            param_c_out
         } else {
-            sig.param_mutable
+            sig.param_c_out
         },
         .param_by_address = if param_by_address.len() == sig.params.len() {
             param_by_address
@@ -790,36 +790,22 @@ parse_data_decl_bc :: fn(
     sp1 :: after.index_of(' ', 0)
     if sp1 < 0 {
         return DirectiveError {
-            .reason = "expected `data <index> [mut] <kind> <payload>`, got `${after}`",
+            .reason = "expected `data <index> <kind> <payload>`, got `${after}`",
         }
     }
     kind_payload :: after.byte_slice(usize(sp1) + 1, after.byte_len())
     kind_name :: before_first(kind_payload, ' ')
     payload :: after_first(kind_payload, ' ')
-    // `mut` before the kind marks a writable global (see `dump::storage_class`).
-    // Re-split once past it so the rest reads exactly as the read-only form.
-    if kind_name == "mut" {
-        inner_kind :: before_first(payload, ' ')
-        inner_payload :: after_first(payload, ' ')
-        return parse_data_entry_body(inner_kind, inner_payload, true, data_pool, strings)
-    }
-    return parse_data_entry_body(kind_name, payload, false, data_pool, strings)
-}
-
-parse_data_entry_body :: fn(
-    kind_name: string, payload: string, mutable: bool,
-    data_pool: bc.BcDataEntry[], strings: string[],
-) -> DirectiveError | null {
     if kind_name == "str" {
-        data_pool.push(bc.BcStrData { .values = parse_quoted_strings(payload), .mutable = mutable })
+        data_pool.push(bc.BcStrData { .values = parse_quoted_strings(payload) })
         return null
     }
     if kind_name == "agg" {
-        data_pool.push(parse_agg_decl(payload, strings, mutable))
+        data_pool.push(parse_agg_decl(payload, strings))
         return null
     }
     if kind_name == "structs" {
-        data_pool.push(parse_structs_decl(payload, strings, mutable))
+        data_pool.push(parse_structs_decl(payload, strings))
         return null
     }
     // Every other kind carries a `hex"…"` blob. A malformed one used to be
@@ -842,7 +828,7 @@ parse_data_entry_body :: fn(
         bytes_arr :: hex_to_bytes(hex_body)
         items = filled_indexed(bytes_arr.len() / esz, (i) -> read_le(bytes_arr, i * esz, esz))
     }
-    data_pool.push(bc.BcPrimData { .kind = kind, .items = items, .mutable = mutable })
+    data_pool.push(bc.BcPrimData { .kind = kind, .items = items })
     return null
 }
 
@@ -879,7 +865,7 @@ parse_quoted_strings :: fn(s: string) -> string[] {
 // Parse the `agg` payload `<elemname> <count> <value>…` into a `BcAggregateData`.
 // Values are count-prefixed (no paren balancing) — see `dump::write_data_value`.
 // `strings` resolves any `strref <i>` leaf back to its pooled value.
-parse_agg_decl :: fn(payload: string, strings: string[], mutable: bool) -> bc.BcAggregateData {
+parse_agg_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateData {
     tokens :: tokenize_agg(payload)
     if tokens.len() < 2 {
         return bc.BcAggregateData { .element_type_name = "", .elements = [] }
@@ -889,7 +875,7 @@ parse_agg_decl :: fn(payload: string, strings: string[], mutable: bool) -> bc.Bc
     pos: i32[]: [2]
     elements: bc.BcDataValue[]: []
     for _ in 0..<count { elements.push(parse_data_value(tokens, pos, strings)) }
-    return bc.BcAggregateData { .element_type_name = element_type_name, .elements = elements, .mutable = mutable }
+    return bc.BcAggregateData { .element_type_name = element_type_name, .elements = elements }
 }
 
 // Parse the compact homogeneous-struct form `<symid> <nfields> <count> <field>…`
@@ -899,7 +885,7 @@ parse_agg_decl :: fn(payload: string, strings: string[], mutable: bool) -> bc.Bc
 // informational only (both the VM's `bc_value_to_vm` and c-emit resolve struct
 // identity from each element's `symbol_id`, never the aggregate name ; only a
 // nested `BcValArray.element_type_name` is read).
-parse_structs_decl :: fn(payload: string, strings: string[], mutable: bool) -> bc.BcAggregateData {
+parse_structs_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateData {
     tokens :: tokenize_agg(payload)
     if tokens.len() < 3 {
         return bc.BcAggregateData { .element_type_name = "", .elements = [] }
@@ -914,7 +900,7 @@ parse_structs_decl :: fn(payload: string, strings: string[], mutable: bool) -> b
         for _ in 0..<nfields { fields.push(parse_data_value(tokens, pos, strings)) }
         elements.push(bc.BcValStruct { .symbol_id = symbol_id, .fields = fields })
     }
-    return bc.BcAggregateData { .element_type_name = "", .elements = elements, .mutable = mutable }
+    return bc.BcAggregateData { .element_type_name = "", .elements = elements }
 }
 
 // Recursive descent over the token stream (`pos` is a 1-element mutable cursor).
@@ -1123,8 +1109,7 @@ reduce_main_index :: fn(funcs: bc.BcFunction[]) -> i32 {
 }
 
 // One header per pool entry, stamped with the type_id its `data.const` sites read
-// it at (`type_ids`, from `bc.data_pool_type_ids`) — or `-1` for a writable entry,
-// which then never matches a site and gets a fresh header per read.
+// it at (`type_ids`, from `bc.data_pool_type_ids`).
 reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[], type_ids: i32[]) -> ArrayVal[] {
     out: ArrayVal[]: []
     for i in 0..<entries.len() {
@@ -1138,7 +1123,7 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[], type_ids: 
             for v in e.elements { elements.push(bc_value_to_vm(v, types)) }
         }
         out.push(ArrayVal {
-            .type_id  = if bc.data_entry_mutable(e) { -1 } else { type_ids[i] },
+            .type_id  = type_ids[i],
             .elements = elements,
             .offset   = 0,
             .length   = elements.len(),

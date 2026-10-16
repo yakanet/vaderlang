@@ -53,9 +53,9 @@ string 1 " "
 string 2 "L"
 string 3 "\n"
 data 0 structs 2 1 2 i32 04000000 i32 05000000
-import 0 byte_len std_core$byte_len result_type=18 param_types=9 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=26 param_types=9 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=28 param_types=8,26,18 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=18 param_types=9 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=26 param_types=9 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=28 param_types=8,26,18 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 10 std_core$Iterator
 impl 13 std_core$Iterator
 impl 16 std_core$Iterator

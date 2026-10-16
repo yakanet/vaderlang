@@ -90,18 +90,6 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
                 .element = substitute_type_expr(expr.element, subst),
             }
         }
-        // `T!` — descend into the marked type. Falling through to the `_` arm
-        // instead would return the node UNCHANGED, so the `T` inside would
-        // survive monomorphisation : `clone<Symbol>` kept a type-param in its
-        // return, the element stayed erased, and the buffer was built at the
-        // wrong element width — a native segfault, not a diagnostic.
-        is AST.MutableTypeExpr -> {
-            return AST.MutableTypeExpr {
-                ...expr,
-                .id = AST.UNASSIGNED_NODE_ID,
-                .inner = substitute_type_expr(expr.inner, subst),
-            }
-        }
         is AST.SeqLitExpr -> {
             // Bracketed type tuple `[T1, T2, ...]` ; elements are all TypeExprs
             // in this position.

@@ -3,11 +3,11 @@
 ## snippet
   struct snippet$Timeout { seconds: i32 }
   struct snippet$Refused { port: i32 }
-  fn snippet$Timeout$Err$code(self: Timeout!) -> i32
+  fn snippet$Timeout$Err$code(self: Timeout) -> i32
     ~>
       .seconds :i32
         self :Timeout
-  fn snippet$Refused$Err$code(self: Refused!) -> i32
+  fn snippet$Refused$Err$code(self: Refused) -> i32
     ~>
       .port :i32
         self :Refused
@@ -16,7 +16,7 @@
       cond:
         or :bool
           l:
-            is Err! :bool
+            is Err :bool
               x :Refused | string | Timeout
           r:
             is string :bool
@@ -24,22 +24,22 @@
       then:
         if :void
           cond:
-            is Timeout! :bool
+            is Timeout :bool
               x :Refused | string | Timeout
           then:
-            let t: Timeout! =
-              cast → Timeout!
+            let t: Timeout =
+              cast → Timeout
                 x :Refused | string | Timeout
             return
               .seconds :i32
                 t :Timeout
         if :void
           cond:
-            is Refused! :bool
+            is Refused :bool
               x :Refused | string | Timeout
           then:
-            let r: Refused! =
-              cast → Refused!
+            let r: Refused =
+              cast → Refused
                 cast → Refused | string
                   x :Refused | string | Timeout
             return
@@ -52,7 +52,7 @@
       cond:
         or :bool
           l:
-            is Err! :bool
+            is Err :bool
               x :string | Timeout
           r:
             is string :bool
@@ -90,7 +90,7 @@
                       callee:
                         classify :fn(Refused | string | Timeout) -> i32
                       arg0:
-                        Timeout! {
+                        Timeout {
                           seconds: int(30) :i32
                         }
           ~>
@@ -130,7 +130,7 @@
                       callee:
                         classify :fn(Refused | string | Timeout) -> i32
                       arg0:
-                        Refused! {
+                        Refused {
                           port: int(8080) :i32
                         }
           ~>

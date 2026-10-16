@@ -13,24 +13,149 @@
       _0: int(7) :?
       _1: "seven" :string
     }
-  fn snippet$bump(i: usize) -> void
-    assign
-      target:
-        index :i32
-          on:
-            COUNTS :i32[]!
-          ix:
-            i :usize
-      value:
-        add_checked :i32
+  fn snippet$counts() -> i32[]
+    if :void
+      cond:
+        eq :bool
           l:
-            index :i32
-              on:
-                COUNTS :i32[]!
-              ix:
-                i :usize
+            global_get #0 :i32
+          r:
+            int(2) :i32
+      then:
+        return
+          global_get #1 :i32[]
+    if :void
+      cond:
+        eq :bool
+          l:
+            global_get #0 :i32
           r:
             int(1) :i32
+      then:
+        unreachable("singleton `counts` called while it initialises") :void
+    global_set #0
+      int(1) :i32
+    global_set #1
+      call :i32[]
+        callee:
+          snippet$counts$singleton :i32[]
+    global_set #0
+      int(2) :i32
+    return
+      global_get #1 :i32[]
+  fn snippet$slots() -> string[]
+    if :void
+      cond:
+        eq :bool
+          l:
+            global_get #2 :i32
+          r:
+            int(2) :i32
+      then:
+        return
+          global_get #3 :string[]
+    if :void
+      cond:
+        eq :bool
+          l:
+            global_get #2 :i32
+          r:
+            int(1) :i32
+      then:
+        unreachable("singleton `slots` called while it initialises") :void
+    global_set #2
+      int(1) :i32
+    global_set #3
+      call :string[]
+        callee:
+          snippet$slots$singleton :string[]
+    global_set #2
+      int(2) :i32
+    return
+      global_get #3 :string[]
+  fn snippet$flags() -> bool[]
+    if :void
+      cond:
+        eq :bool
+          l:
+            global_get #4 :i32
+          r:
+            int(2) :i32
+      then:
+        return
+          global_get #5 :bool[]
+    if :void
+      cond:
+        eq :bool
+          l:
+            global_get #4 :i32
+          r:
+            int(1) :i32
+      then:
+        unreachable("singleton `flags` called while it initialises") :void
+    global_set #4
+      int(1) :i32
+    global_set #5
+      call :bool[]
+        callee:
+          snippet$flags$singleton :bool[]
+    global_set #4
+      int(2) :i32
+    return
+      global_get #5 :bool[]
+  fn snippet$queue() -> Spec[]
+    if :void
+      cond:
+        eq :bool
+          l:
+            global_get #6 :i32
+          r:
+            int(2) :i32
+      then:
+        return
+          global_get #7 :Spec[]
+    if :void
+      cond:
+        eq :bool
+          l:
+            global_get #6 :i32
+          r:
+            int(1) :i32
+      then:
+        unreachable("singleton `queue` called while it initialises") :void
+    global_set #6
+      int(1) :i32
+    global_set #7
+      call :Spec[]
+        callee:
+          snippet$queue$singleton :Spec[]
+    global_set #6
+      int(2) :i32
+    return
+      global_get #7 :Spec[]
+  fn snippet$bump(i: usize) -> void
+    block :void
+      let __place_operand_0: i32[] =
+        call :i32[]
+          callee:
+            counts :fn() -> i32[]
+      assign
+        target:
+          index :i32
+            on:
+              __place_operand_0 :i32[]
+            ix:
+              i :usize
+        value:
+          add_checked :i32
+            l:
+              index :i32
+                on:
+                  __place_operand_0 :i32[]
+                ix:
+                  i :usize
+            r:
+              int(1) :i32
   fn snippet$main() -> i32
     call :void
       callee:
@@ -356,20 +481,17 @@
       callee:
         bump :fn(usize) -> void
       arg0:
-        cast → usize
-          int(0) :usize
+        int(0) :usize
     call :void
       callee:
         bump :fn(usize) -> void
       arg0:
-        cast → usize
-          int(0) :usize
+        int(0) :usize
     call :void
       callee:
         bump :fn(usize) -> void
       arg0:
-        cast → usize
-          int(2) :usize
+        int(2) :usize
     call :void
       callee:
         std_io$println__string :void
@@ -410,7 +532,9 @@
                   cast → i64
                     index :i32
                       on:
-                        COUNTS :i32[]!
+                        call :i32[]
+                          callee:
+                            counts :fn() -> i32[]
                       ix:
                         int(0) :i32
           assign
@@ -441,7 +565,9 @@
                   cast → i64
                     index :i32
                       on:
-                        COUNTS :i32[]!
+                        call :i32[]
+                          callee:
+                            counts :fn() -> i32[]
                       ix:
                         int(1) :i32
           assign
@@ -472,7 +598,9 @@
                   cast → i64
                     index :i32
                       on:
-                        COUNTS :i32[]!
+                        call :i32[]
+                          callee:
+                            counts :fn() -> i32[]
                       ix:
                         int(2) :i32
           ~>
@@ -483,6 +611,10 @@
                 __buf_11 :Buffer
               arg1:
                 __off_12 :usize
+    let names: string[] =
+      call :string[]
+        callee:
+          slots :fn() -> string[]
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
@@ -490,10 +622,9 @@
           target:
             index :string
               on:
-                SLOTS :string[]!
+                names :string[]
               ix:
-                cast → usize
-                  i :i32
+                i :i32
           value:
             block :string
               let __buf_13: Buffer =
@@ -562,10 +693,11 @@
                 l:
                   index :string
                     on:
-                      SLOTS :string[]!
+                      call :string[]
+                        callee:
+                          slots :fn() -> string[]
                     ix:
-                      cast → usize
-                        i :i32
+                      i :i32
                 r:
                   block :string
                     let __buf_15: Buffer =
@@ -638,13 +770,17 @@
           let __p_17: string =
             index :string
               on:
-                SLOTS :string[]!
+                call :string[]
+                  callee:
+                    slots :fn() -> string[]
               ix:
                 int(0) :i32
           let __p_18: string =
             index :string
               on:
-                SLOTS :string[]!
+                call :string[]
+                  callee:
+                    slots :fn() -> string[]
               ix:
                 int(23) :i32
           let __buf_19: Buffer =
@@ -793,7 +929,9 @@
       target:
         index :bool
           on:
-            FLAGS :bool[]!
+            call :bool[]
+              callee:
+                flags :fn() -> bool[]
           ix:
             int(2) :i32
       value:
@@ -837,7 +975,9 @@
                 arg2:
                   index :bool
                     on:
-                      FLAGS :bool[]!
+                      call :bool[]
+                        callee:
+                          flags :fn() -> bool[]
                     ix:
                       int(0) :i32
           assign
@@ -867,7 +1007,9 @@
                 arg2:
                   index :bool
                     on:
-                      FLAGS :bool[]!
+                      call :bool[]
+                        callee:
+                          flags :fn() -> bool[]
                     ix:
                       int(2) :i32
           assign
@@ -905,6 +1047,10 @@
                 __buf_21 :Buffer
               arg1:
                 __off_22 :usize
+    let table: i32[] =
+      call :i32[]
+        callee:
+          counts :fn() -> i32[]
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
@@ -934,14 +1080,15 @@
                 l:
                   index :i32
                     on:
-                      COUNTS :i32[]!
+                      call :i32[]
+                        callee:
+                          counts :fn() -> i32[]
                     ix:
-                      add_checked :usize
+                      add_checked :i32
                         l:
-                          cast → usize
-                            i :i32
+                          i :i32
                         r:
-                          int(3) :usize
+                          int(3) :i32
                 r:
                   cast → i32
                     i :i32
@@ -1039,16 +1186,20 @@
                 __buf_23 :Buffer
               arg1:
                 __off_24 :usize
+    let pending: Spec[] =
+      call :Spec[]
+        callee:
+          queue :fn() -> Spec[]
     LoweredArrayPush
     assign
       target:
         index :Spec
           on:
-            QUEUE :Spec[]!
+            pending :Spec[]
           ix:
             int(0) :i32
       value:
-        Spec! {
+        Spec {
           name:
             block :string
               let __buf_25: Buffer =
@@ -1104,7 +1255,7 @@
         .code :i32
           index :Spec
             on:
-              QUEUE :Spec[]!
+              pending :Spec[]
             ix:
               int(0) :i32
       value:
@@ -1135,7 +1286,9 @@
             .name :string
               index :Spec
                 on:
-                  QUEUE :Spec[]!
+                  call :Spec[]
+                    callee:
+                      queue :fn() -> Spec[]
                 ix:
                   int(0) :i32
           r:
@@ -1161,14 +1314,15 @@
                   .name :string
                     index :Spec
                       on:
-                        QUEUE :Spec[]!
+                        call :Spec[]
+                          callee:
+                            queue :fn() -> Spec[]
                       ix:
-                        add_checked :usize
+                        add_checked :i32
                           l:
-                            cast → usize
-                              i :i32
+                            i :i32
                           r:
-                            int(1) :usize
+                            int(1) :i32
                 r:
                   block :string
                     let __buf_29: Buffer =
@@ -1243,7 +1397,7 @@
               callee:
                 new_byte_buffer :Buffer
               arg0:
-                int(53) :usize
+                int(79) :usize
           let __off_32: usize = int(0) :usize
           assign
             target:
@@ -1299,6 +1453,40 @@
                 arg2:
                   cast → u64
                     LoweredArrayLen
+          assign
+            target:
+              __off_32 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_31 :Buffer
+                arg1:
+                  __off_32 :usize
+                arg2:
+                  " code=" :string
+          assign
+            target:
+              __off_32 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_31 :Buffer
+                arg1:
+                  __off_32 :usize
+                arg2:
+                  cast → i64
+                    .code :i32
+                      index :Spec
+                        on:
+                          call :Spec[]
+                            callee:
+                              queue :fn() -> Spec[]
+                        ix:
+                          int(0) :i32
           ~>
             call :string
               callee:
@@ -1387,6 +1575,27 @@
               arg1:
                 __off_37 :usize
     return int(0) :i32
+  fn snippet$counts$singleton() -> i32[]
+    ~>
+      array :i32[]
+        int(0) :i32
+        int(0) :i32
+        int(0) :i32
+  fn snippet$slots$singleton() -> string[]
+    ~>
+      @array.repeat :string[]
+        array :string[]
+          "" :string
+        int(24) :i32
+  fn snippet$flags$singleton() -> bool[]
+    ~>
+      @array.repeat :bool[]
+        array :bool[]
+          false
+        int(4) :i32
+  fn snippet$queue$singleton() -> Spec[]
+    ~>
+      array :Spec[]
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize
@@ -1436,6 +1645,3 @@
           buf :Buffer
         arg1:
           c1 :usize
-
-# Diagnostics
-[93:43] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Fast`

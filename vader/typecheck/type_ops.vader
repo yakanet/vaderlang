@@ -1,4 +1,4 @@
-// vader/typecheck/type_ops — equality, union canonicalisation, immutability bits.
+// vader/typecheck/type_ops — equality, union canonicalisation, trait membership.
 //
 // Nothing here touches the `ImplRegistry` (`impls.vader`) — trait questions are
 // answered only from the precomputed side-tables on `TypedProgram`
@@ -93,19 +93,13 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     } else if b is StructType {
         b.symbol.id == a.symbol.id
     } else { false }
-    // Immutability is NOT part of struct / tuple identity : the bit records a
-    // promise made by one function about one parameter, not a different type.
-    // Two `Cfg` are one type whether or not a borrow is read-only, so caches,
-    // union dedup, monomorphisation keys and overlap tests all keep working
-    // unchanged. `ArrayType` below is the exception — read-only `T[]` is a written
-    // annotation that freezes the referent, hence a genuinely distinct type.
     is StructType  -> if b is StructType as bx {
         nominal_eq(a.symbol.id, a.args, bx.symbol.id, bx.args)
     } else if b is EnumType {
         a.symbol.id == b.symbol.id
     } else { false }
     is TraitType -> if b is TraitType as bx { nominal_eq(a.symbol.id, a.args, bx.symbol.id, bx.args) } else { false }
-    is ArrayType -> if b is ArrayType as bx { a.immutable == bx.immutable && equals_type(a.element, bx.element) } else { false }
+    is ArrayType -> if b is ArrayType as bx { equals_type(a.element, bx.element) } else { false }
     is TupleType -> if b is TupleType as bx { type_list_equals(a.elements, bx.elements) } else { false }
     is FnType    -> if b is FnType as bx { type_list_equals(a.params, bx.params) && equals_type(a.return_type, bx.return_type) } else { false }
     is UnionType -> if b is UnionType as bx { type_list_equals(a.variants, bx.variants) } else { false }
@@ -131,462 +125,6 @@ export type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
     return true
 }
 
-// ---- immutability ---------------------------------------------------------
-
-/// `t` with its top-level immutability bit set to `immutable`.
-///
-/// On a union the bit is **distributed over the variants** — `UnionType` itself
-/// never carries one — so a later `x is Cfg` narrowing finds the bit already on
-/// the variant it selects. Shapes that can't carry the bit (`type_is_immutable`
-/// answers false for them) come back unchanged, and so does a type that already
-/// has the requested bit.
-export with_immutable :: fn(t: Type, immutable: bool) -> Type = match t {
-    is ArrayType    -> if t.immutable == immutable { t } else { mk_array(t.element, immutable) }
-    is StructType   -> if t.immutable == immutable { t } else { mk_struct(t.symbol, t.args, immutable) }
-    is TupleType    -> if t.immutable == immutable { t } else { mk_tuple(t.elements, immutable) }
-    is UnionType    -> union_of(with_immutable_each(t.variants, immutable))
-    is TraitType    -> if t.immutable == immutable {
-        t
-    } else {
-        TraitType { ...t, .immutable = immutable }
-    }
-    is DistinctType -> if !carries_mutability_bit(t) || type_is_immutable(t) == immutable {
-        t
-    } else {
-        mk_distinct(t.symbol, with_immutable(t.backing, immutable))
-    }
-    is PrimitiveType | EnumType | FnType | TypeParamType | TypeMetaType
-     | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
-     | NeverType | AnyType -> t
-}
-
-// What the type parameter `t` stands for once bound to `binding` : the binding
-// read-only when `t` is a read-only view, else the binding as it is. Bound to
-// itself (`hold_type_params_in_scope`), `t` stays as written, read-only view
-// included : `with_immutable` would leave the bare `T` it was bound to.
-instance_of :: fn(t: TypeParamType, binding: Type) -> Type {
-    if binding is TypeParamType && binding.symbol.id == t.symbol.id {
-        return t
-    }
-    if t.immutable {
-        return with_immutable(binding, true)
-    }
-    return binding
-}
-
-// `t` read-only : a read-only view of a type parameter, which `with_immutable`
-// leaves alone — a written `T`, or a lambda's, has the rights of what it stands for.
-read_only_of :: fn(t: Type) -> Type = if t is TypeParamType {
-    TypeParamType { ...t, .immutable = true }
-} else {
-    with_immutable(t, true)
-}
-
-// `t` mutable : a type parameter at the rights of what it stands for.
-mutable_of :: fn(t: Type) -> Type = if t is TypeParamType {
-    TypeParamType { ...t, .immutable = false }
-} else {
-    with_immutable(t, false)
-}
-
-with_immutable_each :: fn(variants: Type[], immutable: bool) -> Type[] {
-    out: Type[]: []
-    for v in variants { out.push(with_immutable(v, immutable)) }
-    return out
-}
-
-// `a` and `b` at the rights both hold : the same type, each level read-only when
-// either is. Null when they differ by more than their rights. It is what a type
-// parameter bound by two arguments keeps (`unify_type_param`), and what a join of
-// two such variants keeps (`collect_variant`), so neither lends rights the other
-// lacks.
-least_permissive :: fn(a: Type, b: Type) -> Type | null = bound_rights(a, b, true)
-
-// `a` and `b` with each level read-only when either is (`read_only_wins`), or only
-// when both are — the other bound, which a fn type's parameters take, since a fn
-// accepting what both accept demands what either demands. `a` itself comes back when
-// no level of it changes.
-bound_rights :: fn(a: Type, b: Type, read_only_wins: bool) -> Type | null {
-    match a {
-        is ArrayType -> {
-            if b is ArrayType {
-                element :: bound_rights(a.element, b.element, read_only_wins) ?? return null
-                immutable :: container_bit(a, b, [a.element], [b.element], read_only_wins) ??
-                    return TY_NEVER
-                if element === a.element && immutable == a.immutable {
-                    return a
-                }
-                return mk_array(element, immutable)
-            }
-        }
-        is StructType -> {
-            if b is StructType && b.symbol.id == a.symbol.id {
-                args :: bound_rights_each(a.args, b.args, read_only_wins) ?? return null
-                immutable :: container_bit(a, b, a.args, b.args, read_only_wins) ??
-                    return TY_NEVER
-                if args === a.args && immutable == a.immutable {
-                    return a
-                }
-                return mk_struct(a.symbol, args, immutable)
-            }
-        }
-        is TupleType -> {
-            if b is TupleType {
-                elements :: bound_rights_each(a.elements, b.elements, read_only_wins) ?? return null
-                immutable :: container_bit(a, b, a.elements, b.elements, read_only_wins) ??
-                    return TY_NEVER
-                if elements === a.elements && immutable == a.immutable {
-                    return a
-                }
-                return mk_tuple(elements, immutable)
-            }
-        }
-        is TraitType -> {
-            if b is TraitType && b.symbol.id == a.symbol.id {
-                args :: bound_rights_each(a.args, b.args, read_only_wins) ?? return null
-                immutable :: container_bit(a, b, a.args, b.args, read_only_wins) ??
-                    return TY_NEVER
-                if args === a.args && immutable == a.immutable {
-                    return a
-                }
-                return TraitType { ...a, .args = args, .immutable = immutable }
-            }
-        }
-        // A read-only view joined with its `T` : the side the rule keeps.
-        is TypeParamType -> {
-            if b is TypeParamType && b.symbol.id == a.symbol.id {
-                view :: if read_only_wins {
-                    a.immutable || b.immutable
-                } else {
-                    a.immutable && b.immutable
-                }
-                return if view == a.immutable { a } else { b }
-            }
-        }
-        is DistinctType -> {
-            if b is DistinctType && b.symbol.id == a.symbol.id {
-                backing :: bound_rights(a.backing, b.backing, read_only_wins) ?? return null
-                return if backing === a.backing { a } else { mk_distinct(a.symbol, backing) }
-            }
-        }
-        // Variants pair by index : `union_of` sorts them on a key blind to the marker.
-        is UnionType -> {
-            if b is UnionType {
-                variants :: bound_rights_each(a.variants, b.variants, read_only_wins) ?? return null
-                return if variants === a.variants { a } else { union_of(variants) }
-            }
-        }
-        is FnType -> {
-            if b is FnType {
-                return bound_fn_rights(a, b, read_only_wins)
-            }
-        }
-        _ -> {}
-    }
-    // Any other pair agrees only with itself.
-    return if equals_type(a, b) { a } else { null }
-}
-
-// The return and the `!` marks take the bound asked for — the least rights keep a
-// mark either fn carries ; the parameters' types take the other one.
-bound_fn_rights :: fn(a: FnType, b: FnType, read_only_wins: bool) -> Type | null {
-    params :: bound_rights_each(a.params, b.params, !read_only_wins) ?? return null
-    ret :: bound_rights(a.return_type, b.return_type, read_only_wins) ?? return null
-    marks: bool[]: []
-    kept := params === a.params && ret === a.return_type
-    for i in 0..<a.params.len() {
-        mark :: merged_bit(param_mutable_at(a, i), param_mutable_at(b, i), read_only_wins)
-        marks.push(mark)
-        kept = kept && mark == param_mutable_at(a, i)
-    }
-    if kept {
-        return a
-    }
-    return FnType {
-        .params         = params,
-        .params_mutable = if true in marks { marks } else { [] },
-        .return_type    = ret,
-    }
-}
-
-merged_bit :: fn(a: bool, b: bool, read_only_wins: bool) -> bool =
-    if read_only_wins { a || b } else { a && b }
-
-// A container's bit in the bound of `a` and `b`, whose contents are `a_inner` and
-// `b_inner`. A mutable container holds its contents at the rights written, so
-// contents whose rights differ need a read-only one. Under the other bound a
-// read-only container fits neither side : null, and the caller answers `never`,
-// the parameter no argument fills.
-container_bit :: fn(
-    a: Type, b: Type, a_inner: Type[], b_inner: Type[], read_only_wins: bool,
-) -> bool | null {
-    immutable :: merged_bit(type_is_immutable(a), type_is_immutable(b), read_only_wins)
-    if immutable || same_rights_each(a_inner, b_inner) {
-        return immutable
-    }
-    return if read_only_wins { true } else { null }
-}
-
-same_rights_each :: fn(a: Type[], b: Type[]) -> bool {
-    for i in 0..<a.len() {
-        if bound_rights(a[i], b[i], true) !== a[i] || bound_rights(b[i], a[i], true) !== b[i] {
-            return false
-        }
-    }
-    return true
-}
-
-// Pairwise ; `a` itself when no element changes.
-bound_rights_each :: fn(a: Type[], b: Type[], read_only_wins: bool) -> Type[] | null {
-    if a.len() != b.len() {
-        return null
-    }
-    out: Type[]: []
-    kept := true
-    for i in 0..<a.len() {
-        met :: bound_rights(a[i], b[i], read_only_wins) ?? return null
-        kept = kept && met === a[i]
-        out.push(met)
-    }
-    return if kept { a } else { out }
-}
-
-/// The type of a parameter once its `!` marker is desugared onto the type.
-///
-/// An unmarked parameter is a read-only borrow. A `!` grants mutation — but only
-/// when the WRITTEN type doesn't already forbid it : a read-only `i32[]` slot stays
-/// read-only. `const` is a property of the TYPE (the referent is frozen, e.g. a
-/// module const), `!` a property of the SLOT ; they are orthogonal and the
-/// stricter of the two wins. Without this the marker would silently launder a
-/// frozen referent into a mutable one.
-export desugared_param_type :: fn(t: Type, mutable: bool) -> Type {
-    if type_is_immutable(t) { return t }
-    return with_immutable(t, !mutable)
-}
-
-/// `t` with every level the writer did NOT mark turned read-only.
-///
-/// The default has to be RECURSIVE or `Cfg![]` means nothing — it would be
-/// indistinguishable from a plain `Cfg[]`. So `x: Cfg[]` freezes the array AND
-/// its elements, and only a written `!` reopens a level.
-///
-/// It descends through STRUCTURAL children (array element, tuple elements) and
-/// stops at NOMINAL boundaries : the args of `Map<K, V>` describe what is stored,
-/// not slots of the program, so the default does not reach into them.
-///
-/// `written` is walked ALONGSIDE `t` because, once lowered, an explicit `!` and
-/// the default are indistinguishable : both leave `immutable = false`. Only the
-/// written form still knows which levels the author marked.
-///
-/// @param t        the lowered type.
-/// @param written  the type as written, or null when there is none.
-export apply_readonly_default :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
-    if t is TypeParamType {
-        return type_param_default(t, written != null && is_self_marked(written))
-    }
-    // A union carries no marker of its own — the bit is DISTRIBUTED over its
-    // variants, each taking the marker of the written variant it came from
-    // (`written_variant_for`). The variant's CHILDREN take the default too, exactly
-    // as they do outside a union : `Box[] | null` is not `Box![] | null`.
-    if t is UnionType {
-        wv :: written_union_variants(written)
-        lowered_names :: nominal_names(t.variants)
-        out: Type[]: []
-        for v in t.variants {
-            if v is TypeParamType {
-                out.push(type_param_default(v, any_self_marked(wv)))
-                continue
-            }
-            w :: written_variant_for(wv, v, lowered_names)
-            children :: readonly_children(v, AST.strip_mut_marker(w))
-            out.push(with_immutable(children, w !is AST.MutableTypeExpr))
-        }
-        return union_of(out)
-    }
-    if written is AST.MutableTypeExpr {
-        // A type that arrives ALREADY read-only (an alias, a side-table entry) is
-        // not un-frozen by a marker : the stricter side wins, here as everywhere.
-        // A belt rather than a live path now that `const` is gone — the surface has
-        // no way left to write a frozen type under a `!`.
-        inner :: readonly_children(t, written.inner)
-        if type_is_immutable(inner) { return inner }
-        // This level is explicitly mutable ; deeper levels still take the default.
-        return with_immutable(inner, false)
-    }
-    // Already read-only : the stricter side wins, but the children still take the
-    // default.
-    if type_is_immutable(t) { return readonly_children(t, written) }
-    return with_immutable(readonly_children(t, written), true)
-}
-
-// A type parameter takes no default : a written `T` has the rights of what it stands
-// for. The read-only view `self_slot_type` puts for a `Self` stays one, unless that
-// `Self` is written `Self!`.
-type_param_default :: fn(t: TypeParamType, self_marked: bool) -> Type =
-    if t.immutable && self_marked { mutable_of(t) } else { t }
-
-// Whether `w` is `Self!`.
-is_self_marked :: fn(w: AST.TypeExpr) -> bool =
-    w is AST.MutableTypeExpr && w.inner is AST.IdentExpr && w.inner.name == "Self"
-
-any_self_marked :: fn(written: AST.TypeExpr[]) -> bool {
-    for w in written {
-        if is_self_marked(w) {
-            return true
-        }
-    }
-    return false
-}
-
-// The written variants of a union, or an empty list when there is no written form.
-// Hoisted out of the per-variant loop: `collect_bitor_variants` allocates.
-written_union_variants :: fn(written: AST.TypeExpr | null) -> AST.TypeExpr[] {
-    if written == null {
-        return []
-    }
-    return AST.collect_bitor_variants(written)
-}
-
-same_written_shape :: fn(w: AST.TypeExpr, v: Type) -> bool {
-    if w is AST.ArrayTypeExpr { return v is ArrayType }
-    if w is AST.SeqLitExpr    { return v is TupleType }
-    return v is StructType | TraitType | EnumType | DistinctType | PrimitiveType
-}
-
-// The written variant `v` came from, marker INTACT — the caller reads the marker for
-// `v`'s own level and the form under it for `v`'s children.
-//
-// Not by position : `union_of` sorts the lowered variants by `display_type`, so the
-// two lists do not line up. A nominal variant pairs by NAME first — `i64 | Trap!`
-// holds two nominals — then by SHAPE, skipping a written nominal that names a
-// lowered variant : what is left is an alias, whose marker its nominal variants take
-// (`Value! | Trap` marks the `Value` structs, not `Trap`). Shape is what keeps the
-// mark on `u8[]!` in `u8[]! | Err` off the `Err` nobody marked. Two variants of one
-// shape and one name — `Box<i32>! | Box<string>`, two array variants — still pair
-// with the first.
-written_variant_for :: fn(
-    written: AST.TypeExpr[], v: Type, lowered_names: string[],
-) -> AST.TypeExpr | null {
-    name :: nominal_name(v)
-    if name != "" {
-        for w in written {
-            if written_name(w) == name {
-                return w
-            }
-        }
-    }
-    for w in written {
-        inner :: AST.strip_mut_marker(w) ?? continue
-        if same_written_shape(inner, v) && written_name(w) !in lowered_names {
-            return w
-        }
-    }
-    return null
-}
-
-// The names of `variants`' nominal variants.
-nominal_names :: fn(variants: Type[]) -> string[] {
-    out: string[]: []
-    for v in variants {
-        name :: nominal_name(v)
-        if name != "" {
-            out.push(name)
-        }
-    }
-    return out
-}
-
-// The name a nominal variant is written with : `Trap` for `Trap`, `M.Trap!`, `Box<T>`.
-written_name :: fn(w: AST.TypeExpr) -> string = callee_name(AST.strip_mut_marker(w) ?? w)
-
-// @partial: only a nominal type has a name to pair a written variant with.
-nominal_name :: fn(t: Type) -> string = @partial match t {
-    is PrimitiveType -> t.name
-    is StructType    -> t.symbol.name
-    is TraitType     -> t.symbol.name
-    is EnumType      -> t.symbol.name
-    is DistinctType  -> t.symbol.name
-    _                -> ""
-}
-
-// Rebuild `t`'s structural children under the default, pairing each with the
-// matching node of the written type when the shapes line up. A mismatch (an
-// alias, an inferred type) passes `null` — the child then takes the plain
-// default, the conservative answer.
-readonly_children :: fn(t: Type, written: AST.TypeExpr | null) -> Type {
-    if t is ArrayType {
-        elem_written :: if written is AST.ArrayTypeExpr as ae { ae.element } else { null }
-        return mk_array(apply_readonly_default(t.element, elem_written), t.immutable)
-    }
-    if t is TupleType {
-        elems: Type[]: []
-        for i in 0..<t.elements.len() {
-            el_written: AST.TypeExpr | null = null
-            if written is AST.SeqLitExpr {
-                if i < written.elements.len() { el_written = written.elements[i] }
-            }
-            elems.push(apply_readonly_default(t.elements[i], el_written))
-        }
-        return mk_tuple(elems, t.immutable)
-    }
-    return t
-}
-
-/// The immutability a value narrowed to `narrowed` inherits from `scrutinee`.
-///
-/// `x is Cfg` writes only a type NAME, which carries no mutability of its own —
-/// without this the narrowing would hand back a mutable `Cfg` and launder a
-/// read-only borrow in one line. Since the bit is distributed over a union's
-/// variants, the answer is the matching variant's bit ; failing a nominal match
-/// (trait / subtype narrowing) it is read-only when any variant is — the narrowing
-/// may select that one — so it never grants more than the scrutinee had. A `T`
-/// grants what its bound does.
-///
-/// @param bounds  the type-parameter bounds (`type_param_bound_traits`).
-/// `narrowed`, the type an `is` names, at the rights `scrutinee` held it with. A type
-/// parameter keeps what it stands for, unless the scrutinee held a read-only view of
-/// it, which narrowing keeps.
-///
-/// @param narrowed   the type written on the right of the `is`.
-/// @param scrutinee  the type of what is tested.
-export narrowed_with_rights :: fn(
-    narrowed: Type, scrutinee: Type, bounds: MutableMap<i32, TypeParamBound>,
-) -> Type {
-    if narrowed is TypeParamType {
-        return if holds_view_of(scrutinee, narrowed) { read_only_of(narrowed) } else { narrowed }
-    }
-    if !carries_mutability_bit(narrowed) {
-        return narrowed
-    }
-    return with_immutable(narrowed, narrowing_immutability(scrutinee, narrowed, bounds))
-}
-
-// Whether `t` is, or holds as a variant, a read-only view of `tp`.
-holds_view_of :: fn(t: Type, tp: TypeParamType) -> bool {
-    if t is TypeParamType {
-        return t.immutable && t.symbol.id == tp.symbol.id
-    }
-    if t is UnionType {
-        for v in t.variants {
-            if holds_view_of(v, tp) {
-                return true
-            }
-        }
-    }
-    return false
-}
-
-export narrowing_immutability :: fn(
-    scrutinee: Type, narrowed: Type, bounds: MutableMap<i32, TypeParamBound>,
-) -> bool {
-    if scrutinee is UnionType {
-        for v in scrutinee.variants {
-            if equals_type_shape(v, narrowed) { return type_is_immutable(v) }
-        }
-    }
-    return withholds_mutation(scrutinee, bounds)
-}
-
 // ---- canonical union ------------------------------------------------------
 
 /// Build a union from `variants`. Flattens nested unions, drops `Never`
@@ -603,11 +141,11 @@ export union_of :: fn(variants: Type[]) -> Type {
     return mk_union(sort_by_display_key(dedup))
 }
 
-// Order `types` by their `display_type_key`, rendering each key ONCE — the
+// Order `types` by their `display_type`, rendering each key ONCE: the
 // comparator reads a key already in hand rather than rendering its operands.
 //
 // Sorting the INDICES preserves `sort`'s stability, which is load bearing : two
-// types can share a key (it erases `!`, `equals_type` does not) and must keep
+// types can share a key (two same-named types of different modules) and must keep
 // the order they arrived in. Do not swap this for an unstable sort.
 sort_by_display_key :: fn(types: Type[]) -> Type[] {
     // `T | null` and its kind are most of the unions built here ; at two
@@ -621,7 +159,7 @@ sort_by_display_key :: fn(types: Type[]) -> Type[] {
     // array grown by `push`, so it carries up to twice its used slots — a few
     // bytes here, more as arity grows.
     if types.len() == 2 {
-        if compare_ascending_ci(display_type_key(types[1]), display_type_key(types[0])) {
+        if compare_ascending_ci(display_type(types[1]), display_type(types[0])) {
             return [types[1], types[0]]
         }
         return types
@@ -629,7 +167,7 @@ sort_by_display_key :: fn(types: Type[]) -> Type[] {
     keys: string[]: []
     order: usize[]: []
     for i in 0..<types.len() {
-        keys.push(display_type_key(types[i]))
+        keys.push(display_type(types[i]))
         order.push(i)
     }
     out: Type[]: []
@@ -639,17 +177,6 @@ sort_by_display_key :: fn(types: Type[]) -> Type[] {
     return out
 }
 
-// Two arrays that differ ONLY by their own mutability bit. Nested bits still
-// count : `Cfg[][]` and `Cfg[]![]` are genuinely different element types.
-same_array_modulo_mutability :: fn(a: Type, b: Type) -> bool {
-    if a is ArrayType {
-        if b is ArrayType {
-            return a.immutable != b.immutable && equals_type(a.element, b.element)
-        }
-    }
-    return false
-}
-
 collect_variant :: fn(v: Type, into: Type[]) -> void {
     if v is NeverType { return }
     match v {
@@ -657,14 +184,8 @@ collect_variant :: fn(v: Type, into: Type[]) -> void {
             for inner in v.variants { inner.collect_variant(into) }
         }
         _ -> {
-            for i in 0..<into.len() {
-                existing :: into[i]
-                if equals_type(existing, v) || same_array_modulo_mutability(existing, v) {
-                    // Same type under two mutabilities, which `equals_type` ignores but
-                    // on an array's own bit : one variant.
-                    if existing !== v {
-                        into[i] = least_permissive(existing, v) ?? existing
-                    }
+            for existing in into {
+                if equals_type(existing, v) {
                     return
                 }
             }
@@ -708,9 +229,8 @@ export default_free_members :: fn(t: Type) -> Type {
 /// same as `i32` for impls like `i32 implements Doubler`.
 export dispatch_key :: fn(t: Type) -> string = impl_base_key(default_if_free(t))
 
-/// The impl tables' key for a type itself, arguments included (`Wrapper<i32>`) —
-/// its `canonical_key` without the mutability an impl is not registered under.
-export impl_type_key :: fn(t: Type) -> string = canonical_key(strip_mutability(t))
+/// The impl tables' key for a type itself, arguments included (`Wrapper<i32>`).
+export impl_type_key :: fn(t: Type) -> string = canonical_key(t)
 
 /// Whether an impl for `t` covers one instance of a generic base — `Wrapper<MonType>`,
 /// `MonType[]` — and so wins over the base's generic impl for that instance alone.
@@ -789,7 +309,7 @@ export impl_side_list :: fn(
 /// first, then its base's, less those an impl on `t` hides. An impl on one instance
 /// hides its base's impl of the same trait instance (`Wrapper<MonType> implements
 /// Poke` hides `Wrapper<T> implements<T> Poke`), not of another one
-/// (`MonType[] implements Into<Label>` leaves `T[] implements<T> Into<Iterator<T>!>`).
+/// (`MonType[] implements Into<Label>` leaves `T[] implements<T> Into<Iterator<T>>`).
 ///
 /// @param typed   the module whose `impl_methods` it reads.
 /// @param t       the receiver.
@@ -834,7 +354,7 @@ export trait_members :: fn(
 
 // Whether one of `own` implements the trait instance `member`'s impl implements at
 // `t` : the same trait, at arguments some instantiation makes equal once the generic
-// impl's own parameters take `t`'s (`Into<Iterator<T>!>` at `MonType[]`).
+// impl's own parameters take `t`'s (`Into<Iterator<T>>` at `MonType[]`).
 hides_trait_instance :: fn(
     own: ImplMethod[],
     member: ImplMethod,
@@ -892,7 +412,7 @@ export into_impl_method :: fn(
 
 /// The `into` an implicit conversion of `source` toward `target` goes through : the
 /// impl of that exact pair, else the generic impl of `source`'s base toward
-/// `target`'s base (`T[] implements<T> Into<Iterator<T>!>`). Null when neither.
+/// `target`'s base (`T[] implements<T> Into<Iterator<T>>`). Null when neither.
 ///
 /// @param typed   the module the conversion is written in.
 /// @param source  the converted value's type.
@@ -935,9 +455,7 @@ export struct_implements_trait :: fn(t: Type, trait_key: string, typed: TypedPro
 
 /// True iff `t` implements `wanted` at `wanted`'s own arguments, not merely some
 /// instance of it : `Cell<i64>` implements `Source<i64>`, which is no
-/// `Source<i32>`. The arguments compare with their rights, both ways : an impl of
-/// `Sink<Cfg!>` stores what it is handed, so it serves no slot lending read-only
-/// `Cfg`s. Arguments either side leaves to the trait's defaults are filled in,
+/// `Source<i32>`. Arguments either side leaves to the trait's defaults are filled in,
 /// `Self` read as `t`, before comparing (`i32 implements Add` is `Add<i32, i32>`).
 /// A trait asked without arguments is decided by `struct_implements_trait` alone.
 ///
@@ -953,14 +471,12 @@ export implements_trait_instance :: fn(t: Type, wanted: TraitType, typed: TypedP
         return true
     }
     // Any impl of the trait at the arguments asked (`Into<Label>` beside `Into<Tag>`).
-    // `Self` is read as an unmarked slot reads `t`, as the impl writes it.
-    self_ty :: apply_readonly_default(t, null)
-    asked :: with_trait_defaults(self_ty, wanted.args, wanted.symbol, typed)
+    asked :: with_trait_defaults(t, wanted.args, wanted.symbol, typed)
     lists :: struct_trait_arg_lists(t, key, typed)
     if lists.len() > 1 && !is_gen_state_struct(t) {
         for raw in lists {
             args :: resolve_trait_args_for(t, raw, typed)
-            have :: with_trait_defaults(self_ty, args, wanted.symbol, typed)
+            have :: with_trait_defaults(t, args, wanted.symbol, typed)
             if struct_args_compatible(have, asked) {
                 return true
             }
@@ -968,13 +484,13 @@ export implements_trait_instance :: fn(t: Type, wanted: TraitType, typed: TypedP
         return false
     }
     impl_args :: resolve_struct_trait_args(t, key, typed) ?? return true
-    have :: with_trait_defaults(self_ty, impl_args, wanted.symbol, typed)
+    have :: with_trait_defaults(t, impl_args, wanted.symbol, typed)
     return struct_args_compatible(have, asked)
 }
 
 // `args`, arguments given to the trait `sym`, with the defaults the trait declares
-// where they are left out and `Self` read as `self_ty`, at the rights it is read
-// with: `i32 implements Add` and a bound `Add<i32>` are both `Add<i32, i32>`.
+// where they are left out and `Self` read as `self_ty`: `i32 implements Add` and a
+// bound `Add<i32>` are both `Add<i32, i32>`.
 with_trait_defaults :: fn(
     self_ty: Type,
     args: Type[],
@@ -1072,7 +588,7 @@ blocking_bound :: fn(t: Type, trait_key: string, typed: TypedProgram) -> UnmetBo
     return first
 }
 
-// The first of `bounds`, by position, that `args` leave unmet in shape or in rights.
+// The first of `bounds`, by position, that `args` leave unmet.
 first_unmet_bound :: fn(
     args: Type[], bounds: ArgBound[], typed: TypedProgram,
 ) -> UnmetBound | null {
@@ -1095,7 +611,7 @@ first_unmet_bound :: fn(
 }
 
 /// The detail of a T3006 on a type parameter's bound : ``type parameter `T` of
-/// `owner` requires `Bump!`, and `Cfg` grants no mutation``.
+/// `owner` requires `Add`, and `Cfg` does not implement it``.
 ///
 /// @param param     the type parameter's name.
 /// @param owner     the generic fn or struct that declares it.
@@ -1334,57 +850,9 @@ literal_family_holds :: fn(got: Type, name: string) -> bool = match got {
      | AnyType -> false
 }
 
-/// `t` with mutability erased at every level — the SHAPE of the type.
-///
-/// Two callers, both asking a question mutability has no business answering:
-///   - a runtime `is` test (an array header carries length, capacity and element
-///     kind, never a read-only bit, so `x is i32[]` and `x is i32[]!` name the same
-///     runtime values and must select the same variant) ;
-///   - UFCS receiver currying, where the method is picked by shape.
-///
-/// @param t  the type to reduce to its shape.
-/// @return   `t` itself when nothing inside it carries a mutability bit.
-export strip_mutability :: fn(t: Type) -> Type = match t {
-    is TypeParamType -> if t.immutable { TypeParamType { ...t, .immutable = false } } else { t }
-    is ArrayType     -> mk_array(strip_mutability(t.element), true)
-    is TupleType     -> mk_tuple(strip_mutability_each(t.elements), true)
-    is StructType    -> mk_struct(t.symbol, strip_mutability_each(t.args), true)
-    is TraitType     -> TraitType {
-        ...t,
-        .args = strip_mutability_each(t.args),
-        .immutable = true,
-    }
-    is UnionType     -> mk_union(strip_mutability_each(t.variants))
-    is DistinctType  -> if carries_mutability_bit(t) {
-        mk_distinct(t.symbol, strip_mutability(t.backing))
-    } else {
-        t
-    }
-    is FnType        -> FnType {
-        .params         = strip_mutability_each(t.params),
-        .params_mutable = t.params_mutable,
-        .return_type    = strip_mutability(t.return_type),
-    }
-    is PrimitiveType | EnumType | TypeParamType | TypeMetaType | SelfType
-     | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
-     | NeverType | AnyType -> t
-}
-
-strip_mutability_each :: fn(ts: Type[]) -> Type[] {
-    out: Type[]: [] * ts.len()
-    for t in ts { out.push(strip_mutability(t)) }
-    return out
-}
-
-/// Structural equality modulo mutability — `equals_type` on the two SHAPES.
-/// The comparison a runtime test needs: `i32[]` and `i32[]!` are one shape.
-export equals_type_shape :: fn(a: Type, b: Type) = equals_type(strip_mutability(a), strip_mutability(b))
-
 /// Do `a` and `b` share any concrete runtime value ? Powers T3040
 /// ("test can never match") and the match-arm overlap check.
-/// UnionType on either side recurses into its variants. Otherwise
-/// compares SHAPES — mutability is a static discipline with no runtime
-/// representation, so it can never make two types fail to overlap.
+/// UnionType on either side recurses into its variants.
 export types_overlap :: fn(a: Type, b: Type) -> bool {
     av :: union_variants(a)
     if !(av is null) {
@@ -1396,17 +864,17 @@ export types_overlap :: fn(a: Type, b: Type) -> bool {
         for v in bv { if types_overlap(a, v) { return true } }
         return false
     }
-    return equals_type_shape(a, b)
+    return equals_type(a, b)
 }
 
-/// Whether a value of `a` and one of `b` are the same variant to `==` : one shape,
-/// mutability aside, or a free literal the other type takes. A union compares a
+/// Whether a value of `a` and one of `b` are the same variant to `==` : one type,
+/// or a free literal the other type takes. A union compares a
 /// variant only with its counterpart on the other side.
 ///
 /// @param a  a variant of one operand, or the operand itself.
 /// @param b  a variant of the other operand, or the operand itself.
 export same_variant :: fn(a: Type, b: Type) -> bool =
-    equals_type_shape(a, b)
+    equals_type(a, b)
         || (is_free_numeric(a) && is_assignable(a, b))
         || (is_free_numeric(b) && is_assignable(b, a))
 
@@ -1505,11 +973,11 @@ test_equals_primitive :: fn() -> void {
 
 @test
 test_equals_array :: fn() -> void {
-    a1: Type: mk_array(mk_primitive("i32"), false)
-    a2: Type: mk_array(mk_primitive("i32"), false)
-    a3: Type: mk_array(mk_primitive("i32"), true)
+    a1: Type: mk_array(mk_primitive("i32"))
+    a2: Type: mk_array(mk_primitive("i32"))
+    a3: Type: mk_array(mk_primitive("string"))
     assert(equals_type(a1, a2), "i32[] == i32[]")
-    assert(!equals_type(a1, a3), "i32[]! != i32[]")
+    assert(!equals_type(a1, a3), "i32[] != string[]")
 }
 
 // `is_assignable` tests live in `type_assign.vader` alongside the impl.
@@ -1597,74 +1065,4 @@ test_int_fits_negative_literals :: fn() -> void {
     assert(!int_fits(9223372036854775809, true, "isize"), "past isize.MIN")
     assert(!int_fits(1, true, "u32"), "-1 does not fit u32")
     assert(int_fits(0, true, "u8"), "-0 fits u8")
-}
-
-struct_symbol :: fn(name: string) -> Symbol =
-    SymbolFactory {}.make(.Struct, name, "test", "test", .Public, null)
-
-display_least_permissive :: fn(a: Type, b: Type) -> string {
-    met :: least_permissive(a, b) ?? return "null"
-    return display_type(met)
-}
-
-@test
-test_least_permissive_lowers_each_level :: fn() -> void {
-    i32_ty :: mk_primitive("i32")
-    outer_frozen :: mk_array(mk_array(i32_ty, false), true)
-    inner_frozen :: mk_array(mk_array(i32_ty, true), false)
-    assert_eq(display_least_permissive(outer_frozen, inner_frozen), "i32[][]")
-}
-
-@test
-test_least_permissive_lowers_a_struct_and_its_arguments :: fn() -> void {
-    box :: struct_symbol("Box")
-    i32_ty :: mk_primitive("i32")
-    mutable :: mk_struct(box, [mk_array(i32_ty, false)], false)
-    frozen :: mk_struct(box, [mk_array(i32_ty, true)], true)
-    met :: least_permissive(mutable, frozen) ?? return assert(false, "no least permissive struct")
-    assert_eq(display_type(met), "Box<i32[]>")
-    assert(type_is_immutable(met), "the struct level keeps the read-only bit")
-}
-
-@test
-test_least_permissive_refuses_another_shape :: fn() -> void {
-    i32_array :: mk_array(mk_primitive("i32"), true)
-    assert_eq(display_least_permissive(i32_array, mk_array(TY_STRING, true)), "null")
-}
-
-@test
-test_union_of_keeps_the_least_rights_at_every_level :: fn() -> void {
-    box :: struct_symbol("Box")
-    cfg :: struct_symbol("Cfg")
-    frozen_inside :: mk_struct(box, [mk_struct(cfg, [], true)], false)
-    frozen_outside :: mk_struct(box, [mk_struct(cfg, [], false)], true)
-    assert_eq(display_type(union_of([frozen_inside, frozen_outside])), "Box<Cfg>")
-}
-
-@test
-test_union_of_fns_demands_either_mark :: fn() -> void {
-    cfg :: mk_struct(struct_symbol("Cfg"), [], true)
-    reader :: mk_fn([cfg], TY_VOID)
-    writer :: FnType {
-        .params         = [cfg],
-        .params_mutable = [true],
-        .return_type    = TY_VOID,
-    }
-    assert_eq(display_type(union_of([reader, writer])), display_type(writer))
-}
-
-@test
-test_union_of_fns_keeps_the_least_rights_on_return :: fn() -> void {
-    cfg :: struct_symbol("Cfg")
-    fresh :: mk_fn([], mk_struct(cfg, [], false))
-    shared :: mk_fn([], mk_struct(cfg, [], true))
-    assert_eq(display_type(union_of([fresh, shared])), display_type(shared))
-}
-
-@test
-test_union_of_containers_with_other_contents_is_read_only :: fn() -> void {
-    cfg :: struct_symbol("Cfg")
-    writable :: mk_array(mk_struct(cfg, [], false), false)
-    readable :: mk_array(mk_struct(cfg, [], true), false)
-    assert_eq(display_type(union_of([writable, readable])), "Cfg[]")
 }

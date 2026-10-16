@@ -1,23 +1,23 @@
 # Typecheck
 
 ## tests/snippets/struct_decl
-  StructDecl     Buffer               :: Buffer<N>!
-  StructDecl     List                 :: List<T>!
+  StructDecl     Buffer               :: Buffer<N>
+  StructDecl     List                 :: List<T>
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Point                :: Point!
-  expr 23:10    StructLitExpr  :: Point!
-  expr 24:10    StructLitExpr  :: List<i32>!
+  StructDecl     Point                :: Point
+  expr 23:10    StructLitExpr  :: Point
+  expr 24:10    StructLitExpr  :: List<i32>
   expr 24:31    SeqLitExpr     :: i32[]
   expr 25:13    StringLitExpr  :: string
   expr 25:16    FieldExpr      :: f64
-  expr 25:16    IdentExpr      :: Point!
+  expr 25:16    IdentExpr      :: Point
   expr 25:23    FieldExpr      :: f64
-  expr 25:23    IdentExpr      :: Point!
+  expr 25:23    IdentExpr      :: Point
   expr 25:30    CallExpr       :: usize
   expr 25:30    FieldExpr      :: fn() -> usize
   expr 25:30    FieldExpr      :: i32[]
-  expr 25:30    IdentExpr      :: List<i32>!
+  expr 25:30    IdentExpr      :: List<i32>
   expr 25:47    FieldExpr      :: u32
-  expr 25:47    IdentExpr      :: List<i32>!
+  expr 25:47    IdentExpr      :: List<i32>
   expr 25:5     CallExpr       :: void
   expr 25:5     IdentExpr      :: fn(T) -> void

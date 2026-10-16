@@ -142,7 +142,7 @@ vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx) ->
 }
 
 /// Materialise an array-impl member (`T[] implements<T: Equals> Contains<T>`,
-/// `T[] implements<T> Into<Iterator<T>!>`, `MonType[] implements Show`) once per
+/// `T[] implements<T> Into<Iterator<T>>`, `MonType[] implements Show`) once per
 /// element type a call referenced. The generic-impl materialiser
 /// (`materialize_impl_for_instance`) is struct-instance-driven and never reaches
 /// an array receiver, so `build_ufcs_member` records the element type and the member
@@ -154,7 +154,7 @@ vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx) ->
 ///
 /// The table mixes every referenced array-impl member, so each member only claims
 /// the mangles a call site recorded for it : the call chose it, by the receiver or
-/// by the target of a conversion (`Into<Iterator<T>!>` beside
+/// by the target of a conversion (`Into<Iterator<T>>` beside
 /// `MonType[] implements Into<Label>`).
 ///
 /// @param impl_decl    the candidate impl ; ignored unless it is on an array.
@@ -167,7 +167,7 @@ surface_array_impl_members :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> LoweredDecl[] {
     out: LoweredDecl[]: []
-    if !(strip_mut_marker(impl_decl.for_type) is ArrayTypeExpr) { return out }
+    if impl_decl.for_type !is ArrayTypeExpr { return out }
     impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return out
     for member in impl_decl.members {
         // A bodyless `@intrinsic` member (`T[] implements ArrayOps`) has no body to
@@ -182,7 +182,7 @@ surface_array_impl_members :: fn(
             dedupe_key :: "arr_member::${mangled}"
             if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
             element :: reached.element
-            self_type :: mk_array(element, false)
+            self_type :: mk_array(element)
             project_ctx.materialized_impl_keys.add(dedupe_key)
             subst :: build_impl_subst(impl_decl, [element], typed, typed)
             types :: make_entry_types(typed, subst)

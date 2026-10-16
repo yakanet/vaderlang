@@ -20,9 +20,9 @@ type 17 primitive void
 type 18 primitive isize
 type 19 ref __genstate_gen
 string 0 "\n"
-import 0 byte_len std_core$byte_len result_type=12 param_types=7 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=16 param_types=7 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=1,16,12 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=12 param_types=7 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=16 param_types=7 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=1,16,12 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 4 std_core$Iterator
 impl 9 std_core$Contains
 impl 9 std_core$Iterator

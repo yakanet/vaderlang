@@ -28,11 +28,10 @@ export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concre
         if fd is AST.FnDecl {
             // Unwrap-then-wrap-once handles both shapes uniformly : `-> T`
             // (inner = T) and `-> Async<T>` (inner = T) both yield `Async<T>`,
-            // never a nested `Async<Async<T>>`. The call starts a fresh coroutine
-            // its caller owns and drives, so it is mutable whatever the return wrote.
+            // never a nested `Async<Async<T>>`.
             if fn_is_async(fd) {
                 inner :: async_result_arg(async_inner_type(concrete_ret))
-                return mk_trait(async_sym, [inner], false)
+                return mk_trait(async_sym, [inner])
             }
         }
     }

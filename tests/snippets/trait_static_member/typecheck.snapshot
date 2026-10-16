@@ -1,25 +1,25 @@
 # Typecheck
 
 ## tests/snippets/trait_static_member
-  TraitDecl      A                    :: A!
+  TraitDecl      A                    :: A
   FnDecl         areas                :: fn(Shape[]) -> i32
-  TraitDecl      B                    :: B!
+  TraitDecl      B                    :: B
   FnDecl         build                :: fn(i32) -> S
   FnDecl         main                 :: fn() -> i32
-  StructDecl     P                    :: P!
-  StructDecl     Rect                 :: Rect!
-  TraitDecl      Shape                :: Shape!
-  StructDecl     Sq                   :: Sq!
+  StructDecl     P                    :: P
+  StructDecl     Rect                 :: Rect
+  TraitDecl      Shape                :: Shape
+  StructDecl     Sq                   :: Sq
   FnDecl         via_a                :: fn() -> T
   FnDecl         via_b                :: fn() -> T
-  expr 24:38    StructLitExpr  :: Sq!
+  expr 24:38    StructLitExpr  :: Sq
   expr 24:51    IdentExpr      :: i32
   expr 25:31    BinaryExpr     :: i32
   expr 25:31    FieldExpr      :: i32
   expr 25:31    IdentExpr      :: Sq
   expr 25:43    FieldExpr      :: i32
   expr 25:43    IdentExpr      :: Sq
-  expr 34:38    StructLitExpr  :: Rect!
+  expr 34:38    StructLitExpr  :: Rect
   expr 34:50    IdentExpr      :: i32
   expr 34:62    BinaryExpr     :: i32
   expr 34:66    IdentExpr      :: i32
@@ -28,17 +28,17 @@
   expr 35:31    IdentExpr      :: Rect
   expr 35:40    FieldExpr      :: i32
   expr 35:40    IdentExpr      :: Rect
-  expr 38:38    CallExpr       :: readonly S
-  expr 38:38    FieldExpr      :: fn(i32) -> readonly S
+  expr 38:38    CallExpr       :: S
+  expr 38:38    FieldExpr      :: fn(i32) -> S
   expr 38:38    IdentExpr      :: S
   expr 38:45    IdentExpr      :: i32
-  expr 53:28    StructLitExpr  :: P!
-  expr 57:28    StructLitExpr  :: P!
-  expr 60:28    CallExpr       :: readonly T
-  expr 60:28    FieldExpr      :: fn() -> readonly T
+  expr 53:28    StructLitExpr  :: P
+  expr 57:28    StructLitExpr  :: P
+  expr 60:28    CallExpr       :: T
+  expr 60:28    FieldExpr      :: fn() -> T
   expr 60:28    IdentExpr      :: T
-  expr 61:28    CallExpr       :: readonly T
-  expr 61:28    FieldExpr      :: fn() -> readonly T
+  expr 61:28    CallExpr       :: T
+  expr 61:28    FieldExpr      :: fn() -> T
   expr 61:28    IdentExpr      :: T
   expr 65:14    IdentExpr      :: Shape[]
   expr 66:14    CallExpr       :: i32
@@ -51,7 +51,7 @@
   expr 72:13    CallExpr       :: i32
   expr 72:13    FieldExpr      :: fn() -> i32
   expr 72:13    FieldExpr      :: fn(i32) -> Sq
-  expr 72:13    IdentExpr      :: Sq!
+  expr 72:13    IdentExpr      :: Sq
   expr 72:5     CallExpr       :: void
   expr 72:5     IdentExpr      :: fn(T) -> void
   expr 73:12    CallExpr       :: Sq
@@ -77,11 +77,11 @@
   expr 79:13    IdentExpr      :: type
   expr 79:5     CallExpr       :: void
   expr 79:5     IdentExpr      :: fn(T) -> void
-  expr 81:14    CallExpr       :: __genstate_map<i64>!
+  expr 81:14    CallExpr       :: __genstate_map<i64>
   expr 81:14    CallExpr       :: i64
   expr 81:14    FieldExpr      :: fn() -> i64
   expr 81:14    FieldExpr      :: fn(fn(i32) -> i64) -> Iterator<i64>
-  expr 81:14    RangeExpr      :: Range<i32>!
+  expr 81:14    RangeExpr      :: Range<i32>
   expr 81:25    LambdaExpr     :: fn(i32) -> i64
   expr 81:32    BinaryExpr     :: i64
   expr 81:32    CallExpr       :: i64
@@ -92,7 +92,7 @@
   expr 81:5     IdentExpr      :: fn(T) -> void
   expr 82:13    CallExpr       :: f64
   expr 82:13    FieldExpr      :: fn() -> f64
-  expr 82:13    SeqLitExpr     :: f64[]!
+  expr 82:13    SeqLitExpr     :: f64[]
   expr 82:5     CallExpr       :: void
   expr 82:5     IdentExpr      :: fn(T) -> void
   expr 83:11    CallExpr       :: P
@@ -116,12 +116,12 @@
   expr 86:5     IdentExpr      :: fn(T) -> void
   expr 87:13    CallExpr       :: i32
   expr 87:13    FieldExpr      :: fn() -> i32
-  expr 87:13    SeqLitExpr     :: i32[]!
+  expr 87:13    SeqLitExpr     :: i32[]
   expr 87:5     CallExpr       :: void
   expr 87:5     IdentExpr      :: fn(T) -> void
   expr 88:13    CallExpr       :: f64
   expr 88:13    FieldExpr      :: fn() -> f64
-  expr 88:13    SeqLitExpr     :: f64[]!
+  expr 88:13    SeqLitExpr     :: f64[]
   expr 88:5     CallExpr       :: void
   expr 88:5     IdentExpr      :: fn(T) -> void
   expr 89:13    CallExpr       :: bool

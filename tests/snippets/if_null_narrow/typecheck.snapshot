@@ -2,9 +2,9 @@
 
 ## tests/snippets/if_null_narrow
   ConstDecl      Animal               :: type
-  StructDecl     Cat                  :: Cat!
+  StructDecl     Cat                  :: Cat
   FnDecl         combine              :: fn(Cat | Dog | null, Cat | Dog | null) -> string
-  StructDecl     Dog                  :: Dog!
+  StructDecl     Dog                  :: Dog
   FnDecl         greet                :: fn(Cat | Dog | null) -> string
   FnDecl         greet_v2             :: fn(Cat | Dog | null) -> string
   FnDecl         greet_v3             :: fn(Cat | Dog | null) -> string
@@ -53,9 +53,9 @@
   expr 56:15    IdentExpr      :: Cat | Dog
   expr 56:27    FieldExpr      :: string
   expr 56:27    IdentExpr      :: Cat | Dog
-  expr 60:25    StructLitExpr  :: Cat!
+  expr 60:25    StructLitExpr  :: Cat
   expr 60:39    StringLitExpr  :: string
-  expr 61:25    StructLitExpr  :: Dog!
+  expr 61:25    StructLitExpr  :: Dog
   expr 61:39    StringLitExpr  :: string
   expr 63:13    CallExpr       :: string
   expr 63:13    IdentExpr      :: fn(Cat | Dog | null) -> string

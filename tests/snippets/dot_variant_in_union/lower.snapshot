@@ -39,7 +39,7 @@
       then:
         return int(3) :u8
     return
-      ParseError! {
+      ParseError {
         msg: "unknown" :string
       }
   fn snippet$dir_label(d: Direction) -> string
@@ -125,7 +125,7 @@
             ~>
               if :void
                 cond:
-                  is ParseError! :bool
+                  is ParseError :bool
                     __scrut_0 :Direction | ParseError
                 then:
                   ~>
@@ -166,7 +166,7 @@
             ~>
               if :void
                 cond:
-                  is ParseError! :bool
+                  is ParseError :bool
                     __scrut_1 :Direction | ParseError
                 then:
                   ~>

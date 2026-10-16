@@ -4,7 +4,7 @@
   struct snippet$Node { value: i32, next: Node | null }
   fn snippet$main() -> i32
     let head: Node | null =
-      Node! {
+      Node {
         value: int(0) :i32
         next: null
       }
@@ -14,7 +14,7 @@
         target:
           head :Node | null
         value:
-          Node! {
+          Node {
             value: i :i32
             next: head :Node | null
           }
@@ -123,7 +123,7 @@
                 ~>
                   if :void
                     cond:
-                      is Node! :bool
+                      is Node :bool
                         cur :Node | null
                     then:
                       ~>

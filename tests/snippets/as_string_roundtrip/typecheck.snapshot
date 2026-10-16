@@ -17,7 +17,7 @@
   expr 14:13    StringLitExpr  :: string
   expr 14:29    CallExpr       :: usize
   expr 14:29    IdentExpr      :: type
-  expr 14:29    RangeExpr      :: Range<usize>!
+  expr 14:29    RangeExpr      :: Range<usize>
   expr 14:40    CallExpr       :: usize
   expr 14:40    IdentExpr      :: type
   expr 14:5     CallExpr       :: void

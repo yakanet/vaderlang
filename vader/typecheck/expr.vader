@@ -239,7 +239,6 @@ export expr_kind_name :: fn(e: AST.Expr) -> string = match e {
     is AST.GenericInstExpr   -> "GenericInstExpr"
     is AST.IntrinsicCallExpr -> "IntrinsicCallExpr"
     is AST.ArrayTypeExpr     -> "ArrayTypeExpr"
-    is AST.MutableTypeExpr   -> "MutableTypeExpr"
     is AST.FnTypeExpr        -> "FnTypeExpr"
 }
 
@@ -311,7 +310,6 @@ infer_expr :: fn(
         is AST.IntrinsicCallExpr -> { return infer_intrinsic(expr, typed, diags, check_expr) }
         is AST.GenericInstExpr -> { return infer_generic_inst(expr, typed, diags, check_expr) }
         is AST.ArrayTypeExpr -> { return infer_array_type_value(expr, typed, diags) }
-        is AST.MutableTypeExpr -> { return infer_mutable_type_value(expr, typed, diags) }
         is AST.FnTypeExpr -> { return infer_fn_type_value(expr, typed, diags) }
     }
 }

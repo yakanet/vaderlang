@@ -136,7 +136,6 @@ render_type_expr :: fn(e: AST.TypeExpr) -> string {
             return "${base}<${args}>"
         }
         is AST.ArrayTypeExpr -> { return "${render_type_expr(e.element)}[]" }
-        is AST.MutableTypeExpr -> { return "${render_type_expr(e.inner)}!" }
         is AST.FnTypeExpr -> {
             ps := ""
             first := true

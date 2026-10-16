@@ -58,23 +58,23 @@ string 34 "invalid argument"
 string 35 "directory not empty"
 string 36 "bad file descriptor"
 string 37 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
-import 1 byte_at std_core$byte_at result_type=4 param_types=2,5 param_mutable=0,0 param_by_address= (string,usize) -> u8
-import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,5,5 param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string
-import 3 bytes std_core$bytes result_type=7 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 4 extern getenv std_env$get_env header=<stdlib.h> result_type=15 param_types=2 param_mutable=0 param_by_address= (string) -> any
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=1,7,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
-import 6 extern opendir system_posix$sys_opendir header=<dirent.h> result_type=18 param_types=2 param_mutable=0 param_by_address= (string) -> any
-import 7 extern closedir system_posix$sys_closedir header=<dirent.h> result_type=1 param_types=16 param_mutable=0 param_by_address= (pointer) -> i32
+import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> usize
+import 1 byte_at std_core$byte_at result_type=4 param_types=2,5 param_c_out= param_by_address= (string,usize) -> u8
+import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,5,5 param_c_out= param_by_address= (string,usize,usize) -> string
+import 3 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 4 extern getenv std_env$get_env header=<stdlib.h> result_type=15 param_types=2 param_c_out= param_by_address= (string) -> any
+import 5 extern write system_posix$sys_write header=<unistd.h> result_type=17 param_types=1,7,5 param_c_out= param_by_address= (i32,ref,usize) -> isize
+import 6 extern opendir system_posix$sys_opendir header=<dirent.h> result_type=18 param_types=2 param_c_out= param_by_address= (string) -> any
+import 7 extern closedir system_posix$sys_closedir header=<dirent.h> result_type=1 param_types=16 param_c_out= param_by_address= (pointer) -> i32
 import 8 extern vader_last_errno system_posix$sys_last_errno result_type=1 () -> i32
-import 9 extern readdir system_posix$sys_readdir header=<dirent.h> result_type=18 param_types=16 param_mutable=0 param_by_address= (pointer) -> any
-import 10 extern vader_dirent_name system_posix$dirent_name result_type=2 param_types=16 param_mutable=0 param_by_address= (pointer) -> string
-import 11 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=16 param_mutable=0 param_by_address= (pointer) -> i32
-import 12 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=18 param_types=2,2 param_mutable=0,0 param_by_address= (string,string) -> any
-import 13 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=16 param_mutable=0 param_by_address= (pointer) -> i32
-import 14 extern fread system_posix$sys_fread header=<stdio.h> result_type=5 param_types=7,5,5,16 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-import 15 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=7,5,5,16 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-import 16 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 param_mutable=0 param_by_address= (string) -> i32
+import 9 extern readdir system_posix$sys_readdir header=<dirent.h> result_type=18 param_types=16 param_c_out= param_by_address= (pointer) -> any
+import 10 extern vader_dirent_name system_posix$dirent_name result_type=2 param_types=16 param_c_out= param_by_address= (pointer) -> string
+import 11 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=16 param_c_out= param_by_address= (pointer) -> i32
+import 12 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=18 param_types=2,2 param_c_out= param_by_address= (string,string) -> any
+import 13 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=16 param_c_out= param_by_address= (pointer) -> i32
+import 14 extern fread system_posix$sys_fread header=<stdio.h> result_type=5 param_types=7,5,5,16 param_c_out=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 15 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=7,5,5,16 param_c_out= param_by_address= (ref,usize,usize,pointer) -> usize
+import 16 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
 impl 6 std_core$ByteAccess
 impl 10 std_core$Error
 vtable std_core$Error.message 10 19

@@ -50,7 +50,7 @@ export ImportBinding :: NamedNamespaceImport | DestructureImport | WildcardImpor
 export ForForm :: InfiniteFor | WhileFor | InFor
 
 /// Any expression. Also serves as `TypeExpr` — see the note there.
-export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | MutableTypeExpr | AwaitExpr
+export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
 
 /// One piece of a string literal: literal text, or an interpolated expression.
 export StringLitPart :: StringLitText | StringLitInterp
@@ -114,7 +114,7 @@ export assign_places :: fn(s: DestructureAssignStmt) -> Expr[] {
 /// A reader must not assume an `IdentExpr` in type position denotes a type it can
 /// name: `Id` may be an alias, an imported struct or a distinct newtype, and only
 /// the resolver knows which.
-export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | MutableTypeExpr | AwaitExpr
+export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | NullCoalesceExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr | AwaitExpr
 
 // ============================================================================
 // Visibility / shared shapes
@@ -291,9 +291,6 @@ export FnDecl :: struct {
 }
 
 /// One parameter of a function, lambda or trait method.
-///
-/// `mutable` is the `!` on the parameter's TYPE — a read-only slot by default; see
-/// SPEC §"Read-only by default".
 export FnParam :: struct {
     span:          Span
     id:            usize = UNASSIGNED_NODE_ID
@@ -302,19 +299,11 @@ export FnParam :: struct {
     ty:            TypeExpr | null
     default_value: Expr | null
     variadic:      bool
-    /// `!` suffix on the NAME (`buf: u8[]`!, `self!`) — the caller grants this
-    /// parameter permission to mutate its referent. Carried on the name rather
-    /// than the type so `self!`, which has no written type, reads the same way.
-    /// The type-side spelling of the same notion is `FnType.params_mutable`,
-    /// needed because a fn TYPE has no parameter names.
-    mutable:       bool = false
     /// Decorators written before the parameter (`@c_pointer tv: TimeVal`).
     ///
-    /// REQUIRED, with no default, deliberately — the same reason
-    /// `StructType.immutable` carries none: three sites in
+    /// REQUIRED, with no default, deliberately: three sites in
     /// `resolver/materialize.vader` rebuild a `FnParam` field by field, and a
-    /// defaulted field is dropped there in silence. That is how
-    /// `FnParam.mutable` was lost once already.
+    /// defaulted field is dropped there in silence.
     decorators:    Decorator[]
 }
 
@@ -1259,125 +1248,25 @@ export OrPattern :: struct {
 
 /// A function type as written, `fn(i32) -> bool` — type-only, with no value-side
 /// counterpart.
-///
-/// `params_mutable` carries the `!` of each parameter, positionally.
 export FnTypeExpr :: struct {
     span:        Span
     id:          usize = UNASSIGNED_NODE_ID
     params:      TypeExpr[]
-    /// `!` suffix per parameter TYPE (`fn(u8[]!) -> void`) — a fn type has no
-    /// parameter names, so the mutation marker lands on the type here, where the
-    /// declaration side spells it on the name (`FnParam.mutable`). Empty means no
-    /// parameter is marked ; it is never a same-length all-`false` vector, so
-    /// "unmarked" stays a single representation.
-    params_mutable: bool[] = []
     return_type: TypeExpr | null
 }
 
 /// An array type as written, `T[]` — type-only.
 ///
-/// The bracketed form `[T1, T2]` parses as a `SeqLitExpr` (tuple type) instead. No
-/// mutability field here: that is the `MutableTypeExpr` wrapper below, which marks
-/// one level of the type at a time.
+/// The bracketed form `[T1, T2]` parses as a `SeqLitExpr` (tuple type) instead.
 export ArrayTypeExpr :: struct {
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
     element: TypeExpr
 }
 
-/// Postfix `T!` — "mutation through this slot is allowed", one level of the
-/// type. Type-only AST node.
-///
-/// A WRAPPER rather than a `mutable` field, because there is nowhere to put such
-/// a field : `TypeExpr` is an alias of `Expr`, so a named type is an `IdentExpr`
-/// — a value node that must not grow a type-only flag. Wrapping also gets the
-/// per-level granularity for free, which is the whole point : `Cfg![]` (mutable
-/// elements in a read-only array) and `Cfg[]!` (mutable array of read-only
-/// elements) are different types, and only a per-level marker can tell them
-/// apart.
-export MutableTypeExpr :: struct {
-    span:     Span
-    id:       usize = UNASSIGNED_NODE_ID
-    inner:    TypeExpr
-}
-
 // ============================================================================
 // Helpers
 // ============================================================================
-
-/// Whether a written type grants mutation at ITS OWN level (`Cfg[]!`), or — for
-/// a union — at the level of any variant (`Capture[]! | null`).
-///
-/// A union carries no marker of its own : the bit is DISTRIBUTED over the
-/// variants, so `Capture[]! | null` means "mutable when it is an array" and
-/// `null` simply can't carry one. Descending into the variants is therefore the
-/// same question asked one level down, not a special case.
-///
-/// Markers deeper inside a composite (`Cfg![]` — mutable elements of a read-only
-/// array) belong to the level they follow and are read from the lowered `Type`,
-/// not here.
-export type_expr_marks_mutable :: fn(ty: TypeExpr | null) -> bool {
-    if ty == null { return false }
-    if ty is MutableTypeExpr { return true }
-    if ty is BinaryExpr {
-        if ty.op == .BitOr {
-            return type_expr_marks_mutable(ty.left) || type_expr_marks_mutable(ty.right)
-        }
-    }
-    return false
-}
-
-/// Whether a written type carries a `!` at any level: its own (`Cfg[]!`), an
-/// element's (`Cfg![]`), a tuple member's or a union variant's.
-/// `type_expr_marks_mutable` answers for one level only.
-///
-/// @param ty  the written type.
-export type_expr_marks_mutable_anywhere :: fn(ty: TypeExpr) -> bool {
-    if ty is MutableTypeExpr { return true }
-    if ty is ArrayTypeExpr   { return type_expr_marks_mutable_anywhere(ty.element) }
-    if ty is SeqLitExpr {
-        for el in ty.elements {
-            if type_expr_marks_mutable_anywhere(el) {
-                return true
-            }
-        }
-        return false
-    }
-    if ty is BinaryExpr && ty.op == .BitOr {
-        return type_expr_marks_mutable_anywhere(ty.left) ||
-            type_expr_marks_mutable_anywhere(ty.right)
-    }
-    return false
-}
-
-/// `ty` with any top-level `!` marker peeled off — the written type's SHAPE.
-///
-/// Every pass that inspects a written type structurally (is it an array? does its
-/// element name a type-param? does it name this impl?) must go through this, or
-/// the marker makes it blind. That blindness is not a lost diagnostic : the
-/// array-constructor gate in `lower_mono_fn` uses such a shape test to force
-/// concrete monomorphisation, and missing it leaves the instance erased, its
-/// buffer built at the wrong element width, and its reads returning null — a
-/// native segfault.
-///
-/// Only the TOP level is peeled : a marker deeper in (`Cfg![]`) belongs to the
-/// level it follows and is read from the lowered `Type`.
-export strip_mut_marker :: fn(ty: TypeExpr | null) -> TypeExpr | null {
-    if ty is MutableTypeExpr { return ty.inner }
-    return ty
-}
-
-/// Whether `p` may be mutated by the callee — the SINGLE source of truth for
-/// that question.
-///
-/// Two spellings reach it : the marker on the TYPE (`fn(x: Cfg[]!)`, the form
-/// this chantier moves to) and the legacy marker on the NAME (`fn(x: Cfg!)`),
-/// which `self!` keeps for good — `self` is the one parameter whose type is
-/// never written, so its marker has nowhere else to go. Anything that asks
-/// "is this parameter mutable" must come through here : the resolver's borrow
-/// table and the typechecker's desugaring live in different modules and would
-/// otherwise drift apart, each answering from one spelling only.
-export param_is_mutable :: fn(p: FnParam) -> bool = p.mutable || type_expr_marks_mutable(p.ty)
 
 /// Flatten a `T | U | V | …` `BitOr` BinaryExpr chain into its variant
 /// list, in source order. Non-`BitOr` expressions are returned as a

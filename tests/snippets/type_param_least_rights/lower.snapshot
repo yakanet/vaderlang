@@ -14,8 +14,8 @@
         int(2) :i32
         int(3) :i32
   fn snippet$main() -> i32
-    let local: Cfg! =
-      Cfg! {
+    let local: Cfg =
+      Cfg {
         n: int(7) :i32
       }
     let r: Cfg =
@@ -23,7 +23,7 @@
         callee:
           snippet$pick__Cfg :Cfg
         arg0:
-          local :Cfg!
+          local :Cfg
         arg1:
           CFG :Cfg
     let got: i32[] =
@@ -237,7 +237,7 @@
       b :Any
   fn snippet$pair__i32__(a: Any, b: Any) -> [Any, Any]
     ~>
-      [Any, Any]! {
+      [Any, Any] {
         _0: a :Any
         _1: b :Any
       }

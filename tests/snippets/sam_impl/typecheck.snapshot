@@ -1,9 +1,9 @@
 # Typecheck
 
 ## tests/snippets/sam_impl
-  TraitDecl      Describe             :: Describe!
+  TraitDecl      Describe             :: Describe
   FnDecl         main                 :: fn() -> i32
-  TraitDecl      Tag                  :: Tag!
+  TraitDecl      Tag                  :: Tag
   expr 19:28    StringLitExpr  :: string
   expr 19:45    IdentExpr      :: i32
   expr 23:21    StringLitExpr  :: string

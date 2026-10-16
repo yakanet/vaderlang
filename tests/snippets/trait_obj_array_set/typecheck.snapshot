@@ -1,9 +1,9 @@
 # Typecheck
 
 ## tests/snippets/trait_obj_array_set
-  StructDecl     Circle               :: Circle!
+  StructDecl     Circle               :: Circle
   FnDecl         main                 :: fn() -> i32
-  TraitDecl      Shape                :: Shape!
+  TraitDecl      Shape                :: Shape
   ConstDecl      Square               :: type
   expr 16:53    BinaryExpr     :: i32
   expr 16:53    CallExpr       :: i32
@@ -24,7 +24,7 @@
   expr 24:5     CallExpr       :: void
   expr 24:5     FieldExpr      :: fn(Shape) -> void
   expr 24:5     IdentExpr      :: Shape[]
-  expr 25:17    StructLitExpr  :: Circle!
+  expr 25:17    StructLitExpr  :: Circle
   expr 25:5     CallExpr       :: void
   expr 25:5     FieldExpr      :: fn(Shape) -> void
   expr 25:5     IdentExpr      :: Shape[]
@@ -32,7 +32,7 @@
   expr 26:17    IdentExpr      :: type
   expr 26:5     IdentExpr      :: Shape[]
   expr 26:5     IndexExpr      :: Shape
-  expr 27:17    StructLitExpr  :: Circle!
+  expr 27:17    StructLitExpr  :: Circle
   expr 27:5     IdentExpr      :: Shape[]
   expr 27:5     IndexExpr      :: Shape
   expr 28:14    IdentExpr      :: Shape[]

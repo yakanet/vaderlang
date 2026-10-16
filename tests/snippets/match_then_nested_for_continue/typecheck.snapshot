@@ -2,11 +2,11 @@
 
 ## tests/snippets/match_then_nested_for_continue
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Pair                 :: Pair!
+  StructDecl     Pair                 :: Pair
   FnDecl         run                  :: fn(Pair | Wrap, bool, bool) -> i32
   ConstDecl      U                    :: type
-  StructDecl     Wrap                 :: Wrap!
-  expr 23:14    SeqLitExpr     :: i32[]!
+  StructDecl     Wrap                 :: Wrap
+  expr 23:14    SeqLitExpr     :: i32[]
   expr 25:11    IdentExpr      :: Pair | Wrap
   expr 25:5     MatchExpr      :: void
   expr 26:22    IdentExpr      :: i32
@@ -20,7 +20,7 @@
   expr 30:8     IdentExpr      :: bool
   expr 31:12    IdentExpr      :: bool
   expr 31:9     IfExpr         :: void
-  expr 32:23    IdentExpr      :: i32[]!
+  expr 32:23    IdentExpr      :: i32[]
   expr 33:17    IfExpr         :: void
   expr 33:20    BinaryExpr     :: bool
   expr 33:20    IdentExpr      :: i32
@@ -30,4 +30,4 @@
   expr 38:12    IdentExpr      :: i32
   expr 42:12    CallExpr       :: i32
   expr 42:12    IdentExpr      :: fn(Pair | Wrap, bool, bool) -> i32
-  expr 42:16    StructLitExpr  :: Pair!
+  expr 42:16    StructLitExpr  :: Pair

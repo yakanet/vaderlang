@@ -534,11 +534,9 @@ test("lsp: completion shows a local's inferred type as detail", async () => {
   expect(labels.has("n")).toBe(true);
   expect(labels.has("b")).toBe(true);
 
-  // `n :: mk()` → `i32` (the call's return type), `b :: Box {...}` → `Box!`.
-  // The `!` is the point: a LOCAL is owned, so it stays mutable — the read-only
-  // default governs parameters, fields and returns, never a local.
+  // `n :: mk()` → `i32` (the call's return type), `b :: Box {...}` → `Box`.
   expect(list.items.find((i) => i.label === "n")?.detail).toBe("i32");
-  expect(list.items.find((i) => i.label === "b")?.detail).toBe("Box!");
+  expect(list.items.find((i) => i.label === "b")?.detail).toBe("Box");
 
   // A function's detail is its signature, with the redundant `<name> :: `
   // prefix stripped — the label already carries the name.
@@ -1044,36 +1042,6 @@ test("lsp: code action converts a 2-arm match to if/else", async () => {
   const fileEdits = soleFileEdits(conv!.edit);
   expect(fileEdits[0]!.newText).toContain("if x == 0");
   expect(fileEdits[0]!.newText).toContain("else");
-}, { timeout: MEDIUM_BUILD });
-
-const DEDUCED_LOCAL_SOURCE = `module "lsp_test"
-
-count :: fn(x: i32) -> i32 {
-    return match x {
-        0 -> {
-            seen: i32[]: []
-            seen.push(x)
-            kept: i32[]!: []
-            kept.push(x)
-            i32(seen.len() + kept.len())
-        }
-        _ -> 2
-    }
-}
-`;
-
-test("lsp: a rewrite prints the `!` the source writes, not those deduced", async () => {
-  // `seen` is deduced `i32[]!` : the typed AST the action rewrites carries the
-  // marker, which the source does not write. `kept` writes its own, which stays.
-  const results = await driveLsp(DEDUCED_LOCAL_SOURCE, [
-    { method: "textDocument/codeAction", position: { line: 3, character: 11 } },
-  ]);
-  const actions = results[0]!.result as CodeActionT[];
-  const conv = actions.find((a) => a.title === "Convert match to if");
-  expect(conv).toBeDefined();
-  const fileEdits = soleFileEdits(conv!.edit);
-  expect(fileEdits[0]!.newText).toContain("seen: i32[]: []");
-  expect(fileEdits[0]!.newText).toContain("kept: i32[]!: []");
 }, { timeout: MEDIUM_BUILD });
 
 const NULL_NARROW_SOURCE = `module "lsp_test"
@@ -1669,7 +1637,7 @@ test("lsp: references stay in the file the cursor is in", async () => {
 const BUILTIN_METHOD_SOURCE = `module "lsptest"
 
 main :: fn() -> i32 {
-    xs: i32[]! = []
+    xs: i32[]: []
     xs.push(1)
     return i32(xs.len())
 }
@@ -2201,7 +2169,7 @@ import "std/iter"
 pick :: fn(a: i32) -> i32 = a
 pick :: fn(s: string) -> i32 = 0
 
-fill :: fn(xs: i32[]!, n: i32) -> i32 = n
+fill :: fn(xs: i32[], n: i32) -> i32 = n
 
 main :: fn() -> i32 {
     n :: pick("s")
@@ -2255,14 +2223,13 @@ test("lsp: signature help on a trait method call", async () => {
   expect(help.activeParameter).toBe(2);
 });
 
-// A cursor in the gap before the first argument is on the first parameter, and a
-// mutable parameter renders with its `!`.
+// A cursor in the gap before the first argument is on the first parameter.
 test("lsp: signature help before the first argument", async () => {
   const results = await driveLsp(SIGNATURE_SOURCE, [
     { method: "textDocument/signatureHelp", position: { line: 13, character: 28 } },
   ]);
   const help = results[0]!.result as SignatureHelp;
-  expect(help.signatures[0]!.label).toBe("fill(xs: i32[]!, n: i32) -> i32");
+  expect(help.signatures[0]!.label).toBe("fill(xs: i32[], n: i32) -> i32");
   expect(help.activeParameter).toBe(0);
 });
 

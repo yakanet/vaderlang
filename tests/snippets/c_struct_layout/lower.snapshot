@@ -4,19 +4,19 @@
   struct snippet$Div { quot: i32, rem: i32 }
   fn snippet$c_abs(x: i32) -> i32
     <extern / signature only>
-  fn snippet$fill_div(d: Div!, quot: i32, rem: i32) -> void
+  fn snippet$fill_div(d: Div, quot: i32, rem: i32) -> void
     <extern / signature only>
   fn snippet$main() -> i32
-    let d: Div! =
-      Div! {
+    let d: Div =
+      Div {
         quot: int(0) :i32
         rem: int(0) :i32
       }
     call :void
       callee:
-        fill_div :fn(Div!, i32, i32) -> void
+        fill_div :fn(Div, i32, i32) -> void
       arg0:
-        d :Div!
+        d :Div
       arg1:
         int(-7) :i32
       arg2:
@@ -60,7 +60,7 @@
                 arg2:
                   cast → i64
                     .quot :i32
-                      d :Div!
+                      d :Div
           assign
             target:
               __off_1 :usize
@@ -92,7 +92,7 @@
                         c_abs :fn(i32) -> i32
                       arg0:
                         .quot :i32
-                          d :Div!
+                          d :Div
           assign
             target:
               __off_1 :usize
@@ -120,7 +120,7 @@
                 arg2:
                   cast → i64
                     .rem :i32
-                      d :Div!
+                      d :Div
           ~>
             call :string
               callee:

@@ -5,7 +5,7 @@
   fn __const_snippet$LEFT() -> Item[]
     ~>
       array :Item[]
-        Item! {
+        Item {
           name: "a" :string
           inner:
             array :string[]
@@ -14,7 +14,7 @@
   fn __const_snippet$RIGHT() -> Item[]
     ~>
       array :Item[]
-        Item! {
+        Item {
           name: "b" :string
           inner:
             array :string[]

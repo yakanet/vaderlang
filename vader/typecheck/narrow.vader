@@ -383,8 +383,7 @@ retire_field_chain :: fn(typed: TypedProgram, key: string) -> void {
 /// every field chain goes; a binding goes only when a lambda rebinds it, since
 /// the call may run that lambda. An `await` or a `yield` lets other code run
 /// before the body resumes, so it counts as a call. An implicit call (an
-/// operator's impl, an interpolation's `Display`) takes its receiver read-only
-/// and is not counted.
+/// operator's impl, an interpolation's `Display`) is not counted.
 ///
 /// @param typed  the program's typing tables.
 export retire_narrowings_across_call :: fn(typed: TypedProgram) -> void {

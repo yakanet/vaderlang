@@ -10,7 +10,7 @@
   expr 18:14    StringLitExpr  :: string
   expr 19:14    StringLitExpr  :: string
   expr 20:14    StringLitExpr  :: string
-  expr 24:14    SeqLitExpr     :: Level[]!
+  expr 24:14    SeqLitExpr     :: Level[]
   expr 24:15    FieldExpr      :: Level
   expr 24:15    IdentExpr      :: Level
   expr 24:26    FieldExpr      :: Level

@@ -10,7 +10,7 @@
   expr 13:13    IdentExpr      :: string
   expr 13:5     CallExpr       :: void
   expr 13:5     IdentExpr      :: fn(T) -> void
-  expr 14:14    RangeExpr      :: Range<usize>!
+  expr 14:14    RangeExpr      :: Range<usize>
   expr 14:18    CallExpr       :: usize
   expr 14:18    FieldExpr      :: fn() -> usize
   expr 14:18    IdentExpr      :: string
@@ -31,20 +31,20 @@
   expr 22:13    FieldExpr      :: fn() -> usize
   expr 22:13    IdentExpr      :: string
   expr 22:13    IndexExpr      :: string
-  expr 22:15    RangeExpr      :: Range<usize>!
+  expr 22:15    RangeExpr      :: Range<usize>
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(T) -> void
   expr 23:13    CallExpr       :: usize
   expr 23:13    FieldExpr      :: fn() -> usize
   expr 23:13    IdentExpr      :: string
   expr 23:13    IndexExpr      :: string
-  expr 23:15    RangeExpr      :: Range<usize>!
+  expr 23:15    RangeExpr      :: Range<usize>
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(T) -> void
   expr 24:13    CallExpr       :: usize
   expr 24:13    FieldExpr      :: fn() -> usize
   expr 24:13    IdentExpr      :: string
   expr 24:13    IndexExpr      :: string
-  expr 24:15    RangeExpr      :: Range<usize>!
+  expr 24:15    RangeExpr      :: Range<usize>
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void

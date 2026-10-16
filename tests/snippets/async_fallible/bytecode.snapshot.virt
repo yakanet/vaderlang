@@ -24,9 +24,9 @@ string 1 "err: "
 string 2 "ok: "
 string 3 "denied"
 string 4 "\n"
-import 0 byte_len std_core$byte_len result_type=15 param_types=12 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=18 param_types=12 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=5,18,15 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=15 param_types=12 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=18 param_types=12 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=5,18,15 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 6 std_core$Async
 impl 10 std_core$Async
 impl 16 std_core$ByteAccess

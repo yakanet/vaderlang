@@ -5,14 +5,14 @@
   FnDecl         find                 :: fn(string) -> null | Spec
   FnDecl         main                 :: fn() -> i32
   ConstDecl      ORIGIN               :: Spec
-  StructDecl     Spec                 :: Spec!
+  StructDecl     Spec                 :: Spec
   ConstDecl      SPECS                :: Spec[]
-  expr 18:10    SeqLitExpr     :: Spec![]!
+  expr 18:10    SeqLitExpr     :: Spec[]
   expr 19:20    StringLitExpr  :: string
-  expr 19:5     StructLitExpr  :: Spec!
+  expr 19:5     StructLitExpr  :: Spec
   expr 20:20    StringLitExpr  :: string
-  expr 20:5     StructLitExpr  :: Spec!
-  expr 23:11    StructLitExpr  :: Spec!
+  expr 20:5     StructLitExpr  :: Spec
+  expr 23:11    StructLitExpr  :: Spec
   expr 23:26    StringLitExpr  :: string
   expr 26:14    IdentExpr      :: Spec[]
   expr 27:12    BinaryExpr     :: bool
@@ -47,7 +47,7 @@
   expr 42:5     CallExpr       :: void
   expr 42:5     IdentExpr      :: fn(T) -> void
   expr 43:24    IdentExpr      :: Spec
-  expr 44:16    IdentExpr      :: Spec!
+  expr 44:16    IdentExpr      :: Spec
   expr 44:5     IfExpr         :: void
   expr 44:8     BinaryExpr     :: bool
   expr 44:8     IdentExpr      :: null | Spec

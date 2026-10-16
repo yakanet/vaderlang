@@ -27,7 +27,7 @@
             int(105) :u8
     if :void
       cond:
-        is Error! :bool
+        is Error :bool
           written :IOError | null
       then:
         call :void
@@ -55,7 +55,7 @@
               temp_dir :fn() -> string
     if :void
       cond:
-        is IOError! :bool
+        is IOError :bool
           entries :IOError | string[]
       then:
         call :void
@@ -107,7 +107,7 @@
             reopened :bool
           value:
             not :bool
-              is IOError! :bool
+              is IOError :bool
                 call :IOError | u8[]
                   callee:
                     read_file_bytes :fn(string, usize) -> IOError | u8[]

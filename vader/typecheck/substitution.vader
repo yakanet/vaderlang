@@ -51,7 +51,7 @@ export substitute :: fn(t: Type, subst: Substitution) -> Type {
     @partial match t {
         is TypeParamType -> {
             replacement :: subst.type_params[t.symbol.id] ?? return t
-            return instance_of(t, replacement)
+            return replacement
         }
         is SelfType -> {
             if subst.self_type == null { return t }
@@ -59,20 +59,20 @@ export substitute :: fn(t: Type, subst: Substitution) -> Type {
         }
         is StructType -> {
             new_args :: substitute_each(t.args, subst)
-            return StructType { .symbol = t.symbol, .args = new_args, .immutable = t.immutable }
+            return StructType { .symbol = t.symbol, .args = new_args }
         }
         is TraitType -> {
             new_args :: substitute_each(t.args, subst)
             return TraitType { ...t, .args = new_args }
         }
         is ArrayType -> {
-            return mk_array(substitute(t.element, subst), t.immutable)
+            return mk_array(substitute(t.element, subst))
         }
         is TupleType -> {
-            return mk_tuple(substitute_each(t.elements, subst), t.immutable)
+            return mk_tuple(substitute_each(t.elements, subst))
         }
         is FnType -> {
-            return mk_fn_like(t, substitute_each(t.params, subst), substitute(t.return_type, subst))
+            return mk_fn(substitute_each(t.params, subst), substitute(t.return_type, subst))
         }
         is UnionType -> {
             // Re-normalise through `union_of` (dedup + sort) after
@@ -129,6 +129,6 @@ fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
     sym :: fresh_type_param(3, "T")
     subst :: new_substitution()
     subst.type_params[3] = mk_primitive("string")
-    rewritten :: substitute(mk_array(mk_type_param(sym), false), subst)
-    assert_eq(display_type(rewritten), "string[]!")
+    rewritten :: substitute(mk_array(mk_type_param(sym)), subst)
+    assert_eq(display_type(rewritten), "string[]")
 }

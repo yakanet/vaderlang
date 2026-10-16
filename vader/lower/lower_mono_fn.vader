@@ -165,7 +165,7 @@ fn_instance_key :: fn(inst: GenericFnInstance) -> string {
         // A kept enum names its module : two `Status` enums of different modules
         // are two instances, as `mixed_any_suffix` mangles them.
         kept :: kept_type_argument(a)
-        sb.append(if kept is EnumType { kept_suffix(kept) } else { display_type_key(a) })
+        sb.append(if kept is EnumType { kept_suffix(kept) } else { display_type(a) })
     }
     return sb.to_string()
 }
@@ -302,12 +302,7 @@ build_fn_instance_decl :: fn(
 // (`[T, U][]`, `Pair<T, U>[]`) is BOXED-kind regardless, so leaving it erased is
 // sound — its reads route through the legacy runtime-dispatched op.
 returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
-    // A `!` on the return (`-> T[]!`) wraps the written type, and the shape this
-    // looks for is INSIDE the wrapper. Missing it makes the gate blind : the
-    // instance stays erased, its buffer is built at BOXED width, and reads come
-    // back null — a native segfault rather than a diagnostic. The marker is a
-    // mutability note, never a reason to skip force-concreting.
-    rt :: strip_mut_marker(fn_decl.return_type) ?? return false
+    rt :: fn_decl.return_type ?? return false
     if rt is ArrayTypeExpr {
         if rt.element is IdentExpr as id {
             for tp in fn_decl.type_params {

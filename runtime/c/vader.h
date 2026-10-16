@@ -502,11 +502,9 @@ typedef struct {
     struct vader_array_buf*  buf;
 } vader_array_t;
 
-/* Register the mutable module-const string arrays as atom roots. Called once from
- * `main` with a static table the C emitter builds : a writable global belongs to no
- * other root set (the frame chain and the defer stack are it), so a runtime-built
- * string stored in one was swept out from under it. A scan is enough — atom ids are
- * stable, atoms never move. */
+/* Register writable global string arrays as atom roots. Only a `main` the
+ * committed bootstrap seed emitted still calls this ; the current compiler roots
+ * its global slots through `vader_global_frame`. */
 void vader_atom_roots_register(vader_array_t* const* arrays, size_t count);
 
 /* Borrowed `const u8[]` byte-view accessors — the single home of the

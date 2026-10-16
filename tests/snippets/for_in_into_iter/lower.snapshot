@@ -2,15 +2,15 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let arr: i32[]! =
-      array :i32[]!
+    let arr: i32[] =
+      array :i32[]
         int(10) :i32
         int(20) :i32
         int(30) :i32
         int(40) :i32
     let arr_total: i32 = int(0) :i32
     block :void
-      let __for_arr_0: i32[]! = arr :i32[]!
+      let __for_arr_0: i32[] = arr :i32[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -18,7 +18,7 @@
         let x: i32 =
           index :i32
             on:
-              __for_arr_0 :i32[]!
+              __for_arr_0 :i32[]
             ix:
               __for_i_2 :usize
         assign
@@ -87,8 +87,8 @@
                 __buf_3 :Buffer
               arg1:
                 __off_4 :usize
-    let m: MutableMap<string, i32>! =
-      MutableMap<string, i32>! {
+    let m: MutableMap<string, i32> =
+      MutableMap<string, i32> {
         ekeys:
           array :string[]
         evals:
@@ -103,7 +103,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
-        m :MutableMap<string, i32>!
+        m :MutableMap<string, i32>
       arg1:
         "a" :string
       arg2:
@@ -112,14 +112,14 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
-        m :MutableMap<string, i32>!
+        m :MutableMap<string, i32>
       arg1:
         "b" :string
       arg2:
         int(2) :i32
     let map_total: i32 = int(0) :i32
     block :void
-      let self: MutableMap<string, i32> = m :MutableMap<string, i32>!
+      let self: MutableMap<string, i32> = m :MutableMap<string, i32>
       let keys: string[] =
         .ekeys :string[]
           self :MutableMap<string, i32>
@@ -133,7 +133,7 @@
             self :MutableMap<string, i32>
         loop while (<…>)
           let __gen_elem_6: [string, i32] =
-            [string, i32]! {
+            [string, i32] {
               _0:
                 index :string
                   on:
@@ -216,10 +216,10 @@
                 __buf_7 :Buffer
               arg1:
                 __off_8 :usize
-    let s: MutableSet<i32>! =
-      MutableSet<i32>! {
+    let s: MutableSet<i32> =
+      MutableSet<i32> {
         inner:
-          MutableMap<i32, bool>! {
+          MutableMap<i32, bool> {
             ekeys:
               array :i32[]
             evals:
@@ -235,19 +235,19 @@
       callee:
         std_collections$add__i32 :bool
       arg0:
-        s :MutableSet<i32>!
+        s :MutableSet<i32>
       arg1:
         int(7) :i32
     call :bool
       callee:
         std_collections$add__i32 :bool
       arg0:
-        s :MutableSet<i32>!
+        s :MutableSet<i32>
       arg1:
         int(11) :i32
     let set_total: i32 = int(0) :i32
     block :void
-      let self: MutableSet<i32> = s :MutableSet<i32>!
+      let self: MutableSet<i32> = s :MutableSet<i32>
       let keys: i32[] =
         .ekeys :i32[]
           .inner :MutableMap<i32, bool>

@@ -50,7 +50,6 @@ main :: fn(argv: string[]) -> i32 {
     if action == "lsp"    { return cmd_lsp(action_args) }
     if action == "dap"    { return cmd_dap(action_args) }
     if action == "check"  { return cmd_check(action_args) }
-    if action == "fix"    { return cmd_fix(action_args) }
     if action == "lint"   { return cmd_lint(action_args) }
     if action == "graph"  { return cmd_graph(action_args) }
     if action == "doctor" { return cmd_doctor(action_args) }

@@ -129,14 +129,10 @@ token_type_of_symbol :: fn(k: SymbolKind) -> TokenType = match k {
 ///
 /// A module const is `static` + `readonly`, the pair clients resolve to their
 /// "constant" colour (LSP4IJ → `CONSTANT`); without it a `SCREAMING_SNAKE` const
-/// read as a plain (and worse, reassignable) local. A module variable is `static`
-/// alone: code writes it.
+/// read as a plain (and worse, reassignable) local.
 modifiers_of_symbol :: fn(sym: Symbol) -> i32 {
-    if sym.kind != .Const {
+    if !is_frozen_const(sym) {
         return 0
-    }
-    if sym.module_variable {
-        return modifier_bit(.Static)
     }
     return modifier_bit(.Static) | modifier_bit(.Readonly)
 }
@@ -482,7 +478,6 @@ walk_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
             walk_opt_type(e.return_type, out)
         }
         is AST.ArrayTypeExpr   -> { walk_type_expr(e.element, out) }
-        is AST.MutableTypeExpr -> { walk_type_expr(e.inner, out) }
         // Literals carry no identifiers worth tagging.
         is AST.IntLitExpr   -> {}
         is AST.FloatLitExpr -> {}
@@ -628,7 +623,6 @@ walk_type_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
             walk_opt_type(e.return_type, out)
         }
         is AST.ArrayTypeExpr   -> { walk_type_expr(e.element, out) }
-        is AST.MutableTypeExpr -> { walk_type_expr(e.inner, out) }
         // Anything else — literal in a type position (`null`, `0..<N` etc.)
         // — defer to the value walker so spans still get classified.
         _ -> { walk_expr(e, out) }

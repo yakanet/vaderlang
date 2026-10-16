@@ -502,7 +502,7 @@ GB_DEFERS_FIELD :: "__defers"
 gb_defer_thunk_ty :: fn() -> Type = mk_fn([], TY_VOID)
 
 // The `__defers` field type : `(fn() -> void)[]`.
-gb_defers_ty :: fn() -> Type = mk_array(gb_defer_thunk_ty(), false)
+gb_defers_ty :: fn() -> Type = mk_array(gb_defer_thunk_ty())
 
 // `self.__defers`.
 gb_defers_field :: fn(gb: GenBuild) -> LoweredExpr = gb_field(gb, GB_DEFERS_FIELD, gb_defers_ty())

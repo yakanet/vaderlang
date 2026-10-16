@@ -36,10 +36,10 @@
   expr 53:32    CallExpr       :: string
   expr 53:32    FieldExpr      :: fn() -> string
   expr 53:32    IdentExpr      :: i32
-  expr 55:12    SeqLitExpr     :: string[]!
+  expr 55:12    SeqLitExpr     :: string[]
   expr 55:13    StringLitExpr  :: string
   expr 55:20    StringLitExpr  :: string
-  expr 56:12    SeqLitExpr     :: string[]!
+  expr 56:12    SeqLitExpr     :: string[]
   expr 56:13    StringLitExpr  :: string
   expr 56:22    StringLitExpr  :: string
   expr 60:13    StringLitExpr  :: string

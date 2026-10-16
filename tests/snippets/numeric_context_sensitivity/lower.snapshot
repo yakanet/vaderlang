@@ -532,8 +532,8 @@
                 __buf_4 :Buffer
               arg1:
                 __off_5 :usize
-    let c: Counter! =
-      Counter! {
+    let c: Counter =
+      Counter {
         n: int(0) :usize
         delta: int(-1) :isize
       }
@@ -576,7 +576,7 @@
                 arg2:
                   cast → u64
                     .n :usize
-                      c :Counter!
+                      c :Counter
           assign
             target:
               __off_7 :usize
@@ -604,7 +604,7 @@
                 arg2:
                   cast → i64
                     .delta :isize
-                      c :Counter!
+                      c :Counter
           ~>
             call :string
               callee:

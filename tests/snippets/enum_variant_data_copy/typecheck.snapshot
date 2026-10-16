@@ -1,35 +1,35 @@
 # Typecheck
 
 ## tests/snippets/enum_variant_data_copy
-  StructDecl     Holder               :: Holder!
+  StructDecl     Holder               :: Holder
   EnumDecl       HttpStatus           :: HttpStatus
   FnDecl         main                 :: fn() -> i32
-  StructDecl     StatusInfo           :: StatusInfo!
+  StructDecl     StatusInfo           :: StatusInfo
   expr 15:39    StringLitExpr  :: string
   expr 16:39    StringLitExpr  :: string
   expr 24:10    FieldExpr      :: HttpStatus
   expr 24:10    IdentExpr      :: HttpStatus
   expr 25:13    CallExpr       :: StatusInfo
-  expr 25:13    IdentExpr      :: StatusInfo!
+  expr 25:13    IdentExpr      :: StatusInfo
   expr 25:24    IdentExpr      :: HttpStatus
   expr 26:5     FieldExpr      :: i32
   expr 26:5     IdentExpr      :: StatusInfo
-  expr 27:10    StructLitExpr  :: Holder!
+  expr 27:10    StructLitExpr  :: Holder
   expr 27:27    CallExpr       :: StatusInfo
-  expr 27:27    IdentExpr      :: StatusInfo!
+  expr 27:27    IdentExpr      :: StatusInfo
   expr 27:38    IdentExpr      :: HttpStatus
   expr 28:5     FieldExpr      :: StatusInfo
   expr 28:5     FieldExpr      :: i32
-  expr 28:5     IdentExpr      :: Holder!
+  expr 28:5     IdentExpr      :: Holder
   expr 29:13    StringLitExpr  :: string
   expr 29:16    FieldExpr      :: i32
   expr 29:16    IdentExpr      :: StatusInfo
   expr 29:29    FieldExpr      :: StatusInfo
   expr 29:29    FieldExpr      :: i32
-  expr 29:29    IdentExpr      :: Holder!
+  expr 29:29    IdentExpr      :: Holder
   expr 29:44    CallExpr       :: StatusInfo
   expr 29:44    FieldExpr      :: i32
-  expr 29:44    IdentExpr      :: StatusInfo!
+  expr 29:44    IdentExpr      :: StatusInfo
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(T) -> void
   expr 29:55    IdentExpr      :: HttpStatus

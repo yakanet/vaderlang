@@ -13,10 +13,10 @@
       .n :i32
         t :Tag
   fn snippet$main() -> i32
-    let w: Wrapper<Mon>! =
-      Wrapper<Mon>! {
+    let w: Wrapper<Mon> =
+      Wrapper<Mon> {
         x:
-          Mon! {
+          Mon {
             v: int(7) :i32
           }
       }
@@ -32,7 +32,7 @@
               callee:
                 snippet$Wrapper$Into$into__Mon :Label
               arg0:
-                w :Wrapper<Mon>!
+                w :Wrapper<Mon>
     call :void
       callee:
         std_io$println__string :void
@@ -66,7 +66,7 @@
                           callee:
                             snippet$Wrapper$Into$into__Mon$1 :Tag
                           arg0:
-                            w :Wrapper<Mon>!
+                            w :Wrapper<Mon>
           ~>
             call :string
               callee:
@@ -75,12 +75,12 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let xs: Mon![]! =
-      array :Mon![]!
-        Mon! {
+    let xs: Mon[] =
+      array :Mon[]
+        Mon {
           v: int(4) :i32
         }
-        Mon! {
+        Mon {
           v: int(5) :i32
         }
     call :void
@@ -95,7 +95,7 @@
               callee:
                 snippet$[]$Into$into__Mon :Label
               arg0:
-                xs :Mon![]!
+                xs :Mon[]
     call :void
       callee:
         std_io$println__string :void
@@ -129,7 +129,7 @@
                           callee:
                             snippet$[]$Into$into__Mon$1 :Tag
                           arg0:
-                            xs :Mon![]!
+                            xs :Mon[]
           ~>
             call :string
               callee:
@@ -143,11 +143,11 @@
         std_io$println__string :void
       arg0:
         .s :string
-          call :Label!
+          call :Label
             callee:
-              snippet$[]$Into$into__Mon :Label!
+              snippet$[]$Into$into__Mon :Label
             arg0:
-              xs :Mon![]!
+              xs :Mon[]
     call :void
       callee:
         std_io$println__string :void
@@ -174,11 +174,11 @@
                 arg2:
                   cast → i64
                     .n :i32
-                      call :Tag!
+                      call :Tag
                         callee:
-                          snippet$Wrapper$Into$into__Mon$1 :Tag!
+                          snippet$Wrapper$Into$into__Mon$1 :Tag
                         arg0:
-                          w :Wrapper<Mon>!
+                          w :Wrapper<Mon>
           ~>
             call :string
               callee:
@@ -189,9 +189,9 @@
                 __off_5 :usize
     return int(0) :i32
   struct snippet$Wrapper__Mon { x: Mon }
-  fn snippet$Wrapper$Into$into__Mon(self: Wrapper<Mon>!) -> Label
+  fn snippet$Wrapper$Into$into__Mon(self: Wrapper<Mon>) -> Label
     ~>
-      Label! {
+      Label {
         s:
           block :string
             let __buf_0: Buffer =
@@ -239,9 +239,9 @@
                 arg1:
                   __off_1 :usize
       }
-  fn snippet$Wrapper$Into$into__Mon$1(self: Wrapper<Mon>!) -> Tag
+  fn snippet$Wrapper$Into$into__Mon$1(self: Wrapper<Mon>) -> Tag
     ~>
-      Tag! {
+      Tag {
         n:
           add_checked :i32
             l:
@@ -251,9 +251,9 @@
                 .x :Mon
                   self :Wrapper<Mon>
       }
-  fn snippet$[]$Into$into__Mon(self: Mon![]!) -> Label
+  fn snippet$[]$Into$into__Mon(self: Mon[]) -> Label
     ~>
-      Label! {
+      Label {
         s:
           block :string
             let __buf_0: Buffer =
@@ -299,9 +299,9 @@
                 arg1:
                   __off_1 :usize
       }
-  fn snippet$[]$Into$into__Mon$1(self: Mon![]!) -> Tag
+  fn snippet$[]$Into$into__Mon$1(self: Mon[]) -> Tag
     ~>
-      Tag! {
+      Tag {
         n:
           add_checked :i32
             l:

@@ -48,12 +48,12 @@ string 18 "bound ["
 string 19 "return ["
 string 20 "lambda ["
 string 21 "\n"
-import 0 byte_len std_core$byte_len result_type=13 param_types=3 param_mutable=0 param_by_address= (string) -> usize
-import 1 byte_at std_core$byte_at result_type=12 param_types=3,13 param_mutable=0,0 param_by_address= (string,usize) -> u8
-import 2 byte_slice std_core$byte_slice result_type=3 param_types=3,13,13 param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string
-import 3 bytes std_core$bytes result_type=16 param_types=3 param_mutable=0 param_by_address= (string) -> ref
-import 4 hash std_core$string$Hash$hash result_type=10 param_types=3 param_mutable=0 param_by_address= (string) -> u64
-import 5 extern write system_posix$sys_write header=<unistd.h> result_type=25 param_types=8,16,13 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=13 param_types=3 param_c_out= param_by_address= (string) -> usize
+import 1 byte_at std_core$byte_at result_type=12 param_types=3,13 param_c_out= param_by_address= (string,usize) -> u8
+import 2 byte_slice std_core$byte_slice result_type=3 param_types=3,13,13 param_c_out= param_by_address= (string,usize,usize) -> string
+import 3 bytes std_core$bytes result_type=16 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 4 hash std_core$string$Hash$hash result_type=10 param_types=3 param_c_out= param_by_address= (string) -> u64
+import 5 extern write system_posix$sys_write header=<unistd.h> result_type=25 param_types=8,16,13 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 1 std_core$Into
 impl 6 snippet$Shower
 impl 14 std_core$ByteAccess

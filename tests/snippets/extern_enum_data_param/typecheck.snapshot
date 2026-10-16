@@ -5,7 +5,7 @@
   FnDecl         labs_step            :: fn(Step) -> i64
   FnDecl         main                 :: fn() -> i32
   EnumDecl       Step                 :: Step
-  StructDecl     StepInfo             :: StepInfo!
+  StructDecl     StepInfo             :: StepInfo
   expr 15:23    StringLitExpr  :: string
   expr 16:23    StringLitExpr  :: string
   expr 17:23    StringLitExpr  :: string
@@ -54,7 +54,7 @@
   FnDecl         abs_status           :: fn(HttpStatus) -> i32
   EnumDecl       HttpStatus           :: HttpStatus
   FnDecl         seed_with            :: fn(HttpStatus) -> void
-  StructDecl     StatusInfo           :: StatusInfo!
+  StructDecl     StatusInfo           :: StatusInfo
   expr 10:26    StringLitExpr  :: string
   expr 11:26    StringLitExpr  :: string
   expr 12:26    StringLitExpr  :: string

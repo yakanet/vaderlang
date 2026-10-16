@@ -1,17 +1,17 @@
 # Typecheck
 
 ## tests/snippets/array_add_concat
-  StructDecl     Item                 :: Item!
+  StructDecl     Item                 :: Item
   ConstDecl      LEFT                 :: Item[]
   FnDecl         main                 :: fn() -> i32
   ConstDecl      RIGHT                :: Item[]
   expr 17:15    SeqLitExpr     :: Item[]
-  expr 17:16    StructLitExpr  :: Item!
+  expr 17:16    StructLitExpr  :: Item
   expr 17:31    StringLitExpr  :: string
   expr 17:45    SeqLitExpr     :: string[]
   expr 17:46    StringLitExpr  :: string
   expr 18:16    SeqLitExpr     :: Item[]
-  expr 18:17    StructLitExpr  :: Item!
+  expr 18:17    StructLitExpr  :: Item
   expr 18:32    StringLitExpr  :: string
   expr 18:46    SeqLitExpr     :: string[]
   expr 21:15    SeqLitExpr     :: i32[]

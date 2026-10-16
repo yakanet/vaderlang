@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Tagged { n: i32 }
-  fn snippet$Tagged$Equals$equals(self: Tagged!, other: Tagged) -> bool
+  fn snippet$Tagged$Equals$equals(self: Tagged, other: Tagged) -> bool
     ~>
       eq :bool
         l:
@@ -13,23 +13,23 @@
             other :Tagged
   fn snippet$pair(n: i32, s: string) -> [i32, string]
     ~>
-      [i32, string]! {
+      [i32, string] {
         _0: n :i32
         _1: s :string
       }
   fn snippet$tagged(n: i32) -> [i32, Tagged]
     ~>
-      [i32, Tagged]! {
+      [i32, Tagged] {
         _0: n :i32
         _1:
-          Tagged! {
+          Tagged {
             n: n :i32
           }
       }
   fn snippet$named(a: i32, b: i32) -> Pair
     ~>
-      cast → Pair!
-        Pair! {
+      cast → Pair
+        Pair {
           _0: a :i32
           _1: b :i32
         }
@@ -357,20 +357,20 @@
                   __off_13 :usize
                 arg2:
                   block :bool
-                    let __eq_l_10: [i32, [i32, string]!]! =
-                      [i32, [i32, string]!]! {
+                    let __eq_l_10: [i32, [i32, string]] =
+                      [i32, [i32, string]] {
                         _0: int(1) :i32
                         _1:
-                          [i32, string]! {
+                          [i32, string] {
                             _0: int(2) :i32
                             _1: "y" :string
                           }
                       }
-                    let __eq_r_11: [i32, [i32, string]!]! =
-                      [i32, [i32, string]!]! {
+                    let __eq_r_11: [i32, [i32, string]] =
+                      [i32, [i32, string]] {
                         _0: int(1) :i32
                         _1:
-                          [i32, string]! {
+                          [i32, string] {
                             _0: int(2) :i32
                             _1: "y" :string
                           }
@@ -381,32 +381,32 @@
                           eq :bool
                             l:
                               ._0 :i32
-                                __eq_l_10 :[i32, [i32, string]!]!
+                                __eq_l_10 :[i32, [i32, string]]
                             r:
                               ._0 :i32
-                                __eq_r_11 :[i32, [i32, string]!]!
+                                __eq_r_11 :[i32, [i32, string]]
                         r:
                           and :bool
                             l:
                               eq :bool
                                 l:
                                   ._0 :i32
-                                    ._1 :[i32, string]!
-                                      __eq_l_10 :[i32, [i32, string]!]!
+                                    ._1 :[i32, string]
+                                      __eq_l_10 :[i32, [i32, string]]
                                 r:
                                   ._0 :i32
-                                    ._1 :[i32, string]!
-                                      __eq_r_11 :[i32, [i32, string]!]!
+                                    ._1 :[i32, string]
+                                      __eq_r_11 :[i32, [i32, string]]
                             r:
                               eq :bool
                                 l:
                                   ._1 :string
-                                    ._1 :[i32, string]!
-                                      __eq_l_10 :[i32, [i32, string]!]!
+                                    ._1 :[i32, string]
+                                      __eq_l_10 :[i32, [i32, string]]
                                 r:
                                   ._1 :string
-                                    ._1 :[i32, string]!
-                                      __eq_r_11 :[i32, [i32, string]!]!
+                                    ._1 :[i32, string]
+                                      __eq_r_11 :[i32, [i32, string]]
           ~>
             call :string
               callee:
@@ -453,20 +453,20 @@
                   __off_17 :usize
                 arg2:
                   block :bool
-                    let __eq_l_14: [i32, [i32, string]!]! =
-                      [i32, [i32, string]!]! {
+                    let __eq_l_14: [i32, [i32, string]] =
+                      [i32, [i32, string]] {
                         _0: int(1) :i32
                         _1:
-                          [i32, string]! {
+                          [i32, string] {
                             _0: int(2) :i32
                             _1: "y" :string
                           }
                       }
-                    let __eq_r_15: [i32, [i32, string]!]! =
-                      [i32, [i32, string]!]! {
+                    let __eq_r_15: [i32, [i32, string]] =
+                      [i32, [i32, string]] {
                         _0: int(1) :i32
                         _1:
-                          [i32, string]! {
+                          [i32, string] {
                             _0: int(3) :i32
                             _1: "y" :string
                           }
@@ -477,32 +477,32 @@
                           eq :bool
                             l:
                               ._0 :i32
-                                __eq_l_14 :[i32, [i32, string]!]!
+                                __eq_l_14 :[i32, [i32, string]]
                             r:
                               ._0 :i32
-                                __eq_r_15 :[i32, [i32, string]!]!
+                                __eq_r_15 :[i32, [i32, string]]
                         r:
                           and :bool
                             l:
                               eq :bool
                                 l:
                                   ._0 :i32
-                                    ._1 :[i32, string]!
-                                      __eq_l_14 :[i32, [i32, string]!]!
+                                    ._1 :[i32, string]
+                                      __eq_l_14 :[i32, [i32, string]]
                                 r:
                                   ._0 :i32
-                                    ._1 :[i32, string]!
-                                      __eq_r_15 :[i32, [i32, string]!]!
+                                    ._1 :[i32, string]
+                                      __eq_r_15 :[i32, [i32, string]]
                             r:
                               eq :bool
                                 l:
                                   ._1 :string
-                                    ._1 :[i32, string]!
-                                      __eq_l_14 :[i32, [i32, string]!]!
+                                    ._1 :[i32, string]
+                                      __eq_l_14 :[i32, [i32, string]]
                                 r:
                                   ._1 :string
-                                    ._1 :[i32, string]!
-                                      __eq_r_15 :[i32, [i32, string]!]!
+                                    ._1 :[i32, string]
+                                      __eq_r_15 :[i32, [i32, string]]
           ~>
             call :string
               callee:
@@ -830,26 +830,26 @@
     let calls: i32[] =
       array :i32[]
         int(0) :i32
-    let counted: __lambda_env_snippet_1! =
-      __lambda_env_snippet_1! {
+    let counted: __lambda_env_snippet_1 =
+      __lambda_env_snippet_1 {
         cap_0: calls :i32[]
       }
     let _: bool =
       block :bool
-        let __eq_l_35: [i32, string]! =
-          call :[i32, string]!
+        let __eq_l_35: [i32, string] =
+          call :[i32, string]
             callee:
-              __lambda_snippet_0 :fn(i32) -> [i32, string]!
+              __lambda_snippet_0 :fn(i32) -> [i32, string]
             arg0:
-              counted :__lambda_env_snippet_1!
+              counted :__lambda_env_snippet_1
             arg1:
               int(1) :i32
-        let __eq_r_36: [i32, string]! =
-          call :[i32, string]!
+        let __eq_r_36: [i32, string] =
+          call :[i32, string]
             callee:
-              __lambda_snippet_0 :fn(i32) -> [i32, string]!
+              __lambda_snippet_0 :fn(i32) -> [i32, string]
             arg0:
-              counted :__lambda_env_snippet_1!
+              counted :__lambda_env_snippet_1
             arg1:
               int(1) :i32
         ~>
@@ -858,18 +858,18 @@
               eq :bool
                 l:
                   ._0 :i32
-                    __eq_l_35 :[i32, string]!
+                    __eq_l_35 :[i32, string]
                 r:
                   ._0 :i32
-                    __eq_r_36 :[i32, string]!
+                    __eq_r_36 :[i32, string]
             r:
               eq :bool
                 l:
                   ._1 :string
-                    __eq_l_35 :[i32, string]!
+                    __eq_l_35 :[i32, string]
                 r:
                   ._1 :string
-                    __eq_r_36 :[i32, string]!
+                    __eq_r_36 :[i32, string]
     call :void
       callee:
         std_io$println__string :void
@@ -923,13 +923,13 @@
                 __off_38 :usize
     return int(0) :i32
   struct __lambda_env_snippet_1 { cap_0: i32[] }
-  fn __lambda_snippet_0(__env_34: __lambda_env_snippet_1!, n: i32) -> [i32, string]!
+  fn __lambda_snippet_0(__env_34: __lambda_env_snippet_1, n: i32) -> [i32, string]
     assign
       target:
         index :i32
           on:
             .cap_0 :i32[]
-              __env_34 :__lambda_env_snippet_1!
+              __env_34 :__lambda_env_snippet_1
           ix:
             int(0) :i32
       value:
@@ -938,13 +938,13 @@
             index :i32
               on:
                 .cap_0 :i32[]
-                  __env_34 :__lambda_env_snippet_1!
+                  __env_34 :__lambda_env_snippet_1
               ix:
                 int(0) :i32
           r:
             int(1) :i32
     return
-      [i32, string]! {
+      [i32, string] {
         _0: n :i32
         _1: "e" :string
       }

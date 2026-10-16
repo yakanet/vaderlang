@@ -7,8 +7,7 @@
 //
 // Sequence collections live in the language : `[T]` arrays support `push`,
 // `len`, indexed access, mutation, and `for x in arr` — no `MutableList`
-// wrapper is needed at MVP. Immutable `List<T>` (post-MVP) will pair with
-// arrays once read-only views and `to_immutable` are designed.
+// wrapper is needed at MVP.
 //
 // Construction examples :
 //

@@ -1,10 +1,10 @@
 # Typecheck
 
 ## tests/snippets/array_display
-  StructDecl     Box                  :: Box<T>!
+  StructDecl     Box                  :: Box<T>
   FnDecl         listed               :: fn(T[]) -> string
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Point                :: Point!
+  StructDecl     Point                :: Point
   FnDecl         show                 :: fn(T) -> string
   expr 10:29    StringLitExpr  :: string
   expr 10:33    FieldExpr      :: i32
@@ -23,22 +23,22 @@
   expr 17:71    IdentExpr      :: T[]
   expr 20:19    SeqLitExpr     :: i32[]
   expr 21:13    StringLitExpr  :: string
-  expr 21:16    SeqLitExpr     :: i32[]!
-  expr 21:29    SeqLitExpr     :: string[]!
+  expr 21:16    SeqLitExpr     :: i32[]
+  expr 21:29    SeqLitExpr     :: string[]
   expr 21:30    StringLitExpr  :: string
   expr 21:35    StringLitExpr  :: string
-  expr 21:43    SeqLitExpr     :: bool[]!
+  expr 21:43    SeqLitExpr     :: bool[]
   expr 21:5     CallExpr       :: void
   expr 21:5     IdentExpr      :: fn(T) -> void
   expr 21:53    IdentExpr      :: i32[]
   expr 22:13    StringLitExpr  :: string
-  expr 22:16    SeqLitExpr     :: Point![]!
-  expr 22:17    StructLitExpr  :: Point!
-  expr 22:46    SeqLitExpr     :: i32[]![]!
-  expr 22:47    SeqLitExpr     :: i32[]!
+  expr 22:16    SeqLitExpr     :: Point[]
+  expr 22:17    StructLitExpr  :: Point
+  expr 22:46    SeqLitExpr     :: i32[][]
+  expr 22:47    SeqLitExpr     :: i32[]
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(T) -> void
-  expr 22:52    SeqLitExpr     :: i32[]!
+  expr 22:52    SeqLitExpr     :: i32[]
   expr 23:13    StringLitExpr  :: string
   expr 23:16    CallExpr       :: string
   expr 23:16    IdentExpr      :: fn(T[]) -> string
@@ -50,15 +50,15 @@
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(T) -> void
   expr 24:13    StringLitExpr  :: string
-  expr 24:16    StructLitExpr  :: Box!
-  expr 24:31    SeqLitExpr     :: i32[]!
+  expr 24:16    StructLitExpr  :: Box
+  expr 24:31    SeqLitExpr     :: i32[]
   expr 24:43    CallExpr       :: string
   expr 24:43    IdentExpr      :: fn(T) -> string
-  expr 24:48    StructLitExpr  :: Box!
+  expr 24:48    StructLitExpr  :: Box
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void
-  expr 24:63    SeqLitExpr     :: i32[]!
+  expr 24:63    SeqLitExpr     :: i32[]
   expr 25:13    StringLitExpr  :: string
-  expr 25:24    SeqLitExpr     :: null[]!
+  expr 25:24    SeqLitExpr     :: null[]
   expr 25:5     CallExpr       :: void
   expr 25:5     IdentExpr      :: fn(T) -> void

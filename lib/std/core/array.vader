@@ -43,10 +43,6 @@ export ArrayOps :: trait<T> {
 /// the same kind of sequence, so `+` reads the same way. Neither operand is
 /// touched; the result is a new allocation, so `a + b` in a loop allocates each
 /// time — build with `push_all` when that matters.
-///
-/// The result is immutable (`Out` is `Self`), even though it is a fresh allocation
-/// nobody else holds: `+` is for producing a value, not a work buffer. Build with
-/// an explicit `T[]!` and `push_all` when you need to keep appending.
 // Tests for `+` do NOT live in this file, unlike everything else here: using the
 // impl from inside `std/core` itself trips GATE B1 at materialisation
 // (`unresolved callee 'std_core$[]$Add$add__i32'`). Any other module resolves it

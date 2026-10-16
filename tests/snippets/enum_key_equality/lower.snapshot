@@ -265,8 +265,8 @@
                 __buf_4 :Buffer
               arg1:
                 __off_5 :usize
-    let by_color: MutableMap<Color, i32>! =
-      MutableMap<Any, i32>! {
+    let by_color: MutableMap<Color, i32> =
+      MutableMap<Any, i32> {
         ekeys:
           array :Any[]
         evals:
@@ -281,7 +281,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__Any__i32 :void
       arg0:
-        by_color :MutableMap<Color, i32>!
+        by_color :MutableMap<Color, i32>
       arg1:
         int(0) :u8
       arg2:
@@ -290,7 +290,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__Any__i32 :void
       arg0:
-        by_color :MutableMap<Color, i32>!
+        by_color :MutableMap<Color, i32>
       arg1:
         int(2) :u8
       arg2:
@@ -326,7 +326,7 @@
                           callee:
                             std_collections$MutableMap$Index$at__Any__i32 :i32 | null
                           arg0:
-                            by_color :MutableMap<Color, i32>!
+                            by_color :MutableMap<Color, i32>
                           arg1:
                             int(0) :u8
                       ~>
@@ -373,7 +373,7 @@
                           callee:
                             std_collections$MutableMap$Index$at__Any__i32 :i32 | null
                           arg0:
-                            by_color :MutableMap<Color, i32>!
+                            by_color :MutableMap<Color, i32>
                           arg1:
                             int(1) :u8
                       ~>
@@ -420,7 +420,7 @@
                           callee:
                             std_collections$MutableMap$Index$at__Any__i32 :i32 | null
                           arg0:
-                            by_color :MutableMap<Color, i32>!
+                            by_color :MutableMap<Color, i32>
                           arg1:
                             int(2) :u8
                       ~>
@@ -443,8 +443,8 @@
                 __buf_9 :Buffer
               arg1:
                 __off_10 :usize
-    let by_status: MutableMap<HttpStatus, string>! =
-      MutableMap<HttpStatus, string>! {
+    let by_status: MutableMap<HttpStatus, string> =
+      MutableMap<HttpStatus, string> {
         ekeys:
           array :HttpStatus[]
         evals:
@@ -459,7 +459,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string :void
       arg0:
-        by_status :MutableMap<HttpStatus, string>!
+        by_status :MutableMap<HttpStatus, string>
       arg1:
         int(1) :u8
       arg2:
@@ -468,7 +468,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string :void
       arg0:
-        by_status :MutableMap<HttpStatus, string>!
+        by_status :MutableMap<HttpStatus, string>
       arg1:
         int(0) :u8
       arg2:
@@ -477,7 +477,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string :void
       arg0:
-        by_status :MutableMap<HttpStatus, string>!
+        by_status :MutableMap<HttpStatus, string>
       arg1:
         int(1) :u8
       arg2:
@@ -494,7 +494,7 @@
                   callee:
                     std_collections$MutableMap$Index$at__snippet_HttpStatus__string :null | string
                   arg0:
-                    by_status :MutableMap<HttpStatus, string>!
+                    by_status :MutableMap<HttpStatus, string>
                   arg1:
                     int(1) :u8
               ~>
@@ -516,7 +516,7 @@
                   callee:
                     std_collections$MutableMap$Index$at__snippet_HttpStatus__string :null | string
                   arg0:
-                    by_status :MutableMap<HttpStatus, string>!
+                    by_status :MutableMap<HttpStatus, string>
                   arg1:
                     int(0) :u8
               ~>
@@ -623,7 +623,7 @@
                       callee:
                         std_collections$len__snippet_HttpStatus__string :usize
                       arg0:
-                        by_status :MutableMap<HttpStatus, string>!
+                        by_status :MutableMap<HttpStatus, string>
           ~>
             call :string
               callee:

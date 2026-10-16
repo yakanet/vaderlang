@@ -203,14 +203,13 @@ convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
     out: BcDataEntry[]: []
     for e in entries {
         match e {
-            is StrDataPoolEntry -> { out.push(BcStrData { .values = e.values, .mutable = e.mutable }) }
+            is StrDataPoolEntry -> { out.push(BcStrData { .values = e.values }) }
             is PrimDataPoolEntry -> {
                 items: u64[]: []
                 for v in e.items { items.push(u64(v)) }
                 out.push(BcPrimData {
-                    .kind    = array_kind_from_name(e.element_type_name),
-                    .items   = items,
-                    .mutable = e.mutable,
+                    .kind  = array_kind_from_name(e.element_type_name),
+                    .items = items,
                 })
             }
             is AggregateDataPoolEntry -> {
@@ -219,7 +218,6 @@ convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
                 out.push(BcAggregateData {
                     .element_type_name = e.element_type_name,
                     .elements          = elements,
-                    .mutable           = e.mutable,
                 })
             }
         }
@@ -244,7 +242,7 @@ lowered_to_bc_value :: fn(el: LoweredExpr) -> BcDataValue {
         for e in el.elements { elements.push(lowered_to_bc_value(e)) }
         return BcValArray { .element_type_name = array_element_name(el.type), .elements = elements }
     }
-    name :: display_type_key(type_of(el))
+    name :: display_type(type_of(el))
     return BcValPrim { .kind = array_kind_from_name(name), .bits = bc_value_bits(el, name) }
 }
 
@@ -256,7 +254,7 @@ struct_symbol_id :: fn(t: Type) -> i32 {
 
 // Element type display name of an array type (for the runtime element kind).
 array_element_name :: fn(t: Type) -> string {
-    if t is ArrayType { return display_type_key(t.element) }
+    if t is ArrayType { return display_type(t.element) }
     return ""
 }
 

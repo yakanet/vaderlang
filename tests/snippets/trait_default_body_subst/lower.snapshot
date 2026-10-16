@@ -4,13 +4,13 @@
   struct snippet$Box { v: i32 }
   struct snippet$A { a: i32 }
   struct snippet$B { b: i32 }
-  fn snippet$A$Widget$base(self: A!) -> i32
+  fn snippet$A$Widget$base(self: A) -> i32
     ~>
       .a :i32
         self :A
-  fn snippet$A$Widget$boxed(self: A!) -> Box
+  fn snippet$A$Widget$boxed(self: A) -> Box
     ~>
-      Box! {
+      Box {
         v:
           add_checked :i32
             l:
@@ -22,7 +22,7 @@
             r:
               int(100) :i32
       }
-  fn snippet$A$Widget$wide(self: A!) -> i64
+  fn snippet$A$Widget$wide(self: A) -> i64
     ~>
       mul_checked :i64
         l:
@@ -34,7 +34,7 @@
                 self :A
         r:
           int(2) :i64
-  fn snippet$A$Widget$label(self: A!) -> string
+  fn snippet$A$Widget$label(self: A) -> string
     ~>
       block :string
         let __buf_0: Buffer =
@@ -83,7 +83,7 @@
               __buf_0 :Buffer
             arg1:
               __off_1 :usize
-  fn snippet$A$Widget$pair(self: A!) -> i32[]
+  fn snippet$A$Widget$pair(self: A) -> i32[]
     ~>
       array :i32[]
         call :i32
@@ -100,7 +100,7 @@
                 self :A
           r:
             int(1) :i32
-  fn snippet$A$Widget$above(self: A!, other: A) -> bool
+  fn snippet$A$Widget$above(self: A, other: A) -> bool
     ~>
       gt :bool
         l:
@@ -115,13 +115,13 @@
               snippet$A$Widget$base :i32
             arg0:
               other :A
-  fn snippet$B$Widget$base(self: B!) -> i32
+  fn snippet$B$Widget$base(self: B) -> i32
     ~>
       .b :i32
         self :B
-  fn snippet$B$Widget$boxed(self: B!) -> Box
+  fn snippet$B$Widget$boxed(self: B) -> Box
     ~>
-      Box! {
+      Box {
         v:
           add_checked :i32
             l:
@@ -133,7 +133,7 @@
             r:
               int(100) :i32
       }
-  fn snippet$B$Widget$wide(self: B!) -> i64
+  fn snippet$B$Widget$wide(self: B) -> i64
     ~>
       mul_checked :i64
         l:
@@ -145,7 +145,7 @@
                 self :B
         r:
           int(2) :i64
-  fn snippet$B$Widget$label(self: B!) -> string
+  fn snippet$B$Widget$label(self: B) -> string
     ~>
       block :string
         let __buf_0: Buffer =
@@ -194,7 +194,7 @@
               __buf_0 :Buffer
             arg1:
               __off_1 :usize
-  fn snippet$B$Widget$pair(self: B!) -> i32[]
+  fn snippet$B$Widget$pair(self: B) -> i32[]
     ~>
       array :i32[]
         call :i32
@@ -211,7 +211,7 @@
                 self :B
           r:
             int(1) :i32
-  fn snippet$B$Widget$above(self: B!, other: B) -> bool
+  fn snippet$B$Widget$above(self: B, other: B) -> bool
     ~>
       gt :bool
         l:
@@ -227,12 +227,12 @@
             arg0:
               other :B
   fn snippet$main() -> i32
-    let a: A! =
-      A! {
+    let a: A =
+      A {
         a: int(1) :i32
       }
-    let b: B! =
-      B! {
+    let b: B =
+      B {
         b: int(2) :i32
       }
     let ok: bool = true
@@ -245,7 +245,7 @@
                 callee:
                   snippet$A$Widget$boxed :Box
                 arg0:
-                  a :A!
+                  a :A
           r:
             int(101) :i32
       then:
@@ -263,7 +263,7 @@
                 callee:
                   snippet$B$Widget$boxed :Box
                 arg0:
-                  b :B!
+                  b :B
           r:
             int(102) :i32
       then:
@@ -280,7 +280,7 @@
               callee:
                 snippet$A$Widget$wide :i64
               arg0:
-                a :A!
+                a :A
           r:
             int(2) :i64
       then:
@@ -297,7 +297,7 @@
               callee:
                 snippet$B$Widget$wide :i64
               arg0:
-                b :B!
+                b :B
           r:
             int(4) :i64
       then:
@@ -314,7 +314,7 @@
               callee:
                 snippet$A$Widget$label :string
               arg0:
-                a :A!
+                a :A
           r:
             "w:1" :string
       then:
@@ -331,7 +331,7 @@
               callee:
                 snippet$B$Widget$label :string
               arg0:
-                b :B!
+                b :B
           r:
             "w:2" :string
       then:
@@ -345,7 +345,7 @@
         callee:
           snippet$A$Widget$pair :i32[]
         arg0:
-          a :A!
+          a :A
     if :void
       cond:
         neq :bool
@@ -385,7 +385,7 @@
         callee:
           snippet$B$Widget$pair :i32[]
         arg0:
-          b :B!
+          b :B
     if :void
       cond:
         neq :bool
@@ -420,12 +420,12 @@
             ok :bool
           value:
             false
-    let low: A! =
-      A! {
+    let low: A =
+      A {
         a: int(0) :i32
       }
-    let high: B! =
-      B! {
+    let high: B =
+      B {
         b: int(5) :i32
       }
     if :void
@@ -435,9 +435,9 @@
             callee:
               snippet$A$Widget$above :bool
             arg0:
-              a :A!
+              a :A
             arg1:
-              low :A!
+              low :A
       then:
         assign
           target:
@@ -450,9 +450,9 @@
           callee:
             snippet$B$Widget$above :bool
           arg0:
-            b :B!
+            b :B
           arg1:
-            high :B!
+            high :B
       then:
         assign
           target:

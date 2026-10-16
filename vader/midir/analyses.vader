@@ -31,9 +31,6 @@ export successors_of :: fn(b: BasicBlock) -> BlockId[] {
 /// Predecessor lists keyed by BlockId. The returned array is dense
 /// (one entry per block, possibly empty).
 export predecessors_of :: fn(fn_: CFGFunction) -> BlockId[][] {
-    // The inner lists must be mutable to be filled, the outer only read — and the
-    // element is covariant into the read-only array the signature promises, so
-    // `out` returns as-is.
     out: BlockId[][]: filled(fn_.blocks.len(), () -> [])
     for b in fn_.blocks {
         for succ in successors_of(b) { out[i32(succ)].push(b.id) }

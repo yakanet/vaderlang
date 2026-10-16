@@ -1,26 +1,26 @@
 # Typecheck
 
 ## tests/snippets/array_copy_to_const
-  StructDecl     Inner                :: Inner!
-  StructDecl     Item                 :: Item!
+  StructDecl     Inner                :: Inner
+  StructDecl     Item                 :: Item
   ConstDecl      ITEMS                :: Item[]
   FnDecl         main                 :: fn() -> i32
   expr 39:16    SeqLitExpr     :: Item[]
   expr 40:20    StringLitExpr  :: string
   expr 40:38    SeqLitExpr     :: Inner[]
-  expr 40:39    StructLitExpr  :: Inner!
-  expr 40:5     StructLitExpr  :: Item!
+  expr 40:39    StructLitExpr  :: Inner
+  expr 40:5     StructLitExpr  :: Item
   expr 40:54    StringLitExpr  :: string
   expr 41:20    StringLitExpr  :: string
   expr 41:39    SeqLitExpr     :: Inner[]
-  expr 41:5     StructLitExpr  :: Item!
+  expr 41:5     StructLitExpr  :: Item
   expr 45:18    SeqLitExpr     :: Item[]
   expr 46:24    StringLitExpr  :: string
   expr 46:38    SeqLitExpr     :: Inner[]
-  expr 46:9     StructLitExpr  :: Item!
+  expr 46:9     StructLitExpr  :: Item
   expr 47:24    StringLitExpr  :: string
   expr 47:38    SeqLitExpr     :: Inner[]
-  expr 47:9     StructLitExpr  :: Item!
+  expr 47:9     StructLitExpr  :: Item
   expr 49:22    IdentExpr      :: Item[]
   expr 49:5     CallExpr       :: void
   expr 49:5     FieldExpr      :: fn(usize, Item[], usize, usize) -> void
@@ -38,10 +38,10 @@
   expr 56:19    SeqLitExpr     :: Item[]
   expr 57:24    StringLitExpr  :: string
   expr 57:41    SeqLitExpr     :: Inner[]
-  expr 57:9     StructLitExpr  :: Item!
+  expr 57:9     StructLitExpr  :: Item
   expr 58:24    StringLitExpr  :: string
   expr 58:46    SeqLitExpr     :: Inner[]
-  expr 58:9     StructLitExpr  :: Item!
+  expr 58:9     StructLitExpr  :: Item
   expr 60:22    IdentExpr      :: Item[]
   expr 60:5     CallExpr       :: void
   expr 60:5     FieldExpr      :: fn(usize, Item[], usize, usize) -> void

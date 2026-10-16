@@ -468,12 +468,6 @@ atom_count_define :: fn(ctx: EmitCtx) -> CTopLevel = CDefine {
 /// Storage of a global defined by the emitter : private to its single unit,
 /// except in a split build, where another unit may read it.
 ///
-/// A mutable module const is written through `(void*) &vader_data_N` (see
-/// `emit_data_const_op`), so it must not be `const` : the store would land in
-/// `.rodata` — a segfault, not a diagnostic. The write barrier stays safe either
-/// way: it is range-guarded on the old-gen block (`vader.h`), and a static lives
-/// outside it.
-///
 /// @param split  whether the build is split into several units.
 global_storage :: fn(split: bool) -> CStorage = if split { .External } else { .Internal }
 
@@ -530,7 +524,6 @@ emit_data_pool :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         array :: PoolArray {
             .name = "vader_data_${i}",
             .storage = global_storage(ctx.split),
-            .constant = !data_entry_mutable(entry),
             .type_id = type_ids[i],
             .element_tag = array_element_tag(ctx.module.types, type_ids[i]),
         }
@@ -541,7 +534,7 @@ emit_data_pool :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         }
     }
     emit_global_slots(ctx, items)
-    emit_global_const_roots(ctx, items)
+    emit_global_roots(ctx, items)
     printer.print_section(CSection {
         .comment = [
             "Comptime data pool — read-only arrays in `.rodata`.",
@@ -556,9 +549,8 @@ emit_data_pool :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 PoolArray :: struct {
     /// The `vader_array_t` ; its buffer is `<name>_buf`.
     name: string
-    /// Storage and constness, shared by the array and its buffer.
+    /// Storage, shared by the array and its buffer.
     storage: CStorage
-    constant: bool
     /// The array's type index.
     type_id: i32
     /// The element type index, stamped on the buffer and on each boxed slot.
@@ -586,7 +578,7 @@ push_pool_array :: fn(
     buffer :: "${array.name}_buf"
     items.push(CGlobal {
         .storage = array.storage,
-        .constant = array.constant,
+        .constant = true,
         .type = "struct { ${ARRAY_BUFFER_HEADER} ${slot_type} slots[${n}]; }",
         .declarator = CDeclarator {
             .name = buffer,
@@ -603,7 +595,7 @@ push_pool_array :: fn(
     })
     items.push(CGlobal {
         .storage = array.storage,
-        .constant = array.constant,
+        .constant = true,
         .type = "vader_array_t",
         .declarator = CDeclarator {
             .name = array.name,
@@ -629,59 +621,14 @@ object_header :: fn(tag: CExpression) -> CExpression = initializer_list([
     tag, ZERO, ZERO, ZERO, NULL_POINTER,
 ])
 
-// A static table of the mutable module-const arrays plus a PERMANENT GC frame
-// rooting them, installed as the base of the frame chain by `main`.
-//
-// A writable global belongs to no other root set — the frame chain and the defer
-// stack are it — so its buffer was invisible to the collector. Growing one
-// reallocates the buffer on the GC heap, and a runtime-built string stored in one
-// had its atom swept (measured: 50/50 slots corrupted after GC churn).
-//
-// The frame needs NO new runtime machinery: `stack_objs` was built for
-// stack-allocated structs — an off-arena object that never moves but whose pointer
-// FIELDS must be forwarded — and a static global is exactly that case.
-// `vader_gc_scan_object` reads the array's type-info row, sees `KIND_ARRAY`, and
-// forwards `.buf` through `vader_gc_scan_raw` (write barrier included). Atoms need
-// their own pass because `vader_atom_mark_roots` only walks a frame's boxed `ptrs`.
-emit_global_const_roots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
-    indices :: mutable_pool_indices(ctx.module.data_pool)
-    if indices.len() == 0 && ctx.module.globals.len() == 0 {
+// A PERMANENT GC frame rooting the global slots, installed as the base of the
+// frame chain by `main`. A global belongs to no other root set (the frame chain and
+// the defer stack are it), so each slot is listed by what it holds, as a function's
+// locals are: a boxed value, a raw reference, an atom id.
+emit_global_roots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
+    if ctx.module.globals.len() == 0 {
         return
     }
-    // `main` installs the frame, and under `--split` `main` lives in a different
-    // unit from the data pool — so `static` here leaves it undeclared there.
-    storage :: global_storage(ctx.split)
-    arrays: CExpression[]: []
-    for i in indices {
-        arrays.push(address_of(verbatim("vader_data_${i}")))
-    }
-    if arrays.len() > 0 {
-        items.push(CGlobal {
-            .storage = storage,
-            .type = "vader_array_t*",
-            .declarator = CDeclarator {
-                .name = "vader_global_const_arrays",
-                .length = UNSIZED,
-                .value = initializer_list(arrays),
-            },
-        })
-    }
-    // A BOXED static buffer is rooted alongside its array. `vader_gc_scan_raw`
-    // forwards `.buf` but never descends into an off-arena object, so a heap value
-    // written into a slot (`SPECS[0] = other`) would be invisible to the collector.
-    // Registering the buffer routes it through `vader_gc_scan_object`'s ARRAY_BUF
-    // branch, which scans the slots. A primitive buffer holds no pointer, so only
-    // the boxed kinds are listed. Post-growth the array points at a heap buffer and
-    // this one is stale — still valid memory, so scanning it is safe ; it just
-    // retains whatever the initial slots held.
-    objects :: arrays.clone()
-    for i in indices {
-        if ctx.module.data_pool[i] !is BcPrimData {
-            objects.push(address_of(verbatim("vader_data_${i}_buf")))
-        }
-    }
-    // The global slots root by what they hold, as a function's locals do: a boxed
-    // value, a raw reference, an atom id.
     boxes :: global_slot_addresses(ctx.module, .Any)
     raws :: global_slot_addresses(ctx.module, .Ref)
     atoms :: global_slot_addresses(ctx.module, .String)
@@ -691,27 +638,24 @@ emit_global_const_roots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
         unsigned(i64(raws.len())),
         root_list(items, "vader_box_t*", "vader_global_box_roots", boxes),
         root_list(items, "void**", "vader_global_raw_roots", raws),
-        unsigned(i64(objects.len())),
-        root_list(items, "void*", "vader_global_const_objs", objects),
+        ZERO,
+        NULL_POINTER,
     ]
     if atoms.len() > 0 {
         atom_roots :: root_list(items, "vader_string_t*", "vader_global_atom_roots", atoms)
         fields.push_all([unsigned(i64(atoms.len())), atom_roots])
     }
+    // `main` installs the frame, and under `--split` `main` lives in a different
+    // unit from the globals, so `static` here would leave it undeclared there.
     items.push(CGlobal {
-        .storage = storage,
+        .storage = global_storage(ctx.split),
         .type = "vader_gc_frame_t",
         .declarator = CDeclarator {
-            .name = "vader_global_const_frame",
+            .name = "vader_global_frame",
             .value = initializer_list(fields),
         },
     })
 }
-
-// Whether the module needs the permanent frame: a writable pool entry or a global
-// slot to root.
-has_global_roots :: fn(module: BytecodeModule) -> bool =
-    mutable_pool_indices(module.data_pool).len() > 0 || module.globals.len() > 0
 
 // One C global per global slot of the module, `vader_global_N`, at its type's
 // zero value: the null box for a boxed value, `0` for anything else.
@@ -769,29 +713,9 @@ root_list :: fn(
     return verbatim(name)
 }
 
-/// Pool indices of the mutable entries, in pool order — the writable globals that
-/// need rooting. Aggregates are always read-only (T3076), so only the two flat
-/// kinds can appear.
-///
-/// @param pool  the module's data pool.
-/// @return      the indices whose entry is mutable ; empty when none.
-mutable_pool_indices :: fn(pool: BcDataEntry[]) -> usize[] {
-    out: usize[]: []
-    for i in 0..<pool.len() {
-        if data_entry_mutable(pool[i]) { out.push(i) }
-    }
-    return out
-}
-
 // One aggregate (struct / tuple / nested) `.rodata` array : a boxed slot buffer
 // of pointers to each element's own materialised static, emitted depth-first
 // (children before parents) so the C forward-refs resolve.
-//
-// The marker is on the ARRAY level only, so the buffer and header lose `const`
-// while the element objects (emitted by `box_slot` below) keep theirs. The type
-// system is what makes that split safe: the element type stays read-only, so
-// `SPECS[0] = other` reaches a slot while `SPECS[0].code = 9` is T3070 — a write
-// into `.rodata` is never reachable.
 emit_agg_data_entry :: fn(
     ctx: EmitCtx,
     items: CTopLevel[],
@@ -880,7 +804,6 @@ emit_nested_array :: fn(
     array :: PoolArray {
         .name = name,
         .storage = global_storage(ctx.split),
-        .constant = true,
         .type_id = array_type_index_for_element(ctx.module.types, element_tag),
         .element_tag = element_tag,
     }
@@ -1518,18 +1441,13 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[] {
     // Before any Vader code runs, so the very first collection already sees them.
     // The frame becomes the BASE of the chain: every later frame links onto it and
     // nothing ever pops below it.
-    if has_global_roots(ctx.module) {
+    if ctx.module.globals.len() > 0 {
         body.push(
             CAssign {
                 .target = verbatim("vader_gc_top"),
-                .value = address_of(verbatim("vader_global_const_frame")),
+                .value = address_of(verbatim("vader_global_frame")),
             },
         )
-    }
-    root_count :: mutable_pool_indices(ctx.module.data_pool).len()
-    if root_count > 0 {
-        roots: CExpression[]: [verbatim("vader_global_const_arrays"), unsigned(i64(root_count))]
-        body.push(perform("vader_atom_roots_register", roots))
     }
     body.push(perform("atexit", [verbatim("vader_atom_shutdown")]))
     body.push(perform("atexit", [verbatim("vader_gc_shutdown")]))

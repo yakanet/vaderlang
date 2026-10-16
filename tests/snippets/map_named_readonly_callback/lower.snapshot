@@ -19,18 +19,18 @@
     ~>
       r :Rec
   fn snippet$main() -> i32
-    let rs: Rec![]! =
-      array :Rec![]!
-        Rec! {
+    let rs: Rec[] =
+      array :Rec[]
+        Rec {
           name: "a" :string
         }
-        Rec! {
+        Rec {
           name: "b" :string
         }
     let ks: string[][] =
       block :string[][]
-        let __fuse_arr_0: Rec![]! = rs :Rec![]!
-        let f: fn(Rec!) -> string[] = keys :fn(Rec) -> string[]
+        let __fuse_arr_0: Rec[] = rs :Rec[]
+        let f: fn(Rec) -> string[] = keys :fn(Rec) -> string[]
         let out: string[][] =
           @array.repeat :string[][]
             array :string[][]
@@ -40,18 +40,18 @@
             LoweredArrayLen
           let __fuse_i_1: usize = int(0) :usize
           loop while (<…>)
-            let x: Rec! =
-              index :Rec!
+            let x: Rec =
+              index :Rec
                 on:
-                  __fuse_arr_0 :Rec![]!
+                  __fuse_arr_0 :Rec[]
                 ix:
                   __fuse_i_1 :usize
             let x: string[] =
               call :string[]
                 callee:
-                  keys :fn(Rec!) -> string[]
+                  keys :fn(Rec) -> string[]
                 arg0:
-                  x :Rec!
+                  x :Rec
             LoweredArrayPush
           step
             assign
@@ -202,8 +202,8 @@
                 __off_5 :usize
     let ls: string[][] =
       block :string[][]
-        let __fuse_arr_6: Rec![]! = rs :Rec![]!
-        let f: fn(Rec!) -> string[] = __lambda_snippet_0 :fn(Rec) -> string[]
+        let __fuse_arr_6: Rec[] = rs :Rec[]
+        let f: fn(Rec) -> string[] = __lambda_snippet_0 :fn(Rec) -> string[]
         let out: string[][] =
           @array.repeat :string[][]
             array :string[][]
@@ -213,18 +213,18 @@
             LoweredArrayLen
           let __fuse_i_1: usize = int(0) :usize
           loop while (<…>)
-            let x: Rec! =
-              index :Rec!
+            let x: Rec =
+              index :Rec
                 on:
-                  __fuse_arr_6 :Rec![]!
+                  __fuse_arr_6 :Rec[]
                 ix:
                   __fuse_i_1 :usize
             let x: string[] =
               call :string[]
                 callee:
-                  __lambda_snippet_0 :fn(Rec!) -> string[]
+                  __lambda_snippet_0 :fn(Rec) -> string[]
                 arg0:
-                  x :Rec!
+                  x :Rec
             LoweredArrayPush
           step
             assign
@@ -331,8 +331,8 @@
                 __off_10 :usize
     let ss: Rec[] =
       block :Rec[]
-        let __fuse_arr_11: Rec![]! = rs :Rec![]!
-        let f: fn(Rec!) -> Rec = same :fn(Rec) -> Rec
+        let __fuse_arr_11: Rec[] = rs :Rec[]
+        let f: fn(Rec) -> Rec = same :fn(Rec) -> Rec
         let out: Rec[] =
           @array.repeat :Rec[]
             array :Rec[]
@@ -342,18 +342,18 @@
             LoweredArrayLen
           let __fuse_i_1: usize = int(0) :usize
           loop while (<…>)
-            let x: Rec! =
-              index :Rec!
+            let x: Rec =
+              index :Rec
                 on:
-                  __fuse_arr_11 :Rec![]!
+                  __fuse_arr_11 :Rec[]
                 ix:
                   __fuse_i_1 :usize
             let x: Rec =
               call :Rec
                 callee:
-                  same :fn(Rec!) -> Rec
+                  same :fn(Rec) -> Rec
                 arg0:
-                  x :Rec!
+                  x :Rec
             LoweredArrayPush cached
           step
             assign

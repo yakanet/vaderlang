@@ -57,59 +57,17 @@ export type_from_expr :: fn(
         is AST.CallExpr -> { return lower_call_in_type_position(expr, resolved, diags) }
         is AST.BinaryExpr -> { return lower_binary(expr, resolved, diags) }
         is AST.FnTypeExpr -> {
-            // Desugar the `!` of a fn TYPE (`fn(u8[]!) -> void`) the same way a
-            // declaration's `!` is desugared : an unmarked slot is a read-only
-            // borrow. Skipping this would leave every callback slot mutable, so
-            // passing a read-only value to `fn(Cfg) -> void` would be rejected.
-            params: Type[]: []
-            marks: bool[]: []
-            any_marked := false
-            for i in 0..<expr.params.len() {
-                // The marker now rides the TYPE (`fn(u8[]!)` parses as a
-                // `MutableTypeExpr`), so read it from there ; `params_mutable`
-                // stays consulted for the shape the older parser produced.
-                marked :: AST.type_expr_marks_mutable(expr.params[i])
-                    || (i < expr.params_mutable.len() && expr.params_mutable[i])
-                if marked { any_marked = true }
-                marks.push(marked)
-                params.push(apply_readonly_default(type_from_expr(expr.params[i], resolved, diags), expr.params[i]))
-            }
-            return FnType {
-                .params         = params,
-                .params_mutable = if any_marked { marks } else { [] },
-                // The params took the default above ; `opt_or_void` bypasses it, and
-                // skipping the return made `fn(f: fn() -> Cfg)` hand out a MUTABLE `Cfg`
-                // where the same `-> Cfg` on an ordinary declaration is frozen.
-                .return_type    = apply_readonly_default(
-                    opt_or_void(expr.return_type, resolved, diags), expr.return_type,
-                ),
-            }
+            params :: written_type_args(expr.params, resolved, diags)
+            return mk_fn(params, opt_or_void(expr.return_type, resolved, diags))
         }
-        // `T!` — one level of the written type is mutable. The marker is stripped
-        // here and carried by the `Type` itself.
-        is AST.MutableTypeExpr -> {
-            inner :: type_from_expr(expr.inner, resolved, diags)
-            if written_inside(expr.inner.span, expr.span) {
-                reject_marker_on_value_type(inner, expr.span, diags)
-            }
-            // A type that arrives ALREADY read-only is not un-frozen by a marker —
-            // the stricter side wins. A belt: with `const` gone the surface cannot
-            // write a frozen type under a `!` (and P1031 rejects the legacy
-            // name-borne marker).
-            if type_is_immutable(inner) { return inner }
-            return with_immutable(inner, false)
-        }
-        // NOTE: the `!` marker vector for a DECLARATION (`fn(buf: u8[]!)`) comes
-        // from `params_mutable_of` below, not from here — a declaration's params
-        // are `FnParam`s, not `TypeExpr`s.
         is AST.ArrayTypeExpr -> {
-            return mk_array(type_from_expr(expr.element, resolved, diags), false)
+            return mk_array(type_from_expr(expr.element, resolved, diags))
         }
         is AST.NullLitExpr -> { return TY_NULL }
         is AST.SeqLitExpr -> {
             elements: Type[]: []
             for el in expr.elements { elements.push(type_from_expr(el, resolved, diags)) }
-            return mk_tuple(elements, false)
+            return mk_tuple(elements)
         }
         // `P.Decl` — namespace field access in type position.
         // `resolved.idents` is start-only-keyed, so a lookup on the
@@ -193,51 +151,8 @@ resolve_named_type :: fn(sym: Symbol, resolved: ResolvedModule) -> Type {
 // alias body and replaces every `TypeParam<T>` with `i32`.
 substitute_alias_args :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
     if params.len() == 0 || args.len() == 0 { return t }
-    return walk_substitute(t, params, args)
+    return substitute_by_name(t, params, args)
 }
-
-walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
-    // @partial: only TypeParam and the composite variants can carry a param to
-    // substitute; every scalar / primitive variant has no inner type → as-is.
-    @partial match t {
-        is TypeParamType -> {
-            n :: min(params.len(), args.len())
-            for i in 0..<n {
-                if params[i].name == t.symbol.name { return instance_of(t, args[i]) }
-            }
-            return t
-        }
-        is ArrayType -> { return mk_array(walk_substitute(t.element, params, args), t.immutable) }
-        is StructType -> {
-            sargs: Type[]: []
-            for a in t.args { sargs.push(walk_substitute(a, params, args)) }
-            return mk_struct(t.symbol, sargs, t.immutable)
-        }
-        is TraitType -> {
-            sargs: Type[]: []
-            for a in t.args { sargs.push(walk_substitute(a, params, args)) }
-            return TraitType { ...t, .args = sargs }
-        }
-        is UnionType -> {
-            vs: Type[]: []
-            for v in t.variants { vs.push(walk_substitute(v, params, args)) }
-            return union_of(vs)
-        }
-        is TupleType -> {
-            els: Type[]: []
-            for el in t.elements { els.push(walk_substitute(el, params, args)) }
-            return mk_tuple(els, t.immutable)
-        }
-        is FnType -> {
-            ps: Type[]: []
-            for p in t.params { ps.push(walk_substitute(p, params, args)) }
-            return mk_fn_like(t, ps, walk_substitute(t.return_type, params, args))
-        }
-        _ -> { return t }
-    }
-}
-
-import "std/math"
 
 // Follow an `ImportBinding` symbol to its concrete exported
 // counterpart via `resolved.imports_to`. Other symbol kinds pass
@@ -277,18 +192,13 @@ lower_call_in_type_position :: fn(
     return TY_UNRESOLVED
 }
 
-// Written type arguments — a generic instance's, an impl clause's trait
-// arguments — each with the read-only default any written type takes, which is
-// what SPEC.md promises: "`Map<K, Cfg>` freezes the map and the depth of its values
-// is written `Map<K, Cfg!>`". `readonly_children` stops at nominal boundaries, so
-// without this a plain `Map<K, Cfg>` stored a MUTABLE `Cfg` and the written form
-// said nothing ; and an impl's `Sink<Cfg>` must compare with a slot's.
+// Written type arguments: a generic instance's, an impl clause's trait arguments.
 written_type_args :: fn(
     written: AST.TypeExpr[], resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type[] {
     out: Type[]: []
     for a in written {
-        out.push(apply_readonly_default(type_from_expr(a, resolved, diags), a))
+        out.push(type_from_expr(a, resolved, diags))
     }
     return out
 }
@@ -349,33 +259,9 @@ opt_or_void :: fn(
     return type_from_expr(ret, resolved, diags)
 }
 
-// Whether `inner` was written inside `outer`. A substitution puts the type a `T!` or a
-// `Self!` stands for under that marker (`i8 implements Step -> self + 1` reads
-// `Step.step :: fn(self) -> Self!` as `-> i8!`) : nobody wrote that `!` on it.
-written_inside :: fn(inner: Span, outer: Span) -> bool =
-    inner.start.file == outer.start.file && inner.start.offset >= outer.start.offset &&
-        inner.end.offset <= outer.end.offset
-
-// A `!` on a type with no interior is a no-op — `with_immutable` hands such a type
-// straight back — so `s :: string! = "hi"` used to read as a promise the compiler
-// silently dropped. Report it (T3075) instead.
-//
-// Restricted to the four kinds that are values through and through: a primitive, an
-// enum, a fn and `never`. A type PARAMETER or `Self` is deliberately NOT rejected —
-// the marker there is intent about the instantiation, which may well be a struct.
-reject_marker_on_value_type :: fn(t: Type, span: Span, diags: Diagnostic[]) -> void {
-    if !is_value_only_type(t) {
-        return
-    }
-    diags.push(typecheck_error(
-        .MutabilityMarkerOnValueType, span,
-        "`${display_type_key(t)}` has no interior to mutate — drop the `!`"))
-}
-
 /// Whether a value of type `t` has no interior a function could change: a
 /// primitive (a string included), an enum, a function value. A union answers yes
-/// only when NO variant has an interior : `(i32 | string)!` is as meaningless as
-/// `string!`, while `i32 | Cfg[]!` marks the one variant that can carry it.
+/// only when no variant has an interior.
 ///
 /// @param t  the value's type.
 export is_value_only_type :: fn(t: Type) -> bool {
@@ -399,14 +285,14 @@ export type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
             builtin :: primitive_from_name(sym.name) ?? return TY_UNRESOLVED
             return builtin
         }
-        .Struct    -> { return mk_struct(sym, args, false) }
-        .Trait     -> { return mk_trait(sym, args, false) }
+        .Struct    -> { return mk_struct(sym, args) }
+        .Trait     -> { return mk_trait(sym, args) }
         .TypeParam -> { return mk_type_param(sym) }
-        .Enum      -> { return mk_struct(sym, args, false) }   // placeholder until enum_pass plumbs declTypes
+        .Enum      -> { return mk_struct(sym, args) }   // placeholder until enum_pass plumbs declTypes
         // TypeAlias / Const-as-type-alias fall through to a marker
         // StructType so display_type renders the alias name. Proper
         // expansion needs decl_types (threaded via the typechecker).
-        .TypeAlias -> { return mk_struct(sym, args, false) }
+        .TypeAlias -> { return mk_struct(sym, args) }
         _          -> { return TY_UNRESOLVED }
     }
 }
@@ -426,25 +312,6 @@ export primitive_from_name :: fn(name: string) -> Type | null {
     return null
 }
 
-/// Marker vector for a DECLARATION's parameters — the bridge from `FnParam.mutable`
-/// (`!` on the name) to `FnType.params_mutable` (`!` on the type). Without it a
-/// `fn(buf: u8[]!)` would type as an unmarked `fn(u8[])` and nothing downstream
-/// could tell the two apart.
-///
-/// @param ps  the declaration's parameters, in order.
-/// @return    one flag per parameter, or **empty** when none is marked — the
-///            canonical "unmarked" form, never an all-`false` run.
-params_mutable_of :: fn(ps: AST.FnParam[]) -> bool[] {
-    any_mutable := false
-    out: bool[]: []
-    for p in ps {
-        m :: AST.param_is_mutable(p) || AST.decorators_have(p.decorators, "c_out")
-        if m { any_mutable = true }
-        out.push(m)
-    }
-    return if any_mutable { out } else { [] }
-}
-
 /// Whether `fd` takes a receiver — its first parameter is `self`. A trait or impl
 /// member without one is STATIC : called on a type (`T.zero()`), never on a value.
 ///
@@ -455,21 +322,6 @@ export has_self_param :: fn(fd: AST.FnDecl) -> bool =
 /// Index of `fd`'s first parameter past its receiver : 1 when it takes `self`, 0
 /// for a static member.
 receiver_count :: fn(fd: AST.FnDecl) -> usize = if has_self_param(fd) { 1 } else { 0 }
-
-/// `params_mutable_of` for a member called with its receiver curried away: the
-/// flags of the parameters past `self`, empty when none of them is marked.
-///
-/// @param fd  the member.
-params_mutable_after_receiver :: fn(fd: AST.FnDecl) -> bool[] {
-    out: bool[]: []
-    any_mutable := false
-    for i in receiver_count(fd)..<fd.params.len() {
-        m :: AST.param_is_mutable(fd.params[i])
-        if m { any_mutable = true }
-        out.push(m)
-    }
-    return if any_mutable { out } else { [] }
-}
 
 // ---- tests ----------------------------------------------------------------
 
@@ -531,7 +383,7 @@ test_primitive_from_name_returns_null_for_user_types :: fn() -> void {
 
 @test
 test_array_type_expr_lowers_to_array :: fn() -> void {
-    assert_eq(lower_first_param_type("f :: fn(x: i32[]) -> void {}"), "i32[]!")
+    assert_eq(lower_first_param_type("f :: fn(x: i32[]) -> void {}"), "i32[]")
 }
 
 @test

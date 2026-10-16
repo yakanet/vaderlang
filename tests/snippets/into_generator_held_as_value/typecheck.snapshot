@@ -2,10 +2,10 @@
 
 ## tests/snippets/into_generator_held_as_value
   FnDecl         codepoint_sum        :: fn(Iterator<char>) -> u32
-  StructDecl     Deck                 :: Deck!
+  StructDecl     Deck                 :: Deck
   FnDecl         main                 :: fn() -> i32
   FnDecl         total                :: fn(Iterator<i32>) -> i32
-  expr 17:18    RangeExpr      :: Range<i32>!
+  expr 17:18    RangeExpr      :: Range<i32>
   expr 17:22    FieldExpr      :: i32
   expr 17:22    IdentExpr      :: Deck
   expr 18:19    BinaryExpr     :: i32
@@ -24,7 +24,7 @@
   expr 36:12    IdentExpr      :: u32
   expr 40:13    CallExpr       :: i32
   expr 40:13    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 40:19    StructLitExpr  :: Deck!
+  expr 40:19    StructLitExpr  :: Deck
   expr 40:5     CallExpr       :: void
   expr 40:5     IdentExpr      :: fn(T) -> void
   expr 41:30    CallExpr       :: Iterator<char>

@@ -70,11 +70,7 @@ export check_struct_items :: fn(
             is AST.StructLitSpread -> {
                 has_spread = true
                 got :: check_expr_fn(item.expr, st, typed, diags)
-                // Shape, not mutability: a spread only READS the source's fields into a
-                // fresh value, and reading a read-only struct is always allowed. The
-                // literal's own mutability says nothing about the source's rights — same
-                // rule as `is` tests and UFCS receiver dispatch.
-                if !is_assignable(strip_mutability(got), strip_mutability(st)) {
+                if !is_assignable(got, st) {
                     diags.push(typecheck_error(.TypeMismatch, item.span,
                         "spread source must be assignable to ${display_type(st)}, got ${display_type(got)}"))
                 }
@@ -246,7 +242,7 @@ f :: fn() -> Point { return Point { .x = 1, .y = 2 } }
 """
     eb :: expect_struct_lit(src)
     diags: Diagnostic[]: []
-    assert_eq(display_type(infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)), "Point!")
+    assert_eq(display_type(infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)), "Point")
     assert_eq(diags.len(), 0)
 }
 

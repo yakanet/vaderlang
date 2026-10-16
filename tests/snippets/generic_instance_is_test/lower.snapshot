@@ -7,7 +7,7 @@
         ~>
           if :string
             cond:
-              is Spec<bool>! :bool
+              is Spec<bool> :bool
                 s :Spec<bool> | Spec<string>
             then:
               ~>
@@ -84,7 +84,7 @@
               ~>
                 if :string
                   cond:
-                    is Spec<string>! :bool
+                    is Spec<string> :bool
                       s :Spec<bool> | Spec<string>
                   then:
                     ~>
@@ -107,11 +107,11 @@
   fn snippet$main() -> i32
     let specs: (Spec<bool> | Spec<string>)[] =
       array :(Spec<bool> | Spec<string>)[]
-        Spec<bool>! {
+        Spec<bool> {
           name: "release" :string
           dflt: false
         }
-        Spec<string>! {
+        Spec<string> {
           name: "cc" :string
           dflt: "cc" :string
         }
@@ -129,7 +129,7 @@
               __for_i_2 :usize
         if :void
           cond:
-            is Spec<bool>! :bool
+            is Spec<bool> :bool
               s :Spec<bool> | Spec<string>
           then:
             ~>
@@ -152,7 +152,7 @@
             ~>
               if :void
                 cond:
-                  is Spec<string>! :bool
+                  is Spec<string> :bool
                     s :Spec<bool> | Spec<string>
                 then:
                   call :void

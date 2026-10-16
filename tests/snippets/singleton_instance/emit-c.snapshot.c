@@ -67,7 +67,7 @@ static bool vader_global_9 = 0u;
 static int32_t vader_global_10 = 0u;
 static void** vader_global_raw_roots[] = { &vader_global_1, &vader_global_3, &vader_global_5 };
 static vader_string_t* vader_global_atom_roots[] = { &vader_global_7 };
-static vader_gc_frame_t vader_global_const_frame = {
+static vader_gc_frame_t vader_global_frame = {
     NULL, 0u, 3u, NULL, vader_global_raw_roots, 0u, NULL, 1u, vader_global_atom_roots,
 };
 
@@ -767,7 +767,7 @@ static void std_io_println__string(vader_string_t l0) {
 
 int main(int argc, char** argv) {
     vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
-    vader_gc_top = &vader_global_const_frame;
+    vader_gc_top = &vader_global_frame;
     atexit(vader_atom_shutdown);
     atexit(vader_gc_shutdown);
     (void) argc;

@@ -272,7 +272,7 @@ bare_array_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 }
 
 // True when the array `expr` reaches its `Iterator` slot through the `into` of an
-// impl on its own instance (`MonType[] implements Into<Iterator<MonType>!>`), as
+// impl on its own instance (`MonType[] implements Into<Iterator<MonType>>`), as
 // the typecheck recorded it : iterating the raw array would skip it.
 converts_through_own_into :: fn(ctx: FnLowerCtx, array: Type, expr: AST.Expr) -> bool {
     into :: recorded_callee(ctx, expr, .Into)

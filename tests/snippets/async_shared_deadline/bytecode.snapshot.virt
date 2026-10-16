@@ -33,13 +33,13 @@ type 30 primitive isize
 string 0 "probe drives: "
 string 1 "async deadlock: a task is suspended with nothing left to wake it"
 string 2 "\n"
-import 0 byte_len std_core$byte_len result_type=14 param_types=8 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=16 param_types=8 param_mutable=0 param_by_address= (string) -> ref
+import 0 byte_len std_core$byte_len result_type=14 param_types=8 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=16 param_types=8 param_c_out= param_by_address= (string) -> ref
 import 2 sched_now std_runtime$sched_now result_type=9 () -> i64
-import 3 sched_arm std_runtime$sched_arm result_type=5 param_types=9 param_mutable=0 param_by_address= (i64) -> void
+import 3 sched_arm std_runtime$sched_arm result_type=5 param_types=9 param_c_out= param_by_address= (i64) -> void
 import 4 sched_park std_runtime$sched_park result_type=3 () -> i32
-import 5 panic std_abort$panic result_type=5 param_types=8 param_mutable=0 param_by_address= (string) -> void
-import 6 extern write system_posix$sys_write header=<unistd.h> result_type=30 param_types=3,16,14 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 5 panic std_abort$panic result_type=5 param_types=8 param_c_out= param_by_address= (string) -> void
+import 6 extern write system_posix$sys_write header=<unistd.h> result_type=30 param_types=3,16,14 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 1 std_core$Async
 impl 7 std_core$Async
 impl 15 std_core$ByteAccess

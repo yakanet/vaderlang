@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$Histogram$Mul$mul(self: Histogram!, k: u32) -> Histogram
+  fn snippet$Histogram$Mul$mul(self: Histogram, k: u32) -> Histogram
     let out: Histogram =
       @array.repeat :Histogram
         array :Histogram
@@ -24,7 +24,7 @@
               r:
                 int(1) :usize
     return out :Histogram
-  fn snippet$Histogram$Div$div(self: Histogram!, k: u32) -> [Histogram, u32]
+  fn snippet$Histogram$Div$div(self: Histogram, k: u32) -> [Histogram, u32]
     let out: Histogram =
       @array.repeat :Histogram
         array :Histogram
@@ -47,7 +47,7 @@
               r:
                 int(1) :usize
     return
-      [Histogram, u32]! {
+      [Histogram, u32] {
         _0: out :Histogram
         _1:
           mod :u32

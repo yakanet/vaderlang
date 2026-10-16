@@ -4,7 +4,7 @@
 
 Accepted (2026-10-16). Replaces the module variable (`NAME: T[]!: value`) once the
 six sites of `lib/std` are migrated; follows 0067, where `!` stopped granting
-anything.
+anything. The form left with the marker (0069).
 
 ## Context
 

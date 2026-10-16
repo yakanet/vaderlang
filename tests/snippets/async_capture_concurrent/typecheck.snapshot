@@ -8,7 +8,7 @@
   expr 13:34    BinaryExpr     :: i32
   expr 13:34    IdentExpr      :: i32
   expr 13:40    IdentExpr      :: i32
-  expr 14:14    RangeExpr      :: Range<i32>!
+  expr 14:14    RangeExpr      :: Range<i32>
   expr 14:18    IdentExpr      :: i32
   expr 15:9     CallExpr       :: void
   expr 15:9     IdentExpr      :: fn() -> void
@@ -19,10 +19,10 @@
   expr 22:11    AwaitExpr      :: i32[]
   expr 22:17    CallExpr       :: Async<i32[]>
   expr 22:17    IdentExpr      :: fn(Async<T>[]) -> Async<T[]>
-  expr 22:26    SeqLitExpr     :: Async<i32>![]
-  expr 22:27    CallExpr       :: Async<i32>!
+  expr 22:26    SeqLitExpr     :: Async<i32>[]
+  expr 22:27    CallExpr       :: Async<i32>
   expr 22:27    IdentExpr      :: fn(i32, i32) -> Async<i32>
-  expr 22:42    CallExpr       :: Async<i32>!
+  expr 22:42    CallExpr       :: Async<i32>
   expr 22:42    IdentExpr      :: fn(i32, i32) -> Async<i32>
   expr 23:14    IdentExpr      :: i32[]
   expr 23:19    CallExpr       :: void

@@ -26,11 +26,9 @@
 //     `project.data_pool` and read back via a `data.const` op, so the value
 //     exists in one place instead of being rebuilt. Tried FIRST.
 //
-// Since `orchestrate::auto_freeze_module_const` pins every unannotated
-// module-level const as read-only at every level, the data pool is now the default
-// route for them (`KEYWORDS`, `TOKEN_TYPES`, …), module variables included, and
-// fn-wrap is reached only by consts whose elements aren't bakeable.
-// `tests/snippets/const_fn_wrap` guards that remaining path.
+// A module const is frozen at every level, so the data pool is the default route
+// (`KEYWORDS`, `TOKEN_TYPES`, …), and fn-wrap is reached only by consts whose
+// elements aren't bakeable. `tests/snippets/const_fn_wrap` guards that path.
 
 module "vader/lower"
 
@@ -132,12 +130,9 @@ should_fn_wrap :: fn(value: LoweredExpr) -> bool {
 // through later phases.
 try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject) -> bool {
     if cd.type is ArrayType as arr_type {
-        // A module variable pools too, into a writable global rather than `.rodata`.
-        // Typecheck's T3076 keeps its elements read-only, so nothing writes into the
-        // element objects an aggregate entry emits as constants.
         if pool_literal_of(cd.value) is LoweredArrayLit as lit {
-            element_type_name :: display_type_key(arr_type.element)
-            entry :: render_data_pool_entry(lit, element_type_name, symbol.module_variable)
+            element_type_name :: display_type(arr_type.element)
+            entry :: render_data_pool_entry(lit, element_type_name)
             if entry != null {
                 pool_index :: project.data_pool.len()
                 project.data_pool.push(entry)
@@ -153,22 +148,22 @@ try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProjec
 
 // Route a bakeable struct const into the data pool, as the single element of an
 // aggregate entry : every read becomes `pool[k][0]`, a pointer to one static
-// object. Sound only because a module const is frozen at every level (typecheck's
-// `auto_freeze_module_const`), so nothing can write into the shared `.rodata`
-// object. A const whose declared type is not the struct itself (`X: Value: …`)
+// object. Sound only because a module const is frozen at every level (the effect
+// summary reports a write into one, T3070 / T3072), so nothing can write into the
+// shared `.rodata` object. A const whose declared type is not the struct itself (`X: Value: …`)
 // keeps the inline bucket: its reads must carry the declared type.
 try_pool_struct :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject) -> bool {
     if cd.type !is StructType || cd.value !is LoweredStructLit {
         return false
     }
     span :: cd.value.span
-    pool_type :: mk_array(cd.type, true)
+    pool_type :: mk_array(cd.type)
     wrapped :: LoweredArrayLit {
         .span     = span,
         .type     = pool_type,
         .elements = [cd.value],
     }
-    entry :: render_data_pool_entry(wrapped, display_type_key(cd.type), false) ?? return false
+    entry :: render_data_pool_entry(wrapped, display_type(cd.type)) ?? return false
     pool_index :: project.data_pool.len()
     project.data_pool.push(entry)
     project.const_inline[symbol.id] = LoweredIndex {
@@ -192,11 +187,8 @@ try_pool_struct :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProj
 // The array literal a const's value pools from, expanding the repeat form.
 //
 // `[0] * 4` lowers to an `array.repeat` intrinsic over a literal LHS and a literal
-// count, which is the idiomatic way to declare a fixed-size table — so without this
-// the whole shape fell out of the pool. For a READ-ONLY const that only cost a
-// rebuild per read ; for a MUTABLE one it was a correctness hole, since a const with
-// no storage silently discards every write. A non-constant count, or anything else,
-// returns null and takes the fn-wrap / inline bucket as before.
+// count, which is the idiomatic way to declare a fixed-size table. A non-constant
+// count, or anything else, returns null and takes the fn-wrap / inline bucket.
 pool_literal_of :: fn(value: LoweredExpr) -> LoweredExpr | null {
     if value is LoweredArrayLit { return value }
     if value is LoweredIntrinsicCall {
@@ -219,15 +211,13 @@ pool_literal_of :: fn(value: LoweredExpr) -> LoweredExpr | null {
     return null
 }
 
-// Build the pooled entry for an array literal, writable when `mutable`, or null
-// when an element isn't poolable. A `string[]` becomes a `StrDataPoolEntry` (values verbatim) ;
+// Build the pooled entry for an array literal, or null when an element isn't
+// poolable. A `string[]` becomes a `StrDataPoolEntry` (values verbatim) ;
 // every other element type takes the primitive bit-pattern path.
-render_data_pool_entry :: fn(
-    lit: LoweredArrayLit, element_name: string, mutable: bool,
-) -> DataPoolEntry | null {
+render_data_pool_entry :: fn(lit: LoweredArrayLit, element_name: string) -> DataPoolEntry | null {
     if element_name == "string" {
         values :: render_string_items(lit) ?? return null
-        return StrDataPoolEntry { .values = values, .mutable = mutable }
+        return StrDataPoolEntry { .values = values }
     }
     // A union element is boxed, each with its own member: never a packed scalar.
     rendered :: if array_element_type(lit.type) is UnionType {
@@ -236,17 +226,13 @@ render_data_pool_entry :: fn(
         render_data_items(lit, element_name)
     }
     if rendered != null {
-        return PrimDataPoolEntry {
-            .element_type_name = element_name, .items = rendered, .mutable = mutable,
-        }
+        return PrimDataPoolEntry { .element_type_name = element_name, .items = rendered }
     }
     // Aggregate (struct / nested-array elements) : bakeable only when every leaf
     // is a constant literal and every struct is a named, non-generic struct (its
     // symbol-id keys the baked value ; `midir` recurses over the same literal).
     if is_bakeable_array(lit) {
-        return AggregateDataPoolEntry {
-            .element_type_name = element_name, .literal = lit, .mutable = mutable,
-        }
+        return AggregateDataPoolEntry { .element_type_name = element_name, .literal = lit }
     }
     return null
 }

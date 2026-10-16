@@ -6,8 +6,8 @@
       .metres :i32
         l :Length
   fn snippet$main() -> i32
-    let f: Length! =
-      Length! {
+    let f: Length =
+      Length {
         feet: int(2) :i32
       }
     call :void
@@ -43,7 +43,7 @@
                           callee:
                             snippet_feet$Length$Into$into :Length
                           arg0:
-                            f :Length!
+                            f :Length
           ~>
             call :string
               callee:
@@ -104,9 +104,9 @@
           c1 :usize
 
 ## snippet/feet
-  fn snippet_feet$Length$Into$into(self: Length!) -> Length
+  fn snippet_feet$Length$Into$into(self: Length) -> Length
     ~>
-      Length! {
+      Length {
         metres:
           add_checked :i32
             l:

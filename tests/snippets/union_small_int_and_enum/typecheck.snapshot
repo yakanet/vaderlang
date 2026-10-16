@@ -5,15 +5,15 @@
   FnDecl         bytes                :: fn() -> Iterator<string | u8>
   ConstDecl      Cell                 :: type
   EnumDecl       Color                :: Color
-  StructDecl     Holder               :: Holder!
+  StructDecl     Holder               :: Holder
   FnDecl         main                 :: fn(string[]) -> i32
   FnDecl         nine                 :: fn() -> string | u8
   FnDecl         pick                 :: fn(i32) -> string | u8
-  StructDecl     Plain                :: Plain!
+  StructDecl     Plain                :: Plain
   FnDecl         show_byte            :: fn(string | u8) -> string
   FnDecl         show_cell            :: fn(Color | string) -> string
   FnDecl         show_word            :: fn(string | u32) -> string
-  TraitDecl      Shower               :: Shower!
+  TraitDecl      Shower               :: Shower
   ConstDecl      Word                 :: type
   expr 21:38    IfExpr         :: string
   expr 21:41    BinaryExpr     :: bool
@@ -77,19 +77,19 @@
   expr 60:23    IdentExpr      :: fn() -> string | u8
   expr 60:5     CallExpr       :: void
   expr 60:5     IdentExpr      :: fn(T) -> void
-  expr 61:10    StructLitExpr  :: Holder!
+  expr 61:10    StructLitExpr  :: Holder
   expr 62:13    CallExpr       :: string
   expr 62:13    IdentExpr      :: fn(string | u8) -> string
   expr 62:23    FieldExpr      :: string | u8
-  expr 62:23    IdentExpr      :: Holder!
+  expr 62:23    IdentExpr      :: Holder
   expr 62:5     CallExpr       :: void
   expr 62:5     IdentExpr      :: fn(T) -> void
   expr 63:5     FieldExpr      :: string | u8
-  expr 63:5     IdentExpr      :: Holder!
+  expr 63:5     IdentExpr      :: Holder
   expr 64:13    CallExpr       :: string
   expr 64:13    IdentExpr      :: fn(string | u8) -> string
   expr 64:23    FieldExpr      :: string | u8
-  expr 64:23    IdentExpr      :: Holder!
+  expr 64:23    IdentExpr      :: Holder
   expr 64:5     CallExpr       :: void
   expr 64:5     IdentExpr      :: fn(T) -> void
   expr 65:19    StringLitExpr  :: string
@@ -99,19 +99,19 @@
   expr 67:23    IdentExpr      :: string | u8
   expr 67:5     CallExpr       :: void
   expr 67:5     IdentExpr      :: fn(T) -> void
-  expr 68:13    StructLitExpr  :: MutableSet<string | u8>!
+  expr 68:13    StructLitExpr  :: MutableSet<string | u8>
   expr 69:14    IdentExpr      :: string | u8
   expr 69:5     CallExpr       :: bool
   expr 69:5     FieldExpr      :: fn(string | u8) -> bool
-  expr 69:5     IdentExpr      :: MutableSet<string | u8>!
+  expr 69:5     IdentExpr      :: MutableSet<string | u8>
   expr 70:14    IdentExpr      :: string | u8
   expr 70:5     CallExpr       :: bool
   expr 70:5     FieldExpr      :: fn(string | u8) -> bool
-  expr 70:5     IdentExpr      :: MutableSet<string | u8>!
+  expr 70:5     IdentExpr      :: MutableSet<string | u8>
   expr 71:13    StringLitExpr  :: string
   expr 71:21    CallExpr       :: usize
   expr 71:21    FieldExpr      :: fn() -> usize
-  expr 71:21    IdentExpr      :: MutableSet<string | u8>!
+  expr 71:21    IdentExpr      :: MutableSet<string | u8>
   expr 71:5     CallExpr       :: void
   expr 71:5     IdentExpr      :: fn(T) -> void
   expr 72:13    CallExpr       :: string
@@ -141,14 +141,14 @@
   expr 75:32    IdentExpr      :: string[]
   expr 75:5     CallExpr       :: void
   expr 75:5     IdentExpr      :: fn(T) -> void
-  expr 76:14    CallExpr       :: __genstate_bytes<string | u8>!
+  expr 76:14    CallExpr       :: __genstate_bytes<string | u8>
   expr 76:14    IdentExpr      :: fn() -> Iterator<string | u8>
   expr 77:17    CallExpr       :: string
   expr 77:17    IdentExpr      :: fn(string | u8) -> string
   expr 77:27    IdentExpr      :: string | u8
   expr 77:9     CallExpr       :: void
   expr 77:9     IdentExpr      :: fn(T) -> void
-  expr 79:21    StructLitExpr  :: Plain!
+  expr 79:21    StructLitExpr  :: Plain
   expr 80:13    CallExpr       :: string
   expr 80:13    FieldExpr      :: fn(string | u8) -> string
   expr 80:13    IdentExpr      :: Shower
@@ -164,7 +164,7 @@
   expr 86:23    IdentExpr      :: string | u8
   expr 86:5     CallExpr       :: void
   expr 86:5     IdentExpr      :: fn(T) -> void
-  expr 87:24    SeqLitExpr     :: [string | u8, i32]!
+  expr 87:24    SeqLitExpr     :: [string | u8, i32]
   expr 88:19    IdentExpr      :: [string | u8, i32]
   expr 89:13    CallExpr       :: string
   expr 89:13    IdentExpr      :: fn(string | u8) -> string

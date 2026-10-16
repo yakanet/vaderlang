@@ -191,15 +191,11 @@ pick_member_index :: fn(
         }
         return pick.best ?? 0
     }
-    // The pick reads the result's shape ; its rights are judged against the slot
-    // once picked (`Iterator<Mon!>!` from an owned array fits an `Iterator<Mon>!`
-    // conversion as surely as the call that follows reports it).
     fits: usize[]: []
     if expected != null {
-        want :: strip_mutability(expected)
         for i in 0..<sigs.len() {
             sig :: sigs[i]
-            if sig is FnType && is_assignable(strip_mutability(sig.return_type), want) {
+            if sig is FnType && is_assignable(sig.return_type, expected) {
                 fits.push(i)
             }
         }
@@ -386,7 +382,7 @@ seed_ufcs_bindings :: fn(
 // `idents` by their decl-site span) with the resolved
 // `<…>` argument types. No-op when the callee isn't an explicit generic
 // instantiation. Lets a free-literal arg pin to the named concrete type.
-// Returns the type params it seeded, whose rights no argument may lower.
+// Returns the type params it seeded, whose binding no argument may change.
 seed_explicit_type_args :: fn(
     callee: AST.Expr,
     typed: TypedProgram,
@@ -402,9 +398,7 @@ seed_explicit_type_args :: fn(
     for i in 0..<n {
         tp_sym :: typed.resolved.idents[decl.type_params[i].span.hash()] ?? continue
         written :: callee.type_args[i]
-        bindings[tp_sym.id] = apply_readonly_default(
-            type_from_expr(written, typed.resolved, diags), written,
-        )
+        bindings[tp_sym.id] = type_from_expr(written, typed.resolved, diags)
         held.add(tp_sym.id)
     }
     return held
@@ -430,7 +424,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
     }
     // Already in parameter order at full arity → nothing to reorder. A list this
     // function produced is in that shape, named arguments included : a call checked
-    // again, as each round of the `!` deduction does, keeps its arguments.
+    // again keeps its arguments.
     if c.args.len() == params.len() && in_parameter_order(params, c.args) {
         return null
     }
@@ -1017,7 +1011,7 @@ type_call :: fn(
         // outer's still-unbound `Iterator<T>`, and binding to it would carry
         // that foreign type-param into the result instead of a concrete type.
         if expected != null && !type_contains_type_param(expected) {
-            unify_type_param(callee_ty.return_type, expected, bindings, held, lowers_rights = false)
+            unify_type_param(callee_ty.return_type, expected, bindings, held)
         }
         if has_lambda {
             // Run the deferred lambdas to a FIXPOINT, not once : within the
@@ -1209,7 +1203,7 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
         return
     }
     element :: default_if_free(arg_type)
-    widened :: mk_array(element, false)
+    widened :: mk_array(element)
     typed.local_types[binding_key] = widened
     // This very call's receiver and `push` member were typed before the widening
     // fired, so they still read `?[]` / `fn(?) -> void`. Nothing downstream picks
@@ -1217,8 +1211,7 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     // but leaving a type that lies is how the literal-vs-local mismatch started,
     // and the LSP reads these same entries for hover.
     typed.expr_types[target_ident.id] = widened
-    // `push` takes `value: T!` ; the rebuilt member keeps the marker.
-    typed.expr_types[c.callee.id] = FnType { .params = [element], .params_mutable = [true], .return_type = TY_VOID }
+    typed.expr_types[c.callee.id] = mk_fn([element], TY_VOID)
     init_id :: typed.empty_array_inits[binding_key] ?? return
     typed.expr_types[init_id] = widened
 }
@@ -1286,10 +1279,6 @@ cast_call_target :: fn(
             site = ERRONEOUS_CALLEE
         } else {
             note_cast_into(typed, arg.value, src, target)
-            if type_withholds_mutation(src) {
-                // A conversion hands out what it was lent : `Point(ORIGIN)` is the const.
-                result = with_immutable(target, true)
-            }
         }
     }
     record_call_site(typed, c, site)
@@ -1468,8 +1457,7 @@ repin_free_ufcs_receiver_at_instance :: fn(
 
 // A UFCS call whose signature minus the receiver names none of the callee's type
 // parameters (`m.println()` on `println<T: Display>(msg: T)`) : the receiver alone
-// binds them, so the generic path never ran. Its bounds (T3006) and its rights
-// are judged here.
+// binds them, so the generic path never ran. Its bounds (T3006) are judged here.
 check_receiver_alone :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]) -> void {
     if c.callee !is AST.FieldExpr || generic_ufcs_callee(c.callee, typed) == null {
         return

@@ -4,7 +4,7 @@
   struct snippet$Node { value: i32, next: Node | null }
   fn snippet$cons(head: i32, tail: Node | null) -> Node | null
     return
-      Node! {
+      Node {
         value: head :i32
         next: tail :Node | null
       }
@@ -23,7 +23,7 @@
               ~>
                 if :Node | null
                   cond:
-                    is Node! :bool
+                    is Node :bool
                       n :Node | null
                   then:
                     ~>
@@ -69,7 +69,7 @@
               ~>
                 if :i32
                   cond:
-                    is Node! :bool
+                    is Node :bool
                       n :Node | null
                   then:
                     ~>
@@ -187,7 +187,7 @@
             ~>
               if :void
                 cond:
-                  is Node! :bool
+                  is Node :bool
                     __scrut_2 :Node | null
                 then:
                   ~>
@@ -273,7 +273,7 @@
             ~>
               if :void
                 cond:
-                  is Node! :bool
+                  is Node :bool
                     __scrut_5 :Node | null
                 then:
                   ~>

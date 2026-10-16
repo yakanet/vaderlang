@@ -4,7 +4,7 @@
   ConstDecl      ALIAS                :: Counter
   FnDecl         alias                :: fn() -> Counter
   FnDecl         bump                 :: fn(Counter) -> void
-  StructDecl     Counter              :: Counter!
+  StructDecl     Counter              :: Counter
   FnDecl         first_prime          :: fn() -> i32
   FnDecl         main                 :: fn() -> i32
   ConstDecl      PRIMES               :: i32[]
@@ -13,9 +13,9 @@
   FnDecl         start                :: fn() -> Counter
   ConstDecl      STARTS               :: Counter[]
   FnDecl         starts               :: fn() -> Counter[]
-  expr 16:10    StructLitExpr  :: Counter!
-  expr 17:11    SeqLitExpr     :: i32[]!
-  expr 18:11    SeqLitExpr     :: Counter[]!
+  expr 16:10    StructLitExpr  :: Counter
+  expr 17:11    SeqLitExpr     :: i32[]
+  expr 18:11    SeqLitExpr     :: Counter[]
   expr 18:12    IdentExpr      :: Counter
   expr 18:19    IdentExpr      :: Counter
   expr 19:10    IdentExpr      :: Counter
@@ -28,12 +28,12 @@
   expr 32:5     BinaryExpr     :: i32
   expr 32:5     FieldExpr      :: i32
   expr 32:5     IdentExpr      :: Counter
-  expr 36:10    StructLitExpr  :: Counter!
-  expr 37:10    IdentExpr      :: Counter!
+  expr 36:10    StructLitExpr  :: Counter
+  expr 37:10    IdentExpr      :: Counter
   expr 37:5     CallExpr       :: void
   expr 37:5     IdentExpr      :: fn(Counter) -> void
   expr 38:13    FieldExpr      :: i32
-  expr 38:13    IdentExpr      :: Counter!
+  expr 38:13    IdentExpr      :: Counter
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
   expr 39:13    CallExpr       :: Counter

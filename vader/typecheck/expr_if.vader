@@ -314,39 +314,6 @@ pop_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram) -> void {
     }
 }
 
-// `narrowed` carrying the immutability its scrutinee had — see the call site in
-// `detect_is_narrow`. Returns `narrowed` untouched when it can't carry the bit.
-narrowed_with_scrutinee_immutability :: fn(
-    narrowed: Type, scrut: AST.Expr, typed: TypedProgram,
-) -> Type {
-    base :: scrutinee_narrow_base(scrut, typed)
-    if base != null {
-        return narrowed_with_rights(narrowed, base, typed.type_param_bound_traits)
-    }
-    // A call narrows nothing, but its own type holds the view of a `T` an `as` binds.
-    if narrowed is TypeParamType {
-        own :: typed.expr_types[scrut.id] ?? return narrowed
-        return narrowed_with_rights(narrowed, own, typed.type_param_bound_traits)
-    }
-    return narrowed
-}
-
-// The flow-narrowed static type of an `is` scrutinee, for the two shapes that
-// narrow : a bare ident and a field chain. Mirrors what the two branches of
-// `detect_is_narrow` compute as their `base`. Any other scrutinee — a call, an
-// index — narrows nothing, but an `as` binds it : its own type carries the bit.
-scrutinee_narrow_base :: fn(scrut: AST.Expr, typed: TypedProgram) -> Type | null {
-    if scrut is AST.IdentExpr {
-        sym :: typed.resolved.idents[scrut.span.hash()] ?? return null
-        return narrow_for_binding(typed, sym.id, type_of_symbol(sym, typed))
-    }
-    if scrut is AST.FieldExpr {
-        info :: resolve_field_chain_static(scrut, typed) ?? return null
-        return narrow_for_field(typed, info.field_key, info.static_ty)
-    }
-    return typed.expr_types[scrut.id]
-}
-
 detect_is_narrow :: fn(
     cond: AST.Expr, typed: TypedProgram, diags: Diagnostic[],
 ) -> IsNarrow | null {
@@ -419,15 +386,7 @@ detect_is_narrow :: fn(
         return null
     }
     if cond.op != .Is { return null }
-    // `x is Cfg` writes only a type NAME, and a name carries no mutability of its
-    // own — taken verbatim it would hand back a MUTABLE `Cfg` even when `x` is a
-    // read-only borrow, laundering the borrow in one line. Inherit the bit from
-    // the scrutinee instead (from the matching variant, since a union spreads the
-    // bit over its variants). Only reference shapes and trait values can carry it,
-    // so the common narrowing (null, primitive, enum) skips the lookup.
-    narrowed :: narrowed_with_scrutinee_immutability(
-        type_from_expr(cond.right, typed.resolved, diags), cond.left, typed,
-    )
+    narrowed :: type_from_expr(cond.right, typed.resolved, diags)
     // `if <scrut> is T as a { … }` — write the bind's type into `local_types`
     // so `IdentExpr` lookups inside the then-block resolve `a` to T. Recorded
     // regardless of the scrutinee's shape : the binding's type is `T`,

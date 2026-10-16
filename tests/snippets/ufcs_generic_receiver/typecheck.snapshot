@@ -38,12 +38,12 @@
   expr 26:13    StringLitExpr  :: string
   expr 26:5     CallExpr       :: void
   expr 26:5     IdentExpr      :: fn(T) -> void
-  expr 27:11    SeqLitExpr     :: i32[]!
-  expr 28:10    IdentExpr      :: i32[]!
+  expr 27:11    SeqLitExpr     :: i32[]
+  expr 28:10    IdentExpr      :: i32[]
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(T) -> void
   expr 29:13    CallExpr       :: usize
   expr 29:13    FieldExpr      :: fn() -> usize
-  expr 29:13    IdentExpr      :: i32[]!
+  expr 29:13    IdentExpr      :: i32[]
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(T) -> void

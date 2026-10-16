@@ -145,7 +145,7 @@ export display_value :: fn(value: ComptimeValue) -> string = match value {
     is VoidValue   -> "void"
     is ArrayValue  -> render_array(value)
     is StructValue -> render_struct(value)
-    is TypeValue   -> display_type_key(value.value)
+    is TypeValue   -> display_type(value.value)
 }
 
 // Arrays longer than this are truncated in the dump: a comptime snapshot

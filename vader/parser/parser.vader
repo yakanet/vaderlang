@@ -1239,27 +1239,13 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
                 continue
             }
 
-            // `!` right after the name grants mutation permission (`buf: u8[]`!,
-            // `self!`). `!=` lexes as a single `.Neq` (lexer.vader), so
-            // `fn(buf!= [])` would silently lose the marker — treat that token
-            // here as the `!` plus the default-value `=` the writer meant.
-            is_mutable := false
-            if p.match_kind(.Bang) != null {
-                is_mutable = true
-            }
-            splits_neq := false
-            if !is_mutable && p.check(.Neq) {
-                p.advance()
-                is_mutable = true
-                splits_neq = true
-            }
             ty: TypeExpr | null = null
             if p.match_kind(.Colon) != null {
                 p.skip_newlines()
                 ty = p.parse_type()
             }
             default_value: Expr | null = null
-            if splits_neq || p.match_kind(.Assign) != null {
+            if p.match_kind(.Assign) != null {
                 default_value = p.parse_expr(0)
             }
 
@@ -1267,26 +1253,12 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
             // parameters (the canonical surface is `fn<T>(...)`).
             collect_type_params(ty, type_params)
 
-            // The marker belongs on the TYPE. `self!` is the one exception, and for
-            // a reason rather than by exemption : `self` is the only parameter whose
-            // type is never written, so its marker has nowhere else to go. Any other
-            // `name!: T` is rejected — one notation, not two.
-            if is_mutable && ty != null {
-                p.error(.MutabilityMarkerOnName, param_name_tok.span,
-                    "write `${param_name_tok.text}: <type>!` instead")
-            }
-            marked_ty :: if is_mutable && ty != null {
-                MutableTypeExpr { .span = ty.span, .inner = ty }
-            } else {
-                ty
-            }
             params.push(FnParam {
                 .span          = p.span_of(start_tok, p.peek_at(-1)),
                 .name          = param_name_tok.text,
-                .ty            = marked_ty,
+                .ty            = ty,
                 .default_value = default_value,
                 .variadic      = is_variadic,
-                .mutable       = is_mutable && ty == null,
                 .decorators    = param_decorators,
             })
         }
@@ -1763,7 +1735,7 @@ parse_type :: fn(p: Parser) -> TypeExpr {
         p.report_nesting_too_deep("type")
         return ident_expr(here, "?")
     }
-    // Precedence : postfix `[]` and `!` (tightest), then `&` intersection,
+    // Precedence : postfix `[]` (tightest), then `&` intersection,
     // then `|` union (loosest). Mirrors the value-side Pratt table.
     // Optional leading `|` lets multi-line unions read cleanly in the
     // Haskell / Rust style. The lexer (`continues_previous_line`)
@@ -1791,17 +1763,15 @@ parse_type :: fn(p: Parser) -> TypeExpr {
     return head
 }
 
-// read-only `T[]` froze the referent before the read-only default made it the norm
-// and `!` made mutation the marked case. Both spellings would now mean the same
-// thing, so `const` is gone — but it is still a keyword, and a leading one in
-// type position gets a diagnostic that says so rather than a parse error about
-// an unexpected token.
+// `const` was removed from the language, but it is still a keyword, and a leading
+// one in type position gets a diagnostic that says so rather than a parse error
+// about an unexpected token.
 reject_removed_const :: fn(p: Parser) -> void {
     tok :: p.match_kind(.KwConst)
     if tok != null {
         p.error(
             .RemovedConstQualifier, tok.span,
-            "a written type is read-only by default — drop `const`, and write `!` where mutation is needed",
+            "`const` was removed: a type says nothing about what may be written",
         )
     }
 }
@@ -1844,71 +1814,19 @@ parse_type_intersection :: fn(p: Parser) -> TypeExpr {
 
 parse_type_postfix :: fn(p: Parser) -> TypeExpr {
     head := p.parse_type_primary()
-    // Postfix loop, left to right, so each marker binds to the level it follows :
-    // `Cfg![]` is an array of mutable Cfg, `Cfg[]!` a mutable array of read-only
-    // Cfg, `Cfg![]!` both. That per-level reading is the whole point of carrying
-    // the marker on the TYPE — a marker on the parameter name can only say one
-    // of the four.
-    //
     // `T[]` needs a two-token lookahead `[ ]` so we don't eat a `[` that belongs
-    // to something else. Neither branch skips newlines : a `!` opening the next
-    // line is a unary `not`, not a marker for the type above it.
-    for {
-        if p.check(.LBracket) && p.check_at(.RBracket, 1) {
-            p.advance()              // [
-            rb :: p.advance()        // ]
-            head_span :: head.span
-            head = ArrayTypeExpr {
-                .span    = Span { .start = head_span.start, .end = rb.span.end },
-                .element = head,
-            }
-            continue
-        }
-        bang :: p.parse_type_mut_marker() ?? break
-        // `T!!` says the same thing twice about one level — accepting it would let
-        // two markers stack into nested `MutableTypeExpr` nodes that no pass can
-        // tell apart from one. Report and keep the first.
-        if head is MutableTypeExpr {
-            p.error(.RepeatedMutabilityMarker, bang.span,
-                "`!` already applies to this type level")
-            continue
-        }
+    // to something else. No newline is skipped: a `[` opening the next line
+    // starts the next statement.
+    for p.check(.LBracket) && p.check_at(.RBracket, 1) {
+        p.advance()              // [
+        rb :: p.advance()        // ]
         head_span :: head.span
-        head = MutableTypeExpr {
-            .span  = Span { .start = head_span.start, .end = bang.span.end },
-            .inner = head,
+        head = ArrayTypeExpr {
+            .span    = Span { .start = head_span.start, .end = rb.span.end },
+            .element = head,
         }
     }
     return head
-}
-
-// The `!` of a mutability marker, or null.
-//
-// `!=` lexes as a single `.Neq` (lexer.vader) — the same trap the parameter-name
-// marker hit — so `x: Cfg!= v` (a marked parameter with a default value) would
-// silently lose its marker. Split it in place : hand back the `!` and leave an
-// `=` in the stream for the default-value parser, the way
-// `consume_closing_angle` splits `>>`.
-parse_type_mut_marker :: fn(p: Parser) -> Token | null {
-    if p.check(.Bang) { return p.advance() }
-    if !p.check(.Neq) { return null }
-    cur :: p.peek()
-    mid :: Position {
-        .file   = cur.span.start.file,
-        .offset = cur.span.start.offset + 1,
-        .line   = cur.span.start.line,
-        .column = cur.span.start.column + 1,
-    }
-    // Leave the `=` half where the `!=` was — the cursor does NOT advance, so the
-    // caller's `match_kind(.Assign)` finds it.
-    p.tokens[usize(p.pos)] = Token {
-        .kind = .Assign, .text = "=",
-        .span = Span { .start = mid, .end = cur.span.end }, .value = null,
-    }
-    return Token {
-        .kind = .Bang, .text = "!",
-        .span = Span { .start = cur.span.start, .end = mid }, .value = null,
-    }
 }
 
 parse_type_primary :: fn(p: Parser) -> TypeExpr {
@@ -2021,21 +1939,13 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
 parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
     start :: p.advance()  // `fn`
     p.expect(.LParen, "`(` after `fn` in function type")
-    // The parameter list is parsed inline because a trailing `!` mutation marker
-    // is legal ONLY here — everywhere else a type is parsed (`parse_type`), a `!`
-    // must stay a syntax error, so the loop cannot be factored out for reuse.
     params: TypeExpr[]: []
-    marks: bool[]: []
-    any_mutable := false
     p.skip_newlines()
     if !p.check(.RParen) {
         for {
             p.skip_newlines()
             if p.check(.RParen) { break }
             params.push(p.parse_type())
-            marked :: p.match_kind(.Bang) != null
-            if marked { any_mutable = true }
-            marks.push(marked)
             p.skip_newlines()
             if p.match_kind(.Comma) == null { break }
         }
@@ -2044,11 +1954,9 @@ parse_fn_type :: fn(p: Parser) -> FnTypeExpr {
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     return FnTypeExpr {
-        .span           = p.span_of(start, p.peek_at(-1)),
-        .params         = params,
-        // Keep "nothing marked" as the empty vector, never an all-`false` run.
-        .params_mutable = if any_mutable { marks } else { [] },
-        .return_type    = return_type,
+        .span        = p.span_of(start, p.peek_at(-1)),
+        .params      = params,
+        .return_type = return_type,
     }
 }
 
@@ -4060,9 +3968,9 @@ parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader"
 }
 
 @test test_removed_const_qualifier_is_reported :: fn() -> void {
-    // read-only `T[]` used to freeze the referent ; the read-only default replaced it.
-    // Writing it must name the removal (P1027) rather than fail on an unexpected
-    // token — the keyword is still lexed for exactly that reason.
+    // `const` was removed from the language. Writing it must name the removal (P1027)
+    // rather than fail on an unexpected token: the keyword is still lexed for
+    // exactly that reason.
     src :: "module \"t\"\n" +
         "f :: fn(x: const u8[]) -> usize = x.len()\n"
     errors :: parse_source(src, "test.vader").errors

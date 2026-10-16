@@ -75,15 +75,14 @@ export imported_overloads_table_in :: fn(
 /// A bound on one argument of a generic type : one a generic impl puts on the type
 /// it implements a trait for (`Box<T> implements<T: Display> Display` holds for
 /// `Box<X>` only when `X` implements `Display`), or one a struct declares on its own
-/// type parameter (`Wrapper :: struct<T: Bump!>`).
+/// type parameter (`Wrapper :: struct<T: Bump>`).
 export ArgBound :: struct {
     /// The argument's position : a struct's type arguments, an array's element
     /// at 0.
     position: usize
     /// The type parameter at that position, as written.
     name: string
-    /// The traits the argument must meet, with their rights : `Bump!` asks for a
-    /// type that grants mutation.
+    /// The traits the argument must meet.
     traits: TraitType[]
 }
 

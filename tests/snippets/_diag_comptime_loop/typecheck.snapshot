@@ -7,7 +7,7 @@
   expr 15:12    CallExpr       :: u32[]
   expr 15:12    IdentExpr      :: fn() -> u32[]
   expr 18:15    SeqLitExpr     :: u32[]
-  expr 19:14    RangeExpr      :: Range<i32>!
+  expr 19:14    RangeExpr      :: Range<i32>
   expr 20:16    CallExpr       :: u32
   expr 20:16    IdentExpr      :: type
   expr 20:20    BinaryExpr     :: i32

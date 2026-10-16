@@ -343,7 +343,7 @@ export prepare_cfg_bytecode_with :: fn(
 /// Same reason as `lower_to_entry_from`: a caller that already lowered does not
 /// re-run the front end to reach the bytecode.
 ///
-/// @param le          the lowered entry. Taken `!`: the prune pass rewrites it.
+/// @param le          the lowered entry ; the prune pass rewrites it.
 /// @param file        entry path — names the bytecode module.
 /// @param want_debug  populate the per-op debug table (kept only when the C
 ///                    emit will keep `#line`).

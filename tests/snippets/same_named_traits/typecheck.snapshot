@@ -2,17 +2,17 @@
 
 ## tests/snippets/same_named_traits
   FnDecl         main                 :: fn() -> i32
-  expr 11:10    StructLitExpr  :: Foo!
+  expr 11:10    StructLitExpr  :: Foo
   expr 12:12    CallExpr       :: i32
   expr 12:12    FieldExpr      :: fn(Animal) -> i32
-  expr 12:20    IdentExpr      :: Foo!
+  expr 12:20    IdentExpr      :: Foo
 
 ## tests/snippets/same_named_traits/a
-  TraitDecl      Animal               :: Animal!
-  StructDecl     Foo                  :: Foo!
+  TraitDecl      Animal               :: Animal
+  StructDecl     Foo                  :: Foo
 
 ## tests/snippets/same_named_traits/c
-  TraitDecl      Animal               :: Animal!
+  TraitDecl      Animal               :: Animal
   FnDecl         count                :: fn(Animal) -> i32
   expr 7:41     BinaryExpr     :: i32
   expr 7:41     CallExpr       :: i32
@@ -20,4 +20,4 @@
   expr 7:41     IdentExpr      :: Animal
 
 # Diagnostics
-[12:20] error[T3001] type mismatch: expected Animal, got Foo!
+[12:20] error[T3001] type mismatch: expected Animal, got Foo

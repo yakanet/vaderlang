@@ -552,10 +552,7 @@ check_module_impl_coherence :: fn(
                 diags.push(resolver_error(.ConflictingImpl, decl.span, detail))
                 continue
             }
-            args: Type[]: []
-            for ta in decl.trait_args {
-                args.push(type_from_expr(ta, tp.resolved, diag_sink()))
-            }
+            args :: written_type_args(decl.trait_args, tp.resolved, diag_sink())
             if reject_overlapping_impl(decl, for_ty, args, by_base, diags) {
                 continue
             }
@@ -613,7 +610,7 @@ reject_overlapping_impl :: fn(
         if may_coincide(for_ty, other.for_ty) && may_coincide_each(args, other.args) {
             diags.push(resolver_error(.ConflictingImpl, decl.span,
                 "this impl and the one at ${where_of(other.span)} may both cover an " +
-                    "instance of `${display_type_key(for_ty)}` — two generic " +
+                    "instance of `${display_type(for_ty)}` — two generic " +
                     "impls of one trait cannot overlap"))
             return true
         }
@@ -1113,9 +1110,7 @@ collect_bound_trait_types :: fn(bound: AST.Expr, resolved: ResolvedModule, out: 
         collect_bound_trait_types(bound.right, resolved, out)
         return
     }
-    // A bound is a written type : it takes the read-only default, so it reads as
-    // `Display`, as the trait was written, wherever a diagnostic names it.
-    bound_type :: apply_readonly_default(type_from_expr(bound, resolved, diag_sink()), bound)
+    bound_type :: type_from_expr(bound, resolved, diag_sink())
     if bound_type is TraitType {
         out.push(bound_type)
     }
@@ -1654,7 +1649,6 @@ export is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.GenericInstExpr { return true }
     if e is AST.FnTypeExpr      { return true }
     if e is AST.ArrayTypeExpr   { return true }
-    if e is AST.MutableTypeExpr { return true }
     // `Coord :: [i32, i32]` — a ≥ 2-element all-type bracketed list is a tuple
     // type alias (1-tuples are forbidden).
     if e is AST.SeqLitExpr {
@@ -2492,11 +2486,9 @@ export walk_bodies :: fn(
     }
 }
 
-// Type each field's default against the field's declared type — `delta: isize = -1`
-// types the `-1` as `isize`, not `{integer}` — and check that it fits, rights
-// included : every `T {}` shares this one value, so a read-only one (a module const)
-// in a field that promises mutation is written through by the first `t.f.n = …`.
-// Runs after the bodies, so a const declared below the struct has its frozen type.
+// Type each field's default against the field's declared type (`delta: isize = -1`
+// types the `-1` as `isize`, not `{integer}`) and check that it fits. Runs after
+// the bodies, so a const declared below the struct has its type.
 check_field_defaults :: fn(
     decl: AST.StructDecl, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
@@ -2533,7 +2525,7 @@ register_impl_metadata :: fn(
             typecheck_error(
                 .ArrayImplPartlyGeneric,
                 id.for_type.span,
-                "`${display_type_key(for_ty)}` — write the impl on `T[]` or on a concrete array",
+                "`${display_type(for_ty)}` — write the impl on `T[]` or on a concrete array",
             ),
         )
         return
@@ -2701,11 +2693,7 @@ check_impl_members :: fn(
     trait_decl :: typed.trait_decls[trait_sym.id] ?? return
     // Resolved again by `record_impl_members`, which reports what fails.
     trait_args :: written_type_args(id.trait_args, typed.resolved, [])
-    trait_type :: TraitType {
-        .symbol = trait_sym,
-        .args = trait_args,
-        .immutable = false,
-    }
+    trait_type :: TraitType { .symbol = trait_sym, .args = trait_args }
     for member in id.members {
         trait_method :: lookup_trait_method(trait_decl, member.name)
         if trait_method != null {
@@ -2772,20 +2760,20 @@ check_member_signature :: fn(
     for i in 0..<want.params.len() {
         param :: member.params[i + skip]
         have :: got.params[i + skip]
-        if !equals_type_shape(want.params[i], have) {
+        if !equals_type(want.params[i], have) {
             detail :: "`${member.name}` parameter `${param.name}`: ${expected_got(want.params[i], have)}"
             diags.push(typecheck_error(.ImplMemberSignatureDiffers, param.span, detail))
         }
     }
-    if !equals_type_shape(want.return_type, got.return_type) {
+    if !equals_type(want.return_type, got.return_type) {
         detail :: "`${member.name}` return: ${expected_got(want.return_type, got.return_type)}"
         diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.name_span, detail))
     }
 }
 
-// `expected X, got Y` over two types compared without their `!`.
+// `expected X, got Y` over two types.
 expected_got :: fn(want: Type, got: Type) -> string =
-    "expected `${display_type(strip_mutability(want))}`, got `${display_type(strip_mutability(got))}`"
+    "expected `${display_type(want)}`, got `${display_type(got)}`"
 
 lookup_trait_method :: fn(td: AST.TraitDecl | null, name: string) -> AST.FnDecl | null {
     if td is null {
@@ -2829,7 +2817,7 @@ ufcs_method_type :: fn(
         rest.push(param_type(fd.params[i], for_ty, typed, diags))
     }
     ret :: declare_impl_return(fd, for_ty, trait_method, typed, diags)
-    return member_fn_type(fd, rest, ret)
+    return mk_fn(rest, ret)
 }
 
 /// Pre-walk an impl method's signature so `self` resolves to the impl block's
@@ -2859,11 +2847,7 @@ declare_impl_method_for_trait :: fn(
     // Impl methods aren't in `resolved.symbols` (they're members of
     // an ImplDecl, not top-level names) — use the dedicated span-keyed
     // table.
-    typed.impl_method_decl_types[fd.name_span.hash()] = FnType {
-        .params         = params,
-        .params_mutable = params_mutable_of(fd.params),
-        .return_type    = ret,
-    }
+    typed.impl_method_decl_types[fd.name_span.hash()] = mk_fn(params, ret)
 }
 
 declare_impl_return :: fn(
@@ -2879,12 +2863,12 @@ declare_impl_return :: fn(
     if fd.return_type == null && trait_method !is null {
         written :: trait_method.return_type
         if written !is null {
-            return self_slot_type(written, for_ty, typed.resolved, diags)
+            return type_with_self(written, for_ty, typed.resolved, diags)
         }
     }
     // A written `-> Self` names `for_ty` too.
     declared :: fd.return_type ?? return declare_fn_return(fd, typed.resolved, diags)
-    return self_slot_type(declared, for_ty, typed.resolved, diags)
+    return type_with_self(declared, for_ty, typed.resolved, diags)
 }
 
 param_type :: fn(
@@ -2895,12 +2879,7 @@ param_type :: fn(
 ) -> Type {
     if p.ty == null {
         if p.name == "self" {
-            // `self` without `!` is a read-only borrow of the receiver — the same
-            // default every other parameter gets. This is what makes a `self!`
-            // method unavailable on an immutable receiver: UFCS dispatch compares
-            // the receiver against this slot through `is_assignable`, on EVERY
-            // resolution path, instead of a check each path has to remember.
-            return desugared_param_type(for_ty, AST.param_is_mutable(p))
+            return for_ty
         }
         return TY_UNRESOLVED
     }
@@ -2909,7 +2888,7 @@ param_type :: fn(
     // — otherwise the impl method's type keeps `other: Self`, and a default-
     // method clone calling it with its own `other` (already substituted to
     // `for_ty`) mismatches `expected Self, got <for_ty>`.
-    return self_slot_type(p.ty, for_ty, typed.resolved, diags)
+    return type_with_self(p.ty, for_ty, typed.resolved, diags)
 }
 
 check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
@@ -2931,20 +2910,8 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
         return
     }
     got :: check_expr(cd.value, annot, typed, diags)
-    final :: annot ?? auto_freeze_module_const(default_if_free(got))
-    typed.decl_types[sym.id] = final
+    typed.decl_types[sym.id] = annot ?? default_if_free(got)
 }
-
-// An UNANNOTATED module const is frozen at every level — the same recursive default
-// a written type takes. `lower/inline_consts.vader` may hand every read the same
-// value (a `.rodata` view for a baked one), so a write through it, an element of
-// it, or a local bound from it would land in memory the program does not own:
-// silently lost, shared with every other reader, or a fault in `.rodata`. The
-// effect summary rejects each of those (T3070, T3072).
-//
-// Explicit annotations are respected (this only runs when `annot is null`), so
-// `X: u32[]!: [...]` stays the writable-global opt-out.
-auto_freeze_module_const :: fn(t: Type) -> Type = apply_readonly_default(t, null)
 
 lookup_sym_by_name_orch :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
     for s in resolved.symbols {

@@ -1,8 +1,8 @@
 # Typecheck
 
 ## tests/snippets/match_wildcard_narrow
-  StructDecl     Cat                  :: Cat!
-  StructDecl     Dog                  :: Dog!
+  StructDecl     Cat                  :: Cat
+  StructDecl     Dog                  :: Dog
   FnDecl         greet_binding        :: fn(Cat | Dog | null) -> string
   FnDecl         greet_wildcard       :: fn(Cat | Dog | null) -> string
   FnDecl         main                 :: fn() -> i32
@@ -21,13 +21,13 @@
   expr 43:29    IdentExpr      :: Cat | Dog
   expr 48:13    CallExpr       :: string
   expr 48:13    IdentExpr      :: fn(Cat | Dog | null) -> string
-  expr 48:28    StructLitExpr  :: Cat!
+  expr 48:28    StructLitExpr  :: Cat
   expr 48:42    StringLitExpr  :: string
   expr 48:5     CallExpr       :: void
   expr 48:5     IdentExpr      :: fn(T) -> void
   expr 49:13    CallExpr       :: string
   expr 49:13    IdentExpr      :: fn(Cat | Dog | null) -> string
-  expr 49:28    StructLitExpr  :: Dog!
+  expr 49:28    StructLitExpr  :: Dog
   expr 49:42    StringLitExpr  :: string
   expr 49:5     CallExpr       :: void
   expr 49:5     IdentExpr      :: fn(T) -> void
@@ -37,13 +37,13 @@
   expr 50:5     IdentExpr      :: fn(T) -> void
   expr 52:13    CallExpr       :: string
   expr 52:13    IdentExpr      :: fn(Cat | Dog | null) -> string
-  expr 52:27    StructLitExpr  :: Cat!
+  expr 52:27    StructLitExpr  :: Cat
   expr 52:41    StringLitExpr  :: string
   expr 52:5     CallExpr       :: void
   expr 52:5     IdentExpr      :: fn(T) -> void
   expr 53:13    CallExpr       :: string
   expr 53:13    IdentExpr      :: fn(Cat | Dog | null) -> string
-  expr 53:27    StructLitExpr  :: Dog!
+  expr 53:27    StructLitExpr  :: Dog
   expr 53:41    StringLitExpr  :: string
   expr 53:5     CallExpr       :: void
   expr 53:5     IdentExpr      :: fn(T) -> void

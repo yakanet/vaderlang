@@ -104,11 +104,11 @@ write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[], strings: stri
     for [e, i] in data_pool.indexed() {
         if e is BcStrData {
             out :: StringBuilder {}
-            out.append("data ${i} ${storage_class(e.mutable)}str")
+            out.append("data ${i} str")
             for v in e.values { out.append(" ${quote_string(v)}") }
             sb.append("${out}\n")
         } else if e is BcPrimData {
-            sb.append("data ${i} ${storage_class(e.mutable)}${array_kind_name(e.kind)} hex\"${data_items_hex(e)}\"\n")
+            sb.append("data ${i} ${array_kind_name(e.kind)} hex\"${data_items_hex(e)}\"\n")
         } else if e is BcAggregateData {
             // Count-prefixed token stream (no paren balancing). String leaves dump
             // as `strref <i>` (a `string N` pool index) instead of inline `str "…"`
@@ -127,12 +127,12 @@ write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[], strings: stri
             hs :: homogeneous_struct(e)
             if hs.symbol_id >= 0 {
                 at :: struct_symbol_type_index(types, hs.symbol_id)
-                out.append("data ${i} ${storage_class(e.mutable)}structs ${at} ${hs.nfields} ${e.elements.len()}")
+                out.append("data ${i} structs ${at} ${hs.nfields} ${e.elements.len()}")
                 for v in e.elements {
                     if v is BcValStruct { for f in v.fields { write_data_value(out, f, str_index, types) } }
                 }
             } else {
-                out.append("data ${i} ${storage_class(e.mutable)}agg ${type_name_token(e.element_type_name)} ${e.elements.len()}")
+                out.append("data ${i} agg ${type_name_token(e.element_type_name)} ${e.elements.len()}")
                 for v in e.elements { write_data_value(out, v, str_index, types) }
             }
             sb.append("${out}\n")
@@ -219,11 +219,6 @@ data_value_hex :: fn(kind: ArrayKind, bits: u64) -> string {
 }
 
 // Little-endian hex of every element's bit pattern (`element_size` bytes each).
-// `mut ` before the kind for a writable global, nothing for a `.rodata` blob.
-// A prefix rather than a suffix so the kind token stays where the reader expects
-// it after one optional skip.
-storage_class :: fn(mutable: bool) -> string = if mutable { "mut " } else { "" }
-
 data_items_hex :: fn(entry: BcPrimData) -> string {
     esz :: usize(array_kind_element_size(entry.kind))
     out :: StringBuilder {}
@@ -333,16 +328,12 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         } else {
             "param_types=${join_indices(imp.signature.param_types)} "
         }
-        // `!` and `@c_pointer` per parameter. `write_signature` renders neither
-        // (it serves functions too), so without them a `.virt` re-read lost the
-        // write-back: the callee filled the block and the VM never copied it
-        // out, leaving the Vader struct at its pre-call values.
-        // Written whenever the import HAS parameters, never conditioned on a
-        // flag being set: absence is not the same as false downstream, and a
-        // read-only mirror marshalled as if C wrote through it hands the callee
-        // an UNINITIALISED struct.
+        // `@c_out` and `@c_pointer` per parameter. `write_signature` renders
+        // neither (it serves functions too), so without them a `.virt` re-read
+        // lost the write-back: the callee filled the block and the VM never
+        // copied it out, leaving the Vader struct at its pre-call values.
         pm :: if imp.signature.params.len() > 0 {
-            "param_mutable=${join_flags(imp.signature.param_mutable)} "
+            "param_c_out=${join_flags(imp.signature.param_c_out)} "
         } else {
             ""
         }

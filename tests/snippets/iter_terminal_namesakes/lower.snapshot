@@ -15,8 +15,8 @@
     ~>
       int(99) :usize
   fn snippet$main() -> i32
-    let xs: i32[]! =
-      array :i32[]!
+    let xs: i32[] =
+      array :i32[]
         int(1) :i32
         int(2) :i32
         int(3) :i32
@@ -50,15 +50,15 @@
                       callee:
                         find :i32
                       arg0:
-                        call :__genstate_map<i32>!
+                        call :__genstate_map<i32>
                           callee:
-                            std_iter$map__i32__i32 :__genstate_map<i32>!
+                            std_iter$map__i32__i32 :__genstate_map<i32>
                           arg0:
                             call :Iterator<T>
                               callee:
                                 std_core$[]$Into$into__i32 :Iterator<T>
                               arg0:
-                                xs :i32[]!
+                                xs :i32[]
                           arg1:
                             __lambda_snippet_1 :fn(i32) -> i32
                       arg1:
@@ -100,15 +100,15 @@
                       callee:
                         find :fn(Iterator<i32>, fn(i32) -> bool) -> i32
                       arg0:
-                        call :__genstate_map<i32>!
+                        call :__genstate_map<i32>
                           callee:
-                            std_iter$map__i32__i32 :__genstate_map<i32>!
+                            std_iter$map__i32__i32 :__genstate_map<i32>
                           arg0:
                             call :Iterator<T>
                               callee:
                                 std_core$[]$Into$into__i32 :Iterator<T>
                               arg0:
-                                xs :i32[]!
+                                xs :i32[]
                           arg1:
                             __lambda_snippet_3 :fn(i32) -> i32
                       arg1:
@@ -149,15 +149,15 @@
                     callee:
                       any_match :bool
                     arg0:
-                      call :__genstate_map<i32>!
+                      call :__genstate_map<i32>
                         callee:
-                          std_iter$map__i32__i32 :__genstate_map<i32>!
+                          std_iter$map__i32__i32 :__genstate_map<i32>
                         arg0:
                           call :Iterator<T>
                             callee:
                               std_core$[]$Into$into__i32 :Iterator<T>
                             arg0:
-                              xs :i32[]!
+                              xs :i32[]
                         arg1:
                           __lambda_snippet_6 :fn(i32) -> i32
                     arg1:
@@ -233,15 +233,15 @@
                       callee:
                         count :usize
                       arg0:
-                        call :__genstate_map<i32>!
+                        call :__genstate_map<i32>
                           callee:
-                            std_iter$map__i32__i32 :__genstate_map<i32>!
+                            std_iter$map__i32__i32 :__genstate_map<i32>
                           arg0:
                             call :Iterator<T>
                               callee:
                                 std_core$[]$Into$into__i32 :Iterator<T>
                               arg0:
-                                xs :i32[]!
+                                xs :i32[]
                           arg1:
                             __lambda_snippet_11 :fn(i32) -> i32
           ~>

@@ -88,7 +88,7 @@ TagMember :: struct {
 }
 
 // The member `name` of `trait_ty` called on `owner` by its tag : `Self` read as
-// `owner`, read-only unless the member writes `Self!`, as on a concrete receiver.
+// `owner`, as on a concrete receiver.
 // Null when the trait declares none, or a generic one.
 tag_member :: fn(
     trait_ty: TraitType,
@@ -102,7 +102,7 @@ tag_member :: fn(
     }
     sig :: try_trait_method(trait_ty, name, typed) ?? return null
     member :: TypeMember {
-        .ty         = substitute_self(sig, apply_readonly_default(owner, null)),
+        .ty         = substitute_self(sig, owner),
         .decl       = decl,
         .trait_key  = trait_key_of(trait_ty.symbol),
         .trait_args = trait_ty.args,
@@ -148,7 +148,7 @@ nests_self :: fn(t: Type) -> bool {
 
 // The trait instances a member `method` of the union `u` can dispatch through : each
 // trait declaring it that every variant implements at arguments they agree on
-// (`MutableMap<string, i32>! | Log!` reaches `IndexSet<string, i32>`). More than one
+// (`MutableMap<string, i32> | Log` reaches `IndexSet<string, i32>`). More than one
 // leaves a method call ambiguous ; a fixed `trait_key` gives at most one.
 union_dispatch_traits :: fn(
     u: UnionType,
@@ -211,23 +211,16 @@ union_trait_instance :: fn(u: UnionType, sym: Symbol, typed: TypedProgram) -> Tr
     if typed.trait_decls[sym.id] == null {
         return null
     }
-    variants: Type[]: []
     per_variant: Type[][]: []
     for v in u.variants {
-        variant :: strip_mutability(v)
         written :: resolve_struct_trait_args(v, key, typed) ?? NO_TYPES
-        variants.push(variant)
-        per_variant.push(with_trait_defaults(variant, written, sym, typed))
+        per_variant.push(with_trait_defaults(v, written, sym, typed))
     }
     args: Type[]: []
     for i in 0..<per_variant[0].len() {
-        args.push(shared_argument(variants, per_variant, i) ?? return null)
+        args.push(shared_argument(u.variants, per_variant, i) ?? return null)
     }
-    return TraitType {
-        .symbol    = sym,
-        .args      = args,
-        .immutable = true,
-    }
+    return TraitType { .symbol = sym, .args = args }
 }
 
 NO_TYPES: Type[]: []
@@ -312,19 +305,18 @@ union_dispatch_refusal :: fn(
         for t in traits {
             names.push("`${display_type(t)}`")
         }
-        detail :: "`${method}` on `${shown(u)}` : ${names.join(", ")} all offer it"
+        detail :: "`${method}` on `${display_type(u)}` : ${names.join(", ")} all offer it"
         return typecheck_error(.AmbiguousOverload, span, detail)
     }
     boxed :: variant_without_identity(u, trait_key, typed)
     if boxed != null {
-        detail :: "a `${boxed.name}` is boxed as its representation ; narrow `${shown(u)}` first"
+        detail :: "a `${boxed.name}` is boxed as its representation ; "
+            + "narrow `${display_type(u)}` first"
         return typecheck_error(.UnionLosesVariantIdentity, span, detail)
     }
     if found.self_hazard != "" {
-        detail :: "${found.self_hazard} variant ; narrow `${shown(u)}` first"
+        detail :: "${found.self_hazard} variant ; narrow `${display_type(u)}` first"
         return typecheck_error(.SelfMemberDispatchedByTag, span, detail)
     }
     return null
 }
-
-shown :: fn(u: UnionType) -> string = display_type(strip_mutability(u))

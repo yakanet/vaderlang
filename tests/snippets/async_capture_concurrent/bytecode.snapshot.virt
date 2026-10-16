@@ -35,13 +35,13 @@ type 32 union 1,0
 type 33 struct $Cell_i32 { value:1 }
 string 0 "\n"
 string 1 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 byte_len std_core$byte_len result_type=14 param_types=9 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=20 param_types=9 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=30 param_types=1,20,14 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=14 param_types=9 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=20 param_types=9 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=30 param_types=1,20,14 param_c_out= param_by_address= (i32,ref,usize) -> isize
 import 3 sched_now std_runtime$sched_now result_type=19 () -> i64
-import 4 sched_arm std_runtime$sched_arm result_type=4 param_types=19 param_mutable=0 param_by_address= (i64) -> void
+import 4 sched_arm std_runtime$sched_arm result_type=4 param_types=19 param_c_out= param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=1 () -> i32
-import 6 panic std_abort$panic result_type=4 param_types=9 param_mutable=0 param_by_address= (string) -> void
+import 6 panic std_abort$panic result_type=4 param_types=9 param_c_out= param_by_address= (string) -> void
 impl 5 std_core$Async
 impl 8 std_core$Async
 impl 18 std_core$ByteAccess

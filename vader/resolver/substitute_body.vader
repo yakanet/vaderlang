@@ -88,7 +88,6 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
         is AST.GenericInstExpr -> { return substitute_type_expr(e, subst) }
         is AST.FnTypeExpr -> { return substitute_type_expr(e, subst) }
         is AST.ArrayTypeExpr -> { return substitute_type_expr(e, subst) }
-        is AST.MutableTypeExpr -> { return substitute_type_expr(e, subst) }
 
         // Value-position composites : recurse children.
         is AST.CallExpr -> {
@@ -293,7 +292,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                 }
                 new_params.push(AST.FnParam {
                     .span = pm.span, .id = AST.UNASSIGNED_NODE_ID, .name = pm.name,
-                    .ty = new_pty, .default_value = new_default, .variadic = pm.variadic, .mutable = pm.mutable,
+                    .ty = new_pty, .default_value = new_default, .variadic = pm.variadic,
                     // Carried over — see the field's own note on why it has no default.
                     .decorators = pm.decorators,
                 })

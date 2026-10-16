@@ -69,16 +69,16 @@
                 __off_1 :usize
     return int(0) :i32
   struct __defer_env_snippet_1 { cap_0: i32[], cap_1: usize }
-  fn __defer_snippet_0(__env_0: __defer_env_snippet_1!) -> void
+  fn __defer_snippet_0(__env_0: __defer_env_snippet_1) -> void
     assign
       target:
         index :i32
           on:
             .cap_0 :i32[]
-              __env_0 :__defer_env_snippet_1!
+              __env_0 :__defer_env_snippet_1
           ix:
             .cap_1 :usize
-              __env_0 :__defer_env_snippet_1!
+              __env_0 :__defer_env_snippet_1
       value:
         int(99) :i32
   fn concat_2(p0: string, p1: string) -> string

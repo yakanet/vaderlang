@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$nested_lambda(p: string) -> void
-    let mid: __lambda_env_snippet_1! =
-      __lambda_env_snippet_1! {
+    let mid: __lambda_env_snippet_1 =
+      __lambda_env_snippet_1 {
         cap_0: p :string
       }
     ~>
@@ -11,10 +11,10 @@
         callee:
           __lambda_snippet_0 :fn() -> void
         arg0:
-          mid :__lambda_env_snippet_1!
+          mid :__lambda_env_snippet_1
   fn snippet$defer_in_lambda(p: string) -> void
-    let g: __lambda_env_snippet_5! =
-      __lambda_env_snippet_5! {
+    let g: __lambda_env_snippet_5 =
+      __lambda_env_snippet_5 {
         cap_0: p :string
       }
     ~>
@@ -22,12 +22,12 @@
         callee:
           __lambda_snippet_4 :fn() -> void
         arg0:
-          g :__lambda_env_snippet_5!
+          g :__lambda_env_snippet_5
   fn snippet$shared_cell(step: i32) -> void
     let n: ? =
       LoweredCellNew
-    let mid: __lambda_env_snippet_9! =
-      __lambda_env_snippet_9! {
+    let mid: __lambda_env_snippet_9 =
+      __lambda_env_snippet_9 {
         cap_0: n :i32
         cap_1: step :i32
       }
@@ -35,12 +35,12 @@
       callee:
         __lambda_snippet_8 :fn() -> void
       arg0:
-        mid :__lambda_env_snippet_9!
+        mid :__lambda_env_snippet_9
     call :void
       callee:
         __lambda_snippet_8 :fn() -> void
       arg0:
-        mid :__lambda_env_snippet_9!
+        mid :__lambda_env_snippet_9
     ~>
       call :void
         callee:
@@ -92,8 +92,8 @@
   fn snippet$writes_are_visible_to_the_defer(final: i32) -> void
     let n: ? =
       LoweredCellNew
-    let g: __lambda_env_snippet_13! =
-      __lambda_env_snippet_13! {
+    let g: __lambda_env_snippet_13 =
+      __lambda_env_snippet_13 {
         cap_0: n :i32
         cap_1: final :i32
       }
@@ -102,7 +102,7 @@
         callee:
           __lambda_snippet_12 :fn() -> void
         arg0:
-          g :__lambda_env_snippet_13!
+          g :__lambda_env_snippet_13
   fn snippet$main() -> i32
     call :void
       callee:
@@ -126,7 +126,7 @@
         int(42) :i32
     return int(0) :i32
   struct __lambda_env_snippet_3 { cap_0: string }
-  fn __lambda_snippet_2(__env_0: __lambda_env_snippet_3!) -> void
+  fn __lambda_snippet_2(__env_0: __lambda_env_snippet_3) -> void
     ~>
       call :void
         callee:
@@ -139,20 +139,20 @@
               "inner sees " :string
             arg1:
               .cap_0 :string
-                __env_0 :__lambda_env_snippet_3!
+                __env_0 :__lambda_env_snippet_3
   struct __lambda_env_snippet_1 { cap_0: string }
-  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> void
-    let inner: __lambda_env_snippet_3! =
-      __lambda_env_snippet_3! {
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1) -> void
+    let inner: __lambda_env_snippet_3 =
+      __lambda_env_snippet_3 {
         cap_0:
           .cap_0 :string
-            __env_0 :__lambda_env_snippet_1!
+            __env_0 :__lambda_env_snippet_1
       }
     call :void
       callee:
         __lambda_snippet_2 :fn() -> void
       arg0:
-        inner :__lambda_env_snippet_3!
+        inner :__lambda_env_snippet_3
     ~>
       call :void
         callee:
@@ -160,7 +160,7 @@
         arg0:
           "mid ran" :string
   struct __defer_env_snippet_7 { cap_0: string }
-  fn __defer_snippet_6(__env_0: __defer_env_snippet_7!) -> void
+  fn __defer_snippet_6(__env_0: __defer_env_snippet_7) -> void
     call :void
       callee:
         std_io$println__string :void
@@ -172,9 +172,9 @@
             "deferred sees " :string
           arg1:
             .cap_0 :string
-              __env_0 :__defer_env_snippet_7!
+              __env_0 :__defer_env_snippet_7
   struct __lambda_env_snippet_5 { cap_0: string }
-  fn __lambda_snippet_4(__env_0: __lambda_env_snippet_5!) -> void
+  fn __lambda_snippet_4(__env_0: __lambda_env_snippet_5) -> void
     defer.push
       LoweredMakeClosure
     call :void
@@ -184,25 +184,25 @@
         "body ran" :string
     defer.pop_exec 1
   struct __lambda_env_snippet_11 { cap_0: ?, cap_1: i32 }
-  fn __lambda_snippet_10(__env_0: __lambda_env_snippet_11!) -> void
+  fn __lambda_snippet_10(__env_0: __lambda_env_snippet_11) -> void
   struct __lambda_env_snippet_9 { cap_0: ?, cap_1: i32 }
-  fn __lambda_snippet_8(__env_0: __lambda_env_snippet_9!) -> void
-    let inner: __lambda_env_snippet_11! =
-      __lambda_env_snippet_11! {
+  fn __lambda_snippet_8(__env_0: __lambda_env_snippet_9) -> void
+    let inner: __lambda_env_snippet_11 =
+      __lambda_env_snippet_11 {
         cap_0:
           .cap_0 :?
-            __env_0 :__lambda_env_snippet_9!
+            __env_0 :__lambda_env_snippet_9
         cap_1:
           .cap_1 :i32
-            __env_0 :__lambda_env_snippet_9!
+            __env_0 :__lambda_env_snippet_9
       }
     call :void
       callee:
         __lambda_snippet_10 :fn() -> void
       arg0:
-        inner :__lambda_env_snippet_11!
+        inner :__lambda_env_snippet_11
   struct __defer_env_snippet_15 { cap_0: ? }
-  fn __defer_snippet_14(__env_0: __defer_env_snippet_15!) -> void
+  fn __defer_snippet_14(__env_0: __defer_env_snippet_15) -> void
     call :void
       callee:
         std_io$println__string :void
@@ -251,7 +251,7 @@
               arg1:
                 __off_1 :usize
   struct __lambda_env_snippet_13 { cap_0: ?, cap_1: i32 }
-  fn __lambda_snippet_12(__env_0: __lambda_env_snippet_13!) -> void
+  fn __lambda_snippet_12(__env_0: __lambda_env_snippet_13) -> void
     defer.push
       LoweredMakeClosure
     defer.pop_exec 1

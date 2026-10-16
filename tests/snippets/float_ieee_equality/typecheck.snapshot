@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/float_ieee_equality
-  StructDecl     Holder               :: Holder!
+  StructDecl     Holder               :: Holder
   FnDecl         main                 :: fn() -> i32
   FnDecl         pick                 :: fn(f64 | string) -> string
   FnDecl         same                 :: fn(T, T) -> bool
@@ -38,7 +38,7 @@
   expr 30:32    IdentExpr      :: (f64 | string)[]
   expr 30:38    BinaryExpr     :: bool
   expr 30:38    IdentExpr      :: f64 | string
-  expr 30:43    SeqLitExpr     :: (f64 | string)[]!
+  expr 30:43    SeqLitExpr     :: (f64 | string)[]
   expr 30:44    IdentExpr      :: f64 | string
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn(T) -> void
@@ -76,22 +76,22 @@
   expr 34:27    IdentExpr      :: Equals
   expr 34:5     CallExpr       :: void
   expr 34:5     IdentExpr      :: fn(T) -> void
-  expr 35:10    StructLitExpr  :: Holder!
+  expr 35:10    StructLitExpr  :: Holder
   expr 35:24    IdentExpr      :: f64
   expr 36:13    StringLitExpr  :: string
   expr 36:27    BinaryExpr     :: bool
   expr 36:27    FieldExpr      :: f64 | null
-  expr 36:27    IdentExpr      :: Holder!
+  expr 36:27    IdentExpr      :: Holder
   expr 36:41    BinaryExpr     :: bool
   expr 36:41    FieldExpr      :: f64 | null
-  expr 36:41    IdentExpr      :: Holder!
+  expr 36:41    IdentExpr      :: Holder
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(T) -> void
-  expr 37:10    SeqLitExpr     :: [f64, i32]!
+  expr 37:10    SeqLitExpr     :: [f64, i32]
   expr 37:11    IdentExpr      :: f64
   expr 38:13    StringLitExpr  :: string
   expr 38:27    BinaryExpr     :: bool
-  expr 38:27    IdentExpr      :: [f64, i32]!
-  expr 38:32    SeqLitExpr     :: [f64, i32]!
+  expr 38:27    IdentExpr      :: [f64, i32]
+  expr 38:32    SeqLitExpr     :: [f64, i32]
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void

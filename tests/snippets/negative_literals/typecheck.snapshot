@@ -35,14 +35,14 @@
   expr 23:69    FieldExpr      :: fn() -> i32
   expr 23:81    CallExpr       :: i32
   expr 23:81    FieldExpr      :: fn() -> i32
-  expr 25:14    RangeExpr      :: Range<i32>!
+  expr 25:14    RangeExpr      :: Range<i32>
   expr 26:18    IdentExpr      :: i32
   expr 26:9     BinaryExpr     :: i32
   expr 26:9     IdentExpr      :: i32
   expr 28:13    StringLitExpr  :: string
   expr 28:16    IdentExpr      :: i32
   expr 28:25    IndexExpr      :: i32
-  expr 28:25    SeqLitExpr     :: i32[]!
+  expr 28:25    SeqLitExpr     :: i32[]
   expr 28:40    CallExpr       :: string
   expr 28:40    IdentExpr      :: fn(i32) -> string
   expr 28:5     CallExpr       :: void

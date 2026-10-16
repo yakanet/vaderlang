@@ -36,12 +36,8 @@ export infer_index :: fn(
     // impl of a distinct's own takes a `Range` key.
     arr_view :: array_backing(target)
     if arr_view != null && is_range_type(index) {
-        // A slice is a zero-copy VIEW sharing the parent's buffer (SPEC §Arrays),
-        // so it inherits the parent's mutability. Hard-wiring it mutable
-        // laundered the freeze : `frozen[0..<1]` handed back a writable alias
-        // onto the very buffer that was frozen.
         record_site(typed, e, .IndexRead, BUILTIN_CALLEE)
-        return mk_array(arr_view.element, arr_view.immutable)
+        return arr_view
     }
     if dispatched != null {
         reject_index_key(e.index, index, key_ty, typed, diags)

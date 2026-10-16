@@ -88,7 +88,7 @@
         ~>
           if :u64
             cond:
-              is Probe! :bool
+              is Probe :bool
                 s :Probe | Wide
             then:
               ~>
@@ -115,7 +115,7 @@
               ~>
                 if :u64
                   cond:
-                    is Wide! :bool
+                    is Wide :bool
                       s :Probe | Wide
                   then:
                     ~>
@@ -784,7 +784,7 @@
                   callee:
                     arithmetic :fn(Probe | Wide) -> u64
                   arg0:
-                    Probe! {
+                    Probe {
                       flag: true
                     }
         assign
@@ -816,7 +816,7 @@
                   callee:
                     arithmetic :fn(Probe | Wide) -> u64
                   arg0:
-                    Probe! {
+                    Probe {
                       flag: false
                     }
         ~>
@@ -903,7 +903,7 @@
                     callee:
                       arithmetic :fn(Probe | Wide) -> u64
                     arg0:
-                      Wide! {
+                      Wide {
                         n: int(3) :u64
                       }
           ~>

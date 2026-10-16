@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Hello {  }
-  fn snippet$Hello$Greeter$greet(self: Hello!) -> i32
+  fn snippet$Hello$Greeter$greet(self: Hello) -> i32
     return int(100) :i32
   fn snippet$i32$Doubler$doubled(self: i32) -> i32
     return
@@ -17,7 +17,7 @@
         callee:
           snippet$count__i32 :i32
         arg0:
-          Range<i32>! {
+          Range<i32> {
             start: int(0) :i32
             end: int(5) :i32
             inclusive: false
@@ -33,7 +33,7 @@
             callee:
               std_core$[]$Into$into__i32 :Iterator<T>
             arg0:
-              array :i32[]!
+              array :i32[]
                 int(10) :i32
                 int(20) :i32
                 int(30) :i32
@@ -42,7 +42,7 @@
         callee:
           snippet$invoke__i32 :i32
         arg0:
-          Hello! {
+          Hello {
           }
     let d: i32 =
       call :i32

@@ -61,9 +61,9 @@ string 10 "a loop labelled exit:"
 string 11 "value consumer: "
 string 12 " | "
 string 13 "\n"
-import 0 byte_len std_core$byte_len result_type=16 param_types=12 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=22 param_types=12 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=23 param_types=1,22,16 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=16 param_types=12 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=22 param_types=12 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=23 param_types=1,22,16 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 4 std_core$Iterator
 impl 7 std_core$Iterator
 impl 8 std_core$Iterator

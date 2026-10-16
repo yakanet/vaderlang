@@ -209,12 +209,12 @@ static int32_t snippet_fused_to_max(void) {
     l1 = (uint8_t) 255;
     l3 = (l2 <= l1);
     while (l3) {
-#line 389 "lib/std/iter/iter.vader"
+#line 388 "lib/std/iter/iter.vader"
         t0 = __lambda_snippet_0(l2);
         if (t0) {
 #line 57 "tests/snippets/range_to_type_max/_main.vader"
             l0 = vader_chk_add(i32, l0, INT32_C(1));
-#line 389 "lib/std/iter/iter.vader"
+#line 388 "lib/std/iter/iter.vader"
         }
 #line 56 "tests/snippets/range_to_type_max/_main.vader"
         l3 = (l2 < l1);

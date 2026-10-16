@@ -6,7 +6,7 @@
   expr 15:16    IdentExpr      :: Foo
 
 ## tests/snippets/_diag_orphan_impl_through_wildcard_imports/lib_a
-  StructDecl     Foo                  :: Foo!
+  StructDecl     Foo                  :: Foo
 
 ## tests/snippets/_diag_orphan_impl_through_wildcard_imports/lib_b
-  TraitDecl      Bar                  :: Bar!
+  TraitDecl      Bar                  :: Bar

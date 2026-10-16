@@ -7,14 +7,14 @@
   ConstDecl      ANSWER               :: i32
   FnDecl         build_answer         :: fn() -> i32
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Maybe                :: Maybe!
+  StructDecl     Maybe                :: Maybe
   ConstDecl      PICKED               :: i32
   FnDecl         some_or_none         :: fn(i32) -> Maybe | null
   ConstDecl      SQUARES              :: u32[]
   expr 16:1     IdentExpr      :: fn() -> u32[]
   expr 16:12    CallExpr       :: u32[]
   expr 17:15    SeqLitExpr     :: u32[]
-  expr 18:14    RangeExpr      :: Range<i32>!
+  expr 18:14    RangeExpr      :: Range<i32>
   expr 18:22    CallExpr       :: void
   expr 18:22    FieldExpr      :: fn(u32) -> void
   expr 18:22    IdentExpr      :: u32[]
@@ -32,13 +32,13 @@
   expr 34:46    IfExpr         :: void
   expr 34:49    BinaryExpr     :: bool
   expr 34:49    IdentExpr      :: i32
-  expr 34:80    StructLitExpr  :: Maybe!
+  expr 34:80    StructLitExpr  :: Maybe
   expr 34:93    IdentExpr      :: i32
   expr 35:1     IdentExpr      :: fn() -> i32
   expr 35:11    CallExpr       :: i32
   expr 36:10    CallExpr       :: Maybe | null
   expr 36:10    IdentExpr      :: fn(i32) -> Maybe | null
-  expr 37:13    IdentExpr      :: Maybe!
+  expr 37:13    IdentExpr      :: Maybe
   expr 37:34    FieldExpr      :: i32
   expr 37:34    IdentExpr      :: Maybe
   expr 37:5     IfExpr         :: void

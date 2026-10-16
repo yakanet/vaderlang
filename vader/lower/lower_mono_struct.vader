@@ -320,8 +320,7 @@ MAX_FIELD_SHAPES :: 4096
 /// mint a closure capturing `t` on every visit.
 ///
 /// A PRE-FILTER, not the authority : `close_over_field_shapes` dedups again on
-/// `shape_mangle`. It may be FINER than the mangle (which erases `!`, where
-/// `type_list_equals` reads `ArrayType.immutable`) — the surplus is dropped
+/// `shape_mangle`. It may be FINER than the mangle: the surplus is dropped
 /// there. It must never be COARSER : that would drop a shape nothing
 /// materialises.
 push_struct_shape :: fn(t: Type, out: StructType[], seen: MutableMap<i32, StructType[]>) -> void {
@@ -455,7 +454,7 @@ impl_applies_to_instance :: fn(project_ctx: LowerProjectCtx, impl_decl: ImplDecl
     if entry.target != declaration_key(inst.symbol) {
         return false
     }
-    instance :: mk_struct(inst.symbol, inst.args, false)
+    instance :: mk_struct(inst.symbol, inst.args)
     if entry.instance {
         return impl_covers(entry, instance)
     }
@@ -495,7 +494,7 @@ materialize_impl_for_instance :: fn(
     } else {
         build_mixed_args_list(project_ctx.impls, inst.args)
     }
-    self_struct :: StructType { .symbol = inst.symbol, .args = erased_args, .immutable = false }
+    self_struct :: StructType { .symbol = inst.symbol, .args = erased_args }
     self_type: Type: self_struct
     // Suffix from the ERASED args : a generic impl mangles `next__Any`
     // (not `next__i32`) so the shared erased body's sibling self-calls

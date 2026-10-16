@@ -85,13 +85,13 @@
         callee:
           std_core$[]$Contains$contains__u8 :bool
         arg0:
-          array :u8[]!
+          array :u8[]
             int(32) :u8
             int(9) :u8
         arg1:
           b :u8
   struct snippet$Bag { items: i64[] }
-  fn snippet$Bag$Contains$contains(self: Bag!, value: i64) -> bool
+  fn snippet$Bag$Contains$contains(self: Bag, value: i64) -> bool
     ~>
       call :bool
         callee:
@@ -116,7 +116,7 @@
             callee:
               std_core$[]$Contains$contains__usize :bool
             arg0:
-              array :usize[]!
+              array :usize[]
                 int(1) :usize
                 int(2) :usize
             arg1:
@@ -126,14 +126,14 @@
             callee:
               std_core$[]$Contains$contains__i64 :bool
             arg0:
-              array :i64[]!
+              array :i64[]
                 int(3) :i64
                 int(4) :i64
             arg1:
               m :Meters
   fn snippet$main() -> i32
     let r: Range<i64> =
-      Range<i64>! {
+      Range<i64> {
         start: int(0) :i64
         end: int(5000000000) :i64
         inclusive: false
@@ -510,8 +510,8 @@
                 __buf_6 :Buffer
               arg1:
                 __off_7 :usize
-    let bag: Bag! =
-      Bag! {
+    let bag: Bag =
+      Bag {
         items:
           array :i64[]
             int(4000000000) :i64
@@ -545,7 +545,7 @@
                     callee:
                       snippet$has_big__Bag :bool
                     arg0:
-                      bag :Bag!
+                      bag :Bag
           assign
             target:
               __off_9 :usize
@@ -575,7 +575,7 @@
                     callee:
                       has_big_value :fn(Contains<i64>) -> bool
                     arg0:
-                      bag :Bag!
+                      bag :Bag
           ~>
             call :string
               callee:
@@ -720,13 +720,13 @@
               arg1:
                 __off_11 :usize
     return int(0) :i32
-  fn snippet$has_big__Bag(c: Bag!) -> bool
+  fn snippet$has_big__Bag(c: Bag) -> bool
     ~>
       call :bool
         callee:
           snippet$Bag$Contains$contains :bool
         arg0:
-          c :Bag!
+          c :Bag
         arg1:
           int(4000000000) :i64
   fn concat_2(p0: string, p1: string) -> string

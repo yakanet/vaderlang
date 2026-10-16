@@ -53,7 +53,7 @@ export lower_lambda :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr, block_lowerer
     }
     env_symbol :: fresh_lifted_symbol(ctx, is_env = true)
     env_param_symbol :: synth_env_param_symbol(ctx)
-    env_type :: mk_struct(env_symbol, [], immutable = false)
+    env_type :: mk_struct(env_symbol, [])
     slots :: env_slots(ctx, captures)
     env_decl :: LoweredStructDecl { .mangled = env_symbol.name, .fields = env_struct_fields(slots), .origin = synth_mono_entry(ctx, env_symbol) }
     // `lifted_context` routes captured ident reads through `env.cap_N` instead

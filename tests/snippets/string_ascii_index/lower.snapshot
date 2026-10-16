@@ -131,7 +131,7 @@
           callee:
             join :string
           arg0:
-            array :string[]!
+            array :string[]
               "ab" :string
               "cd" :string
           arg1:
@@ -465,7 +465,7 @@
               arg0:
                 text :string
               arg1:
-                Range<usize>! {
+                Range<usize> {
                   start: int(4) :usize
                   end: int(9) :usize
                   inclusive: false
@@ -481,7 +481,7 @@
               arg0:
                 text :string
               arg1:
-                Range<usize>! {
+                Range<usize> {
                   start: int(16) :usize
                   end: int(99) :usize
                   inclusive: false
@@ -497,7 +497,7 @@
               arg0:
                 text :string
               arg1:
-                Range<usize>! {
+                Range<usize> {
                   start: int(10) :usize
                   end: int(14) :usize
                   inclusive: true
@@ -513,7 +513,7 @@
               arg0:
                 text :string
               arg1:
-                Range<usize>! {
+                Range<usize> {
                   start: int(9) :usize
                   end: int(4) :usize
                   inclusive: false
@@ -551,7 +551,7 @@
               arg0:
                 accented :string
               arg1:
-                Range<usize>! {
+                Range<usize> {
                   start: int(4) :usize
                   end: int(9) :usize
                   inclusive: false
@@ -567,7 +567,7 @@
               arg0:
                 accented :string
               arg1:
-                Range<usize>! {
+                Range<usize> {
                   start: int(7) :usize
                   end: int(99) :usize
                   inclusive: false

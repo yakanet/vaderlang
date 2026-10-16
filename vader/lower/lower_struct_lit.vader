@@ -100,7 +100,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
 erase_generic_struct_tag :: fn(ctx: FnLowerCtx, t: Type) -> Type {
     if t is StructType {
         if t.args.is_empty() { return t }
-        return mk_struct(t.symbol, build_mixed_args_list(ctx.project.impls, t.args), t.immutable)
+        return mk_struct(t.symbol, build_mixed_args_list(ctx.project.impls, t.args))
     }
     return t
 }

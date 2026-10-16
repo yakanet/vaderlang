@@ -17,9 +17,9 @@ type 14 ref snippet$Shape
 string 0 " "
 string 1 "\n"
 data 0 agg Shape 2 struct 1 1 i32 01000000 struct 3 1 i32 02000000
-import 0 byte_len std_core$byte_len result_type=6 param_types=4 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=10 param_types=4 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=2,10,6 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=6 param_types=4 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=10 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=2,10,6 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 1 snippet$Shape
 impl 3 snippet$Shape
 impl 7 std_core$ByteAccess

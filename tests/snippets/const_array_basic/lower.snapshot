@@ -9,8 +9,8 @@
         ix:
           int(0) :i32
   fn snippet$main() -> i32
-    let local: i32[]! =
-      array :i32[]!
+    let local: i32[] =
+      array :i32[]
         int(40) :i32
         int(50) :i32
     call :void
@@ -86,7 +86,7 @@
                       callee:
                         read_first :fn(i32[]) -> i32
                       arg0:
-                        local :i32[]!
+                        local :i32[]
           ~>
             call :string
               callee:

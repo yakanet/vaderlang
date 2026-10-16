@@ -53,7 +53,6 @@ export infer_binary :: fn(
                 typed.expr_kinds[e.right.id] = "IdentExpr"
             }
         }
-        reject_marker_in_is_test(e.right, diags)
         check_is_overlap(e, left, rhs_ty, diags)
         check_is_test_target(rhs_ty, e.right.span, typed, diags)
         return TY_BOOL
@@ -989,21 +988,6 @@ first_without_equality :: fn(types: Type[], typed: TypedProgram) -> Type | null 
     return null
 }
 
-// An `is` test compares the SHAPE : mutability is a static discipline with no
-// runtime representation (an array header carries length / capacity / element
-// kind, never a read-only bit), so `x is i32[]!` selects the same variant as
-// `x is i32[]`. The marker grants nothing here — and what the narrowed binding
-// gets is the SCRUTINEE's mutability, never the one written in the test. T3075.
-reject_marker_in_is_test :: fn(tested: AST.TypeExpr, diags: Diagnostic[]) -> void {
-    if !AST.type_expr_marks_mutable(tested) {
-        return
-    }
-    diags.push(typecheck_error(
-        .MutabilityMarkerOnValueType, tested.span,
-        "an `is` test compares the shape — mutability has no runtime representation, "
-        + "so drop the `!` (the narrowed binding keeps the scrutinee's own mutability)"))
-}
-
 // An `is` test reads the tested value's runtime tag. An instance of a generic
 // struct with a type argument that erases (`Box<Foo>`, `Pair<i32, Foo>`) is
 // served by one body shared with every other such instance, and a value that
@@ -1202,7 +1186,7 @@ right_operand_context :: fn(e: AST.BinaryExpr, left: Type, typed: TypedProgram) 
     if e.right !is AST.SeqLitExpr || !is_pinned_element(element) {
         return null
     }
-    return mk_array(element, false)
+    return mk_array(element)
 }
 
 // When left is a concrete numeric and the op propagates context, return

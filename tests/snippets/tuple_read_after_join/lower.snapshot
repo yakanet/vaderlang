@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$mk(n: i32) -> [i32, i32]
     ~>
-      [i32, i32]! {
+      [i32, i32] {
         _0: n :i32
         _1:
           mul_checked :i32

@@ -5,7 +5,7 @@
   FnDecl         counted              :: fn(I) -> usize
   FnDecl         first_shown          :: fn(U[]) -> string
   FnDecl         main                 :: fn() -> i32
-  StructDecl     P                    :: P!
+  StructDecl     P                    :: P
   FnDecl         show                 :: fn(Display) -> string
   FnDecl         shown                :: fn(T) -> string
   FnDecl         shown_first          :: fn(T[]) -> string
@@ -53,32 +53,32 @@
   expr 41:55    IdentExpr      :: I
   expr 44:13    CallExpr       :: string
   expr 44:13    IdentExpr      :: fn(T) -> string
-  expr 44:19    StructLitExpr  :: P!
+  expr 44:19    StructLitExpr  :: P
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(T) -> void
   expr 45:13    CallExpr       :: string
   expr 45:13    IdentExpr      :: fn(T) -> string
-  expr 45:25    StructLitExpr  :: P!
+  expr 45:25    StructLitExpr  :: P
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(T) -> void
   expr 46:13    CallExpr       :: string
   expr 46:13    IdentExpr      :: fn(T[]) -> string
-  expr 46:25    SeqLitExpr     :: P![]
-  expr 46:26    StructLitExpr  :: P!
+  expr 46:25    SeqLitExpr     :: P[]
+  expr 46:26    StructLitExpr  :: P
   expr 46:5     CallExpr       :: void
   expr 46:5     IdentExpr      :: fn(T) -> void
   expr 47:13    CallExpr       :: i32
   expr 47:13    IdentExpr      :: fn(I) -> i32
-  expr 47:20    RangeExpr      :: Range<i32>!
+  expr 47:20    RangeExpr      :: Range<i32>
   expr 47:5     CallExpr       :: void
   expr 47:5     IdentExpr      :: fn(T) -> void
   expr 48:13    CallExpr       :: usize
   expr 48:13    IdentExpr      :: fn(I) -> usize
-  expr 48:21    RangeExpr      :: Range<i32>!
+  expr 48:21    RangeExpr      :: Range<i32>
   expr 48:5     CallExpr       :: void
   expr 48:5     IdentExpr      :: fn(T) -> void
   expr 49:13    CallExpr       :: i32
   expr 49:13    IdentExpr      :: fn(I) -> i32
-  expr 49:21    RangeExpr      :: Range<i32>!
+  expr 49:21    RangeExpr      :: Range<i32>
   expr 49:5     CallExpr       :: void
   expr 49:5     IdentExpr      :: fn(T) -> void

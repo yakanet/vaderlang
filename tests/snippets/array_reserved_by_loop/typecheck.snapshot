@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/array_reserved_by_loop
-  StructDecl     Bag                  :: Bag!
+  StructDecl     Bag                  :: Bag
   FnDecl         main                 :: fn() -> i32
   FnDecl         odd                  :: fn(i32) -> bool
   FnDecl         odd_squares          :: fn(i32[]) -> i64[]
@@ -28,11 +28,11 @@
   expr 112:9    FieldExpr      :: fn(i64) -> void
   expr 112:9    IdentExpr      :: i64[]
   expr 114:12   IdentExpr      :: i64[]
-  expr 118:10   SeqLitExpr     :: i32[]!
+  expr 118:10   SeqLitExpr     :: i32[]
   expr 119:10   StringLitExpr  :: string
   expr 119:19   CallExpr       :: i64[]
   expr 119:19   IdentExpr      :: fn(i32[]) -> i64[]
-  expr 119:30   IdentExpr      :: i32[]!
+  expr 119:30   IdentExpr      :: i32[]
   expr 119:5    CallExpr       :: void
   expr 119:5    IdentExpr      :: fn(string, i64[]) -> void
   expr 120:10   StringLitExpr  :: string
@@ -46,33 +46,33 @@
   expr 121:5    CallExpr       :: void
   expr 121:5    IdentExpr      :: fn(string, i64[]) -> void
   expr 122:10   StringLitExpr  :: string
-  expr 122:21   CallExpr       :: __genstate_map<i64>!
+  expr 122:21   CallExpr       :: __genstate_map<i64>
   expr 122:21   CallExpr       :: i64[]
   expr 122:21   FieldExpr      :: fn() -> i64[]
   expr 122:21   FieldExpr      :: fn(fn(i32) -> i64) -> Iterator<i64>
-  expr 122:21   IdentExpr      :: i32[]!
+  expr 122:21   IdentExpr      :: i32[]
   expr 122:27   IdentExpr      :: fn(i32) -> i64
   expr 122:5    CallExpr       :: void
   expr 122:5    IdentExpr      :: fn(string, i64[]) -> void
   expr 123:10   StringLitExpr  :: string
-  expr 123:28   CallExpr       :: __genstate_map<i64>!
+  expr 123:28   CallExpr       :: __genstate_map<i64>
   expr 123:28   CallExpr       :: i64[]
   expr 123:28   FieldExpr      :: fn() -> i64[]
   expr 123:28   FieldExpr      :: fn(fn(i32) -> i64) -> Iterator<i64>
-  expr 123:28   RangeExpr      :: Range<i32>!
+  expr 123:28   RangeExpr      :: Range<i32>
   expr 123:39   IdentExpr      :: fn(i32) -> i64
   expr 123:5    CallExpr       :: void
   expr 123:5    IdentExpr      :: fn(string, i64[]) -> void
   expr 124:10   StringLitExpr  :: string
   expr 124:22   CallExpr       :: i64[]
   expr 124:22   IdentExpr      :: fn(i32[]) -> i64[]
-  expr 124:34   IdentExpr      :: i32[]!
+  expr 124:34   IdentExpr      :: i32[]
   expr 124:5    CallExpr       :: void
   expr 124:5    IdentExpr      :: fn(string, i64[]) -> void
   expr 125:10   StringLitExpr  :: string
   expr 125:19   CallExpr       :: i64[]
   expr 125:19   IdentExpr      :: fn(i32[]) -> i64[]
-  expr 125:29   IdentExpr      :: i32[]!
+  expr 125:29   IdentExpr      :: i32[]
   expr 125:5    CallExpr       :: void
   expr 125:5    IdentExpr      :: fn(string, i64[]) -> void
   expr 126:19   SeqLitExpr     :: i32[]
@@ -100,20 +100,20 @@
   expr 131:10   StringLitExpr  :: string
   expr 131:19   CallExpr       :: i64[]
   expr 131:19   IdentExpr      :: fn(Bag) -> i64[]
-  expr 131:30   StructLitExpr  :: Bag!
+  expr 131:30   StructLitExpr  :: Bag
   expr 131:45   SeqLitExpr     :: i32[]
   expr 131:5    CallExpr       :: void
   expr 131:5    IdentExpr      :: fn(string, i64[]) -> void
   expr 132:13   StringLitExpr  :: string
   expr 132:23   CallExpr       :: i64
   expr 132:23   IdentExpr      :: fn(i32[]) -> i64
-  expr 132:29   IdentExpr      :: i32[]!
+  expr 132:29   IdentExpr      :: i32[]
   expr 132:5    CallExpr       :: void
   expr 132:5    IdentExpr      :: fn(T) -> void
   expr 133:14   AwaitExpr      :: i64[]
-  expr 133:20   CallExpr       :: Async<i64[]>!
+  expr 133:20   CallExpr       :: Async<i64[]>
   expr 133:20   IdentExpr      :: fn(i32[]) -> Async<i64[]>
-  expr 133:34   IdentExpr      :: i32[]!
+  expr 133:34   IdentExpr      :: i32[]
   expr 134:10   StringLitExpr  :: string
   expr 134:19   IdentExpr      :: i64[]
   expr 134:5    CallExpr       :: void
@@ -149,7 +149,7 @@
   expr 33:12    IdentExpr      :: i64[]
   expr 37:17    SeqLitExpr     :: i64[]
   expr 38:14    IdentExpr      :: i32
-  expr 38:14    RangeExpr      :: Range<i32>!
+  expr 38:14    RangeExpr      :: Range<i32>
   expr 38:19    IdentExpr      :: i32
   expr 39:18    CallExpr       :: i64
   expr 39:18    IdentExpr      :: fn(i32) -> i64
@@ -160,7 +160,7 @@
   expr 41:12    IdentExpr      :: i64[]
   expr 45:17    SeqLitExpr     :: i64[]
   expr 46:14    IdentExpr      :: i32
-  expr 46:14    RangeExpr      :: Range<i32>!
+  expr 46:14    RangeExpr      :: Range<i32>
   expr 46:19    IdentExpr      :: i32
   expr 47:18    CallExpr       :: i64
   expr 47:18    IdentExpr      :: fn(i32) -> i64
@@ -171,7 +171,7 @@
   expr 49:12    IdentExpr      :: i64[]
   expr 54:16    SeqLitExpr     :: i8[]
   expr 55:14    IdentExpr      :: i8
-  expr 55:14    RangeExpr      :: Range<i8>!
+  expr 55:14    RangeExpr      :: Range<i8>
   expr 55:19    IdentExpr      :: i8
   expr 56:18    IdentExpr      :: i8
   expr 56:9     CallExpr       :: void

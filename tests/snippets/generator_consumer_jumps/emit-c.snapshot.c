@@ -1243,7 +1243,7 @@ static void snippet_headed(void) {
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(1);
     l0 = (void*) _a0_arr;
 #line 86 "tests/snippets/generator_consumer_jumps/_main.vader"
-#line 395 "lib/std/iter/iter.vader"
+#line 394 "lib/std/iter/iter.vader"
     l1 = snippet_bump(INT32_C(0));
 #line 98 "tests/snippets/generator_consumer_jumps/_main.vader"
     if (!(l1 == INT32_C(1))) {
@@ -1265,7 +1265,7 @@ static void snippet_headed(void) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
         t1 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l5];
-#line 395 "lib/std/iter/iter.vader"
+#line 394 "lib/std/iter/iter.vader"
         l1 = snippet_bump(t1);
 #line 98 "tests/snippets/generator_consumer_jumps/_main.vader"
         if (!(l1 == INT32_C(1))) {
@@ -1294,12 +1294,12 @@ static void snippet_headed(void) {
     l1 = INT32_C(0);
 #line 103 "tests/snippets/generator_consumer_jumps/_main.vader"
     {
-#line 349 "lib/std/iter/iter.vader"
+#line 348 "lib/std/iter/iter.vader"
         t3 = snippet_below_five(l1);
         if (t3) {
-#line 350 "lib/std/iter/iter.vader"
-            l7 = vader_box_i32(2u, l1);
 #line 349 "lib/std/iter/iter.vader"
+            l7 = vader_box_i32(2u, l1);
+#line 348 "lib/std/iter/iter.vader"
 #line 87 "tests/snippets/generator_consumer_jumps/_main.vader"
         } else {
             l3 = ((vader_array_t*) l0)->length;
@@ -1309,21 +1309,21 @@ static void snippet_headed(void) {
                 VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l5)
                 l1 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l5];
-#line 349 "lib/std/iter/iter.vader"
+#line 348 "lib/std/iter/iter.vader"
                 t3 = snippet_below_five(l1);
                 if (t3) {
-#line 350 "lib/std/iter/iter.vader"
+#line 349 "lib/std/iter/iter.vader"
                     l7 = vader_box_i32(2u, l1);
                     goto end_93;
-#line 349 "lib/std/iter/iter.vader"
+#line 348 "lib/std/iter/iter.vader"
                 }
 #line 87 "tests/snippets/generator_consumer_jumps/_main.vader"
                 t2 = (l5 + INT64_C(1));
                 l5 = (size_t) (int64_t) t2;
             }
-#line 353 "lib/std/iter/iter.vader"
+#line 352 "lib/std/iter/iter.vader"
             l7 = vader_box_obj(0u, NULL);
-#line 349 "lib/std/iter/iter.vader"
+#line 348 "lib/std/iter/iter.vader"
         }
 #line 103 "tests/snippets/generator_consumer_jumps/_main.vader"
     } end_93: ;

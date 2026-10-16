@@ -113,7 +113,7 @@ same_carrier :: fn(a: Type, b: Type) -> bool {
     if a is StructType && b is StructType {
         return a.symbol.id == b.symbol.id && a.args.len() == b.args.len()
     }
-    return display_type_key(a) == display_type_key(b)
+    return display_type(a) == display_type(b)
 }
 
 // What a returned local was defined by, within its own block.

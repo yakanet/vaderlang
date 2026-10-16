@@ -11,7 +11,7 @@
   expr 35:14    IdentExpr      :: fn(string, string) -> IOError | null
   expr 35:32    IdentExpr      :: string
   expr 35:38    StringLitExpr  :: string
-  expr 36:17    IdentExpr      :: IOError!
+  expr 36:17    IdentExpr      :: IOError
   expr 36:5     IfExpr         :: void
   expr 36:8     BinaryExpr     :: bool
   expr 36:8     IdentExpr      :: IOError | null

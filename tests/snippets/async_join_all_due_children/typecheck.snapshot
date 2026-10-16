@@ -1,12 +1,12 @@
 # Typecheck
 
 ## tests/snippets/async_join_all_due_children
-  StructDecl     Counted              :: Counted!
+  StructDecl     Counted              :: Counted
   FnDecl         main                 :: fn() -> i32
-  StructDecl     ResumeCount          :: ResumeCount!
+  StructDecl     ResumeCount          :: ResumeCount
   FnDecl         resumes              :: fn() -> ResumeCount
   FnDecl         task                 :: fn(i64) -> Async<i64>
-  expr 16:34    StructLitExpr  :: ResumeCount!
+  expr 16:34    StructLitExpr  :: ResumeCount
   expr 25:9     BinaryExpr     :: i64
   expr 25:9     CallExpr       :: ResumeCount
   expr 25:9     FieldExpr      :: i64
@@ -15,22 +15,22 @@
   expr 26:16    FieldExpr      :: Async<null>
   expr 26:16    FieldExpr      :: fn() -> null | Suspended
   expr 26:16    IdentExpr      :: Counted
-  expr 31:14    RangeExpr      :: Range<i32>!
-  expr 32:15    StructLitExpr  :: Counted!
+  expr 31:14    RangeExpr      :: Range<i32>
+  expr 32:15    StructLitExpr  :: Counted
   expr 32:34    CallExpr       :: Async<null>
   expr 32:34    IdentExpr      :: fn(i64) -> Async<null>
   expr 32:40    IdentExpr      :: i64
-  expr 32:9     AwaitExpr      :: Counted!
+  expr 32:9     AwaitExpr      :: Counted
   expr 34:12    IdentExpr      :: i64
   expr 38:13    AwaitExpr      :: i64[]
   expr 38:19    CallExpr       :: Async<i64[]>
   expr 38:19    IdentExpr      :: fn(Async<T>[]) -> Async<T[]>
-  expr 38:28    SeqLitExpr     :: Async<i64>![]
-  expr 38:29    CallExpr       :: Async<i64>!
+  expr 38:28    SeqLitExpr     :: Async<i64>[]
+  expr 38:29    CallExpr       :: Async<i64>
   expr 38:29    IdentExpr      :: fn(i64) -> Async<i64>
-  expr 38:38    CallExpr       :: Async<i64>!
+  expr 38:38    CallExpr       :: Async<i64>
   expr 38:38    IdentExpr      :: fn(i64) -> Async<i64>
-  expr 38:47    CallExpr       :: Async<i64>!
+  expr 38:47    CallExpr       :: Async<i64>
   expr 38:47    IdentExpr      :: fn(i64) -> Async<i64>
   expr 39:13    StringLitExpr  :: string
   expr 39:16    IdentExpr      :: i64[]

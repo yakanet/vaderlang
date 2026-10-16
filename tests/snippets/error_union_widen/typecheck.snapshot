@@ -1,8 +1,8 @@
 # Typecheck
 
 ## tests/snippets/error_union_widen
-  StructDecl     A                    :: A!
-  StructDecl     B                    :: B!
+  StructDecl     A                    :: A
+  StructDecl     B                    :: B
   FnDecl         main                 :: fn() -> i32
   FnDecl         only_string          :: fn(string) -> string
   FnDecl         tail_string          :: fn(A | B | string) -> string
@@ -15,7 +15,7 @@
   expr 15:59    IdentExpr      :: B
   expr 18:48    IdentExpr      :: A | string
   expr 22:42    IdentExpr      :: string
-  expr 24:13    IdentExpr      :: Error!
+  expr 24:13    IdentExpr      :: Error
   expr 24:28    StringLitExpr  :: string
   expr 24:5     IfExpr         :: void
   expr 24:8     BinaryExpr     :: bool

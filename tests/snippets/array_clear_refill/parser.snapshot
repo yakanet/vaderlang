@@ -15,24 +15,33 @@
       "decorators": []
     },
     {
-      "kind": "ConstDecl",
-      "name": "SEEN",
+      "kind": "FnDecl",
+      "name": "seen",
       "visibility": "private",
-      "type": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
-            "kind": "IdentExpr",
-            "name": "string"
-          }
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "ArrayTypeExpr",
+        "element": {
+          "kind": "IdentExpr",
+          "name": "string"
         }
       },
-      "value": {
-        "kind": "SeqLitExpr",
-        "elements": []
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "SeqLitExpr",
+          "elements": []
+        }
       },
-      "decorators": []
+      "decorators": [
+        {
+          "name": "singleton",
+          "args": []
+        }
+      ],
+      "isExpressionBodied": true
     },
     {
       "kind": "FnDecl",
@@ -225,8 +234,12 @@
                     "callee": {
                       "kind": "FieldExpr",
                       "target": {
-                        "kind": "IdentExpr",
-                        "name": "SEEN"
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "IdentExpr",
+                          "name": "seen"
+                        },
+                        "args": []
                       },
                       "field": "push"
                     },
@@ -265,8 +278,12 @@
                     "callee": {
                       "kind": "FieldExpr",
                       "target": {
-                        "kind": "IdentExpr",
-                        "name": "SEEN"
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "IdentExpr",
+                          "name": "seen"
+                        },
+                        "args": []
                       },
                       "field": "len"
                     },
@@ -285,8 +302,12 @@
                     "callee": {
                       "kind": "FieldExpr",
                       "target": {
-                        "kind": "IdentExpr",
-                        "name": "SEEN"
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "IdentExpr",
+                          "name": "seen"
+                        },
+                        "args": []
                       },
                       "field": "clear"
                     },
@@ -323,8 +344,12 @@
                           "callee": {
                             "kind": "FieldExpr",
                             "target": {
-                              "kind": "IdentExpr",
-                              "name": "SEEN"
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "IdentExpr",
+                                "name": "seen"
+                              },
+                              "args": []
                             },
                             "field": "len"
                           },
@@ -345,8 +370,12 @@
               "callee": {
                 "kind": "FieldExpr",
                 "target": {
-                  "kind": "IdentExpr",
-                  "name": "SEEN"
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "seen"
+                  },
+                  "args": []
                 },
                 "field": "push"
               },
@@ -374,8 +403,12 @@
               "callee": {
                 "kind": "FieldExpr",
                 "target": {
-                  "kind": "IdentExpr",
-                  "name": "SEEN"
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "seen"
+                  },
+                  "args": []
                 },
                 "field": "push"
               },
@@ -409,8 +442,12 @@
               "callee": {
                 "kind": "FieldExpr",
                 "target": {
-                  "kind": "IdentExpr",
-                  "name": "SEEN"
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "seen"
+                  },
+                  "args": []
                 },
                 "field": "remove_last"
               },
@@ -465,8 +502,12 @@
                           "callee": {
                             "kind": "FieldExpr",
                             "target": {
-                              "kind": "IdentExpr",
-                              "name": "SEEN"
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "IdentExpr",
+                                "name": "seen"
+                              },
+                              "args": []
                             },
                             "field": "len"
                           },

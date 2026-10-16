@@ -113,12 +113,12 @@
                 b :Cat | Dog | null
   fn snippet$main() -> i32
     let cat: Cat | Dog | null =
-      Cat! {
+      Cat {
         name: "Whiskers" :string
         age: int(3) :i32
       }
     let dog: Cat | Dog | null =
-      Dog! {
+      Dog {
         name: "Rex" :string
         age: int(7) :i32
       }

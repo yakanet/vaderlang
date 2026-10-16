@@ -65,7 +65,7 @@
               ~>
                 if :string
                   cond:
-                    is Spec! :bool
+                    is Spec :bool
                       __scrut_0 :null | Spec
                   then:
                     ~>
@@ -170,7 +170,7 @@
     let lone: null | Spec = ORIGIN :Spec
     if :void
       cond:
-        is Spec! :bool
+        is Spec :bool
           lone :null | Spec
       then:
         call :void

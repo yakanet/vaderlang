@@ -2,8 +2,8 @@
 
 ## tests/snippets/comptime_for_jumps
   FnDecl         main                 :: fn() -> i32
-  expr 11:14    RangeExpr      :: Range<i32>!
-  expr 12:28    SeqLitExpr     :: i32[]!
+  expr 11:14    RangeExpr      :: Range<i32>
+  expr 12:28    SeqLitExpr     :: i32[]
   expr 13:13    IfExpr         :: void
   expr 13:16    BinaryExpr     :: bool
   expr 13:16    IdentExpr      :: i32
@@ -12,8 +12,8 @@
   expr 16:21    StringLitExpr  :: string
   expr 16:34    IdentExpr      :: i32
   expr 16:39    IdentExpr      :: i32
-  expr 19:14    RangeExpr      :: Range<i32>!
-  expr 20:28    SeqLitExpr     :: i32[]!
+  expr 19:14    RangeExpr      :: Range<i32>
+  expr 20:28    SeqLitExpr     :: i32[]
   expr 21:19    CallExpr       :: void
   expr 21:19    IdentExpr      :: fn(T) -> void
   expr 21:27    StringLitExpr  :: string

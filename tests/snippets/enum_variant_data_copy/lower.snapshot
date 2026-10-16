@@ -29,8 +29,8 @@
           info :StatusInfo
       value:
         int(5) :i32
-    let h: Holder! =
-      Holder! {
+    let h: Holder =
+      Holder {
         info:
           block :StatusInfo
             let __data_1: StatusInfo =
@@ -54,7 +54,7 @@
       target:
         .code :i32
           .info :StatusInfo
-            h :Holder!
+            h :Holder
       value:
         int(7) :i32
     call :void
@@ -123,7 +123,7 @@
                   cast → i64
                     .code :i32
                       .info :StatusInfo
-                        h :Holder!
+                        h :Holder
           assign
             target:
               __off_4 :usize

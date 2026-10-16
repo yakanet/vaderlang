@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let d: Dog! =
-      Dog! {
+    let d: Dog =
+      Dog {
         name: "rex" :string
       }
     call :void
@@ -37,7 +37,7 @@
                           callee:
                             describe :fn(Animal) -> i32
                           arg0:
-                            d :Dog!
+                            d :Dog
                       r:
                         call :i32
                           callee:
@@ -122,9 +122,9 @@
           vcall snippet_zoo$Animal.legs :i32
             recv:
               a :Animal
-  fn snippet_zoo$Dog$Animal$legs(self: Dog!) -> i32
+  fn snippet_zoo$Dog$Animal$legs(self: Dog) -> i32
     ~>
       int(4) :i32
-  fn snippet_zoo$Dog$Animal$kind(self: Dog!) -> i32
+  fn snippet_zoo$Dog$Animal$kind(self: Dog) -> i32
     return int(2) :i32
   struct snippet_zoo$Dog { name: string }

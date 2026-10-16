@@ -7,7 +7,7 @@
   expr 103:12   CallExpr       :: Pattern | RegexError
   expr 103:12   IdentExpr      :: fn(string) -> Pattern | RegexError
   expr 103:20   StringLitExpr  :: string
-  expr 104:15   IdentExpr      :: RegexError!
+  expr 104:15   IdentExpr      :: RegexError
   expr 104:5    IfExpr         :: void
   expr 104:8    BinaryExpr     :: bool
   expr 104:8    IdentExpr      :: Pattern | RegexError
@@ -26,7 +26,7 @@
   expr 16:10    FieldExpr      :: fn(string) -> Match | null
   expr 16:10    IdentExpr      :: Pattern
   expr 16:17    IdentExpr      :: string
-  expr 17:13    IdentExpr      :: Match!
+  expr 17:13    IdentExpr      :: Match
   expr 17:5     IfExpr         :: void
   expr 17:8     BinaryExpr     :: bool
   expr 17:8     IdentExpr      :: Match | null
@@ -48,7 +48,7 @@
   expr 26:14    CallExpr       :: Pattern | RegexError
   expr 26:14    IdentExpr      :: fn(string) -> Pattern | RegexError
   expr 26:22    StringLitExpr  :: string
-  expr 27:17    IdentExpr      :: Pattern!
+  expr 27:17    IdentExpr      :: Pattern
   expr 27:5     IfExpr         :: void
   expr 27:8     BinaryExpr     :: bool
   expr 27:8     IdentExpr      :: Pattern | RegexError
@@ -65,7 +65,7 @@
   expr 33:17    CallExpr       :: Pattern | RegexError
   expr 33:17    IdentExpr      :: fn(string) -> Pattern | RegexError
   expr 33:25    StringLitExpr  :: string
-  expr 34:20    IdentExpr      :: Pattern!
+  expr 34:20    IdentExpr      :: Pattern
   expr 34:5     IfExpr         :: void
   expr 34:8     BinaryExpr     :: bool
   expr 34:8     IdentExpr      :: Pattern | RegexError
@@ -82,7 +82,7 @@
   expr 40:15    CallExpr       :: Pattern | RegexError
   expr 40:15    IdentExpr      :: fn(string) -> Pattern | RegexError
   expr 40:23    StringLitExpr  :: string
-  expr 41:18    IdentExpr      :: Pattern!
+  expr 41:18    IdentExpr      :: Pattern
   expr 41:5     IfExpr         :: void
   expr 41:8     BinaryExpr     :: bool
   expr 41:8     IdentExpr      :: Pattern | RegexError
@@ -123,7 +123,7 @@
   expr 53:17    CallExpr       :: Pattern | RegexError
   expr 53:17    IdentExpr      :: fn(string) -> Pattern | RegexError
   expr 53:25    StringLitExpr  :: string
-  expr 54:20    IdentExpr      :: Pattern!
+  expr 54:20    IdentExpr      :: Pattern
   expr 54:5     IfExpr         :: void
   expr 54:8     BinaryExpr     :: bool
   expr 54:8     IdentExpr      :: Pattern | RegexError
@@ -140,7 +140,7 @@
   expr 60:16    CallExpr       :: Pattern | RegexError
   expr 60:16    IdentExpr      :: fn(string) -> Pattern | RegexError
   expr 60:24    StringLitExpr  :: string
-  expr 61:19    IdentExpr      :: Pattern!
+  expr 61:19    IdentExpr      :: Pattern
   expr 61:5     IfExpr         :: void
   expr 61:8     BinaryExpr     :: bool
   expr 61:8     IdentExpr      :: Pattern | RegexError
@@ -150,7 +150,7 @@
   expr 62:27    StringLitExpr  :: string
   expr 63:12    BinaryExpr     :: bool
   expr 63:12    IdentExpr      :: Match | null
-  expr 63:17    IdentExpr      :: Match!
+  expr 63:17    IdentExpr      :: Match
   expr 63:9     IfExpr         :: void
   expr 64:13    CallExpr       :: void
   expr 64:13    IdentExpr      :: fn(T) -> void
@@ -179,7 +179,7 @@
   expr 71:14    CallExpr       :: Pattern | RegexError
   expr 71:14    IdentExpr      :: fn(string) -> Pattern | RegexError
   expr 71:22    StringLitExpr  :: string
-  expr 72:17    IdentExpr      :: Pattern!
+  expr 72:17    IdentExpr      :: Pattern
   expr 72:5     IfExpr         :: void
   expr 72:8     BinaryExpr     :: bool
   expr 72:8     IdentExpr      :: Pattern | RegexError
@@ -206,7 +206,7 @@
   expr 80:13    CallExpr       :: Pattern | RegexError
   expr 80:13    IdentExpr      :: fn(string) -> Pattern | RegexError
   expr 80:21    StringLitExpr  :: string
-  expr 81:16    IdentExpr      :: Pattern!
+  expr 81:16    IdentExpr      :: Pattern
   expr 81:5     IfExpr         :: void
   expr 81:8     BinaryExpr     :: bool
   expr 81:8     IdentExpr      :: Pattern | RegexError
@@ -223,7 +223,7 @@
   expr 85:15    CallExpr       :: Pattern | RegexError
   expr 85:15    IdentExpr      :: fn(string) -> Pattern | RegexError
   expr 85:23    StringLitExpr  :: string
-  expr 86:18    IdentExpr      :: Pattern!
+  expr 86:18    IdentExpr      :: Pattern
   expr 86:5     IfExpr         :: void
   expr 86:8     BinaryExpr     :: bool
   expr 86:8     IdentExpr      :: Pattern | RegexError
@@ -245,7 +245,7 @@
   expr 93:15    CallExpr       :: Pattern | RegexError
   expr 93:15    IdentExpr      :: fn(string) -> Pattern | RegexError
   expr 93:23    StringLitExpr  :: string
-  expr 94:18    IdentExpr      :: Pattern!
+  expr 94:18    IdentExpr      :: Pattern
   expr 94:5     IfExpr         :: void
   expr 94:8     BinaryExpr     :: bool
   expr 94:8     IdentExpr      :: Pattern | RegexError
@@ -260,7 +260,7 @@
   expr 97:17    CallExpr       :: Pattern | RegexError
   expr 97:17    IdentExpr      :: fn(string) -> Pattern | RegexError
   expr 97:25    StringLitExpr  :: string
-  expr 98:20    IdentExpr      :: Pattern!
+  expr 98:20    IdentExpr      :: Pattern
   expr 98:5     IfExpr         :: void
   expr 98:8     BinaryExpr     :: bool
   expr 98:8     IdentExpr      :: Pattern | RegexError

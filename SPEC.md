@@ -333,8 +333,6 @@ Declaration  : x :: value           (immutable, type inferred)
                x := value           (mutable,   type inferred)
                x: T : value         (immutable, typed)
                x: T = value         (mutable,   typed)
-Mutability   : name!                (parameter — grants the callee permission to mutate)
-               fn(T!) -> R          (same marker in a fn TYPE, which has no param names)
 Range        : 0..<10 (exclusive)  0..=10 (inclusive)
 Cast         : Type(expr) (numeric ↔ numeric, char ↔ integer)
 Field access : .name
@@ -647,14 +645,14 @@ The compiler probes `S implements Into<T>` whenever a value of type `S` is about
 The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and `char` targets keep their primitive cast semantics (`u32(x)`, `i64(c)`); non-numeric targets and numeric targets fed a non-numeric source route through `tryInto` and emit the matching `value.into()` call. The two paths share the same impl registry, so the implicit and explicit forms always agree on which method runs.
 
 **Rules**
-- **Target must be concrete or a trait.** `Struct`, `Enum`, `Primitive`, and `Trait` targets trigger the probe; `Union` and `TypeParam` slots are excluded. A union target leaves the typer unable to pick a variant; a `TypeParam` slot resolves after mono. Direct trait widening (when `S` already implements `T`) runs first via `isAssignable`, so `tryInto` only fires for `Trait` targets when the source needs an actual conversion (the canonical case being `T[] → Iterator<T>` via the blanket `T[] implements<T> Into<Iterator<T>!>`).
+- **Target must be concrete or a trait.** `Struct`, `Enum`, `Primitive`, and `Trait` targets trigger the probe; `Union` and `TypeParam` slots are excluded. A union target leaves the typer unable to pick a variant; a `TypeParam` slot resolves after mono. Direct trait widening (when `S` already implements `T`) runs first via `isAssignable`, so `tryInto` only fires for `Trait` targets when the source needs an actual conversion (the canonical case being `T[] → Iterator<T>` via the blanket `T[] implements<T> Into<Iterator<T>>`).
 - **No identity.** `T implements Into<T>` is forbidden (diagnostic **T3039** at the impl site) — it would shadow simple assignment and clutter the registry.
 - **No transitive chains.** The lookup is a single registry probe. `S → U → T` never auto-composes; if both impls exist, the user must declare `S implements Into<T>` explicitly to bridge them. Prevents the "where did this allocation come from?" debugging trap.
 - **One impl per `(Source, Target)`.** Duplicate impls are caught by the standard resolver duplicate-impl diagnostic.
 - **Overload resolution is decided first.** When a call has overloaded candidates, the typer ranks them *without* `Into`; the second-pass with `Into` only fires if no exact-match overload was found.
 
 **Built-in coercions**
-- `T[] → Iterator<T>` — raw arrays auto-wrap on entry to an `Iterator<T>` slot, materialised by the blanket impl `T[] implements<T> Into<Iterator<T>!>` in `std/core`, which hands back the `array_iter` generator. Driven through the `Into` probe, not a special-cased typer rule.
+- `T[] → Iterator<T>` — raw arrays auto-wrap on entry to an `Iterator<T>` slot, materialised by the blanket impl `T[] implements<T> Into<Iterator<T>>` in `std/core`, which hands back the `array_iter` generator. Driven through the `Into` probe, not a special-cased typer rule.
 - `T → string` when `T: Display` — anything implementing `Display` flowing into a `string`-typed slot is rewritten as a call to the impl's `to_string` member, via the blanket `T implements<T: Display> Into<string>` in `std/core`. The string-interpolation path (`"${value}"`) bypasses `Into` and routes through the builder intrinsics directly.
 - `FreeInt → i32` / `FreeFloat → f64` and friends — free literals defaulting to their canonical width at the typer level. Unrelated to `Into`; happens before any coercion lookup.
 - Concrete `S → Trait` when `S` impl `Trait` — virtual dispatch boxing. Distinct from `Into`; the value flows in unchanged and runtime dispatch resolves the method by tag.
@@ -684,7 +682,7 @@ A negative integer literal is one value (§Default integer), so `x: i64: -9_223_
 - Immutable. Concatenation allocates.
 - `len()` returns the number of Unicode codepoints (an allocation-free walk, decoding malformed bytes as described below, which an ASCII string skips: see `is_ascii`). For the **byte** length, `s.byte_len()` (O(1), no view). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `byte_len()` for byte arithmetic.
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`), for a codepoint iterator held as a value. The codepoint loop itself is `for c in s` (below), which walks the string in place.
-- `bytes()` returns the UTF-8 byte sequence as a `u8[]` **view**, for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is **zero-copy**, aliasing the string's interned bytes (it allocates only a small array header, not the byte storage). A view is frozen (§5, *Frozen values*): writing it, lending it to a function that modifies it, or keeping it in a field is rejected at compile time, which keeps it sound since the shared bytes are immutable; `.clone()` makes a copy to modify or keep. On the VM the array reads the interned bytes in place until a write copies them. `bytes()` is for handing the bytes to code that takes a `u8[]`; to read them, the string itself answers (`byte_len`, `byte_at`, `byte_slice`, below), with no view to allocate. Strings iterate by **codepoint** by default: `string implements Into<Iterator<char>!>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); the byte loop is `for i in 0..<s.byte_len() { b :: s.byte_at(i) }`.
+- `bytes()` returns the UTF-8 byte sequence as a `u8[]` **view**, for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is **zero-copy**, aliasing the string's interned bytes (it allocates only a small array header, not the byte storage). A view is frozen (§5, *Frozen values*): writing it, lending it to a function that modifies it, or keeping it in a field is rejected at compile time, which keeps it sound since the shared bytes are immutable; `.clone()` makes a copy to modify or keep. On the VM the array reads the interned bytes in place until a write copies them. `bytes()` is for handing the bytes to code that takes a `u8[]`; to read them, the string itself answers (`byte_len`, `byte_at`, `byte_slice`, below), with no view to allocate. Strings iterate by **codepoint** by default: `string implements Into<Iterator<char>>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); the byte loop is `for i in 0..<s.byte_len() { b :: s.byte_at(i) }`.
 - `is_empty()` — sugar for `s.byte_len() == 0` (codepoint count and byte count agree on emptiness).
 - **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`); the key is a `usize` or a free literal, as for any `Index` impl, and an index past the last codepoint stops the run. **Slicing** `s[lo..<hi]` (or `s[lo..=hi]`) returns the codepoints of the range as a string (via `string implements Index<Range<usize>, string>`): bounds past the end clamp to it, and a range that ends before it starts gives `""`. Both walk from the start: `s[i]` is O(i) and `s[lo..<hi]` O(hi). In an ASCII string, where a codepoint index is a byte offset, both find their bytes without a walk. `for c in s` walks every codepoint in O(n). For byte-cursor access, read the string in place: `s.byte_at(i) -> u8` for the raw byte, `s.byte_slice(lo, hi)` for the substring between two byte offsets, `s.codepoint_at_byte(i) -> [char, usize]` to decode the UTF-8 codepoint starting at byte offset `i` into the codepoint and the bytes it spans (lexers and regex parsers; `.0` keeps the codepoint alone). There is no `IndexSet` impl; strings are immutable.
 - **Malformed UTF-8.** Nothing validates the bytes a string is made from (`bytes_to_string`, `read_file_string`, a `byte_slice` that cuts a codepoint). Every codepoint walk decodes them one way, the substitution Unicode recommends and WHATWG decoders apply: a malformed run is one `U+FFFD` spanning the longest prefix of a well-formed sequence, and at least one byte. Overlong forms, surrogates and codepoints past U+10FFFF are malformed, and `utf8_encode` (behind `append_char` and a `char`'s `Display`) writes a `char` holding one as `U+FFFD`, so what it writes decodes back. So `s.len()` is the number of codepoints `for c in s` yields and the number of valid `s[i]`, on any bytes. The compiler reads source the same way (§Source encoding).
@@ -722,37 +720,23 @@ A fresh **literal** is no widening: it is materialised directly at the target el
 
 #### Array constants
 
-A module constant is frozen (§5, *Frozen values*): it has no storage a write could land in. **On an array constant, the marker picks the STORAGE CLASS.** The data pool has two of them:
-
-- **unmarked** → a `static const` blob in `.rodata`, shared process-wide, read through a zero-copy view.
-- **`!`** → a writable **global**, initialised once, mutable **in place**.
-
-This writable form leaves with the `!` marker: a module keeps its state in a `@singleton` function (§12).
+A module constant is frozen (§5, *Frozen values*): it has no storage a write could land in. An array constant the compiler can bake lands in the data pool, a `static const` blob in `.rodata`, shared process-wide, read through a zero-copy view. A module keeps its state in a `@singleton` function (§12).
 
 ```vader
-DIGITS: string[]:  ["0", "1", "2"]   // .rodata
-COUNTS: i32[]!:    [0, 0, 0]         // a writable global
-FLAGS:  bool[]!:   [false] * 8       // the repeat form pools like a literal
+DIGITS: string[]: ["0", "1", "2"]   // .rodata
+LIMITS :: [10, 20, 30]              // same storage, inferred
 
-bump :: fn(i: usize) -> void { COUNTS[i] = COUNTS[i] + 1 }   // persists across calls
-```
+@singleton
+counts :: fn() -> i32[] = [0, 0, 0] // state: one instance, built on first call
 
-A marked const behaves like any other mutable array, **`push` included** — a permanent GC frame roots these globals, so a reallocated buffer is forwarded rather than collected. Its binding stays fixed, as every module const's does: `COUNTS = [1]` is T3041, like `LIMIT = 4` on `LIMIT :: 3`.
-
-Any **element type** works, flat (primitive, enum, distinct over one) or aggregate (struct, tuple, nested array), but one that holds a part a write reaches (a struct or an array, alone or inside a tuple, a union or a distinct) **starts empty** (`[]`), whatever else its initialiser could be: the elements of a value the compiler bakes, a literal or a value folded at build time, are emitted as separate read-only statics, so a write into one would land in `.rodata`. The program pushes its elements, which are then its own. The marker goes on the array level, the one the pool can make writable: a marker **below** it, or on a const that is no array (it isn't pooled at all), has no storage to make writable. All three are **T3076**.
-
-```vader
-QUEUE: Spec[]!:  []                                     // OK, then `QUEUE.push(…)`
-// SPECS: Spec[]!: [Spec { .name = "seed", .code = 0 }] // T3076: read-only first elements
-// TPL: Spec![]:  [...]                                 // T3076: marker below the array
-// ORIGIN: Spec!: Spec { ... }                          // T3076: not an array
+bump :: fn(i: usize) -> void { counts()[i] += 1 }   // persists across calls
 ```
 
 **Escape hatch**: `arr.clone()` produces a fresh array from any array. Modifying the copy never affects the original.
 
 **Storage**: module-level array constants whose elements are all primitive (fixed-width integers, floats, char, bool) and all literal-valued land in the bytecode module's data pool: the C backend emits them as `static const` `.rodata` arrays, the VM materialises them once at module load, and `data.const` op-codes resolve to those pre-built values. References share one allocation across the whole process. Non-primitive elements (struct, string) continue to fn-wrap until the pool gains the matching representation.
 
-**How a type is printed.** A dump may still print a `!` the source or the compiler put on a type (`i32[]!` for an owned local). Side-table keys (impl dispatch, monomorphisation mangles, `@type_name`) use the marker-free rendering, so a marker never changes an emitted name or a lookup key.
+**How a type is printed.** As written: `i32[]`, `Box<Cfg>`. Side-table keys (impl dispatch, monomorphisation mangles, `@type_name`) use the same rendering.
 
 #### Repeat / preallocate — `[lhs] * n`
 
@@ -810,7 +794,7 @@ println(pair.1)      // "answer"
 ```
 
 - **Field access**: `t.0`, `t.1`, ... — numeric, in source order.
-- **Elements are read-only.** `t.0 = x`, `t.0 += 1` and a destructuring target `[t.0, n] = …` are `T3101`, whatever `!` the slot carries and through a distinct over a tuple too: build a new tuple instead. A struct held in an element is still a struct, so `t.0.x = 5` writes it.
+- **Elements are read-only.** `t.0 = x`, `t.0 += 1` and a destructuring target `[t.0, n] = …` are `T3101`, through a distinct over a tuple too: build a new tuple instead. A struct held in an element is still a struct, so `t.0.x = 5` writes it.
 - **Disambiguation of seq literals** is contextual:
   - `[1, 2, 3]` → array (homogeneous, no annotation).
   - `[1, "x"]` → tuple (heterogeneous, no annotation).
@@ -1341,7 +1325,6 @@ Top-level constants follow the same pattern but are restricted to compile-time e
 
 - **Mutable local never reassigned (`W0015`)**: a `:=` / `name: T =` local that no assignment ever rebinds earns a warning — the mutable form advertises a rebinding that does not happen. The fix is the immutable form on the same row of the table above (`n := 0` → `n :: 0`, `n: i32 = 0` → `n: i32: 0`). What counts as a rebinding is a **bare name as the whole assignment target**, compound assignments included: `x.f = 1` and `x[0] = 1` mutate what the name designates, which the immutable form already permits, so they do not justify a `:=`. A destructuring declaration carries one `:=` for every name it binds, so rebinding any one of them justifies it.
 
-- **A written `!` (`W0017`, `W0018`)**: reserved. A `!` grants nothing (§5, *The `!` marker*); the warning that points at it, for `vader fix <file>` to remove it, is not emitted yet.
 - **A write into a copy nothing reads (`W0019`)**: a name bound to a module constant, or to the data of a variant, holds a copy of it (§5, *Frozen values*). Written, and never read nor kept anywhere in the body, the copy takes the write and nothing sees it: `for c in TABLE { c.n = 0 }` changes no element of `TABLE`. A write below the name (`c.n = 0`, `c.n += 1`) is no read of it. A name that may hold another value than copies of frozen ones (a parameter, a branch that may be a fresh value, a rebinding to one) is not warned about: the write may land there. The warning sits on the write.
 - **Needless enum type prefix (`W0016`)**: writing `Enum.Variant` where the slot already pins that enum earns a warning — the name before the dot repeats what the context says, and the bare `.Variant` reads the same. The slots that pin are the ones the shorthand already resolves against: a typed return, a parameter, an annotated local or field, a match arm's BODY, an element of an array literal in a typed slot, and the other operand of an `==` / `!=`. A nullable slot (`Color | null`) pins just as well. A match PATTERN never triggers it — the qualified form does not parse there, the bare `.Variant` being the only spelling a pattern accepts. It stays silent wherever the prefix is load-bearing: an unannotated local (`c :: Color.Red` has nothing to infer from); a slot whose union carries two enums sharing the variant name, where the bare form resolves to the first that carries it; and **any argument of an overloaded call**, where the prefix is what selects the candidate — given `pick(c: Color)` and `pick(f: Fruit)`, `pick(Fruit.Red)` and `pick(.Red)` reach different functions, so advising the bare form there would change the call in silence. The qualified form remains legal everywhere; the warning only says it earns nothing here.
 
@@ -1460,7 +1443,7 @@ zero :: fn<T: Add>(x: T) -> T {
 
 The same holds for `pick(x, 0)` where `pick` takes two `T`, for `f(2.5)` through a parameter `f: fn(T) -> T`, for `x > 0` with `T: Comparable`, and for `x == 0` with `T: Equals`. Inside a generic fn or impl, its own type parameters are fixed: a call in the body binds none of them, and its arguments check against them as written. So `keep("s")` on a local `keep :: (y: T) -> …` is T3001, and so is `t.visit((y: Inner) -> …)` with `T: Visit`. A callee's own type parameters are still bound at each call (`g :: identity`), and a receiver or a type name still binds an impl's at the instance it names (`other.put(4)` on a `Box<i32>`, `Bag.make(5)`, inside that type's impl).
 
-Matching an argument against a signature that nothing has instantiated yet is a different question, where a type parameter is still free: choosing an overload, choosing the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>!`), and checking the fields of a generic struct literal written without type arguments (`Box { .value = [4, 5] }`). A free literal still needs a type to land on, and such a literal binds none: `Box { .value = 0 }` is T3001 — write `Box<i32> { .value = 0 }`.
+Matching an argument against a signature that nothing has instantiated yet is a different question, where a type parameter is still free: choosing an overload, choosing the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>`), and checking the fields of a generic struct literal written without type arguments (`Box { .value = [4, 5] }`). A free literal still needs a type to land on, and such a literal binds none: `Box { .value = 0 }` is T3001 — write `Box<i32> { .value = 0 }`.
 
 **Limitations (MVP)**:
 - **No inherent "associated functions"** — a static function belongs to a trait (*Static members* under §Traits), never to a type on its own. Factory functions outside a trait are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap<K, V> { ... }` for struct-literal construction. Post-MVP candidate.
@@ -1491,7 +1474,7 @@ print_it :: fn<T: Display>(x: T) {
 - Implementation: `T implements Trait { ... }` (three forms — see below). `T` and `Trait` name declarations, resolved like any other name — a trait imported from another module included. The impl belongs to those declarations, not to their names: when two modules each declare a `Foo`, or an `Animal` trait, an impl of one says nothing about the other.
 - An impl defines its trait's members and nothing else (`T3094`; see *No inherent "associated functions"*), each with its trait method's signature: the same parameters and return type, `Self` read as the impl's type and the trait's parameters as the impl's arguments (`T3095`). The default of an argument the impl leaves out (`Out = Self`) is the impl's type.
 - A union satisfies a trait iff all its members satisfy it.
-- **A union calls the members of a trait all its variants implement** — `u.area()` on `u: Sq | Circle`, `k in u`, `u + 5`, `u[k]` and `u[k] = v` — through that trait, by the value's tag, as a value of the trait does. The variants must agree on the trait's arguments, each argument being one type for all of them or each variant itself (`Out = Self`, which the union reads as itself: `a + 5` on `a: i32 | Money` is an `i32 | Money`). A member returning `Self` hands back the union read-only, unless it writes `Self!`. A member two traits offer every variant is `T3032`. A dispatch by the tag alone refuses a variant implementing the trait more than once (`T3097`); a variant boxed as its representation — an enum, or a distinct implementing the trait itself, or an array of either (`T3086`); a member taking another `Self` (`compare`, `Add<Self>`), which the other operand may fill with another variant — `Equals` excepted, its slot checks the other operand's type — and a member returning `Self` inside another type (`Self[]`) unless every variant is a struct (`T3098`). Narrow first. A generic member, an `@intrinsic` array member (`push`) and a member taken as a value (`f :: u.area`) are not dispatched.
+- **A union calls the members of a trait all its variants implement** — `u.area()` on `u: Sq | Circle`, `k in u`, `u + 5`, `u[k]` and `u[k] = v` — through that trait, by the value's tag, as a value of the trait does. The variants must agree on the trait's arguments, each argument being one type for all of them or each variant itself (`Out = Self`, which the union reads as itself: `a + 5` on `a: i32 | Money` is an `i32 | Money`). A member two traits offer every variant is `T3032`. A dispatch by the tag alone refuses a variant implementing the trait more than once (`T3097`); a variant boxed as its representation — an enum, or a distinct implementing the trait itself, or an array of either (`T3086`); a member taking another `Self` (`compare`, `Add<Self>`), which the other operand may fill with another variant — `Equals` excepted, its slot checks the other operand's type — and a member returning `Self` inside another type (`Self[]`) unless every variant is a struct (`T3098`). Narrow first. A generic member, an `@intrinsic` array member (`push`) and a member taken as a value (`f :: u.area`) are not dispatched.
 - Operator overloading via stdlib traits — see *Operator overloading* below.
 - **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in a `Foo implements Trait { … }` block, `Self = Foo`, a written `-> Self` included. Outside trait/impl context, `Self` is undefined (`T3023`).
 
@@ -1520,7 +1503,7 @@ start :: i64.zero()
 - `Type.member(args)` resolves `member` in `Type`'s impls, or through the bound for a type parameter. A static member may take parameters (`unit :: fn(scale: i32) -> Self`).
 - A static member called on a value is **T3091**, and so is one called on the trait itself (`Zero.zero()`: the trait has no impl to pick). An instance member (one taking `self`) called on a type is **T3092**. A static member named without being called (`f :: i64.zero`) is **T3093**: it has no value form.
 - Dispatch is static: the call goes straight to the owner's impl member. A generic function calling one on its type parameter is instantiated per concrete type. A static member has no vtable slot, so a trait mixing static and `self` members still dispatches the latter on a trait-typed value; the static ones are reached through a type only.
-- `std/core` declares `Zero` and `One` (`zero` / `one :: fn() -> Self`, the additive and multiplicative identities), implemented by every numeric primitive — `Zero` by `BigInt` too. `std/iter`'s `sum` is `fn<T: Add & Zero>(self: Iterator<T>!) -> T`, and `product` is `fn<T: Mul & One>(self: Iterator<T>!) -> T`.
+- `std/core` declares `Zero` and `One` (`zero` / `one :: fn() -> Self`, the additive and multiplicative identities), implemented by every numeric primitive — `Zero` by `BigInt` too. `std/iter`'s `sum` is `fn<T: Add & Zero>(self: Iterator<T>) -> T`, and `product` is `fn<T: Mul & One>(self: Iterator<T>) -> T`.
 
 #### Coherence — one impl per (type, trait, arguments)
 
@@ -1576,7 +1559,7 @@ Wrapper<MonType> implements Poke {      // wins for `Wrapper<MonType>` alone
 - The rule is per trait instance: an impl on one instance replaces the generic
   impls of that trait at arguments that can coincide with its own, and leaves the
   others — `MonType[] implements Into<Label>` leaves
-  `T[] implements<T> Into<Iterator<T>!>` to an array of `MonType`.
+  `T[] implements<T> Into<Iterator<T>>` to an array of `MonType`.
 - A type an instance impl is built from (`MonType` above) keeps its generic
   instances apart at run time, as a primitive argument does: a generic function
   or struct instantiated with it gets its own body instead of the erased one
@@ -1611,8 +1594,8 @@ Two impls that fit a use site equally, a member without an argument whose result
 the site leaves untyped (`println("${m.into()}")`), and the member taken as a value
 (`f :: m.into`) are **T3032**. A use that reaches the trait without naming its
 arguments cannot pick: a `for` over a type implementing `Iterator` twice, or
-converting into two `Iterator`s (`Into<Iterator<i32>!>` beside
-`Into<Iterator<string>!>`) without being one itself, and a trait value of a trait
+converting into two `Iterator`s (`Into<Iterator<i32>>` beside
+`Into<Iterator<string>>`) without being one itself, and a trait value of a trait
 its type implements twice (`v: Into<Tag>: m`), are **T3097** — a trait value
 dispatches by the trait alone. A type that is an `Iterator` and also converts into
 one is walked through its own `next`.
@@ -1624,17 +1607,17 @@ When the impl introduces its own type parameters (with optional bounds), the `<T
 ```vader
 // Borrowing T from the struct head — no impl-level typeParams.
 Countdown<T> implements Iterator<T> {
-    next :: fn(self!) -> [T, Continuation] { /* … */ }
+    next :: fn(self) -> [T, Continuation] { /* … */ }
 }
 
 // Bounded blanket impl — Range<T> coerces into an Iterator when T
 // satisfies both Comparable and Step.
 Range<T> implements<T: Comparable & Step> Iterator<T> {
-    next :: fn(self!) -> [T, Continuation] { /* … */ }
+    next :: fn(self) -> [T, Continuation] { /* … */ }
 }
 
 // Blanket on a structural source (any array, any Display-bound type).
-T[] implements<T>          Into<Iterator<T>!> { /* … */ }
+T[] implements<T>          Into<Iterator<T>> { /* … */ }
 T   implements<T: Display> Into<string>      { /* … */ }
 ```
 
@@ -1701,7 +1684,7 @@ string implements Hash {
 
 // Classic form — required for traits with two or more methods.
 Countdown<T> implements Iterator<T> {
-    next :: fn(self!) -> [T, Continuation] { ... }
+    next :: fn(self) -> [T, Continuation] { ... }
 }
 ```
 
@@ -1781,7 +1764,7 @@ Resolution rule for **ordering** (`< <= > >=`):
 
 **T3043** is the shared "operator's trait is not implemented" error — it names the missing trait (`Equals` for `==`/`!=`, `Comparable` for `< <= > >=`, `Contains` for `in`) so the fix is obvious. It is distinct from T3017, which stays for plain operand-type mismatches (e.g. `i32 && bool`, mismatched numeric widths). (Arithmetic `+ - * / %` on a type without the matching `Add`/… impl still reports T3017 for now.)
 
-Index access (`a[i]`) and `in` follow the same fallback: built-in array / range first, then trait dispatch through `Index<I, T>::at` / `Contains<T>::contains` — the trait path covers struct receivers AND primitives (`string implements Index<usize, char>` enables `s[i]` without importing anything). Index assignment (`a[i] = v`) dispatches through `IndexSet<I, T>::set_at`. A type's **own** impl wins over the array it is backed by, trait by trait: a distinct `Offset :: i32[]` that implements `Index` reads through its `at`, one that also implements `IndexSet` writes through its `set_at`, and one with `Index` alone writes into its backing array, at the backing's element type. A distinct over a struct indexes only through its own impls; it does not inherit its struct's. A `Range` index on an array-backed distinct always slices the backing, and a write with neither an `IndexSet` nor an array to store into is `T3008`. A receiver that dispatches through the trait itself — a type parameter bounded by it, a value of the trait (`store: IndexSet<string, i32>!`), a union of its implementors (`MutableMap<string, i32>! | Log!`) — reads and writes through `at` / `set_at` as its method form does. Outside an array, the key is of the trait's key type `K`, read or write, whatever the receiver (`m["nope"]` on a `MutableMap<i64, i32>` is `T3001`), and a free literal key takes it. A destructuring place (`[m["a"], m["b"]] = …`) is a write like `m["a"] = v`: it takes the `IndexSet` value type, never what the `Index` read hands back (`V | null` on a `MutableMap`).
+Index access (`a[i]`) and `in` follow the same fallback: built-in array / range first, then trait dispatch through `Index<I, T>::at` / `Contains<T>::contains` — the trait path covers struct receivers AND primitives (`string implements Index<usize, char>` enables `s[i]` without importing anything). Index assignment (`a[i] = v`) dispatches through `IndexSet<I, T>::set_at`. A type's **own** impl wins over the array it is backed by, trait by trait: a distinct `Offset :: i32[]` that implements `Index` reads through its `at`, one that also implements `IndexSet` writes through its `set_at`, and one with `Index` alone writes into its backing array, at the backing's element type. A distinct over a struct indexes only through its own impls; it does not inherit its struct's. A `Range` index on an array-backed distinct always slices the backing, and a write with neither an `IndexSet` nor an array to store into is `T3008`. A receiver that dispatches through the trait itself — a type parameter bounded by it, a value of the trait (`store: IndexSet<string, i32>`), a union of its implementors (`MutableMap<string, i32> | Log`) — reads and writes through `at` / `set_at` as its method form does. Outside an array, the key is of the trait's key type `K`, read or write, whatever the receiver (`m["nope"]` on a `MutableMap<i64, i32>` is `T3001`), and a free literal key takes it. A destructuring place (`[m["a"], m["b"]] = …`) is a write like `m["a"] = v`: it takes the `IndexSet` value type, never what the `Index` read hands back (`V | null` on a `MutableMap`).
 
 ### Nullability
 
@@ -1945,9 +1928,9 @@ q :: Packet { .payload = bytes_of("abc").clone() }   // OK: a copy
 
 Once the program is typed, the compiler summarises what each function does with each parameter: which parts it assigns, grows or shrinks, which it keeps past the call, which it returns. The summary follows the calls over the whole program, so a write at the end of a chain of calls is found at the call that lends a frozen value. A function known without a body says what it does: an intrinsic by the compiler's own table, an `@extern` by its `@c_out` parameters. A function value may do anything. The same summary decides whether an array argument may widen its element (§Arrays, T3102).
 
-### The `!` marker
+### No mutability marker
 
-A `!` written after a type (`i32[]!`, `Box<Cfg!>`, `self!`) grants nothing: every value but a frozen one may be modified. It is accepted for now, and is to be warned about (W0017, W0018) with `vader fix` to remove it. Its form is still checked: `T!!` is P1030, a marker on a parameter *name* (`x!: T`) is P1031 (it belongs on the type, or on `self`), and a marker on a type with no interior (a primitive, an enum, a fn, `never`) or in an `is` test is T3075. On a module constant, `NAME: T[]!: value` asks for a writable global, its one storable shape (T3076 otherwise, §Arrays); a module's state belongs in a `@singleton` instead. Writing the removed `const` qualifier is P1027.
+A type says nothing about what may be written: there is no `!` after a type and no read-only form. Every value but a frozen one may be modified, and a `!` after a type is a syntax error. A module's state belongs in a `@singleton` (§12). Writing the removed `const` qualifier is P1027.
 
 ### Explicit type annotations
 
@@ -2124,7 +2107,7 @@ plus(2, 3)
 UFCS dispatch works against five shapes of receiver–first-param relation, ranked weakest-wins-only-on-tie:
 1. **Concrete match**: the receiver's static type is assignable to the first param. `s.starts_with(p)` where `starts_with :: fn(s: string, prefix: string) -> bool`.
 2. **Symbolic match**: the receiver and the first param share a struct/trait symbol but differ in their type-args (e.g. `MutableList<i32>` against `fn<T>(self: MutableList<T>)`). The generic-fn-dispatch path closes over the type-args at the call site.
-3. **Trait-typed first param**: when the first param has trait type `Trait<T>` and the receiver implements that trait, UFCS dispatches to it. `source.chars().filter(is_bf_char)` resolves through `std/iter.filter :: fn<T>(self: Iterator<T>!, pred: fn(T) -> bool) -> Iterator<T>` because `StringChars` implements `Iterator<char>`. Trait-typeparam unification happens through `unifyTraitParamWithConcrete`.
+3. **Trait-typed first param**: when the first param has trait type `Trait<T>` and the receiver implements that trait, UFCS dispatches to it. `source.chars().filter(is_bf_char)` resolves through `std/iter.filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T>` because `StringChars` implements `Iterator<char>`. Trait-typeparam unification happens through `unifyTraitParamWithConcrete`.
 4. **Union receivers**: `value.method()` on a union-typed `value` falls through to free-fn UFCS when no variant carries a struct field by that name. The first-param type can be the *union itself* (`fn read_i32(v: Value, …)`) — receiver and param match directly.
 5. **`Into<Target>` last-resort coercion**: strictly weaker than every other rank; only fires when no direct candidate exists.
 
@@ -2279,21 +2262,21 @@ The iteration form `for x in expr` accepts three shapes for `expr`:
 1. A built-in array `T[]` — auto-wrapped through `array_iter`.
 2. A value of type `Iterator<T>` — used directly. Two dispatch flavours:
    - **Concrete iter** (`Range<T>`, a user struct implementing `Iterator<T>`) — the `next()` call resolves statically against the impl-method.
-   - **Trait-typed iter** (`Iterator<T>` itself, e.g. a fn param `fn count<T>(it: Iterator<T>!)`) — the `next()` call dispatches through the lowerer-synthesised `is StructA -> StructA_next(...)` chain over every materialised impl (see *Method dispatch on trait values* in §4). Lets generic fns drive `for x in it { … }` against any concrete iterator the caller supplies.
-3. A value implementing `Into<Iterator<T>!>` — the for-in lowerer inserts `.into()` to obtain the iterator, then drives the loop over it.
+   - **Trait-typed iter** (`Iterator<T>` itself, e.g. a fn param `fn count<T>(it: Iterator<T>)`) — the `next()` call dispatches through the lowerer-synthesised `is StructA -> StructA_next(...)` chain over every materialised impl (see *Method dispatch on trait values* in §4). Lets generic fns drive `for x in it { … }` against any concrete iterator the caller supplies.
+3. A value implementing `Into<Iterator<T>>` — the for-in lowerer inserts `.into()` to obtain the iterator, then drives the loop over it.
 
-Raw `T[]` arrays are auto-wrapped through `array_iter` (via the shipped `T[] implements Into<Iterator<T>!>` impl in `std/core`), and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Into<Iterator<T>!>` — the loop advances the iterator it is handed — so `for x in coll { ... }` works without an explicit `.into()`. There is no separate `Iterable` trait today (see the planned note below).
+Raw `T[]` arrays are auto-wrapped through `array_iter` (via the shipped `T[] implements Into<Iterator<T>>` impl in `std/core`), and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Into<Iterator<T>>` — the loop advances the iterator it is handed — so `for x in coll { ... }` works without an explicit `.into()`. There is no separate `Iterable` trait today (see the planned note below).
 
 The same auto-wrap fires at any *concrete* `Iterator<T>` slot — function arguments, `return` expressions, and typed declarations — so `T[]` flows transparently:
 
 ```vader
-walk :: fn(it: Iterator<i32>!) -> i32 { ... }
+walk :: fn(it: Iterator<i32>) -> i32 { ... }
 walk([10, 20, 30])                            // call-arg coercion
 fold :: fn() -> Iterator<i32> { return [1, 2, 3] }   // return coercion
 buf: Iterator<i32> : [4, 5, 6]                // typed-declaration coercion
 ```
 
-The coercion is gated on **canonical symbol identity** of `std/core::Iterator`; a user-defined trait that happens to be named `Iterator` is left alone. The lazy `std/iter` combinators (`map` / `filter` / …, all generators — they `yield` — over `self: Iterator<T>!`) resolve **directly on a bare array** through the generator receiver-dispatch path — `arr.map(f)` needs no explicit wrap and there is no array-driven overload (§ `std/iter`). Concrete trait-instance receivers (`Iterator<i32>`, `Iterator<string>`, …) are unaffected.
+The coercion is gated on **canonical symbol identity** of `std/core::Iterator`; a user-defined trait that happens to be named `Iterator` is left alone. The lazy `std/iter` combinators (`map` / `filter` / …, all generators — they `yield` — over `self: Iterator<T>`) resolve **directly on a bare array** through the generator receiver-dispatch path — `arr.map(f)` needs no explicit wrap and there is no array-driven overload (§ `std/iter`). Concrete trait-instance receivers (`Iterator<i32>`, `Iterator<string>`, …) are unaffected.
 
 ```vader
 // Planned — not yet exported from std/core. Today user types iterate
@@ -3014,7 +2997,7 @@ ScreenBufferInfo :: struct {
 
 ### The opaque buffer — when there is no mirror to write
 
-A C struct whose members Vader never reads can cross as a **lent `u8[]!` nobody
+A C struct whose members Vader never reads can cross as a **lent `u8[]` nobody
 interprets**: reserve its size, hand it over, hand the same array back. `termios`
 in `lib/system/posix` does exactly that — `tcgetattr` fills it, `cfmakeraw`
 rewrites it, `tcsetattr` applies it, and no Vader code ever looks inside.
@@ -3203,7 +3186,7 @@ build_lookup_table :: fn() -> u32[] {
 TABLE :: build_lookup_table()
 ```
 
-`build_lookup_table()` runs during compilation — loops, local mutation and calls are evaluated by the embedded bytecode VM (see the implementation note). `TABLE` is a constant whose value is computed once at compile time. When typed as a read-only array of primitive elements it is **materialised into the binary's read-only data section** (`.rodata` natively, a data segment under wasm) and referenced by a zero-copy view — never rebuilt at runtime ; otherwise the value is inlined at each use site.
+`build_lookup_table()` runs during compilation — loops, local mutation and calls are evaluated by the embedded bytecode VM (see the implementation note). `TABLE` is a constant whose value is computed once at compile time. When it is an array of primitive elements it is **materialised into the binary's read-only data section** (`.rodata` natively, a data segment under wasm) and referenced by a zero-copy view — never rebuilt at runtime ; otherwise the value is inlined at each use site.
 
 **Inline form.** `@comptime` also works as an expression prefix on a const's right-hand side, so the builder can be written at the const instead of as a separate fn:
 
@@ -3279,7 +3262,7 @@ Traits: `Display`, `Equals`, `Comparable`, `Step`, `Into<Target>`, `Add`, `Sub`,
 
 Types: `Continuation`, `Range`, `Field` (reflection — see §14).
 
-Primitive trait impls: `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Comparable` (via the `string.compare` op), `string implements Index<usize, char>` and `Index<Range<usize>, string>` (power `s[i]` and `s[lo..<hi]`), `Equals` on every primitive (floats, `bool` and `string` included), and `Hash`/`Comparable`/`Step` on the integer primitives + `char`. `T[] implements<T> Add<T[]>` concatenates — `a + b` is a fresh array holding `a`'s elements then `b`'s, neither operand touched — mirroring `string + string`; it is written in Vader over `push_all`, not an intrinsic, so it allocates once per application (a chain `a + b + c` allocates twice) and its result is immutable `T[]`. `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. (`%` is a built-in op; the `Rem` trait is declared for user overloading but is **not** impl'd on the primitives.) The integer `Hash`, `Comparable` and `Step` impls and the two `Index` impls on `string` are written in Vader; the rest are `@intrinsic` and bodies are host-provided.
+Primitive trait impls: `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Comparable` (via the `string.compare` op), `string implements Index<usize, char>` and `Index<Range<usize>, string>` (power `s[i]` and `s[lo..<hi]`), `Equals` on every primitive (floats, `bool` and `string` included), and `Hash`/`Comparable`/`Step` on the integer primitives + `char`. `T[] implements<T> Add<T[]>` concatenates — `a + b` is a fresh array holding `a`'s elements then `b`'s, neither operand touched — mirroring `string + string`; it is written in Vader over `push_all`, not an intrinsic, so it allocates once per application (a chain `a + b + c` allocates twice). `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. (`%` is a built-in op; the `Rem` trait is declared for user overloading but is **not** impl'd on the primitives.) The integer `Hash`, `Comparable` and `Step` impls and the two `Index` impls on `string` are written in Vader; the rest are `@intrinsic` and bodies are host-provided.
 
 The `Contains<T>` trait powers the `in` / `!in` operators:
 
@@ -3522,7 +3505,7 @@ The iterator trait lives in `std/core` (auto-imported). `next()` hands back a PA
 Continuation :: enum(u8) { Continue, Stop }
 
 Iterator :: trait<T> {
-    next :: fn(self!) -> [T, Continuation]
+    next :: fn(self) -> [T, Continuation]
 }
 ```
 
@@ -3535,39 +3518,39 @@ An implementation provides `next` and nothing else: everything that consumes an 
 `std/iter` provides **lazy combinators** on top of `Iterator<T>`. Each is a generator (it `yield`s) returning `Iterator<U>`: nothing is materialised until a terminal drains the stream, and chains **fuse** through their `Iterator<T>` slots down to a single loop with no intermediate arrays. There is one family — no eager `T[]`-returning overloads and no `.iter()` cursor.
 
 ```vader
-map             :: fn<T, U>(self: Iterator<T>!, f: fn(T) -> U)    -> Iterator<U>
-filter          :: fn<T>(self: Iterator<T>!, pred: fn(T) -> bool) -> Iterator<T>
-take            :: fn<T>(self: Iterator<T>!, n: usize)            -> Iterator<T>
-skip            :: fn<T>(self: Iterator<T>!, n: usize)            -> Iterator<T>
-indexed         :: fn<T>(self: Iterator<T>!)                      -> Iterator<[T, usize]>
-flat_map        :: fn<T, U>(self: Iterator<T>!, f: fn(T) -> U[])  -> Iterator<U>
-chain           :: fn<T>(self: Iterator<T>!, other: Iterator<T>!) -> Iterator<T>
+map             :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U)    -> Iterator<U>
+filter          :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T>
+take            :: fn<T>(self: Iterator<T>, n: usize)            -> Iterator<T>
+skip            :: fn<T>(self: Iterator<T>, n: usize)            -> Iterator<T>
+indexed         :: fn<T>(self: Iterator<T>)                      -> Iterator<[T, usize]>
+flat_map        :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[])  -> Iterator<U>
+chain           :: fn<T>(self: Iterator<T>, other: Iterator<T>) -> Iterator<T>
 zip             :: fn<T, U>(self: T[], other: U[])                -> Iterator<[T, U]>
-window          :: fn<T>(self: T[]!, size: usize)                 -> Iterator<T[]>
-chunked         :: fn<T>(self: Iterator<T>!, size: usize)         -> Iterator<T[]>
-distinct        :: fn<T: Hash & Equals>(self: Iterator<T>!)       -> Iterator<T>
-filter_not_null :: fn<T>(self: Iterator<T | null>!)               -> Iterator<T>
+window          :: fn<T>(self: T[], size: usize)                 -> Iterator<T[]>
+chunked         :: fn<T>(self: Iterator<T>, size: usize)         -> Iterator<T[]>
+distinct        :: fn<T: Hash & Equals>(self: Iterator<T>)       -> Iterator<T>
+filter_not_null :: fn<T>(self: Iterator<T | null>)               -> Iterator<T>
 ```
 
 **Terminals** drain the stream to a concrete value — `collect` materialises an array, the rest fold or short-circuit:
 
 ```vader
-collect  :: fn<T>(it: Iterator<T>!) -> T[]                    // the way to get a T[] back
-fold     :: fn<T, U>(it: Iterator<T>!, init: U, f: fn(U, T) -> U) -> U
+collect  :: fn<T>(it: Iterator<T>) -> T[]                    // the way to get a T[] back
+fold     :: fn<T, U>(it: Iterator<T>, init: U, f: fn(U, T) -> U) -> U
 sum / count / last                                           // whole-stream reductions
 is_empty / any_match / all_match / find / find_map           // stop on the first match
 ```
 
 A terminal is an ordinary function: it consumes its `Iterator<T>` parameter with one `for`. Any function of that shape — a user's as much as std's — fuses with the chain it is handed, down to the same single loop.
 
-The blanket `T[] implements<T> Into<Iterator<T>!>` makes a raw array drop into any `Iterator<T>` slot, so the combinators resolve **directly on a bare array** — no cursor, no explicit wrap:
+The blanket `T[] implements<T> Into<Iterator<T>>` makes a raw array drop into any `Iterator<T>` slot, so the combinators resolve **directly on a bare array** — no cursor, no explicit wrap:
 
 ```vader
 arr.map(f).filter(p).take(10).collect()     // arr : T[] ; `arr.map(f)` is lazy, `.collect()` yields the T[]
 for x in arr.filter(p) { ... }              // a lazy chain also drives for-in directly
 ```
 
-`arr.map(f)` returns a lazy `Iterator<U>`, never an array; call `.collect()` when you want the `T[]`. (`array_iter` is the generator the `into` coercion materialises at a *non-fused* `Iterator<T>` boundary — e.g. passing `arr` to a `fn(it: Iterator<T>!)` parameter; you rarely name it directly.)
+`arr.map(f)` returns a lazy `Iterator<U>`, never an array; call `.collect()` when you want the `T[]`. (`array_iter` is the generator the `into` coercion materialises at a *non-fused* `Iterator<T>` boundary — e.g. passing `arr` to a `fn(it: Iterator<T>)` parameter; you rarely name it directly.)
 
 ### Generators (`yield`)
 
@@ -3960,7 +3943,6 @@ to the program like any other argument.
 | `vader build --emit=bytecode` | Emits a binary `.vir` bytecode module *(not yet implemented)* |
 | `vader build --emit=c` | Emits the generated C source only |
 | `vader fmt [path]` | Single opinionated formatter, **no config**; defaults to recursive walk under `.` |
-| `vader fix [--target=…] <file>` | Removes, in every file of the project, the written `!` its warning points at (`W0017`, `W0018`, reserved: nothing to remove yet) |
 | `vader test [path]` | Runs all functions marked `@test`, each in an isolated process. |
 | `vader lsp` | Runs the Language Server (JSON-RPC over stdin/stdout). Spawned by VS Code / IntelliJ |
 | `vader dump --stage=<stage> <file>` | Dumps an IR stage (text or JSON depending on stage) |

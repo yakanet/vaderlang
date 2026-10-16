@@ -6,7 +6,7 @@
   expr 10:12    CallExpr       :: Base64Error | u8[]
   expr 10:12    IdentExpr      :: fn(string) -> Base64Error | u8[]
   expr 10:19    IdentExpr      :: string
-  expr 11:15    IdentExpr      :: Base64Error!
+  expr 11:15    IdentExpr      :: Base64Error
   expr 11:5     IfExpr         :: void
   expr 11:8     BinaryExpr     :: bool
   expr 11:8     IdentExpr      :: Base64Error | u8[]
@@ -96,13 +96,13 @@
   expr 32:31    StringLitExpr  :: string
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(string, string) -> void
-  expr 35:15    SeqLitExpr     :: string[]!
+  expr 35:15    SeqLitExpr     :: string[]
   expr 35:16    StringLitExpr  :: string
   expr 35:31    StringLitExpr  :: string
   expr 35:35    StringLitExpr  :: string
   expr 35:40    StringLitExpr  :: string
   expr 35:46    StringLitExpr  :: string
-  expr 36:14    IdentExpr      :: string[]!
+  expr 36:14    IdentExpr      :: string[]
   expr 37:20    CallExpr       :: Base64Error | u8[]
   expr 37:20    IdentExpr      :: fn(string) -> Base64Error | u8[]
   expr 37:27    CallExpr       :: string
@@ -112,7 +112,7 @@
   expr 37:34    IdentExpr      :: string
   expr 38:12    BinaryExpr     :: bool
   expr 38:12    IdentExpr      :: Base64Error | u8[]
-  expr 38:23    IdentExpr      :: Base64Error!
+  expr 38:23    IdentExpr      :: Base64Error
   expr 38:9     IfExpr         :: void
   expr 39:13    CallExpr       :: void
   expr 39:13    IdentExpr      :: fn(T) -> void

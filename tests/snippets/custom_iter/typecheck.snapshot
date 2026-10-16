@@ -1,13 +1,13 @@
 # Typecheck
 
 ## tests/snippets/custom_iter
-  StructDecl     Countdown            :: Countdown!
+  StructDecl     Countdown            :: Countdown
   FnDecl         main                 :: fn() -> i32
   expr 12:13    BinaryExpr     :: bool
   expr 12:13    FieldExpr      :: i32
   expr 12:13    IdentExpr      :: Countdown
   expr 12:9     IfExpr         :: void
-  expr 13:20    SeqLitExpr     :: [i32, Continuation]!
+  expr 13:20    SeqLitExpr     :: [i32, Continuation]
   expr 13:24    DotVariantExpr :: Continuation
   expr 15:14    FieldExpr      :: i32
   expr 15:14    IdentExpr      :: Countdown
@@ -16,11 +16,11 @@
   expr 16:24    IdentExpr      :: Countdown
   expr 16:9     FieldExpr      :: i32
   expr 16:9     IdentExpr      :: Countdown
-  expr 17:16    SeqLitExpr     :: [i32, Continuation]!
+  expr 17:16    SeqLitExpr     :: [i32, Continuation]
   expr 17:17    IdentExpr      :: i32
   expr 17:20    DotVariantExpr :: Continuation
-  expr 22:11    StructLitExpr  :: Countdown!
-  expr 23:14    IdentExpr      :: Countdown!
+  expr 22:11    StructLitExpr  :: Countdown
+  expr 23:14    IdentExpr      :: Countdown
   expr 24:17    StringLitExpr  :: string
   expr 24:20    IdentExpr      :: i32
   expr 24:9     CallExpr       :: void

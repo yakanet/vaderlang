@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Log { lines: string[] }
-  fn snippet$Log$IndexSet$set_at(self: Log!, key: string, value: i32) -> void
+  fn snippet$Log$IndexSet$set_at(self: Log, key: string, value: i32) -> void
     ~>
       LoweredArrayPush
   fn snippet$fill(store: IndexSet<string, i32>) -> void
@@ -51,8 +51,8 @@
       arg1:
         int(7) :i32
   fn snippet$main() -> i32
-    let m: MutableMap<string, i32>! =
-      MutableMap<string, i32>! {
+    let m: MutableMap<string, i32> =
+      MutableMap<string, i32> {
         ekeys:
           array :string[]
         evals:
@@ -67,12 +67,12 @@
       callee:
         fill :fn(IndexSet<string, i32>) -> void
       arg0:
-        m :MutableMap<string, i32>!
+        m :MutableMap<string, i32>
     call :void
       callee:
         snippet$pair_into__MutableMap_string__i32_ :void
       arg0:
-        m :MutableMap<string, i32>!
+        m :MutableMap<string, i32>
     call :void
       callee:
         std_io$println__string :void
@@ -102,7 +102,7 @@
                       callee:
                         peek :fn(Index<string, i32 | null>, string) -> i32
                       arg0:
-                        m :MutableMap<string, i32>!
+                        m :MutableMap<string, i32>
                       arg1:
                         "a" :string
           assign
@@ -135,7 +135,7 @@
                       callee:
                         peek :fn(Index<string, i32 | null>, string) -> i32
                       arg0:
-                        m :MutableMap<string, i32>!
+                        m :MutableMap<string, i32>
                       arg1:
                         "b" :string
           assign
@@ -168,7 +168,7 @@
                       callee:
                         peek :fn(Index<string, i32 | null>, string) -> i32
                       arg0:
-                        m :MutableMap<string, i32>!
+                        m :MutableMap<string, i32>
                       arg1:
                         "x" :string
           assign
@@ -201,7 +201,7 @@
                       callee:
                         peek :fn(Index<string, i32 | null>, string) -> i32
                       arg0:
-                        m :MutableMap<string, i32>!
+                        m :MutableMap<string, i32>
                       arg1:
                         "y" :string
           assign
@@ -234,7 +234,7 @@
                       callee:
                         peek :fn(Index<string, i32 | null>, string) -> i32
                       arg0:
-                        m :MutableMap<string, i32>!
+                        m :MutableMap<string, i32>
                       arg1:
                         "z" :string
           ~>
@@ -245,8 +245,8 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let l: Log! =
-      Log! {
+    let l: Log =
+      Log {
         lines:
           array :string[]
       }
@@ -254,24 +254,24 @@
       callee:
         fill :fn(IndexSet<string, i32>) -> void
       arg0:
-        l :Log!
+        l :Log
     block :void
-      let __destr_src_2: [i32, i32]! =
-        [i32, i32]! {
+      let __destr_src_2: [i32, i32] =
+        [i32, i32] {
           _0: int(5) :i32
           _1: int(6) :i32
         }
       let __destr_el_3: i32 =
         ._0 :i32
-          __destr_src_2 :[i32, i32]!
+          __destr_src_2 :[i32, i32]
       let __destr_el_4: i32 =
         ._1 :i32
-          __destr_src_2 :[i32, i32]!
+          __destr_src_2 :[i32, i32]
       call :void
         callee:
           snippet$Log$IndexSet$set_at :void
         arg0:
-          l :Log!
+          l :Log
         arg1:
           "p" :string
         arg2:
@@ -280,7 +280,7 @@
         callee:
           snippet$Log$IndexSet$set_at :void
         arg0:
-          l :Log!
+          l :Log
         arg1:
           "q" :string
         arg2:
@@ -294,14 +294,14 @@
             index :string
               on:
                 .lines :string[]
-                  l :Log!
+                  l :Log
               ix:
                 int(0) :i32
           let __p_6: string =
             index :string
               on:
                 .lines :string[]
-                  l :Log!
+                  l :Log
               ix:
                 int(3) :i32
           let __buf_7: Buffer =
@@ -401,8 +401,8 @@
                 __buf_7 :Buffer
               arg1:
                 __off_8 :usize
-    let wide: MutableMap<i64, i32>! =
-      MutableMap<i64, i32>! {
+    let wide: MutableMap<i64, i32> =
+      MutableMap<i64, i32> {
         ekeys:
           array :i64[]
         evals:
@@ -417,12 +417,12 @@
       callee:
         put_wide :fn(IndexSet<i64, i32>) -> void
       arg0:
-        wide :MutableMap<i64, i32>!
+        wide :MutableMap<i64, i32>
     call :void
       callee:
         snippet$put_wider__MutableMap_i64__i32_ :void
       arg0:
-        wide :MutableMap<i64, i32>!
+        wide :MutableMap<i64, i32>
     let k: i64 = int(9000000000) :i64
     call :void
       callee:
@@ -455,7 +455,7 @@
                           callee:
                             std_collections$MutableMap$Index$at__i64__i32 :i32 | null
                           arg0:
-                            wide :MutableMap<i64, i32>!
+                            wide :MutableMap<i64, i32>
                           arg1:
                             k :i64
                       ~>
@@ -502,7 +502,7 @@
                           callee:
                             std_collections$MutableMap$Index$at__i64__i32 :i32 | null
                           arg0:
-                            wide :MutableMap<i64, i32>!
+                            wide :MutableMap<i64, i32>
                           arg1:
                             add_checked :i64
                               l:
@@ -551,7 +551,7 @@
                       callee:
                         std_collections$len__i64__i32 :usize
                       arg0:
-                        wide :MutableMap<i64, i32>!
+                        wide :MutableMap<i64, i32>
           ~>
             call :string
               callee:
@@ -561,24 +561,24 @@
               arg1:
                 __off_12 :usize
     return int(0) :i32
-  fn snippet$pair_into__MutableMap_string__i32_(c: MutableMap<string, i32>!) -> void
+  fn snippet$pair_into__MutableMap_string__i32_(c: MutableMap<string, i32>) -> void
     block :void
-      let __destr_src_0: [i32, i32]! =
-        [i32, i32]! {
+      let __destr_src_0: [i32, i32] =
+        [i32, i32] {
           _0: int(3) :i32
           _1: int(4) :i32
         }
       let __destr_el_1: i32 =
         ._0 :i32
-          __destr_src_0 :[i32, i32]!
+          __destr_src_0 :[i32, i32]
       let __destr_el_2: i32 =
         ._1 :i32
-          __destr_src_0 :[i32, i32]!
+          __destr_src_0 :[i32, i32]
       call :void
         callee:
           std_collections$MutableMap$IndexSet$set_at__string__i32 :void
         arg0:
-          c :MutableMap<string, i32>!
+          c :MutableMap<string, i32>
         arg1:
           "x" :string
         arg2:
@@ -587,17 +587,17 @@
         callee:
           std_collections$MutableMap$IndexSet$set_at__string__i32 :void
         arg0:
-          c :MutableMap<string, i32>!
+          c :MutableMap<string, i32>
         arg1:
           "y" :string
         arg2:
           __destr_el_2 :i32
-  fn snippet$put_wider__MutableMap_i64__i32_(c: MutableMap<i64, i32>!) -> void
+  fn snippet$put_wider__MutableMap_i64__i32_(c: MutableMap<i64, i32>) -> void
     call :void
       callee:
         std_collections$MutableMap$IndexSet$set_at__i64__i32 :void
       arg0:
-        c :MutableMap<i64, i32>!
+        c :MutableMap<i64, i32>
       arg1:
         int(9000000001) :i64
       arg2:

@@ -9,7 +9,7 @@
           snippet$Counter$Bump$bump :i32
         arg0:
           c :Counter
-  fn snippet$Counter$Bump$bump(self: Counter!) -> i32
+  fn snippet$Counter$Bump$bump(self: Counter) -> i32
     ~>
       add_checked :i32
         l:
@@ -60,7 +60,7 @@
                       callee:
                         run :fn(Counter) -> i32
                       arg0:
-                        Counter! {
+                        Counter {
                           n: int(41) :i32
                         }
           ~>

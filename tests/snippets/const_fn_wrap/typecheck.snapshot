@@ -3,17 +3,17 @@
 ## tests/snippets/const_fn_wrap
   FnDecl         lookup               :: fn(string) -> i32
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Spec                 :: Spec<T>!
+  StructDecl     Spec                 :: Spec<T>
   ConstDecl      SPECS                :: Spec<i32>[]
   expr 29:21    SeqLitExpr     :: Spec<i32>[]
   expr 30:25    StringLitExpr  :: string
-  expr 30:5     StructLitExpr  :: Spec<i32>!
+  expr 30:5     StructLitExpr  :: Spec<i32>
   expr 31:25    StringLitExpr  :: string
-  expr 31:5     StructLitExpr  :: Spec<i32>!
+  expr 31:5     StructLitExpr  :: Spec<i32>
   expr 32:25    StringLitExpr  :: string
-  expr 32:5     StructLitExpr  :: Spec<i32>!
+  expr 32:5     StructLitExpr  :: Spec<i32>
   expr 33:25    StringLitExpr  :: string
-  expr 33:5     StructLitExpr  :: Spec<i32>!
+  expr 33:5     StructLitExpr  :: Spec<i32>
   expr 37:14    IdentExpr      :: Spec<i32>[]
   expr 38:12    BinaryExpr     :: bool
   expr 38:12    FieldExpr      :: string

@@ -9,12 +9,12 @@
   expr 17:33    BinaryExpr     :: bool
   expr 17:33    BinaryExpr     :: i32
   expr 17:33    IdentExpr      :: i32
-  expr 21:15    SeqLitExpr     :: string[]!
+  expr 21:15    SeqLitExpr     :: string[]
   expr 21:16    StringLitExpr  :: string
   expr 21:21    StringLitExpr  :: string
   expr 21:26    StringLitExpr  :: string
   expr 22:31    SeqLitExpr     :: (fn() -> void)[]
-  expr 23:18    IdentExpr      :: string[]!
+  expr 23:18    IdentExpr      :: string[]
   expr 24:21    LambdaExpr     :: fn() -> void
   expr 24:29    CallExpr       :: void
   expr 24:29    IdentExpr      :: fn(T) -> void
@@ -26,7 +26,7 @@
   expr 26:14    IdentExpr      :: (fn() -> void)[]
   expr 26:23    CallExpr       :: void
   expr 26:23    IdentExpr      :: fn() -> void
-  expr 29:14    RangeExpr      :: Range<i32>!
+  expr 29:14    RangeExpr      :: Range<i32>
   expr 30:17    CallExpr       :: void
   expr 30:17    IdentExpr      :: fn(T) -> void
   expr 30:25    StringLitExpr  :: string
@@ -36,9 +36,9 @@
   expr 31:9     CallExpr       :: void
   expr 31:9     IdentExpr      :: fn(T) -> void
   expr 35:31    SeqLitExpr     :: (fn() -> void)[]
-  expr 36:15    CallExpr       :: __genstate_map<i32>!
+  expr 36:15    CallExpr       :: __genstate_map<i32>
   expr 36:15    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
-  expr 36:15    RangeExpr      :: Range<i32>!
+  expr 36:15    RangeExpr      :: Range<i32>
   expr 36:26    IdentExpr      :: fn(i32) -> i32
   expr 37:21    LambdaExpr     :: fn() -> void
   expr 37:29    CallExpr       :: void
@@ -51,9 +51,9 @@
   expr 39:14    IdentExpr      :: (fn() -> void)[]
   expr 39:23    CallExpr       :: void
   expr 39:23    IdentExpr      :: fn() -> void
-  expr 42:15    CallExpr       :: __genstate_filter<i32>!
+  expr 42:15    CallExpr       :: __genstate_filter<i32>
   expr 42:15    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
-  expr 42:15    RangeExpr      :: Range<i32>!
+  expr 42:15    RangeExpr      :: Range<i32>
   expr 42:29    IdentExpr      :: fn(i32) -> bool
   expr 43:17    CallExpr       :: void
   expr 43:17    IdentExpr      :: fn(T) -> void

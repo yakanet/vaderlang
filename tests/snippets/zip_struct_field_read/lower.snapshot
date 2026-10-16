@@ -10,15 +10,15 @@
         "c" :string
     let pts: Point[] =
       array :Point[]
-        Point! {
+        Point {
           x: int(10) :i32
           y: int(1) :i32
         }
-        Point! {
+        Point {
           x: int(20) :i32
           y: int(2) :i32
         }
-        Point! {
+        Point {
           x: int(30) :i32
           y: int(3) :i32
         }
@@ -43,7 +43,7 @@
         let i: usize = int(0) :usize
         loop while (<…>)
           let __gen_elem_4: [string, Point] =
-            [string, Point]! {
+            [string, Point] {
               _0:
                 index :string
                   on:

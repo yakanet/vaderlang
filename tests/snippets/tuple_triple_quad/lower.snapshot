@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$main() -> i32
     let triple: [i32, string, bool] =
-      [i32, string, bool]! {
+      [i32, string, bool] {
         _0: int(1) :i32
         _1: "x" :string
         _2: true
@@ -108,7 +108,7 @@
               arg1:
                 __off_2 :usize
     let quad: [i32, string, bool, f64] =
-      [i32, string, bool, f64]! {
+      [i32, string, bool, f64] {
         _0: int(9) :i32
         _1: "q" :string
         _2: false

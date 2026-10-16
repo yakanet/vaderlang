@@ -74,18 +74,14 @@ export infer_lambda :: fn(
         }
     }
     // The trailing value is the lambda's return, held to the type the slot promised,
-    // rights included, as a named fn's is. A promise still naming a type parameter,
-    // or none, is what the body infers.
+    // as a named fn's is. A promise still naming a type parameter, or none, is what
+    // the body infers.
     trailing :: e.body.trailing
     if trailing != null && expected_ret != null && is_concrete_promise(expected_ret) {
         emit_return_mismatch_if(body, expected_ret, trailing.span, trailing, typed, diags)
     }
     ret :: pick_final_return(expected_ret, body, ctx)
-    return FnType {
-        .params         = param_types,
-        .params_mutable = params_mutable_of(e.params),
-        .return_type    = ret,
-    }
+    return mk_fn(param_types, ret)
 }
 
 is_concrete_promise :: fn(t: Type) -> bool =
@@ -96,18 +92,14 @@ infer_param :: fn(
     typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     if p.ty !is null {
-        t :: apply_readonly_default(type_from_expr(p.ty, typed.resolved, diags), p.ty)
+        t :: type_from_expr(p.ty, typed.resolved, diags)
         typed.param_types[p.span.hash()] = t
         return t
     }
     match expected_fn {
         is FnType -> {
             if idx < expected_fn.params.len() {
-                // The expected slot supplies the SHAPE ; the marker on this
-                // lambda's own parameter supplies the mutability. A lambda that
-                // doesn't write `!` promises not to mutate even when handed to a
-                // slot that would allow it — it simply promises more.
-                t :: desugared_param_type(expected_fn.params[idx], AST.param_is_mutable(p))
+                t :: expected_fn.params[idx]
                 typed.param_types[p.span.hash()] = t
                 return t
             }
@@ -127,7 +119,7 @@ pick_return :: fn(
     resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type | null {
     if annot !is null {
-        return apply_readonly_default(type_from_expr(annot, resolved, diags), annot)
+        return type_from_expr(annot, resolved, diags)
     }
     if expected_fn is FnType { return expected_fn.return_type }
     return null

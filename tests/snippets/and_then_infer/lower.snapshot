@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Boom {  }
-  fn snippet$Boom$Error$message(self: Boom!) -> string
+  fn snippet$Boom$Error$message(self: Boom) -> string
     ~>
       "boom" :string
   fn snippet$fetch(ok: bool) -> Error | i32
@@ -12,7 +12,7 @@
       then:
         return int(20) :i32
     return
-      Boom! {
+      Boom {
       }
   fn snippet$halve(v: i32) -> Error | i32
     if :void
@@ -28,7 +28,7 @@
             int(0) :i32
       then:
         return
-          Boom! {
+          Boom {
           }
     return
       div :i32

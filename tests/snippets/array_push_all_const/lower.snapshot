@@ -6,15 +6,15 @@
   fn __const_snippet$ITEMS() -> Item[]
     ~>
       array :Item[]
-        Item! {
+        Item {
           name: "first" :string
           inner:
             array :Inner[]
-              Inner! {
+              Inner {
                 tag: "a" :string
               }
         }
-        Item! {
+        Item {
           name: "second" :string
           inner:
             array :Inner[]

@@ -85,12 +85,11 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
 }
 
 /// The data `src` carries when it is an enum whose header declares `target` as
-/// its variant data (`Info(variant)`) ; null otherwise. Compared by shape : the
-/// data is read-only, whatever the written target says.
+/// its variant data (`Info(variant)`) ; null otherwise.
 export enum_data_of :: fn(src: Type, target: Type) -> StructType | null {
     if src is EnumType {
         data :: src.data ?? return null
-        if is_assignable(data, strip_mutability(target)) { return data }
+        if is_assignable(data, target) { return data }
     }
     return null
 }

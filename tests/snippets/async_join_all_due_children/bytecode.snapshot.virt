@@ -39,13 +39,13 @@ string 2 "async deadlock: a task is suspended with nothing left to wake it"
 string 3 "\n"
 global 0 8 resumes.state
 global 1 1 resumes.instance
-import 0 byte_len std_core$byte_len result_type=20 param_types=13 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=22 param_types=13 param_mutable=0 param_by_address= (string) -> ref
+import 0 byte_len std_core$byte_len result_type=20 param_types=13 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=22 param_types=13 param_c_out= param_by_address= (string) -> ref
 import 2 sched_now std_runtime$sched_now result_type=6 () -> i64
-import 3 sched_arm std_runtime$sched_arm result_type=5 param_types=6 param_mutable=0 param_by_address= (i64) -> void
+import 3 sched_arm std_runtime$sched_arm result_type=5 param_types=6 param_c_out= param_by_address= (i64) -> void
 import 4 sched_park std_runtime$sched_park result_type=8 () -> i32
-import 5 panic std_abort$panic result_type=5 param_types=13 param_mutable=0 param_by_address= (string) -> void
-import 6 extern write system_posix$sys_write header=<unistd.h> result_type=33 param_types=8,22,20 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 5 panic std_abort$panic result_type=5 param_types=13 param_c_out= param_by_address= (string) -> void
+import 6 extern write system_posix$sys_write header=<unistd.h> result_type=33 param_types=8,22,20 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 2 std_core$Async
 impl 9 std_core$Async
 impl 11 std_core$Async

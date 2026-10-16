@@ -3,8 +3,8 @@
 ## snippet
   struct snippet$Point { x: i32 }
   fn snippet$main() -> i32
-    let nums: i32[]! =
-      array :i32[]!
+    let nums: i32[] =
+      array :i32[]
         int(10) :i32
         int(20) :i32
         int(30) :i32
@@ -13,28 +13,28 @@
         callee:
           snippet$second__i32 :i32
         arg0:
-          nums :i32[]!
-    let pts: Point![]! =
-      array :Point![]!
-        Point! {
+          nums :i32[]
+    let pts: Point[] =
+      array :Point[]
+        Point {
           x: int(1) :i32
         }
-        Point! {
+        Point {
           x: int(2) :i32
         }
-    let p: Point! =
-      call :Point!
+    let p: Point =
+      call :Point
         callee:
-          snippet$second__Point :Point!
+          snippet$second__Point :Point
         arg0:
-          pts :Point![]!
+          pts :Point[]
     return
       add_checked :i32
         l:
           s :i32
         r:
           .x :i32
-            p :Point!
+            p :Point
   fn snippet$second__Point(xs: Any[]) -> Any
     ~>
       index :Any

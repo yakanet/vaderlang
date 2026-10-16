@@ -6,12 +6,12 @@
   expr 10:16    CallExpr       :: string
   expr 10:16    IdentExpr      :: fn() -> string
   expr 11:15    SeqLitExpr     :: u8[]
-  expr 12:12    StructLitExpr  :: Ppm!
+  expr 12:12    StructLitExpr  :: Ppm
   expr 12:68    IdentExpr      :: u8[]
   expr 14:12    CallExpr       :: PpmError | u8[]
   expr 14:12    IdentExpr      :: fn(Ppm) -> PpmError | u8[]
-  expr 14:19    IdentExpr      :: Ppm!
-  expr 15:15    IdentExpr      :: PpmError!
+  expr 14:19    IdentExpr      :: Ppm
+  expr 15:15    IdentExpr      :: PpmError
   expr 15:5     IfExpr         :: void
   expr 15:8     BinaryExpr     :: bool
   expr 15:8     IdentExpr      :: PpmError | u8[]
@@ -22,7 +22,7 @@
   expr 19:11    IdentExpr      :: fn(string, u8[]) -> IOError | null
   expr 19:28    IdentExpr      :: string
   expr 19:34    IdentExpr      :: u8[]
-  expr 20:14    IdentExpr      :: Error!
+  expr 20:14    IdentExpr      :: Error
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool
   expr 20:8     IdentExpr      :: IOError | null
@@ -37,7 +37,7 @@
   expr 24:12    IdentExpr      :: fn(string, usize) -> IOError | u8[]
   expr 24:28    IdentExpr      :: string
   expr 24:34    IdentExpr      :: usize
-  expr 25:15    IdentExpr      :: Error!
+  expr 25:15    IdentExpr      :: Error
   expr 25:5     IfExpr         :: void
   expr 25:8     BinaryExpr     :: bool
   expr 25:8     IdentExpr      :: IOError | u8[]
@@ -50,7 +50,7 @@
   expr 29:12    CallExpr       :: Ppm | PpmError
   expr 29:12    IdentExpr      :: fn(u8[]) -> Ppm | PpmError
   expr 29:19    IdentExpr      :: u8[]
-  expr 30:15    IdentExpr      :: PpmError!
+  expr 30:15    IdentExpr      :: PpmError
   expr 30:5     IfExpr         :: void
   expr 30:8     BinaryExpr     :: bool
   expr 30:8     IdentExpr      :: Ppm | PpmError
@@ -82,7 +82,7 @@
   expr 36:38    IdentExpr      :: Ppm
   expr 36:58    CallExpr       :: usize
   expr 36:58    IdentExpr      :: type
-  expr 37:14    RangeExpr      :: Range<usize>!
+  expr 37:14    RangeExpr      :: Range<usize>
   expr 37:18    CallExpr       :: usize
   expr 37:18    FieldExpr      :: fn() -> usize
   expr 37:18    FieldExpr      :: u8[]

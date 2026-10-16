@@ -13,13 +13,13 @@
             cond:
               and :bool
                 l:
-                  is Circle! :bool
+                  is Circle :bool
                     __scrut_0 :Circle | Square
                 r:
                   eq :bool
                     l:
                       .r :u8
-                        cast → Circle!
+                        cast → Circle
                           __scrut_0 :Circle | Square
                     r:
                       int(0) :u8
@@ -32,20 +32,20 @@
                   cond:
                     and :bool
                       l:
-                        is Circle! :bool
+                        is Circle :bool
                           __scrut_0 :Circle | Square
                       r:
                         eq :bool
                           l:
                             .tag :string
-                              cast → Circle!
+                              cast → Circle
                                 __scrut_0 :Circle | Square
                           r:
                             "unit" :string
                   then:
                     let r: u8 =
                       .r :u8
-                        cast → Circle!
+                        cast → Circle
                           __scrut_0 :Circle | Square
                     ~>
                       block :string
@@ -95,12 +95,12 @@
                     ~>
                       if :string
                         cond:
-                          is Circle! :bool
+                          is Circle :bool
                             __scrut_0 :Circle | Square
                         then:
                           let r: u8 =
                             .r :u8
-                              cast → Circle!
+                              cast → Circle
                                 __scrut_0 :Circle | Square
                           ~>
                             block :string
@@ -154,13 +154,13 @@
                                   l:
                                     and :bool
                                       l:
-                                        is Square! :bool
+                                        is Square :bool
                                           __scrut_0 :Circle | Square
                                       r:
                                         eq :bool
                                           l:
                                             .mark :char
-                                              cast → Square!
+                                              cast → Square
                                                 __scrut_0 :Circle | Square
                                           r:
                                             char(0x78)
@@ -168,7 +168,7 @@
                                     block :bool
                                       let side: i64 =
                                         .side :i64
-                                          cast → Square!
+                                          cast → Square
                                             __scrut_0 :Circle | Square
                                       ~>
                                         gt :bool
@@ -179,7 +179,7 @@
                               then:
                                 let side: i64 =
                                   .side :i64
-                                    cast → Square!
+                                    cast → Square
                                       __scrut_0 :Circle | Square
                                 ~>
                                   "big crossed square" :string
@@ -189,13 +189,13 @@
                                     cond:
                                       and :bool
                                         l:
-                                          is Square! :bool
+                                          is Square :bool
                                             __scrut_0 :Circle | Square
                                         r:
                                           eq :bool
                                             l:
                                               .side :i64
-                                                cast → Square!
+                                                cast → Square
                                                   __scrut_0 :Circle | Square
                                             r:
                                               int(1) :i64
@@ -206,7 +206,7 @@
                                       ~>
                                         if :string
                                           cond:
-                                            is Square! :bool
+                                            is Square :bool
                                               __scrut_0 :Circle | Square
                                           then:
                                             ~>
@@ -216,8 +216,8 @@
                                               unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn snippet$main() -> i32
     block :void
-      let __for_arr_0: i32[]! =
-        array :i32[]!
+      let __for_arr_0: i32[] =
+        array :i32[]
           int(10) :i32
           int(99) :i32
       let __for_len_1: usize =
@@ -227,11 +227,11 @@
         let v: i32 =
           index :i32
             on:
-              __for_arr_0 :i32[]!
+              __for_arr_0 :i32[]
             ix:
               __for_i_2 :usize
-        let p: P! =
-          P! {
+        let p: P =
+          P {
             x: v :i32
             name: "bob" :string
           }
@@ -242,19 +242,19 @@
                 cond:
                   and :bool
                     l:
-                      is P! :bool
-                        p :P!
+                      is P :bool
+                        p :P
                     r:
                       eq :bool
                         l:
                           .x :i32
-                            p :P!
+                            p :P
                         r:
                           int(10) :i32
                 then:
                   let name: string =
                     .name :string
-                      p :P!
+                      p :P
                   ~>
                     call :void
                       callee:
@@ -418,7 +418,7 @@
           callee:
             describe :fn(Circle | Square) -> string
           arg0:
-            Circle! {
+            Circle {
               r: int(0) :u8
               tag: "" :string
             }
@@ -430,7 +430,7 @@
           callee:
             describe :fn(Circle | Square) -> string
           arg0:
-            Circle! {
+            Circle {
               r: int(5) :u8
               tag: "unit" :string
             }
@@ -442,7 +442,7 @@
           callee:
             describe :fn(Circle | Square) -> string
           arg0:
-            Circle! {
+            Circle {
               r: int(5) :u8
               tag: "big" :string
             }
@@ -454,7 +454,7 @@
           callee:
             describe :fn(Circle | Square) -> string
           arg0:
-            Square! {
+            Square {
               side: int(20) :i64
               mark: char(0x78)
             }
@@ -466,7 +466,7 @@
           callee:
             describe :fn(Circle | Square) -> string
           arg0:
-            Square! {
+            Square {
               side: int(5) :i64
               mark: char(0x78)
             }
@@ -478,7 +478,7 @@
           callee:
             describe :fn(Circle | Square) -> string
           arg0:
-            Square! {
+            Square {
               side: int(1) :i64
               mark: char(0x6f)
             }
@@ -490,7 +490,7 @@
           callee:
             describe :fn(Circle | Square) -> string
           arg0:
-            Square! {
+            Square {
               side: int(3) :i64
               mark: char(0x6f)
             }

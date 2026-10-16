@@ -289,17 +289,17 @@
   fn snippet$identity__i32(x: i32) -> i32
     return x :i32
   fn snippet$make_nested__i32(v: i32) -> Box<Box<i32>>
-    let inner: Box<i32>! =
-      Box<i32>! {
+    let inner: Box<i32> =
+      Box<i32> {
         value: v :i32
       }
     return
-      Box<Box<Any>>! {
-        value: inner :Box<i32>!
+      Box<Box<Any>> {
+        value: inner :Box<i32>
       }
   fn snippet$make_box__i32(v: i32) -> Box<i32>
     return
-      Box<i32>! {
+      Box<i32> {
         value: v :i32
       }
   struct snippet$Box__Any { value: Any }

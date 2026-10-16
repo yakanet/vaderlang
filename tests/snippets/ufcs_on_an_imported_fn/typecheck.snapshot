@@ -9,7 +9,7 @@
   expr 12:14    IdentExpr      :: fn(string, string) -> IOError | null
   expr 12:32    IdentExpr      :: string
   expr 12:38    StringLitExpr  :: string
-  expr 13:17    IdentExpr      :: IOError!
+  expr 13:17    IdentExpr      :: IOError
   expr 13:5     IfExpr         :: void
   expr 13:8     BinaryExpr     :: bool
   expr 13:8     IdentExpr      :: IOError | null
@@ -31,7 +31,7 @@
   expr 20:31    IdentExpr      :: string
   expr 20:9     CallExpr       :: void
   expr 20:9     IdentExpr      :: fn(T) -> void
-  expr 23:36    IdentExpr      :: IOError!
+  expr 23:36    IdentExpr      :: IOError
   expr 23:5     IfExpr         :: void
   expr 23:8     BinaryExpr     :: bool
   expr 23:8     CallExpr       :: IOError | string
@@ -42,7 +42,7 @@
   expr 24:31    IdentExpr      :: IOError
   expr 24:9     CallExpr       :: void
   expr 24:9     IdentExpr      :: fn(T) -> void
-  expr 26:48    IdentExpr      :: IOError!
+  expr 26:48    IdentExpr      :: IOError
   expr 26:5     IfExpr         :: void
   expr 26:8     BinaryExpr     :: bool
   expr 26:8     CallExpr       :: IOError | string
@@ -56,7 +56,7 @@
   expr 29:16    CallExpr       :: IOError | null
   expr 29:16    IdentExpr      :: fn(string) -> IOError | null
   expr 29:28    IdentExpr      :: string
-  expr 30:19    IdentExpr      :: IOError!
+  expr 30:19    IdentExpr      :: IOError
   expr 30:5     IfExpr         :: void
   expr 30:8     BinaryExpr     :: bool
   expr 30:8     IdentExpr      :: IOError | null

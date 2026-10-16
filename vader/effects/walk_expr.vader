@@ -70,8 +70,7 @@ value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null = match e {
     is AST.IntrinsicCallExpr -> ctx.intrinsic_value(e)
     is AST.AwaitExpr         -> ctx.nothing(e.inner)
     is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr
-     | AST.DotVariantExpr | AST.GenericInstExpr | AST.FnTypeExpr | AST.ArrayTypeExpr
-     | AST.MutableTypeExpr -> null
+     | AST.DotVariantExpr | AST.GenericInstExpr | AST.FnTypeExpr | AST.ArrayTypeExpr -> null
 }
 
 // Walk `e`, whose value holds nothing lent.

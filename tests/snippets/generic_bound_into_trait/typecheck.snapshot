@@ -2,7 +2,7 @@
 
 ## tests/snippets/generic_bound_into_trait
   FnDecl         main                 :: fn() -> i32
-  StructDecl     P                    :: P!
+  StructDecl     P                    :: P
   FnDecl         passed               :: fn(T) -> string
   FnDecl         returned             :: fn(T) -> Display
   FnDecl         show                 :: fn(Display) -> string
@@ -19,7 +19,7 @@
   expr 20:12    IdentExpr      :: T
   expr 24:13    CallExpr       :: string
   expr 24:13    IdentExpr      :: fn(T) -> string
-  expr 24:20    StructLitExpr  :: P!
+  expr 24:20    StructLitExpr  :: P
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void
   expr 25:13    CallExpr       :: string
@@ -30,6 +30,6 @@
   expr 26:13    IdentExpr      :: fn(Display) -> string
   expr 26:18    CallExpr       :: Display
   expr 26:18    IdentExpr      :: fn(T) -> Display
-  expr 26:27    StructLitExpr  :: P!
+  expr 26:27    StructLitExpr  :: P
   expr 26:5     CallExpr       :: void
   expr 26:5     IdentExpr      :: fn(T) -> void

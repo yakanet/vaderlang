@@ -2,12 +2,12 @@
 
 ## tests/snippets/iter_chain_break
   FnDecl         main                 :: fn() -> i32
-  expr 17:10    SeqLitExpr     :: i32[]!
-  expr 18:10    SeqLitExpr     :: i32[]!
-  expr 22:14    CallExpr       :: __genstate_chain<i32>!
+  expr 17:10    SeqLitExpr     :: i32[]
+  expr 18:10    SeqLitExpr     :: i32[]
+  expr 22:14    CallExpr       :: __genstate_chain<i32>
   expr 22:14    FieldExpr      :: fn(Iterator<i32>) -> Iterator<i32>
-  expr 22:14    IdentExpr      :: i32[]!
-  expr 22:22    IdentExpr      :: i32[]!
+  expr 22:14    IdentExpr      :: i32[]
+  expr 22:22    IdentExpr      :: i32[]
   expr 23:12    BinaryExpr     :: bool
   expr 23:12    IdentExpr      :: i32
   expr 23:9     IfExpr         :: void
@@ -18,10 +18,10 @@
   expr 28:36    IdentExpr      :: i32
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(T) -> void
-  expr 32:14    CallExpr       :: __genstate_chain<i32>!
+  expr 32:14    CallExpr       :: __genstate_chain<i32>
   expr 32:14    FieldExpr      :: fn(Iterator<i32>) -> Iterator<i32>
-  expr 32:14    IdentExpr      :: i32[]!
-  expr 32:22    IdentExpr      :: i32[]!
+  expr 32:14    IdentExpr      :: i32[]
+  expr 32:22    IdentExpr      :: i32[]
   expr 33:12    BinaryExpr     :: bool
   expr 33:12    IdentExpr      :: i32
   expr 33:9     IfExpr         :: void
@@ -32,10 +32,10 @@
   expr 38:36    IdentExpr      :: i32
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
-  expr 42:14    CallExpr       :: __genstate_chain<i32>!
+  expr 42:14    CallExpr       :: __genstate_chain<i32>
   expr 42:14    FieldExpr      :: fn(Iterator<i32>) -> Iterator<i32>
-  expr 42:14    IdentExpr      :: i32[]!
-  expr 42:22    IdentExpr      :: i32[]!
+  expr 42:14    IdentExpr      :: i32[]
+  expr 42:22    IdentExpr      :: i32[]
   expr 43:12    BinaryExpr     :: bool
   expr 43:12    IdentExpr      :: i32
   expr 43:9     IfExpr         :: void
@@ -46,10 +46,10 @@
   expr 48:31    IdentExpr      :: i32
   expr 48:5     CallExpr       :: void
   expr 48:5     IdentExpr      :: fn(T) -> void
-  expr 52:14    CallExpr       :: __genstate_chain<i32>!
+  expr 52:14    CallExpr       :: __genstate_chain<i32>
   expr 52:14    FieldExpr      :: fn(Iterator<i32>) -> Iterator<i32>
-  expr 52:14    IdentExpr      :: i32[]!
-  expr 52:22    IdentExpr      :: i32[]!
+  expr 52:14    IdentExpr      :: i32[]
+  expr 52:22    IdentExpr      :: i32[]
   expr 53:12    BinaryExpr     :: bool
   expr 53:12    BinaryExpr     :: bool
   expr 53:12    IdentExpr      :: i32
@@ -63,10 +63,10 @@
   expr 58:25    IdentExpr      :: i32
   expr 58:5     CallExpr       :: void
   expr 58:5     IdentExpr      :: fn(T) -> void
-  expr 62:14    CallExpr       :: __genstate_chain<i32>!
+  expr 62:14    CallExpr       :: __genstate_chain<i32>
   expr 62:14    FieldExpr      :: fn(Iterator<i32>) -> Iterator<i32>
-  expr 62:14    IdentExpr      :: i32[]!
-  expr 62:22    IdentExpr      :: i32[]!
+  expr 62:14    IdentExpr      :: i32[]
+  expr 62:22    IdentExpr      :: i32[]
   expr 63:18    IdentExpr      :: i32
   expr 63:9     BinaryExpr     :: i32
   expr 63:9     IdentExpr      :: i32
@@ -74,9 +74,9 @@
   expr 65:25    IdentExpr      :: i32
   expr 65:5     CallExpr       :: void
   expr 65:5     IdentExpr      :: fn(T) -> void
-  expr 69:14    CallExpr       :: __genstate_map<i32>!
+  expr 69:14    CallExpr       :: __genstate_map<i32>
   expr 69:14    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
-  expr 69:14    IdentExpr      :: i32[]!
+  expr 69:14    IdentExpr      :: i32[]
   expr 69:20    LambdaExpr     :: fn(i32) -> i32
   expr 69:25    BinaryExpr     :: i32
   expr 69:25    IdentExpr      :: i32
@@ -90,11 +90,11 @@
   expr 75:26    IdentExpr      :: i32
   expr 75:5     CallExpr       :: void
   expr 75:5     IdentExpr      :: fn(T) -> void
-  expr 79:14    CallExpr       :: __genstate_chain<i32>!
+  expr 79:14    CallExpr       :: __genstate_chain<i32>
   expr 79:14    FieldExpr      :: fn(Iterator<i32>) -> Iterator<i32>
-  expr 79:14    IdentExpr      :: i32[]!
-  expr 79:22    IdentExpr      :: i32[]!
-  expr 80:18    IdentExpr      :: i32[]!
+  expr 79:14    IdentExpr      :: i32[]
+  expr 79:22    IdentExpr      :: i32[]
+  expr 80:18    IdentExpr      :: i32[]
   expr 81:13    IfExpr         :: void
   expr 81:16    BinaryExpr     :: bool
   expr 81:16    IdentExpr      :: i32

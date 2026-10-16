@@ -295,7 +295,7 @@ static int32_t snippet_main(void) {
 #line 36 "tests/snippets/capture_loop_var/_main.vader"
     l5 = INT32_C(0);
     while ((l5 < INT32_C(3))) {
-#line 395 "lib/std/iter/iter.vader"
+#line 394 "lib/std/iter/iter.vader"
         t4 = snippet_tenfold(l5);
 #line 37 "tests/snippets/capture_loop_var/_main.vader"
         vader_struct___lambda_env_snippet_5_t* _a12_obj = (vader_struct___lambda_env_snippet_5_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_5_t));
@@ -327,7 +327,7 @@ static int32_t snippet_main(void) {
 #line 42 "tests/snippets/capture_loop_var/_main.vader"
     l5 = INT32_C(0);
     while ((l5 < INT32_C(5))) {
-#line 389 "lib/std/iter/iter.vader"
+#line 388 "lib/std/iter/iter.vader"
         t5 = snippet_is_even(l5);
         if (t5) {
 #line 43 "tests/snippets/capture_loop_var/_main.vader"
@@ -343,7 +343,7 @@ static int32_t snippet_main(void) {
             vader_defer_push(vader_ref_box(t2));
 #line 42 "tests/snippets/capture_loop_var/_main.vader"
             vader_defer_pop_exec(1u);
-#line 389 "lib/std/iter/iter.vader"
+#line 388 "lib/std/iter/iter.vader"
         }
 #line 42 "tests/snippets/capture_loop_var/_main.vader"
         l5 = (l5 + INT32_C(1));

@@ -1271,7 +1271,7 @@ static void* snippet_collected(int32_t l0) {
     for (;;) {
 #line 279 "tests/snippets/array_push_cache/_main.vader"
         if ((l3 < l0)) {
-#line 395 "lib/std/iter/iter.vader"
+#line 394 "lib/std/iter/iter.vader"
             l4 = snippet_triple(l3);
 #line 90 "lib/std/iter/iter.vader"
             if (VADER_LIKELY(_pc19_len < _pc19_cap)) {
@@ -1335,10 +1335,10 @@ static void* snippet_filtered(void* l0) {
             VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
             l5 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l4];
-#line 389 "lib/std/iter/iter.vader"
+#line 388 "lib/std/iter/iter.vader"
             t0 = snippet_is_odd(l5);
             if (t0) {
-#line 395 "lib/std/iter/iter.vader"
+#line 394 "lib/std/iter/iter.vader"
                 l6 = snippet_triple(l5);
 #line 90 "lib/std/iter/iter.vader"
                 if (VADER_LIKELY(_pc9_len < _pc9_cap)) {
@@ -1355,7 +1355,7 @@ static void* snippet_filtered(void* l0) {
                     _pc9_cap = (_pc9_hdr->offset == 0 && !vader_array_is_borrowed(_pc9_hdr) && _pc9_hdr->length >= _pc9_hdr->buf->length) ? _pc9_hdr->capacity : (size_t) 0;
                     _pc9_slots = _pc9_hdr->buf->slots;
                 }
-#line 389 "lib/std/iter/iter.vader"
+#line 388 "lib/std/iter/iter.vader"
             }
 #line 281 "tests/snippets/array_push_cache/_main.vader"
             t1 = (l4 + INT64_C(1));
@@ -1391,13 +1391,13 @@ static void* snippet_taken(void* l0) {
 #line 88 "lib/std/iter/iter.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 0u, 7u, 1u);
     l3 = (void*) _a0_arr;
-#line 401 "lib/std/iter/iter.vader"
+#line 400 "lib/std/iter/iter.vader"
     if (l2 == INT64_C(0)) {
 #line 284 "tests/snippets/array_push_cache/_main.vader"
         { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
-#line 401 "lib/std/iter/iter.vader"
+#line 400 "lib/std/iter/iter.vader"
     }
-#line 404 "lib/std/iter/iter.vader"
+#line 403 "lib/std/iter/iter.vader"
     l4 = (size_t) 0;
 #line 284 "tests/snippets/array_push_cache/_main.vader"
     l5 = ((vader_array_t*) l1)->length;
@@ -1409,14 +1409,14 @@ static void* snippet_taken(void* l0) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l6)
         t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l6];
-#line 395 "lib/std/iter/iter.vader"
+#line 394 "lib/std/iter/iter.vader"
         l7 = snippet_triple(t0);
 #line 90 "lib/std/iter/iter.vader"
         vader_array_push_i32((vader_array_t*) l3, l7);
-#line 407 "lib/std/iter/iter.vader"
+#line 406 "lib/std/iter/iter.vader"
         t1 = vader_chk_add(usize, l4, INT64_C(1));
         l4 = (size_t) (int64_t) t1;
-#line 408 "lib/std/iter/iter.vader"
+#line 407 "lib/std/iter/iter.vader"
         if ((l4 >= l2)) break;
 #line 284 "tests/snippets/array_push_cache/_main.vader"
         t1 = (l6 + INT64_C(1));

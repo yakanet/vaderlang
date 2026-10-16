@@ -27,7 +27,7 @@
             int(111) :u8
     if :void
       cond:
-        is Error! :bool
+        is Error :bool
           written :IOError | null
       then:
         call :void
@@ -55,7 +55,7 @@
           int(16777216) :usize
     if :void
       cond:
-        is Error! :bool
+        is Error :bool
           read_back :IOError | u8[]
       then:
         call :void

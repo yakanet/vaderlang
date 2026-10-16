@@ -44,7 +44,7 @@ range_of :: fn(element: Type, typed: TypedProgram) -> Type {
     // from core by the orchestrator ; a `RangeExpr` (`0..10`) is synthesised
     // without a source span, so it resolves via this slot, not `idents`.
     range_sym :: typed.range_symbol ?? return TY_UNRESOLVED
-    return mk_struct(range_sym, [element], immutable = false)
+    return mk_struct(range_sym, [element])
 }
 
 // The `T` of an expected `Range<T>` when the bounds can take it

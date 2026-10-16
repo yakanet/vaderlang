@@ -6,10 +6,10 @@
     block :void
       let __iter_0: Range<u8> = r :Range<u8>
       loop
-        let __step_1: [u8, Continuation]! =
-          call :[u8, Continuation]!
+        let __step_1: [u8, Continuation] =
+          call :[u8, Continuation]
             callee:
-              std_core$Range$Iterator$next__u8 :[u8, Continuation]!
+              std_core$Range$Iterator$next__u8 :[u8, Continuation]
             arg0:
               __iter_0 :Range<u8>
         if :void
@@ -17,7 +17,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[u8, Continuation]!
+                  __step_1 :[u8, Continuation]
               r:
                 int(1) :u8
           then:
@@ -25,7 +25,7 @@
           else:
             let b: u8 =
               ._0 :u8
-                __step_1 :[u8, Continuation]!
+                __step_1 :[u8, Continuation]
             assign
               target:
                 n :i32
@@ -41,10 +41,10 @@
     block :void
       let __iter_0: Range<i8> = r :Range<i8>
       loop
-        let __step_1: [i8, Continuation]! =
-          call :[i8, Continuation]!
+        let __step_1: [i8, Continuation] =
+          call :[i8, Continuation]
             callee:
-              std_core$Range$Iterator$next__i8 :[i8, Continuation]!
+              std_core$Range$Iterator$next__i8 :[i8, Continuation]
             arg0:
               __iter_0 :Range<i8>
         if :void
@@ -52,7 +52,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[i8, Continuation]!
+                  __step_1 :[i8, Continuation]
               r:
                 int(1) :u8
           then:
@@ -60,7 +60,7 @@
           else:
             let b: i8 =
               ._0 :i8
-                __step_1 :[i8, Continuation]!
+                __step_1 :[i8, Continuation]
             assign
               target:
                 n :i32
@@ -76,10 +76,10 @@
     block :void
       let __iter_0: Range<u64> = r :Range<u64>
       loop
-        let __step_1: [u64, Continuation]! =
-          call :[u64, Continuation]!
+        let __step_1: [u64, Continuation] =
+          call :[u64, Continuation]
             callee:
-              std_core$Range$Iterator$next__u64 :[u64, Continuation]!
+              std_core$Range$Iterator$next__u64 :[u64, Continuation]
             arg0:
               __iter_0 :Range<u64>
         if :void
@@ -87,7 +87,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[u64, Continuation]!
+                  __step_1 :[u64, Continuation]
               r:
                 int(1) :u8
           then:
@@ -95,7 +95,7 @@
           else:
             let v: u64 =
               ._0 :u64
-                __step_1 :[u64, Continuation]!
+                __step_1 :[u64, Continuation]
             assign
               target:
                 n :i32
@@ -111,10 +111,10 @@
     block :void
       let __iter_0: Range<char> = r :Range<char>
       loop
-        let __step_1: [char, Continuation]! =
-          call :[char, Continuation]!
+        let __step_1: [char, Continuation] =
+          call :[char, Continuation]
             callee:
-              std_core$Range$Iterator$next__char :[char, Continuation]!
+              std_core$Range$Iterator$next__char :[char, Continuation]
             arg0:
               __iter_0 :Range<char>
         if :void
@@ -122,7 +122,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[char, Continuation]!
+                  __step_1 :[char, Continuation]
               r:
                 int(1) :u8
           then:
@@ -130,7 +130,7 @@
           else:
             let c: char =
               ._0 :char
-                __step_1 :[char, Continuation]!
+                __step_1 :[char, Continuation]
             assign
               target:
                 out :string
@@ -149,7 +149,7 @@
     return out :string
   fn snippet$main() -> i32
     let to_max: Range<u8> =
-      Range<u8>! {
+      Range<u8> {
         start: int(250) :u8
         end: int(255) :u8
         inclusive: true
@@ -216,7 +216,7 @@
                       callee:
                         turns :fn(Range<u8>) -> i32
                       arg0:
-                        Range<u8>! {
+                        Range<u8> {
                           start: int(0) :u8
                           end: int(255) :u8
                           inclusive: true
@@ -253,7 +253,7 @@
                       callee:
                         turns :fn(Range<u8>) -> i32
                       arg0:
-                        Range<u8>! {
+                        Range<u8> {
                           start: int(5) :u8
                           end: int(4) :u8
                           inclusive: true
@@ -290,7 +290,7 @@
                       callee:
                         turns :fn(Range<u8>) -> i32
                       arg0:
-                        Range<u8>! {
+                        Range<u8> {
                           start: int(250) :u8
                           end: int(255) :u8
                           inclusive: false
@@ -334,7 +334,7 @@
                       callee:
                         signed_turns :fn(Range<i8>) -> i32
                       arg0:
-                        Range<i8>! {
+                        Range<i8> {
                           start: int(-128) :i8
                           end: int(127) :i8
                           inclusive: true
@@ -378,7 +378,7 @@
                       callee:
                         wide_turns :fn(Range<u64>) -> i32
                       arg0:
-                        Range<u64>! {
+                        Range<u64> {
                           start: int(18446744073709551613) :u64
                           end: int(18446744073709551615) :u64
                           inclusive: true
@@ -403,7 +403,7 @@
               callee:
                 letters :fn(Range<char>) -> string
               arg0:
-                Range<char>! {
+                Range<char> {
                   start: char(0x78)
                   end: char(0x7a)
                   inclusive: true

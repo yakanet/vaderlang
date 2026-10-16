@@ -2,12 +2,12 @@
 
 ## tests/snippets/array_of_union
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Node                 :: Node<T>!
+  StructDecl     Node                 :: Node<T>
   expr 11:32    SeqLitExpr     :: (Node<i32> | null)[]
   expr 12:5     CallExpr       :: void
   expr 12:5     FieldExpr      :: fn(Node<i32> | null) -> void
   expr 12:5     IdentExpr      :: (Node<i32> | null)[]
-  expr 13:14    StructLitExpr  :: Node<i32>!
+  expr 13:14    StructLitExpr  :: Node<i32>
   expr 13:5     CallExpr       :: void
   expr 13:5     FieldExpr      :: fn(Node<i32> | null) -> void
   expr 13:5     IdentExpr      :: (Node<i32> | null)[]

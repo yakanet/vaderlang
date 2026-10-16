@@ -13,7 +13,7 @@
   expr 12:36    SeqLitExpr     :: Field[]
 
 ## tests/snippets/field_from_core_not_libs/db
-  StructDecl     Field                :: Field!
+  StructDecl     Field                :: Field
 
 ## tests/snippets/field_from_core_not_libs/forms
-  StructDecl     Field                :: Field!
+  StructDecl     Field                :: Field

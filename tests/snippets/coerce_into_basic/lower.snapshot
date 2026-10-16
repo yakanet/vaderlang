@@ -2,11 +2,11 @@
 
 ## snippet
   struct snippet$UserId { value: i32 }
-  fn snippet$UserId$Into$into(self: UserId!) -> i32
+  fn snippet$UserId$Into$into(self: UserId) -> i32
     return
       .value :i32
         self :UserId
-  fn snippet$UserId$Into$into$1(self: UserId!) -> string
+  fn snippet$UserId$Into$into$1(self: UserId) -> string
     return
       block :string
         let __buf_0: Buffer =
@@ -68,8 +68,8 @@
           u :UserId
   struct snippet$Pair { tag: string, n: i32 }
   fn snippet$main() -> i32
-    let u: UserId! =
-      UserId! {
+    let u: UserId =
+      UserId {
         value: int(42) :i32
       }
     call :void
@@ -118,7 +118,7 @@
                           callee:
                             snippet$UserId$Into$into :i32
                           arg0:
-                            u :UserId!
+                            u :UserId
           ~>
             call :string
               callee:
@@ -132,7 +132,7 @@
         callee:
           snippet$UserId$Into$into :i32
         arg0:
-          u :UserId!
+          u :UserId
     call :void
       callee:
         std_io$println__string :void
@@ -222,7 +222,7 @@
                       callee:
                         get_id :fn(UserId) -> i32
                       arg0:
-                        u :UserId!
+                        u :UserId
           ~>
             call :string
               callee:
@@ -231,20 +231,20 @@
                 __buf_4 :Buffer
               arg1:
                 __off_5 :usize
-    let p: Pair! =
-      Pair! {
+    let p: Pair =
+      Pair {
         tag:
           call :string
             callee:
               snippet$UserId$Into$into$1 :string
             arg0:
-              u :UserId!
+              u :UserId
         n:
           call :i32
             callee:
               snippet$UserId$Into$into :i32
             arg0:
-              u :UserId!
+              u :UserId
       }
     call :void
       callee:
@@ -253,7 +253,7 @@
         block :string
           let __p_6: string =
             .tag :string
-              p :Pair!
+              p :Pair
           let __buf_7: Buffer =
             call :Buffer
               callee:
@@ -322,7 +322,7 @@
                 arg2:
                   cast → i64
                     .n :i32
-                      p :Pair!
+                      p :Pair
           ~>
             call :string
               callee:

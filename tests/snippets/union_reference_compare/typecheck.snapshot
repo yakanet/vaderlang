@@ -1,12 +1,12 @@
 # Typecheck
 
 ## tests/snippets/union_reference_compare
-  StructDecl     Circle               :: Circle!
+  StructDecl     Circle               :: Circle
   FnDecl         main                 :: fn() -> i32
   FnDecl         pick                 :: fn(i32) -> Circle | null | Square
-  StructDecl     Square               :: Square!
+  StructDecl     Square               :: Square
   ConstDecl      UNIT                 :: Circle
-  expr 20:9     StructLitExpr  :: Circle!
+  expr 20:9     StructLitExpr  :: Circle
   expr 23:5     IfExpr         :: void
   expr 23:8     BinaryExpr     :: bool
   expr 23:8     IdentExpr      :: i32
@@ -14,11 +14,11 @@
   expr 26:5     IfExpr         :: void
   expr 26:8     BinaryExpr     :: bool
   expr 26:8     IdentExpr      :: i32
-  expr 27:16    StructLitExpr  :: Circle!
+  expr 27:16    StructLitExpr  :: Circle
   expr 29:5     IfExpr         :: void
   expr 29:8     BinaryExpr     :: bool
   expr 29:8     IdentExpr      :: i32
-  expr 30:16    StructLitExpr  :: Square!
+  expr 30:16    StructLitExpr  :: Square
   expr 36:37    IdentExpr      :: Circle
   expr 37:13    StringLitExpr  :: string
   expr 37:33    BinaryExpr     :: bool

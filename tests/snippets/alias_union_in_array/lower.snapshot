@@ -10,7 +10,7 @@
         ~>
           if :string
             cond:
-              is Cat! :bool
+              is Cat :bool
                 p :Cat | Dog
             then:
               ~>
@@ -27,7 +27,7 @@
               ~>
                 if :string
                   cond:
-                    is Dog! :bool
+                    is Dog :bool
                       p :Cat | Dog
                   then:
                     ~>
@@ -52,7 +52,7 @@
       arg0:
         pets :(Cat | Dog)[]
       arg1:
-        Cat! {
+        Cat {
           name: "Whiskers" :string
         }
     call :void
@@ -61,7 +61,7 @@
       arg0:
         pets :(Cat | Dog)[]
       arg1:
-        Dog! {
+        Dog {
           name: "Rex" :string
         }
     block :void

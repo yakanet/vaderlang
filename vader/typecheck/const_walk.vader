@@ -22,11 +22,8 @@ AST :: import "toolchain/ast"
 open_const_walk :: fn(decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[]) -> void {
     walk :: ConstWalk { .diags = diags }
     for decl in decls {
-        // The alias keeps the declaration mutable — a `for` variable comes out
-        // read-only even over mutable elements — and `check_const_value` repins its
-        // value node.
-        if decl is AST.ConstDecl as cd {
-            walk.decls[cd.span.hash()] = cd
+        if decl is AST.ConstDecl {
+            walk.decls[decl.span.hash()] = decl
         }
     }
     typed.const_walk = walk
@@ -42,7 +39,7 @@ settle_with_reads :: fn(cd: AST.ConstDecl, typed: TypedProgram, deferred: bool =
 
 // Type the const `cd` unless this walk already has, or is typing it : checking one
 // twice is not idempotent (the second check reads the type the first wrote as its
-// expected type, and drops an array literal's `!`). It reports into the walk's
+// expected type). It reports into the walk's
 // diagnostics, wherever it was reached from.
 settle_const :: fn(cd: AST.ConstDecl, typed: TypedProgram, deferred: bool = false) -> void {
     walk :: typed.const_walk

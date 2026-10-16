@@ -2,10 +2,10 @@
 
 ## tests/snippets/gc_multi_collect
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Pair                 :: Pair!
+  StructDecl     Pair                 :: Pair
   expr 14:9     BinaryExpr     :: bool
   expr 14:9     IdentExpr      :: i32
-  expr 15:16    StructLitExpr  :: Pair!
+  expr 15:16    StructLitExpr  :: Pair
   expr 15:31    IdentExpr      :: i32
   expr 15:43    IdentExpr      :: null | Pair
   expr 15:9     IdentExpr      :: null | Pair

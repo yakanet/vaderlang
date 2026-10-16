@@ -259,7 +259,7 @@ build_body_stmts :: fn(bind_stmts: LoweredStmt[], user_body: LoweredBlock) -> Lo
 }
 
 // The iterator a `for` steps when its iterable only converts into one
-// (`Deck implements Into<Iterator<Card>!>`) : the `Iterator` the `into` the
+// (`Deck implements Into<Iterator<Card>>`) : the `Iterator` the `into` the
 // typecheck recorded at `site` hands back ; `iterable` itself otherwise.
 into_iterator :: fn(
     ctx: FnLowerCtx,
@@ -272,10 +272,10 @@ into_iterator :: fn(
     return recorded_conversion(ctx, site, .IterInto, iterable, iterator, span)
 }
 
-// `Iterator<element>!`, the trait value a step loop dispatches `next` on.
+// `Iterator<element>`, the trait value a step loop dispatches `next` on.
 iterator_of :: fn(ctx: FnLowerCtx, element: Type) -> Type | null {
     trait_sym :: find_core_trait(ctx.project, TRAIT_ITERATOR) ?? return null
-    return mk_trait(trait_sym, [element], false)
+    return mk_trait(trait_sym, [element])
 }
 
 // Determine the element type yielded by the iterator. Tries :

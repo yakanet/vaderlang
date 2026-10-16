@@ -3,7 +3,7 @@
 ## tests/snippets/singleton_instance
   FnDecl         announce             :: fn() -> void
   FnDecl         bump                 :: fn() -> void
-  StructDecl     Counter              :: Counter!
+  StructDecl     Counter              :: Counter
   FnDecl         counter              :: fn() -> Counter
   ConstDecl      DEFAULT              :: Counter
   FnDecl         greeting             :: fn() -> string
@@ -11,11 +11,11 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         probed               :: fn() -> bool
   FnDecl         start                :: fn() -> Counter
-  expr 13:12    StructLitExpr  :: Counter!
+  expr 13:12    StructLitExpr  :: Counter
   expr 17:13    StringLitExpr  :: string
   expr 17:5     CallExpr       :: void
   expr 17:5     IdentExpr      :: fn(T) -> void
-  expr 18:12    StructLitExpr  :: Counter!
+  expr 18:12    StructLitExpr  :: Counter
   expr 22:27    SeqLitExpr     :: string[]
   expr 25:28    IdentExpr      :: Counter
   expr 28:30    StringLitExpr  :: string

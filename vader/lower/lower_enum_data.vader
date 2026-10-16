@@ -41,7 +41,7 @@ export lower_enum_data_slot :: fn(
         .type   = data,
         .target = LoweredIdent {
             .span   = span,
-            .type   = mk_array(data, true),
+            .type   = mk_array(data),
             .symbol = enum_table_const(ctx, enum_type, .Data),
         },
         .index  = rank_of(value, span),
@@ -127,7 +127,7 @@ lower_enum_value :: fn(
         .type   = element,
         .target = LoweredIdent {
             .span   = span,
-            .type   = mk_array(element, true),
+            .type   = mk_array(element),
             .symbol = enum_table_const(ctx, enum_type, .Values),
         },
         .index  = rank_of(value, span),
@@ -215,7 +215,7 @@ lower_data_table :: fn(
     decl: EnumDecl, due: EnumTable, typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> LoweredConstDecl | null {
     data :: due.enum_type.data ?? return null
-    table_type :: mk_array(data, true)
+    table_type :: mk_array(data)
     entry :: table_entry(decl, due, typed)
     fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, entry.subst, table_type)
     elements: LoweredExpr[]: []
@@ -245,7 +245,7 @@ lower_value_table :: fn(decl: EnumDecl, due: EnumTable, typed: TypedProgram) -> 
     for value in values {
         elements.push(LoweredIntLit { .span = decl.span, .type = element, .value = value })
     }
-    return table_decl(decl, table_entry(decl, due, typed), mk_array(element, true), elements)
+    return table_decl(decl, table_entry(decl, due, typed), mk_array(element), elements)
 }
 
 table_entry :: fn(decl: EnumDecl, due: EnumTable, typed: TypedProgram) = MonoEntry {

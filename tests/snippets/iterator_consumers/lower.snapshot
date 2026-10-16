@@ -30,7 +30,7 @@
           int(1) :i32
   fn snippet$tens(i: i32) -> [i32, i32]
     ~>
-      [i32, i32]! {
+      [i32, i32] {
         _0: i :i32
         _1:
           mul_checked :i32
@@ -41,7 +41,7 @@
       }
   fn snippet$fifties(i: i32) -> [i32, i32]
     ~>
-      [i32, i32]! {
+      [i32, i32] {
         _0:
           mul_checked :i32
             l:
@@ -64,8 +64,8 @@
     block :void
       let __iter_0: Iterator<i64> = it :Iterator<i64>
       loop
-        let __step_1: [i64, Continuation]! =
-          vcall std_core$Iterator.next :[i64, Continuation]!
+        let __step_1: [i64, Continuation] =
+          vcall std_core$Iterator.next :[i64, Continuation]
             recv:
               __iter_0 :Iterator<i64>
         if :void
@@ -73,7 +73,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[i64, Continuation]!
+                  __step_1 :[i64, Continuation]
               r:
                 int(1) :u8
           then:
@@ -81,7 +81,7 @@
           else:
             let x: i64 =
               ._0 :i64
-                __step_1 :[i64, Continuation]!
+                __step_1 :[i64, Continuation]
             assign
               target:
                 s :i64
@@ -96,8 +96,8 @@
     block :void
       let __iter_0: Iterator<i64> = it :Iterator<i64>
       loop
-        let __step_1: [i64, Continuation]! =
-          vcall std_core$Iterator.next :[i64, Continuation]!
+        let __step_1: [i64, Continuation] =
+          vcall std_core$Iterator.next :[i64, Continuation]
             recv:
               __iter_0 :Iterator<i64>
         if :void
@@ -105,7 +105,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[i64, Continuation]!
+                  __step_1 :[i64, Continuation]
               r:
                 int(1) :u8
           then:
@@ -113,7 +113,7 @@
           else:
             let x: i64 =
               ._0 :i64
-                __step_1 :[i64, Continuation]!
+                __step_1 :[i64, Continuation]
             if :void
               cond:
                 gt :bool
@@ -128,8 +128,8 @@
     block :void
       let __iter_0: Iterator<string> = it :Iterator<string>
       loop
-        let __step_1: [string, Continuation]! =
-          vcall std_core$Iterator.next :[string, Continuation]!
+        let __step_1: [string, Continuation] =
+          vcall std_core$Iterator.next :[string, Continuation]
             recv:
               __iter_0 :Iterator<string>
         if :void
@@ -137,7 +137,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[string, Continuation]!
+                  __step_1 :[string, Continuation]
               r:
                 int(1) :u8
           then:
@@ -145,7 +145,7 @@
           else:
             let s: string =
               ._0 :string
-                __step_1 :[string, Continuation]!
+                __step_1 :[string, Continuation]
             if :void
               cond:
                 eq :bool
@@ -178,8 +178,8 @@
     block :void
       let __iter_1: Iterator<[i32, i32]> = it :Iterator<[i32, i32]>
       loop
-        let __step_2: [[i32, i32], Continuation]! =
-          vcall std_core$Iterator.next :[[i32, i32], Continuation]!
+        let __step_2: [[i32, i32], Continuation] =
+          vcall std_core$Iterator.next :[[i32, i32], Continuation]
             recv:
               __iter_1 :Iterator<[i32, i32]>
         if :void
@@ -187,7 +187,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_2 :[[i32, i32], Continuation]!
+                  __step_2 :[[i32, i32], Continuation]
               r:
                 int(1) :u8
           then:
@@ -195,7 +195,7 @@
           else:
             let __for_elem_3: [i32, i32] =
               ._0 :[i32, i32]
-                __step_2 :[[i32, i32], Continuation]!
+                __step_2 :[[i32, i32], Continuation]
             let x: i32 =
               ._0 :i32
                 __for_elem_3 :[i32, i32]
@@ -211,7 +211,7 @@
                     int(100) :i32
               then:
                 return
-                  [i32, i32]! {
+                  [i32, i32] {
                     _0: x :i32
                     _1: y :i32
                   }
@@ -234,7 +234,7 @@
                   r:
                     y :i32
     return
-      [i32, i32]! {
+      [i32, i32] {
         _0: a :i32
         _1: b :i32
       }
@@ -243,8 +243,8 @@
     block :void
       let __iter_0: Iterator<i64> = it :Iterator<i64>
       loop
-        let __step_1: [i64, Continuation]! =
-          vcall std_core$Iterator.next :[i64, Continuation]!
+        let __step_1: [i64, Continuation] =
+          vcall std_core$Iterator.next :[i64, Continuation]
             recv:
               __iter_0 :Iterator<i64>
         if :void
@@ -252,7 +252,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[i64, Continuation]!
+                  __step_1 :[i64, Continuation]
               r:
                 int(1) :u8
           then:
@@ -260,7 +260,7 @@
           else:
             let x: i64 =
               ._0 :i64
-                __step_1 :[i64, Continuation]!
+                __step_1 :[i64, Continuation]
             assign
               target:
                 n :i64
@@ -276,8 +276,8 @@
     block :void
       let __iter_0: Iterator<i64> = it :Iterator<i64>
       loop
-        let __step_1: [i64, Continuation]! =
-          vcall std_core$Iterator.next :[i64, Continuation]!
+        let __step_1: [i64, Continuation] =
+          vcall std_core$Iterator.next :[i64, Continuation]
             recv:
               __iter_0 :Iterator<i64>
         if :void
@@ -285,7 +285,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[i64, Continuation]!
+                  __step_1 :[i64, Continuation]
               r:
                 int(1) :u8
           then:
@@ -293,7 +293,7 @@
           else:
             let x: i64 =
               ._0 :i64
-                __step_1 :[i64, Continuation]!
+                __step_1 :[i64, Continuation]
             assign
               target:
                 n :i64
@@ -313,8 +313,8 @@
     block :void
       let __iter_0: Iterator<i32> = it :Iterator<i32>
       loop
-        let __step_1: [i32, Continuation]! =
-          vcall std_core$Iterator.next :[i32, Continuation]!
+        let __step_1: [i32, Continuation] =
+          vcall std_core$Iterator.next :[i32, Continuation]
             recv:
               __iter_0 :Iterator<i32>
         if :void
@@ -322,7 +322,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[i32, Continuation]!
+                  __step_1 :[i32, Continuation]
               r:
                 int(1) :u8
           then:
@@ -330,7 +330,7 @@
           else:
             let x: i32 =
               ._0 :i32
-                __step_1 :[i32, Continuation]!
+                __step_1 :[i32, Continuation]
             assign
               target:
                 n :i32
@@ -343,8 +343,8 @@
     block :void
       let __iter_2: Iterator<i32> = it :Iterator<i32>
       loop
-        let __step_3: [i32, Continuation]! =
-          vcall std_core$Iterator.next :[i32, Continuation]!
+        let __step_3: [i32, Continuation] =
+          vcall std_core$Iterator.next :[i32, Continuation]
             recv:
               __iter_2 :Iterator<i32>
         if :void
@@ -352,7 +352,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_3 :[i32, Continuation]!
+                  __step_3 :[i32, Continuation]
               r:
                 int(1) :u8
           then:
@@ -360,7 +360,7 @@
           else:
             let x: i32 =
               ._0 :i32
-                __step_3 :[i32, Continuation]!
+                __step_3 :[i32, Continuation]
             assign
               target:
                 n :i32
@@ -395,13 +395,13 @@
                 i :i32
               r:
                 int(1) :i32
-    let pts: Point![] =
-      block :Point![]
+    let pts: Point[] =
+      block :Point[]
         let __fuse_arr_0: i32[] = a :i32[]
-        let f: fn(i32) -> Point! = __lambda_snippet_0 :fn(i32) -> Point!
-        let out: Point![] =
-          @array.repeat :Point![]
-            array :Point![]
+        let f: fn(i32) -> Point = __lambda_snippet_0 :fn(i32) -> Point
+        let out: Point[] =
+          @array.repeat :Point[]
+            array :Point[]
             LoweredArrayLen
         block :void
           let __fuse_len_0: usize =
@@ -414,10 +414,10 @@
                   __fuse_arr_0 :i32[]
                 ix:
                   __fuse_i_1 :usize
-            let x: Point! =
-              call :Point!
+            let x: Point =
+              call :Point
                 callee:
-                  __lambda_snippet_0 :fn(i32) -> Point!
+                  __lambda_snippet_0 :fn(i32) -> Point
                 arg0:
                   x :i32
             LoweredArrayPush
@@ -432,11 +432,11 @@
                   r:
                     int(1) :usize
         ~>
-          out :Point![]
-    let squares: __genstate_map<i64>! =
-      call :__genstate_map<i64>!
+          out :Point[]
+    let squares: __genstate_map<i64> =
+      call :__genstate_map<i64>
         callee:
-          std_iter$map__i32__i64 :__genstate_map<i64>!
+          std_iter$map__i32__i64 :__genstate_map<i64>
         arg0:
           call :Iterator<T>
             callee:
@@ -559,7 +559,7 @@
                     callee:
                       std_iter$fold__i64__i64 :i64
                     arg0:
-                      squares :__genstate_map<i64>!
+                      squares :__genstate_map<i64>
                     arg1:
                       cast → i64
                         int(0) :i64
@@ -573,10 +573,10 @@
                 __buf_4 :Buffer
               arg1:
                 __off_5 :usize
-    let odds: __genstate_filter<i32>! =
-      call :__genstate_filter<i32>!
+    let odds: __genstate_filter<i32> =
+      call :__genstate_filter<i32>
         callee:
-          std_iter$filter__i32 :__genstate_filter<i32>!
+          std_iter$filter__i32 :__genstate_filter<i32>
         arg0:
           call :Iterator<T>
             callee:
@@ -702,7 +702,7 @@
                       callee:
                         std_iter$sum__i32 :i32
                       arg0:
-                        odds :__genstate_filter<i32>!
+                        odds :__genstate_filter<i32>
           ~>
             call :string
               callee:
@@ -711,10 +711,10 @@
                 __buf_8 :Buffer
               arg1:
                 __off_9 :usize
-    let squares_total: __genstate_map<i64>! =
-      call :__genstate_map<i64>!
+    let squares_total: __genstate_map<i64> =
+      call :__genstate_map<i64>
         callee:
-          std_iter$map__i32__i64 :__genstate_map<i64>!
+          std_iter$map__i32__i64 :__genstate_map<i64>
         arg0:
           call :Iterator<T>
             callee:
@@ -831,7 +831,7 @@
                     callee:
                       total :fn(Iterator<i64>) -> i64
                     arg0:
-                      squares_total :__genstate_map<i64>!
+                      squares_total :__genstate_map<i64>
           ~>
             call :string
               callee:
@@ -840,10 +840,10 @@
                 __buf_12 :Buffer
               arg1:
                 __off_13 :usize
-    let squares_over: __genstate_map<i64>! =
-      call :__genstate_map<i64>!
+    let squares_over: __genstate_map<i64> =
+      call :__genstate_map<i64>
         callee:
-          std_iter$map__i32__i64 :__genstate_map<i64>!
+          std_iter$map__i32__i64 :__genstate_map<i64>
         arg0:
           call :Iterator<T>
             callee:
@@ -974,7 +974,7 @@
                     arg0:
                       int(20) :i64
                     arg1:
-                      squares_over :__genstate_map<i64>!
+                      squares_over :__genstate_map<i64>
           ~>
             call :string
               callee:
@@ -983,10 +983,10 @@
                 __buf_16 :Buffer
               arg1:
                 __off_17 :usize
-    let squares_none: __genstate_map<i64>! =
-      call :__genstate_map<i64>!
+    let squares_none: __genstate_map<i64> =
+      call :__genstate_map<i64>
         callee:
-          std_iter$map__i32__i64 :__genstate_map<i64>!
+          std_iter$map__i32__i64 :__genstate_map<i64>
         arg0:
           call :Iterator<T>
             callee:
@@ -1117,7 +1117,7 @@
                     arg0:
                       int(1000) :i64
                     arg1:
-                      squares_none :__genstate_map<i64>!
+                      squares_none :__genstate_map<i64>
           ~>
             call :string
               callee:
@@ -1126,37 +1126,37 @@
                 __buf_20 :Buffer
               arg1:
                 __off_21 :usize
-    let far: __genstate_filter<Point!>! =
-      call :__genstate_filter<Point!>!
+    let far: __genstate_filter<Point> =
+      call :__genstate_filter<Point>
         callee:
-          std_iter$filter__Point :__genstate_filter<Point!>!
+          std_iter$filter__Point :__genstate_filter<Point>
         arg0:
           call :Iterator<T>
             callee:
               std_core$[]$Into$into__Point :Iterator<T>
             arg0:
-              pts :Point![]
+              pts :Point[]
         arg1:
           __lambda_snippet_1 :fn(Point) -> bool
     let near: i32 =
       .x :i32
-        block :Point!
-          let __coalesce_22: null | Point! =
-            block :null | Point!
-              let __fuse_arr_23: Point![] = pts :Point![]
-              let pred: fn(Point!) -> bool = __lambda_snippet_2 :fn(Point) -> bool
-              let pred: fn(Point!) -> bool = __lambda_snippet_3 :fn(Point) -> bool
-              let __consumed_24: null | Point! = null
+        block :Point
+          let __coalesce_22: null | Point =
+            block :null | Point
+              let __fuse_arr_23: Point[] = pts :Point[]
+              let pred: fn(Point) -> bool = __lambda_snippet_2 :fn(Point) -> bool
+              let pred: fn(Point) -> bool = __lambda_snippet_3 :fn(Point) -> bool
+              let __consumed_24: null | Point = null
               block :$exit$i119
                 block :void
                   let __fuse_len_0: usize =
                     LoweredArrayLen
                   let __fuse_i_1: usize = int(0) :usize
                   loop while (<…>)
-                    let x: Point! =
-                      index :Point!
+                    let x: Point =
+                      index :Point
                         on:
-                          __fuse_arr_23 :Point![]
+                          __fuse_arr_23 :Point[]
                         ix:
                           __fuse_i_1 :usize
                     ~>
@@ -1164,24 +1164,24 @@
                         cond:
                           call :bool
                             callee:
-                              __lambda_snippet_2 :fn(Point!) -> bool
+                              __lambda_snippet_2 :fn(Point) -> bool
                             arg0:
-                              x :Point!
+                              x :Point
                         then:
-                          let x: Point! = x :Point!
+                          let x: Point = x :Point
                           if :void
                             cond:
                               call :bool
                                 callee:
-                                  __lambda_snippet_3 :fn(Point!) -> bool
+                                  __lambda_snippet_3 :fn(Point) -> bool
                                 arg0:
-                                  x :Point!
+                                  x :Point
                             then:
                               assign
                                 target:
-                                  __consumed_24 :null | Point!
+                                  __consumed_24 :null | Point
                                 value:
-                                  x :Point!
+                                  x :Point
                               break :$exit$i119
                   step
                     assign
@@ -1195,26 +1195,26 @@
                             int(1) :usize
                 assign
                   target:
-                    __consumed_24 :null | Point!
+                    __consumed_24 :null | Point
                   value:
                     null
               ~>
-                __consumed_24 :null | Point!
+                __consumed_24 :null | Point
           ~>
-            if :Point!
+            if :Point
               cond:
                 is null :bool
-                  __coalesce_22 :null | Point!
+                  __coalesce_22 :null | Point
               then:
                 ~>
-                  Point! {
+                  Point {
                     x: int(0) :i32
                     y: int(0) :i32
                   }
               else:
                 ~>
-                  cast → Point!
-                    __coalesce_22 :null | Point!
+                  cast → Point
+                    __coalesce_22 :null | Point
     call :void
       callee:
         std_io$println__string :void
@@ -1281,30 +1281,30 @@
                 arg2:
                   cast → i64
                     .x :i32
-                      block :Point!
-                        let __coalesce_25: null | Point! =
-                          call :null | Point!
+                      block :Point
+                        let __coalesce_25: null | Point =
+                          call :null | Point
                             callee:
-                              std_iter$find__Point :null | Point!
+                              std_iter$find__Point :null | Point
                             arg0:
-                              far :__genstate_filter<Point!>!
+                              far :__genstate_filter<Point>
                             arg1:
                               __lambda_snippet_4 :fn(Point) -> bool
                         ~>
-                          if :Point!
+                          if :Point
                             cond:
                               is null :bool
-                                __coalesce_25 :null | Point!
+                                __coalesce_25 :null | Point
                             then:
                               ~>
-                                Point! {
+                                Point {
                                   x: int(0) :i32
                                   y: int(0) :i32
                                 }
                             else:
                               ~>
-                                cast → Point!
-                                  __coalesce_25 :null | Point!
+                                cast → Point
+                                  __coalesce_25 :null | Point
           ~>
             call :string
               callee:
@@ -1313,16 +1313,16 @@
                 __buf_26 :Buffer
               arg1:
                 __off_27 :usize
-    let thirds: __genstate_filter<Point!>! =
-      call :__genstate_filter<Point!>!
+    let thirds: __genstate_filter<Point> =
+      call :__genstate_filter<Point>
         callee:
-          std_iter$filter__Point :__genstate_filter<Point!>!
+          std_iter$filter__Point :__genstate_filter<Point>
         arg0:
           call :Iterator<T>
             callee:
               std_core$[]$Into$into__Point :Iterator<T>
             arg0:
-              pts :Point![]
+              pts :Point[]
         arg1:
           __lambda_snippet_5 :fn(Point) -> bool
     call :void
@@ -1399,16 +1399,16 @@
                 __buf_30 :Buffer
               arg1:
                 __off_31 :usize
-    let words: __genstate_map<string>! =
-      call :__genstate_map<string>!
+    let words: __genstate_map<string> =
+      call :__genstate_map<string>
         callee:
-          std_iter$map__string__string :__genstate_map<string>!
+          std_iter$map__string__string :__genstate_map<string>
         arg0:
           call :Iterator<T>
             callee:
               std_core$[]$Into$into__string :Iterator<T>
             arg0:
-              array :string[]!
+              array :string[]
                 "a" :string
                 "b" :string
                 "stop" :string
@@ -1416,8 +1416,8 @@
         arg1:
           __lambda_snippet_7 :fn(string) -> string
     block :void
-      let __fuse_arr_32: string[]! =
-        array :string[]!
+      let __fuse_arr_32: string[] =
+        array :string[]
           "a" :string
           "b" :string
           "stop" :string
@@ -1432,7 +1432,7 @@
             let x: string =
               index :string
                 on:
-                  __fuse_arr_32 :string[]!
+                  __fuse_arr_32 :string[]
                 ix:
                   __fuse_i_1 :usize
             let s: string =
@@ -1480,10 +1480,10 @@
       callee:
         print_until_stop :fn(Iterator<string>) -> void
       arg0:
-        words :__genstate_map<string>!
+        words :__genstate_map<string>
     block :void
-      let __fuse_arr_34: string[]! =
-        array :string[]!
+      let __fuse_arr_34: string[] =
+        array :string[]
           "x" :string
           "y" :string
       let f: fn(string) -> string = __lambda_snippet_9 :fn(string) -> string
@@ -1496,7 +1496,7 @@
             let x: string =
               index :string
                 on:
-                  __fuse_arr_34 :string[]!
+                  __fuse_arr_34 :string[]
                 ix:
                   __fuse_i_1 :usize
             let s: string =
@@ -1540,10 +1540,10 @@
             std_io$println__string :void
           arg0:
             "" :string
-    let pairs: __genstate_map<[i32, i32]>! =
-      call :__genstate_map<[i32, i32]>!
+    let pairs: __genstate_map<[i32, i32]> =
+      call :__genstate_map<[i32, i32]>
         callee:
-          std_iter$map__i32__Any :__genstate_map<[i32, i32]>!
+          std_iter$map__i32__Any :__genstate_map<[i32, i32]>
         arg0:
           call :Iterator<T>
             callee:
@@ -1595,7 +1595,7 @@
                     target:
                       __consumed_37 :[i32, i32]
                     value:
-                      [i32, i32]! {
+                      [i32, i32] {
                         _0: x :i32
                         _1: y :i32
                       }
@@ -1632,7 +1632,7 @@
             target:
               __consumed_37 :[i32, i32]
             value:
-              [i32, i32]! {
+              [i32, i32] {
                 _0: a :i32
                 _1: b :i32
               }
@@ -1643,7 +1643,7 @@
         callee:
           pair_sum :fn(Iterator<[i32, i32]>) -> [i32, i32]
         arg0:
-          pairs :__genstate_map<[i32, i32]>!
+          pairs :__genstate_map<[i32, i32]>
     call :void
       callee:
         std_io$println__string :void
@@ -1776,10 +1776,10 @@
                 __buf_38 :Buffer
               arg1:
                 __off_39 :usize
-    let late: __genstate_map<[i32, i32]>! =
-      call :__genstate_map<[i32, i32]>!
+    let late: __genstate_map<[i32, i32]> =
+      call :__genstate_map<[i32, i32]>
         callee:
-          std_iter$map__i32__Any :__genstate_map<[i32, i32]>!
+          std_iter$map__i32__Any :__genstate_map<[i32, i32]>
         arg0:
           call :Iterator<T>
             callee:
@@ -1831,7 +1831,7 @@
                     target:
                       __consumed_41 :[i32, i32]
                     value:
-                      [i32, i32]! {
+                      [i32, i32] {
                         _0: x :i32
                         _1: y :i32
                       }
@@ -1868,7 +1868,7 @@
             target:
               __consumed_41 :[i32, i32]
             value:
-              [i32, i32]! {
+              [i32, i32] {
                 _0: a :i32
                 _1: b :i32
               }
@@ -1879,7 +1879,7 @@
         callee:
           pair_sum :fn(Iterator<[i32, i32]>) -> [i32, i32]
         arg0:
-          late :__genstate_map<[i32, i32]>!
+          late :__genstate_map<[i32, i32]>
     call :void
       callee:
         std_io$println__string :void
@@ -2012,14 +2012,14 @@
                 __buf_42 :Buffer
               arg1:
                 __off_43 :usize
-    let tuples: __genstate_filter<[i32, i32]>! =
-      call :__genstate_filter<[i32, i32]>!
+    let tuples: __genstate_filter<[i32, i32]> =
+      call :__genstate_filter<[i32, i32]>
         callee:
-          std_iter$filter___i32__i32_ :__genstate_filter<[i32, i32]>!
+          std_iter$filter___i32__i32_ :__genstate_filter<[i32, i32]>
         arg0:
-          call :__genstate_map<[i32, i32]>!
+          call :__genstate_map<[i32, i32]>
             callee:
-              std_iter$map__i32__Any :__genstate_map<[i32, i32]>!
+              std_iter$map__i32__Any :__genstate_map<[i32, i32]>
             arg0:
               call :Iterator<T>
                 callee:
@@ -2083,7 +2083,7 @@
                         target:
                           __consumed_45 :[i32, i32]
                         value:
-                          [i32, i32]! {
+                          [i32, i32] {
                             _0: x :i32
                             _1: y :i32
                           }
@@ -2120,7 +2120,7 @@
             target:
               __consumed_45 :[i32, i32]
             value:
-              [i32, i32]! {
+              [i32, i32] {
                 _0: a :i32
                 _1: b :i32
               }
@@ -2131,7 +2131,7 @@
         callee:
           pair_sum :fn(Iterator<[i32, i32]>) -> [i32, i32]
         arg0:
-          tuples :__genstate_filter<[i32, i32]>!
+          tuples :__genstate_filter<[i32, i32]>
     call :void
       callee:
         std_io$println__string :void
@@ -2264,10 +2264,10 @@
                 __buf_46 :Buffer
               arg1:
                 __off_47 :usize
-    let scaled: __genstate_map<i64>! =
-      call :__genstate_map<i64>!
+    let scaled: __genstate_map<i64> =
+      call :__genstate_map<i64>
         callee:
-          std_iter$map__i32__i64 :__genstate_map<i64>!
+          std_iter$map__i32__i64 :__genstate_map<i64>
         arg0:
           call :Iterator<T>
             callee:
@@ -2458,7 +2458,7 @@
                     arg0:
                       int(10) :i64
                     arg1:
-                      scaled :__genstate_map<i64>!
+                      scaled :__genstate_map<i64>
           ~>
             call :string
               callee:
@@ -2509,9 +2509,9 @@
                       callee:
                         drained_twice :fn(Iterator<i32>) -> i32
                       arg0:
-                        call :__genstate_map<i32>!
+                        call :__genstate_map<i32>
                           callee:
-                            std_iter$map__i32__i32 :__genstate_map<i32>!
+                            std_iter$map__i32__i32 :__genstate_map<i32>
                           arg0:
                             call :Iterator<T>
                               callee:
@@ -2810,9 +2810,9 @@
               arg1:
                 __off_67 :usize
     return int(0) :i32
-  fn __lambda_snippet_0(i: i32) -> Point!
+  fn __lambda_snippet_0(i: i32) -> Point
     ~>
-      Point! {
+      Point {
         x: i :i32
         y:
           mul_checked :i32
@@ -2938,8 +2938,8 @@
     block :void
       let __iter_0: Iterator<i64> = it :Iterator<i64>
       loop
-        let __step_1: [i64, Continuation]! =
-          vcall std_core$Iterator.next :[i64, Continuation]!
+        let __step_1: [i64, Continuation] =
+          vcall std_core$Iterator.next :[i64, Continuation]
             recv:
               __iter_0 :Iterator<i64>
         if :void
@@ -2947,7 +2947,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[i64, Continuation]!
+                  __step_1 :[i64, Continuation]
               r:
                 int(1) :u8
           then:
@@ -2955,7 +2955,7 @@
           else:
             let x: i64 =
               ._0 :i64
-                __step_1 :[i64, Continuation]!
+                __step_1 :[i64, Continuation]
             assign
               target:
                 n :i64

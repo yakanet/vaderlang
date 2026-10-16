@@ -412,16 +412,6 @@ export array_kind_from_name :: fn(name: string) -> ArrayKind = match name {
 /// tuple / nested-array elements.
 export BcDataEntry :: BcPrimData | BcStrData | BcAggregateData
 
-/// Whether a pool entry is a writable global (`X: T[]!: …`) rather than a
-/// read-only blob. Read per variant: the three do not share a field layout.
-///
-/// @param e  the pool entry.
-export data_entry_mutable :: fn(e: BcDataEntry) -> bool = match e {
-    is BcPrimData      -> e.mutable
-    is BcStrData       -> e.mutable
-    is BcAggregateData -> e.mutable
-}
-
 /// A pooled array of primitive elements. `items` carries one u64 entry per
 /// element — the raw bit pattern at the element's natural width (low bits used).
 /// For signed integers, callers reinterpret the u64 as `iN` ; for floats, as the
@@ -429,11 +419,6 @@ export data_entry_mutable :: fn(e: BcDataEntry) -> bool = match e {
 export BcPrimData :: struct {
     kind: ArrayKind         // never Boxed — primitive arrays only
     items: u64[]
-    /// True for a mutable module const : the native backend emits a writable
-    /// global instead of a `static const` `.rodata` blob, and the VM shares the
-    /// one materialised array. Lives here rather than on `BcArray` because the
-    /// type table erases mutability by design — same layout either way.
-    mutable: bool = false
 }
 
 /// A pooled read-only `string[]`. `values` carries the element string values ; each
@@ -443,8 +428,6 @@ export BcPrimData :: struct {
 /// is a `vader_string_t` atom id, never an inline primitive.
 export BcStrData :: struct {
     values: string[]
-    /// See `BcPrimData.mutable`.
-    mutable: bool = false
 }
 
 /// A pooled aggregate `T[]` — a struct / tuple array, or any array whose
@@ -456,9 +439,6 @@ export BcStrData :: struct {
 export BcAggregateData :: struct {
     element_type_name: string
     elements: BcDataValue[]
-    /// See `BcPrimData.mutable`. Array level only — the element objects stay
-    /// `static const`, which the type system relies on (a read-only element type).
-    mutable: bool = false
 }
 
 /// A single recursive baked value — the element of a `BcAggregateData` or a field

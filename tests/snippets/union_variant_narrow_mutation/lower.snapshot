@@ -4,7 +4,7 @@
   fn snippet$fill(x: i32[] | string[]) -> usize
     if :void
       cond:
-        is i32[]! :bool
+        is i32[] :bool
           x :i32[] | string[]
       then:
         LoweredArrayPush
@@ -17,7 +17,7 @@
   fn snippet$total(x: i32[] | string[]) -> usize
     if :void
       cond:
-        is i32[]! :bool
+        is i32[] :bool
           x :i32[] | string[]
       then:
         let sum: i32 = int(0) :i32

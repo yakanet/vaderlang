@@ -2,27 +2,27 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let it: Repeat<i32>! =
-      Repeat<i32>! {
+    let it: Repeat<i32> =
+      Repeat<i32> {
         value: int(42) :i32
         remaining: int(3) :i32
       }
     let sum: i32 = int(0) :i32
     block :void
-      let __iter_0: Repeat<i32>! = it :Repeat<i32>!
+      let __iter_0: Repeat<i32> = it :Repeat<i32>
       loop
-        let __step_1: [i32, Continuation]! =
-          call :[i32, Continuation]!
+        let __step_1: [i32, Continuation] =
+          call :[i32, Continuation]
             callee:
-              snippet$Repeat$Iterator$next__i32 :[i32, Continuation]!
+              snippet$Repeat$Iterator$next__i32 :[i32, Continuation]
             arg0:
-              __iter_0 :Repeat<i32>!
+              __iter_0 :Repeat<i32>
         if :void
           cond:
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[i32, Continuation]!
+                  __step_1 :[i32, Continuation]
               r:
                 int(1) :u8
           then:
@@ -30,7 +30,7 @@
           else:
             let x: i32 =
               ._0 :i32
-                __step_1 :[i32, Continuation]!
+                __step_1 :[i32, Continuation]
             assign
               target:
                 sum :i32
@@ -76,7 +76,7 @@
                 __off_3 :usize
     return int(0) :i32
   struct snippet$Repeat__i32 { value: i32, remaining: i32 }
-  fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>!) -> [i32, Continuation]
+  fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>) -> [i32, Continuation]
     if :void
       cond:
         lte :bool
@@ -87,7 +87,7 @@
             int(0) :i32
       then:
         return
-          [i32, Continuation]! {
+          [i32, Continuation] {
             _0:
               .value :i32
                 self :Repeat<i32>
@@ -108,7 +108,7 @@
           r:
             int(1) :i32
     return
-      [i32, Continuation]! {
+      [i32, Continuation] {
         _0: v :i32
         _1: int(0) :u8
       }

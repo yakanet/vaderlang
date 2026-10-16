@@ -91,7 +91,7 @@
   expr 44:11    StringLitExpr  :: string
   expr 44:27    CallExpr       :: usize
   expr 44:27    IdentExpr      :: type
-  expr 44:27    RangeExpr      :: Range<usize>!
+  expr 44:27    RangeExpr      :: Range<usize>
   expr 44:38    CallExpr       :: usize
   expr 44:38    IdentExpr      :: type
   expr 45:13    StringLitExpr  :: string

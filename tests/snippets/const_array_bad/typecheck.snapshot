@@ -11,7 +11,7 @@
   expr 15:25    IdentExpr      :: i32[]
   expr 15:5     CallExpr       :: void
   expr 15:5     IdentExpr      :: fn(i32[]) -> void
-  expr 7:11     SeqLitExpr     :: i32[]!
+  expr 7:11     SeqLitExpr     :: i32[]
 
 # Diagnostics
 [14:5] error[T3070] a frozen value cannot be modified: `DIGITS` is a module constant, and `DIGITS[]` is assigned ; a name bound to it holds a copy to modify

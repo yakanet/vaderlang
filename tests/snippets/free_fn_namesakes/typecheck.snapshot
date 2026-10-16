@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/free_fn_namesakes
-  StructDecl     Box                  :: Box<T>!
+  StructDecl     Box                  :: Box<T>
   FnDecl         chars                :: fn(string, i32) -> string
   FnDecl         main                 :: fn() -> i32
   FnDecl         render               :: fn(Box<string>, string) -> string
@@ -14,13 +14,13 @@
   expr 22:46    IdentExpr      :: Box<i32>
   expr 22:55    FieldExpr      :: i32
   expr 22:55    IdentExpr      :: Box<i32>
-  expr 25:10    StructLitExpr  :: Box<i32>!
+  expr 25:10    StructLitExpr  :: Box<i32>
   expr 25:43    LambdaExpr     :: fn(i32) -> string
   expr 25:55    StringLitExpr  :: string
   expr 25:64    IdentExpr      :: i32
   expr 26:13    CallExpr       :: string
   expr 26:13    IdentExpr      :: fn(Box<i32>) -> string
-  expr 26:27    IdentExpr      :: Box<i32>!
+  expr 26:27    IdentExpr      :: Box<i32>
   expr 26:5     CallExpr       :: void
   expr 26:5     IdentExpr      :: fn(T) -> void
   expr 27:14    StringLitExpr  :: string

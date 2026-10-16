@@ -35,7 +35,7 @@ export find_core_type :: fn(ctx: FnLowerCtx, name: string, args: Type[]) -> Type
         is null -> { return null }
         is Symbol -> {
             if symbol.kind != .Struct { return null }
-            return mk_struct(symbol, args, immutable = false)
+            return mk_struct(symbol, args)
         }
     }
 }
@@ -104,7 +104,7 @@ export find_core_enum :: fn(ctx: FnLowerCtx, name: string) -> Type | null {
 /// @param cont     the `Continuation` enum type.
 /// @return         the tuple type `[T, Continuation]`.
 export iterator_step_type :: fn(element: Type, cont: Type) -> Type =
-    mk_tuple([element, cont], immutable = false)
+    mk_tuple([element, cont])
 
 /// Build the `T | Suspended` union an `async fn`'s synthesised `resume`
 /// returns. Flattening (via `union_of`) keeps a fallible `T = U | Error` from
@@ -151,5 +151,5 @@ import "vader/resolver"
 @test test_iterator_step_type_renders :: fn() -> void {
     step :: iterator_step_type(mk_primitive("i32"), mk_primitive("u8"))
     // `display_type` for a tuple joins with `, ` inside brackets.
-    assert_eq(display_type(step), "[i32, u8]!")
+    assert_eq(display_type(step), "[i32, u8]")
 }

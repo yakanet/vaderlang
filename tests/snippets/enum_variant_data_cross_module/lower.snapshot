@@ -39,8 +39,8 @@
             ix:
               cast → i64
                 c :Code
-    let x: Info! =
-      Info! {
+    let x: Info =
+      Info {
         id: "a" :string
         message: "b" :string
       }
@@ -49,7 +49,7 @@
         std_io$println__string :void
       arg0:
         .message :string
-          x :Info!
+          x :Info
     return int(0) :i32
   fn concat_3(p0: string, p1: string, p2: string) -> string
     let c0: usize =

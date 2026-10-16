@@ -4,7 +4,8 @@
 
 Accepted (2026-10-16). Carries out the switch of 0053, over the summary of 0059 and
 the chains of 0066. The markers still written in the tree are removed next, once
-the seed is cut from this compiler.
+the seed is cut from this compiler. Amended by 0069: a written `!` is a syntax
+error rather than a warning, and the read-only bit leaves the type IR with it.
 
 ## Context
 

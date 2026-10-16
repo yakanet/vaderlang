@@ -1,10 +1,10 @@
 # Typecheck
 
 ## tests/snippets/_diag_union_common_field
-  StructDecl     Aligned              :: Aligned!
-  StructDecl     AlsoAligned          :: AlsoAligned!
-  StructDecl     Back                 :: Back!
-  StructDecl     Front                :: Front!
+  StructDecl     Aligned              :: Aligned
+  StructDecl     AlsoAligned          :: AlsoAligned
+  StructDecl     Back                 :: Back
+  StructDecl     Front                :: Front
   FnDecl         label_of             :: fn(Back | Front) -> string
   FnDecl         main                 :: fn() -> i32
   FnDecl         name_of              :: fn(Aligned | AlsoAligned) -> string
@@ -14,19 +14,19 @@
   expr 24:45    IdentExpr      :: Back | Front
   expr 27:13    CallExpr       :: string
   expr 27:13    IdentExpr      :: fn(Aligned | AlsoAligned) -> string
-  expr 27:21    StructLitExpr  :: Aligned!
+  expr 27:21    StructLitExpr  :: Aligned
   expr 27:39    StringLitExpr  :: string
   expr 27:5     CallExpr       :: void
   expr 27:5     IdentExpr      :: fn(T) -> void
   expr 28:13    CallExpr       :: string
   expr 28:13    IdentExpr      :: fn(Aligned | AlsoAligned) -> string
-  expr 28:21    StructLitExpr  :: AlsoAligned!
+  expr 28:21    StructLitExpr  :: AlsoAligned
   expr 28:43    StringLitExpr  :: string
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(T) -> void
   expr 29:13    CallExpr       :: string
   expr 29:13    IdentExpr      :: fn(Back | Front) -> string
-  expr 29:22    StructLitExpr  :: Front!
+  expr 29:22    StructLitExpr  :: Front
   expr 29:49    StringLitExpr  :: string
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(T) -> void

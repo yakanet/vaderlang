@@ -11,7 +11,7 @@
     ~>
       if :void
         cond:
-          is Base64Error! :bool
+          is Base64Error :bool
             out :Base64Error | u8[]
         then:
           ~>
@@ -210,15 +210,15 @@
         "dec-foobar" :string
       arg1:
         "Zm9vYmFy" :string
-    let inputs: string[]! =
-      array :string[]!
+    let inputs: string[] =
+      array :string[]
         "hello world" :string
         "" :string
         "a" :string
         "ab" :string
         "The quick brown fox" :string
     block :void
-      let __for_arr_0: string[]! = inputs :string[]!
+      let __for_arr_0: string[] = inputs :string[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -226,7 +226,7 @@
         let s: string =
           index :string
             on:
-              __for_arr_0 :string[]!
+              __for_arr_0 :string[]
             ix:
               __for_i_2 :usize
         let decoded: Base64Error | u8[] =
@@ -246,7 +246,7 @@
         ~>
           if :void
             cond:
-              is Base64Error! :bool
+              is Base64Error :bool
                 decoded :Base64Error | u8[]
             then:
               ~>

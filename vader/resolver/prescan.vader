@@ -96,8 +96,7 @@ for_type_owner_sym :: fn(
     idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
 ) -> Symbol | null {
     if t is AST.ArrayTypeExpr {
-        element :: AST.strip_mut_marker(t.element) ?? return null
-        owner :: for_type_owner_sym(element, idents, wire_targets) ?? return null
+        owner :: for_type_owner_sym(t.element, idents, wire_targets) ?? return null
         return if owner.kind == .TypeParam { null } else { owner }
     }
     if t is AST.IdentExpr {
@@ -115,8 +114,7 @@ for_type_owner_sym :: fn(
 
 for_type_display_name :: fn(t: AST.TypeExpr) -> string {
     if t is AST.ArrayTypeExpr {
-        element :: AST.strip_mut_marker(t.element) ?? return "?[]"
-        return "${for_type_display_name(element)}[]"
+        return "${for_type_display_name(t.element)}[]"
     }
     if t is AST.IdentExpr { return t.name }
     if t is AST.GenericInstExpr {

@@ -153,7 +153,6 @@ copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram)
             }
         }
         is AST.ArrayTypeExpr   -> { copy_expr_resolutions(e.element, from, into) }
-        is AST.MutableTypeExpr -> { copy_expr_resolutions(e.inner, from, into) }
         is AST.AwaitExpr       -> { copy_expr_resolutions(e.inner, from, into) }
         // Leaves, and the one form whose body is a statement list.
         is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr

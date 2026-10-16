@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/primitive_impl
-  TraitDecl      Describe             :: Describe!
+  TraitDecl      Describe             :: Describe
   FnDecl         main                 :: fn() -> i32
   expr 15:16    StringLitExpr  :: string
   expr 15:33    IdentExpr      :: i32

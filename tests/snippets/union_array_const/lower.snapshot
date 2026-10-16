@@ -486,7 +486,7 @@
             arg0:
               if :string
                 cond:
-                  is Circle! :bool
+                  is Circle :bool
                     s :Circle | Square
                 then:
                   ~>

@@ -3,7 +3,7 @@
 ## snippet
   fn snippet$pair(x: i32) -> [i32, i32]
     ~>
-      [i32, i32]! {
+      [i32, i32] {
         _0: x :i32
         _1:
           add_checked :i32

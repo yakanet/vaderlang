@@ -1014,9 +1014,8 @@ apply_boxed :: fn(
             if shared.type_id == instr.type_id {
                 push_val(frame, frame.sp, shared)
             } else {
-                // A writable entry (or a site at another type_id) : a fresh
-                // header over the same `elements`, as `.rodata` is shared
-                // natively.
+                // A site at another type_id: a fresh header over the same
+                // `elements`, as `.rodata` is shared natively.
                 push_val(frame, frame.sp, ArrayVal {
                     .type_id  = instr.type_id,
                     .elements = shared.elements,

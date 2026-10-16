@@ -95,7 +95,7 @@ test_type_symbol_extracts_named_type :: fn() -> void {
         .visibility = .Private, .defined_at = null,
     }
     no_args: Type[]: []
-    extracted :: type_symbol(mk_struct(sym, no_args, immutable = false))
+    extracted :: type_symbol(mk_struct(sym, no_args))
     if extracted == null { assert(false, "struct type must carry a symbol") }
     else { assert_eq(extracted.name, "Box") }
 }
@@ -115,7 +115,7 @@ test_type_symbol_unwraps_nullable :: fn() -> void {
         .visibility = .Private, .defined_at = null,
     }
     no_args: Type[]: []
-    members: Type[]: [mk_struct(sym, no_args, immutable = false), mk_primitive("null")]
+    members: Type[]: [mk_struct(sym, no_args), mk_primitive("null")]
     extracted :: type_symbol(mk_union(members))
     if extracted == null { assert(false, "T | null must resolve to T's symbol") }
     else { assert_eq(extracted.name, "User") }

@@ -26,11 +26,11 @@
           "x" :string
     if :void
       cond:
-        is IOError! :bool
+        is IOError :bool
           wrote :IOError | null
       then:
-        let e: IOError! =
-          cast → IOError!
+        let e: IOError =
+          cast → IOError
             wrote :IOError | null
         call :void
           callee:

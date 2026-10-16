@@ -24,8 +24,7 @@ next_cell :: fn(left: i32, mid: i32, right: i32) -> i32 {
     return (RULE >> pattern) & 1
 }
 
-// Returns `i32[]!` : the row is built fresh here and handed over, so the caller
-// keeps the right to seed / grow it. Reading `row` is enough for us.
+// The next row, built fresh from `row`.
 step :: fn(row: i32[]) -> i32[] {
     n :: row.len()
     next: i32[]: []

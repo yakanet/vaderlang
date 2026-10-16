@@ -4,8 +4,8 @@
   ConstDecl      Cell                 :: type
   FnDecl         cell                 :: fn(i32 | string) -> string
   ConstDecl      CELLS                :: (i32 | string)[]
-  StructDecl     Circle               :: Circle!
-  StructDecl     Holder               :: Holder!
+  StructDecl     Circle               :: Circle
+  StructDecl     Holder               :: Holder
   ConstDecl      HOLDERS              :: Holder[]
   FnDecl         main                 :: fn() -> i32
   ConstDecl      MIXED                :: (bool | char | f64 | string)[]
@@ -18,7 +18,7 @@
   ConstDecl      SMALL                :: (string | u8)[]
   ConstDecl      Small                :: type
   FnDecl         small                :: fn(string | u8) -> string
-  StructDecl     Square               :: Square!
+  StructDecl     Square               :: Square
   ConstDecl      WIDE                 :: (i64 | string)[]
   ConstDecl      Wide                 :: type
   expr 19:16    SeqLitExpr     :: (i32 | string)[]
@@ -31,12 +31,12 @@
   expr 24:15    SeqLitExpr     :: (i64 | string)[]
   expr 24:28    StringLitExpr  :: string
   expr 25:18    SeqLitExpr     :: (Circle | Square)[]
-  expr 25:19    StructLitExpr  :: Circle!
-  expr 25:38    StructLitExpr  :: Square!
+  expr 25:19    StructLitExpr  :: Circle
+  expr 25:38    StructLitExpr  :: Square
   expr 26:20    SeqLitExpr     :: Holder[]
-  expr 26:21    StructLitExpr  :: Holder!
+  expr 26:21    StructLitExpr  :: Holder
   expr 26:39    StringLitExpr  :: string
-  expr 26:57    StructLitExpr  :: Holder!
+  expr 26:57    StructLitExpr  :: Holder
   expr 26:75    StringLitExpr  :: string
   expr 26:88    StringLitExpr  :: string
   expr 28:33    IfExpr         :: string
@@ -109,7 +109,7 @@
   expr 57:17    IfExpr         :: string
   expr 57:20    BinaryExpr     :: bool
   expr 57:20    IdentExpr      :: Circle | Square
-  expr 57:25    IdentExpr      :: Circle!
+  expr 57:25    IdentExpr      :: Circle
   expr 57:34    StringLitExpr  :: string
   expr 57:44    FieldExpr      :: i32
   expr 57:44    IdentExpr      :: Circle

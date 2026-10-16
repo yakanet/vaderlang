@@ -36,9 +36,9 @@
                 int(1) :usize
     return total :i32
   fn snippet$main() -> i32
-    let numbers: i32[]! =
-      @array.repeat :i32[]!
-        array :i32[]!
+    let numbers: i32[] =
+      @array.repeat :i32[]
+        array :i32[]
         int(9) :usize
     block :void
       let i: i32 = int(0) :i32
@@ -122,7 +122,7 @@
                   cast → i64
                     index :i32
                       on:
-                        numbers :i32[]!
+                        numbers :i32[]
                       ix:
                         int(0) :i32
           assign
@@ -153,7 +153,7 @@
                   cast → i64
                     index :i32
                       on:
-                        numbers :i32[]!
+                        numbers :i32[]
                       ix:
                         int(8) :i32
           assign
@@ -186,7 +186,7 @@
                       callee:
                         sum_of :fn(i32[]) -> i32
                       arg0:
-                        numbers :i32[]!
+                        numbers :i32[]
           ~>
             call :string
               callee:
@@ -195,9 +195,9 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let names: string[]! =
-      @array.repeat :string[]!
-        array :string[]!
+    let names: string[] =
+      @array.repeat :string[]
+        array :string[]
         int(9) :usize
     block :void
       let i: i32 = int(0) :i32
@@ -222,13 +222,13 @@
           let __p_4: string =
             index :string
               on:
-                names :string[]!
+                names :string[]
               ix:
                 int(0) :i32
           let __p_5: string =
             index :string
               on:
-                names :string[]!
+                names :string[]
               ix:
                 int(8) :i32
           let __buf_6: Buffer =

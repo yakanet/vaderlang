@@ -109,7 +109,7 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
     for [_, tp] in per_module {
         tp.generator_states = states
         for [_, state] in states {
-            state_ty :: mk_struct(state.symbol, [], immutable = false)
+            state_ty :: mk_struct(state.symbol, [])
             record_struct_trait(tp, state_ty, core_trait_key(TRAIT_ITERATOR))
             record_struct_trait_args(tp, state_ty, core_trait_key(TRAIT_ITERATOR), [state.element])
         }
@@ -140,8 +140,8 @@ export generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, co
     if typed.generator_states.is_empty() { return null }
     decl :: recorded_decl(typed, c) ?? return null
     state :: generator_state_of(decl, typed) ?? return null
-    elem :: iterator_element_of(concrete_ret) ?? return mk_struct(state.symbol, [], false)
-    return mk_struct(state.symbol, [elem], false)
+    elem :: iterator_element_of(concrete_ret) ?? return mk_struct(state.symbol, [])
+    return mk_struct(state.symbol, [elem])
 }
 
 /// The element `E` of an `Iterator<E>`, or null when `t` isn't a single-arg

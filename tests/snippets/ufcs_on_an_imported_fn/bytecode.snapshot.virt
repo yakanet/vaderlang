@@ -52,21 +52,21 @@ string 30 "invalid argument"
 string 31 "directory not empty"
 string 32 "bad file descriptor"
 string 33 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_mutable=0 param_by_address= (string) -> usize
-import 1 byte_at std_core$byte_at result_type=4 param_types=2,5 param_mutable=0,0 param_by_address= (string,usize) -> u8
-import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,5,5 param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string
-import 3 is_ascii std_core$is_ascii result_type=3 param_types=2 param_mutable=0 param_by_address= (string) -> bool
-import 4 bytes_to_string std_core$bytes_to_string result_type=2 param_types=9 param_mutable=0 param_by_address= (ref) -> string
-import 5 bytes std_core$bytes result_type=9 param_types=2 param_mutable=0 param_by_address= (string) -> ref
-import 6 extern getenv std_env$get_env header=<stdlib.h> result_type=14 param_types=2 param_mutable=0 param_by_address= (string) -> any
-import 7 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=1,9,5 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> usize
+import 1 byte_at std_core$byte_at result_type=4 param_types=2,5 param_c_out= param_by_address= (string,usize) -> u8
+import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,5,5 param_c_out= param_by_address= (string,usize,usize) -> string
+import 3 is_ascii std_core$is_ascii result_type=3 param_types=2 param_c_out= param_by_address= (string) -> bool
+import 4 bytes_to_string std_core$bytes_to_string result_type=2 param_types=9 param_c_out= param_by_address= (ref) -> string
+import 5 bytes std_core$bytes result_type=9 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 6 extern getenv std_env$get_env header=<stdlib.h> result_type=14 param_types=2 param_c_out= param_by_address= (string) -> any
+import 7 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=1,9,5 param_c_out= param_by_address= (i32,ref,usize) -> isize
 import 8 extern vader_last_errno system_posix$sys_last_errno result_type=1 () -> i32
-import 9 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=18 param_mutable=0 param_by_address= (pointer) -> i32
-import 10 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=17 param_types=2,2 param_mutable=0,0 param_by_address= (string,string) -> any
-import 11 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=18 param_mutable=0 param_by_address= (pointer) -> i32
-import 12 extern fread system_posix$sys_fread header=<stdio.h> result_type=5 param_types=9,5,5,18 param_mutable=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-import 13 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=9,5,5,18 param_mutable=0,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
-import 14 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 param_mutable=0 param_by_address= (string) -> i32
+import 9 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
+import 10 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=17 param_types=2,2 param_c_out= param_by_address= (string,string) -> any
+import 11 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=1 param_types=18 param_c_out= param_by_address= (pointer) -> i32
+import 12 extern fread system_posix$sys_fread header=<stdio.h> result_type=5 param_types=9,5,5,18 param_c_out=1,0,0,0 param_by_address= (ref,usize,usize,pointer) -> usize
+import 13 extern fwrite system_posix$sys_fwrite header=<stdio.h> result_type=5 param_types=9,5,5,18 param_c_out= param_by_address= (ref,usize,usize,pointer) -> usize
+import 14 extern unlink system_posix$sys_unlink header=<unistd.h> result_type=1 param_types=2 param_c_out= param_by_address= (string) -> i32
 impl 6 std_core$ByteAccess
 impl 12 std_core$Error
 export main 0

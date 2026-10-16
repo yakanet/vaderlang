@@ -2,11 +2,11 @@
 
 ## tests/snippets/ufcs_union_receiver
   FnDecl         area                 :: fn(Circle | Square) -> i32
-  StructDecl     Circle               :: Circle!
+  StructDecl     Circle               :: Circle
   FnDecl         describe             :: fn(Circle | Square) -> string
   FnDecl         main                 :: fn() -> i32
   ConstDecl      Shape                :: type
-  StructDecl     Square               :: Square!
+  StructDecl     Square               :: Square
   expr 17:12    MatchExpr      :: string
   expr 17:18    IdentExpr      :: Circle | Square
   expr 18:22    StringLitExpr  :: string
@@ -28,8 +28,8 @@
   expr 26:22    IdentExpr      :: Square
   expr 26:31    FieldExpr      :: i32
   expr 26:31    IdentExpr      :: Square
-  expr 31:15    StructLitExpr  :: Circle!
-  expr 32:15    StructLitExpr  :: Square!
+  expr 31:15    StructLitExpr  :: Circle
+  expr 32:15    StructLitExpr  :: Square
   expr 33:13    CallExpr       :: string
   expr 33:13    FieldExpr      :: fn() -> string
   expr 33:13    IdentExpr      :: Circle | Square

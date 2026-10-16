@@ -17,50 +17,50 @@
   expr 16:49    FieldExpr      :: Status
   expr 16:5     CallExpr       :: void
   expr 16:5     IdentExpr      :: fn(T) -> void
-  expr 17:17    StructLitExpr  :: MutableMap<Status, i64>!
-  expr 18:16    StructLitExpr  :: MutableMap<Status, i64>!
+  expr 17:17    StructLitExpr  :: MutableMap<Status, i64>
+  expr 18:16    StructLitExpr  :: MutableMap<Status, i64>
   expr 19:14    DotVariantExpr :: Status
   expr 19:24    CallExpr       :: i64
   expr 19:24    IdentExpr      :: type
   expr 19:28    FieldExpr      :: Status
   expr 19:28    FieldExpr      :: Status
-  expr 19:5     IdentExpr      :: MutableMap<Status, i64>!
+  expr 19:5     IdentExpr      :: MutableMap<Status, i64>
   expr 20:13    DotVariantExpr :: Status
   expr 20:23    CallExpr       :: i64
   expr 20:23    IdentExpr      :: type
   expr 20:27    FieldExpr      :: Status
   expr 20:27    FieldExpr      :: Status
-  expr 20:5     IdentExpr      :: MutableMap<Status, i64>!
+  expr 20:5     IdentExpr      :: MutableMap<Status, i64>
   expr 21:13    DotVariantExpr :: Status
   expr 21:22    CallExpr       :: i64
   expr 21:22    IdentExpr      :: fn(T) -> i64
   expr 21:29    FieldExpr      :: Status
   expr 21:29    FieldExpr      :: Status
-  expr 21:5     IdentExpr      :: MutableMap<Status, i64>!
+  expr 21:5     IdentExpr      :: MutableMap<Status, i64>
   expr 22:13    StringLitExpr  :: string
-  expr 22:16    IdentExpr      :: MutableMap<Status, i64>!
+  expr 22:16    IdentExpr      :: MutableMap<Status, i64>
   expr 22:16    IndexExpr      :: i64 | null
   expr 22:16    NullCoalesceExpr :: i64
   expr 22:25    DotVariantExpr :: Status
-  expr 22:42    IdentExpr      :: MutableMap<Status, i64>!
+  expr 22:42    IdentExpr      :: MutableMap<Status, i64>
   expr 22:42    IndexExpr      :: i64 | null
   expr 22:42    NullCoalesceExpr :: i64
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(T) -> void
   expr 22:50    DotVariantExpr :: Status
-  expr 22:67    IdentExpr      :: MutableMap<Status, i64>!
+  expr 22:67    IdentExpr      :: MutableMap<Status, i64>
   expr 22:67    IndexExpr      :: i64 | null
   expr 22:67    NullCoalesceExpr :: i64
   expr 22:75    DotVariantExpr :: Status
 
 ## tests/snippets/generic_enum_same_name/alpha
-  StructDecl     Info                 :: Info!
+  StructDecl     Info                 :: Info
   EnumDecl       Status               :: Status
   expr 8:22     StringLitExpr  :: string
   expr 9:22     StringLitExpr  :: string
 
 ## tests/snippets/generic_enum_same_name/beta
-  StructDecl     Info                 :: Info!
+  StructDecl     Info                 :: Info
   EnumDecl       Status               :: Status
   expr 8:22     StringLitExpr  :: string
   expr 9:22     StringLitExpr  :: string

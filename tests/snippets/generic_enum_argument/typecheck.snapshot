@@ -7,7 +7,7 @@
   EnumDecl       Level                :: Level
   FnDecl         main                 :: fn() -> i32
   FnDecl         pair                 :: fn(A, B) -> string
-  StructDecl     StatusInfo           :: StatusInfo!
+  StructDecl     StatusInfo           :: StatusInfo
   expr 18:29    StringLitExpr  :: string
   expr 19:29    StringLitExpr  :: string
   expr 20:29    StringLitExpr  :: string
@@ -57,20 +57,20 @@
   expr 38:34    DotVariantExpr :: HttpStatus
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
-  expr 39:16    StructLitExpr  :: MutableMap<HttpStatus, string>!
+  expr 39:16    StructLitExpr  :: MutableMap<HttpStatus, string>
   expr 40:13    DotVariantExpr :: HttpStatus
   expr 40:26    StringLitExpr  :: string
-  expr 40:5     IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 40:5     IdentExpr      :: MutableMap<HttpStatus, string>
   expr 41:13    DotVariantExpr :: HttpStatus
   expr 41:20    StringLitExpr  :: string
-  expr 41:5     IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 41:5     IdentExpr      :: MutableMap<HttpStatus, string>
   expr 42:13    StringLitExpr  :: string
-  expr 42:16    IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 42:16    IdentExpr      :: MutableMap<HttpStatus, string>
   expr 42:16    IndexExpr      :: null | string
   expr 42:16    NullCoalesceExpr :: string
   expr 42:24    DotVariantExpr :: HttpStatus
   expr 42:38    StringLitExpr  :: string
-  expr 42:45    IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 42:45    IdentExpr      :: MutableMap<HttpStatus, string>
   expr 42:45    IndexExpr      :: null | string
   expr 42:45    NullCoalesceExpr :: string
   expr 42:5     CallExpr       :: void
@@ -79,4 +79,4 @@
   expr 42:61    StringLitExpr  :: string
   expr 42:68    CallExpr       :: usize
   expr 42:68    FieldExpr      :: fn() -> usize
-  expr 42:68    IdentExpr      :: MutableMap<HttpStatus, string>!
+  expr 42:68    IdentExpr      :: MutableMap<HttpStatus, string>

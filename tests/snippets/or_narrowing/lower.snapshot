@@ -14,7 +14,7 @@
             int(0) :i32
       then:
         return
-          Dog! {
+          Dog {
             name: "rex" :string
           }
     if :void
@@ -26,18 +26,18 @@
             int(1) :i32
       then:
         return
-          Cat! {
+          Cat {
             name: "mia" :string
           }
     return
-      Bird! {
+      Bird {
         name: "kiwi" :string
       }
   fn snippet$furry_name(f: Cat | Dog) -> string
     ~>
       if :string
         cond:
-          is Dog! :bool
+          is Dog :bool
             f :Cat | Dog
         then:
           ~>
@@ -65,10 +65,10 @@
         cond:
           or :bool
             l:
-              is Dog! :bool
+              is Dog :bool
                 p :Bird | Cat | Dog
             r:
-              is Cat! :bool
+              is Cat :bool
                 p :Bird | Cat | Dog
         then:
           return
@@ -109,7 +109,7 @@
       cond:
         or :bool
           l:
-            is Dog! :bool
+            is Dog :bool
               p :Bird | Cat | Dog
           r:
             flag :bool
@@ -132,7 +132,7 @@
     ~>
       if :string
         cond:
-          is Cat! :bool
+          is Cat :bool
             p :Bird | Cat
         then:
           ~>

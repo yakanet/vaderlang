@@ -3,7 +3,7 @@
 ## tests/snippets/scalarised_fn_taken_as_value
   FnDecl         main                 :: fn() -> i32
   FnDecl         pair                 :: fn(i32) -> [i32, i32]
-  expr 18:36    SeqLitExpr     :: [i32, i32]!
+  expr 18:36    SeqLitExpr     :: [i32, i32]
   expr 18:37    IdentExpr      :: i32
   expr 18:40    BinaryExpr     :: i32
   expr 18:40    IdentExpr      :: i32

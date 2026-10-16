@@ -8,13 +8,13 @@
         ~>
           if :void
             cond:
-              is P! :bool
+              is P :bool
                 v :i32 | P
             then:
               ~>
                 block :void
-                  let shout: __lambda_env_snippet_3! =
-                    __lambda_env_snippet_3! {
+                  let shout: __lambda_env_snippet_3 =
+                    __lambda_env_snippet_3 {
                       cap_0: v :i32 | P
                     }
                   call :void
@@ -25,7 +25,7 @@
                         callee:
                           __lambda_snippet_2 :fn() -> string
                         arg0:
-                          shout :__lambda_env_snippet_3!
+                          shout :__lambda_env_snippet_3
                   ~>
                     call :void
                       callee:
@@ -41,7 +41,7 @@
                               callee:
                                 __lambda_snippet_2 :fn() -> string
                               arg0:
-                                shout :__lambda_env_snippet_3!
+                                shout :__lambda_env_snippet_3
             else:
               ~>
                 if :void
@@ -51,8 +51,8 @@
                   then:
                     ~>
                       block :void
-                        let doubled: __lambda_env_snippet_1! =
-                          __lambda_env_snippet_1! {
+                        let doubled: __lambda_env_snippet_1 =
+                          __lambda_env_snippet_1 {
                             cap_0: v :i32 | P
                           }
                         ~>
@@ -98,7 +98,7 @@
                                             callee:
                                               __lambda_snippet_0 :fn() -> i32
                                             arg0:
-                                              doubled :__lambda_env_snippet_1!
+                                              doubled :__lambda_env_snippet_1
                                 ~>
                                   call :string
                                     callee:
@@ -115,7 +115,7 @@
       callee:
         greet :fn(i32 | P) -> void
       arg0:
-        P! {
+        P {
           name: "world" :string
         }
     call :void
@@ -125,19 +125,19 @@
         int(21) :i32
     return int(0) :i32
   struct __lambda_env_snippet_1 { cap_0: i32 | P }
-  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1!) -> i32
+  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1) -> i32
     ~>
       add_checked :i32
         l:
           cast → i32
             .cap_0 :i32 | P
-              __env_0 :__lambda_env_snippet_1!
+              __env_0 :__lambda_env_snippet_1
         r:
           cast → i32
             .cap_0 :i32 | P
-              __env_0 :__lambda_env_snippet_1!
+              __env_0 :__lambda_env_snippet_1
   struct __lambda_env_snippet_3 { cap_0: i32 | P }
-  fn __lambda_snippet_2(__env_3: __lambda_env_snippet_3!) -> string
+  fn __lambda_snippet_2(__env_3: __lambda_env_snippet_3) -> string
     ~>
       call :string
         callee:
@@ -148,7 +148,7 @@
           .name :string
             cast → P
               .cap_0 :i32 | P
-                __env_3 :__lambda_env_snippet_3!
+                __env_3 :__lambda_env_snippet_3
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

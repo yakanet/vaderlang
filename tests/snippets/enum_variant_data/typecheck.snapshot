@@ -5,7 +5,7 @@
   EnumDecl       HttpStatus           :: HttpStatus
   EnumDecl       Level                :: Level
   FnDecl         main                 :: fn() -> i32
-  StructDecl     StatusInfo           :: StatusInfo!
+  StructDecl     StatusInfo           :: StatusInfo
   expr 19:33    StringLitExpr  :: string
   expr 20:39    StringLitExpr  :: string
   expr 21:42    StringLitExpr  :: string
@@ -18,7 +18,7 @@
   expr 29:56    IdentExpr      :: HttpStatus
   expr 29:74    FieldExpr      :: bool
   expr 29:74    IdentExpr      :: HttpStatus
-  expr 32:14    SeqLitExpr     :: HttpStatus[]!
+  expr 32:14    SeqLitExpr     :: HttpStatus[]
   expr 32:15    FieldExpr      :: HttpStatus
   expr 32:15    IdentExpr      :: HttpStatus
   expr 32:30    FieldExpr      :: HttpStatus
@@ -31,7 +31,7 @@
   expr 33:9     CallExpr       :: void
   expr 33:9     IdentExpr      :: fn(T) -> void
   expr 35:13    CallExpr       :: StatusInfo
-  expr 35:13    IdentExpr      :: StatusInfo!
+  expr 35:13    IdentExpr      :: StatusInfo
   expr 35:24    FieldExpr      :: HttpStatus
   expr 35:24    IdentExpr      :: HttpStatus
   expr 36:13    StringLitExpr  :: string

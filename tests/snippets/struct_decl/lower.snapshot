@@ -3,13 +3,13 @@
 ## snippet
   struct snippet$Point { x: f64, y: f64 }
   fn snippet$main() -> i32
-    let p: Point! =
-      Point! {
+    let p: Point =
+      Point {
         x: float(1.5) :f64
         y: float(-2.0) :f64
       }
-    let l: List<i32>! =
-      List<i32>! {
+    let l: List<i32> =
+      List<i32> {
         items:
           array :i32[]
             int(1) :i32
@@ -28,14 +28,14 @@
                 std_core$f64$Display$to_string :string
               arg0:
                 .x :f64
-                  p :Point!
+                  p :Point
           let __p_1: string =
             call :string
               callee:
                 std_core$f64$Display$to_string :string
               arg0:
                 .y :f64
-                  p :Point!
+                  p :Point
           let __buf_2: Buffer =
             call :Buffer
               callee:
@@ -152,7 +152,7 @@
                 arg2:
                   cast → u64
                     .len :u32
-                      l :List<i32>!
+                      l :List<i32>
           ~>
             call :string
               callee:
@@ -162,8 +162,8 @@
               arg1:
                 __off_3 :usize
     return int(0) :i32
-  struct snippet$List__i32 { items: i32[]!, len: u32 }
-  struct snippet$List__Any { items: Any[]!, len: u32 }
+  struct snippet$List__i32 { items: i32[], len: u32 }
+  struct snippet$List__Any { items: Any[], len: u32 }
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

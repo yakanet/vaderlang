@@ -288,7 +288,7 @@ export winning_impl :: fn(
 
 /// `entries` that cover `receiver`, the instance impls first, less the generic impls
 /// one of them hides — the same trait at arguments some instantiation makes equal
-/// (`MonType[] implements Into<Label>` leaves `T[] implements<T> Into<Iterator<T>!>`).
+/// (`MonType[] implements Into<Label>` leaves `T[] implements<T> Into<Iterator<T>>`).
 ///
 /// @param entries   impls of `receiver`'s base.
 /// @param receiver  the type asked about.

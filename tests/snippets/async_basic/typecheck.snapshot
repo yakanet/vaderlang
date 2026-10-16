@@ -4,10 +4,10 @@
   FnDecl         add_one              :: fn(i32) -> Async<i32>
   FnDecl         double               :: fn(i32) -> Async<i32>
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Ready                :: Ready<T>!
+  StructDecl     Ready                :: Ready<T>
   expr 11:50    FieldExpr      :: T
   expr 11:50    IdentExpr      :: Ready<T>
-  expr 15:38    StructLitExpr  :: Ready<i32>!
+  expr 15:38    StructLitExpr  :: Ready<i32>
   expr 15:56    BinaryExpr     :: i32
   expr 15:56    IdentExpr      :: i32
   expr 15:60    IdentExpr      :: i32
@@ -18,7 +18,7 @@
   expr 20:12    BinaryExpr     :: i32
   expr 20:12    IdentExpr      :: i32
   expr 24:10    AwaitExpr      :: i32
-  expr 24:16    CallExpr       :: Async<i32>!
+  expr 24:16    CallExpr       :: Async<i32>
   expr 24:16    IdentExpr      :: fn(i32) -> Async<i32>
   expr 25:13    StringLitExpr  :: string
   expr 25:16    IdentExpr      :: i32

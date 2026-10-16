@@ -6,7 +6,7 @@
   expr 10:12    BinaryExpr     :: bool
   expr 10:12    IdentExpr      :: i32
   expr 10:9     IfExpr         :: void
-  expr 15:14    CallExpr       :: __genstate_positives_until_big<i32>!
+  expr 15:14    CallExpr       :: __genstate_positives_until_big<i32>
   expr 15:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
   expr 15:34    SeqLitExpr     :: i32[]
   expr 15:53    CallExpr       :: void

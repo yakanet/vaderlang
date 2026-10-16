@@ -6,15 +6,15 @@
   fn __const_snippet$ITEMS() -> Item[]
     ~>
       array :Item[]
-        Item! {
+        Item {
           name: "first" :string
           inner:
             array :Inner[]
-              Inner! {
+              Inner {
                 tag: "a" :string
               }
         }
-        Item! {
+        Item {
           name: "second" :string
           inner:
             array :Inner[]
@@ -22,12 +22,12 @@
   fn snippet$main() -> i32
     let dst: Item[] =
       array :Item[]
-        Item! {
+        Item {
           name: "x" :string
           inner:
             array :Inner[]
         }
-        Item! {
+        Item {
           name: "y" :string
           inner:
             array :Inner[]
@@ -134,12 +134,12 @@
                 int(1) :usize
     let room: Item[] =
       array :Item[]
-        Item! {
+        Item {
           name: "keep" :string
           inner:
             array :Inner[]
         }
-        Item! {
+        Item {
           name: "overwrite" :string
           inner:
             array :Inner[]

@@ -4,7 +4,7 @@
   struct snippet$Counter { n: i32 }
   fn __const_snippet$START() -> Counter
     ~>
-      Counter! {
+      Counter {
         n: int(1) :i32
       }
   fn __const_snippet$PRIMES() -> i32[]
@@ -14,7 +14,7 @@
         int(3) :i32
         int(5) :i32
   const snippet$STARTS: Counter[] =
-    array :Counter[]!
+    array :Counter[]
       START :Counter
       START :Counter
   const snippet$ALIAS: Counter =
@@ -51,21 +51,21 @@
           r:
             int(1) :i32
   fn snippet$main() -> i32
-    let c: Counter! =
-      Counter! {
+    let c: Counter =
+      Counter {
         n: int(5) :i32
       }
     call :void
       callee:
         bump :fn(Counter) -> void
       arg0:
-        c :Counter!
+        c :Counter
     call :void
       callee:
         std_io$println__i32 :void
       arg0:
         .n :i32
-          c :Counter!
+          c :Counter
     call :void
       callee:
         std_io$println__i32 :void

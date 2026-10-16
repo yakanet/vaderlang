@@ -23,13 +23,6 @@ import "vader/diagnostics"
 /// allocation by keying directly on the primitive name (already a
 /// stable interned string the typechecker passes around).
 ///
-/// **Immutability is deliberately absent from every key here.** The
-/// `immutable` bit on `ArrayType` / `StructType` / `TupleType` is a
-/// typecheck-only notion : an immutable value has the layout of a mutable
-/// one, so the two MUST collapse to a single type-table slot. Adding it
-/// would fork the type table (and the emitted C) on a distinction the
-/// runtime cannot observe. Same rule in `val_type_of_type` / `bc_type_of`.
-///
 /// @param t  the type to key.
 /// @return   the key string ; pass to `MutableMap<string, i32>`.
 export type_intern_key :: fn(t: Type) -> string = match t {
@@ -356,35 +349,6 @@ import "std/testing"
     }
 }
 
-
-// The immutability bit must NOT cross into the bytecode. Two otherwise identical
-// types differing only by it have to collapse to one type-table slot and one
-// stack class — an immutable value has the layout of a mutable one, so emitting
-// two shapes would be both useless and a byte-green risk. The invariant holds by
-// construction today (`BcStruct` / `BcArray` have no field to carry the bit),
-// which is exactly why it needs a test: nothing else would stop someone adding
-// one. Covers all three carriers.
-@test test_immutability_never_reaches_the_bytecode :: fn() -> void {
-    factory :: SymbolFactory {}
-    sym :: factory.make(.Struct, "Cfg", "test", "test", .Public, null)
-    i32_ty: Type: mk_primitive("i32")
-
-    mutable_struct   :: mk_struct(sym, [], false)
-    immutable_struct :: mk_struct(sym, [], true)
-    assert_eq(type_intern_key(mutable_struct), type_intern_key(immutable_struct))
-    assert_eq(i32(val_type_of_type(mutable_struct)), i32(val_type_of_type(immutable_struct)))
-
-    assert_eq(type_intern_key(mk_array(i32_ty, false)), type_intern_key(mk_array(i32_ty, true)))
-    assert_eq(
-        type_intern_key(mk_tuple([i32_ty, i32_ty], false)),
-        type_intern_key(mk_tuple([i32_ty, i32_ty], true)),
-    )
-    assert_eq(
-        i32(val_type_of_type(mk_tuple([i32_ty, i32_ty], false))),
-        i32(val_type_of_type(mk_tuple([i32_ty, i32_ty], true))),
-    )
-}
-
 // ---- POC : structural hash key ---------------------------------------------
 
 FNV_OFFSET_64: u64: 14695981039346656037
@@ -451,8 +415,8 @@ type_args_hash :: fn(seed: u64, args: Type[]) -> u64 {
 /// the string it replaces.
 ///
 /// It mirrors `type_intern_key`'s COLLAPSING, not structural equality: an enum
-/// and its repr primitive are the same slot, a distinct and its backing are, and
-/// immutability is invisible.
+/// and its repr primitive are the same slot, and so are a distinct and its
+/// backing.
 export same_intern_class :: fn(a: Type, b: Type) -> bool {
     if a is DistinctType { return same_intern_class(a.backing, b) }
     if b is DistinctType { return same_intern_class(a, b.backing) }

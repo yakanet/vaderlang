@@ -22,11 +22,11 @@
           "0123456789" :string
     if :void
       cond:
-        is IOError! :bool
+        is IOError :bool
           wrote :IOError | null
       then:
-        let e: IOError! =
-          cast → IOError!
+        let e: IOError =
+          cast → IOError
             wrote :IOError | null
         call :void
           callee:
@@ -123,7 +123,7 @@
                     __off_1 :usize
     if :void
       cond:
-        is IOError! :bool
+        is IOError :bool
           call :IOError | string
             callee:
               read_file_string :IOError | string
@@ -132,8 +132,8 @@
             arg1:
               int(4) :usize
       then:
-        let e: IOError! =
-          cast → IOError!
+        let e: IOError =
+          cast → IOError
             call :IOError | string
               callee:
                 read_file_string :IOError | string
@@ -155,7 +155,7 @@
                   e :IOError
     if :void
       cond:
-        is IOError! :bool
+        is IOError :bool
           call :IOError | string
             callee:
               read_file_string :IOError | string
@@ -164,8 +164,8 @@
             arg1:
               int(4) :usize
       then:
-        let e: IOError! =
-          cast → IOError!
+        let e: IOError =
+          cast → IOError
             call :IOError | string
               callee:
                 read_file_string :IOError | string
@@ -193,11 +193,11 @@
           path :string
     if :void
       cond:
-        is IOError! :bool
+        is IOError :bool
           removed :IOError | null
       then:
-        let e: IOError! =
-          cast → IOError!
+        let e: IOError =
+          cast → IOError
             removed :IOError | null
         call :void
           callee:

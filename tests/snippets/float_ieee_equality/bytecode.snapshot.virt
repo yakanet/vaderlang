@@ -36,9 +36,9 @@ string 9 "tuple    : "
 string 10 "true"
 string 11 "false"
 string 12 "\n"
-import 0 byte_len std_core$byte_len result_type=9 param_types=3 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=22 param_types=3 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=4,22,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=9 param_types=3 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=22 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=4,22,9 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 10 std_core$ByteAccess
 vtable std_core$Equals.equals 12 11
 vtable std_core$Equals.equals 14 12

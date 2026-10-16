@@ -2,11 +2,11 @@
 
 ## tests/snippets/literal_argument_takes_its_binding
   ConstDecl      CFG                  :: Cfg
-  StructDecl     Cfg                  :: Cfg!
+  StructDecl     Cfg                  :: Cfg
   FnDecl         first                :: fn(T, T) -> T
   FnDecl         main                 :: fn() -> i32
   FnDecl         pick                 :: fn(T, T) -> T
-  expr 14:8     StructLitExpr  :: Cfg!
+  expr 14:8     StructLitExpr  :: Cfg
   expr 16:34    IdentExpr      :: T
   expr 18:35    IdentExpr      :: T
   expr 22:13    StringLitExpr  :: string
@@ -24,7 +24,7 @@
   expr 22:56    CallExpr       :: i64
   expr 22:56    IdentExpr      :: fn(T, T) -> T
   expr 22:65    IdentExpr      :: i64
-  expr 23:17    StructLitExpr  :: Cfg!
+  expr 23:17    StructLitExpr  :: Cfg
   expr 24:13    StringLitExpr  :: string
   expr 24:16    CallExpr       :: Cfg
   expr 24:16    FieldExpr      :: fn(Cfg) -> Cfg

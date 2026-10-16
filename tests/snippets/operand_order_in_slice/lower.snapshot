@@ -28,7 +28,7 @@
     let lo: usize = int(1) :usize
     let hi: usize = int(3) :usize
     return
-      Range<usize>! {
+      Range<usize> {
         start: lo :usize
         end: hi :usize
         inclusive: false
@@ -103,10 +103,10 @@
           else:
             ~>
               "not in: no" :string
-    let seen: MutableSet<i32>! =
-      MutableSet<i32>! {
+    let seen: MutableSet<i32> =
+      MutableSet<i32> {
         inner:
-          MutableMap<i32, bool>! {
+          MutableMap<i32, bool> {
             ekeys:
               array :i32[]
             evals:
@@ -122,7 +122,7 @@
       callee:
         std_collections$add__i32 :bool
       arg0:
-        seen :MutableSet<i32>!
+        seen :MutableSet<i32>
       arg1:
         int(2) :i32
     call :void
@@ -135,7 +135,7 @@
               callee:
                 std_collections$MutableSet$Contains$contains__i32 :bool
               arg0:
-                seen :MutableSet<i32>!
+                seen :MutableSet<i32>
               arg1:
                 call :i32
                   callee:

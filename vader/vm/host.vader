@@ -497,12 +497,12 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             desc.push(u8(FFI_ADDR))
             addr_slots.push(i64(slot_words.len()))
             slot_words.push(i64(at))
-            if param_mirror_is_mutable(info.signature, i) {
+            if bc.param_is_c_out(info.signature, i) {
                 lent_structs.push(LentStruct { .target = v, .at = at, .fields = fields })
             }
             continue
         }
-        if extern_by_address(info.signature, i) {
+        if bc.param_is_by_address(info.signature, i) {
             // `@c_pointer`: the callee takes the ADDRESS of a scalar. Spill it
             // into the frame's data area and hand over that offset — the mirror
             // of the stack temporary the native shim spills to.
@@ -845,14 +845,6 @@ serialise_mirror :: fn(
     return null
 }
 
-/// Whether the callee writes through the mirrored struct at parameter `i`.
-param_mirror_is_mutable :: fn(sig: bc.BcSignature, i: usize) -> bool {
-    if i >= sig.param_mutable.len() {
-        return false
-    }
-    return sig.param_mutable[i]
-}
-
 /// Write `value` into `buf` at `at`, little-endian, over `width` bytes.
 write_little_endian :: fn(buf: u8[], at: usize, value: i64, width: usize) -> void {
     v :: u64(value)
@@ -925,18 +917,6 @@ read_little_endian :: fn(buf: u8[], at: usize, width: usize, signed: bool) -> i6
     return value
 }
 
-/// Whether parameter `i` carries `@c_pointer`. Absent (not per-index) on every
-/// signature that has no `@extern` behind it, hence the length guard.
-///
-/// @param sig  the import's signature.
-/// @param i    parameter index.
-/// @return     whether the callee receives the parameter's address.
-extern_by_address :: fn(sig: bc.BcSignature, i: usize) -> bool {
-    if i >= sig.param_by_address.len() {
-        return false
-    }
-    return sig.param_by_address[i]
-}
 
 /// Append the low `width` bytes of `value` to `buf`, least significant first.
 ///

@@ -2,24 +2,24 @@
 
 ## tests/snippets/compound_assign_operands
   FnDecl         bump_nth             :: fn(C, usize) -> void
-  StructDecl     Cell                 :: Cell!
-  StructDecl     Counter              :: Counter!
-  StructDecl     Holder               :: Holder!
+  StructDecl     Cell                 :: Cell
+  StructDecl     Counter              :: Counter
+  StructDecl     Holder               :: Holder
   FnDecl         main                 :: fn() -> i32
   FnDecl         pick                 :: fn(Counter) -> Counter
-  StructDecl     Row                  :: Row!
-  StructDecl     Shelf                :: Shelf!
+  StructDecl     Row                  :: Row
+  StructDecl     Shelf                :: Shelf
   FnDecl         slot                 :: fn(usize) -> usize
-  TraitDecl      Stepper              :: Stepper!
-  StructDecl     Two                  :: Two!
-  expr 100:10   IdentExpr      :: Counter!
+  TraitDecl      Stepper              :: Stepper
+  StructDecl     Two                  :: Two
+  expr 100:10   IdentExpr      :: Counter
   expr 100:5    BinaryExpr     :: i32
   expr 100:5    CallExpr       :: Counter
   expr 100:5    FieldExpr      :: i32
   expr 100:5    IdentExpr      :: fn(Counter) -> Counter
   expr 101:13   StringLitExpr  :: string
   expr 101:25   FieldExpr      :: i32
-  expr 101:25   IdentExpr      :: Counter!
+  expr 101:25   IdentExpr      :: Counter
   expr 101:5    CallExpr       :: void
   expr 101:5    IdentExpr      :: fn(T) -> void
   expr 103:22   SeqLitExpr     :: string[]
@@ -38,24 +38,24 @@
   expr 105:36   IndexExpr      :: string
   expr 105:5    CallExpr       :: void
   expr 105:5    IdentExpr      :: fn(T) -> void
-  expr 107:13   StructLitExpr  :: Cell!
+  expr 107:13   StructLitExpr  :: Cell
   expr 107:29   SeqLitExpr     :: i32[]
   expr 108:10   CallExpr       :: usize
   expr 108:10   IdentExpr      :: fn(usize) -> usize
   expr 108:5    BinaryExpr     :: i32
-  expr 108:5    IdentExpr      :: Cell!
+  expr 108:5    IdentExpr      :: Cell
   expr 108:5    IndexExpr      :: i32
   expr 109:13   StringLitExpr  :: string
-  expr 109:23   IdentExpr      :: Cell!
+  expr 109:23   IdentExpr      :: Cell
   expr 109:23   IndexExpr      :: i32
   expr 109:5    CallExpr       :: void
   expr 109:5    IdentExpr      :: fn(T) -> void
-  expr 110:20   IdentExpr      :: Cell!
+  expr 110:20   IdentExpr      :: Cell
   expr 110:5    CallExpr       :: void
   expr 110:5    GenericInstExpr :: fn(C, usize) -> void
   expr 110:5    IdentExpr      :: fn(C, usize) -> void
   expr 111:13   StringLitExpr  :: string
-  expr 111:26   IdentExpr      :: Cell!
+  expr 111:26   IdentExpr      :: Cell
   expr 111:26   IndexExpr      :: i32
   expr 111:5    CallExpr       :: void
   expr 111:5    IdentExpr      :: fn(T) -> void
@@ -75,11 +75,11 @@
   expr 121:44   IdentExpr      :: usize
   expr 121:5    CallExpr       :: void
   expr 121:5    IdentExpr      :: fn(T) -> void
-  expr 123:12   StructLitExpr  :: Two!
+  expr 123:12   StructLitExpr  :: Two
   expr 124:17   IdentExpr      :: i32[]
   expr 124:5    CallExpr       :: void
   expr 124:5    FieldExpr      :: fn(i32[]) -> void
-  expr 124:5    IdentExpr      :: Two!
+  expr 124:5    IdentExpr      :: Two
   expr 125:13   StringLitExpr  :: string
   expr 125:33   IdentExpr      :: i32[]
   expr 125:33   IndexExpr      :: i32
@@ -154,27 +154,27 @@
   expr 85:36    IndexExpr      :: i32
   expr 85:5     CallExpr       :: void
   expr 85:5     IdentExpr      :: fn(T) -> void
-  expr 87:15    StructLitExpr  :: Holder!
+  expr 87:15    StructLitExpr  :: Holder
   expr 87:33    SeqLitExpr     :: i32[]
   expr 88:18    CallExpr       :: usize
   expr 88:18    IdentExpr      :: fn(usize) -> usize
   expr 88:5     BinaryExpr     :: i32
   expr 88:5     FieldExpr      :: i32[]
-  expr 88:5     IdentExpr      :: Holder!
+  expr 88:5     IdentExpr      :: Holder
   expr 88:5     IndexExpr      :: i32
   expr 89:13    StringLitExpr  :: string
   expr 89:25    FieldExpr      :: i32[]
-  expr 89:25    IdentExpr      :: Holder!
+  expr 89:25    IdentExpr      :: Holder
   expr 89:25    IndexExpr      :: i32
   expr 89:44    FieldExpr      :: i32[]
-  expr 89:44    IdentExpr      :: Holder!
+  expr 89:44    IdentExpr      :: Holder
   expr 89:44    IndexExpr      :: i32
   expr 89:5     CallExpr       :: void
   expr 89:5     IdentExpr      :: fn(T) -> void
   expr 91:18    SeqLitExpr     :: Row[]
-  expr 91:19    StructLitExpr  :: Row!
+  expr 91:19    StructLitExpr  :: Row
   expr 91:34    SeqLitExpr     :: i32[]
-  expr 91:44    StructLitExpr  :: Row!
+  expr 91:44    StructLitExpr  :: Row
   expr 91:59    SeqLitExpr     :: i32[]
   expr 92:10    CallExpr       :: usize
   expr 92:10    IdentExpr      :: fn(usize) -> usize
@@ -192,21 +192,21 @@
   expr 93:23    IndexExpr      :: i32
   expr 93:5     CallExpr       :: void
   expr 93:5     IdentExpr      :: fn(T) -> void
-  expr 95:14    StructLitExpr  :: Shelf!
+  expr 95:14    StructLitExpr  :: Shelf
   expr 95:31    SeqLitExpr     :: Counter[]
-  expr 95:32    StructLitExpr  :: Counter!
-  expr 95:56    StructLitExpr  :: Counter!
+  expr 95:32    StructLitExpr  :: Counter
+  expr 95:56    StructLitExpr  :: Counter
   expr 96:11    CallExpr       :: usize
   expr 96:11    IdentExpr      :: fn(usize) -> usize
   expr 96:5     BinaryExpr     :: i32
   expr 96:5     FieldExpr      :: i32
-  expr 96:5     IdentExpr      :: Shelf!
+  expr 96:5     IdentExpr      :: Shelf
   expr 96:5     IndexExpr      :: Counter
   expr 97:13    StringLitExpr  :: string
   expr 97:24    FieldExpr      :: Counter[]
   expr 97:24    FieldExpr      :: i32
-  expr 97:24    IdentExpr      :: Shelf!
+  expr 97:24    IdentExpr      :: Shelf
   expr 97:24    IndexExpr      :: Counter
   expr 97:5     CallExpr       :: void
   expr 97:5     IdentExpr      :: fn(T) -> void
-  expr 99:15    StructLitExpr  :: Counter!
+  expr 99:15    StructLitExpr  :: Counter

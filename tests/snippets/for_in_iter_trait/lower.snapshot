@@ -6,8 +6,8 @@
     block :void
       let __iter_0: Iterator<i32> = it :Iterator<i32>
       loop
-        let __step_1: [i32, Continuation]! =
-          vcall std_core$Iterator.next :[i32, Continuation]!
+        let __step_1: [i32, Continuation] =
+          vcall std_core$Iterator.next :[i32, Continuation]
             recv:
               __iter_0 :Iterator<i32>
         if :void
@@ -15,7 +15,7 @@
             eq :bool
               l:
                 ._1 :Continuation
-                  __step_1 :[i32, Continuation]!
+                  __step_1 :[i32, Continuation]
               r:
                 int(1) :u8
           then:
@@ -23,7 +23,7 @@
           else:
             let x: i32 =
               ._0 :i32
-                __step_1 :[i32, Continuation]!
+                __step_1 :[i32, Continuation]
             assign
               target:
                 total :i32
@@ -54,10 +54,10 @@
         let total: usize = int(0) :usize
         block :void
           loop
-            let __fuse_step_0: [char, Continuation]! =
-              call :[char, Continuation]!
+            let __fuse_step_0: [char, Continuation] =
+              call :[char, Continuation]
                 callee:
-                  std_string$StringChars$Iterator$next :[char, Continuation]!
+                  std_string$StringChars$Iterator$next :[char, Continuation]
                 arg0:
                   __fuse_iter_0 :StringChars
             if :void
@@ -65,7 +65,7 @@
                 eq :bool
                   l:
                     ._1 :Continuation
-                      __fuse_step_0 :[char, Continuation]!
+                      __fuse_step_0 :[char, Continuation]
                   r:
                     int(1) :u8
               then:
@@ -73,7 +73,7 @@
               else:
                 let x: char =
                   ._0 :char
-                    __fuse_step_0 :[char, Continuation]!
+                    __fuse_step_0 :[char, Continuation]
                 if :void
                   cond:
                     call :bool
@@ -124,8 +124,8 @@
           total :i32
     let b: i32 =
       block :i32
-        let __fuse_arr_1: i32[]! =
-          array :i32[]!
+        let __fuse_arr_1: i32[] =
+          array :i32[]
             int(10) :i32
             int(20) :i32
             int(30) :i32
@@ -138,7 +138,7 @@
             let x: i32 =
               index :i32
                 on:
-                  __fuse_arr_1 :i32[]!
+                  __fuse_arr_1 :i32[]
                 ix:
                   __fuse_i_1 :usize
             assign

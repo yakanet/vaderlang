@@ -143,10 +143,7 @@ cmd_build :: fn(args: string[]) -> i32 {
                 eprintln("vader build: `--seed-targets` always emits split C — drop `--no-split`")
                 return 2
             }
-            ts :: parse_target_list(seed_flag)
-            if ts.len() == 0 {
-                return 2
-            }
+            ts :: parse_target_list(seed_flag) ?? return 2
             out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
             return emit_c_for_targets(file, out, release, include_path_flags, ts, verify)
         }
@@ -628,10 +625,9 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
     return 0
 }
 
-// `<os>-<arch>,<os>-<arch>,…`. EMPTY on failure, after naming the offending
-// fragment — a union return would distribute the `!` marker onto the element
-// type, and an empty list is already the only invalid answer.
-parse_target_list :: fn(spec: string) -> Target[] {
+// `<os>-<arch>,<os>-<arch>,…`, or null after naming what is wrong: a fragment that
+// names no target, or no target at all.
+parse_target_list :: fn(spec: string) -> Target[] | null {
     out: Target[]: []
     for part in spec.split(",") {
         if part == "" {
@@ -640,7 +636,7 @@ parse_target_list :: fn(spec: string) -> Target[] {
         parsed :: parse_target(part)
         if parsed is TargetParseError {
             eprintln("vader build --seed-targets: ${parsed.reason} `${parsed.fragment}`")
-            return []
+            return null
         }
         if parsed is Target {
             out.push(parsed)
@@ -648,6 +644,7 @@ parse_target_list :: fn(spec: string) -> Target[] {
     }
     if out.len() == 0 {
         eprintln("vader build --seed-targets: no target named")
+        return null
     }
     return out
 }

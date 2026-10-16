@@ -3,8 +3,8 @@
 ## snippet
   fn snippet$main() -> i32
     block :void
-      let __fuse_arr_2: i32[]! =
-        array :i32[]!
+      let __fuse_arr_2: i32[] =
+        array :i32[]
           int(10) :i32
           int(20) :i32
           int(30) :i32
@@ -29,7 +29,7 @@
           let x: i32 =
             index :i32
               on:
-                __fuse_arr_2 :i32[]!
+                __fuse_arr_2 :i32[]
               ix:
                 __fuse_i_4 :usize
           let v: i32 = x :i32
@@ -110,8 +110,8 @@
                 r:
                   int(1) :usize
     block :void
-      let __fuse_arr_7: i32[]! =
-        array :i32[]!
+      let __fuse_arr_7: i32[] =
+        array :i32[]
           int(10) :i32
           int(20) :i32
           int(30) :i32
@@ -126,7 +126,7 @@
         let x: i32 =
           index :i32
             on:
-              __fuse_arr_7 :i32[]!
+              __fuse_arr_7 :i32[]
             ix:
               __fuse_i_9 :usize
         if :void
@@ -205,8 +205,8 @@
               r:
                 int(1) :usize
     block :void
-      let __fuse_arr_12: i32[]! =
-        array :i32[]!
+      let __fuse_arr_12: i32[] =
+        array :i32[]
           int(10) :i32
           int(20) :i32
           int(30) :i32
@@ -233,7 +233,7 @@
           let x: i32 =
             index :i32
               on:
-                __fuse_arr_12 :i32[]!
+                __fuse_arr_12 :i32[]
               ix:
                 __fuse_i_14 :usize
           if :void

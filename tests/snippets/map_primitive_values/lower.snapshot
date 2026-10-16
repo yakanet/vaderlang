@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let mu8: MutableMap<string, u8>! =
-      MutableMap<string, u8>! {
+    let mu8: MutableMap<string, u8> =
+      MutableMap<string, u8> {
         ekeys:
           array :string[]
         evals:
@@ -18,7 +18,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__u8 :void
       arg0:
-        mu8 :MutableMap<string, u8>!
+        mu8 :MutableMap<string, u8>
       arg1:
         "x" :string
       arg2:
@@ -27,7 +27,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__u8 :void
       arg0:
-        mu8 :MutableMap<string, u8>!
+        mu8 :MutableMap<string, u8>
       arg1:
         "y" :string
       arg2:
@@ -37,7 +37,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__u8 :null | u8
         arg0:
-          mu8 :MutableMap<string, u8>!
+          mu8 :MutableMap<string, u8>
         arg1:
           "x" :string
     if :void
@@ -65,7 +65,7 @@
                         callee:
                           std_collections$MutableMap$Index$at__string__u8 :null | u8
                         arg0:
-                          mu8 :MutableMap<string, u8>!
+                          mu8 :MutableMap<string, u8>
                         arg1:
                           "y" :string
                 let __buf_1: Buffer =
@@ -145,8 +145,8 @@
                       __buf_1 :Buffer
                     arg1:
                       __off_2 :usize
-    let mbool: MutableMap<string, bool>! =
-      MutableMap<string, bool>! {
+    let mbool: MutableMap<string, bool> =
+      MutableMap<string, bool> {
         ekeys:
           array :string[]
         evals:
@@ -161,7 +161,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__bool :void
       arg0:
-        mbool :MutableMap<string, bool>!
+        mbool :MutableMap<string, bool>
       arg1:
         "t" :string
       arg2:
@@ -170,7 +170,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__bool :void
       arg0:
-        mbool :MutableMap<string, bool>!
+        mbool :MutableMap<string, bool>
       arg1:
         "f" :string
       arg2:
@@ -180,7 +180,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__bool :bool | null
         arg0:
-          mbool :MutableMap<string, bool>!
+          mbool :MutableMap<string, bool>
         arg1:
           "t" :string
     let vf: bool | null =
@@ -188,7 +188,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__bool :bool | null
         arg0:
-          mbool :MutableMap<string, bool>!
+          mbool :MutableMap<string, bool>
         arg1:
           "f" :string
     if :void
@@ -283,8 +283,8 @@
                       __buf_3 :Buffer
                     arg1:
                       __off_4 :usize
-    let mchar: MutableMap<string, char>! =
-      MutableMap<string, char>! {
+    let mchar: MutableMap<string, char> =
+      MutableMap<string, char> {
         ekeys:
           array :string[]
         evals:
@@ -299,7 +299,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__char :void
       arg0:
-        mchar :MutableMap<string, char>!
+        mchar :MutableMap<string, char>
       arg1:
         "first" :string
       arg2:
@@ -308,7 +308,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__char :void
       arg0:
-        mchar :MutableMap<string, char>!
+        mchar :MutableMap<string, char>
       arg1:
         "accent" :string
       arg2:
@@ -318,7 +318,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__char :char | null
         arg0:
-          mchar :MutableMap<string, char>!
+          mchar :MutableMap<string, char>
         arg1:
           "first" :string
     if :void
@@ -359,11 +359,11 @@
                         callee:
                           std_collections$MutableMap$Index$at__string__char :char | null
                         arg0:
-                          mchar :MutableMap<string, char>!
+                          mchar :MutableMap<string, char>
                         arg1:
                           "accent" :string
-    let mf32: MutableMap<string, f32>! =
-      MutableMap<string, f32>! {
+    let mf32: MutableMap<string, f32> =
+      MutableMap<string, f32> {
         ekeys:
           array :string[]
         evals:
@@ -378,7 +378,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__f32 :void
       arg0:
-        mf32 :MutableMap<string, f32>!
+        mf32 :MutableMap<string, f32>
       arg1:
         "pi" :string
       arg2:
@@ -388,7 +388,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__f32 :f32 | null
         arg0:
-          mf32 :MutableMap<string, f32>!
+          mf32 :MutableMap<string, f32>
         arg1:
           "pi" :string
     if :void
@@ -420,8 +420,8 @@
                     arg0:
                       cast → f32
                         vp :f32 | null
-    let mf64: MutableMap<string, f64>! =
-      MutableMap<string, f64>! {
+    let mf64: MutableMap<string, f64> =
+      MutableMap<string, f64> {
         ekeys:
           array :string[]
         evals:
@@ -436,7 +436,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__f64 :void
       arg0:
-        mf64 :MutableMap<string, f64>!
+        mf64 :MutableMap<string, f64>
       arg1:
         "e" :string
       arg2:
@@ -446,7 +446,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__f64 :f64 | null
         arg0:
-          mf64 :MutableMap<string, f64>!
+          mf64 :MutableMap<string, f64>
         arg1:
           "e" :string
     if :void
@@ -478,8 +478,8 @@
                     arg0:
                       cast → f64
                         ve :f64 | null
-    let mi16: MutableMap<string, i16>! =
-      MutableMap<string, i16>! {
+    let mi16: MutableMap<string, i16> =
+      MutableMap<string, i16> {
         ekeys:
           array :string[]
         evals:
@@ -494,7 +494,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i16 :void
       arg0:
-        mi16 :MutableMap<string, i16>!
+        mi16 :MutableMap<string, i16>
       arg1:
         "neg" :string
       arg2:
@@ -504,7 +504,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__i16 :i16 | null
         arg0:
-          mi16 :MutableMap<string, i16>!
+          mi16 :MutableMap<string, i16>
         arg1:
           "neg" :string
     if :void
@@ -568,8 +568,8 @@
                       __buf_5 :Buffer
                     arg1:
                       __off_6 :usize
-    let mu16: MutableMap<string, u16>! =
-      MutableMap<string, u16>! {
+    let mu16: MutableMap<string, u16> =
+      MutableMap<string, u16> {
         ekeys:
           array :string[]
         evals:
@@ -584,7 +584,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__u16 :void
       arg0:
-        mu16 :MutableMap<string, u16>!
+        mu16 :MutableMap<string, u16>
       arg1:
         "big" :string
       arg2:
@@ -594,7 +594,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__u16 :null | u16
         arg0:
-          mu16 :MutableMap<string, u16>!
+          mu16 :MutableMap<string, u16>
         arg1:
           "big" :string
     if :void
@@ -658,8 +658,8 @@
                       __buf_7 :Buffer
                     arg1:
                       __off_8 :usize
-    let mi64: MutableMap<string, i64>! =
-      MutableMap<string, i64>! {
+    let mi64: MutableMap<string, i64> =
+      MutableMap<string, i64> {
         ekeys:
           array :string[]
         evals:
@@ -675,7 +675,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i64 :void
       arg0:
-        mi64 :MutableMap<string, i64>!
+        mi64 :MutableMap<string, i64>
       arg1:
         "huge" :string
       arg2:
@@ -685,7 +685,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__i64 :i64 | null
         arg0:
-          mi64 :MutableMap<string, i64>!
+          mi64 :MutableMap<string, i64>
         arg1:
           "huge" :string
     if :void
@@ -753,7 +753,7 @@
         callee:
           std_collections$MutableMap$Index$at__string__u8 :null | u8
         arg0:
-          mu8 :MutableMap<string, u8>!
+          mu8 :MutableMap<string, u8>
         arg1:
           "absent" :string
     if :void

@@ -1,7 +1,6 @@
 # Comptime
 
 ## tests/snippets/array_clear_refill
-  @comptime  SEEN                 = []
 
 ## generic instances
   __genstate_array_iter<T>

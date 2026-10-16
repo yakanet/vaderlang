@@ -95,12 +95,12 @@
   expr 58:19    IdentExpr      :: string[]
   expr 58:5     CallExpr       :: void
   expr 58:5     IdentExpr      :: fn(string[]) -> void
-  expr 61:14    SeqLitExpr     :: i32[]!
+  expr 61:14    SeqLitExpr     :: i32[]
   expr 62:12    CallExpr       :: i32[]
   expr 62:12    IdentExpr      :: fn(T[], fn(T, T) -> bool) -> T[]
-  expr 62:17    IdentExpr      :: i32[]!
+  expr 62:17    IdentExpr      :: i32[]
   expr 62:24    IdentExpr      :: fn(i32, i32) -> bool
-  expr 63:16    IdentExpr      :: i32[]!
+  expr 63:16    IdentExpr      :: i32[]
   expr 63:5     CallExpr       :: void
   expr 63:5     IdentExpr      :: fn(i32[]) -> void
   expr 64:16    IdentExpr      :: i32[]

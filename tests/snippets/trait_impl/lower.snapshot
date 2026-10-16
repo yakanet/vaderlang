@@ -2,11 +2,11 @@
 
 ## snippet
   struct snippet$Point { x: f64, y: f64 }
-  fn snippet$Point$Display$to_string(self: Point!) -> string
+  fn snippet$Point$Display$to_string(self: Point) -> string
     return "point" :string
   fn snippet$main() -> i32
-    let p: Point! =
-      Point! {
+    let p: Point =
+      Point {
         x: float(0.0) :f64
         y: float(0.0) :f64
       }
@@ -18,7 +18,7 @@
           callee:
             snippet$Point$Display$to_string :string
           arg0:
-            p :Point!
+            p :Point
     return int(0) :i32
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =

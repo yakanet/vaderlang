@@ -10,7 +10,7 @@
         target:
           head :null | Pair
         value:
-          Pair! {
+          Pair {
             left: i :i32
             right: head :null | Pair
           }
@@ -125,7 +125,7 @@
                 ~>
                   if :void
                     cond:
-                      is Pair! :bool
+                      is Pair :bool
                         cur :null | Pair
                     then:
                       ~>

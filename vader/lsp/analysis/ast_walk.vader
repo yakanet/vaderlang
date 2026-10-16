@@ -166,7 +166,7 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
     // Already considered above, and no child carries an independent span.
     if e is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
          | AST.CharLitExpr | AST.IdentExpr | AST.DotVariantExpr | AST.FnTypeExpr
-         | AST.ArrayTypeExpr | AST.MutableTypeExpr {
+         | AST.ArrayTypeExpr {
         return
     }
     match e {
@@ -415,7 +415,7 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
          | AST.NullCoalesceExpr | AST.StructLitExpr | AST.SeqLitExpr
          | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr
          | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr
-         | AST.ArrayTypeExpr | AST.MutableTypeExpr | AST.AwaitExpr {
+         | AST.ArrayTypeExpr | AST.AwaitExpr {
         return
     }
     match e {
@@ -667,7 +667,7 @@ ee_walk_expr :: fn(e: AST.Expr, st: EncloseState) -> void {
         // An arm, not an early `return`: `e` itself is pushed below the match.
         is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
          | AST.CharLitExpr | AST.IdentExpr | AST.DotVariantExpr | AST.FnTypeExpr
-         | AST.ArrayTypeExpr | AST.MutableTypeExpr -> {}
+         | AST.ArrayTypeExpr -> {}
     }
     if span_contains(e.span, st.line, st.col) { st.acc.push(e) }
 }

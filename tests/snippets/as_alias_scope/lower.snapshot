@@ -81,7 +81,7 @@
                       callee:
                         if_form :fn(Leaf | Pair) -> i32
                       arg0:
-                        Leaf! {
+                        Leaf {
                           v: int(7) :i32
                         }
           ~>
@@ -134,7 +134,7 @@
                       callee:
                         match_form :fn(Leaf | Pair) -> i32
                       arg0:
-                        Leaf! {
+                        Leaf {
                           v: int(7) :i32
                         }
           ~>
@@ -187,7 +187,7 @@
                       callee:
                         defer_form :fn(Leaf | Pair) -> i32
                       arg0:
-                        Leaf! {
+                        Leaf {
                           v: int(7) :i32
                         }
           ~>
@@ -203,15 +203,15 @@
     ~>
       if :void
         cond:
-          is Leaf! :bool
+          is Leaf :bool
             call :Leaf | Pair
               callee:
                 unwrap :fn(Leaf | Pair) -> Leaf | Pair
               arg0:
                 x :Leaf | Pair
         then:
-          let lf: Leaf! =
-            cast → Leaf!
+          let lf: Leaf =
+            cast → Leaf
               call :Leaf | Pair
                 callee:
                   unwrap :fn(Leaf | Pair) -> Leaf | Pair
@@ -278,7 +278,7 @@
         ~>
           if :void
             cond:
-              is Leaf! :bool
+              is Leaf :bool
                 __scrut_0 :Leaf | Pair
             then:
               ~>
@@ -337,7 +337,7 @@
               ~>
                 if :void
                   cond:
-                    is Pair! :bool
+                    is Pair :bool
                       __scrut_0 :Leaf | Pair
                   then:
                     ~>
@@ -396,26 +396,26 @@
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void
   struct __defer_env_snippet_3 { cap_0: Leaf | Pair }
-  fn __defer_snippet_2(__env_0: __defer_env_snippet_3!) -> void
+  fn __defer_snippet_2(__env_0: __defer_env_snippet_3) -> void
     ~>
       if :void
         cond:
-          is Leaf! :bool
+          is Leaf :bool
             call :Leaf | Pair
               callee:
                 unwrap :fn(Leaf | Pair) -> Leaf | Pair
               arg0:
                 .cap_0 :Leaf | Pair
-                  __env_0 :__defer_env_snippet_3!
+                  __env_0 :__defer_env_snippet_3
         then:
-          let df: Leaf! =
-            cast → Leaf!
+          let df: Leaf =
+            cast → Leaf
               call :Leaf | Pair
                 callee:
                   unwrap :fn(Leaf | Pair) -> Leaf | Pair
                 arg0:
                   .cap_0 :Leaf | Pair
-                    __env_0 :__defer_env_snippet_3!
+                    __env_0 :__defer_env_snippet_3
           call :void
             callee:
               std_io$println__string :void

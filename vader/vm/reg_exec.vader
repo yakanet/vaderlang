@@ -1363,13 +1363,13 @@ string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
         "type 3 primitive string",
         "type 4 primitive bool",
         "string 0 \"héllo\"",
-        r"import 0 byte_len std_core$byte_len result_type=2 param_types=3 param_mutable=0"
+        r"import 0 byte_len std_core$byte_len result_type=2 param_types=3 param_c_out=0"
             + " param_by_address= (string) -> usize",
-        r"import 1 byte_at std_core$byte_at result_type=1 param_types=3,2 param_mutable=0,0"
+        r"import 1 byte_at std_core$byte_at result_type=1 param_types=3,2 param_c_out=0,0"
             + " param_by_address= (string,usize) -> u8",
         r"import 2 byte_slice std_core$byte_slice result_type=3 param_types=3,2,2"
-            + " param_mutable=0,0,0 param_by_address= (string,usize,usize) -> string",
-        r"import 3 is_ascii std_core$is_ascii result_type=4 param_types=3 param_mutable=0"
+            + " param_c_out=0,0,0 param_by_address= (string,usize,usize) -> string",
+        r"import 3 is_ascii std_core$is_ascii result_type=4 param_types=3 param_c_out=0"
             + " param_by_address= (string) -> bool",
         "fn 0 main () -> i32",
     ]

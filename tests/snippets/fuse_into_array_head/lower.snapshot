@@ -18,8 +18,8 @@
   fn snippet$main() -> i32
     let total: i32 = int(0) :i32
     block :void
-      let __fuse_arr_0: i32[]! =
-        array :i32[]!
+      let __fuse_arr_0: i32[] =
+        array :i32[]
           int(1) :i32
           int(2) :i32
           int(3) :i32
@@ -33,7 +33,7 @@
         let x: i32 =
           index :i32
             on:
-              __fuse_arr_0 :i32[]!
+              __fuse_arr_0 :i32[]
             ix:
               __fuse_i_2 :usize
         let x: i32 =
@@ -72,8 +72,8 @@
                 int(1) :usize
     let drained: i32[] =
       block :i32[]
-        let __fuse_arr_3: i32[]! =
-          array :i32[]!
+        let __fuse_arr_3: i32[] =
+          array :i32[]
             int(10) :i32
             int(20) :i32
         let f: fn(i32) -> i32 = triple :fn(i32) -> i32
@@ -89,7 +89,7 @@
             let x: i32 =
               index :i32
                 on:
-                  __fuse_arr_3 :i32[]!
+                  __fuse_arr_3 :i32[]
                 ix:
                   __fuse_i_1 :usize
             let x: i32 =

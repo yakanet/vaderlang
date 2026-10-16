@@ -22,10 +22,8 @@ bc :: import "vader/bytecode"
 export VmState :: struct {
     bc:         bc.BytecodeModule
     /// The pool materialised, one header per entry, index-aligned with
-    /// `bc.data_pool`. A read-only entry's header is stamped with the type_id its
-    /// `data.const` sites use and handed out as is — nothing writes through a
-    /// read-only array. A writable entry carries `-1` and gets a fresh header per
-    /// read.
+    /// `bc.data_pool`. Each header is stamped with the type_id its `data.const`
+    /// sites use and handed out as is: nothing writes through a pool entry.
     data_pool:  ArrayVal[]
     /// The value of each global slot, index-aligned with `bc.globals`.
     globals:    Value[]

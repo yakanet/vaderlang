@@ -44,13 +44,13 @@
                           ~>
                             unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn snippet$main() -> i32
-    let statuses: HttpStatus[]! =
-      array :HttpStatus[]!
+    let statuses: HttpStatus[] =
+      array :HttpStatus[]
         int(0) :u8
         int(1) :u8
         int(2) :u8
     block :void
-      let __for_arr_0: HttpStatus[]! = statuses :HttpStatus[]!
+      let __for_arr_0: HttpStatus[] = statuses :HttpStatus[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -58,7 +58,7 @@
         let s: HttpStatus =
           index :HttpStatus
             on:
-              __for_arr_0 :HttpStatus[]!
+              __for_arr_0 :HttpStatus[]
             ix:
               __for_i_2 :usize
         ~>
@@ -235,8 +235,8 @@
               r:
                 int(1) :usize
     block :void
-      let __for_arr_8: Level[]! =
-        array :Level[]!
+      let __for_arr_8: Level[] =
+        array :Level[]
           int(0) :u8
           int(1) :u8
           int(2) :u8
@@ -247,7 +247,7 @@
         let level: Level =
           index :Level
             on:
-              __for_arr_8 :Level[]!
+              __for_arr_8 :Level[]
             ix:
               __for_i_10 :usize
         ~>
@@ -399,7 +399,7 @@
                     l:
                       index :HttpStatus
                         on:
-                          statuses :HttpStatus[]!
+                          statuses :HttpStatus[]
                         ix:
                           int(1) :i32
                     r:

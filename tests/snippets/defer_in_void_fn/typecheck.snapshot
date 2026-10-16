@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/defer_in_void_fn
-  StructDecl     Err                  :: Err!
+  StructDecl     Err                  :: Err
   FnDecl         fallible             :: fn(i32) -> Err | null
   FnDecl         main                 :: fn() -> i32
   FnDecl         value_trailing       :: fn() -> i32

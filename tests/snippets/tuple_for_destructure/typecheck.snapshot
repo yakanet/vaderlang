@@ -3,11 +3,11 @@
 ## tests/snippets/tuple_for_destructure
   FnDecl         main                 :: fn() -> i32
   expr 10:29    SeqLitExpr     :: [string, i32][]
-  expr 10:30    SeqLitExpr     :: [string, i32]!
+  expr 10:30    SeqLitExpr     :: [string, i32]
   expr 10:31    StringLitExpr  :: string
-  expr 10:40    SeqLitExpr     :: [string, i32]!
+  expr 10:40    SeqLitExpr     :: [string, i32]
   expr 10:41    StringLitExpr  :: string
-  expr 10:50    SeqLitExpr     :: [string, i32]!
+  expr 10:50    SeqLitExpr     :: [string, i32]
   expr 10:51    StringLitExpr  :: string
   expr 11:19    IdentExpr      :: [string, i32][]
   expr 12:17    StringLitExpr  :: string

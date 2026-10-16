@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/op_overload_index
-  StructDecl     Cell                 :: Cell!
+  StructDecl     Cell                 :: Cell
   FnDecl         main                 :: fn() -> i32
   expr 16:18    FieldExpr      :: string[]
   expr 16:18    IdentExpr      :: Cell
@@ -38,23 +38,23 @@
   expr 35:9     FieldExpr      :: fn(i32) -> void
   expr 35:9     FieldExpr      :: i32[]
   expr 35:9     IdentExpr      :: Cell
-  expr 40:10    StructLitExpr  :: Cell!
+  expr 40:10    StructLitExpr  :: Cell
   expr 40:25    SeqLitExpr     :: string[]
   expr 40:37    SeqLitExpr     :: i32[]
-  expr 41:5     IdentExpr      :: Cell!
+  expr 41:5     IdentExpr      :: Cell
   expr 41:7     StringLitExpr  :: string
-  expr 42:5     IdentExpr      :: Cell!
+  expr 42:5     IdentExpr      :: Cell
   expr 42:7     StringLitExpr  :: string
-  expr 43:5     IdentExpr      :: Cell!
+  expr 43:5     IdentExpr      :: Cell
   expr 43:7     StringLitExpr  :: string
   expr 44:13    StringLitExpr  :: string
-  expr 44:18    IdentExpr      :: Cell!
+  expr 44:18    IdentExpr      :: Cell
   expr 44:18    IndexExpr      :: i32
   expr 44:20    StringLitExpr  :: string
-  expr 44:30    IdentExpr      :: Cell!
+  expr 44:30    IdentExpr      :: Cell
   expr 44:30    IndexExpr      :: i32
   expr 44:32    StringLitExpr  :: string
-  expr 44:42    IdentExpr      :: Cell!
+  expr 44:42    IdentExpr      :: Cell
   expr 44:42    IndexExpr      :: i32
   expr 44:44    StringLitExpr  :: string
   expr 44:5     CallExpr       :: void

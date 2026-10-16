@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Cell { slots: i32[] }
-  fn snippet$Cell$Index$at(self: Cell!, i: usize) -> i32
+  fn snippet$Cell$Index$at(self: Cell, i: usize) -> i32
     ~>
       index :i32
         on:
@@ -10,7 +10,7 @@
             self :Cell
         ix:
           i :usize
-  fn snippet$Cell$IndexSet$set_at(self: Cell!, i: usize, v: i32) -> void
+  fn snippet$Cell$IndexSet$set_at(self: Cell, i: usize, v: i32) -> void
     assign
       target:
         index :i32
@@ -22,8 +22,8 @@
       value:
         v :i32
   fn snippet$main() -> i32
-    let cell: Cell! =
-      Cell! {
+    let cell: Cell =
+      Cell {
         slots:
           array :i32[]
             int(10) :i32
@@ -72,7 +72,7 @@
                       callee:
                         snippet$Cell$Index$at :i32
                       arg0:
-                        cell :Cell!
+                        cell :Cell
                       arg1:
                         int(1) :usize
           ~>
@@ -87,7 +87,7 @@
       callee:
         snippet$Cell$IndexSet$set_at :void
       arg0:
-        cell :Cell!
+        cell :Cell
       arg1:
         int(1) :usize
       arg2:
@@ -134,7 +134,7 @@
                       callee:
                         snippet$Cell$Index$at :i32
                       arg0:
-                        cell :Cell!
+                        cell :Cell
                       arg1:
                         int(1) :usize
           ~>
@@ -187,7 +187,7 @@
                       callee:
                         snippet$read_nth__Cell :i32
                       arg0:
-                        cell :Cell!
+                        cell :Cell
                       arg1:
                         int(2) :usize
           ~>
@@ -202,7 +202,7 @@
       callee:
         snippet$write_nth__Cell :void
       arg0:
-        cell :Cell!
+        cell :Cell
       arg1:
         int(2) :usize
       arg2:
@@ -249,7 +249,7 @@
                       callee:
                         snippet$read_nth__Cell :i32
                       arg0:
-                        cell :Cell!
+                        cell :Cell
                       arg1:
                         int(2) :usize
           ~>
@@ -261,21 +261,21 @@
               arg1:
                 __off_7 :usize
     return int(0) :i32
-  fn snippet$read_nth__Cell(c: Cell!, i: usize) -> i32
+  fn snippet$read_nth__Cell(c: Cell, i: usize) -> i32
     ~>
       call :i32
         callee:
           snippet$Cell$Index$at :i32
         arg0:
-          c :Cell!
+          c :Cell
         arg1:
           i :usize
-  fn snippet$write_nth__Cell(c: Cell!, i: usize, v: i32) -> void
+  fn snippet$write_nth__Cell(c: Cell, i: usize, v: i32) -> void
     call :void
       callee:
         snippet$Cell$IndexSet$set_at :void
       arg0:
-        c :Cell!
+        c :Cell
       arg1:
         i :usize
       arg2:

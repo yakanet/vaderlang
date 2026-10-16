@@ -3,7 +3,7 @@
 ## tests/snippets/distinct_orders_as_backing
   FnDecl         main                 :: fn() -> i32
   ConstDecl      Name                 :: type
-  StructDecl     Rgb                  :: Rgb!
+  StructDecl     Rgb                  :: Rgb
   ConstDecl      Tint                 :: type
   expr 15:30    BinaryExpr     :: i32
   expr 15:30    FieldExpr      :: i32
@@ -28,21 +28,21 @@
   expr 22:61    BinaryExpr     :: bool
   expr 22:61    IdentExpr      :: Name
   expr 22:70    StringLitExpr  :: string
-  expr 23:12    CallExpr       :: Tint!
+  expr 23:12    CallExpr       :: Tint
   expr 23:12    IdentExpr      :: type
-  expr 23:17    StructLitExpr  :: Rgb!
-  expr 24:15    CallExpr       :: Tint!
+  expr 23:17    StructLitExpr  :: Rgb
+  expr 24:15    CallExpr       :: Tint
   expr 24:15    IdentExpr      :: type
-  expr 24:20    StructLitExpr  :: Rgb!
+  expr 24:20    StructLitExpr  :: Rgb
   expr 25:13    StringLitExpr  :: string
   expr 25:25    BinaryExpr     :: bool
-  expr 25:25    IdentExpr      :: Tint!
-  expr 25:31    IdentExpr      :: Tint!
+  expr 25:25    IdentExpr      :: Tint
+  expr 25:31    IdentExpr      :: Tint
   expr 25:41    BinaryExpr     :: bool
-  expr 25:41    IdentExpr      :: Tint!
+  expr 25:41    IdentExpr      :: Tint
   expr 25:5     CallExpr       :: void
   expr 25:5     IdentExpr      :: fn(T) -> void
-  expr 25:50    IdentExpr      :: Tint!
+  expr 25:50    IdentExpr      :: Tint
   expr 25:57    BinaryExpr     :: bool
-  expr 25:57    IdentExpr      :: Tint!
-  expr 25:64    IdentExpr      :: Tint!
+  expr 25:57    IdentExpr      :: Tint
+  expr 25:64    IdentExpr      :: Tint

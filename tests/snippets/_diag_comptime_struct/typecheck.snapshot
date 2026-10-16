@@ -2,13 +2,13 @@
 
 ## tests/snippets/_diag_comptime_struct
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Pair                 :: Pair!
+  StructDecl     Pair                 :: Pair
   ConstDecl      PAIRS                :: Pair[]
   expr 14:16    SeqLitExpr     :: Pair[]
   expr 15:20    StringLitExpr  :: string
-  expr 15:5     StructLitExpr  :: Pair!
+  expr 15:5     StructLitExpr  :: Pair
   expr 16:20    StringLitExpr  :: string
-  expr 16:5     StructLitExpr  :: Pair!
+  expr 16:5     StructLitExpr  :: Pair
   expr 20:13    FieldExpr      :: string
   expr 20:13    IdentExpr      :: Pair[]
   expr 20:13    IndexExpr      :: Pair

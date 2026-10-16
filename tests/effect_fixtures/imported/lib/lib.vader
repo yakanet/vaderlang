@@ -1,5 +1,5 @@
-// tests/effect_fixtures/imported/lib — a constant and a module variable, reached
-// through a namespace alias by `app`.
+// tests/effect_fixtures/imported/lib — a constant and a singleton, reached through
+// a namespace alias by `app`.
 
 module "lib"
 
@@ -9,4 +9,5 @@ export Cfg :: struct {
 
 export CFG :: Cfg { .n = 1 }
 
-export COUNTS: i32[]!: [0, 0]
+@singleton
+export counts :: fn() -> i32[] = [0, 0]

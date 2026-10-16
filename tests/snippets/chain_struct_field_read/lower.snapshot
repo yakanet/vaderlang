@@ -5,17 +5,17 @@
   fn snippet$main() -> i32
     let a: Rec[] =
       array :Rec[]
-        Rec! {
+        Rec {
           name: "a" :string
           value: int(1) :i32
         }
-        Rec! {
+        Rec {
           name: "b" :string
           value: int(2) :i32
         }
     let b: Rec[] =
       array :Rec[]
-        Rec! {
+        Rec {
           name: "c" :string
           value: int(3) :i32
         }
@@ -214,13 +214,13 @@
                 __for_i_7 :usize
               r:
                 int(1) :usize
-    let doubled: Rec![] =
-      block :Rec![]
+    let doubled: Rec[] =
+      block :Rec[]
         let __fuse_arr_11: Rec[] = a :Rec[]
-        let f: fn(Rec) -> Rec! = __lambda_snippet_0 :fn(Rec) -> Rec!
-        let out: Rec![] =
-          @array.repeat :Rec![]
-            array :Rec![]
+        let f: fn(Rec) -> Rec = __lambda_snippet_0 :fn(Rec) -> Rec
+        let out: Rec[] =
+          @array.repeat :Rec[]
+            array :Rec[]
             LoweredArrayLen
         block :void
           let __fuse_len_0: usize =
@@ -233,10 +233,10 @@
                   __fuse_arr_11 :Rec[]
                 ix:
                   __fuse_i_1 :usize
-            let x: Rec! =
-              call :Rec!
+            let x: Rec =
+              call :Rec
                 callee:
-                  __lambda_snippet_0 :fn(Rec) -> Rec!
+                  __lambda_snippet_0 :fn(Rec) -> Rec
                 arg0:
                   x :Rec
             LoweredArrayPush
@@ -251,17 +251,17 @@
                   r:
                     int(1) :usize
         ~>
-          out :Rec![]
+          out :Rec[]
     block :void
-      let __for_arr_13: Rec![] = doubled :Rec![]
+      let __for_arr_13: Rec[] = doubled :Rec[]
       let __for_len_14: usize =
         LoweredArrayLen
       let __for_i_15: usize = int(0) :usize
       loop while (<…>)
-        let r: Rec! =
-          index :Rec!
+        let r: Rec =
+          index :Rec
             on:
-              __for_arr_13 :Rec![]
+              __for_arr_13 :Rec[]
             ix:
               __for_i_15 :usize
         ~>
@@ -272,7 +272,7 @@
               block :string
                 let __p_16: string =
                   .name :string
-                    r :Rec!
+                    r :Rec
                 let __buf_17: Buffer =
                   call :Buffer
                     callee:
@@ -341,7 +341,7 @@
                       arg2:
                         cast → i64
                           .value :i32
-                            r :Rec!
+                            r :Rec
                 ~>
                   call :string
                     callee:
@@ -939,9 +939,9 @@
               r:
                 int(1) :usize
     return int(0) :i32
-  fn __lambda_snippet_0(it: Rec) -> Rec!
+  fn __lambda_snippet_0(it: Rec) -> Rec
     ~>
-      Rec! {
+      Rec {
         name:
           .name :string
             it :Rec

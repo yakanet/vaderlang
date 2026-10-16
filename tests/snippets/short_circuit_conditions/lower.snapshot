@@ -11,8 +11,8 @@
         tag :string
     return v :bool
   fn snippet$shapes(a: bool, b: bool, c: bool) -> string
-    let sb: StringBuilder! =
-      StringBuilder! {
+    let sb: StringBuilder =
+      StringBuilder {
         parts:
           array :string[]
       }
@@ -24,7 +24,7 @@
               callee:
                 trace :fn(StringBuilder, string, bool) -> bool
               arg0:
-                sb :StringBuilder!
+                sb :StringBuilder
               arg1:
                 "a" :string
               arg2:
@@ -34,7 +34,7 @@
               callee:
                 trace :fn(StringBuilder, string, bool) -> bool
               arg0:
-                sb :StringBuilder!
+                sb :StringBuilder
               arg1:
                 "b" :string
               arg2:
@@ -45,7 +45,7 @@
             callee:
               append :void
             arg0:
-              sb :StringBuilder!
+              sb :StringBuilder
             arg1:
               "T1 " :string
       else:
@@ -54,7 +54,7 @@
             callee:
               append :void
             arg0:
-              sb :StringBuilder!
+              sb :StringBuilder
             arg1:
               "F1 " :string
     if :void
@@ -66,7 +66,7 @@
                 callee:
                   trace :fn(StringBuilder, string, bool) -> bool
                 arg0:
-                  sb :StringBuilder!
+                  sb :StringBuilder
                 arg1:
                   "a" :string
                 arg2:
@@ -76,7 +76,7 @@
                 callee:
                   trace :fn(StringBuilder, string, bool) -> bool
                 arg0:
-                  sb :StringBuilder!
+                  sb :StringBuilder
                 arg1:
                   "b" :string
                 arg2:
@@ -86,7 +86,7 @@
           callee:
             append :void
           arg0:
-            sb :StringBuilder!
+            sb :StringBuilder
           arg1:
             "T2 " :string
     if :void
@@ -98,7 +98,7 @@
                 callee:
                   trace :fn(StringBuilder, string, bool) -> bool
                 arg0:
-                  sb :StringBuilder!
+                  sb :StringBuilder
                 arg1:
                   "a" :string
                 arg2:
@@ -110,7 +110,7 @@
                   callee:
                     trace :fn(StringBuilder, string, bool) -> bool
                   arg0:
-                    sb :StringBuilder!
+                    sb :StringBuilder
                   arg1:
                     "b" :string
                   arg2:
@@ -121,7 +121,7 @@
                     callee:
                       trace :fn(StringBuilder, string, bool) -> bool
                     arg0:
-                      sb :StringBuilder!
+                      sb :StringBuilder
                     arg1:
                       "c" :string
                     arg2:
@@ -132,7 +132,7 @@
             callee:
               append :void
             arg0:
-              sb :StringBuilder!
+              sb :StringBuilder
             arg1:
               "T3 " :string
       else:
@@ -141,7 +141,7 @@
             callee:
               append :void
             arg0:
-              sb :StringBuilder!
+              sb :StringBuilder
             arg1:
               "F3 " :string
     let v: i32 =
@@ -155,7 +155,7 @@
                     callee:
                       trace :fn(StringBuilder, string, bool) -> bool
                     arg0:
-                      sb :StringBuilder!
+                      sb :StringBuilder
                     arg1:
                       "a" :string
                     arg2:
@@ -165,7 +165,7 @@
                     callee:
                       trace :fn(StringBuilder, string, bool) -> bool
                     arg0:
-                      sb :StringBuilder!
+                      sb :StringBuilder
                     arg1:
                       "b" :string
                     arg2:
@@ -175,7 +175,7 @@
                 callee:
                   trace :fn(StringBuilder, string, bool) -> bool
                 arg0:
-                  sb :StringBuilder!
+                  sb :StringBuilder
                 arg1:
                   "c" :string
                 arg2:
@@ -190,7 +190,7 @@
       callee:
         append :void
       arg0:
-        sb :StringBuilder!
+        sb :StringBuilder
       arg1:
         block :string
           let __buf_0: Buffer =
@@ -256,7 +256,7 @@
               callee:
                 trace :fn(StringBuilder, string, bool) -> bool
               arg0:
-                sb :StringBuilder!
+                sb :StringBuilder
               arg1:
                 "a" :string
               arg2:
@@ -267,7 +267,7 @@
             callee:
               append :void
             arg0:
-              sb :StringBuilder!
+              sb :StringBuilder
             arg1:
               "T5 " :string
       else:
@@ -280,7 +280,7 @@
                     callee:
                       trace :fn(StringBuilder, string, bool) -> bool
                     arg0:
-                      sb :StringBuilder!
+                      sb :StringBuilder
                     arg1:
                       "b" :string
                     arg2:
@@ -290,7 +290,7 @@
                     callee:
                       trace :fn(StringBuilder, string, bool) -> bool
                     arg0:
-                      sb :StringBuilder!
+                      sb :StringBuilder
                     arg1:
                       "c" :string
                     arg2:
@@ -301,7 +301,7 @@
                   callee:
                     append :void
                   arg0:
-                    sb :StringBuilder!
+                    sb :StringBuilder
                   arg1:
                     "T6 " :string
             else:
@@ -310,7 +310,7 @@
                   callee:
                     append :void
                   arg0:
-                    sb :StringBuilder!
+                    sb :StringBuilder
                   arg1:
                     "F6 " :string
     return
@@ -318,7 +318,7 @@
         callee:
           std_string_builder$StringBuilder$Display$to_string :string
         arg0:
-          sb :StringBuilder!
+          sb :StringBuilder
   fn snippet$first_over(xs: i32[], n: i32, stop: i32) -> usize
     let i: usize = int(0) :usize
     loop while (<…>)
@@ -406,8 +406,8 @@
     return int(0) :i32
   fn snippet$main() -> i32
     block :void
-      let __for_arr_0: bool[]! =
-        array :bool[]!
+      let __for_arr_0: bool[] =
+        array :bool[]
           false
           true
       let __for_len_1: usize =
@@ -417,12 +417,12 @@
         let a: bool =
           index :bool
             on:
-              __for_arr_0 :bool[]!
+              __for_arr_0 :bool[]
             ix:
               __for_i_2 :usize
         block :void
-          let __for_arr_3: bool[]! =
-            array :bool[]!
+          let __for_arr_3: bool[] =
+            array :bool[]
               false
               true
           let __for_len_4: usize =
@@ -432,12 +432,12 @@
             let b: bool =
               index :bool
                 on:
-                  __for_arr_3 :bool[]!
+                  __for_arr_3 :bool[]
                 ix:
                   __for_i_5 :usize
             block :void
-              let __for_arr_6: bool[]! =
-                array :bool[]!
+              let __for_arr_6: bool[] =
+                array :bool[]
                   false
                   true
               let __for_len_7: usize =
@@ -447,7 +447,7 @@
                 let c: bool =
                   index :bool
                     on:
-                      __for_arr_6 :bool[]!
+                      __for_arr_6 :bool[]
                     ix:
                       __for_i_8 :usize
                 ~>
@@ -610,8 +610,8 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    let xs: i32[]! =
-      array :i32[]!
+    let xs: i32[] =
+      array :i32[]
         int(1) :i32
         int(2) :i32
         int(7) :i32
@@ -646,7 +646,7 @@
                       callee:
                         first_over :fn(i32[], i32, i32) -> usize
                       arg0:
-                        xs :i32[]!
+                        xs :i32[]
                       arg1:
                         int(5) :i32
                       arg2:
@@ -681,7 +681,7 @@
                       callee:
                         first_over :fn(i32[], i32, i32) -> usize
                       arg0:
-                        xs :i32[]!
+                        xs :i32[]
                       arg1:
                         int(10) :i32
                       arg2:
@@ -716,7 +716,7 @@
                       callee:
                         first_over :fn(i32[], i32, i32) -> usize
                       arg0:
-                        xs :i32[]!
+                        xs :i32[]
                       arg1:
                         int(10) :i32
                       arg2:

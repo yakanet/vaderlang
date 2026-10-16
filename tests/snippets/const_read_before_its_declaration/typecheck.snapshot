@@ -1,9 +1,9 @@
 # Typecheck
 
 ## tests/snippets/const_read_before_its_declaration
-  FnDecl         build                :: fn() -> Inner![]!
+  FnDecl         build                :: fn() -> Inner[]
   ConstDecl      BUILT                :: Inner[]
-  StructDecl     Inner                :: Inner!
+  StructDecl     Inner                :: Inner
   ConstDecl      INNERS               :: Inner[]
   ConstDecl      MADE                 :: Inner
   ConstDecl      MADE_LIST            :: Inner[]
@@ -11,7 +11,7 @@
   FnDecl         make                 :: fn(i32) -> Inner
   ConstDecl      ONE                  :: Inner
   ConstDecl      TOTAL                :: i32
-  TraitDecl      Visit                :: Visit!
+  TraitDecl      Visit                :: Visit
   expr 16:13    StringLitExpr  :: string
   expr 16:16    FieldExpr      :: i32
   expr 16:16    IdentExpr      :: Inner[]
@@ -36,22 +36,22 @@
   expr 18:26    IdentExpr      :: Inner
   expr 18:9     CallExpr       :: void
   expr 18:9     IdentExpr      :: fn(T) -> void
-  expr 23:11    SeqLitExpr     :: Inner[]!
+  expr 23:11    SeqLitExpr     :: Inner[]
   expr 23:12    IdentExpr      :: Inner
   expr 25:10    BinaryExpr     :: i32
   expr 25:10    FieldExpr      :: i32
   expr 25:10    IdentExpr      :: Inner
-  expr 27:14    SeqLitExpr     :: Inner[]!
+  expr 27:14    SeqLitExpr     :: Inner[]
   expr 27:15    IdentExpr      :: Inner
   expr 29:9     CallExpr       :: Inner
   expr 29:9     IdentExpr      :: fn(i32) -> Inner
-  expr 31:8     StructLitExpr  :: Inner!
-  expr 33:31    StructLitExpr  :: Inner!
+  expr 31:8     StructLitExpr  :: Inner
+  expr 33:31    StructLitExpr  :: Inner
   expr 33:44    IdentExpr      :: i32
-  expr 35:10    CallExpr       :: Inner![]!
-  expr 35:10    IdentExpr      :: fn() -> Inner![]!
-  expr 37:17    SeqLitExpr     :: Inner![]!
-  expr 37:18    StructLitExpr  :: Inner!
+  expr 35:10    CallExpr       :: Inner[]
+  expr 35:10    IdentExpr      :: fn() -> Inner[]
+  expr 37:17    SeqLitExpr     :: Inner[]
+  expr 37:18    StructLitExpr  :: Inner
   expr 45:11    IdentExpr      :: Inner
   expr 45:9     CallExpr       :: void
   expr 45:9     IdentExpr      :: fn(Inner) -> void

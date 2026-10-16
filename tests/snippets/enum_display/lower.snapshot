@@ -137,7 +137,7 @@
           callee:
             std_core$[]$Display$to_string__Direction :string
           arg0:
-            array :Direction[]!
+            array :Direction[]
               int(0) :u8
               int(3) :u8
     call :void

@@ -38,8 +38,7 @@ import "toolchain/span"
 
 /// Everything a build driver configures, plus the entry files it queues.
 ///
-/// A driver mutates this in place, so it takes `BuildContext!` wherever it is
-/// threaded. The fields carry what `vader.json` and the `vader build` flags
+/// A driver mutates this in place. The fields carry what `vader.json` and the `vader build` flags
 /// carry today; a driver that sets them is authoritative — the manifest is only
 /// consulted when it asks, via `load_from_vader_config`.
 export BuildContext :: struct {

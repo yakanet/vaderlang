@@ -68,7 +68,7 @@
     return x :string
   fn snippet$middle__i32(x: i32) -> Box<i32>
     return
-      Box<i32>! {
+      Box<i32> {
         value:
           call :i32
             callee:
@@ -78,7 +78,7 @@
       }
   fn snippet$middle__string(x: string) -> Box<string>
     return
-      Box<string>! {
+      Box<string> {
         value:
           call :string
             callee:
@@ -88,7 +88,7 @@
       }
   fn snippet$outer__i32(x: i32) -> Box<Box<i32>>
     return
-      Box<Box<Any>>! {
+      Box<Box<Any>> {
         value:
           call :Box<i32>
             callee:
@@ -98,7 +98,7 @@
       }
   fn snippet$outer__string(x: string) -> Box<Box<string>>
     return
-      Box<Box<string>>! {
+      Box<Box<string>> {
         value:
           call :Box<string>
             callee:

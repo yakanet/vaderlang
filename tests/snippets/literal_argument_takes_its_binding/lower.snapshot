@@ -140,7 +140,7 @@
               arg1:
                 __off_1 :usize
     let local: Cfg =
-      Cfg! {
+      Cfg {
         n: int(2) :i32
       }
     call :void

@@ -9,7 +9,7 @@
   FnDecl         pair                 :: fn(T, T) -> string
   FnDecl         show                 :: fn(T) -> string
   EnumDecl       Status               :: Status
-  StructDecl     StatusInfo           :: StatusInfo!
+  StructDecl     StatusInfo           :: StatusInfo
   ConstDecl      Weight               :: type
   expr 25:30    StringLitExpr  :: string
   expr 25:33    CallExpr       :: u8
@@ -54,7 +54,7 @@
   expr 42:9     CallExpr       :: void
   expr 42:9     IdentExpr      :: fn(T) -> void
   expr 44:13    StringLitExpr  :: string
-  expr 44:16    SeqLitExpr     :: Direction[]!
+  expr 44:16    SeqLitExpr     :: Direction[]
   expr 44:17    FieldExpr      :: Direction
   expr 44:17    IdentExpr      :: Direction
   expr 44:34    FieldExpr      :: Direction

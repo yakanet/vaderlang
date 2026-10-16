@@ -351,9 +351,8 @@ union_of :: fn(ctx: WalkCtx, values: (usize | null)[]) -> usize | null {
 }
 
 // What evaluates to one of `values`, the branches of an `if`, a `match` or a `??`.
-// A branch that holds nothing lent may still be shared, a lambda's parameter or a
-// module variable: a join of frozen values with one gets a slot of its own, outside
-// `pure`.
+// A branch that holds nothing lent may still be shared, a lambda's parameter: a
+// join of frozen values with one gets a slot of its own, outside `pure`.
 one_of :: fn(ctx: WalkCtx, values: (usize | null)[]) -> usize | null {
     joined :: ctx.union_of(values) ?? return null
     if joined !in ctx.pure || values.all_match((v) -> v != null) {

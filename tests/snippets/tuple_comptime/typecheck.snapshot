@@ -4,8 +4,8 @@
   ConstDecl      DIM                  :: [i32, i32]
   FnDecl         main                 :: fn() -> i32
   ConstDecl      ORIGIN               :: [f64, f64, string]
-  expr 13:20    SeqLitExpr     :: [i32, i32]!
-  expr 16:31    SeqLitExpr     :: [f64, f64, string]!
+  expr 13:20    SeqLitExpr     :: [i32, i32]
+  expr 16:31    SeqLitExpr     :: [f64, f64, string]
   expr 16:42    StringLitExpr  :: string
   expr 19:13    StringLitExpr  :: string
   expr 19:20    FieldExpr      :: i32

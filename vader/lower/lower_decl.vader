@@ -49,7 +49,7 @@ lower_impl_member_list :: fn(
     // (`surface_array_impl_members`).
     if impl_decl.type_params.len() > 0 { return out }
     if impl_decl.for_type is GenericInstExpr { return out }
-    if strip_mut_marker(impl_decl.for_type) is ArrayTypeExpr { return out }
+    if impl_decl.for_type is ArrayTypeExpr { return out }
     self_type :: lower_for_type(impl_decl, typed)
     for member in impl_decl.members {
         if member.type_params.len() > 0 { continue }
@@ -250,7 +250,7 @@ lower_fn_decl :: fn(
         async_ret :: if is_main || async_sym == null {
             inner_t
         } else {
-            mk_trait(async_sym, [async_result_arg(inner_t)], false)
+            mk_trait(async_sym, [async_result_arg(inner_t)])
         }
         return LoweredFnDecl {
             .mangled     = entry.mangled,

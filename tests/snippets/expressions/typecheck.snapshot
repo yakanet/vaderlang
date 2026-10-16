@@ -15,9 +15,9 @@
   expr 13:10    BinaryExpr     :: bool
   expr 13:10    BinaryExpr     :: bool
   expr 13:10    UnaryExpr      :: bool
-  expr 14:10    RangeExpr      :: Range<i32>!
-  expr 15:12    SeqLitExpr     :: i32[]!
-  expr 16:10    IdentExpr      :: i32[]!
+  expr 14:10    RangeExpr      :: Range<i32>
+  expr 15:12    SeqLitExpr     :: i32[]
+  expr 16:10    IdentExpr      :: i32[]
   expr 16:10    IndexExpr      :: i32
   expr 17:10    CallExpr       :: i32
   expr 17:10    IdentExpr      :: fn(i32, i32) -> i32
@@ -31,9 +31,9 @@
   expr 21:25    IdentExpr      :: i32
   expr 21:30    IdentExpr      :: bool
   expr 21:35    BinaryExpr     :: bool
-  expr 21:40    IdentExpr      :: Range<i32>!
+  expr 21:40    IdentExpr      :: Range<i32>
   expr 21:45    BinaryExpr     :: bool
-  expr 21:51    IdentExpr      :: Range<i32>!
+  expr 21:51    IdentExpr      :: Range<i32>
   expr 21:56    IdentExpr      :: i32
   expr 21:61    IdentExpr      :: i32
   expr 21:66    IdentExpr      :: i32

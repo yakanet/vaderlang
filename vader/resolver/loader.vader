@@ -303,8 +303,8 @@ load_baked_target :: fn(
         pre: DiscoveredModule[]: [std_target]
         drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory, target)
     }
-    // A COPY of the overlay: the parameter is read-only, and the baked source is
-    // this call's business, not the caller's.
+    // A COPY of the overlay: the baked source is this call's business, not the
+    // caller's.
     with_baked :: MutableMap<string, string> {}
     for [path, text] in overlay { with_baked[path] = text }
     with_baked[BAKED_PATH] = baked_module_source(target)

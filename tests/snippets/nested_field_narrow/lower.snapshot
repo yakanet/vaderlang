@@ -41,17 +41,17 @@
         .inner :Inner
           o :Outer
   fn snippet$main() -> i32
-    let set: Outer! =
-      Outer! {
+    let set: Outer =
+      Outer {
         inner:
-          Inner! {
+          Inner {
             flag: int(42) :i32
           }
       }
-    let unset: Outer! =
-      Outer! {
+    let unset: Outer =
+      Outer {
         inner:
-          Inner! {
+          Inner {
             flag: null
           }
       }
@@ -97,7 +97,7 @@
                       callee:
                         count_match :fn(Outer) -> i32
                       arg0:
-                        set :Outer!
+                        set :Outer
           ~>
             call :string
               callee:
@@ -148,7 +148,7 @@
                       callee:
                         count_match :fn(Outer) -> i32
                       arg0:
-                        unset :Outer!
+                        unset :Outer
           ~>
             call :string
               callee:
@@ -199,7 +199,7 @@
                       callee:
                         unwrap :fn(Outer) -> i32
                       arg0:
-                        set :Outer!
+                        set :Outer
           ~>
             call :string
               callee:
@@ -250,7 +250,7 @@
                       callee:
                         unwrap :fn(Outer) -> i32
                       arg0:
-                        unset :Outer!
+                        unset :Outer
           ~>
             call :string
               callee:

@@ -2,16 +2,16 @@
 
 ## tests/snippets/zip_struct_field_read
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Point                :: Point!
+  StructDecl     Point                :: Point
   expr 17:23    SeqLitExpr     :: string[]
   expr 17:24    StringLitExpr  :: string
   expr 17:29    StringLitExpr  :: string
   expr 17:34    StringLitExpr  :: string
   expr 18:19    SeqLitExpr     :: Point[]
-  expr 19:9     StructLitExpr  :: Point!
-  expr 20:9     StructLitExpr  :: Point!
-  expr 21:9     StructLitExpr  :: Point!
-  expr 23:23    CallExpr       :: __genstate_zip<[string, Point]>!
+  expr 19:9     StructLitExpr  :: Point
+  expr 20:9     StructLitExpr  :: Point
+  expr 21:9     StructLitExpr  :: Point
+  expr 23:23    CallExpr       :: __genstate_zip<[string, Point]>
   expr 23:23    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
   expr 23:27    IdentExpr      :: string[]
   expr 23:35    IdentExpr      :: Point[]

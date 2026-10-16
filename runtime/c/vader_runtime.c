@@ -1118,7 +1118,8 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index);
  *   - frame `atoms[]` — the only PRECISE atom root ; a `vader_string_t` is an
  *     id, not a pointer, so nothing else can see a bare string local
  *   - defer stack
- *   - `vader_atom_mark_global_arrays` : mutable module-const string arrays
+ *   - `vader_atom_mark_global_arrays` : writable global arrays a seed-emitted
+ *     `main` registers
  *   - `vader_atom_mark_cstack_conservative` : what the precise rooting misses
  * Unmarked non-PERM atoms have their data buffer freed and the slot
  * tombstoned ; the bucket index is rebuilt in one pass. */
@@ -1169,12 +1170,9 @@ static void vader_atom_mark_cstack_conservative(void) {
     }
 }
 
-/* Mutable module-const arrays (`X: string[]!: [...]`). Their storage is a writable
- * global, which is in NO other root set — the frame chain and the defer stack are it
- * — so a runtime-built string stored in one was swept and its atom id left pointing
- * at a recycled entry. Measured: 50/50 slots corrupted after GC churn. Registered
- * once by `main`, which also installs a permanent frame rooting the same arrays as
- * OBJECTS (see `emit_global_const_roots`).
+/* Writable global arrays, registered once by `main`. Only a `main` the committed
+ * bootstrap seed emitted still calls this: the current compiler emits no writable
+ * array, and roots its global slots through `vader_global_frame`.
  *
  * A SCAN suffices, unlike object roots: an atom id is stable, atoms never move, so
  * there is nothing to write back. Only string arrays register — a mutable

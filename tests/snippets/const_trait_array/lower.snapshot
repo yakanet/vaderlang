@@ -3,7 +3,7 @@
 ## snippet
   struct snippet$Circle { r: i32 }
   struct snippet$Square { side: i32 }
-  fn snippet$Circle$Shape$area(self: Circle!) -> i32
+  fn snippet$Circle$Shape$area(self: Circle) -> i32
     ~>
       mul_checked :i32
         l:
@@ -16,7 +16,7 @@
                 self :Circle
         r:
           int(3) :i32
-  fn snippet$Square$Shape$area(self: Square!) -> i32
+  fn snippet$Square$Shape$area(self: Square) -> i32
     ~>
       mul_checked :i32
         l:

@@ -305,10 +305,6 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
             e.id = f.mint()
             walk_expr(e.element, f)
         }
-        is MutableTypeExpr -> {
-            e.id = f.mint()
-            walk_expr(e.inner, f)
-        }
     }
 }
 

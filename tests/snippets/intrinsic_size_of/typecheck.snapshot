@@ -4,7 +4,7 @@
   EnumDecl       Color                :: Color
   EnumDecl       Inferred             :: Inferred
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Point                :: Point!
+  StructDecl     Point                :: Point
   EnumDecl       Wide                 :: Wide
   expr 19:13    IntrinsicCallExpr :: usize
   expr 19:22    IdentExpr      :: type
@@ -21,7 +21,7 @@
   expr 26:17    IntrinsicCallExpr :: usize
   expr 26:26    IdentExpr      :: Inferred
   expr 27:17    IntrinsicCallExpr :: usize
-  expr 27:26    IdentExpr      :: Point!
+  expr 27:26    IdentExpr      :: Point
   expr 28:17    IntrinsicCallExpr :: usize
   expr 28:26    ArrayTypeExpr  :: type
   expr 29:17    IntrinsicCallExpr :: usize

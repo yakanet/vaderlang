@@ -4,15 +4,15 @@
   fn snippet$main() -> i32
     let rows: [i32, string][] =
       array :[i32, string][]
-        [i32, string]! {
+        [i32, string] {
           _0: int(1) :i32
           _1: "one" :string
         }
-        [i32, string]! {
+        [i32, string] {
           _0: int(2) :i32
           _1: "two" :string
         }
-        [i32, string]! {
+        [i32, string] {
           _0: int(3) :i32
           _1: "three" :string
         }

@@ -10,19 +10,19 @@
   FnDecl         wide_to_max          :: fn() -> i32
   expr 13:14    CallExpr       :: u8
   expr 13:14    IdentExpr      :: type
-  expr 13:14    RangeExpr      :: Range<u8>!
+  expr 13:14    RangeExpr      :: Range<u8>
   expr 14:9     BinaryExpr     :: i32
   expr 14:9     IdentExpr      :: i32
   expr 16:12    IdentExpr      :: i32
   expr 21:14    CallExpr       :: u8
   expr 21:14    IdentExpr      :: type
-  expr 21:14    RangeExpr      :: Range<u8>!
+  expr 21:14    RangeExpr      :: Range<u8>
   expr 22:9     BinaryExpr     :: i32
   expr 22:9     IdentExpr      :: i32
   expr 24:12    IdentExpr      :: i32
   expr 29:14    CallExpr       :: i8
   expr 29:14    IdentExpr      :: type
-  expr 29:14    RangeExpr      :: Range<i8>!
+  expr 29:14    RangeExpr      :: Range<i8>
   expr 30:12    BinaryExpr     :: bool
   expr 30:12    IdentExpr      :: i8
   expr 30:9     IfExpr         :: void
@@ -31,22 +31,22 @@
   expr 35:12    IdentExpr      :: i32
   expr 40:14    CallExpr       :: u64
   expr 40:14    IdentExpr      :: type
-  expr 40:14    RangeExpr      :: Range<u64>!
+  expr 40:14    RangeExpr      :: Range<u64>
   expr 41:9     BinaryExpr     :: i32
   expr 41:9     IdentExpr      :: i32
   expr 43:12    IdentExpr      :: i32
   expr 48:14    CallExpr       :: u8
   expr 48:14    IdentExpr      :: type
-  expr 48:14    RangeExpr      :: Range<u8>!
+  expr 48:14    RangeExpr      :: Range<u8>
   expr 48:24    IdentExpr      :: u8
   expr 49:9     BinaryExpr     :: i32
   expr 49:9     IdentExpr      :: i32
   expr 51:12    IdentExpr      :: i32
-  expr 56:15    CallExpr       :: __genstate_filter<u8>!
+  expr 56:15    CallExpr       :: __genstate_filter<u8>
   expr 56:15    CallExpr       :: u8
   expr 56:15    FieldExpr      :: fn(fn(u8) -> bool) -> Iterator<u8>
   expr 56:15    IdentExpr      :: type
-  expr 56:15    RangeExpr      :: Range<u8>!
+  expr 56:15    RangeExpr      :: Range<u8>
   expr 56:25    CallExpr       :: u8
   expr 56:25    IdentExpr      :: type
   expr 56:41    LambdaExpr     :: fn(u8) -> bool

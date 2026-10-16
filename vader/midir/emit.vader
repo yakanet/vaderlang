@@ -123,7 +123,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
     // reversing the order produces a fn/struct slot swap on fn-typed
     // fields.
     if s.origin.symbol is Symbol as sym {
-        struct_type :: mk_struct(sym, s.origin.type_arguments, immutable = false)
+        struct_type :: mk_struct(sym, s.origin.type_arguments)
         key :: type_intern_key(struct_type)
         cached :: ctx.type_key[key]
         idx := i32(ctx.types.len())
@@ -194,8 +194,8 @@ c_struct_of :: fn(origin: MonoEntry) -> string {
     return ""
 }
 
-/// Copy `sig`, filling `param_by_address` from the origin declaration's
-/// `@c_pointer` decorators, and marking `param_mutable` where it carries `@c_out`.
+/// Copy `sig`, filling `param_by_address` and `param_c_out` from the origin
+/// declaration's `@c_pointer` and `@c_out` decorators.
 ///
 /// @param sig     the signature built from the CFG params.
 /// @param origin  the mono entry, for its source `FnDecl`.
@@ -206,21 +206,19 @@ with_param_decorators :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature 
         return sig
     }
     by_address: bool[]: []
-    any_by_address := false
-    mutable :: sig.param_mutable.clone()
-    for j in 0..<d.params.len() {
-        decorators :: d.params[j].decorators
-        by_address.push(decorators_have(decorators, "c_pointer"))
-        any_by_address = any_by_address || by_address[j]
-        if j < mutable.len() && decorators_have(decorators, "c_out") {
-            mutable[j] = true
-        }
+    c_out: bool[]: []
+    for p in d.params {
+        by_address.push(decorators_have(p.decorators, "c_pointer"))
+        c_out.push(decorators_have(p.decorators, "c_out"))
     }
-    return BcSignature {
-        ...sig,
-        .param_by_address = if any_by_address { by_address } else { sig.param_by_address },
-        .param_mutable = mutable,
+    out :: BcSignature { ...sig }
+    if true in by_address {
+        out.param_by_address = by_address
     }
+    if true in c_out {
+        out.param_c_out = c_out
+    }
+    return out
 }
 
 build_cfg_signature :: fn(
@@ -229,12 +227,10 @@ build_cfg_signature :: fn(
     params_val: ValType[]: []
     param_types: i32[]: []
     param_names: string[]: []
-    param_mutable: bool[]: []
     for p in params {
         params_val.push(val_type_of_type(p.type))
         param_types.push(intern_type(p.type, ctx))
         param_names.push(p.name)
-        param_mutable.push(is_mutable_slot(p.type))
     }
     // One value unless the pass scalarised the return ; a VOID return still gets
     // one entry holding `ValType.Void`, which is the representation.
@@ -255,23 +251,8 @@ build_cfg_signature :: fn(
         .param_types = param_types,
         .result_types = result_types,
         .param_names = param_names,
-        .param_mutable = param_mutable,
     }
 }
-
-/// Whether the callee may write THROUGH the slot.
-///
-/// NOT the complement of `types::type_is_immutable`: that predicate answers
-/// false for a value type because the question has no meaning there, and
-/// negating it would report a bare `i64` as mutable. Only the three reference
-/// shapes carry the bit, and only they can be written through.
-///
-/// The distinction stayed invisible while a scalar always crossed by value;
-/// `@c_pointer` makes one cross as `T*`, where the answer decides `const`.
-///
-/// @param t  the parameter's declared type.
-/// @return   true when the callee may mutate through the slot.
-is_mutable_slot :: fn(t: Type) -> bool = type_grants_mutation(t)
 
 // ============================================================================
 // Project-level entry point
@@ -1030,7 +1011,7 @@ last_op_exits :: fn(ctx: FnEmitCfg) -> bool {
 /// @param t  the closure's static type.
 /// @return   `t` when it is an `FnType`, else a nullary `fn() -> void`.
 closure_header_type :: fn(t: Type) -> Type =
-    if t is FnType { t } else { FnType { .params = [], .return_type = TY_VOID } }
+    if t is FnType { t } else { mk_fn([], TY_VOID) }
 
 // ============================================================================
 // Per-instr emit — covers the full `Instruction` set

@@ -2,22 +2,22 @@
 
 ## tests/snippets/match_scrutinee_alias
   FnDecl         area                 :: fn(i32) -> i32
-  StructDecl     Circle               :: Circle!
+  StructDecl     Circle               :: Circle
   FnDecl         describe             :: fn(i32) -> string
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Point                :: Point!
+  StructDecl     Point                :: Point
   ConstDecl      Shape                :: type
   FnDecl         shape_at             :: fn(i32) -> Circle | Point | Square
-  StructDecl     Square               :: Square!
+  StructDecl     Square               :: Square
   expr 18:5     IfExpr         :: void
   expr 18:8     BinaryExpr     :: bool
   expr 18:8     IdentExpr      :: i32
-  expr 19:16    StructLitExpr  :: Circle!
+  expr 19:16    StructLitExpr  :: Circle
   expr 21:5     IfExpr         :: void
   expr 21:8     BinaryExpr     :: bool
   expr 21:8     IdentExpr      :: i32
-  expr 22:16    StructLitExpr  :: Square!
-  expr 24:12    StructLitExpr  :: Point!
+  expr 22:16    StructLitExpr  :: Square
+  expr 24:12    StructLitExpr  :: Point
   expr 28:29    MatchExpr      :: i32
   expr 28:35    CallExpr       :: Circle | Point | Square
   expr 28:35    IdentExpr      :: fn(i32) -> Circle | Point | Square

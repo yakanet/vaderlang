@@ -3,7 +3,7 @@
 // `find_first_in_block` factors out the recursive descent every
 // `infer_*` test block needs to locate the first expression a
 // predicate accepts. Callers wrap with a tiny `accept_X` predicate
-// and narrow the returned `AST.Expr! | null` via `match … is AST.XExpr`.
+// and narrow the returned `AST.Expr | null` via `match … is AST.XExpr`.
 //
 // The per-file `*_check_stub` helpers and the parse + resolve + check pipeline
 // stay per-file : moving them here would either create a file-level cycle
@@ -22,7 +22,7 @@ AST :: import "toolchain/ast"
 ///
 /// `pred` receives every visited expression and returns either the
 /// expression itself (to stop the walk) or `null` to keep walking.
-/// Callers narrow the returned `AST.Expr! | null` to the variant
+/// Callers narrow the returned `AST.Expr | null` to the variant
 /// they're looking for.
 export find_first_in_block :: fn(
     b: AST.BlockExpr, pred: fn(AST.Expr) -> AST.Expr | null,

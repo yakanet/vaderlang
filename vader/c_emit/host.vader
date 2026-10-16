@@ -388,15 +388,15 @@ extern_decl :: fn(imp: BcImport, types: BcType[]) -> CTopLevel {
 
 // The C type the foreign symbol declares for parameter `j` of `sig`.
 extern_parameter_type :: fn(sig: BcSignature, types: BcType[], j: usize) -> string {
-    mutable :: param_is_mutable(sig, j)
+    writes :: param_is_c_out(sig, j)
     if is_abi_array(types, sig.param_types[j]) {
         // One Vader array = ONE C argument, a bare pointer. A length, when
         // the callee wants one, is an ordinary declared parameter — so the
         // declaration transcribes the C prototype one-to-one, and a callee
         // wanting a NUL-terminated `LPCWSTR` gets exactly one argument.
         // `@c_out` decides `void*` vs `const void*`, through
-        // `BcSignature.param_mutable`.
-        return pointer_to("void", mutable)
+        // `BcSignature.param_c_out`.
+        return pointer_to("void", writes)
     }
     mirror :: mirrored_c_struct(types, sig.param_types[j])
     if mirror != "" {
@@ -405,12 +405,12 @@ extern_parameter_type :: fn(sig: BcSignature, types: BcType[], j: usize) -> stri
         // slot type would declare `void**` against a `struct timespec*`.
         // The two cascades must agree on the order or the prototype and the
         // call site disagree.
-        return pointer_to(mirror, mutable)
+        return pointer_to(mirror, writes)
     }
-    if is_param_by_address(sig, j) {
-        // `@c_pointer`: the callee takes `T*`. `const` unless the `!` says
-        // it writes through it.
-        return pointer_to(c_type_for_val_bare(sig.params[j]), mutable)
+    if param_is_by_address(sig, j) {
+        // `@c_pointer`: the callee takes `T*`. `const` unless `@c_out` says it
+        // writes through it.
+        return pointer_to(c_type_for_val_bare(sig.params[j]), writes)
     }
     if is_abi_nullable_pointer(types, sig.param_types[j]) {
         return "void*"
@@ -419,7 +419,7 @@ extern_parameter_type :: fn(sig: BcSignature, types: BcType[], j: usize) -> stri
 }
 
 // `type*`, or `const type*` when the callee may not write through it.
-pointer_to :: fn(type: string, mutable: bool) -> string = if mutable {
+pointer_to :: fn(type: string, writes: bool) -> string = if writes {
     "${type}*"
 } else {
     "const ${type}*"
@@ -496,35 +496,6 @@ is_abi_nullable_string :: fn(types: BcType[], type_index: i32) -> bool {
         }
     }
     return has_null && has_str
-}
-
-/// Whether C writes through parameter `j` of `sig` — the parameter carries `@c_out`.
-///
-/// @param sig  the import's signature.
-/// @param j    the parameter index.
-/// @return     whether C may write through the slot.
-param_is_mutable :: fn(sig: BcSignature, j: usize) -> bool {
-    if j >= sig.param_mutable.len() {
-        // No information is not a licence to write: answering "yes" would hand
-        // the callee an uninitialised struct, while "no" costs at worst a
-        // write-back that does not happen. The list is always emitted, so this
-        // only guards a `.virt` from an older writer.
-        return false
-    }
-    return sig.param_mutable[j]
-}
-
-/// Whether parameter `j` of `sig` carries `@c_pointer` — the foreign callee
-/// receives its ADDRESS rather than its value.
-///
-/// @param sig  the import's signature.
-/// @param j    the parameter index.
-/// @return     whether the shim must spill it and pass a pointer.
-is_param_by_address :: fn(sig: BcSignature, j: usize) -> bool {
-    if j >= sig.param_by_address.len() {
-        return false
-    }
-    return sig.param_by_address[j]
 }
 
 /// True when the import slot at `type_index` is a primitive-element array —
@@ -727,11 +698,11 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
             // (GC forward, borrowed view, materialised buf); contract in `vader.h`.
             slice :: call("vader_array_bytes", [cast("vader_array_t*", a)])
             before.push(declaration("vader_slice_t", "s${j}", slice))
-            // `ptr` is `const void*` ; only a mutable slot needs the cast away.
+            // `ptr` is `const void*` ; only a `@c_out` slot needs the cast away.
             // `.len` is deliberately unused : the callee's length, if any, is a
             // parameter of its own (see the note on revision A in the plan).
             bytes :: CMember { .base = verbatim("s${j}"), .member = "ptr" }
-            call_args.push(if param_is_mutable(sig, j) { cast("void*", bytes) } else { bytes })
+            call_args.push(if param_is_c_out(sig, j) { cast("void*", bytes) } else { bytes })
         } else if mirrored_c_struct(types, sig.param_types[j]) != "" {
             // A struct crossing as an address. The shim declares a REAL one of
             // the C type and marshals field by field, so `cc` computes every
@@ -758,13 +729,13 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
             // writes `revents`. Filling a pure-out parameter costs one copy the
             // callee overwrites; NOT filling an in-out one hands C a zeroed struct.
             push_member_copies(types, fields, spilled, object, true, before, 0)
-            if param_is_mutable(sig, j) {
+            if param_is_c_out(sig, j) {
                 // And it travels back after the call (see `write_backs` below).
                 write_back_roots.push(address_of(a))
                 push_member_copies(types, fields, spilled, object, false, write_backs, 0)
             }
             call_args.push(address_of(spilled))
-        } else if is_param_by_address(sig, j) {
+        } else if param_is_by_address(sig, j) {
             // Spill to a stack temporary and hand over its address. The
             // temporary lives for the call and no longer — which is the whole
             // contract, and why no pointer type appears in Vader.

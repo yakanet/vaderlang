@@ -42,7 +42,7 @@ export lower_defer :: fn(
     lifted_symbol :: fresh_lifted_defer_symbol(ctx, false)
     env_symbol    :: fresh_lifted_defer_symbol(ctx, true)
     env_param_symbol :: fresh_synthetic_symbol(ctx, "env")
-    env_type :: mk_struct(env_symbol, [], immutable = false)
+    env_type :: mk_struct(env_symbol, [])
 
     slots :: env_slots(ctx, captures)
     env_fields :: env_struct_fields(slots)

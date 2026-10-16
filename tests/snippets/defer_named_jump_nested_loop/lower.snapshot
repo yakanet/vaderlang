@@ -267,7 +267,7 @@
         break_outer :fn() -> void
     return int(0) :i32
   struct __defer_env_snippet_1 { cap_0: i32 }
-  fn __defer_snippet_0(__env_0: __defer_env_snippet_1!) -> void
+  fn __defer_snippet_0(__env_0: __defer_env_snippet_1) -> void
     call :void
       callee:
         std_io$println__string :void
@@ -307,7 +307,7 @@
                 arg2:
                   cast → i64
                     .cap_0 :i32
-                      __env_0 :__defer_env_snippet_1!
+                      __env_0 :__defer_env_snippet_1
           ~>
             call :string
               callee:
@@ -317,7 +317,7 @@
               arg1:
                 __off_1 :usize
   struct __defer_env_snippet_3 { cap_0: i32, cap_1: i32 }
-  fn __defer_snippet_2(__env_1: __defer_env_snippet_3!) -> void
+  fn __defer_snippet_2(__env_1: __defer_env_snippet_3) -> void
     call :void
       callee:
         std_io$println__string :void
@@ -357,7 +357,7 @@
                 arg2:
                   cast → i64
                     .cap_0 :i32
-                      __env_1 :__defer_env_snippet_3!
+                      __env_1 :__defer_env_snippet_3
           assign
             target:
               __off_1 :usize
@@ -385,7 +385,7 @@
                 arg2:
                   cast → i64
                     .cap_1 :i32
-                      __env_1 :__defer_env_snippet_3!
+                      __env_1 :__defer_env_snippet_3
           ~>
             call :string
               callee:
@@ -395,7 +395,7 @@
               arg1:
                 __off_1 :usize
   struct __defer_env_snippet_5 { cap_0: i32 }
-  fn __defer_snippet_4(__env_0: __defer_env_snippet_5!) -> void
+  fn __defer_snippet_4(__env_0: __defer_env_snippet_5) -> void
     call :void
       callee:
         std_io$println__string :void
@@ -435,7 +435,7 @@
                 arg2:
                   cast → i64
                     .cap_0 :i32
-                      __env_0 :__defer_env_snippet_5!
+                      __env_0 :__defer_env_snippet_5
           ~>
             call :string
               callee:
@@ -445,7 +445,7 @@
               arg1:
                 __off_1 :usize
   struct __defer_env_snippet_7 { cap_0: i32, cap_1: i32 }
-  fn __defer_snippet_6(__env_1: __defer_env_snippet_7!) -> void
+  fn __defer_snippet_6(__env_1: __defer_env_snippet_7) -> void
     call :void
       callee:
         std_io$println__string :void
@@ -485,7 +485,7 @@
                 arg2:
                   cast → i64
                     .cap_0 :i32
-                      __env_1 :__defer_env_snippet_7!
+                      __env_1 :__defer_env_snippet_7
           assign
             target:
               __off_1 :usize
@@ -513,7 +513,7 @@
                 arg2:
                   cast → i64
                     .cap_1 :i32
-                      __env_1 :__defer_env_snippet_7!
+                      __env_1 :__defer_env_snippet_7
           ~>
             call :string
               callee:

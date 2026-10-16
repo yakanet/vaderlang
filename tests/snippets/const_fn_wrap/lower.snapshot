@@ -4,19 +4,19 @@
   fn __const_snippet$SPECS() -> Spec<i32>[]
     ~>
       array :Spec<i32>[]
-        Spec<i32>! {
+        Spec<i32> {
           name: "alpha" :string
           code: int(10) :i32
         }
-        Spec<i32>! {
+        Spec<i32> {
           name: "beta" :string
           code: int(20) :i32
         }
-        Spec<i32>! {
+        Spec<i32> {
           name: "gamma" :string
           code: int(30) :i32
         }
-        Spec<i32>! {
+        Spec<i32> {
           name: "delta" :string
           code: int(40) :i32
         }

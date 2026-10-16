@@ -135,7 +135,7 @@ export lower_async_fn :: fn(
     // suffices. Both the synth `resume` fn's receiver and the body's
     // `return __asyncstate {…}` box use THIS symbol, so the vtable row matches.
     state_sym :: fresh_lifted_symbol_with_prefix(fn_ctx, true, "__async_", "__asyncstate_")
-    state_ty :: mk_struct(state_sym, [], immutable = false)
+    state_ty :: mk_struct(state_sym, [])
     self_sym :: fresh_synthetic_symbol(fn_ctx, "self")
 
     suspended_opt :: find_core_type(fn_ctx, STRUCT_SUSPENDED, [])
@@ -145,7 +145,7 @@ export lower_async_fn :: fn(
     if async_sym == null { panic("async lowering: `Async` core trait not found") }
     // The single erased `awaited` slot + the erased result a child `resume`
     // returns through the vtable (its concrete `T' | Suspended` reinterpreted).
-    async_any_ty :: mk_trait(async_sym, [TY_ANY], false)
+    async_any_ty :: mk_trait(async_sym, [TY_ANY])
     resume_erased_ty :: union_of_result_suspended(TY_ANY, suspended_ty)
     // The synth `resume` fn's own return type : `T | Suspended` (flattened). A
     // void result normalizes to `null` (see `async_result_arg`) so a void
@@ -239,7 +239,7 @@ async_main_driver :: fn(
     fn_ctx: FnLowerCtx, construct: LoweredExpr, async_sym: Symbol,
     suspended_ty: Type, resume_ty: Type, result_type: Type, span: Span,
 ) -> LoweredBlock {
-    async_ty :: mk_trait(async_sym, [result_type], false)
+    async_ty :: mk_trait(async_sym, [result_type])
     run_sym :: fn_ctx.typed.run_async_main_symbol
     if run_sym != null {
         // Seed `run_async_main`'s materialisation (a synthesised call isn't

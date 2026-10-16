@@ -744,7 +744,6 @@ type_expr_slice :: fn(t: Expr, source: string) -> string {
         is DotVariantExpr    -> t.span
         is FnTypeExpr        -> t.span
         is ArrayTypeExpr     -> t.span
-        is MutableTypeExpr   -> t.span
     }
     return source.byte_slice(sp.start.offset, sp.end.offset).trim()
 }
@@ -865,8 +864,7 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
             }
         }
         is IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr
-         | IdentExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
-         | MutableTypeExpr -> {}
+         | IdentExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr -> {}
     }
 }
 

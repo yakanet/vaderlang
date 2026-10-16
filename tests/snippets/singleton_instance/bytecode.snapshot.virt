@@ -35,9 +35,9 @@ global 7 3 greeting.instance
 global 8 6 probed.state
 global 9 4 probed.instance
 global 10 6 announce.state
-import 0 byte_len std_core$byte_len result_type=8 param_types=3 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=12 param_types=3 param_mutable=0 param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=6,12,8 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=8 param_types=3 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=12 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=6,12,8 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 9 std_core$ByteAccess
 export main 8
 

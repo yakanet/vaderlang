@@ -38,10 +38,10 @@ string 3 "a"
 string 4 "true"
 string 5 "false"
 string 6 "\n"
-import 0 byte_len std_core$byte_len result_type=9 param_types=6 param_mutable=0 param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=24 param_types=6 param_mutable=0 param_by_address= (string) -> ref
-import 2 hash std_core$string$Hash$hash result_type=3 param_types=6 param_mutable=0 param_by_address= (string) -> u64
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=5,24,9 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=9 param_types=6 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=24 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 hash std_core$string$Hash$hash result_type=3 param_types=6 param_c_out= param_by_address= (string) -> u64
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=5,24,9 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 1 std_core$Hash
 impl 4 std_core$Hash
 impl 1 std_core$Equals

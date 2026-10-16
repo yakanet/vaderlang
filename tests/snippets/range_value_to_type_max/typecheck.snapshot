@@ -26,38 +26,38 @@
   expr 36:24    IdentExpr      :: char
   expr 36:9     IdentExpr      :: string
   expr 38:12    IdentExpr      :: string
-  expr 42:24    RangeExpr      :: Range<u8>!
+  expr 42:24    RangeExpr      :: Range<u8>
   expr 43:13    StringLitExpr  :: string
   expr 43:16    CallExpr       :: i32
   expr 43:16    IdentExpr      :: fn(Range<u8>) -> i32
   expr 43:22    IdentExpr      :: Range<u8>
   expr 43:33    CallExpr       :: i32
   expr 43:33    IdentExpr      :: fn(Range<u8>) -> i32
-  expr 43:39    RangeExpr      :: Range<u8>!
+  expr 43:39    RangeExpr      :: Range<u8>
   expr 43:5     CallExpr       :: void
   expr 43:5     IdentExpr      :: fn(T) -> void
   expr 43:51    CallExpr       :: i32
   expr 43:51    IdentExpr      :: fn(Range<u8>) -> i32
-  expr 43:57    RangeExpr      :: Range<u8>!
+  expr 43:57    RangeExpr      :: Range<u8>
   expr 43:67    CallExpr       :: i32
   expr 43:67    IdentExpr      :: fn(Range<u8>) -> i32
-  expr 43:73    RangeExpr      :: Range<u8>!
+  expr 43:73    RangeExpr      :: Range<u8>
   expr 44:13    StringLitExpr  :: string
   expr 44:16    CallExpr       :: i32
   expr 44:16    IdentExpr      :: fn(Range<i8>) -> i32
-  expr 44:29    RangeExpr      :: Range<i8>!
+  expr 44:29    RangeExpr      :: Range<i8>
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(T) -> void
   expr 45:13    StringLitExpr  :: string
   expr 45:16    CallExpr       :: i32
   expr 45:16    IdentExpr      :: fn(Range<u64>) -> i32
-  expr 45:27    RangeExpr      :: Range<u64>!
+  expr 45:27    RangeExpr      :: Range<u64>
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(T) -> void
   expr 46:13    StringLitExpr  :: string
   expr 46:16    CallExpr       :: string
   expr 46:16    IdentExpr      :: fn(Range<char>) -> string
-  expr 46:24    RangeExpr      :: Range<char>!
+  expr 46:24    RangeExpr      :: Range<char>
   expr 46:38    BinaryExpr     :: bool
   expr 46:45    IdentExpr      :: Range<u8>
   expr 46:5     CallExpr       :: void

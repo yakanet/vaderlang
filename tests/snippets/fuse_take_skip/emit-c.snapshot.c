@@ -97,9 +97,9 @@ static int32_t snippet_main(void) {
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
     l0 = (void*) _a0_arr;
     l1 = (size_t) 3;
-#line 401 "lib/std/iter/iter.vader"
+#line 400 "lib/std/iter/iter.vader"
     if (!(l1 == INT64_C(0))) {
-#line 404 "lib/std/iter/iter.vader"
+#line 403 "lib/std/iter/iter.vader"
         l2 = (size_t) 0;
 #line 10 "tests/snippets/fuse_take_skip/_main.vader"
         l3 = ((vader_array_t*) l0)->length;
@@ -116,16 +116,16 @@ static int32_t snippet_main(void) {
             l7 = std_core_write_int(l6, l7, l8);
             t0 = std_core_finish_buffer(l6, l7);
             std_io_println__string(t0);
-#line 407 "lib/std/iter/iter.vader"
+#line 406 "lib/std/iter/iter.vader"
             t1 = vader_chk_add(usize, l2, INT64_C(1));
             l2 = (size_t) (int64_t) t1;
-#line 408 "lib/std/iter/iter.vader"
+#line 407 "lib/std/iter/iter.vader"
             if ((l2 >= l1)) break;
 #line 10 "tests/snippets/fuse_take_skip/_main.vader"
             t1 = (l4 + INT64_C(1));
             l4 = (size_t) (int64_t) t1;
         }
-#line 401 "lib/std/iter/iter.vader"
+#line 400 "lib/std/iter/iter.vader"
     }
 #line 11 "tests/snippets/fuse_take_skip/_main.vader"
     vader_array_t* _a2_arr = vader_array_new(10u, 5u, 7u, 1u);
@@ -135,7 +135,7 @@ static int32_t snippet_main(void) {
     ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = (int32_t) INT32_C(20);
     ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (int32_t) INT32_C(10);
     l0 = (void*) _a2_arr;
-#line 417 "lib/std/iter/iter.vader"
+#line 416 "lib/std/iter/iter.vader"
     l1 = (size_t) 0;
 #line 11 "tests/snippets/fuse_take_skip/_main.vader"
     l2 = ((vader_array_t*) l0)->length;
@@ -145,7 +145,7 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l3)
         l5 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l3];
-#line 419 "lib/std/iter/iter.vader"
+#line 418 "lib/std/iter/iter.vader"
         if ((l1 >= INT64_C(2))) {
             l9 = l5;
 #line 11 "tests/snippets/fuse_take_skip/_main.vader"
@@ -156,9 +156,9 @@ static int32_t snippet_main(void) {
             l4 = std_core_write_int(l6, l4, l8);
             t0 = std_core_finish_buffer(l6, l4);
             std_io_println__string(t0);
-#line 419 "lib/std/iter/iter.vader"
+#line 418 "lib/std/iter/iter.vader"
         }
-#line 420 "lib/std/iter/iter.vader"
+#line 419 "lib/std/iter/iter.vader"
         t1 = vader_chk_add(usize, l1, INT64_C(1));
         l1 = (size_t) (int64_t) t1;
 #line 11 "tests/snippets/fuse_take_skip/_main.vader"
@@ -174,15 +174,15 @@ static int32_t snippet_main(void) {
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = (int32_t) INT32_C(10);
     l0 = (void*) _a4_arr;
     l1 = (size_t) 2;
-#line 401 "lib/std/iter/iter.vader"
+#line 400 "lib/std/iter/iter.vader"
     if (l1 == INT64_C(0)) {
 #line 13 "tests/snippets/fuse_take_skip/_main.vader"
         { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-#line 401 "lib/std/iter/iter.vader"
+#line 400 "lib/std/iter/iter.vader"
     }
-#line 404 "lib/std/iter/iter.vader"
+#line 403 "lib/std/iter/iter.vader"
     l2 = (size_t) 0;
-#line 417 "lib/std/iter/iter.vader"
+#line 416 "lib/std/iter/iter.vader"
     l3 = (size_t) 0;
 #line 12 "tests/snippets/fuse_take_skip/_main.vader"
     l4 = ((vader_array_t*) l0)->length;
@@ -192,7 +192,7 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l7)
         l5 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l7];
-#line 419 "lib/std/iter/iter.vader"
+#line 418 "lib/std/iter/iter.vader"
         if ((l3 >= INT64_C(1))) {
             l9 = l5;
 #line 12 "tests/snippets/fuse_take_skip/_main.vader"
@@ -203,14 +203,14 @@ static int32_t snippet_main(void) {
             l10 = std_core_write_int(l6, l10, l8);
             t0 = std_core_finish_buffer(l6, l10);
             std_io_println__string(t0);
-#line 407 "lib/std/iter/iter.vader"
+#line 406 "lib/std/iter/iter.vader"
             t1 = vader_chk_add(usize, l2, INT64_C(1));
             l2 = (size_t) (int64_t) t1;
-#line 408 "lib/std/iter/iter.vader"
+#line 407 "lib/std/iter/iter.vader"
             if ((l2 >= l1)) break;
-#line 419 "lib/std/iter/iter.vader"
+#line 418 "lib/std/iter/iter.vader"
         }
-#line 420 "lib/std/iter/iter.vader"
+#line 419 "lib/std/iter/iter.vader"
         t1 = vader_chk_add(usize, l3, INT64_C(1));
         l3 = (size_t) (int64_t) t1;
 #line 12 "tests/snippets/fuse_take_skip/_main.vader"

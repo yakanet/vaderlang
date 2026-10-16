@@ -2,25 +2,25 @@
 
 ## tests/snippets/array_into_by_target
   FnDecl         drain                :: fn(Iterator<Mon>) -> i32
-  StructDecl     Label                :: Label!
+  StructDecl     Label                :: Label
   FnDecl         labels               :: fn(Mon[]) -> Iterator<Label>
   ConstDecl      LIST                 :: Mon[]
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Mon                  :: Mon!
+  StructDecl     Mon                  :: Mon
   FnDecl         show                 :: fn(Label) -> string
-  expr 21:33    StructLitExpr  :: Label!
+  expr 21:33    StructLitExpr  :: Label
   expr 21:46    StringLitExpr  :: string
   expr 21:51    CallExpr       :: usize
   expr 21:51    FieldExpr      :: fn() -> usize
-  expr 21:51    IdentExpr      :: Mon![]
+  expr 21:51    IdentExpr      :: Mon[]
   expr 25:14    IdentExpr      :: Mon[]
-  expr 26:15    StructLitExpr  :: Label!
+  expr 26:15    StructLitExpr  :: Label
   expr 26:28    StringLitExpr  :: string
   expr 26:32    FieldExpr      :: i32
   expr 26:32    IdentExpr      :: Mon
-  expr 31:43    CallExpr       :: __genstate_labels<Label>!
+  expr 31:43    CallExpr       :: __genstate_labels<Label>
   expr 31:43    IdentExpr      :: fn(Mon[]) -> Iterator<Label>
-  expr 31:50    IdentExpr      :: Mon![]
+  expr 31:50    IdentExpr      :: Mon[]
   expr 36:14    IdentExpr      :: Iterator<Mon>
   expr 37:14    FieldExpr      :: i32
   expr 37:14    IdentExpr      :: Mon
@@ -29,10 +29,10 @@
   expr 39:12    IdentExpr      :: i32
   expr 42:34    FieldExpr      :: string
   expr 42:34    IdentExpr      :: Label
-  expr 44:10    StructLitExpr  :: Mon!
-  expr 44:26    StructLitExpr  :: Mon!
-  expr 44:42    StructLitExpr  :: Mon!
-  expr 44:9     SeqLitExpr     :: Mon![]!
+  expr 44:10    StructLitExpr  :: Mon
+  expr 44:26    StructLitExpr  :: Mon
+  expr 44:42    StructLitExpr  :: Mon
+  expr 44:9     SeqLitExpr     :: Mon[]
   expr 47:13    CallExpr       :: string
   expr 47:13    IdentExpr      :: fn(Label) -> string
   expr 47:18    IdentExpr      :: Mon[]
@@ -64,7 +64,7 @@
   expr 53:5     IdentExpr      :: fn(T) -> void
   expr 54:13    CallExpr       :: Label
   expr 54:13    FieldExpr      :: string
-  expr 54:13    IdentExpr      :: Label!
+  expr 54:13    IdentExpr      :: Label
   expr 54:19    IdentExpr      :: Mon[]
   expr 54:5     CallExpr       :: void
   expr 54:5     IdentExpr      :: fn(T) -> void

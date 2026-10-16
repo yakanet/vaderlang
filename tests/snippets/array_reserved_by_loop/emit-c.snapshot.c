@@ -1123,7 +1123,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l15)
                         t0 = ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l15];
-#line 395 "lib/std/iter/iter.vader"
+#line 394 "lib/std/iter/iter.vader"
                         l16 = snippet_square(t0);
 #line 90 "lib/std/iter/iter.vader"
                         vader_array_push_i64((vader_array_t*) l13, l16);
@@ -1146,7 +1146,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
 #line 89 "lib/std/iter/iter.vader"
                     while ((l18 < INT32_C(4))) {
 #line 123 "tests/snippets/array_reserved_by_loop/_main.vader"
-#line 395 "lib/std/iter/iter.vader"
+#line 394 "lib/std/iter/iter.vader"
                         l19 = snippet_square(l18);
 #line 90 "lib/std/iter/iter.vader"
                         vader_array_push_i64((vader_array_t*) l17, l19);

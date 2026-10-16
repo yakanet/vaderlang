@@ -1,17 +1,17 @@
 # Typecheck
 
 ## tests/snippets/generic_helper_chain
-  StructDecl     Box                  :: Box<T>!
+  StructDecl     Box                  :: Box<T>
   FnDecl         inner                :: fn(T) -> T
   FnDecl         main                 :: fn() -> i32
   FnDecl         middle               :: fn(T) -> Box<T>
   FnDecl         outer                :: fn(T) -> Box<Box<T>>
   expr 12:36    IdentExpr      :: T
-  expr 15:12    StructLitExpr  :: Box<T>!
+  expr 15:12    StructLitExpr  :: Box<T>
   expr 15:30    CallExpr       :: T
   expr 15:30    IdentExpr      :: fn(T) -> T
   expr 15:36    IdentExpr      :: T
-  expr 19:12    StructLitExpr  :: Box<Box<T>>!
+  expr 19:12    StructLitExpr  :: Box<Box<T>>
   expr 19:35    CallExpr       :: Box<T>
   expr 19:35    IdentExpr      :: fn(T) -> Box<T>
   expr 19:42    IdentExpr      :: T

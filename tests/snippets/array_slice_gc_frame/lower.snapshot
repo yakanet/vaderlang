@@ -51,8 +51,8 @@
         int(30) :i32
         int(40) :i32
         int(50) :i32
-    let x: Foo! =
-      Foo! {
+    let x: Foo =
+      Foo {
         v: int(7) :i32
       }
     let r: i32 =
@@ -60,7 +60,7 @@
         callee:
           leaf :fn(Foo, i32[]) -> i32
         arg0:
-          x :Foo!
+          x :Foo
         arg1:
           arr :i32[]
     let expected: i32 =

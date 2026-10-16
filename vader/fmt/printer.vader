@@ -685,7 +685,7 @@ flat_params_width :: fn(source: string, params: p.FnParam[]) -> usize {
 }
 
 emit_fn_param :: fn(self: Printer, fp: p.FnParam) -> void {
-    // A parameter decorator is always inline — `@c_pointer d: Div!`. Dropping it
+    // A parameter decorator is always inline (`@c_pointer d: Div`). Dropping it
     // is not cosmetic: the typechecker REQUIRES `@c_pointer` where a `@c_struct`
     // crosses, so a formatted file stops compiling.
     for deco in fp.decorators {
@@ -694,8 +694,6 @@ emit_fn_param :: fn(self: Printer, fp: p.FnParam) -> void {
     }
     if fp.variadic { self.write("...") }
     self.write(fp.name)
-    // `!` binds to the NAME, so it precedes the `: T` ascription.
-    if fp.mutable { self.write("!") }
     self.emit_type_expr_with_prefix(": ", fp.ty)
     self.emit_expr_with_prefix(" = ", fp.default_value)
 }
@@ -1641,22 +1639,13 @@ emit_expr :: fn(self: Printer, e: p.Expr | null) -> void {
             self.emit_array_or_union_element(e.element)
             self.write("[]")
         }
-        is p.MutableTypeExpr -> {
-            // `T!` marks ONE level mutable — dropping it would silently turn a
-            // mutable slot read-only (round-trip corruption, mirror of `const`
-            // above). The marker binds tighter than `|` / `&`, so a union or
-            // intersection inner gets the same parenthesising as an array
-            // element : `(A | B)!` must round-trip verbatim.
-            self.emit_array_or_union_element(e.inner)
-            self.write("!")
-        }
     }
 }
 
-// Wraps the element of an `ArrayTypeExpr` / `MutableTypeExpr` in parens iff
+// Wraps the element of an `ArrayTypeExpr` in parens iff
 // dropping them would change what the text parses as.
 //
-// The TYPE postfixes `[]` and `!` ask the same question as the value postfixes
+// The TYPE postfix `[]` asks the same question as the value postfixes
 // `.field` / `[i]` / `(...)`, so they share the predicate: an operand only
 // reaches here bearing a looser-binding shape because the source parenthesised
 // it, and re-emitting it bare rebinds the postfix into the operand. Enumerating
@@ -2506,11 +2495,6 @@ emit_fn_type :: fn(self: Printer, x: p.FnTypeExpr) -> void {
     for i in 0..<x.params.len() {
         if i > 0 { self.write(", ") }
         self.emit_type_expr(x.params[i])
-        // In a fn TYPE the mutation marker sits on the type, since there is no
-        // parameter name to carry it (`fn(u8[]!) -> void`).
-        if i < x.params_mutable.len() && x.params_mutable[i] {
-            self.write("!")
-        }
     }
     self.write(")")
     self.emit_type_expr_with_prefix(" -> ", x.return_type)

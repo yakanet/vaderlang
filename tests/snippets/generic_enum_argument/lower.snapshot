@@ -179,8 +179,8 @@
                 __buf_2 :Buffer
               arg1:
                 __off_3 :usize
-    let reasons: MutableMap<HttpStatus, string>! =
-      MutableMap<HttpStatus, string>! {
+    let reasons: MutableMap<HttpStatus, string> =
+      MutableMap<HttpStatus, string> {
         ekeys:
           array :HttpStatus[]
         evals:
@@ -195,7 +195,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string :void
       arg0:
-        reasons :MutableMap<HttpStatus, string>!
+        reasons :MutableMap<HttpStatus, string>
       arg1:
         int(1) :u8
       arg2:
@@ -204,7 +204,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string :void
       arg0:
-        reasons :MutableMap<HttpStatus, string>!
+        reasons :MutableMap<HttpStatus, string>
       arg1:
         int(0) :u8
       arg2:
@@ -221,7 +221,7 @@
                   callee:
                     std_collections$MutableMap$Index$at__snippet_HttpStatus__string :null | string
                   arg0:
-                    reasons :MutableMap<HttpStatus, string>!
+                    reasons :MutableMap<HttpStatus, string>
                   arg1:
                     int(1) :u8
               ~>
@@ -243,7 +243,7 @@
                   callee:
                     std_collections$MutableMap$Index$at__snippet_HttpStatus__string :null | string
                   arg0:
-                    reasons :MutableMap<HttpStatus, string>!
+                    reasons :MutableMap<HttpStatus, string>
                   arg1:
                     int(0) :u8
               ~>
@@ -350,7 +350,7 @@
                       callee:
                         std_collections$len__snippet_HttpStatus__string :usize
                       arg0:
-                        reasons :MutableMap<HttpStatus, string>!
+                        reasons :MutableMap<HttpStatus, string>
           ~>
             call :string
               callee:

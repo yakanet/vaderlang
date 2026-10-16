@@ -4,9 +4,9 @@
   ConstDecl      Color                :: type
   ConstDecl      Coord                :: type
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Rgb                  :: Rgb!
+  StructDecl     Rgb                  :: Rgb
   ConstDecl      Swatch               :: type
-  expr 30:46    StructLitExpr  :: Color!
+  expr 30:46    StructLitExpr  :: Color
   expr 31:15    BinaryExpr     :: i32
   expr 31:15    BinaryExpr     :: i32
   expr 31:15    FieldExpr      :: i32
@@ -25,11 +25,11 @@
   expr 33:15    IdentExpr      :: Color
   expr 33:24    FieldExpr      :: i32
   expr 33:24    IdentExpr      :: Color
-  expr 49:13    StructLitExpr  :: Color!
-  expr 50:13    StructLitExpr  :: Color!
+  expr 49:13    StructLitExpr  :: Color
+  expr 50:13    StructLitExpr  :: Color
   expr 51:14    BinaryExpr     :: Color
-  expr 51:14    IdentExpr      :: Color!
-  expr 51:20    IdentExpr      :: Color!
+  expr 51:14    IdentExpr      :: Color
+  expr 51:20    IdentExpr      :: Color
   expr 52:13    StringLitExpr  :: string
   expr 52:16    FieldExpr      :: i32
   expr 52:16    IdentExpr      :: Color
@@ -55,7 +55,7 @@
   expr 57:5     CallExpr       :: void
   expr 57:5     IdentExpr      :: fn(T) -> void
   expr 59:16    SeqLitExpr     :: Swatch
-  expr 59:17    IdentExpr      :: Color!
+  expr 59:17    IdentExpr      :: Color
   expr 60:13    StringLitExpr  :: string
   expr 60:16    FieldExpr      :: Color
   expr 60:16    FieldExpr      :: i32

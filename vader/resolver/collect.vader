@@ -157,21 +157,11 @@ collect_decl :: fn(
         is EnumDecl      -> { self.add_named(.Enum,      d.name, d.name_span, d.visibility, module_path, module_name, factory, diags) }
         is TraitDecl     -> { self.add_named(.Trait,     d.name, d.name_span, d.visibility, module_path, module_name, factory, diags) }
         is TypeAliasDecl -> { self.add_named(.TypeAlias, d.name, d.name_span, d.visibility, module_path, module_name, factory, diags) }
-        is ConstDecl     -> { self.add_named(.Const,     d.name, d.name_span, d.visibility, module_path, module_name, factory, diags, declares_module_variable(d.ty)) }
+        is ConstDecl     -> { self.add_named(.Const,     d.name, d.name_span, d.visibility, module_path, module_name, factory, diags) }
         is ImplDecl      -> {}   // contributes methods to a type, not new top-level names
         is AssertDecl    -> {}  // @assert doesn't introduce a name
     }
 }
-
-/// Whether a module constant's annotation makes it a module variable: a `!` on the
-/// array level and nowhere deeper (`COUNTS: i32[]!: [0, 0]`), the one shape given
-/// writable storage. Every other module constant is frozen, and a `!` written
-/// anywhere else on one is T3076.
-///
-/// @param ty  the constant's annotation, null when it has none.
-export declares_module_variable :: fn(ty: TypeExpr | null) -> bool =
-    ty is MutableTypeExpr && ty.inner is ArrayTypeExpr &&
-        !type_expr_marks_mutable_anywhere(ty.inner)
 
 /// Allow multiple `fn` decls under the same module name (overloading).
 /// The first declaration wins as the primary entry in `symbols` ; later
@@ -219,7 +209,7 @@ add_fn :: fn(self: CollectedModule, d: FnDecl, module_path: string, module_name:
 add_named :: fn(
     self: CollectedModule, kind: SymbolKind, name: string, name_span: Span,
     visibility: Visibility, module_path: string, module_name: string, factory: SymbolFactory,
-    diags: Diagnostic[], module_variable: bool = false,
+    diags: Diagnostic[],
 ) -> void {
     // First-wins on duplicates ; later occurrences raise R2004.
     // Non-fn-vs-non-fn collision only ; fn overload buckets handle
@@ -231,9 +221,7 @@ add_named :: fn(
                 "`${name}` already declared in this module"))
         }
         is null   -> {
-            sym :: factory.make(
-                kind, name, module_path, module_name, visibility, name_span, module_variable,
-            )
+            sym :: factory.make(kind, name, module_path, module_name, visibility, name_span)
             self.symbols[name] = sym
         }
     }

@@ -189,12 +189,12 @@
                 "other" :string
   fn snippet$bytes() -> Iterator<string | u8>
     return
-      __genstate_bytes! {
+      __genstate_bytes {
         state: int(2) :i32
       }
   struct snippet$Holder { b: string | u8 }
   struct snippet$Plain { tag: i32 }
-  fn snippet$Plain$Shower$shown(self: Plain!, v: string | u8) -> string
+  fn snippet$Plain$Shower$shown(self: Plain, v: string | u8) -> string
     ~>
       call :string
         callee:
@@ -258,8 +258,8 @@
             call :string | u8
               callee:
                 nine :fn() -> string | u8
-    let h: Holder! =
-      Holder! {
+    let h: Holder =
+      Holder {
         b: int(8) :u8
       }
     call :void
@@ -271,11 +271,11 @@
             show_byte :fn(string | u8) -> string
           arg0:
             .b :string | u8
-              h :Holder!
+              h :Holder
     assign
       target:
         .b :string | u8
-          h :Holder!
+          h :Holder
       value:
         int(10) :u8
     call :void
@@ -287,7 +287,7 @@
             show_byte :fn(string | u8) -> string
           arg0:
             .b :string | u8
-              h :Holder!
+              h :Holder
     let local: string | u8 = "s" :string
     assign
       target:
@@ -303,10 +303,10 @@
             show_byte :fn(string | u8) -> string
           arg0:
             local :string | u8
-    let seen: MutableSet<string | u8>! =
-      MutableSet<string | u8>! {
+    let seen: MutableSet<string | u8> =
+      MutableSet<string | u8> {
         inner:
-          MutableMap<string | u8, bool>! {
+          MutableMap<string | u8, bool> {
             ekeys:
               array :(string | u8)[]
             evals:
@@ -322,14 +322,14 @@
       callee:
         std_collections$add__string___u8 :bool
       arg0:
-        seen :MutableSet<string | u8>!
+        seen :MutableSet<string | u8>
       arg1:
         local :string | u8
     call :bool
       callee:
         std_collections$add__string___u8 :bool
       arg0:
-        seen :MutableSet<string | u8>!
+        seen :MutableSet<string | u8>
       arg1:
         local :string | u8
     call :void
@@ -374,7 +374,7 @@
                       callee:
                         std_collections$len__string___u8 :usize
                       arg0:
-                        seen :MutableSet<string | u8>!
+                        seen :MutableSet<string | u8>
           ~>
             call :string
               callee:
@@ -455,7 +455,7 @@
             arg0:
               y :string | u8
     let shower: Shower =
-      Plain! {
+      Plain {
         tag: int(1) :i32
       }
     call :void
@@ -469,15 +469,15 @@
             int(14) :u8
     let captured: ? =
       LoweredCellNew
-    let bump: __lambda_env_snippet_1! =
-      __lambda_env_snippet_1! {
+    let bump: __lambda_env_snippet_1 =
+      __lambda_env_snippet_1 {
         cap_0: captured :string | u8
       }
     call :void
       callee:
         __lambda_snippet_0 :fn() -> void
       arg0:
-        bump :__lambda_env_snippet_1!
+        bump :__lambda_env_snippet_1
     call :void
       callee:
         std_io$println__string :void
@@ -488,7 +488,7 @@
           arg0:
             LoweredCellGet
     let pair: [string | u8, i32] =
-      [string | u8, i32]! {
+      [string | u8, i32] {
         _0: int(16) :u8
         _1: int(1) :i32
       }
@@ -571,21 +571,21 @@
                 int(1) :usize
     return int(0) :i32
   struct snippet$__genstate_bytes { state: i32 }
-  fn snippet$__genstate_bytes$Iterator$next(self: __genstate_bytes!) -> [string | u8, Continuation]!
+  fn snippet$__genstate_bytes$Iterator$next(self: __genstate_bytes) -> [string | u8, Continuation]
     loop :dispatch$
       if :void
         cond:
           eq :bool
             l:
               .state :i32
-                __self_0 :__genstate_bytes!
+                __self_0 :__genstate_bytes
             r:
               int(0) :i32
         then:
           assign
             target:
               .state :i32
-                __self_0 :__genstate_bytes!
+                __self_0 :__genstate_bytes
             value:
               int(-1) :i32
         else:
@@ -594,18 +594,18 @@
               eq :bool
                 l:
                   .state :i32
-                    __self_0 :__genstate_bytes!
+                    __self_0 :__genstate_bytes
                 r:
                   int(1) :i32
             then:
               assign
                 target:
                   .state :i32
-                    __self_0 :__genstate_bytes!
+                    __self_0 :__genstate_bytes
                 value:
                   int(0) :i32
               return
-                [string | u8, Continuation]! {
+                [string | u8, Continuation] {
                   _0: "s" :string
                   _1: int(0) :u8
                 }
@@ -615,29 +615,29 @@
                   eq :bool
                     l:
                       .state :i32
-                        __self_0 :__genstate_bytes!
+                        __self_0 :__genstate_bytes
                     r:
                       int(2) :i32
                 then:
                   assign
                     target:
                       .state :i32
-                        __self_0 :__genstate_bytes!
+                        __self_0 :__genstate_bytes
                     value:
                       int(1) :i32
                   return
-                    [string | u8, Continuation]! {
+                    [string | u8, Continuation] {
                       _0: int(13) :u8
                       _1: int(0) :u8
                     }
                 else:
                   return
-                    [string | u8, Continuation]! {
+                    [string | u8, Continuation] {
                       _0: null
                       _1: int(1) :u8
                     }
   struct __lambda_env_snippet_1 { cap_0: ? }
-  fn __lambda_snippet_0(__env_2: __lambda_env_snippet_1!) -> void
+  fn __lambda_snippet_0(__env_2: __lambda_env_snippet_1) -> void
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

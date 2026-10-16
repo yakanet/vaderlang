@@ -7,8 +7,8 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         nested               :: fn(null | string, bool, i32) -> u8
   FnDecl         optional             :: fn(bool, bool) -> string
-  StructDecl     Probe                :: Probe!
-  StructDecl     Wide                 :: Wide!
+  StructDecl     Probe                :: Probe
+  StructDecl     Wide                 :: Wide
   FnDecl         wide_if              :: fn(bool) -> i64
   expr 100:13   StringLitExpr  :: string
   expr 100:32   CallExpr       :: i64
@@ -18,15 +18,15 @@
   expr 101:15   StringLitExpr  :: string
   expr 101:18   CallExpr       :: u64
   expr 101:18   IdentExpr      :: fn(Probe | Wide) -> u64
-  expr 101:29   StructLitExpr  :: Probe!
+  expr 101:29   StructLitExpr  :: Probe
   expr 101:56   CallExpr       :: u64
   expr 101:56   IdentExpr      :: fn(Probe | Wide) -> u64
-  expr 101:67   StructLitExpr  :: Probe!
+  expr 101:67   StructLitExpr  :: Probe
   expr 102:13   StringLitExpr  :: string
   expr 102:28   IdentExpr      :: string
   expr 102:38   CallExpr       :: u64
   expr 102:38   IdentExpr      :: fn(Probe | Wide) -> u64
-  expr 102:49   StructLitExpr  :: Wide!
+  expr 102:49   StructLitExpr  :: Wide
   expr 102:5    CallExpr       :: void
   expr 102:5    IdentExpr      :: fn(T) -> void
   expr 103:13   StringLitExpr  :: string

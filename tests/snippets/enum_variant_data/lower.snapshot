@@ -116,8 +116,8 @@
               __off_2 :usize
   fn snippet$main() -> i32
     block :void
-      let __for_arr_0: HttpStatus[]! =
-        array :HttpStatus[]!
+      let __for_arr_0: HttpStatus[] =
+        array :HttpStatus[]
           int(0) :u8
           int(1) :u8
           int(2) :u8
@@ -128,7 +128,7 @@
         let s: HttpStatus =
           index :HttpStatus
             on:
-              __for_arr_0 :HttpStatus[]!
+              __for_arr_0 :HttpStatus[]
             ix:
               __for_i_2 :usize
         ~>

@@ -15,11 +15,11 @@
   expr 17:15    AwaitExpr      :: string
   expr 17:21    CallExpr       :: Async<string>
   expr 17:21    IdentExpr      :: fn(Async<T>[]) -> Async<T>
-  expr 17:26    SeqLitExpr     :: Async<string>![]
-  expr 17:27    CallExpr       :: Async<string>!
+  expr 17:26    SeqLitExpr     :: Async<string>[]
+  expr 17:27    CallExpr       :: Async<string>
   expr 17:27    IdentExpr      :: fn(string, i64) -> Async<string>
   expr 17:31    StringLitExpr  :: string
-  expr 17:44    CallExpr       :: Async<string>!
+  expr 17:44    CallExpr       :: Async<string>
   expr 17:44    IdentExpr      :: fn(string, i64) -> Async<string>
   expr 17:48    StringLitExpr  :: string
   expr 18:13    StringLitExpr  :: string

@@ -26,8 +26,8 @@
         int(127) :u8
         int(1) :u8
         int(254) :u8
-    let img: Ppm! =
-      Ppm! {
+    let img: Ppm =
+      Ppm {
         width: int(2) :u32
         height: int(2) :u32
         maxval: int(255) :u32
@@ -38,10 +38,10 @@
         callee:
           encode :fn(Ppm) -> PpmError | u8[]
         arg0:
-          img :Ppm!
+          img :Ppm
     if :void
       cond:
-        is PpmError! :bool
+        is PpmError :bool
           enc :PpmError | u8[]
       then:
         call :void
@@ -61,7 +61,7 @@
             enc :PpmError | u8[]
     if :void
       cond:
-        is Error! :bool
+        is Error :bool
           wr :IOError | null
       then:
         call :void
@@ -95,7 +95,7 @@
           int(16777216) :usize
     if :void
       cond:
-        is Error! :bool
+        is Error :bool
           raw :IOError | u8[]
       then:
         call :void
@@ -122,7 +122,7 @@
             raw :IOError | u8[]
     if :void
       cond:
-        is PpmError! :bool
+        is PpmError :bool
           dec :Ppm | PpmError
       then:
         call :void

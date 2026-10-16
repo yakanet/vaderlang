@@ -20,7 +20,7 @@
   expr 101:9    CallExpr       :: void
   expr 101:9    IdentExpr      :: fn(T) -> void
   expr 103:13   StringLitExpr  :: string
-  expr 103:22   CallExpr       :: __genstate_with_header<i32>!
+  expr 103:22   CallExpr       :: __genstate_with_header<i32>
   expr 103:22   CallExpr       :: i32 | null
   expr 103:22   FieldExpr      :: fn(fn(i32) -> bool) -> i32 | null
   expr 103:22   IdentExpr      :: fn(i32[]) -> Iterator<i32>
@@ -28,9 +28,9 @@
   expr 103:5    CallExpr       :: void
   expr 103:5    IdentExpr      :: fn(T) -> void
   expr 103:50   IdentExpr      :: fn(i32) -> bool
-  expr 108:14   CallExpr       :: __genstate_upto<i32>!
+  expr 108:14   CallExpr       :: __genstate_upto<i32>
   expr 108:14   IdentExpr      :: fn(i32) -> Iterator<i32>
-  expr 109:18   RangeExpr      :: Range<i32>!
+  expr 109:18   RangeExpr      :: Range<i32>
   expr 110:13   IfExpr         :: void
   expr 110:16   BinaryExpr     :: bool
   expr 110:16   IdentExpr      :: i32
@@ -51,10 +51,10 @@
   expr 123:5    IdentExpr      :: fn() -> void
   expr 124:5    CallExpr       :: void
   expr 124:5    IdentExpr      :: fn() -> void
-  expr 17:14    RangeExpr      :: Range<i32>!
+  expr 17:14    RangeExpr      :: Range<i32>
   expr 17:18    IdentExpr      :: i32
   expr 18:15    IdentExpr      :: i32
-  expr 23:14    CallExpr       :: __genstate_three<i32>!
+  expr 23:14    CallExpr       :: __genstate_three<i32>
   expr 23:14    IdentExpr      :: fn() -> Iterator<i32>
   expr 24:12    BinaryExpr     :: bool
   expr 24:12    IdentExpr      :: i32
@@ -63,7 +63,7 @@
   expr 27:25    IdentExpr      :: i32
   expr 27:9     CallExpr       :: void
   expr 27:9     IdentExpr      :: fn(T) -> void
-  expr 32:14    CallExpr       :: __genstate_three<i32>!
+  expr 32:14    CallExpr       :: __genstate_three<i32>
   expr 32:14    IdentExpr      :: fn() -> Iterator<i32>
   expr 33:12    BinaryExpr     :: bool
   expr 33:12    IdentExpr      :: i32
@@ -81,7 +81,7 @@
   expr 45:15    IdentExpr      :: i32
   expr 46:9     BinaryExpr     :: i32
   expr 46:9     IdentExpr      :: i32
-  expr 52:14    CallExpr       :: __genstate_by_twos<i32>!
+  expr 52:14    CallExpr       :: __genstate_by_twos<i32>
   expr 52:14    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 53:9     BinaryExpr     :: i32
   expr 53:9     IdentExpr      :: i32
@@ -98,13 +98,13 @@
   expr 61:26    IdentExpr      :: i32
   expr 61:9     CallExpr       :: void
   expr 61:9     IdentExpr      :: fn(T) -> void
-  expr 67:14    RangeExpr      :: Range<i32>!
-  expr 68:18    RangeExpr      :: Range<i32>!
+  expr 67:14    RangeExpr      :: Range<i32>
+  expr 68:18    RangeExpr      :: Range<i32>
   expr 69:19    BinaryExpr     :: i32
   expr 69:19    BinaryExpr     :: i32
   expr 69:19    IdentExpr      :: i32
   expr 69:28    IdentExpr      :: i32
-  expr 75:14    CallExpr       :: __genstate_pairs<i32>!
+  expr 75:14    CallExpr       :: __genstate_pairs<i32>
   expr 75:14    IdentExpr      :: fn() -> Iterator<i32>
   expr 76:12    BinaryExpr     :: bool
   expr 76:12    IdentExpr      :: i32
@@ -119,8 +119,8 @@
   expr 92:29    IdentExpr      :: i32
   expr 94:36    BinaryExpr     :: bool
   expr 94:36    IdentExpr      :: i32
-  expr 97:14    CallExpr       :: __genstate_map<i32>!
-  expr 97:14    CallExpr       :: __genstate_with_header<i32>!
+  expr 97:14    CallExpr       :: __genstate_map<i32>
+  expr 97:14    CallExpr       :: __genstate_with_header<i32>
   expr 97:14    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 97:14    IdentExpr      :: fn(i32[]) -> Iterator<i32>
   expr 97:26    SeqLitExpr     :: i32[]

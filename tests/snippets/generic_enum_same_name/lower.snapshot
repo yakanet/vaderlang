@@ -69,8 +69,8 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let by_alpha: MutableMap<Status, i64>! =
-      MutableMap<Status, i64>! {
+    let by_alpha: MutableMap<Status, i64> =
+      MutableMap<Status, i64> {
         ekeys:
           array :Status[]
         evals:
@@ -81,8 +81,8 @@
         size: int(0) :usize
         tombs: int(0) :usize
       }
-    let by_beta: MutableMap<Status, i64>! =
-      MutableMap<Status, i64>! {
+    let by_beta: MutableMap<Status, i64> =
+      MutableMap<Status, i64> {
         ekeys:
           array :Status[]
         evals:
@@ -97,7 +97,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__snippet_alpha_Status__i64 :void
       arg0:
-        by_alpha :MutableMap<Status, i64>!
+        by_alpha :MutableMap<Status, i64>
       arg1:
         int(1) :u8
       arg2:
@@ -107,7 +107,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__snippet_beta_Status__i64 :void
       arg0:
-        by_beta :MutableMap<Status, i64>!
+        by_beta :MutableMap<Status, i64>
       arg1:
         int(1) :u8
       arg2:
@@ -117,7 +117,7 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__snippet_beta_Status__i64 :void
       arg0:
-        by_beta :MutableMap<Status, i64>!
+        by_beta :MutableMap<Status, i64>
       arg1:
         int(0) :u8
       arg2:
@@ -156,7 +156,7 @@
                         callee:
                           std_collections$MutableMap$Index$at__snippet_alpha_Status__i64 :i64 | null
                         arg0:
-                          by_alpha :MutableMap<Status, i64>!
+                          by_alpha :MutableMap<Status, i64>
                         arg1:
                           int(1) :u8
                     ~>
@@ -202,7 +202,7 @@
                         callee:
                           std_collections$MutableMap$Index$at__snippet_beta_Status__i64 :i64 | null
                         arg0:
-                          by_beta :MutableMap<Status, i64>!
+                          by_beta :MutableMap<Status, i64>
                         arg1:
                           int(1) :u8
                     ~>
@@ -248,7 +248,7 @@
                         callee:
                           std_collections$MutableMap$Index$at__snippet_beta_Status__i64 :i64 | null
                         arg0:
-                          by_beta :MutableMap<Status, i64>!
+                          by_beta :MutableMap<Status, i64>
                         arg1:
                           int(0) :u8
                     ~>

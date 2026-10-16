@@ -26,10 +26,10 @@ type 23 struct __Tuple_char_usize_8bd920da { _0:18,_1:12 }
 type 24 primitive isize
 string 0 "héllo"
 string 1 "\n"
-import 0 byte_len std_core$byte_len result_type=12 param_types=15 param_mutable=0 param_by_address= (string) -> usize
-import 1 byte_at std_core$byte_at result_type=8 param_types=15,12 param_mutable=0,0 param_by_address= (string,usize) -> u8
-import 2 bytes std_core$bytes result_type=19 param_types=15 param_mutable=0 param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=24 param_types=3,19,12 param_mutable=0,0,0 param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=12 param_types=15 param_c_out= param_by_address= (string) -> usize
+import 1 byte_at std_core$byte_at result_type=8 param_types=15,12 param_c_out= param_by_address= (string,usize) -> u8
+import 2 bytes std_core$bytes result_type=19 param_types=15 param_c_out= param_by_address= (string) -> ref
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=24 param_types=3,19,12 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 1 std_core$Into
 impl 6 std_core$Iterator
 impl 9 std_core$Contains

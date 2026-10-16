@@ -1,6 +1,36 @@
 # Lower
 
 ## snippet
+  fn snippet$seen() -> string[]
+    if :void
+      cond:
+        eq :bool
+          l:
+            global_get #0 :i32
+          r:
+            int(2) :i32
+      then:
+        return
+          global_get #1 :string[]
+    if :void
+      cond:
+        eq :bool
+          l:
+            global_get #0 :i32
+          r:
+            int(1) :i32
+      then:
+        unreachable("singleton `seen` called while it initialises") :void
+    global_set #0
+      int(1) :i32
+    global_set #1
+      call :string[]
+        callee:
+          snippet$seen$singleton :string[]
+    global_set #0
+      int(2) :i32
+    return
+      global_get #1 :string[]
   fn snippet$main() -> i32
     let local: i32[] =
       @array.repeat :i32[]
@@ -92,7 +122,9 @@
                   int(128) :usize
             then:
               @array.clear :void
-                SEEN :string[]!
+                call :string[]
+                  callee:
+                    seen :fn() -> string[]
       step
         assign
           target:
@@ -154,7 +186,9 @@
     LoweredArrayPush
     let popped: null | string =
       @array.remove_last :null | string
-        SEEN :string[]!
+        call :string[]
+          callee:
+            seen :fn() -> string[]
     call :void
       callee:
         std_io$println__string :void
@@ -345,6 +379,9 @@
               arg1:
                 __off_11 :usize
     return int(0) :i32
+  fn snippet$seen$singleton() -> string[]
+    ~>
+      array :string[]
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

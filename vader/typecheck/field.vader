@@ -169,8 +169,8 @@ receiver_impl_members :: fn(key_ty: Type, field: string, typed: TypedProgram) ->
 }
 
 /// The member `chosen` a call `e` reaches on `target_ty`, typed for that receiver and
-/// checked as the call's : a static member, a trait ambiguity, a `self!` member on a
-/// read-only receiver, the bounds of a generic impl. Records it for tooling.
+/// checked as the call's : a static member, a trait ambiguity, the bounds of a
+/// generic impl. Records it for tooling.
 ///
 /// @param chosen     the impl member the call goes to.
 /// @param e          the call's callee.
@@ -222,8 +222,7 @@ member_ambiguity_error :: fn(field: AST.FieldExpr, sigs: Type[], what: string) -
 
 /// The diagnostic for a value reaching a member of a bounded impl whose bounds its
 /// arguments do not meet : `Wrapper<T> implements<T: Bump> Poke` gives a
-/// `Wrapper<Plain>` no `poke`, no `+`, no `for`, and `implements<T: Bump!>` none of
-/// them to a `Wrapper<Cfg>` over a read-only `Cfg`. Every form that dispatches
+/// `Wrapper<Plain>` no `poke`, no `+`, no `for`. Every form that dispatches
 /// through an impl by its base asks here.
 ///
 /// @param receiver   the value's type.
@@ -453,12 +452,9 @@ trait_type_member :: fn(
     typed: TypedProgram,
 ) -> TypeMember | null {
     decl :: trait_member_decl(trait_ty, name, typed) ?? return null
-    // A type parameter reads each `Self` at the marker written on it : `-> Self`
-    // lends a read-only view of the `T`, as it lends a read-only `Cfg`.
-    self_ty :: if owner is TypeParamType { owner } else { null }
-    method :: try_trait_method(trait_ty, name, typed, self_ty) ?? return null
+    method :: try_trait_method(trait_ty, name, typed, owner) ?? return null
     return TypeMember {
-        .ty = if self_ty == null { substitute_self(method, owner) } else { method },
+        .ty = method,
         .decl = decl,
         .trait_key = trait_key_of(trait_ty.symbol),
         .trait_args = trait_ty.args,
@@ -476,11 +472,7 @@ builtin_equals_member :: fn(owner: Type, name: string, typed: TypedProgram) -> T
     if !has_builtin_impl(owner, trait_key_of(sym)) {
         return null
     }
-    owner_trait :: TraitType {
-        .symbol = sym,
-        .args = [],
-        .immutable = false,
-    }
+    owner_trait :: TraitType { .symbol = sym, .args = [] }
     return trait_type_member(owner_trait, owner, name, typed)
 }
 
@@ -570,8 +562,7 @@ try_free_fn_ufcs_dispatch :: fn(
     // (`receiver_fits_first_param`). A parameter naming the callee's type parameters
     // waits for the call, which binds them.
     if target_ty is ArrayType && !type_contains_type_param(first_param) {
-        receiver :: strip_mutability(target_ty)
-        _ :: fits_by_widening(typed, e.target, receiver, strip_mutability(first_param))
+        _ :: fits_by_widening(typed, e.target, target_ty, first_param)
     }
     return free_ufcs.curried
 }
@@ -1117,27 +1108,27 @@ export substitute_by_name :: fn(
         is TypeParamType -> {
             for i in 0..<min(tps.len(), args.len()) {
                 if tps[i].name == t.symbol.name {
-                    return instance_of(t, args[i])
+                    return args[i]
                 }
             }
             return t
         }
         is ArrayType -> {
-            return mk_array(substitute_by_name(t.element, tps, args), t.immutable)
+            return mk_array(substitute_by_name(t.element, tps, args))
         }
         is TupleType -> {
             els: Type[]: []
             for el in t.elements {
                 els.push(substitute_by_name(el, tps, args))
             }
-            return mk_tuple(els, t.immutable)
+            return mk_tuple(els)
         }
         is StructType -> {
             sargs: Type[]: []
             for a in t.args {
                 sargs.push(substitute_by_name(a, tps, args))
             }
-            return mk_struct(t.symbol, sargs, t.immutable)
+            return mk_struct(t.symbol, sargs)
         }
         is TraitType -> {
             rargs: Type[]: []
@@ -1158,7 +1149,7 @@ export substitute_by_name :: fn(
             for p in t.params {
                 ps.push(substitute_by_name(p, tps, args))
             }
-            return mk_fn_like(t, ps, substitute_by_name(t.return_type, tps, args))
+            return mk_fn(ps, substitute_by_name(t.return_type, tps, args))
         }
         _ -> { return t }
     }
@@ -1223,17 +1214,17 @@ substitute_array_element :: fn(t: Type, element: Type) -> Type {
     // @partial: only TypeParam + the composite variants carry a param to rewrite;
     // scalars have no inner type → return as-is.
     @partial match t {
-        is TypeParamType -> { return instance_of(t, element) }
-        is ArrayType -> { return mk_array(substitute_array_element(t.element, element), t.immutable) }
+        is TypeParamType -> { return element }
+        is ArrayType -> { return mk_array(substitute_array_element(t.element, element)) }
         is TupleType -> {
             els: Type[]: []
             for el in t.elements { els.push(substitute_array_element(el, element)) }
-            return mk_tuple(els, t.immutable)
+            return mk_tuple(els)
         }
         is StructType -> {
             sargs: Type[]: []
             for a in t.args { sargs.push(substitute_array_element(a, element)) }
-            return mk_struct(t.symbol, sargs, t.immutable)
+            return mk_struct(t.symbol, sargs)
         }
         is TraitType -> {
             rargs: Type[]: []
@@ -1248,7 +1239,7 @@ substitute_array_element :: fn(t: Type, element: Type) -> Type {
         is FnType -> {
             ps: Type[]: []
             for p in t.params { ps.push(substitute_array_element(p, element)) }
-            return mk_fn_like(t, ps, substitute_array_element(t.return_type, element))
+            return mk_fn(ps, substitute_array_element(t.return_type, element))
         }
         _ -> { return t }
     }
@@ -1339,8 +1330,7 @@ field_position :: fn(decl: AST.StructDecl, name: string) -> i32 {
     return -1
 }
 
-// Replace every `SelfType` in `t` with `self_ty` — but a fn type's parameter that is
-// `Self` itself with `self_ty` at that parameter's rights. Used to specialise
+// Replace every `SelfType` in `t` with `self_ty`. Used to specialise
 // trait-method signatures at the receiver's type (`fn(Self) -> Self` → `fn(T) -> T`
 // when called on a `T`).
 substitute_self :: fn(t: Type, self_ty: Type) -> Type {
@@ -1348,32 +1338,20 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
     // leaf; every scalar / primitive variant has no `Self` to replace.
     @partial match t {
         is SelfType -> { return self_ty }
-        is ArrayType -> { return mk_array(substitute_self(t.element, self_ty), t.immutable) }
+        is ArrayType -> { return mk_array(substitute_self(t.element, self_ty)) }
         is StructType -> {
             args: Type[]: []
             for a in t.args {
                 args.push(substitute_self(a, self_ty))
             }
-            return mk_struct(t.symbol, args, t.immutable)
+            return mk_struct(t.symbol, args)
         }
         is FnType -> {
-            // A parameter's rights are its marker's, which the read-only default of
-            // the slot holding the fn type does not reach : `fn(Self)` lends a
-            // read-only `Self`, `fn(Self!)` a mutable one. A `Self` deeper in a
-            // parameter (`fn(Self![])`) has lost its own marker, and keeps `self_ty`'s
-            // rights.
             ps: Type[]: []
-            for i in 0..<t.params.len() {
-                p :: t.params[i]
-                if p is SelfType && param_mutable_at(t, i) {
-                    ps.push(mutable_of(self_ty))
-                } else if p is SelfType {
-                    ps.push(read_only_of(self_ty))
-                } else {
-                    ps.push(substitute_self(p, self_ty))
-                }
+            for p in t.params {
+                ps.push(substitute_self(p, self_ty))
             }
-            return mk_fn_like(t, ps, substitute_self(t.return_type, self_ty))
+            return mk_fn(ps, substitute_self(t.return_type, self_ty))
         }
         is UnionType -> {
             vs: Type[]: []
@@ -1387,7 +1365,7 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
             for el in t.elements {
                 els.push(substitute_self(el, self_ty))
             }
-            return mk_tuple(els, t.immutable)
+            return mk_tuple(els)
         }
         _ -> { return t }
     }
@@ -1414,7 +1392,7 @@ try_default_trait_method :: fn(
             // Substitute Self → struct, then trait type-params →
             // recorded impl args, so a default naming the trait's `T`
             // reports the impl's argument instead.
-            sub_self :: trait_member_type(trait_id, m, typed, target_ty)
+            sub_self :: substitute_self(trait_member_type(trait_id, m, typed), target_ty)
             return substitute_trait_typeparams(sub_self, decl, trait_key, target_ty, typed)
         }
     }
@@ -1491,9 +1469,8 @@ pad_trait_default_args :: fn(
 // trait decl, drops the `self` param, and returns the curried fn
 // type. Null when the trait isn't indexed or the method is missing.
 //
-// With `self_ty`, `Self` reads as that type — the impl's, when its members are held
-// to the trait — at the rights the trait writes on it (see `self_slot_type`) ; a
-// `Self` default the impl leaves out (`Out = Self`) is an unmarked slot, read-only.
+// With `self_ty`, `Self` reads as that type: the impl's, when its members are held
+// to the trait.
 try_trait_method :: fn(
     t: TraitType, name: string, typed: TypedProgram, self_ty: Type | null = null,
 ) -> Type | null {
@@ -1501,59 +1478,29 @@ try_trait_method :: fn(
     m :: lookup_trait_method(decl, name) ?? return null
     owner_resolved :: typed.trait_decl_owners[t.symbol.id] ?? typed.resolved
     padded :: pad_trait_default_args(t.args, decl.type_params, owner_resolved)
-    bound :: substitute_by_name(trait_member_type(t.symbol.id, m, typed, self_ty), decl.type_params, padded)
+    bound :: substitute_by_name(trait_member_type(t.symbol.id, m, typed), decl.type_params, padded)
     if self_ty == null {
         return bound
     }
-    return substitute_self(bound, apply_readonly_default(self_ty, null))
+    return substitute_self(bound, self_ty)
 }
 
 // The type of `m`, a member of the trait `trait_id`, with its receiver dropped.
 // Its signature is read in the trait's own module : std/core's `Iterator<T>.next`
-// names a `T` minted there, which the entry's idents would leave unresolved. With
-// `self_ty`, `Self` reads as that type (`self_slot_type`).
-trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram, self_ty: Type | null = null) -> FnType {
+// names a `T` minted there, which the entry's idents would leave unresolved.
+trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram) -> FnType {
     owner_resolved :: typed.trait_decl_owners[trait_id] ?? typed.resolved
     params: Type[]: []
     for i in receiver_count(m)..<m.params.len() {
-        params.push(type_from_expr_opt_in(m.params[i].ty, owner_resolved, self_ty))
+        params.push(opt_or_void(m.params[i].ty, owner_resolved, []))
     }
-    return member_fn_type(m, params, type_from_expr_opt_in(m.return_type, owner_resolved, self_ty))
+    return mk_fn(params, opt_or_void(m.return_type, owner_resolved, []))
 }
 
-// A trait member's type with its receiver dropped (`params` are its tail), the
-// tail's `!` markers kept. A static member has no receiver to drop.
-member_fn_type :: fn(m: AST.FnDecl, params: Type[], ret: Type) -> FnType = FnType {
-    .params         = params,
-    .params_mutable = params_mutable_after_receiver(m),
-    .return_type    = ret,
-}
-
-// A trait member's written param / return type, with the read-only default a
-// free fn's signature takes — `Self` read as `self_ty` first when one is given.
-type_from_expr_opt_in :: fn(e: AST.TypeExpr | null, resolved: ResolvedModule, self_ty: Type | null = null) -> Type {
-    if e is null {
-        return TY_VOID
-    }
-    if self_ty == null {
-        return apply_readonly_default(type_from_expr(e, resolved, []), e)
-    }
-    return self_slot_type(e, self_ty, resolved, [])
-}
-
-// A written type with `Self` read as `self_ty` BEFORE the read-only default : a
-// `SelfType` carries no marker of its own, so substituting after the default would
-// hand every `Self` the rights of `self_ty` as it comes. This way the written marker
-// decides — `Self` is the read-only `self_ty`, `Self!` the mutable one. A type
-// parameter takes no default, so its `Self` goes in as a read-only view, which only
-// a written `Self!` lifts (`type_param_default`).
-self_slot_type :: fn(
+// A written type with `Self` read as `self_ty`.
+type_with_self :: fn(
     written: AST.TypeExpr, self_ty: Type, resolved: ResolvedModule, diags: Diagnostic[],
-) -> Type {
-    standing :: if self_ty is TypeParamType { read_only_of(self_ty) } else { self_ty }
-    substituted :: substitute_self(type_from_expr(written, resolved, diags), standing)
-    return apply_readonly_default(substituted, written)
-}
+) -> Type = substitute_self(type_from_expr(written, resolved, diags), self_ty)
 
 UfcsResult :: struct {
     curried: Type
@@ -1685,11 +1632,9 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
 // Trait widening here covers user `T implements Trait` impls AND
 // `Array<T> implements Iterator<T>` (which is hardcoded via `try_array_to_iter`
 // because adding it to `is_assignable` bloats c-emit).
-// Dispatch picks a method by SHAPE: a receiver's mutability is not this gate's
-// business.
 receiver_fits_first_param :: fn(target_ty: Type, first: Type, typed: TypedProgram) -> bool {
     pattern :: erase_type_params(first)
-    if accepts_argument(strip_mutability(target_ty), strip_mutability(pattern), typed) {
+    if accepts_argument(target_ty, pattern, typed) {
         return true
     }
     if first is TraitType {

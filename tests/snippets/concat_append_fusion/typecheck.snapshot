@@ -9,10 +9,10 @@
   FnDecl         mixed_operands       :: fn(string, string) -> string
   FnDecl         observed_between     :: fn(string) -> string
   FnDecl         reads_itself         :: fn(string) -> string
-  StructDecl     Ready                :: Ready<T>!
+  StructDecl     Ready                :: Ready<T>
   FnDecl         tick                 :: fn(string) -> Async<string>
   expr 100:13   AwaitExpr      :: string
-  expr 100:19   CallExpr       :: Async<string>!
+  expr 100:19   CallExpr       :: Async<string>
   expr 100:19   IdentExpr      :: fn(string) -> Async<string>
   expr 100:36   StringLitExpr  :: string
   expr 100:5    CallExpr       :: void
@@ -90,7 +90,7 @@
   expr 58:12    IdentExpr      :: string
   expr 66:50    FieldExpr      :: T
   expr 66:50    IdentExpr      :: Ready<T>
-  expr 69:42    StructLitExpr  :: Ready<string>!
+  expr 69:42    StructLitExpr  :: Ready<string>
   expr 69:63    IdentExpr      :: string
   expr 72:10    IdentExpr      :: string
   expr 73:13    StringLitExpr  :: string

@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/interp_display
-  StructDecl     Age                  :: Age!
+  StructDecl     Age                  :: Age
   FnDecl         greet                :: fn(string, Age) -> string
   FnDecl         main                 :: fn() -> i32
   expr 10:39    StringLitExpr  :: string
@@ -13,6 +13,6 @@
   expr 18:13    CallExpr       :: string
   expr 18:13    IdentExpr      :: fn(string, Age) -> string
   expr 18:19    StringLitExpr  :: string
-  expr 18:26    StructLitExpr  :: Age!
+  expr 18:26    StructLitExpr  :: Age
   expr 18:5     CallExpr       :: void
   expr 18:5     IdentExpr      :: fn(T) -> void

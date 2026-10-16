@@ -2,11 +2,11 @@
 
 ## snippet
   struct snippet$Pair { quot: char, rem: i32 }
-  fn snippet$zero_pair(p: Pair!, byte: i32, n: usize) -> CPointer
+  fn snippet$zero_pair(p: Pair, byte: i32, n: usize) -> CPointer
     <extern / signature only>
   fn snippet$main() -> i32
-    let p: Pair! =
-      Pair! {
+    let p: Pair =
+      Pair {
         quot: char(0x41)
         rem: int(7) :i32
       }
@@ -21,7 +21,7 @@
                 std_core$char$Display$to_string :string
               arg0:
                 .quot :char
-                  p :Pair!
+                  p :Pair
           let __buf_1: Buffer =
             call :Buffer
               callee:
@@ -90,7 +90,7 @@
                 arg2:
                   cast → i64
                     .rem :i32
-                      p :Pair!
+                      p :Pair
           ~>
             call :string
               callee:
@@ -101,9 +101,9 @@
                 __off_2 :usize
     call :CPointer
       callee:
-        zero_pair :fn(Pair!, i32, usize) -> CPointer
+        zero_pair :fn(Pair, i32, usize) -> CPointer
       arg0:
-        p :Pair!
+        p :Pair
       arg1:
         int(0) :i32
       arg2:
@@ -148,7 +148,7 @@
                   eq :bool
                     l:
                       .quot :char
-                        p :Pair!
+                        p :Pair
                     r:
                       char(0x0)
           assign
@@ -178,7 +178,7 @@
                 arg2:
                   cast → i64
                     .rem :i32
-                      p :Pair!
+                      p :Pair
           ~>
             call :string
               callee:

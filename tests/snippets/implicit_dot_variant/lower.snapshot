@@ -92,14 +92,14 @@
               r:
                 int(1) :usize
     let m: None | Some =
-      Some! {
+      Some {
         value: int(42) :i32
       }
     block :void
       ~>
         if :void
           cond:
-            is Some! :bool
+            is Some :bool
               m :None | Some
           then:
             ~>
@@ -156,7 +156,7 @@
             ~>
               if :void
                 cond:
-                  is None! :bool
+                  is None :bool
                     m :None | Some
                 then:
                   ~>
@@ -169,13 +169,13 @@
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     let n: None | Some =
-      None! {
+      None {
       }
     block :void
       ~>
         if :void
           cond:
-            is Some! :bool
+            is Some :bool
               n :None | Some
           then:
             ~>
@@ -232,7 +232,7 @@
             ~>
               if :void
                 cond:
-                  is None! :bool
+                  is None :bool
                     n :None | Some
                 then:
                   ~>

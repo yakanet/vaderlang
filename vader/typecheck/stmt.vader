@@ -345,7 +345,7 @@ export expr_has_yield :: fn(e: AST.Expr) -> bool = match e {
         inner :: AST.coalesce_fallback_expr(e.fallback) ?? return false
         return expr_has_yield(inner)
     }
-    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.StringLitExpr | AST.IdentExpr | AST.CallExpr | AST.FieldExpr | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.LambdaExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr | AST.ArrayTypeExpr | AST.MutableTypeExpr | AST.AwaitExpr -> { return false }
+    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.StringLitExpr | AST.IdentExpr | AST.CallExpr | AST.FieldExpr | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.LambdaExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr | AST.ArrayTypeExpr | AST.AwaitExpr -> { return false }
 }
 // No other expression form carries a statement block a `yield` could
 // live in ; a LambdaExpr body is deliberately NOT descended (a `yield`
@@ -483,7 +483,9 @@ patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) 
         is Symbol -> {
             cur :: typed.decl_types[sym.id]
             match cur {
-                is FnType -> { typed.decl_types[sym.id] = mk_fn_like(cur, cur.params, ret) }
+                is FnType -> {
+                    typed.decl_types[sym.id] = FnType { ...cur, .return_type = ret }
+                }
                 _         -> {}
             }
         }
@@ -492,7 +494,9 @@ patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) 
             sp_key :: fn_decl.name_span.hash()
             cur :: typed.impl_method_decl_types[sp_key]
             match cur {
-                is FnType -> { typed.impl_method_decl_types[sp_key] = mk_fn_like(cur, cur.params, ret) }
+                is FnType -> {
+                    typed.impl_method_decl_types[sp_key] = FnType { ...cur, .return_type = ret }
+                }
                 _         -> {}
             }
         }
@@ -639,7 +643,7 @@ check_let :: fn(
     ann: Type | null = null
     written_ty :: s.ty
     if written_ty !is null {
-        ann = apply_readonly_default(type_from_expr(written_ty, typed.resolved, diags), written_ty)
+        ann = type_from_expr(written_ty, typed.resolved, diags)
     }
     got :: check_expr_fn(s.value, ann, typed, diags)
     declared: Type = TY_UNRESOLVED
@@ -867,10 +871,8 @@ check_destructuring_assign :: fn(
                 is AST.PlaceTarget    -> {
                     check_destructure_target(t.place, arr.element, typed, diags, check_expr_fn)
                 }
-                // The tail is a fresh array, so it is mutable whatever the source.
                 is AST.RestTarget     -> {
-                    tail :: mk_array(arr.element, false)
-                    check_destructure_target(t.place, tail, typed, diags, check_expr_fn)
+                    check_destructure_target(t.place, arr, typed, diags, check_expr_fn)
                 }
                 is AST.WildcardTarget -> {}
             }
@@ -901,7 +903,7 @@ check_destructuring_assign :: fn(
             return
         }
     }
-    value_ty :: check_expr_fn(s.value, mk_tuple(slot_types, true), typed, diags)
+    value_ty :: check_expr_fn(s.value, mk_tuple(slot_types), typed, diags)
     elem_types :: destructure_element_types(value_ty, s.targets.len())
     if elem_types == null {
         diags.push(typecheck_error(
@@ -1090,8 +1092,8 @@ report_variant_data_write :: fn(
     return true
 }
 
-/// T3101 : a tuple's element is never written, whatever the path to the tuple
-/// and whatever `!` it carries. A field no position names is left to T3009.
+/// T3101 : a tuple's element is never written, whatever the path to the tuple.
+/// A field no position names is left to T3009.
 ///
 /// @return  whether it reported.
 report_tuple_element_write :: fn(
@@ -1159,8 +1161,7 @@ reject_const_reassign :: fn(
 
 // T3041's detail for `ident`, null when it may be rebound: a parameter, a binding a
 // pattern or an `as` makes, a local declared with `:=`. A `::` local gets the `:=`
-// hint. Any other name is a declaration, a module variable included: its `!` frees
-// the elements, not the binding.
+// hint. Any other name is a declaration.
 const_reassign_detail :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> string | null {
     sym :: bare_name_symbol(ident, typed) ?? return null
     return match sym.kind {
@@ -1706,7 +1707,7 @@ expr_breaks_loop :: fn(e: AST.Expr, label: string | null, bare_counts: bool) -> 
         inner :: AST.coalesce_fallback_expr(e.fallback) ?? return false
         return expr_breaks_loop(inner, label, bare_counts)
     }
-    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.StringLitExpr | AST.IdentExpr | AST.CallExpr | AST.FieldExpr | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.LambdaExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr | AST.ArrayTypeExpr | AST.MutableTypeExpr | AST.AwaitExpr -> { return false }
+    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.StringLitExpr | AST.IdentExpr | AST.CallExpr | AST.FieldExpr | AST.IndexExpr | AST.UnaryExpr | AST.BinaryExpr | AST.LambdaExpr | AST.StructLitExpr | AST.SeqLitExpr | AST.RangeExpr | AST.CastExpr | AST.GenericInstExpr | AST.IntrinsicCallExpr | AST.DotVariantExpr | AST.FnTypeExpr | AST.ArrayTypeExpr | AST.AwaitExpr -> { return false }
 }
 
 if_breaks_loop :: fn(i: AST.IfExpr, label: string | null, bare_counts: bool) -> bool {
@@ -1831,10 +1832,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
             return null
         }
         current :: narrow_for_binding(typed, sym.id, base)
-        // The written type name carries no mutability : take the scrutinee's, or
-        // `subtract_type` no longer recognises the variant it is meant to remove
-        // and the divergent guard stops narrowing (see `pattern_type_of`).
-        narrowed :: complement_narrowed_type(cond.right, current, typed)
+        narrowed :: pattern_type_of(cond.right, typed, diag_sink_stmt())
         return BlockNarrow {
             .sym_id = sym.id,
             .static_ty = base,
@@ -1848,7 +1846,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     if cond.left is AST.FieldExpr as field_lhs {
         field_info :: resolve_field_chain_static(field_lhs, typed) ?? return null
         current :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
-        narrowed :: complement_narrowed_type(cond.right, current, typed)
+        narrowed :: pattern_type_of(cond.right, typed, diag_sink_stmt())
         return BlockNarrow {
             .sym_id = 0,
             .static_ty = field_info.static_ty,
@@ -1860,13 +1858,6 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
 }
 
 diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
-
-// The type written on the right of an `is`, carrying the immutability of the
-// slot it is subtracted from. Same rationale as `match_expr::pattern_type_of`.
-complement_narrowed_type :: fn(ty: AST.Expr, current: Type, typed: TypedProgram) -> Type {
-    narrowed :: type_from_expr(ty, typed.resolved, diag_sink_stmt())
-    return narrowed_with_rights(narrowed, current, typed.type_param_bound_traits)
-}
 
 // Pull the iterator's element type. `T[]` yields `T` directly ;
 // generic `StructType` falls back to first type arg (covers Range and
@@ -2064,7 +2055,7 @@ assign_tuple :: fn(
 
 // The trait a `for` over `iter_ty` would reach through several impls : `Iterator`,
 // or, for a struct that is no `Iterator` itself, the `Into` toward one
-// (`Into<Iterator<i32>!>` beside `Into<Iterator<string>!>`). Null when one serves.
+// (`Into<Iterator<i32>>` beside `Into<Iterator<string>>`). Null when one serves.
 several_iterators_trait :: fn(iter_ty: Type, typed: TypedProgram) -> string | null {
     iterator :: core_trait_key(TRAIT_ITERATOR)
     if implements_more_than_once(iter_ty, iterator, typed) {

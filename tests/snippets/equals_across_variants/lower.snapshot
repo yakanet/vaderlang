@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Point { x: i32 }
-  fn snippet$Point$Equals$equals(self: Point!, other: Point) -> bool
+  fn snippet$Point$Equals$equals(self: Point, other: Point) -> bool
     ~>
       eq :bool
         l:
@@ -11,13 +11,13 @@
         r:
           .x :i32
             other :Point
-  fn snippet$Point$Hash$hash(self: Point!) -> u64
+  fn snippet$Point$Hash$hash(self: Point) -> u64
     ~>
       cast → u64
         .x :i32
           self :Point
   struct snippet$Label { n: i32 }
-  fn snippet$Label$Equals$equals(self: Label!, other: Label) -> bool
+  fn snippet$Label$Equals$equals(self: Label, other: Label) -> bool
     ~>
       eq :bool
         l:
@@ -26,14 +26,14 @@
         r:
           .n :i32
             other :Label
-  fn snippet$Label$Hash$hash(self: Label!) -> u64
+  fn snippet$Label$Hash$hash(self: Label) -> u64
     ~>
       cast → u64
         .n :i32
           self :Label
   fn snippet$main() -> i32
-    let seen: MutableMap<Label | Point, string>! =
-      MutableMap<Any, string>! {
+    let seen: MutableMap<Label | Point, string> =
+      MutableMap<Any, string> {
         ekeys:
           array :Any[]
         evals:
@@ -48,9 +48,9 @@
       callee:
         std_collections$MutableMap$IndexSet$set_at__Any__string :void
       arg0:
-        seen :MutableMap<Label | Point, string>!
+        seen :MutableMap<Label | Point, string>
       arg1:
-        Point! {
+        Point {
           x: int(1) :i32
         }
       arg2:
@@ -69,9 +69,9 @@
                   callee:
                     std_collections$MutableMap$Index$at__Any__string :null | string
                   arg0:
-                    seen :MutableMap<Label | Point, string>!
+                    seen :MutableMap<Label | Point, string>
                   arg1:
-                    Label! {
+                    Label {
                       n: int(1) :i32
                     }
               ~>
@@ -95,9 +95,9 @@
                   callee:
                     std_collections$MutableMap$Index$at__Any__string :null | string
                   arg0:
-                    seen :MutableMap<Label | Point, string>!
+                    seen :MutableMap<Label | Point, string>
                   arg1:
-                    Point! {
+                    Point {
                       x: int(1) :i32
                     }
               ~>
@@ -114,11 +114,11 @@
                         __coalesce_1 :null | string
     let shapes: (Label | Point)[] =
       array :(Label | Point)[]
-        Point! {
+        Point {
           x: int(1) :i32
         }
     let label: Label | Point =
-      Label! {
+      Label {
         n: int(1) :i32
       }
     call :void
@@ -205,11 +205,11 @@
               arg1:
                 __off_5 :usize
     let e1: Equals =
-      Point! {
+      Point {
         x: int(1) :i32
       }
     let e2: Equals =
-      Label! {
+      Label {
         n: int(1) :i32
       }
     call :void

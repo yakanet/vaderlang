@@ -2,7 +2,7 @@
 
 ## tests/snippets/defer_capture_param
   FnDecl         bump_at_exit         :: fn(Counter, i64) -> void
-  StructDecl     Counter              :: Counter!
+  StructDecl     Counter              :: Counter
   FnDecl         log_at_exit          :: fn(string, i64) -> void
   FnDecl         main                 :: fn() -> i32
   FnDecl         make_greeter         :: fn(string) -> void
@@ -35,16 +35,16 @@
   expr 34:17    StringLitExpr  :: string
   expr 34:5     CallExpr       :: void
   expr 34:5     IdentExpr      :: fn(string, i64) -> void
-  expr 35:16    StructLitExpr  :: Counter!
-  expr 36:18    IdentExpr      :: Counter!
+  expr 35:16    StructLitExpr  :: Counter
+  expr 36:18    IdentExpr      :: Counter
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(Counter, i64) -> void
-  expr 37:18    IdentExpr      :: Counter!
+  expr 37:18    IdentExpr      :: Counter
   expr 37:5     CallExpr       :: void
   expr 37:5     IdentExpr      :: fn(Counter, i64) -> void
   expr 38:13    StringLitExpr  :: string
   expr 38:29    FieldExpr      :: i64
-  expr 38:29    IdentExpr      :: Counter!
+  expr 38:29    IdentExpr      :: Counter
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
   expr 39:18    StringLitExpr  :: string

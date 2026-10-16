@@ -5,7 +5,7 @@
   struct snippet$Square { s: i32 }
   fn snippet$main() -> i32
     let sq: Circle | Square =
-      Square! {
+      Square {
         s: int(2) :i32
       }
     call :void
@@ -126,7 +126,7 @@
                     arg0:
                       sq :Circle | Square
                     arg1:
-                      Circle! {
+                      Circle {
                         r: int(0) :i32
                       }
           assign
@@ -160,7 +160,7 @@
                     arg0:
                       sq :Circle | Square
                     arg1:
-                      Square! {
+                      Square {
                         s: int(0) :i32
                       }
           ~>
@@ -201,7 +201,7 @@
                     arg0:
                       sq :Circle | Square
                     arg1:
-                      Circle! {
+                      Circle {
                         r: int(0) :i32
                       }
           assign
@@ -235,7 +235,7 @@
                     arg0:
                       sq :Circle | Square
                     arg1:
-                      Square! {
+                      Square {
                         s: int(0) :i32
                       }
           ~>
@@ -276,7 +276,7 @@
                     arg0:
                       sq :Circle | Square
                     arg1:
-                      Circle! {
+                      Circle {
                         r: int(0) :i32
                       }
           assign
@@ -310,7 +310,7 @@
                     arg0:
                       sq :Circle | Square
                     arg1:
-                      Square! {
+                      Square {
                         s: int(0) :i32
                       }
           ~>
@@ -321,14 +321,14 @@
                 __buf_6 :Buffer
               arg1:
                 __off_7 :usize
-    let circles: Circle![]! =
-      array :Circle![]!
-        Circle! {
+    let circles: Circle[] =
+      array :Circle[]
+        Circle {
           r: int(0) :i32
         }
-    let squares: Square![]! =
-      array :Square![]!
-        Square! {
+    let squares: Square[] =
+      array :Square[]
+        Square {
           s: int(0) :i32
         }
     call :void
@@ -359,7 +359,7 @@
                     callee:
                       snippet$relay_method_twice__Circle :bool
                     arg0:
-                      circles :Circle![]!
+                      circles :Circle[]
                     arg1:
                       sq :Circle | Square
           assign
@@ -391,7 +391,7 @@
                     callee:
                       snippet$relay_method_twice__Square :bool
                     arg0:
-                      squares :Square![]!
+                      squares :Square[]
                     arg1:
                       sq :Circle | Square
           ~>
@@ -403,69 +403,69 @@
               arg1:
                 __off_9 :usize
     return int(0) :i32
-  fn snippet$relay_method_twice__Circle(samples: Circle![], x: Circle | Square) -> bool
+  fn snippet$relay_method_twice__Circle(samples: Circle[], x: Circle | Square) -> bool
     ~>
       call :bool
         callee:
           snippet$relay_method__Circle :bool
         arg0:
-          samples :Circle![]
+          samples :Circle[]
         arg1:
           x :Circle | Square
-  fn snippet$relay_method_twice__Square(samples: Square![], x: Circle | Square) -> bool
+  fn snippet$relay_method_twice__Square(samples: Square[], x: Circle | Square) -> bool
     ~>
       call :bool
         callee:
           snippet$relay_method__Square :bool
         arg0:
-          samples :Square![]
+          samples :Square[]
         arg1:
           x :Circle | Square
-  fn snippet$is_a__Circle__Circle___Square(x: Circle! | Square!) -> bool
+  fn snippet$is_a__Circle__Circle___Square(x: Circle | Square) -> bool
     ~>
-      is Circle! :bool
-        x :Circle! | Square!
-  fn snippet$is_a__Square__Circle___Square(x: Circle! | Square!) -> bool
+      is Circle :bool
+        x :Circle | Square
+  fn snippet$is_a__Square__Circle___Square(x: Circle | Square) -> bool
     ~>
-      is Square! :bool
-        x :Circle! | Square!
-  fn snippet$kind__Circle__Circle___Square(x: Circle! | Square!) -> string
+      is Square :bool
+        x :Circle | Square
+  fn snippet$kind__Circle__Circle___Square(x: Circle | Square) -> string
     ~>
       block :string
         ~>
           if :string
             cond:
-              is Circle! :bool
-                x :Circle! | Square!
+              is Circle :bool
+                x :Circle | Square
             then:
               ~>
                 "yes" :string
             else:
               ~>
                 "no" :string
-  fn snippet$kind__Square__Circle___Square(x: Circle! | Square!) -> string
+  fn snippet$kind__Square__Circle___Square(x: Circle | Square) -> string
     ~>
       block :string
         ~>
           if :string
             cond:
-              is Square! :bool
-                x :Circle! | Square!
+              is Square :bool
+                x :Circle | Square
             then:
               ~>
                 "yes" :string
             else:
               ~>
                 "no" :string
-  fn snippet$same_kind__Circle__Circle___Square(x: Circle | Square, sample: Circle!) -> bool
+  fn snippet$same_kind__Circle__Circle___Square(x: Circle | Square, sample: Circle) -> bool
     ~>
-      is Circle! :bool
+      is Circle :bool
         x :Circle | Square
-  fn snippet$same_kind__Square__Circle___Square(x: Circle | Square, sample: Square!) -> bool
+  fn snippet$same_kind__Square__Circle___Square(x: Circle | Square, sample: Square) -> bool
     ~>
-      is Square! :bool
+      is Square :bool
         x :Circle | Square
-  fn snippet$relay__Circle__Circle___Square(x: Circle | Square, sample: Circle!) -> bool
+  fn snippet$relay__Circle__Circle___Square(x: Circle | Square, sample: Circle) -> bool
     ~>
       call :bool
         callee:
@@ -473,8 +473,8 @@
         arg0:
           x :Circle | Square
         arg1:
-          sample :Circle!
-  fn snippet$relay__Square__Circle___Square(x: Circle | Square, sample: Square!) -> bool
+          sample :Circle
+  fn snippet$relay__Square__Circle___Square(x: Circle | Square, sample: Square) -> bool
     ~>
       call :bool
         callee:
@@ -482,8 +482,8 @@
         arg0:
           x :Circle | Square
         arg1:
-          sample :Square!
-  fn snippet$relay_twice__Circle__Circle___Square(x: Circle | Square, sample: Circle!) -> bool
+          sample :Square
+  fn snippet$relay_twice__Circle__Circle___Square(x: Circle | Square, sample: Circle) -> bool
     ~>
       call :bool
         callee:
@@ -491,8 +491,8 @@
         arg0:
           x :Circle | Square
         arg1:
-          sample :Circle!
-  fn snippet$relay_twice__Square__Circle___Square(x: Circle | Square, sample: Square!) -> bool
+          sample :Circle
+  fn snippet$relay_twice__Square__Circle___Square(x: Circle | Square, sample: Square) -> bool
     ~>
       call :bool
         callee:
@@ -500,31 +500,31 @@
         arg0:
           x :Circle | Square
         arg1:
-          sample :Square!
-  fn snippet$holds_kind__Circle(samples: Circle![], x: Circle | Square) -> bool
+          sample :Square
+  fn snippet$holds_kind__Circle(samples: Circle[], x: Circle | Square) -> bool
     ~>
-      is Circle! :bool
+      is Circle :bool
         x :Circle | Square
-  fn snippet$holds_kind__Square(samples: Square![], x: Circle | Square) -> bool
+  fn snippet$holds_kind__Square(samples: Square[], x: Circle | Square) -> bool
     ~>
-      is Square! :bool
+      is Square :bool
         x :Circle | Square
-  fn snippet$relay_method__Circle(samples: Circle![], x: Circle | Square) -> bool
+  fn snippet$relay_method__Circle(samples: Circle[], x: Circle | Square) -> bool
     ~>
       call :bool
         callee:
           snippet$holds_kind__Circle :bool
         arg0:
-          samples :Circle![]
+          samples :Circle[]
         arg1:
           x :Circle | Square
-  fn snippet$relay_method__Square(samples: Square![], x: Circle | Square) -> bool
+  fn snippet$relay_method__Square(samples: Square[], x: Circle | Square) -> bool
     ~>
       call :bool
         callee:
           snippet$holds_kind__Square :bool
         arg0:
-          samples :Square![]
+          samples :Square[]
         arg1:
           x :Circle | Square
   fn concat_3(p0: string, p1: string, p2: string) -> string

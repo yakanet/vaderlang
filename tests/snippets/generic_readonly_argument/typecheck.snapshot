@@ -1,16 +1,16 @@
 # Typecheck
 
 ## tests/snippets/generic_readonly_argument
-  StructDecl     Box                  :: Box<T>!
+  StructDecl     Box                  :: Box<T>
   FnDecl         double               :: fn(Point) -> i32
   FnDecl         main                 :: fn() -> i32
   ConstDecl      ORIGIN               :: Point
-  StructDecl     Point                :: Point!
+  StructDecl     Point                :: Point
   FnDecl         show                 :: fn(T) -> i32
   FnDecl         through_param        :: fn(Point) -> i32
   FnDecl         wrap                 :: fn(T) -> Box<T>
-  expr 17:11    StructLitExpr  :: Point!
-  expr 21:33    StructLitExpr  :: Box<T>!
+  expr 17:11    StructLitExpr  :: Point
+  expr 21:33    StructLitExpr  :: Box<T>
   expr 21:47    IdentExpr      :: T
   expr 23:40    BinaryExpr     :: i32
   expr 23:40    CallExpr       :: i32
@@ -26,8 +26,8 @@
   expr 25:33    IdentExpr      :: Point
   expr 28:18    SeqLitExpr     :: Point[]
   expr 28:19    IdentExpr      :: Point
-  expr 28:27    StructLitExpr  :: Point!
-  expr 29:21    CallExpr       :: __genstate_map<i32>!
+  expr 28:27    StructLitExpr  :: Point
+  expr 29:21    CallExpr       :: __genstate_map<i32>
   expr 29:21    CallExpr       :: i32[]
   expr 29:21    FieldExpr      :: fn() -> i32[]
   expr 29:21    FieldExpr      :: fn(fn(Point) -> i32) -> Iterator<i32>

@@ -110,8 +110,7 @@ export TypecheckCode :: enum(CodeInfo) {
     FrozenValueWritten              { .id = "T3070", .message = "a frozen value cannot be modified" },
     ViewKept                        { .id = "T3071", .message = "a view of a string's bytes cannot be kept" },
     FrozenValueLentToWriter         { .id = "T3072", .message = "a frozen value cannot be lent to a function that modifies it" },
-    MutabilityMarkerOnValueType     { .id = "T3075", .message = "a `!` that grants nothing" },
-    ModuleConstMutableElement       { .id = "T3076", .message = "a mutable module const needs a flat element type" },
+    // T3075 and T3076 checked where a `!` was written, and left with the marker.
     MethodOnlyBehindNamespaceAlias  { .id = "T3078", .message = "this free function is only in scope through its namespace alias" },
     InvalidParameterDecorator       { .id = "T3079", .message = "decorator not allowed on this parameter" },
     CallbackNotDirectFn             { .id = "T3080", .message = "callback argument must name a function directly" },
@@ -169,8 +168,7 @@ export ParserCode :: enum(CodeInfo) {
     RemovedConstQualifier             { .id = "P1027", .message = "`const` was removed from the language" },
     InvalidModuleName                 { .id = "P1028", .message = "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)" },
     ExpressionNestingTooDeep          { .id = "P1029", .message = "expression nesting too deep" },
-    RepeatedMutabilityMarker          { .id = "P1030", .message = "repeated `!` on the same type level" },
-    MutabilityMarkerOnName            { .id = "P1031", .message = "`!` belongs on the type, not the parameter name" },
+    // P1030 and P1031 checked where a `!` was written, and left with the marker.
     DecoratorArgumentCount            { .id = "P1032", .message = "wrong number of decorator arguments" },
     DecoratorArgumentForm             { .id = "P1033", .message = "decorator argument has the wrong form" },
     CompoundAssignToPattern           { .id = "P1035", .message = "compound assignment needs a single target" },
@@ -279,8 +277,7 @@ export WarningCode :: enum(CodeInfo) {
     UnreachableMatchArm         { .id = "W0014", .message = "match arm can never be taken — an earlier arm already covers it" },
     MutableNeverReassigned      { .id = "W0015", .message = "local is declared mutable but never reassigned — declare it with `::`" },
     NeedlessEnumTypePrefix      { .id = "W0016", .message = "the enum name adds nothing here — the slot already pins it, so the bare variant reads the same" },
-    DeducedMutabilityMarker     { .id = "W0017", .message = "the compiler deduces this `!` from the body — remove it" },
-    NeedlessMutabilityMarker    { .id = "W0018", .message = "nothing mutates this value at this level — remove the `!`" },
+    // W0017 and W0018 reported a `!` to remove, and left with the marker.
     WriteToUnreadCopy           { .id = "W0019", .message = "a write into a copy nothing reads" },
 }
 

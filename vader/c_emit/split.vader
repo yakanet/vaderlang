@@ -289,23 +289,16 @@ callee_index_of :: fn(op: Op) -> i32 {
 emit_data_global_externs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     declarations: CTopLevel[]: []
     for i in 0..<ctx.module.data_pool.len() {
-        // The qualifier must match the definition in the globals TU — a mutable
-        // module const is a writable global, so `const` here would be a conflicting
-        // declaration.
-        constant :: !data_entry_mutable(ctx.module.data_pool[i])
-        declarations.push(external("vader_array_t", "vader_data_${i}", null, constant))
+        declarations.push(external("vader_array_t", "vader_data_${i}", null, true))
     }
     for i in 0..<ctx.module.globals.len() {
         c_type :: c_type_for_val_bare(global_slot_val(ctx.module, i32(i)))
         declarations.push(external(c_type, "vader_global_${i}", null, false))
     }
-    // The permanent GC frame rooting the mutable module-consts and the global slots.
-    // Defined beside the data pool, installed by `main`, which is in another unit.
-    if mutable_pool_indices(ctx.module.data_pool).len() > 0 {
-        declarations.push(external("vader_array_t*", "vader_global_const_arrays", UNSIZED, false))
-    }
-    if has_global_roots(ctx.module) {
-        declarations.push(external("vader_gc_frame_t", "vader_global_const_frame", null, false))
+    // The permanent GC frame rooting the global slots. Defined beside the data pool,
+    // installed by `main`, which is in another unit.
+    if ctx.module.globals.len() > 0 {
+        declarations.push(external("vader_gc_frame_t", "vader_global_frame", null, false))
     }
     declarations.push(external("vader_atom_entry_t", "vader_atom_comptime_table", UNSIZED, true))
     printer.print_section(CSection { .items = declarations })
