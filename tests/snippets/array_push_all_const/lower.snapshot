@@ -20,10 +20,10 @@
             array :Inner[]
         }
   fn snippet$main() -> i32
-    let dst: Item[]! =
-      array :Item[]!
+    let dst: Item[] =
+      array :Item[]
     @array.push_all :void
-      dst :Item[]!
+      dst :Item[]
       ITEMS :Item[]
     call :void
       callee:
@@ -73,7 +73,7 @@
               arg1:
                 __off_1 :usize
     block :void
-      let __for_arr_2: Item[]! = dst :Item[]!
+      let __for_arr_2: Item[] = dst :Item[]
       let __for_len_3: usize =
         LoweredArrayLen
       let __for_i_4: usize = int(0) :usize
@@ -81,7 +81,7 @@
         let it: Item =
           index :Item
             on:
-              __for_arr_2 :Item[]!
+              __for_arr_2 :Item[]
             ix:
               __for_i_4 :usize
         ~>
@@ -167,7 +167,7 @@
               r:
                 int(1) :usize
     @array.push_all :void
-      dst :Item[]!
+      dst :Item[]
       ITEMS :Item[]
     call :void
       callee:
@@ -229,7 +229,7 @@
             .name :string
               index :Item
                 on:
-                  dst :Item[]!
+                  dst :Item[]
                 ix:
                   int(3) :i32
     return int(0) :i32

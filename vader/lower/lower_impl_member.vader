@@ -442,7 +442,8 @@ emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExp
     // bare index and no longer says it is an enum.
     source :: enum_type_or_unwrap(ctx, ctx.types.expr_type(call.args[0].value))
     if source is EnumType && enum_data_of(source, type) != null {
-        return lower_enum_data_slot(ctx, lower_expr(ctx, call.args[0].value), source, call.span)
+        value :: lower_expr(ctx, call.args[0].value)
+        return lower_enum_data_read(ctx, call.id, value, source, call.span)
     }
     if source is EnumType && source.data != null && type !is EnumType {
         value :: as_written_value(ctx, call.args[0].value, lower_expr(ctx, call.args[0].value))

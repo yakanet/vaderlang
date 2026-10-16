@@ -22,7 +22,7 @@
   expr 28:12    IdentExpr      :: i64
   expr 32:13    AwaitExpr      :: i64[]!
   expr 32:19    CallExpr       :: Async<i64[]!>!
-  expr 32:19    IdentExpr      :: fn(Async<T>![]) -> Async<T[]!>!
+  expr 32:19    IdentExpr      :: fn(Async<T>[]) -> Async<T[]!>!
   expr 32:28    SeqLitExpr     :: Async<i64>![]
   expr 32:29    CallExpr       :: Async<i64>!
   expr 32:29    IdentExpr      :: fn(i64) -> Async<i64>

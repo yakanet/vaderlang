@@ -52,19 +52,7 @@ export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonVal
     for decl in sf.program.decls {
         collect_from_decl(decl, ctx, hints)
     }
-    emit_deduced_marks(file_path, ctx, hints)
     return JsonArray { .items = hints }
-}
-
-// A `!` the compiler deduces on a parameter, shown where it would be written, with
-// its cause as the tooltip.
-emit_deduced_marks :: fn(file: string, ctx: HintCtx, out: JsonValue[]) -> void {
-    inference :: ctx.typed.param_inference ?? return
-    for mark in deduced_marks(inference, p -> p.span.start.file == file) {
-        line :: mark.at.line - 1
-        character :: li_character(ctx.li, line, mark.at.offset)
-        out.push(build_hint(line, character, "!", "deduced : ${mark.why}"))
-    }
 }
 
 // What the walkers need at every level : the typed side-tables the hints read
@@ -358,7 +346,7 @@ lookup_const_sym :: fn(resolved: ResolvedModule, name: string) -> Symbol | null 
     return null
 }
 
-build_hint :: fn(line: i32, character: i32, label: string, tooltip: string = "") -> JsonValue {
+build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
     position :: MutableMap<string, JsonValue> {}
     position["line"]      = JsonNumber { .value = f64(line) }
     position["character"] = JsonNumber { .value = f64(character) }
@@ -373,9 +361,6 @@ build_hint :: fn(line: i32, character: i32, label: string, tooltip: string = "")
     // `.into()` coercion hint abuts the value's right edge (`value.into()`).
     hint["paddingLeft"]  = JsonBool { .value = false }
     hint["paddingRight"] = JsonBool { .value = false }
-    if tooltip != "" {
-        hint["tooltip"] = JsonString { .value = tooltip }
-    }
     return JsonObject { .entries = hint }
 }
 

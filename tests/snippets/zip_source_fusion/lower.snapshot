@@ -148,8 +148,8 @@
           let self: i32[] = a :i32[]!
           let other: i32[] = b :i32[]!
           let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
-          let out: i32[]! =
-            array :i32[]!
+          let out: i32[] =
+            array :i32[]
           block :void
             let n: usize =
               if :usize
@@ -201,7 +201,7 @@
                       r:
                         int(1) :usize
           ~>
-            out :i32[]!
+            out :i32[]
     let lazy_map: __genstate_zip<[i32, i32]>! =
       call :__genstate_zip<[i32, i32]>!
         callee:
@@ -217,18 +217,18 @@
         "map lazy" :string
       arg1:
         block :i32[]!
-          let self: Iterator<[i32, i32]>! = lazy_map :__genstate_zip<[i32, i32]>!
+          let self: Iterator<[i32, i32]> = lazy_map :__genstate_zip<[i32, i32]>!
           let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
-          let out: i32[]! =
-            array :i32[]!
+          let out: i32[] =
+            array :i32[]
           block :void
             block :void
-              let __iter_0: Iterator<[i32, i32]>! = self :Iterator<[i32, i32]>!
+              let __iter_0: Iterator<[i32, i32]> = self :Iterator<[i32, i32]>
               loop
                 let __step_1: [[i32, i32], Continuation]! =
                   vcall std_core$Iterator.next :[[i32, i32], Continuation]!
                     recv:
-                      __iter_0 :Iterator<[i32, i32]>!
+                      __iter_0 :Iterator<[i32, i32]>
                 if :void
                   cond:
                     eq :bool
@@ -251,7 +251,7 @@
                           x :[i32, i32]
                     LoweredArrayPush
           ~>
-            out :i32[]!
+            out :i32[]
     call :void
       callee:
         std_io$println__string :void
@@ -413,17 +413,17 @@
                 arg2:
                   cast → u64
                     block :usize
-                      let self: Iterator<[i32, i32]>! = lazy_filter :__genstate_zip<[i32, i32]>!
+                      let self: Iterator<[i32, i32]> = lazy_filter :__genstate_zip<[i32, i32]>!
                       let pred: fn([i32, i32]) -> bool = left_bigger :fn([i32, i32]) -> bool
                       let total: usize = int(0) :usize
                       block :void
                         block :void
-                          let __iter_0: Iterator<[i32, i32]>! = self :Iterator<[i32, i32]>!
+                          let __iter_0: Iterator<[i32, i32]> = self :Iterator<[i32, i32]>
                           loop
                             let __step_1: [[i32, i32], Continuation]! =
                               vcall std_core$Iterator.next :[[i32, i32], Continuation]!
                                 recv:
-                                  __iter_0 :Iterator<[i32, i32]>!
+                                  __iter_0 :Iterator<[i32, i32]>
                             if :void
                               cond:
                                 eq :bool
@@ -477,8 +477,8 @@
           let other: i32[] = b :i32[]!
           let n: usize = int(2) :usize
           let f: fn([i32, i32]) -> i32 = product :fn([i32, i32]) -> i32
-          let out: i32[]! =
-            array :i32[]!
+          let out: i32[] =
+            array :i32[]
           block :void
             block :$exit$i76
               if :void
@@ -561,7 +561,7 @@
                           r:
                             int(1) :usize
           ~>
-            out :i32[]!
+            out :i32[]
     call :void
       callee:
         std_io$println__string :void

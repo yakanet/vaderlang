@@ -1,0 +1,24 @@
+// A call through a trait runs the member of the receiver's impl: `look` lends the
+// constant to `peek`, whose impl for `Point` writes it. T3072.
+module "snippet"
+
+Bump :: trait {
+    peek :: fn(self) -> i32
+}
+
+Point :: struct {
+    x: i32
+}
+
+Point implements Bump {
+    peek :: fn(self) -> i32 {
+        self.x = 9
+        return self.x
+    }
+}
+
+ORIGIN :: Point { .x = 1 }
+
+look :: fn(b: Bump) -> i32 = b.peek()
+
+main :: fn() -> i32 = look(ORIGIN)

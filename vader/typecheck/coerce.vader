@@ -36,11 +36,9 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, value: AST
         }
     }
     // Trait widening : `Cat → Animal` when `Cat implements Animal`. This
-    // is a subtype widen, not an `.into()` call — record nothing. One that would
-    // gain rights is left to the mismatch, which words it (T3077) : a `T` has the
-    // rights of its bound, so `T: Bump` does not fill a `Bump!`.
+    // is a subtype widen, not an `.into()` call: record nothing.
     if try_trait_widen(got, expected, typed) {
-        return !mutability_widens(got, expected, true, typed.type_param_bound_traits)
+        return true
     }
     // `T[] → Iterator<T>` : lowerer materialises the `array_iter` generator
     // at the call site. Lives in `try_into` (not `is_assignable`) to
@@ -74,22 +72,6 @@ export try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
     // else, a type parameter included, must be the array's own.
     if expected.args[0] is UnresolvedType     { return true }
     return equals_type(got.element, expected.args[0])
-}
-
-/// True when a `got` value reaches `slot` through an implicit conversion whose `into`
-/// hands back a value granting mutation : the slot's owner then mutates that value,
-/// never `got`. An array only fits an `Iterator` slot through
-/// `T[] implements<T> Into<Iterator<T>!>`, a fresh iterator.
-///
-/// @param got    the value's type.
-/// @param slot   the receiver or parameter type it fills.
-/// @param typed  the module checking it ; its tables carry the `into` reached.
-export converts_to_owned :: fn(got: Type, slot: Type, typed: TypedProgram) -> bool {
-    if got !is ArrayType || iterator_element_of(slot) == null {
-        return false
-    }
-    into :: into_method_toward(typed, got, slot) ?? return false
-    return into.ty is FnType && type_grants_mutation(into.ty.return_type)
 }
 
 /// True when `got` implements the trait `expected`, at `expected`'s arguments
@@ -153,7 +135,7 @@ bound_widens_into :: fn(param: TypeParamType, wanted: TraitType, typed: TypedPro
     }
     have :: with_trait_defaults(param, bound_args, wanted.symbol, typed)
     asked :: with_trait_defaults(param, wanted.args, wanted.symbol, typed)
-    return trait_args_match(have, asked)
+    return struct_args_compatible(have, asked)
 }
 
 // ---- tests ----------------------------------------------------------------

@@ -1,8 +1,8 @@
 # Typecheck
 
 ## tests/snippets/array_own_into_not_fused
-  FnDecl         drain                :: fn(Iterator<Mon>!) -> i32
-  FnDecl         join_labels          :: fn(Iterator<Label>!) -> string
+  FnDecl         drain                :: fn(Iterator<Mon>) -> i32
+  FnDecl         join_labels          :: fn(Iterator<Label>) -> string
   StructDecl     Label                :: Label!
   FnDecl         labels               :: fn(Mon[]) -> Iterator<Label>
   ConstDecl      LIST                 :: Mon[]
@@ -35,14 +35,14 @@
   expr 49:41    CallExpr       :: __genstate_shifted<Pt>!
   expr 49:41    IdentExpr      :: fn(Pt[]) -> Iterator<Pt>
   expr 49:49    IdentExpr      :: Pt![]
-  expr 54:14    IdentExpr      :: Iterator<Mon>!
+  expr 54:14    IdentExpr      :: Iterator<Mon>
   expr 55:14    FieldExpr      :: i32
   expr 55:14    IdentExpr      :: Mon
   expr 55:9     BinaryExpr     :: i32
   expr 55:9     IdentExpr      :: i32
   expr 57:12    IdentExpr      :: i32
   expr 61:12    StringLitExpr  :: string
-  expr 62:14    IdentExpr      :: Iterator<Label>!
+  expr 62:14    IdentExpr      :: Iterator<Label>
   expr 63:15    StringLitExpr  :: string
   expr 63:18    IdentExpr      :: string
   expr 63:24    FieldExpr      :: string
@@ -54,12 +54,12 @@
   expr 68:9     SeqLitExpr     :: Mon![]!
   expr 71:13    StringLitExpr  :: string
   expr 71:16    CallExpr       :: i32
-  expr 71:16    IdentExpr      :: fn(Iterator<Mon>!) -> i32
+  expr 71:16    IdentExpr      :: fn(Iterator<Mon>) -> i32
   expr 71:22    IdentExpr      :: Mon[]
   expr 71:5     CallExpr       :: void
   expr 71:5     IdentExpr      :: fn(T) -> void
   expr 72:13    CallExpr       :: string
-  expr 72:13    IdentExpr      :: fn(Iterator<Label>!) -> string
+  expr 72:13    IdentExpr      :: fn(Iterator<Label>) -> string
   expr 72:25    IdentExpr      :: Mon[]
   expr 72:5     CallExpr       :: void
   expr 72:5     IdentExpr      :: fn(T) -> void

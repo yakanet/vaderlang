@@ -1,8 +1,6 @@
-// T3042 — mutating a frozen array is rejected at typecheck.
-//
-// Two ways in, and both must be caught: a module-level const (no runtime storage,
-// so the write would be silently discarded) and a read-only slot (the default for
-// a parameter, which is why no `const` is written on it).
+// T3070 and T3072: a module constant is frozen, it has no runtime storage a write
+// could land in. Two ways in, and both must be caught: a write through the
+// constant, and the constant lent to a function that writes what it is lent.
 
 module "snippet"
 

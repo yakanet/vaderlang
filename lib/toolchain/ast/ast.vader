@@ -1283,9 +1283,6 @@ export MutableTypeExpr :: struct {
     span:     Span
     id:       usize = UNASSIGNED_NODE_ID
     inner:    TypeExpr!
-    /// Put there by the compiler, which deduced it from a body : the source does
-    /// not write it, so a printer leaves it out.
-    deduced:  bool = false
 }
 
 // ============================================================================

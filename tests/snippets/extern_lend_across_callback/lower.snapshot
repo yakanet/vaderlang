@@ -21,8 +21,8 @@
         lend_set_cb :fn(fn(i32) -> void) -> void
       arg0:
         churn :fn(i32) -> void
-    let xs: i32[]! =
-      array :i32[]!
+    let xs: i32[] =
+      array :i32[]
         int(5) :i32
         int(3) :i32
         int(9) :i32
@@ -35,7 +35,7 @@
       callee:
         lend_fill_array :fn(i32[]!, usize) -> void
       arg0:
-        xs :i32[]!
+        xs :i32[]
       arg1:
         int(8) :usize
     let ok: bool = true
@@ -49,7 +49,7 @@
                 l:
                   index :i32
                     on:
-                      xs :i32[]!
+                      xs :i32[]
                     ix:
                       i :i32
                 r:

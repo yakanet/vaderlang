@@ -684,7 +684,7 @@ A negative integer literal is one value (§Default integer), so `x: i64: -9_223_
 - Immutable. Concatenation allocates.
 - `len()` returns the number of Unicode codepoints (an allocation-free walk, decoding malformed bytes as described below, which an ASCII string skips: see `is_ascii`). For the **byte** length, `s.byte_len()` (O(1), no view). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `byte_len()` for byte arithmetic.
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`), for a codepoint iterator held as a value. The codepoint loop itself is `for c in s` (below), which walks the string in place.
-- `bytes()` returns the UTF-8 byte sequence as `u8[]`, read-only since a return takes the default, for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); writes to it are rejected at compile time (T3042), which keeps the view sound since the shared bytes are immutable. On the VM the array reads the interned bytes in place until a write copies them. `bytes()` is for handing the bytes to code that takes a `u8[]`; to read them, the string itself answers (`byte_len`, `byte_at`, `byte_slice`, below), with no view to allocate. Strings iterate by **codepoint** by default: `string implements Into<Iterator<char>!>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); the byte loop is `for i in 0..<s.byte_len() { b :: s.byte_at(i) }`.
+- `bytes()` returns the UTF-8 byte sequence as a `u8[]` **view**, for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is **zero-copy**, aliasing the string's interned bytes (it allocates only a small array header, not the byte storage). A view is frozen (§5, *Frozen values*): writing it, lending it to a function that modifies it, or keeping it in a field is rejected at compile time, which keeps it sound since the shared bytes are immutable; `.clone()` makes a copy to modify or keep. On the VM the array reads the interned bytes in place until a write copies them. `bytes()` is for handing the bytes to code that takes a `u8[]`; to read them, the string itself answers (`byte_len`, `byte_at`, `byte_slice`, below), with no view to allocate. Strings iterate by **codepoint** by default: `string implements Into<Iterator<char>!>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); the byte loop is `for i in 0..<s.byte_len() { b :: s.byte_at(i) }`.
 - `is_empty()` — sugar for `s.byte_len() == 0` (codepoint count and byte count agree on emptiness).
 - **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`); the key is a `usize` or a free literal, as for any `Index` impl, and an index past the last codepoint stops the run. **Slicing** `s[lo..<hi]` (or `s[lo..=hi]`) returns the codepoints of the range as a string (via `string implements Index<Range<usize>, string>`): bounds past the end clamp to it, and a range that ends before it starts gives `""`. Both walk from the start: `s[i]` is O(i) and `s[lo..<hi]` O(hi). In an ASCII string, where a codepoint index is a byte offset, both find their bytes without a walk. `for c in s` walks every codepoint in O(n). For byte-cursor access, read the string in place: `s.byte_at(i) -> u8` for the raw byte, `s.byte_slice(lo, hi)` for the substring between two byte offsets, `s.codepoint_at_byte(i) -> [char, usize]` to decode the UTF-8 codepoint starting at byte offset `i` into the codepoint and the bytes it spans (lexers and regex parsers; `.0` keeps the codepoint alone). There is no `IndexSet` impl; strings are immutable.
 - **Malformed UTF-8.** Nothing validates the bytes a string is made from (`bytes_to_string`, `read_file_string`, a `byte_slice` that cuts a codepoint). Every codepoint walk decodes them one way, the substitution Unicode recommends and WHATWG decoders apply: a malformed run is one `U+FFFD` spanning the longest prefix of a well-formed sequence, and at least one byte. Overlong forms, surrogates and codepoints past U+10FFFF are malformed, and `utf8_encode` (behind `append_char` and a `char`'s `Display`) writes a `char` holding one as `U+FFFD`, so what it writes decodes back. So `s.len()` is the number of codepoints `for c in s` yields and the number of valid `s[i]`, on any bytes. The compiler reads source the same way (§Source encoding).
@@ -698,27 +698,9 @@ A negative integer literal is one value (§Default integer), so `x: i64: -9_223_
 - **Slicing**: `arr[r]` where `r: Range<integer>` returns a **zero-copy view** sharing the parent's buffer. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and range values bound to a local work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted; bounds are coerced to `usize` at the use site. Pushing into the view detaches it into a fresh buffer so the parent is never mutated through the slice. For an independent copy use `arr[r].clone()`.
 - Postfix `[]` binds tighter than `|`; use parens to group: `(T | U)[]` is "array of T-or-U", `T | U[]` is "T or array-of-U".
 
-#### Read-only arrays
+#### Variance
 
-An unmarked array type is read-only, everywhere a type is written. There is no separate qualifier: `const` was removed (P1027 if written) once the default made it redundant — a frozen referent and an unmarked slot are the same thing, and only `!` says something.
-
-```vader
-KEYWORDS :: ["fn", "if", "else"]      // string[] — inferred read-only, module scope
-read :: fn(a: i32[]) -> i32 = a[0]    // read-only by default
-fill :: fn(a: i32[]!) -> void { a.push(0) }
-```
-
-Through a read-only array, mutation is rejected at typecheck — neither `arr[i] = v` (T3042) nor `arr.push(v)` (T3071) compiles.
-
-**Subtyping**: `T[]! <: T[]`. A mutable array passes anywhere a read-only one is expected (covariant), never the reverse. This lets read-only fns accept both kinds without overloads.
-
-```vader
-mut_arr := [1, 2, 3]      // a local : mutable
-read(mut_arr)             // OK — mutable passes for read-only
-read([4, 5, 6])           // OK — fresh array passes
-```
-
-**Element variance**: an array is shared, not copied (`b := a` shares the buffer), so its element type is **invariant** wherever the array is bound, stored or returned: a `(i32 | string)[]` local does not accept an `i32[]`, since a write `b[0] = "x"` through the wider alias would store a string into the shared i32 buffer (T3001 on the binding, T3063 on a reassignment). Only the `!` may differ, as at any level.
+**Element variance**: an array is shared, not copied (`b := a` shares the buffer), so its element type is **invariant** wherever the array is bound, stored or returned: a `(i32 | string)[]` local does not accept an `i32[]`, since a write `b[0] = "x"` through the wider alias would store a string into the shared i32 buffer (T3001 on the binding, T3063 on a reassignment).
 
 An **argument** may widen its element: `Circle[]` passes for a `(Circle | null)[]` parameter, and for a `Shape[]` one when `Circle implements Shape`, at any depth (`Circle[][]` for `(Circle | null)[][]`). The compiler deduces from the callee's body whether that is sound, with no annotation: the callee must put no wider element into the array, so it may not replace an element, grow the array, keep it past the call, return it, or hand it to a function value; through a method, a trait or a bound, every function the call may run is checked. Reading the array, removing elements, and keeping or returning an element (which escapes as what it is) are all fine. An argument the callee may break is T3102, whose detail says what the callee does:
 
@@ -736,9 +718,11 @@ The widened element must also read the slots the source wrote. An array of primi
 
 A fresh **literal** is no widening: it is materialised directly at the target element type, so `xs: (i32 | string)[] = [1, 2, 3]` builds a union array and compiles, and so does `shapes: Shape[] = [Circle { .r = 1.0 }]`.
 
-**In a union**: an array variant is a valid member anywhere in a type union, not only as the first — `string | u8[]` and `A | T[]! | B` both parse. The marker attaches to the variant it follows, never to the union.
+**In a union**: an array variant is a valid member anywhere in a type union, not only as the first: `string | u8[]` and `A | T[] | B` both parse.
 
-**On a module const the marker picks the STORAGE CLASS.** The data pool has two of them:
+#### Array constants
+
+A module constant is frozen (§5, *Frozen values*): it has no storage a write could land in. **On an array constant, the marker picks the STORAGE CLASS.** The data pool has two of them:
 
 - **unmarked** → a `static const` blob in `.rodata`, shared process-wide, read through a zero-copy view.
 - **`!`** → a writable **global**, initialised once, mutable **in place**.
@@ -753,40 +737,20 @@ bump :: fn(i: usize) -> void { COUNTS[i] = COUNTS[i] + 1 }   // persists across 
 
 A marked const behaves like any other mutable array, **`push` included** — a permanent GC frame roots these globals, so a reallocated buffer is forwarded rather than collected. Its binding stays fixed, as every module const's does: `COUNTS = [1]` is T3041, like `LIMIT = 4` on `LIMIT :: 3`.
 
-Any **element type** works — flat (primitive, enum, distinct) or aggregate (struct, tuple, nested array). What is rejected is a marker **below** the array level: an aggregate's elements are emitted as separate read-only statics, so keeping the element type read-only is exactly what makes the writable slots safe (`SPECS[0] = other` reaches a slot; `SPECS[0].code = 9` is T3070). A non-array const isn't pooled at all and has no storage to make writable. Both are **T3076**.
+Any **element type** works, flat (primitive, enum, distinct over one) or aggregate (struct, tuple, nested array), but one that holds a part a write reaches (a struct or an array, alone or inside a tuple, a union or a distinct) **starts empty** (`[]`), whatever else its initialiser could be: the elements of a value the compiler bakes, a literal or a value folded at build time, are emitted as separate read-only statics, so a write into one would land in `.rodata`. The program pushes its elements, which are then its own. The marker goes on the array level, the one the pool can make writable: a marker **below** it, or on a const that is no array (it isn't pooled at all), has no storage to make writable. All three are **T3076**.
 
 ```vader
-SPECS: Spec[]!:  [Spec { .name = "seed", .code = 0 }]   // OK — slots writable
-// SPECS[0].code = 9                                    // T3070 — the element is read-only
-// TPL: Spec![]:  [...]                                  // T3076 — marker below the array
-// ORIGIN: Spec!: Spec { ... }                           // T3076 — not an array
+QUEUE: Spec[]!:  []                                     // OK, then `QUEUE.push(…)`
+// SPECS: Spec[]!: [Spec { .name = "seed", .code = 0 }] // T3076: read-only first elements
+// TPL: Spec![]:  [...]                                 // T3076: marker below the array
+// ORIGIN: Spec!: Spec { ... }                          // T3076: not an array
 ```
 
-Freezing a const reaches only the levels its type spells out. A level its **declarations** mark — a struct field `items: i32[]!`, a type argument `Box<Cfg!>`, the fields of a writable array's elements — keeps its rights, and so does a trait value marked `!` (`bag: Bump!`). A const whose value reaches such a level is **T3096**, and so is an enum whose variant data does — the value is shared by every read. The value's own type is judged, frozen as the const is: under a union or a trait annotation it is narrower than the slot (`DEFAULT: Cfg | null: null` passes; `BAG: Bump: Cfg { … }` is judged as the `Cfg` it holds), and an empty sequence (`NONE: Cfg[]: []`) holds nothing to write. A fn that builds a fresh value is the form to use:
+**Escape hatch**: `arr.clone()` produces a fresh array from any array. Modifying the copy never affects the original.
 
-```vader
-Cfg :: struct { items: i32[]! }
+**Storage**: module-level array constants whose elements are all primitive (fixed-width integers, floats, char, bool) and all literal-valued land in the bytecode module's data pool: the C backend emits them as `static const` `.rodata` arrays, the VM materialises them once at module load, and `data.const` op-codes resolve to those pre-built values. References share one allocation across the whole process. Non-primitive elements (struct, string) continue to fn-wrap until the pool gains the matching representation.
 
-// CFG :: Cfg { .items = [1, 2] }                     // T3096 — `items` is `i32[]!`
-default_cfg :: fn() -> Cfg! = Cfg { .items = [1, 2] }  // OK — a fresh value per call
-```
-
-**Inference**: an unannotated module-level array const is automatically pinned read-only — it has no runtime storage, so a write through it would be discarded rather than take effect. Annotating the type explicitly (`X: T[]!: [...]`) opts out. An **annotated local** takes the same read-only default; an unannotated one keeps its inferred type and stays owned.
-
-```vader
-KEYWORDS :: ["fn", "if", "else"]      // string[], read-only (module scope)
-
-main :: fn() {
-    local :: [1, 2, 3]                // i32[]! (local — mutable)
-    local[0] = 99                     // OK
-}
-```
-
-**Escape hatch**: `arr.clone()` produces a fresh mutable `T[]!` from any array. Mutating the copy never affects the original — which is why its return is marked.
-
-**Storage**: module-level read-only array literals whose elements are all primitive (fixed-width integers, floats, char, bool) and all literal-valued land in the bytecode module's data pool — the C backend emits them as `static const` `.rodata` arrays, the VM materialises them once at module load, and `data.const` op-codes resolve to those pre-built values. References share one allocation across the whole process. Non-primitive elements (struct, string) continue to fn-wrap until the pool gains the matching representation.
-
-**How a type is printed.** A dump renders the marker exactly as the source spells it: `i32[]!` for a mutable array, `i32[]` for a read-only one, `Cfg![]` when only the elements are mutable. Side-table keys (impl dispatch, monomorphisation mangles, `@type_name`) use the marker-free rendering, so a receiver's mutability never changes an emitted name or a lookup key.
+**How a type is printed.** A dump may still print a `!` the source or the compiler put on a type (`i32[]!` for an owned local). Side-table keys (impl dispatch, monomorphisation mangles, `@type_name`) use the marker-free rendering, so a marker never changes an emitted name or a lookup key.
 
 #### Repeat / preallocate — `[lhs] * n`
 
@@ -829,7 +793,7 @@ Beyond `push(v)`, mutable arrays expose:
 | `arr.remove_last()` | Remove and return the last element as `T \| null` (`null` when empty). |
 | `arr.clear()` | Drop every element (length 0; keeps capacity). |
 
-All four reject a borrowed read-only `u8[]` view at runtime (mutation of a `bytes()` view is forbidden, as with `push`). `remove_last` returns the nullable through the usual `T | null` union, narrowed by `if x == null`.
+None of them may be handed a view of a string's bytes, which nothing modifies (T3072, §5). `remove_last` returns the nullable through the usual `T | null` union, narrowed by `if x == null`.
 
 ### Tuples
 
@@ -982,7 +946,7 @@ Struct-literal field order does not have to match the declaration order — the 
 
 #### Field defaults
 
-A field declaration may carry an initialiser used when the literal omits it. Defaults are checked once at the decl site against the (unsubstituted) field type, its rights included: a read-only value — a module const — cannot fill a field that promises mutation (`T3077`). They are re-lowered at every literal site that uses them.
+A field declaration may carry an initialiser used when the literal omits it. Defaults are checked once at the decl site against the (unsubstituted) field type. A module constant in a default is copied where a write could reach it, as anywhere it is kept (§5, *Frozen values*). They are re-lowered at every literal site that uses them.
 
 ```vader
 Settings :: struct {
@@ -1265,15 +1229,16 @@ HttpStatus :: enum(StatusInfo) {
 }
 
 line :: "HTTP/1.1 ${s.code} ${s.reason}"   // s : HttpStatus
-info :: StatusInfo(s)                       // the whole value, read-only
+info :: StatusInfo(s)                       // a copy of the whole value
 ```
 
 The header takes three forms: `enum(u8)` (a width, no data), `enum(Info)` (data, width inferred), `enum(Info, i32)` (data, the width of its values pinned). A lone argument is the width when it resolves to an integer — directly or through a distinct over one (`Byte :: u8`, `enum(Byte)`) — and the data when it is a struct; anything else is `T3084` when it sits in the data position.
 
 - **Each block is checked as a literal of the data struct**: unknown field (`T3009`), wrong type (`T3001`), a required field left unset (`T3037`, on the variant). A variant without a block is valid when every field has a default. A block on an enum whose header names no data is `T3085`.
+- **The data holds only values**: scalars, strings, enums. A field that holds a reference, an array or a struct, is `T3096`: every read of the variant would share it.
 - **Every value must be a constant** the compiler can bake (`C4001`): the data lives in one read-only table, built once.
 - **Values are free**, as for any enum: `Ok { … } = 200`, `NotFound { … } = 404`. A variant without `=` takes the previous value plus one, and two variants sharing a value is `T3031`. A written width bounds them: `= 404` under `enum(Info, u8)` is `T3030`.
-- **Reading.** `v.field` is the field of `v`'s data; `Info(v)` is the whole value, **read-only** (`info.code = 5` is `T3070`). On the enum's name, `HttpStatus.code` is still a variant lookup (`T3027`).
+- **Reading.** `v.field` is the field of `v`'s data; `Info(v)` is the whole value, frozen as a module constant is (§5, *Frozen values*): `Info(v).code = 5` and `v.code = 5` are `T3070`, lending it to a function that writes it `T3072`, and a name bound to it holds a copy. On the enum's name, `HttpStatus.code` is still a variant lookup (`T3027`).
 - **Representation.** An enum with data stores its variant's **rank** — 0, 1, 2… in declaration order — not the written value: the data is a read-only table indexed by the rank, so a read allocates nothing, and `==`, `match` and `.Variant` compare ranks. The rank is stored at the narrowest width holding the ranks, whatever the header writes, so `@size_of` follows the number of variants, not the values: `HttpStatus` above is 1 byte.
 - **Converting to an integer** (`i32(s)`) gives the written value — folded for a constant, `rank + first` when the values are consecutive, else a read of a second table of the values.
 - **Interpolating** renders through `Display`, like any enum (below) — never the written value.
@@ -1374,7 +1339,7 @@ Top-level constants follow the same pattern but are restricted to compile-time e
 
 - **Mutable local never reassigned (`W0015`)**: a `:=` / `name: T =` local that no assignment ever rebinds earns a warning — the mutable form advertises a rebinding that does not happen. The fix is the immutable form on the same row of the table above (`n := 0` → `n :: 0`, `n: i32 = 0` → `n: i32: 0`). What counts as a rebinding is a **bare name as the whole assignment target**, compound assignments included: `x.f = 1` and `x[0] = 1` mutate what the name designates, which the immutable form already permits, so they do not justify a `:=`. A destructuring declaration carries one `:=` for every name it binds, so rebinding any one of them justifies it.
 
-- **Deduced parameter marker (`W0017`) and needless one (`W0018`)**: a `!` written on a parameter of a function with a body, or on an annotated local, earns `W0017` when the body demands it — the compiler deduces it anyway, and the detail names the mutation — and `W0018` when nothing does. Both point at the `!` itself, and `vader fix <file>` removes them. See *A parameter's or an annotated local's `!` is deduced from its body*.
+- **A written `!` (`W0017`, `W0018`)**: reserved. A `!` grants nothing (§5, *The `!` marker*); the warning that points at it, for `vader fix <file>` to remove it, is not emitted yet.
 - **Needless enum type prefix (`W0016`)**: writing `Enum.Variant` where the slot already pins that enum earns a warning — the name before the dot repeats what the context says, and the bare `.Variant` reads the same. The slots that pin are the ones the shorthand already resolves against: a typed return, a parameter, an annotated local or field, a match arm's BODY, an element of an array literal in a typed slot, and the other operand of an `==` / `!=`. A nullable slot (`Color | null`) pins just as well. A match PATTERN never triggers it — the qualified form does not parse there, the bare `.Variant` being the only spelling a pattern accepts. It stays silent wherever the prefix is load-bearing: an unannotated local (`c :: Color.Red` has nothing to infer from); a slot whose union carries two enums sharing the variant name, where the bare form resolves to the first that carries it; and **any argument of an overloaded call**, where the prefix is what selects the candidate — given `pick(c: Color)` and `pick(f: Fruit)`, `pick(Fruit.Red)` and `pick(.Red)` reach different functions, so advising the bare form there would change the call in silence. The qualified form remains legal everywhere; the warning only says it earns nothing here.
 
 ### Type inference
@@ -1457,7 +1422,7 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) {
 }
 ```
 
-A bound names traits, joined by `&` (`K: A & B`: K satisfies both). A bound marked `!` (`T: Bump!`) is what lets the body mutate through a `T`, and what the call binding `T` must then honour — see *The marker is per LEVEL*. A union is not a bound — `K: A | B` grants nothing a body could use, so it is **R2042**, as it is in a trait's `requires`; an optional value carries `null` where the parameter is used, not on its bound: `fn<T: Bump!>(x: T! | null)`, never `fn<T: Bump! | null>(x: T!)`. A future predicate-bound escape hatch (`<T: @size_of <= 64>`-style) is reserved for non-trait constraints once they land.
+A bound names traits, joined by `&` (`K: A & B`: K satisfies both). A union is not a bound: `K: A | B` grants nothing a body could use, so it is **R2042**, as it is in a trait's `requires`; an optional value carries `null` where the parameter is used, not on its bound: `fn<T: Bump>(x: T | null)`, never `fn<T: Bump | null>(x: T)`. A future predicate-bound escape hatch (`<T: @size_of <= 64>`-style) is reserved for non-trait constraints once they land.
 
 **Compile-time values** (post-MVP candidate; the fixed-size array surface itself is not designed yet — the example below uses placeholder syntax):
 
@@ -1521,7 +1486,7 @@ print_it :: fn<T: Display>(x: T) {
 
 - Declaration: `Name :: trait { ... }`.
 - Implementation: `T implements Trait { ... }` (three forms — see below). `T` and `Trait` name declarations, resolved like any other name — a trait imported from another module included. The impl belongs to those declarations, not to their names: when two modules each declare a `Foo`, or an `Animal` trait, an impl of one says nothing about the other.
-- An impl defines its trait's members and nothing else (`T3094`; see *No inherent "associated functions"*), each with its trait method's signature — the same parameters and return type, `Self` read as the impl's type and the trait's parameters as the impl's arguments (`T3095`). The rights follow the trait too: a call through the trait lends what the TRAIT declares, so a member may not demand more — `self!` or a `!` parameter where the trait wrote none — nor return less than a `!` return promises (`T3095`). The trait's arguments are written slots like any other, read-only unless marked — `Holder implements Sink<Cfg>` lends its `put` read-only `Cfg`s — and so is `Self`: the impl's type, read-only unless written `Self!` — a callback's `Self` parameter too, so a trait's `f: fn(Self) -> void` lends a read-only `Self`, which an impl writes `fn(Holder)`. The default of an argument the impl leaves out (`Out = Self`) is the impl's type read-only.
+- An impl defines its trait's members and nothing else (`T3094`; see *No inherent "associated functions"*), each with its trait method's signature: the same parameters and return type, `Self` read as the impl's type and the trait's parameters as the impl's arguments (`T3095`). The default of an argument the impl leaves out (`Out = Self`) is the impl's type.
 - A union satisfies a trait iff all its members satisfy it.
 - **A union calls the members of a trait all its variants implement** — `u.area()` on `u: Sq | Circle`, `k in u`, `u + 5`, `u[k]` and `u[k] = v` — through that trait, by the value's tag, as a value of the trait does. The variants must agree on the trait's arguments, each argument being one type for all of them or each variant itself (`Out = Self`, which the union reads as itself: `a + 5` on `a: i32 | Money` is an `i32 | Money`). A member returning `Self` hands back the union read-only, unless it writes `Self!`. A member two traits offer every variant is `T3032`. A dispatch by the tag alone refuses a variant implementing the trait more than once (`T3097`); a variant boxed as its representation — an enum, or a distinct implementing the trait itself, or an array of either (`T3086`); a member taking another `Self` (`compare`, `Add<Self>`), which the other operand may fill with another variant — `Equals` excepted, its slot checks the other operand's type — and a member returning `Self` inside another type (`Self[]`) unless every variant is a struct (`T3098`). Narrow first. A generic member, an `@intrinsic` array member (`push`) and a member taken as a value (`f :: u.area`) are not dispatched.
 - Operator overloading via stdlib traits — see *Operator overloading* below.
@@ -1674,7 +1639,7 @@ The angle-bracket list after `implements` introduces the typeParams *for the ent
 
 Compared to the borrowing form (`Foo<T> implements Trait<T>` without an impl-level `<T>`, where `T` aliases the struct's own type-param), the bounded form lets the impl declare *its own* `T` whose bounds are scoped to this block — the struct itself stays unbounded.
 
-**A bounded impl holds only for the arguments its bounds admit.** With `Box<T> implements<T: Display> Display`, `Box<i32>` implements `Display` and `Box<Point>` does not while `Point` has no `Display`: interpolating it is `T3018`, passing it to a `T: Display` parameter is `T3006`, and the detail names the unmet bound. A type argument that is itself a type parameter meets a bound its own bound names; a union meets it when every variant does; a distinct, through its own impl or its backing's. An array does not meet a `Display` bound there — the impl's instance reaches its argument through an erased slot, and no vtable carries an array's `Display`. An `is Trait` test still matches by the type's base, as the run-time test does. A member of a bounded impl is reached only through an instance its bounds admit, whatever the form: with `Wrapper<T> implements<T: Bump> Poke`, `w.poke()` on a `Wrapper<Plain>` is `T3006`, and so are `for`, `w[i]` and `w[i] = v` through such an impl; an operator (`+`, `<`, `in`) is `T3043`. An argument meets a bound when it implements the trait at the bound's own arguments (`S: Source<i32>` admits no `Source<i64>`) and, for a bound marked `!` (see *The marker is per LEVEL*), grants mutation: `implements<T: Bump!>` admits no `Wrapper<Cfg>` over a read-only `Cfg`.
+**A bounded impl holds only for the arguments its bounds admit.** With `Box<T> implements<T: Display> Display`, `Box<i32>` implements `Display` and `Box<Point>` does not while `Point` has no `Display`: interpolating it is `T3018`, passing it to a `T: Display` parameter is `T3006`, and the detail names the unmet bound. A type argument that is itself a type parameter meets a bound its own bound names; a union meets it when every variant does; a distinct, through its own impl or its backing's. An array does not meet a `Display` bound there: the impl's instance reaches its argument through an erased slot, and no vtable carries an array's `Display`. An `is Trait` test still matches by the type's base, as the run-time test does. A member of a bounded impl is reached only through an instance its bounds admit, whatever the form: with `Wrapper<T> implements<T: Bump> Poke`, `w.poke()` on a `Wrapper<Plain>` is `T3006`, and so are `for`, `w[i]` and `w[i] = v` through such an impl; an operator (`+`, `<`, `in`) is `T3043`. An argument meets a bound when it implements the trait at the bound's own arguments (`S: Source<i32>` admits no `Source<i64>`).
 
 **A struct's bounds hold at its literal.** `Wrapper :: struct<T: Bump>` puts its bound on every `Wrapper<X> { … }`: an `X` that does not meet it is `T3006` there, where a value of the type comes to exist. A type written elsewhere (`w: Wrapper<Plain>`) is not checked, since no value can inhabit it. An impl that borrows the struct's parameters (`Wrapper<T> implements Poke`) holds only for what the struct admits, so its `T` carries the struct's bound. A generic fn states the bounds it relies on: `fn<K>(m: MutableMap<K, V>)` indexing `m` is `T3006`, and says `fn<K: Hash & Equals>`.
 
@@ -1915,250 +1880,71 @@ Vader separates **who may rebind a name** from **who may mutate what it points a
 
 **The binding.** `::` freezes it, `:=` allows rebinding. If `p :: Point { ... }`, `p = otherPoint` is rejected (T3041), and so is rebinding any declaration (a module const, a fn, a type), written bare, renamed by its import or through a namespace (`P.SEP = 'x'`). Only a parameter, a binding and a `:=` local may be rebound. An assignment writes to a name, a field or an element; any other target (`get() = 3`, `xs.len() = 5`, `Color.Red = .Green`) is T3082.
 
-**The referent.** An **inferred local is owned**: `::` freezes only its binding, so `p.x = 5` and `x :: [1, 2] ; x.push(3)` stay legal. A **written type is a read-only slot** — that covers parameters, struct fields, return types *and* annotated locals, see below. And a **module-level const freezes both, at every level**: its value is not the reader's to change, so a write through it is rejected (T3070) — directly, through an element (`TABLE[0].n = 1`), or through a local bound from it: `p :: ORIGIN` is a read-only view of the const, not a copy. A mutable copy is spelled as one, `p :: Point { ...ORIGIN }`.
+**The referent.** A value may be modified through any name that reaches it: a parameter, a local, a field, an element. A signature does not say what a function does with what it is lent; the compiler reads it from the body (see *What a function does with what it is lent*). Two values are **frozen**, never modified in place: the value of a **module constant**, at every level, and a **view of a string's bytes** (`s.bytes()`).
 
 ```vader
 CONFIG :: Config { .retries = 3 }
 
 main :: fn() -> i32 {
     p :: Point { .x = 1, .y = 2 }
-    p.x = 5              // OK — a local is owned; `::` froze the name, not the contents
-    // p = otherPoint    // T3041 — that IS the binding
-    // CONFIG.retries = 5  // T3070 — a module const is frozen
-    // c :: CONFIG ; c.retries = 5   // T3070 — `c` is a view of it, not a copy
-    return 0
+    p.x = 5                 // OK: `::` froze the name, not the contents
+    // p = other_point      // T3041: that IS the binding
+    // CONFIG.retries = 5   // T3070: a module constant is frozen
+    c :: CONFIG
+    c.retries = 5           // OK: `c` holds a copy of the constant
+    return c.retries
 }
 ```
 
-### Read-only by default — `!` grants mutation
+### Frozen values
 
-Every **slot** a value is reached through is read-only unless its type says otherwise. A slot is anywhere a type is **written**: a **parameter**, a **struct field**, a **return type** (free function, trait or impl member, lambda alike), or an **annotated local**. Writing a field or element through a read-only slot, or calling a method that mutates it, is rejected. Appending `!` to the **type** grants mutation — and on a parameter of a function with a body or an annotated local, the compiler deduces it (see *A parameter's or an annotated local's `!` is deduced from its body*):
+**A module constant** has no storage a write could land in: its value is rebuilt at each read, or shared from read-only data. So:
 
-```vader
-describe :: fn(c: Counter) -> string = "${c.label} = ${c.count}"   // reads only
+- a write through it, directly or down a path (`CONFIG.retries = 5`, `TABLE[0].n = 1`, `[PAIR[1], y] = …`), is **T3070**;
+- lending it to a function that modifies what it is lent, directly or down the calls it hands it on to, is **T3072**; a call through a trait, a bound or method syntax is judged by every function it may run;
+- binding it to a name, storing it in a field or an element, returning it, or handing it to a function value makes a **copy**, which the program owns. A copy is left out where nothing in the program modifies a value of its type.
 
-fill :: fn(buf: i32[], value: i32, n: i32) -> void {               // `buf` is deduced `i32[]!`
-    for _ in 0..<n {
-        buf.push(value)
-    }
-}
-
-Block :: struct {
-    stmts: Stmt![]        // the elements are rewritten in place
-    label: string         // read-only
-}
-
-fresh :: fn() -> i32[]! = []    // the caller owns what it gets back, and may push
-```
-
-An **annotated local is a slot like any other**, so `i32[]` means the same thing wherever it appears. The annotation gives the shape, and the body the rights: its `!` is deduced (see *A parameter's or an annotated local's `!` is deduced from its body*). A local with **no annotation** keeps its inferred type: nothing was written, and a local is owned.
+The detail of T3070 and T3072 names the value, what modifies it, down the calls it goes through, and the way out: a name bound to the constant holds a copy to modify.
 
 ```vader
-out: Stmt[] = []      // annotated : `push` makes it `Stmt[]!`
-out.push(s)           // OK
-
-inferred :: [s]       // no annotation : inferred, owned
-inferred.push(other)  // OK
-```
-
-**A value is as read-only as the slot that handed it out.** A call to an unmarked return, a local bound from one, and a value read through a read-only field refuse a `self!` method (T3071) — an index write through `IndexSet` too, since it calls `set_at` (`c.by_name[k] = v` where `by_name: MutableMap<string, i32>`) — and a `!` parameter (T3072), exactly as they refuse a field write (T3070). A conversion re-types the same value, so `Ids(TABLE)` is as read-only as `TABLE`. A function whose caller owns the result says so with `!`:
-
-```vader
-make  :: fn() -> Point = Point { .x = 1 }    // hands out a read-only view
-fresh :: fn() -> Point! = Point { .x = 1 }   // the caller owns it
-
-make().bump()      // T3071
-fresh().bump()     // OK
-p :: make()
-p.bump()           // T3071 — `p` holds the view `make` handed out
-```
-
-#### A parameter's or an annotated local's `!` is deduced from its body
-
-A parameter of a function with a body takes `!` at a level when the body mutates it there — writes through it, calls a `self!` member on it, stores it where a mutable value is expected — or hands it at that level to a parameter that takes `!`. The compiler deduces it over the whole program, through calls, so nothing is written:
-
-```vader
-fill :: fn(buf: i32[], value: i32, n: i32) -> void {   // `buf` : `i32[]!`
-    for _ in 0..<n {
-        buf.push(value)
-    }
-}
-
-refill :: fn(buf: i32[]) -> void = fill(buf, 0, 4)     // `buf` : `i32[]!`, through `fill`
-
 TABLE :: [1, 2, 3]
-fill(TABLE, 1, 2)   // T3072 — `fill` mutates `buf`, and `TABLE` is a module const
-```
 
-The refusal lands on the caller that hands in what cannot be mutated, and it names why the callee mutates: the chain of calls down to the mutation. An editor shows a deduced `!` where it would be written, with that chain on hover.
-
-An **annotated local** is deduced the same way. Its annotation gives the shape the initializer cannot say — `[]` says nothing of its elements — and the body gives the rights:
-
-```vader
-names :: fn(items: Item[]) -> string[] {
-    out: string[]: []      // `out` : `string[]!`, it is pushed to
-    for item in items {
-        out.push(item.name)
+fill :: fn(buf: i32[], value: i32, n: i32) -> void {
+    for _ in 0..<n {
+        buf.push(value)
     }
-    return out
 }
+
+refill :: fn(buf: i32[]) -> void = fill(buf, 0, 4)
+
+fill(TABLE, 1, 2)           // T3072: `fill` modifies it (`buf` grows)
+refill(TABLE)               // T3072: `refill` modifies it through `fill`
+fill(TABLE.clone(), 1, 2)   // OK: a copy
 ```
 
-What the local is bound to must grant what the body demands: `a: Point: make()` followed by `a.bump()` makes `a` a `Point!`, which `make()`'s read-only result cannot fill (T3077). An unannotated local is owned, and needs no `!` at all.
+**A view of a string's bytes** (§Strings) is the string's own bytes, which nothing modifies, and it is never copied behind the program's back: avoiding that copy is what `bytes()` is for. What holds a view, the call that makes it or a name bound to it, may read it, lend it to a function that only reads it, and return it. Written, or lent to a function that modifies it, it is T3070 or T3072. Kept, in a field, an element or a module constant's value, or handed to code the compiler cannot follow (a function value), it is **T3071**. Only the view itself counts: a byte read out of it is a value, and so is a name narrowed to a type no byte array is (`if r is Failure { failures.push(r) }`, `r` of type `u8[] | Failure`). `.clone()` makes a copy the program owns.
 
-It is deduced per level, as it is written (see *The marker is per LEVEL* below): `xs[0].n = 1` on `xs: Box[]` makes it `Box![]`, `xs.push(b)` makes it `Box[]!`. Under a spine the function grows the element is invariant, so a function handed a `Box![]!` to push into takes `Box![]!`.
-
-A contract has no body to deduce from, and keeps its written marker:
-
-- a trait member, abstract or default, and the `fn(...)` type of a callback;
-- an `@extern` or intrinsic function;
-- a lambda's parameter, which takes its rights from the slot the lambda fills.
-
-A `!` written on a deduced parameter or local is kept, and warned about: `W0017` when the body demands it anyway, `W0018` when nothing does. `vader fix <file>` removes both. A `!` on a type with no interior is `T3075` there as anywhere, and gets no warning. An impl member is held to its trait whether its `!` is written or deduced: it may not mutate a receiver or a parameter the trait lends read-only (T3095).
-
-#### The marker is per LEVEL
-
-A composite type has one mutability per level, and `!` marks the level it follows. This is why the marker lives on the type rather than on the parameter name — a single flag on the name cannot express four distinct types:
-
-| written | the array | its elements |
-|---|---|---|
-| `x: Cfg[]` | read-only | read-only |
-| `x: Cfg[]!` | mutable (`push`, `x[i] = …`) | read-only |
-| `x: Cfg![]` | read-only | mutable (`x[i].f = …`) |
-| `x: Cfg![]!` | mutable | mutable |
-
-The default is **recursive**: an unmarked `Cfg[]` freezes the array *and* its elements. A **generic argument** takes it too — `Map<K, Cfg>` stores read-only values, and mutable ones are written `Map<K, Cfg!>`:
+A function that returns a view hands views out, as `bytes()` does, and what its callers do with the result is judged the same way.
 
 ```vader
-frozen:  MutableMap<string, Stmt[]>  = …    // its arrays cannot be appended to
-growing: MutableMap<string, Stmt[]!> = …    // `m[k].push(s)` is what this says
+bytes_of :: fn(s: string) -> u8[] = s.bytes()   // OK: it returns the view
+
+v :: "abc".bytes()
+v[0] = 'x'                                      // T3070
+bytes_of("abc").push(0)                         // T3072: `push` modifies it
+p :: Packet { .payload = "abc".bytes() }        // T3071: kept
+q :: Packet { .payload = bytes_of("abc").clone() }   // OK: a copy
 ```
 
-The default does **not** descend through the argument into the *program's* slots: what `Map<K, V>`'s arguments describe is what the map STORES. An `implements` clause writes its trait's arguments the same way: `Holder implements Sink<Cfg!>` stores mutable `Cfg`s, and serves no slot asking `Sink<Cfg>` — nor does a `Sink<Cfg!>` value, nor a type parameter bounded by `Sink<Cfg!>`. A trait's arguments compare with their rights, both ways (T3001).
+**What this does and does not guarantee.** The frozen values are protected, statically. Any other value may be modified by a function it is lent to, as in Go, Java or Python, and no signature says so.
 
-Through a **mutable struct** its type arguments are invariant, as an array's element is through a mutable array: a `Box<Cfg!>` does not fill a `Box<Cfg>!` slot (T3001), whose holder could store a read-only `Cfg` its owner then writes through. A UFCS receiver is the call's first argument and is held to it the same way: `h.poke()` is refused wherever `poke(h)` is — the function is picked by shape, then the receiver is checked.
+### What a function does with what it is lent
 
-A **trait value** carries the bit as a struct does: `b: Bump` is read-only — its `self!` members are T3071 — and `b: Bump!` mutable. A value widening into a trait value keeps its own rights, so a read-only `Cfg` does not fill a `Bump!`, nor the `Bump!` of a `Bump! | null` (T3077), and what a function hands out as `-> Bump` is read-only. A factory says `!`: `-> Async<T>!`, and the stdlib's `T[] implements<T> Into<Iterator<T>!>`, whose `into` hands back an iterator its caller advances. `await` drives its operand through `resume`, a `self!` member, so a read-only awaitable is T3071, as `for` over a read-only iterator is.
+Once the program is typed, the compiler summarises what each function does with each parameter: which parts it assigns, grows or shrinks, which it keeps past the call, which it returns. The summary follows the calls over the whole program, so a write at the end of a chain of calls is found at the call that lends a frozen value. A function known without a body says what it does: an intrinsic by the compiler's own table, an `@extern` by its `@c_out` parameters. A function value may do anything. The same summary decides whether an array argument may widen its element (§Arrays, T3102).
 
-A **distinct type** holds its backing's rights: `Color :: Rgb` is read-only or mutable as an `Rgb` is, written `Color` / `Color!`, and a conversion `Color(ORIGIN)` is the const under another name — `c.r = 5` through it is T3070. Below its own level the backing takes the default a written slot's children do: `Grid :: Cfg[]` holds read-only `Cfg`s. An index write into an array-backed distinct stores into its backing and is held to it, rights and element type, as a write into the array itself — unless the distinct implements `IndexSet` of its own, whose value type it is then held to.
+### The `!` marker
 
-The mutation check asks the CONTAINER of a write for its type, level by level, so each row of that table is enforced as written. A root-based check would get two of them wrong in opposite directions: `Cfg![]` over-strictly (nothing below an unmarked root writable) and `Cfg[]!` over-permissively — the second being the one that matters, since a signature promising "I may push but will not touch your elements" could otherwise lie.
-
-Writing `!` twice on one level is an error (P1030): `Cfg[]!!` says the same thing twice.
-
-The assignability of an array does **not** descend into a nested array: `T[]![]` and `T[][]` are distinct element types, and arrays are invariant in their element. A builder that fills mutable inner arrays and hands them back read-only copies the outer spine into the promised type rather than propagating `T[]![]` to every consumer.
-
-Through a **read-only** array a value may always **drop** rights (`Cfg![]` fills a `Cfg[]` slot), never gain them. A `Cfg[]` handed to a `Cfg![]` slot is T3077 — the callee declared it may write through the elements, and they are not its to write. Through a **mutable** array the elements' rights must **match**: a `Cfg![]!` does not fill a `Cfg[]!` slot (T3001), because whoever holds the slot may push a read-only `Cfg` — a module const — that the array's owner then writes through as a `Cfg!`. An accumulator parameter therefore takes the elements its caller holds — `out: Stmt![]!` for a caller pushing into a `Stmt![]!` — and the deduction aligns them (see *A parameter's or an annotated local's `!` is deduced from its body*).
-
-A **generic** parameter binds the argument **with its rights**: `T` is whatever the call lends. So `sort<T>(arr: T[], …)` takes a `Cfg[]` (`T` is `Cfg`) and a `Cfg![]` (`T` is `Cfg!`) alike, and what comes back says the same — `peek(xs)` over a `Cfg[]` hands out a read-only `Cfg`, `wrap(p)` of a read-only `p` a `Box<Cfg>`, `xs.map(f).collect()` the elements `f` returns. Two `Cfg` stay one type whatever their bit, so no generic forks on it. Arguments that bind one `T` to the same type at different rights bind it to the rights they all hold, level by level and in any order: `pick(local, CFG)` binds `T = Cfg` and hands back a read-only `Cfg`, `pick(got, LIST)` a read-only `i32[]`. Each argument is then checked against that binding, so one that must keep its rights is refused — `put(rows, LIST)` with `rows: i32[]![]!` against `dst: T[]!` (T3001). A method-syntax call binds the same way, its receiver one of those arguments: `local.pick(CFG)` is `pick(local, CFG)`, and `rows.put(LIST)` is refused on `rows`. A free literal argument or receiver takes the type the call binds its parameter to: with `x: i64`, `pick(1, x)` and `1.pick(x)` are both `i64` calls. An explicit type argument keeps the rights it writes. Neither the slot a call's result flows into nor a fn's parameter type lowers a binding, since neither is a right an argument holds: `pts.find((p) -> p.y > 14)` keeps the elements' rights though `p` is read-only. Inside the body the element is a `T`, which grants no mutation of its own. Mutating through a `T` needs a mutable slot (`x: T!`, deduced on a parameter) **and** a bound marked `!` (`T: Bump!`), since a call may bind `T` to a read-only type. That holds for every form that mutates: a bound's `self!` member, `for` over a `T: Iterator<U>`, `c[i] = v` through a `T: IndexSet<I, V>`, `await` on a `T: Async<U>` (T3071), an argument for a `!` parameter (T3072), a `Bump!` slot (T3077). A call binding `T: Bump!` to a type that grants no mutation — a module const, a read-only return, a `T` whose own bound is unmarked — is **T3006**; an explicit type argument is a written type, read-only unless marked, so it says `poke<Cfg!>(c)`, and `idt<Cfg>(CFG)` hands back a read-only `Cfg`.
-
-```vader
-poke :: fn<T: Bump!>(x: T) -> void {
-    x.bump()              // fine — the bound grants it, and `x` takes the `!`
-}
-poke_unmarked :: fn<T: Bump>(x: T) -> void {
-    x.bump()              // T3071 — `T` may be bound to a read-only `Cfg`
-}
-poke(CFG)                 // T3006 — a module const grants no mutation
-```
-
-**A generic that stores its argument** says so. A bare `T` grants nothing to what the callee *does* with it, but says nothing about where it *puts* it: `push` writes nothing through its argument, but stores it in an array that hands it back writable. Such a parameter carries the marker on the type parameter — `push :: fn(self!, value: T!)` — and the argument must then be as mutable as `T` is bound to:
-
-```vader
-held: Cfg[]: []
-held.push(borrowed)       // T3072 — `held` is a `Cfg![]!`, its elements written below,
-held[0].n = 1             // and `borrowed` would come back out as a mutable `Cfg`
-frozen: Cfg[]: []
-frozen.push(borrowed)     // fine — `T` is `Cfg`, frozen ; the marker asks nothing
-ints: i32[]: []
-ints.push(n)              // fine — a scalar has no level to grant
-```
-
-Inside a generic body a `T` asks nothing either, unless the body can mutate through it: under `T: Bump!`, storing a read-only `x: T` (`xs.push(x)` into `xs: T[]!`) is T3072, as it is for a `Cfg`; under an unmarked bound the value is stored as it came, since nothing can mutate it there. The marker holds through method syntax as through a bare call — `c.absorb(x)` checks `absorb`'s parameters exactly as `absorb(c, x)` does. A parameter written as a `T`, bare or as a variant (`T | null`), that the call binds to a type granting mutation grants it too, as in a fn type: `pick<Cfg!>(local, CFG)`, and `local.pick(CFG)` whose receiver binds `T = Cfg!`, hand the read-only `CFG` to a `Cfg!` parameter (T3072). An argument that fills one variant of a union parameter is held to that variant: `OTHER` passes to `x: Cfg! | Other`, whose `Other` is read-only.
-
-**A `Self` lent read-only stays read-only behind a `T`.** A trait member's `Self` not written `Self!` — a `-> Self` return, a `Self` parameter, a `fn(Self)` callback's parameter — is read-only on a concrete receiver, and is a **read-only view of `T`** when the bound reaches the member through a `T`: `t.get()` and `S.unit(n)` hand one out, and `t.visit((x) -> …)` lends one to `x`. A view keeps through a local, an `if` or `match` join and an `is T` narrowing. No `self!` member (T3071), `!` parameter (T3072) or `T` slot takes it, whatever the bound, so `build :: fn<S: Shape>(n: i32) -> S = S.unit(n)` is T3077. A member whose caller owns what it hands out writes `-> Self!`, as std's `Clone.clone`, `Step.step`, `Zero.zero` and `One.one` do — and an impl of one then returns its type marked (`zero :: fn() -> Money!`). Diagnostics show the view as `readonly T`. **A lambda parameter not written `!` is read-only**, a `T` one included, as a fn's parameter is: `(y: T) -> y.bump()` is T3071 under `T: Bump!`.
-
-#### In a union, the marker is distributed
-
-A union carries no mutability of its own — each variant carries its own. `u8[]! | Err` marks **only** the array; `Err` stays read-only. This is why the marker is a suffix: a prefix would read as governing the whole union. A variant with no marker of its own — a primitive, an enum, `null` — is a value, copied out: it neither grants nor withholds mutation, so an alias `Cell :: Point | i32` written `Cell!` grants it.
-
-Two variants that differ **only** by mutability cannot coexist: `i32[] | i32[]!` is rejected (T3074) — write `i32[]!`, the mutable one, since the union would have to be one or the other at each use. This is an error rather than a silent collapse: which side wins is the author's call, not the compiler's.
-
-A struct, a tuple or a trait value carries its bit outside its type, so two variants that differ only by their bits are one variant. It is read-only at every level where either side is: a join of a `Box<Cfg>` and a `Box<Cfg!>`, whether the branches of an `if` or the elements of an array literal, is a `Box<Cfg>`. A mutable container holds its contents at the rights written, so two whose contents differ join read-only: `Cfg![]!` and `Cfg[]!` join to a `Cfg[]`, through which nothing is pushed. A fn type's parameters take the other side: a join of `fn(Cfg)` and `fn(Cfg!)` is a `fn(Cfg!)`, since the value may mutate its argument, while a join of `fn() -> Cfg!` and `fn() -> Cfg` is a `fn() -> Cfg`.
-
-#### An `is` test compares the shape
-
-Mutability is a static discipline with no runtime representation — an array header carries length, capacity and element kind, never a read-only bit. So an `is` test selects **which** variant, never a mutability: `x is i32[]` and `x is i32[]!` name the same runtime values, and writing the marker there is T3075. What the narrowed binding carries is the **scrutinee's** own mutability.
-
-```vader
-fill :: fn(x: i32[]! | string[]!) -> usize {
-    if x is i32[] { x.push(0); return x.len() }   // narrows to `i32[]!` — push allowed
-    x.push("hello")
-    return x.len()
-}
-
-frozen :: fn(x: i32[] | string[]) -> usize {
-    if x is i32[] { x.push(0) }                   // T3071 — narrows to `i32[]`
-    return x.len()
-}
-```
-
-#### A `...spread` compares the shape too
-
-`Point { ...src, .x = 1 }` builds a **fresh** value and only *reads* `src`'s fields to fill it, so `src`'s own rights are irrelevant — a read-only source can seed a mutable literal, and the literal is mutable because it is new, not because the source was. Same law as the `is` test above and as UFCS receiver dispatch: an operation that reads compares shapes.
-
-```vader
-freeze :: fn(cfgs: Cfg[]) -> Cfg[]! {
-    out: Cfg[]: []
-    for c in cfgs {
-        out.push(Cfg { ...c, .retries = 0 })   // `c` is read-only ; the literal is not
-    }
-    return out
-}
-```
-
-#### Only a type with an interior takes the marker
-
-`!` grants mutation *through* a slot, so it means something only where there is something to mutate: an array, a struct, a tuple. On a **primitive**, an **enum**, a **fn** or **`never`** the marker is a no-op, and writing it is T3075 — `s: string!` was a promise the compiler dropped silently. A **type parameter** (`fn<T>(x: T!)`) is not rejected: the marker there is intent about the instantiation, which may well be a struct — see *A generic that stores its argument* below.
-
-#### `self`
-
-`self` is the one parameter whose type is never written, so its marker stays on the name:
-
-```vader
-bump :: fn(self!, by: i32) -> void {
-    self.count += by
-}
-```
-
-A free function whose first parameter is named `self` **does** write a type, so it takes the marker there like any other: `put :: fn(self: Map<K, V>!, k: K, v: V) -> void`.
-
-#### Function types
-
-A function type has no parameter names, so the marker goes on the type there too — the same notation as everywhere else:
-
-```vader
-apply :: fn(f: fn(i32[]!) -> void, xs: i32[]!) -> void {
-    f(xs)
-}
-```
-
-Markers on function values are **contravariant**: a function that does not mutate fits a slot that would allow it — it simply promises less — while one that does cannot be handed to a caller lending its value out read-only (T3073). The return is **covariant**, like any other level: a function handing out a read-only value cannot fill a slot promising a mutable result — `fn() -> Point` into `fn() -> Point!` is T3077.
-
-#### Diagnostics
-
-Calling a `self!` method on a read-only receiver (`x: T` and `c: Trait` included, `for x in it` over a read-only iterator, and `m[k] = v` through `IndexSet`) is T3071; handing a read-only value to a `!` parameter is T3072; writing through a read-only path is T3070, and through a read-only array T3042. On the marker itself: `T!!` is P1030, the marker on a parameter *name* (`x!: T`) is P1031 — it belongs on the type — a union mixing mutabilities is T3074, and a marker on a type with no interior is T3075. Filling a slot that promises mutation with a read-only value is T3077, at any level. On a module const, a marker outside the one storable shape is T3076, and a level its declarations mark `!` is T3096. Writing the removed `const` qualifier is P1027.
-
-T3070/T3071/T3042 carry the fix as a hint, and it names the **one** declaration that can be reopened — following the wrong one hits a wall, since marking a local bound from a factory is a strengthening and a loop variable takes no marker at all. Ordered from the most specific lever to the least:
-
-| the value came from | the hint names |
-|---|---|
-| a factory's return | `annotate the return of \`new_fn_state\` at …` |
-| an iterated collection (through any `is T as x`) | `its elements come from \`ctx.functions\` : annotate that element type at …` |
-| a module const | its type, or — unannotated — that the module-const default froze it |
-| a parameter / annotated local | `annotate \`out!\` at …` |
-
-**What this does and does not guarantee.** The property is attached to the *access path*, not to the value: passing the same object as both a `!` and a non-`!` argument is legal, and the read-only borrow is then only a statement about what that parameter is allowed to do. Vader does not track aliasing, so this buys clarity and local reasoning — a signature that tells the truth about what a function may touch — not a non-aliasing proof.
+A `!` written after a type (`i32[]!`, `Box<Cfg!>`, `self!`) grants nothing: every value but a frozen one may be modified. It is accepted for now, and is to be warned about (W0017, W0018) with `vader fix` to remove it. Its form is still checked: `T!!` is P1030, a marker on a parameter *name* (`x!: T`) is P1031 (it belongs on the type, or on `self`), and a marker on a type with no interior (a primitive, an enum, a fn, `never`) or in an `is` test is T3075. On a module constant, `NAME: T[]!: value` asks for a writable global, its one storable shape (T3076 otherwise, §Arrays). Writing the removed `const` qualifier is P1027.
 
 ### Explicit type annotations
 
@@ -2599,8 +2385,8 @@ All non-primitive values (struct, array, string buffer contents, future stdlib t
 - Primitives (`i32`, `f64`, `bool`, etc.): value, copied on assignment.
 - `string`: an interned atom id (`u32`), copied on assignment, immutable shared content.
 - Structs, arrays: heap-allocated, manipulated via implicit references (the user does not see pointers).
-  Passing one to a function therefore lets the callee reach the caller's value — which is why a parameter is a
-  read-only borrow unless its type carries `!` (see "Read-only by default").
+  Passing one to a function therefore lets the callee reach the caller's value, and modify it unless it is
+  frozen (see "Frozen values").
 
 ### No visible pointers
 
@@ -3081,8 +2867,8 @@ sys_read :: fn(fd: i32, @c_out buf: u8[], count: usize) -> i64
 Without `@c_out`, C only reads what it is lent: an array crosses as `const void*`,
 a `@c_struct` mirror is filled before the call and not read back. With it, an array
 crosses as `void*` and C writes into its buffer in place; a mirror is filled, then
-copied back after the call. The argument must grant mutation, as any argument of a
-parameter that mutates: a module constant is refused.
+copied back after the call. A frozen value is refused there (T3072), as it is by any
+parameter its callee modifies.
 
 `@c_out` needs something C can write into — an array, or a mirror crossing with
 `@c_pointer`. On a scalar or a `string` it is `T3079`: what C writes into the
@@ -3157,7 +2943,7 @@ it may not have holes.
 
 **The VM runs a `@c_struct` argument.** It builds the block itself from the
 declared field widths, passes its address, and reads it back when the parameter
-carries `!`. What differs from native is WHERE the offsets come from: `cc` reads
+carries `@c_out`. What differs from native is WHERE the offsets come from: `cc` reads
 the header, the interpreter computes them from the Vader field types. So a field
 declared WIDER than its C member would place every following field at a
 different offset under `vader run` than in a built binary — which is exactly why
@@ -3740,7 +3526,7 @@ The element beside `Stop` is **meaningless** and no consumer may read it (`for x
 
 An implementation provides `next` and nothing else: everything that consumes an iterator — `count`, `last`, `is_empty`, `collect`, … — is a free function of `std/iter` over `Iterator<T>`, called with the method syntax (`it.count()`).
 
-**Advancing an iterator mutates it** — `next` is `self!` — so a consumer takes `it: Iterator<T>!`. The `!` is on the iterator; `Iterator<T!>` would grant mutation of the elements instead. Through a read-only `it: Iterator<T>`, both `it.next()` and `for x in it` are **T3071**. A fresh iterator — `xs.map(f)`, a generator call, or the one `.into()` builds from an array — is owned and fills a `!` slot as it is; the array needs no `!`. An array reaching an `Iterator<T>` slot implicitly goes through the `into` toward that iterator — an impl on its own instance converting to that very type, else `T[] implements<T> Into<Iterator<T>!>` — and takes that `into`'s rights, not its own: `core`'s returns an owned iterator.
+**Advancing an iterator modifies it**: `next` changes its state, so a frozen iterator, a module constant's, cannot be advanced (T3072). An array reaching an `Iterator<T>` slot implicitly goes through the `into` toward that iterator (an impl on its own instance converting to that very type, else `T[] implements<T> Into<Iterator<T>>`), whose result is a fresh iterator.
 
 `std/iter` provides **lazy combinators** on top of `Iterator<T>`. Each is a generator (it `yield`s) returning `Iterator<U>`: nothing is materialised until a terminal drains the stream, and chains **fuse** through their `Iterator<T>` slots down to a single loop with no intermediate arrays. There is one family — no eager `T[]`-returning overloads and no `.iter()` cursor.
 
@@ -4170,7 +3956,7 @@ to the program like any other argument.
 | `vader build --emit=bytecode` | Emits a binary `.vir` bytecode module *(not yet implemented)* |
 | `vader build --emit=c` | Emits the generated C source only |
 | `vader fmt [path]` | Single opinionated formatter, **no config**; defaults to recursive walk under `.` |
-| `vader fix [--target=…] <file>` | Removes, in every file of the project, the parameters' `!` the compiler deduces anyway (`W0017`) or nothing needs (`W0018`) |
+| `vader fix [--target=…] <file>` | Removes, in every file of the project, the written `!` its warning points at (`W0017`, `W0018`, reserved: nothing to remove yet) |
 | `vader test [path]` | Runs all functions marked `@test`, each in an isolated process. |
 | `vader lsp` | Runs the Language Server (JSON-RPC over stdin/stdout). Spawned by VS Code / IntelliJ |
 | `vader dump --stage=<stage> <file>` | Dumps an IR stage (text or JSON depending on stage) |

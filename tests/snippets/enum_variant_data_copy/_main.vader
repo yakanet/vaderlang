@@ -1,0 +1,31 @@
+// The data of an enum's variant is a table every read of the variant shares. A
+// name bound to it, or a field that keeps it, holds a copy: writing the copy
+// leaves the table, and every other read of the variant, as it was.
+
+module "snippet"
+
+import "std/io"
+
+StatusInfo :: struct {
+    code: i32
+    reason: string
+}
+
+HttpStatus :: enum(StatusInfo) {
+    Ok       { .code = 200, .reason = "OK" },
+    NotFound { .code = 404, .reason = "Not Found" },
+}
+
+Holder :: struct {
+    info: StatusInfo
+}
+
+main :: fn() -> i32 {
+    s :: HttpStatus.NotFound
+    info :: StatusInfo(s)
+    info.code = 5
+    h :: Holder { .info = StatusInfo(s) }
+    h.info.code = 7
+    println("${info.code} ${h.info.code} ${StatusInfo(s).code} ${s.code} ${info.reason}")
+    return 0
+}

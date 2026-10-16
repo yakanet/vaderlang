@@ -1,5 +1,5 @@
 // A struct's name called on one value converts it, and a conversion hands out
-// what it was lent : `Point(ORIGIN)` is the const, not a copy. T3072.
+// what it was lent: `Point(ORIGIN)` is the constant, not a copy. T3072.
 module "snippet"
 
 Point :: struct {

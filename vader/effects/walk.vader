@@ -23,6 +23,7 @@ import "std/collections"
 import "std/iter"
 import "toolchain/span"
 import "vader/typecheck"
+import "vader/types"
 
 AST :: import "toolchain/ast"
 
@@ -190,7 +191,7 @@ assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: usize | null) -> voi
     if slot == null {
         ctx.escape(value, .Stored, name.span)
     } else if value != null {
-        ctx.bind_copy(slot, value, name.span)
+        ctx.bind_copy(slot, value, name.span, name.name)
     }
 }
 
@@ -230,7 +231,7 @@ bind_symbol :: fn(ctx: WalkCtx, span: Span, value: usize | null) -> void {
     sym :: ctx.typed.resolved.idents[span.hash()] ?? return
     slot :: ctx.local_slot(sym.id)
     if value != null {
-        ctx.bind_copy(slot, value, span)
+        ctx.bind_copy(slot, value, span, sym.name)
     }
 }
 
@@ -258,6 +259,19 @@ mark :: fn(ctx: WalkCtx, value: usize | null, path: i32, effect: Effect, at: Spa
 // `value` leaves the call at `at`, kept (`.Stored`) or returned.
 escape :: fn(ctx: WalkCtx, value: usize | null, effect: Effect, at: Span) -> void =
     ctx.mark(value, ROOT, effect, at)
+
+// What `value`, of type `from`, holds as a value of type `to`: one `NARROWED` step
+// down when an `is` test narrows a type that may be a byte array to one that is
+// none, so that what is done below is not taken for what a view the value may
+// otherwise be undergoes (`views.vader`).
+narrowed :: fn(
+    ctx: WalkCtx, value: usize | null, from: Type | null, to: Type | null,
+) -> usize | null {
+    if !may_hold_bytes(from) || may_hold_bytes(to) {
+        return value
+    }
+    return ctx.step_slot(value, NARROWED)
+}
 
 // A slot holding what `value` holds one `step` down, null when `value` is.
 step_slot :: fn(ctx: WalkCtx, value: usize | null, step: string) -> usize | null {

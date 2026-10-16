@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/array_into_by_target
-  FnDecl         drain                :: fn(Iterator<Mon>!) -> i32
+  FnDecl         drain                :: fn(Iterator<Mon>) -> i32
   StructDecl     Label                :: Label!
   FnDecl         labels               :: fn(Mon[]) -> Iterator<Label>
   ConstDecl      LIST                 :: Mon[]
@@ -21,7 +21,7 @@
   expr 31:44    CallExpr       :: __genstate_labels<Label>!
   expr 31:44    IdentExpr      :: fn(Mon[]) -> Iterator<Label>
   expr 31:51    IdentExpr      :: Mon![]
-  expr 36:14    IdentExpr      :: Iterator<Mon>!
+  expr 36:14    IdentExpr      :: Iterator<Mon>
   expr 37:14    FieldExpr      :: i32
   expr 37:14    IdentExpr      :: Mon
   expr 37:9     BinaryExpr     :: i32
@@ -40,7 +40,7 @@
   expr 47:5     IdentExpr      :: fn(T) -> void
   expr 48:13    StringLitExpr  :: string
   expr 48:16    CallExpr       :: i32
-  expr 48:16    IdentExpr      :: fn(Iterator<Mon>!) -> i32
+  expr 48:16    IdentExpr      :: fn(Iterator<Mon>) -> i32
   expr 48:22    IdentExpr      :: Mon[]
   expr 48:5     CallExpr       :: void
   expr 48:5     IdentExpr      :: fn(T) -> void
@@ -59,7 +59,7 @@
   expr 53:13    StringLitExpr  :: string
   expr 53:16    CallExpr       :: i32
   expr 53:16    FieldExpr      :: fn() -> i32
-  expr 53:16    IdentExpr      :: Iterator<Mon>!
+  expr 53:16    IdentExpr      :: Iterator<Mon>
   expr 53:5     CallExpr       :: void
   expr 53:5     IdentExpr      :: fn(T) -> void
   expr 54:13    CallExpr       :: Label

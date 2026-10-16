@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$products(a: i32[], b: i32[]) -> i64[]
-    let out: i64[]! =
-      array :i64[]!
+    let out: i64[] =
+      array :i64[]
     block :void
       let self: i32[] = a :i32[]
       let other: i32[] = b :i32[]
@@ -56,7 +56,7 @@
                   i :usize
                 r:
                   int(1) :usize
-    return out :i64[]!
+    return out :i64[]
   fn snippet$main() -> i32
     let p: i64[] =
       call :i64[]

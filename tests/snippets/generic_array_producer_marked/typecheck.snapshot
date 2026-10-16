@@ -5,15 +5,15 @@
   FnDecl         main                 :: fn() -> i32
   StructDecl     Tag                  :: Tag!
   expr 19:15    BinaryExpr     :: T[]!
-  expr 19:15    SeqLitExpr     :: T[]!
+  expr 19:15    SeqLitExpr     :: T[]
   expr 19:20    CallExpr       :: usize
   expr 19:20    FieldExpr      :: fn() -> usize
   expr 19:20    IdentExpr      :: T[]
   expr 20:18    IdentExpr      :: T[]
   expr 20:5     CallExpr       :: void
   expr 20:5     FieldExpr      :: fn(T[]) -> void
-  expr 20:5     IdentExpr      :: T[]!
-  expr 21:12    IdentExpr      :: T[]!
+  expr 20:5     IdentExpr      :: T[]
+  expr 21:12    IdentExpr      :: T[]
   expr 25:13    CallExpr       :: i32[]!
   expr 25:13    IdentExpr      :: fn(T[]) -> T[]!
   expr 25:17    SeqLitExpr     :: i32[]

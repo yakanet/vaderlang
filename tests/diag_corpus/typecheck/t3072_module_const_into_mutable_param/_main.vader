@@ -1,11 +1,6 @@
-// Mirror of the covariance already enforced type-side for arrays (a read-only `T[]`
-// does not fit a `T[]` slot), for the roots that carry no marker in their type. A
-// `!` parameter grants the callee permission to mutate, so an immutable value
-// cannot be handed to it — here a module-level const, which has no storage at all,
-// so `bump` would increment a throwaway copy.
-//
-// A local of the very same type is fine (`bump(local)` below): a local is OWNED.
-// It is the argument's provenance that decides, not its type. T3072.
+// A module constant lent to a function that writes what it is lent: the write
+// would land on a throwaway copy, the constant having no storage. A local of the
+// very same type is fine (`bump(local)` below): it is the program's own. T3072.
 module "snippet"
 
 Cfg :: struct {

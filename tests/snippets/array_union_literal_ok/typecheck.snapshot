@@ -5,12 +5,12 @@
   FnDecl         main                 :: fn() -> i32
   expr 12:63    IdentExpr      :: (null | string)[]
   expr 12:63    IndexExpr      :: null | string
-  expr 15:27    SeqLitExpr     :: (i32 | string)[]!
+  expr 15:27    SeqLitExpr     :: (i32 | string)[]
   expr 16:13    StringLitExpr  :: string
   expr 16:5     CallExpr       :: void
   expr 16:5     FieldExpr      :: fn(i32 | string) -> void
-  expr 16:5     IdentExpr      :: (i32 | string)[]!
-  expr 17:14    IdentExpr      :: (i32 | string)[]!
+  expr 16:5     IdentExpr      :: (i32 | string)[]
+  expr 17:14    IdentExpr      :: (i32 | string)[]
   expr 18:12    BinaryExpr     :: bool
   expr 18:12    IdentExpr      :: i32 | string
   expr 18:17    IdentExpr      :: string

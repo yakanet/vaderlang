@@ -23,8 +23,8 @@
       block :Rec[]!
         let __fuse_arr_0: Rec[] = a :Rec[]
         let __fuse_arr_1: Rec[] = b :Rec[]
-        let out: Rec[]! =
-          array :Rec[]!
+        let out: Rec[] =
+          array :Rec[]
         block :void
           let __fuse_len_0: usize =
             LoweredArrayLen
@@ -71,7 +71,7 @@
                   r:
                     int(1) :usize
         ~>
-          out :Rec[]!
+          out :Rec[]
     call :void
       callee:
         std_io$println__string :void
@@ -218,9 +218,9 @@
       block :Rec![]!
         let __fuse_arr_11: Rec[] = a :Rec[]
         let f: fn(Rec) -> Rec! = __lambda_snippet_0 :fn(Rec) -> Rec!
-        let out: Rec![]! =
-          @array.repeat :Rec![]!
-            array :Rec![]!
+        let out: Rec![] =
+          @array.repeat :Rec![]
+            array :Rec![]
             LoweredArrayLen
         block :void
           let __fuse_len_0: usize =
@@ -251,7 +251,7 @@
                   r:
                     int(1) :usize
         ~>
-          out :Rec![]!
+          out :Rec![]
     block :void
       let __for_arr_13: Rec![]! = doubled :Rec![]!
       let __for_len_14: usize =
@@ -364,8 +364,8 @@
       block :Rec[]!
         let __fuse_arr_19: Rec[]! = merged :Rec[]!
         let pred: fn(Rec) -> bool = __lambda_snippet_1 :fn(Rec) -> bool
-        let out: Rec[]! =
-          array :Rec[]!
+        let out: Rec[] =
+          array :Rec[]
         block :void
           let __fuse_len_0: usize =
             LoweredArrayLen
@@ -399,7 +399,7 @@
                   r:
                     int(1) :usize
         ~>
-          out :Rec[]!
+          out :Rec[]
     block :void
       let __for_arr_21: Rec[]! = kept :Rec[]!
       let __for_len_22: usize =

@@ -151,23 +151,23 @@
                 __off_1 :usize
     return int(0) :i32
   fn snippet$dup__Tag(src: Tag![]) -> Tag![]!
-    let out: Tag![]! =
+    let out: Tag![] =
       @array.repeat :Tag![]!
-        array :Tag![]!
+        array :Tag![]
         LoweredArrayLen
     @array.push_all :void
-      out :Tag![]!
+      out :Tag![]
       src :Tag![]
-    return out :Tag![]!
+    return out :Tag![]
   fn snippet$dup__i32(src: i32[]) -> i32[]!
-    let out: i32[]! =
+    let out: i32[] =
       @array.repeat :i32[]!
-        array :i32[]!
+        array :i32[]
         LoweredArrayLen
     @array.push_all :void
-      out :i32[]!
+      out :i32[]
       src :i32[]
-    return out :i32[]!
+    return out :i32[]
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

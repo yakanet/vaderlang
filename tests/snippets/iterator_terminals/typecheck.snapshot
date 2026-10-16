@@ -5,17 +5,17 @@
   FnDecl         main                 :: fn() -> i32
   expr 14:12    BinaryExpr     :: bool
   expr 14:12    FieldExpr      :: i32
-  expr 14:12    IdentExpr      :: Countdown!
+  expr 14:12    IdentExpr      :: Countdown
   expr 14:9     IfExpr         :: void
   expr 15:20    SeqLitExpr     :: [i32, Continuation]!
   expr 15:24    DotVariantExpr :: Continuation
   expr 17:14    FieldExpr      :: i32
-  expr 17:14    IdentExpr      :: Countdown!
+  expr 17:14    IdentExpr      :: Countdown
   expr 18:26    BinaryExpr     :: i32
   expr 18:26    FieldExpr      :: i32
-  expr 18:26    IdentExpr      :: Countdown!
+  expr 18:26    IdentExpr      :: Countdown
   expr 18:9     FieldExpr      :: i32
-  expr 18:9     IdentExpr      :: Countdown!
+  expr 18:9     IdentExpr      :: Countdown
   expr 19:16    SeqLitExpr     :: [i32, Continuation]!
   expr 19:17    IdentExpr      :: i32
   expr 19:20    DotVariantExpr :: Continuation

@@ -13,7 +13,7 @@
   FnDecl         relayed              :: fn() -> void
   FnDecl         return_before_break  :: fn() -> void
   FnDecl         stage_consumer       :: fn() -> void
-  FnDecl         until_negative       :: fn(Iterator<i32>!) -> Iterator<i32>
+  FnDecl         until_negative       :: fn(Iterator<i32>) -> Iterator<i32>
   FnDecl         upto_stop            :: fn(i32) -> Iterator<i32>
   FnDecl         void_consumer        :: fn() -> void
   expr 100:13   StringLitExpr  :: string
@@ -180,7 +180,7 @@
   expr 48:9     BinaryExpr     :: i32
   expr 48:9     IdentExpr      :: i32
   expr 50:12    IdentExpr      :: i32
-  expr 54:14    IdentExpr      :: Iterator<i32>!
+  expr 54:14    IdentExpr      :: Iterator<i32>
   expr 55:12    BinaryExpr     :: bool
   expr 55:12    IdentExpr      :: i32
   expr 55:9     IfExpr         :: void

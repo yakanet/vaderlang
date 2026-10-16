@@ -5,11 +5,11 @@
   FnDecl         break_over_flat_map  :: fn() -> void
   FnDecl         continue_over_array  :: fn() -> void
   FnDecl         continue_over_take   :: fn() -> void
-  FnDecl         first_two_of_odd     :: fn(Iterator<i32>!) -> Iterator<i32>
+  FnDecl         first_two_of_odd     :: fn(Iterator<i32>) -> Iterator<i32>
   FnDecl         main                 :: fn() -> i32
   FnDecl         spread               :: fn(i32) -> i32[]
-  FnDecl         stop_at              :: fn(Iterator<i32>!, i32) -> Iterator<i32>
-  FnDecl         until_over           :: fn(Iterator<i32>!, i32) -> Iterator<i32>
+  FnDecl         stop_at              :: fn(Iterator<i32>, i32) -> Iterator<i32>
+  FnDecl         until_over           :: fn(Iterator<i32>, i32) -> Iterator<i32>
   expr 100:13   StringLitExpr  :: string
   expr 100:5    CallExpr       :: void
   expr 100:5    IdentExpr      :: fn(T) -> void
@@ -27,7 +27,7 @@
   expr 16:34    IdentExpr      :: i32
   expr 16:37    BinaryExpr     :: i32
   expr 16:37    IdentExpr      :: i32
-  expr 19:14    IdentExpr      :: Iterator<i32>!
+  expr 19:14    IdentExpr      :: Iterator<i32>
   expr 20:18    RangeExpr      :: Range<i32>!
   expr 21:13    IfExpr         :: void
   expr 21:16    BinaryExpr     :: bool
@@ -40,7 +40,7 @@
   expr 24:19    BinaryExpr     :: i32
   expr 24:19    IdentExpr      :: i32
   expr 24:28    IdentExpr      :: i32
-  expr 30:14    IdentExpr      :: Iterator<i32>!
+  expr 30:14    IdentExpr      :: Iterator<i32>
   expr 31:18    RangeExpr      :: Range<i32>!
   expr 32:13    IfExpr         :: void
   expr 32:16    BinaryExpr     :: bool
@@ -50,7 +50,7 @@
   expr 35:19    BinaryExpr     :: i32
   expr 35:19    IdentExpr      :: i32
   expr 35:28    IdentExpr      :: i32
-  expr 41:14    IdentExpr      :: Iterator<i32>!
+  expr 41:14    IdentExpr      :: Iterator<i32>
   expr 42:18    RangeExpr      :: Range<i32>!
   expr 43:13    IfExpr         :: void
   expr 43:16    BinaryExpr     :: bool

@@ -96,9 +96,9 @@
     block :void
       let round: i32 = int(0) :i32
       loop while (<…>)
-        let words: string[]! =
-          @array.repeat :string[]!
-            array :string[]!
+        let words: string[] =
+          @array.repeat :string[]
+            array :string[]
             int(100) :usize
         block :void
           let i: i32 = int(0) :i32
@@ -119,7 +119,7 @@
           callee:
             collect :fn() -> void
         block :void
-          let __for_arr_4: string[]! = words :string[]!
+          let __for_arr_4: string[] = words :string[]
           let __for_len_5: usize =
             LoweredArrayLen
           let __for_i_6: usize = int(0) :usize
@@ -127,7 +127,7 @@
             let w: string =
               index :string
                 on:
-                  __for_arr_4 :string[]!
+                  __for_arr_4 :string[]
                 ix:
                   __for_i_6 :usize
             ~>

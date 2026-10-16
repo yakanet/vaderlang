@@ -124,8 +124,8 @@ function sectionSitesOf(dump: string, header: string): string[] {
   return out;
 }
 
-// The typecheck still enforces the written rights, so the fixture is also a
-// handful of rights errors: the frozen sites are dumped all the same.
+// A view only read comes to nothing: it is neither copied nor shared. A read
+// narrowed to a type no byte array is does nothing to the view (`keeps_a_failure`).
 test("the frozen checks give each use of a frozen value its outcome", async () => {
   const r = await runCli(["dump", "--stage=effects", FROZEN], undefined, MEDIUM_BUILD);
   expect(r.exit).toBe(0);
@@ -138,15 +138,37 @@ test("the frozen checks give each use of a frozen value its outcome", async () =
     "binding shared UNTOUCHED",
     "copy CFG",
     "copy CFG",
-    "binding shared bytes()",
     "binding shared TABLE",
     "copy elided UNTOUCHED",
     "copy CFG",
     "call fault CFG",
     "call fault CFG",
     "call fault TREE",
-    "write fault: 1, call fault: 5, unknown call: 1, copy: 3, copy elided: 1, binding shared: 4",
+    "write fault bytes()",
+    "view kept bytes()",
+    "view returned bytes()",
+    "call fault hands_a_view()",
+    "view returned bytes()",
+    "write fault: 2, call fault: 6, unknown call: 1, copy: 3, copy elided: 1, binding shared: 3, " +
+      "view kept: 1, view returned: 2",
   ]);
+}, MEDIUM_BUILD);
+
+// Each fault is an error, and so is a kept view, the detail naming what modifies
+// the value. A copy of a view is the program's own.
+test("the faults and the kept views are errors", async () => {
+  const r = await runCli(["check", FROZEN], undefined, MEDIUM_BUILD);
+  expect(r.exit).not.toBe(0);
+  const codes = [...r.stderr.matchAll(/error\[(T30\d\d)\]/g)].map((m) => m[1]);
+  expect(codes).toEqual([
+    "T3070", "T3072", "T3072", "T3072", "T3072", "T3072", "T3070", "T3071", "T3072",
+  ]);
+  expect(r.stderr).toContain(
+    "`CFG` is a module constant, and `fill` modifies it through `set` (`c.n` is assigned)",
+  );
+  expect(r.stderr).toContain(
+    "`bytes()` returns a view of a string's bytes, and `bs[]` is assigned",
+  );
 }, MEDIUM_BUILD);
 
 /**
@@ -184,6 +206,8 @@ test("each frozen fault leads down its calls to the write", async () => {
     ["call fault CFG", ["via `bump` (`c`)", "assigned c.n"]],
     ["call fault CFG", ["via `fill` (`c`)", "via `set` (`c`)", "assigned c.n"]],
     ["call fault TREE", ["via `clear` (`n`)", "assigned n.kids[]…"]],
+    ["write fault bytes()", ["assigned bs[]"]],
+    ["call fault hands_a_view()", ["resized hands_a_view() by `push`"]],
   ]);
 }, MEDIUM_BUILD);
 
@@ -197,7 +221,8 @@ test("the frozen checks see constants and module variables of another module", a
   expect(sectionSitesOf(r.stdout, "# frozen")).toEqual([
     "copy CFG",
     "copy CAPS",
-    "write fault: 0, call fault: 0, unknown call: 0, copy: 2, copy elided: 0, binding shared: 0",
+    "write fault: 0, call fault: 0, unknown call: 0, copy: 2, copy elided: 0, binding shared: 0, " +
+      "view kept: 0, view returned: 0",
   ]);
   const run = await runCli(["run", IMPORTED], undefined, MEDIUM_BUILD);
   expect(run.exit).toBe(0);

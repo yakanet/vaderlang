@@ -2,9 +2,9 @@
 
 ## snippet
   fn snippet$Histogram$Mul$mul(self: Histogram!, k: u32) -> Histogram
-    let out: Histogram! =
-      @array.repeat :Histogram!
-        array :Histogram!
+    let out: Histogram =
+      @array.repeat :Histogram
+        array :Histogram
         LoweredArrayLen
     block :void
       let i: usize = int(0) :usize
@@ -23,11 +23,11 @@
                 i :usize
               r:
                 int(1) :usize
-    return out :Histogram!
+    return out :Histogram
   fn snippet$Histogram$Div$div(self: Histogram!, k: u32) -> [Histogram, u32]
-    let out: Histogram! =
-      @array.repeat :Histogram!
-        array :Histogram!
+    let out: Histogram =
+      @array.repeat :Histogram
+        array :Histogram
         LoweredArrayLen
     block :void
       let i: usize = int(0) :usize
@@ -48,7 +48,7 @@
                 int(1) :usize
     return
       [Histogram, u32]! {
-        _0: out :Histogram!
+        _0: out :Histogram
         _1:
           mod :u32
             l:
@@ -61,8 +61,8 @@
               k :u32
       }
   fn snippet$main() -> i32
-    let h: Histogram! =
-      array :Histogram!
+    let h: Histogram =
+      array :Histogram
         int(4) :u32
         int(8) :u32
         int(15) :u32
@@ -72,7 +72,7 @@
         callee:
           snippet$Histogram$Mul$mul :Histogram
         arg0:
-          h :Histogram!
+          h :Histogram
         arg1:
           cast → u32
             int(2) :u32
@@ -212,7 +212,7 @@
         callee:
           snippet$Histogram$Div$div :[Histogram, u32]
         arg0:
-          h :Histogram!
+          h :Histogram
         arg1:
           cast → u32
             int(3) :u32
@@ -347,7 +347,7 @@
                 __off_4 :usize
     let total: u32 = int(0) :u32
     block :void
-      let __for_arr_5: Histogram! = h :Histogram!
+      let __for_arr_5: Histogram = h :Histogram
       let __for_len_6: usize =
         LoweredArrayLen
       let __for_i_7: usize = int(0) :usize
@@ -355,7 +355,7 @@
         let bin: u32 =
           index :u32
             on:
-              __for_arr_5 :Histogram!
+              __for_arr_5 :Histogram
             ix:
               __for_i_7 :usize
         assign

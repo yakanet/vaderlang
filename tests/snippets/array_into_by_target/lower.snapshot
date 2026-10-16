@@ -13,15 +13,15 @@
         s4: null
         state: int(6) :i32
       }
-  fn snippet$drain(it: Iterator<Mon>!) -> i32
+  fn snippet$drain(it: Iterator<Mon>) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __iter_0: Iterator<Mon>! = it :Iterator<Mon>!
+      let __iter_0: Iterator<Mon> = it :Iterator<Mon>
       loop
         let __step_1: [Mon, Continuation]! =
           vcall std_core$Iterator.next :[Mon, Continuation]!
             recv:
-              __iter_0 :Iterator<Mon>!
+              __iter_0 :Iterator<Mon>
         if :void
           cond:
             eq :bool
@@ -215,10 +215,10 @@
       arg0:
         .s :string
           l :Label
-    let it: Iterator<Mon>! =
-      call :Iterator<Mon>!
+    let it: Iterator<Mon> =
+      call :Iterator<Mon>
         callee:
-          std_core$[]$Into$into__Mon :Iterator<Mon>!
+          std_core$[]$Into$into__Mon :Iterator<Mon>
         arg0:
           LIST :Mon[]
     call :void
@@ -250,7 +250,7 @@
                       callee:
                         drain :i32
                       arg0:
-                        it :Iterator<Mon>!
+                        it :Iterator<Mon>
           ~>
             call :string
               callee:

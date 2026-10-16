@@ -16,7 +16,7 @@
   FnDecl         pair                 :: fn() -> [i32, string]
   FnDecl         pick                 :: fn(Leaf | Pair) -> Leaf | Pair
   FnDecl         reassigned           :: fn() -> i32
-  FnDecl         scaled               :: fn(Iterator<i32>!, i32) -> Iterator<i32>
+  FnDecl         scaled               :: fn(Iterator<i32>, i32) -> Iterator<i32>
   ConstDecl      Tree                 :: type
   FnDecl         with_rest            :: fn() -> i32
   expr 101:14   CallExpr       :: __genstate_scaled<i32>!
@@ -188,7 +188,7 @@
   expr 93:26    BinaryExpr     :: i32
   expr 93:26    IdentExpr      :: i32
   expr 93:30    IdentExpr      :: i32
-  expr 94:14    IdentExpr      :: Iterator<i32>!
+  expr 94:14    IdentExpr      :: Iterator<i32>
   expr 95:15    CallExpr       :: i32
   expr 95:15    IdentExpr      :: fn(i32) -> i32
   expr 95:21    IdentExpr      :: i32

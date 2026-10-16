@@ -8,7 +8,7 @@
     int(40) :usize
   const snippet$PER_ROW: usize =
     int(9) :usize
-  fn snippet$fill(rows: i32[]![]) -> void
+  fn snippet$fill(rows: i32[][]) -> void
     block :void
       let i: usize = int(0) :usize
       let __for_hi_0: usize =
@@ -127,19 +127,19 @@
                 int(1) :usize
     return bad :i32
   fn snippet$main() -> i32
-    let lambda_rows: i32[]![] =
-      call :i32[]![]!
+    let lambda_rows: i32[][] =
+      call :i32[][]!
         callee:
-          snippet$build__i32__ :i32[]![]!
+          snippet$build__i32__ :i32[][]!
         arg0:
           int(40) :usize
         arg1:
-          __lambda_snippet_0 :fn() -> i32[]!
+          __lambda_snippet_0 :fn() -> i32[]
     call :void
       callee:
-        fill :fn(i32[]![]) -> void
+        fill :fn(i32[][]) -> void
       arg0:
-        lambda_rows :i32[]![]
+        lambda_rows :i32[][]
     call :void
       callee:
         std_io$println__string :void
@@ -182,7 +182,7 @@
                       callee:
                         mismatches :fn(i32[][]) -> i32
                       arg0:
-                        lambda_rows :i32[]![]
+                        lambda_rows :i32[][]
           ~>
             call :string
               callee:
@@ -191,7 +191,7 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let named_rows: i32[]![] =
+    let named_rows: i32[][] =
       call :i32[]![]!
         callee:
           snippet$build__i32__ :i32[]![]!
@@ -201,9 +201,9 @@
           new_row :fn() -> i32[]!
     call :void
       callee:
-        fill :fn(i32[]![]) -> void
+        fill :fn(i32[][]) -> void
       arg0:
-        named_rows :i32[]![]
+        named_rows :i32[][]
     call :void
       callee:
         std_io$println__string :void
@@ -246,7 +246,7 @@
                       callee:
                         mismatches :fn(i32[][]) -> i32
                       arg0:
-                        named_rows :i32[]![]
+                        named_rows :i32[][]
           ~>
             call :string
               callee:
@@ -256,13 +256,13 @@
               arg1:
                 __off_3 :usize
     return int(0) :i32
-  fn __lambda_snippet_0() -> i32[]!
+  fn __lambda_snippet_0() -> i32[]
     ~>
-      array :i32[]!
-  fn snippet$build__i32__(n: usize, make: fn() -> i32[]!) -> i32[]![]!
-    let out: i32[]![]! =
-      @array.repeat :i32[]![]!
-        array :i32[]![]!
+      array :i32[]
+  fn snippet$build__i32__(n: usize, make: fn() -> i32[]) -> i32[][]!
+    let out: i32[][] =
+      @array.repeat :i32[][]!
+        array :i32[][]
         n :usize
     block :void
       let __for_discard_0: usize = int(0) :usize
@@ -279,7 +279,7 @@
                 __for_discard_0 :usize
               r:
                 int(1) :usize
-    return out :i32[]![]!
+    return out :i32[][]
   fn concat_2(p0: string, p1: string) -> string
     let c0: usize =
       call :usize

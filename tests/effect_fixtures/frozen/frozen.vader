@@ -1,11 +1,12 @@
 // tests/effect_fixtures/frozen — one function per outcome of the frozen checks.
 //
 // `tests/effect_summary.test.ts` reads the `# frozen` section of `vader dump
-// --stage=effects` on this file. The typecheck still enforces the rights of the
-// written `!`, so several of these functions are also rights errors: the dump
-// lists them all the same, which is the comparison the observation is for.
+// --stage=effects` on this file, and the errors the faults and the kept views
+// are.
 
 module "frozen"
+
+import "std/iter"
 
 export Cfg :: struct {
     n: i32
@@ -126,4 +127,54 @@ export clear :: fn(n: Node) -> void {
 
 export clears_a_constant :: fn() -> void {
     clear(TREE)
+}
+
+// A view of a string's bytes is never copied: written, it is a fault ; kept, an
+// error ; returned, its function hands views out, as `bytes()` does.
+export writes_a_view :: fn(s: string) -> void {
+    bs :: s.bytes()
+    bs[0] = 1
+}
+
+export Bytes :: struct {
+    b: u8[]
+}
+
+export keeps_a_view :: fn(s: string) -> Bytes = Bytes { .b = s.bytes() }
+
+export hands_a_view :: fn(s: string) -> u8[] = s.bytes()
+
+export grows_a_handed_view :: fn(s: string) -> void {
+    hands_a_view(s).push(0)
+}
+
+// A copy is the way out: its bytes are its own.
+export writes_a_copy_of_a_view :: fn(s: string) -> u8[] {
+    c :: s.bytes().clone()
+    c[0] = 1
+    return c
+}
+
+export Failure :: struct {
+    msg: string
+}
+
+export view_or_failure :: fn(s: string, fail: bool) -> u8[] | Failure {
+    if fail {
+        return Failure { .msg = "no" }
+    }
+    return s.bytes()
+}
+
+// A read narrowed to a type no byte array is: what it does is not done to the view
+// the name may hold.
+export keeps_a_failure :: fn(s: string, out: Failure[]) -> void {
+    r :: view_or_failure(s, true)
+    if r is Failure {
+        r.msg = "kept"
+        out.push(r)
+    }
+    if view_or_failure(s, true) is Failure as f {
+        out.push(f)
+    }
 }

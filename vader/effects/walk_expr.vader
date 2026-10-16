@@ -93,7 +93,7 @@ ident_value :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> usize | null {
     sym :: ctx.typed.resolved.idents[e.span.hash()] ?? return null
     local :: ctx.slots[sym.id]
     if local != null {
-        return local
+        return ctx.narrowed(local, type_of_symbol(sym, ctx.typed), ctx.typed.expr_types[e.id])
     }
     return ctx.frozen_use(e, sym)
 }
@@ -137,9 +137,10 @@ call_value :: fn(ctx: WalkCtx, c: AST.CallExpr) -> usize | null {
     for source in sources {
         args.push(ctx.value(source))
     }
-    // A conversion that runs no `into` hands on the value it converts.
+    // A conversion that runs no `into` hands on the value it converts, but for the
+    // data of an enum's variant, read from the enum's table.
     if callee is Builtin {
-        return single(args)
+        return ctx.union_of([single(args), ctx.frozen_variant_data(c)])
     }
     return ctx.union_of([ctx.call(callee, args, c.span, sources), ctx.frozen_view(c, callee)])
 }
@@ -191,7 +192,9 @@ binary_value :: fn(ctx: WalkCtx, e: AST.BinaryExpr) -> usize | null {
     right :: ctx.value(e.right)
     alias :: e.bind_as
     if alias != null {
-        ctx.bind_symbol(alias.span, left)
+        tested :: ctx.typed.expr_types[e.left.id]
+        held :: ctx.narrowed(left, tested, ctx.typed.local_types[alias.span.hash()])
+        ctx.bind_symbol(alias.span, held)
     }
     operator :: ctx.site_callee(.Operator, e.id) ?? return null
     if e.op == .In || e.op == .NotIn {

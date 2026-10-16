@@ -11,11 +11,11 @@
   expr 16:9     IdentExpr      :: MutableSet<string>!
   expr 18:15    StructLitExpr  :: MutableMap<string, i32>!
   expr 20:18    RangeExpr      :: Range<i32>!
-  expr 21:26    SeqLitExpr     :: string[]!
+  expr 21:26    SeqLitExpr     :: string[]
   expr 22:18    RangeExpr      :: Range<i32>!
   expr 23:13    CallExpr       :: void
   expr 23:13    FieldExpr      :: fn(string) -> void
-  expr 23:13    IdentExpr      :: string[]!
+  expr 23:13    IdentExpr      :: string[]
   expr 23:24    StringLitExpr  :: string
   expr 23:29    BinaryExpr     :: i32
   expr 23:29    BinaryExpr     :: i32
@@ -24,7 +24,7 @@
   expr 23:37    IdentExpr      :: i32
   expr 25:9     CallExpr       :: void
   expr 25:9     IdentExpr      :: fn() -> void
-  expr 26:18    IdentExpr      :: string[]!
+  expr 26:18    IdentExpr      :: string[]
   expr 27:13    IfExpr         :: void
   expr 27:16    BinaryExpr     :: bool
   expr 27:16    IdentExpr      :: string

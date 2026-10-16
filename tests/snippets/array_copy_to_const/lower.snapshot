@@ -20,8 +20,8 @@
             array :Inner[]
         }
   fn snippet$main() -> i32
-    let dst: Item[]! =
-      array :Item[]!
+    let dst: Item[] =
+      array :Item[]
         Item! {
           name: "x" :string
           inner:
@@ -35,11 +35,11 @@
     @array.copy :void
       ITEMS :Item[]
       int(0) :usize
-      dst :Item[]!
+      dst :Item[]
       int(0) :usize
       int(2) :usize
     block :void
-      let __for_arr_0: Item[]! = dst :Item[]!
+      let __for_arr_0: Item[] = dst :Item[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -47,7 +47,7 @@
         let it: Item =
           index :Item
             on:
-              __for_arr_0 :Item[]!
+              __for_arr_0 :Item[]
             ix:
               __for_i_2 :usize
         ~>
@@ -132,8 +132,8 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    let room: Item[]! =
-      array :Item[]!
+    let room: Item[] =
+      array :Item[]
         Item! {
           name: "keep" :string
           inner:
@@ -147,7 +147,7 @@
     @array.copy :void
       ITEMS :Item[]
       int(1) :usize
-      room :Item[]!
+      room :Item[]
       int(1) :usize
       int(1) :usize
     call :void
@@ -161,7 +161,7 @@
             .name :string
               index :Item
                 on:
-                  room :Item[]!
+                  room :Item[]
                 ix:
                   int(0) :i32
           arg1:
@@ -170,7 +170,7 @@
             .name :string
               index :Item
                 on:
-                  room :Item[]!
+                  room :Item[]
                 ix:
                   int(1) :i32
     return int(0) :i32

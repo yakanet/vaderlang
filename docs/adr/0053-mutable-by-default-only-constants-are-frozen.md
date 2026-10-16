@@ -6,6 +6,11 @@ Accepted (2026-10-09). The migration is in progress; once it lands, this record
 supersedes 0017, 0022, 0032–0036, 0039, 0040, 0045, 0049–0052 and the rights half of
 0034, 0041, 0043 and 0044.
 
+**Carried out by [0067](0067-the-frozen-values-decide-what-may-be-written.md)
+(2026-10-16)**: the rights no longer decide, the frozen values do. Module variables
+are not `NAME := value`: the form gave way to `@singleton`, still to come; a view is
+never copied, and a variant's data is frozen too.
+
 ## Context
 
 Since 0017, every written type was a read-only slot and `!` granted mutation, level

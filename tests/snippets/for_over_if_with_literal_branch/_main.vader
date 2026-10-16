@@ -1,0 +1,27 @@
+// A `for` over an `if` whose branches are an array field and an array literal:
+// the two branches join into one array type, and the loop walks whichever the
+// condition picks.
+
+module "snippet"
+
+import "std/io"
+
+A :: struct { n: i32 }
+B :: struct { m: i32 }
+Shape :: A | B
+Group :: struct { items: Shape[] }
+
+count :: fn(g: Group, one: Shape, many: bool) -> i32 {
+    total := 0
+    for s in if many { g.items } else { [one] } {
+        total += 1
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    g :: Group { .items = [A { .n = 1 }, B { .m = 2 }] }
+    println("${count(g, A { .n = 0 }, true)}")
+    println("${count(g, B { .m = 0 }, false)}")
+    return 0
+}

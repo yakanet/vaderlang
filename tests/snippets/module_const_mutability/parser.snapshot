@@ -456,38 +456,7 @@
       },
       "value": {
         "kind": "SeqLitExpr",
-        "elements": [
-          {
-            "kind": "StructLitExpr",
-            "typeName": {
-              "kind": "IdentExpr",
-              "name": "Spec"
-            },
-            "items": [
-              {
-                "kind": "field",
-                "name": "name",
-                "value": {
-                  "kind": "StringLitExpr",
-                  "parts": [
-                    {
-                      "kind": "text",
-                      "value": "seed"
-                    }
-                  ]
-                }
-              },
-              {
-                "kind": "field",
-                "name": "code",
-                "value": {
-                  "kind": "IntLitExpr",
-                  "value": "0n"
-                }
-              }
-            ]
-          }
-        ]
+        "elements": []
       },
       "decorators": []
     },
@@ -1555,6 +1524,56 @@
             }
           },
           {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "QUEUE"
+                },
+                "field": "push"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StructLitExpr",
+                    "typeName": {
+                      "kind": "IdentExpr",
+                      "name": "Spec"
+                    },
+                    "items": [
+                      {
+                        "kind": "field",
+                        "name": "name",
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "seed"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "kind": "field",
+                        "name": "code",
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "0n"
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
             "kind": "AssignStmt",
             "target": {
               "kind": "IndexExpr",
@@ -1611,6 +1630,28 @@
                   }
                 }
               ]
+            }
+          },
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "FieldExpr",
+              "target": {
+                "kind": "IndexExpr",
+                "target": {
+                  "kind": "IdentExpr",
+                  "name": "QUEUE"
+                },
+                "index": {
+                  "kind": "IntLitExpr",
+                  "value": "0n"
+                }
+              },
+              "field": "code"
+            },
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "6n"
             }
           },
           {

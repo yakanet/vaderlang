@@ -413,8 +413,8 @@
                 __buf_5 :Buffer
               arg1:
                 __off_6 :usize
-    let xs: Label[]! =
-      array :Label[]!
+    let xs: Label[] =
+      array :Label[]
     LoweredArrayPush
     call :void
       callee:
@@ -429,7 +429,7 @@
             .text :string
               index :Label
                 on:
-                  xs :Label[]!
+                  xs :Label[]
                 ix:
                   int(0) :i32
           arg2:

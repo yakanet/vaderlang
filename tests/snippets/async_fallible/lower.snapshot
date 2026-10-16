@@ -16,11 +16,11 @@
         awaited: null
         state: int(7) :i32
       }
-  fn snippet$report(f: Async<i32 | LoadError>!) -> void
+  fn snippet$report(f: Async<i32 | LoadError>) -> void
     let r: i32 | LoadError | Suspended =
       vcall std_core$Async.resume :i32 | LoadError | Suspended
         recv:
-          f :Async<i32 | LoadError>!
+          f :Async<i32 | LoadError>
     if :void
       cond:
         is Suspended! :bool
@@ -106,7 +106,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        report :fn(Async<i32 | LoadError>!) -> void
+        report :fn(Async<i32 | LoadError>) -> void
       arg0:
         call :Async<i32 | LoadError>!
           callee:
@@ -115,7 +115,7 @@
             true
     call :void
       callee:
-        report :fn(Async<i32 | LoadError>!) -> void
+        report :fn(Async<i32 | LoadError>) -> void
       arg0:
         call :Async<i32 | LoadError>!
           callee:

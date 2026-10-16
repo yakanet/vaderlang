@@ -1,0 +1,30 @@
+// A generic hands back what it is lent: `peek(TABLE)` is an element of the
+// constant, and `bump` writes it. A constant kept in a struct is a copy of it, so
+// `bump(b.v)` writes the copy and is accepted. T3072, once.
+module "snippet"
+
+Point :: struct {
+    x: i32
+}
+
+Box :: struct<T> {
+    v: T
+}
+
+ORIGIN :: Point { .x = 1 }
+TABLE :: [Point { .x = 1 }]
+
+wrap :: fn<T>(v: T) -> Box<T>! = Box<T> { .v = v }
+
+peek :: fn<T>(xs: T[]) -> T = xs[0]
+
+bump :: fn(p: Point) -> void {
+    p.x = 9
+}
+
+main :: fn() -> i32 {
+    bump(peek(TABLE))
+    b :: wrap(ORIGIN)
+    bump(b.v)
+    return ORIGIN.x
+}

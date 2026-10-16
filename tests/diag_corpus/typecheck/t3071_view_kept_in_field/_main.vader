@@ -1,0 +1,21 @@
+// A view of a string's bytes is never copied, and a field would keep it past what
+// the compiler follows: kept, it is an error, and `.clone()` keeps a copy instead.
+// So in a module constant, whose fresh read would make a new view. Returned, it is
+// accepted: `bytes_of` hands views out as `bytes()` does. T3071, twice.
+module "snippet"
+
+import "std/iter"
+
+Packet :: struct {
+    payload: u8[]
+}
+
+GREETING :: "hi".bytes()
+
+bytes_of :: fn(s: string) -> u8[] = s.bytes()
+
+main :: fn() -> i32 {
+    kept :: Packet { .payload = "abc".bytes() }
+    copied :: Packet { .payload = bytes_of("abc").clone() }
+    return i32(kept.payload.len() + copied.payload.len() + GREETING.len())
+}

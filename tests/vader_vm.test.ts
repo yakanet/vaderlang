@@ -270,12 +270,6 @@ const VADER_SELF_EMIT = new Set<string>([
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
-  // No bytecode to run : the compiler panics (GATE B1) on a `for` over an
-  // `if` whose `else` branch is an array literal, typed as a tuple — the
-  // snippet pins the wrong output until it is fixed. Tracked in TODO
-  // (Priority, "A literal in an `if` branch is not typed against the other").
-  "_diag_for_in_if_branch_literal",
-
 ]);
 
 // The error lines `vader check` reports, as a `vm.snapshot` lists them:

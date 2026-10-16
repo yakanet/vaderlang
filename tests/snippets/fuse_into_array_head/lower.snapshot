@@ -77,9 +77,9 @@
             int(10) :i32
             int(20) :i32
         let f: fn(i32) -> i32 = triple :fn(i32) -> i32
-        let out: i32[]! =
-          @array.repeat :i32[]!
-            array :i32[]!
+        let out: i32[] =
+          @array.repeat :i32[]
+            array :i32[]
             LoweredArrayLen
         block :void
           let __fuse_len_0: usize =
@@ -110,7 +110,7 @@
                   r:
                     int(1) :usize
         ~>
-          out :i32[]!
+          out :i32[]
     call :void
       callee:
         std_io$println__string :void

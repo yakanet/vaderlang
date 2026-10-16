@@ -12,7 +12,7 @@
   expr 13:12    StringLitExpr  :: string
   expr 17:10    AwaitExpr      :: string | TimeoutError
   expr 17:16    CallExpr       :: Async<string | TimeoutError>!
-  expr 17:16    IdentExpr      :: fn(i64, Async<T>!) -> Async<T | TimeoutError>!
+  expr 17:16    IdentExpr      :: fn(i64, Async<T>) -> Async<T | TimeoutError>!
   expr 17:28    CallExpr       :: Async<string>!
   expr 17:28    IdentExpr      :: fn() -> Async<string>
   expr 18:13    IdentExpr      :: Error!

@@ -2,7 +2,7 @@
 
 ## tests/snippets/union_trait_dispatch
   FnDecl         area_of              :: fn(Circle | f64[] | Sq) -> f64
-  FnDecl         bump                 :: fn(Cell! | Tally!) -> i32
+  FnDecl         bump                 :: fn(Cell | Tally) -> i32
   StructDecl     Cell                 :: Cell!
   StructDecl     Circle               :: Circle!
   FnDecl         holds                :: fn(i64[] | Odd, i64) -> bool
@@ -15,7 +15,7 @@
   StructDecl     Odd                  :: Odd!
   FnDecl         plus_five            :: fn(i32 | Money) -> i32 | Money
   FnDecl         plus_one             :: fn(Add<i32>) -> string
-  FnDecl         put                  :: fn(Log! | MutableMap<string, i32>!) -> void
+  FnDecl         put                  :: fn(Log | MutableMap<string, i32>) -> void
   TraitDecl      Shape                :: Shape!
   FnDecl         shout                :: fn(i32 | string) -> string
   StructDecl     Sq                   :: Sq!
@@ -73,12 +73,12 @@
   expr 135:5    IdentExpr      :: fn(T) -> void
   expr 136:10   StructLitExpr  :: MutableMap<string, i32>!
   expr 137:5    CallExpr       :: void
-  expr 137:5    IdentExpr      :: fn(Log! | MutableMap<string, i32>!) -> void
+  expr 137:5    IdentExpr      :: fn(Log | MutableMap<string, i32>) -> void
   expr 137:9    IdentExpr      :: MutableMap<string, i32>!
   expr 138:10   StructLitExpr  :: Log!
   expr 138:25   SeqLitExpr     :: string[]!
   expr 139:5    CallExpr       :: void
-  expr 139:5    IdentExpr      :: fn(Log! | MutableMap<string, i32>!) -> void
+  expr 139:5    IdentExpr      :: fn(Log | MutableMap<string, i32>) -> void
   expr 139:9    IdentExpr      :: Log!
   expr 140:13   StringLitExpr  :: string
   expr 140:16   CallExpr       :: usize
@@ -95,10 +95,10 @@
   expr 142:26   SeqLitExpr     :: i32[]!
   expr 143:13   StringLitExpr  :: string
   expr 143:16   CallExpr       :: i32
-  expr 143:16   IdentExpr      :: fn(Cell! | Tally!) -> i32
+  expr 143:16   IdentExpr      :: fn(Cell | Tally) -> i32
   expr 143:21   IdentExpr      :: Tally!
   expr 143:27   CallExpr       :: i32
-  expr 143:27   IdentExpr      :: fn(Cell! | Tally!) -> i32
+  expr 143:27   IdentExpr      :: fn(Cell | Tally) -> i32
   expr 143:32   IdentExpr      :: Cell!
   expr 143:5    CallExpr       :: void
   expr 143:5    IdentExpr      :: fn(T) -> void
@@ -161,9 +161,9 @@
   expr 63:19    StringLitExpr  :: string
   expr 63:5     CallExpr       :: void
   expr 63:5     FieldExpr      :: fn(string, i32) -> void
-  expr 63:5     IdentExpr      :: Log! | MutableMap<string, i32>!
+  expr 63:5     IdentExpr      :: Log | MutableMap<string, i32>
   expr 64:12    StringLitExpr  :: string
-  expr 64:5     IdentExpr      :: Log! | MutableMap<string, i32>!
+  expr 64:5     IdentExpr      :: Log | MutableMap<string, i32>
   expr 72:40    FieldExpr      :: MutableMap<string, i32>!
   expr 72:40    IdentExpr      :: Tally
   expr 72:40    IndexExpr      :: i32 | null
@@ -182,9 +182,9 @@
   expr 91:9     IdentExpr      :: Cell
   expr 91:9     IndexExpr      :: i32
   expr 96:5     BinaryExpr     :: i32
-  expr 96:5     IdentExpr      :: Cell! | Tally!
+  expr 96:5     IdentExpr      :: Cell | Tally
   expr 96:5     IndexExpr      :: i32
   expr 96:7     StringLitExpr  :: string
-  expr 97:12    IdentExpr      :: Cell! | Tally!
+  expr 97:12    IdentExpr      :: Cell | Tally
   expr 97:12    IndexExpr      :: i32
   expr 97:14    StringLitExpr  :: string

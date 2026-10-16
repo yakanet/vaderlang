@@ -15,11 +15,11 @@
         awaited: null
         state: int(7) :i32
       }
-  fn snippet$drive(f: Async<i32>!) -> i32
+  fn snippet$drive(f: Async<i32>) -> i32
     let r: i32 | Suspended =
       vcall std_core$Async.resume :i32 | Suspended
         recv:
-          f :Async<i32>!
+          f :Async<i32>
     if :void
       cond:
         is Suspended! :bool
@@ -70,7 +70,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        drive :fn(Async<i32>!) -> i32
+                        drive :fn(Async<i32>) -> i32
                       arg0:
                         call :Async<i32>!
                           callee:
@@ -125,7 +125,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        drive :fn(Async<i32>!) -> i32
+                        drive :fn(Async<i32>) -> i32
                       arg0:
                         call :Async<i32>!
                           callee:

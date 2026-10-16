@@ -17,7 +17,7 @@
           arg1:
             label :string
     defer.pop_exec 1
-  fn snippet$bump_at_exit(counter: Counter!, by: i64) -> void
+  fn snippet$bump_at_exit(counter: Counter, by: i64) -> void
     defer.push
       LoweredMakeClosure
     call :void
@@ -92,14 +92,14 @@
       }
     call :void
       callee:
-        bump_at_exit :fn(Counter!, i64) -> void
+        bump_at_exit :fn(Counter, i64) -> void
       arg0:
         counter :Counter!
       arg1:
         int(3) :i64
     call :void
       callee:
-        bump_at_exit :fn(Counter!, i64) -> void
+        bump_at_exit :fn(Counter, i64) -> void
       arg0:
         counter :Counter!
       arg1:
@@ -244,18 +244,18 @@
                   __buf_1 :Buffer
                 arg1:
                   __off_2 :usize
-  struct __defer_env_snippet_3 { cap_0: Counter!, cap_1: i64 }
+  struct __defer_env_snippet_3 { cap_0: Counter, cap_1: i64 }
   fn __defer_snippet_2(__env_0: __defer_env_snippet_3!) -> void
     assign
       target:
         .hits :i64
-          .cap_0 :Counter!
+          .cap_0 :Counter
             __env_0 :__defer_env_snippet_3!
       value:
         add_checked :i64
           l:
             .hits :i64
-              .cap_0 :Counter!
+              .cap_0 :Counter
                 __env_0 :__defer_env_snippet_3!
           r:
             .cap_1 :i64

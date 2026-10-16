@@ -594,8 +594,7 @@ flows_into :: fn(got: Type, expected: Type, value: AST.Expr, typed: TypedProgram
 // Push `code` when `got` doesn't flow into `expected` — neither assignable nor
 // `Into`-coercible. Shared by the return / yield mismatch checks and by field
 // defaults so wording stays in sync ; only the diagnostic code differs. `value` is the coerced
-// expression — its id feeds `try_into`'s LSP into-hint table, and it names the
-// declaration to reopen on a mutability-only mismatch. Null for a bare `return`.
+// expression, whose id feeds `try_into`'s LSP into-hint table. Null for a bare `return`.
 emit_mismatch_if :: fn(
     got: Type,
     expected: Type,
@@ -605,34 +604,18 @@ emit_mismatch_if :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    fits :: if value == null {
-        is_assignable(got, expected)
-    } else {
-        flows_into(got, expected, value, typed)
+    if !fits_slot(got, expected, value, typed) {
+        diags.push(mismatch_diagnostic(got, expected, span, code, typed))
     }
-    if fits {
-        return
-    }
-    if value == null {
-        diags.push(mismatch_diagnostic(got, expected, span, code, "", typed))
-        return
-    }
-    push_level_mismatch(got, expected, span, code, value, typed, diags)
 }
 
-/// Report `value`, of type `got`, failing its slot `expected` — unless the mismatch is a
-/// level a deduced `!` grants next round (`note_widening_need`).
-///
-/// @param code  the code the mismatch takes when it is not about mutability.
-export push_level_mismatch :: fn(
-    got: Type, expected: Type, span: Span, code: TypecheckCode, value: AST.Expr,
-    typed: TypedProgram, diags: Diagnostic[],
-) -> void {
-    if note_widening_need(value, got, expected, span, typed) {
-        return
+// Whether `got` fills `expected`: as it is for a bare `return`, through `value`'s
+// conversions otherwise.
+fits_slot :: fn(got: Type, expected: Type, value: AST.Expr | null, typed: TypedProgram) -> bool {
+    if value == null {
+        return is_assignable(got, expected)
     }
-    hint :: mutability_level_hint(value, got, expected, typed)
-    diags.push(mismatch_diagnostic(got, expected, span, code, hint, typed))
+    return flows_into(got, expected, value, typed)
 }
 
 // Resolve the effective fn-context: the arg-side `ctx` when present, else the
@@ -656,31 +639,15 @@ check_let :: fn(
     ann: Type | null = null
     written_ty :: s.ty
     if written_ty !is null {
-        // An ANNOTATED local takes the read-only default like every other written
-        // slot, so `i32[]` means one thing wherever it appears : the marker is what
-        // grants mutation (`out: i32[]! = []`), deduced from the body
-        // (`register_local_slot`). An UNANNOTATED local keeps the inferred type —
-        // nothing was written, and a local is owned.
-        register_local_slot(s, typed)
-        // `register_local_slot` rewrites `s.ty` : the annotation is read after it.
-        rewritten :: s.ty ?? written_ty
-        ann = apply_readonly_default(type_from_expr(rewritten, typed.resolved, diags), rewritten)
-    } else if s.value is AST.LambdaExpr && s.binding is AST.SimpleBinding {
-        register_local_fn(s.value, s.binding.name, typed)
+        ann = apply_readonly_default(type_from_expr(written_ty, typed.resolved, diags), written_ty)
     }
     got :: check_expr_fn(s.value, ann, typed, diags)
-    if ann != null && s.binding is AST.SimpleBinding {
-        note_fill_edge(s.binding.name_span, s.value, got, ann, s.span, typed)
-    }
-    record_local_producer(s, typed)
     declared: Type = TY_UNRESOLVED
     if ann == null {
         declared = default_free_members(got)
     } else {
         declared = ann
-        if !flows_into(got, ann, s.value, typed) {
-            push_level_mismatch(got, ann, s.span, .TypeMismatch, s.value, typed, diags)
-        }
+        emit_mismatch_if(got, ann, s.span, s.value, .TypeMismatch, typed, diags)
     }
     // Layer 5b — `t :: <type-expr>` inside a fn body is an in-fn type
     // alias : pre-resolve the underlying Type and stash it in
@@ -717,34 +684,7 @@ check_let :: fn(
         )
     }
     assign_binding_types(s.binding, declared, typed, diags)
-    // `buf: Iterator<i32>!: xs` walks a fresh iterator : `buf` borrows nothing of `xs`.
-    if !converts_to_owned(got, declared, typed) {
-        record_binding_value(s.binding, s.value, typed)
-    }
     record_empty_array_init(s, declared, typed)
-}
-
-// Record the value a local bound to a single name stands for (`local_bound_to`), and
-// keep a local initialised FROM an immutable borrow borrowing — `m := a` shares
-// `a`'s reference, so letting `m` be owned would make the whole read-only default
-// decorative: `m[0] = 9` would reach the caller's array through a one-line detour.
-//
-// This is the local counterpart of `mark_loop_var_borrow`, and the same reason it
-// lives in typecheck rather than the resolver: deciding it needs
-// `expr_is_immutable`, hence the types.
-//
-// Only a WHOLE-value rebind propagates. A tuple destructure takes elements APART,
-// and an element of an immutable aggregate is reached through the path predicate
-// already, so nothing is lost by not marking the leaves here.
-record_binding_value :: fn(b: AST.LetBinding, value: AST.Expr, typed: TypedProgram) -> void {
-    if b !is AST.SimpleBinding {
-        return
-    }
-    sym :: typed.resolved.idents[b.name_span.hash()] ?? return
-    typed.local_bound_to[sym.id] = value
-    if expr_is_immutable(value, typed) {
-        typed.resolved.immutable_borrows[sym.id] = true
-    }
 }
 
 // `x := []` : remember which expression the `?[]` came from, so the first
@@ -785,10 +725,6 @@ check_assign :: fn(
             "an assignment writes to a name, a field or an element, not to this"))
         return
     }
-    // T3070 : `p.x = v` reached through an immutable access path — today a
-    // module-level const, whose write would otherwise be silently discarded
-    // (it has no storage). Deep by construction : `CFG.child.count = 0` is
-    // rejected because the predicate walks back to the root.
     if s.target is AST.FieldExpr as fe {
         if reject_field_write(fe, typed, diags, check_expr_fn) {
             return
@@ -799,7 +735,6 @@ check_assign :: fn(
         // the write fits it.
         slot :: index_write_slot(target, typed, diags, check_expr_fn) ?? return
         value_ty :: check_expr_fn(s.value, slot, typed, diags)
-        note_store_edge(target.target, s.value, value_ty, s.span, typed)
         emit_assign_mismatch_if(value_ty, slot, s.span, s.value, typed, diags)
         // Past an array, the write runs a user `IndexSet`'s `set_at` : a call.
         if typed.expr_types[target.target.id] !is ArrayType {
@@ -818,9 +753,6 @@ check_assign :: fn(
     // write retires the narrowing, per `invalidate_narrow_on_assign`), so the
     // assignability check must target the declaration, not the narrowed view.
     declared :: declared_lvalue_type(s.target, target_ty, typed)
-    if s.target is AST.IdentExpr {
-        note_fill_edge(s.target.span, s.value, value_ty, declared, s.span, typed)
-    }
     emit_assign_mismatch_if(value_ty, declared, s.span, s.value, typed, diags)
     // A write to a narrowed binding / field chain retires its stale
     // narrowings — see `narrow.vader::invalidate_narrow_on_assign`.
@@ -873,21 +805,8 @@ emit_assign_mismatch_if :: fn(
     value: AST.Expr,
     typed: TypedProgram,
     diags: Diagnostic[],
-    source: AST.Expr | null = null,
 ) -> void {
-    if expected == null                        { return }
-    if flows_into(got, expected, value, typed) { return }
-    // The value a destructuring writes is an element of its `source`, the lever.
-    lever :: if source != null { source } else { value }
-    if note_widening_need(lever, got, expected, span, typed) { return }
-    // Both mutability families take the dedicated wording — "cannot assign A to a
-    // slot of type B" says nothing when A and B differ only by a marker.
-    bounds :: typed.type_param_bound_traits
-    if fn_mutability_widens(got, expected) || mutability_widens(got, expected, true, bounds) {
-        diags.push(mismatch_diagnostic(
-            got, expected, span, .AssignTypeMismatch,
-            mutability_level_hint(value, got, expected, typed), typed,
-        ))
+    if expected == null || flows_into(got, expected, value, typed) {
         return
     }
     diags.push(
@@ -946,14 +865,12 @@ check_destructuring_assign :: fn(
         for t in s.targets {
             match t {
                 is AST.PlaceTarget    -> {
-                    check_destructure_target(
-                        t.place, arr.element, null, typed, diags, check_expr_fn,
-                    )
+                    check_destructure_target(t.place, arr.element, typed, diags, check_expr_fn)
                 }
                 // The tail is a fresh array, so it is mutable whatever the source.
                 is AST.RestTarget     -> {
                     tail :: mk_array(arr.element, false)
-                    check_destructure_target(t.place, tail, null, typed, diags, check_expr_fn)
+                    check_destructure_target(t.place, tail, typed, diags, check_expr_fn)
                 }
                 is AST.WildcardTarget -> {}
             }
@@ -994,8 +911,7 @@ check_destructuring_assign :: fn(
     }
     for i in 0..<s.targets.len() {
         if s.targets[i] is AST.PlaceTarget as t {
-            source :: destructured_element(s.value, i)
-            check_destructure_target(t.place, elem_types[i], source, typed, diags, check_expr_fn)
+            check_destructure_target(t.place, elem_types[i], typed, diags, check_expr_fn)
         }
     }
 }
@@ -1062,10 +978,6 @@ index_write_slot :: fn(
     }
     index_ty :: check_expr_fn(ix.index, key_ty, typed, diags)
     arr :: stored_array(receiver_ty, typed)
-    if reject_index_write_receiver(ix.target, receiver_ty, arr, ix.span, typed, diags) {
-        record_site(typed, ix, .IndexWrite, ERRONEOUS_CALLEE)
-        return null
-    }
     if arr != null {
         record_site(typed, ix, .IndexWrite, BUILTIN_CALLEE)
         // Array elements are never flow-narrowed, so it is the declared slot type
@@ -1123,10 +1035,9 @@ array_write_slot :: fn(
     return arr.element
 }
 
-/// What every write to a field is held to before its value is: T3101 for a
-/// tuple's element, then T3070 for a field reached through an immutable path.
-/// Checking the CONTAINER first records its type: the level that decides is the
-/// field's OWNER, and `expr_types` is empty for it until something checks it.
+/// What every write to a field is held to before its value is: T3082 for what a
+/// type names, T3041 for a module's member, T3101 for a tuple's element. Checking
+/// the CONTAINER first records its type, which the checks read.
 ///
 /// @return  whether one reported, the write then going no further.
 reject_field_write :: fn(
@@ -1149,14 +1060,34 @@ reject_field_write :: fn(
             "`${field.field}` is declared in an imported module"))
         return true
     }
-    if report_tuple_element_write(field, typed, diags) {
+    if report_variant_data_write(field, typed, diags) {
         return true
     }
-    return push_immutability_diag_for(
-        container_is_immutable(field.target, typed), .CannotMutateImmutableBinding,
-        field.span, "`${field.field}` is reached through an immutable path",
-        field.target, typed, diags,
-    )
+    return report_tuple_element_write(field, typed, diags)
+}
+
+/// T3070 : a field of an enum value is a field of its variant's data, a table every
+/// read of the variant shares, frozen as a module constant is.
+///
+/// @return  whether it reported.
+report_variant_data_write :: fn(
+    field: AST.FieldExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> bool {
+    owner :: typed.expr_types[field.target.id]
+    if owner !is EnumType {
+        return false
+    }
+    data :: owner.data ?? return false
+    // A field the data has not is T3009's business, reported where it is read.
+    if declared_struct_field_type(data, field.field, typed) == null {
+        return false
+    }
+    shared :: "`${field.field}` is read from the data of a variant, which every read shares"
+    copy :: "a name bound to `${display_type(data)}(…)` holds a copy to modify"
+    diags.push(typecheck_error(.FrozenValueWritten, field.span, "${shared} ; ${copy}"))
+    return true
 }
 
 /// T3101 : a tuple's element is never written, whatever the path to the tuple
@@ -1180,12 +1111,11 @@ report_tuple_element_write :: fn(
 }
 
 /// One element of a destructuring target. Holds it to the same rules a bare
-/// assignment would: a `::` local is still frozen, an immutable path is still
-/// closed, and the element type must fit the slot.
+/// assignment would: a `::` local is still frozen, and the element type must fit
+/// the slot.
 check_destructure_target :: fn(
     target: AST.Expr,
     elem_ty: Type,
-    source: AST.Expr | null,
     typed: TypedProgram,
     diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr!, Type | null, TypedProgram!, Diagnostic[]!) -> Type,
@@ -1200,12 +1130,11 @@ check_destructure_target :: fn(
             return
         }
     } else if target is AST.IndexExpr {
-        // Judged as `m[k] = v` is : skipping it would let a destructuring assignment
-        // write through a read-only borrow.
+        // Judged as `m[k] = v` is.
         slot :: index_write_slot(target, typed, diags, check_expr_fn) ?? return
         // The lowering types the element it writes by the target's own type.
         record_expr(typed, target, slot)
-        emit_assign_mismatch_if(elem_ty, slot, target.span, target, typed, diags, source)
+        emit_assign_mismatch_if(elem_ty, slot, target.span, target, typed, diags)
         return
     } else {
         diags.push(typecheck_error(
@@ -1214,19 +1143,7 @@ check_destructure_target :: fn(
         return
     }
     slot_ty :: check_expr_fn(target, elem_ty, typed, diags)
-    if source != null && target is AST.IdentExpr {
-        note_fill_edge(target.span, source, elem_ty, slot_ty, target.span, typed)
-    }
-    emit_assign_mismatch_if(elem_ty, slot_ty, target.span, target, typed, diags, source)
-}
-
-// The element of a destructured `value` that fills target `i`, when the source is a
-// literal that writes one ; null otherwise.
-destructured_element :: fn(value: AST.Expr, i: usize) -> AST.Expr | null {
-    if value is AST.SeqLitExpr && i < value.elements.len() {
-        return value.elements[i]
-    }
-    return null
+    emit_assign_mismatch_if(elem_ty, slot_ty, target.span, target, typed, diags)
 }
 
 // T3041 when `ident` names a binding nothing may rebind ; whether it was reported.
@@ -1264,490 +1181,6 @@ local_rebind_detail :: fn(ident: AST.IdentExpr, sym: Symbol, typed: TypedProgram
     return "`${ident.name}` is declared with `::` ; `:=` allows rebinding"
 }
 
-// Immutability of an access path, in detail. Immutability is a property of
-// the ACCESS PATH, not of the value : reading a field or element of an immutable
-// root yields something immutable too, so this recurses into the target instead
-// of consulting a type. That is what catches `CFG.child.count = 0` and
-// `CFG.tags[0] = 9` — where the leaf's own type is perfectly mutable.
-//
-// Roots : a module-level const (NO runtime storage — `lower/inline_consts` rebuilds
-// its value at every read site, so a write lands on a throwaway copy and is silently
-// discarded), a parameter without `!`, a loop variable over an immutable iterable,
-// and an `is T as x` binding whose scrutinee is any of those.
-//
-// NOT a root : a `::` local. `::` freezes the binding, not the referent — a local
-// is OWNED, so `x :: i32[] ; x.push(1)` stays legal. Reassignment is T3041's job.
-
-/// Report a write through an immutable access path, naming the fix.
-///
-/// The write and the declaration to fix usually sit in different functions, so the
-/// message carries `annotate `x!` at file:line:col` — actionable for a reader, and
-/// what made the tree-wide migration mechanical.
-///
-/// Takes `value` rather than a rendered hint because `mutation_fix_hint` is not
-/// cheap — half a dozen side-table probes and two root walks — and the answer is
-/// discarded on every call that reports nothing, which is nearly all of them.
-///
-/// @param immutable  whether the path is immutable ; false reports nothing.
-/// @param value      the rejected expression, for the fix hint.
-/// @return           whether the caller must ABANDON the statement. A rejected write
-///                   has no meaningful value left to type.
-push_immutability_diag_for :: fn(
-    immutable: bool, code: TypecheckCode, span: Span, message: string,
-    value: AST.Expr, typed: TypedProgram, diags: Diagnostic[],
-) -> bool {
-    if !immutable {
-        return false
-    }
-    return refuse_rights(code, span, message, value, "it is written through here", typed, diags)
-}
-
-/// Report that `value` lacks the rights it needs here — T3042, T3070, T3071, T3072 —
-/// unless a `!` the next round deduces lifts the refusal (`note_slot_need`). A lifted
-/// refusal is reported by no round : the caller goes on as if allowed, and the next
-/// round checks the rest against the marked parameter.
-///
-/// @param detail  what is refused ; the fix hint follows it.
-/// @param value   the value whose rights fall short.
-/// @param what    what happens to `value` here, as a deduced mark's cause words it.
-/// @return        whether the refusal is reported.
-refuse_rights :: fn(
-    code: TypecheckCode, span: Span, detail: string, value: AST.Expr, what: string,
-    typed: TypedProgram, diags: Diagnostic[],
-) -> bool {
-    if note_slot_need(value, span, what, typed) {
-        return false
-    }
-    report_refusal(code, span, detail, value, typed, diags)
-    return true
-}
-
-// Report a rights refusal no deduced `!` lifts — `refuse_rights`' second half, for a
-// caller whose detail is worth building only once `note_slot_need` has said no.
-report_refusal :: fn(
-    code: TypecheckCode, span: Span, detail: string, value: AST.Expr, typed: TypedProgram,
-    diags: Diagnostic[],
-) -> void {
-    diags.push(typecheck_error(code, span, detail + mutation_fix_hint(value, typed)))
-}
-
-/// `annotate \`<field>!\` at <where its type is written>` when `e` reaches through
-/// a struct FIELD whose declaration is the thing to reopen.
-///
-/// The parameter hint (`annotate_hint`) can't cover this : the reader holds
-/// `ctx.blocks`, and no `!` on `ctx` unfreezes `blocks` — the level that needs
-/// reopening is the field's own type. Only the typechecker can say which struct a
-/// field belongs to, so pointing at it is its job, not the reader's to work out.
-export field_annotate_hint :: fn(e: AST.Expr, typed: TypedProgram) -> string {
-    if e is AST.FieldExpr {
-        // A field already marked `!` is not the level that withholds mutation.
-        reached :: typed.expr_types[e.id]
-        if reached != null && type_grants_mutation(reached) {
-            return ""
-        }
-        owner :: typed.expr_types[e.target.id] ?? return ""
-        st :: struct_backing(owner) ?? return ""
-        sd :: typed.struct_decls[st.symbol.id] ?? return ""
-        for f in sd.fields {
-            if f.name != e.field { continue }
-            at :: f.ty.span
-            return " — annotate `${f.name}!` at ${at.start.file}:${at.start.line}:${at.start.column}"
-        }
-    }
-    return ""
-}
-
-// " — annotate `name!` at file:line:col", empty when the root isn't an annotatable
-// parameter. The position is machine-readable on purpose: the migration sweep reads
-// it to place the `!` itself.
-annotate_hint :: fn(root_param: Symbol | null) -> string {
-    if root_param is null {
-        return ""
-    }
-    at :: root_param.defined_at ?? return " — annotate `${root_param.name}!`"
-    return " — annotate `${root_param.name}!` at ${at.start.file}:${at.start.line}:${at.start.column}"
-}
-
-// Remember what produced a local's value — a call, a field path, an element — so a
-// fix hint can name the declaration that hands it out.
-record_local_producer :: fn(s: AST.LetStmt, typed: TypedProgram) -> void {
-    // Positive form throughout : an `as` binding does not survive a negated `is`.
-    if s.binding is AST.SimpleBinding as sb {
-        local_sym :: typed.resolved.idents[sb.name_span.hash()] ?? return
-        ann :: s.ty
-        if ann !is null {
-            typed.local_annotation[local_sym.id] = ann
-        }
-        if s.value is AST.CallExpr || s.value is AST.FieldExpr {
-            typed.local_init_source[local_sym.id] = s.value
-        }
-    }
-}
-
-/// The fix for a mismatch that is ONLY about mutability, named by the compiler.
-///
-/// Two types that print almost alike (`X![]` vs `X[]!`) differ at a LEVEL, and the
-/// reader has to work out which — so the compiler says it. The lever is the value's
-/// own declaration when it is an annotated local, else its producer ; for a `T`, its
-/// bound.
-///
-/// Empty when the mismatch is not mutability-only: then "expected A, got B" is the
-/// whole story and a hint would mislead.
-///
-/// @param value     the expression that failed to fit.
-/// @param got       its type.
-/// @param expected  the slot's type.
-export mutability_level_hint :: fn(
-    value: AST.Expr, got: Type, expected: Type, typed: TypedProgram,
-) -> string {
-    bound :: bound_hint(got, typed)
-    if bound != "" && mutability_widens(got, expected, false, typed.type_param_bound_traits) {
-        return bound
-    }
-    slot :: same_shape_slot(got, expected) ?? return ""
-    ann :: ident_annotation(value, typed)
-    if ann !is null {
-        level :: if type_is_immutable(got) && !type_is_immutable(slot) {
-            "the top level"
-        } else {
-            mutability_level_name(got)
-        }
-        return level_differs_at(path_name(value, "the value"), got, ann.span, level)
-    }
-    return mutation_fix_hint(value, typed)
-}
-
-// `expected`, or the variant of it `got` is meant for (`X` into `X! | null`), when
-// the two differ by mutability alone. Null when they differ in shape.
-same_shape_slot :: fn(got: Type, expected: Type) -> Type | null {
-    if !is_assignable(strip_mutability(got), strip_mutability(expected)) {
-        return null
-    }
-    return counterpart(expected, got) ?? expected
-}
-
-// The written type of the local or parameter `e` NAMES, when it is a bare name and
-// carries one. A field or element path has no annotation of its own — its lever is
-// the field's declaration, which `field_annotate_hint` reads.
-ident_annotation :: fn(e: AST.Expr, typed: TypedProgram) -> AST.TypeExpr | null {
-    if !(e is AST.IdentExpr) {
-        return null
-    }
-    sym :: typed.resolved.idents[e.span.hash()] ?? return null
-    return typed.local_annotation[sym.id]
-}
-
-level_differs_at :: fn(
-    name: string, written: Type, at: Span, level: string,
-) -> string = " — `${name}` is declared `${display_type(written)}` at ${where_of(at)} : the level that differs is ${level}"
-
-// What to call the level a mutability mismatch sits at, in the reader's own words.
-// `annotate `xs!`` names the ROOT, which is never the answer here — the reader tries
-// it and the diagnostic does not move.
-mutability_level_name :: fn(t: Type) -> string = match t {
-    is ArrayType | TupleType   -> "the element"
-    is StructType | TraitType  -> "the type argument"
-    is UnionType               -> "the variant"
-    is PrimitiveType | EnumType | FnType | TypeParamType | TypeMetaType | SelfType
-     | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType
-     | AnyType | DistinctType  -> "the element"
-}
-
-// A write through `xs[0]` where `xs: Box[]` is fixed at the ELEMENT, never at the
-// root: `annotate `xs!`` produces `Box[]!`, which reopens the spine and leaves the
-// element frozen — the reader tries it and the diagnostic does not move.
-//
-// `sym` is the caller's own root symbol, so the two cannot disagree on which root
-// they judged.
-element_level_hint :: fn(value: AST.Expr, sym: Symbol, typed: TypedProgram) -> string {
-    if !(value is AST.IndexExpr) {
-        return ""
-    }
-    ann :: ident_annotation(value.target, typed) ?? return ""
-    // The DECLARED type, not the flow-narrowed one : the message quotes it next to
-    // the span where it is written, and `Box[] | null` narrowed to `Box[]` would
-    // quote a type the reader cannot find at that position.
-    at  :: sym.defined_at ?? return ""
-    ty  :: typed.param_types[at.hash()] ?? return ""
-    arr :: array_shape_in(ty) ?? return ""
-    if type_grants_mutation(arr.element) {
-        return ""
-    }
-    return level_differs_at(sym.name, ty, ann.span, mutability_level_name(ty))
-}
-
-// The array shape inside `t` — itself, the array a distinct newtype backs, or the
-// one array variant of a union. A declared `Box[] | null` is the shape an
-// option-typed slot is indexed through.
-array_shape_in :: fn(t: Type) -> ArrayType | null {
-    direct :: array_backing(t)
-    if direct !is null {
-        return direct
-    }
-    if t is UnionType {
-        for v in t.variants {
-            backing :: array_backing(v)
-            if backing !is null {
-                return backing
-            }
-        }
-    }
-    return null
-}
-
-/// The one actionable fix for a rejected write, named by the compiler.
-///
-/// Ordered from the most specific lever to the least, because a reader following the
-/// wrong one hits a wall: marking a local bound from a factory is a STRENGTHENING
-/// (gaining rights from a read-only value), which assignability refuses, and a loop
-/// variable takes no marker at all (`for x! in` is not syntax).
-///
-///   0. the BOUND of a type parameter — `T: Bump!` is what lets a `T` be mutated ;
-///   1. the producing fn's RETURN — a factory hands out ownership ;
-///   2. the iterated collection's ELEMENT type, following `is T as x` bindings back
-///      to their scrutinee ;
-///   3. the module const's own type — reopenable since a mutable one gets storage ;
-///   4. the written ELEMENT of an indexed root — `annotate `xs!`` on a `xs: Box[]`
-///      gives `Box[]!`, reopens the spine and does not move the diagnostic ;
-///   5. the annotatable root (parameter / annotated local), the pre-existing hint.
-///
-/// @param value  the expression whose write was rejected.
-/// @return       " — …" ready to append to a message, or "" when nothing is nameable.
-export mutation_fix_hint :: fn(value: AST.Expr, typed: TypedProgram) -> string =
-    mutation_fix_hint_within(value, typed, NARROW_BORROW_BUDGET)
-
-// `budget` bounds the narrowing recursion — `is A as a` nests, and a malformed table
-// could otherwise cycle.
-mutation_fix_hint_within :: fn(value: AST.Expr, typed: TypedProgram, budget: i32) -> string {
-    if budget <= 0 {
-        return ""
-    }
-    ty :: typed.expr_types[value.id]
-    if ty != null {
-        bound :: bound_hint(ty, typed)
-        if bound != "" {
-            return bound
-        }
-    }
-    // A read-only FIELD is the lever whenever the value is reached through one :
-    // marking it `!` stops every walk at that level, whatever the root.
-    field :: field_annotate_hint(value, typed)
-    if field != "" {
-        return field
-    }
-    sym :: immutable_root_symbol(value, typed) ?? return source_hint(path_root(value), typed, budget)
-    prod :: producer_hint_for(sym, typed, budget)
-    if prod != "" {
-        return prod
-    }
-    elem :: element_hint_for(sym, typed)
-    if elem != "" {
-        return elem
-    }
-    konst :: module_const_hint_for(sym, typed)
-    if konst != "" {
-        return konst
-    }
-    elem_level :: element_level_hint(value, sym, typed)
-    if elem_level != "" {
-        return elem_level
-    }
-    root :: annotate_hint(reopenable_root(value, typed))
-    if root != "" {
-        return root
-    }
-    // An `is T as x` binding is not itself annotatable, and its lever is whatever its
-    // SCRUTINEE's lever is — which may be a parameter, a field, another binding.
-    // Recursing here is what covers a write inside a match arm over a borrowed value.
-    at :: sym.defined_at ?? return ""
-    scrut :: typed.narrow.binding_scrutinee[at.hash()] ?? return ""
-    return mutation_fix_hint_within(scrut, typed, budget - 1)
-}
-
-// The lever of a value whose type is, or holds as a variant, a `T` whose bound
-// grants no mutation : the bound.
-bound_hint :: fn(ty: Type, typed: TypedProgram) -> string {
-    tp :: unmarked_bound_type_param(ty, typed.type_param_bound_traits) ?? return ""
-    name :: tp.symbol.name
-    bound :: typed.resolved.type_param_bounds[tp.symbol.id]
-    if bound == null {
-        return " — a `${name}` is mutable only through a bound marked `!`"
-    }
-    return " — mark the bound of `${name}` `!` at ${where_of(bound.span)}"
-}
-
-// `ty`, or its first variant, when it is a type parameter whose bound grants no
-// mutation. A read-only view is skipped : its fix is `Self!` on the member that
-// handed it out, not the bound.
-unmarked_bound_type_param :: fn(
-    ty: Type, bounds: MutableMap<i32, TypeParamBound>,
-) -> TypeParamType | null {
-    if ty is TypeParamType {
-        return if !ty.immutable && !bound_grants_mutation(ty, bounds) { ty } else { null }
-    }
-    if ty is UnionType {
-        for v in ty.variants {
-            found :: unmarked_bound_type_param(v, bounds)
-            if found != null {
-                return found
-            }
-        }
-    }
-    return null
-}
-
-// The lever of a local that holds what a call or a field path produced.
-producer_hint_for :: fn(sym: Symbol, typed: TypedProgram, budget: i32) -> string {
-    source :: typed.local_init_source[sym.id] ?? return ""
-    return mutation_fix_hint_within(source, typed, budget - 1)
-}
-
-// The hint for a value with no root name : a call's result, or what an array
-// literal or a `??` was built from.
-// @partial: no other expression hands out a value it did not make itself.
-source_hint :: fn(root: AST.Expr, typed: TypedProgram, budget: i32) -> string = @partial match root {
-    is AST.CallExpr         -> call_return_hint(root, typed)
-    is AST.SeqLitExpr       -> first_element_hint(root.elements, typed, budget)
-    is AST.NullCoalesceExpr -> mutation_fix_hint_within(root.left, typed, budget - 1)
-    _                       -> ""
-}
-
-first_element_hint :: fn(elements: AST.Expr[], typed: TypedProgram, budget: i32) -> string {
-    for element in elements {
-        hint :: mutation_fix_hint_within(element, typed, budget - 1)
-        if hint != "" {
-            return hint
-        }
-    }
-    return ""
-}
-
-// The call's read-only result is the level to reopen : the return written in the
-// callee's declaration, or in the fn type of the parameter it was called through.
-call_return_hint :: fn(call: AST.CallExpr, typed: TypedProgram) -> string {
-    // A return already marked `!` is not the level that withholds mutation.
-    result :: typed.expr_types[call.id]
-    if result != null && type_grants_mutation(result) {
-        return ""
-    }
-    decl :: recorded_decl(typed, call)
-    if decl != null {
-        rt :: decl.return_type ?? return ""
-        return " — annotate the return of `${decl.name}` at ${where_of(rt.span)}"
-    }
-    ann :: ident_annotation(call.callee, typed) ?? return ""
-    if ann !is AST.FnTypeExpr {
-        return ""
-    }
-    rt :: ann.return_type ?? return ""
-    name :: path_name(call.callee, "the callback")
-    return " — annotate the return in `${name}`'s type at ${where_of(rt.span)}"
-}
-
-// The start of an access path : `f()` for `f().a[0]`.
-// @partial: only a field or an element continues a path.
-path_root :: fn(e: AST.Expr) -> AST.Expr = @partial match e {
-    is AST.FieldExpr -> path_root(e.target)
-    is AST.IndexExpr -> path_root(e.target)
-    _                -> e
-}
-
-// The annotatable root, when annotating it would change something : it is borrowed, or
-// its own type is read-only. `self: S!` reaching a read-only field is neither — the
-// field is the lever. A local with no written type (a loop variable, an inferred
-// local) has nothing to mark.
-reopenable_root :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null {
-    sym :: immutable_root_symbol(e, typed) ?? return null
-    if sym.kind != .Param && sym.kind != .Local {
-        return null
-    }
-    if sym.kind == .Local && typed.local_annotation[sym.id] == null {
-        return null
-    }
-    if typed.resolved.immutable_borrows[sym.id] != null {
-        return sym
-    }
-    root_ty :: typed.expr_types[path_root(e).id] ?? return sym
-    return if type_grants_mutation(root_ty) { null } else { sym }
-}
-
-// Follows `is T as x` bindings back to their scrutinee before asking about the
-// iterable, so a write through a narrowed element still names the collection.
-element_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
-    iter :: iterable_behind(sym, typed, NARROW_BORROW_BUDGET) ?? return ""
-    at :: iterable_type_span(iter, typed) ?? return ""
-    return " — its elements come from `${path_name(iter, "the collection")}` : annotate that element type at ${where_of(at)}"
-}
-
-// `budget` bounds the narrowing chain : `is A as a` inside `is B as b` nests, and a
-// cycle would otherwise be reachable through a malformed table.
-iterable_behind :: fn(sym: Symbol, typed: TypedProgram, budget: i32) -> AST.Expr | null {
-    if budget <= 0 {
-        return null
-    }
-    direct :: typed.loop_var_iterable[sym.id]
-    if direct !is null {
-        return direct
-    }
-    // `top :: stack[i]` — the local IS an element, so its lever is the collection's
-    // element type, exactly as for a loop variable.
-    bound :: typed.local_bound_to[sym.id]
-    if bound is AST.IndexExpr {
-        return bound.target
-    }
-    at :: sym.defined_at ?? return null
-    scrut :: typed.narrow.binding_scrutinee[at.hash()] ?? return null
-    next :: immutable_root_symbol(scrut, typed) ?? return null
-    if next.id == sym.id {
-        return null
-    }
-    return iterable_behind(next, typed, budget - 1)
-}
-
-module_const_hint_for :: fn(sym: Symbol, typed: TypedProgram) -> string {
-    if sym.kind != .Const {
-        return ""
-    }
-    // Its elements are frozen whatever is written (T3076): only a whole element can
-    // be replaced.
-    if sym.module_variable {
-        return "; the elements of module variable `${sym.name}` are frozen: replace a whole one"
-    }
-    decl :: typed.const_decls[sym.id] ?? return ""
-    // Only an array has storage a marker can make writable (T3076, T3096) ; any
-    // other const is a value every read shares.
-    if typed.decl_types[sym.id] !is ArrayType {
-        return (" — `${sym.name}` is a module const at ${where_of(decl.name_span)}"
-            + " : hand out a fresh value from a fn instead")
-    }
-    ty :: decl.ty
-    if ty !is null {
-        return " — annotate `${sym.name}!` at ${where_of(ty.span)}"
-    }
-    // Unannotated (`WORDS :: [...]`) : there is no written type to reopen, so the
-    // advice is to WRITE one. Most module consts are in this shape, and the auto-pin
-    // is what froze them — invisible in the source, hence worth spelling out.
-    at :: where_of(decl.name_span)
-    return " — `${sym.name}` is frozen by the module-const default at ${at} : give it a marked type (`${sym.name}: T[]!: …`)"
-}
-
-// Where the iterable's type is WRITTEN : a struct field's declared type. A bare
-// ident falls through to `annotate_hint`, which already points at such a root.
-iterable_type_span :: fn(iter: AST.Expr, typed: TypedProgram) -> Span | null {
-    if iter is AST.FieldExpr {
-        owner :: typed.expr_types[iter.target.id] ?? return null
-        st :: struct_backing(owner) ?? return null
-        sd :: typed.struct_decls[st.symbol.id] ?? return null
-        for f in sd.fields {
-            if f.name == iter.field { return f.ty.span }
-        }
-    }
-    // A bare `xs` : the written type is the lever, and it is the ELEMENT of it that
-    // needs the marker. `annotate `x!`` on the loop variable is not syntax.
-    ann :: ident_annotation(iter, typed) ?? return null
-    return ann.span
-}
-
 // An access path rendered back to source, for a diagnostic that wants to name
 // the value the user wrote. Only ident + field chains are reproducible from the
 // AST ; anything else takes `fallback`, which each caller phrases for its own
@@ -1759,199 +1192,6 @@ path_name :: fn(e: AST.Expr, fallback: string) -> string {
 }
 
 where_of :: fn(s: Span) -> string = "${s.start.file}:${s.start.line}:${s.start.column}"
-
-// The symbol an access path starts from, when it starts from a name.
-immutable_root_symbol :: fn(e: AST.Expr, typed: TypedProgram) -> Symbol | null {
-    root :: path_root(e)
-    if root is AST.IdentExpr {
-        return typed.resolved.idents[root.span.hash()]
-    }
-    return null
-}
-
-/// Whether the CONTAINER of a write is read-only, asked of its TYPE.
-///
-/// The type carries the answer per LEVEL, which is the whole point of putting the
-/// marker there: `rows: Cfg![]` hands out mutable elements through a read-only
-/// array, `rows: Cfg[]!` the reverse. A root-based walk gets both wrong — the first
-/// over-strictly (nothing below an unmarked root is writable), the second
-/// over-permissively (everything below a marked root is, so a signature promising
-/// "I may push but won't touch your elements" could lie).
-///
-/// Falls back to the access-path walk when the container's type wasn't recorded,
-/// which keeps the conservative answer rather than silently allowing a write.
-///
-/// @param container  the expression the written field belongs to.
-export container_is_immutable :: fn(container: AST.Expr, typed: TypedProgram) -> bool {
-    ty :: typed.expr_types[container.id] ?? return expr_is_immutable(container, typed)
-    return type_is_immutable(ty)
-}
-
-/// True when mutating the value `e` must be rejected : its type withholds mutation (a
-/// frozen array or struct, a value an unmarked return handed out, a `T` whose bound
-/// is unmarked), or its access path does (`expr_is_immutable`).
-///
-/// @param e   the value about to be mutated.
-/// @param ty  its type.
-export value_is_read_only :: fn(e: AST.Expr, ty: Type, typed: TypedProgram) -> bool =
-    withholds_mutation(ty, typed.type_param_bound_traits) || expr_is_immutable(e, typed)
-
-/// True when writing THROUGH `e` must be rejected, judged on the ACCESS PATH.
-///
-/// @param e  the path being written through.
-export expr_is_immutable :: fn(
-    e: AST.Expr, typed: TypedProgram,
-) -> bool = walk_levels(e, typed, NARROW_BORROW_BUDGET)
-
-// Bounds every walk of the `is T as x` chain — the mutation check and both hint
-// paths. Bindings nest (`is A as a` inside `is B as b`), and a malformed table could
-// otherwise close a cycle. One chain, one bound.
-NARROW_BORROW_BUDGET :: 8
-
-// The per-LEVEL walk behind `expr_is_immutable`. A module const needs no guard of
-// its own : its value reaches no level that grants mutation (T3096), so the walk
-// always arrives at its root.
-//
-// @partial: only an access path can be immutable — an ident, a field / element
-// reached from one, or a conversion re-typing one. Every other expression form
-// yields a fresh owned value.
-walk_levels :: fn(e: AST.Expr, typed: TypedProgram, budget: i32) -> bool {
-    // A level that declares `!` STOPS the walk. `xs: Box![]` says the elements are
-    // mutable whatever the path that reached them, exactly as `Wrap { b: Box! }` says
-    // it of `b` — and the write-side rule (`container_is_immutable`) has always read
-    // it that way. Without this the two rules disagree on one expression: `xs[0].n = 1`
-    // passes and `bump(xs[0])` is T3072.
-    ty :: typed.expr_types[e.id]
-    if ty !is null && type_grants_mutation(ty) {
-        return false
-    }
-    return @partial match e {
-        is AST.IdentExpr -> ident_is_immutable(e, typed, budget)
-        is AST.FieldExpr -> walk_levels(e.target, typed, budget)
-        is AST.IndexExpr -> walk_levels(e.target, typed, budget)
-        // `Ids(xs)` re-types the SAME value : it is as read-only as `xs`.
-        is AST.CallExpr  -> converted_is_immutable(e, typed, budget)
-        _                -> false
-    }
-}
-
-// A conversion `T(x)` of a value that holds a reference re-types that same
-// reference, so it is as read-only as `x`.
-converted_is_immutable :: fn(c: AST.CallExpr, typed: TypedProgram, budget: i32) -> bool =
-    retypes_reference(c, typed) && walk_levels(c.args[0].value, typed, budget)
-
-// Whether `c` is a conversion `T(x)` of a value that holds a reference : it re-types
-// that same reference. A scalar converts to a copy, which no path can freeze.
-retypes_reference :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
-    if c.args.len() != 1 {
-        return false
-    }
-    callee_ty :: typed.expr_types[c.callee.id] ?? return false
-    if !converts_by_name(c, callee_ty, typed) {
-        return false
-    }
-    converted :: typed.expr_types[c.args[0].value.id] ?? return false
-    return carries_mutability_bit(strip_distinct(converted))
-}
-
-ident_is_immutable :: fn(ident: AST.IdentExpr, typed: TypedProgram, budget: i32) -> bool {
-    sym :: bare_name_symbol(ident, typed) ?? return false
-    // A module-level const needs no table, and holds cross-module for free:
-    // `seed_wildcard_exports` seeds the ORIGINAL symbol, kind included.
-    if sym.kind == .Const {
-        // A module variable has storage of its own ; every other module const is
-        // frozen, its value shared by every read, `.rodata` included.
-        return !sym.module_variable
-    }
-    // A parameter without `!`, or a loop variable over an immutable iterable.
-    if typed.resolved.immutable_borrows[sym.id] !is null {
-        return true
-    }
-    // An `is T as x` binding BORROWS its scrutinee — same storage, narrower type — so
-    // it inherits its scrutinee's answer. Without this hop the alias LAUNDERS the
-    // borrow at every path-judged gate : `if w is Wrap as x { bump(x.b) }` passes
-    // where `if w is Wrap { bump(w.b) }` is T3072. The type-judged gate (T3070) never
-    // leaked, since `narrowed_with_scrutinee_immutability` already carries the bit
-    // into the binding's TYPE. `Symbol.defined_at` is the bridge to the table.
-    if budget <= 0 {
-        return false
-    }
-    at :: sym.defined_at ?? return false
-    scrut :: typed.narrow.binding_scrutinee[at.hash()] ?? return false
-    return walk_levels(scrut, typed, budget - 1)
-}
-
-
-// Iterating an immutable value lends out immutable elements: `for it in CFG.items`
-// where `CFG` is a module-level const must not allow `it.n = 99`. Without this the
-// loop is a laundering path around the whole check — and a silent one, since a
-// module const has no storage, so the write is simply discarded.
-//
-// Marked HERE rather than in the resolver on purpose: deciding it needs
-// `expr_is_immutable`, hence the types, which the resolver does not have. Doing it
-// there would mean a second, weaker copy of the predicate. The resolver's only
-// contribution is recording the loop var's Symbol in `idents` so it can be reached
-// from here. Runs before the body is checked, so uses inside see the mark.
-mark_loop_var_borrow :: fn(
-    nv: AST.NamedVar, iter: AST.Expr, elem: Type, typed: TypedProgram,
-) -> void {
-    sym :: typed.resolved.idents[nv.span.hash()] ?? return
-    // Recorded for EVERY loop variable — see `loop_var_iterable`'s doc for why the
-    // interesting case never reaches the borrow marking below.
-    typed.loop_var_iterable[sym.id] = iter
-    // `for x in xs` only strips the `[]` — over `Box![]` the loop variable IS typed
-    // `Box!`. Stamping it read-only anyway contradicts its own type and leaves the
-    // reader nothing to annotate (`for x! in` is not syntax).
-    if type_grants_mutation(elem) {
-        return
-    }
-    if !expr_is_immutable(iter, typed) {
-        return
-    }
-    typed.resolved.immutable_borrows[sym.id] = true
-}
-
-
-
-// What forbids writing an element of `receiver`, for every write form (`check_assign`,
-// a destructuring target). True when reported.
-//   - T3042 : a read-only array.
-//   - T3070 : a mutable array reached through a read-only path (`CFG.tags[0] = 9`).
-//   - T3071 : a receiver that cannot take `IndexSet.set_at`, a `self!` member, which
-//     the write calls — a field written without `!`, a read-only parameter.
-reject_index_write_receiver :: fn(
-    receiver: AST.Expr,
-    receiver_ty: Type,
-    arr: ArrayType | null,
-    write_span: Span,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-) -> bool {
-    if arr == null {
-        return reject_driving_immutable(
-            receiver, receiver_ty, TRAIT_INDEX_SET, INDEX_WRITE_DETAIL, typed, diags,
-        )
-    }
-    if arr.immutable {
-        if note_slot_need(receiver, receiver.span, "an element of it is written here", typed) {
-            return false
-        }
-        detail :: "cannot mutate `${display_type(receiver_ty)}`"
-        report_refusal(.CannotMutateImmutableArray, receiver.span, detail, receiver, typed, diags)
-        return true
-    }
-    return push_immutable_path_write(receiver, write_span, typed, diags)
-}
-
-// T3070 for an element write (`CFG.tags[0] = 9`) whose container is mutable but
-// reached through an immutable path ; the read-only `T[]` case keeps T3042's more
-// specific wording.
-push_immutable_path_write :: fn(
-    target: AST.Expr, span: Span, typed: TypedProgram, diags: Diagnostic[],
-) -> bool = push_immutability_diag_for(
-    expr_is_immutable(target, typed), .CannotMutateImmutableBinding, span,
-    "this element is reached through an immutable path", target, typed, diags,
-)
 
 check_return :: fn(
     s: AST.ReturnStmt,
@@ -2077,10 +1317,6 @@ check_for :: fn(
         is AST.InFor       -> {
             iter_ty :: check_expr_fn(w.iter, null, typed, diags)
             retire_narrowings_entering_loop(s, typed)
-            _ :: reject_driving_immutable(
-                w.iter, iter_ty, TRAIT_ITERATOR, "`for` advances this iterator through `next`",
-                typed, diags,
-            )
             elem :: for_in_element(iter_ty, typed)
             // A `for` reaches `Iterator`, or the `Into` toward one, without its
             // argument (T3097).
@@ -2105,7 +1341,6 @@ check_for :: fn(
             match w.loop_var as nv {
                 is AST.NamedVar       -> {
                     typed.local_types[nv.span.hash()] = elem
-                    mark_loop_var_borrow(nv, w.iter, elem, typed)
                     // A real user name is var-targetable ; the `_` wildcard is not.
                     if nv.name != "_" { binding = nv.name }
                 }
@@ -2631,32 +1866,6 @@ diag_sink_stmt :: fn() -> Diagnostic[]! { return [] }
 complement_narrowed_type :: fn(ty: AST.Expr, current: Type, typed: TypedProgram) -> Type {
     narrowed :: type_from_expr(ty, typed.resolved, diag_sink_stmt())
     return narrowed_with_rights(narrowed, current, typed.type_param_bound_traits)
-}
-
-INDEX_WRITE_DETAIL :: "an index write mutates this receiver through `set_at`"
-
-// T3071 — a form that drives `e` through a `self!` member of `trait_name` : `for`
-// through `Iterator.next`, `await` through `Async.resume`, an index write through
-// `IndexSet.set_at`. A read-only value cannot be driven. True when reported.
-reject_driving_immutable :: fn(
-    e: AST.Expr, ty: Type, trait_name: string, detail: string,
-    typed: TypedProgram, diags: Diagnostic[],
-) -> bool {
-    if !drives_in_place(ty, trait_name, typed) || !value_is_read_only(e, ty, typed) {
-        return false
-    }
-    return push_mutating_on_immutable(e, e.span, detail, typed, diags)
-}
-
-// Whether the form calls the member on `t` itself : an array is walked by index and
-// a string through its chars, never through a `self!` member of theirs.
-drives_in_place :: fn(t: Type, trait_name: string, typed: TypedProgram) -> bool = match t {
-    is ArrayType | PrimitiveType | AnyType | UnresolvedType | NeverType | SelfType
-        | FreeIntType | FreeFloatType | FreeCharType -> false
-    is TraitType | TypeParamType | StructType | DistinctType | UnionType | EnumType
-        | TupleType | FnType | TypeMetaType -> {
-        satisfies_bound(t, core_trait_key(trait_name), typed)
-    }
 }
 
 // Pull the iterator's element type. `T[]` yields `T` directly ;

@@ -189,34 +189,34 @@
     assign
       target:
         .size :i32
-          self :Stack<i32>!
+          self :Stack<i32>
       value:
         add_checked :i32
           l:
             .size :i32
-              self :Stack<i32>!
+              self :Stack<i32>
           r:
             int(1) :i32
   fn snippet$Stack$Stackable$pop__i32(self: Stack<i32>!) -> i32
     assign
       target:
         .size :i32
-          self :Stack<i32>!
+          self :Stack<i32>
       value:
         sub_checked :i32
           l:
             .size :i32
-              self :Stack<i32>!
+              self :Stack<i32>
           r:
             int(1) :i32
     return
       index :i32
         on:
           .data :i32[]!
-            self :Stack<i32>!
+            self :Stack<i32>
         ix:
           .size :i32
-            self :Stack<i32>!
+            self :Stack<i32>
   fn snippet$Stack$Stackable$len__i32(self: Stack<i32>!) -> i32
     return
       .size :i32

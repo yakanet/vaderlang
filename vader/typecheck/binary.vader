@@ -326,8 +326,7 @@ arith_trait :: fn(op: AST.BinaryOp) -> string {
 ///
 /// @param recv          the operand that dispatches : the left one, a struct for `==`.
 /// @param operand       the other operand's type.
-/// @param operand_expr  the other operand, where a mismatch is reported and the
-///                      lever a deduced `!` is read from.
+/// @param operand_expr  the other operand, where a mismatch is reported.
 /// @param trait_name    the operator's trait (`TRAIT_ADD`, …).
 /// @param method_name   the trait method the operator calls (`add`, `compare`, …).
 /// @param op_label      how a mismatch names the operator.
@@ -361,7 +360,7 @@ check_operator_rhs :: fn(
         recv, chosen.trait_key, .OperatorTraitNotImplemented, operand_expr.span, typed, diags,
     )
     if method.params.len() > 0 {
-        check_operand_fits(recv, operand, operand_expr, method.params[0], op_label, typed, diags)
+        check_operand_fits(recv, operand, operand_expr, method.params[0], op_label, diags)
     }
     return method
 }
@@ -447,32 +446,25 @@ check_dispatched_operator :: fn(
     // A refused union dispatch is already reported.
     if specialised.params.len() > 0 && !member.refused {
         want :: specialised.params[0]
-        check_operand_fits(recv, operand, operand_expr, want, op_label, typed, diags)
+        check_operand_fits(recv, operand, operand_expr, want, op_label, diags)
     }
     return specialised
 }
 
 // T3017 unless `operand`, of the expression `operand_expr`, fits `want`, the slot an
-// operator's operand fills on `recv`. A mismatch only about mutability, whose lever
-// is a slot the compiler deduces the `!` of, is a need for the next round instead
-// (`note_widening_need`), as for an argument.
+// operator's operand fills on `recv`.
 check_operand_fits :: fn(
     recv: Type,
     operand: Type,
     operand_expr: AST.Expr,
     want: Type,
     op_label: string,
-    typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    span :: operand_expr.span
     if is_assignable(operand, want) {
         return
     }
-    if note_widening_need(operand_expr, operand, want, span, typed) {
-        return
-    }
-    push_operand_mismatch(recv, operand, want, op_label, span, diags)
+    push_operand_mismatch(recv, operand, want, op_label, operand_expr.span, diags)
 }
 
 // T3017 on an operator whose operand does not fit the slot `want` it fills.
@@ -721,7 +713,7 @@ check_contains_element :: fn(
     if fits_through_backing(e, left, want) {
         return
     }
-    check_operand_fits(right, left, e.left, want, "operator in", typed, diags)
+    check_operand_fits(right, left, e.left, want, "operator in", diags)
 }
 
 // A literal range or array on the right took the backing of a distinct element

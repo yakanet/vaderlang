@@ -88,14 +88,14 @@
   expr 67:40    IdentExpr      :: i32
   expr 67:5     CallExpr       :: void
   expr 67:5     IdentExpr      :: fn(T) -> void
-  expr 68:18    SeqLitExpr     :: Label[]!
+  expr 68:18    SeqLitExpr     :: Label[]
   expr 69:13    StructLitExpr  :: Celsius!
   expr 69:5     CallExpr       :: void
   expr 69:5     FieldExpr      :: fn(Label) -> void
-  expr 69:5     IdentExpr      :: Label[]!
+  expr 69:5     IdentExpr      :: Label[]
   expr 70:13    StringLitExpr  :: string
   expr 70:22    FieldExpr      :: string
-  expr 70:22    IdentExpr      :: Label[]!
+  expr 70:22    IdentExpr      :: Label[]
   expr 70:22    IndexExpr      :: Label
   expr 70:5     CallExpr       :: void
   expr 70:5     IdentExpr      :: fn(T) -> void

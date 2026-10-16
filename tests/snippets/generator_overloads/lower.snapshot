@@ -355,8 +355,8 @@
       block :usize[]!
         let s: string = "pq" :string
         let f: fn(string) -> usize = __lambda_snippet_0 :fn(string) -> usize
-        let out: usize[]! =
-          array :usize[]!
+        let out: usize[] =
+          array :usize[]
         block :void
           block :void
             let i: usize = int(0) :usize
@@ -438,7 +438,7 @@
                     r:
                       int(1) :usize
         ~>
-          out :usize[]!
+          out :usize[]
     call :void
       callee:
         std_io$println__string :void

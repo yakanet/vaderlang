@@ -72,6 +72,7 @@ export summarise_effects :: fn(project: LoadedProject, checked: CheckResult) -> 
             facts[node][i] = any_effects()
         }
     }
+    spread_views(index, frozen, skeletons, facts, components, successors)
     note_initialisers(index, frozen, widenings)
     settled :: TraceCtx {
         .index = index,

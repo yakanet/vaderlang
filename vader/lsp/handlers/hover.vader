@@ -13,11 +13,8 @@
 module "vader/lsp/handlers"
 
 import "std/string"
-import "std/path"
-import "std/string_builder"
 import "json"
 import "std/collections"
-import "toolchain/span"
 import "vader/typecheck"
 import "vader/types"
 import "vader/lsp/protocol"
@@ -39,7 +36,7 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     // the inferred type, not the source-text binding signature).
     decl :: resolve_decl_at(state, uri, line, character)
     if !(decl is null) {
-        if decl.doc.byte_len() > 0 { return hover_json(decl, deduced_note(state, uri, decl)) }
+        if decl.doc.byte_len() > 0 { return hover_json(decl) }
     }
 
     // Value-position hovers — a local, an argument, an intermediate
@@ -48,30 +45,8 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     if !(typed_payload is null) { return typed_payload }
 
     // Undocumented decl : fall back to its bare signature.
-    if !(decl is null) { return hover_json(decl, deduced_note(state, uri, decl)) }
+    if !(decl is null) { return hover_json(decl) }
     return JsonNull {}
-}
-
-// The `!` the compiler deduces on the parameters of `decl`, which its signature —
-// read from the source — does not show : one line each, with its cause.
-deduced_note :: fn(state: ServerState, uri: string, decl: DeclEntry) -> string {
-    file_path :: uri_to_path(uri)
-    if decl.kind != .Fn || file_path == "" {
-        return ""
-    }
-    inference :: typed_project_for(state, file_path).result.typed.param_inference ?? return ""
-    at :: decl.full_span
-    // The index and the check name a library's file differently — a URI against
-    // the loader's path — so the parameter is matched on its fn, its position in
-    // the declaration and its file's name.
-    decl_file :: to_path(at.start.file).filename()
-    in_decl :: (p: InferableSlot) -> p.fn_name == decl.name && span_encloses(at, p.span) &&
-        to_path(p.span.start.file).filename() == decl_file
-    sb :: StringBuilder {}
-    for mark in deduced_marks(inference, in_decl) {
-        sb.append("\n- `${mark.name}` : `!` deduced — ${mark.why}")
-    }
-    return sb.to_string()
 }
 
 // Resolve the cursor position to a decl — a local / top-level one via the
@@ -102,11 +77,8 @@ resolve_decl_at :: fn(state: ServerState, uri: string, line: i32, character: i32
 // `@param` / `@return` / `@error` tags out of the running prose and
 // renders them as a Markdown bullet list so VSCode's hover doesn't
 // collapse everything onto a single line.
-hover_json :: fn(d: DeclEntry, deduced: string) -> JsonValue {
+hover_json :: fn(d: DeclEntry) -> JsonValue {
     body := "```vader\n" + d.signature + "\n```"
-    if deduced != "" {
-        body = body + "\n" + deduced
-    }
     if d.doc.byte_len() > 0 {
         body = body + "\n\n" + format_vaderdoc(d.doc)
     }
@@ -223,45 +195,12 @@ try_typed_hover :: fn(self: ServerState, uri: string, line: i32, character: i32)
     // (often `?` placeholder) declared type. Useful when the user
     // wrote `origin: ? | null :: index.span_at(...)` and wants the
     // LSP to surface what the typechecker resolved to.
-    deduced :: deduced_slot_hover(result.typed, file_path, target_line, target_col)
-    if deduced != null {
-        return deduced
-    }
     binding_ty :: find_binding_rhs_type_at(sf.program.decls, target_line, target_col, result.typed)
     if !(binding_ty is null) { return type_hover(binding_ty) }
 
     found :: find_expr_at(sf.program.decls, target_line, target_col, result.typed) ?? return null
     ty :: result.typed.expr_types[found.id] ?? return null
     return type_hover(ty)
-}
-
-// A slot whose `!` the compiler deduces — a parameter, an annotated local — under the
-// cursor : its type with the deduced markers, and why each is there.
-deduced_slot_hover :: fn(
-    typed: TypedProgram, file: string, line: i32, column: i32,
-) -> JsonValue | null {
-    inference :: typed.param_inference ?? return null
-    under_cursor :: (p: InferableSlot) -> p.span.start.file == file &&
-        span_contains(p.span, line, column)
-    marks :: deduced_marks(inference, under_cursor)
-    if marks.len() == 0 {
-        return null
-    }
-    first :: marks[0]
-    ty :: slot_type_of(typed, first.span)
-    shown :: if ty == null { first.name } else { "${first.name}: ${display_type(ty)}" }
-    sb :: StringBuilder {}
-    sb.append("```vader\n${shown}\n```\n")
-    for mark in marks {
-        sb.append("\n`!` deduced : ${mark.why}\n")
-    }
-    return markdown_hover(sb.to_string())
-}
-
-// The type a deduced slot has : a parameter's, or a local's.
-slot_type_of :: fn(typed: TypedProgram, span: Span) -> Type | null {
-    param :: typed.param_types[span.hash()]
-    return if param != null { param } else { typed.local_types[span.hash()] }
 }
 
 /// Wrap a `Type` in a markdown Hover payload : ```vader\n<type>\n```.

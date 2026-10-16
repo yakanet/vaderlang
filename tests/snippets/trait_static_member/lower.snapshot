@@ -110,8 +110,8 @@
           snippet$build__Rect :Rect
         arg0:
           int(2) :i32
-    let shapes: Shape[]! =
-      array :Shape[]!
+    let shapes: Shape[] =
+      array :Shape[]
     LoweredArrayPush
     LoweredArrayPush
     call :void
@@ -122,7 +122,7 @@
           callee:
             areas :fn(Shape[]) -> i32
           arg0:
-            shapes :Shape[]!
+            shapes :Shape[]
     call :void
       callee:
         std_io$println__i64 :void

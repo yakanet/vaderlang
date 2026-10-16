@@ -1,12 +1,12 @@
 # Typecheck
 
 ## tests/snippets/index_through_trait_value
-  FnDecl         fill                 :: fn(IndexSet<string, i32>!) -> void
+  FnDecl         fill                 :: fn(IndexSet<string, i32>) -> void
   StructDecl     Log                  :: Log!
   FnDecl         main                 :: fn() -> i32
   FnDecl         pair_into            :: fn(C) -> void
   FnDecl         peek                 :: fn(Index<string, i32 | null>, string) -> i32
-  FnDecl         put_wide             :: fn(IndexSet<i64, i32>!) -> void
+  FnDecl         put_wide             :: fn(IndexSet<i64, i32>) -> void
   FnDecl         put_wider            :: fn(C) -> void
   expr 13:24    SeqLitExpr     :: string[]!
   expr 18:25    StringLitExpr  :: string
@@ -17,11 +17,11 @@
   expr 18:9     FieldExpr      :: string[]!
   expr 18:9     IdentExpr      :: Log
   expr 23:11    StringLitExpr  :: string
-  expr 23:5     IdentExpr      :: IndexSet<string, i32>!
+  expr 23:5     IdentExpr      :: IndexSet<string, i32>
   expr 24:18    StringLitExpr  :: string
   expr 24:5     CallExpr       :: void
   expr 24:5     FieldExpr      :: fn(string, i32) -> void
-  expr 24:5     IdentExpr      :: IndexSet<string, i32>!
+  expr 24:5     IdentExpr      :: IndexSet<string, i32>
   expr 27:68    IdentExpr      :: Index<string, i32 | null>
   expr 27:68    IndexExpr      :: i32 | null
   expr 27:68    NullCoalesceExpr :: i32
@@ -33,12 +33,12 @@
   expr 30:6     IdentExpr      :: C
   expr 30:6     IndexExpr      :: i32
   expr 30:8     StringLitExpr  :: string
-  expr 34:5     IdentExpr      :: IndexSet<i64, i32>!
+  expr 34:5     IdentExpr      :: IndexSet<i64, i32>
   expr 38:5     IdentExpr      :: C
   expr 42:10    StructLitExpr  :: MutableMap<string, i32>!
   expr 43:10    IdentExpr      :: MutableMap<string, i32>!
   expr 43:5     CallExpr       :: void
-  expr 43:5     IdentExpr      :: fn(IndexSet<string, i32>!) -> void
+  expr 43:5     IdentExpr      :: fn(IndexSet<string, i32>) -> void
   expr 44:15    IdentExpr      :: MutableMap<string, i32>!
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(C) -> void
@@ -68,7 +68,7 @@
   expr 46:10    StructLitExpr  :: Log!
   expr 47:10    IdentExpr      :: Log!
   expr 47:5     CallExpr       :: void
-  expr 47:5     IdentExpr      :: fn(IndexSet<string, i32>!) -> void
+  expr 47:5     IdentExpr      :: fn(IndexSet<string, i32>) -> void
   expr 48:14    IdentExpr      :: Log!
   expr 48:14    IndexExpr      :: i32
   expr 48:16    StringLitExpr  :: string
@@ -92,7 +92,7 @@
   expr 50:13    StructLitExpr  :: MutableMap<i64, i32>!
   expr 51:14    IdentExpr      :: MutableMap<i64, i32>!
   expr 51:5     CallExpr       :: void
-  expr 51:5     IdentExpr      :: fn(IndexSet<i64, i32>!) -> void
+  expr 51:5     IdentExpr      :: fn(IndexSet<i64, i32>) -> void
   expr 52:15    IdentExpr      :: MutableMap<i64, i32>!
   expr 52:5     CallExpr       :: void
   expr 52:5     IdentExpr      :: fn(C) -> void

@@ -14,7 +14,7 @@
   expr 20:21    StringLitExpr  :: string
   expr 21:20    StructLitExpr  :: Never!
   expr 22:10    AwaitExpr      :: i32
-  expr 22:16    IdentExpr      :: Async<i32>!
+  expr 22:16    IdentExpr      :: Async<i32>
   expr 23:13    StringLitExpr  :: string
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(T) -> void

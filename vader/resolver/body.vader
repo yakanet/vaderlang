@@ -47,13 +47,6 @@ export ResolvedFile :: struct {
     /// binding (`mutable = false`). `name :=` ones don't appear here.
     /// Read by typecheck's check_assign for T3041.
     immutable_locals: MutableMap<i32, bool>
-    /// Symbols that are an immutable BORROW root — a parameter declared without
-    /// `!` once the default flips, and loop variables over an immutable iterable.
-    /// Sibling of `immutable_locals`, which tracks the orthogonal axis (`::`
-    /// freezes the binding, not the referent). Module-level consts are NOT here:
-    /// they are recognised from `SymbolKind.Const`, needing no table and working
-    /// cross-module for free.
-    immutable_borrows: MutableMap<i32, bool>!
     /// Locals and parameters no assignment of the file rebinds, `::` or not. Two
     /// reads of one yield the same value — within one iteration, for a `for`
     /// loop variable, which the loop itself advances. A symbol missing here may be
@@ -111,7 +104,6 @@ export resolve_module_programs :: fn(
         .file_scopes = file_scopes,
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
-        .immutable_borrows = MutableMap<i32, bool> {},
         .type_param_bounds = MutableMap<i32, AST.Expr> {},
         .mutable_decls = [],
         .reassigned = MutableSet<i32> {},
@@ -132,7 +124,6 @@ export resolve_module_programs :: fn(
     return ResolvedFile {
         .idents = state.idents,
         .immutable_locals = state.immutable_locals,
-        .immutable_borrows = state.immutable_borrows,
         .rebind_free = state.rebind_free_locals(),
         .loop_rebinds = state.loop_rebinds,
         .closure_rebound = state.closure_rebound,
@@ -146,16 +137,6 @@ export resolve_module_programs :: fn(
 ResolveState :: struct {
     idents:           MutableMap<u64, Symbol>!
     immutable_locals: MutableMap<i32, bool>!
-    immutable_borrows: MutableMap<i32, bool>!
-    /// When true, a parameter declared WITHOUT `!` is recorded as an immutable
-    /// borrow root. An INPUT to the walk, not part of its output — which is why it
-    /// lives here and not on `ResolvedFile` / `ResolvedModule`: those carry the
-    /// resulting `immutable_borrows`, and nothing downstream needs to know which
-    /// policy produced it.
-    ///
-    /// On everywhere: the whole tree is annotated, and no construction site sets
-    /// it. Writes through a bare parameter are T3070 / T3071 / T3072 outright.
-    params_immutable_default: bool = true
     type_param_bounds: MutableMap<i32, AST.Expr>!
     /// W0015 candidates, in declaration order — one entry per `:=` statement.
     mutable_decls:    MutableDecl[]!
@@ -353,7 +334,6 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
         // interpreter) can recover the Symbol.id without re-walking
         // the body to find a use-site.
         self.idents[p.span.hash()] = sym
-        self.mark_param_borrow(p, sym)
     }
     self.walk_opt_expr(d.return_type)
     match d.body as b {
@@ -579,21 +559,6 @@ walk_defer :: fn(self: ResolveState, d: AST.DeferStmt) -> void {
         is AST.DeferStmtBody  -> { self.walk_stmt(x.stmt) }
         is AST.DeferBlockBody -> { self.walk_block(x.block) }
     }
-}
-
-// Record a parameter as an immutable borrow root — a param WITHOUT `!` is a
-// read-only borrow of the caller's value.
-//
-// Gated on `params_immutable_default`, which is on everywhere today.
-mark_param_borrow :: fn(self: ResolveState, p: AST.FnParam, sym: Symbol) -> void {
-    if AST.param_is_mutable(p) {
-        return
-    }
-    if !self.params_immutable_default {
-        return
-    }
-    // The value is unread — `stmt.vader` tests membership only.
-    self.immutable_borrows[sym.id] = true
 }
 
 bind_let_binding :: fn(self: ResolveState, b: AST.LetBinding, out: Symbol[]) -> void {
@@ -978,8 +943,6 @@ walk_lambda :: fn(self: ResolveState, l: AST.LambdaExpr) -> void {
     for p in l.params {
         self.walk_opt_expr(p.ty)
         sym :: self.bind_local_checked(.Param, p.name, p.span)
-        // A lambda parameter without `!` is a read-only borrow, as a fn's is.
-        self.mark_param_borrow(p, sym)
         // Persist the param's Symbol in `idents` at its def-site (mirror
         // `walk_fn_decl`) so the lambda-lifter (`lambda_params`) recovers
         // it even when the body never references the param. Without this, an

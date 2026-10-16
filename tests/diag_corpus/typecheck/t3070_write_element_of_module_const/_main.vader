@@ -1,0 +1,10 @@
+// An element of a module constant is frozen as the constant is: `WORDS[0] = "z"`
+// would write into a copy rebuilt at the read and be lost. T3070.
+module "snippet"
+
+WORDS :: ["fn", "if", "else"]
+
+main :: fn() -> i32 {
+    WORDS[0] = "z"
+    return 0
+}

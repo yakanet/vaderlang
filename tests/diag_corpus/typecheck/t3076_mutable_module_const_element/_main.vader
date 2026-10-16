@@ -1,17 +1,9 @@
 // A `!` on a module const asks for real storage: a writable global that grows like
-// any other array. Any ELEMENT type qualifies — the pool emits a flat buffer for
-// primitives and enums, an aggregate for struct / tuple / nested-array elements, and
-// both carry a storage class. A permanent GC frame roots them, so a reallocated
-// buffer is forwarded rather than collected.
-//
-// What does NOT qualify is a marker BELOW the array level. An aggregate entry emits
-// its elements as separate `static const` objects, so `SPECS[0].code = 9` would
-// write into `.rodata`. Keeping the element type read-only is exactly what makes the
-// writable slots safe: `SPECS[0] = other` reaches a slot, the deeper write is T3070.
-// So a marked element is rejected rather than silently unsound.
-//
-// A non-array const is rejected for a different reason: a bare struct or map isn't
-// pooled at all, so there is no storage to make writable.
+// any other array. The marker belongs on the array level: a marker below it, or on a
+// const that is no array, has no storage to make writable. An aggregate element type
+// starts empty, whatever its initialiser: the elements of a value the compiler bakes
+// are emitted as `static const` objects, so a write into one would land in
+// `.rodata`. T3076, six times.
 module "snippet"
 
 Spec :: struct { code: i32 }
@@ -20,5 +12,12 @@ TPL:    Spec![]:  [Spec { .code = 1 }]
 TPL2:   Spec![]!: [Spec { .code = 2 }]
 INNER:  i32[]![]: [[3]]
 ORIGIN: Spec!:    Spec { .code = 0 }
+QUEUE:  Spec[]!:  [Spec { .code = 4 }]
+BASE:   Spec[]:   [Spec { .code = 6 }]
+FROM:   Spec[]!:  BASE
+EMPTY:  Spec[]!:  []
 
-main :: fn() -> i32 = TPL[0].code + TPL2[0].code + INNER[0][0] + ORIGIN.code
+main :: fn() -> i32 {
+    EMPTY.push(Spec { .code = 5 })
+    return TPL[0].code + TPL2[0].code + INNER[0][0] + ORIGIN.code + QUEUE[0].code + FROM[0].code
+}

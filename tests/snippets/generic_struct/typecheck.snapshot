@@ -8,22 +8,22 @@
   expr 19:9     CallExpr       :: void
   expr 19:9     FieldExpr      :: T[]!
   expr 19:9     FieldExpr      :: fn(T) -> void
-  expr 19:9     IdentExpr      :: Stack<T>!
+  expr 19:9     IdentExpr      :: Stack<T>
   expr 20:21    BinaryExpr     :: i32
   expr 20:21    FieldExpr      :: i32
-  expr 20:21    IdentExpr      :: Stack<T>!
+  expr 20:21    IdentExpr      :: Stack<T>
   expr 20:9     FieldExpr      :: i32
-  expr 20:9     IdentExpr      :: Stack<T>!
+  expr 20:9     IdentExpr      :: Stack<T>
   expr 23:21    BinaryExpr     :: i32
   expr 23:21    FieldExpr      :: i32
-  expr 23:21    IdentExpr      :: Stack<T>!
+  expr 23:21    IdentExpr      :: Stack<T>
   expr 23:9     FieldExpr      :: i32
-  expr 23:9     IdentExpr      :: Stack<T>!
+  expr 23:9     IdentExpr      :: Stack<T>
   expr 24:16    FieldExpr      :: T[]!
-  expr 24:16    IdentExpr      :: Stack<T>!
+  expr 24:16    IdentExpr      :: Stack<T>
   expr 24:16    IndexExpr      :: T
   expr 24:26    FieldExpr      :: i32
-  expr 24:26    IdentExpr      :: Stack<T>!
+  expr 24:26    IdentExpr      :: Stack<T>
   expr 27:16    FieldExpr      :: i32
   expr 27:16    IdentExpr      :: Stack<T>
   expr 30:16    BinaryExpr     :: bool

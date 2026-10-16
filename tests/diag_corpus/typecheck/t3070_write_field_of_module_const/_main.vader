@@ -1,9 +1,8 @@
-// A module-level const has no runtime storage: `lower/inline_consts` rebuilds
-// its value at every read site, so writing a field of one landed on a throwaway
-// copy and was silently discarded — `CFG.count = 99` compiled, then read back 1.
-// `::` freezes only the binding for a LOCAL (a local is owned, so `p.x = 10`
-// stays legal, see snippets/const_binding_no_mutate); at module scope the
-// referent is frozen too, because no referent survives. T3070.
+// A module constant has no runtime storage: `lower/inline_consts` rebuilds its
+// value at every read, so a write through it would land on a throwaway copy.
+// `::` freezes only the binding of a local (`p.x = 10` stays legal, see
+// snippets/const_binding_no_mutate); at module scope the value is frozen too.
+// T3070.
 module "snippet"
 
 Cfg :: struct { count: i32 }

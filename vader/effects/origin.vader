@@ -69,8 +69,9 @@ export FaultHop :: struct {
 
 /// What modifies a frozen value at the end of a fault's chain.
 export FaultWrite :: struct {
-    /// The effect and where it lands, as the dump writes an access: `assigned c.n`.
-    label: string
+    effect: Effect
+    /// Where it lands, below the name the value goes by there: `c.n`.
+    place: string
     /// The callee that does it without a body of its own (`push`) ; null for a write
     /// the body makes.
     by: string | null = null
@@ -154,7 +155,8 @@ trace :: fn(ctx: TraceCtx, start: Link, index: usize) -> FaultChain {
 written_by :: fn(
     paths: PathTable, at: Link, a: Access, span: Span, by: string | null,
 ) -> FaultWrite = FaultWrite {
-    .label = access_label(paths, a, at.name),
+    .effect = a.effect,
+    .place = paths.place_label(at.name, a.path),
     .by = by,
     .span = span,
     .module = at.module,

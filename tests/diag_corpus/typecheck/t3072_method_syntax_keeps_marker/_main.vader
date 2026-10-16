@@ -1,7 +1,6 @@
-// A `!` parameter binds the same way whether the function is called bare or through
-// method syntax: `c.absorb(CFG)` is `absorb(c, CFG)`, and the marker on `other` still
-// forbids a read-only argument. The receiver is dropped from the method's type, its
-// markers are not. T3072.
+// A call through method syntax lends its arguments as a bare call does:
+// `c.absorb(CFG)` is `absorb(c, CFG)`, and `absorb` writes `other`, so the constant
+// cannot fill it. T3072.
 module "snippet"
 
 Cfg :: struct {

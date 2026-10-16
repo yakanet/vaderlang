@@ -23,9 +23,9 @@
             callee:
               std_iter$indexed__i32 :__genstate_indexed<[i32, usize]>!
             arg0:
-              call :Iterator<T>!
+              call :Iterator<T>
                 callee:
-                  std_core$[]$Into$into__i32 :Iterator<T>!
+                  std_core$[]$Into$into__i32 :Iterator<T>
                 arg0:
                   array :i32[]!
                     int(10) :i32

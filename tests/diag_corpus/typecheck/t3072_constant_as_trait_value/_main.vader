@@ -1,0 +1,26 @@
+// A constant handed out as a trait value is the constant still: `as_bump` returns
+// what it is lent, and the `bump` called on the result writes it. T3072.
+module "snippet"
+
+Bump :: trait {
+    bump :: fn(self!) -> void
+}
+
+Cfg :: struct {
+    n: i32
+}
+
+Cfg implements Bump {
+    bump :: fn(self) -> void {
+        self.n += 1
+    }
+}
+
+ORIGIN :: Cfg { .n = 1 }
+
+as_bump :: fn(c: Cfg) -> Bump = c
+
+main :: fn() -> i32 {
+    as_bump(ORIGIN).bump()
+    return ORIGIN.n
+}

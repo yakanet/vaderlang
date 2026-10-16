@@ -263,10 +263,10 @@
                   r:
                     v :i32
     return total :i32
-  fn snippet$until_negative(self: Iterator<i32>!) -> Iterator<i32>
+  fn snippet$until_negative(self: Iterator<i32>) -> Iterator<i32>
     return
       __genstate_until_negative! {
-        s0: self :Iterator<i32>!
+        s0: self :Iterator<i32>
         s1: null
         s2: null
         s3: int(0) :i32
@@ -371,9 +371,9 @@
         callee:
           until_negative :__genstate_until_negative<i32>!
         arg0:
-          call :Iterator<i32>!
+          call :Iterator<i32>
             callee:
-              std_core$[]$Into$into__i32 :Iterator<i32>!
+              std_core$[]$Into$into__i32 :Iterator<i32>
             arg0:
               array :i32[]!
                 int(1) :i32
@@ -2012,7 +2012,7 @@
                                               _0: int(0) :i32
                                               _1: int(1) :u8
                                             }
-  struct snippet$__genstate_until_negative { s0: Iterator<i32>!, s1: Iterator<i32>!, s2: [i32, Continuation]!, s3: i32, state: i32 }
+  struct snippet$__genstate_until_negative { s0: Iterator<i32>, s1: Iterator<i32>, s2: [i32, Continuation]!, s3: i32, state: i32 }
   fn snippet$__genstate_until_negative$Iterator$next(self: __genstate_until_negative!) -> [i32, Continuation]!
     loop :dispatch$
       if :void
@@ -2292,7 +2292,7 @@
                                                                 value:
                                                                   vcall std_core$Iterator.next :[i32, Continuation]!
                                                                     recv:
-                                                                      .s1 :Iterator<i32>!
+                                                                      .s1 :Iterator<i32>
                                                                         __self_2 :__genstate_until_negative!
                                                               assign
                                                                 target:
@@ -2312,10 +2312,10 @@
                                                                 then:
                                                                   assign
                                                                     target:
-                                                                      .s1 :Iterator<i32>!
+                                                                      .s1 :Iterator<i32>
                                                                         __self_2 :__genstate_until_negative!
                                                                     value:
-                                                                      .s0 :Iterator<i32>!
+                                                                      .s0 :Iterator<i32>
                                                                         __self_2 :__genstate_until_negative!
                                                                   assign
                                                                     target:

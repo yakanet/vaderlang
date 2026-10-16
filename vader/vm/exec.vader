@@ -467,8 +467,8 @@ build_main_args :: fn(
         return Trap { .message = message }
     }
     // Pushed per branch rather than through a joined local : the fallback is a fresh
-    // literal (mutable) and `host_argv` is a read-only borrow, so a join would have
-    // to pick one mutability for both (T3074).
+    // literal (mutable) and `host_argv` a read-only one, a join the seed compiler
+    // refuses.
     if host_argv.len() == 0 {
         out.push(string_array_to_value(["<vader-vm>"], string_array_type_id))
     } else {

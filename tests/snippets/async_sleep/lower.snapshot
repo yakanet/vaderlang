@@ -13,7 +13,7 @@
     let code: i32 =
       call :i32
         callee:
-          run_async_main :fn(Async<i32>!) -> i32
+          run_async_main :fn(Async<i32>) -> i32
         arg0:
           call :Async<i32>!
             callee:

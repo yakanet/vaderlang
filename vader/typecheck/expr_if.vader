@@ -15,19 +15,6 @@ import "vader/diagnostics"
 import "vader/types"
 AST :: import "toolchain/ast"
 
-/// T3074 when a join carries the same array type at two mutabilities.
-///
-/// The two branches disagree on whether the result may be mutated, and neither
-/// answer can be picked for the author : a read-only array cannot flow into a
-/// mutable slot, so widening would break the read-only branch, and narrowing would
-/// silently drop a permission the other branch had.
-export report_mixed_mutability :: fn(joined: Type, span: Span, diags: Diagnostic[]) -> void {
-    mixed :: union_mixed_mutability(joined) ?? return
-    diags.push(typecheck_error(.UnionMixesMutabilities, span,
-        "`${display_type(joined)}` — write `${display_type(with_immutable(mixed, false))}` "
-        + "on both sides, or pin the slot's type"))
-}
-
 /// The type of a value one of several branches gives — an `if`'s two, a `match`'s
 /// arms: their union, each free-literal branch coerced to the first concrete
 /// sibling of its own family. `if c { x: i32 } else { 0 }` is `i32`, not
@@ -130,13 +117,6 @@ export infer_if :: fn(
             else_ty :: check_else_with_narrow(
                 eb.block, e.cond, expected, typed, diags, ctx, check_expr_fn)
             joined :: join_branch_types([e.then_block, eb.block], [then_ty, else_ty], typed, diags)
-            // Only when nothing pins the result. With an `expected` slot each branch
-            // was already checked against it, so the union is an artefact of the join
-            // — reporting it would flag every `if c { field } else { [] }` used as a
-            // field initialiser, where covariance settles the question.
-            if expected == null {
-                report_mixed_mutability(joined, e.span, diags)
-            }
             return collapse_if_unresolved(joined, then_ty, else_ty)
         }
         is AST.IfElseIf    -> {
@@ -459,10 +439,6 @@ detect_is_narrow :: fn(
     alias :: cond.bind_as
     if alias != null {
         typed.local_types[alias.span.hash()] = narrowed
-        // The binding inherits the scrutinee's mutability, so when a write through it
-        // is rejected the lever is the SCRUTINEE's lever, one hop away. The resolver
-        // mints a `.Binding` local at this same span, which is the key.
-        typed.narrow.binding_scrutinee[alias.span.hash()] = cond.left
     }
     // Scrutinee-VARIABLE narrowing : a bare ident narrows its symbol slot.
     if cond.left is AST.IdentExpr {

@@ -1,6 +1,5 @@
-// A conversion re-types the same value : `Ids(TABLE)` is as read-only as
-// `TABLE`, so it cannot be lent to a parameter that mutates it. T3072, and T3077
-// for the spine — a plain array argument reports twice the same way.
+// A conversion re-types the same value: `Ids(TABLE)` is the constant, and `poke`
+// writes what it is lent. T3072.
 module "snippet"
 
 Ids :: i32[]

@@ -650,26 +650,6 @@ same_array_modulo_mutability :: fn(a: Type, b: Type) -> bool {
     return false
 }
 
-/// The array type a union carries at two different mutabilities, or null.
-///
-/// `i32[] | i32[]!` is not a type worth inventing : reading it is fine, mutating it
-/// is only safe for one of the two, and collapsing it either way changes the type
-/// behind the author's back. It is reported (T3074) so the author picks — and since
-/// a read-only array cannot flow into a mutable slot, the fix is to pin the slot,
-/// not to widen the union.
-export union_mixed_mutability :: fn(t: Type) -> Type | null {
-    if t is UnionType {
-        for i in 0..<t.variants.len() {
-            for j in i + 1..<t.variants.len() {
-                if same_array_modulo_mutability(t.variants[i], t.variants[j]) {
-                    return t.variants[i]
-                }
-            }
-        }
-    }
-    return null
-}
-
 collect_variant :: fn(v: Type, into: Type[]) -> void {
     if v is NeverType { return }
     match v {
@@ -679,12 +659,9 @@ collect_variant :: fn(v: Type, into: Type[]) -> void {
         _ -> {
             for i in 0..<into.len() {
                 existing :: into[i]
-                if equals_type(existing, v) {
-                    // Same type under two mutabilities — reachable on struct / tuple /
-                    // trait / fn, where `equals_type` ignores the bit or the marks, at
-                    // any level. Keep the rights both hold (`least_permissive`) : a value
-                    // that is "either a read-only or a mutable T" can't be mutated
-                    // without knowing which.
+                if equals_type(existing, v) || same_array_modulo_mutability(existing, v) {
+                    // Same type under two mutabilities, which `equals_type` ignores but
+                    // on an array's own bit : one variant.
                     if existing !== v {
                         into[i] = least_permissive(existing, v) ?? existing
                     }
@@ -983,14 +960,16 @@ export implements_trait_instance :: fn(t: Type, wanted: TraitType, typed: TypedP
     if lists.len() > 1 && !is_gen_state_struct(t) {
         for raw in lists {
             args :: resolve_trait_args_for(t, raw, typed)
-            if trait_args_match(with_trait_defaults(self_ty, args, wanted.symbol, typed), asked) {
+            have :: with_trait_defaults(self_ty, args, wanted.symbol, typed)
+            if struct_args_compatible(have, asked) {
                 return true
             }
         }
         return false
     }
     impl_args :: resolve_struct_trait_args(t, key, typed) ?? return true
-    return trait_args_match(with_trait_defaults(self_ty, impl_args, wanted.symbol, typed), asked)
+    have :: with_trait_defaults(self_ty, impl_args, wanted.symbol, typed)
+    return struct_args_compatible(have, asked)
 }
 
 // `args`, arguments given to the trait `sym`, with the defaults the trait declares
@@ -1028,24 +1007,20 @@ impl_bound_note :: fn(unmet: UnmetBound) -> string {
     return " ; its impl requires `${unmet.bound.name}: ${required}`, and ${unmet.reason}"
 }
 
-/// Why `arg` does not meet the bound trait `required`, or null when it does. It
-/// must implement the trait at its arguments, and grant mutation when the bound is
-/// marked `!` (`T: Bump!`). The one rule a generic call, a struct literal and a
-/// bounded impl's member are held to.
+/// Why `arg` does not meet the bound trait `required`, or null when it does: it
+/// must implement the trait at its arguments. The one rule a generic call, a struct
+/// literal and a bounded impl's member are held to.
 ///
 /// @param arg       the type bound to the parameter.
-/// @param required  one trait of the parameter's bound, with its rights ; arguments
-///                  naming a type parameter are left undecided.
-/// @return          the end of a sentence (`` `Cfg` grants no mutation ``), or null.
+/// @param required  one trait of the parameter's bound ; arguments naming a type
+///                  parameter are left undecided.
+/// @return          the end of a sentence (`` `Cfg` does not implement it ``), or null.
 export unmet_bound_reason :: fn(
     arg: Type, required: TraitType, typed: TypedProgram,
 ) -> string | null {
     key :: trait_key_of(required.symbol)
     if !satisfies_bound(arg, key, typed) || !meets_trait_args(arg, required, typed) {
         return "`${display_type(arg)}` does not implement it"
-    }
-    if !required.immutable && withholds_mutation(arg, typed.type_param_bound_traits) {
-        return "`${display_type(arg)}` grants no mutation"
     }
     return null
 }
@@ -1365,8 +1340,7 @@ literal_family_holds :: fn(got: Type, name: string) -> bool = match got {
 ///   - a runtime `is` test (an array header carries length, capacity and element
 ///     kind, never a read-only bit, so `x is i32[]` and `x is i32[]!` name the same
 ///     runtime values and must select the same variant) ;
-///   - UFCS receiver currying, where the method is picked by shape and T3071 is
-///     what rejects a `self!` method on a read-only receiver.
+///   - UFCS receiver currying, where the method is picked by shape.
 ///
 /// @param t  the type to reduce to its shape.
 /// @return   `t` itself when nothing inside it carries a mutability bit.

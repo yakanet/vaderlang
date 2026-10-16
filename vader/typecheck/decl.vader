@@ -21,6 +21,7 @@
 module "vader/typecheck"
 
 import "std/collections"
+import "std/iter"
 import "vader/diagnostics"
 import "vader/resolver"
 import "vader/resolver/symbol"
@@ -1106,22 +1107,14 @@ declare_fn_param :: fn(
         return TY_UNRESOLVED
     }
     written :: apply_readonly_default(type_from_expr(ty, resolved, diags), ty)
-    // `@c_out` : C writes through the parameter, so the argument must grant what a
-    // written `!` would ask of it.
+    // `@c_out` : C writes through the parameter, and its type grants what a written
+    // `!` would.
     resolved_ty :: if AST.decorators_have(p.decorators, "c_out") {
         with_immutable(written, false)
     } else {
         written
     }
     typed.param_types[p.span.hash()] = resolved_ty
-    // The parameter's written type is what a mutability-LEVEL mismatch has to point
-    // at — `xs: Box[]` needs `Box![]`, and `annotate `xs!`` would suggest `Box[]!`,
-    // the spine, leaving the reader in a loop. Same table, same lever, as an
-    // annotated local.
-    psym :: resolved.idents[p.span.hash()]
-    if psym is Symbol {
-        typed.local_annotation[psym.id] = ty
-    }
     return resolved_ty
 }
 
@@ -1202,6 +1195,9 @@ declare_const :: fn(
         _       -> {
             ty :: apply_readonly_default(type_from_expr(annotation, resolved, diags), annotation)
             reject_mutable_module_const(ty, annotation, diags)
+            if sym.module_variable {
+                reject_baked_elements_of_variable(ty, decl.value, diags)
+            }
             typed.decl_types[sym.id] = ty
         }
     }
@@ -1209,17 +1205,10 @@ declare_const :: fn(
 
 // A `!` on a module const asks for real storage: a writable global, initialised
 // once, that grows like any other array (`emit_global_const_roots` roots it, so a
-// reallocated buffer is forwarded, not collected). Any element type qualifies —
-// the pool emits a flat buffer for primitives / enums and an aggregate for struct,
-// tuple and nested-array elements, and both carry a storage class.
-//
-// What does NOT qualify is a marker BELOW the array level. The element objects of an
-// aggregate entry are emitted as separate `static const`s, so `SPECS[0].code = 9`
-// would write into `.rodata`. Keeping the element type read-only is what makes the
-// writable slots safe — `SPECS[0] = other` reaches a slot, the deeper write is
-// T3070 — so a marked element is rejected rather than silently unsound. Same for a
-// non-array const: a bare struct or map isn't pooled at all, so there is no storage
-// to make writable. T3076.
+// reallocated buffer is forwarded, not collected). The marker goes on the array
+// level, the one the data pool can make writable: a marker below it, or on a const
+// that is no array (a bare struct or map isn't pooled at all), is T3076. The first
+// elements of an aggregate one are `reject_baked_elements_of_variable`'s business.
 reject_mutable_module_const :: fn(
     ty: Type, annotation: AST.TypeExpr, diags: Diagnostic[],
 ) -> void {
@@ -1231,15 +1220,6 @@ reject_mutable_module_const :: fn(
     if !marks_unstorable(annotation) {
         return
     }
-    // A marker on the array level AND deeper.
-    if annotation is AST.MutableTypeExpr && annotation.inner is AST.ArrayTypeExpr {
-        diags.push(typecheck_error(
-            .ModuleConstMutableElement, annotation.span,
-            "`${display_type(ty)}` — the marker belongs on the ARRAY level only : its "
-            + "elements are emitted as read-only statics, and keeping the element type "
-            + "read-only is what makes the writable slots safe"))
-        return
-    }
     // A scalar marker is T3075's business (`i32!` grants nothing anywhere, not
     // just here) — don't double-report.
     if is_value_only_type(ty) {
@@ -1248,110 +1228,56 @@ reject_mutable_module_const :: fn(
     if ty is ArrayType {
         diags.push(typecheck_error(
             .ModuleConstMutableElement, annotation.span,
-            "`${display_type(ty)}` — the marker belongs on the ARRAY level, which is the "
+            "`${display_type(ty)}`: the marker belongs on the ARRAY level only, the "
             + "level the data pool can make writable"))
         return
     }
     diags.push(typecheck_error(
         .ModuleConstMutableElement, annotation.span,
-        "`${display_type(ty)}` — only an ARRAY of value elements can be a mutable "
-        + "module const ; drop the `!` to get the read-only form"))
+        "`${display_type(ty)}`: only an ARRAY can be a mutable module const ; drop "
+        + "the `!` to get the read-only form"))
 }
 
-// T3096 — a module const whose value reaches a level its declarations mark `!` (a
-// struct field `items: i32[]!`, a type argument `Box<Cfg!>`, a field `bag: Bump!`) : the
-// const's freeze cannot reach that level, and a write through it lands in a value
-// every read shares. See ADR 0034. A marker T3076 refuses is not reported twice ;
-// T3076 reads the annotation's array and tuple levels, not a type argument's.
-reject_const_reaching_mutable_level :: fn(
-    cd: AST.ConstDecl, value_ty: Type, typed: TypedProgram, diags: Diagnostic[],
-) -> void {
-    written :: cd.ty
-    if written != null && marks_unstorable(written) {
+// A module variable is written all the way down, but a value the compiler bakes for
+// it lies in read-only data: the elements of a literal, or of a value folded at
+// build time, are emitted as read-only statics, and a write into one would land in
+// `.rodata`. One whose elements hold a part a write reaches starts empty and is
+// filled by the program, its elements then its own. T3076.
+reject_baked_elements_of_variable :: fn(ty: Type, value: AST.Expr, diags: Diagnostic[]) -> void {
+    if ty !is ArrayType || !holds_writable_part(ty.element) {
         return
     }
-    // An empty sequence holds nothing below its own level to write through.
-    value :: cd.value
-    if value is AST.SeqLitExpr && value.elements.len() == 0 {
+    if is_empty_literal(value) {
         return
     }
-    // The const holds the value it was built from, frozen as the const is. Its own
-    // type is the one to walk : under a union or a trait annotation it is narrower
-    // than the slot (`DEFAULT: Cfg | null: null`), and it is what an `is` test hands
-    // back (`BAG: Bag: Cfg { … }`, then `b is Cfg`).
-    held :: auto_freeze_module_const(value_ty)
-    advice :: "hand out a fresh value from a fn instead"
-    report_mutable_level("`${cd.name}`", held, advice, cd.name_span, typed, diags)
+    diags.push(typecheck_error(
+        .ModuleConstMutableElement, value.span,
+        "`${display_type(ty)}` starts empty (`[]`) : the elements of its value would be "
+        + "read-only data ; push them",
+    ))
 }
 
-// T3096 at `span` when `t`, the type of a constant value `subject` names, reaches a
-// mutable level below its own — its own level being frozen, or the storable
-// `X: T[]!`. `advice` ends the detail.
-report_mutable_level :: fn(
-    subject: string, t: Type, advice: string, span: Span, typed: TypedProgram, diags: Diagnostic[],
-) -> void {
-    level :: mutable_level_below(t, typed, MutableSet<i32> {}) ?? return
-    detail :: "${subject} is `${display_type(t)}`, and ${level} — ${advice}"
-    diags.push(typecheck_error(.ConstValueReachesMutableLevel, span, detail))
+// Whether a value of type `t` holds a part a write reaches: a struct or an array,
+// alone or inside a tuple, a union or a distinct. A tuple's own element is never
+// written (T3101).
+holds_writable_part :: fn(t: Type) -> bool = match t {
+    is StructType | ArrayType -> true
+    is TupleType              -> t.elements.any_match(holds_writable_part)
+    is UnionType              -> t.variants.any_match(holds_writable_part)
+    is DistinctType           -> holds_writable_part(t.backing)
+    is PrimitiveType | EnumType | FnType | NeverType | TraitType | TypeParamType | SelfType
+     | AnyType | UnresolvedType | TypeMetaType | FreeIntType | FreeFloatType | FreeCharType -> false
 }
 
-// The first level below `t`'s own that grants mutation, worded for T3096, or null
-// when every level below is read-only. A struct is walked through its type
-// arguments, then its DECLARED field types, once per struct (`seen`, by symbol id) :
-// the declared fields are finite where a substituted walk is not
-// (`Nest<T> { deeper: Nest<T[]> }`).
-mutable_level_below :: fn(
-    t: Type, typed: TypedProgram, seen: MutableSet<i32>,
-) -> string | null = match t {
-    is StructType   -> struct_mutable_level(t, typed, seen)
-    is ArrayType    -> level_at(t.element, "an element is", typed, seen)
-    is TupleType    -> first_mutable_level(t.elements, "a tuple element is", typed, seen)
-    is UnionType    -> first_mutable_level(t.variants, "a variant is", typed, seen)
-    is DistinctType -> mutable_level_below(t.backing, typed, seen)
-    is PrimitiveType | EnumType | TraitType | FnType | TypeParamType | TypeMetaType
-     | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
-     | NeverType | AnyType -> null
-}
-
-// `part`, as the level `what` names, when it grants mutation ; else the first such
-// level below it.
-level_at :: fn(
-    part: Type, what: string, typed: TypedProgram, seen: MutableSet<i32>,
-) -> string | null {
-    if type_grants_mutation(part) {
-        return "${what} `${display_type(part)}`"
+// Whether `value` is an empty array literal, or the repeat of one (`[] * n`).
+is_empty_literal :: fn(value: AST.Expr) -> bool {
+    if value is AST.SeqLitExpr {
+        return value.elements.len() == 0
     }
-    return mutable_level_below(part, typed, seen)
-}
-
-struct_mutable_level :: fn(
-    t: StructType, typed: TypedProgram, seen: MutableSet<i32>,
-) -> string | null {
-    in_args :: first_mutable_level(t.args, "a type argument of `${t.symbol.name}` is", typed, seen)
-    if in_args != null {
-        return in_args
+    if value is AST.BinaryExpr && value.op == .Mul {
+        return is_empty_literal(value.left)
     }
-    if t.symbol.id in seen {
-        return null
-    }
-    seen.add(t.symbol.id)
-    decl :: typed.struct_decls[t.symbol.id] ?? return null
-    for f in decl.fields {
-        declared :: resolved_field_type(t.symbol.id, decl, f.name, typed, []) ?? continue
-        found :: level_at(declared, "`${decl.name}.${f.name}` is", typed, seen) ?? continue
-        return found
-    }
-    return null
-}
-
-first_mutable_level :: fn(
-    parts: Type[], what: string, typed: TypedProgram, seen: MutableSet<i32>,
-) -> string | null {
-    for part in parts {
-        found :: level_at(part, what, typed, seen) ?? continue
-        return found
-    }
-    return null
+    return false
 }
 
 // A written marker T3076 refuses : any but the module variable's `X: T[]!`.

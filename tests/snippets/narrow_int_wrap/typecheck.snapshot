@@ -184,15 +184,15 @@
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(T) -> void
   expr 45:60    StringLitExpr  :: string
-  expr 46:29    SeqLitExpr     :: (string | u8)[]!
+  expr 46:29    SeqLitExpr     :: (string | u8)[]
   expr 47:16    CallExpr       :: u8
   expr 47:16    IdentExpr      :: type
   expr 47:19    IdentExpr      :: i32
   expr 47:5     CallExpr       :: void
   expr 47:5     FieldExpr      :: fn(string | u8) -> void
-  expr 47:5     IdentExpr      :: (string | u8)[]!
+  expr 47:5     IdentExpr      :: (string | u8)[]
   expr 48:13    StringLitExpr  :: string
-  expr 48:33    IdentExpr      :: (string | u8)[]!
+  expr 48:33    IdentExpr      :: (string | u8)[]
   expr 48:33    IndexExpr      :: string | u8
   expr 48:5     CallExpr       :: void
   expr 48:5     IdentExpr      :: fn(T) -> void

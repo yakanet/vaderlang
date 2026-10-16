@@ -29,9 +29,9 @@
         callee:
           snippet$count__i32 :i32
         arg0:
-          call :Iterator<T>!
+          call :Iterator<T>
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>!
+              std_core$[]$Into$into__i32 :Iterator<T>
             arg0:
               array :i32[]!
                 int(10) :i32
@@ -64,14 +64,14 @@
               c :i32
         r:
           d :i32
-  fn snippet$count__i32(it: Iterator<i32>!) -> i32
+  fn snippet$count__i32(it: Iterator<i32>) -> i32
     let n: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
       let __tup_0: [i32, Continuation] =
         vcall std_core$Iterator.next :[i32, Continuation]
           recv:
-            it :Iterator<i32>!
+            it :Iterator<i32>
       let c: Continuation =
         ._1 :Continuation
           __tup_0 :[i32, Continuation]

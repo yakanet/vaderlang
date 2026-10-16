@@ -132,10 +132,10 @@
               r:
                 int(1) :usize
     block :void
-      let self: Iterator<i32>! =
-        call :Iterator<i32>!
+      let self: Iterator<i32> =
+        call :Iterator<i32>
           callee:
-            std_core$[]$Into$into__i32 :Iterator<i32>!
+            std_core$[]$Into$into__i32 :Iterator<i32>
           arg0:
             array :i32[]!
               int(1) :i32
@@ -168,17 +168,17 @@
             else:
               ~>
                 int(1024) :usize
-        let chunk: i32[]! =
+        let chunk: i32[] =
           @array.repeat :i32[]!
-            array :i32[]!
+            array :i32[]
             reserve :usize
         block :void
-          let __iter_0: Iterator<i32>! = self :Iterator<i32>!
+          let __iter_0: Iterator<i32> = self :Iterator<i32>
           loop
             let __step_1: [i32, Continuation]! =
               vcall std_core$Iterator.next :[i32, Continuation]!
                 recv:
-                  __iter_0 :Iterator<i32>!
+                  __iter_0 :Iterator<i32>
             if :void
               cond:
                 eq :bool
@@ -202,7 +202,7 @@
                       r:
                         size :usize
                   then:
-                    let c: i32[] = chunk :i32[]!
+                    let c: i32[] = chunk :i32[]
                     call :void
                       callee:
                         std_io$println__string :void
@@ -220,10 +220,10 @@
                                 c :i32[]
                     assign
                       target:
-                        chunk :i32[]!
+                        chunk :i32[]
                       value:
                         @array.repeat :i32[]!
-                          array :i32[]!
+                          array :i32[]
                           reserve :usize
         if :void
           cond:
@@ -233,7 +233,7 @@
               r:
                 int(0) :usize
           then:
-            let c: i32[] = chunk :i32[]!
+            let c: i32[] = chunk :i32[]
             call :void
               callee:
                 std_io$println__string :void
@@ -254,9 +254,9 @@
         callee:
           std_iter$chunked__i32 :__genstate_chunked<i32[]>!
         arg0:
-          call :Iterator<T>!
+          call :Iterator<T>
             callee:
-              std_core$[]$Into$into__i32 :Iterator<T>!
+              std_core$[]$Into$into__i32 :Iterator<T>
             arg0:
               array :i32[]!
                 int(1) :i32
@@ -410,9 +410,9 @@
         callee:
           std_iter$distinct__string :__genstate_distinct<string>!
         arg0:
-          call :Iterator<T>!
+          call :Iterator<T>
             callee:
-              std_core$[]$Into$into__string :Iterator<T>!
+              std_core$[]$Into$into__string :Iterator<T>
             arg0:
               array :string[]!
                 "to" :string
@@ -547,9 +547,9 @@
         callee:
           std_iter$filter_not_null__i32 :__genstate_filter_not_null<i32>!
         arg0:
-          call :Iterator<null | T>!
+          call :Iterator<null | T>
             callee:
-              std_core$[]$Into$into__i32___null :Iterator<null | T>!
+              std_core$[]$Into$into__i32___null :Iterator<null | T>
             arg0:
               maybe :(i32 | null)[]
     block :void

@@ -34,15 +34,15 @@
         s4: null
         state: int(6) :i32
       }
-  fn snippet$drain(it: Iterator<Mon>!) -> i32
+  fn snippet$drain(it: Iterator<Mon>) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __iter_0: Iterator<Mon>! = it :Iterator<Mon>!
+      let __iter_0: Iterator<Mon> = it :Iterator<Mon>
       loop
         let __step_1: [Mon, Continuation]! =
           vcall std_core$Iterator.next :[Mon, Continuation]!
             recv:
-              __iter_0 :Iterator<Mon>!
+              __iter_0 :Iterator<Mon>
         if :void
           cond:
             eq :bool
@@ -68,15 +68,15 @@
                     .v :i32
                       m :Mon
     return n :i32
-  fn snippet$join_labels(it: Iterator<Label>!) -> string
+  fn snippet$join_labels(it: Iterator<Label>) -> string
     let out: string = "" :string
     block :void
-      let __iter_0: Iterator<Label>! = it :Iterator<Label>!
+      let __iter_0: Iterator<Label> = it :Iterator<Label>
       loop
         let __step_1: [Label, Continuation]! =
           vcall std_core$Iterator.next :[Label, Continuation]!
             recv:
-              __iter_0 :Iterator<Label>!
+              __iter_0 :Iterator<Label>
         if :void
           cond:
             eq :bool
@@ -134,11 +134,11 @@
                   cast → i64
                     call :i32
                       callee:
-                        drain :fn(Iterator<Mon>!) -> i32
+                        drain :fn(Iterator<Mon>) -> i32
                       arg0:
-                        call :Iterator<Mon>!
+                        call :Iterator<Mon>
                           callee:
-                            snippet$[]$Into$into__Mon :Iterator<Mon>!
+                            snippet$[]$Into$into__Mon :Iterator<Mon>
                           arg0:
                             LIST :Mon[]
           ~>
@@ -155,11 +155,11 @@
       arg0:
         call :string
           callee:
-            join_labels :fn(Iterator<Label>!) -> string
+            join_labels :fn(Iterator<Label>) -> string
           arg0:
-            call :Iterator<Label>!
+            call :Iterator<Label>
               callee:
-                snippet$[]$Into$into__Mon$1 :Iterator<Label>!
+                snippet$[]$Into$into__Mon$1 :Iterator<Label>
               arg0:
                 LIST :Mon[]
     let ps: Pt![]! =
@@ -172,7 +172,7 @@
         }
     let sum: i32 = int(0) :i32
     block :void
-      let self: Iterator<Pt>! =
+      let self: Iterator<Pt> =
         call :Iterator<Pt>!
           callee:
             snippet$[]$Into$into__Pt$2 :Iterator<Pt>!
@@ -180,12 +180,12 @@
             ps :Pt![]!
       let f: fn(Pt) -> i32 = __lambda_snippet_0 :fn(Pt) -> i32
       block :void
-        let __iter_0: Iterator<Pt>! = self :Iterator<Pt>!
+        let __iter_0: Iterator<Pt> = self :Iterator<Pt>
         loop
           let __step_1: [Pt, Continuation]! =
             vcall std_core$Iterator.next :[Pt, Continuation]!
               recv:
-                __iter_0 :Iterator<Pt>!
+                __iter_0 :Iterator<Pt>
           if :void
             cond:
               eq :bool

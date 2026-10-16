@@ -5,10 +5,10 @@
   fn snippet$Log$IndexSet$set_at(self: Log!, key: string, value: i32) -> void
     ~>
       LoweredArrayPush
-  fn snippet$fill(store: IndexSet<string, i32>!) -> void
+  fn snippet$fill(store: IndexSet<string, i32>) -> void
     vcall std_core$IndexSet.set_at :void
       recv:
-        store :IndexSet<string, i32>!
+        store :IndexSet<string, i32>
       arg0:
         "a" :string
       arg1:
@@ -16,7 +16,7 @@
     ~>
       vcall std_core$IndexSet.set_at :void
         recv:
-          store :IndexSet<string, i32>!
+          store :IndexSet<string, i32>
         arg0:
           "b" :string
         arg1:
@@ -42,10 +42,10 @@
               ~>
                 cast → i32
                   __coalesce_0 :i32 | null
-  fn snippet$put_wide(store: IndexSet<i64, i32>!) -> void
+  fn snippet$put_wide(store: IndexSet<i64, i32>) -> void
     vcall std_core$IndexSet.set_at :void
       recv:
-        store :IndexSet<i64, i32>!
+        store :IndexSet<i64, i32>
       arg0:
         int(9000000000) :i64
       arg1:
@@ -65,7 +65,7 @@
       }
     call :void
       callee:
-        fill :fn(IndexSet<string, i32>!) -> void
+        fill :fn(IndexSet<string, i32>) -> void
       arg0:
         m :MutableMap<string, i32>!
     call :void
@@ -252,7 +252,7 @@
       }
     call :void
       callee:
-        fill :fn(IndexSet<string, i32>!) -> void
+        fill :fn(IndexSet<string, i32>) -> void
       arg0:
         l :Log!
     block :void
@@ -415,7 +415,7 @@
       }
     call :void
       callee:
-        put_wide :fn(IndexSet<i64, i32>!) -> void
+        put_wide :fn(IndexSet<i64, i32>) -> void
       arg0:
         wide :MutableMap<i64, i32>!
     call :void

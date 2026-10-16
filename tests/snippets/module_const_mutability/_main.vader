@@ -8,11 +8,11 @@
 //   - unmarked  -> a `static const` blob in `.rodata`, shared process-wide.
 //   - `!`       -> a writable GLOBAL, initialised once, mutable IN PLACE.
 //
-// A marked const behaves like any other mutable array — `push` included: a
+// A marked const behaves like any other mutable array, `push` included: a
 // permanent GC frame roots it (`emit_global_const_roots`), so a reallocated buffer
-// is forwarded rather than collected. Any ELEMENT type works, flat or aggregate;
-// what is rejected is a marker BELOW the array level, because an aggregate's
-// elements are emitted as read-only statics — T3076
+// is forwarded rather than collected. Any ELEMENT type works, flat or aggregate,
+// but an aggregate one starts empty: the elements of a literal are emitted as
+// read-only statics, and a write into one would land in `.rodata`. T3076
 // (`t3076_mutable_module_const_element`).
 //
 // Two regressions this pins down, both of which lost writes SILENTLY:
@@ -82,9 +82,8 @@ COUNTS: i32[]!:    [0, 0, 0]
 // The repeat form is the idiomatic fixed-size table, and it pools like a literal.
 SLOTS:  string[]!: [""] * 24
 FLAGS:  bool[]!:   [false] * 4
-// An AGGREGATE entry is writable at the array level too. Its elements stay
-// read-only statics, so a slot write replaces the whole element.
-QUEUE:  Spec[]!:   [Spec { .name = "seed", .code = 0 }]
+// An AGGREGATE element type starts empty ; the program fills it.
+QUEUE:  Spec[]!:   []
 
 bump :: fn(i: usize) -> void {
     COUNTS[i] = COUNTS[i] + 1
@@ -135,11 +134,11 @@ main :: fn() -> i32 {
     }
     println("grown=${grown}/40 len=${COUNTS.len()}")
 
-    // Aggregate slots: replacing an element stores a HEAP object in a static
-    // buffer. `vader_gc_scan_raw` forwards `.buf` but never descends into an
-    // off-arena one, so the buffer is rooted alongside the array — else this
-    // Spec would be collected while still reachable.
+    // Aggregate slots: what the global holds is the program's own, rooted through
+    // the global like the growth above.
+    QUEUE.push(Spec { .name = "seed", .code = 0 })
     QUEUE[0] = Spec { .name = "replaced-${1 + 1}", .code = 5 }
+    QUEUE[0].code = 6
     for i in 0..<8 {
         QUEUE.push(Spec { .name = "q-${i}", .code = i32(i) })
     }

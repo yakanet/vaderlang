@@ -671,7 +671,7 @@ export carries_mutability_bit :: fn(t: Type) -> bool =
 /// @param t  the type to ask.
 export type_withholds_mutation :: fn(t: Type) -> bool {
     // A loop, not `any_variant` : a fn value here gives every caller a GC root
-    // frame, and `mutability_widens`, called on every assignability check, is one.
+    // frame.
     if t is UnionType {
         for v in t.variants {
             if type_is_immutable(v) {

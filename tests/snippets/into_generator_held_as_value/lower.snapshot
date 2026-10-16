@@ -10,15 +10,15 @@
         s2: int(0) :i32
         state: int(5) :i32
       }
-  fn snippet$total(it: Iterator<i32>!) -> i32
+  fn snippet$total(it: Iterator<i32>) -> i32
     let acc: i32 = int(0) :i32
     block :void
-      let __iter_0: Iterator<i32>! = it :Iterator<i32>!
+      let __iter_0: Iterator<i32> = it :Iterator<i32>
       loop
         let __step_1: [i32, Continuation]! =
           vcall std_core$Iterator.next :[i32, Continuation]!
             recv:
-              __iter_0 :Iterator<i32>!
+              __iter_0 :Iterator<i32>
         if :void
           cond:
             eq :bool
@@ -43,15 +43,15 @@
                   r:
                     x :i32
     return acc :i32
-  fn snippet$codepoint_sum(it: Iterator<char>!) -> u32
+  fn snippet$codepoint_sum(it: Iterator<char>) -> u32
     let acc: u32 = int(0) :u32
     block :void
-      let __iter_0: Iterator<char>! = it :Iterator<char>!
+      let __iter_0: Iterator<char> = it :Iterator<char>
       loop
         let __step_1: [char, Continuation]! =
           vcall std_core$Iterator.next :[char, Continuation]!
             recv:
-              __iter_0 :Iterator<char>!
+              __iter_0 :Iterator<char>
         if :void
           cond:
             eq :bool
@@ -84,16 +84,16 @@
       arg0:
         call :i32
           callee:
-            total :fn(Iterator<i32>!) -> i32
+            total :fn(Iterator<i32>) -> i32
           arg0:
-            call :Iterator<i32>!
+            call :Iterator<i32>
               callee:
-                snippet$Deck$Into$into :Iterator<i32>!
+                snippet$Deck$Into$into :Iterator<i32>
               arg0:
                 Deck! {
                   n: int(4) :i32
                 }
-    let letters: Iterator<char>! =
+    let letters: Iterator<char> =
       call :Iterator<char>!
         callee:
           std_string$string$Into$into :Iterator<char>!
@@ -105,9 +105,9 @@
       arg0:
         call :u32
           callee:
-            codepoint_sum :fn(Iterator<char>!) -> u32
+            codepoint_sum :fn(Iterator<char>) -> u32
           arg0:
-            letters :Iterator<char>!
+            letters :Iterator<char>
     return int(0) :i32
   struct snippet$__gen_state_snippet_0 { s0: Deck!, s1: i32, s2: i32, state: i32 }
   fn snippet$__gen_state_snippet_0$Iterator$next(self: __gen_state_snippet_0!) -> [i32, Continuation]!

@@ -2628,8 +2628,8 @@ emit_array_get :: fn(s: FnState, op: vm.ArrayGet) -> void {
 /// element stores the slot inline (`box_expr` tags `string`, no-op for already-
 /// boxed refs) + fires the G2 write barrier ; a typed (sub-word) element stores
 /// the native width raw (no barrier — primitives hold no refs). Flippable widths
-/// never reach here (midir routes them to `StoreSlot*`). Borrowed `bytes()` views
-/// are read-only (T3042), so `a->buf` is never NULL on this path.
+/// never reach here (midir routes them to `StoreSlot*`). A view of a string's bytes
+/// is never written (T3070, T3072), so `a->buf` is never NULL on this path.
 emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
     value :: pop(s)
     idx :: pop(s)

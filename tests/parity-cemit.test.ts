@@ -536,6 +536,9 @@ const C_PARITY = new Set<string>([
   // A pooled constant kept where a write may reach it is built again at the use,
   // natively too, where the shared one lies in `.rodata`.
   "const_copied_where_kept",
+  // A variant's data bound to a name or kept in a field is copied, natively too,
+  // where the shared table lies in `.rodata`.
+  "enum_variant_data_copy",
   // A free literal stored into an `i64 | …` union is an `i64`, so `is i64` holds
   // natively as on the VM.
   "literal_into_wide_union",

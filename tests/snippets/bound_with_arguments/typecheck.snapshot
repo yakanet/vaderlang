@@ -48,9 +48,9 @@
   expr 54:42    IdentExpr      :: T
   expr 54:50    IdentExpr      :: T
   expr 66:9     FieldExpr      :: i32
-  expr 66:9     IdentExpr      :: Cfg!
+  expr 66:9     IdentExpr      :: Cfg
   expr 67:16    FieldExpr      :: i32
-  expr 67:16    IdentExpr      :: Cfg!
+  expr 67:16    IdentExpr      :: Cfg
   expr 71:39    CallExpr       :: i32
   expr 71:39    FieldExpr      :: fn(T) -> i32
   expr 71:39    IdentExpr      :: T

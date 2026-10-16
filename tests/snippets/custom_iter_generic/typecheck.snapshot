@@ -5,19 +5,19 @@
   StructDecl     Repeat               :: Repeat<T>!
   expr 15:13    BinaryExpr     :: bool
   expr 15:13    FieldExpr      :: i32
-  expr 15:13    IdentExpr      :: Repeat<T>!
+  expr 15:13    IdentExpr      :: Repeat<T>
   expr 15:9     IfExpr         :: void
   expr 16:20    SeqLitExpr     :: [T, Continuation]!
   expr 16:21    FieldExpr      :: T
-  expr 16:21    IdentExpr      :: Repeat<T>!
+  expr 16:21    IdentExpr      :: Repeat<T>
   expr 16:33    DotVariantExpr :: Continuation
   expr 18:14    FieldExpr      :: T
-  expr 18:14    IdentExpr      :: Repeat<T>!
+  expr 18:14    IdentExpr      :: Repeat<T>
   expr 19:26    BinaryExpr     :: i32
   expr 19:26    FieldExpr      :: i32
-  expr 19:26    IdentExpr      :: Repeat<T>!
+  expr 19:26    IdentExpr      :: Repeat<T>
   expr 19:9     FieldExpr      :: i32
-  expr 19:9     IdentExpr      :: Repeat<T>!
+  expr 19:9     IdentExpr      :: Repeat<T>
   expr 20:16    SeqLitExpr     :: [T, Continuation]!
   expr 20:17    IdentExpr      :: T
   expr 20:20    DotVariantExpr :: Continuation

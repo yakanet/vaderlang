@@ -1,21 +1,21 @@
 # Typecheck
 
 ## tests/snippets/into_generator_held_as_value
-  FnDecl         codepoint_sum        :: fn(Iterator<char>!) -> u32
+  FnDecl         codepoint_sum        :: fn(Iterator<char>) -> u32
   StructDecl     Deck                 :: Deck!
   FnDecl         main                 :: fn() -> i32
-  FnDecl         total                :: fn(Iterator<i32>!) -> i32
+  FnDecl         total                :: fn(Iterator<i32>) -> i32
   expr 17:18    RangeExpr      :: Range<i32>!
   expr 17:22    FieldExpr      :: i32
   expr 17:22    IdentExpr      :: Deck
   expr 18:19    BinaryExpr     :: i32
   expr 18:19    IdentExpr      :: i32
-  expr 25:14    IdentExpr      :: Iterator<i32>!
+  expr 25:14    IdentExpr      :: Iterator<i32>
   expr 26:16    IdentExpr      :: i32
   expr 26:9     BinaryExpr     :: i32
   expr 26:9     IdentExpr      :: i32
   expr 28:12    IdentExpr      :: i32
-  expr 33:14    IdentExpr      :: Iterator<char>!
+  expr 33:14    IdentExpr      :: Iterator<char>
   expr 34:16    CallExpr       :: u32
   expr 34:16    IdentExpr      :: type
   expr 34:20    IdentExpr      :: char
@@ -23,7 +23,7 @@
   expr 34:9     IdentExpr      :: u32
   expr 36:12    IdentExpr      :: u32
   expr 40:13    CallExpr       :: i32
-  expr 40:13    IdentExpr      :: fn(Iterator<i32>!) -> i32
+  expr 40:13    IdentExpr      :: fn(Iterator<i32>) -> i32
   expr 40:19    StructLitExpr  :: Deck!
   expr 40:5     CallExpr       :: void
   expr 40:5     IdentExpr      :: fn(T) -> void
@@ -31,7 +31,7 @@
   expr 41:30    FieldExpr      :: fn() -> Iterator<char>!
   expr 41:30    StringLitExpr  :: string
   expr 42:13    CallExpr       :: u32
-  expr 42:13    IdentExpr      :: fn(Iterator<char>!) -> u32
-  expr 42:27    IdentExpr      :: Iterator<char>!
+  expr 42:13    IdentExpr      :: fn(Iterator<char>) -> u32
+  expr 42:27    IdentExpr      :: Iterator<char>
   expr 42:5     CallExpr       :: void
   expr 42:5     IdentExpr      :: fn(T) -> void

@@ -51,9 +51,9 @@
             callee:
               std_iter$map__i32__string :__genstate_map<string>!
             arg0:
-              call :Iterator<T>!
+              call :Iterator<T>
                 callee:
-                  std_core$[]$Into$into__i32 :Iterator<T>!
+                  std_core$[]$Into$into__i32 :Iterator<T>
                 arg0:
                   array :i32[]!
                     int(1) :i32

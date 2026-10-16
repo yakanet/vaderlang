@@ -341,9 +341,9 @@
                 __buf_6 :Buffer
               arg1:
                 __off_7 :usize
-    let annotated: i32[]! =
-      @array.repeat :i32[]!
-        array :i32[]!
+    let annotated: i32[] =
+      @array.repeat :i32[]
+        array :i32[]
         int(9) :usize
     block :void
       let i: i32 = int(0) :i32
@@ -427,7 +427,7 @@
                   cast → i64
                     index :i32
                       on:
-                        annotated :i32[]!
+                        annotated :i32[]
                       ix:
                         int(8) :i32
           assign
@@ -460,7 +460,7 @@
                       callee:
                         sum_of :fn(i32[]) -> i32
                       arg0:
-                        annotated :i32[]!
+                        annotated :i32[]
           ~>
             call :string
               callee:

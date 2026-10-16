@@ -21,8 +21,8 @@ cmd_fmt :: fn(args: string[]) -> i32 {
     if parsed is i32 {
         return parsed
     }
-    // Pinned to `string[]`: the literal is mutable, `positionals` isn't, and an
-    // unpinned `if` would build a mixed-mutability union (T3074).
+    // Pinned to `string[]`: the literal is mutable, `positionals` isn't, and the seed
+    // compiler refuses the union of one array type at two mutabilities.
     paths: string[]: if parsed.positionals.len() == 0 { ["."] } else { parsed.positionals }
     return run_fmt(paths, parsed.bool_flag("check"), parsed.bool_flag("stdout"))
 }

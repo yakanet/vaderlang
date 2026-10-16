@@ -1066,9 +1066,6 @@ type_call :: fn(
         instance :: substitute_fn_map(callee_ty, bindings)
         for i in 0..<n {
             want :: instance.params[i]
-            if reject_immutable_into_mutable_param(instance, i, arg_types[i], c, typed, diags) {
-                continue
-            }
             // A parameter still naming a type parameter of the callee that nothing
             // bound has nothing to check against. One bound to the enclosing fn's
             // `T` does : `pick(x, 0)` hands a literal to that `T`.
@@ -1081,15 +1078,10 @@ type_call :: fn(
                 }
                 continue
             }
-            // T3072 owns the argument's own top-level bit, as on the plain path below.
-            cleared :: arg_mutability_cleared(arg_types[i])
-            slot :: param_shape_slot(arg_types[i], want)
-            if fits_argument(typed, c.args[i].value, cleared, slot) { continue }
-            if try_into(cleared, slot, typed, c.args[i].value)      { continue }
-            note_gaining_need(c, i, arg_types[i], want, typed)
-            push_level_mismatch(
-                arg_types[i], want, c.args[i].span, .TypeMismatch, c.args[i].value, typed, diags,
-            )
+            if fits_argument(typed, c.args[i].value, arg_types[i], want) { continue }
+            if try_into(arg_types[i], want, typed, c.args[i].value)  { continue }
+            span :: c.args[i].span
+            diags.push(mismatch_diagnostic(arg_types[i], want, span, .TypeMismatch, typed))
         }
         // Records the bindings, each free literal pinned to its default, so the
         // return type substituted below comes back concrete (`i32` / `f64`).
@@ -1153,22 +1145,9 @@ type_call :: fn(
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
-        if reject_immutable_into_mutable_param(callee_ty, i, arg_ty, c, typed, diags) {
-            continue
-        }
-        // T3072 above owns struct mutability at an argument, and says it better (it
-        // names the parameter and the annotatable root). Clear the top-level struct
-        // bit so the generic assignability check doesn't double-report the same
-        // problem as T3077 — measured, that double-report alone was 424 of 535 sites.
-        // Array mutability still flows through : nothing else checks it here.
-        cleared :: arg_mutability_cleared(arg_ty)
-        slot :: param_shape_slot(arg_ty, param_ty)
-        if fits_argument(typed, c.args[i].value, cleared, slot) { continue }
-        if try_into(cleared, slot, typed, c.args[i].value)      { continue }
-        note_gaining_need(c, i, arg_ty, param_ty, typed)
-        push_level_mismatch(
-            arg_ty, param_ty, c.args[i].span, .TypeMismatch, c.args[i].value, typed, diags,
-        )
+        if fits_argument(typed, c.args[i].value, arg_ty, param_ty) { continue }
+        if try_into(arg_ty, param_ty, typed, c.args[i].value)      { continue }
+        diags.push(mismatch_diagnostic(arg_ty, param_ty, c.args[i].span, .TypeMismatch, typed))
     }
     if overloaded {
         typed.overloaded_arg_depth = typed.overloaded_arg_depth - 1
@@ -1347,9 +1326,6 @@ check_typeparam_bounds :: fn(
         for trait_ty in bound.traits {
             wanted :: bound_instance(trait_ty, bindings)
             reason :: unmet_bound_reason(bound_ty, wanted, typed) ?? continue
-            if lent_read_only_meets(bound_ty, trait_ty, bindings, typed) {
-                continue
-            }
             key :: trait_key_of(trait_ty.symbol)
             owner :: callee_name(c.callee)
             detail := unmet_bound_detail(bound.name, owner, wanted, reason) +
@@ -1374,32 +1350,6 @@ bound_instance :: fn(trait_ty: TraitType, bindings: MutableMap<i32, Type>) -> Tr
         return substituted
     }
     return trait_ty
-}
-
-// Whether the bound `trait_ty` is met once the bindings are lent read-only. A
-// binding keeps the rights of the argument that made it (`Money!` for a literal),
-// and an owned argument may be lent where an impl names the type read-only
-// (`Add<Money, Money>`).
-lent_read_only_meets :: fn(
-    bound_ty: Type,
-    trait_ty: TraitType,
-    bindings: MutableMap<i32, Type>,
-    typed: TypedProgram,
-) -> bool {
-    if trait_ty.args.len() == 0 {
-        return false
-    }
-    lent :: bound_instance(trait_ty, read_only_bindings(bindings))
-    return unmet_bound_reason(bound_ty, lent, typed) == null
-}
-
-// `bindings` as an unmarked slot reads them.
-read_only_bindings :: fn(bindings: MutableMap<i32, Type>) -> MutableMap<i32, Type> {
-    out :: MutableMap<i32, Type> {}
-    for [id, t] in bindings {
-        out[id] = apply_readonly_default(t, null)
-    }
-    return out
 }
 
 // Whether `t` implements `wanted` at its arguments — `Contains<string>` is no
@@ -1439,8 +1389,7 @@ ufcs_generic_signature :: fn(callee: AST.Expr, callee_ty: Type, typed: TypedProg
 }
 
 // The receiver of a UFCS call of a generic fn, held to its parameter as the instance
-// has it, as any argument is (`rows.put(LIST)` is `put(rows, LIST)`). Its own top
-// level was judged when the method was resolved (T3071).
+// has it, as any argument is (`rows.put(LIST)` is `put(rows, LIST)`).
 reject_ufcs_receiver_at_instance :: fn(
     c: AST.CallExpr, bindings: MutableMap<i32, Type>, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
@@ -1460,14 +1409,10 @@ reject_ufcs_receiver_at_instance :: fn(
     if want is TraitType {
         return
     }
-    cleared :: arg_mutability_cleared(receiver_ty)
-    slot :: param_shape_slot(receiver_ty, want)
-    if fits_argument(typed, callee.target, cleared, slot) {
+    if fits_argument(typed, callee.target, receiver_ty, want) {
         return
     }
-    push_level_mismatch(
-        receiver_ty, want, callee.target.span, .TypeMismatch, callee.target, typed, diags,
-    )
+    diags.push(mismatch_diagnostic(receiver_ty, want, callee.target.span, .TypeMismatch, typed))
 }
 
 // Whether an argument of type `from` fits a parameter of type `to`, as it is or by
@@ -1895,119 +1840,4 @@ main :: fn() -> void { greet(42) }
             assert(found, "expected T3001 for int → string")
         }
     }
-}
-
-// An argument with its own top-level STRUCT / TUPLE / TRAIT read-only bit dropped — a
-// distinct's backing included, but never an ARRAY's, nor a nominal argument's.
-//
-// T3072 owns struct mutability at an argument, and it reasons about the whole access
-// path — so letting the top-level bit reach the generic check only double-reports.
-// An array stays as it is: nothing else checks that a read-only `Box[]` is not handed
-// to a `Box![]` parameter, whose callee may write through it. A nominal argument
-// stays too : `gen_mut(h: Holder<Box!>)` handed a `Holder<Box>` would write through
-// its `Box`.
-arg_mutability_cleared :: fn(t: Type) -> Type = match t {
-    is StructType | TraitType -> with_immutable(t, false)
-    is TupleType    -> mk_tuple(arg_mutability_cleared_each(t.elements), false)
-    is UnionType    -> mk_union(arg_mutability_cleared_each(t.variants))
-    is DistinctType -> if carries_mutability_bit(t) {
-        mk_distinct(t.symbol, arg_mutability_cleared(t.backing))
-    } else {
-        t
-    }
-    // `FnType` sits in the identity group, where `strip_mutability` descends: a fn
-    // type carries no element bit to clear — its marker rides `params_mutable`.
-    is ArrayType | PrimitiveType | EnumType | FnType | TypeParamType
-     | TypeMetaType | SelfType | UnresolvedType | FreeIntType | FreeFloatType
-     | FreeCharType | NeverType | AnyType -> t
-}
-
-// The parameter an argument's shape is checked against. A `T` at the argument's top
-// level, bare or as a variant, has no bit for `arg_mutability_cleared` to clear, so
-// the parameter's top level is set aside instead : T3072 judges a `T` through its
-// bound.
-param_shape_slot :: fn(arg_ty: Type, param_ty: Type) -> Type =
-    if type_param_at_top(arg_ty) { with_immutable(param_ty, true) } else { param_ty }
-
-arg_mutability_cleared_each :: fn(ts: Type[]) -> Type[] {
-    out: Type[]: []
-    for t in ts { out.push(arg_mutability_cleared(t)) }
-    return out
-}
-
-// T3071's job, in `field.vader`. `callee_ty` is the signature as this call sees it,
-// substituted. True when the argument is refused : its other levels then go unjudged,
-// the refusal having said what to fix.
-reject_immutable_into_mutable_param :: fn(
-    callee_ty: FnType, i: usize, arg_ty: Type, c: AST.CallExpr,
-    typed: TypedProgram, diags: Diagnostic[],
-) -> bool {
-    param_ty :: callee_ty.params[i]
-    note_arg_edge(c, i, arg_ty, param_ty, typed)
-    note_element_store(c, i, arg_ty, typed)
-    if !param_mutable_at(callee_ty, i) {
-        return false
-    }
-    // A `!` on a type parameter promises as much mutation as `T` is bound to, and
-    // no more: `push :: fn(self!, value: T!)` stores `value` in the receiver, so a
-    // `Box![]` demands a mutable `Box` while a `Box[]` or an `i32[]` asks nothing.
-    // An argument filling one variant of a union is held to that variant : `OTHER`
-    // fills the read-only `Other` of `Cfg! | Other`.
-    slot :: filled_variant(arg_ty, param_ty)
-    // A read-only view never fills its own `T`, whatever the bound : the caller may
-    // hold that `T` mutable.
-    if !lends_view(arg_ty, slot) && !slot_may_grant_mutation(slot, typed.type_param_bound_traits) {
-        return false
-    }
-    // An argument converted on its way in takes the rights of the `into` it goes
-    // through : an owned result is what the callee mutates, never the argument.
-    if converts_to_owned(arg_ty, param_ty, typed) {
-        return false
-    }
-    if !value_is_read_only(c.args[i].value, arg_ty, typed) {
-        return false
-    }
-    value :: c.args[i].value
-    what :: "it is passed to a parameter that mutates it"
-    if note_slot_need(value, c.args[i].span, what, typed) {
-        return false
-    }
-    detail :: mutable_param_detail(c, callee_ty, i, typed)
-    report_refusal(.ImmutableBorrowIntoMutableParam, c.args[i].span, detail, value, typed, diags)
-    return true
-}
-
-// The variant of `param_ty` an argument of type `arg_ty` fills, or `param_ty` itself
-// when it is not a union or no single variant has the argument's type.
-filled_variant :: fn(arg_ty: Type, param_ty: Type) -> Type {
-    if param_ty !is UnionType || arg_ty is UnionType {
-        return param_ty
-    }
-    for v in param_ty.variants {
-        if equals_type(v, arg_ty) {
-            return v
-        }
-    }
-    return param_ty
-}
-
-// Why parameter `i` grants mutation : its `!`, `@c_out`, or a type parameter this call
-// binds to a type granting it — a mark the declaration does not carry.
-mutable_param_detail :: fn(
-    c: AST.CallExpr, callee_ty: FnType, i: usize, typed: TypedProgram,
-) -> string {
-    declared :: "the parameter is declared `!` — the callee may mutate it"
-    param :: param_for_arg(c, i, typed) ?? return declared
-    if AST.decorators_have(param.decorators, "c_out") {
-        return "the parameter is `@c_out` — C writes through it"
-    }
-    deduced :: deduced_mutation_why(param, typed)
-    if deduced != null {
-        return deduced
-    }
-    if AST.param_is_mutable(param) {
-        return declared
-    }
-    return "`${param.name}` takes `${display_type(callee_ty.params[i])}` : this call " +
-        "binds its type parameter to a type granting mutation"
 }

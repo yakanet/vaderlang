@@ -212,11 +212,6 @@ direct_callee :: fn(decl: AST.FnDecl | null, per_instance: bool) -> Callee {
 export recorded_decl :: fn(typed: TypedProgram, c: AST.CallExpr) -> AST.FnDecl | null =
     direct_decl(sites_of(typed.call_sites, .Call)[c.id])
 
-// `recorded_decl` for the member access `e` a call is being made through, noted
-// while it is typed, before the call is recorded.
-noted_decl :: fn(typed: TypedProgram, e: AST.FieldExpr) -> AST.FnDecl | null =
-    direct_decl(typed.callees[e.id])
-
 // The declaration `callee` names when it is a known fn.
 direct_decl :: fn(callee: Callee | null) -> AST.FnDecl | null {
     if callee is DirectFn {

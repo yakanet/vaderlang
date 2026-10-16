@@ -1,11 +1,11 @@
 # Lower
 
 ## snippet
-  fn snippet$fill(x: i32[]! | string[]!) -> usize
+  fn snippet$fill(x: i32[] | string[]) -> usize
     if :void
       cond:
         is i32[]! :bool
-          x :i32[]! | string[]!
+          x :i32[] | string[]
       then:
         LoweredArrayPush
         LoweredArrayPush
@@ -60,12 +60,12 @@
     return
       LoweredArrayLen
   fn snippet$main() -> i32
-    let nums: i32[]! =
-      array :i32[]!
+    let nums: i32[] =
+      array :i32[]
         int(10) :i32
         int(20) :i32
-    let words: string[]! =
-      array :string[]!
+    let words: string[] =
+      array :string[]
         "a" :string
         "b" :string
     call :void
@@ -108,9 +108,9 @@
                   cast → u64
                     call :usize
                       callee:
-                        fill :fn(i32[]! | string[]!) -> usize
+                        fill :fn(i32[] | string[]) -> usize
                       arg0:
-                        nums :i32[]!
+                        nums :i32[]
           assign
             target:
               __off_1 :usize
@@ -139,9 +139,9 @@
                   cast → u64
                     call :usize
                       callee:
-                        fill :fn(i32[]! | string[]!) -> usize
+                        fill :fn(i32[] | string[]) -> usize
                       arg0:
-                        words :string[]!
+                        words :string[]
           ~>
             call :string
               callee:
@@ -158,7 +158,7 @@
           let __p_2: string =
             index :string
               on:
-                words :string[]!
+                words :string[]
               ix:
                 int(2) :i32
           let __buf_3: Buffer =
@@ -204,7 +204,7 @@
                   cast → i64
                     index :i32
                       on:
-                        nums :i32[]!
+                        nums :i32[]
                       ix:
                         int(2) :i32
           assign
@@ -235,7 +235,7 @@
                   cast → i64
                     index :i32
                       on:
-                        nums :i32[]!
+                        nums :i32[]
                       ix:
                         int(3) :i32
           assign
@@ -314,7 +314,7 @@
                       callee:
                         total :fn(i32[] | string[]) -> usize
                       arg0:
-                        nums :i32[]!
+                        nums :i32[]
           assign
             target:
               __off_6 :usize
@@ -345,7 +345,7 @@
                       callee:
                         total :fn(i32[] | string[]) -> usize
                       arg0:
-                        words :string[]!
+                        words :string[]
           ~>
             call :string
               callee:

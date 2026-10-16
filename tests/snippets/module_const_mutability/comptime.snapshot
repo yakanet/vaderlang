@@ -7,6 +7,7 @@
   @comptime  LIMITS               = [10_i32, 20_i32, 30_i32]
   @comptime  MAX                  = 42_i32
   @comptime  PAIR                 = [i32, string] { ._0 = 7_i32, ._1 = "seven" }
+  @comptime  QUEUE                = []
 
 ## generic instances
   __genstate_array_iter<T>
@@ -31,4 +32,4 @@
   Range<T>
 
 # Diagnostics
-[94:43] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Fast`
+[93:43] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Fast`

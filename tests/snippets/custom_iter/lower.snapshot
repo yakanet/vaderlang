@@ -8,7 +8,7 @@
         lte :bool
           l:
             .current :i32
-              self :Countdown!
+              self :Countdown
           r:
             int(0) :i32
       then:
@@ -19,16 +19,16 @@
           }
     let v: i32 =
       .current :i32
-        self :Countdown!
+        self :Countdown
     assign
       target:
         .current :i32
-          self :Countdown!
+          self :Countdown
       value:
         sub_checked :i32
           l:
             .current :i32
-              self :Countdown!
+              self :Countdown
           r:
             int(1) :i32
     return

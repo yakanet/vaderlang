@@ -53,13 +53,13 @@
   struct snippet$Counter { count: i32 }
   struct snippet$Holder { items: i32[]! }
   struct snippet$Row { cells: i32[]! }
-  fn snippet$pick(c: Counter!) -> Counter!
+  fn snippet$pick(c: Counter) -> Counter!
     call :void
       callee:
         std_io$println__string :void
       arg0:
         "pick" :string
-    return c :Counter!
+    return c :Counter
   struct snippet$Cell { slots: i32[]! }
   fn snippet$Cell$Index$at(self: Cell!, i: usize) -> i32
     ~>
@@ -170,8 +170,8 @@
                 arg0:
                   self :Two
   fn snippet$main() -> i32
-    let a: i32[]! =
-      array :i32[]!
+    let a: i32[] =
+      array :i32[]
         int(10) :i32
         int(20) :i32
         int(30) :i32
@@ -186,7 +186,7 @@
         target:
           index :i32
             on:
-              a :i32[]!
+              a :i32[]
             ix:
               __place_operand_0 :usize
         value:
@@ -194,7 +194,7 @@
             l:
               index :i32
                 on:
-                  a :i32[]!
+                  a :i32[]
                 ix:
                   __place_operand_0 :usize
             r:
@@ -239,7 +239,7 @@
                   cast → i64
                     index :i32
                       on:
-                        a :i32[]!
+                        a :i32[]
                       ix:
                         int(0) :i32
           assign
@@ -270,7 +270,7 @@
                   cast → i64
                     index :i32
                       on:
-                        a :i32[]!
+                        a :i32[]
                       ix:
                         int(1) :i32
           assign
@@ -301,7 +301,7 @@
                   cast → i64
                     index :i32
                       on:
-                        a :i32[]!
+                        a :i32[]
                       ix:
                         int(2) :i32
           ~>
@@ -635,7 +635,7 @@
       let __place_operand_13: Counter! =
         call :Counter!
           callee:
-            pick :fn(Counter!) -> Counter!
+            pick :fn(Counter) -> Counter!
           arg0:
             shared :Counter!
       assign
@@ -697,8 +697,8 @@
                 __buf_14 :Buffer
               arg1:
                 __off_15 :usize
-    let words: string[]! =
-      array :string[]!
+    let words: string[] =
+      array :string[]
         "a" :string
         "b" :string
     block :void
@@ -712,7 +712,7 @@
         target:
           index :string
             on:
-              words :string[]!
+              words :string[]
             ix:
               __place_operand_16 :usize
         value:
@@ -722,7 +722,7 @@
             arg0:
               index :string
                 on:
-                  words :string[]!
+                  words :string[]
                 ix:
                   __place_operand_16 :usize
             arg1:
@@ -739,7 +739,7 @@
           arg1:
             index :string
               on:
-                words :string[]!
+                words :string[]
               ix:
                 int(0) :i32
           arg2:
@@ -747,7 +747,7 @@
           arg3:
             index :string
               on:
-                words :string[]!
+                words :string[]
               ix:
                 int(1) :i32
     let cell: Cell! =
@@ -910,7 +910,7 @@
         target:
           index :i32
             on:
-              a :i32[]!
+              a :i32[]
             ix:
               __place_operand_23 :usize
         value:
@@ -918,7 +918,7 @@
             l:
               index :i32
                 on:
-                  a :i32[]!
+                  a :i32[]
                 ix:
                   __place_operand_23 :usize
             r:
@@ -967,7 +967,7 @@
                   cast → i64
                     index :i32
                       on:
-                        a :i32[]!
+                        a :i32[]
                       ix:
                         int(0) :i32
           assign
@@ -998,7 +998,7 @@
                   cast → i64
                     index :i32
                       on:
-                        a :i32[]!
+                        a :i32[]
                       ix:
                         int(2) :i32
           assign
@@ -1045,7 +1045,7 @@
       arg0:
         two :Two!
       arg1:
-        a :i32[]!
+        a :i32[]
     call :void
       callee:
         std_io$println__string :void
@@ -1086,7 +1086,7 @@
                   cast → i64
                     index :i32
                       on:
-                        a :i32[]!
+                        a :i32[]
                       ix:
                         int(0) :i32
           ~>
@@ -1101,7 +1101,7 @@
       target:
         index :i32
           on:
-            a :i32[]!
+            a :i32[]
           ix:
             call :usize
               callee:
@@ -1113,7 +1113,7 @@
           l:
             index :i32
               on:
-                a :i32[]!
+                a :i32[]
               ix:
                 call :usize
                   callee:
@@ -1162,7 +1162,7 @@
                   cast → i64
                     index :i32
                       on:
-                        a :i32[]!
+                        a :i32[]
                       ix:
                         int(2) :i32
           ~>

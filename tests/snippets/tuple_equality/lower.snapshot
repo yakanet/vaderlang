@@ -827,12 +827,12 @@
                 __buf_32 :Buffer
               arg1:
                 __off_33 :usize
-    let calls: i32[]! =
-      array :i32[]!
+    let calls: i32[] =
+      array :i32[]
         int(0) :i32
     let counted: __lambda_env_snippet_1! =
       __lambda_env_snippet_1! {
-        cap_0: calls :i32[]!
+        cap_0: calls :i32[]
       }
     let _: bool =
       block :bool
@@ -910,7 +910,7 @@
                   cast → i64
                     index :i32
                       on:
-                        calls :i32[]!
+                        calls :i32[]
                       ix:
                         int(0) :i32
           ~>
@@ -922,13 +922,13 @@
               arg1:
                 __off_38 :usize
     return int(0) :i32
-  struct __lambda_env_snippet_1 { cap_0: i32[]! }
+  struct __lambda_env_snippet_1 { cap_0: i32[] }
   fn __lambda_snippet_0(__env_34: __lambda_env_snippet_1!, n: i32) -> [i32, string]!
     assign
       target:
         index :i32
           on:
-            .cap_0 :i32[]!
+            .cap_0 :i32[]
               __env_34 :__lambda_env_snippet_1!
           ix:
             int(0) :i32
@@ -937,7 +937,7 @@
           l:
             index :i32
               on:
-                .cap_0 :i32[]!
+                .cap_0 :i32[]
                   __env_34 :__lambda_env_snippet_1!
               ix:
                 int(0) :i32

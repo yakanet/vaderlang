@@ -1117,8 +1117,8 @@
           else:
             ~>
               "compared cast: wide" :string
-    let cells: (string | u8)[]! =
-      array :(string | u8)[]!
+    let cells: (string | u8)[] =
+      array :(string | u8)[]
     LoweredArrayPush
     call :void
       callee:
@@ -1134,7 +1134,7 @@
               recv:
                 index :string | u8
                   on:
-                    cells :(string | u8)[]!
+                    cells :(string | u8)[]
                   ix:
                     int(0) :i32
     return int(0) :i32

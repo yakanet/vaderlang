@@ -1,11 +1,11 @@
 # Lower
 
 ## snippet
-  fn snippet$read_around_defer(xs: i32[]!, i: usize) -> i32
+  fn snippet$read_around_defer(xs: i32[], i: usize) -> i32
     let before: i32 =
       index :i32
         on:
-          xs :i32[]!
+          xs :i32[]
         ix:
           i :usize
     block :void
@@ -15,7 +15,7 @@
     let after: i32 =
       index :i32
         on:
-          xs :i32[]!
+          xs :i32[]
         ix:
           i :usize
     return
@@ -52,9 +52,9 @@
                   cast → i64
                     call :i32
                       callee:
-                        read_around_defer :fn(i32[]!, usize) -> i32
+                        read_around_defer :fn(i32[], usize) -> i32
                       arg0:
-                        array :i32[]!
+                        array :i32[]
                           int(1) :i32
                           int(2) :i32
                       arg1:
@@ -68,13 +68,13 @@
               arg1:
                 __off_1 :usize
     return int(0) :i32
-  struct __defer_env_snippet_1 { cap_0: i32[]!, cap_1: usize }
+  struct __defer_env_snippet_1 { cap_0: i32[], cap_1: usize }
   fn __defer_snippet_0(__env_0: __defer_env_snippet_1!) -> void
     assign
       target:
         index :i32
           on:
-            .cap_0 :i32[]!
+            .cap_0 :i32[]
               __env_0 :__defer_env_snippet_1!
           ix:
             .cap_1 :usize

@@ -1,17 +1,17 @@
 # Lower
 
 ## snippet
-  fn snippet$turns(r: Range<u8>!) -> i32
+  fn snippet$turns(r: Range<u8>) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __iter_0: Range<u8>! = r :Range<u8>!
+      let __iter_0: Range<u8> = r :Range<u8>
       loop
         let __step_1: [u8, Continuation]! =
           call :[u8, Continuation]!
             callee:
               std_core$Range$Iterator$next__u8 :[u8, Continuation]!
             arg0:
-              __iter_0 :Range<u8>!
+              __iter_0 :Range<u8>
         if :void
           cond:
             eq :bool
@@ -36,17 +36,17 @@
                   r:
                     int(1) :i32
     return n :i32
-  fn snippet$signed_turns(r: Range<i8>!) -> i32
+  fn snippet$signed_turns(r: Range<i8>) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __iter_0: Range<i8>! = r :Range<i8>!
+      let __iter_0: Range<i8> = r :Range<i8>
       loop
         let __step_1: [i8, Continuation]! =
           call :[i8, Continuation]!
             callee:
               std_core$Range$Iterator$next__i8 :[i8, Continuation]!
             arg0:
-              __iter_0 :Range<i8>!
+              __iter_0 :Range<i8>
         if :void
           cond:
             eq :bool
@@ -71,17 +71,17 @@
                   r:
                     int(1) :i32
     return n :i32
-  fn snippet$wide_turns(r: Range<u64>!) -> i32
+  fn snippet$wide_turns(r: Range<u64>) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __iter_0: Range<u64>! = r :Range<u64>!
+      let __iter_0: Range<u64> = r :Range<u64>
       loop
         let __step_1: [u64, Continuation]! =
           call :[u64, Continuation]!
             callee:
               std_core$Range$Iterator$next__u64 :[u64, Continuation]!
             arg0:
-              __iter_0 :Range<u64>!
+              __iter_0 :Range<u64>
         if :void
           cond:
             eq :bool
@@ -106,17 +106,17 @@
                   r:
                     int(1) :i32
     return n :i32
-  fn snippet$letters(r: Range<char>!) -> string
+  fn snippet$letters(r: Range<char>) -> string
     let out: string = "" :string
     block :void
-      let __iter_0: Range<char>! = r :Range<char>!
+      let __iter_0: Range<char> = r :Range<char>
       loop
         let __step_1: [char, Continuation]! =
           call :[char, Continuation]!
             callee:
               std_core$Range$Iterator$next__char :[char, Continuation]!
             arg0:
-              __iter_0 :Range<char>!
+              __iter_0 :Range<char>
         if :void
           cond:
             eq :bool
@@ -148,7 +148,7 @@
                         c :char
     return out :string
   fn snippet$main() -> i32
-    let to_max: Range<u8>! =
+    let to_max: Range<u8> =
       Range<u8>! {
         start: int(250) :u8
         end: int(255) :u8
@@ -183,9 +183,9 @@
                   cast → i64
                     call :i32
                       callee:
-                        turns :fn(Range<u8>!) -> i32
+                        turns :fn(Range<u8>) -> i32
                       arg0:
-                        to_max :Range<u8>!
+                        to_max :Range<u8>
           assign
             target:
               __off_1 :usize
@@ -214,7 +214,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        turns :fn(Range<u8>!) -> i32
+                        turns :fn(Range<u8>) -> i32
                       arg0:
                         Range<u8>! {
                           start: int(0) :u8
@@ -251,7 +251,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        turns :fn(Range<u8>!) -> i32
+                        turns :fn(Range<u8>) -> i32
                       arg0:
                         Range<u8>! {
                           start: int(5) :u8
@@ -288,7 +288,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        turns :fn(Range<u8>!) -> i32
+                        turns :fn(Range<u8>) -> i32
                       arg0:
                         Range<u8>! {
                           start: int(250) :u8
@@ -332,7 +332,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        signed_turns :fn(Range<i8>!) -> i32
+                        signed_turns :fn(Range<i8>) -> i32
                       arg0:
                         Range<i8>! {
                           start: int(-128) :i8
@@ -376,7 +376,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        wide_turns :fn(Range<u64>!) -> i32
+                        wide_turns :fn(Range<u64>) -> i32
                       arg0:
                         Range<u64>! {
                           start: int(18446744073709551613) :u64
@@ -401,7 +401,7 @@
           let __p_6: string =
             call :string
               callee:
-                letters :fn(Range<char>!) -> string
+                letters :fn(Range<char>) -> string
               arg0:
                 Range<char>! {
                   start: char(0x78)
@@ -467,7 +467,7 @@
                     callee:
                       std_core$Range$Contains$contains__u8 :bool
                     arg0:
-                      to_max :Range<u8>!
+                      to_max :Range<u8>
                     arg1:
                       int(255) :u8
           assign
@@ -499,7 +499,7 @@
                     callee:
                       std_core$Range$Contains$contains__u8 :bool
                     arg0:
-                      to_max :Range<u8>!
+                      to_max :Range<u8>
                     arg1:
                       int(250) :u8
           ~>

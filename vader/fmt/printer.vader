@@ -1646,12 +1646,7 @@ emit_expr :: fn(self: Printer, e: p.Expr | null) -> void {
             // mutable slot read-only (round-trip corruption, mirror of `const`
             // above). The marker binds tighter than `|` / `&`, so a union or
             // intersection inner gets the same parenthesising as an array
-            // element : `(A | B)!` must round-trip verbatim. A deduced marker is
-            // no part of the source, and does not print.
-            if e.deduced {
-                self.emit_expr(e.inner)
-                return
-            }
+            // element : `(A | B)!` must round-trip verbatim.
             self.emit_array_or_union_element(e.inner)
             self.write("!")
         }

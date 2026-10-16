@@ -1,0 +1,14 @@
+// An enum's variant data is a table every read shares: it holds only values,
+// scalars, strings and enums. An array in it would be shared by every read of the
+// variant. T3096, at the enum.
+module "snippet"
+
+Info :: struct {
+    xs: i32[]
+}
+
+Kind :: enum(Info) {
+    A { .xs = [1, 2] },
+}
+
+main :: fn() -> i32 = Info(Kind.A).xs[0]

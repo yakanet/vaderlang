@@ -4,6 +4,7 @@
 [lib/std/io/io.vader:533:8] error[R2041] no `@target` body covers the target being built: `write_file_bytes` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 [lib/std/io/io.vader:606:1] error[R2041] no `@target` body covers the target being built: `mkdir_one` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 [lib/std/io/io.vader:670:8] error[R2041] no `@target` body covers the target being built: `remove_file` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:708:28] error[T3071] a view of a string's bytes cannot be kept: `bytes()` returns a view of a string's bytes ; `.clone()` makes a copy to keep
 [lib/std/io/io.vader:716:8] error[R2041] no `@target` body covers the target being built: `exists` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 [lib/std/io/io.vader:737:8] error[R2041] no `@target` body covers the target being built: `is_dir` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 [lib/std/io/io.vader:760:8] error[R2041] no `@target` body covers the target being built: `read_dir` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows

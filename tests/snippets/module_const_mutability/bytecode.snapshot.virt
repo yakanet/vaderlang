@@ -30,31 +30,31 @@ string 10 "flags="
 string 11 " len="
 string 12 "grown="
 string 13 "/40 len="
-string 14 "replaced-"
-string 15 "q-"
-string 16 "replaced-2"
-string 17 "queue="
-string 18 "/9 len="
-string 19 "total="
-string 20 "true"
-string 21 "false"
-string 22 "\n"
-string 23 "0"
-string 24 "1"
-string 25 "2"
-string 26 "alpha"
-string 27 "beta"
-string 28 "origin"
-string 29 ""
-string 30 "seed"
+string 14 "seed"
+string 15 "replaced-"
+string 16 "q-"
+string 17 "replaced-2"
+string 18 "queue="
+string 19 "/9 len="
+string 20 "total="
+string 21 "true"
+string 22 "false"
+string 23 "\n"
+string 24 "0"
+string 25 "1"
+string 26 "2"
+string 27 "alpha"
+string 28 "beta"
+string 29 "origin"
+string 30 ""
 data 0 str "0" "1" "2"
 data 1 i32 hex"0a000000140000001e000000"
-data 2 structs 5 2 2 strref 26 i32 01000000 strref 27 i32 02000000
-data 3 structs 5 2 1 strref 28 i32 00000000
+data 2 structs 5 2 2 strref 27 i32 01000000 strref 28 i32 02000000
+data 3 structs 5 2 1 strref 29 i32 00000000
 data 4 mut i32 hex"000000000000000000000000"
 data 5 mut str "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
 data 6 mut bool hex"00000000"
-data 7 mut structs 5 2 1 strref 30 i32 00000000
+data 7 mut boxed hex""
 import 0 byte_len std_core$byte_len result_type=1 param_types=4 param_mutable=0 param_by_address= (string) -> usize
 import 1 bytes std_core$bytes result_type=11 param_types=4 param_mutable=0 param_by_address= (string) -> ref
 import 2 collect std_runtime$collect result_type=2 () -> void
@@ -97,7 +97,7 @@ fn 1 snippet$main () -> i32
   local $cast_215 u64
   local $idx_236 i32
   local $cast_237 i32
-  local $struct_292 ref
+  local $struct_300 ref
   string.const 0   ; "hello"
   local.tee 0   ; __p_0
   call.import 0   ; std_core$byte_len
@@ -660,6 +660,15 @@ fn 1 snippet$main () -> i32
   call 11   ; std_io$println__string
   data.const 7 15   ; pool[7] snippet$Spec[]
   local.set 2   ; __buf_1
+  string.const 14   ; "seed"
+  i32.const 0
+  struct.new 5   ; snippet$Spec
+  local.set 10   ; __buf_13
+  local.get 2   ; __buf_1
+  local.get 10   ; __buf_13
+  array.push 5   ; snippet$Spec
+  data.const 7 15   ; pool[7] snippet$Spec[]
+  local.set 2   ; __buf_1
   i64.const 29
   call 3   ; std_core$new_byte_buffer
   local.set 10   ; __buf_13
@@ -667,7 +676,7 @@ fn 1 snippet$main () -> i32
   local.set 1   ; $call_3
   local.get 10   ; __buf_13
   local.get 1   ; $call_3
-  string.const 14   ; "replaced-"
+  string.const 15   ; "replaced-"
   call 5   ; std_core$write_string_at
   local.set 1   ; $call_3
   i32.const 2
@@ -688,6 +697,11 @@ fn 1 snippet$main () -> i32
   i32.const 0
   local.get 10   ; __buf_13
   array.set 15   ; snippet$Spec[]
+  data.const 7 15   ; pool[7] snippet$Spec[]
+  i32.const 0
+  array.get 15   ; snippet$Spec[]
+  i32.const 6
+  struct.set 5 1   ; snippet$Spec.code
   i32.const 0
   local.set 9   ; i
   loop $L10 void
@@ -704,7 +718,7 @@ fn 1 snippet$main () -> i32
       local.set 1   ; $call_3
       local.get 10   ; __buf_13
       local.get 1   ; $call_3
-      string.const 15   ; "q-"
+      string.const 16   ; "q-"
       call 5   ; std_core$write_string_at
       local.set 1   ; $call_3
       local.get 9   ; i
@@ -724,9 +738,9 @@ fn 1 snippet$main () -> i32
       local.get 0   ; __p_0
       local.get 11   ; i
       struct.new 5   ; snippet$Spec
-      local.set 15   ; $struct_292
+      local.set 15   ; $struct_300
       local.get 2   ; __buf_1
-      local.get 15   ; $struct_292
+      local.get 15   ; $struct_300
       array.push 5   ; snippet$Spec
       local.get 9   ; i
       i32.const 1
@@ -743,7 +757,7 @@ fn 1 snippet$main () -> i32
   array.get 15   ; snippet$Spec[]
   struct.get 5 0   ; snippet$Spec.name
   ref.cast 4   ; string
-  string.const 16   ; "replaced-2"
+  string.const 17   ; "replaced-2"
   string.eq
   if $L12 void
     local.get 9   ; i
@@ -778,7 +792,7 @@ fn 1 snippet$main () -> i32
       local.set 7   ; $call_38
       local.get 10   ; __buf_13
       local.get 7   ; $call_38
-      string.const 15   ; "q-"
+      string.const 16   ; "q-"
       call 5   ; std_core$write_string_at
       local.set 7   ; $call_38
       local.get 11   ; i
@@ -816,7 +830,7 @@ fn 1 snippet$main () -> i32
   local.set 1   ; $call_3
   local.get 2   ; __buf_1
   local.get 1   ; $call_3
-  string.const 17   ; "queue="
+  string.const 18   ; "queue="
   call 5   ; std_core$write_string_at
   local.set 1   ; $call_3
   local.get 9   ; i
@@ -829,7 +843,7 @@ fn 1 snippet$main () -> i32
   local.set 1   ; $call_3
   local.get 2   ; __buf_1
   local.get 1   ; $call_3
-  string.const 18   ; "/9 len="
+  string.const 19   ; "/9 len="
   call 5   ; std_core$write_string_at
   local.set 1   ; $call_3
   data.const 7 15   ; pool[7] snippet$Spec[]
@@ -880,7 +894,7 @@ fn 1 snippet$main () -> i32
   local.set 1   ; $call_3
   local.get 2   ; __buf_1
   local.get 1   ; $call_3
-  string.const 19   ; "total="
+  string.const 20   ; "total="
   call 5   ; std_core$write_string_at
   local.set 1   ; $call_3
   local.get 9   ; i
@@ -1156,13 +1170,13 @@ fn 8 std_core$write_bool (ref,usize,bool) -> usize
   else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
-    string.const 21   ; "false"
+    string.const 22   ; "false"
     call 5   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  string.const 20   ; "true"
+  string.const 21   ; "true"
   call 5   ; std_core$write_string_at
   return
 end
@@ -1246,7 +1260,7 @@ end
 fn 11 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 22   ; "\n"
+  string.const 23   ; "\n"
   call 2   ; concat_2
   local.set 1   ; $call_3
   i32.const 0
@@ -1256,4 +1270,4 @@ fn 11 std_io$println__string (string) -> void
 end
 
 # Diagnostics
-[94:43] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Fast`
+[93:43] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Fast`

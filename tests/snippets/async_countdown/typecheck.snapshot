@@ -7,17 +7,17 @@
   FnDecl         waiter               :: fn() -> Async<i32>
   expr 12:12    BinaryExpr     :: bool
   expr 12:12    FieldExpr      :: i32
-  expr 12:12    IdentExpr      :: CountDown!
+  expr 12:12    IdentExpr      :: CountDown
   expr 12:9     IfExpr         :: void
   expr 13:13    FieldExpr      :: i32
-  expr 13:13    IdentExpr      :: CountDown!
+  expr 13:13    IdentExpr      :: CountDown
   expr 13:22    BinaryExpr     :: i32
   expr 13:22    FieldExpr      :: i32
-  expr 13:22    IdentExpr      :: CountDown!
+  expr 13:22    IdentExpr      :: CountDown
   expr 14:20    StructLitExpr  :: Suspended!
   expr 21:21    StructLitExpr  :: CountDown!
   expr 22:10    AwaitExpr      :: i32
-  expr 22:16    IdentExpr      :: Async<i32>!
+  expr 22:16    IdentExpr      :: Async<i32>
   expr 23:12    BinaryExpr     :: i32
   expr 23:12    IdentExpr      :: i32
   expr 27:13    IdentExpr      :: Suspended!

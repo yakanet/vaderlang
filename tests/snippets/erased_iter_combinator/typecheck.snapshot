@@ -1,10 +1,10 @@
 # Typecheck
 
 ## tests/snippets/erased_iter_combinator
-  FnDecl         drain                :: fn(Iterator<i32>!) -> i32[]
+  FnDecl         drain                :: fn(Iterator<i32>) -> i32[]
   FnDecl         keep_hi              :: fn(i32) -> bool
   FnDecl         main                 :: fn() -> i32
-  FnDecl         sum_tripled_hi       :: fn(Iterator<i32>!) -> i32
+  FnDecl         sum_tripled_hi       :: fn(Iterator<i32>) -> i32
   FnDecl         triple               :: fn(i32) -> i32
   expr 13:32    BinaryExpr     :: i32
   expr 13:32    IdentExpr      :: i32
@@ -14,7 +14,7 @@
   expr 19:14    CallExpr       :: __genstate_map<i32>!
   expr 19:14    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 19:14    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
-  expr 19:14    IdentExpr      :: Iterator<i32>!
+  expr 19:14    IdentExpr      :: Iterator<i32>
   expr 19:21    IdentExpr      :: fn(i32) -> i32
   expr 19:36    IdentExpr      :: fn(i32) -> bool
   expr 20:17    BinaryExpr     :: i32
@@ -26,13 +26,13 @@
   expr 26:12    CallExpr       :: i32[]!
   expr 26:12    FieldExpr      :: fn() -> i32[]!
   expr 26:12    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
-  expr 26:12    IdentExpr      :: Iterator<i32>!
+  expr 26:12    IdentExpr      :: Iterator<i32>
   expr 26:19    IdentExpr      :: fn(i32) -> i32
   expr 31:10    CallExpr       :: i32
-  expr 31:10    IdentExpr      :: fn(Iterator<i32>!) -> i32
+  expr 31:10    IdentExpr      :: fn(Iterator<i32>) -> i32
   expr 31:25    SeqLitExpr     :: i32[]!
   expr 32:10    CallExpr       :: i32[]
-  expr 32:10    IdentExpr      :: fn(Iterator<i32>!) -> i32[]
+  expr 32:10    IdentExpr      :: fn(Iterator<i32>) -> i32[]
   expr 32:16    SeqLitExpr     :: i32[]!
   expr 33:13    StringLitExpr  :: string
   expr 33:20    IdentExpr      :: i32

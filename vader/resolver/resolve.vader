@@ -47,13 +47,6 @@ export ResolvedModule :: struct {
     /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
     /// Consumed by stmt.vader::check_assign to surface T3041.
     immutable_locals: MutableMap<i32, bool>
-    /// Symbols that are an immutable BORROW root: a parameter declared without
-    /// `!` once `params_immutable_default` is on, and loop variables over an
-    /// immutable iterable. Sibling of `immutable_locals`, which tracks the
-    /// orthogonal axis (`::` freezes the binding, not the referent).
-    /// Module-level consts are NOT here — they are recognised from
-    /// `SymbolKind.Const`, so they need no table and work cross-module.
-    immutable_borrows: MutableMap<i32, bool>!
     /// Locals and parameters no assignment rebinds (see `ResolvedFile`). Empty
     /// for a module that was not body-walked, which claims nothing.
     rebind_free: MutableSet<i32> = MutableSet<i32> {}
@@ -180,7 +173,6 @@ export resolve_module_files :: fn(
         .import_bindings  = bindings,
         .idents           = resolved.idents,
         .immutable_locals = resolved.immutable_locals,
-        .immutable_borrows = resolved.immutable_borrows,
         .rebind_free      = resolved.rebind_free,
         .loop_rebinds     = resolved.loop_rebinds,
         .closure_rebound  = resolved.closure_rebound,

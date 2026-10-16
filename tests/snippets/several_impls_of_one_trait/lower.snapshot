@@ -282,7 +282,7 @@
         gte :bool
           l:
             .n :i32
-              self :Counter!
+              self :Counter
           r:
             int(2) :i32
       then:
@@ -294,19 +294,19 @@
     assign
       target:
         .n :i32
-          self :Counter!
+          self :Counter
       value:
         add_checked :i32
           l:
             .n :i32
-              self :Counter!
+              self :Counter
           r:
             int(1) :i32
     return
       [i32, Continuation]! {
         _0:
           .n :i32
-            self :Counter!
+            self :Counter
         _1: int(0) :u8
       }
   fn snippet$Counter$Into$into(self: Counter!) -> Iterator<string>!

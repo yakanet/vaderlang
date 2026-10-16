@@ -177,21 +177,10 @@ export StaticMember :: struct {
     owner: Type
 }
 
-/// One UFCS-dispatchable impl method: its signature plus whether it may mutate
-/// its receiver.
-///
-/// `self_mutable` cannot be recovered from `ty`: `ufcs_method_type` curries the
-/// receiver away, so `ty.params_mutable[0]` describes the param AFTER `self`.
-/// Carrying it here rather than in a sibling table is what makes it survive
-/// `merge_external_impl_methods`, which rebroadcasts `impl_methods` across
-/// modules — a second table would have to be broadcast too, and forgetting that
-/// loses the marker cross-module with no diagnostic.
+/// One UFCS-dispatchable impl method: its signature, and the impl that declares it.
 export ImplMethod :: struct {
     /// The UFCS-bound signature, WITHOUT the `self` parameter.
     ty:           Type
-    /// True when the method declares `self!` — it mutates its receiver, so it is
-    /// unavailable on an immutable one (T3071).
-    self_mutable: bool = false
     /// The impl member it was declared as ; null for a method no impl member
     /// declares (a free fn reached through `x.f()`).
     decl:         AST.FnDecl | null = null
@@ -570,36 +559,7 @@ export TypedProgram :: struct {
     /// fold to a literal when the ident resolves to a key here.
     let_type_aliases: MutableMap<i32, Type>!
 
-    /// Where the fix goes when a write is rejected — four tables, one per shape a
-    /// read-only value can arrive in, all read by `mutation_fix_hint`.
-    ///
-    /// The reader cannot work these out: the value's own declaration is usually NOT
-    /// the lever (marking a local bound from a factory would be a strengthening,
-    /// which assignability refuses; a loop variable takes no marker at all). Only
-    /// the typechecker knows which declaration hands the value out, so naming it is
-    /// its job — the same reasoning as `field_annotate_hint`.
-    ///
-    /// Local Symbol.id → what produced its value : a call, whose RETURN is the
-    /// lever, or a field path (`body :: d.body`), whose FIELD is.
-    local_init_source: MutableMap<i32, AST.Expr>!
-    /// Loop-variable Symbol.id → the expression it iterates. Recorded for EVERY
-    /// loop variable: one over a collection with a MUTABLE root but read-only
-    /// ELEMENTS is rejected by the element's type, never by the path, so it never
-    /// reaches `immutable_borrows` — and it is exactly the case with no guessable
-    /// lever.
-    loop_var_iterable: MutableMap<i32, AST.Expr>!
-    /// Local / PARAMETER Symbol.id → its written type.
-    ///
-    /// A mutability-only mismatch on such a local is fixed at its annotation, and at
-    /// the LEVEL that differs — `out: X[]!` hands out read-only elements because the
-    /// default is recursive, so a slot wanting `X![]` needs `out: X![]!`. The reader
-    /// sees two types that print almost alike; only the compiler knows which level
-    /// they diverge at.
-    local_annotation: MutableMap<i32, AST.TypeExpr>!
-
-    /// Const Symbol.id → its declaration, for the span of its written type. A module
-    /// const IS reopenable now (a mutable one gets a writable global), so `annotate
-    /// \`WORDS!\`` is actionable rather than a dead end.
+    /// Const Symbol.id → its declaration, from which the const walk finds its entry.
     const_decls: MutableMap<i32, AST.ConstDecl>!
 
     /// Generic fn AST-node id → true when its body needs each instance's real
@@ -679,15 +639,6 @@ export TypedProgram :: struct {
 
     /// What each site invokes, by role and node id (`record_site`).
     call_sites: CallSites! = CallSites {}
-
-    /// A local bound to a single name → the value it stands for (`m :: a`,
-    /// `s :: xs[0..<n]`), whatever its rights ; absent when the binding converts it
-    /// to an owned value. A deduced `!` follows it back (`levers_of`).
-    local_bound_to: MutableMap<i32, AST.Expr>! = MutableMap<i32, AST.Expr> {}
-
-    /// The deduction of slots' `!` this check feeds (`param_inference.vader`),
-    /// one for every module of the project ; null when nothing is deduced.
-    param_inference: ParamInference! | null = null
 }
 
 /// Where a const stands in a `walk_bodies` walk.
@@ -734,7 +685,6 @@ export EnclosingLoop :: struct {
 
 import "vader/diagnostics"
 import "toolchain/span"
-
 
 /// Across the whole project — multi-module aggregation. Populated by
 /// the orchestrator (`check.vader`).
@@ -821,17 +771,12 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .generator_states = MutableMap<u64, GeneratorState> {},
     .extern_symbols  = MutableMap<string, AST.FnDecl> {},
     .let_type_aliases = MutableMap<i32, Type> {},
-    .local_init_source = MutableMap<i32, AST.Expr> {},
-    .loop_var_iterable = MutableMap<i32, AST.Expr> {},
-    .local_annotation = MutableMap<i32, AST.TypeExpr> {},
     .const_decls = MutableMap<i32, AST.ConstDecl> {},
     .fn_needs_concrete_instances = MutableMap<usize, bool> {},
     .fn_observes_type_params = MutableMap<usize, bool> {},
     .fn_display_dispatches = MutableMap<usize, bool> {},
     .enum_data_reads = MutableMap<usize, bool> {},
 }
-
-
 
 /// An empty project.
 ///
@@ -851,7 +796,6 @@ export empty_typed_program :: fn() -> TypedProgram! {
         .symbols = [],
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
-        .immutable_borrows = MutableMap<i32, bool> {},
         .fn_overloads = MutableMap<string, Symbol[]!> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
@@ -876,7 +820,6 @@ fresh_module :: fn() -> ResolvedModule! {
         .symbols = [],
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
-        .immutable_borrows = MutableMap<i32, bool> {},
         .fn_overloads = MutableMap<string, Symbol[]!> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},

@@ -78,7 +78,7 @@ write_function :: fn(sb: StringBuilder, summary: EffectSummary, node: i32) -> vo
 
 // `<effect> <name><path>`: access `a` of the parameter called `name`.
 access_label :: fn(paths: PathTable, a: Access, name: string) -> string =
-    "${effect_label(a.effect)} ${name}${paths.display_path(a.path)}"
+    "${effect_label(a.effect)} ${paths.place_label(name, a.path)}"
 
 // The frozen sites of the modules in `scope`, by module then in source order, and
 // how many of each kind.
@@ -92,6 +92,8 @@ write_frozen :: fn(sb: StringBuilder, frozen: FrozenSite[], scope: string[]) -> 
         FrozenKind.Copy,
         FrozenKind.ElidedCopy,
         FrozenKind.SharedBinding,
+        FrozenKind.KeptView,
+        FrozenKind.ReturnedView,
     ]
     counts :: kinds.len().filled(() -> 0)
     for site in sort(sites, (a, b) -> in_source_order(a.module, a.span, b.module, b.span)) {
@@ -116,7 +118,7 @@ write_chain :: fn(sb: StringBuilder, chain: FaultChain) -> void {
         sb.append("    via ${hop.callee} (`${hop.param}`) ${position_of(hop.module, hop.span)}\n")
     }
     write :: chain.write ?? return
-    sb.append("    ${write.label}")
+    sb.append("    ${effect_label(write.effect)} ${write.place}")
     by :: write.by
     if by != null {
         sb.append(" by ${by}")
@@ -153,6 +155,8 @@ frozen_label :: fn(kind: FrozenKind) -> string = match kind {
     .Copy          -> "copy"
     .ElidedCopy    -> "copy elided"
     .SharedBinding -> "binding shared"
+    .KeptView      -> "view kept"
+    .ReturnedView  -> "view returned"
 }
 
 // The widened arguments of the modules in `scope`, by module then in source order,

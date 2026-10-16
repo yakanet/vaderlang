@@ -12,6 +12,7 @@ module "vader/effects"
 import "std/collections"
 import "std/iter"
 import "vader/resolver"
+import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
 
@@ -29,6 +30,11 @@ export CalleeIndex :: struct {
     /// The declarations of the intrinsics that hand back a frozen view
     /// (`makes_frozen_view`).
     frozen_views: MutableSet<usize>! = MutableSet<usize> {}
+    /// The nodes that return a view, found once the facts are settled
+    /// (`spread_views`).
+    view_nodes: MutableSet<i32>! = MutableSet<i32> {}
+    /// The structs some enum keeps its variant data in, by symbol id.
+    variant_data: MutableSet<i32>! = MutableSet<i32> {}
     /// Every module constant's initialiser, which may hand a frozen value on.
     constants: Initialiser[]! = []
     /// Every struct field default, which every struct built without the field keeps.
@@ -57,7 +63,8 @@ export Function :: struct {
 export Initialiser :: struct {
     value: AST.Expr
     typed: TypedProgram
-    /// The symbol id of the constant it initialises ; null for a field default.
+    /// The symbol id of the frozen constant it initialises ; null for a field default
+    /// and a module variable.
     initialises: i32 | null = null
 }
 
@@ -84,20 +91,29 @@ index_functions :: fn(
                     }
                     is AST.ConstDecl  -> {
                         sym :: loaded.collected.symbols[d.name] ?? continue
-                        initialiser :: Initialiser {
-                            .value = d.value,
-                            .typed = typed,
-                            .initialises = sym.id,
-                        }
-                        index.constants.push(initialiser)
+                        index.constants.push(constant_initialiser(d, sym, typed))
                     }
                     is AST.StructDecl -> { index.register_defaults(d, typed) }
-                    _                 -> {}
+                    is AST.EnumDecl   -> {
+                        data :: declared_enum_data(d, typed) ?? continue
+                        _ :: index.variant_data.add(data.symbol.id)
+                    }
+                    is AST.AssertDecl | AST.ImportDecl | AST.TraitDecl | AST.TypeAliasDecl -> {}
                 }
             }
         }
     }
     return index
+}
+
+// The initialiser of the module constant `decl`. A module variable is no frozen
+// value: what its initialiser keeps is kept by a writable global, as by a field.
+constant_initialiser :: fn(decl: AST.ConstDecl, sym: Symbol, typed: TypedProgram) -> Initialiser {
+    initialiser :: Initialiser { .value = decl.value, .typed = typed }
+    if is_frozen_const(sym) {
+        initialiser.initialises = sym.id
+    }
+    return initialiser
 }
 
 // Note each default of `decl`'s fields.

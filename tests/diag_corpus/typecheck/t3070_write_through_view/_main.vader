@@ -1,0 +1,18 @@
+// A view of a string's bytes is the string's own bytes, which nothing modifies: a
+// write through a name bound to it is an error, through a function that returns
+// one too, while a copy is the program's own. T3070, twice.
+module "snippet"
+
+import "std/iter"
+
+bytes_of :: fn(s: string) -> u8[] = s.bytes()
+
+main :: fn() -> i32 {
+    view :: "abc".bytes()
+    view[0] = 'x'
+    handed :: bytes_of("abc")
+    handed[1] = 'y'
+    copy :: "abc".bytes().clone()
+    copy[2] = 'z'
+    return i32(copy[2])
+}

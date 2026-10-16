@@ -41,16 +41,16 @@
                 other :Grams
       }
   struct snippet$Cfg { n: i32 }
-  fn snippet$Cfg$Sink$put(self: Cfg!, e: Cfg!) -> i32
+  fn snippet$Cfg$Sink$put(self: Cfg!, e: Cfg) -> i32
     assign
       target:
         .n :i32
-          e :Cfg!
+          e :Cfg
       value:
         int(9) :i32
     return
       .n :i32
-        e :Cfg!
+        e :Cfg
   fn snippet$main() -> i32
     let five: u64 = int(5) :u64
     call :void

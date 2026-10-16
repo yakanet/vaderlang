@@ -1,0 +1,33 @@
+// An enum's variant data is a table every read of the variant shares, frozen as a
+// module constant is: a write through `Info(v)` or a field of the enum value is
+// T3070, lending it to a function that writes it T3072, and so in a generic body
+// whose type parameter may stand for the enum. A name bound to it holds a copy.
+module "snippet"
+
+Info :: struct {
+    code: i32
+}
+
+Status :: enum(Info) {
+    Ok      { .code = 200 },
+    Missing { .code = 404 },
+}
+
+bump :: fn(i: Info) -> void {
+    i.code += 1
+}
+
+poke :: fn<T>(x: T) -> void {
+    Info(x).code = 9
+}
+
+main :: fn() -> i32 {
+    s :: Status.Missing
+    Info(s).code = 5
+    s.code = 7
+    bump(Info(s))
+    poke(s)
+    copy :: Info(s)
+    copy.code = 6
+    return copy.code
+}

@@ -220,9 +220,9 @@
     block :void
       let round: i32 = int(0) :i32
       loop while (<…>)
-        let garbage: string[]! =
-          @array.repeat :string[]!
-            array :string[]!
+        let garbage: string[] =
+          @array.repeat :string[]
+            array :string[]
             int(300) :usize
         block :void
           let i: i32 = int(0) :i32

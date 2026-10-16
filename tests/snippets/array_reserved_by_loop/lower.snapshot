@@ -127,9 +127,9 @@
         arg0:
           out :string
   fn snippet$over_array(a: i32[]) -> i64[]
-    let out: i64[]! =
-      @array.repeat :i64[]!
-        array :i64[]!
+    let out: i64[] =
+      @array.repeat :i64[]
+        array :i64[]
         LoweredArrayLen
     block :void
       let __for_arr_0: i32[] = a :i32[]
@@ -155,11 +155,11 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    return out :i64[]!
+    return out :i64[]
   fn snippet$over_range(lo: i32, hi: i32) -> i64[]
-    let out: i64[]! =
-      @array.repeat :i64[]!
-        array :i64[]!
+    let out: i64[] =
+      @array.repeat :i64[]
+        array :i64[]
         if :usize
           cond:
             lt :bool
@@ -194,11 +194,11 @@
                 i :i32
               r:
                 int(1) :i32
-    return out :i64[]!
+    return out :i64[]
   fn snippet$over_inclusive(lo: i32, hi: i32) -> i64[]
-    let out: i64[]! =
-      @array.repeat :i64[]!
-        array :i64[]!
+    let out: i64[] =
+      @array.repeat :i64[]
+        array :i64[]
         if :usize
           cond:
             lte :bool
@@ -252,11 +252,11 @@
                 i :i32
               r:
                 int(1) :i32
-    return out :i64[]!
+    return out :i64[]
   fn snippet$span_count(lo: i8, hi: i8) -> usize
-    let out: i8[]! =
-      @array.repeat :i8[]!
-        array :i8[]!
+    let out: i8[] =
+      @array.repeat :i8[]
+        array :i8[]
         if :usize
           cond:
             lt :bool
@@ -295,9 +295,9 @@
       LoweredArrayLen
   struct snippet$Bag { items: i32[] }
   fn snippet$over_field(bag: Bag) -> i64[]
-    let out: i64[]! =
-      @array.repeat :i64[]!
-        array :i64[]!
+    let out: i64[] =
+      @array.repeat :i64[]
+        array :i64[]
         LoweredArrayLen
     block :void
       let __for_arr_0: i32[] =
@@ -325,15 +325,15 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    return out :i64[]!
+    return out :i64[]
   fn snippet$split(a: i32[]) -> i64
-    let squares: i64[]! =
-      @array.repeat :i64[]!
-        array :i64[]!
+    let squares: i64[] =
+      @array.repeat :i64[]
+        array :i64[]
         LoweredArrayLen
-    let doubles: i64[]! =
-      @array.repeat :i64[]!
-        array :i64[]!
+    let doubles: i64[] =
+      @array.repeat :i64[]
+        array :i64[]
         LoweredArrayLen
     let offset: i32 = int(100) :i32
     block :void
@@ -366,7 +366,7 @@
         l:
           index :i64
             on:
-              squares :i64[]!
+              squares :i64[]
             ix:
               sub_checked :usize
                 l:
@@ -376,7 +376,7 @@
         r:
           index :i64
             on:
-              doubles :i64[]!
+              doubles :i64[]
             ix:
               int(0) :i32
   fn snippet$squares_later(a: i32[]) -> Async<i64[]>!
@@ -393,8 +393,8 @@
         state: int(9) :i32
       }
   fn snippet$odd_squares(a: i32[]) -> i64[]
-    let out: i64[]! =
-      array :i64[]!
+    let out: i64[] =
+      array :i64[]
     block :void
       let __for_arr_0: i32[] = a :i32[]
       let __for_len_1: usize =
@@ -427,10 +427,10 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    return out :i64[]!
+    return out :i64[]
   fn snippet$until_big(a: i32[]) -> i64[]
-    let out: i64[]! =
-      array :i64[]!
+    let out: i64[] =
+      array :i64[]
     block :void
       let __for_arr_0: i32[] = a :i32[]
       let __for_len_1: usize =
@@ -464,7 +464,7 @@
                 __for_i_2 :usize
               r:
                 int(1) :usize
-    return out :i64[]!
+    return out :i64[]
   fn snippet$main() -> i32
     return
       call :i32
@@ -480,7 +480,7 @@
               awaited: null
               state: int(5) :i32
             }
-  struct __asyncstate_snippet_0 { s0: i32[], s1: i64[]!, s2: i32[], s3: usize, s4: usize, s5: i32, s6: null, awaited: Async<Any>!, state: i32 }
+  struct __asyncstate_snippet_0 { s0: i32[], s1: i64[], s2: i32[], s3: usize, s4: usize, s5: i32, s6: null, awaited: Async<Any>!, state: i32 }
   fn snippet$__asyncstate_snippet_0$Async$resume(self: __asyncstate_snippet_0!) -> i64[] | Suspended!
     loop :dispatch$
       if :void
@@ -515,7 +515,7 @@
                 value:
                   int(-1) :i32
               return
-                .s1 :i64[]!
+                .s1 :i64[]
                   __self_4 :__asyncstate_snippet_0!
             else:
               if :void
@@ -735,11 +735,11 @@
                                             then:
                                               assign
                                                 target:
-                                                  .s1 :i64[]!
+                                                  .s1 :i64[]
                                                     __self_4 :__asyncstate_snippet_0!
                                                 value:
-                                                  @array.repeat :i64[]!
-                                                    array :i64[]!
+                                                  @array.repeat :i64[]
+                                                    array :i64[]
                                                     LoweredArrayLen
                                               assign
                                                 target:
@@ -971,9 +971,9 @@
                                       .s0 :i32[]!
                                         __self_8 :__asyncstate_snippet_1!
                                     let f: fn(i32) -> i64 = square :fn(i32) -> i64
-                                    let out: i64[]! =
-                                      @array.repeat :i64[]!
-                                        array :i64[]!
+                                    let out: i64[] =
+                                      @array.repeat :i64[]
+                                        array :i64[]
                                         LoweredArrayLen
                                     block :void
                                       let __fuse_len_0: usize =
@@ -1004,7 +1004,7 @@
                                               r:
                                                 int(1) :usize
                                     ~>
-                                      out :i64[]!
+                                      out :i64[]
                               call :void
                                 callee:
                                   show :fn(string, i64[]) -> void
@@ -1013,9 +1013,9 @@
                                 arg1:
                                   block :i64[]!
                                     let f: fn(i32) -> i64 = square :fn(i32) -> i64
-                                    let out: i64[]! =
-                                      @array.repeat :i64[]!
-                                        array :i64[]!
+                                    let out: i64[] =
+                                      @array.repeat :i64[]
+                                        array :i64[]
                                         int(4) :usize
                                     block :void
                                       let x: i32 = int(0) :i32
@@ -1038,7 +1038,7 @@
                                               r:
                                                 int(1) :i32
                                     ~>
-                                      out :i64[]!
+                                      out :i64[]
                               call :void
                                 callee:
                                   show :fn(string, i64[]) -> void

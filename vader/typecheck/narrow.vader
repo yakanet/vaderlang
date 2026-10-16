@@ -85,18 +85,6 @@ export NarrowState :: struct {
     /// `&&` / `||` nodes whose right operand ran a call : what the left operand
     /// narrowed does not hold past it.
     calling_right_operands: MutableSet<usize>! = MutableSet<usize> {}
-
-    /// `as` binding (`if e is T as x`, `match e as x`) DECLARATION-span hash →
-    /// the scrutinee. One hop
-    /// further: the binding inherits the scrutinee's mutability, so the lever is
-    /// whatever the scrutinee's own lever is.
-    ///
-    /// Keyed by the span, not the `Symbol.id`, because a narrowing binding's
-    /// declaration span is not in `resolved.idents` — only its USES are, through
-    /// scope resolution. `Symbol.defined_at` is the bridge; adding the
-    /// declaration span to `idents` instead is not an option — measured, it
-    /// triples the tree's diagnostics (that table is consulted for other things).
-    binding_scrutinee: MutableMap<u64, AST.Expr>! = MutableMap<u64, AST.Expr> {}
 }
 
 

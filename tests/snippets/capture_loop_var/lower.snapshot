@@ -25,9 +25,9 @@
         "a" :string
         "b" :string
         "c" :string
-    let thunks: (fn() -> void)[]! =
-      @array.repeat :(fn() -> void)[]!
-        array :(fn() -> void)[]!
+    let thunks: (fn() -> void)[] =
+      @array.repeat :(fn() -> void)[]
+        array :(fn() -> void)[]
         LoweredArrayLen
     block :void
       let __for_arr_0: string[]! = labels :string[]!
@@ -54,7 +54,7 @@
               r:
                 int(1) :usize
     block :void
-      let __for_arr_4: (fn() -> void)[]! = thunks :(fn() -> void)[]!
+      let __for_arr_4: (fn() -> void)[] = thunks :(fn() -> void)[]
       let __for_len_5: usize =
         LoweredArrayLen
       let __for_i_6: usize = int(0) :usize
@@ -62,7 +62,7 @@
         let t: fn() -> void =
           index :fn() -> void
             on:
-              __for_arr_4 :(fn() -> void)[]!
+              __for_arr_4 :(fn() -> void)[]
             ix:
               __for_i_6 :usize
         ~>
@@ -142,9 +142,9 @@
                 i :i32
               r:
                 int(1) :i32
-    let mapped: (fn() -> void)[]! =
-      @array.repeat :(fn() -> void)[]!
-        array :(fn() -> void)[]!
+    let mapped: (fn() -> void)[] =
+      @array.repeat :(fn() -> void)[]
+        array :(fn() -> void)[]
         int(3) :usize
     block :void
       let f: fn(i32) -> i32 = tenfold :fn(i32) -> i32
@@ -168,7 +168,7 @@
               r:
                 int(1) :i32
     block :void
-      let __for_arr_11: (fn() -> void)[]! = mapped :(fn() -> void)[]!
+      let __for_arr_11: (fn() -> void)[] = mapped :(fn() -> void)[]
       let __for_len_12: usize =
         LoweredArrayLen
       let __for_i_13: usize = int(0) :usize
@@ -176,7 +176,7 @@
         let t: fn() -> void =
           index :fn() -> void
             on:
-              __for_arr_11 :(fn() -> void)[]!
+              __for_arr_11 :(fn() -> void)[]
             ix:
               __for_i_13 :usize
         ~>

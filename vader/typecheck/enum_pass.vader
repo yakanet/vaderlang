@@ -129,19 +129,38 @@ export check_variant_data :: fn(
         items: StructLitItem[]: v.data ?? []
         check_struct_items(items, v.span, data, typed, diags, check_expr_fn)
     }
-    // T3096 — variant data is a constant table every read shares, as a module
-    // const's value is (ADR 0034).
-    report_mutable_level(
-        "the variant data of `${decl.name}`", data, "variant data is constant",
-        decl.name_span, typed, diags,
-    )
+    reject_variant_data_reference(decl, data, typed, diags)
 }
 
-// The data struct `build_enum_type` recorded for `decl` ; null when it has none.
-declared_enum_data :: fn(decl: EnumDecl, typed: TypedProgram) -> StructType | null {
+// T3096: variant data is a constant table every read shares (ADR 0034), and the
+// effect summary does not follow it: a field holding a reference would hand that
+// table out to be written. Values only: numbers, strings, enums.
+reject_variant_data_reference :: fn(
+    decl: EnumDecl, data: StructType, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    fields :: typed.struct_field_types[data.symbol.id] ?? return
+    for [name, t] in fields {
+        if !is_value_only_type(t) {
+            detail :: "the data of `${decl.name}` holds `${name}: " +
+                "${display_type(strip_mutability(t))}`, which every read of it would share"
+            diags.push(typecheck_error(.VariantDataHoldsReference, decl.name_span, detail))
+            return
+        }
+    }
+}
+
+/// The struct the enum `decl` keeps its variant data in, as `build_enum_type`
+/// recorded it ; null when it has none.
+///
+/// @param decl   an enum declaration of the module `typed` checks.
+/// @param typed  the module, whose types hold the enum's.
+export declared_enum_data :: fn(decl: EnumDecl, typed: TypedProgram) -> StructType | null {
     sym :: lookup_sym_by_name(typed.resolved, decl.name) ?? return null
-    t :: typed.decl_types[sym.id] ?? return null
-    return if t is EnumType { t.data } else { null }
+    t :: typed.decl_types[sym.id]
+    if t is EnumType {
+        return t.data
+    }
+    return null
 }
 
 // ---- repr ranges ----------------------------------------------------------

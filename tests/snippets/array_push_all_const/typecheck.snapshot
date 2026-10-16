@@ -14,18 +14,18 @@
   expr 38:20    StringLitExpr  :: string
   expr 38:39    SeqLitExpr     :: Inner[]
   expr 38:5     StructLitExpr  :: Item!
-  expr 42:18    SeqLitExpr     :: Item[]!
+  expr 42:18    SeqLitExpr     :: Item[]
   expr 43:18    IdentExpr      :: Item[]
   expr 43:5     CallExpr       :: void
   expr 43:5     FieldExpr      :: fn(Item[]) -> void
-  expr 43:5     IdentExpr      :: Item[]!
+  expr 43:5     IdentExpr      :: Item[]
   expr 44:13    StringLitExpr  :: string
   expr 44:20    CallExpr       :: usize
   expr 44:20    FieldExpr      :: fn() -> usize
-  expr 44:20    IdentExpr      :: Item[]!
+  expr 44:20    IdentExpr      :: Item[]
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(T) -> void
-  expr 45:15    IdentExpr      :: Item[]!
+  expr 45:15    IdentExpr      :: Item[]
   expr 46:17    StringLitExpr  :: string
   expr 46:20    FieldExpr      :: string
   expr 46:20    IdentExpr      :: Item
@@ -38,16 +38,16 @@
   expr 51:18    IdentExpr      :: Item[]
   expr 51:5     CallExpr       :: void
   expr 51:5     FieldExpr      :: fn(Item[]) -> void
-  expr 51:5     IdentExpr      :: Item[]!
+  expr 51:5     IdentExpr      :: Item[]
   expr 52:13    StringLitExpr  :: string
   expr 52:24    CallExpr       :: usize
   expr 52:24    FieldExpr      :: fn() -> usize
-  expr 52:24    IdentExpr      :: Item[]!
+  expr 52:24    IdentExpr      :: Item[]
   expr 52:5     CallExpr       :: void
   expr 52:5     IdentExpr      :: fn(T) -> void
   expr 53:13    StringLitExpr  :: string
   expr 53:21    FieldExpr      :: string
-  expr 53:21    IdentExpr      :: Item[]!
+  expr 53:21    IdentExpr      :: Item[]
   expr 53:21    IndexExpr      :: Item
   expr 53:5     CallExpr       :: void
   expr 53:5     IdentExpr      :: fn(T) -> void

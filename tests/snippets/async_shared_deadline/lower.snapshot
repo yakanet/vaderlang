@@ -6,12 +6,12 @@
     assign
       target:
         .drives :i32
-          self :Probe!
+          self :Probe
       value:
         add_checked :i32
           l:
             .drives :i32
-              self :Probe!
+              self :Probe
           r:
             int(1) :i32
     if :void
@@ -23,7 +23,7 @@
                 sched_now :fn() -> i64
           r:
             .until :i64
-              self :Probe!
+              self :Probe
       then:
         return
           Suspended! {
@@ -31,7 +31,7 @@
           }
     return
       .drives :i32
-        self :Probe!
+        self :Probe
   fn snippet$Probe$Async$cancel(self: Probe!) -> void
   fn snippet$stepper() -> Async<i32>!
     return
@@ -42,8 +42,8 @@
         state: int(7) :i32
       }
   fn snippet$main() -> i32
-    let tasks: Async<i32>![]! =
-      array :Async<i32>![]!
+    let tasks: Async<i32>[] =
+      array :Async<i32>[]
     LoweredArrayPush
     block :void
       let _: i32 = int(0) :i32
@@ -69,7 +69,7 @@
             callee:
               std_async$join_all__i32 :Async<i32[]!>!
             arg0:
-              tasks :Async<i32>![]!
+              tasks :Async<i32>[]
     call :void
       callee:
         std_io$println__string :void

@@ -10,9 +10,9 @@
 // and an effect, and a set of accesses a set of integers. The fixed point joins
 // and compares paths on every step, so it never builds a path twice.
 //
-// A narrowing (`is`) takes no step: it does not change the object. An element of
-// a tuple is an element too, so that a path never depends on a type the walk
-// does not always know.
+// A narrowing (`is`) takes no step: it does not change the object, but for one
+// that rules out a byte array (`NARROWED`). An element of a tuple is an element
+// too, so that a path never depends on a type the walk does not always know.
 
 module "vader/effects"
 
@@ -26,6 +26,10 @@ import "std/string_builder"
 /// The step to an element of an array or of a tuple; any other step is a field,
 /// by its name.
 ELEMENT :: "[]"
+
+/// The step to a value narrowed by an `is` test to a type no byte array is: below
+/// it is no part of a view the value may otherwise be (`narrowed_read`).
+NARROWED :: "<narrowed>"
 
 /// The most steps a path keeps.
 MAX_STEPS: i32: 3
@@ -169,6 +173,16 @@ steps_of :: fn(t: PathTable, p: i32) -> i32[] {
     return steps
 }
 
+// Whether the first step of `p` is the step `name`. A cut path keeps the parent
+// and the step it was cut at.
+first_step_is :: fn(t: PathTable, p: i32, name: string) -> bool {
+    at := p
+    for t.nodes[at].length > 1 {
+        at = t.nodes[at].parent
+    }
+    return t.nodes[at].length == 1 && t.step_names[t.nodes[at].step] == name
+}
+
 pair_key :: fn(a: i32, b: i32) -> i64 = (i64(a) << 32) | i64(b)
 
 // Whether `p` is `c`'s path or one below it, `c` standing for deeper paths.
@@ -229,6 +243,9 @@ display_path :: fn(t: PathTable, p: i32) -> string {
     return t.display_steps(p)
 }
 
+// The value at `p` below the name `name`, as source writes it: `c.n`.
+place_label :: fn(t: PathTable, name: string, p: i32) -> string = "${name}${t.display_path(p)}"
+
 // The steps of `p` as source writes them after a name: `.f[]`.
 display_steps :: fn(t: PathTable, p: i32) -> string {
     sb :: StringBuilder {}
@@ -236,7 +253,7 @@ display_steps :: fn(t: PathTable, p: i32) -> string {
         name :: t.step_names[step]
         if name == ELEMENT {
             sb.append(ELEMENT)
-        } else {
+        } else if name != NARROWED {
             sb.append(".${name}")
         }
     }

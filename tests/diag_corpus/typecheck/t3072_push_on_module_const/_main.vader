@@ -1,0 +1,10 @@
+// Pushing onto a module constant grows it: the push would land on a copy rebuilt
+// at the read and be lost. T3072, `push` modifying what it is lent.
+module "snippet"
+
+WORDS :: ["fn", "if"]
+
+main :: fn() -> i32 {
+    WORDS.push("else")
+    return 0
+}

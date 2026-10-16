@@ -86,9 +86,9 @@
                 __buf_0 :Buffer
               arg1:
                 __off_1 :usize
-    let seen: (fn() -> i32)[]! =
-      @array.repeat :(fn() -> i32)[]!
-        array :(fn() -> i32)[]!
+    let seen: (fn() -> i32)[] =
+      @array.repeat :(fn() -> i32)[]
+        array :(fn() -> i32)[]
         int(3) :usize
     block :void
       let i: i32 = int(0) :i32
@@ -107,7 +107,7 @@
               r:
                 int(1) :i32
     block :void
-      let __for_arr_4: (fn() -> i32)[]! = seen :(fn() -> i32)[]!
+      let __for_arr_4: (fn() -> i32)[] = seen :(fn() -> i32)[]
       let __for_len_5: usize =
         LoweredArrayLen
       let __for_i_6: usize = int(0) :usize
@@ -115,7 +115,7 @@
         let read: fn() -> i32 =
           index :fn() -> i32
             on:
-              __for_arr_4 :(fn() -> i32)[]!
+              __for_arr_4 :(fn() -> i32)[]
             ix:
               __for_i_6 :usize
         ~>
@@ -178,8 +178,8 @@
                 __for_i_6 :usize
               r:
                 int(1) :usize
-    let tagged: (fn() -> string)[]! =
-      array :(fn() -> string)[]!
+    let tagged: (fn() -> string)[] =
+      array :(fn() -> string)[]
     block :void
       let __for_arr_9: string[]! =
         array :string[]!
@@ -203,7 +203,7 @@
               r:
                 int(1) :usize
     block :void
-      let __for_arr_13: (fn() -> string)[]! = tagged :(fn() -> string)[]!
+      let __for_arr_13: (fn() -> string)[] = tagged :(fn() -> string)[]
       let __for_len_14: usize =
         LoweredArrayLen
       let __for_i_15: usize = int(0) :usize
@@ -211,7 +211,7 @@
         let read: fn() -> string =
           index :fn() -> string
             on:
-              __for_arr_13 :(fn() -> string)[]!
+              __for_arr_13 :(fn() -> string)[]
             ix:
               __for_i_15 :usize
         ~>
@@ -238,8 +238,8 @@
                 __for_i_15 :usize
               r:
                 int(1) :usize
-    let evens: (fn() -> i32)[]! =
-      array :(fn() -> i32)[]!
+    let evens: (fn() -> i32)[] =
+      array :(fn() -> i32)[]
     block :void
       let pred: fn(i32) -> bool = is_even :fn(i32) -> bool
       let x: i32 = int(0) :i32
@@ -267,7 +267,7 @@
               r:
                 int(1) :i32
     block :void
-      let __for_arr_17: (fn() -> i32)[]! = evens :(fn() -> i32)[]!
+      let __for_arr_17: (fn() -> i32)[] = evens :(fn() -> i32)[]
       let __for_len_18: usize =
         LoweredArrayLen
       let __for_i_19: usize = int(0) :usize
@@ -275,7 +275,7 @@
         let read: fn() -> i32 =
           index :fn() -> i32
             on:
-              __for_arr_17 :(fn() -> i32)[]!
+              __for_arr_17 :(fn() -> i32)[]
             ix:
               __for_i_19 :usize
         ~>

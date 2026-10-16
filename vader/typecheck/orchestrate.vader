@@ -61,16 +61,11 @@ export check_module_with_bodies :: fn(
 /// `dump_types` populates the dump-only `expr_kinds` / `node_spans` side-tables
 /// (set only by `check_file` for `dump --stage=typed-ast`) ; build / run /
 /// bootstrap / LSP pass `false`, since nothing reads those tables there.
-///
-/// The `!` of a fn's parameters is deduced (`param_inference.vader`) : the project
-/// is checked in rounds, each marking in the AST the levels the previous one found
-/// mutated, until a round marks nothing new. That round is the result.
 export check_project_with_bodies :: fn(
     project: LoadedProject,
     diags: Diagnostic[],
     dump_types: bool,
 ) -> CheckResult {
-    inference :: begin_param_inference(project)
     // Build the core_symbols seed once — every per-module resolve gets the same map so
     // the body-walker can fire R2006 unconditionally on unresolved idents instead of
     // deferring to typecheck.
@@ -78,31 +73,18 @@ export check_project_with_bodies :: fn(
     mod_index :: module_index_by_name(project)
     // Phase A0 : materialise single-abstract-method sugar (`Type implements Trait ->
     // expr`) project-wide so the resolver walks bodies with `self` / `other` / …
-    // properly bound. Once, before the rounds : it reports into `project.diags`, and
-    // the deduced marks change no SAM.
+    // properly bound. It reports into `project.diags`.
     materialize_all_sams_pre_resolve(project, mod_index, core_seed)
-    // Each round mints the same symbols in the same order : starting every round at
-    // the same id keeps a symbol's id that of its first round.
-    first_symbol :: project.factory.next
-    for {
-        project.factory.next = first_symbol
-        round: Diagnostic[]: []
-        result :: check_project_round(project, round, dump_types, inference, core_seed, mod_index)
-        if !settle_param_marks(inference, result.all_modules) {
-            diags.push_all(round)
-            diags.push_all(end_param_inference(inference, result.all_modules))
-            propagate_type_param_observation(result.all_modules)
-            return result
-        }
-    }
+    result :: check_project_modules(project, diags, dump_types, core_seed, mod_index)
+    propagate_type_param_observation(result.all_modules)
+    return result
 }
 
-// One round of `check_project_with_bodies`, feeding `inference`.
-check_project_round :: fn(
+// Resolve and type every module of `project`, bodies included.
+check_project_modules :: fn(
     project: LoadedProject,
     diags: Diagnostic[],
     dump_types: bool,
-    inference: ParamInference,
     core_seed: MutableMap<string, Symbol>,
     mod_index: MutableMap<string, LoadedModule>,
 ) -> CheckResult {
@@ -126,7 +108,6 @@ check_project_round :: fn(
     )
     entry_typed :: new_typed_program(entry_rm)
     entry_typed.dump_types = dump_types
-    entry_typed.param_inference = inference
     // Pre-resolve every module first so we can register all type
     // aliases project-wide before any fn signature is lowered.
     per_module :: MutableMap<string, TypedProgram!> {}
@@ -146,7 +127,6 @@ check_project_round :: fn(
         )
         typed :: new_typed_program(rm)
         typed.dump_types = dump_types
-        typed.param_inference = inference
         per_module[id] = typed
     }
     // Phase A : register every type alias project-wide. Cross-
@@ -451,7 +431,6 @@ synth_resolved :: fn() -> ResolvedModule! {
         .symbols = [],
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
-        .immutable_borrows = MutableMap<i32, bool> {},
         .fn_overloads = MutableMap<string, Symbol[]!> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
@@ -1402,12 +1381,9 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
     typed.callees = MutableMap<usize, Callee> {}
     typed.call_sites = CallSites {}
     typed.local_types = MutableMap<u64, Type> {}
-    // The whole narrowing machine, not table by table: a sixth table added to
+    // The whole narrowing machine, not table by table: a table added to
     // `NarrowState` is then reset here for free instead of being silently left
-    // out of a hand-written list. `binding_scrutinee` goes with it — this reset
-    // only ever runs between a `.ReturnsOnly` settle walk and the `.Full` walk
-    // that follows, and every producer of that table runs inside the full body
-    // walk, so it is re-derived at no cost.
+    // out of a hand-written list.
     typed.narrow = NarrowState {}
 }
 
@@ -2631,13 +2607,8 @@ record_impl_members :: fn(
     side :: impl_side_key(for_ty)
     for m in decl.members {
         trait_method :: lookup_trait_method(trait_decl, m.name)
-        // `self!` is read from the impl member when it declares one, else from the
-        // trait's own signature — a blanket impl like
-        // `@intrinsic T[] implements<T> ArrayOps<T>` has NO members at all, so the
-        // trait declaration is the only place the marker exists.
         entry :: ImplMethod {
             .ty = ufcs_method_type(m, for_ty, trait_method, owner, diags),
-            .self_mutable = declares_mutable_self(m, trait_method),
             .decl = m,
             .impl_key = decl.span.hash(),
             .trait_key = trait_key,
@@ -2768,10 +2739,9 @@ check_impl_members :: fn(
 // T3095 — `member` must have its trait method's signature, as `trait_type` gives it
 // (its arguments, then the defaults) with `Self` read as `for_ty` : the same number of
 // parameters, each of the same type, and the same return type. The vtable slot and
-// the direct call both assume this shape. The rights follow the trait too : a member
-// may not demand more than the trait lends nor return less than it promises. A generic
-// trait method is held to its arity alone, its own type parameters being the impl's to
-// name. A SAM member and a default-method clone copy the trait's signature.
+// the direct call both assume this shape. A generic trait method is held to its arity
+// alone, its own type parameters being the impl's to name. A SAM member and a
+// default-method clone copy the trait's signature.
 check_member_signature :: fn(
     member: AST.FnDecl,
     trait_method: AST.FnDecl,
@@ -2799,32 +2769,16 @@ check_member_signature :: fn(
     }
     // `want` has no receiver ; `got` keeps the impl's `self`.
     skip :: receiver_count(trait_method)
-    // A call through the trait is checked against the TRAIT's rights : an impl that
-    // demands more mutates what the caller lent read-only (a module const, in
-    // `.rodata`), and one that returns fewer hands a read-only value to a caller
-    // promised a mutable one.
-    if skip > 0 && has_mutable_self(member) && !has_mutable_self(trait_method) {
-        declared :: "`${member.name}` declares `self!`"
-        mutates :: deduced_mutation_why(member.params[0], typed) ?? declared
-        detail :: "${mutates}, but the trait lends its receiver read-only"
-        diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.params[0].span, detail))
-    }
     for i in 0..<want.params.len() {
         param :: member.params[i + skip]
         have :: got.params[i + skip]
         if !equals_type_shape(want.params[i], have) {
             detail :: "`${member.name}` parameter `${param.name}`: ${expected_got(want.params[i], have)}"
             diags.push(typecheck_error(.ImplMemberSignatureDiffers, param.span, detail))
-        } else if !is_assignable(want.params[i], have) {
-            detail :: "`${member.name}` parameter `${param.name}` is `${display_type(have)}`, but the trait lends `${display_type(want.params[i])}`"
-            diags.push(typecheck_error(.ImplMemberSignatureDiffers, param.span, detail))
         }
     }
     if !equals_type_shape(want.return_type, got.return_type) {
         detail :: "`${member.name}` return: ${expected_got(want.return_type, got.return_type)}"
-        diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.name_span, detail))
-    } else if !is_assignable(got.return_type, want.return_type) {
-        detail :: "`${member.name}` returns `${display_type(got.return_type)}`, but the trait promises `${display_type(want.return_type)}`"
         diags.push(typecheck_error(.ImplMemberSignatureDiffers, member.name_span, detail))
     }
 }
@@ -2854,29 +2808,6 @@ impl_has_method :: fn(id: AST.ImplDecl, name: string) -> bool {
     return false
 }
 
-/// True when this method's receiver is declared `self!` — i.e. calling it mutates
-/// the receiver, so it is unavailable on an immutable one (T3071).
-///
-/// Reads the impl member first, falling back to the trait's signature. The
-/// fallback is not a nicety: `@intrinsic T[] implements<T> ArrayOps<T>`
-/// (`stdlib/std/core/array.vader`) declares NO members, so for every array method
-/// the trait declaration is the only place `self!` is written.
-///
-/// @param m             the impl member.
-/// @param trait_method  the matching trait signature, when the impl is for a trait.
-/// @return              whether the receiver may be mutated.
-declares_mutable_self :: fn(m: AST.FnDecl, trait_method: AST.FnDecl | null) -> bool {
-    if has_mutable_self(m) {
-        return true
-    }
-    if trait_method is AST.FnDecl {
-        return has_mutable_self(trait_method)
-    }
-    return false
-}
-
-has_mutable_self :: fn(fd: AST.FnDecl) -> bool = has_self_param(fd) && fd.params[0].mutable
-
 /// UFCS-bound method type : `fn(self, ...rest) -> R` becomes `fn(...rest) -> R`,
 /// since the receiver binds `self` at the call site. Always returns a type — a
 /// member with no params, or whose first param isn't `self`, just keeps them all.
@@ -2898,8 +2829,6 @@ ufcs_method_type :: fn(
         rest.push(param_type(fd.params[i], for_ty, typed, diags))
     }
     ret :: declare_impl_return(fd, for_ty, trait_method, typed, diags)
-    // The markers ride along, or a `!` parameter reached by method syntax would
-    // never be checked against its argument (T3072).
     return member_fn_type(fd, rest, ret)
 }
 
@@ -3004,15 +2933,14 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
     got :: check_expr(cd.value, annot, typed, diags)
     final :: annot ?? auto_freeze_module_const(default_if_free(got))
     typed.decl_types[sym.id] = final
-    reject_const_reaching_mutable_level(cd, got, typed, diags)
 }
 
 // An UNANNOTATED module const is frozen at every level — the same recursive default
 // a written type takes. `lower/inline_consts.vader` may hand every read the same
 // value (a `.rodata` view for a baked one), so a write through it, an element of
 // it, or a local bound from it would land in memory the program does not own:
-// silently lost, shared with every other reader, or a fault in `.rodata`. Frozen,
-// each of those is T3070 / T3042 / T3077 at typecheck instead.
+// silently lost, shared with every other reader, or a fault in `.rodata`. The
+// effect summary rejects each of those (T3070, T3072).
 //
 // Explicit annotations are respected (this only runs when `annot is null`), so
 // `X: u32[]!: [...]` stays the writable-global opt-out.

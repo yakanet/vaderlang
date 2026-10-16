@@ -1,25 +1,25 @@
 # Typecheck
 
 ## tests/snippets/range_value_to_type_max
-  FnDecl         letters              :: fn(Range<char>!) -> string
+  FnDecl         letters              :: fn(Range<char>) -> string
   FnDecl         main                 :: fn() -> i32
-  FnDecl         signed_turns         :: fn(Range<i8>!) -> i32
-  FnDecl         turns                :: fn(Range<u8>!) -> i32
-  FnDecl         wide_turns           :: fn(Range<u64>!) -> i32
-  expr 11:14    IdentExpr      :: Range<u8>!
+  FnDecl         signed_turns         :: fn(Range<i8>) -> i32
+  FnDecl         turns                :: fn(Range<u8>) -> i32
+  FnDecl         wide_turns           :: fn(Range<u64>) -> i32
+  expr 11:14    IdentExpr      :: Range<u8>
   expr 12:9     BinaryExpr     :: i32
   expr 12:9     IdentExpr      :: i32
   expr 14:12    IdentExpr      :: i32
-  expr 19:14    IdentExpr      :: Range<i8>!
+  expr 19:14    IdentExpr      :: Range<i8>
   expr 20:9     BinaryExpr     :: i32
   expr 20:9     IdentExpr      :: i32
   expr 22:12    IdentExpr      :: i32
-  expr 27:14    IdentExpr      :: Range<u64>!
+  expr 27:14    IdentExpr      :: Range<u64>
   expr 28:9     BinaryExpr     :: i32
   expr 28:9     IdentExpr      :: i32
   expr 30:12    IdentExpr      :: i32
   expr 34:12    StringLitExpr  :: string
-  expr 35:14    IdentExpr      :: Range<char>!
+  expr 35:14    IdentExpr      :: Range<char>
   expr 36:15    BinaryExpr     :: string
   expr 36:15    IdentExpr      :: string
   expr 36:21    StringLitExpr  :: string
@@ -29,38 +29,38 @@
   expr 42:24    RangeExpr      :: Range<u8>!
   expr 43:13    StringLitExpr  :: string
   expr 43:16    CallExpr       :: i32
-  expr 43:16    IdentExpr      :: fn(Range<u8>!) -> i32
-  expr 43:22    IdentExpr      :: Range<u8>!
+  expr 43:16    IdentExpr      :: fn(Range<u8>) -> i32
+  expr 43:22    IdentExpr      :: Range<u8>
   expr 43:33    CallExpr       :: i32
-  expr 43:33    IdentExpr      :: fn(Range<u8>!) -> i32
+  expr 43:33    IdentExpr      :: fn(Range<u8>) -> i32
   expr 43:39    RangeExpr      :: Range<u8>!
   expr 43:5     CallExpr       :: void
   expr 43:5     IdentExpr      :: fn(T) -> void
   expr 43:51    CallExpr       :: i32
-  expr 43:51    IdentExpr      :: fn(Range<u8>!) -> i32
+  expr 43:51    IdentExpr      :: fn(Range<u8>) -> i32
   expr 43:57    RangeExpr      :: Range<u8>!
   expr 43:67    CallExpr       :: i32
-  expr 43:67    IdentExpr      :: fn(Range<u8>!) -> i32
+  expr 43:67    IdentExpr      :: fn(Range<u8>) -> i32
   expr 43:73    RangeExpr      :: Range<u8>!
   expr 44:13    StringLitExpr  :: string
   expr 44:16    CallExpr       :: i32
-  expr 44:16    IdentExpr      :: fn(Range<i8>!) -> i32
+  expr 44:16    IdentExpr      :: fn(Range<i8>) -> i32
   expr 44:29    RangeExpr      :: Range<i8>!
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(T) -> void
   expr 45:13    StringLitExpr  :: string
   expr 45:16    CallExpr       :: i32
-  expr 45:16    IdentExpr      :: fn(Range<u64>!) -> i32
+  expr 45:16    IdentExpr      :: fn(Range<u64>) -> i32
   expr 45:27    RangeExpr      :: Range<u64>!
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(T) -> void
   expr 46:13    StringLitExpr  :: string
   expr 46:16    CallExpr       :: string
-  expr 46:16    IdentExpr      :: fn(Range<char>!) -> string
+  expr 46:16    IdentExpr      :: fn(Range<char>) -> string
   expr 46:24    RangeExpr      :: Range<char>!
   expr 46:38    BinaryExpr     :: bool
-  expr 46:45    IdentExpr      :: Range<u8>!
+  expr 46:45    IdentExpr      :: Range<u8>
   expr 46:5     CallExpr       :: void
   expr 46:5     IdentExpr      :: fn(T) -> void
   expr 46:55    BinaryExpr     :: bool
-  expr 46:62    IdentExpr      :: Range<u8>!
+  expr 46:62    IdentExpr      :: Range<u8>

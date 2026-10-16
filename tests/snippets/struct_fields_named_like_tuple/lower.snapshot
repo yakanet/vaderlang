@@ -3,11 +3,11 @@
 ## snippet
   struct snippet$Swapped { _1: i32, _0: i32 }
   struct snippet$Slot { _0: i32, _1: i32 }
-  fn snippet$bump(s: Slot!) -> void
+  fn snippet$bump(s: Slot) -> void
     assign
       target:
         ._0 :i32
-          s :Slot!
+          s :Slot
       value:
         int(7) :i32
   fn snippet$read_by_name() -> string
@@ -99,7 +99,7 @@
       }
     call :void
       callee:
-        bump :fn(Slot!) -> void
+        bump :fn(Slot) -> void
       arg0:
         s :Slot!
     return

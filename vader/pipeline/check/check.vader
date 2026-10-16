@@ -43,6 +43,7 @@ export check_project :: fn(
     result :: check_project_with_bodies(project, diags, dump_types)
     effects :: Fx.summarise_effects(project, result)
     diags.push_all(Fx.widening_diagnostics(effects, result))
+    diags.push_all(Fx.frozen_diagnostics(effects))
     return CheckedProject { .result = result, .effects = effects }
 }
 

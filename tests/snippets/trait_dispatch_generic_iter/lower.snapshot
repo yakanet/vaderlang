@@ -1,14 +1,14 @@
 # Lower
 
 ## snippet
-  fn snippet$walk(it: Iterator<i32>!) -> i32
+  fn snippet$walk(it: Iterator<i32>) -> i32
     let sum: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
       let __tup_0: [i32, Continuation] =
         vcall std_core$Iterator.next :[i32, Continuation]
           recv:
-            it :Iterator<i32>!
+            it :Iterator<i32>
       let v: i32 =
         ._0 :i32
           __tup_0 :[i32, Continuation]
@@ -91,7 +91,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        walk :fn(Iterator<i32>!) -> i32
+                        walk :fn(Iterator<i32>) -> i32
                       arg0:
                         r :Repeat<i32>!
           ~>
@@ -142,7 +142,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        walk :fn(Iterator<i32>!) -> i32
+                        walk :fn(Iterator<i32>) -> i32
                       arg0:
                         o :Once<i32>!
           ~>
@@ -161,7 +161,7 @@
         lte :bool
           l:
             .remaining :i32
-              self :Repeat<i32>!
+              self :Repeat<i32>
           r:
             int(0) :i32
       then:
@@ -169,21 +169,21 @@
           [i32, Continuation]! {
             _0:
               .value :i32
-                self :Repeat<i32>!
+                self :Repeat<i32>
             _1: int(1) :u8
           }
     let v: i32 =
       .value :i32
-        self :Repeat<i32>!
+        self :Repeat<i32>
     assign
       target:
         .remaining :i32
-          self :Repeat<i32>!
+          self :Repeat<i32>
       value:
         sub_checked :i32
           l:
             .remaining :i32
-              self :Repeat<i32>!
+              self :Repeat<i32>
           r:
             int(1) :i32
     return
@@ -196,26 +196,26 @@
     if :void
       cond:
         .yielded :bool
-          self :Once<i32>!
+          self :Once<i32>
       then:
         return
           [i32, Continuation]! {
             _0:
               .value :i32
-                self :Once<i32>!
+                self :Once<i32>
             _1: int(1) :u8
           }
     assign
       target:
         .yielded :bool
-          self :Once<i32>!
+          self :Once<i32>
       value:
         true
     return
       [i32, Continuation]! {
         _0:
           .value :i32
-            self :Once<i32>!
+            self :Once<i32>
         _1: int(0) :u8
       }
   struct snippet$Repeat__Any { value: Any, remaining: i32 }

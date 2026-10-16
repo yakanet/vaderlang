@@ -1039,6 +1039,7 @@
                 __buf_23 :Buffer
               arg1:
                 __off_24 :usize
+    LoweredArrayPush
     assign
       target:
         index :Spec
@@ -1098,6 +1099,16 @@
                     __off_26 :usize
           code: int(5) :i32
         }
+    assign
+      target:
+        .code :i32
+          index :Spec
+            on:
+              QUEUE :Spec[]!
+            ix:
+              int(0) :i32
+      value:
+        int(6) :i32
     block :void
       let i: i32 = int(0) :i32
       loop while (<…>)
@@ -1427,4 +1438,4 @@
           c1 :usize
 
 # Diagnostics
-[94:43] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Fast`
+[93:43] warning[W0016] the enum name adds nothing here — the slot already pins it, so the bare variant reads the same: write `.Fast`

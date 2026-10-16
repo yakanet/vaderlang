@@ -11,6 +11,9 @@ the rights out of the types onto them is a later decision.
 (2026-10-15)**: each access keeps the constraint that put it in its set, and a fault
 names the calls and the write that modify the value.
 
+**Its faults are errors since [0067](0067-the-frozen-values-decide-what-may-be-written.md)
+(2026-10-16)**, which moved the rights out of the types onto them.
+
 ## Context
 
 ADR 0053 freezes the value of a module constant and a view of a string's bytes.

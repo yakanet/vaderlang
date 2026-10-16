@@ -1,3 +1,3 @@
 # compile errors
-[T3042] cannot mutate an immutable array: cannot mutate `i32[]` — `DIGITS` is frozen by the module-const default at tests/snippets/const_array_bad/_main.vader:9:1 : give it a marked type (`DIGITS: T[]!: …`)
-[T3072] this argument is immutable, but its parameter grants mutation: `write_through_param` mutates `a` : an element of it is written here at tests/snippets/const_array_bad/_main.vader:12:5 — `DIGITS` is frozen by the module-const default at tests/snippets/const_array_bad/_main.vader:9:1 : give it a marked type (`DIGITS: T[]!: …`)
+[T3070] a frozen value cannot be modified: `DIGITS` is a module constant, and `DIGITS[]` is assigned ; a name bound to it holds a copy to modify
+[T3072] a frozen value cannot be lent to a function that modifies it: `DIGITS` is a module constant, and `write_through_param` modifies it (`a[]` is assigned) ; a name bound to it holds a copy to modify

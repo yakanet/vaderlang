@@ -523,8 +523,8 @@
             show_cell :fn(Color | string) -> string
           arg0:
             int(2) :u8
-    let cells: (Color | string)[]! =
-      array :(Color | string)[]!
+    let cells: (Color | string)[] =
+      array :(Color | string)[]
         int(0) :u8
         "x" :string
     LoweredArrayPush
@@ -532,13 +532,13 @@
       target:
         index :Color | string
           on:
-            cells :(Color | string)[]!
+            cells :(Color | string)[]
           ix:
             int(1) :i32
       value:
         int(2) :u8
     block :void
-      let __for_arr_4: (Color | string)[]! = cells :(Color | string)[]!
+      let __for_arr_4: (Color | string)[] = cells :(Color | string)[]
       let __for_len_5: usize =
         LoweredArrayLen
       let __for_i_6: usize = int(0) :usize
@@ -546,7 +546,7 @@
         let c: Color | string =
           index :Color | string
             on:
-              __for_arr_4 :(Color | string)[]!
+              __for_arr_4 :(Color | string)[]
             ix:
               __for_i_6 :usize
         ~>

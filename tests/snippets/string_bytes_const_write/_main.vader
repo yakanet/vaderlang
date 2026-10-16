@@ -1,6 +1,6 @@
-// T3042 — `bytes()` returns read-only `u8[]`, so writing through the view is
-// rejected at typecheck. The view aliases the string's immutable interned
-// bytes ; the const-ness is what makes the native zero-copy view sound.
+// T3070: `bytes()` hands out a view of the string's own bytes, which nothing
+// modifies, so a write through a name bound to it is rejected. The native
+// zero-copy view is sound because no write reaches it.
 
 module "snippet"
 

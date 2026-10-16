@@ -7,7 +7,7 @@
   FnDecl         chain_continue_by_name :: fn() -> void
   FnDecl         chars_indexed_continue :: fn() -> void
   FnDecl         coalesce_continue    :: fn() -> void
-  FnDecl         drop_odd             :: fn(Iterator<i32>!) -> Iterator<i32>
+  FnDecl         drop_odd             :: fn(Iterator<i32>) -> Iterator<i32>
   FnDecl         flat_map_continue    :: fn() -> void
   FnDecl         indexed_continue     :: fn() -> void
   FnDecl         loopless_generator_continue :: fn() -> void
@@ -95,7 +95,7 @@
   expr 151:42   BinaryExpr     :: i32
   expr 151:42   BinaryExpr     :: i32
   expr 151:47   IdentExpr      :: i32
-  expr 154:14   IdentExpr      :: Iterator<i32>!
+  expr 154:14   IdentExpr      :: Iterator<i32>
   expr 155:12   BinaryExpr     :: bool
   expr 155:12   BinaryExpr     :: i32
   expr 155:12   IdentExpr      :: i32
@@ -195,7 +195,7 @@
   expr 208:5    IdentExpr      :: fn(T) -> void
   expr 208:53   IdentExpr      :: i32
   expr 213:14   CallExpr       :: __genstate_chain<i32>!
-  expr 213:14   FieldExpr      :: fn(Iterator<i32>!) -> Iterator<i32>
+  expr 213:14   FieldExpr      :: fn(Iterator<i32>) -> Iterator<i32>
   expr 213:14   SeqLitExpr     :: i32[]!
   expr 213:27   SeqLitExpr     :: i32[]!
   expr 214:12   BinaryExpr     :: bool
@@ -206,7 +206,7 @@
   expr 217:9    IdentExpr      :: i32
   expr 21:14    StringLitExpr  :: string
   expr 220:11   CallExpr       :: __genstate_chain<i32>!
-  expr 220:11   FieldExpr      :: fn(Iterator<i32>!) -> Iterator<i32>
+  expr 220:11   FieldExpr      :: fn(Iterator<i32>) -> Iterator<i32>
   expr 220:11   SeqLitExpr     :: i32[]!
   expr 220:24   SeqLitExpr     :: i32[]!
   expr 221:14   IdentExpr      :: __genstate_chain<i32>!
@@ -225,7 +225,7 @@
   expr 22:19    FieldExpr      :: fn() -> Iterator<[i32, usize]>
   expr 22:19    SeqLitExpr     :: i32[]!
   expr 232:14   CallExpr       :: __genstate_chain<i32>!
-  expr 232:14   FieldExpr      :: fn(Iterator<i32>!) -> Iterator<i32>
+  expr 232:14   FieldExpr      :: fn(Iterator<i32>) -> Iterator<i32>
   expr 232:14   SeqLitExpr     :: i32[]!
   expr 232:27   SeqLitExpr     :: i32[]!
   expr 233:18   SeqLitExpr     :: i32[]!
@@ -244,7 +244,7 @@
   expr 23:12    IdentExpr      :: i32
   expr 23:9     IfExpr         :: void
   expr 241:11   CallExpr       :: __genstate_chain<i32>!
-  expr 241:11   FieldExpr      :: fn(Iterator<i32>!) -> Iterator<i32>
+  expr 241:11   FieldExpr      :: fn(Iterator<i32>) -> Iterator<i32>
   expr 241:11   SeqLitExpr     :: i32[]!
   expr 241:24   SeqLitExpr     :: i32[]!
   expr 242:14   IdentExpr      :: __genstate_chain<i32>!

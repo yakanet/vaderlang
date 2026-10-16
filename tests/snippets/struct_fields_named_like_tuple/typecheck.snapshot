@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/struct_fields_named_like_tuple
-  FnDecl         bump                 :: fn(Slot!) -> void
+  FnDecl         bump                 :: fn(Slot) -> void
   FnDecl         main                 :: fn() -> i32
   FnDecl         read_by_name         :: fn() -> string
   StructDecl     Slot                 :: Slot!
@@ -11,7 +11,7 @@
   FnDecl         written_by_a_deferred_block :: fn() -> i32
   FnDecl         written_directly     :: fn() -> i32
   expr 20:5     FieldExpr      :: i32
-  expr 20:5     IdentExpr      :: Slot!
+  expr 20:5     IdentExpr      :: Slot
   expr 24:10    StructLitExpr  :: Swapped!
   expr 25:12    StringLitExpr  :: string
   expr 25:15    FieldExpr      :: i32
@@ -26,7 +26,7 @@
   expr 35:10    StructLitExpr  :: Slot!
   expr 36:10    IdentExpr      :: Slot!
   expr 36:5     CallExpr       :: void
-  expr 36:5     IdentExpr      :: fn(Slot!) -> void
+  expr 36:5     IdentExpr      :: fn(Slot) -> void
   expr 37:12    FieldExpr      :: i32
   expr 37:12    IdentExpr      :: Slot!
   expr 41:10    StructLitExpr  :: Slot!
