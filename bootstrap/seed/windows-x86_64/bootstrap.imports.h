@@ -20,12 +20,16 @@ static inline vader_string_t vader_host_std_core_byte_slice(vader_string_t a0, s
     return vader_string_byte_slice(a0, a1, a2);
 }
 
+static inline bool vader_host_std_core_is_ascii(vader_string_t a0) {
+    return vader_string_is_ascii(a0);
+}
+
 static inline vader_string_t vader_host_std_core_bytes_to_string(void* a0) {
     return vader_string_as_string((vader_array_t*) a0);
 }
 
 static inline void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 18u, 287u);
+    return (void*) vader_string_bytes_view(a0, 17u, 278u);
 }
 
 static inline uint64_t vader_host_std_core_string_Hash_hash(vader_string_t a0) {
@@ -35,7 +39,7 @@ static inline uint64_t vader_host_std_core_string_Hash_hash(vader_string_t a0) {
 static inline vader_box_t vader_host_std_env_get_env(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
     const char* r = getenv(c0);
-    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(281u, (int64_t) vader_atom_intern(r, strlen(r)));
+    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(272u, (int64_t) vader_atom_intern(r, strlen(r)));
     vader_cstr_free_for(a0, c0);
     return out;
 }

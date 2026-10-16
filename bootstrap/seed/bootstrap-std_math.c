@@ -1,12 +1,5 @@
 #include "bootstrap.split.h"
 
-int32_t std_math_max_1(int32_t l0, int32_t l1) {
-    if ((l0 > l1)) {
-        return l0;
-    }
-    return l1;
-}
-
 int32_t std_math_min_1(int32_t l0, int32_t l1) {
     if ((l0 < l1)) {
         return l0;

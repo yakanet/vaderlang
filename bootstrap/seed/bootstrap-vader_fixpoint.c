@@ -29,29 +29,29 @@ void* vader_fixpoint_components_bottom_up(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 10u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     l1 = ((vader_array_t*) ((vader_struct_vader_fixpoint_Graph_t*) l0)->f_successors)->length;
-    vader_array_t* _a0_arr = vader_array_new(16u, 1u, 7u, 284u);
+    vader_array_t* _a0_arr = vader_array_new(15u, 1u, 7u, 275u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(-1);
     t0 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (size_t) l1);
     l2 = (void*) _a1_arr;
-    vader_array_t* _a2_arr = vader_array_new(16u, 1u, 7u, 284u);
+    vader_array_t* _a2_arr = vader_array_new(15u, 1u, 7u, 275u);
     ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (int32_t) INT32_C(0);
     t0 = (void*) _a2_arr;
     vader_array_t* _a3_arr = vader_array_repeat((vader_array_t*) t0, (size_t) l1);
     l3 = (void*) _a3_arr;
-    vader_array_t* _a4_arr = vader_array_new(13u, 1u, 12u, 279u);
+    vader_array_t* _a4_arr = vader_array_new(12u, 1u, 12u, 270u);
     ((uint8_t*) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = (uint8_t) false;
     t0 = (void*) _a4_arr;
     vader_array_t* _a5_arr = vader_array_repeat((vader_array_t*) t0, (size_t) l1);
     l4 = (void*) _a5_arr;
-    vader_array_t* _a6_arr = vader_array_new(16u, 0u, 7u, 284u);
+    vader_array_t* _a6_arr = vader_array_new(15u, 0u, 7u, 275u);
     l5 = (void*) _a6_arr;
-    vader_array_t* _a7_arr = vader_array_new(16u, 0u, 7u, 284u);
+    vader_array_t* _a7_arr = vader_array_new(15u, 0u, 7u, 275u);
     l6 = (void*) _a7_arr;
-    vader_array_t* _a8_arr = vader_array_new(22u, 0u, 4u, 291u);
+    vader_array_t* _a8_arr = vader_array_new(21u, 0u, 4u, 282u);
     l7 = (void*) _a8_arr;
     vader_struct_vader_fixpoint_TarjanWalk_t* _a9_obj = (vader_struct_vader_fixpoint_TarjanWalk_t*) vader_gc_alloc(sizeof(vader_struct_vader_fixpoint_TarjanWalk_t));
-    vader_obj_header_init(_a9_obj, 896u);
+    vader_obj_header_init(_a9_obj, 890u);
     _a9_obj->f_order = l2;
     _a9_obj->f_low = l3;
     _a9_obj->f_on_stack = l4;
@@ -60,7 +60,7 @@ void* vader_fixpoint_components_bottom_up(void* l0) {
     _a9_obj->f_frame_tried = l7;
     _a9_obj->f_next_rank = INT32_C(0);
     l2 = (void*) _a9_obj;
-    vader_array_t* _a10_arr = vader_array_new(2u, 0u, 13u, 16u);
+    vader_array_t* _a10_arr = vader_array_new(2u, 0u, 13u, 15u);
     l3 = (void*) _a10_arr;
     l8 = (size_t) 0;
     while ((l8 < l1)) {
@@ -117,7 +117,7 @@ void* vader_fixpoint_components_bottom_up(void* l0) {
                     vader_array_t* _a18_slotarr = ((vader_array_t*) ((vader_struct_vader_fixpoint_TarjanWalk_t*) l2)->f_on_stack);
                     VADER_ARRAY_RESOLVE_BUF(_a18_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a18_slotarr, l15)
-                    t4 = vader_box_bool(279u, ((uint8_t*) _a18_slotarr->buf->slots)[_a18_slotarr->offset + (size_t) l15]);
+                    t4 = vader_box_bool(270u, ((uint8_t*) _a18_slotarr->buf->slots)[_a18_slotarr->offset + (size_t) l15]);
                     t5 = t4.payload.b;
                     if (t5) {
                         l6 = ((vader_struct_vader_fixpoint_TarjanWalk_t*) l2)->f_low;
@@ -247,7 +247,7 @@ static void* vader_fixpoint_pop_component(void* l0, int32_t l1) {
     void** gc_raw_roots[2] = { &l0, &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(16u, 0u, 7u, 284u);
+    vader_array_t* _a0_arr = vader_array_new(15u, 0u, 7u, 275u);
     l2 = (void*) _a0_arr;
     for (;;) {
         l4 = vader_array_remove_last((vader_array_t*) ((vader_struct_vader_fixpoint_TarjanWalk_t*) l0)->f_stack);
@@ -265,7 +265,7 @@ static void* vader_fixpoint_pop_component(void* l0, int32_t l1) {
         }
         break;
     }
-    vader_host_std_abort_panic(2411u);
+    vader_host_std_abort_panic(2358u);
     vader_unreachable("a no-return call returned");
     vader_gc_top = gc_frame.prev;
 }
@@ -276,12 +276,12 @@ static void* vader_fixpoint_reachability_step(void* l0, void* l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_struct___lambda_env_vader_fixpoint_1_t* _a0_obj = (vader_struct___lambda_env_vader_fixpoint_1_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_vader_fixpoint_1_t));
-    vader_obj_header_init(_a0_obj, 312u);
+    vader_obj_header_init(_a0_obj, 310u);
     _a0_obj->f_cap_0 = l1;
     _a0_obj->f_cap_1 = l0;
     t0 = (void*) _a0_obj;
     vader_fn_t* _a1_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
-    vader_obj_header_init(_a1_closure, 253u);
+    vader_obj_header_init(_a1_closure, 245u);
     _a1_closure->code = (void*) &vader_fn_lift___lambda_vader_fixpoint_0;
     _a1_closure->env = t0;
     t0 = (void*) _a1_closure;
@@ -301,7 +301,7 @@ void* vader_fixpoint_solve_bottom_up(void* l0, void* l1, int32_t l2) {
     void** gc_raw_roots[5] = { &l0, &l1, &l3, &l4, &l7 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 5u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(16u, 0u, 7u, 284u);
+    vader_array_t* _a0_arr = vader_array_new(15u, 0u, 7u, 275u);
     l3 = (void*) _a0_arr;
     l4 = vader_fixpoint_components_bottom_up(l0);
     l5 = ((vader_array_t*) l4)->length;
@@ -326,7 +326,7 @@ void* vader_fixpoint_solve_bottom_up(void* l0, void* l1, int32_t l2) {
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT32_C(0))
         t2 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) INT32_C(0)];
         vader_fn_t* _a3_fnobj = (vader_fn_t*) l1;
-        t3 = ((vader_fn_erased_sig_1_t) _a3_fnobj->code)(_a3_fnobj->env, vader_box_i32(284u, t2));
+        t3 = ((vader_fn_erased_sig_1_t) _a3_fnobj->code)(_a3_fnobj->env, vader_box_i32(275u, t2));
         t0 = t3.payload.b;
         t1 = (l6 + INT64_C(1));
         l6 = (size_t) (int64_t) t1;
@@ -388,7 +388,7 @@ static bool vader_fixpoint_sweep_until_settled(void* l0, void* l1, int32_t l2) {
             VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l7)
             t0 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l7];
             vader_fn_t* _a1_fnobj = (vader_fn_t*) l1;
-            t1 = ((vader_fn_erased_sig_1_t) _a1_fnobj->code)(_a1_fnobj->env, vader_box_i32(284u, t0));
+            t1 = ((vader_fn_erased_sig_1_t) _a1_fnobj->code)(_a1_fnobj->env, vader_box_i32(275u, t0));
             t2 = t1.payload.b;
             if (t2) {
                 l4 = true;
