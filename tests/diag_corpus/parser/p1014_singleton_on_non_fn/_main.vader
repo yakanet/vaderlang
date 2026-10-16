@@ -1,0 +1,19 @@
+// `@singleton` shares what a free function builds. On anything else it would do
+// nothing at all, so it is refused where the parser still knows what follows.
+module "snippet"
+
+Box :: struct {
+    n: i32
+}
+
+@singleton
+Shape :: trait {
+    area :: fn(self) -> i32
+}
+
+Box implements Shape {
+    @singleton
+    area :: fn(self) -> i32 = self.n
+}
+
+main :: fn() -> i32 = 0

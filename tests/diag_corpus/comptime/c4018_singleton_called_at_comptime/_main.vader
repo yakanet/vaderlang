@@ -1,0 +1,10 @@
+// A `@singleton` function's instance is built by the program's run, which has not
+// started when a constant is folded: a constant that calls one is C4018.
+module "snippet"
+
+@singleton
+size :: fn() -> i32 = 4
+
+LIMIT :: @comptime size()
+
+main :: fn() -> i32 = LIMIT

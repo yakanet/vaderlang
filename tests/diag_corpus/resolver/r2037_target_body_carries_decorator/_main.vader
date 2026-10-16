@@ -1,0 +1,13 @@
+// A body takes every decorator but `@extern` and `@intrinsic` from its declaration,
+// so one written on the body would be dropped without a word.
+
+module "main"
+
+@target
+size :: fn() -> i32 = 0
+
+@target(.Linux, .Darwin, .Windows)
+@singleton
+size :: fn() -> i32 = 1
+
+main :: fn() -> i32 = size()

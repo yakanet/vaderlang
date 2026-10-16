@@ -49,6 +49,8 @@ export Op :: Unreachable
     | ArrayLen
     | ArraySlice
     | DataConst
+    | GlobalGet
+    | GlobalSet
     | RefCast
     | Retag
     | Convert
@@ -367,6 +369,12 @@ export op_shortens_array :: fn(op: Op) -> bool = op is ArrayRemoveLast | ArrayCl
 /// op is the runtime read for read-only `T[]` literals routed to .rodata
 /// by the bytecode emitter.
 export DataConst :: struct { pool_index: i32, type_id: i32 }
+
+/// Push the value of the global slot `module.globals[index]`.
+export GlobalGet :: struct { index: i32 }
+
+/// Pop a value into the global slot `module.globals[index]`.
+export GlobalSet :: struct { index: i32 }
 
 /// No-op runtime cast — the .virt format emits `ref.cast TID` after
 /// every `array.get` / `struct.get` to narrow the static type from

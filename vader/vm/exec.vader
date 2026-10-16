@@ -879,19 +879,35 @@ primitive_impl_import :: fn(mangle: string, arity: usize) = bc.BcImport {
     .is_extern    = false,
 }
 
+// Stable marker in the trap of a global slot reached at comptime, which
+// `comptime_vm/resolve.vader` routes to C4018 (`is_singleton_comptime_trap_message`).
+SINGLETON_COMPTIME_MARKER :: "belongs to a `@singleton`, whose instance only a run builds"
+
+// The trap of global slot `index` reached during a comptime evaluation.
+global_at_comptime_trap :: fn(state: VmState, index: i32) -> Trap =
+    Trap { .message = "`${state.bc.globals[usize(index)].name}` ${SINGLETON_COMPTIME_MARKER}" }
+
+/// Whether a trap of a comptime run came from a global slot it reached.
+///
+/// @param message  the `Trap.message` of a comptime VM run.
+export is_singleton_comptime_trap_message :: fn(message: string) -> bool =
+    SINGLETON_COMPTIME_MARKER in message
+
 /// Run one op that reads and writes the operand stack of `frame` as boxed values,
 /// and advance `frame.pc` — the register engine's path for the ops it does not
 /// run itself, on a scratch frame holding the op's operands.
 ///
-/// @param state    the prepared module.
-/// @param run      the run's host state.
-/// @param instr    the op.
-/// @param frame    the frame whose stack holds the operands.
-/// @param fn_name  the running function, for trap messages.
-/// @return         `null` when the op ran.
-/// @error          the `Trap` that stops the run.
+/// @param state        the prepared module.
+/// @param run          the run's host state.
+/// @param instr        the op.
+/// @param frame        the frame whose stack holds the operands.
+/// @param fn_name      the running function, for trap messages.
+/// @param is_comptime  true for a comptime evaluation.
+/// @return             `null` when the op ran.
+/// @error              the `Trap` that stops the run ; a global slot reached at
+///                     comptime is one.
 apply_boxed :: fn(
-    state: VmState, run: RunHost, instr: bc.Op, frame: Frame, fn_name: string,
+    state: VmState, run: RunHost, instr: bc.Op, frame: Frame, fn_name: string, is_comptime: bool,
 ) -> Trap | null {
     // @partial: the ops the register engine runs itself.
     @partial match instr {
@@ -972,6 +988,24 @@ apply_boxed :: fn(
             }
             array_unwrap.offset = 0
             array_unwrap.length = 0
+            frame.sp = frame.sp - 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.GlobalGet -> {
+            // The global slots of the program, which only a run fills, are out of
+            // a comptime evaluation's reach.
+            if is_comptime {
+                return global_at_comptime_trap(state, instr.index)
+            }
+            push_val(frame, frame.sp, state.globals[usize(instr.index)])
+            frame.sp = frame.sp + 1
+            frame.pc = frame.pc + 1
+        }
+        is bc.GlobalSet -> {
+            if is_comptime {
+                return global_at_comptime_trap(state, instr.index)
+            }
+            state.globals[usize(instr.index)] = peek_owned(frame, frame.sp - 1)
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }

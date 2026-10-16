@@ -36,6 +36,9 @@ WalkCtx :: struct {
     slots: MutableMap<i32, usize> = MutableMap<i32, usize> {}
     /// How many lambdas the walk is inside.
     lambda_depth: i32 = 0
+    /// What the body's own result undergoes: returned to the caller, or kept for
+    /// the whole run by a `@singleton`.
+    result_effect: Effect = .Returned
     /// Where the walk notes what it does with frozen values (`frozen.vader`).
     frozen: FrozenSites
     /// Where the walk notes the arguments the typecheck widened (`variance.vader`).
@@ -74,6 +77,7 @@ skeleton_of :: fn(
         .index = index,
         .frozen = frozen,
         .widenings = widenings,
+        .result_effect = result_effect_of(decl),
     }
     for i in 0..<decl.params.len() {
         p :: decl.params[i]
@@ -85,7 +89,7 @@ skeleton_of :: fn(
     }
     body :: decl.body ?? return ctx.s
     result :: ctx.block_value(body)
-    ctx.escape(result, .Returned, body.span)
+    ctx.escape(result, ctx.result_effect, body.span)
     ctx.note_frozen_body(node, null)
     return ctx.s
 }
@@ -118,6 +122,14 @@ return_stmt :: fn(ctx: WalkCtx, s: AST.ReturnStmt) -> void {
 // lambda.
 return_effect :: fn(ctx: WalkCtx) -> Effect {
     if ctx.lambda_depth > 0 {
+        return .Stored
+    }
+    return ctx.result_effect
+}
+
+// A `@singleton` keeps what its body builds for the whole run: kept, not returned.
+result_effect_of :: fn(decl: AST.FnDecl) -> Effect {
+    if AST.decorators_have(decl.decorators, "singleton") {
         return .Stored
     }
     return .Returned

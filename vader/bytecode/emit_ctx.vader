@@ -51,6 +51,9 @@ export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = t
 /// helpers don't need an `opts` parameter when they only touch the
 /// shared state.
 export EmitterCtx :: struct {
+    /// The module's global slots (`BytecodeModule.globals`), their types interned
+    /// before the bodies are emitted.
+    globals: BcGlobal[] = []
     /// Type table being built. Index 0 is reserved for the `null`
     /// primitive so unboxed nulls have a well-defined tag at runtime
     /// (matches `VADER_BOX_TAG_NULL = 0` in `runtime/c/vader.h`).

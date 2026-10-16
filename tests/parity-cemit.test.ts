@@ -369,6 +369,10 @@ const C_PARITY = new Set<string>([
   // representation and the read site is a silent wrong-value read, not a trap.
   // Guards the regression where an ANNOTATED const lost its pooling.
   "module_const_mutability",
+  // A `@singleton`'s instance lives in a global slot, which the C emit declares
+  // and roots in the permanent GC frame by what it holds (a box, a raw reference,
+  // an atom): native is the oracle that the instance survives and keeps its writes.
+  "singleton_instance",
   // An `is` test on a union of arrays selects the variant on SHAPE alone, so
   // native is the oracle: each branch must still land on the right concrete
   // element width. A variant matched modulo mutability that read back at the

@@ -33,6 +33,11 @@ Declares entry `<index>` of the data pool, read by `data.const`: a pre-built arr
 `structs` and `agg` structured elements. `mut` marks a writable global rather than
 read-only data.
 
+### `global <index> <type> <name>`
+Declares global slot `<index>`, read by `global.get` and written by `global.set`: storage
+of type `<type>` that outlives every call, at its type's zero value until written.
+`<name>` only labels it (`f.instance`). The compiler alone writes one, for `@singleton`.
+
 ### `import <index> …`
 Declares entry `<index>` of the import table, called by `call.import`: a function the
 host provides (`extern` for a C function, with its header), with its signature.
@@ -83,6 +88,14 @@ Push the pre-built array at entry `<data>` of the data pool; `<type>` is its arr
 
 ### `type.const <type>`
 Push type `<type>` as a value — the run-time form of a `type`-typed expression.
+
+## Globals
+
+### `global.get <global>`
+Push the value of global slot `<global>`.
+
+### `global.set <global>`
+Pop a value into global slot `<global>`.
 
 ## Locals
 

@@ -226,6 +226,8 @@ export VtableRow :: struct {
 /// - `data_pool`— pre-materialised primitive arrays. `data.const N` op
 ///                references entries here ; the C-emit lowers each into
 ///                a `.rodata` block.
+/// - `globals`  : the global slots `global.get` / `global.set` name, each with
+///                its type ; a slot holds its type's zero value until written.
 /// - `functions`— every Vader-side fn body, in emission order. `Call`
 ///                ops reference these by index.
 /// - `imports`  — external symbols. `call.import` references these by
@@ -245,6 +247,15 @@ export BytecodeModule :: struct {
     exports: BcExport[]
     impl_table: ImplEntry[]
     vtables: VtableRow[]
+    globals: BcGlobal[] = []
+}
+
+/// A global slot of a module: storage that outlives every call, written only by
+/// code the compiler generates (`@singleton`).
+export BcGlobal :: struct {
+    /// The slot's name in dumps (`f.instance`).
+    name: string
+    type_id: i32
 }
 
 /// Each pool entry's array type_id, taken from the `data.const` ops that name it —

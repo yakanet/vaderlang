@@ -488,7 +488,7 @@ reg_call :: fn(
                 }
             }
             .Boxed -> {
-                failed :: run_boxed(state, m, f, pc, base)
+                failed :: run_boxed(state, m, f, pc, base, is_comptime)
                 if failed != null {
                     return failed
                 }
@@ -990,7 +990,9 @@ scratch_frame :: fn() -> Frame {
 
 // Run the `Boxed` op at `pc` on the scratch frame, its operands and results in the
 // registers from r[b].
-run_boxed :: fn(state: VmState, m: RegMachine, f: RegFunction, pc: usize, base: usize) -> Trap | null {
+run_boxed :: fn(
+    state: VmState, m: RegMachine, f: RegFunction, pc: usize, base: usize, is_comptime: bool,
+) -> Trap | null {
     w :: f.words[pc]
     at :: base + usize(operand_b(w))
     pops :: usize(operand_c(w) & 255)
@@ -1005,7 +1007,7 @@ run_boxed :: fn(state: VmState, m: RegMachine, f: RegFunction, pc: usize, base: 
     }
     frame.sp = pops
     frame.pc = f.origin[pc]
-    outcome :: apply_boxed(state, m.run, f.boxed[usize(operand_a(w))], frame, f.name)
+    outcome :: apply_boxed(state, m.run, f.boxed[usize(operand_a(w))], frame, f.name, is_comptime)
     if outcome is Trap {
         return outcome
     }

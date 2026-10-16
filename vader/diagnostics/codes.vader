@@ -137,6 +137,7 @@ export TypecheckCode :: enum(CodeInfo) {
     FieldDefaultsFillEachOther      { .id = "T3100", .message = "field defaults cannot fill each other in" },
     CannotWriteTupleElement         { .id = "T3101", .message = "a tuple's element cannot be written" },
     UnsafeArrayWidening             { .id = "T3102", .message = "array argument cannot be widened" },
+    MisshapedSingleton              { .id = "T3103", .message = "a `@singleton` function takes no parameter and runs straight through" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never
@@ -216,7 +217,7 @@ export ResolverCode :: enum(CodeInfo) {
     CompilerImportFromLibrary    { .id = "R2034", .message = "a shipped library must not import the compiler" },
     UnknownTargetSelector        { .id = "R2035", .message = "unknown target selector" },
     TargetBodyWithoutDeclaration { .id = "R2036", .message = "`@target` body matches no declaration" },
-    TargetBodyCarriesExport      { .id = "R2037", .message = "`@target` body carries `export`" },
+    TargetBodyCarriesEnvelope    { .id = "R2037", .message = "`@target` body carries what its declaration owns" },
     TargetBodiesOverlap          { .id = "R2038", .message = "two `@target` bodies cover the same platform" },
     DuplicateTargetDeclaration   { .id = "R2039", .message = "duplicate bare `@target` declaration" },
     TargetBodySignatureDiffers   { .id = "R2040", .message = "`@target` body does not have the declaration's signature" },
@@ -244,6 +245,7 @@ export ComptimeCode :: enum(CodeInfo) {
     AssertFailed                    { .id = "C4015", .message = "compile-time assertion failed" },
     ImpureHostAtComptime            { .id = "C4016", .message = "impure host call at comptime" },
     IntegerOverflow                 { .id = "C4017", .message = "integer overflow in a constant expression" },
+    SingletonAtComptime             { .id = "C4018", .message = "a `@singleton` function cannot run at comptime" },
 }
 
 // M-codes belong to the MIR-lowering pass (AST -> Lowered IR) ; once

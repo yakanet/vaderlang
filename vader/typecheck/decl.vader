@@ -280,7 +280,38 @@ declare_fn :: fn(
             ),
         )
     }
+    if AST.decorators_have(decl.decorators, "singleton") {
+        check_singleton_shape(decl, diags)
+    }
     check_public_fn_visibility(decl, params, return_type, diags)
+}
+
+// A `@singleton` function builds one instance for the whole program: an argument or
+// a type argument would ask for one per value, and a body that suspends would let
+// another call see it half built.
+check_singleton_shape :: fn(decl: AST.FnDecl, diags: Diagnostic[]) -> void {
+    detail :: singleton_shape_fault(decl) ?? return
+    diags.push(typecheck_error(.MisshapedSingleton, decl.name_span, "`${decl.name}` ${detail}"))
+}
+
+// What keeps `decl` from being a singleton, or null.
+singleton_shape_fault :: fn(decl: AST.FnDecl) -> string | null {
+    if decl.params.len() > 0 {
+        return "takes parameters"
+    }
+    if decl.type_params.len() > 0 {
+        return "is generic"
+    }
+    if fn_is_async(decl) {
+        return "awaits"
+    }
+    if fn_is_generator(decl) {
+        return "yields"
+    }
+    if decl.body == null {
+        return "has no body"
+    }
+    return null
 }
 
 has_target_decorator :: fn(decorators: AST.Decorator[]) -> bool {

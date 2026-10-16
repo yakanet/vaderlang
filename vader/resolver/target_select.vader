@@ -243,11 +243,24 @@ check_groups :: fn(files: SourceFile[], diags: Diagnostic[]) -> void {
                 if d.visibility == .Public {
                     diags.push(
                         resolver_error(
-                            .TargetBodyCarriesExport,
+                            .TargetBodyCarriesEnvelope,
                             d.name_span,
                             "`${d.name}` is a body ; the bare `@target` declaration carries `export`",
                         ),
                     )
+                }
+                // `graft_body` takes every other decorator from the declaration, so
+                // one written on a body would be dropped without a word.
+                for dec in d.decorators {
+                    if dec.name != "target" && !provides_body(dec.name) {
+                        diags.push(
+                            resolver_error(
+                                .TargetBodyCarriesEnvelope,
+                                dec.span,
+                                "`@${dec.name}` belongs on the bare `@target` declaration",
+                            ),
+                        )
+                    }
                 }
                 // Overlap. Two bodies covering one platform makes the winner
                 // depend on declaration ORDER — the arbitrary silence the rest of
@@ -412,6 +425,10 @@ resolve_decl :: fn(
     return d
 }
 
+// A decorator saying who provides a body, which a body carries rather than its
+// declaration.
+provides_body :: fn(name: string) -> bool = name == "extern" || name == "intrinsic"
+
 // Build the merged node: the declaration's envelope, the winner's body.
 //
 // `@extern` / `@intrinsic` ride along from the body, because they say WHO
@@ -429,7 +446,7 @@ graft_body :: fn(decl: AST.FnDecl, body: AST.FnDecl) -> AST.FnDecl {
         decorators.push(dec)
     }
     for dec in body.decorators {
-        if dec.name == "extern" || dec.name == "intrinsic" {
+        if provides_body(dec.name) {
             decorators.push(dec)
         }
     }

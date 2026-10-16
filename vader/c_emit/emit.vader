@@ -515,7 +515,7 @@ struct_definition :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> CStruct
 /// element buffer ; string arrays bake a `vader_box_t` slot buffer holding the
 /// elements' atom ids.
 emit_data_pool :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
-    if ctx.module.data_pool.len() == 0 {
+    if ctx.module.data_pool.len() == 0 && ctx.module.globals.len() == 0 {
         return
     }
     items: CTopLevel[]: []
@@ -540,6 +540,7 @@ emit_data_pool :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
             is BcAggregateData -> emit_agg_data_entry(ctx, items, array, entry, atom_of)
         }
     }
+    emit_global_slots(ctx, items)
     emit_global_const_roots(ctx, items)
     printer.print_section(CSection {
         .comment = [
@@ -644,7 +645,7 @@ object_header :: fn(tag: CExpression) -> CExpression = initializer_list([
 // their own pass because `vader_atom_mark_roots` only walks a frame's boxed `ptrs`.
 emit_global_const_roots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
     indices :: mutable_pool_indices(ctx.module.data_pool)
-    if indices.len() == 0 {
+    if indices.len() == 0 && ctx.module.globals.len() == 0 {
         return
     }
     // `main` installs the frame, and under `--split` `main` lives in a different
@@ -654,15 +655,17 @@ emit_global_const_roots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
     for i in indices {
         arrays.push(address_of(verbatim("vader_data_${i}")))
     }
-    items.push(CGlobal {
-        .storage = storage,
-        .type = "vader_array_t*",
-        .declarator = CDeclarator {
-            .name = "vader_global_const_arrays",
-            .length = UNSIZED,
-            .value = initializer_list(arrays),
-        },
-    })
+    if arrays.len() > 0 {
+        items.push(CGlobal {
+            .storage = storage,
+            .type = "vader_array_t*",
+            .declarator = CDeclarator {
+                .name = "vader_global_const_arrays",
+                .length = UNSIZED,
+                .value = initializer_list(arrays),
+            },
+        })
+    }
     // A BOXED static buffer is rooted alongside its array. `vader_gc_scan_raw`
     // forwards `.buf` but never descends into an off-arena object, so a heap value
     // written into a slot (`SPECS[0] = other`) would be invisible to the collector.
@@ -677,24 +680,93 @@ emit_global_const_roots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
             objects.push(address_of(verbatim("vader_data_${i}_buf")))
         }
     }
-    items.push(CGlobal {
-        .storage = storage,
-        .type = "void*",
-        .declarator = CDeclarator {
-            .name = "vader_global_const_objs",
-            .length = UNSIZED,
-            .value = initializer_list(objects),
-        },
-    })
-    frame :: initializer_list([
-        NULL_POINTER, ZERO, ZERO, NULL_POINTER, NULL_POINTER,
-        unsigned(i64(objects.len())), verbatim("vader_global_const_objs"),
-    ])
+    // The global slots root by what they hold, as a function's locals do: a boxed
+    // value, a raw reference, an atom id.
+    boxes :: global_slot_addresses(ctx.module, .Any)
+    raws :: global_slot_addresses(ctx.module, .Ref)
+    atoms :: global_slot_addresses(ctx.module, .String)
+    fields: CExpression[]: [
+        NULL_POINTER,
+        unsigned(i64(boxes.len())),
+        unsigned(i64(raws.len())),
+        root_list(items, "vader_box_t*", "vader_global_box_roots", boxes),
+        root_list(items, "void**", "vader_global_raw_roots", raws),
+        unsigned(i64(objects.len())),
+        root_list(items, "void*", "vader_global_const_objs", objects),
+    ]
+    if atoms.len() > 0 {
+        atom_roots :: root_list(items, "vader_string_t*", "vader_global_atom_roots", atoms)
+        fields.push_all([unsigned(i64(atoms.len())), atom_roots])
+    }
     items.push(CGlobal {
         .storage = storage,
         .type = "vader_gc_frame_t",
-        .declarator = CDeclarator { .name = "vader_global_const_frame", .value = frame },
+        .declarator = CDeclarator {
+            .name = "vader_global_const_frame",
+            .value = initializer_list(fields),
+        },
     })
+}
+
+// Whether the module needs the permanent frame: a writable pool entry or a global
+// slot to root.
+has_global_roots :: fn(module: BytecodeModule) -> bool =
+    mutable_pool_indices(module.data_pool).len() > 0 || module.globals.len() > 0
+
+// One C global per global slot of the module, `vader_global_N`, at its type's
+// zero value: the null box for a boxed value, `0` for anything else.
+emit_global_slots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
+    for i in 0..<ctx.module.globals.len() {
+        val :: global_slot_val(ctx.module, i32(i))
+        items.push(CGlobal {
+            .storage = global_storage(ctx.split),
+            .type = c_type_for_val_bare(val),
+            .declarator = CDeclarator { .name = "vader_global_${i}", .value = zero_of(val) },
+        })
+    }
+}
+
+// The value class of global slot `index` of `module`.
+global_slot_val :: fn(module: BytecodeModule, index: i32) -> ValType =
+    val_type_of_field(module.types, module.globals[usize(index)].type_id)
+
+// The zero a global of class `val` starts at.
+zero_of :: fn(val: ValType) -> CExpression {
+    if val == .Any || val == .Null {
+        return initializer_list([ZERO])
+    }
+    return ZERO
+}
+
+// The address of every global slot of class `val`.
+global_slot_addresses :: fn(module: BytecodeModule, val: ValType) -> CExpression[] {
+    addresses: CExpression[]: []
+    for i in 0..<module.globals.len() {
+        if global_slot_val(module, i32(i)) == val {
+            addresses.push(address_of(verbatim("vader_global_${i}")))
+        }
+    }
+    return addresses
+}
+
+// A root array of the permanent frame: a `type` array named `name` listing
+// `addresses`, emitted into `items`, or `NULL` when there is none to list.
+root_list :: fn(
+    items: CTopLevel[], type: string, name: string, addresses: CExpression[],
+) -> CExpression {
+    if addresses.len() == 0 {
+        return NULL_POINTER
+    }
+    items.push(CGlobal {
+        .storage = .Internal,
+        .type = type,
+        .declarator = CDeclarator {
+            .name = name,
+            .length = UNSIZED,
+            .value = initializer_list(addresses),
+        },
+    })
+    return verbatim(name)
 }
 
 /// Pool indices of the mutable entries, in pool order — the writable globals that
@@ -1446,14 +1518,16 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[] {
     // Before any Vader code runs, so the very first collection already sees them.
     // The frame becomes the BASE of the chain: every later frame links onto it and
     // nothing ever pops below it.
-    root_count :: mutable_pool_indices(ctx.module.data_pool).len()
-    if root_count > 0 {
+    if has_global_roots(ctx.module) {
         body.push(
             CAssign {
                 .target = verbatim("vader_gc_top"),
                 .value = address_of(verbatim("vader_global_const_frame")),
             },
         )
+    }
+    root_count :: mutable_pool_indices(ctx.module.data_pool).len()
+    if root_count > 0 {
         roots: CExpression[]: [verbatim("vader_global_const_arrays"), unsigned(i64(root_count))]
         body.push(perform("vader_atom_roots_register", roots))
     }

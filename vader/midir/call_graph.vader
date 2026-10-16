@@ -133,6 +133,7 @@ instruction_callees :: fn(index: CalleeIndex, ins: Instruction) -> i32[] = match
     is InstrArraySlice | InstrStructNew | InstrArrayNew | InstrDataConst -> []
     is InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet -> []
     is InstrCellSet | InstrMakeClosure | InstrIntrinsic | InstrMove | InstrDeferPush -> []
+    is InstrGlobalGet | InstrGlobalSet -> []
 }
 
 // The nodes a virtual call may land on. A key no vtable row carries lands on
@@ -179,6 +180,7 @@ note_taken :: fn(index: CalleeIndex, ins: Instruction, taken: TakenFunctions) ->
         is InstrStructNew | InstrArrayNew | InstrDataConst -> {}
         is InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet -> {}
         is InstrCellSet | InstrIntrinsic | InstrMove | InstrDeferPush | InstrDeferPopExec -> {}
+        is InstrGlobalGet | InstrGlobalSet -> {}
     }
 }
 

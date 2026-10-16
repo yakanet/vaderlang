@@ -66,6 +66,7 @@ for_each_lowered_stmt :: fn(s: LoweredStmt, visit: fn(Type) -> void) -> void {
             for_each_lowered_expr(s.value, visit)
             for_each_type(s.value_type, visit)
         }
+        is LoweredGlobalSet -> { for_each_lowered_expr(s.value, visit) }
         is LoweredDeferPush -> { for_each_lowered_expr(s.thunk, visit) }
         is LoweredDeferPopExec -> {}
     }
@@ -130,6 +131,7 @@ for_each_lowered_expr :: fn(e: LoweredExpr, visit: fn(Type) -> void) -> void {
         }
         is LoweredMakeClosure -> { for_each_lowered_expr(e.env, visit) }
         is LoweredDataConst -> { for_each_type(e.type, visit) }
+        is LoweredGlobalGet -> { for_each_type(e.type, visit) }
         is LoweredTypeConst -> {
             for_each_type(e.type, visit)
             for_each_type(e.value, visit)
@@ -212,6 +214,7 @@ ref_stmt :: fn(s: LoweredStmt, visit_fn: fn(i32, string) -> void, visit_virtual:
             ref_expr(s.target, visit_fn, visit_virtual)
             ref_expr(s.value, visit_fn, visit_virtual)
         }
+        is LoweredGlobalSet -> ref_expr(s.value, visit_fn, visit_virtual)
         is LoweredDeferPush -> ref_expr(s.thunk, visit_fn, visit_virtual)
         is LoweredDeferPopExec -> {}
     }
@@ -323,6 +326,7 @@ stmt_node_stmt :: fn(s: LoweredStmt, visit: fn(LoweredStmt) -> void) -> void {
             stmt_node_expr(s.target, visit)
             stmt_node_expr(s.value, visit)
         }
+        is LoweredGlobalSet -> stmt_node_expr(s.value, visit)
         is LoweredExprStmt -> stmt_node_expr(s.expr, visit)
         is LoweredReturn   -> {
             value :: s.value
@@ -399,6 +403,7 @@ stmt_node_expr :: fn(e: LoweredExpr, visit: fn(LoweredStmt) -> void) -> void {
         is LoweredStringLit   -> {}
         is LoweredIdent       -> {}
         is LoweredDataConst   -> {}
+        is LoweredGlobalGet   -> {}
         is LoweredUnreachable -> {}
         is LoweredTypeConst   -> {}
     }

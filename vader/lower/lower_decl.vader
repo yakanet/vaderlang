@@ -260,6 +260,9 @@ lower_fn_decl :: fn(
             .origin      = entry,
         }
     }
+    if decorators_have(fn_decl.decorators, "singleton") {
+        return lower_singleton(project_ctx, entry, typed, subst, fn_decl, return_type)
+    }
     body :: lower_body_of(fn_decl, typed, project_ctx, entry, subst, params, return_type)
     return LoweredFnDecl {
         .mangled     = entry.mangled,

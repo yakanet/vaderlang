@@ -132,6 +132,7 @@ pc_scan_stmt :: fn(ctx: PurityCtx, st: LoweredStmt, live: i32[]) -> void {
         is LoweredLet       -> { pc_scan_expr(ctx, st.value, live) }
         is LoweredAssign    -> { pc_scan_expr(ctx, st.value, live) }
         is LoweredCellSet   -> { pc_scan_expr(ctx, st.value, live) }
+        is LoweredGlobalSet -> { pc_scan_expr(ctx, st.value, live) }
         is LoweredYield     -> { pc_scan_expr(ctx, st.value, live) }
         is LoweredExprStmt  -> { pc_scan_expr(ctx, st.expr, live) }
         is LoweredAwait     -> { pc_scan_expr(ctx, st.awaited, live) }
@@ -297,8 +298,8 @@ pc_has_extra_exit :: fn(b: LoweredBlock) -> bool {
 pc_stmt_exits :: fn(st: LoweredStmt) -> bool = match st {
     is LoweredReturn | LoweredYield | LoweredAwait | LoweredDeferPush | LoweredDeferPopExec -> true
     is LoweredBreak | LoweredContinue -> st.label != null
-    is LoweredLet | LoweredAssign | LoweredCellSet | LoweredExprStmt | LoweredLoop
-        | LoweredLabelledBlock -> false
+    is LoweredLet | LoweredAssign | LoweredCellSet | LoweredGlobalSet | LoweredExprStmt
+        | LoweredLoop | LoweredLabelledBlock -> false
 }
 
 // Any mention of `sym` that is not a candidate push's own target: a read would

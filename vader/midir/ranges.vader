@@ -196,7 +196,8 @@ transfer :: fn(ctx: RangeContext, s: RangeState, ins: Instruction) -> void {
             | InstrFnRef | InstrFnAddr | InstrFieldGet | InstrFieldSet | InstrArrayGet
             | InstrArraySet | InstrArrayPush | InstrArraySlice | InstrStructNew
             | InstrArrayNew | InstrDataConst | InstrTypeCheck | InstrTypeConst | InstrCellNew
-            | InstrCellGet | InstrCellSet | InstrMakeClosure | InstrDeferPush -> {
+            | InstrCellGet | InstrCellSet | InstrMakeClosure | InstrDeferPush | InstrGlobalGet
+            | InstrGlobalSet -> {
             forget_written(s, ins)
         }
     }

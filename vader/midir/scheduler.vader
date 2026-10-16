@@ -109,6 +109,7 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
         is InstrFnRef     -> { return null }
         is InstrFnAddr    -> { return null }
         is InstrDataConst -> { return null }
+        is InstrGlobalGet -> { return null }
         is InstrTypeConst -> { return null }
         is InstrMove      -> { return ins.src }
         is InstrBinOp     -> { return ins.lhs }
@@ -135,6 +136,7 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
         is InstrCellNew     -> { return ins.value }
         is InstrCellGet     -> { return ins.cell }
         is InstrCellSet     -> { return ins.cell }
+        is InstrGlobalSet   -> { return ins.value }
         is InstrMakeClosure -> { return ins.env }
         is InstrIntrinsic   -> { if ins.args.len() > 0 { return ins.args[0] }
             return null }

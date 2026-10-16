@@ -32,6 +32,12 @@ export LoweredVtableEntry :: struct {
     fn_symbol:   Symbol
 }
 
+/// A global slot: its type, and a name for the dumps.
+export GlobalSlot :: struct {
+    name: string
+    type: Type
+}
+
 /// Module-level read-only `T[]` literal routed to the data pool (`.rodata`
 /// on native, pre-materialised `ArrayVal` in the VM). The `inline-consts`
 /// pass populates this for eligible primitive-element const arrays ;
@@ -105,6 +111,10 @@ export LoweredProject :: struct {
     entry:          string
     vtable_entries: LoweredVtableEntry[]
     data_pool:      DataPoolEntry[]
+    /// The global slots of the program: storage that outlives every call, written
+    /// only by code the compiler generates. A slot holds its type's zero value
+    /// until written.
+    globals:        GlobalSlot[] = []
     /// Const symbol id → accessor fn, populated by `inline_consts` for
     /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg
     /// `call` to the accessor. The accessor REUSES the const's symbol id, so
@@ -181,6 +191,7 @@ export LoweredStmt ::
     | LoweredLet
     | LoweredAssign
     | LoweredCellSet
+    | LoweredGlobalSet
     | LoweredExprStmt
     | LoweredReturn
     | LoweredYield
@@ -231,6 +242,13 @@ export LoweredCellSet :: struct {
     target:     LoweredExpr
     value:      LoweredExpr
     value_type: Type
+}
+
+/// Write `value` into the global slot `slot` of the project (`LoweredProject.globals`).
+export LoweredGlobalSet :: struct {
+    span:  Span
+    slot:  usize
+    value: LoweredExpr
 }
 
 export LoweredExprStmt :: struct {
@@ -342,6 +360,7 @@ export LoweredExpr ::
     | LoweredStructLit
     | LoweredArrayLit
     | LoweredDataConst
+    | LoweredGlobalGet
     | LoweredCast
     | LoweredTypeCheck
     | LoweredUnreachable
@@ -556,6 +575,13 @@ export LoweredDataConst :: struct {
     span:       Span
     type:       Type
     pool_index: usize
+}
+
+/// The value in the global slot `slot` of the project (`LoweredProject.globals`).
+export LoweredGlobalGet :: struct {
+    span: Span
+    type: Type
+    slot: usize
 }
 
 /// Length of an array, exposed by the bytecode op `array.len`.

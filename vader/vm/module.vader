@@ -13,6 +13,7 @@
 module "vader/vm"
 
 import "std/collections"
+import "std/iter"
 bc :: import "vader/bytecode"
 
 /// Runtime state the executor threads through its call chain. `bc` is the
@@ -26,6 +27,8 @@ export VmState :: struct {
     /// read-only array. A writable entry carries `-1` and gets a fresh header per
     /// read.
     data_pool:  ArrayVal[]
+    /// The value of each global slot, index-aligned with `bc.globals`.
+    globals:    Value[]
     /// Entry fn's index in `bc.functions`.
     main_index: i32
     /// The `string[]` ArrayType index — stamped onto every host-produced string
@@ -121,6 +124,7 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
     return VmState {
         .bc                   = bc_mod,
         .data_pool            = data_pool,
+        .globals              = initial_globals(bc_mod),
         .main_index           = reduce_main_index(bc_mod.functions),
         .string_array_type_id = find_string_array_type_id(bc_mod.types),
         .u8_array_type_id     = find_u8_array_type_id(bc_mod.types),
@@ -130,4 +134,20 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
         .reg                  = reg,
         .debuggable           = debug,
     }
+}
+
+// The value of each global slot of `module` before it is first written.
+initial_globals :: fn(module: bc.BytecodeModule) -> Value[] =
+    module.globals.map((g) -> global_zero(field_valtype(module.types, g.type_id))).collect()
+
+// What a global slot of class `val` holds until it is first written: zero for a
+// number, `false`, the NUL char, the empty string, null for anything else.
+global_zero :: fn(val: bc.ValType) -> Value = match val {
+    .I8 | .I16 | .I32 | .U8 | .U16 | .U32  -> I32Val(0)
+    .I64 | .Isize | .U64 | .Usize          -> I64Val(0)
+    .F32 | .F64                            -> F64Val(0.0)
+    .Bool                                  -> BoolVal(false)
+    .Char                                  -> CharVal(char(u32(0)))
+    .String                                -> StringVal("")
+    .Null | .Void | .Pointer | .Ref | .Any -> NullVal {}
 }

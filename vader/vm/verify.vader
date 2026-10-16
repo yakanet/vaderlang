@@ -171,12 +171,14 @@ defect :: fn(f: bc.BcFunction, pc: usize, message: string) = VerifyError {
 effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> StackEffect | null {
     slots :: f.signature.params.len() + f.locals.len()
     return match op {
-        is bc.LocalGet   -> if in_range(op.slot, slots) { effect(0, 1) } else { null }
-        is bc.LocalSet   -> if in_range(op.slot, slots) { effect(1, 0) } else { null }
-        is bc.LocalTee   -> if in_range(op.slot, slots) { effect(1, 1) } else { null }
-        is bc.LocalField -> if in_range(op.slot, slots) { effect(0, 1) } else { null }
-        is bc.StringConst -> if in_range(op.index, module.strings.len()) { effect(0, 1) } else { null }
-        is bc.DataConst  -> if in_range(op.pool_index, module.data_pool.len()) { effect(0, 1) } else { null }
+        is bc.LocalGet   -> indexed_effect(op.slot, slots, 0, 1)
+        is bc.LocalSet   -> indexed_effect(op.slot, slots, 1, 0)
+        is bc.LocalTee   -> indexed_effect(op.slot, slots, 1, 1)
+        is bc.LocalField -> indexed_effect(op.slot, slots, 0, 1)
+        is bc.StringConst -> indexed_effect(op.index, module.strings.len(), 0, 1)
+        is bc.DataConst  -> indexed_effect(op.pool_index, module.data_pool.len(), 0, 1)
+        is bc.GlobalGet  -> indexed_effect(op.index, module.globals.len(), 0, 1)
+        is bc.GlobalSet  -> indexed_effect(op.index, module.globals.len(), 1, 0)
         is bc.Call -> {
             if !in_range(op.function_index, module.functions.len()) {
                 null
@@ -201,13 +203,13 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
                 effect(usize(op.parameter_count), virtual_result_arity(module, op.vtable_key))
             }
         }
-        is bc.FnRef  -> if in_range(op.function_index, module.functions.len()) { effect(0, 1) } else { null }
-        is bc.FnAddr -> if in_range(op.function_index, module.functions.len()) { effect(0, 1) } else { null }
-        is bc.MakeClosure -> if in_range(op.function_index, module.functions.len()) { effect(1, 1) } else { null }
+        is bc.FnRef  -> indexed_effect(op.function_index, module.functions.len(), 0, 1)
+        is bc.FnAddr -> indexed_effect(op.function_index, module.functions.len(), 0, 1)
+        is bc.MakeClosure -> indexed_effect(op.function_index, module.functions.len(), 1, 1)
         is bc.StructNew  -> struct_new_effect(module, op.type_id)
         is bc.ArrayNew   -> if op.length >= 0 { effect(usize(op.length), 1) } else { null }
-        is bc.TypeConst  -> if in_range(op.type_id, module.types.len()) { effect(0, 1) } else { null }
-        is bc.TypeCheck  -> if in_range(op.type_id, module.types.len()) { effect(1, 1) } else { null }
+        is bc.TypeConst  -> indexed_effect(op.type_id, module.types.len(), 0, 1)
+        is bc.TypeCheck  -> indexed_effect(op.type_id, module.types.len(), 1, 1)
         is bc.CheckedArith -> if bc.is_integer_val(op.kind) { effect(2, 1) } else { null }
         is bc.CheckedNeg   -> if bc.is_integer_val(op.kind) { effect(1, 1) } else { null }
         is bc.I32Const | bc.NullConst | bc.BoolConst | bc.CharConst | bc.F64Const
@@ -243,6 +245,15 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
 }
 
 in_range :: fn(index: i32, len: usize) = index >= 0 && usize(index) < len
+
+// `effect(pops, pushes)` when `index` names an entry of a table of `len`, null
+// otherwise.
+indexed_effect :: fn(index: i32, len: usize, pops: usize, pushes: usize) -> StackEffect | null {
+    if !in_range(index, len) {
+        return null
+    }
+    return effect(pops, pushes)
+}
 
 op_text :: fn(op: bc.Op) -> string {
     sb :: StringBuilder {}

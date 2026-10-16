@@ -295,14 +295,17 @@ emit_data_global_externs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         constant :: !data_entry_mutable(ctx.module.data_pool[i])
         declarations.push(external("vader_array_t", "vader_data_${i}", null, constant))
     }
-    // The permanent GC frame rooting the mutable module-consts. Defined beside the
-    // data pool, installed by `main`, which is in another unit.
+    for i in 0..<ctx.module.globals.len() {
+        c_type :: c_type_for_val_bare(global_slot_val(ctx.module, i32(i)))
+        declarations.push(external(c_type, "vader_global_${i}", null, false))
+    }
+    // The permanent GC frame rooting the mutable module-consts and the global slots.
+    // Defined beside the data pool, installed by `main`, which is in another unit.
     if mutable_pool_indices(ctx.module.data_pool).len() > 0 {
-        declarations.push_all([
-            external("vader_array_t*", "vader_global_const_arrays", UNSIZED, false),
-            external("void*", "vader_global_const_objs", UNSIZED, false),
-            external("vader_gc_frame_t", "vader_global_const_frame", null, false),
-        ])
+        declarations.push(external("vader_array_t*", "vader_global_const_arrays", UNSIZED, false))
+    }
+    if has_global_roots(ctx.module) {
+        declarations.push(external("vader_gc_frame_t", "vader_global_const_frame", null, false))
     }
     declarations.push(external("vader_atom_entry_t", "vader_atom_comptime_table", UNSIZED, true))
     printer.print_section(CSection { .items = declarations })

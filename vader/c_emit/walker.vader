@@ -194,6 +194,7 @@ op_may_collect :: fn(op: vm.Op, import_may_collect: bool[]) -> bool = match op {
     is vm.StructNew -> !op.stack
     is vm.CallImport -> import_may_collect[usize(op.index)]
     is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.BufferToString | vm.MakeClosure | vm.CallIndirect | vm.VirtualCall | vm.FnAddr -> true
+    is vm.GlobalGet | vm.GlobalSet -> false
     is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Retag | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.StringCompare | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear | vm.CheckedArith | vm.CheckedNeg -> false
 }
 
@@ -545,6 +546,8 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.ArrayRemoveLast       -> emit_array_remove_last(s)
         is vm.ArrayClear            -> emit_array_clear(s)
         is vm.DataConst             -> emit_data_const_op(s, op)
+        is vm.GlobalGet             -> emit_global_get(s, op)
+        is vm.GlobalSet             -> emit_global_set(s, op)
         is vm.TypeConst             -> emit_type_const(s, op)
         is vm.TypeCheck             -> emit_type_check(s, op)
         is vm.RefCast               -> emit_ref_cast(s, op)
@@ -2525,6 +2528,21 @@ ref_carrying_element :: fn(element: BcType, types: BcType[]) -> bool {
 // onto the box, mirroring the VM's `DataConst` arm + the static-fn-ref box.
 emit_data_const_op :: fn(s: FnState, op: vm.DataConst) -> void {
     push_object(s, address_of(verbatim("vader_data_${op.pool_index}")))
+}
+
+// `global.get N`: the value of `vader_global_N`, read into a temporary: a later
+// `global.set` must not change what was read.
+emit_global_get :: fn(s: FnState, op: vm.GlobalGet) -> void {
+    val :: global_slot_val(s.ctx.module, op.index)
+    push_into_temporary(s, verbatim("vader_global_${op.index}"), val)
+}
+
+// `global.set N`: the popped value into `vader_global_N`. The global is a root of
+// the permanent frame, scanned at every collection, so no write barrier.
+emit_global_set :: fn(s: FnState, op: vm.GlobalSet) -> void {
+    v :: pop(s)
+    target :: verbatim("vader_global_${op.index}")
+    assign(s, target, coerced_as(s, v, global_slot_val(s.ctx.module, op.index)))
 }
 
 emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {

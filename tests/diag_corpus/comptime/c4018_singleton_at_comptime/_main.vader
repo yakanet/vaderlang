@@ -1,0 +1,19 @@
+// A `@singleton` function's instance is built by the program's run, which has not
+// started when a constant is folded. C4018 when the folding runs a function that
+// calls one (the VM path ; a direct call is refused the same way before it).
+module "snippet"
+
+@singleton
+size :: fn() -> i32 = 4
+
+total :: fn() -> i32 {
+    sum := 0
+    for i in 0..<3 {
+        sum += size() + i
+    }
+    return sum
+}
+
+THROUGH :: @comptime total()
+
+main :: fn() -> i32 = THROUGH

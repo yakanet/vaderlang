@@ -69,6 +69,7 @@ gb_retarget_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> LoweredStmt = match s {
         .target = gb_retarget_expr(gb, s.target),
         .value = gb_retarget_expr(gb, s.value),
     }
+    is LoweredGlobalSet -> LoweredGlobalSet { ...s, .value = gb_retarget_expr(gb, s.value) }
     is LoweredExprStmt -> LoweredExprStmt { ...s, .expr = gb_retarget_expr(gb, s.expr) }
     is LoweredYield -> LoweredYield { ...s, .value = gb_retarget_expr(gb, s.value) }
     is LoweredAwait -> LoweredAwait { ...s, .awaited = gb_retarget_expr(gb, s.awaited) }
@@ -179,5 +180,5 @@ gb_retarget_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr = match e {
     is LoweredMakeClosure -> LoweredMakeClosure { ...e, .env = gb_retarget_expr(gb, e.env) }
     is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit | LoweredCharLit -> e
     is LoweredStringLit | LoweredIdent | LoweredDataConst | LoweredTypeConst -> e
-    is LoweredUnreachable -> e
+    is LoweredUnreachable | LoweredGlobalGet -> e
 }

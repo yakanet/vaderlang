@@ -210,6 +210,8 @@ export Instruction ::
     | InstrStructNew
     | InstrArrayNew
     | InstrDataConst
+    | InstrGlobalGet
+    | InstrGlobalSet
     | InstrTypeCheck
     | InstrTypeConst
     | InstrCast
@@ -441,6 +443,22 @@ export InstrDataConst :: struct {
     pool_index: i32
 }
 
+/// Read the global slot `slot` of the program (`CFGProject.globals`).
+export InstrGlobalGet :: struct {
+    span: Span
+    dst:  LocalId
+    type: Type
+    slot: i32
+}
+
+/// Write `value` into the global slot `slot` of the program.
+export InstrGlobalSet :: struct {
+    span:  Span
+    slot:  i32
+    value: LocalId
+    type:  Type
+}
+
 /// Runtime tag check — `is X`.
 export InstrTypeCheck :: struct {
     span:       Span
@@ -555,6 +573,8 @@ export CFGProject :: struct {
     /// `BytecodeModule.dataPool`. InstrDataConst references entries by
     /// index.
     data_pool: BcDataEntry[]
+    /// Mirrors `LoweredProject.globals`: the type of each global slot.
+    globals: GlobalSlot[]
     /// `Symbol.id → trait names` — frontend trait membership carried verbatim
     /// from `LoweredProject`, consumed by `build_impl_table_from_vtable` to
     /// emit `is Trait` rows for every interned struct tag (incl. generic

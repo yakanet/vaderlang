@@ -299,6 +299,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
                     escaping.add(ins.value)
                     escaping.add(ins.cell)
                 }
+                is InstrGlobalSet -> { escaping.add(ins.value) }
                 is InstrCall -> { for a in ins.args { escaping.add(a) } }
                 is InstrCallIndirect -> {
                     escaping.add(ins.callee)

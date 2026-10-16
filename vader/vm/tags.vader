@@ -407,6 +407,7 @@ pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = matc
     is bc.StructGet -> field_tags(ctx, op.type_id, op.field_index)
     is bc.LocalField -> field_tags(ctx, op.type_id, op.field_index)
     is bc.ArrayGet -> element_tags(ctx, op.type_id)
+    is bc.GlobalGet -> global_tags(ctx, op.index)
     is bc.ArrayRemoveLast -> TAGS_ANY
     // A slot load pushes the element as stored, whatever width its name says.
     is bc.LoadSlotI32 -> TAGS_I32 | TAGS_CHAR
@@ -421,7 +422,17 @@ pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = matc
      | bc.StoreSlotI32 | bc.StoreSlotI64 | bc.StoreSlotF64 | bc.BufferWriteString | bc.ArrayCopy
      | bc.MemoryCopy | bc.Drop | bc.ArrayClear | bc.DeferPush | bc.Block | bc.Loop | bc.End
      | bc.DeferPopExec | bc.If | bc.BranchIf | bc.Else | bc.Branch | bc.Return | bc.ReturnLit
-     | bc.Unreachable -> 0
+     | bc.Unreachable | bc.GlobalSet -> 0
+}
+
+// What a global slot of type `type_id` holds: a reference type holds null until
+// the slot is first written.
+global_tags :: fn(ctx: TagContext, index: i32) -> u8 {
+    tags :: tags_of_type(ctx, ctx.module.globals[usize(index)].type_id)
+    if tags & TAGS_REF != 0 {
+        return tags | TAGS_NULL
+    }
+    return tags
 }
 
 // The tags `op`'s arm accepts on the operand `back` places below the top, when the
@@ -461,7 +472,7 @@ accepted_tags :: fn(op: bc.Op, back: usize) -> u8 | null = match op {
      | bc.LoadF64 | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.MemoryCopy
      | bc.BufferToString | bc.BufferWriteString | bc.F64ToBits | bc.BitsToF64 | bc.F32ToBits
      | bc.BitsToF32 | bc.ArrayRepeat | bc.ArrayPushAll | bc.ArrayCopy | bc.ArrayRemoveLast
-     | bc.ArrayClear | bc.FnAddr -> null
+     | bc.ArrayClear | bc.FnAddr | bc.GlobalGet | bc.GlobalSet -> null
 }
 
 // The tag a value of the integer class `kind` sits under.

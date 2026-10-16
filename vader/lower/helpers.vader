@@ -481,6 +481,7 @@ export type_of :: fn(expr: LoweredExpr) -> Type = match expr {
     is LoweredStructLit     -> expr.type
     is LoweredArrayLit      -> expr.type
     is LoweredDataConst     -> expr.type
+    is LoweredGlobalGet     -> expr.type
     is LoweredCast          -> expr.type
     is LoweredTypeCheck     -> expr.type
     is LoweredUnreachable   -> expr.type
@@ -516,6 +517,7 @@ export span_of :: fn(expr: LoweredExpr) -> Span = match expr {
     is LoweredStructLit     -> expr.span
     is LoweredArrayLit      -> expr.span
     is LoweredDataConst     -> expr.span
+    is LoweredGlobalGet     -> expr.span
     is LoweredCast          -> expr.span
     is LoweredTypeCheck     -> expr.span
     is LoweredUnreachable   -> expr.span

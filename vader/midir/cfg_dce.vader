@@ -317,6 +317,12 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
     if ins is InstrDataConst {
         return InstrDataConst { .span = ins.span, .dst = remap_local(m, ins.dst), .pool_index = ins.pool_index, .type = ins.type }
     }
+    if ins is InstrGlobalGet {
+        return InstrGlobalGet { ...ins, .dst = remap_local(m, ins.dst) }
+    }
+    if ins is InstrGlobalSet {
+        return InstrGlobalSet { ...ins, .value = remap_local(m, ins.value) }
+    }
     if ins is InstrTypeCheck {
         return InstrTypeCheck {
             .span = ins.span, .dst = remap_local(m, ins.dst),
@@ -427,6 +433,9 @@ with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction {
     }
     if ins is InstrDataConst {
         return InstrDataConst { ...ins, .dst = new_dst }
+    }
+    if ins is InstrGlobalGet {
+        return InstrGlobalGet { ...ins, .dst = new_dst }
     }
     if ins is InstrTypeCheck {
         return InstrTypeCheck { ...ins, .dst = new_dst }

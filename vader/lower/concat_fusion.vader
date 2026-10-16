@@ -195,7 +195,7 @@ cf_expr_mentions :: fn(e: LoweredExpr, symbol_id: i32, kinds: CfMentionKinds) ->
             || cf_opt_block_mentions(e.else_block, symbol_id, kinds)
     is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit
         | LoweredCharLit | LoweredStringLit | LoweredDataConst | LoweredTypeConst
-        | LoweredUnreachable -> false
+        | LoweredUnreachable | LoweredGlobalGet -> false
 }
 
 cf_any_mentions :: fn(items: LoweredExpr[], symbol_id: i32, kinds: CfMentionKinds) -> bool {
@@ -243,6 +243,7 @@ cf_stmt_mentions :: fn(st: LoweredStmt, symbol_id: i32, kinds: CfMentionKinds) -
     is LoweredLet                  -> cf_expr_mentions(st.value, symbol_id, kinds)
     is LoweredAssign | LoweredCellSet ->
         cf_expr_mentions(st.target, symbol_id, kinds) || cf_expr_mentions(st.value, symbol_id, kinds)
+    is LoweredGlobalSet            -> cf_expr_mentions(st.value, symbol_id, kinds)
     is LoweredExprStmt             -> cf_expr_mentions(st.expr, symbol_id, kinds)
     is LoweredReturn               -> cf_opt_expr_mentions(st.value, symbol_id, kinds)
     is LoweredYield                -> cf_expr_mentions(st.value, symbol_id, kinds)

@@ -355,6 +355,9 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             for v in data_entry.elements { intern_data_value_strings(v, ctx) }
         }
     }
+    for slot in cfg.globals {
+        ctx.globals.push(BcGlobal { .name = slot.name, .type_id = intern_type(slot.type, ctx) })
+    }
     // Pass 2 — emit fn bodies from the CFG.
     for [_, m] in cfg.modules {
         for cfg_fn in m.functions {
@@ -437,7 +440,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             ctx.functions[i] = with_peephole_out(ctx.functions[i], strip_self_copies(ctx.functions[i]))
         }
         // Pass 4 — whole-program prunes on the EmitterCtx.
-        // Order matters : functions → imports → data → types so each pass's root
+        // Order matters : functions → imports → data → globals → types so each pass's root
         // set reflects the previous pass's drops. (There is no separate
         // vtable-prune pass : vtable rows are reachability-filtered when
         // built — see `build_vtables_from_entries` — and the `used_vt_keys`
@@ -467,6 +470,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         prune_unused_functions(ctx, vtable_roots, opts.keep_mangles)
         prune_unused_imports(ctx)
         data_pool = prune_unused_data(ctx, data_pool)
+        prune_unused_globals(ctx)
         pin_baked_struct_types(data_pool, ctx)
         prune_unused_types(ctx)
         // The table is final from here. Anything downstream that needs a type
@@ -492,6 +496,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         .exports    = ctx.exports,
         .impl_table = build_impl_table_from_vtable(cfg.vtable_entries, cfg.trait_membership, ctx),
         .vtables    = build_vtables_from_entries(cfg.vtable_entries, ctx),
+        .globals    = ctx.globals,
     }
 }
 
@@ -1291,6 +1296,17 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         type_index :: intern_type(ins.type, ctx.project)
         push_emit(ctx, DataConst { .pool_index = ins.pool_index, .type_id = type_index }, ins.span)
         emit_result(ctx, pos, ins.dst, ins.span)
+        return
+    }
+    if ins is InstrGlobalGet {
+        push_emit(ctx, GlobalGet { .index = ins.slot }, ins.span)
+        emit_result(ctx, pos, ins.dst, ins.span)
+        return
+    }
+    if ins is InstrGlobalSet {
+        emit_first_get(ctx, pos, ins.value, ins.span)
+        emit_retag_into(ctx, ins.value, is_union_slot(ins.type), ins.span)
+        push_emit(ctx, GlobalSet { .index = ins.slot }, ins.span)
         return
     }
     if ins is InstrTypeCheck {

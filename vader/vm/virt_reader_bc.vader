@@ -110,6 +110,8 @@ export VirtListing :: struct {
     imports:   usize[]
     /// The `data N` line of each data-pool entry, by pool index.
     data:      usize[]
+    /// The `global N` line of each global slot, by slot index.
+    globals:   usize[]
 }
 
 /// Parse a full `.virt` text dump into a `BytecodeModule` ready for `emit_c`.
@@ -154,6 +156,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
     impl_table: bc.ImplEntry[]: []
     vtables: bc.VtableRow[]: []
     data_pool: bc.BcDataEntry[]: []
+    globals: bc.BcGlobal[]: []
     functions: bc.BcFunction[]: []
     main_index := -1
 
@@ -174,6 +177,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
     string_lines: usize[]: []
     import_lines: usize[]: []
     data_lines: usize[]: []
+    global_lines: usize[]: []
     in_function := false
 
     state :: ParserState {
@@ -240,6 +244,14 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
                     return failed
                 }
                 data_lines.push(here)
+                continue
+            }
+            if head == "global" {
+                failed :: positioned(parse_global_decl_bc(cleaned, globals), line_index, cleaned)
+                if failed is VirtParseError {
+                    return failed
+                }
+                global_lines.push(here)
                 continue
             }
             if head == "import" {
@@ -355,6 +367,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         .exports    = exports,
         .impl_table = impl_table,
         .vtables    = vtables,
+        .globals    = globals,
     }
     return VirtListing {
         .module    = module,
@@ -363,10 +376,25 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         .strings   = string_lines,
         .imports   = import_lines,
         .data      = data_lines,
+        .globals   = global_lines,
     }
 }
 
 // ---- module-level directive parsers ---------------------------------------
+
+// Parse `global N <type> <name>` into `globals`, in slot order.
+parse_global_decl_bc :: fn(cleaned: string, globals: bc.BcGlobal[]) -> DirectiveError | null {
+    words :: cleaned.split(" ")
+    if words.len() != 4 {
+        return DirectiveError { .reason = "expected `global <index> <type> <name>`" }
+    }
+    type_id :: parse_int_in_base(words[2], 10)
+    if type_id is ParseError {
+        return DirectiveError { .reason = "global type index \"${words[2]}\" is not a number" }
+    }
+    globals.push(bc.BcGlobal { .name = words[3], .type_id = i32(type_id) })
+    return null
+}
 
 parse_module_name :: fn(cleaned: string) -> string {
     return cleaned.trim_prefix("module ").trim()

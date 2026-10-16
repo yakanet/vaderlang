@@ -21,6 +21,7 @@ export OperandKind :: enum {
     Import,
     Data,
     Local,
+    Global,
 }
 
 /// One table-index operand : the table it indexes, and the index — a slot for

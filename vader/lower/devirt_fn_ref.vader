@@ -121,6 +121,7 @@ analyze_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
         }
         is LoweredAssign -> { analyze_expr(s.target, ctx) analyze_expr(s.value, ctx) }
         is LoweredCellSet -> { analyze_expr(s.target, ctx) analyze_expr(s.value, ctx) }
+        is LoweredGlobalSet -> { analyze_expr(s.value, ctx) }
         is LoweredExprStmt -> { analyze_expr(s.expr, ctx) }
         is LoweredReturn -> { v :: s.value  if v != null { analyze_expr(v, ctx) } }
         is LoweredYield -> { analyze_expr(s.value, ctx) }
@@ -181,6 +182,7 @@ analyze_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
         is LoweredCharLit -> {}
         is LoweredStringLit -> {}
         is LoweredDataConst -> {}
+        is LoweredGlobalGet -> {}
         is LoweredTypeConst -> {}
         is LoweredUnreachable -> {}
     }
@@ -214,6 +216,7 @@ rewrite_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
         }
         is LoweredAssign -> { rewrite_expr(s.target, ctx) rewrite_expr(s.value, ctx) }
         is LoweredCellSet -> { rewrite_expr(s.target, ctx) rewrite_expr(s.value, ctx) }
+        is LoweredGlobalSet -> { rewrite_expr(s.value, ctx) }
         is LoweredExprStmt -> { rewrite_expr(s.expr, ctx) }
         is LoweredReturn -> { v :: s.value  if v != null { rewrite_expr(v, ctx) } }
         is LoweredYield -> { rewrite_expr(s.value, ctx) }
@@ -293,6 +296,7 @@ rewrite_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
         is LoweredCharLit -> {}
         is LoweredStringLit -> {}
         is LoweredDataConst -> {}
+        is LoweredGlobalGet -> {}
         is LoweredTypeConst -> {}
         is LoweredUnreachable -> {}
     }

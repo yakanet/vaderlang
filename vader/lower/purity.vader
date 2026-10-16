@@ -113,6 +113,7 @@ stmt_may_disturb :: fn(ctx: PurityCtx, s: LoweredStmt) -> bool = match s {
     is LoweredLet                   -> expr_may_disturb(ctx, s.value)
     is LoweredAssign | LoweredCellSet ->
         expr_may_disturb(ctx, s.target) || expr_may_disturb(ctx, s.value)
+    is LoweredGlobalSet             -> expr_may_disturb(ctx, s.value)
     is LoweredExprStmt              -> expr_may_disturb(ctx, s.expr)
     is LoweredReturn                -> opt_expr_may_disturb(ctx, s.value)
     is LoweredLabelledBlock         -> block_may_disturb(ctx, s.body)
@@ -135,7 +136,7 @@ expr_may_disturb :: fn(ctx: PurityCtx, e: LoweredExpr) -> bool = match e {
     // Leaves: no allocation, no call.
     is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit | LoweredCharLit -> false
     is LoweredStringLit | LoweredIdent | LoweredDataConst | LoweredUnreachable -> false
-    is LoweredTypeConst -> false
+    is LoweredTypeConst | LoweredGlobalGet -> false
     // Composites that allocate nothing themselves: their parts decide.
     is LoweredFieldAccess -> expr_may_disturb(ctx, e.target)
     is LoweredIndex       -> expr_may_disturb(ctx, e.target) || expr_may_disturb(ctx, e.index)

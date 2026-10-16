@@ -1,0 +1,20 @@
+// A `@singleton` function builds one instance for the whole program: an argument
+// or a type argument would ask for one per value, and a body that suspends would
+// let another call see it half built. T3103, three times.
+module "snippet"
+
+@singleton
+scaled :: fn(n: i32) -> i32[] = [n]
+
+@singleton
+empty :: fn<T>() -> T[] = []
+
+@singleton
+counting :: fn() -> Iterator<i32> {
+    yield 1
+}
+
+main :: fn() -> i32 {
+    _ :: counting()
+    return i32(scaled(2).len() + empty<i32>().len())
+}

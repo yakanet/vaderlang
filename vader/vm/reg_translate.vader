@@ -447,6 +447,7 @@ string_constant :: fn(module: bc.BytecodeModule, t: Translation, pc: usize, op: 
 // The ops `apply_boxed` runs.
 is_boxed :: fn(op: bc.Op) = op is bc.FnRef | bc.MakeClosure | bc.StructNew | bc.ArrayNew | bc.ArraySlice
     | bc.ArrayRepeat | bc.ArrayPushAll | bc.ArrayCopy | bc.ArrayRemoveLast | bc.ArrayClear | bc.DataConst
+    | bc.GlobalGet | bc.GlobalSet
     | bc.Convert | bc.SizeOfType | bc.I32Eq | bc.I32Ne | bc.BoolEq | bc.BoolNe
     | bc.BoolAnd | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.StringCompare
     | bc.RefEq

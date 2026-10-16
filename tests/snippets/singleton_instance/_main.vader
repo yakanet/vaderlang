@@ -1,0 +1,51 @@
+// A `@singleton` function runs its body once per program and hands every call the
+// instance it built: writes through one call are seen by the next. The instance
+// lives in a global slot rooted for the collector ; one built from a module
+// constant is a copy, which leaves the constant as it was.
+module "snippet"
+
+import "std/io"
+
+Counter :: struct {
+    n: i32
+}
+
+DEFAULT :: Counter { .n = 10 }
+
+@singleton
+counter :: fn() -> Counter {
+    println("counter built")
+    return Counter { .n = 0 }
+}
+
+@singleton
+log :: fn() -> string[] = []
+
+@singleton
+start :: fn() -> Counter = DEFAULT
+
+@singleton
+greeting :: fn() -> string = "hello ${"singleton"}"
+
+// A `void` singleton runs once and keeps nothing.
+@singleton
+announce :: fn() -> void {
+    println("announced")
+}
+
+bump :: fn() -> void {
+    counter().n += 1
+    log().push("bump ${counter().n}")
+}
+
+main :: fn() -> i32 {
+    announce()
+    announce()
+    bump()
+    bump()
+    start().n += 5
+    println("${counter().n} ${log().len()} ${log()[1]}")
+    println("${start().n} ${DEFAULT.n}")
+    println(greeting())
+    return 0
+}

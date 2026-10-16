@@ -108,6 +108,8 @@ dump_instr :: fn(ins: Instruction) -> string {
         is InstrCellNew      -> { return "%${ins.dst} = cell_new %${ins.value} :${display_type(ins.value_type)}" }
         is InstrCellGet      -> { return "%${ins.dst} = cell_get %${ins.cell} :${display_type(ins.value_type)}" }
         is InstrCellSet      -> { return "cell_set %${ins.cell} = %${ins.value} :${display_type(ins.value_type)}" }
+        is InstrGlobalGet    -> { return "%${ins.dst} = global_get ${ins.slot} :${display_type(ins.type)}" }
+        is InstrGlobalSet    -> { return "global_set ${ins.slot} = %${ins.value} :${display_type(ins.type)}" }
         is InstrMakeClosure  -> { return "%${ins.dst} = make_closure ${ins.fn_symbol.name} env=%${ins.env} :${display_type(ins.type)}" }
         is InstrIntrinsic    -> { return "${dump_dst(ins.dst)}intrinsic ${ins.name}(${dump_args(ins.args)})" }
         is InstrMove         -> { return "%${ins.dst} = move %${ins.src}" }

@@ -659,6 +659,7 @@ gb_collect_stmt :: fn(gb: GenBuild, s: LoweredStmt) -> void {
             gb_collect_expr(gb, s.target)
             gb_collect_expr(gb, s.value)
         }
+        is LoweredGlobalSet -> { gb_collect_expr(gb, s.value) }
         is LoweredDeferPush -> {
             gb.has_defers = true
             gb_collect_expr(gb, s.thunk)
@@ -720,6 +721,13 @@ gb_route_stmt :: fn(gb: GenBuild, s: LoweredStmt, out: LoweredStmt[]) -> void {
         }
         is LoweredAssign -> { out.push(LoweredAssign { .span = s.span, .target = gb_route_expr(gb, s.target), .value = gb_route_expr(gb, s.value) }) }
         is LoweredExprStmt -> { out.push(LoweredExprStmt { .span = s.span, .expr = gb_route_expr(gb, s.expr) }) }
+        is LoweredGlobalSet -> {
+            out.push(LoweredGlobalSet {
+                .span = s.span,
+                .slot = s.slot,
+                .value = gb_route_expr(gb, s.value),
+            })
+        }
         is LoweredReturn -> {
             new_val :: if s.value == null { null } else { gb_route_expr(gb, s.value) }
             out.push(LoweredReturn { .span = s.span, .value = new_val })
@@ -824,6 +832,7 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
         is LoweredCharLit -> e
         is LoweredStringLit -> e
         is LoweredDataConst -> e
+        is LoweredGlobalGet -> e
         is LoweredTypeConst -> e
         is LoweredUnreachable -> e
     }

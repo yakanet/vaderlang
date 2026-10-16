@@ -169,6 +169,9 @@ export LowerProjectCtx :: struct {
     /// `lower_finish.vader::drain_synth_window` pushes the window's decls into
     /// that module, so the emit picks them up alongside user decls.
     synth_decls:         LoweredDecl[]
+    /// The global slots the lowering mints (`lower_singleton.vader`), carried to
+    /// `LoweredProject.globals`.
+    globals:             GlobalSlot[] = []
 
     /// Synthetic `concat_N` fns, keyed by arity. The string `+`-concat and
     /// all-string `${}` lowering route an N-leaf chain to one shared

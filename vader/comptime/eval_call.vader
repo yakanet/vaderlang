@@ -56,6 +56,10 @@ export evaluate_call_expr :: fn(
     if fn_decl is null {
         return vm_required(expr.span, "CallExpr (no FnDecl for callee)")
     }
+    // Its instance is built by the program's run, which has not started.
+    if AST.decorators_have(fn_decl.decorators, "singleton") {
+        return fail(comptime_error(.SingletonAtComptime, expr.span, "`${callee.name}`"))
+    }
     if fn_decl.params.len() != expr.args.len() {
         return vm_required(expr.span, "CallExpr (arity mismatch)")
     }

@@ -1,9 +1,9 @@
 // vader/bytecode/dce — late EmitterCtx-level prunes.
 //
-// Hosts `prune_unused_imports` / `prune_unused_functions` /
-// `prune_unused_data` / `prune_unused_types`. (There is no `prune_unused_vtables` peer pass :
-// vtable rows are reachability-filtered when they're
-// built — `vader/midir/emit.vader::build_vtables_from_entries` only emits a
+// Hosts `prune_unused_imports` / `prune_unused_functions` / `prune_unused_data` /
+// `prune_unused_globals` / `prune_unused_types`. (There is no
+// `prune_unused_vtables` peer pass : vtable rows are reachability-filtered when
+// they're built: `vader/midir/emit.vader::build_vtables_from_entries` only emits a
 // row whose `(trait, method)` key a surviving `virtual.call` references, and
 // the same `used_vt_keys` set gates which vtable targets root the fn walk.)
 // Run after the CFG → bytecode body emit, before the final
@@ -100,6 +100,51 @@ export prune_unused_data :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> BcD
         }
     }
     return kept
+}
+
+/// Drop the global slots no `global.get` or `global.set` names (those of a
+/// `@singleton` nothing calls any more) and rewrite the surviving ops to the
+/// compacted indices. Runs after `prune_unused_functions`, so an access in a
+/// dropped fn keeps nothing, and before `prune_unused_types`, so a dropped slot's
+/// type goes with it.
+///
+/// @param ctx  the emit context ; its globals and its fn bodies' global ops are
+///             rewritten.
+export prune_unused_globals :: fn(ctx: EmitterCtx) -> void {
+    used :: MutableSet<i32> {}
+    for fn_ in ctx.functions {
+        for op in fn_.body {
+            if op is GlobalGet {
+                _ :: used.add(op.index)
+            } else if op is GlobalSet {
+                _ :: used.add(op.index)
+            }
+        }
+    }
+    if used.len() == ctx.globals.len() {
+        return
+    }
+    remap: i32[]: []
+    kept: BcGlobal[]: []
+    for i in 0..<ctx.globals.len() {
+        if i32(i) in used {
+            remap.push(i32(kept.len()))
+            kept.push(ctx.globals[i])
+        } else {
+            remap.push(-1)
+        }
+    }
+    for fn_ in ctx.functions {
+        for j in 0..<fn_.body.len() {
+            op :: fn_.body[j]
+            if op is GlobalGet {
+                fn_.body[j] = GlobalGet { .index = remap[usize(op.index)] }
+            } else if op is GlobalSet {
+                fn_.body[j] = GlobalSet { .index = remap[usize(op.index)] }
+            }
+        }
+    }
+    ctx.globals = kept
 }
 
 // ============================================================================
@@ -333,6 +378,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
         roots.push_all(imp.signature.result_types)
         for pt in imp.signature.param_types { roots.push(pt) }
     }
+    for g in ctx.globals { roots.push(g.type_id) }
     // Pinned types : arg/result type indices that Call ops reference.
     // Without these, prune drops type-table slots for
     // `needs_add__string`'s `string` arg etc.
@@ -384,7 +430,15 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
         new_imports.push(BcImport { ...imp, .signature = remap_signature(imp.signature, remap) })
     }
     ctx.imports = new_imports
+    ctx.globals = remap_globals(ctx.globals, remap)
 }
+
+/// `globals` with each slot's type index translated through `remap`.
+///
+/// @param globals  the global slots of a module.
+/// @param remap    old type index → new one.
+remap_globals :: fn(globals: BcGlobal[], remap: i32[]) -> BcGlobal[] =
+    globals.map((g) -> BcGlobal { ...g, .type_id = remap_idx(remap, g.type_id) }).collect()
 
 /// One index through a remap table. `-1` in stays `-1` — it is the "no type"
 /// marker, not a slot. An index PAST the table is a corrupt module, and returns
@@ -449,7 +503,7 @@ TypelessOp :: Unreachable | I32Const | LocalGet | LocalSet | LocalTee | StringCo
     | LoadSlotI32 | LoadSlotI64 | LoadSlotF64 | StoreSlotI32 | StoreSlotI64 | StoreSlotF64
     | MemoryCopy | BufferToString | BufferWriteString | F64ToBits | BitsToF64 | F32ToBits
     | BitsToF32 | ArrayRepeat | ArrayPushAll | ArrayCopy | ArrayRemoveLast | ArrayClear | FnAddr
-    | CheckedArith | CheckedNeg
+    | CheckedArith | CheckedNeg | GlobalGet | GlobalSet
 
 /// Recursive reachability walk on the type table. Composite types
 /// (struct / union / array / fn) extend the visit through their

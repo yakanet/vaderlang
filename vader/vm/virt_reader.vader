@@ -351,6 +351,8 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     if head == "array.remove_last" { return bc.ArrayRemoveLast {} }
     if head == "array.clear"       { return bc.ArrayClear {} }
     if head == "data.const"       { return parse_data_const(cleaned) }
+    if head == "global.get"       { return parse_global_get(cleaned) }
+    if head == "global.set"       { return parse_global_set(cleaned) }
     if head == "ref.cast"         { return parse_ref_cast(cleaned) }
     if head == "retag"            { return parse_retag(cleaned) }
     if head == "intrinsic" {
@@ -895,6 +897,18 @@ parse_data_const :: fn(line: string) -> bc.Op | null {
     type_parsed :: parse_int_in_base(type_text, 10)
     if type_parsed is ParseError { return null }
     return bc.DataConst { .pool_index = i32(pool_parsed), .type_id = i32(type_parsed) }
+}
+
+// `global.get <slot>`.
+parse_global_get :: fn(line: string) -> bc.Op | null {
+    index :: parse_int_after_prefix(line, "global.get ") ?? return null
+    return bc.GlobalGet { .index = index }
+}
+
+// `global.set <slot>`.
+parse_global_set :: fn(line: string) -> bc.Op | null {
+    index :: parse_int_after_prefix(line, "global.set ") ?? return null
+    return bc.GlobalSet { .index = index }
 }
 
 // ---- tests ----------------------------------------------------------------

@@ -52,6 +52,8 @@ ProjectCtx :: struct {
     /// — the surrounding code vanishes with nothing to read. `lower_ident` was
     /// made loud for that exact reason after two bisections ; this is its twin.
     diags: Diagnostic[]
+    /// The global slots of the program (`LoweredProject.globals`).
+    globals: GlobalSlot[]
 }
 
 new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx {
@@ -83,6 +85,7 @@ new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx {
         .const_fresh_wrap = lp.const_fresh_wrap,
         .extern_callbacks = externs,
         .diags            = diags,
+        .globals          = lp.globals,
     }
 }
 
@@ -182,6 +185,7 @@ export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]) -> CFGPr
         .vtable_entries  = lp.vtable_entries,
         .strings         = ctx.strings,
         .data_pool       = convert_data_pool(lp.data_pool),
+        .globals         = lp.globals,
         .trait_membership = lp.trait_membership,
     }
 }
@@ -568,6 +572,17 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
             }
         }
         is LoweredAssign -> { build_assign(fn_ctx, s) }
+        is LoweredGlobalSet -> {
+            value :: build_expr(fn_ctx, s.value)
+            if value !is null {
+                emit(fn_ctx, InstrGlobalSet {
+                    .span = s.span,
+                    .slot = i32(s.slot),
+                    .value = value,
+                    .type = fn_ctx.project.globals[s.slot].type,
+                })
+            }
+        }
         is LoweredCellSet -> {
             cell :: build_expr(fn_ctx, s.target)
             value :: build_expr(fn_ctx, s.value)
@@ -809,6 +824,7 @@ build_expr :: fn(fn_ctx: FnCtx, e: LoweredExpr) -> LocalId | null {
         is LoweredCellGet       -> { return build_cell_get(fn_ctx, e) }
         is LoweredMakeClosure   -> { return build_make_closure(fn_ctx, e) }
         is LoweredDataConst     -> { return build_data_const(fn_ctx, e) }
+        is LoweredGlobalGet     -> { return build_global_get(fn_ctx, e) }
         is LoweredTypeConst     -> { return build_type_const(fn_ctx, e) }
     }
 }
@@ -1419,6 +1435,17 @@ build_data_const :: fn(fn_ctx: FnCtx, e: LoweredDataConst) -> LocalId | null {
     dst :: fresh_tmp(fn_ctx, "data_const", e.type)
     emit(fn_ctx, InstrDataConst {
         .dst = dst, .type = e.type, .pool_index = i32(e.pool_index), .span = e.span,
+    })
+    return dst
+}
+
+build_global_get :: fn(fn_ctx: FnCtx, e: LoweredGlobalGet) -> LocalId | null {
+    dst :: fresh_tmp(fn_ctx, "global", e.type)
+    emit(fn_ctx, InstrGlobalGet {
+        .span = e.span,
+        .dst = dst,
+        .type = e.type,
+        .slot = i32(e.slot),
     })
     return dst
 }

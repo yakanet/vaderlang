@@ -126,6 +126,10 @@ emit_stmt :: fn(lines: string[], stmt: LoweredStmt, indent: string) -> void {
             // `LoweredCellSet` is intentionally not rendered — it carries no
             // surface syntax, so the dump omits it to stay readable.
         }
+        is LoweredGlobalSet -> {
+            lines.push("${indent}global_set #${stmt.slot}")
+            emit_expr(lines, stmt.value, "${indent}  ")
+        }
         is LoweredExprStmt -> {
             emit_expr(lines, stmt.expr, indent)
         }
@@ -301,6 +305,9 @@ emit_expr_compound :: fn(lines: string[], expr: LoweredExpr, indent: string) -> 
         }
         is LoweredDataConst -> {
             lines.push("${indent}data_const #${expr.pool_index} :${display_type(expr.type)}")
+        }
+        is LoweredGlobalGet -> {
+            lines.push("${indent}global_get #${expr.slot} :${display_type(expr.type)}")
         }
         is LoweredCast -> {
             lines.push("${indent}cast → ${display_type(expr.type)}")
