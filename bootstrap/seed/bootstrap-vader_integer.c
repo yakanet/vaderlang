@@ -18,7 +18,7 @@ vader_box_t vader_integer_checked_add(int64_t l0, bool l1, int64_t l2, int64_t l
             t0 = l2;
             l5 = (uint64_t) (int64_t) t0;
             if (!((l4 < l5))) {
-                t1 = vader_box_i64(276u, ((int64_t) (uint64_t) l4));
+                t1 = vader_box_i64(280u, ((int64_t) (uint64_t) l4));
                 return t1;
             }
             return vader_box_obj(0u, NULL);
@@ -33,7 +33,7 @@ vader_box_t vader_integer_checked_add(int64_t l0, bool l1, int64_t l2, int64_t l
     l7 = (l2 ^ l6);
     l8 = (l3 ^ l6);
     if (!(((l7 & l8) < INT64_C(0)))) {
-        t1 = vader_box_i64(276u, l6);
+        t1 = vader_box_i64(280u, l6);
         return t1;
     }
     return vader_box_obj(0u, NULL);
@@ -61,10 +61,10 @@ vader_box_t vader_integer_checked_mul(int64_t l0, bool l1, int64_t l2, int64_t l
                 if (l5 != l6) {
                     return vader_box_obj(0u, NULL);
                 }
-                t1 = vader_box_i64(276u, ((int64_t) (uint64_t) l4));
+                t1 = vader_box_i64(280u, ((int64_t) (uint64_t) l4));
                 return t1;
             }
-            t1 = vader_box_i64(276u, ((int64_t) (uint64_t) l4));
+            t1 = vader_box_i64(280u, ((int64_t) (uint64_t) l4));
             return t1;
         }
     }
@@ -79,10 +79,10 @@ vader_box_t vader_integer_checked_mul(int64_t l0, bool l1, int64_t l2, int64_t l
             if (t0 != l3) {
                 return vader_box_obj(0u, NULL);
             }
-            t1 = vader_box_i64(276u, l7);
+            t1 = vader_box_i64(280u, l7);
             return t1;
         }
-        t1 = vader_box_i64(276u, l7);
+        t1 = vader_box_i64(280u, l7);
         return t1;
     }
     if (l1) {
@@ -115,7 +115,7 @@ vader_box_t vader_integer_checked_negation(int64_t l0, bool l1, int64_t l2) {
     int64_t t1;
     if (l1) {
         if (!(l2 != INT64_C(0))) {
-            return vader_box_i64(276u, INT64_C(0));
+            return vader_box_i64(280u, INT64_C(0));
         }
         return vader_box_obj(0u, NULL);
     }
@@ -126,7 +126,7 @@ vader_box_t vader_integer_checked_negation(int64_t l0, bool l1, int64_t l2) {
     }
     if (!(l2 == INT64_MIN)) {
         t1 = vader_chk_neg(i64, l2);
-        t0 = vader_box_i64(276u, t1);
+        t0 = vader_box_i64(280u, t1);
         return t0;
     }
     return vader_box_obj(0u, NULL);
@@ -144,7 +144,7 @@ vader_box_t vader_integer_checked_sub(int64_t l0, bool l1, int64_t l2, int64_t l
             t0 = l3;
             l5 = (uint64_t) (int64_t) t0;
             if (!((l4 < l5))) {
-                t1 = vader_box_i64(276u, (l2 - l3));
+                t1 = vader_box_i64(280u, (l2 - l3));
                 return t1;
             }
             return vader_box_obj(0u, NULL);
@@ -159,7 +159,7 @@ vader_box_t vader_integer_checked_sub(int64_t l0, bool l1, int64_t l2, int64_t l
     l7 = (l2 ^ l3);
     l8 = (l2 ^ l6);
     if (!(((l7 & l8) < INT64_C(0)))) {
-        t1 = vader_box_i64(276u, l6);
+        t1 = vader_box_i64(280u, l6);
         return t1;
     }
     return vader_box_obj(0u, NULL);
@@ -174,7 +174,7 @@ static vader_box_t vader_integer_within(int64_t l0, bool l1, int64_t l2) {
         }
         l3 = (INT64_C(1) << l0);
         if (!((l2 >= l3))) {
-            t0 = vader_box_i64(276u, l2);
+            t0 = vader_box_i64(280u, l2);
             return t0;
         }
         return vader_box_obj(0u, NULL);
@@ -186,7 +186,7 @@ static vader_box_t vader_integer_within(int64_t l0, bool l1, int64_t l2) {
         return vader_box_obj(0u, NULL);
     }
     if (!((l2 >= l3))) {
-        t0 = vader_box_i64(276u, l2);
+        t0 = vader_box_i64(280u, l2);
         return t0;
     }
     return vader_box_obj(0u, NULL);
