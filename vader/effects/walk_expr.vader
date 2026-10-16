@@ -67,7 +67,7 @@ value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null = match e {
     // A conversion that runs no `into` hands on the value it converts.
     is AST.CastExpr          -> ctx.value(e.value)
     is AST.StringLitExpr     -> ctx.string_value(e)
-    is AST.IntrinsicCallExpr -> ctx.sequence_walked(e.args)
+    is AST.IntrinsicCallExpr -> ctx.intrinsic_value(e)
     is AST.AwaitExpr         -> ctx.nothing(e.inner)
     is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr
      | AST.DotVariantExpr | AST.GenericInstExpr | AST.FnTypeExpr | AST.ArrayTypeExpr
@@ -78,6 +78,32 @@ value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null = match e {
 nothing :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null {
     ctx.discard(e)
     return null
+}
+
+// `@field(x, name)` reads a field of `x`: the one `name` spells out, or any of them
+// when a `@comptime for` only names it once unrolled. Any other intrinsic returns
+// a value that holds nothing lent.
+intrinsic_value :: fn(ctx: WalkCtx, e: AST.IntrinsicCallExpr) -> usize | null {
+    if e.name != "field" || e.args.len() != 2 {
+        return ctx.sequence_walked(e.args)
+    }
+    target :: ctx.value(e.args[0])
+    ctx.discard(e.args[1])
+    name :: AST.string_literal_text(e.args[1]) ?? return ctx.any_field(e.args[0], target)
+    return ctx.step_slot(target, name)
+}
+
+// What `target`, the value of `source`, holds in any field that holds references ;
+// anything below it when its fields are not known.
+any_field :: fn(ctx: WalkCtx, source: AST.Expr, target: usize | null) -> usize | null {
+    fields :: ctx.struct_fields_of(source) ?? return ctx.path_slot(target, EVERYWHERE)
+    held: (usize | null)[]: []
+    for [name, t] in fields {
+        if holds_references(t) {
+            held.push(ctx.step_slot(target, name))
+        }
+    }
+    return ctx.union_of(held)
 }
 
 // Walk each of `exprs`, whose values hold nothing lent.

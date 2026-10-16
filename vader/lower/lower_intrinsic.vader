@@ -198,23 +198,13 @@ try_fold_field_index :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: 
     if intrinsic.args.len() != 2 { return null }
     arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0]) ?? return null
     ty :: arg_ty_or_unresolved(arg_or_null)
-    name :: static_string_lit(intrinsic.args[1]) ?? return null
+    name :: string_literal_text(intrinsic.args[1]) ?? return null
     if ty is StructType {
         decl :: struct_decl_for(ctx, ty) ?? return null
         for i in 0..<decl.fields.len() {
             if decl.fields[i].name == name {
                 return LoweredIntLit { .span = intrinsic.span, .type = type, .value = i64(i) }
             }
-        }
-    }
-    return null
-}
-
-// Single-part string-literal text, or null when the arg isn't a static string.
-static_string_lit :: fn(e: Expr) -> string | null {
-    if e is StringLitExpr {
-        if e.parts.len() == 1 {
-            if e.parts[0] is StringLitText as t { return t.value }
         }
     }
     return null

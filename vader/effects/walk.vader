@@ -305,8 +305,14 @@ narrowed :: fn(
 // A slot holding what `value` holds one `step` down, null when `value` is.
 step_slot :: fn(ctx: WalkCtx, value: usize | null, step: string) -> usize | null {
     from :: value ?? return null
+    return ctx.path_slot(from, ctx.index.paths.path_to(step))
+}
+
+// A slot holding what `value` holds at `path` below it, null when `value` is.
+path_slot :: fn(ctx: WalkCtx, value: usize | null, path: i32) -> usize | null {
+    from :: value ?? return null
     slot :: ctx.s.fresh_slot()
-    ctx.s.add_flow(slot, from, ctx.index.paths.path_to(step))
+    ctx.s.add_flow(slot, from, path)
     if from in ctx.pure {
         ctx.pure.add(slot)
     }

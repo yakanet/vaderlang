@@ -1,0 +1,32 @@
+// `@field(x, "name")` reads a field of `x`, as `x.name` does: a function that writes
+// below what it reads modifies its parameter, so lending it a module constant is
+// T3072. A name only a `@comptime for` spells out stands for every field that holds
+// references.
+module "snippet"
+
+Cfg :: struct {
+    n: i32
+}
+
+Box :: struct {
+    inner: Cfg
+}
+
+BOX :: Box { .inner = Cfg { .n = 7 } }
+
+reset_inner :: fn(b: Box) -> void {
+    c :: @field(b, "inner")
+    c.n = 0
+}
+
+reset_each :: fn(b: Box) -> void {
+    @comptime for f in @fields(Box) {
+        @field(b, f.name).n = 0
+    }
+}
+
+main :: fn() -> i32 {
+    reset_inner(BOX)
+    reset_each(BOX)
+    return 0
+}

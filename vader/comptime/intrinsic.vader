@@ -70,7 +70,7 @@ intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
     if expr.args.len() != 2 { return arg_count_error(expr, "field_index", 2) }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "field_index: first argument is not a type") }
-    name :: static_string_arg(expr.args[1])
+    name :: AST.string_literal_text(expr.args[1])
     if name == null { return arg_error(expr, "field_index: field name must be a static string literal") }
     if arg_type is StructType {
         decl :: context.typed.struct_decls[arg_type.symbol.id]
@@ -83,17 +83,6 @@ intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
         return arg_error(expr, "field_index: struct declaration for `${display_type(arg_type)}` not found")
     }
     return arg_error(expr, "field_index: `${display_type(arg_type)}` is not a struct")
-}
-
-// Extract a single-part string literal's text, or null when the arg isn't a
-// static string literal.
-static_string_arg :: fn(e: AST.Expr) -> string | null {
-    if e is AST.StringLitExpr {
-        if e.parts.len() == 1 {
-            if e.parts[0] is AST.StringLitText as t { return t.value }
-        }
-    }
-    return null
 }
 
 intrinsic_size_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {

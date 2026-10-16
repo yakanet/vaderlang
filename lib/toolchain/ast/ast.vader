@@ -794,6 +794,22 @@ export StringLitText   :: struct { value: string, span: Span, id: usize = UNASSI
 /// An interpolated `${...}` inside a string literal.
 export StringLitInterp :: struct { expr:  Expr!,   span: Span, id: usize = UNASSIGNED_NODE_ID }
 
+/// The text of `e` when it is a string literal of one run of text, with no
+/// interpolation: what a name spelled out at build time reads (`@field(x, "n")`).
+///
+/// @param e  any expression.
+/// @return   null for anything else, an interpolation included.
+export string_literal_text :: fn(e: Expr) -> string | null {
+    if e !is StringLitExpr || e.parts.len() != 1 {
+        return null
+    }
+    part :: e.parts[0]
+    if part is StringLitText {
+        return part.value
+    }
+    return null
+}
+
 // ---- naming / access ------------------------------------------------------
 
 /// A bare name, in value or type position.
