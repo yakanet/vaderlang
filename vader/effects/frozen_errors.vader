@@ -4,21 +4,27 @@
 // T3072, and a view of a string's bytes kept somewhere T3071. The detail names the
 // value, what modifies it down the calls it is lent through (`origin.vader`), and
 // the way out: a copy, which a name bound to a constant holds and `.clone()` makes
-// of a view.
+// of a view. A write into such a copy that the body never reads is W0019, at the
+// write.
 
 module "vader/effects"
 
+import "std/collections"
 import "std/iter"
 import "std/string"
+import "toolchain/span"
 import "vader/diagnostics"
 
 /// The T3070, T3071 and T3072 errors of a checked project: each frozen value
 /// written through or lent to a callee that modifies it, and each view of a
-/// string's bytes kept or handed to code the summary cannot see.
+/// string's bytes kept or handed to code the summary cannot see ; and the W0019
+/// warnings, each write into a copy of a frozen value that the body never reads
+/// nor keeps.
 ///
 /// @param summary  the effect summary of the project.
 export frozen_diagnostics :: fn(summary: EffectSummary) -> Diagnostic[] {
     out: Diagnostic[]: []
+    warned :: MutableSet<Span> {}
     for site in summary.frozen {
         match site.kind {
             .WriteFault -> {
@@ -31,10 +37,27 @@ export frozen_diagnostics :: fn(summary: EffectSummary) -> Diagnostic[] {
                 detail :: "${frozen_what(site)} ; ${copy_hint(site, "keep")}"
                 out.push(typecheck_error(.ViewKept, site.span, detail))
             }
+            .UnreadCopy -> {
+                // Each name bound to the value is a site of its own: one warning per
+                // write.
+                at :: lost_write(site)
+                if warned.add(at) {
+                    detail :: "${frozen_what(site)} ; a name bound to it holds a copy"
+                    out.push(warning(.WriteToUnreadCopy, at, detail))
+                }
+            }
             .UnknownCall | .Copy | .ElidedCopy | .SharedBinding | .ReturnedView -> {}
         }
     }
     return out
+}
+
+// Where the write into the copy of `site` lands ; the binding when no write was
+// traced.
+lost_write :: fn(site: FrozenSite) -> Span {
+    chain :: site.chain ?? return site.span
+    write :: chain.write ?? return site.span
+    return write.span
 }
 
 // What the frozen value of `site` is.

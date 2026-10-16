@@ -42,6 +42,14 @@ WalkCtx :: struct {
     widenings: PendingWidening[]!
     /// The roots the frozen checks decide: each use of a frozen value, each binding.
     roots: FrozenRoot[]! = []
+    /// The name nodes a write lands below, `c` in `c.n = 0` or `c.n += 1`: no read.
+    place_bases: MutableSet<usize>! = MutableSet<usize> {}
+    /// The slots that hold nothing but frozen values: a use of a constant or of an
+    /// enum's variant data, a step below such a slot, a join of such slots.
+    pure: MutableSet<usize>! = MutableSet<usize> {}
+    /// The locals and parameters a write into may be seen through, by symbol id:
+    /// those the body reads, and those that may hold anything but frozen values.
+    seen_names: MutableSet<i32>! = MutableSet<i32> {}
 }
 
 /// The skeleton of `decl`'s body.
@@ -72,6 +80,7 @@ skeleton_of :: fn(
         sym :: typed.resolved.idents[p.span.hash()] ?? continue
         if holds_references(typed.param_types[p.span.hash()]) {
             ctx.slots[sym.id] = i
+            ctx.seen_names.add(sym.id)
         }
     }
     body :: decl.body ?? return ctx.s
@@ -86,7 +95,10 @@ skeleton_of :: fn(
 stmt :: fn(ctx: WalkCtx, s: AST.Stmt) -> void {
     match s {
         is AST.LetStmt               -> { ctx.bind(s.binding, ctx.value(s.value)) }
-        is AST.AssignStmt            -> { ctx.assign(s.target, ctx.value(s.value)) }
+        is AST.AssignStmt            -> {
+            ctx.note_place(s.target)
+            ctx.assign(s.target, ctx.value(s.value))
+        }
         is AST.DestructureAssignStmt -> { ctx.destructure_assign(s) }
         is AST.ExprStmt              -> { ctx.discard(s.expr) }
         is AST.ReturnStmt            -> { ctx.return_stmt(s) }
@@ -155,10 +167,29 @@ destructure_assign :: fn(ctx: WalkCtx, s: AST.DestructureAssignStmt) -> void {
     value :: ctx.value(s.value)
     for t in s.targets {
         match t {
-            is AST.PlaceTarget    -> { ctx.assign(t.place, ctx.step_slot(value, ELEMENT)) }
-            is AST.RestTarget     -> { ctx.assign(t.place, value) }
+            is AST.PlaceTarget    -> {
+                ctx.note_place(t.place)
+                ctx.assign(t.place, ctx.step_slot(value, ELEMENT))
+            }
+            is AST.RestTarget     -> {
+                ctx.note_place(t.place)
+                ctx.assign(t.place, value)
+            }
             is AST.WildcardTarget -> {}
         }
+    }
+}
+
+// Note the name a write to `place` lands below, through its fields and elements:
+// what it reads there is no read of the name. A compound assignment reads its
+// target through the same node.
+note_place :: fn(ctx: WalkCtx, place: AST.Expr) -> void {
+    // @partial: any other place reads no name below it.
+    @partial match place {
+        is AST.FieldExpr -> { ctx.note_place(place.target) }
+        is AST.IndexExpr -> { ctx.note_place(place.target) }
+        is AST.IdentExpr -> { _ :: ctx.place_bases.add(place.id) }
+        _                -> {}
     }
 }
 
@@ -190,9 +221,10 @@ assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: usize | null) -> voi
     slot :: ctx.ident_value(name)
     if slot == null {
         ctx.escape(value, .Stored, name.span)
-    } else if value != null {
-        ctx.bind_copy(slot, value, name.span, name.name)
+        return
     }
+    sym :: ctx.typed.resolved.idents[name.span.hash()] ?? return
+    ctx.bind_copy(slot, value, name.span, sym)
 }
 
 // `target[index] = value`, through the target's `IndexSet` or into an array. A
@@ -229,10 +261,7 @@ bind :: fn(ctx: WalkCtx, b: AST.LetBinding, value: usize | null) -> void {
 // holds of a frozen value.
 bind_symbol :: fn(ctx: WalkCtx, span: Span, value: usize | null) -> void {
     sym :: ctx.typed.resolved.idents[span.hash()] ?? return
-    slot :: ctx.local_slot(sym.id)
-    if value != null {
-        ctx.bind_copy(slot, value, span, sym.name)
-    }
+    ctx.bind_copy(ctx.local_slot(sym.id), value, span, sym)
 }
 
 // The slot of the local `id`, made on its first binding.
@@ -278,6 +307,9 @@ step_slot :: fn(ctx: WalkCtx, value: usize | null, step: string) -> usize | null
     from :: value ?? return null
     slot :: ctx.s.fresh_slot()
     ctx.s.add_flow(slot, from, ctx.index.paths.path_to(step))
+    if from in ctx.pure {
+        ctx.pure.add(slot)
+    }
     return slot
 }
 
@@ -294,6 +326,23 @@ union_of :: fn(ctx: WalkCtx, values: (usize | null)[]) -> usize | null {
     for v in held {
         ctx.s.add_flow(slot, v)
     }
+    if held.all_match((v) -> v in ctx.pure) {
+        ctx.pure.add(slot)
+    }
+    return slot
+}
+
+// What evaluates to one of `values`, the branches of an `if`, a `match` or a `??`.
+// A branch that holds nothing lent may still be shared, a lambda's parameter or a
+// module variable: a join of frozen values with one gets a slot of its own, outside
+// `pure`.
+one_of :: fn(ctx: WalkCtx, values: (usize | null)[]) -> usize | null {
+    joined :: ctx.union_of(values) ?? return null
+    if joined !in ctx.pure || values.all_match((v) -> v != null) {
+        return joined
+    }
+    slot :: ctx.s.fresh_slot()
+    ctx.s.add_flow(slot, joined)
     return slot
 }
 

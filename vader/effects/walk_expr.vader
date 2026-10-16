@@ -56,7 +56,7 @@ value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null = match e {
     is AST.CallExpr          -> ctx.call_value(e)
     is AST.BinaryExpr        -> ctx.binary_value(e)
     is AST.UnaryExpr         -> ctx.nothing(e.operand)
-    is AST.NullCoalesceExpr  -> ctx.union_of([ctx.value(e.left), ctx.fallback_value(e.fallback)])
+    is AST.NullCoalesceExpr  -> ctx.one_of([ctx.value(e.left), ctx.fallback_value(e.fallback)])
     is AST.IfExpr            -> ctx.if_value(e)
     is AST.MatchExpr         -> ctx.match_value(e)
     is AST.BlockExpr         -> ctx.block_value(e)
@@ -93,6 +93,9 @@ ident_value :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> usize | null {
     sym :: ctx.typed.resolved.idents[e.span.hash()] ?? return null
     local :: ctx.slots[sym.id]
     if local != null {
+        if e.id !in ctx.place_bases {
+            ctx.seen_names.add(sym.id)
+        }
         return ctx.narrowed(local, type_of_symbol(sym, ctx.typed), ctx.typed.expr_types[e.id])
     }
     return ctx.frozen_use(e, sym)
@@ -218,7 +221,7 @@ fallback_value :: fn(ctx: WalkCtx, f: AST.CoalesceFallback) -> usize | null {
 if_value :: fn(ctx: WalkCtx, e: AST.IfExpr) -> usize | null {
     ctx.discard(e.cond)
     then :: ctx.block_value(e.then_block)
-    return ctx.union_of([then, ctx.else_value(e.else_branch)])
+    return ctx.one_of([then, ctx.else_value(e.else_branch)])
 }
 
 else_value :: fn(ctx: WalkCtx, branch: AST.IfElse | null) -> usize | null = match branch {
@@ -243,7 +246,7 @@ match_value :: fn(ctx: WalkCtx, e: AST.MatchExpr) -> usize | null {
         }
         arms.push(ctx.value(arm.body))
     }
-    return ctx.union_of(arms)
+    return ctx.one_of(arms)
 }
 
 // Bind each name `p` binds to its part of the scrutinee.

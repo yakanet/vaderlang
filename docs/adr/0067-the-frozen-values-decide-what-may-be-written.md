@@ -69,6 +69,16 @@ of a first element of a marked module constant (`SPECS[0].code = 9`).
   then its own. The tree's six marked constants already do, and `@singleton`
   replaces the form. A module variable is no frozen value: what its initialiser
   keeps is copied, or refused for a view, as anywhere a value is kept.
+- **A write into a copy nothing reads is W0019** (2026-10-16), at the write: a name
+  bound to a constant or to variant data, written, and never read nor kept in its
+  body. The walk notes the names a body reads, a name a write lands below
+  (`c.n = 0`, `c.n += 1`) being no read. A name that may hold anything else is
+  never warned about, since the write may land there: a parameter, or a name bound
+  to a slot outside those that hold only frozen values (a use, a step below one, a
+  join of them; a branch that holds no slot may be a fresh value). The check asks
+  no order: a read anywhere in the body silences it (`c.n = c.n + 1` does). Only a
+  write the body makes itself is reported: a copy lent to a callee that writes it
+  counts as read, and a write through a user `IndexSet` is a call.
 - T3042, T3073, T3074 and T3077 are retired; T3071 is reused for a kept view.
 - The way out the detail offers is a copy: a name bound to a constant or to variant
   data holds one, `.clone()` copies a view.

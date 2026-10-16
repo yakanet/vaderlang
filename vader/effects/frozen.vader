@@ -11,7 +11,8 @@
 //   handed to code the summary cannot see: an unknown call ;
 // - a use stored or returned: a copy ;
 // - a binding written, stored, returned or handed to unseen code: a copy ; one
-//   only read shares the frozen value.
+//   only read shares the frozen value ; one written that the body never reads nor
+//   keeps, and that holds nothing but frozen values, a copy whose write is lost.
 //
 // A view is never copied: what holds one, a use or a binding, comes to the
 // outcomes of `views.vader`. A copy is left out when nothing in the program writes
@@ -47,6 +48,10 @@ export FrozenKind :: enum {
     /// A name bound to it that nothing writes, keeps or returns: the name shares the
     /// frozen value instead of copying it.
     SharedBinding,
+    /// A name bound to it, which holds nothing but copies of frozen values, is
+    /// written, and the body never reads it nor keeps what it holds: the write is
+    /// lost.
+    UnreadCopy,
     /// A view is kept somewhere, or handed to code the summary cannot see.
     KeptView,
     /// A view is returned: its function hands views out (`views.vader`).
@@ -104,7 +109,8 @@ FrozenRoot :: struct {
     /// The constant a use names, the call that makes a view (`bytes()`), the
     /// conversion that reads variant data (`Info(…)`), or the name of a binding.
     label: string
-    binding: bool
+    /// The symbol id of the name a binding binds ; null for a use.
+    binding: i32 | null = null
     /// What a use reads ; meaningless for a binding.
     origin: FrozenOrigin = .Constant
     /// The use, which may read a fresh value of what it reads ; null for a view of
@@ -143,6 +149,9 @@ FrozenBody :: struct {
     /// For a constant's initialiser, the constant's symbol id: its value keeps
     /// nothing that is not frozen as well.
     initialises: i32 | null
+    /// The locals and parameters a write into may be seen through
+    /// (`WalkCtx.seen_names`).
+    seen_names: MutableSet<i32>
 }
 
 // ---- roots ----------------------------------------------------------------
@@ -156,7 +165,13 @@ frozen_use :: fn(ctx: WalkCtx, e: AST.Expr, sym: Symbol) -> usize | null {
         return null
     }
     use :: ConstantUse { .node = e.id, .symbol = constant.id }
-    return ctx.frozen_source(e, sym.name, .Constant, use)
+    return ctx.pure_source(ctx.frozen_source(e, sym.name, .Constant, use))
+}
+
+// `slot`, noted as holding nothing but its frozen value.
+pure_source :: fn(ctx: WalkCtx, slot: usize) -> usize {
+    ctx.pure.add(slot)
+    return slot
 }
 
 // The slot of a use of a frozen value at `e`, labelled `label` for the dump ;
@@ -173,7 +188,6 @@ frozen_source :: fn(
         .root = ctx.s.add_root(slot),
         .span = e.span,
         .label = label,
-        .binding = false,
         .origin = origin,
         .type = ctx.typed.expr_types[e.id],
         .constant = constant,
@@ -194,7 +208,8 @@ frozen_view :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> usize | null
 // The slot of the variant data the conversion `c` reads, `Info(v)` ; null when `c`
 // is no such conversion. The data holds only values, so a copy of it is a copy of
 // its fields. A type parameter converted to a struct some enum keeps its data in
-// may stand for that enum at an instance.
+// may stand for that enum at an instance, and for the struct itself at another,
+// where the conversion hands its argument on.
 frozen_variant_data :: fn(ctx: WalkCtx, c: AST.CallExpr) -> usize | null {
     if c.args.len() != 1 {
         return null
@@ -203,7 +218,7 @@ frozen_variant_data :: fn(ctx: WalkCtx, c: AST.CallExpr) -> usize | null {
     target :: ctx.typed.expr_types[c.id] ?? return null
     if source is EnumType {
         data :: enum_data_of(source, target) ?? return null
-        return ctx.variant_data_use(c, data)
+        return ctx.pure_source(ctx.variant_data_use(c, data))
     }
     if (source is TypeParamType || source is AnyType) && target is StructType
         && target.symbol.id in ctx.index.variant_data {
@@ -218,14 +233,19 @@ variant_data_use :: fn(ctx: WalkCtx, c: AST.CallExpr, data: StructType) -> usize
     return ctx.frozen_source(c, "${data.symbol.name}(…)", .VariantData, use)
 }
 
-// The binding of `name`, at `span`, to what `value` holds: a copy of what it holds
-// of a frozen value, an alias of the rest.
-bind_copy :: fn(ctx: WalkCtx, slot: usize, value: usize, span: Span, name: string) -> void {
+// The binding of `sym`, at `span`, to what `value` holds: a copy of what it holds
+// of a frozen value, an alias of the rest. A name bound to anything but frozen
+// values is seen: a write into it may be read through what else it holds.
+bind_copy :: fn(ctx: WalkCtx, slot: usize, value: usize | null, span: Span, sym: Symbol) -> void {
+    if value == null || value !in ctx.pure {
+        ctx.seen_names.add(sym.id)
+    }
+    from :: value ?? return
     binding :: FrozenRoot {
-        .root = ctx.s.add_copy(slot, value),
+        .root = ctx.s.add_copy(slot, from),
         .span = span,
-        .label = name,
-        .binding = true,
+        .label = sym.name,
+        .binding = sym.id,
     }
     ctx.roots.push(binding)
 }
@@ -242,6 +262,7 @@ note_frozen_body :: fn(ctx: WalkCtx, node: i32, initialises: i32 | null) -> void
         .typed = ctx.typed,
         .node = node,
         .initialises = initialises,
+        .seen_names = ctx.seen_names,
     }
     ctx.frozen.bodies.push(body)
 }
@@ -450,7 +471,7 @@ root_case :: fn(
 // The uses of frozen values root `r` holds: a use holds itself, a binding what it
 // took ; null for a binding that took none.
 held_by :: fn(r: FrozenRoot, effects: RootEffects) -> Root[] | null {
-    if r.binding {
+    if r.binding != null {
         return effects.took[r.root]
     }
     return [Root { .param = r.root, .path = ROOT }]
@@ -461,8 +482,8 @@ outcome :: fn(frozen: FrozenSites, c: RootCase, r: FrozenRoot, view: bool) -> Fr
     if view {
         return view_outcome(c)
     }
-    if r.binding {
-        return frozen.binding_outcome(c)
+    if r.binding != null {
+        return frozen.binding_outcome(c, r.binding !in c.body.seen_names)
     }
     return frozen.use_outcome(c)
 }
@@ -483,7 +504,7 @@ note_kept_by_constant :: fn(frozen: FrozenSites, c: RootCase, r: FrozenRoot) -> 
 // Whether the uses a root decided `kind` holds read a fresh value: copied, or
 // handed to unseen code with a type some write of the program reaches.
 reads_fresh :: fn(frozen: FrozenSites, c: RootCase, kind: FrozenKind) -> bool = match kind {
-    .Copy -> true
+    .Copy | .UnreadCopy -> true
     .UnknownCall -> frozen.hands_on_written(c, is_unknown)
     .WriteFault | .CallFault | .ElidedCopy | .SharedBinding | .KeptView | .ReturnedView -> false
 }
@@ -525,11 +546,15 @@ fault_of :: fn(c: RootCase, writes: fn(Access) -> bool) -> FrozenKind | null {
     return null
 }
 
-// What a binding of frozen values comes to: written, it needs its copy ; kept,
-// returned or handed to unseen code, a copy the types of what escapes may make
-// needless ; only read, it shares the frozen value.
-binding_outcome :: fn(frozen: FrozenSites, c: RootCase) -> FrozenKind {
+// What a binding of frozen values comes to: written, it needs its copy, whose
+// write the body makes itself is lost when the body never sees the name, `unseen`,
+// nor keeps the copy ; kept, returned or handed to unseen code, a copy the types of
+// what escapes may make needless ; only read, it shares the frozen value.
+binding_outcome :: fn(frozen: FrozenSites, c: RootCase, unseen: bool) -> FrozenKind {
     if c.either(modifies) {
+        if unseen && c.marked.any_match(modifies) && !c.either(escapes) {
+            return .UnreadCopy
+        }
         return .Copy
     }
     if c.either(escapes) {
@@ -587,8 +612,8 @@ step_type :: fn(typed: TypedProgram, t: Type | null, name: string) -> Type | nul
 }
 
 // The chain of a fault of root `r` of `body`, from its first access that modifies
-// the value: one the body marks for a write fault, one a call lends it for a call
-// fault ; null for any other outcome.
+// the value: one the body marks for a write fault or a copy nothing reads, one a
+// call lends it for a call fault ; null for any other outcome.
 fault_chain :: fn(
     settled: TraceCtx,
     body: FrozenBody,
@@ -617,8 +642,8 @@ fault_chain :: fn(
 // The set a fault of `kind` on root `root` comes from.
 fault_set :: fn(effects: RootEffects, root: usize, kind: FrozenKind) -> ParamEffects | null =
     match kind {
-        .WriteFault -> effects.marked[root]
-        .CallFault  -> effects.lent[root]
+        .WriteFault | .UnreadCopy -> effects.marked[root]
+        .CallFault                -> effects.lent[root]
         .UnknownCall | .Copy | .ElidedCopy | .SharedBinding | .KeptView | .ReturnedView -> null
     }
 

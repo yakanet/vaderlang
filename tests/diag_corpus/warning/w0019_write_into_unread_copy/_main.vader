@@ -1,0 +1,65 @@
+// A name bound to a module constant holds a copy of it: a write into the copy that
+// the body never reads nor keeps is lost, which the program rarely means. W0019, at
+// the write, three times: a loop variable, a binding, a compound assignment. A copy
+// that is read or kept is the program's own, and a name that may hold another value
+// than the constant may be read through it: both pass.
+module "snippet"
+
+Cfg :: struct {
+    n: i32
+}
+
+CFG :: Cfg { .n = 1 }
+TABLE :: [Cfg { .n = 1 }, Cfg { .n = 2 }]
+
+resets_each :: fn() -> void {
+    for c in TABLE {
+        c.n = 0
+    }
+}
+
+writes_a_copy :: fn() -> void {
+    c :: CFG
+    c.n = 2
+}
+
+bumps_a_copy :: fn() -> void {
+    c :: CFG
+    c.n += 1
+}
+
+reads_the_copy :: fn() -> i32 {
+    c :: CFG
+    c.n = 2
+    return c.n
+}
+
+keeps_the_copy :: fn(out: Cfg[]) -> void {
+    c :: CFG
+    c.n = 2
+    out.push(c)
+}
+
+writes_a_fresh_row_or_a_copy :: fn(flag: bool) -> i32 {
+    fresh :: Cfg { .n = 2 }
+    c :: if flag { fresh } else { CFG }
+    c.n = 3
+    return fresh.n
+}
+
+writes_a_row_or_a_copy :: fn(rows: Cfg[]) -> void {
+    c := CFG
+    if rows.len() > 0 {
+        c = rows[0]
+    }
+    c.n = 4
+}
+
+main :: fn() -> i32 {
+    resets_each()
+    writes_a_copy()
+    bumps_a_copy()
+    keeps_the_copy([])
+    writes_a_row_or_a_copy([])
+    return reads_the_copy() + writes_a_fresh_row_or_a_copy(true)
+}

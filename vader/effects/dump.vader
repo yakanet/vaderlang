@@ -92,6 +92,7 @@ write_frozen :: fn(sb: StringBuilder, frozen: FrozenSite[], scope: string[]) -> 
         FrozenKind.Copy,
         FrozenKind.ElidedCopy,
         FrozenKind.SharedBinding,
+        FrozenKind.UnreadCopy,
         FrozenKind.KeptView,
         FrozenKind.ReturnedView,
     ]
@@ -155,6 +156,7 @@ frozen_label :: fn(kind: FrozenKind) -> string = match kind {
     .Copy          -> "copy"
     .ElidedCopy    -> "copy elided"
     .SharedBinding -> "binding shared"
+    .UnreadCopy    -> "copy unread"
     .KeptView      -> "view kept"
     .ReturnedView  -> "view returned"
 }

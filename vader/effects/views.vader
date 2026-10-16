@@ -80,7 +80,7 @@ may_be_byte :: fn(t: Type) -> bool = match t {
 }
 
 // Whether `r` is a use of a view.
-is_view :: fn(r: FrozenRoot) -> bool = !r.binding && r.origin == .View
+is_view :: fn(r: FrozenRoot) -> bool = r.binding == null && r.origin == .View
 
 // Whether one of the uses `c` holds is a view.
 holds_view :: fn(c: RootCase) -> bool =

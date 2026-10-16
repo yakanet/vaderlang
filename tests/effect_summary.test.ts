@@ -150,7 +150,7 @@ test("the frozen checks give each use of a frozen value its outcome", async () =
     "call fault hands_a_view()",
     "view returned bytes()",
     "write fault: 2, call fault: 6, unknown call: 1, copy: 3, copy elided: 1, binding shared: 3, " +
-      "view kept: 1, view returned: 2",
+      "copy unread: 0, view kept: 1, view returned: 2",
   ]);
 }, MEDIUM_BUILD);
 
@@ -222,7 +222,7 @@ test("the frozen checks see constants and module variables of another module", a
     "copy CFG",
     "copy CAPS",
     "write fault: 0, call fault: 0, unknown call: 0, copy: 2, copy elided: 0, binding shared: 0, " +
-      "view kept: 0, view returned: 0",
+      "copy unread: 0, view kept: 0, view returned: 0",
   ]);
   const run = await runCli(["run", IMPORTED], undefined, MEDIUM_BUILD);
   expect(run.exit).toBe(0);
