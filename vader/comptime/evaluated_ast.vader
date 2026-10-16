@@ -3,8 +3,7 @@
 // The comptime pass reads a
 // `TypedProject` and produces an `EvaluatedProject` carrying one
 // `EvaluatedProgram` per module plus the cross-module monomorphizer
-// view and a few host-side side-tables (file contents, blanket-Into
-// observations). Downstream consumers (lowerer, bytecode emit) read
+// view and the host-side side-tables (file contents). Downstream consumers (lowerer, bytecode emit) read
 // `EvaluatedProject` directly — never `TypedProject` for comptime data.
 
 module "vader/comptime"
@@ -38,19 +37,61 @@ export VmRequiredDecl :: struct {
     span:        Span
 }
 
-/// Per-module comptime output. Side-tables stay separated by concern :
-/// `comptime_decls` is the only one this struct adds beyond pointing at
-/// the typed program ; project-wide tables (`file_exprs`,
+/// Per-module comptime output. Project-wide tables (`file_exprs`,
 /// `file_baked_consts`, `instances`) live on `EvaluatedProject`.
 export EvaluatedProgram :: struct {
     /// Owning typed program ; the comptime engine never mutates it.
     typed: TypedProgram
 
-    /// `@comptime`-marked const decls keyed by the decl's Symbol id.
-    /// Phase 4 populates ; phase 3 leaves empty. Symbol-id keying
-    /// matches every other declaration-keyed side-table in the
-    /// project (`decl_types` switching to id-keyed is tracked in TODO).
+    /// The const decls the comptime pass evaluated, `@comptime`-marked or
+    /// folded, keyed by the decl's Symbol id.
     comptime_decls: MutableMap<i32, ComptimeValue>
+
+    /// How each value of `comptime_decls` was produced, under the same key.
+    routes: MutableMap<i32, ComptimeRoute> = MutableMap<i32, ComptimeRoute> {}
+
+    /// Each `@file` the module reads, in source order.
+    file_reads: FileRead[] = []
+
+    /// Each top-level `@assert` of the module and what its evaluation gave.
+    asserts: AssertCheck[] = []
+}
+
+/// How the comptime pass produced a const's value.
+export ComptimeRoute :: enum {
+    /// A `@comptime` decl the tree-walk evaluated.
+    Marked,
+    /// A `@comptime` decl the tree-walk deferred to the VM.
+    Vm,
+    /// A plain const the tree-walk folded, best effort.
+    Folded,
+}
+
+/// One `@file("path")` the comptime pass read.
+export FileRead :: struct {
+    /// The `@file` call.
+    span: Span
+    /// The path as the program wrote it.
+    path: string
+    /// The size of what was read, in bytes.
+    bytes: usize
+    /// The constant the read initialises when it is the whole of a const's value.
+    name: string | null = null
+}
+
+/// What evaluating an `@assert` condition gave.
+export AssertVerdict :: enum {
+    Holds,
+    Fails,
+    /// The tree-walk gave no bool (the condition needs the VM, or failed with a
+    /// reported error) ; the build does not check it.
+    NotEvaluated,
+}
+
+/// One top-level `@assert` and its verdict.
+export AssertCheck :: struct {
+    span: Span
+    verdict: AssertVerdict
 }
 
 /// Project-wide comptime output. Carries the per-module slices, the
@@ -67,20 +108,19 @@ export EvaluatedProject :: struct {
     /// `@file`-baked const values keyed by the const's Symbol id.
     /// Populated alongside `file_exprs` ; the lower merges these
     /// into `comptime_value_by_symbol_id` so use sites inline the
-    /// literal. Kept SEPARATE from per-module `comptime_decls` so
-    /// the comptime dump's `@comptime` listing only shows user-
-    /// marked decls.
+    /// literal. Kept apart from `comptime_decls`, which the dump lists :
+    /// a read is listed once, as a `@file` item.
     file_baked_consts: MutableMap<i32, ComptimeValue>
 
-    /// `@file("path")` expression-position calls baked at comptime,
-    /// keyed by the IntrinsicCallExpr's AST node id. Lower reads this
+    /// Every `@file("path")` call baked at comptime, keyed by the
+    /// IntrinsicCallExpr's AST node id. Lower reads this
     /// to emit a `LoweredStringLit` of the file contents.
     file_exprs: MutableMap<usize, string>
 
     /// Sorted list of every generic instantiation seen in the typed AST
-    /// (Struct/Trait with non-empty args). Drives the `## generic
-    /// instances` section of the comptime.snapshot dump. Sorted by
-    /// `display_key` so ordering is deterministic across runs.
+    /// (Struct/Trait with non-empty args), from which `lower_mono_struct`
+    /// materialises each concrete struct instance. Sorted by `display_key`
+    /// so ordering is deterministic across runs.
     instances: GenericInstance[]
 
     /// `@comptime` decls the tree-walk deferred to the VM. Populated by
@@ -90,8 +130,7 @@ export EvaluatedProject :: struct {
     vm_required: VmRequiredDecl[]
 }
 
-/// Construct an empty `EvaluatedProgram` bound to `typed`. Used by the
-/// orchestrator skeleton in phase 3 ; phase 4 populates `comptime_decls`.
+/// Construct an empty `EvaluatedProgram` bound to `typed`.
 /// @param typed  the module's typed program.
 /// @return       a fresh evaluated program with no comptime decls.
 export new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
@@ -101,9 +140,7 @@ export new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
     }
 }
 
-/// Construct an empty `EvaluatedProject` bound to `typed`. Phase 3 stub
-/// returns this directly ; later phases populate the per-module slices
-/// + the host tables.
+/// Construct an empty `EvaluatedProject` bound to `typed`.
 /// @param typed  the typed project to wrap.
 /// @return       a fresh evaluated project with empty side-tables.
 export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {

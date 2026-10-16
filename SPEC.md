@@ -3945,11 +3945,11 @@ to the program like any other argument.
 | `vader fmt [path]` | Single opinionated formatter, **no config**; defaults to recursive walk under `.` |
 | `vader test [path]` | Runs all functions marked `@test`, each in an isolated process. |
 | `vader lsp` | Runs the Language Server (JSON-RPC over stdin/stdout). Spawned by VS Code / IntelliJ |
-| `vader dump --stage=<stage> <file>` | Dumps an IR stage (text or JSON depending on stage) |
+| `vader dump --stage=<stage> <file>` | Dumps an IR stage (text, JSON or Markdown depending on stage) |
 | `vader help [action]` | Usage overview, or one action's options in full |
 | `vader init [name]` *(post-MVP)* | Scaffolds a new Vader project: directory, `examples/hello.vader`, default `vader.json` |
 
-`vader dump` stages, in pipeline order (`lexer`, `resolved-ast`, `cfg`, `ranges`, `c`/`wasm` produce text; the rest produce JSON):
+`vader dump` stages, in pipeline order (`ast` produces JSON, `evaluated-ast` Markdown, the others text):
 
 | Stage | Output |
 |-------|--------|
@@ -3957,7 +3957,7 @@ to the program like any other argument.
 | `ast` | Parser AST, spans elided |
 | `resolved-ast` | Per-module symbol table + import wiring (text — byte-aligned with `vader/resolver/dump.vader`) |
 | `typed-ast` | Per-decl + per-expression types |
-| `evaluated-ast` | `@comptime` / `@file` values + generic instances |
+| `evaluated-ast` | `@comptime` values, `@file` reads and `@assert` verdicts, in Markdown |
 | `lowered-ast` | Desugared tree (match / interp / defer expanded) |
 | `dced-ast` | Lowered tree post-stdlib reachability prune |
 | `cfg` | Mid-IR CFG (post-DCE + escape-annotated) |

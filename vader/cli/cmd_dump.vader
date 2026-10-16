@@ -289,12 +289,14 @@ run_comptime_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
 ) -> i32 {
     pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
-    println(dump_evaluated(pipeline.evaluated, dump_scope(module_filter, pipeline.loaded)))
-    // Mirror `run_lower_stage` / `run_bytecode_stage` : surface the merged
-    // typecheck + comptime diags as a single `# Diagnostics` block —
-    // resolve + typecheck + comptime accumulate into one collector, so the
-    // recorded snapshots only line up when this stage does the same.
-    print_pipeline_diags(pipeline, [], dump_scope(module_filter, pipeline.loaded))
+    scope :: dump_scope(module_filter, pipeline.loaded)
+    println(dump_evaluated(pipeline.evaluated, scope))
+    // The dump is Markdown, so its diagnostics are a Markdown section ; the
+    // resolve, typecheck and comptime diags merge as every stage merges them.
+    diags :: pipeline_diags_in_scope(pipeline, [], scope)
+    if diags.len() > 0 {
+        println(diags.markdown_diagnostics())
+    }
     return 0
 }
 
@@ -579,9 +581,15 @@ filter_diags_in_scope :: fn(diags: Diagnostic[], files: string[]) -> Diagnostic[
 }
 
 print_pipeline_diags :: fn(pipeline: EvaluatedPipeline, extra: Diagnostic[], scope: string[]) -> void {
+    print_merged_diags(pipeline_diags_in_scope(pipeline, extra, scope), [])
+}
+
+// The pipeline's diagnostics and `extra`, kept to the files of `scope`.
+pipeline_diags_in_scope :: fn(
+    pipeline: EvaluatedPipeline, extra: Diagnostic[], scope: string[],
+) -> Diagnostic[] {
     all :: merge_diagnostics(gather_pipeline_diags(pipeline), extra)
-    files :: in_scope_diag_files(pipeline.loaded, scope)
-    print_merged_diags(filter_diags_in_scope(all, files), [])
+    return filter_diags_in_scope(all, in_scope_diag_files(pipeline.loaded, scope))
 }
 
 // Render a bytecode / C dump's diagnostics, scoped to the modules under

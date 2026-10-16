@@ -196,7 +196,7 @@ Accepted by every action, after the action name. All three are **reserved** — 
 | `ast`           | parser AST as JSON                                                                   | Verify parse shape; debug grammar issues.                                 |
 | `resolved-ast`  | per-module symbol table + import resolutions + reference counts                      | See how names bind across modules.                                        |
 | `typed-ast`     | per-decl types + per-expression type counts                                          | Inspect inference, narrowing, generic instantiation.                      |
-| `evaluated-ast` | `@comptime` / `@file` decl values + collected generic instances                      | See what the comptime engine baked.                                       |
+| `evaluated-ast` | `@comptime` values and how they were evaluated, `@file` reads, `@assert` verdicts (Markdown) | See what the comptime engine baked.                                       |
 | `lowered-ast`   | desugared tree (match → if/else, `?` → match, interp → builder calls, defer inlined) | Confirm the desugarings match expectations.                               |
 | `dced-ast`      | lowered tree after stdlib reachability prune                                         | See which stdlib decls survive the prune.                                 |
 | `cfg`           | midir CFG per fn (post DCE + escape annotation)                                     | Inspect basic blocks, terminators, three-address instructions, escape sets, stack slots. |

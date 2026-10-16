@@ -24,7 +24,7 @@ AST :: import "toolchain/ast"
 /// @param loaded  the loaded project (for source decls per module).
 /// @param typed   the typed project (for typecheck side-tables).
 /// @param diags   diagnostics emitted during evaluation (cycle, assert,
-///                sandbox, type-mismatch, vm-required).
+///                type-mismatch, vm-required).
 /// @return        the evaluated project, ready to feed the dumper.
 export evaluate_project :: fn(
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
@@ -35,10 +35,10 @@ export evaluate_project :: fn(
         decls :: lookup_module_decls(loaded, module_id)
         if decls !is null {
             evaluate_module_decls(decls, module_typed, program, project, module_id, diags)
-            // Pass the just-baked const values so an `@assert` can resolve
-            // the comptime consts it references (else C4015 never fires).
-            evaluate_assert_decls(decls, module_typed, program.comptime_decls, diags)
-            bake_file_exprs(decls, module_typed, project, program, diags)
+            // After the consts are baked : an `@assert` may reference one, and an
+            // unresolved ident would leave it unevaluated.
+            evaluate_assert_decls(decls, program, diags)
+            bake_file_exprs(decls, project, program)
         }
         project.modules[module_id] = program
     }
@@ -132,6 +132,7 @@ evaluate_module_decls :: fn(
             symbol :: lookup_const_symbol(decl, typed)
             if !(symbol is null) {
                 program.comptime_decls[symbol.id] = value
+                program.routes[symbol.id] = .Marked
             }
         }
         if result.diag !is null {
@@ -155,22 +156,22 @@ evaluate_module_decls :: fn(
                 result :: evaluate_expr(decl.value, context)
                 if result.value !is null {
                     program.comptime_decls[symbol.id] = result.value
+                    program.routes[symbol.id] = .Folded
                 }
             }
         }
     }
 }
 
-// Walk every decl in `decls`, find `@file("path")` IntrinsicCallExpr
-// occurrences, evaluate the path arg as a comptime string, read the
-// referenced file's content (resolved relative to the source file's
-// directory), and store the content under `project.file_exprs[id]`
-// so `lower_intrinsic`'s `@file` arm can substitute the materialised
-// literal.
-bake_file_exprs :: fn(
-    decls: AST.Decl[], typed: TypedProgram,
-    project: EvaluatedProject, program: EvaluatedProgram, diags: Diagnostic[],
-) -> void {
+// Bake every `@file("path")` of `decls`: evaluate the path as a comptime string,
+// read the file (relative to the source file's directory) and store its content
+// under `project.file_exprs[id]`, which `lower_intrinsic`'s `@file` arm turns
+// into a literal. Each read lands in `program.file_reads` ; a constant that is a
+// bare `@file(...)` also lands in `project.file_baked_consts`, which the lower
+// merges into `comptime_value_by_symbol_id` so its reads inline the literal. It
+// stays out of `comptime_decls`, or the dump would list it twice, the second
+// time as a `@comptime` holding the whole file.
+bake_file_exprs :: fn(decls: AST.Decl[], project: EvaluatedProject, program: EvaluatedProgram) -> void {
     // Two-step : collect every `@file(arg)` IntrinsicCallExpr first,
     // then evaluate + bake. Avoids closures over the call-time
     // context (Vader's closure-capture analysis isn't robust enough
@@ -180,55 +181,62 @@ bake_file_exprs :: fn(
         collect_file_intrinsics(decl, found)
     }
     context :: ComptimeContext {
-        .typed    = typed,
+        .typed    = program.typed,
         .bindings = program.comptime_decls,
     }
+    initialisers :: file_constants(decls)
     for ic in found {
-        bake_one_file_expr(ic, context, typed, project, diags)
+        bake_one_file_expr(ic, initialisers[ic.id], context, project, program)
     }
-    // Third pass : for every ConstDecl whose RHS is a bare `@file(...)`
-    // call, propagate the baked file content into `file_baked_consts`
-    // keyed by the const's Symbol id. The lower aggregates this with
-    // `comptime_decls` into `comptime_value_by_symbol_id` so use
-    // sites of these consts inline the literal. Kept OUT of
-    // `comptime_decls` itself because the comptime dump filters
-    // `@file`-baked consts out of the `@comptime` listing (the const
-    // wasn't user-marked `@comptime`).
+}
+
+// The constant each bare `NAME :: @file(...)` initialises, keyed by the `@file`
+// call's node id.
+file_constants :: fn(decls: AST.Decl[]) -> MutableMap<usize, AST.ConstDecl> {
+    out :: MutableMap<usize, AST.ConstDecl> {}
     for decl in decls {
         if decl is AST.ConstDecl {
             if decl.value is AST.IntrinsicCallExpr as ic {
                 if ic.name == "file" {
-                    baked :: project.file_exprs[ic.id]
-                    if baked is string {
-                        symbol :: lookup_const_symbol(decl, typed)
-                        if symbol is Symbol {
-                            project.file_baked_consts[symbol.id] = string_val(baked)
-                        }
-                    }
+                    out[ic.id] = decl
                 }
             }
         }
     }
+    return out
 }
 
 bake_one_file_expr :: fn(
-    ic: AST.IntrinsicCallExpr, context: ComptimeContext, typed: TypedProgram,
-    project: EvaluatedProject, diags: Diagnostic[],
+    ic: AST.IntrinsicCallExpr,
+    constant: AST.ConstDecl | null,
+    context: ComptimeContext,
+    project: EvaluatedProject,
+    program: EvaluatedProgram,
 ) -> void {
     arg_result :: evaluate_expr(ic.args[0], context)
-    match arg_result.value as sv {
-        is null        -> {}
-        is StringValue -> {
-            content_opt :: read_relative_file(sv.value, typed.resolved.path)
-            match content_opt {
-                is null -> {}
-                is string -> {
-                    project.file_exprs[ic.id] = content_opt
-                }
-            }
-        }
-        _              -> {}
+    if arg_result.value !is StringValue {
+        return
     }
+    path :: arg_result.value.value
+    content :: read_relative_file(path, program.typed.resolved.path) ?? return
+    project.file_exprs[ic.id] = content
+    program.file_reads.push(FileRead {
+        .span = ic.span,
+        .path = path,
+        .bytes = content.byte_len(),
+        .name = constant_name(constant),
+    })
+    if constant != null {
+        symbol :: lookup_const_symbol(constant, program.typed) ?? return
+        project.file_baked_consts[symbol.id] = string_val(content)
+    }
+}
+
+constant_name :: fn(constant: AST.ConstDecl | null) -> string | null {
+    if constant == null {
+        return null
+    }
+    return constant.name
 }
 
 // Resolve a `@file("path")` arg : absolute paths pass through ;
@@ -387,4 +395,4 @@ build_vm_required :: fn(decl: AST.ConstDecl, symbol: Symbol, typed: TypedProgram
 
 // Per-evaluator @tests live in `eval_lit.vader` / `eval_binary.vader`
 // / `eval_ident.vader` ; the orchestrator's behaviour is covered by
-// the end-to-end snippet snapshots (Phase 4 verification step).
+// the end-to-end snippet snapshots.

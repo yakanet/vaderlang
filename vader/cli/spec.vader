@@ -185,7 +185,7 @@ DUMP_STAGES: ValueSpec[]: [
     ValueSpec { .name = "typed-ast", .help = "Per-decl + per-expression types" },
     ValueSpec { .name = "callees", .help = "What each call invokes, as the typecheck settled it" },
     ValueSpec { .name = "effects", .help = "What each function does with what it is lent" },
-    ValueSpec { .name = "evaluated-ast", .help = "@comptime / @file values + generic instances" },
+    ValueSpec { .name = "evaluated-ast", .help = "@comptime values, @file reads, @assert verdicts" },
     ValueSpec {
         .name = "lowered-ast",
         .help = "Desugared tree (match / interpolation / defer expanded)",

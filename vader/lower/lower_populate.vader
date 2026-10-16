@@ -29,10 +29,9 @@ populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
             project_ctx.comptime_value_by_symbol_id[symbol_id] = v
         }
     }
-    // Merge `@file`-baked const values from the project-level table.
-    // Kept separate from per-module `comptime_decls` so the comptime
-    // dump doesn't show these as `@comptime`-decorated, but the lower
-    // still inlines them at use sites.
+    // Merge `@file`-baked const values from the project-level table, kept
+    // apart from `comptime_decls` (see `EvaluatedProject.file_baked_consts`) ;
+    // the lower inlines them at use sites all the same.
     for [symbol_id, v] in project_ctx.evaluated.file_baked_consts {
         project_ctx.comptime_value_by_symbol_id[symbol_id] = v
     }

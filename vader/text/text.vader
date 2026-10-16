@@ -9,6 +9,7 @@ module "vader/text"
 
 // `std/string` for the `chars` free fn `for c in s` lowers to — the impl has to
 // be in THIS module's closure, not merely somewhere in the program.
+import "std/math"
 import "std/string"
 import "std/string_builder"
 
@@ -38,4 +39,49 @@ export quote_simple :: fn(s: string) -> string {
     }
     sb.append_char('"')
     return sb.to_string()
+}
+
+/// `text` as a Markdown code span: fenced by more backticks than its longest run
+/// of them, and padded with a space where it starts or ends with one.
+///
+/// @param text  the code, on one line.
+export code_span :: fn(text: string) -> string {
+    fence :: "`".repeat(longest_backtick_run(text) + 1)
+    if text.starts_with("`") || text.ends_with("`") {
+        return "${fence} ${text} ${fence}"
+    }
+    return "${fence}${text}${fence}"
+}
+
+longest_backtick_run :: fn(text: string) -> usize {
+    longest: usize = 0
+    run: usize = 0
+    for i in 0..<text.byte_len() {
+        if text.byte_at(i) == '`' {
+            run += 1
+            longest = max(longest, run)
+        } else {
+            run = 0
+        }
+    }
+    return longest
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_code_span_plain :: fn() -> void {
+    assert_eq(code_span("@comptime N = 1"), "`@comptime N = 1`")
+}
+
+@test
+test_code_span_fences_past_backticks :: fn() -> void {
+    assert_eq(code_span("got `==` here"), "``got `==` here``")
+}
+
+@test
+test_code_span_pads_an_edge_backtick :: fn() -> void {
+    assert_eq(code_span("`x`"), "`` `x` ``")
 }

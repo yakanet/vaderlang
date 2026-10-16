@@ -1,0 +1,7 @@
+# Comptime
+
+## tests/snippets/_diag_union_common_field
+
+# Diagnostics
+
+- ``[24:45] error[T3008] expression is not indexable: `.label` sits at a different position in each variant of `Back | Front` (`Back` at 0, `Front` at 1) — narrow with `if`/`match` first``

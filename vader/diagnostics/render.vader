@@ -20,6 +20,7 @@ import "std/string_builder"
 import "std/sort"
 import "std/math"
 import "std/collections"
+import "vader/text"
 TTY :: import "std/tty"
 
 /// Render `diags` as a `# Diagnostics` block, ordered by (offset, code). The
@@ -27,6 +28,22 @@ TTY :: import "std/tty"
 /// This is the machine channel : output is complete and byte-diffable, so it is
 /// never capped (dedup is lossless and still applies).
 export dump_diagnostics :: fn(diags: Diagnostic[]) -> string = render_diagnostics(diags, false, false)
+
+/// Render `diags` as a `# Diagnostics` Markdown section, for a dump written in
+/// Markdown: one list item per diagnostic, each a code span, in the order and
+/// with the completeness of `dump_diagnostics`.
+///
+/// @param diags  the diagnostics to render.
+export markdown_diagnostics :: fn(diags: Diagnostic[]) -> string {
+    sb :: StringBuilder {}
+    sb.append("\n# Diagnostics\n")
+    for d in dedup_diagnostics(sort(diags, diag_less)) {
+        line :: StringBuilder {}
+        line.format_diagnostic(d, false, "")
+        sb.append("\n- ${code_span(line.to_string())}")
+    }
+    return sb.to_string()
+}
 
 /// Like `dump_diagnostics`, but prefixes every line with the source file and
 /// orders by (file, offset, code). For the build renderers (each

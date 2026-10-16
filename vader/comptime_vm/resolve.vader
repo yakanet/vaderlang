@@ -133,5 +133,6 @@ inject :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl, value: Ct.Co
     program :: evaluated.modules[vr.module_id]
     if program is Ct.EvaluatedProgram {
         program.comptime_decls[vr.symbol_id] = value
+        program.routes[vr.symbol_id] = .Vm
     }
 }

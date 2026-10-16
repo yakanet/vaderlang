@@ -1,0 +1,7 @@
+# Comptime
+
+## tests/snippets/queue_priority
+
+# Diagnostics
+
+- `[8:12] error[T3013] non-exhaustive match: variant i32 of i32 | string is not covered`

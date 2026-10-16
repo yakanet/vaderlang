@@ -1,15 +1,18 @@
-// vader/comptime/dump — `# Comptime` snapshot dump.
+// vader/comptime/dump — `# Comptime` dump, in Markdown: what the comptime pass
+// computed.
 //
-// Walks every non-stdlib
-// `EvaluatedProgram` in the project, sorts module ids alphabetically,
-// sorts each module's `@comptime` decl lines alphabetically, and
-// renders the body in the form
+// Walks every in-scope `EvaluatedProgram`, module ids sorted alphabetically,
+// and renders one list per module :
 //
-//   ## <module display path>
-//     @comptime  <name padded to 20>  = <display_value>
+//   ## <module folder>
 //
-// Generic instances land in a trailing `## generic instances` section
-// (Phase 6 fills it ; for now the section is omitted when empty).
+//   - `@comptime <name> = <value>`, <tree-walk | vm>
+//   - `const <name> = <value>`, folded
+//   - `@file <const name or line:column> = "<path>"`, <n> bytes
+//   - `@assert <line:column>`, <holds | fails | not evaluated>
+//
+// `@comptime` items are sorted by name, `@file` and `@assert` items keep the
+// source order.
 
 module "vader/comptime"
 
@@ -17,14 +20,15 @@ import "std/collections"
 import "std/sort"
 import "std/string"
 import "std/string_builder"
+import "toolchain/span"
 import "vader/resolver"
+import "vader/text"
 import "vader/typecheck"
-AST :: import "vader/parser"
 
-/// Render the project's `# Comptime` dump as a single string. Only modules in
-/// `scope` are rendered (the entry's subtree by default, `--module` to widen),
-/// so dependencies stay out of the dump.
-/// @param project  the evaluated project (from `evaluate_project`).
+/// Render the project's `# Comptime` dump as a single Markdown string. Only
+/// modules in `scope` are rendered (the entry's subtree by default, `--module` to
+/// widen), so dependencies stay out of the dump.
+/// @param project  the evaluated project, its VM-required decls baked.
 /// @param scope    in-scope module ids / prefixes (see `module_in_scope`).
 /// @return         the formatted dump, no trailing newline.
 export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> string {
@@ -33,45 +37,77 @@ export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> strin
     module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))
     for module_id in module_ids {
         module_program :: project.modules[module_id] ?? continue
-        // Header keeps the folder path (`module_display_path`) for back-compat,
-        // but the scope check is on the DECLARED module name (`resolved.display_path`,
-        // e.g. `snippet`) — the folder path would never match a display-path scope.
+        // The heading names the module's folder ; a scope lists declared module
+        // names (`resolved.display_path`, e.g. `snippet`), which the check reads.
         if !module_in_scope(module_program.typed.resolved.display_path, scope) { continue }
-        display_path :: module_display_path(module_program)
-        sb.append_char('\n')
-        sb.append_char('\n')
-        sb.append("## ")
-        sb.append(display_path)
-        entries :: format_module_entries(module_program)
-        for line in entries {
+        sb.append("\n\n## ${module_program.typed.resolved.path}")
+        items :: module_items(module_program)
+        if items.len() > 0 {
             sb.append_char('\n')
-            sb.append(line)
         }
-    }
-    if project.instances.len() > 0 {
-        sb.append_char('\n')
-        sb.append_char('\n')
-        sb.append("## generic instances")
-        for instance in project.instances {
-            sb.append_char('\n')
-            sb.append("  ")
-            sb.append(render_instance(instance))
+        for item in items {
+            sb.append("\n- ${item}")
         }
     }
     return sb.to_string()
 }
 
-// Build the per-decl entry lines, sorted alphabetically so the dump
-// is stable across runs regardless of MutableMap iteration order.
-format_module_entries :: fn(module_program: EvaluatedProgram) -> string[] {
-    entries: string[]: []
+// The module's list items : its evaluated consts sorted by name, so the dump is
+// stable whatever the MutableMap iteration order, then its `@file` reads and its
+// `@assert`s in source order.
+module_items :: fn(module_program: EvaluatedProgram) -> string[] {
+    out :: const_items(module_program)
+    for read in module_program.file_reads {
+        label :: read.name ?? position_of(read.span)
+        read_code :: code_span("@file ${label} = \"${read.path}\"")
+        out.push("${read_code}, ${read.bytes} bytes")
+    }
+    for check in module_program.asserts {
+        assert_code :: code_span("@assert ${position_of(check.span)}")
+        out.push("${assert_code}, ${verdict_word(check.verdict)}")
+    }
+    return out
+}
+
+const_items :: fn(module_program: EvaluatedProgram) -> string[] {
+    entries: [string, string][]: []
     typed :: module_program.typed
     for [symbol_id, value] in module_program.comptime_decls {
         name :: lookup_comptime_decl_name(typed, symbol_id)
         if name == "" { continue }
-        entries.push("  @comptime  ${pad_end(name, 20, ' ')} = ${display_value(value)}")
+        route :: module_program.routes[symbol_id] ?? .Marked
+        decl :: code_span("${route_keyword(route)} ${name} = ${one_line(display_value(value))}")
+        entries.push([name, "${decl}, ${route_word(route)}"])
     }
-    return sort(entries, (a: string, b: string) -> compare_ascending(a, b))
+    by_name :: sort(entries, (a: [string, string], b: [string, string]) -> compare_ascending(a.0, b.0))
+    out: string[]: []
+    for entry in by_name {
+        out.push(entry.1)
+    }
+    return out
+}
+
+// The declaration form a const's value came from.
+route_keyword :: fn(route: ComptimeRoute) -> string = match route {
+    .Marked | .Vm -> "@comptime"
+    .Folded       -> "const"
+}
+
+route_word :: fn(route: ComptimeRoute) -> string = match route {
+    .Marked -> "tree-walk"
+    .Vm     -> "vm"
+    .Folded -> "folded"
+}
+
+position_of :: fn(span: Span) -> string = "${span.start.line}:${span.start.column}"
+
+// A rendered value on one line : a code span cannot hold a line break.
+one_line :: fn(text: string) -> string = text.replace_all("\r", "\\r").replace_all("\n", "\\n")
+
+verdict_word :: fn(verdict: AssertVerdict) -> string = match verdict {
+    .Holds        -> "holds"
+    .Fails        -> "fails"
+    .NotEvaluated -> "not evaluated"
 }
 
 // Recover a `@comptime` decl's source name from its Symbol id by
@@ -82,12 +118,6 @@ lookup_comptime_decl_name :: fn(typed: TypedProgram, symbol_id: i32) -> string {
         if symbol.id == symbol_id { return symbol.name }
     }
     return ""
-}
-
-// The owning module's display path. Carried on the `ResolvedModule`
-// per existing convention.
-module_display_path :: fn(module_program: EvaluatedProgram) -> string {
-    return module_program.typed.resolved.path
 }
 
 // ---- tests ----------------------------------------------------------------

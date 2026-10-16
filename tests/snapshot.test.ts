@@ -22,7 +22,8 @@ const PHASES = [
   // One JSON document: `snapshot.ts::astDumpAsJson`.
   { name: "parser",    snap: "parser.snapshot.json",  dump: dumpParserViaVader,  usePath: true },
   { name: "typecheck", snap: "typecheck.snapshot", dump: dumpTypecheckViaVader, usePath: true },
-  { name: "comptime",  snap: "comptime.snapshot",  dump: dumpComptimeViaVader,  usePath: true },
+  // `.md` suffix : the comptime dump is written in Markdown.
+  { name: "comptime",  snap: "comptime.snapshot.md",  dump: dumpComptimeViaVader,  usePath: true },
   { name: "lower",     snap: "lower.snapshot",     dump: dumpLowerViaVader,     usePath: true },
   // No `cfg` phase : the CFG sits between the snapshotted `lower` and `bytecode`
   // stages and is the only diff-only dump (nothing executes it), so its marginal
