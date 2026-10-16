@@ -727,6 +727,8 @@ A module constant is frozen (§5, *Frozen values*): it has no storage a write co
 - **unmarked** → a `static const` blob in `.rodata`, shared process-wide, read through a zero-copy view.
 - **`!`** → a writable **global**, initialised once, mutable **in place**.
 
+This writable form leaves with the `!` marker: a module keeps its state in a `@singleton` function (§12).
+
 ```vader
 DIGITS: string[]:  ["0", "1", "2"]   // .rodata
 COUNTS: i32[]!:    [0, 0, 0]         // a writable global
@@ -1945,7 +1947,7 @@ Once the program is typed, the compiler summarises what each function does with 
 
 ### The `!` marker
 
-A `!` written after a type (`i32[]!`, `Box<Cfg!>`, `self!`) grants nothing: every value but a frozen one may be modified. It is accepted for now, and is to be warned about (W0017, W0018) with `vader fix` to remove it. Its form is still checked: `T!!` is P1030, a marker on a parameter *name* (`x!: T`) is P1031 (it belongs on the type, or on `self`), and a marker on a type with no interior (a primitive, an enum, a fn, `never`) or in an `is` test is T3075. On a module constant, `NAME: T[]!: value` asks for a writable global, its one storable shape (T3076 otherwise, §Arrays). Writing the removed `const` qualifier is P1027.
+A `!` written after a type (`i32[]!`, `Box<Cfg!>`, `self!`) grants nothing: every value but a frozen one may be modified. It is accepted for now, and is to be warned about (W0017, W0018) with `vader fix` to remove it. Its form is still checked: `T!!` is P1030, a marker on a parameter *name* (`x!: T`) is P1031 (it belongs on the type, or on `self`), and a marker on a type with no interior (a primitive, an enum, a fn, `never`) or in an `is` test is T3075. On a module constant, `NAME: T[]!: value` asks for a writable global, its one storable shape (T3076 otherwise, §Arrays); a module's state belongs in a `@singleton` instead. Writing the removed `const` qualifier is P1027.
 
 ### Explicit type annotations
 

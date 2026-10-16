@@ -7,7 +7,13 @@ module "snippet"
 import "std/async"
 import "std/io"
 
-RESUMES: i64[]!: [0]
+// The resumes `Counted` forwarded, across every task.
+ResumeCount :: struct {
+    n: i64 = 0
+}
+
+@singleton
+resumes :: fn() -> ResumeCount = ResumeCount {}
 
 // An awaitable counting the resumes it forwards to `inner`.
 Counted :: struct {
@@ -16,7 +22,7 @@ Counted :: struct {
 
 Counted implements Async<null> {
     resume :: fn(self) -> null | Suspended {
-        RESUMES[0] += 1
+        resumes().n += 1
         return self.inner.resume()
     }
 }
@@ -31,6 +37,6 @@ task :: fn(ms: i64) -> Async<i64> {
 main :: fn() -> i32 {
     done :: await join_all([task(1), task(4), task(9)])
     println("${done[0]} ${done[1]} ${done[2]}")
-    println("resumes: ${RESUMES[0]}")
+    println("resumes: ${resumes().n}")
     return 0
 }

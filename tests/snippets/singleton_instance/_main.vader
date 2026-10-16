@@ -27,6 +27,13 @@ start :: fn() -> Counter = DEFAULT
 @singleton
 greeting :: fn() -> string = "hello ${"singleton"}"
 
+// A scalar instance is a value: every call hands back the answer of the first.
+@singleton
+probed :: fn() -> bool {
+    println("probed")
+    return true
+}
+
 // A `void` singleton runs once and keeps nothing.
 @singleton
 announce :: fn() -> void {
@@ -41,6 +48,7 @@ bump :: fn() -> void {
 main :: fn() -> i32 {
     announce()
     announce()
+    println("${probed()} ${probed()}")
     bump()
     bump()
     start().n += 5

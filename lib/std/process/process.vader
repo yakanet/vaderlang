@@ -1,7 +1,7 @@
 // std/process — external-process invocation, async-first.
 //
 // `spawn_async` is the primitive: a non-blocking awaitable over a child
-// process. The runtime launches the child (`spawn_start`), the awaitable polls
+// process. `spawn_start` launches the child, the awaitable polls
 // it to completion on the cooperative scheduler (`spawn_poll`, re-arming a
 // short timer between polls — the same timer-driven suspension `std/async`'s
 // `sleep` uses), then interns the captured pipes (`spawn_take_stdout/_stderr`).
@@ -9,11 +9,10 @@
 // concurrently — the OS schedules the child processes across cores.
 //
 // Blocking `spawn` is `block_on(spawn_async(...))`: one mechanism, cross-
-// platform (the runtime primitives carry both POSIX and Win32 branches).
+// platform (the child primitives have a POSIX and a Win32 body).
 //
-// Native-only in MVP: the runtime wires the child primitives to
-// `posix_spawn` + pipes (POSIX) / `CreateProcessA` + pipes (Windows). WASM has
-// no spawn equivalent, so the imports below are unbound on `--target=wasm`.
+// Native-only in MVP: the child primitives sit on `posix_spawn` + pipes (POSIX)
+// and `CreateProcessA` + pipes (Windows). WASM has no spawn equivalent.
 
 module "std/process"
 
@@ -26,8 +25,7 @@ import "std/async"
 // latency is negligible ; the scheduler `nanosleep`s between polls (no spin).
 POLL_MS: i64: 2
 
-// Sentinels mirror `runtime/c/vader.h`'s VADER_SPAWN_* macros. `spawn_poll`
-// returns RUNNING while the child is alive, SIGNALED on abnormal termination,
+// `spawn_poll` returns RUNNING while the child is alive, SIGNALED on abnormal termination,
 // else the exit code (>= 0). `spawn_start` returns a handle (>= 0) or a
 // negative value on launch failure.
 RUNNING  :: -1
@@ -54,9 +52,8 @@ export ProcessResult :: struct {
 
 // ---- the child table -------------------------------------------------------
 //
-// One tracked child per slot; a handle IS an index into `CHILDREN`. The table
-// used to live in the C runtime, which is why the handle is an opaque `i64`
-// rather than a struct — the shape stayed when the state moved here.
+// One tracked child per slot; a handle is an opaque `i64` index into
+// `children()`.
 //
 // Draining is POLL-BEFORE-READ on both systems: ask whether bytes are waiting,
 // read only then. The alternative on POSIX is a non-blocking descriptor and on
@@ -65,9 +62,8 @@ export ProcessResult :: struct {
 // question asked before each read removes it without a descriptor flag or a
 // thread.
 
-/// One tracked child. `proc`, `out_h` and `err_h` are machine words because
-/// they mean different things per system: a pid and two descriptors on POSIX,
-/// a process handle and two pipe handles on Windows.
+/// One tracked child. `proc`, `out_h` and `err_h` are the pid and the two pipe
+/// descriptors on POSIX; Windows keeps its handles in `win_handles()` instead.
 Child :: struct {
     in_use:    bool  = false
     done:      bool  = false
@@ -81,23 +77,22 @@ Child :: struct {
     err_eof:   bool  = false
 }
 
-// The children `spawn` started, by handle. A slot is replaced as a whole when its
-// state changes (`with_eof`, `finished`) ; the drain appends to `out` and `err` in
-// place.
-CHILDREN: Child[]!: []
+// The children `spawn` started, by handle. A slot is reset to `Child {}` when its
+// handle is released.
+@singleton
+children :: fn() -> Child[] = []
 
-// Windows handles, three words per child — process, stdout read end, stderr read
-// end — indexed by handle. They cannot live in `Child`: a `Handle` is a
-// `CPointer`, `CPointer` cannot be rebuilt from an integer (T3010), and a module
-// const array holds flat scalars. Written as machine words, read back as handles
-// through `ptr_at`, which is the one direction that works.
-WIN_HANDLES: usize[]!: []
+// Windows handles, three words per child (process, stdout read end, stderr read
+// end), indexed by handle. Stored as machine words and read back as handles
+// through `ptr_at`: a `CPointer` cannot be rebuilt from an integer (T3010).
+@singleton
+win_handles :: fn() -> usize[] = []
 
 /// The `k`-th handle of child `handle` — 0 process, 1 stdout, 2 stderr.
 ///
 /// @param handle  the child handle.
 /// @param k       which of the three.
-win_handle :: fn(handle: i64, k: usize) -> Handle = ptr_at(WIN_HANDLES, usize(handle) * 3 + k)
+win_handle :: fn(handle: i64, k: usize) -> Handle = ptr_at(win_handles(), usize(handle) * 3 + k)
 
 /// How much to ask for per drain. One page: large enough that a chatty child
 /// does not need many rounds, small enough that an idle one costs a syscall
@@ -108,21 +103,22 @@ DRAIN_CHUNK: usize: 4096
 ///
 /// @return  the handle.
 child_alloc :: fn() -> i64 {
-    for i in 0..<CHILDREN.len() {
-        if !CHILDREN[i].in_use {
-            CHILDREN[i] = Child { .in_use = true }
+    table :: children()
+    for i in 0..<table.len() {
+        if !table[i].in_use {
+            table[i] = Child { .in_use = true }
             return i64(i)
         }
     }
-    CHILDREN.push(Child { .in_use = true })
-    return i64(CHILDREN.len() - 1)
+    table.push(Child { .in_use = true })
+    return i64(table.len() - 1)
 }
 
 /// Whether `handle` names a live slot.
 ///
 /// @param handle  the handle to check.
 child_valid :: fn(handle: i64) -> bool =
-    handle >= 0 && usize(handle) < CHILDREN.len() && CHILDREN[usize(handle)].in_use
+    handle >= 0 && usize(handle) < children().len() && children()[usize(handle)].in_use
 
 /// Number of logical processors online — what a caller sizes a parallel fan-out
 /// on. At least 1: a platform that cannot tell answers 1.
@@ -222,7 +218,7 @@ spawn_start :: fn(argv: string[]) -> i64 {
         return -1
     }
     h :: child_alloc()
-    CHILDREN[usize(h)] = Child {
+    children()[usize(h)] = Child {
         .in_use = true,
         .proc   = i64(pid[0]),
         .out_h  = i64(out_fds[0]),
@@ -255,7 +251,7 @@ drain_pipe :: fn(child: i64, which: usize, into: u8[]) -> bool
 
 @target(.Linux, .Darwin)
 drain_pipe :: fn(child: i64, which: usize, into: u8[]) -> bool {
-    c :: CHILDREN[usize(child)]
+    c :: children()[usize(child)]
     fd :: if which == 1 { i32(c.out_h) } else { i32(c.err_h) }
     chunk: u8[]: [0] * DRAIN_CHUNK
     pfd :: Pollfd { .fd = fd, .events = POLLIN, .revents = 0 }
@@ -286,7 +282,7 @@ spawn_poll :: fn(handle: i64) -> i32 {
     if !child_valid(handle) {
         return SIGNALED
     }
-    c :: CHILDREN[usize(handle)]
+    c :: children()[usize(handle)]
     if c.done {
         return c.exit_code
     }
@@ -295,7 +291,8 @@ spawn_poll :: fn(handle: i64) -> i32 {
     st: i32[]: [0]
     rc :: sys_waitpid(i32(c.proc), st, WNOHANG)
     if rc == 0 {
-        CHILDREN[usize(handle)] = with_eof(c, out_eof, err_eof)
+        c.out_eof = out_eof
+        c.err_eof = err_eof
         return RUNNING
     }
     if rc < 0 {
@@ -306,7 +303,7 @@ spawn_poll :: fn(handle: i64) -> i32 {
         // released by `spawn_take_stderr` and nothing holds them after that.
         sys_close(i32(c.out_h))
         sys_close(i32(c.err_h))
-        CHILDREN[usize(handle)] = finished(c, SIGNALED)
+        finish(c, SIGNALED)
         return SIGNALED
     }
     // Reaped. Drain once more: the child can write and exit between the drain
@@ -323,33 +320,19 @@ spawn_poll :: fn(handle: i64) -> i32 {
     // are the terminating signal, zero when the child exited normally, and the
     // exit code is the next byte up.
     code :: if (st[0] & 0x7F) == 0 { (st[0] >> 8) & 0xFF } else { SIGNALED }
-    CHILDREN[usize(handle)] = finished(c, code)
+    finish(c, code)
     return code
 }
 
-/// The same slot with its two EOF flags refreshed: the only field pair a poll
-/// changes while the child is still alive.
+/// Mark `c` reaped: `code` recorded and both pipes drained.
 ///
-/// @param c        the slot as it stands.
-/// @param out_eof  whether stdout is drained and closed.
-/// @param err_eof  likewise for stderr.
-with_eof :: fn(c: Child, out_eof: bool, err_eof: bool) -> Child = Child {
-    ...c,
-    .out_eof = out_eof,
-    .err_eof = err_eof,
-}
-
-/// The same slot, reaped: `code` recorded and both pipes drained.
-///
-/// @param c     the slot as it stands.
+/// @param c     the slot.
 /// @param code  the exit code, or `SIGNALED`.
-finished :: fn(c: Child, code: i32) -> Child = Child {
-    ...c,
-    .in_use = true,
-    .done = true,
-    .exit_code = code,
-    .out_eof = true,
-    .err_eof = true,
+finish :: fn(c: Child, code: i32) -> void {
+    c.done = true
+    c.exit_code = code
+    c.out_eof = true
+    c.err_eof = true
 }
 
 @target(.Linux, .Darwin)
@@ -357,7 +340,7 @@ spawn_kill :: fn(handle: i64) -> void {
     if !child_valid(handle) {
         return
     }
-    c :: CHILDREN[usize(handle)]
+    c :: children()[usize(handle)]
     if !c.done {
         sys_kill(i32(c.proc), SIGKILL)
         st: i32[]: [0]
@@ -365,7 +348,7 @@ spawn_kill :: fn(handle: i64) -> void {
         sys_close(i32(c.out_h))
         sys_close(i32(c.err_h))
     }
-    CHILDREN[usize(handle)] = Child {}
+    children()[usize(handle)] = Child {}
     return
 }
 
@@ -426,13 +409,13 @@ spawn_start :: fn(argv: string[]) -> i64 {
     close_handle(pi.hThread)
     h :: child_alloc()
     base :: usize(h) * 3
-    for WIN_HANDLES.len() < base + 3 {
-        WIN_HANDLES.push(0)
+    handles :: win_handles()
+    for handles.len() < base + 3 {
+        handles.push(0)
     }
-    WIN_HANDLES[base]     = usize(pi.hProcess)
-    WIN_HANDLES[base + 1] = usize(out_read)
-    WIN_HANDLES[base + 2] = usize(err_read)
-    CHILDREN[usize(h)] = Child { .in_use = true }
+    handles[base]     = usize(pi.hProcess)
+    handles[base + 1] = usize(out_read)
+    handles[base + 2] = usize(err_read)
     return h
 }
 
@@ -556,7 +539,7 @@ spawn_poll :: fn(handle: i64) -> i32 {
     if !child_valid(handle) {
         return SIGNALED
     }
-    c :: CHILDREN[usize(handle)]
+    c :: children()[usize(handle)]
     if c.done {
         return c.exit_code
     }
@@ -564,7 +547,8 @@ spawn_poll :: fn(handle: i64) -> i32 {
     err_eof :: if c.err_eof { true } else { drain_pipe(handle, 2, c.err) }
     proc :: win_handle(handle, 0)
     if wait_for_single_object(proc, 0) != WAIT_OBJECT_0 {
-        CHILDREN[usize(handle)] = with_eof(c, out_eof, err_eof)
+        c.out_eof = out_eof
+        c.err_eof = err_eof
         return RUNNING
     }
     // Exited. Drain once more: the child can write and exit between the drain
@@ -591,7 +575,7 @@ spawn_poll :: fn(handle: i64) -> i32 {
     } else {
         i32(code[0])
     }
-    CHILDREN[usize(handle)] = finished(c, exit_code)
+    finish(c, exit_code)
     return exit_code
 }
 
@@ -600,7 +584,7 @@ spawn_kill :: fn(handle: i64) -> void {
     if !child_valid(handle) {
         return
     }
-    c :: CHILDREN[usize(handle)]
+    c :: children()[usize(handle)]
     if !c.done {
         proc :: win_handle(handle, 0)
         terminate_process(proc, 1)
@@ -609,7 +593,7 @@ spawn_kill :: fn(handle: i64) -> void {
         close_handle(win_handle(handle, 2))
         close_handle(proc)
     }
-    CHILDREN[usize(handle)] = Child {}
+    children()[usize(handle)] = Child {}
     return
 }
 
@@ -618,7 +602,7 @@ export spawn_take_stdout :: fn(handle: i64) -> string {
     if !child_valid(handle) {
         return ""
     }
-    return CHILDREN[usize(handle)].out.bytes_to_string()
+    return children()[usize(handle)].out.bytes_to_string()
 }
 
 /// Intern the child's captured stderr AND release the child slot — the last
@@ -627,11 +611,11 @@ export spawn_take_stderr :: fn(handle: i64) -> string {
     if !child_valid(handle) {
         return ""
     }
-    c :: CHILDREN[usize(handle)]
+    c :: children()[usize(handle)]
     out :: c.err.bytes_to_string()
     // The LAST call for a handle — releasing here is what frees the slot and
     // the captured buffers, and take order is stdout then stderr.
-    CHILDREN[usize(handle)] = Child {}
+    children()[usize(handle)] = Child {}
     return out
 }
 

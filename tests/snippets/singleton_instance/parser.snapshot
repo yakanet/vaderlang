@@ -224,6 +224,61 @@
     },
     {
       "kind": "FnDecl",
+      "name": "probed",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "bool"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "probed"
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "BoolLitExpr",
+              "value": true
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": [
+        {
+          "name": "singleton",
+          "args": []
+        }
+      ]
+    },
+    {
+      "kind": "FnDecl",
       "name": "announce",
       "visibility": "private",
       "typeParams": [],
@@ -395,6 +450,53 @@
                 "name": "announce"
               },
               "args": []
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "probed"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "probed"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
             }
           },
           {

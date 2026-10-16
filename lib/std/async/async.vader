@@ -2,7 +2,7 @@
 //
 // Single-threaded, timer-driven. The scheduler state (a virtual clock + a
 // min-heap of wake deadlines) lives in the runtime (native C / VM host), reached
-// through the `std/runtime` `sched_*` intrinsics — Vader has no mutable global.
+// through the `std/runtime` `sched_*` intrinsics.
 //
 // `sleep(ms)` is the v1 suspension source : a hand-written awaitable that arms a
 // timer and parks until it fires. `run_async_main` is the program entry the

@@ -23,29 +23,55 @@
       "decorators": []
     },
     {
-      "kind": "ConstDecl",
-      "name": "RESUMES",
+      "kind": "StructDecl",
+      "name": "ResumeCount",
       "visibility": "private",
-      "type": {
-        "kind": "MutableTypeExpr",
-        "inner": {
-          "kind": "ArrayTypeExpr",
-          "element": {
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "n",
+          "type": {
             "kind": "IdentExpr",
             "name": "i64"
-          }
-        }
-      },
-      "value": {
-        "kind": "SeqLitExpr",
-        "elements": [
-          {
+          },
+          "visibility": "public",
+          "default": {
             "kind": "IntLitExpr",
             "value": "0n"
           }
-        ]
-      },
+        }
+      ],
       "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "resumes",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "ResumeCount"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "StructLitExpr",
+          "typeName": {
+            "kind": "IdentExpr",
+            "name": "ResumeCount"
+          },
+          "items": []
+        }
+      },
+      "decorators": [
+        {
+          "name": "singleton",
+          "args": []
+        }
+      ],
+      "isExpressionBodied": true
     },
     {
       "kind": "StructDecl",
@@ -120,29 +146,31 @@
               {
                 "kind": "AssignStmt",
                 "target": {
-                  "kind": "IndexExpr",
+                  "kind": "FieldExpr",
                   "target": {
-                    "kind": "IdentExpr",
-                    "name": "RESUMES"
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "resumes"
+                    },
+                    "args": []
                   },
-                  "index": {
-                    "kind": "IntLitExpr",
-                    "value": "0n"
-                  }
+                  "field": "n"
                 },
                 "value": {
                   "kind": "BinaryExpr",
                   "op": "add",
                   "left": {
-                    "kind": "IndexExpr",
+                    "kind": "FieldExpr",
                     "target": {
-                      "kind": "IdentExpr",
-                      "name": "RESUMES"
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "resumes"
+                      },
+                      "args": []
                     },
-                    "index": {
-                      "kind": "IntLitExpr",
-                      "value": "0n"
-                    }
+                    "field": "n"
                   },
                   "right": {
                     "kind": "IntLitExpr",
@@ -465,15 +493,16 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "IndexExpr",
+                          "kind": "FieldExpr",
                           "target": {
-                            "kind": "IdentExpr",
-                            "name": "RESUMES"
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "resumes"
+                            },
+                            "args": []
                           },
-                          "index": {
-                            "kind": "IntLitExpr",
-                            "value": "0n"
-                          }
+                          "field": "n"
                         }
                       }
                     ]

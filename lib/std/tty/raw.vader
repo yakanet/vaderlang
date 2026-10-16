@@ -11,8 +11,7 @@
 // Cross-platform by construction: raw mode clears `ECHO`, `ICANON` and `ISIG`
 // through `termios` on POSIX, and the matching console flags on Windows, where
 // it also sets `ENABLE_VIRTUAL_TERMINAL_INPUT` so arrows arrive as the SAME ANSI
-// sequences POSIX sends. One decoder therefore serves all three targets. See
-// `runtime/c/vader_runtime.c` § "raw terminal".
+// sequences POSIX sends. One decoder therefore serves all three targets.
 
 module "std/tty"
 
@@ -52,25 +51,30 @@ export raw_mode_begin :: fn() -> bool {
 @target
 export raw_mode_end :: fn() -> void {}
 
-/// The state to restore, and whether there is one.
-///
-/// Module-scope, which a module-const's `!` marker is what grants. The saved
-/// state is OPAQUE — bytes only C interprets — which is what lets a `termios`
-/// cross without Vader knowing its shape: it differs between systems (`c_line`
-/// is Linux-only) and its `c_cc` is an array.
-SAVED_TERMIOS: u8[]!: [0] * TERMIOS_BYTES
-SAVED_CONSOLE_MODE: u32[]!: [0]
-RAW_ACTIVE: bool[]!: [false]
+/// The terminal state to restore, and whether there is one.
+RawState :: struct {
+    active: bool = false
+    /// The POSIX state. OPAQUE, bytes only C interprets, which is what lets a
+    /// `termios` cross without Vader knowing its shape: it differs between systems
+    /// (`c_line` is Linux-only) and its `c_cc` is an array.
+    termios: u8[]
+    /// The Windows state: the console mode of stdin.
+    console_mode: u32 = 0
+}
+
+@singleton
+raw_state :: fn() -> RawState = RawState { .termios = [0] * TERMIOS_BYTES }
 
 @target(.Linux, .Darwin)
 raw_mode_begin :: fn() -> bool {
-    if RAW_ACTIVE[0] {
+    state :: raw_state()
+    if state.active {
         return true
     }
     if sys_isatty(0) == 0 {
         return false
     }
-    if sys_tcgetattr(0, SAVED_TERMIOS) != 0 {
+    if sys_tcgetattr(0, state.termios) != 0 {
         return false
     }
     work: u8[]: [0] * TERMIOS_BYTES
@@ -81,22 +85,24 @@ raw_mode_begin :: fn() -> bool {
     if sys_tcsetattr(0, TCSAFLUSH, work) != 0 {
         return false
     }
-    RAW_ACTIVE[0] = true
+    state.active = true
     return true
 }
 
 @target(.Linux, .Darwin)
 raw_mode_end :: fn() -> void {
-    if !RAW_ACTIVE[0] {
+    state :: raw_state()
+    if !state.active {
         return
     }
-    _ :: sys_tcsetattr(0, TCSAFLUSH, SAVED_TERMIOS)
-    RAW_ACTIVE[0] = false
+    _ :: sys_tcsetattr(0, TCSAFLUSH, state.termios)
+    state.active = false
 }
 
 @target(.Windows)
 raw_mode_begin :: fn() -> bool {
-    if RAW_ACTIVE[0] {
+    state :: raw_state()
+    if state.active {
         return true
     }
     h :: get_std_handle(STD_INPUT_HANDLE)
@@ -109,26 +115,27 @@ raw_mode_begin :: fn() -> bool {
     if !get_console_mode(h, mode) {
         return false
     }
-    SAVED_CONSOLE_MODE[0] = mode[0]
+    state.console_mode = mode[0]
     off :: ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT
     raw :: (mode[0] & ~off) | ENABLE_VIRTUAL_TERMINAL_INPUT
     if !set_console_mode(h, raw) {
         return false
     }
-    RAW_ACTIVE[0] = true
+    state.active = true
     return true
 }
 
 @target(.Windows)
 raw_mode_end :: fn() -> void {
-    if !RAW_ACTIVE[0] {
+    state :: raw_state()
+    if !state.active {
         return
     }
     h :: get_std_handle(STD_INPUT_HANDLE)
     if isize(h) != INVALID_HANDLE {
-        _ :: set_console_mode(h, SAVED_CONSOLE_MODE[0])
+        _ :: set_console_mode(h, state.console_mode)
     }
-    RAW_ACTIVE[0] = false
+    state.active = false
 }
 
 /// Terminal width in columns, or 0 when it cannot be determined — not a
