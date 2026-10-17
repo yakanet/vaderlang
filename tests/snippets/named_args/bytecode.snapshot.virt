@@ -17,7 +17,7 @@ import 0 byte_len std_core$byte_len result_type=6 param_types=1 param_c_out= par
 import 1 byte_at std_core$byte_at result_type=5 param_types=1,6 param_c_out= param_by_address= (string,usize) -> u8
 import 2 is_ascii std_core$is_ascii result_type=4 param_types=1 param_c_out= param_by_address= (string) -> bool
 impl 8 std_core$ByteAccess
-export main 3
+export main 4
 
 fn 0 snippet$greet (string,string) -> string
   local.get 1   ; arg 1
@@ -46,7 +46,16 @@ fn 1 snippet$combine (i32,i32,i32) -> i32
   return
 end
 
-fn 2 snippet$scale (ref,i32,i32) -> i32
+fn 2 snippet$pick_1 (i32,i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 10
+  i32.checked_mul
+  local.get 1   ; arg 1
+  i32.checked_add
+  return
+end
+
+fn 3 snippet$scale (ref,i32,i32) -> i32
   local.field 0 3 0   ; arg 0 snippet$Box.v
   ref.cast 2   ; i32
   local.get 1   ; arg 1
@@ -56,7 +65,7 @@ fn 2 snippet$scale (ref,i32,i32) -> i32
   return
 end
 
-fn 3 snippet$main () -> i32
+fn 4 snippet$main () -> i32
   local g1 string
   local g2 string
   local r i32
@@ -79,13 +88,13 @@ fn 3 snippet$main () -> i32
   local.set 2   ; r
   i32.const 5
   i32.const 4
-  call 4   ; snippet$pick_1
+  call 2   ; snippet$pick_1
   local.set 3   ; p
   i32.const 6
   struct.new 3   ; snippet$Box
   i32.const 2
   i32.const 1
-  call 2   ; snippet$scale
+  call 3   ; snippet$scale
   local.set 4   ; u
   local.get 0   ; g1
   call 6   ; std_core$len
@@ -102,21 +111,6 @@ fn 3 snippet$main () -> i32
   local.get 3   ; p
   i32.checked_add
   local.get 4   ; u
-  i32.checked_add
-  return
-end
-
-fn 4 snippet$pick_1 (i32,i32) -> i32
-  local.get 0   ; arg 0
-  i32.const 10
-  i32.checked_mul
-  local.get 1   ; arg 1
-  i32.checked_add
-  return
-  local.get 0   ; arg 0
-  i32.const 10
-  i32.checked_mul
-  local.get 1   ; arg 1
   i32.checked_add
   return
 end

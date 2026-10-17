@@ -129,10 +129,7 @@ lower_project_impl :: fn(
                                     // Pre-seed the call-site harvest's seen-set so
                                     // `materialize_nongeneric_imported_fns` doesn't
                                     // emit a duplicate decl for the same symbol.
-                                    seed_harvest_seen(
-                                        imported_loaded.collected.symbols, d.name,
-                                        project_ctx.nongeneric_imported_fns,
-                                    )
+                                    seed_fn_seen(project_ctx, d)
                                 }
                             }
                         }
@@ -165,16 +162,11 @@ lower_project_impl :: fn(
         for d in decls {
             if d is FnDecl {
                 if d.type_params.len() == 0 {
-                    seed_harvest_seen(
-                        module_loaded.collected.symbols, d.name,
-                        project_ctx.nongeneric_imported_fns,
-                    )
+                    seed_fn_seen(project_ctx, d)
                 }
             } else if d is ConstDecl {
-                seed_harvest_seen(
-                    module_loaded.collected.symbols, d.name,
-                    project_ctx.nongeneric_imported_consts,
-                )
+                sym :: module_loaded.collected.symbols[d.name] ?? continue
+                project_ctx.nongeneric_imported_consts[sym.id] = true
             }
         }
         lowered_module :: lower_module(module_id, display_path, module_typed, decls, project_ctx, diags)
@@ -370,16 +362,12 @@ lower_decl :: fn(
 }
 
 
-// Seed a decl's resolved symbol id into a harvest seen-set so the lazy
-// call-site harvest (`register_nongeneric_imported_{fn,const}`) treats it as
-// already emitted. Used both for the entry module's eagerly-lowered fns / consts
-// and for the bodyless fns the skip branch surfaces up front — either way an
-// on-demand re-materialisation of the same symbol would be a duplicate.
-seed_harvest_seen :: fn(
-    symbols: MutableMap<string, Symbol>, name: string, seen: MutableMap<i32, bool>,
-) -> void {
-    sym :: symbols[name]
-    if sym is Symbol { seen[sym.id] = true }
+// Mark a function lowered up front as reached, so the call-site harvest
+// (`materialize_nongeneric_imported_fns`) does not lower it again. It is found by
+// its declaration : the module's `symbols` keeps one overload per name.
+seed_fn_seen :: fn(project_ctx: LowerProjectCtx, d: FnDecl) -> void {
+    sym :: project_ctx.fn_symbols[d.id] ?? return
+    project_ctx.nongeneric_imported_fns[sym.id] = true
 }
 
 module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {

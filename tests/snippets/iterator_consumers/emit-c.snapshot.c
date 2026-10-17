@@ -330,6 +330,7 @@ static int64_t snippet_total(vader_box_t l0);
 static int64_t snippet_first_over(int64_t l0, vader_box_t l1);
 static void snippet_print_until_stop(vader_box_t l0);
 static void snippet_pair_sum(vader_box_t l0, int32_t* __o0, int32_t* __o1);
+static int64_t snippet_weigh_1(int64_t l0, vader_box_t l1);
 static int32_t snippet_drained_twice(vader_box_t l0);
 static int32_t snippet_main(void);
 static void* __lambda_snippet_0(int32_t l0);
@@ -346,7 +347,6 @@ static int32_t __lambda_snippet_10(int32_t l0);
 static int64_t __lambda_snippet_11(int64_t l0, int32_t l1);
 static int32_t __lambda_snippet_12(int32_t l0);
 static vader_box_t __lambda_snippet_13(int32_t l0);
-static int64_t snippet_weigh_1(int64_t l0, vader_box_t l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static int32_t std_core_i32_Step_step(int32_t l0);
 static void* std_core_Range_Iterator_next__i32(void* l0);
@@ -1033,6 +1033,37 @@ static void snippet_pair_sum(vader_box_t l0, int32_t* __o0, int32_t* __o1) {
     }
 #line 69 "tests/snippets/iterator_consumers/_main.vader"
     { *__o1 = l2; *__o0 = l1; vader_gc_top = gc_frame.prev; return; }
+}
+
+static int64_t snippet_weigh_1(int64_t l0, vader_box_t l1) {
+    int64_t l2, l5;
+    vader_box_t l3 = vader_box_null();
+    void* l4 = NULL;
+    vader_box_t t0 = vader_box_null();
+    int64_t t1;
+    vader_box_t* gc_roots[3] = { &l1, &l3, &t0 };
+    void** gc_raw_roots[1] = { &l4 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_gc_top = &gc_frame;
+#line 82 "tests/snippets/iterator_consumers/_main.vader"
+    l2 = INT64_C(0);
+#line 83 "tests/snippets/iterator_consumers/_main.vader"
+    l3 = l1;
+    for (;;) {
+        t0 = vader_vt_std_core_Iterator__next(l3);
+        l4 = t0.payload.obj;
+        if (!((((vader_obj_header_t*) l4)->type_index == 29u ? ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l4)->f__1 : ((vader_struct___Tuple_i64_u8_87057322_t*) l4)->f__1) == INT32_C(1))) {
+            t1 = (((vader_obj_header_t*) l4)->type_index == 29u ? ((int64_t) ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l4)->f__0.payload.i) : ((vader_struct___Tuple_i64_u8_87057322_t*) l4)->f__0);
+#line 84 "tests/snippets/iterator_consumers/_main.vader"
+            l5 = vader_chk_mul(i64, t1, l0);
+            l2 = vader_chk_add(i64, l2, l5);
+#line 83 "tests/snippets/iterator_consumers/_main.vader"
+            continue;
+        }
+        break;
+    }
+#line 86 "tests/snippets/iterator_consumers/_main.vader"
+    { int64_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int32_t snippet_drained_twice(vader_box_t l0) {
@@ -2184,56 +2215,6 @@ static vader_box_t __lambda_snippet_13(int32_t l0) {
         return t1;
     }
     return vader_box_obj(0u, NULL);
-}
-
-static int64_t snippet_weigh_1(int64_t l0, vader_box_t l1) {
-    int64_t l2, l5;
-    vader_box_t l3 = vader_box_null();
-    void* l4 = NULL;
-    vader_box_t t0 = vader_box_null();
-    int64_t t1;
-    vader_box_t* gc_roots[3] = { &l1, &l3, &t0 };
-    void** gc_raw_roots[1] = { &l4 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-#line 82 "tests/snippets/iterator_consumers/_main.vader"
-    l2 = INT64_C(0);
-#line 83 "tests/snippets/iterator_consumers/_main.vader"
-    l3 = l1;
-    for (;;) {
-        t0 = vader_vt_std_core_Iterator__next(l3);
-        l4 = t0.payload.obj;
-        if (!((((vader_obj_header_t*) l4)->type_index == 29u ? ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l4)->f__1 : ((vader_struct___Tuple_i64_u8_87057322_t*) l4)->f__1) == INT32_C(1))) {
-            t1 = (((vader_obj_header_t*) l4)->type_index == 29u ? ((int64_t) ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l4)->f__0.payload.i) : ((vader_struct___Tuple_i64_u8_87057322_t*) l4)->f__0);
-#line 84 "tests/snippets/iterator_consumers/_main.vader"
-            l5 = vader_chk_mul(i64, t1, l0);
-            l2 = vader_chk_add(i64, l2, l5);
-#line 83 "tests/snippets/iterator_consumers/_main.vader"
-            continue;
-        }
-        break;
-    }
-#line 86 "tests/snippets/iterator_consumers/_main.vader"
-    { int64_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
-#line 82 "tests/snippets/iterator_consumers/_main.vader"
-    l2 = INT64_C(0);
-#line 83 "tests/snippets/iterator_consumers/_main.vader"
-    l3 = l1;
-    for (;;) {
-        t0 = vader_vt_std_core_Iterator__next(l3);
-        l4 = t0.payload.obj;
-        if (!((((vader_obj_header_t*) l4)->type_index == 29u ? ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l4)->f__1 : ((vader_struct___Tuple_i64_u8_87057322_t*) l4)->f__1) == INT32_C(1))) {
-            t1 = (((vader_obj_header_t*) l4)->type_index == 29u ? ((int64_t) ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l4)->f__0.payload.i) : ((vader_struct___Tuple_i64_u8_87057322_t*) l4)->f__0);
-#line 84 "tests/snippets/iterator_consumers/_main.vader"
-            l5 = vader_chk_mul(i64, t1, l0);
-            l2 = vader_chk_add(i64, l2, l5);
-#line 83 "tests/snippets/iterator_consumers/_main.vader"
-            continue;
-        }
-        break;
-    }
-#line 86 "tests/snippets/iterator_consumers/_main.vader"
-    { int64_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

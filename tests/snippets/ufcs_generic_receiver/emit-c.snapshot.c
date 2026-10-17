@@ -30,8 +30,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 6u
 
-static int32_t snippet_main(void);
 static vader_string_t snippet_describe_1(int32_t l0);
+static int32_t snippet_main(void);
 static vader_string_t snippet_describe__i32(int32_t l0);
 static vader_string_t snippet_describe__string(vader_string_t l0);
 static vader_string_t snippet_show__i32(int32_t l0);
@@ -93,6 +93,27 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
     return write(a0, s1.ptr, a2);
 }
 
+static vader_string_t snippet_describe_1(int32_t l0) {
+    void* l1 = NULL;
+    size_t l2;
+    int64_t l3;
+    vader_string_t t0 = 0;
+    void** gc_raw_roots[1] = { &l1 };
+    vader_string_t* gc_atom_roots[1] = { &t0 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+#line 12 "tests/snippets/ufcs_generic_receiver/_main.vader"
+    l1 = std_core_new_byte_buffer((size_t) 24);
+    l2 = (size_t) 0;
+    l2 = std_core_write_string_at(l1, l2, 1u);
+    l3 = ((int64_t) (int32_t) l0);
+    l2 = std_core_write_int(l1, l2, l3);
+    t0 = std_core_finish_buffer(l1, l2);
+    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
 static int32_t snippet_main(void) {
     void* l0 = NULL;
     vader_string_t t0 = 0;
@@ -128,34 +149,6 @@ static int32_t snippet_main(void) {
     std_io_println__usize(t1);
 #line 30 "tests/snippets/ufcs_generic_receiver/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-}
-
-static vader_string_t snippet_describe_1(int32_t l0) {
-    void* l1 = NULL;
-    size_t l2;
-    int64_t l3;
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l1 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-#line 12 "tests/snippets/ufcs_generic_receiver/_main.vader"
-    l1 = std_core_new_byte_buffer((size_t) 24);
-    l2 = (size_t) 0;
-    l2 = std_core_write_string_at(l1, l2, 1u);
-    l3 = ((int64_t) (int32_t) l0);
-    l2 = std_core_write_int(l1, l2, l3);
-    t0 = std_core_finish_buffer(l1, l2);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    l1 = std_core_new_byte_buffer((size_t) 24);
-    l2 = (size_t) 0;
-    l2 = std_core_write_string_at(l1, l2, 1u);
-    l3 = ((int64_t) (int32_t) l0);
-    l2 = std_core_write_int(l1, l2, l3);
-    t0 = std_core_finish_buffer(l1, l2);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t snippet_describe__i32(int32_t l0) {

@@ -925,12 +925,12 @@ static const vader_array_t vader_data_1 = {
 };
 
 static vader_box_t snippet_upto(int32_t l0);
+static vader_box_t snippet_upto_1(vader_string_t l0);
 static int32_t snippet_main(void);
 static void* snippet___genstate_upto_Iterator_next(void* l0);
+static void* snippet___genstate_upto_1_Iterator_next(void* l0);
 static size_t __lambda_snippet_0(vader_string_t l0);
 static bool __lambda_snippet_1(int32_t l0);
-static vader_box_t snippet_upto_1(vader_string_t l0);
-static void* snippet___genstate_upto_1_Iterator_next(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static int32_t std_core_i32_Step_step(int32_t l0);
 static void* std_core_Range_Iterator_next__i32(void* l0);
@@ -1185,6 +1185,30 @@ static vader_box_t snippet_upto(int32_t l0) {
     vader_obj_header_init(_a0_obj, 5u);
     _a0_obj->f_s0 = l0;
     _a0_obj->f_s1 = INT32_C(0);
+    _a0_obj->f_state = INT32_C(5);
+    t0 = (void*) _a0_obj;
+    { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static vader_box_t snippet_upto_1(vader_string_t l0) {
+    void* l1 = NULL;
+    void* t0 = NULL;
+    void** gc_raw_roots[2] = { &l1, &t0 };
+    vader_string_t* gc_atom_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+#line 18 "tests/snippets/generator_overloads/_main.vader"
+    l1 = vader_box_obj(0u, NULL).payload.obj;
+    vader_struct_snippet___genstate_upto_1_t* _a0_obj = (vader_struct_snippet___genstate_upto_1_t*) vader_gc_alloc(sizeof(vader_struct_snippet___genstate_upto_1_t));
+    vader_obj_header_init(_a0_obj, 8u);
+    _a0_obj->f_s0 = l0;
+    _a0_obj->f_s1 = (size_t) 0;
+    _a0_obj->f_s2 = (size_t) 0;
+    _a0_obj->f_s3 = 0u;
+    _a0_obj->f_s4 = l1;
+    _a0_obj->f_s5 = (size_t) 0;
     _a0_obj->f_state = INT32_C(5);
     t0 = (void*) _a0_obj;
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
@@ -1500,56 +1524,6 @@ static void* snippet___genstate_upto_Iterator_next(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static size_t __lambda_snippet_0(vader_string_t l0) {
-    size_t t0;
-#line 49 "tests/snippets/generator_overloads/_main.vader"
-    t0 = vader_host_std_core_byte_len(l0);
-    return t0;
-}
-
-static bool __lambda_snippet_1(int32_t l0) {
-    int32_t t0;
-#line 51 "tests/snippets/generator_overloads/_main.vader"
-    t0 = vader_mod_i32(l0, INT32_C(2));
-    return t0 == INT32_C(0);
-}
-
-static vader_box_t snippet_upto_1(vader_string_t l0) {
-    void* l1 = NULL;
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l1, &t0 };
-    vader_string_t* gc_atom_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-#line 18 "tests/snippets/generator_overloads/_main.vader"
-    l1 = vader_box_obj(0u, NULL).payload.obj;
-    vader_struct_snippet___genstate_upto_1_t* _a0_obj = (vader_struct_snippet___genstate_upto_1_t*) vader_gc_alloc(sizeof(vader_struct_snippet___genstate_upto_1_t));
-    vader_obj_header_init(_a0_obj, 8u);
-    _a0_obj->f_s0 = l0;
-    _a0_obj->f_s1 = (size_t) 0;
-    _a0_obj->f_s2 = (size_t) 0;
-    _a0_obj->f_s3 = 0u;
-    _a0_obj->f_s4 = l1;
-    _a0_obj->f_s5 = (size_t) 0;
-    _a0_obj->f_state = INT32_C(5);
-    t0 = (void*) _a0_obj;
-    { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
-    l1 = vader_box_obj(0u, NULL).payload.obj;
-    vader_struct_snippet___genstate_upto_1_t* _a1_obj = (vader_struct_snippet___genstate_upto_1_t*) vader_gc_alloc(sizeof(vader_struct_snippet___genstate_upto_1_t));
-    vader_obj_header_init(_a1_obj, 8u);
-    _a1_obj->f_s0 = l0;
-    _a1_obj->f_s1 = (size_t) 0;
-    _a1_obj->f_s2 = (size_t) 0;
-    _a1_obj->f_s3 = 0u;
-    _a1_obj->f_s4 = l1;
-    _a1_obj->f_s5 = (size_t) 0;
-    _a1_obj->f_state = INT32_C(5);
-    t0 = (void*) _a1_obj;
-    { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
-}
-
 static void* snippet___genstate_upto_1_Iterator_next(void* l0) {
     size_t l1, l2, l3, l5, l8, l10, l12, l14, l16, l17;
     vader_string_t l4 = 0;
@@ -1675,6 +1649,20 @@ static void* snippet___genstate_upto_1_Iterator_next(void* l0) {
         continue;
     }
     vader_gc_top = gc_frame.prev;
+}
+
+static size_t __lambda_snippet_0(vader_string_t l0) {
+    size_t t0;
+#line 49 "tests/snippets/generator_overloads/_main.vader"
+    t0 = vader_host_std_core_byte_len(l0);
+    return t0;
+}
+
+static bool __lambda_snippet_1(int32_t l0) {
+    int32_t t0;
+#line 51 "tests/snippets/generator_overloads/_main.vader"
+    t0 = vader_mod_i32(l0, INT32_C(2));
+    return t0 == INT32_C(0);
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

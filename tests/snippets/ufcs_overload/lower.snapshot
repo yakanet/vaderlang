@@ -26,9 +26,6 @@
       } :string)
       return 0
   }
-  snippet$inc_1 :: fn(self: B) -> i32 {
-      return self.y + 100
-  }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: usize = std.core.byte_len(p0)
       c1: usize = c0 +% std.core.byte_len(p1)

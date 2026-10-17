@@ -94,8 +94,8 @@ impl 38 std_core$Iterator
 impl 41 std_core$Contains
 impl 41 std_core$Into
 impl 42 std_core$Iterator
-vtable std_core$Iterator.next 5 2
-vtable std_core$Iterator.next 8 6
+vtable std_core$Iterator.next 5 3
+vtable std_core$Iterator.next 8 4
 vtable std_core$Iterator.next 14 9
 vtable std_core$Iterator.next 15 11
 vtable std_core$Iterator.next 24 38
@@ -103,7 +103,7 @@ vtable std_core$Iterator.next 30 42
 vtable std_core$Iterator.next 34 43
 vtable std_core$Iterator.next 38 44
 vtable std_core$Iterator.next 42 45
-export main 1
+export main 2
 
 fn 0 snippet$upto (i32) -> any
   local.get 0   ; arg 0
@@ -113,7 +113,22 @@ fn 0 snippet$upto (i32) -> any
   return
 end
 
-fn 1 snippet$main () -> i32
+fn 1 snippet$upto_1 (string) -> any
+  local $k_4 ref
+  null.const
+  local.set 1   ; $k_4
+  local.get 0   ; arg 0
+  i64.const 0
+  i64.const 0
+  string.const 0   ; ""
+  local.get 1   ; $k_4
+  i64.const 0
+  i32.const 5
+  struct.new 8   ; snippet$__genstate_upto_1
+  return
+end
+
+fn 2 snippet$main () -> i32
   local i i32
   local x i32
   local __buf_0 ref
@@ -242,7 +257,7 @@ fn 1 snippet$main () -> i32
     end $L5
   end $L4
   string.const 3   ; "xyz"
-  call 5   ; snippet$upto_1
+  call 1   ; snippet$upto_1
   local.set 14   ; __iter_2
   i32.const 3
   call 0   ; snippet$upto
@@ -371,7 +386,7 @@ fn 1 snippet$main () -> i32
       local.get 15   ; __step_3
       local.get 10   ; __off_2
       call 13   ; std_core$finish_buffer
-      call 3   ; __lambda_snippet_0
+      call 5   ; __lambda_snippet_0
       local.set 16   ; x
       local.get 13   ; halves
       local.get 16   ; x
@@ -433,7 +448,7 @@ fn 1 snippet$main () -> i32
     i32.lt
     if $L15 void
       local.get 0   ; i
-      call 4   ; __lambda_snippet_1
+      call 6   ; __lambda_snippet_1
       if $L16 void
         local.get 6   ; __for_hi_3
         i64.const 1
@@ -513,7 +528,7 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 snippet$__genstate_upto$Iterator$next (ref) -> ref
+fn 3 snippet$__genstate_upto$Iterator$next (ref) -> ref
   local $field_12 i32
   local $field_13 i32
   local $add_22 i32
@@ -616,48 +631,7 @@ fn 2 snippet$__genstate_upto$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 3 __lambda_snippet_0 (string) -> usize
-  local.get 0   ; arg 0
-  call.import 0   ; std_core$byte_len
-  return
-end
-
-fn 4 __lambda_snippet_1 (i32) -> bool
-  local.get 0   ; arg 0
-  i32.const 2
-  i32.rem
-  i32.const 0
-  i32.eq
-  return
-end
-
-fn 5 snippet$upto_1 (string) -> any
-  local $k_4 ref
-  null.const
-  local.set 1   ; $k_4
-  local.get 0   ; arg 0
-  i64.const 0
-  i64.const 0
-  string.const 0   ; ""
-  local.get 1   ; $k_4
-  i64.const 0
-  i32.const 5
-  struct.new 8   ; snippet$__genstate_upto_1
-  return
-  null.const
-  local.set 1   ; $k_4
-  local.get 0   ; arg 0
-  i64.const 0
-  i64.const 0
-  string.const 0   ; ""
-  local.get 1   ; $k_4
-  i64.const 0
-  i32.const 5
-  struct.new 8   ; snippet$__genstate_upto_1
-  return
-end
-
-fn 6 snippet$__genstate_upto_1$Iterator$next (ref) -> ref
+fn 4 snippet$__genstate_upto_1$Iterator$next (ref) -> ref
   local $field_12 usize
   local $field_13 usize
   local $add_22 usize
@@ -839,6 +813,21 @@ fn 6 snippet$__genstate_upto_1$Iterator$next (ref) -> ref
     end $L2
     br $L0
   end $L0
+end
+
+fn 5 __lambda_snippet_0 (string) -> usize
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  return
+end
+
+fn 6 __lambda_snippet_1 (i32) -> bool
+  local.get 0   ; arg 0
+  i32.const 2
+  i32.rem
+  i32.const 0
+  i32.eq
+  return
 end
 
 fn 7 concat_2 (string,string) -> string

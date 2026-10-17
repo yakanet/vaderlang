@@ -750,22 +750,6 @@
   __lambda_snippet_13 :: fn(x: i32) -> i32 | null {
       if x > 4 { x * 100 } else { null } :i32 | null
   }
-  snippet$weigh_1 :: fn(scale: i64, it: Iterator<i64>) -> i64 {
-      n: i64 = 0
-      {
-          __iter_0: Iterator<i64> = it
-          for {
-              __step_1: [i64, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
-                  break
-              } else {
-                  x: i64 = __step_1._0
-                  n = n + (x * scale)
-              }
-          }
-      }
-      return n
-  }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: usize = std.core.byte_len(p0)
       c1: usize = c0 +% std.core.byte_len(p1)

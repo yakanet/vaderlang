@@ -39,7 +39,7 @@ import 0 byte_len std_core$byte_len result_type=7 param_types=2 param_c_out= par
 import 1 bytes std_core$bytes result_type=14 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=4,14,7 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 8 std_core$ByteAccess
-export main 1
+export main 2
 
 fn 0 snippet$describe (ref) -> string
   local __buf_0 ref
@@ -70,7 +70,18 @@ fn 0 snippet$describe (ref) -> string
   return
 end
 
-fn 1 snippet$main () -> i32
+fn 1 snippet$describe_1 (ref) -> string
+  local $field_2 string
+  local.field 0 3 0   ; arg 0 snippet$Bag.v
+  ref.cast 2   ; string
+  local.set 1   ; $field_2
+  string.const 1   ; "bag "
+  local.get 1   ; $field_2
+  call 3   ; concat_2
+  return
+end
+
+fn 2 snippet$main () -> i32
   local a ref
   local b ref
   local __off_1 usize
@@ -86,13 +97,13 @@ fn 1 snippet$main () -> i32
   call 0   ; snippet$describe
   call 31   ; std_io$println__string
   local.get 1   ; b
-  call 2   ; snippet$describe_1
+  call 1   ; snippet$describe_1
   call 31   ; std_io$println__string
   local.get 0   ; a
   call 0   ; snippet$describe
   call 31   ; std_io$println__string
   local.get 1   ; b
-  call 2   ; snippet$describe_1
+  call 1   ; snippet$describe_1
   call 31   ; std_io$println__string
   i64.const 36
   call 4   ; std_core$new_byte_buffer
@@ -218,24 +229,6 @@ fn 1 snippet$main () -> i32
   call 3   ; concat_2
   call 31   ; std_io$println__string
   return.lit i32.const 0
-end
-
-fn 2 snippet$describe_1 (ref) -> string
-  local $field_2 string
-  local.field 0 3 0   ; arg 0 snippet$Bag.v
-  ref.cast 2   ; string
-  local.set 1   ; $field_2
-  string.const 1   ; "bag "
-  local.get 1   ; $field_2
-  call 3   ; concat_2
-  return
-  local.field 0 3 0   ; arg 0 snippet$Bag.v
-  ref.cast 2   ; string
-  local.set 1   ; $field_2
-  string.const 1   ; "bag "
-  local.get 1   ; $field_2
-  call 3   ; concat_2
-  return
 end
 
 fn 3 concat_2 (string,string) -> string

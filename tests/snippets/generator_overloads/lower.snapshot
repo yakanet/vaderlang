@@ -261,52 +261,6 @@
   __lambda_snippet_1 :: fn(x: i32) -> bool {
       (x % 2) == 0
   }
-  snippet$upto_1 :: fn(s: string) -> Iterator<string> {
-      return __genstate_upto_1 {
-          .s0 = s,
-          .s1 = usize(0),
-          .s2 = usize(0),
-          .s3 = "",
-          .s4 = null,
-          .s5 = usize(0),
-          .state = 5,
-      }
-  }
-  snippet$__genstate_upto_1 :: struct { s0: string, s1: usize, s2: usize, s3: string, s4: Buffer, s5: usize, state: i32 }
-  snippet$__genstate_upto_1$Iterator$next :: fn(self: __genstate_upto_1) -> [string, Continuation] {
-      dispatch$: for {
-          if __self_4.state == 0 {
-              __self_4.state = -1
-          } else if __self_4.state == 1 {
-              __self_4.state = 0
-          } else if __self_4.state == 2 {
-              if __self_4.s1 < __self_4.s2 {
-                  __self_4.state = 4
-              } else {
-                  __self_4.state = 1
-              }
-          } else if __self_4.state == 3 {
-              __self_4.s1 = __self_4.s1 +% usize(1)
-              __self_4.state = 2
-          } else if __self_4.state == 4 {
-              __self_4.state = 3
-              return [{
-                  __self_4.s3 = __self_4.s0
-                  __self_4.s4 = std.core.new_byte_buffer(usize(20) +% std.core.byte_len(__self_4.s3))
-                  __self_4.s5 = 0
-                  __self_4.s5 = std.core.write_string_at(__self_4.s4, __self_4.s5, __self_4.s3)
-                  __self_4.s5 = std.core.write_unsigned(__self_4.s4, __self_4.s5, u64(__self_4.s1))
-                  std.core.finish_buffer(__self_4.s4, __self_4.s5)
-              } :string, u8(0)] :[string, Continuation]
-          } else if __self_4.state == 5 {
-              __self_4.s1 = 0
-              __self_4.s2 = std.core.byte_len(__self_4.s0)
-              __self_4.state = 2
-          } else {
-              return ["", u8(1)] :[string, Continuation]
-          }
-      }
-  }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: usize = std.core.byte_len(p0)
       c1: usize = c0 +% std.core.byte_len(p1)
@@ -316,7 +270,6 @@
       std.core.Buffer.intern_string(buf, c1)
   }
   vtable std.core.Iterator.next for __genstate_upto  snippet$__genstate_upto$Iterator$next
-  vtable std.core.Iterator.next for __genstate_upto_1  snippet$__genstate_upto_1$Iterator$next
   vtable std.core.Iterator.next for __genstate_upto_1  snippet$__genstate_upto_1$Iterator$next
 
 ## snippet/halves

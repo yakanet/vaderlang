@@ -22,35 +22,9 @@ import 0 byte_len std_core$byte_len result_type=7 param_types=2 param_c_out= par
 import 1 bytes std_core$bytes result_type=11 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,11,7 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 8 std_core$ByteAccess
-export main 0
+export main 1
 
-fn 0 snippet$main () -> i32
-  local xs ref
-  i32.const 1
-  call 4   ; snippet$show__i32
-  call 16   ; std_io$println__string
-  string.const 1   ; "s"
-  call 5   ; snippet$show__string
-  call 16   ; std_io$println__string
-  i32.const 1
-  call 1   ; snippet$describe_1
-  call 16   ; std_io$println__string
-  string.const 2   ; "t"
-  call 3   ; snippet$describe__string
-  call 16   ; std_io$println__string
-  i32.const 1
-  i32.const 2
-  i32.const 3
-  array.new 5 3   ; i32[]
-  local.tee 0   ; xs
-  call 7   ; snippet$wipe__i32__
-  local.get 0   ; xs
-  array.len
-  call 17   ; std_io$println__usize
-  return.lit i32.const 0
-end
-
-fn 1 snippet$describe_1 (i32) -> string
+fn 0 snippet$describe_1 (i32) -> string
   local __buf_0 ref
   local __off_1 usize
   local $cast_8 i64
@@ -76,28 +50,32 @@ fn 1 snippet$describe_1 (i32) -> string
   local.get 2   ; __off_1
   call 10   ; std_core$finish_buffer
   return
-  i64.const 24
-  call 9   ; std_core$new_byte_buffer
-  local.set 1   ; __buf_0
-  i64.const 0
-  local.set 2   ; __off_1
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  string.const 0   ; "i32 "
-  call 11   ; std_core$write_string_at
-  local.set 2   ; __off_1
-  local.get 0   ; arg 0
-  i32.to_i64
-  local.set 3   ; $cast_8
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  local.get 3   ; $cast_8
-  call 12   ; std_core$write_int
-  local.set 2   ; __off_1
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  call 10   ; std_core$finish_buffer
-  return
+end
+
+fn 1 snippet$main () -> i32
+  local xs ref
+  i32.const 1
+  call 4   ; snippet$show__i32
+  call 16   ; std_io$println__string
+  string.const 1   ; "s"
+  call 5   ; snippet$show__string
+  call 16   ; std_io$println__string
+  i32.const 1
+  call 0   ; snippet$describe_1
+  call 16   ; std_io$println__string
+  string.const 2   ; "t"
+  call 3   ; snippet$describe__string
+  call 16   ; std_io$println__string
+  i32.const 1
+  i32.const 2
+  i32.const 3
+  array.new 5 3   ; i32[]
+  local.tee 0   ; xs
+  call 7   ; snippet$wipe__i32__
+  local.get 0   ; xs
+  array.len
+  call 17   ; std_io$println__usize
+  return.lit i32.const 0
 end
 
 fn 2 snippet$describe__i32 (i32) -> string

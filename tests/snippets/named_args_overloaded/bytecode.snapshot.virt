@@ -82,7 +82,7 @@ vtable std_core$Display.to_string 2 27
 vtable std_core$Display.to_string 0 28
 vtable std_core$Display.to_string 16 29
 vtable std_core$Display.to_string 17 30
-export main 3
+export main 6
 
 fn 0 snippet$pick (i32,string) -> string
   local __p_0 string
@@ -124,7 +124,15 @@ fn 0 snippet$pick (i32,string) -> string
   return
 end
 
-fn 1 snippet$tag (any,string) -> string
+fn 1 snippet$pick_1 (string,string) -> string
+  local.get 0   ; arg 0
+  string.const 0   ; ":"
+  local.get 1   ; arg 1
+  call 7   ; concat_3
+  return
+end
+
+fn 2 snippet$tag (any,string) -> string
   local $vcall_3 string
   local.get 0   ; arg 0
   virtual.call 1 std_core$Display.to_string
@@ -136,11 +144,26 @@ fn 1 snippet$tag (any,string) -> string
   return
 end
 
-fn 2 snippet$tw (i32) -> string
+fn 3 snippet$tag_1 (string,string) -> string
+  local.get 0   ; arg 0
+  string.const 1   ; "|"
+  local.get 1   ; arg 1
+  call 7   ; concat_3
+  return
+end
+
+fn 4 snippet$tw (i32) -> string
   return.lit string.const 2   ; "one"
 end
 
-fn 3 snippet$main () -> i32
+fn 5 snippet$tw_1 (string,string) -> string
+  string.const 3   ; "two:"
+  local.get 1   ; arg 1
+  call 8   ; concat_2
+  return
+end
+
+fn 6 snippet$main () -> i32
   local $call_2 string
   local $call_6 string
   i32.const 7
@@ -149,7 +172,7 @@ fn 3 snippet$main () -> i32
   local.set 0   ; $call_2
   string.const 6   ; "a"
   string.const 7   ; "str"
-  call 4   ; snippet$pick_1
+  call 1   ; snippet$pick_1
   local.set 1   ; $call_6
   local.get 0   ; $call_2
   string.const 5   ; " "
@@ -159,11 +182,11 @@ fn 3 snippet$main () -> i32
   call 65   ; std_io$println__string
   i32.const 7
   string.const 9   ; ">"
-  call 1   ; snippet$tag
+  call 2   ; snippet$tag
   local.set 0   ; $call_2
   string.const 10   ; "abc"
   string.const 11   ; "!"
-  call 5   ; snippet$tag_1
+  call 3   ; snippet$tag_1
   local.set 1   ; $call_6
   local.get 0   ; $call_2
   string.const 5   ; " "
@@ -172,11 +195,11 @@ fn 3 snippet$main () -> i32
   call 9   ; concat_4
   call 65   ; std_io$println__string
   i32.const 1
-  call 2   ; snippet$tw
+  call 4   ; snippet$tw
   local.set 0   ; $call_2
   string.const 6   ; "a"
   string.const 13   ; "d"
-  call 6   ; snippet$tw_1
+  call 5   ; snippet$tw_1
   local.set 1   ; $call_6
   local.get 0   ; $call_2
   string.const 5   ; " "
@@ -190,7 +213,7 @@ fn 3 snippet$main () -> i32
   local.set 0   ; $call_2
   string.const 6   ; "a"
   string.const 16   ; "Y"
-  call 4   ; snippet$pick_1
+  call 1   ; snippet$pick_1
   local.set 1   ; $call_6
   local.get 0   ; $call_2
   string.const 5   ; " "
@@ -200,11 +223,11 @@ fn 3 snippet$main () -> i32
   call 65   ; std_io$println__string
   i32.const 7
   string.const 18   ; "#"
-  call 1   ; snippet$tag
+  call 2   ; snippet$tag
   local.set 0   ; $call_2
   string.const 10   ; "abc"
   string.const 19   ; "?"
-  call 5   ; snippet$tag_1
+  call 3   ; snippet$tag_1
   local.set 1   ; $call_6
   local.get 0   ; $call_2
   string.const 5   ; " "
@@ -218,7 +241,7 @@ fn 3 snippet$main () -> i32
   local.set 0   ; $call_2
   string.const 6   ; "a"
   string.const 22   ; "Q"
-  call 4   ; snippet$pick_1
+  call 1   ; snippet$pick_1
   local.set 1   ; $call_6
   local.get 0   ; $call_2
   string.const 5   ; " "
@@ -227,43 +250,6 @@ fn 3 snippet$main () -> i32
   call 9   ; concat_4
   call 65   ; std_io$println__string
   return.lit i32.const 0
-end
-
-fn 4 snippet$pick_1 (string,string) -> string
-  local.get 0   ; arg 0
-  string.const 0   ; ":"
-  local.get 1   ; arg 1
-  call 7   ; concat_3
-  return
-  local.get 0   ; arg 0
-  string.const 0   ; ":"
-  local.get 1   ; arg 1
-  call 7   ; concat_3
-  return
-end
-
-fn 5 snippet$tag_1 (string,string) -> string
-  local.get 0   ; arg 0
-  string.const 1   ; "|"
-  local.get 1   ; arg 1
-  call 7   ; concat_3
-  return
-  local.get 0   ; arg 0
-  string.const 1   ; "|"
-  local.get 1   ; arg 1
-  call 7   ; concat_3
-  return
-end
-
-fn 6 snippet$tw_1 (string,string) -> string
-  string.const 3   ; "two:"
-  local.get 1   ; arg 1
-  call 8   ; concat_2
-  return
-  string.const 3   ; "two:"
-  local.get 1   ; arg 1
-  call 8   ; concat_2
-  return
 end
 
 fn 7 concat_3 (string,string,string) -> string
