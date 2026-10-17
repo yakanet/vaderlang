@@ -1,0 +1,42 @@
+# Typecheck
+
+## tests/snippets/match_in_lambda_argument
+  FnDecl         apply                :: fn(Circle | Square, fn(Circle | Square) -> i32) -> i32
+  StructDecl     Circle               :: Circle
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Shape                :: type
+  StructDecl     Square               :: Square
+  expr 14:53    CallExpr       :: i32
+  expr 14:53    IdentExpr      :: fn(Circle | Square) -> i32
+  expr 14:55    IdentExpr      :: Circle | Square
+  expr 17:22    SeqLitExpr     :: (Circle | Square)[]
+  expr 17:23    StructLitExpr  :: Circle
+  expr 17:47    StructLitExpr  :: Square
+  expr 19:14    IdentExpr      :: (Circle | Square)[]
+  expr 20:18    CallExpr       :: i32
+  expr 20:18    IdentExpr      :: fn(Circle | Square, fn(Circle | Square) -> i32) -> i32
+  expr 20:24    IdentExpr      :: Circle | Square
+  expr 20:27    LambdaExpr     :: fn(Circle | Square) -> i32
+  expr 20:9     BinaryExpr     :: i32
+  expr 20:9     IdentExpr      :: i32
+  expr 21:21    StringLitExpr  :: string
+  expr 23:13    MatchExpr      :: void
+  expr 23:19    IdentExpr      :: Circle | Square
+  expr 24:32    IdentExpr      :: string
+  expr 24:39    StringLitExpr  :: string
+  expr 25:32    IdentExpr      :: string
+  expr 25:39    StringLitExpr  :: string
+  expr 27:14    IdentExpr      :: string
+  expr 27:20    IdentExpr      :: i32
+  expr 27:28    SeqLitExpr     :: [string, i32]
+  expr 27:29    IdentExpr      :: string
+  expr 28:13    CallExpr       :: void
+  expr 28:13    IdentExpr      :: fn(T) -> void
+  expr 28:21    StringLitExpr  :: string
+  expr 28:24    IdentExpr      :: string
+  expr 28:32    IdentExpr      :: i32
+  expr 29:20    IdentExpr      :: i32
+  expr 32:13    StringLitExpr  :: string
+  expr 32:16    IdentExpr      :: i32
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void

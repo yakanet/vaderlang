@@ -1,0 +1,34 @@
+// A block passed as an argument separates its statements with newlines, as any
+// block does. The `match` below has two `is` arms and the next statement opens
+// with `[`: were the newlines inside the call's parentheses absorbed, the second
+// arm would read as `{ … } is Square` and the destructuring as an index of the
+// line above.
+module "snippet"
+
+import "std/io"
+
+Circle :: struct { radius: i32 }
+Square :: struct { side: i32 }
+Shape :: Circle | Square
+
+apply :: fn(s: Shape, f: fn(Shape) -> i32) -> i32 = f(s)
+
+main :: fn() -> i32 {
+    shapes: Shape[]: [Circle { .radius = 2 }, Square { .side = 3 }]
+    total := 0
+    for s in shapes {
+        total += apply(s, (shape) -> {
+            name := "?"
+            size := 0
+            match shape {
+                is Circle -> { name = "circle" }
+                is Square -> { name = "square" }
+            }
+            [name, size] = [name, 1]
+            println("${name} ${size}")
+            return size
+        })
+    }
+    println("${total}")
+    return 0
+}

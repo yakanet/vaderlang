@@ -40,7 +40,8 @@ export Lexer :: struct {
     pos: usize
     line: i32
     col: i32
-    paren_depth: i32          // unclosed `(` and `[` (NOT `{`)
+    paren_depth: i32          // unclosed `(` and `[` since the innermost unclosed `{`
+    enclosing_paren_depths: i32[] // `paren_depth` outside each unclosed `{`, restored by its `}`
     last_kind: TokenKind      // initialised to .Newline so first-token rules fire correctly
     // A statement-ending line break not emitted yet : the next token decides
     // whether it ends the statement (`emit`).
@@ -62,6 +63,7 @@ new_lexer :: fn(source: string, file: string) = Lexer {
     .line = 1,
     .col = 1,
     .paren_depth = 0,
+    .enclosing_paren_depths = [],
     .last_kind = .Newline,
     .tokens = [],
     .errors = [],
@@ -246,7 +248,7 @@ error_span :: fn(l: Lexer, start: Position) =
 // ---- whitespace + comments -----------------------------------------------
 
 skip_horizontal :: fn(l: Lexer) -> void {
-    in_interp :: l.interp_stack.len() > 0
+    in_interp :: in_interp_expression(l)
     for !l.at_end() {
         c :: l.peek()
         if c == ' ' || c == '\t' {
@@ -259,6 +261,13 @@ skip_horizontal :: fn(l: Lexer) -> void {
             return
         }
     }
+}
+
+// Inside a `${...}` expression itself : a `{` block opened there separates its
+// statements with newlines, as any block does.
+in_interp_expression :: fn(l: Lexer) -> bool {
+    top :: l.top_interp() ?? return false
+    return top.brace_depth == 0
 }
 
 lex_block_comment :: fn(l: Lexer) -> void {
@@ -834,8 +843,8 @@ try_lex_operator :: fn(l: Lexer) -> bool {
     if c == ',' { return l.emit_and_advance(.Comma, ",") }
     if c == '.' { return l.emit_and_advance(.Dot, ".") }
 
-    // Brackets — `(` and `[` raise paren_depth, `{` does not (blocks separate
-    // statements with newlines).
+    // Brackets: `(` and `[` raise paren_depth ; `{` sets it aside until its `}`,
+    // since a block separates statements with newlines even inside a bracket.
     if c == '(' {
         start :: l.position_here()
         l.advance(1)
@@ -869,6 +878,8 @@ try_lex_operator :: fn(l: Lexer) -> bool {
         // closes the inner expression rather than the interp itself.
         top :: l.top_interp()
         if top is InterpFrame { top.brace_depth = top.brace_depth + 1 }
+        l.enclosing_paren_depths.push(l.paren_depth)
+        l.paren_depth = 0
         return l.emit_and_advance(.LBrace, "{")
     }
     if c == '}' {
@@ -878,6 +889,7 @@ try_lex_operator :: fn(l: Lexer) -> bool {
                 top.brace_depth = top.brace_depth - 1
             }
         }
+        l.paren_depth = l.enclosing_paren_depths.remove_last() ?? l.paren_depth
         return l.emit_and_advance(.RBrace, "}")
     }
 
@@ -1244,6 +1256,21 @@ count_newlines :: fn(l: Lexer) -> usize {
 @test test_leading_prefix_operator_keeps_newline :: fn() -> void {
     // `-` and `!` have a prefix form : the next line is a statement of its own.
     l :: tokenize("a\n-b\nc\n!d", "test.vader")
+    assert_eq(count_newlines(l), 3)
+}
+
+@test test_block_inside_parens_keeps_its_newlines :: fn() -> void {
+    // A lambda body passed as an argument separates its statements as any block
+    // does (the newlines after `{`, `a` and `b`) ; the parenthesis around it
+    // absorbs only its own newlines.
+    l :: tokenize("f(\n    (m) -> {\n        a\n        b\n    },\n    c\n)", "test.vader")
+    assert_eq(l.errors.len(), 0)
+    assert_eq(count_newlines(l), 3)
+}
+
+@test test_block_inside_interpolation_keeps_its_newlines :: fn() -> void {
+    l :: tokenize("s :: \"\"\"\${f((x) -> {\n    a\n    b\n})}\"\"\"", "test.vader")
+    assert_eq(l.errors.len(), 0)
     assert_eq(count_newlines(l), 3)
 }
 

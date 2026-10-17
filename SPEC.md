@@ -399,7 +399,7 @@ Trailing commas are allowed in every comma-separated list: function arguments, f
 
 A newline terminates a statement. No `;` is required. The lexer emits a `NEWLINE` token at every line break **except** in the five cases below, where the newline is silently absorbed:
 
-1. **Inside an unclosed bracket** `(` or `[` — newlines inside parens / array construction are insignificant. (Newlines inside `{ }` blocks stay significant — they separate statements; only a newline *immediately after* an opening `{` is absorbed, per *Statement separators* above.)
+1. **Inside an unclosed bracket** `(` or `[`, and inside a `${…}` interpolation: newlines there are insignificant. Newlines inside a `{ }` block stay significant, since they separate statements, and that holds for a block opened inside a bracket or an interpolation too, such as the body of a lambda passed as an argument. Only a newline *immediately after* an opening `{` is absorbed, per *Statement separators* above.
 2. **After a binary or unary operator** that is still pending an operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `===`, `!==`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `??`, `..<`, `..=`, and the spread `...`. (A newline after `!` is **not** absorbed.)
 3. **After a comma** `,`.
 4. **After a token that expects a right-hand side**: `=`, `:`, `->`, `=>`, the binding operators `::` / `:=`, and the compound-assignments `+=` `-=` `*=` `/=` `%=`.
