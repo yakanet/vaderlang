@@ -243,3 +243,115 @@
           buf :Buffer
         arg1:
           c1 :usize
+
+## lowered in dependencies
+  semver
+    fn semver$Version$Comparable$compare
+    fn semver$Version$Display$to_string
+    fn semver$VersionRange$Contains$contains
+    fn semver$bounded
+    fn semver$bump_major
+    fn semver$bump_minor
+    fn semver$bump_patch
+    fn semver$caret_upper
+    fn semver$clause_contains
+    fn semver$compare_id
+    fn semver$compare_lex
+    fn semver$compare_prerelease
+    fn semver$compare_versions
+    fn semver$expand_caret
+    fn semver$expand_hyphen
+    fn semver$expand_tilde
+    fn semver$expand_xrange
+    fn semver$is_all_digits
+    fn semver$is_bare_operator
+    fn semver$is_x_token
+    fn semver$parse
+    fn semver$parse_clause
+    fn semver$parse_comparator_token
+    fn semver$parse_numeric_id
+    fn semver$parse_partial
+    fn semver$parse_range
+    fn semver$parse_token
+    fn semver$partial_to_lower
+    fn semver$split_or
+    fn semver$split_ws
+    fn semver$term_satisfies
+    fn semver$validate_build
+    fn semver$validate_build_id
+    fn semver$validate_prerelease
+    fn semver$validate_prerelease_id
+    fn semver$wildcard_range
+    fn semver$zero_pre
+    struct semver$PartialVersion
+    struct semver$RangeClause
+    struct semver$RangeTerm
+    struct semver$Version
+    struct semver$VersionRange
+  std/char
+    fn std_char$is_alnum
+    fn std_char$is_alpha
+    fn std_char$is_digit
+    fn std_char$is_white_char
+  std/core
+    fn std_core$Buffer$ByteAccess$intern_string
+    fn std_core$Buffer$ByteAccess$store_u8
+    fn std_core$Buffer$ByteAccess$write_string
+    fn std_core$Range$Contains$contains__char
+    fn std_core$Range$Contains$contains__i32
+    fn std_core$Range$Contains$contains__usize
+    fn std_core$Range$Iterator$next__char
+    fn std_core$Range$Iterator$next__i32
+    fn std_core$Range$Iterator$next__usize
+    fn std_core$char$Comparable$compare
+    fn std_core$char$Step$step
+    fn std_core$codepoint_at_byte
+    fn std_core$decode_tail
+    fn std_core$finish_buffer
+    fn std_core$i32$Comparable$compare
+    fn std_core$i32$Step$step
+    fn std_core$is_utf8_continuation
+    fn std_core$new_byte_buffer
+    fn std_core$three_way
+    fn std_core$usize$BufferAlloc$new_buffer
+    fn std_core$usize$Comparable$compare
+    fn std_core$usize$Step$step
+    fn std_core$write_bool
+    fn std_core$write_int
+    fn std_core$write_string_at
+    fn std_core$write_unsigned
+    struct std_core$Buffer
+    struct std_core$Range__Any
+    struct std_core$Range__char
+    struct std_core$Range__i32
+    struct std_core$Range__usize
+  std/io
+    fn std_io$eprintln__string
+    fn std_io$println__string
+    fn std_io$write
+    fn std_io$write_bytes
+  std/string
+    fn std_string$ParseError$Error$message
+    fn std_string$is_empty
+    fn std_string$is_white_byte
+    fn std_string$matches_at
+    fn std_string$parse_int
+    fn std_string$split
+    fn std_string$starts_with
+    fn std_string$trim
+    fn std_string$trim_prefix
+    struct std_string$ParseError
+  std/string_builder
+    fn std_string_builder$StringBuilder$Display$to_string
+    fn std_string_builder$append
+    struct std_string_builder$StringBuilder
+  system/posix
+    struct system_posix$Pollfd
+    struct system_posix$Winsize
+  system/windows
+    struct system_windows$Coord
+    struct system_windows$ProcessInformation
+    struct system_windows$ScreenBufferInfo
+    struct system_windows$SecurityAttributes
+    struct system_windows$SmallRect
+    struct system_windows$StartupInfo

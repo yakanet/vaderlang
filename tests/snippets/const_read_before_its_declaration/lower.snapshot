@@ -1,6 +1,13 @@
 # Lower
 
 ## snippet
+  storage
+    const BUILT: Inner[]  inline
+    const INNERS: Inner[]  inline
+    const MADE: Inner  inline
+    const MADE_LIST: Inner[]  inline
+    const ONE: Inner  data pool #0, element 0
+    const TOTAL: i32  inline
   struct snippet$Inner { n: i32 }
   fn snippet$main() -> i32
     call :void
@@ -309,3 +316,44 @@
           buf :Buffer
         arg1:
           c1 :usize
+  vtable snippet$Visit.visit for Inner  snippet$Inner$Visit$visit
+
+## lowered in dependencies
+  std/core
+    fn std_core$Buffer$ByteAccess$intern_string
+    fn std_core$Buffer$ByteAccess$store_u8
+    fn std_core$Buffer$ByteAccess$write_string
+    fn std_core$Range$Contains$contains__i32
+    fn std_core$Range$Contains$contains__usize
+    fn std_core$Range$Iterator$next__i32
+    fn std_core$Range$Iterator$next__usize
+    fn std_core$finish_buffer
+    fn std_core$i32$Comparable$compare
+    fn std_core$i32$Step$step
+    fn std_core$new_byte_buffer
+    fn std_core$three_way
+    fn std_core$usize$BufferAlloc$new_buffer
+    fn std_core$usize$Comparable$compare
+    fn std_core$usize$Step$step
+    fn std_core$write_bool
+    fn std_core$write_int
+    fn std_core$write_string_at
+    fn std_core$write_unsigned
+    struct std_core$Buffer
+    struct std_core$Range__Any
+    struct std_core$Range__i32
+    struct std_core$Range__usize
+  std/io
+    fn std_io$println__string
+    fn std_io$write
+    fn std_io$write_bytes
+  system/posix
+    struct system_posix$Pollfd
+    struct system_posix$Winsize
+  system/windows
+    struct system_windows$Coord
+    struct system_windows$ProcessInformation
+    struct system_windows$ScreenBufferInfo
+    struct system_windows$SecurityAttributes
+    struct system_windows$SmallRect
+    struct system_windows$StartupInfo

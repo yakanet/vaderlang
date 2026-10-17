@@ -260,3 +260,64 @@
           buf :Buffer
         arg1:
           c2 :usize
+
+## lowered in dependencies
+  std/core
+    const POW5_128: u64[]  data pool #0
+    fn std_core$BigInt$Div$div
+    fn std_core$BigInt$Mul$mul
+    fn std_core$Buffer$ByteAccess$intern_string
+    fn std_core$Buffer$ByteAccess$write_string
+    fn std_core$Range$Contains$contains__i32
+    fn std_core$Range$Contains$contains__usize
+    fn std_core$Range$Iterator$next__i32
+    fn std_core$Range$Iterator$next__usize
+    fn std_core$any_below
+    fn std_core$bit_len
+    fn std_core$bits64
+    fn std_core$clz32
+    fn std_core$eisel_lemire
+    fn std_core$i32$Comparable$compare
+    fn std_core$i32$Step$step
+    fn std_core$is_zero
+    fn std_core$limb
+    fn std_core$mul_add_small
+    fn std_core$parse_f64
+    fn std_core$parse_f64_slow
+    fn std_core$pf_clz64
+    fn std_core$pf_is_digit
+    fn std_core$pf_product
+    fn std_core$scan_decimal
+    fn std_core$sd_round_at
+    fn std_core$sd_scan
+    fn std_core$shl
+    fn std_core$three_way
+    fn std_core$u64$BitsFloat$from_bits
+    fn std_core$umul128
+    fn std_core$usize$BufferAlloc$new_buffer
+    fn std_core$usize$Comparable$compare
+    fn std_core$usize$Step$step
+    struct std_core$Buffer
+    struct std_core$DecimalParts
+    struct std_core$Range__Any
+    struct std_core$Range__i32
+    struct std_core$Range__usize
+    struct std_core$SlowParts
+  std/io
+    fn std_io$println__string
+    fn std_io$write
+    fn std_io$write_bytes
+  std/string
+    fn std_string$parse_float
+    fn std_string$parse_int
+    struct std_string$ParseError
+  system/posix
+    struct system_posix$Pollfd
+    struct system_posix$Winsize
+  system/windows
+    struct system_windows$Coord
+    struct system_windows$ProcessInformation
+    struct system_windows$ScreenBufferInfo
+    struct system_windows$SecurityAttributes
+    struct system_windows$SmallRect
+    struct system_windows$StartupInfo

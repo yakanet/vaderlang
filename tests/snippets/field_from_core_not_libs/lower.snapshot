@@ -16,3 +16,19 @@
 ## snippet/db
 
 ## snippet/forms
+
+## lowered in dependencies
+  std/core
+    fn std_core$Range$Contains$contains__i32
+    fn std_core$Range$Contains$contains__usize
+    fn std_core$Range$Iterator$next__i32
+    fn std_core$Range$Iterator$next__usize
+    fn std_core$i32$Comparable$compare
+    fn std_core$i32$Step$step
+    fn std_core$three_way
+    fn std_core$usize$Comparable$compare
+    fn std_core$usize$Step$step
+    struct std_core$Field
+    struct std_core$Range__Any
+    struct std_core$Range__i32
+    struct std_core$Range__usize

@@ -1,6 +1,23 @@
 # Lower
 
 ## snippet
+  storage
+    const DIGITS: string[]  data pool #0
+    const GREETING: string  inline
+    const LIMITS: i32[]  data pool #1
+    const MAX: i32  inline
+    const MODE: Mode  inline
+    const ORIGIN: Spec  data pool #3, element 0
+    const PAIR: [i32, string]  inline
+    const SPECS: Spec[]  data pool #2
+    global #0 i32  counts.state
+    global #1 i32[]  counts.instance
+    global #2 i32  slots.state
+    global #3 string[]  slots.instance
+    global #4 i32  flags.state
+    global #5 bool[]  flags.instance
+    global #6 i32  queue.state
+    global #7 Spec[]  queue.instance
   struct snippet$Spec { name: string, code: i32 }
   const snippet$MAX: i32 =
     int(42) :i32
@@ -1645,3 +1662,43 @@
           buf :Buffer
         arg1:
           c1 :usize
+
+## lowered in dependencies
+  std/core
+    fn std_core$Buffer$ByteAccess$intern_string
+    fn std_core$Buffer$ByteAccess$store_u8
+    fn std_core$Buffer$ByteAccess$write_string
+    fn std_core$Range$Contains$contains__i32
+    fn std_core$Range$Contains$contains__usize
+    fn std_core$Range$Iterator$next__i32
+    fn std_core$Range$Iterator$next__usize
+    fn std_core$finish_buffer
+    fn std_core$i32$Comparable$compare
+    fn std_core$i32$Step$step
+    fn std_core$new_byte_buffer
+    fn std_core$three_way
+    fn std_core$usize$BufferAlloc$new_buffer
+    fn std_core$usize$Comparable$compare
+    fn std_core$usize$Step$step
+    fn std_core$write_bool
+    fn std_core$write_int
+    fn std_core$write_string_at
+    fn std_core$write_unsigned
+    struct std_core$Buffer
+    struct std_core$Range__Any
+    struct std_core$Range__i32
+    struct std_core$Range__usize
+  std/io
+    fn std_io$println__string
+    fn std_io$write
+    fn std_io$write_bytes
+  system/posix
+    struct system_posix$Pollfd
+    struct system_posix$Winsize
+  system/windows
+    struct system_windows$Coord
+    struct system_windows$ProcessInformation
+    struct system_windows$ScreenBufferInfo
+    struct system_windows$SecurityAttributes
+    struct system_windows$SmallRect
+    struct system_windows$StartupInfo

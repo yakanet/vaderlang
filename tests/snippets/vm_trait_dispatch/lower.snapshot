@@ -104,6 +104,23 @@
   fn snippet$Wrapper$Printable$label__i32(self: Wrapper<i32>) -> string
     return "wrapped" :string
   struct snippet$Wrapper__Any { inner: Any }
+  vtable snippet$Printable.label for Dog  snippet$Dog$Printable$label
+  vtable snippet$Printable.label for Wrapper<i32>  snippet$Wrapper$Printable$label__i32
+
+## lowered in dependencies
+  std/core
+    fn std_core$Range$Contains$contains__i32
+    fn std_core$Range$Contains$contains__usize
+    fn std_core$Range$Iterator$next__i32
+    fn std_core$Range$Iterator$next__usize
+    fn std_core$i32$Comparable$compare
+    fn std_core$i32$Step$step
+    fn std_core$three_way
+    fn std_core$usize$Comparable$compare
+    fn std_core$usize$Step$step
+    struct std_core$Range__Any
+    struct std_core$Range__i32
+    struct std_core$Range__usize
 
 # Diagnostics
 [34:5] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog` — enumerate its variants or mark the match `@partial`

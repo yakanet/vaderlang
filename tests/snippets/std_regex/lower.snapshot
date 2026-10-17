@@ -935,3 +935,110 @@
           buf :Buffer
         arg1:
           c2 :usize
+
+## lowered in dependencies
+  regex
+    fn regex$add_thread
+    fn regex$apply_counted
+    fn regex$apply_optional
+    fn regex$apply_plus
+    fn regex$apply_star
+    fn regex$at_digit
+    fn regex$at_end
+    fn regex$captured_groups
+    fn regex$class_matches
+    fn regex$compile
+    fn regex$expand_replacement
+    fn regex$extract_range
+    fn regex$find
+    fn regex$find_all
+    fn regex$is_digit_byte
+    fn regex$matches
+    fn regex$next_codepoint
+    fn regex$parse_alternation
+    fn regex$parse_atom
+    fn regex$parse_atom_with_quantifier
+    fn regex$parse_char_class
+    fn regex$parse_concat
+    fn regex$parse_decimal_usize
+    fn regex$parse_escape
+    fn regex$peek
+    fn regex$push_atom_rebased
+    fn regex$push_fragment_rebased
+    fn regex$read_class_char
+    fn regex$replace_all
+    fn regex$run_at
+    fn regex$run_vm
+    fn regex$space_class_ranges
+    fn regex$truncate_threads
+    fn regex$truncate_to
+    fn regex$word_class_ranges
+    struct regex$CharRange
+    struct regex$InstAnchorEnd
+    struct regex$InstAnchorStart
+    struct regex$InstAny
+    struct regex$InstChar
+    struct regex$InstClass
+    struct regex$InstJump
+    struct regex$InstMatch
+    struct regex$InstSave
+    struct regex$InstSplit
+    struct regex$Match
+    struct regex$Parser
+    struct regex$Pattern
+    struct regex$RegexError
+    struct regex$Thread
+    struct regex$WorkItem
+  std/core
+    fn std_core$Buffer$ByteAccess$intern_string
+    fn std_core$Buffer$ByteAccess$store_u8
+    fn std_core$Buffer$ByteAccess$write_string
+    fn std_core$Range$Contains$contains__char
+    fn std_core$Range$Contains$contains__i32
+    fn std_core$Range$Contains$contains__usize
+    fn std_core$Range$Iterator$next__char
+    fn std_core$Range$Iterator$next__i32
+    fn std_core$Range$Iterator$next__usize
+    fn std_core$char$Comparable$compare
+    fn std_core$char$Display$to_string
+    fn std_core$char$Step$step
+    fn std_core$codepoint_at_byte
+    fn std_core$decode_tail
+    fn std_core$finish_buffer
+    fn std_core$i32$Comparable$compare
+    fn std_core$i32$Step$step
+    fn std_core$is_utf8_continuation
+    fn std_core$new_byte_buffer
+    fn std_core$scalar_or_replacement
+    fn std_core$three_way
+    fn std_core$usize$BufferAlloc$new_buffer
+    fn std_core$usize$Comparable$compare
+    fn std_core$usize$Step$step
+    fn std_core$utf8_encode
+    fn std_core$write_bool
+    fn std_core$write_int
+    fn std_core$write_string_at
+    fn std_core$write_unsigned
+    struct std_core$Buffer
+    struct std_core$Range__Any
+    struct std_core$Range__char
+    struct std_core$Range__i32
+    struct std_core$Range__usize
+  std/io
+    fn std_io$println__string
+    fn std_io$write
+    fn std_io$write_bytes
+  std/string_builder
+    fn std_string_builder$StringBuilder$Display$to_string
+    fn std_string_builder$append
+    struct std_string_builder$StringBuilder
+  system/posix
+    struct system_posix$Pollfd
+    struct system_posix$Winsize
+  system/windows
+    struct system_windows$Coord
+    struct system_windows$ProcessInformation
+    struct system_windows$ScreenBufferInfo
+    struct system_windows$SecurityAttributes
+    struct system_windows$SmallRect
+    struct system_windows$StartupInfo

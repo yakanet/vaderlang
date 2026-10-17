@@ -108,7 +108,7 @@ The lowerer consumes the monomorphised typed AST and produces a **separate, smal
 - **Trait calls → static dispatch.** Because monomorphization has stripped abstract generics, every trait-method call site has a concrete receiver type. The lowerer rewrites `recv.to_string()` to a direct call of the specific impl's function. No vtable / dynamic dispatch in MVP.
 - **No inserted runtime checks.** The lowerer does not synthesize bounds checks, null checks, division-by-zero guards, or overflow checks. Type narrowing already covers nullability; the remaining safety checks are the runtime's responsibility (when emitted) or are explicitly out of scope for MVP. Two exceptions are runtime checks the **backends** run. An integer `div` / `mod` by zero traps identically on both — the VM raises a labelled trap and the C backend routes the op through a `vader_{div,mod}_<width>` runtime helper that does the same (it also folds `INT_MIN / -1`). Float divide keeps IEEE `inf` / `nan`. And the lowerer marks an integer `+`, `-`, `*` or unary `-` as checked: the backends stop the run on its overflow, natively through a `vader_chk_<op>` helper, which wraps in a release build (§Integer overflow).
 
-The Lowered AST is the input to the dead-code elimination pass. It is dumpable as JSON via `vader dump --stage=lowered-ast` for debugging and snapshot tests.
+The Lowered AST is the input to the dead-code elimination pass. It is dumpable as text via `vader dump --stage=lowered-ast` for debugging and snapshot tests.
 
 ### Mid-IR (CFG)
 
@@ -3958,7 +3958,7 @@ to the program like any other argument.
 | `resolved-ast` | Per-module symbol table + import wiring (text — byte-aligned with `vader/resolver/dump.vader`) |
 | `typed-ast` | Per-decl + per-expression types |
 | `evaluated-ast` | `@comptime` values, `@file` reads and `@assert` verdicts, in Markdown |
-| `lowered-ast` | Desugared tree (match / interp / defer expanded) |
+| `lowered-ast` | Desugared tree, with where each constant and global slot lives, the vtable rows, and what the program reaches in its dependencies |
 | `dced-ast` | Lowered tree post-stdlib reachability prune |
 | `cfg` | Mid-IR CFG (post-DCE + escape-annotated) |
 | `ranges` | Range analysis over the CFG the bytecode emitter receives: a verdict per array access and checked operation |

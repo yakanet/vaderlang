@@ -36,17 +36,46 @@ export LoweredVtableEntry :: struct {
 export GlobalSlot :: struct {
     name: string
     type: Type
+    /// The module whose singleton owns the slot.
+    module: string
 }
 
-/// Module-level read-only `T[]` literal routed to the data pool (`.rodata`
-/// on native, pre-materialised `ArrayVal` in the VM). The `inline-consts`
-/// pass populates this for eligible primitive-element const arrays ;
-/// references become `LoweredDataConst` nodes carrying the pool index.
-/// One pooled read-only `T[]`, lower-side — either a primitive-element array or a
-/// string array. `midir::convert_data_pool` lowers each into the matching
-/// `BcDataEntry` variant at the CFG boundary (lower can't import
-/// `vader/bytecode` — it would close the bytecode→lower import cycle). Produced
-/// by `inline_consts::try_data_pool`.
+/// Where `inline_consts` stores a module constant.
+export ConstStorage :: InlineConst | PooledConst | AccessorConst
+
+/// A constant rebuilt at each read.
+export InlineConst :: struct {}
+
+/// A constant in the data pool, read through a view.
+export PooledConst :: struct {
+    pool_index: usize
+    /// A struct, the single element of its entry ; an array is the entry itself.
+    element: bool = false
+    /// The accessor building it again, for a use that reads it fresh
+    /// (`LoweredIdent.fresh`).
+    rebuilt_by: string | null = null
+}
+
+/// A constant an accessor builds at each read.
+export AccessorConst :: struct {
+    accessor: string
+}
+
+/// The storage `inline_consts` chose for one module constant.
+export ConstRoute :: struct {
+    symbol: Symbol
+    type: Type
+    storage: ConstStorage
+}
+
+/// One module constant's literal in the data pool (`.rodata` on native,
+/// pre-materialised `ArrayVal` in the VM): a primitive-element array, a string
+/// array, or an aggregate (struct elements, and a lone struct as the single
+/// element of one). References become `LoweredDataConst` nodes carrying the pool
+/// index. `midir::convert_data_pool` lowers each into the matching `BcDataEntry`
+/// variant at the CFG boundary (lower can't import `vader/bytecode`: it would
+/// close the bytecode→lower import cycle). Produced by
+/// `inline_consts::try_data_pool` and `try_pool_struct`.
 export DataPoolEntry :: PrimDataPoolEntry | StrDataPoolEntry | AggregateDataPoolEntry
 
 /// A pooled array of primitive elements. Carries raw bit patterns as `i64`
@@ -105,9 +134,8 @@ export LoweredProject :: struct {
     globals:        GlobalSlot[] = []
     /// Const symbol id → accessor fn, populated by `inline_consts` for
     /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg
-    /// `call` to the accessor. The accessor REUSES the const's symbol id, so
-    /// a `LoweredIdent` referencing the const marks it reachable through DCE's
-    /// normal `visit_fn` path — it survives iff the const is reached.
+    /// `call` to the accessor. The accessor carries a fresh synthetic id, so the
+    /// DCE seeds it as a root (`dce.vader`).
     const_fn_wrap:  MutableMap<i32, ConstFnWrap>
     /// Const symbol id → lowered value, populated by `inline_consts` for
     /// every other (non-fn-wrapped) const. `build_ident` re-builds the
@@ -117,6 +145,9 @@ export LoweredProject :: struct {
     /// Const symbol id → the accessor that builds a const of the data pool again,
     /// for the uses that read a fresh value of it (`LoweredIdent.fresh`).
     const_fresh_wrap: MutableMap<i32, ConstFnWrap> = MutableMap<i32, ConstFnWrap> {}
+    /// The storage of every module constant, in the order `inline_consts` met
+    /// them. Read by the lowered dump.
+    const_routes: ConstRoute[] = []
     /// `Symbol.id → trait_key`s — the frontend's authoritative trait
     /// membership (from `TypedProgram.struct_traits_by_sym`), threaded to the
     /// bytecode emitter to seed `is Trait` impl_table rows per interned struct

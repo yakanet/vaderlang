@@ -188,7 +188,7 @@ DUMP_STAGES: ValueSpec[]: [
     ValueSpec { .name = "evaluated-ast", .help = "@comptime values, @file reads, @assert verdicts" },
     ValueSpec {
         .name = "lowered-ast",
-        .help = "Desugared tree (match / interpolation / defer expanded)",
+        .help = "Desugared tree, storage, vtable rows, what dependencies hold",
     },
     ValueSpec { .name = "dced-ast", .help = "Lowered tree post reachability prune" },
     ValueSpec { .name = "targets", .help = "Which body each `@target` group selected" },

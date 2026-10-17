@@ -1,0 +1,90 @@
+// vader/lower/dump_decisions — what the lowering decided, for the `# Lower` dump.
+//
+// Where each module constant and global slot lives, the vtable rows a module
+// fills, and what the lowering materialised in a module outside the dump's scope.
+// `dump.vader` places these lines around the lowered tree ; each list comes
+// without indent, sorted so that a diff shows additions rather than reorders.
+
+module "vader/lower"
+
+import "std/sort"
+import "std/string"
+import "vader/types"
+
+// Where the module's constants and global slots live : the constants by name,
+// then the slots by number. Pool indices and slot numbers are project-wide.
+storage_lines :: fn(project: LoweredProject, module_id: string) -> string[] {
+    constants: string[]: []
+    for route in project.const_routes {
+        if route.symbol.module == module_id {
+            declared :: "${route.symbol.name}: ${display_type(route.type)}"
+            constants.push("const ${declared}  ${storage_text(route.storage)}")
+        }
+    }
+    lines :: sort(constants, compare_ascending)
+    for slot in 0..<project.globals.len() {
+        global :: project.globals[slot]
+        if global.module == module_id {
+            lines.push("global #${slot} ${display_type(global.type)}  ${global.name}")
+        }
+    }
+    return lines
+}
+
+storage_text :: fn(storage: ConstStorage) -> string = match storage {
+    is InlineConst   -> "inline"
+    is AccessorConst -> "accessor ${storage.accessor}"
+    is PooledConst   -> pooled_text(storage)
+}
+
+pooled_text :: fn(pooled: PooledConst) -> string {
+    place := "data pool #${pooled.pool_index}"
+    if pooled.element {
+        place = "${place}, element 0"
+    }
+    rebuilt_by :: pooled.rebuilt_by ?? return place
+    return "${place}, built again by ${rebuilt_by} for a use that reads it fresh"
+}
+
+// The vtable rows the module's functions fill.
+vtable_lines :: fn(module: LoweredModule) -> string[] {
+    rows: string[]: []
+    for decl in module.decls {
+        if decl !is LoweredFnDecl {
+            continue
+        }
+        entry :: vtable_entry_of(decl) ?? continue
+        row :: "${entry.trait_name}.${entry.method_name} for ${display_type(entry.struct_type)}"
+        rows.push("vtable ${row}  ${decl.mangled}")
+    }
+    return sort(rows, compare_ascending)
+}
+
+// What the lowering materialised in a module outside the scope : the storage of
+// its constants and slots, then its functions and structs.
+dependency_lines :: fn(project: LoweredProject, module: LoweredModule) -> string[] {
+    lowered: string[]: []
+    for decl in module.decls {
+        lowered.push(dependency_line(decl) ?? continue)
+    }
+    lines :: storage_lines(project, module.module_id)
+    lines.push_all(sort(lowered, compare_ascending))
+    return lines
+}
+
+// A constant shows through its storage line. A bodyless free function
+// (`@extern`, `@intrinsic`) is lowered whether or not anything calls it, so it
+// says nothing of the program ; a bodyless impl member is lowered only when
+// reached, and the one filling a vtable slot is kept.
+dependency_line :: fn(decl: LoweredDecl) -> string | null = match decl {
+    is LoweredFnDecl     -> dependency_fn_line(decl)
+    is LoweredStructDecl -> "struct ${decl.mangled}"
+    is LoweredConstDecl  -> null
+}
+
+dependency_fn_line :: fn(decl: LoweredFnDecl) -> string | null {
+    if decl.body == null && decl.origin.vtable_slot == null {
+        return null
+    }
+    return "fn ${decl.mangled}"
+}

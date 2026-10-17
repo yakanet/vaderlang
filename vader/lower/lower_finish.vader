@@ -11,24 +11,30 @@ collect_vtable_entries :: fn(project: LoweredProject) -> LoweredVtableEntry[] {
     out: LoweredVtableEntry[]: []
     for [_, m] in project.modules {
         for d in m.decls {
-            if d is LoweredFnDecl {
-                slot :: d.origin.vtable_slot ?? continue
-                if d.params.len() == 0 {
-                    continue
-                }
-                // fn_symbol is informational here — the table builder
-                // (`midir/emit.vader::build_impl_table_from_vtable`) only keys on
-                // (struct_type, trait_name).
-                out.push(LoweredVtableEntry {
-                    .trait_name  = slot.trait_key,
-                    .method_name = slot.method,
-                    .struct_type = d.params[0].type,
-                    .fn_symbol   = fn_symbol_of(d),
-                })
-            }
+            out.push(vtable_entry_of(d) ?? continue)
         }
     }
     return out
+}
+
+/// The vtable row `d` fills: the slot its `MonoEntry` records, for the type of its
+/// receiver ; null for a decl that fills none.
+///
+/// @param d  a lowered decl.
+vtable_entry_of :: fn(d: LoweredDecl) -> LoweredVtableEntry | null {
+    if d !is LoweredFnDecl || d.params.len() == 0 {
+        return null
+    }
+    slot :: d.origin.vtable_slot ?? return null
+    // fn_symbol is informational here: the table builder
+    // (`midir/emit.vader::build_impl_table_from_vtable`) only keys on
+    // (struct_type, trait_name).
+    return LoweredVtableEntry {
+        .trait_name  = slot.trait_key,
+        .method_name = slot.method,
+        .struct_type = d.params[0].type,
+        .fn_symbol   = fn_symbol_of(d),
+    }
 }
 
 // The symbol a call or a vtable entry names `d` by : its own, or one carrying its

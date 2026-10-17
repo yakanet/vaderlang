@@ -1,11 +1,18 @@
 // vader/lower/inline_consts — route module-level const decls to their read sites.
 //
-// Handles the `fn-wrap` + `inline` buckets. A non-scalar const reference can't be
-// emitted as a bare ident — `build_ident` has no const-load case (the CFG
-// design inlines consts out). This pass classifies every `LoweredConstDecl`
-// and records how its read sites should resolve, consumed at CFG-build time
-// by `vader/midir/build.vader::build_ident` :
+// A non-scalar const reference can't be emitted as a bare ident: `build_ident`
+// has no const-load case (the CFG design inlines consts out). This pass classifies
+// every `LoweredConstDecl`, records how its read sites resolve, consumed at
+// CFG-build time by `vader/midir/build.vader::build_ident`, and keeps the choice in
+// `project.const_routes` for the lowered dump. The buckets, in the order tried :
 //
+//   - data pool : an array literal whose elements are all bakeable (primitives,
+//     strings, or named-struct literals, `try_data_pool`), or a bakeable struct
+//     literal, pooled as the single element of an aggregate entry and read as
+//     `pool[k][0]` (`try_pool_struct`). Registered once in `project.data_pool`
+//     and read back via a `data.const` op, so the value exists in one place
+//     instead of being rebuilt. A use that reads the constant fresh calls an
+//     accessor that builds it again (`const_fresh_wrap`).
 //   - fn-wrap : an array literal of `FN_WRAP_MIN_ELEMENTS`+ elements (struct /
 //     string elements that the data pool can't hold, e.g. `INTRINSICS`). The
 //     const decl is REPLACED IN PLACE by a synthetic 0-arg accessor fn
@@ -18,13 +25,6 @@
 //     it at each read site. Scalars normally fold earlier in
 //     `lower_expr.vader::lower_ident` ; recording them here is a safety net for
 //     any reference that didn't fold.
-//
-//   - data pool : an array literal whose elements are all bakeable (primitives,
-//     strings, or named-struct literals) — see `try_data_pool` — or a bakeable
-//     struct literal, pooled as the single element of an aggregate entry and read
-//     as `pool[k][0]` — see `try_pool_struct`. Registered once in
-//     `project.data_pool` and read back via a `data.const` op, so the value
-//     exists in one place instead of being rebuilt. Tried FIRST.
 //
 // A module const is frozen at every level, so the data pool is the default route
 // (`KEYWORDS`, `TOKEN_TYPES`, …), and fn-wrap is reached only by consts whose
@@ -42,21 +42,17 @@ import "vader/types"
 // `2 * N` ops to rebuild the literal once N passes this threshold.
 FN_WRAP_MIN_ELEMENTS :: usize(4)
 
-/// Classify every const decl in `project` and record its read-site routing on
-/// `project.const_fn_wrap` / `project.const_inline`, replacing fn-wrapped
-/// const decls with their synthetic accessor fns. Mutates `project` in place.
+/// Classify every const decl in `project`, record its read-site routing on
+/// `project.const_inline`, `const_fn_wrap` and `const_fresh_wrap`, and its route
+/// on `project.const_routes`, replacing fn-wrapped const decls with their
+/// synthetic accessor fns. Mutates `project` in place.
 ///
 /// @param project      the lowered project ; its `modules` + const maps are mutated.
-/// @param project_ctx  the working ctx — accessor fns mint their ids from its
-///                     LIVE `next_synthetic_id` counter (via
-///                     `next_project_synthetic_id`), the SAME pool the lowerer's
-///                     lambdas / defers / `concat_N` draw from. This keeps one
-///                     monotonic id source instead of a private restart-at-`-1`
-///                     counter that aliased an early synthetic fn-decl (e.g.
-///                     `concat_3`) in the DCE's `by_sym_id` and dropped its body
-///                     to a bodyless stub. Real (resolver-minted) ids are
-///                     positive, so the negative synthetic range never touches
-///                     them.
+/// @param project_ctx  the working ctx : accessor fns mint their ids from its live
+///                     `next_synthetic_id` counter (`next_project_synthetic_id`),
+///                     the one pool every synthetic decl draws from, so no two
+///                     synthetic decls share an id. Resolver-minted ids are
+///                     positive, so the negative synthetic range never touches them.
 export inline_consts :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) -> void {
     for module_id in project.modules.keys() {
         m :: project.modules[module_id] ?? continue
@@ -66,37 +62,16 @@ export inline_consts :: fn(project: LoweredProject, project_ctx: LowerProjectCtx
             if d is LoweredConstDecl {
                 sym :: d.origin.symbol
                 if sym is Symbol {
-                    // Data-pool bucket : a bakeable array or struct literal is
-                    // materialised once into `.rodata` (native) / a data segment
-                    // (wasm) / an in-memory const buffer (VM), and every read site
-                    // lowers to a `data.const` view — never rebuilt. Takes
-                    // priority over fn-wrap, which would `array.new` + refill at
-                    // each call. What is not bakeable falls through.
-                    if try_data_pool(d, sym, project) || try_pool_struct(d, sym, project) {
-                        // A use that must not share the pooled value calls an
-                        // accessor that builds it again.
-                        if sym.id in project_ctx.typed.fresh.constants {
-                            fn_symbol :: const_accessor_symbol(
-                                sym,
-                                next_project_synthetic_id(project_ctx),
-                            )
-                            project.const_fresh_wrap[sym.id] = ConstFnWrap {
-                                .fn_symbol = fn_symbol,
-                                .call_type = d.type,
-                            }
-                            new_decls.push(synthesize_const_fn(d, fn_symbol))
-                        }
+                    storage :: store_const(project, project_ctx, d, sym, new_decls)
+                    project.const_routes.push(ConstRoute {
+                        .symbol = sym,
+                        .type = d.type,
+                        .storage = storage,
+                    })
+                    if storage !is InlineConst {
                         changed = true
                         continue
                     }
-                    if should_fn_wrap(d.value) {
-                        fn_symbol :: const_accessor_symbol(sym, next_project_synthetic_id(project_ctx))
-                        project.const_fn_wrap[sym.id] = ConstFnWrap { .fn_symbol = fn_symbol, .call_type = d.type }
-                        new_decls.push(synthesize_const_fn(d, fn_symbol))
-                        changed = true
-                        continue
-                    }
-                    project.const_inline[sym.id] = d.value
                 }
             }
             new_decls.push(d)
@@ -109,6 +84,60 @@ export inline_consts :: fn(project: LoweredProject, project_ctx: LowerProjectCtx
             }
         }
     }
+}
+
+// Store `d` in the first bucket that takes it, appending to `decls` the accessor
+// it needs, and say which.
+store_const :: fn(
+    project: LoweredProject,
+    project_ctx: LowerProjectCtx,
+    d: LoweredConstDecl,
+    sym: Symbol,
+    decls: LoweredDecl[],
+) -> ConstStorage {
+    // Data-pool bucket : a bakeable array or struct literal is materialised once
+    // into `.rodata` (native) / a data segment (wasm) / an in-memory const buffer
+    // (VM), and every read site sharing it lowers to a `data.const` view.
+    // Takes priority over fn-wrap, which would `array.new` + refill at each call.
+    // What is not bakeable falls through.
+    pooled :: pool(d, sym, project)
+    if pooled != null {
+        // A use that must not share the pooled value calls an accessor that
+        // builds it again.
+        if sym.id in project_ctx.typed.fresh.constants {
+            pooled.rebuilt_by = add_accessor(project_ctx, d, sym, decls, project.const_fresh_wrap)
+        }
+        return pooled
+    }
+    if should_fn_wrap(d.value) {
+        accessor :: add_accessor(project_ctx, d, sym, decls, project.const_fn_wrap)
+        return AccessorConst { .accessor = accessor }
+    }
+    project.const_inline[sym.id] = d.value
+    return InlineConst {}
+}
+
+// Mint the accessor that builds `d`, register it in `wraps` and append it to
+// `decls` ; its mangled name.
+add_accessor :: fn(
+    project_ctx: LowerProjectCtx,
+    d: LoweredConstDecl,
+    sym: Symbol,
+    decls: LoweredDecl[],
+    wraps: MutableMap<i32, ConstFnWrap>,
+) -> string {
+    fn_symbol :: const_accessor_symbol(sym, next_project_synthetic_id(project_ctx))
+    wraps[sym.id] = ConstFnWrap { .fn_symbol = fn_symbol, .call_type = d.type }
+    accessor :: synthesize_const_fn(d, fn_symbol)
+    decls.push(accessor)
+    return accessor.mangled
+}
+
+// `d` in the data pool : an array literal as an entry, a struct literal as the
+// single element of one ; null when it does not pool.
+pool :: fn(d: LoweredConstDecl, sym: Symbol, project: LoweredProject) -> PooledConst | null {
+    array :: try_data_pool(d, sym, project) ?? return try_pool_struct(d, sym, project)
+    return array
 }
 
 // fn-wrap eligibility : a bulky array literal. Smaller arrays + every other
@@ -128,7 +157,9 @@ should_fn_wrap :: fn(value: LoweredExpr) -> bool {
 // Poolable elements : integer / char / bool / float literals (each reduced to an
 // `i64` bit pattern) and string literals (kept verbatim). Struct arrays route
 // through later phases.
-try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject) -> bool {
+try_data_pool :: fn(
+    cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject,
+) -> PooledConst | null {
     if cd.type is ArrayType as arr_type {
         if pool_literal_of(cd.value) is LoweredArrayLit as lit {
             element_type_name :: display_type(arr_type.element)
@@ -139,11 +170,11 @@ try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProjec
                 project.const_inline[symbol.id] = LoweredDataConst {
                     .span = lit.span, .type = cd.type, .pool_index = pool_index,
                 }
-                return true
+                return PooledConst { .pool_index = pool_index }
             }
         }
     }
-    return false
+    return null
 }
 
 // Route a bakeable struct const into the data pool, as the single element of an
@@ -152,9 +183,11 @@ try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProjec
 // summary reports a write into one, T3070 / T3072), so nothing can write into the
 // shared `.rodata` object. A const whose declared type is not the struct itself (`X: Value: …`)
 // keeps the inline bucket: its reads must carry the declared type.
-try_pool_struct :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject) -> bool {
+try_pool_struct :: fn(
+    cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject,
+) -> PooledConst | null {
     if cd.type !is StructType || cd.value !is LoweredStructLit {
-        return false
+        return null
     }
     span :: cd.value.span
     pool_type :: mk_array(cd.type)
@@ -163,7 +196,7 @@ try_pool_struct :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProj
         .type     = pool_type,
         .elements = [cd.value],
     }
-    entry :: render_data_pool_entry(wrapped, display_type(cd.type)) ?? return false
+    entry :: render_data_pool_entry(wrapped, display_type(cd.type)) ?? return null
     pool_index :: project.data_pool.len()
     project.data_pool.push(entry)
     project.const_inline[symbol.id] = LoweredIndex {
@@ -181,7 +214,7 @@ try_pool_struct :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProj
         },
         .bounds_safe = true,
     }
-    return true
+    return PooledConst { .pool_index = pool_index, .element = true }
 }
 
 // The array literal a const's value pools from, expanding the repeat form.

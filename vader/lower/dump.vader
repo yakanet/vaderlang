@@ -1,17 +1,28 @@
 // vader/lower/dump — `# Lower` snapshot dump.
 //
-// Walks every non-stdlib
-// `LoweredModule`, sorts module ids alphabetically, and renders each
-// module's decls in a compact tree form :
+// Walks every in-scope `LoweredModule`, module ids sorted alphabetically, and
+// renders its storage, its decls in a compact tree form and its vtable rows ;
+// then what the lowering materialised in the other modules
+// (`dump_decisions.vader`) :
 //
 //   # Lower
 //
 //   ## <module display path>
+//     storage
+//       const <name>: <type>  <inline | accessor <fn> | data pool #k[, element 0]>
+//       global #<slot> <type>  <name>
 //     fn <mangled>(<params>) -> <type>
 //       <body…>
 //     struct <mangled> { <field>: <type>, … }
 //     const <mangled>: <type> =
 //       <expr…>
+//     vtable <trait>.<method> for <type>  <fn>
+//
+//   ## lowered in dependencies
+//     <module display path>
+//       <storage lines>
+//       fn <mangled>
+//       struct <mangled>
 //
 // Expression rendering uses a fixed indent scheme so the `# Lower` dump
 // stays stable across runs.
@@ -29,25 +40,50 @@ import "vader/types"
 import "vader/text"
 
 /// Render the project's `# Lower` dump as a single string. Only modules in
-/// `scope` are rendered (the entry's subtree by default, `--module` to widen),
-/// so dependencies — stdlib or otherwise — stay out of the dump.
+/// `scope` are rendered in full (the entry's subtree by default, `--module` to
+/// widen) ; of the others, the dump names what the lowering materialised.
+///
 /// @param project  the lowered project.
 /// @param scope    in-scope module ids / prefixes (see `module_in_scope`).
 /// @return         the formatted dump (no trailing newline).
 export dump_lowered :: fn(project: LoweredProject, scope: string[]) -> string {
     lines: string[]: []
     lines.push("# Lower")
-    module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))
-    for module_id in module_ids {
+    dependencies: string[]: []
+    for module_id in sort(project.modules.keys(), compare_ascending) {
         module :: project.modules[module_id] ?? continue
-        if !module_in_scope(module.display_path, scope) { continue }
+        if !module_in_scope(module.display_path, scope) {
+            lowered :: dependency_lines(project, module)
+            if lowered.len() > 0 {
+                dependencies.push("  ${module.display_path}")
+                push_indented(dependencies, lowered, "    ")
+            }
+            continue
+        }
         lines.push("")
         lines.push("## ${module.display_path}")
+        storage :: storage_lines(project, module_id)
+        if storage.len() > 0 {
+            lines.push("  storage")
+            push_indented(lines, storage, "    ")
+        }
         for decl in module.decls {
             emit_decl(lines, decl, "  ")
         }
+        push_indented(lines, vtable_lines(module), "  ")
+    }
+    if dependencies.len() > 0 {
+        lines.push("")
+        lines.push("## lowered in dependencies")
+        lines.push_all(dependencies)
     }
     return lines.join("\n")
+}
+
+push_indented :: fn(lines: string[], items: string[], indent: string) -> void {
+    for item in items {
+        lines.push("${indent}${item}")
+    }
 }
 
 emit_decl :: fn(lines: string[], decl: LoweredDecl, indent: string) -> void {

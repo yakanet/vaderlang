@@ -1,6 +1,15 @@
 # Lower
 
 ## snippet
+  storage
+    const CELLS: (i32 | string)[]  data pool #0
+    const HOLDERS: Holder[]  data pool #6
+    const MIXED: (bool | char | f64 | string)[]  data pool #2
+    const NUMBERS: (i32 | string)[]  data pool #1
+    const ONE: i32 | string  inline
+    const SHAPES: (Circle | Square)[]  data pool #5
+    const SMALL: (string | u8)[]  data pool #3
+    const WIDE: (i64 | string)[]  data pool #4
   struct snippet$Circle { r: i32 }
   struct snippet$Square { side: i32 }
   struct snippet$Holder { label: string, cell: string | u8 }
@@ -752,3 +761,71 @@
           buf :Buffer
         arg1:
           c2 :usize
+
+## lowered in dependencies
+  std/core
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #7
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #8
+    fn std_core$Buffer$ByteAccess$intern_string
+    fn std_core$Buffer$ByteAccess$memory_copy
+    fn std_core$Buffer$ByteAccess$store_u8
+    fn std_core$Buffer$ByteAccess$write_string
+    fn std_core$Range$Contains$contains__i32
+    fn std_core$Range$Contains$contains__usize
+    fn std_core$Range$Iterator$next__i32
+    fn std_core$Range$Iterator$next__usize
+    fn std_core$b2i
+    fn std_core$b2u
+    fn std_core$char$Display$to_string
+    fn std_core$d2d
+    fn std_core$decimal_width
+    fn std_core$f64$Display$to_string
+    fn std_core$f64$FloatBits$to_bits
+    fn std_core$finish_buffer
+    fn std_core$format_f64
+    fn std_core$i32$Comparable$compare
+    fn std_core$i32$Step$step
+    fn std_core$insert_point
+    fn std_core$log10_pow2
+    fn std_core$log10_pow5
+    fn std_core$mul_shift_all_64
+    fn std_core$multiple_of_power_of_2
+    fn std_core$multiple_of_power_of_5
+    fn std_core$new_byte_buffer
+    fn std_core$pow5_factor
+    fn std_core$pow5bits
+    fn std_core$render
+    fn std_core$scalar_or_replacement
+    fn std_core$shiftright128
+    fn std_core$three_way
+    fn std_core$umul128
+    fn std_core$usize$BufferAlloc$new_buffer
+    fn std_core$usize$Comparable$compare
+    fn std_core$usize$Step$step
+    fn std_core$utf8_encode
+    fn std_core$write_bool
+    fn std_core$write_decimal
+    fn std_core$write_digits
+    fn std_core$write_int
+    fn std_core$write_string_at
+    fn std_core$write_unsigned
+    fn std_core$write_zeros
+    struct std_core$Buffer
+    struct std_core$Dec64
+    struct std_core$Range__Any
+    struct std_core$Range__i32
+    struct std_core$Range__usize
+  std/io
+    fn std_io$println__string
+    fn std_io$write
+    fn std_io$write_bytes
+  system/posix
+    struct system_posix$Pollfd
+    struct system_posix$Winsize
+  system/windows
+    struct system_windows$Coord
+    struct system_windows$ProcessInformation
+    struct system_windows$ScreenBufferInfo
+    struct system_windows$SecurityAttributes
+    struct system_windows$SmallRect
+    struct system_windows$StartupInfo
