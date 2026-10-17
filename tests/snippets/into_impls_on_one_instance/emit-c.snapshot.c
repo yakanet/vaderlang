@@ -6,7 +6,7 @@
 
 typedef struct vader_struct_snippet_Label_t vader_struct_snippet_Label_t;
 typedef struct vader_struct_snippet_Tag_t vader_struct_snippet_Tag_t;
-typedef struct vader_struct_snippet_Wrapper__Mon_t vader_struct_snippet_Wrapper__Mon_t;
+typedef struct vader_struct_snippet_Wrapper__snippet_Mon_t vader_struct_snippet_Wrapper__snippet_Mon_t;
 typedef struct vader_struct_snippet_Mon_t vader_struct_snippet_Mon_t;
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 
@@ -18,7 +18,7 @@ struct vader_struct_snippet_Tag_t {
     vader_obj_header_t header;
     int32_t f_n;
 };
-struct vader_struct_snippet_Wrapper__Mon_t {
+struct vader_struct_snippet_Wrapper__snippet_Mon_t {
     vader_obj_header_t header;
     void* f_x;
 };
@@ -44,10 +44,10 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 static vader_string_t snippet_show(void* l0);
 static int32_t snippet_tag(void* l0);
 static int32_t snippet_main(void);
-static void* snippet_Wrapper_Into_into__Mon(void* l0);
-static void* snippet_Wrapper_Into_into__Mon_1(void* l0);
-static void* snippet____Into_into__Mon(void* l0);
-static void* snippet____Into_into__Mon_1(void* l0);
+static void* snippet_Wrapper_Into_into__snippet_Mon(void* l0);
+static void* snippet_Wrapper_Into_into__snippet_Mon_1(void* l0);
+static void* snippet____Into_into__snippet_Mon(void* l0);
+static void* snippet____Into_into__snippet_Mon_1(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
@@ -75,9 +75,9 @@ const vader_type_info_t vader_type_info_table[16] = {
     },
     [4] = { .slot_size = 4 },
     [5] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Wrapper__Mon_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Wrapper__snippet_Mon_t),
         .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Wrapper__Mon_t, f_x) },
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Wrapper__snippet_Mon_t, f_x) },
         .ref_count = 1,
     },
     [6] = {
@@ -153,18 +153,18 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a0_obj, 7u);
     _a0_obj->f_v = INT32_C(7);
     t0 = (void*) _a0_obj;
-    vader_struct_snippet_Wrapper__Mon_t* _a1_obj = (vader_struct_snippet_Wrapper__Mon_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Wrapper__Mon_t));
+    vader_struct_snippet_Wrapper__snippet_Mon_t* _a1_obj = (vader_struct_snippet_Wrapper__snippet_Mon_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Wrapper__snippet_Mon_t));
     vader_obj_header_init(_a1_obj, 5u);
     _a1_obj->f_x = t0;
     l0 = (void*) _a1_obj;
 #line 47 "tests/snippets/into_impls_on_one_instance/_main.vader"
-    t0 = snippet_Wrapper_Into_into__Mon(l0);
+    t0 = snippet_Wrapper_Into_into__snippet_Mon(l0);
     t1 = snippet_show(t0);
     std_io_println__string(t1);
 #line 48 "tests/snippets/into_impls_on_one_instance/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 20);
     l2 = (size_t) 0;
-    t0 = snippet_Wrapper_Into_into__Mon_1(l0);
+    t0 = snippet_Wrapper_Into_into__snippet_Mon_1(l0);
     t2 = snippet_tag(t0);
     l3 = ((int64_t) (int32_t) t2);
     l2 = std_core_write_int(l1, l2, l3);
@@ -184,26 +184,26 @@ static int32_t snippet_main(void) {
     ((void**) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = l1;
     l1 = (void*) _a4_arr;
 #line 50 "tests/snippets/into_impls_on_one_instance/_main.vader"
-    t0 = snippet____Into_into__Mon(l1);
+    t0 = snippet____Into_into__snippet_Mon(l1);
     t1 = snippet_show(t0);
     std_io_println__string(t1);
 #line 51 "tests/snippets/into_impls_on_one_instance/_main.vader"
     l4 = std_core_new_byte_buffer((size_t) 20);
     l2 = (size_t) 0;
-    t0 = snippet____Into_into__Mon_1(l1);
+    t0 = snippet____Into_into__snippet_Mon_1(l1);
     t2 = snippet_tag(t0);
     l3 = ((int64_t) (int32_t) t2);
     l2 = std_core_write_int(l4, l2, l3);
     t1 = std_core_finish_buffer(l4, l2);
     std_io_println__string(t1);
 #line 52 "tests/snippets/into_impls_on_one_instance/_main.vader"
-    t0 = snippet____Into_into__Mon(l1);
+    t0 = snippet____Into_into__snippet_Mon(l1);
     t1 = ((vader_struct_snippet_Label_t*) t0)->f_s;
     std_io_println__string(t1);
 #line 53 "tests/snippets/into_impls_on_one_instance/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 20);
     l2 = (size_t) 0;
-    t0 = snippet_Wrapper_Into_into__Mon_1(l0);
+    t0 = snippet_Wrapper_Into_into__snippet_Mon_1(l0);
     t2 = ((vader_struct_snippet_Tag_t*) t0)->f_n;
     l3 = ((int64_t) (int32_t) t2);
     l2 = std_core_write_int(l1, l2, l3);
@@ -213,7 +213,7 @@ static int32_t snippet_main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static void* snippet_Wrapper_Into_into__Mon(void* l0) {
+static void* snippet_Wrapper_Into_into__snippet_Mon(void* l0) {
     void* l1 = NULL;
     size_t l2;
     int64_t l3;
@@ -230,7 +230,7 @@ static void* snippet_Wrapper_Into_into__Mon(void* l0) {
     l1 = std_core_new_byte_buffer((size_t) 22);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 1u);
-    t0 = ((vader_struct_snippet_Mon_t*) ((vader_struct_snippet_Wrapper__Mon_t*) l0)->f_x)->f_v;
+    t0 = ((vader_struct_snippet_Mon_t*) ((vader_struct_snippet_Wrapper__snippet_Mon_t*) l0)->f_x)->f_v;
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core_write_int(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
@@ -241,7 +241,7 @@ static void* snippet_Wrapper_Into_into__Mon(void* l0) {
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet_Wrapper_Into_into__Mon_1(void* l0) {
+static void* snippet_Wrapper_Into_into__snippet_Mon_1(void* l0) {
     int32_t l1;
     int32_t t0;
     void* t1 = NULL;
@@ -249,7 +249,7 @@ static void* snippet_Wrapper_Into_into__Mon_1(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 30 "tests/snippets/into_impls_on_one_instance/_main.vader"
-    l1 = ((vader_struct_snippet_Mon_t*) ((vader_struct_snippet_Wrapper__Mon_t*) l0)->f_x)->f_v;
+    l1 = ((vader_struct_snippet_Mon_t*) ((vader_struct_snippet_Wrapper__snippet_Mon_t*) l0)->f_x)->f_v;
     t0 = vader_chk_add(i32, INT32_C(100), l1);
     vader_struct_snippet_Tag_t* _a0_obj = (vader_struct_snippet_Tag_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Tag_t));
     vader_obj_header_init(_a0_obj, 3u);
@@ -258,7 +258,7 @@ static void* snippet_Wrapper_Into_into__Mon_1(void* l0) {
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet____Into_into__Mon(void* l0) {
+static void* snippet____Into_into__snippet_Mon(void* l0) {
     void* l1 = NULL;
     size_t l2;
     uint64_t l3;
@@ -288,7 +288,7 @@ static void* snippet____Into_into__Mon(void* l0) {
     { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet____Into_into__Mon_1(void* l0) {
+static void* snippet____Into_into__snippet_Mon_1(void* l0) {
     int32_t l1;
     size_t t0;
     int32_t t1;

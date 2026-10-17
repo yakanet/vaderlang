@@ -53,7 +53,7 @@ lower_impl_member_list :: fn(
     self_type :: lower_for_type(impl_decl, typed)
     for member in impl_decl.members {
         if member.type_params.len() > 0 { continue }
-        mangled :: impl_member_mangled(impl_decl, member, typed, project_ctx.impls)
+        mangled :: impl_member_mangled(impl_decl, member, self_type, typed, project_ctx.impls)
         if !claim_impl_member(project_ctx, mangled) {
             continue
         }
@@ -139,31 +139,19 @@ synth_param_or :: fn(symbol_or_null: Symbol | null, name: string, typed: TypedPr
 }
 
 impl_member_mangled :: fn(
-    impl_decl: ImplDecl, member: FnDecl, typed: TypedProgram, impls: ImplRegistry,
+    impl_decl: ImplDecl, member: FnDecl, self_type: Type, typed: TypedProgram, impls: ImplRegistry,
 ) -> string {
-    target_name :: for_type_name(impl_decl.for_type, typed)
-    entry :: impls.entry_of(impl_decl)
-    suffix :: if entry == null { "" } else { entry.overload_suffix }
-    return "${mangle_module_id(typed.resolved.display_path)}$${target_name}$${impl_decl.trait_name}$${member.name}${suffix}"
+    impl_module :: typed.resolved.display_path
+    suffix :: impl_overload_suffix(impls, impl_decl)
+    return impl_member_name(impl_module, self_type, impl_decl.trait_name, member.name, suffix)
 }
 
-// Recover the target struct / enum / alias name from the impl's
-// `for_type`. Only `IdentExpr` and `GenericInstExpr<IdentExpr>` shapes
-// surface as nominal impls today ; anything else falls back to the
-// raw display string (defensive — never expected to fire).
-for_type_name :: fn(for_type: TypeExpr, typed: TypedProgram) -> string {
-    // @partial: only Ident / GenericInst<Ident> shapes surface as nominal impls;
-    // every other TypeExpr falls back to "<unknown>" (defensive — never expected).
-    @partial match for_type {
-        is IdentExpr -> { return for_type.name }
-        is GenericInstExpr -> {
-            if for_type.callee is IdentExpr as inner { return inner.name }
-            return "<unknown>"
-        }
-        _ -> { return "<unknown>" }
-    }
+// What tells the members of `impl_decl` from another impl of its trait on that
+// base ; nothing for an impl the registry does not hold.
+impl_overload_suffix :: fn(impls: ImplRegistry, impl_decl: ImplDecl) -> string {
+    entry :: impls.entry_of(impl_decl) ?? return ""
+    return entry.overload_suffix
 }
-
 
 lower_for_type :: fn(impl_decl: ImplDecl, typed: TypedProgram) -> Type {
     scratch: Diagnostic[]: []

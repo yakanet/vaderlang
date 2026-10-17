@@ -1,0 +1,43 @@
+// Two modules export a `Point` each. Every name the compiler derives from a type
+// keeps them apart: a generic struct's instance, a generic fn's instance, and
+// the members of an impl written here for each of them.
+module "snippet"
+
+import "std/io"
+A :: import "snippet/shapes_a"
+B :: import "snippet/shapes_b"
+
+Box :: struct<T> {
+    v: T
+}
+
+wrap :: fn<T>(v: T) -> Box<T> = Box<T> { .v = v }
+
+holds :: fn<T>(sample: T, v: A.Point | B.Point) -> bool = v is T
+
+Describe :: trait {
+    describe :: fn(self) -> string
+}
+
+A.Point implements Describe {
+    describe :: fn(self) -> string = "a point at ${self.x}"
+}
+
+B.Point implements Describe {
+    describe :: fn(self) -> string = "a point named ${self.name}"
+}
+
+show :: fn(d: Describe) -> string = d.describe()
+
+main :: fn() -> i32 {
+    a :: Box<A.Point> { .v = A.make() }
+    b :: Box<B.Point> { .v = B.make() }
+    println("${a.v.x} ${b.v.name}")
+    c :: wrap(A.make())
+    d :: wrap(B.make())
+    println("${c.v.x} ${d.v.name}")
+    println("${holds(A.make(), B.make())} ${holds(B.make(), B.make())}")
+    println(show(A.make()))
+    println(show(B.make()))
+    return 0
+}

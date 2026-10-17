@@ -120,16 +120,16 @@
   __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1, x: i32) -> i64 {
       i64(x) + __env_0.cap_0
   }
-  snippet.build<Rect> :: fn(n: i32) -> Rect {  // snippet$build__Rect
+  snippet.build<Rect> :: fn(n: i32) -> Rect {  // snippet$build__snippet_Rect
       snippet$Rect$Shape$unit(n)
   }
-  snippet.build<Sq> :: fn(n: i32) -> Sq {  // snippet$build__Sq
+  snippet.build<Sq> :: fn(n: i32) -> Sq {  // snippet$build__snippet_Sq
       snippet$Sq$Shape$unit(n)
   }
-  snippet.via_a<P> :: fn() -> P {  // snippet$via_a__P
+  snippet.via_a<P> :: fn() -> P {  // snippet$via_a__snippet_P
       snippet$P$A$make()
   }
-  snippet.via_b<P> :: fn() -> P {  // snippet$via_b__P
+  snippet.via_b<P> :: fn() -> P {  // snippet$via_b__snippet_P
       snippet$P$B$make()
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

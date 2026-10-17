@@ -1,0 +1,93 @@
+# Typecheck
+
+## tests/snippets/same_name_types_from_two_modules
+  StructDecl     Box                  :: Box<T>
+  TraitDecl      Describe             :: Describe
+  FnDecl         holds                :: fn(T, Point | Point) -> bool
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         show                 :: fn(Describe) -> string
+  FnDecl         wrap                 :: fn(T) -> Box<T>
+  expr 14:33    StructLitExpr  :: Box<T>
+  expr 14:47    IdentExpr      :: T
+  expr 16:59    BinaryExpr     :: bool
+  expr 16:59    IdentExpr      :: Point | Point
+  expr 16:64    IdentExpr      :: T
+  expr 23:38    StringLitExpr  :: string
+  expr 23:52    FieldExpr      :: i32
+  expr 23:52    IdentExpr      :: Point
+  expr 27:38    StringLitExpr  :: string
+  expr 27:55    FieldExpr      :: string
+  expr 27:55    IdentExpr      :: Point
+  expr 30:37    CallExpr       :: string
+  expr 30:37    FieldExpr      :: fn() -> string
+  expr 30:37    IdentExpr      :: Describe
+  expr 33:10    StructLitExpr  :: Box<Point>
+  expr 33:30    CallExpr       :: Point
+  expr 33:30    FieldExpr      :: fn() -> Point
+  expr 34:10    StructLitExpr  :: Box<Point>
+  expr 34:30    CallExpr       :: Point
+  expr 34:30    FieldExpr      :: fn() -> Point
+  expr 35:13    StringLitExpr  :: string
+  expr 35:16    FieldExpr      :: Point
+  expr 35:16    FieldExpr      :: i32
+  expr 35:16    IdentExpr      :: Box<Point>
+  expr 35:25    FieldExpr      :: Point
+  expr 35:25    FieldExpr      :: string
+  expr 35:25    IdentExpr      :: Box<Point>
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 36:10    CallExpr       :: Box<Point>
+  expr 36:10    IdentExpr      :: fn(T) -> Box<T>
+  expr 36:15    CallExpr       :: Point
+  expr 36:15    FieldExpr      :: fn() -> Point
+  expr 37:10    CallExpr       :: Box<Point>
+  expr 37:10    IdentExpr      :: fn(T) -> Box<T>
+  expr 37:15    CallExpr       :: Point
+  expr 37:15    FieldExpr      :: fn() -> Point
+  expr 38:13    StringLitExpr  :: string
+  expr 38:16    FieldExpr      :: Point
+  expr 38:16    FieldExpr      :: i32
+  expr 38:16    IdentExpr      :: Box<Point>
+  expr 38:25    FieldExpr      :: Point
+  expr 38:25    FieldExpr      :: string
+  expr 38:25    IdentExpr      :: Box<Point>
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    StringLitExpr  :: string
+  expr 39:16    CallExpr       :: bool
+  expr 39:16    IdentExpr      :: fn(T, Point | Point) -> bool
+  expr 39:22    CallExpr       :: Point
+  expr 39:22    FieldExpr      :: fn() -> Point
+  expr 39:32    CallExpr       :: Point
+  expr 39:32    FieldExpr      :: fn() -> Point
+  expr 39:45    CallExpr       :: bool
+  expr 39:45    IdentExpr      :: fn(T, Point | Point) -> bool
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 39:51    CallExpr       :: Point
+  expr 39:51    FieldExpr      :: fn() -> Point
+  expr 39:61    CallExpr       :: Point
+  expr 39:61    FieldExpr      :: fn() -> Point
+  expr 40:13    CallExpr       :: string
+  expr 40:13    IdentExpr      :: fn(Describe) -> string
+  expr 40:18    CallExpr       :: Point
+  expr 40:18    FieldExpr      :: fn() -> Point
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 41:13    CallExpr       :: string
+  expr 41:13    IdentExpr      :: fn(Describe) -> string
+  expr 41:18    CallExpr       :: Point
+  expr 41:18    FieldExpr      :: fn() -> Point
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/same_name_types_from_two_modules/shapes_a
+  FnDecl         make                 :: fn() -> Point
+  StructDecl     Point                :: Point
+  expr 8:32     StructLitExpr  :: Point
+
+## tests/snippets/same_name_types_from_two_modules/shapes_b
+  FnDecl         make                 :: fn() -> Point
+  StructDecl     Point                :: Point
+  expr 8:32     StructLitExpr  :: Point
+  expr 8:48     StringLitExpr  :: string

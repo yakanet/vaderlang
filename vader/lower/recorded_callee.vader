@@ -120,8 +120,7 @@ settled_direct_member :: fn(
     target :: impl_receiver(entry, receiver)
     if !callee.per_instance {
         identity :: is_identity_member(callee.decl)
-        surface :: type_surface_name(target)
-        return build_ufcs_member(ctx, target, surface, callee.decl, entry, identity)
+        return build_ufcs_member(ctx, target, callee.decl, entry, identity)
     }
     serving :: ctx.project.impls.serving_impl(entry, target)
     return member_named(ctx, serving, target, callee.decl.name)

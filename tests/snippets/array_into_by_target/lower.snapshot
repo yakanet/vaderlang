@@ -128,7 +128,7 @@
           }
       }
   }
-  snippet.Mon[].into :: fn(self: Mon[]) -> Label {  // snippet$[]$Into$into__Mon
+  snippet.Mon[].into :: fn(self: Mon[]) -> Label {  // snippet$[]$Into$into__snippet_Mon
       Label {
           .s = {
               __buf_0: Buffer = std.core.new_byte_buffer(usize(22))
@@ -147,7 +147,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Into.into for Mon[]  snippet.Mon[].into  // snippet$[]$Into$into__Mon
+  vtable std.core.Into.into for Mon[]  snippet.Mon[].into  // snippet$[]$Into$into__snippet_Mon
   vtable std.core.Iterator.next for __genstate_labels  snippet$__genstate_labels$Iterator$next
 
 ## lowered in dependencies
@@ -155,7 +155,7 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.Mon[].into  // std_core$[]$Into$into__Mon
+    fn std.core.Mon[].into  // std_core$[]$Into$into__snippet_Mon
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
     fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize

@@ -6,7 +6,7 @@
 
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__Any_t vader_struct_std_collections_MutableMap__i32__Any_t;
-typedef struct vader_struct_std_collections_MutableMap__i32__i32___Wrap_t vader_struct_std_collections_MutableMap__i32__i32___Wrap_t;
+typedef struct vader_struct_std_collections_MutableMap__i32__i32___snippet_lib_Wrap_t vader_struct_std_collections_MutableMap__i32__i32___snippet_lib_Wrap_t;
 typedef struct vader_struct_snippet_lib_Wrap_t vader_struct_snippet_lib_Wrap_t;
 typedef struct vader_struct_snippet_lib_Out_t vader_struct_snippet_lib_Out_t;
 
@@ -22,7 +22,7 @@ struct vader_struct_std_collections_MutableMap__i32__Any_t {
     size_t f_size;
     size_t f_tombs;
 };
-struct vader_struct_std_collections_MutableMap__i32__i32___Wrap_t {
+struct vader_struct_std_collections_MutableMap__i32__i32___snippet_lib_Wrap_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -99,8 +99,9 @@ const vader_type_info_t vader_type_info_table[20] = {
     [12] = { .slot_size = 16 },
     [13] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t), .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t, f_index) },
+        .size = sizeof(vader_struct_std_collections_MutableMap__i32__i32___snippet_lib_Wrap_t),
+        .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__i32___snippet_lib_Wrap_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32___snippet_lib_Wrap_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32___snippet_lib_Wrap_t, f_index) },
         .ref_count = 3,
     },
     [14] = {

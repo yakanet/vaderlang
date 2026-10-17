@@ -93,7 +93,7 @@
       } :string)
       return 0
   }
-  snippet.has_big<Bag> :: fn(c: Bag) -> bool {  // snippet$has_big__Bag
+  snippet.has_big<Bag> :: fn(c: Bag) -> bool {  // snippet$has_big__snippet_Bag
       snippet.Bag.contains(c, i64(4000000000))
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

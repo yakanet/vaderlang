@@ -106,7 +106,7 @@ static int32_t snippet_Two_Stepper_step(void* l0);
 static void snippet_Two_Stepper_advance(void* l0, void* l1);
 static int32_t snippet_main(void);
 static int32_t __lambda_snippet_0(void* l0);
-static void snippet_bump_nth__Cell(void* l0, size_t l1);
+static void snippet_bump_nth__snippet_Cell(void* l0, size_t l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_4(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3);
 static void* std_core_new_byte_buffer(size_t l0);
@@ -589,7 +589,7 @@ static int32_t snippet_main(void) {
     t1 = std_core_finish_buffer(l5, l1);
     std_io_println__string(t1);
 #line 110 "tests/snippets/compound_assign_operands/_main.vader"
-    snippet_bump_nth__Cell(l3, (size_t) 0);
+    snippet_bump_nth__snippet_Cell(l3, (size_t) 0);
 #line 111 "tests/snippets/compound_assign_operands/_main.vader"
     l5 = std_core_new_byte_buffer((size_t) 30);
     l1 = (size_t) 0;
@@ -696,7 +696,7 @@ static int32_t __lambda_snippet_0(void* l0) {
     return INT32_C(1);
 }
 
-static void snippet_bump_nth__Cell(void* l0, size_t l1) {
+static void snippet_bump_nth__snippet_Cell(void* l0, size_t l1) {
     size_t l2;
     int32_t l3;
     int32_t t0;

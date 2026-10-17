@@ -58,9 +58,10 @@ materialize_representative :: fn(
     owner_typed :: typed.modules[owner_module_id] ?? return
     if owner_typed is TypedProgram {
         // `join_any_displays` already renders nested wrappers with `_`
-        // (`Box(Box(i32))` → `Box_Any`), so one top-level `__` join keeps
-        // nesting intact. The representative uses the empty-typeArgs template,
-        // so `first.mangled` likewise has no `__<arg>` segment.
+        // (`Box(Box(i32))` → `m_Box_Any` for a `Box` of module `m`), so one
+        // top-level `__` join keeps nesting intact. The representative uses the
+        // empty-typeArgs template, so `first.mangled` likewise has no `__<arg>`
+        // segment.
         bare_mangled :: "${mangle_module_id(owner_typed.resolved.display_path)}$${sym.name}"
         any_args :: build_any_args_list(inst.args)
         rep_mangled :: "${bare_mangled}__${join_any_displays(any_args)}"
@@ -515,8 +516,7 @@ materialize_impl_for_instance :: fn(
     }
     // Then what tells it from another impl of the trait on that base
     // (`Wrapper<MonType> implements Into<Label>` beside `Into<Tag>`).
-    overload :: impl_entry.overload_suffix
-    suffix :: if overload == "" { instance_suffix } else { "${instance_suffix}${overload}" }
+    suffix :: "${instance_suffix}${impl_entry.overload_suffix}"
     types :: make_entry_types(impl_typed, subst)
     impl_key_prefix :: impl_decl.span.hash()
     impl_trait :: impl_entry.trait_key
@@ -539,7 +539,9 @@ materialize_impl_for_instance :: fn(
         // sites never reference (`std_collections$…next` vs `std_iter$…next`),
         // dropping the call to the panic fallback. Co-locating with the impl keeps
         // the two in lock-step. No-op when owner == impl (the colocated case).
-        mangled :: "${mangle_module_id(impl_typed.resolved.display_path)}$${inst.symbol.name}$${impl_decl.trait_name}$${member.name}${suffix}"
+        mangled :: impl_member_name(
+            impl_typed.resolved.display_path, self_type, impl_decl.trait_name, member.name, suffix,
+        )
         entry_decl: Decl: member
         entry :: MonoEntry {
             .id             = 0,

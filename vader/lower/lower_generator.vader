@@ -68,16 +68,16 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
 
 // ---- state-struct synthesis + entry ---------------------------------------
 
-// Synthesize + register the `g$State` struct and its `$Iterator$next` fn. The
-// `$${TRAIT_ITERATOR}$${METHOD_NEXT}` mangle suffix + `self: g$State` param[0]
-// are what `collect_vtable_entries` keys on to wire the vtable — single-sourced
-// here for the next fn + state struct.
+// Synthesize + register the `g$State` struct and its `$Iterator$next` fn, which
+// carries its `Iterator` vtable slot — what `collect_vtable_entries` reads.
 push_generator_decls :: fn(
     fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
     step_type: Type, next_body: LoweredBlock, state_fields: LoweredStructField[],
 ) -> void {
-    module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
-    next_mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ITERATOR}$${METHOD_NEXT}"
+    module :: fn_ctx.typed.resolved.display_path
+    next_mangled :: impl_member_segment_name(
+        module, state_sym.name, TRAIT_ITERATOR, METHOD_NEXT, "",
+    )
     next_sym :: Symbol {
         .id = next_synthetic_id(fn_ctx), .kind = .Fn, .name = next_mangled,
         .module = fn_ctx.typed.resolved.path, .module_name = fn_ctx.typed.resolved.path, .visibility = .Private, .defined_at = null,
@@ -92,7 +92,7 @@ push_generator_decls :: fn(
         },
     }
     state_decl :: LoweredStructDecl {
-        .mangled = "${module_seg}$${state_sym.name}",
+        .mangled = "${mangle_module_id(module)}$${state_sym.name}",
         .fields = state_fields,
         .origin = synth_mono_entry(fn_ctx, state_sym),
     }

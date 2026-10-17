@@ -853,7 +853,7 @@ static const vader_array_t vader_data_3 = {
 static vader_string_t snippet_Point_Display_to_string(void* l0);
 static int32_t snippet_main(void);
 static vader_string_t snippet_Box_Display_to_string(void* l0);
-static vader_string_t snippet_show__Box(vader_box_t l0);
+static vader_string_t snippet_show__snippet_Box(vader_box_t l0);
 static vader_string_t snippet_listed__f64(void* l0);
 static vader_string_t snippet_listed__string(void* l0);
 static vader_string_t concat_7(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, vader_string_t l5, vader_string_t l6);
@@ -867,7 +867,7 @@ static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2);
 static vader_string_t std_core____Display_to_string__i32(void* l0);
 static vader_string_t std_core____Display_to_string__string(void* l0);
 static vader_string_t std_core____Display_to_string__bool(void* l0);
-static vader_string_t std_core____Display_to_string__Point(void* l0);
+static vader_string_t std_core____Display_to_string__snippet_Point(void* l0);
 static vader_string_t std_core____Display_to_string__i32__(void* l0);
 static vader_string_t std_core____Display_to_string__null(void* l0);
 static vader_string_t std_core____Display_to_string__f64(void* l0);
@@ -1106,7 +1106,7 @@ static int32_t snippet_main(void) {
     vader_array_t* _a5_arr = vader_array_new(18u, 1u, 13u, 1u);
     ((void**) _a5_arr->buf->slots)[_a5_arr->offset + 0u] = t0;
     t0 = (void*) _a5_arr;
-    l1 = std_core____Display_to_string__Point(t0);
+    l1 = std_core____Display_to_string__snippet_Point(t0);
     vader_array_t* _a6_arr = vader_array_new(16u, 1u, 7u, 3u);
     ((int32_t*) _a6_arr->buf->slots)[_a6_arr->offset + 0u] = (int32_t) INT32_C(1);
     l0 = (void*) _a6_arr;
@@ -1150,7 +1150,7 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a14_obj, 4u);
     _a14_obj->f_value = vader_ref_box(t0);
     t0 = (void*) _a14_obj;
-    l2 = snippet_show__Box(vader_ref_box(t0));
+    l2 = snippet_show__snippet_Box(vader_ref_box(t0));
     t1 = concat_3(l1, 4u, l2);
     std_io_println__string(t1);
 #line 25 "tests/snippets/array_display/_main.vader"
@@ -1180,7 +1180,7 @@ static vader_string_t snippet_Box_Display_to_string(void* l0) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t snippet_show__Box(vader_box_t l0) {
+static vader_string_t snippet_show__snippet_Box(vader_box_t l0) {
     vader_string_t l1 = 0;
     vader_string_t t0 = 0;
     vader_box_t* gc_roots[1] = { &l0 };
@@ -1785,7 +1785,7 @@ static vader_string_t std_core____Display_to_string__bool(void* l0) {
     { vader_string_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t std_core____Display_to_string__Point(void* l0) {
+static vader_string_t std_core____Display_to_string__snippet_Point(void* l0) {
     void* l1 = NULL;
     void* l3 = NULL;
     size_t l2, l4, l5, l7;
@@ -4198,7 +4198,7 @@ static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv) {
         case 16u: return std_core____Display_to_string__i32(recv.payload.obj);
         case 8u: return std_core____Display_to_string__string(recv.payload.obj);
         case 17u: return std_core____Display_to_string__bool(recv.payload.obj);
-        case 18u: return std_core____Display_to_string__Point(recv.payload.obj);
+        case 18u: return std_core____Display_to_string__snippet_Point(recv.payload.obj);
         case 19u: return std_core____Display_to_string__i32__(recv.payload.obj);
         case 20u: return std_core____Display_to_string__null(recv.payload.obj);
         case 6u: return std_core____Display_to_string__f64(recv.payload.obj);

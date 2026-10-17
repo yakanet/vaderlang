@@ -163,10 +163,10 @@ fn 7 snippet$main () -> i32
   call 1   ; snippet$Sq$Shape$area
   call 52   ; std_io$println__i32
   i32.const 4
-  call 10   ; snippet$build__Sq
+  call 10   ; snippet$build__snippet_Sq
   local.set 0   ; s
   i32.const 2
-  call 9   ; snippet$build__Rect
+  call 9   ; snippet$build__snippet_Rect
   local.set 1   ; r
   array.new 5 0   ; ref snippet$Shape[]
   local.tee 2   ; shapes
@@ -242,9 +242,9 @@ fn 7 snippet$main () -> i32
   end $L2
   local.get 6   ; s
   call 51   ; std_io$println__f64
-  call 11   ; snippet$via_a__P
+  call 11   ; snippet$via_a__snippet_P
   local.set 0   ; s
-  call 12   ; snippet$via_b__P
+  call 12   ; snippet$via_b__snippet_P
   local.set 1   ; r
   local.field 0 4 0   ; s snippet$P.v
   ref.cast 1   ; i32
@@ -357,24 +357,24 @@ fn 8 __lambda_snippet_0 (ref,i32) -> i64
   return
 end
 
-fn 9 snippet$build__Rect (i32) -> ref
+fn 9 snippet$build__snippet_Rect (i32) -> ref
   local.get 0   ; arg 0
   call 2   ; snippet$Rect$Shape$unit
   return
 end
 
-fn 10 snippet$build__Sq (i32) -> ref
+fn 10 snippet$build__snippet_Sq (i32) -> ref
   local.get 0   ; arg 0
   call 0   ; snippet$Sq$Shape$unit
   return
 end
 
-fn 11 snippet$via_a__P () -> ref
+fn 11 snippet$via_a__snippet_P () -> ref
   call 4   ; snippet$P$A$make
   return
 end
 
-fn 12 snippet$via_b__P () -> ref
+fn 12 snippet$via_b__snippet_P () -> ref
   call 5   ; snippet$P$B$make
   return
 end

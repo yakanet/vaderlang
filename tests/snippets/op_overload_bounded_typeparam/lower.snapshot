@@ -20,21 +20,6 @@
       std.io.println<bool>(snippet.matches<i32>(7, 7))
       return 0
   }
-  snippet.total<V> :: fn(xs: V[]) -> V {  // snippet$total__V
-      s: V = xs[0]
-      {
-          __for_arr_0: V[] = xs[usize(1)..<@array.len(xs)]
-          __for_len_1: usize = @array.len(__for_arr_0)
-          __for_i_2: usize = 0
-          for __for_i_2 < __for_len_1 {
-              x: V = __for_arr_0[__for_i_2]
-              s = snippet.V.add(s, x)
-          } @step {
-              __for_i_2 = __for_i_2 +% usize(1)
-          }
-      }
-      return s
-  }
   snippet.total<f64> :: fn(xs: f64[]) -> f64 {  // snippet$total__f64
       s: f64 = xs[0]
       {
@@ -65,22 +50,20 @@
       }
       return s
   }
-  snippet.largest<V> :: fn(xs: V[]) -> V {  // snippet$largest__V
-      best: V = xs[0]
+  snippet.total<V> :: fn(xs: V[]) -> V {  // snippet$total__snippet_V
+      s: V = xs[0]
       {
-          __for_arr_0: V[] = xs
+          __for_arr_0: V[] = xs[usize(1)..<@array.len(xs)]
           __for_len_1: usize = @array.len(__for_arr_0)
           __for_i_2: usize = 0
           for __for_i_2 < __for_len_1 {
               x: V = __for_arr_0[__for_i_2]
-              if snippet.V.compare(x, best) > 0 {
-                  best = x
-              }
+              s = snippet.V.add(s, x)
           } @step {
               __for_i_2 = __for_i_2 +% usize(1)
           }
       }
-      return best
+      return s
   }
   snippet.largest<i32> :: fn(xs: i32[]) -> i32 {  // snippet$largest__i32
       best: i32 = xs[0]
@@ -91,6 +74,23 @@
           for __for_i_2 < __for_len_1 {
               x: i32 = __for_arr_0[__for_i_2]
               if x > best {
+                  best = x
+              }
+          } @step {
+              __for_i_2 = __for_i_2 +% usize(1)
+          }
+      }
+      return best
+  }
+  snippet.largest<V> :: fn(xs: V[]) -> V {  // snippet$largest__snippet_V
+      best: V = xs[0]
+      {
+          __for_arr_0: V[] = xs
+          __for_len_1: usize = @array.len(__for_arr_0)
+          __for_i_2: usize = 0
+          for __for_i_2 < __for_len_1 {
+              x: V = __for_arr_0[__for_i_2]
+              if snippet.V.compare(x, best) > 0 {
                   best = x
               }
           } @step {

@@ -22,7 +22,7 @@ type 19 struct std_collections$MutableMap__string__Any { ekeys:22,evals:24,index
 type 20 union 18,0
 type 21 array 8
 type 22 array 3
-type 23 struct std_collections$MutableMap__string__Label { ekeys:22,evals:24,index:21,mask:13,size:13,tombs:13 }
+type 23 struct std_collections$MutableMap__string__snippet_Label { ekeys:22,evals:24,index:21,mask:13,size:13,tombs:13 }
 type 24 array 18
 type 25 primitive isize
 type 26 array 2
@@ -399,7 +399,7 @@ fn 7 snippet$main () -> i32
   local.set 2   ; h
   local.get 0   ; l
   local.get 2   ; h
-  call 9   ; snippet$through_bound__Box
+  call 9   ; snippet$through_bound__snippet_Box
   local.set 1   ; $field_7
   string.const 18   ; "bound ["
   local.get 1   ; $field_7
@@ -442,7 +442,7 @@ fn 8 __lambda_snippet_0 (ref) -> ref
   return
 end
 
-fn 9 snippet$through_bound__Box (ref,ref) -> string
+fn 9 snippet$through_bound__snippet_Box (ref,ref) -> string
   local $call_2 ref
   local.get 1   ; arg 1
   call 0   ; snippet$Celsius$Into$into

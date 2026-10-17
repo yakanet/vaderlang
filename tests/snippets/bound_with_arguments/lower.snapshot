@@ -79,23 +79,14 @@
       } :string)
       return 0
   }
-  snippet.Money[].count :: fn(self: Money[], e: Money[]) -> usize {  // snippet$[]$Count$count__Money
+  snippet.Money[].count :: fn(self: Money[], e: Money[]) -> usize {  // snippet$[]$Count$count__snippet_Money
       @array.len(self) + @array.len(e)
   }
-  snippet.feed<Cfg> :: fn(x: Cfg) -> i32 {  // snippet$feed__Cfg
+  snippet.feed<Cfg> :: fn(x: Cfg) -> i32 {  // snippet$feed__snippet_Cfg
       snippet.Cfg.put(x, x)
   }
   snippet.twice<Any> :: fn(x: Any) -> Any {  // snippet$twice__Any
       @vcall(std.core.Add.add, x, x)
-  }
-  snippet.twice<Grams> :: fn(x: Grams) -> Grams {  // snippet$twice__Grams
-      snippet.Grams.add(x, x)
-  }
-  snippet.twice<Money> :: fn(x: Money) -> Money {  // snippet$twice__Money
-      snippet.Money.add(x, x)
-  }
-  snippet.twice<Points> :: fn(x: Points) -> Points {  // snippet$twice__Points
-      snippet.Points.add(x, x)
   }
   snippet.twice<f64> :: fn(x: f64) -> f64 {  // snippet$twice__f64
       x + x
@@ -103,13 +94,22 @@
   snippet.twice<i32> :: fn(x: i32) -> i32 {  // snippet$twice__i32
       x + x
   }
+  snippet.twice<Grams> :: fn(x: Grams) -> Grams {  // snippet$twice__snippet_Grams
+      snippet.Grams.add(x, x)
+  }
+  snippet.twice<Money> :: fn(x: Money) -> Money {  // snippet$twice__snippet_Money
+      snippet.Money.add(x, x)
+  }
+  snippet.twice<Points> :: fn(x: Points) -> Points {  // snippet$twice__snippet_Points
+      snippet.Points.add(x, x)
+  }
   snippet.twice<u64> :: fn(x: u64) -> u64 {  // snippet$twice__u64
       x + x
   }
-  snippet.relay<Points> :: fn(x: Any) -> Any {  // snippet$relay__Points
+  snippet.relay<Points> :: fn(x: Any) -> Any {  // snippet$relay__snippet_Points
       snippet.twice<Any>(x)
   }
-  snippet.both<Money[]> :: fn(x: Money[]) -> usize {  // snippet$both__Money__
+  snippet.both<Money[]> :: fn(x: Money[]) -> usize {  // snippet$both__snippet_Money__
       snippet.Money[].count(x, x)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
@@ -120,7 +120,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable snippet.Count.count for Money[]  snippet.Money[].count  // snippet$[]$Count$count__Money
+  vtable snippet.Count.count for Money[]  snippet.Money[].count  // snippet$[]$Count$count__snippet_Money
   vtable snippet.Sink.put for Cfg  snippet.Cfg.put  // snippet$Cfg$Sink$put
   vtable std.core.Add.add for Grams  snippet.Grams.add  // snippet$Grams$Add$add
   vtable std.core.Add.add for Money  snippet.Money.add  // snippet$Money$Add$add

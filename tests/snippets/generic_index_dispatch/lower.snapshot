@@ -42,10 +42,10 @@
       } :string)
       return 0
   }
-  snippet.read_nth<Cell> :: fn(c: Cell, i: usize) -> i32 {  // snippet$read_nth__Cell
+  snippet.read_nth<Cell> :: fn(c: Cell, i: usize) -> i32 {  // snippet$read_nth__snippet_Cell
       snippet.Cell.at(c, i)
   }
-  snippet.write_nth<Cell> :: fn(c: Cell, i: usize, v: i32) -> void {  // snippet$write_nth__Cell
+  snippet.write_nth<Cell> :: fn(c: Cell, i: usize, v: i32) -> void {  // snippet$write_nth__snippet_Cell
       snippet.Cell.set_at(c, i, v)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

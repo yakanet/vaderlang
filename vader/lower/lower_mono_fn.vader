@@ -162,10 +162,7 @@ fn_instance_key :: fn(inst: GenericFnInstance) -> string {
     sb.append("${inst.fn_symbol.id}::")
     for a in inst.type_args {
         sb.append(":")
-        // A kept enum names its module : two `Status` enums of different modules
-        // are two instances, as `mixed_any_suffix` mangles them.
-        kept :: kept_type_argument(a)
-        sb.append(if kept is EnumType { kept_suffix(kept) } else { display_type(a) })
+        sb.append(qualified_display_type(a))
     }
     return sb.to_string()
 }

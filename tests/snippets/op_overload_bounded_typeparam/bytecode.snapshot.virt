@@ -2,11 +2,11 @@ module _main
 type 0 primitive null
 type 1 struct snippet$V { x:2 }
 type 2 primitive i32
-type 3 array 1
-type 4 array 5
-type 5 primitive f64
-type 6 array 7
-type 7 primitive i64
+type 3 array 4
+type 4 primitive f64
+type 5 array 6
+type 6 primitive i64
+type 7 array 1
 type 8 array 2
 type 9 array 10
 type 10 primitive string
@@ -78,13 +78,13 @@ fn 2 snippet$main () -> i32
   local $struct_13 ref
   i64.const 3000000000
   i64.const 1
-  array.new 6 2   ; i64[]
-  call 5   ; snippet$total__i64
+  array.new 5 2   ; i64[]
+  call 4   ; snippet$total__i64
   call 44   ; std_io$println__i64
   f64.const 1.5 4609434218613702656
   f64.const 2.25 4612248968380809216
-  array.new 4 2   ; f64[]
-  call 4   ; snippet$total__f64
+  array.new 3 2   ; f64[]
+  call 3   ; snippet$total__f64
   call 42   ; std_io$println__f64
   i32.const 2
   struct.new 1   ; snippet$V
@@ -94,8 +94,8 @@ fn 2 snippet$main () -> i32
   local.set 1   ; $struct_13
   local.get 0   ; $struct_11
   local.get 1   ; $struct_13
-  array.new 3 2   ; snippet$V[]
-  call 3   ; snippet$total__V
+  array.new 7 2   ; snippet$V[]
+  call 5   ; snippet$total__snippet_V
   struct.get 1 0   ; snippet$V.x
   ref.cast 2   ; i32
   call 43   ; std_io$println__i32
@@ -103,7 +103,7 @@ fn 2 snippet$main () -> i32
   i32.const 9
   i32.const 4
   array.new 8 3   ; i32[]
-  call 7   ; snippet$largest__i32
+  call 6   ; snippet$largest__i32
   call 43   ; std_io$println__i32
   i32.const 7
   struct.new 1   ; snippet$V
@@ -113,8 +113,8 @@ fn 2 snippet$main () -> i32
   local.set 1   ; $struct_13
   local.get 0   ; $struct_11
   local.get 1   ; $struct_13
-  array.new 3 2   ; snippet$V[]
-  call 6   ; snippet$largest__V
+  array.new 7 2   ; snippet$V[]
+  call 7   ; snippet$largest__snippet_V
   struct.get 1 0   ; snippet$V.x
   ref.cast 2   ; i32
   call 43   ; std_io$println__i32
@@ -145,53 +145,7 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 snippet$total__V (ref) -> ref
-  local s ref
-  local $len_5 usize
-  local __for_arr_0 ref
-  local __for_i_2 usize
-  local x ref
-  local.get 0   ; arg 0
-  i32.const 0
-  array.get 3   ; snippet$V[]
-  local.set 1   ; s
-  local.get 0   ; arg 0
-  array.len
-  local.set 2   ; $len_5
-  local.get 0   ; arg 0
-  i64.const 1
-  local.get 2   ; $len_5
-  array.slice 3   ; snippet$V[]
-  local.tee 3   ; __for_arr_0
-  array.len
-  local.set 2   ; $len_5
-  i64.const 0
-  local.set 4   ; __for_i_2
-  loop $L0 void
-    local.get 4   ; __for_i_2
-    local.get 2   ; $len_5
-    u64.lt
-    if $L1 void
-      local.get 3   ; __for_arr_0
-      local.get 4   ; __for_i_2
-      array.get 3   ; snippet$V[]
-      local.set 5   ; x
-      local.get 1   ; s
-      local.get 5   ; x
-      call 0   ; snippet$V$Add$add
-      local.set 1   ; s
-      local.get 4   ; __for_i_2
-      i64.const 1
-      i64.add
-      local.set 4   ; __for_i_2
-      br $L0
-    end $L1
-  end $L0
-  local.get 1   ; s
-  return
-end
-
-fn 4 snippet$total__f64 (ref) -> f64
+fn 3 snippet$total__f64 (ref) -> f64
   local s f64
   local $len_5 usize
   local __for_arr_0 ref
@@ -207,7 +161,7 @@ fn 4 snippet$total__f64 (ref) -> f64
   local.get 0   ; arg 0
   i64.const 1
   local.get 2   ; $len_5
-  array.slice 4   ; f64[]
+  array.slice 3   ; f64[]
   local.tee 3   ; __for_arr_0
   array.len
   local.set 2   ; $len_5
@@ -237,7 +191,7 @@ fn 4 snippet$total__f64 (ref) -> f64
   return
 end
 
-fn 5 snippet$total__i64 (ref) -> i64
+fn 4 snippet$total__i64 (ref) -> i64
   local s i64
   local $len_5 usize
   local __for_arr_0 ref
@@ -253,7 +207,7 @@ fn 5 snippet$total__i64 (ref) -> i64
   local.get 0   ; arg 0
   i64.const 1
   local.get 2   ; $len_5
-  array.slice 6   ; i64[]
+  array.slice 5   ; i64[]
   local.tee 3   ; __for_arr_0
   array.len
   local.set 2   ; $len_5
@@ -283,39 +237,41 @@ fn 5 snippet$total__i64 (ref) -> i64
   return
 end
 
-fn 6 snippet$largest__V (ref) -> ref
-  local best ref
+fn 5 snippet$total__snippet_V (ref) -> ref
+  local s ref
+  local $len_5 usize
   local __for_arr_0 ref
-  local __for_len_1 usize
   local __for_i_2 usize
   local x ref
   local.get 0   ; arg 0
   i32.const 0
-  array.get 3   ; snippet$V[]
-  local.set 1   ; best
+  array.get 7   ; snippet$V[]
+  local.set 1   ; s
   local.get 0   ; arg 0
-  local.tee 2   ; __for_arr_0
   array.len
-  local.set 3   ; __for_len_1
+  local.set 2   ; $len_5
+  local.get 0   ; arg 0
+  i64.const 1
+  local.get 2   ; $len_5
+  array.slice 7   ; snippet$V[]
+  local.tee 3   ; __for_arr_0
+  array.len
+  local.set 2   ; $len_5
   i64.const 0
   local.set 4   ; __for_i_2
   loop $L0 void
     local.get 4   ; __for_i_2
-    local.get 3   ; __for_len_1
+    local.get 2   ; $len_5
     u64.lt
     if $L1 void
-      local.get 2   ; __for_arr_0
+      local.get 3   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 3   ; snippet$V[]
-      local.tee 5   ; x
-      local.get 1   ; best
-      call 1   ; snippet$V$Comparable$compare
-      i32.const 0
-      i32.gt
-      if $L2 void
-        local.get 5   ; x
-        local.set 1   ; best
-      end $L2
+      array.get 7   ; snippet$V[]
+      local.set 5   ; x
+      local.get 1   ; s
+      local.get 5   ; x
+      call 0   ; snippet$V$Add$add
+      local.set 1   ; s
       local.get 4   ; __for_i_2
       i64.const 1
       i64.add
@@ -323,11 +279,11 @@ fn 6 snippet$largest__V (ref) -> ref
       br $L0
     end $L1
   end $L0
-  local.get 1   ; best
+  local.get 1   ; s
   return
 end
 
-fn 7 snippet$largest__i32 (ref) -> i32
+fn 6 snippet$largest__i32 (ref) -> i32
   local best i32
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -353,6 +309,50 @@ fn 7 snippet$largest__i32 (ref) -> i32
       load_slot_i32
       local.tee 5   ; x
       local.get 1   ; best
+      i32.gt
+      if $L2 void
+        local.get 5   ; x
+        local.set 1   ; best
+      end $L2
+      local.get 4   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 4   ; __for_i_2
+      br $L0
+    end $L1
+  end $L0
+  local.get 1   ; best
+  return
+end
+
+fn 7 snippet$largest__snippet_V (ref) -> ref
+  local best ref
+  local __for_arr_0 ref
+  local __for_len_1 usize
+  local __for_i_2 usize
+  local x ref
+  local.get 0   ; arg 0
+  i32.const 0
+  array.get 7   ; snippet$V[]
+  local.set 1   ; best
+  local.get 0   ; arg 0
+  local.tee 2   ; __for_arr_0
+  array.len
+  local.set 3   ; __for_len_1
+  i64.const 0
+  local.set 4   ; __for_i_2
+  loop $L0 void
+    local.get 4   ; __for_i_2
+    local.get 3   ; __for_len_1
+    u64.lt
+    if $L1 void
+      local.get 2   ; __for_arr_0
+      local.get 4   ; __for_i_2
+      array.get 7   ; snippet$V[]
+      local.tee 5   ; x
+      local.get 1   ; best
+      call 1   ; snippet$V$Comparable$compare
+      i32.const 0
       i32.gt
       if $L2 void
         local.get 5   ; x

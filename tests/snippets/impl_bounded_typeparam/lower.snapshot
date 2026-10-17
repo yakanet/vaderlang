@@ -16,11 +16,11 @@
       std.io.println<string>(snippet.Wrap<Any>.to_string(b))
       return 0
   }
-  snippet.Wrap<Cat> :: struct { value: Any }  // snippet$Wrap__Cat
+  snippet.Wrap<Cat> :: struct { value: Any }  // snippet$Wrap__snippet_Cat
   snippet.Wrap<Any>.to_string :: fn(self: Wrap<Any>) -> string {  // snippet$Wrap$Display$to_string__Any
       return "wrapped"
   }
-  snippet.Wrap<Dog> :: struct { value: Any }  // snippet$Wrap__Dog
+  snippet.Wrap<Dog> :: struct { value: Any }  // snippet$Wrap__snippet_Dog
   snippet.Wrap<Any> :: struct { value: Any }  // snippet$Wrap__Any
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: usize = std.core.byte_len(p0)

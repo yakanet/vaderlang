@@ -590,6 +590,8 @@ const C_PARITY = new Set<string>([
   "async_await_in_value_positions",
   // A `yield` in a binding's value or in an argument block makes a generator.
   "generator_yield_in_value",
+  // Two modules' same-named types name apart every instance and impl member.
+  "same_name_types_from_two_modules",
   // Declaration-shape snippets whose `main` runs what they declare.
   "decorators_ok",
   "expressions",

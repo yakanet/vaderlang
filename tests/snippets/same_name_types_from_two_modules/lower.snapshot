@@ -1,0 +1,127 @@
+# Lower
+
+## snippet
+  snippet$snippet_shapes_a_Point$Describe$describe :: fn(self: Point) -> string {
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(31))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "a point at ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(self.x))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet$snippet_shapes_b_Point$Describe$describe :: fn(self: Point) -> string {
+      concat_2("a point named ", self.name)
+  }
+  snippet.show :: fn(d: Describe) -> string {  // snippet$show
+      @vcall(snippet.Describe.describe, d)
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      a: Box<Point> = Box<Any> { .v = snippet.shapes_a.make() }
+      b: Box<Point> = Box<Any> { .v = snippet.shapes_b.make() }
+      std.io.println<string>({
+          __p_0: string = b.v.name
+          __buf_1: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_0))
+          __off_2: usize = 0
+          __off_2 = std.core.write_int(__buf_1, __off_2, i64(a.v.x))
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string)
+      c: Box<Point> = snippet.wrap<Point>(snippet.shapes_a.make())
+      d: Box<Point> = snippet.wrap<Point>(snippet.shapes_b.make())
+      std.io.println<string>({
+          __p_3: string = d.v.name
+          __buf_4: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_3))
+          __off_5: usize = 0
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(c.v.x))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      std.io.println<string>({
+          __buf_6: Buffer = std.core.new_byte_buffer(usize(11))
+          __off_7: usize = 0
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet$holds__snippet_shapes_a_Point(snippet.shapes_a.make(), snippet.shapes_b.make()))
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet$holds__snippet_shapes_b_Point(snippet.shapes_b.make(), snippet.shapes_b.make()))
+          std.core.finish_buffer(__buf_6, __off_7)
+      } :string)
+      std.io.println<string>(snippet.show(snippet.shapes_a.make()))
+      std.io.println<string>(snippet.show(snippet.shapes_b.make()))
+      return 0
+  }
+  snippet$Box__snippet_shapes_a_Point :: struct { v: Any }
+  snippet$Box__snippet_shapes_b_Point :: struct { v: Any }
+  snippet.wrap<Point> :: fn(v: Any) -> Box<Any> {  // snippet$wrap__snippet_shapes_a_Point
+      Box<Any> { .v = v }
+  }
+  snippet$holds__snippet_shapes_a_Point :: fn(sample: Point, v: Point | Point) -> bool {
+      v is Point
+  }
+  snippet$holds__snippet_shapes_b_Point :: fn(sample: Point, v: Point | Point) -> bool {
+      v is Point
+  }
+  snippet.Box<Any> :: struct { v: Any }  // snippet$Box__Any
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable snippet.Describe.describe for Point  snippet$snippet_shapes_a_Point$Describe$describe
+  vtable snippet.Describe.describe for Point  snippet$snippet_shapes_b_Point$Describe$describe
+
+## snippet/shapes_a
+  snippet.shapes_a.make :: fn() -> Point {  // snippet_shapes_a$make
+      Point { .x = 1 }
+  }
+  snippet.shapes_a.Point :: struct { x: i32 }  // snippet_shapes_a$Point
+
+## snippet/shapes_b
+  snippet.shapes_b.make :: fn() -> Point {  // snippet_shapes_b$make
+      Point { .name = "b" }
+  }
+  snippet.shapes_b.Point :: struct { name: string }  // snippet_shapes_b$Point
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

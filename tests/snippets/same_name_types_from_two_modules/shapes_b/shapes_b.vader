@@ -1,0 +1,8 @@
+// A `Point` of its own, with another layout than `shapes_a`'s.
+module "snippet/shapes_b"
+
+export Point :: struct {
+    name: string
+}
+
+export make :: fn() -> Point = Point { .name = "b" }

@@ -40,8 +40,8 @@ static const vader_array_t vader_data_0 = {
 };
 
 static int32_t snippet_main(void);
-static vader_box_t snippet_pick__Cfg(vader_box_t l0, vader_box_t l1);
 static int64_t snippet_pick__i64(int64_t l0, int64_t l1);
+static vader_box_t snippet_pick__snippet_Cfg(vader_box_t l0, vader_box_t l1);
 static int64_t snippet_first__i64(int64_t l0, int64_t l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
@@ -58,8 +58,8 @@ static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf)
 
 const vader_type_info_t vader_type_info_table[13] = {
     [1] = { .slot_size = 4 },
-    [2] = { .slot_size = 16 },
-    [3] = { .slot_size = 8 },
+    [2] = { .slot_size = 8 },
+    [3] = { .slot_size = 16 },
     [4] = { .slot_size = 16 },
     [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Cfg_t), .slot_size = 8,
@@ -147,7 +147,7 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
     l5 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) INT64_C(0));
 #line 24 "tests/snippets/literal_argument_takes_its_binding/_main.vader"
-    t2 = snippet_pick__Cfg(vader_ref_box(l1), vader_ref_box(l5));
+    t2 = snippet_pick__snippet_Cfg(vader_ref_box(l1), vader_ref_box(l5));
     t3 = ((vader_struct_snippet_Cfg_t*) t2.payload.obj)->f_n;
     l0 = ((int64_t) (int32_t) t3);
     l2 = std_core_write_int(l4, l2, l0);
@@ -158,7 +158,7 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
     t1 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) INT64_C(0));
 #line 24 "tests/snippets/literal_argument_takes_its_binding/_main.vader"
-    t2 = snippet_pick__Cfg(vader_ref_box(t1), vader_ref_box(l1));
+    t2 = snippet_pick__snippet_Cfg(vader_ref_box(t1), vader_ref_box(l1));
     t3 = ((vader_struct_snippet_Cfg_t*) t2.payload.obj)->f_n;
     l0 = ((int64_t) (int32_t) t3);
     l2 = std_core_write_int(l4, l2, l0);
@@ -169,7 +169,7 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
     l5 = vader_array_ref_load_obj(_a3_slotarr->buf, _a3_slotarr->offset + (size_t) INT64_C(0));
 #line 24 "tests/snippets/literal_argument_takes_its_binding/_main.vader"
-    t2 = snippet_pick__Cfg(vader_ref_box(l1), vader_ref_box(l5));
+    t2 = snippet_pick__snippet_Cfg(vader_ref_box(l1), vader_ref_box(l5));
     t3 = ((vader_struct_snippet_Cfg_t*) t2.payload.obj)->f_n;
     l0 = ((int64_t) (int32_t) t3);
     l2 = std_core_write_int(l4, l2, l0);
@@ -179,12 +179,12 @@ static int32_t snippet_main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static vader_box_t snippet_pick__Cfg(vader_box_t l0, vader_box_t l1) {
+static int64_t snippet_pick__i64(int64_t l0, int64_t l1) {
 #line 16 "tests/snippets/literal_argument_takes_its_binding/_main.vader"
     return l1;
 }
 
-static int64_t snippet_pick__i64(int64_t l0, int64_t l1) {
+static vader_box_t snippet_pick__snippet_Cfg(vader_box_t l0, vader_box_t l1) {
 #line 16 "tests/snippets/literal_argument_takes_its_binding/_main.vader"
     return l1;
 }

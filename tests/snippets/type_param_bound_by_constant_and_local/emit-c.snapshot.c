@@ -61,7 +61,7 @@ static const vader_array_t vader_data_1 = {
 static void* __const_snippet_LIST(void);
 static void* snippet_make(void);
 static int32_t snippet_main(void);
-static vader_box_t snippet_pick__Cfg(vader_box_t l0, vader_box_t l1);
+static vader_box_t snippet_pick__i32__(vader_box_t l0, vader_box_t l1);
 static void* snippet_pair__i32__(vader_box_t l0, vader_box_t l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
@@ -198,19 +198,19 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
     l1 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) INT64_C(0));
 #line 23 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
-    t1 = snippet_pick__Cfg(vader_ref_box(l0), vader_ref_box(l1));
+    t1 = snippet_pick__i32__(vader_ref_box(l0), vader_ref_box(l1));
     l0 = t1.payload.obj;
 #line 24 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     l1 = snippet_make();
 #line 13 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     l2 = (void*) &vader_data_1;
 #line 25 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
-    t1 = snippet_pick__Cfg(vader_ref_box(l1), vader_ref_box(l2));
+    t1 = snippet_pick__i32__(vader_ref_box(l1), vader_ref_box(l2));
     l2 = t1.payload.obj;
 #line 13 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     t0 = (void*) &vader_data_1;
 #line 26 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
-    t1 = snippet_pick__Cfg(vader_ref_box(t0), vader_ref_box(l1));
+    t1 = snippet_pick__i32__(vader_ref_box(t0), vader_ref_box(l1));
     l3 = t1.payload.obj;
 #line 27 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     l4 = __const_snippet_LIST();
@@ -256,7 +256,7 @@ static int32_t snippet_main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static vader_box_t snippet_pick__Cfg(vader_box_t l0, vader_box_t l1) {
+static vader_box_t snippet_pick__i32__(vader_box_t l0, vader_box_t l1) {
 #line 15 "tests/snippets/type_param_bound_by_constant_and_local/_main.vader"
     return l1;
 }

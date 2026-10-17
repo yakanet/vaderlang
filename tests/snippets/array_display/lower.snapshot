@@ -27,7 +27,7 @@
   snippet.Box.to_string :: fn(self: Box) -> string {  // snippet$Box$Display$to_string
       concat_2("Box ", @vcall(std.core.Display.to_string, self.value))
   }
-  snippet.show<Box> :: fn(value: Any) -> string {  // snippet$show__Box
+  snippet.show<Box> :: fn(value: Any) -> string {  // snippet$show__snippet_Box
       concat_3("<", @vcall(std.core.Display.to_string, value), ">")
   }
   snippet.listed<f64> :: fn(values: f64[]) -> string {  // snippet$listed__f64
@@ -102,7 +102,7 @@
     fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.Point[].to_string  // std_core$[]$Display$to_string__Point
+    fn std.core.Point[].to_string  // std_core$[]$Display$to_string__snippet_Point
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
     fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize

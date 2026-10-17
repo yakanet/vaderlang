@@ -85,7 +85,7 @@ any_leaves_of :: fn(t: Type) -> Type {
         seen :: MutableSet<string> {}
         for v in t.variants {
             erased :: any_leaves_of(v)
-            key :: display_type(erased)
+            key :: qualified_display_type(erased)
             if seen.contains(key) { continue }
             seen.add(key)
             new_vars.push(erased)
@@ -105,8 +105,8 @@ any_leaves_of :: fn(t: Type) -> Type {
 /// mangled name.
 // @partial: only arg-bearing / composite type shapes render a suffix; every other type → "Any".
 display_any_arg :: fn(t: Type) -> string = @partial match t {
-    is StructType -> if t.args.is_empty() { t.symbol.name } else { joined_named(t.symbol.name, t.args, "_") }
-    is TraitType  -> if t.args.is_empty() { t.symbol.name } else { joined_named(t.symbol.name, t.args, "_") }
+    is StructType -> joined_named(qualified_symbol_name(t.symbol), t.args, "_")
+    is TraitType  -> joined_named(qualified_symbol_name(t.symbol), t.args, "_")
     is ArrayType  -> "${display_any_arg(t.element)}_arr"
     is UnionType  -> joined_unnamed(t.variants, "__")
     is TupleType  -> joined_named("Tup", t.elements, "_")
@@ -246,22 +246,13 @@ kept_argument :: fn(impls: ImplRegistry, t: Type) -> Type | null {
     return t
 }
 
-// The suffix segment of a kept type arg. A primitive's name is global ; an enum's
-// or a struct's is only unique within its module, so two `Status` enums of
-// different modules would otherwise share one instance.
+// The suffix segment of a kept type arg ; an erased one is `Any`.
 kept_suffix :: fn(kept: Type | null) -> string {
-    if kept is EnumType {
-        return module_qualified_name(kept.symbol)
+    if kept == null {
+        return "Any"
     }
-    if kept is StructType && kept.args.is_empty() {
-        return module_qualified_name(kept.symbol)
-    }
-    return if kept == null { "Any" } else { mangle_type_arg(kept) }
+    return mangle_type_arg(kept)
 }
-
-// A nominal type's name as an instance suffix carries it, qualified by its module.
-module_qualified_name :: fn(sym: Symbol) -> string =
-    "${mangle_module_id(sym.module_name)}_${sym.name}"
 
 // True when AT LEAST ONE type arg is one `kept_argument` keeps (the mixed-flavor
 // gate, BROAD — incl `string`/`bool`/`char`, matching `mixed_any_suffix` /

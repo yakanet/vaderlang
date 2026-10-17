@@ -128,16 +128,16 @@ end
 fn 3 snippet$main () -> i32
   i32.const 2
   struct.new 1   ; snippet$P
-  call 7   ; snippet$shown__P
+  call 7   ; snippet$shown__snippet_P
   call 73   ; std_io$println__string
   i32.const 3
   struct.new 1   ; snippet$P
-  call 8   ; snippet$shown_later__P
+  call 8   ; snippet$shown_later__snippet_P
   call 73   ; std_io$println__string
   i32.const 4
   struct.new 1   ; snippet$P
   array.new 8 1   ; snippet$P[]
-  call 10   ; snippet$shown_first__P
+  call 10   ; snippet$shown_first__snippet_P
   call 73   ; std_io$println__string
   i32.const 0
   i32.const 4
@@ -145,7 +145,7 @@ fn 3 snippet$main () -> i32
   bool.const false
   i32.const 0
   struct.new 6   ; std_core$Range__i32
-  call 11   ; snippet$summed__Range_i32_
+  call 11   ; snippet$summed__std_core_Range_i32_
   call 72   ; std_io$println__i32
   i32.const 0
   i32.const 5
@@ -153,7 +153,7 @@ fn 3 snippet$main () -> i32
   bool.const false
   i32.const 0
   struct.new 6   ; std_core$Range__i32
-  call 4   ; snippet$counted__Range_i32_
+  call 4   ; snippet$counted__std_core_Range_i32_
   call 74   ; std_io$println__usize
   i32.const 0
   i32.const 7
@@ -161,12 +161,12 @@ fn 3 snippet$main () -> i32
   bool.const false
   i32.const 0
   struct.new 6   ; std_core$Range__i32
-  call 5   ; snippet$stepped__Range_i32_
+  call 5   ; snippet$stepped__std_core_Range_i32_
   call 72   ; std_io$println__i32
   return.lit i32.const 0
 end
 
-fn 4 snippet$counted__Range_i32_ (ref) -> usize
+fn 4 snippet$counted__std_core_Range_i32_ (ref) -> usize
   local __fuse_iter_0 ref
   local total usize
   local $call_elem_14 u8
@@ -195,7 +195,7 @@ fn 4 snippet$counted__Range_i32_ (ref) -> usize
   return
 end
 
-fn 5 snippet$stepped__Range_i32_ (ref) -> i32
+fn 5 snippet$stepped__std_core_Range_i32_ (ref) -> i32
   local __fuse_iter_0 ref
   local n i32
   local $call_elem_14 u8
@@ -224,7 +224,7 @@ fn 5 snippet$stepped__Range_i32_ (ref) -> i32
   return
 end
 
-fn 6 snippet$first_shown__P (ref) -> string
+fn 6 snippet$first_shown__snippet_P (ref) -> string
   local.get 0   ; arg 0
   i32.const 0
   array.get 8   ; snippet$P[]
@@ -232,13 +232,13 @@ fn 6 snippet$first_shown__P (ref) -> string
   return
 end
 
-fn 7 snippet$shown__P (ref) -> string
+fn 7 snippet$shown__snippet_P (ref) -> string
   local.get 0   ; arg 0
   call 1   ; snippet$show
   return
 end
 
-fn 8 snippet$shown_later__P (ref) -> string
+fn 8 snippet$shown_later__snippet_P (ref) -> string
   local.get 0   ; arg 0
   struct.new 9   ; __lambda_env_snippet_1
   make_closure 9 4   ; __lambda_snippet_0 fn
@@ -252,13 +252,13 @@ fn 9 __lambda_snippet_0 (ref) -> string
   return
 end
 
-fn 10 snippet$shown_first__P (ref) -> string
+fn 10 snippet$shown_first__snippet_P (ref) -> string
   local.get 0   ; arg 0
-  call 6   ; snippet$first_shown__P
+  call 6   ; snippet$first_shown__snippet_P
   return
 end
 
-fn 11 snippet$summed__Range_i32_ (ref) -> i32
+fn 11 snippet$summed__std_core_Range_i32_ (ref) -> i32
   local __fuse_iter_0 ref
   local s i32
   local x i32

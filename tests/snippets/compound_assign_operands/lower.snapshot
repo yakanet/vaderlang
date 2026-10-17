@@ -181,7 +181,7 @@
       @cell(__env_22.cap_0) = usize(2)
       1
   }
-  snippet.bump_nth<Cell> :: fn(c: Cell, i: usize) -> void {  // snippet$bump_nth__Cell
+  snippet.bump_nth<Cell> :: fn(c: Cell, i: usize) -> void {  // snippet$bump_nth__snippet_Cell
       {
           __place_operand_0: usize = snippet.slot(i)
           snippet.Cell.set_at(c, __place_operand_0, snippet.Cell.at(c, __place_operand_0) + 100)

@@ -178,8 +178,8 @@
     struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
     struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
     struct std.collections.MutableMap<Any, i32>  // std_collections$MutableMap__Any__i32
-    struct std.collections.MutableMap<Color, i32>  // std_collections$MutableMap__Color__i32
-    struct std.collections.MutableMap<HttpStatus, string>  // std_collections$MutableMap__HttpStatus__string
+    struct std.collections.MutableMap<Color, i32>  // std_collections$MutableMap__snippet_Color__i32
+    struct std.collections.MutableMap<HttpStatus, string>  // std_collections$MutableMap__snippet_HttpStatus__string
     struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
     struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
     struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32

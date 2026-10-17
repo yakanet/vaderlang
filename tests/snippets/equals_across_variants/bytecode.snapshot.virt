@@ -27,7 +27,7 @@ type 24 array 8
 type 25 primitive void
 type 26 struct std_collections$MutableMap__Any__string { ekeys:29,evals:30,index:31,mask:9,size:9,tombs:9 }
 type 27 union 0,6
-type 28 struct std_collections$MutableMap__Label___Point__string { ekeys:29,evals:30,index:31,mask:9,size:9,tombs:9 }
+type 28 struct std_collections$MutableMap__snippet_Label___snippet_Point__string { ekeys:29,evals:30,index:31,mask:9,size:9,tombs:9 }
 type 29 array 7
 type 30 array 6
 type 31 array 5
@@ -214,7 +214,7 @@ fn 4 snippet$main () -> i32
   local.set 6   ; __off_3
   local.get 0   ; $arr_0
   local.get 3   ; __coalesce_0
-  call 14   ; std_core$[]$Contains$contains__Label___Point
+  call 14   ; std_core$[]$Contains$contains__snippet_Label___snippet_Point
   local.set 7   ; $call_41
   local.get 1   ; $arr_1
   local.get 6   ; __off_3
@@ -447,7 +447,7 @@ fn 13 std_core$write_bool (ref,usize,bool) -> usize
   return
 end
 
-fn 14 std_core$[]$Contains$contains__Label___Point (ref,any) -> bool
+fn 14 std_core$[]$Contains$contains__snippet_Label___snippet_Point (ref,any) -> bool
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize

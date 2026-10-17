@@ -50,56 +50,56 @@
       } :string)
       return 0
   }
-  snippet.relay_method_twice<Circle> :: fn(samples: Circle[], x: Circle | Square) -> bool {  // snippet$relay_method_twice__Circle
+  snippet.relay_method_twice<Circle> :: fn(samples: Circle[], x: Circle | Square) -> bool {  // snippet$relay_method_twice__snippet_Circle
       snippet.relay_method<Circle>(samples, x)
   }
-  snippet.relay_method_twice<Square> :: fn(samples: Square[], x: Circle | Square) -> bool {  // snippet$relay_method_twice__Square
+  snippet.relay_method_twice<Square> :: fn(samples: Square[], x: Circle | Square) -> bool {  // snippet$relay_method_twice__snippet_Square
       snippet.relay_method<Square>(samples, x)
   }
-  snippet.is_a<Circle, Circle | Square> :: fn(x: Circle | Square) -> bool {  // snippet$is_a__Circle__Circle___Square
+  snippet.is_a<Circle, Circle | Square> :: fn(x: Circle | Square) -> bool {  // snippet$is_a__snippet_Circle__snippet_Circle___snippet_Square
       x is Circle
   }
-  snippet.is_a<Square, Circle | Square> :: fn(x: Circle | Square) -> bool {  // snippet$is_a__Square__Circle___Square
+  snippet.is_a<Square, Circle | Square> :: fn(x: Circle | Square) -> bool {  // snippet$is_a__snippet_Square__snippet_Circle___snippet_Square
       x is Square
   }
-  snippet.kind<Circle, Circle | Square> :: fn(x: Circle | Square) -> string {  // snippet$kind__Circle__Circle___Square
+  snippet.kind<Circle, Circle | Square> :: fn(x: Circle | Square) -> string {  // snippet$kind__snippet_Circle__snippet_Circle___snippet_Square
       {
           if x is Circle { "yes" } else { "no" } :string
       } :string
   }
-  snippet.kind<Square, Circle | Square> :: fn(x: Circle | Square) -> string {  // snippet$kind__Square__Circle___Square
+  snippet.kind<Square, Circle | Square> :: fn(x: Circle | Square) -> string {  // snippet$kind__snippet_Square__snippet_Circle___snippet_Square
       {
           if x is Square { "yes" } else { "no" } :string
       } :string
   }
-  snippet.same_kind<Circle, Circle | Square> :: fn(x: Circle | Square, sample: Circle) -> bool {  // snippet$same_kind__Circle__Circle___Square
+  snippet.same_kind<Circle, Circle | Square> :: fn(x: Circle | Square, sample: Circle) -> bool {  // snippet$same_kind__snippet_Circle__snippet_Circle___snippet_Square
       x is Circle
   }
-  snippet.same_kind<Square, Circle | Square> :: fn(x: Circle | Square, sample: Square) -> bool {  // snippet$same_kind__Square__Circle___Square
+  snippet.same_kind<Square, Circle | Square> :: fn(x: Circle | Square, sample: Square) -> bool {  // snippet$same_kind__snippet_Square__snippet_Circle___snippet_Square
       x is Square
   }
-  snippet.relay<Circle, Circle | Square> :: fn(x: Circle | Square, sample: Circle) -> bool {  // snippet$relay__Circle__Circle___Square
+  snippet.relay<Circle, Circle | Square> :: fn(x: Circle | Square, sample: Circle) -> bool {  // snippet$relay__snippet_Circle__snippet_Circle___snippet_Square
       snippet.same_kind<Circle, Circle | Square>(x, sample)
   }
-  snippet.relay<Square, Circle | Square> :: fn(x: Circle | Square, sample: Square) -> bool {  // snippet$relay__Square__Circle___Square
+  snippet.relay<Square, Circle | Square> :: fn(x: Circle | Square, sample: Square) -> bool {  // snippet$relay__snippet_Square__snippet_Circle___snippet_Square
       snippet.same_kind<Square, Circle | Square>(x, sample)
   }
-  snippet.relay_twice<Circle, Circle | Square> :: fn(x: Circle | Square, sample: Circle) -> bool {  // snippet$relay_twice__Circle__Circle___Square
+  snippet.relay_twice<Circle, Circle | Square> :: fn(x: Circle | Square, sample: Circle) -> bool {  // snippet$relay_twice__snippet_Circle__snippet_Circle___snippet_Square
       snippet.relay<Circle, Circle | Square>(x, sample)
   }
-  snippet.relay_twice<Square, Circle | Square> :: fn(x: Circle | Square, sample: Square) -> bool {  // snippet$relay_twice__Square__Circle___Square
+  snippet.relay_twice<Square, Circle | Square> :: fn(x: Circle | Square, sample: Square) -> bool {  // snippet$relay_twice__snippet_Square__snippet_Circle___snippet_Square
       snippet.relay<Square, Circle | Square>(x, sample)
   }
-  snippet.holds_kind<Circle> :: fn(samples: Circle[], x: Circle | Square) -> bool {  // snippet$holds_kind__Circle
+  snippet.holds_kind<Circle> :: fn(samples: Circle[], x: Circle | Square) -> bool {  // snippet$holds_kind__snippet_Circle
       x is Circle
   }
-  snippet.holds_kind<Square> :: fn(samples: Square[], x: Circle | Square) -> bool {  // snippet$holds_kind__Square
+  snippet.holds_kind<Square> :: fn(samples: Square[], x: Circle | Square) -> bool {  // snippet$holds_kind__snippet_Square
       x is Square
   }
-  snippet.relay_method<Circle> :: fn(samples: Circle[], x: Circle | Square) -> bool {  // snippet$relay_method__Circle
+  snippet.relay_method<Circle> :: fn(samples: Circle[], x: Circle | Square) -> bool {  // snippet$relay_method__snippet_Circle
       snippet.holds_kind<Circle>(samples, x)
   }
-  snippet.relay_method<Square> :: fn(samples: Square[], x: Circle | Square) -> bool {  // snippet$relay_method__Square
+  snippet.relay_method<Square> :: fn(samples: Square[], x: Circle | Square) -> bool {  // snippet$relay_method__snippet_Square
       snippet.holds_kind<Square>(samples, x)
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {

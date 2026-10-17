@@ -69,11 +69,11 @@
   snippet.show<Direction> :: fn(value: Direction) -> string {  // snippet$show__snippet_Direction
       concat_3("<", snippet.Direction.to_string(value), ">")
   }
-  snippet.show<Weight> :: fn(value: Weight) -> string {  // snippet$show__snippet_Weight
-      concat_3("<", snippet.Weight.to_string(value), ">")
-  }
   snippet.show<Status> :: fn(value: Status) -> string {  // snippet$show__snippet_Status
       concat_3("<", snippet.Status.to_string(value), ">")
+  }
+  snippet.show<Weight> :: fn(value: Weight) -> string {  // snippet$show__snippet_Weight
+      concat_3("<", snippet.Weight.to_string(value), ">")
   }
   snippet.show<u8> :: fn(value: u8) -> string {  // snippet$show__u8
       {
@@ -137,7 +137,7 @@
     fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.Direction[].to_string  // std_core$[]$Display$to_string__Direction
+    fn std.core.Direction[].to_string  // std_core$[]$Display$to_string__snippet_Direction
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
     fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize

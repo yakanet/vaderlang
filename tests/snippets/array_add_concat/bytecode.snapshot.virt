@@ -264,7 +264,7 @@ fn 2 snippet$main () -> i32
   local.set 1   ; b
   local.get 0   ; a
   local.get 1   ; b
-  call 10   ; std_core$[]$Add$add__Item
+  call 10   ; std_core$[]$Add$add__snippet_Item
   local.tee 0   ; a
   i32.const 0
   array.get 1   ; snippet$Item[]
@@ -650,7 +650,7 @@ fn 9 std_core$[]$Add$add__i32 (ref,ref) -> ref
   return
 end
 
-fn 10 std_core$[]$Add$add__Item (ref,ref) -> ref
+fn 10 std_core$[]$Add$add__snippet_Item (ref,ref) -> ref
   local $arr_2 ref
   local $len_3 usize
   local $len_4 usize

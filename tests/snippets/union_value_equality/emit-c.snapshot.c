@@ -9,7 +9,7 @@ typedef struct vader_struct_snippet_Label_t vader_struct_snippet_Label_t;
 typedef struct vader_struct___Tuple_i32_i32_3103e027_t vader_struct___Tuple_i32_i32_3103e027_t;
 typedef struct vader_struct_snippet_Box__Any_t vader_struct_snippet_Box__Any_t;
 typedef struct vader_struct___Tuple_Any_i32_ad92e87f_t vader_struct___Tuple_Any_i32_ad92e87f_t;
-typedef struct vader_struct_snippet_Box__Point_t vader_struct_snippet_Box__Point_t;
+typedef struct vader_struct_snippet_Box__snippet_Point_t vader_struct_snippet_Box__snippet_Point_t;
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 typedef struct vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t;
 
@@ -35,7 +35,7 @@ struct vader_struct___Tuple_Any_i32_ad92e87f_t {
     vader_box_t f__0;
     int32_t f__1;
 };
-struct vader_struct_snippet_Box__Point_t {
+struct vader_struct_snippet_Box__snippet_Point_t {
     vader_obj_header_t header;
     vader_box_t f_value;
 };
@@ -67,8 +67,8 @@ static bool snippet_Label_Equals_equals(void* l0, void* l1);
 static bool snippet_Pair_Equals_equals(void* l0, void* l1);
 static int32_t snippet_main(void);
 static bool snippet_Box_Equals_equals__Any(void* l0, void* l1);
-static bool snippet_same_opt__Point(vader_box_t l0, vader_box_t l1);
-static bool snippet_same_pair__Point(void* l0, void* l1);
+static bool snippet_same_opt__snippet_Point(vader_box_t l0, vader_box_t l1);
+static bool snippet_same_pair__snippet_Point(void* l0, void* l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static bool snippet_Point_Equals_equals_guard(void* l0, vader_box_t l1);
 static bool snippet_Label_Equals_equals_guard(void* l0, vader_box_t l1);
@@ -132,9 +132,9 @@ const vader_type_info_t vader_type_info_table[28] = {
     },
     [10] = { .slot_size = 16 },
     [11] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Box__Point_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Box__snippet_Point_t),
         .slot_size = 8,
-        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Box__Point_t, f_value) },
+        .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Box__snippet_Point_t, f_value) },
         .ptr_count = 1,
     },
     [12] = { .slot_size = 1 },
@@ -499,13 +499,13 @@ static int32_t snippet_main(void) {
 #line 64 "tests/snippets/union_value_equality/_main.vader"
     l7 = std_core_new_byte_buffer((size_t) 17);
     l8 = (size_t) 0;
-    l9 = snippet_same_opt__Point(vader_ref_box(l0), vader_ref_box(l1));
+    l9 = snippet_same_opt__snippet_Point(vader_ref_box(l0), vader_ref_box(l1));
     l8 = std_core_write_bool(l7, l8, l9);
     l8 = std_core_write_string_at(l7, l8, 2u);
-    l9 = snippet_same_opt__Point(vader_box_obj(0u, NULL), vader_ref_box(l1));
+    l9 = snippet_same_opt__snippet_Point(vader_box_obj(0u, NULL), vader_ref_box(l1));
     l8 = std_core_write_bool(l7, l8, l9);
     l8 = std_core_write_string_at(l7, l8, 2u);
-    l9 = snippet_same_opt__Point(vader_ref_box(l2), vader_ref_box(l1));
+    l9 = snippet_same_opt__snippet_Point(vader_ref_box(l2), vader_ref_box(l1));
     l8 = std_core_write_bool(l7, l8, l9);
     t1 = std_core_finish_buffer(l7, l8);
     std_io_println__string(t1);
@@ -522,7 +522,7 @@ static int32_t snippet_main(void) {
     _a5_obj->f__0 = l1;
     _a5_obj->f__1 = INT32_C(1);
     l11 = (void*) _a5_obj;
-    l9 = snippet_same_pair__Point(l10, l11);
+    l9 = snippet_same_pair__snippet_Point(l10, l11);
     l8 = std_core_write_bool(l7, l8, l9);
     l8 = std_core_write_string_at(l7, l8, 2u);
     vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t* _a6_obj = (vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t));
@@ -535,7 +535,7 @@ static int32_t snippet_main(void) {
     _a7_obj->f__0 = l2;
     _a7_obj->f__1 = INT32_C(1);
     l11 = (void*) _a7_obj;
-    l9 = snippet_same_pair__Point(l10, l11);
+    l9 = snippet_same_pair__snippet_Point(l10, l11);
     l8 = std_core_write_bool(l7, l8, l9);
     t1 = std_core_finish_buffer(l7, l8);
     std_io_println__string(t1);
@@ -721,7 +721,7 @@ static bool snippet_Box_Equals_equals__Any(void* l0, void* l1) {
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static bool snippet_same_opt__Point(vader_box_t l0, vader_box_t l1) {
+static bool snippet_same_opt__snippet_Point(vader_box_t l0, vader_box_t l1) {
     vader_box_t l2 = vader_box_null();
     bool t0;
     vader_box_t* gc_roots[3] = { &l0, &l1, &l2 };
@@ -736,7 +736,7 @@ static bool snippet_same_opt__Point(vader_box_t l0, vader_box_t l1) {
     { vader_gc_top = gc_frame.prev; return false; }
 }
 
-static bool snippet_same_pair__Point(void* l0, void* l1) {
+static bool snippet_same_pair__snippet_Point(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null();
     int32_t l3, l4;
     bool t0;

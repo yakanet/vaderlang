@@ -10,7 +10,7 @@ typedef struct vader_struct_snippet_Box_t vader_struct_snippet_Box_t;
 typedef struct vader_struct_snippet_Holder_t vader_struct_snippet_Holder_t;
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 typedef struct vader_struct_std_collections_MutableMap__string__Any_t vader_struct_std_collections_MutableMap__string__Any_t;
-typedef struct vader_struct_std_collections_MutableMap__string__Label_t vader_struct_std_collections_MutableMap__string__Label_t;
+typedef struct vader_struct_std_collections_MutableMap__string__snippet_Label_t vader_struct_std_collections_MutableMap__string__snippet_Label_t;
 
 struct vader_struct_snippet_Celsius_t {
     vader_obj_header_t header;
@@ -40,7 +40,7 @@ struct vader_struct_std_collections_MutableMap__string__Any_t {
     size_t f_size;
     size_t f_tombs;
 };
-struct vader_struct_std_collections_MutableMap__string__Label_t {
+struct vader_struct_std_collections_MutableMap__string__snippet_Label_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -111,7 +111,7 @@ static vader_string_t snippet_Box_Shower_show(void* l0, void* l1);
 static vader_string_t snippet_through_trait(vader_box_t l0, void* l1);
 static int32_t snippet_main(void);
 static void* __lambda_snippet_0(void* l0);
-static vader_string_t snippet_through_bound__Box(void* l0, void* l1);
+static vader_string_t snippet_through_bound__snippet_Box(void* l0, void* l1);
 static vader_string_t snippet_first__i32(int32_t l0, void* l1);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
@@ -209,8 +209,9 @@ const vader_type_info_t vader_type_info_table[27] = {
     },
     [23] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections_MutableMap__string__Label_t), .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__Label_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__Label_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__Label_t, f_index) },
+        .size = sizeof(vader_struct_std_collections_MutableMap__string__snippet_Label_t),
+        .slot_size = 8,
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__snippet_Label_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__snippet_Label_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__snippet_Label_t, f_index) },
         .ref_count = 3,
     },
     [24] = {
@@ -573,7 +574,7 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a25_obj, 1u);
     _a25_obj->f_v = INT32_C(16);
     l2 = (void*) _a25_obj;
-    l1 = snippet_through_bound__Box(l0, l2);
+    l1 = snippet_through_bound__snippet_Box(l0, l2);
     t1 = concat_3(19u, l1, 6u);
     std_io_println__string(t1);
 #line 79 "tests/snippets/into_at_every_slot/_main.vader"
@@ -609,7 +610,7 @@ static void* __lambda_snippet_0(void* l0) {
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t snippet_through_bound__Box(void* l0, void* l1) {
+static vader_string_t snippet_through_bound__snippet_Box(void* l0, void* l1) {
     void* l2 = NULL;
     vader_string_t t0 = 0;
     void** gc_raw_roots[3] = { &l0, &l1, &l2 };

@@ -42,7 +42,7 @@ type 39 union 26,28
 type 40 union 26,0
 type 41 union 0,1
 type 42 array 31
-type 43 struct std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { ekeys:48,evals:50,index:45,mask:8,size:8,tombs:8 }
+type 43 struct std_collections$MutableMap__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString { ekeys:48,evals:50,index:45,mask:8,size:8,tombs:8 }
 type 44 primitive isize
 type 45 array 3
 type 46 union 10,47
@@ -6001,13 +6001,13 @@ fn 72 json$write_object (ref,ref,i32,i32) -> void
   local.set 4   ; first
   local.field 1 29 0   ; arg 1 json$JsonObject.entries
   local.set 5   ; self
-  local.field 5 43 0   ; self std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString.ekeys
+  local.field 5 43 0   ; self std_collections$MutableMap__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString.ekeys
   local.set 6   ; keys
-  local.field 5 43 1   ; self std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString.evals
+  local.field 5 43 1   ; self std_collections$MutableMap__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString.evals
   local.set 7   ; values
   i64.const 0
   local.set 8   ; i
-  local.field 5 43 4   ; self std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString.size
+  local.field 5 43 4   ; self std_collections$MutableMap__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString.size
   ref.cast 8   ; usize
   local.set 9   ; __for_hi_0
   loop $L1 void

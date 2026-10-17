@@ -143,7 +143,7 @@
     struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
     struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
     struct std.collections.MutableMap<Any, string>  // std_collections$MutableMap__Any__string
-    struct std.collections.MutableMap<Label | Point, string>  // std_collections$MutableMap__Label___Point__string
+    struct std.collections.MutableMap<Label | Point, string>  // std_collections$MutableMap__snippet_Label___snippet_Point__string
     struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
     struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
     struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
@@ -155,7 +155,7 @@
     struct std_collections$__gen_state_std_collections_3
     struct std_collections$__gen_state_std_collections_4
   std/core
-    fn std.core.(Label | Point)[].contains  // std_core$[]$Contains$contains__Label___Point
+    fn std.core.(Label | Point)[].contains  // std_core$[]$Contains$contains__snippet_Label___snippet_Point
     fn std.core.(f64 | string)[].contains  // std_core$[]$Contains$contains__f64___string
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8

@@ -9,10 +9,10 @@
       p: Point = snippet.second<Point>(pts)
       return s + p.x
   }
-  snippet.second<Point> :: fn(xs: Any[]) -> Any {  // snippet$second__Point
+  snippet.second<i32> :: fn(xs: i32[]) -> i32 {  // snippet$second__i32
       xs[1]
   }
-  snippet.second<i32> :: fn(xs: i32[]) -> i32 {  // snippet$second__i32
+  snippet.second<Point> :: fn(xs: Any[]) -> Any {  // snippet$second__snippet_Point
       xs[1]
   }
 

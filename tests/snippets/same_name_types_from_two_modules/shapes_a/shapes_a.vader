@@ -1,0 +1,8 @@
+// A `Point` of its own; `shapes_b` declares another one under the same name.
+module "snippet/shapes_a"
+
+export Point :: struct {
+    x: i32
+}
+
+export make :: fn() -> Point = Point { .x = 1 }

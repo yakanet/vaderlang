@@ -329,7 +329,7 @@
           __off_21 = std.core.write_int(__buf_20, __off_21, snippet.first_over(i64(1000), squares_none))
           std.core.finish_buffer(__buf_20, __off_21)
       } :string)
-      far: __genstate_filter<Point> = std.iter.filter<Point>(std.core.Point[].into(pts), __lambda_snippet_1)
+      far: __genstate_filter<Point> = std.iter.filter<[i32, i32]>(std.core.Point[].into(pts), __lambda_snippet_1)
       near: i32 = ({
           __coalesce_22: null | Point = {
               __fuse_arr_23: Point[] = pts
@@ -371,7 +371,7 @@
           } :Point).x))
           std.core.finish_buffer(__buf_26, __off_27)
       } :string)
-      thirds: __genstate_filter<Point> = std.iter.filter<Point>(std.core.Point[].into(pts), __lambda_snippet_5)
+      thirds: __genstate_filter<Point> = std.iter.filter<[i32, i32]>(std.core.Point[].into(pts), __lambda_snippet_5)
       std.io.println<string>({
           __buf_30: Buffer = std.core.new_byte_buffer(usize(56))
           __off_31: usize = 0
@@ -531,7 +531,7 @@
           __off_43 = std.core.write_int(__buf_42, __off_43, i64(lazy_q._1))
           std.core.finish_buffer(__buf_42, __off_43)
       } :string)
-      tuples: __genstate_filter<[i32, i32]> = std.iter.filter<Point>(std.iter.map<i32, [i32, i32]>(std.core.i32[].into(a), snippet.tens), snippet.big_pair)
+      tuples: __genstate_filter<[i32, i32]> = std.iter.filter<[i32, i32]>(std.iter.map<i32, [i32, i32]>(std.core.i32[].into(a), snippet.tens), snippet.big_pair)
       r: [i32, i32] = {
           __fuse_arr_44: i32[] = a
           f: fn(i32) -> [i32, i32] = snippet.tens
@@ -814,12 +814,12 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
-    fn std.core.Point[].into  // std_core$[]$Into$into__Point
+    fn std.core.Point[].into  // std_core$[]$Into$into__snippet_Point
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
     fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
     fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
-    fn std.core.array_iter<Point>  // std_core$array_iter__Point
+    fn std.core.array_iter<Point>  // std_core$array_iter__snippet_Point
     fn std.core.array_iter<i32>  // std_core$array_iter__i32
     fn std.core.array_iter<string>  // std_core$array_iter__string
     fn std.core.finish_buffer  // std_core$finish_buffer
@@ -858,10 +858,10 @@
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
   std/iter
-    fn std.iter.collect<Point>  // std_iter$collect__Point
-    fn std.iter.filter<Point>  // std_iter$filter__Point
+    fn std.iter.collect<Point>  // std_iter$collect__snippet_Point
+    fn std.iter.filter<[i32, i32]>  // std_iter$filter___i32__i32_
     fn std.iter.filter<i32>  // std_iter$filter__i32
-    fn std.iter.find<Point>  // std_iter$find__Point
+    fn std.iter.find<Point>  // std_iter$find__snippet_Point
     fn std.iter.fold<i64, i64>  // std_iter$fold__i64__i64
     fn std.iter.map<i32, [i32, i32]>  // std_iter$map__i32__Any
     fn std.iter.map<i32, i32>  // std_iter$map__i32__i32

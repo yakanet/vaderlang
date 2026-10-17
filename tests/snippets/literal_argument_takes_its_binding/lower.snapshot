@@ -31,10 +31,10 @@
       } :string)
       return 0
   }
-  snippet.pick<Cfg> :: fn(a: Any, b: Any) -> Any {  // snippet$pick__Cfg
+  snippet.pick<i64> :: fn(a: i64, b: i64) -> i64 {  // snippet$pick__i64
       b
   }
-  snippet.pick<i64> :: fn(a: i64, b: i64) -> i64 {  // snippet$pick__i64
+  snippet.pick<Cfg> :: fn(a: Any, b: Any) -> Any {  // snippet$pick__snippet_Cfg
       b
   }
   snippet.first<i64> :: fn(a: i64, b: i64) -> i64 {  // snippet$first__i64

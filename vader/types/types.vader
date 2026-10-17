@@ -546,8 +546,47 @@ export display_type :: fn(t: Type) -> string {
         _                 -> {}  // fall through for composite types
     }
     sb :: StringBuilder {}
-    sb.write_type(t)
+    sb.write_type(t, false)
     return sb.to_string()
+}
+
+/// `t` rendered as `display_type` renders it, with every nominal type (struct,
+/// trait, enum, distinct) named by its declaring module as well:
+/// `std_collections_MutableMap<string, vader_lexer_Token>`. Two same-named types
+/// of different modules render apart, which an instance name needs.
+///
+/// @param t  the type to render.
+export qualified_display_type :: fn(t: Type) -> string {
+    // @partial: the types rendered by a name they already hold skip the builder.
+    @partial match t {
+        is PrimitiveType           -> { return t.name }
+        is AnyType                 -> { return "Any" }
+        is EnumType | DistinctType -> { return qualified_symbol_name(t.symbol) }
+        is StructType              -> {
+            if t.args.len() == 0 {
+                return qualified_symbol_name(t.symbol)
+            }
+        }
+        _ -> {}
+    }
+    sb :: StringBuilder {}
+    sb.write_type(t, true)
+    return sb.to_string()
+}
+
+/// `sym`'s name prefixed by its declaring module, as an instance name carries it:
+/// `pa_Point`, `std_collections_MutableMap`.
+///
+/// @param sym  a nominal type's declaration symbol.
+export qualified_symbol_name :: fn(sym: Symbol) -> string =
+    "${mangle_module_id(sym.module_name)}_${sym.name}"
+
+// `qualified` names each nominal type by its module (`qualified_display_type`).
+nominal_name :: fn(sym: Symbol, qualified: bool) -> string {
+    if qualified {
+        return qualified_symbol_name(sym)
+    }
+    return sym.name
 }
 
 /// The impl tables' key for a type's BASE — the declaration a nominal type
@@ -576,13 +615,17 @@ export impl_base_key :: fn(t: Type) -> string {
 }
 
 
-write_type :: fn(sb: StringBuilder, t: Type) -> void {
+write_type :: fn(sb: StringBuilder, t: Type, qualified: bool) -> void {
     match t {
         is PrimitiveType  -> { sb.append(t.name) }
-        is StructType     -> { sb.write_named(t.symbol.name, t.args) }
-        is EnumType       -> { sb.append(t.symbol.name) }
-        is DistinctType   -> { sb.append(t.symbol.name) }
-        is TraitType      -> { sb.write_named(t.symbol.name, t.args) }
+        is StructType     -> {
+            sb.write_named(nominal_name(t.symbol, qualified), t.args, qualified)
+        }
+        is EnumType       -> { sb.append(nominal_name(t.symbol, qualified)) }
+        is DistinctType   -> { sb.append(nominal_name(t.symbol, qualified)) }
+        is TraitType      -> {
+            sb.write_named(nominal_name(t.symbol, qualified), t.args, qualified)
+        }
         is TypeParamType  -> { sb.append(t.symbol.name) }
         is TypeMetaType   -> { sb.append("type") }
         is SelfType       -> { sb.append("Self") }
@@ -597,41 +640,41 @@ write_type :: fn(sb: StringBuilder, t: Type) -> void {
             // bare fn types like `fn() -> A`.
             needs_parens :: t.element is UnionType || t.element is FnType
             if needs_parens { sb.append_char('(') }
-            sb.write_type(t.element)
+            sb.write_type(t.element, qualified)
             if needs_parens { sb.append_char(')') }
             sb.append("[]")
         }
         is TupleType -> {
             sb.append_char('[')
-            sb.write_type_list(t.elements, ", ")
+            sb.write_type_list(t.elements, ", ", qualified)
             sb.append_char(']')
         }
         is FnType -> {
             sb.append("fn(")
-            sb.write_type_list(t.params, ", ")
+            sb.write_type_list(t.params, ", ", qualified)
             sb.append(") -> ")
-            sb.write_type(t.return_type)
+            sb.write_type(t.return_type, qualified)
         }
-        is UnionType -> { sb.write_type_list(t.variants, " | ") }
+        is UnionType -> { sb.write_type_list(t.variants, " | ", qualified) }
         is AnyType   -> { sb.append("Any") }
         is InferVar  -> { sb.append(t.origin.name) }
     }
 }
 
-write_named :: fn(sb: StringBuilder, name: string, args: Type[]) -> void {
+write_named :: fn(sb: StringBuilder, name: string, args: Type[], qualified: bool) -> void {
     sb.append(name)
     if args.len() == 0 { return }
     sb.append_char('<')
-    sb.write_type_list(args, ", ")
+    sb.write_type_list(args, ", ", qualified)
     sb.append_char('>')
 }
 
-write_type_list :: fn(sb: StringBuilder, items: Type[], sep: string) -> void {
+write_type_list :: fn(sb: StringBuilder, items: Type[], sep: string, qualified: bool) -> void {
     first := true
     for it in items {
         if !first { sb.append(sep) }
         first = false
-        sb.write_type(it)
+        sb.write_type(it, qualified)
     }
 }
 

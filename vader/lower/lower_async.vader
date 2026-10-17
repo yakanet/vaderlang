@@ -15,11 +15,11 @@
 //      null, .state = entry }`.
 //
 // The state struct + resume fn are pushed to `project.synth_decls`, drained by
-// `lower_module`, and auto-wired into the `Async::resume` vtable by
-// `collect_vtable_entries` (which decodes the `$Async$resume` mangle — no async-
-// specific wiring). The block-split engine (`GenBuild`, states, spill, routing)
-// is shared with `generator` via `lower_coroutine.vader` — the async seams
-// there implement Model A (recursive self-drive): each suspension point stores
+// `lower_module`, and wired into the `Async` vtable by `collect_vtable_entries`
+// through each fn's vtable slot, with no async-specific wiring. The block-split
+// engine (`GenBuild`, states, spill, routing) is shared with `generator` via
+// `lower_coroutine.vader`: the async seams there implement Model A (recursive
+// self-drive): each suspension point stores
 // its child once and re-drives it on every `resume`, reading the completed value
 // back through the child's own `resume` return channel (no external injection).
 
@@ -44,10 +44,11 @@ import "vader/comptime"
 // `self_sym` — each references it only inside its own body, so the shared symbol
 // resolves to each fn's own param slot).
 mk_async_method_decl :: fn(
-    fn_ctx: FnLowerCtx, module_seg: string, state_sym: Symbol, self_sym: Symbol,
+    fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol,
     state_ty: Type, method: string, return_ty: Type, body: LoweredBlock,
 ) -> LoweredFnDecl {
-    mangled :: "${module_seg}$${state_sym.name}$${TRAIT_ASYNC}$${method}"
+    module :: fn_ctx.typed.resolved.display_path
+    mangled :: impl_member_segment_name(module, state_sym.name, TRAIT_ASYNC, method, "")
     sym :: Symbol {
         .id = next_synthetic_id(fn_ctx), .kind = .Fn, .name = mangled,
         .module = fn_ctx.typed.resolved.path, .module_name = fn_ctx.typed.resolved.path, .visibility = .Private, .defined_at = null,
@@ -70,9 +71,12 @@ push_async_decls :: fn(
     resume_ty: Type, resume_body: LoweredBlock, cancel_body: LoweredBlock,
     state_fields: LoweredStructField[],
 ) -> void {
-    module_seg :: mangle_module_id(fn_ctx.typed.resolved.display_path)
-    resume_decl :: mk_async_method_decl(fn_ctx, module_seg, state_sym, self_sym, state_ty, METHOD_RESUME, resume_ty, resume_body)
-    cancel_decl :: mk_async_method_decl(fn_ctx, module_seg, state_sym, self_sym, state_ty, METHOD_CANCEL, TY_VOID, cancel_body)
+    resume_decl :: mk_async_method_decl(
+        fn_ctx, state_sym, self_sym, state_ty, METHOD_RESUME, resume_ty, resume_body,
+    )
+    cancel_decl :: mk_async_method_decl(
+        fn_ctx, state_sym, self_sym, state_ty, METHOD_CANCEL, TY_VOID, cancel_body,
+    )
     state_decl :: LoweredStructDecl {
         .mangled = state_sym.name, .fields = state_fields,
         .origin = synth_mono_entry(fn_ctx, state_sym),

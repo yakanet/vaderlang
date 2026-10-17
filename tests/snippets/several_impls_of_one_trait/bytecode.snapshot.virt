@@ -15,7 +15,7 @@ type 12 struct snippet$Sheet { cells:18 }
 type 13 struct snippet$Rec { a:4,b:4,s:5,t:5,u:5 }
 type 14 struct snippet$Counter { n:4 }
 type 15 primitive u8
-type 16 struct snippet$Wrap__Vec2 { inner:1 }
+type 16 struct snippet$Wrap__snippet_Vec2 { inner:1 }
 type 17 struct snippet$Pile__i32 { top:4 }
 type 18 array 4
 type 19 array 5
@@ -361,7 +361,7 @@ fn 20 snippet$main () -> i32
   call 0   ; snippet$Vec2$Mul$mul
   local.set 3   ; c
   local.get 0   ; v
-  call 26   ; snippet$twice__Vec2
+  call 26   ; snippet$twice__snippet_Vec2
   local.set 4   ; d
   local.field 1 1 0   ; a snippet$Vec2.x
   ref.cast 2   ; f64
@@ -508,10 +508,10 @@ fn 20 snippet$main () -> i32
   call 39   ; std_core$f64$Display$to_string
   local.set 6   ; $call_18
   local.get 1   ; a
-  call 27   ; snippet$say_int__Vec2
+  call 27   ; snippet$say_int__snippet_Vec2
   local.set 7   ; $call_21
   local.get 1   ; a
-  call 28   ; snippet$say_str__Vec2
+  call 28   ; snippet$say_str__snippet_Vec2
   local.set 8   ; $call_24
   local.get 5   ; $call_15
   string.const 11   ; " "
@@ -609,9 +609,9 @@ fn 20 snippet$main () -> i32
   call 34   ; std_core$finish_buffer
   call 61   ; std_io$println__string
   local.get 0   ; v
-  struct.new 16   ; snippet$Wrap__Vec2
+  struct.new 16   ; snippet$Wrap__snippet_Vec2
   local.set 0   ; v
-  call 25   ; snippet$built__Vec2
+  call 25   ; snippet$built__snippet_Vec2
   local.set 1   ; a
   local.get 0   ; v
   call 21   ; snippet$Wrap$Scale$scaled__snippet_Vec2
@@ -806,14 +806,14 @@ fn 20 snippet$main () -> i32
 end
 
 fn 21 snippet$Wrap$Scale$scaled__snippet_Vec2 (ref) -> ref
-  local.field 0 16 0   ; arg 0 snippet$Wrap__Vec2.inner
+  local.field 0 16 0   ; arg 0 snippet$Wrap__snippet_Vec2.inner
   f64.const 2.0 4611686018427387904
   call 0   ; snippet$Vec2$Mul$mul
   return
 end
 
 fn 22 snippet$Wrap$Show$show__snippet_Vec2 (ref) -> string
-  local.field 0 16 0   ; arg 0 snippet$Wrap__Vec2.inner
+  local.field 0 16 0   ; arg 0 snippet$Wrap__snippet_Vec2.inner
   call 12   ; snippet$Vec2$Describe$tag$1
   return
 end
@@ -828,26 +828,26 @@ fn 24 snippet$Pile$Add$add__i32$1 (ref,f64) -> ref
   return
 end
 
-fn 25 snippet$built__Vec2 () -> ref
+fn 25 snippet$built__snippet_Vec2 () -> ref
   string.const 15   ; "s"
   call 9   ; snippet$Vec2$Make$make$1
   return
 end
 
-fn 26 snippet$twice__Vec2 (ref) -> ref
+fn 26 snippet$twice__snippet_Vec2 (ref) -> ref
   local.get 0   ; arg 0
   f64.const 2.0 4611686018427387904
   call 0   ; snippet$Vec2$Mul$mul
   return
 end
 
-fn 27 snippet$say_int__Vec2 (ref) -> string
+fn 27 snippet$say_int__snippet_Vec2 (ref) -> string
   local.get 0   ; arg 0
   call 11   ; snippet$Vec2$Describe$describe
   return
 end
 
-fn 28 snippet$say_str__Vec2 (ref) -> string
+fn 28 snippet$say_str__snippet_Vec2 (ref) -> string
   local.get 0   ; arg 0
   call 13   ; snippet$Vec2$Describe$describe$1
   return

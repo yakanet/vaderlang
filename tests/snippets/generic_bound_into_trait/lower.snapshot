@@ -21,13 +21,13 @@
       std.io.println<string>(snippet.show(snippet.returned<P>(P { .x = 3 })))
       return 0
   }
-  snippet.passed<P> :: fn(x: Any) -> string {  // snippet$passed__P
-      snippet.show(x)
-  }
   snippet.passed<i32> :: fn(x: i32) -> string {  // snippet$passed__i32
       snippet.show(x)
   }
-  snippet.returned<P> :: fn(x: Any) -> Display {  // snippet$returned__P
+  snippet.passed<P> :: fn(x: Any) -> string {  // snippet$passed__snippet_P
+      snippet.show(x)
+  }
+  snippet.returned<P> :: fn(x: Any) -> Display {  // snippet$returned__snippet_P
       return x
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {

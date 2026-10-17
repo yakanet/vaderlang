@@ -98,7 +98,7 @@ surface_stdlib_impl_externs :: fn(
         vtable_receiver_eligible(self_type, project_ctx)
     for member in impl_decl.members {
         if member.type_params.len() > 0 { continue }
-        mangled :: impl_member_mangled(impl_decl, member, typed, project_ctx.impls)
+        mangled :: impl_member_mangled(impl_decl, member, self_type, typed, project_ctx.impls)
         // Only emit members an actual call referenced (direct call → exact
         // mangle) OR an eligible implementor of a virtually-dispatched trait
         // (`vtable_gate`, above) — emitting every stdlib impl member

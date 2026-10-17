@@ -102,7 +102,7 @@
     struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
     struct std.collections.MutableMap<i32, Any>  // std_collections$MutableMap__i32__Any
     struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
-    struct std.collections.MutableMap<i32, i32 | Wrap>  // std_collections$MutableMap__i32__i32___Wrap
+    struct std.collections.MutableMap<i32, i32 | Wrap>  // std_collections$MutableMap__i32__i32___snippet_lib_Wrap
     struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
     struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
     struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any

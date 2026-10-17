@@ -8,7 +8,7 @@ typedef struct vader_struct_snippet_Point_t vader_struct_snippet_Point_t;
 typedef struct vader_struct_snippet_Label_t vader_struct_snippet_Label_t;
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 typedef struct vader_struct_std_collections_MutableMap__Any__string_t vader_struct_std_collections_MutableMap__Any__string_t;
-typedef struct vader_struct_std_collections_MutableMap__Label___Point__string_t vader_struct_std_collections_MutableMap__Label___Point__string_t;
+typedef struct vader_struct_std_collections_MutableMap__snippet_Label___snippet_Point__string_t vader_struct_std_collections_MutableMap__snippet_Label___snippet_Point__string_t;
 
 struct vader_struct_snippet_Point_t {
     vader_obj_header_t header;
@@ -30,7 +30,7 @@ struct vader_struct_std_collections_MutableMap__Any__string_t {
     size_t f_size;
     size_t f_tombs;
 };
-struct vader_struct_std_collections_MutableMap__Label___Point__string_t {
+struct vader_struct_std_collections_MutableMap__snippet_Label___snippet_Point__string_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
@@ -76,7 +76,7 @@ static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_bool(void* l0, size_t l1, bool l2);
-static bool std_core____Contains_contains__Label___Point(void* l0, vader_box_t l1);
+static bool std_core____Contains_contains__snippet_Label___snippet_Point(void* l0, vader_box_t l1);
 static bool std_core____Contains_contains__f64___string(void* l0, vader_box_t l1);
 static uint64_t std_core_i8_Hash_hash(int8_t l0);
 static uint64_t std_core_i16_Hash_hash(int16_t l0);
@@ -173,9 +173,9 @@ const vader_type_info_t vader_type_info_table[32] = {
     [27] = { .slot_size = 16 },
     [28] = {
         .kind = VADER_TYPE_KIND_STRUCT,
-        .size = sizeof(vader_struct_std_collections_MutableMap__Label___Point__string_t),
+        .size = sizeof(vader_struct_std_collections_MutableMap__snippet_Label___snippet_Point__string_t),
         .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__Label___Point__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__Label___Point__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__Label___Point__string_t, f_index) },
+        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__snippet_Label___snippet_Point__string_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__snippet_Label___snippet_Point__string_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__snippet_Label___snippet_Point__string_t, f_index) },
         .ref_count = 3,
     },
     [29] = {
@@ -331,7 +331,7 @@ static int32_t snippet_main(void) {
 #line 36 "tests/snippets/equals_across_variants/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 5);
     l6 = (size_t) 0;
-    l7 = std_core____Contains_contains__Label___Point(l0, l3);
+    l7 = std_core____Contains_contains__snippet_Label___snippet_Point(l0, l3);
     l6 = std_core_write_bool(l1, l6, l7);
     t0 = std_core_finish_buffer(l1, l6);
     std_io_println__string(t0);
@@ -498,7 +498,7 @@ static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     return t0;
 }
 
-static bool std_core____Contains_contains__Label___Point(void* l0, vader_box_t l1) {
+static bool std_core____Contains_contains__snippet_Label___snippet_Point(void* l0, vader_box_t l1) {
     void* l2;
     void* l6;
     void* l7;

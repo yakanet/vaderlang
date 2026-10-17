@@ -542,7 +542,7 @@ fn 7 snippet$main () -> i32
   call 19   ; std_io$println__string
   local.get 3   ; __buf_1
   i64.const 0
-  call 9   ; snippet$bump_nth__Cell
+  call 9   ; snippet$bump_nth__snippet_Cell
   i64.const 30
   call 12   ; std_core$new_byte_buffer
   local.set 5   ; $field_43
@@ -718,7 +718,7 @@ fn 8 __lambda_snippet_0 (ref) -> i32
   return.lit i32.const 1
 end
 
-fn 9 snippet$bump_nth__Cell (ref,usize) -> void
+fn 9 snippet$bump_nth__snippet_Cell (ref,usize) -> void
   local __place_operand_0 usize
   local $add_checked_6 i32
   local.get 1   ; arg 1

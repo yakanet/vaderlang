@@ -117,32 +117,32 @@ end
 fn 2 snippet$main () -> i32
   i32.const 1
   struct.new 1   ; snippet$P
-  call 3   ; snippet$passed__P
+  call 4   ; snippet$passed__snippet_P
   call 63   ; std_io$println__string
   i32.const 7
-  call 4   ; snippet$passed__i32
+  call 3   ; snippet$passed__i32
   call 63   ; std_io$println__string
   i32.const 3
   struct.new 1   ; snippet$P
-  call 5   ; snippet$returned__P
+  call 5   ; snippet$returned__snippet_P
   call 1   ; snippet$show
   call 63   ; std_io$println__string
   return.lit i32.const 0
 end
 
-fn 3 snippet$passed__P (any) -> string
+fn 3 snippet$passed__i32 (i32) -> string
   local.get 0   ; arg 0
   call 1   ; snippet$show
   return
 end
 
-fn 4 snippet$passed__i32 (i32) -> string
+fn 4 snippet$passed__snippet_P (any) -> string
   local.get 0   ; arg 0
   call 1   ; snippet$show
   return
 end
 
-fn 5 snippet$returned__P (any) -> any
+fn 5 snippet$returned__snippet_P (any) -> any
   local.get 0   ; arg 0
   return
 end

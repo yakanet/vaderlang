@@ -170,7 +170,7 @@
     struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
     struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
     struct std.collections.MutableMap<string, Any>  // std_collections$MutableMap__string__Any
-    struct std.collections.MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>  // std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString
+    struct std.collections.MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>  // std_collections$MutableMap__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString
     struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
     struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
     struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32

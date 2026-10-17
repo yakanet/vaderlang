@@ -44,7 +44,7 @@ fn 0 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; sq
-  call 3   ; snippet$is_a__Circle__Circle___Square
+  call 3   ; snippet$is_a__snippet_Circle__snippet_Circle___snippet_Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -57,7 +57,7 @@ fn 0 snippet$main () -> i32
   call 21   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 0   ; sq
-  call 4   ; snippet$is_a__Square__Circle___Square
+  call 4   ; snippet$is_a__snippet_Square__snippet_Circle___snippet_Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -69,10 +69,10 @@ fn 0 snippet$main () -> i32
   call 20   ; std_core$finish_buffer
   call 25   ; std_io$println__string
   local.get 0   ; sq
-  call 5   ; snippet$kind__Circle__Circle___Square
+  call 5   ; snippet$kind__snippet_Circle__snippet_Circle___snippet_Square
   local.set 4   ; $call_15
   local.get 0   ; sq
-  call 6   ; snippet$kind__Square__Circle___Square
+  call 6   ; snippet$kind__snippet_Square__snippet_Circle___snippet_Square
   local.set 5   ; $call_17
   local.get 4   ; $call_15
   string.const 0   ; " "
@@ -89,7 +89,7 @@ fn 0 snippet$main () -> i32
   local.set 6   ; $struct_25
   local.get 0   ; sq
   local.get 6   ; $struct_25
-  call 7   ; snippet$same_kind__Circle__Circle___Square
+  call 7   ; snippet$same_kind__snippet_Circle__snippet_Circle___snippet_Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -106,7 +106,7 @@ fn 0 snippet$main () -> i32
   local.set 6   ; $struct_25
   local.get 0   ; sq
   local.get 6   ; $struct_25
-  call 8   ; snippet$same_kind__Square__Circle___Square
+  call 8   ; snippet$same_kind__snippet_Square__snippet_Circle___snippet_Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -127,7 +127,7 @@ fn 0 snippet$main () -> i32
   local.set 6   ; $struct_25
   local.get 0   ; sq
   local.get 6   ; $struct_25
-  call 9   ; snippet$relay__Circle__Circle___Square
+  call 9   ; snippet$relay__snippet_Circle__snippet_Circle___snippet_Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -144,7 +144,7 @@ fn 0 snippet$main () -> i32
   local.set 6   ; $struct_25
   local.get 0   ; sq
   local.get 6   ; $struct_25
-  call 10   ; snippet$relay__Square__Circle___Square
+  call 10   ; snippet$relay__snippet_Square__snippet_Circle___snippet_Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -165,7 +165,7 @@ fn 0 snippet$main () -> i32
   local.set 6   ; $struct_25
   local.get 0   ; sq
   local.get 6   ; $struct_25
-  call 11   ; snippet$relay_twice__Circle__Circle___Square
+  call 11   ; snippet$relay_twice__snippet_Circle__snippet_Circle___snippet_Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -182,7 +182,7 @@ fn 0 snippet$main () -> i32
   local.set 6   ; $struct_25
   local.get 0   ; sq
   local.get 6   ; $struct_25
-  call 12   ; snippet$relay_twice__Square__Circle___Square
+  call 12   ; snippet$relay_twice__snippet_Square__snippet_Circle___snippet_Square
   local.set 3   ; $call_8
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -208,7 +208,7 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 0   ; sq
-  call 1   ; snippet$relay_method_twice__Circle
+  call 1   ; snippet$relay_method_twice__snippet_Circle
   local.set 3   ; $call_8
   local.get 7   ; __buf_8
   local.get 2   ; __off_1
@@ -222,7 +222,7 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 6   ; $struct_25
   local.get 0   ; sq
-  call 2   ; snippet$relay_method_twice__Square
+  call 2   ; snippet$relay_method_twice__snippet_Square
   local.set 3   ; $call_8
   local.get 7   ; __buf_8
   local.get 2   ; __off_1
@@ -236,33 +236,33 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 snippet$relay_method_twice__Circle (ref,any) -> bool
+fn 1 snippet$relay_method_twice__snippet_Circle (ref,any) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 15   ; snippet$relay_method__Circle
+  call 15   ; snippet$relay_method__snippet_Circle
   return
 end
 
-fn 2 snippet$relay_method_twice__Square (ref,any) -> bool
+fn 2 snippet$relay_method_twice__snippet_Square (ref,any) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 16   ; snippet$relay_method__Square
+  call 16   ; snippet$relay_method__snippet_Square
   return
 end
 
-fn 3 snippet$is_a__Circle__Circle___Square (any) -> bool
+fn 3 snippet$is_a__snippet_Circle__snippet_Circle___snippet_Square (any) -> bool
   local.get 0   ; arg 0
   type_check 3   ; snippet$Circle
   return
 end
 
-fn 4 snippet$is_a__Square__Circle___Square (any) -> bool
+fn 4 snippet$is_a__snippet_Square__snippet_Circle___snippet_Square (any) -> bool
   local.get 0   ; arg 0
   type_check 5   ; snippet$Square
   return
 end
 
-fn 5 snippet$kind__Circle__Circle___Square (any) -> string
+fn 5 snippet$kind__snippet_Circle__snippet_Circle___snippet_Square (any) -> string
   local.get 0   ; arg 0
   type_check 3   ; snippet$Circle
   if $L0 void
@@ -271,7 +271,7 @@ fn 5 snippet$kind__Circle__Circle___Square (any) -> string
   return.lit string.const 2   ; "no"
 end
 
-fn 6 snippet$kind__Square__Circle___Square (any) -> string
+fn 6 snippet$kind__snippet_Square__snippet_Circle___snippet_Square (any) -> string
   local.get 0   ; arg 0
   type_check 5   ; snippet$Square
   if $L0 void
@@ -280,69 +280,69 @@ fn 6 snippet$kind__Square__Circle___Square (any) -> string
   return.lit string.const 2   ; "no"
 end
 
-fn 7 snippet$same_kind__Circle__Circle___Square (any,ref) -> bool
+fn 7 snippet$same_kind__snippet_Circle__snippet_Circle___snippet_Square (any,ref) -> bool
   local.get 0   ; arg 0
   type_check 3   ; snippet$Circle
   return
 end
 
-fn 8 snippet$same_kind__Square__Circle___Square (any,ref) -> bool
+fn 8 snippet$same_kind__snippet_Square__snippet_Circle___snippet_Square (any,ref) -> bool
   local.get 0   ; arg 0
   type_check 5   ; snippet$Square
   return
 end
 
-fn 9 snippet$relay__Circle__Circle___Square (any,ref) -> bool
+fn 9 snippet$relay__snippet_Circle__snippet_Circle___snippet_Square (any,ref) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 7   ; snippet$same_kind__Circle__Circle___Square
+  call 7   ; snippet$same_kind__snippet_Circle__snippet_Circle___snippet_Square
   return
 end
 
-fn 10 snippet$relay__Square__Circle___Square (any,ref) -> bool
+fn 10 snippet$relay__snippet_Square__snippet_Circle___snippet_Square (any,ref) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 8   ; snippet$same_kind__Square__Circle___Square
+  call 8   ; snippet$same_kind__snippet_Square__snippet_Circle___snippet_Square
   return
 end
 
-fn 11 snippet$relay_twice__Circle__Circle___Square (any,ref) -> bool
+fn 11 snippet$relay_twice__snippet_Circle__snippet_Circle___snippet_Square (any,ref) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 9   ; snippet$relay__Circle__Circle___Square
+  call 9   ; snippet$relay__snippet_Circle__snippet_Circle___snippet_Square
   return
 end
 
-fn 12 snippet$relay_twice__Square__Circle___Square (any,ref) -> bool
+fn 12 snippet$relay_twice__snippet_Square__snippet_Circle___snippet_Square (any,ref) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 10   ; snippet$relay__Square__Circle___Square
+  call 10   ; snippet$relay__snippet_Square__snippet_Circle___snippet_Square
   return
 end
 
-fn 13 snippet$holds_kind__Circle (ref,any) -> bool
+fn 13 snippet$holds_kind__snippet_Circle (ref,any) -> bool
   local.get 1   ; arg 1
   type_check 3   ; snippet$Circle
   return
 end
 
-fn 14 snippet$holds_kind__Square (ref,any) -> bool
+fn 14 snippet$holds_kind__snippet_Square (ref,any) -> bool
   local.get 1   ; arg 1
   type_check 5   ; snippet$Square
   return
 end
 
-fn 15 snippet$relay_method__Circle (ref,any) -> bool
+fn 15 snippet$relay_method__snippet_Circle (ref,any) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 13   ; snippet$holds_kind__Circle
+  call 13   ; snippet$holds_kind__snippet_Circle
   return
 end
 
-fn 16 snippet$relay_method__Square (ref,any) -> bool
+fn 16 snippet$relay_method__snippet_Square (ref,any) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 14   ; snippet$holds_kind__Square
+  call 14   ; snippet$holds_kind__snippet_Square
   return
 end
 

@@ -1,6 +1,6 @@
 // vader/comptime/mangle — mangled-name + sanitisation helpers.
 //
-// Holds the shared helpers `mangle`, `mangle_type_arg`, `for_type_name`,
+// Holds the shared helpers `mangle`, `mangle_type_arg`,
 // `sanitise_ident`, `uniq`, consumed across the lowerer and bytecode emit
 // to build stable concrete-instance names.
 //
@@ -16,7 +16,6 @@ module "vader/comptime"
 
 import "std/collections"
 import "std/string_builder"
-import "toolchain/ast"
 import "vader/types"
 import "vader/text"
 
@@ -56,16 +55,18 @@ export mangle :: fn(decl_name: string, module_path: string, type_arguments: Type
     return "${sb}"
 }
 
-/// Mangle segment for a single type argument : `sanitise_ident(display_
-/// type(t))`. Shared by `mangle` and the lowerer's fn-instance /
-/// struct-instance suffixes so erased args render `Any` and nested
-/// generics survive (`Box<Box<i32>>` → `Box_i32_`). A bare type-name
-/// fallback collapses `Any`/nested args and breaks dedup parity.
+/// Mangle segment for a single type argument : `sanitise_ident(qualified_
+/// display_type(t))`. Shared by `mangle` and the lowerer's fn-instance /
+/// struct-instance suffixes so erased args render `Any`, nested generics
+/// survive (`Box<Box<i32>>` → `snippet_Box_snippet_Box_i32__`), and two
+/// same-named types of different modules name two instances. A bare
+/// type-name fallback collapses `Any`/nested args and breaks dedup parity.
 // A distinct (newtype) has no backend identity — it mangles as its backing so
 // every instance name (call site, struct literal, allocation, dispatch) is
 // consistent with the source-stripped instance entries. `strip_distinct`
 // handles nesting (`MutableMap<BlockId>` → `MutableMap<i32>`).
-export mangle_type_arg :: fn(t: Type) -> string = sanitise_ident(display_type(strip_distinct(t)))
+export mangle_type_arg :: fn(t: Type) -> string =
+    sanitise_ident(qualified_display_type(strip_distinct(t)))
 
 /// Replace every byte outside `[A-Za-z0-9_]` with `_`. Distinct from
 /// `vader/c_emit/body.sanitise` — the C-emit variant additionally
@@ -117,35 +118,9 @@ export uniq :: fn(seen: MutableMap<string, bool>, candidate: string) -> string {
     return candidate
 }
 
-/// Name part used for impl-member mangling (`<for_type>$<trait>$<method>`).
-/// Returns `"?"` for the rare degenerate TypeExpr shapes (lambda / fn-type in
-/// impl position) — the resulting mangled name carries the literal `?`
-/// so a downstream consumer can spot it.
-///
-/// @param t  the type expression in an `impl <for_type> { ... }` clause.
-/// @return   the bare type name, or `"?"` when not extractable.
-// @partial: only Ident / GenericInst callees yield a mangled name; other type-expr shapes → "?".
-export for_type_name :: fn(t: TypeExpr) -> string = @partial match t {
-    is IdentExpr       -> t.name
-    is GenericInstExpr -> generic_callee_name(t)
-    _                  -> "?"
-}
-
-/// Pull the bare name out of a `GenericInstExpr` whose callee is an
-/// IdentExpr (`Foo<T>` form). Falls back to `"?"` for unusual shapes
-/// (`Mod.Foo<T>`, `(fn() -> i32)[T]`, …).
-// @partial: only an IdentExpr callee yields a bare name; other callee shapes
-// fall to the "?" sentinel.
-generic_callee_name :: fn(gi: GenericInstExpr) -> string = @partial match gi.callee as ident {
-    is IdentExpr -> ident.name
-    _            -> "?"
-}
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/diagnostics"
-import "toolchain/span"
 
 @test test_mangle_non_generic_same_name :: fn() -> void {
     args: Type[]: []
@@ -192,19 +167,3 @@ import "toolchain/span"
     assert_eq(uniq(seen, "foo"), "foo_2")
 }
 
-@test test_for_type_name_ident :: fn() -> void {
-    p :: Position { .file = "<test>", .offset = 0, .line = 1, .column = 1 }
-    sp :: Span { .start = p, .end = p }
-    // Set `.id` explicitly — the host lowerer's foreign-default
-    // expansion stumbles when an imported const (here `UNASSIGNED_NODE_ID`
-    // from `vader/parser/ast`) is referenced from a default field value
-    // in a struct lit, and lands the whole fn on `LoweredUnreachable`.
-    ident :: IdentExpr {
-        .span                = sp,
-        .id                  = 0,
-        .name                = "Pair",
-        .implicit_dot        = false,
-        .is_type_param_intro = false,
-    }
-    assert_eq(for_type_name(ident), "Pair")
-}

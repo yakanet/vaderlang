@@ -71,7 +71,7 @@ static bool snippet_Bag_Contains_contains(void* l0, int64_t l1);
 static bool snippet_has_big_value(vader_box_t l0);
 static bool snippet_listed(size_t l0, int64_t l1);
 static int32_t snippet_main(void);
-static bool snippet_has_big__Bag(void* l0);
+static bool snippet_has_big__snippet_Bag(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static bool std_core_Range_Contains_contains__i32(void* l0, int32_t l1);
 static bool std_core_Range_Contains_contains__i64(void* l0, int64_t l1);
@@ -351,7 +351,7 @@ static int32_t snippet_main(void) {
 #line 42 "tests/snippets/in_range_element/_main.vader"
     l5 = std_core_new_byte_buffer((size_t) 11);
     l3 = (size_t) 0;
-    l4 = snippet_has_big__Bag(l2);
+    l4 = snippet_has_big__snippet_Bag(l2);
     l3 = std_core_write_bool(l5, l3, l4);
     l3 = std_core_write_string_at(l5, l3, 1u);
     l4 = snippet_has_big_value(vader_ref_box(l2));
@@ -378,7 +378,7 @@ static int32_t snippet_main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static bool snippet_has_big__Bag(void* l0) {
+static bool snippet_has_big__snippet_Bag(void* l0) {
     bool t0;
 #line 28 "tests/snippets/in_range_element/_main.vader"
     t0 = snippet_Bag_Contains_contains(l0, INT64_C(4000000000));

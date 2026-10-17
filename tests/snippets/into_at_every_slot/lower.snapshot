@@ -119,7 +119,7 @@
   __lambda_snippet_0 :: fn(c: Celsius) -> Label {
       snippet$Celsius$Into$into(c)
   }
-  snippet.through_bound<Box> :: fn(s: Box, c: Celsius) -> string {  // snippet$through_bound__Box
+  snippet.through_bound<Box> :: fn(s: Box, c: Celsius) -> string {  // snippet$through_bound__snippet_Box
       snippet.Box.show(s, snippet$Celsius$Into$into(c))
   }
   snippet.first<i32> :: fn(x: i32, l: Label) -> string {  // snippet$first__i32
@@ -204,7 +204,7 @@
     struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
     struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
     struct std.collections.MutableMap<string, Any>  // std_collections$MutableMap__string__Any
-    struct std.collections.MutableMap<string, Label>  // std_collections$MutableMap__string__Label
+    struct std.collections.MutableMap<string, Label>  // std_collections$MutableMap__string__snippet_Label
     struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
     struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
     struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32

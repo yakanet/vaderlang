@@ -64,7 +64,7 @@ queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
     // queued instance must match the registry's raw backing instance, not a
     // separate distinct one. Distinct ends at the lowering boundary.
     mono_args :: strip_distinct_each(recv.args)
-    recv_key :: "${recv.symbol.name}${mixed_any_suffix(ctx.project.impls, mono_args)}"
+    recv_key :: "#${recv.symbol.id}${mixed_any_suffix(ctx.project.impls, mono_args)}"
     if ctx.project.seen_generic_impl_recv.contains(recv_key) { return }
     ctx.project.seen_generic_impl_recv.add(recv_key)
     ctx.project.pending_generic_impl_recv.push(GenericInstance {
@@ -104,8 +104,7 @@ resolve_impl_member :: fn(
     trait_key: string,
     name: string,
 ) -> UfcsMember | null {
-    target_name :: type_surface_name(target_type)
-    if target_name == "" { return null }
+    if type_surface_name(target_type) == "" { return null }
     target :: impl_base_key(target_type)
     fallback: ImplMemberMatch | null = null
     candidates: ImplEntry[]: if trait_key == "" { ctx.project.impls.impls_on(target) } else {
@@ -115,15 +114,13 @@ resolve_impl_member :: fn(
         decl :: entry.decl
         m :: select_member(entry, name) ?? continue
         if !impl_is_intrinsic(decl) {
-            return build_ufcs_member(ctx, target_type, target_name, m, entry, is_identity_member(m))
+            return build_ufcs_member(ctx, target_type, m, entry, is_identity_member(m))
         }
         // An `@intrinsic` fallback is bodyless → never an inlineable identity.
         if fallback == null { fallback = ImplMemberMatch { .entry = entry, .member = m } }
     }
     if fallback != null {
-        return build_ufcs_member(
-            ctx, target_type, target_name, fallback.member, fallback.entry, false,
-        )
+        return build_ufcs_member(ctx, target_type, fallback.member, fallback.entry, false)
     }
     return null
 }
@@ -185,7 +182,6 @@ receiver_suffix :: fn(ctx: FnLowerCtx, entry: ImplEntry, target_type: Type) -> s
 build_ufcs_member :: fn(
     ctx: FnLowerCtx,
     target_type: Type,
-    target_name: string,
     member: FnDecl,
     entry: ImplEntry,
     is_identity: bool,
@@ -205,10 +201,8 @@ build_ufcs_member :: fn(
     //
     // Then what tells its members from another impl of the trait on that base
     // (`ImplEntry.overload_suffix`), as every materialiser names them.
-    impl_name :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}"
-    suffix :: receiver_suffix(ctx, entry, target_type)
-    overload :: entry.overload_suffix
-    mangled :: "${impl_name}$${member.name}${suffix}${overload}"
+    suffix :: "${receiver_suffix(ctx, entry, target_type)}${entry.overload_suffix}"
+    mangled :: impl_member_name(entry.module, target_type, decl.trait_name, member.name, suffix)
     // Record the call so the post-lowering pass surfaces referenced stdlib impl
     // members : bodyless (`@intrinsic`) → import ; with-body (e.g. `i32
     // implements Hash -> u64(self)`) → materialised real fn.
@@ -351,8 +345,7 @@ member_named :: fn(
     name: string,
 ) -> UfcsMember | null {
     m :: select_member(entry, name) ?? return null
-    surface :: type_surface_name(receiver)
-    return build_ufcs_member(ctx, receiver, surface, m, entry, is_identity_member(m))
+    return build_ufcs_member(ctx, receiver, m, entry, is_identity_member(m))
 }
 
 /// True when an `@intrinsic` impl. Lets a user impl shadow the builtin in
@@ -363,6 +356,35 @@ impl_is_intrinsic :: fn(decl: ImplDecl) -> bool {
         if d.name == "intrinsic" { return true }
     }
     return false
+}
+
+// The name of an impl member : the impl's module, its target segment, its trait,
+// the member, then what tells it from its siblings. With `impl_member_segment_name`,
+// the one place that spells the scheme, so the call sites and the materialisers
+// name each member alike.
+impl_member_name :: fn(
+    impl_module: string, target: Type, trait_name: string, member: string, suffix: string,
+) -> string {
+    segment :: impl_target_segment(impl_module, target)
+    return impl_member_segment_name(impl_module, segment, trait_name, member, suffix)
+}
+
+// The scheme over a target segment already chosen : a state struct the lowering
+// synthesises lives in the module that lowers it, so its bare name is its segment.
+impl_member_segment_name :: fn(
+    impl_module: string, segment: string, trait_name: string, member: string, suffix: string,
+) -> string = "${mangle_module_id(impl_module)}$${segment}$${trait_name}$${member}${suffix}"
+
+// The target segment of an impl member's name. A nominal target declared in the
+// impl's own module keeps its bare name ; one declared elsewhere is qualified by
+// its module, so impls of one trait for `pa.Point` and `pb.Point` written in the
+// same module name apart.
+impl_target_segment :: fn(impl_module: string, target: Type) -> string {
+    sym :: type_to_target_symbol(target) ?? return type_surface_name(target)
+    if sym.module_name == impl_module {
+        return sym.name
+    }
+    return qualified_symbol_name(sym)
 }
 
 // Nominal token a receiver type registers UFCS impls under. Exhaustive over

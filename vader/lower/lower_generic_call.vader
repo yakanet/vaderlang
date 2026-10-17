@@ -164,13 +164,12 @@ mono_suffix :: fn(args: Type[]) -> string {
     return sb.to_string()
 }
 
-// A type argument as it names an instance. A distinct keeps its own name, since
-// one reaching here is kept by a concrete instance (`instance_type_args`) whose
-// body is not its backing's ; an enum or a distinct is qualified by its module,
-// its name being unique only there.
-// @partial: any other type is named by its display key.
-mangle_instance_arg :: fn(t: Type) -> string = @partial match t {
-    is EnumType     -> module_qualified_name(t.symbol)
-    is DistinctType -> module_qualified_name(t.symbol)
-    _               -> mangle_type_arg(t)
+// A type argument as it names an instance. A distinct keeps its own name rather
+// than its backing's, since one reaching here is kept by a concrete instance
+// (`instance_type_args`) whose body is not its backing's.
+mangle_instance_arg :: fn(t: Type) -> string {
+    if t is DistinctType {
+        return qualified_symbol_name(t.symbol)
+    }
+    return mangle_type_arg(t)
 }

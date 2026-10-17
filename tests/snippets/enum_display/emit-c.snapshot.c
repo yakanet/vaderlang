@@ -852,8 +852,8 @@ static int32_t snippet_main(void);
 static vader_string_t snippet_Direction_Display_to_string(uint8_t l0);
 static vader_string_t snippet_Status_Display_to_string(uint8_t l0);
 static vader_string_t snippet_show__snippet_Direction(uint8_t l0);
-static vader_string_t snippet_show__snippet_Weight(uint8_t l0);
 static vader_string_t snippet_show__snippet_Status(uint8_t l0);
+static vader_string_t snippet_show__snippet_Weight(uint8_t l0);
 static vader_string_t snippet_show__u8(uint8_t l0);
 static vader_string_t snippet_pair__snippet_Direction(uint8_t l0, uint8_t l1);
 static vader_string_t snippet_listed__snippet_Direction(void* l0);
@@ -865,7 +865,7 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2);
-static vader_string_t std_core____Display_to_string__Direction(void* l0);
+static vader_string_t std_core____Display_to_string__snippet_Direction(void* l0);
 static vader_string_t std_core_i8_Display_to_string(int8_t l0);
 static vader_string_t std_core_i16_Display_to_string(int16_t l0);
 static vader_string_t std_core_i32_Display_to_string(int32_t l0);
@@ -1077,7 +1077,7 @@ static int32_t snippet_main(void) {
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (uint8_t) INT32_C(3);
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (uint8_t) INT32_C(0);
     t2 = (void*) _a0_arr;
-    t0 = std_core____Display_to_string__Direction(t2);
+    t0 = std_core____Display_to_string__snippet_Direction(t2);
     std_io_println__string(t0);
 #line 45 "tests/snippets/enum_display/_main.vader"
     l1 = snippet_Status_Display_to_string((uint8_t) 1);
@@ -1173,18 +1173,6 @@ static vader_string_t snippet_show__snippet_Direction(uint8_t l0) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t snippet_show__snippet_Weight(uint8_t l0) {
-    vader_string_t l1 = 0;
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
-#line 27 "tests/snippets/enum_display/_main.vader"
-    l1 = snippet_Weight_Display_to_string(l0);
-    t0 = concat_3(11u, l1, 12u);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
 static vader_string_t snippet_show__snippet_Status(uint8_t l0) {
     vader_string_t l1 = 0;
     vader_string_t t0 = 0;
@@ -1193,6 +1181,18 @@ static vader_string_t snippet_show__snippet_Status(uint8_t l0) {
     vader_gc_top = &gc_frame;
 #line 27 "tests/snippets/enum_display/_main.vader"
     l1 = snippet_Status_Display_to_string(l0);
+    t0 = concat_3(11u, l1, 12u);
+    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static vader_string_t snippet_show__snippet_Weight(uint8_t l0) {
+    vader_string_t l1 = 0;
+    vader_string_t t0 = 0;
+    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
+    vader_gc_top = &gc_frame;
+#line 27 "tests/snippets/enum_display/_main.vader"
+    l1 = snippet_Weight_Display_to_string(l0);
     t0 = concat_3(11u, l1, 12u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1244,7 +1244,7 @@ static vader_string_t snippet_listed__snippet_Direction(void* l0) {
     };
     vader_gc_top = &gc_frame;
 #line 31 "tests/snippets/enum_display/_main.vader"
-    t0 = std_core____Display_to_string__Direction(l0);
+    t0 = std_core____Display_to_string__snippet_Direction(l0);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1492,7 +1492,7 @@ static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2) {
     return (size_t) (int64_t) t0;
 }
 
-static vader_string_t std_core____Display_to_string__Direction(void* l0) {
+static vader_string_t std_core____Display_to_string__snippet_Direction(void* l0) {
     void* l1 = NULL;
     void* l3 = NULL;
     size_t l2, l4, l5, l7;
@@ -3619,7 +3619,7 @@ static void std_io_println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv) {
     switch (recv.tag) {
-        case 7u: return std_core____Display_to_string__Direction(recv.payload.obj);
+        case 7u: return std_core____Display_to_string__snippet_Direction(recv.payload.obj);
         case 12u: return std_core_i8_Display_to_string(((int8_t) recv.payload.i));
         case 13u: return std_core_i16_Display_to_string(((int16_t) recv.payload.i));
         case 6u: return std_core_i32_Display_to_string(((int32_t) recv.payload.i));

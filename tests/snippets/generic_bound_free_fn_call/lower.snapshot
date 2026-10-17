@@ -45,7 +45,7 @@
       }))
       return 0
   }
-  snippet.counted<Range<i32>> :: fn(it: Range<i32>) -> usize {  // snippet$counted__Range_i32_
+  snippet.counted<Range<i32>> :: fn(it: Range<i32>) -> usize {  // snippet$counted__std_core_Range_i32_
       {
           __fuse_iter_0: Range<i32> = it
           total: usize = 0
@@ -63,7 +63,7 @@
           total
       } :usize
   }
-  snippet.stepped<Range<i32>> :: fn(it: Range<i32>) -> i32 {  // snippet$stepped__Range_i32_
+  snippet.stepped<Range<i32>> :: fn(it: Range<i32>) -> i32 {  // snippet$stepped__std_core_Range_i32_
       {
           __fuse_iter_0: Range<i32> = it
           n: i32 = 0
@@ -81,23 +81,23 @@
           n
       } :i32
   }
-  snippet.first_shown<P> :: fn(xs: P[]) -> string {  // snippet$first_shown__P
+  snippet.first_shown<P> :: fn(xs: P[]) -> string {  // snippet$first_shown__snippet_P
       snippet.show(xs[0])
   }
-  snippet.shown<P> :: fn(x: P) -> string {  // snippet$shown__P
+  snippet.shown<P> :: fn(x: P) -> string {  // snippet$shown__snippet_P
       snippet.show(x)
   }
-  snippet.shown_later<P> :: fn(x: P) -> string {  // snippet$shown_later__P
+  snippet.shown_later<P> :: fn(x: P) -> string {  // snippet$shown_later__snippet_P
       snippet.apply(@closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = x }))
   }
   __lambda_env_snippet_1 :: struct { cap_0: P }
   __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1) -> string {
       snippet.show(__env_0.cap_0)
   }
-  snippet.shown_first<P> :: fn(xs: P[]) -> string {  // snippet$shown_first__P
+  snippet.shown_first<P> :: fn(xs: P[]) -> string {  // snippet$shown_first__snippet_P
       snippet.first_shown<P>(xs)
   }
-  snippet.summed<Range<i32>> :: fn(it: Range<i32>) -> i32 {  // snippet$summed__Range_i32_
+  snippet.summed<Range<i32>> :: fn(it: Range<i32>) -> i32 {  // snippet$summed__std_core_Range_i32_
       {
           __fuse_iter_0: Range<i32> = it
           s: i32 = std_core$i32$Zero$zero()

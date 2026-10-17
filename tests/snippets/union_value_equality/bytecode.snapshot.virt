@@ -10,7 +10,7 @@ type 7 union 8,0
 type 8 ref _
 type 9 struct __Tuple_Any_i32_ad92e87f { _0:8,_1:5 }
 type 10 primitive string
-type 11 struct snippet$Box__Point { value:8 }
+type 11 struct snippet$Box__snippet_Point { value:8 }
 type 12 primitive u8
 type 13 primitive usize
 type 14 struct std_core$Buffer {  }
@@ -691,7 +691,7 @@ fn 3 snippet$main () -> i32
   local.set 8   ; __off_1
   local.get 0   ; p
   local.get 1   ; q
-  call 5   ; snippet$same_opt__Point
+  call 5   ; snippet$same_opt__snippet_Point
   local.set 9   ; and_res
   local.get 7   ; __buf_0
   local.get 8   ; __off_1
@@ -705,7 +705,7 @@ fn 3 snippet$main () -> i32
   local.set 8   ; __off_1
   null.const
   local.get 1   ; q
-  call 5   ; snippet$same_opt__Point
+  call 5   ; snippet$same_opt__snippet_Point
   local.set 9   ; and_res
   local.get 7   ; __buf_0
   local.get 8   ; __off_1
@@ -719,7 +719,7 @@ fn 3 snippet$main () -> i32
   local.set 8   ; __off_1
   local.get 2   ; r
   local.get 1   ; q
-  call 5   ; snippet$same_opt__Point
+  call 5   ; snippet$same_opt__snippet_Point
   local.set 9   ; and_res
   local.get 7   ; __buf_0
   local.get 8   ; __off_1
@@ -745,7 +745,7 @@ fn 3 snippet$main () -> i32
   local.set 11   ; $cast_26
   local.get 10   ; $cast_25
   local.get 11   ; $cast_26
-  call 6   ; snippet$same_pair__Point
+  call 6   ; snippet$same_pair__snippet_Point
   local.set 9   ; and_res
   local.get 7   ; __buf_0
   local.get 8   ; __off_1
@@ -767,7 +767,7 @@ fn 3 snippet$main () -> i32
   local.set 11   ; $cast_26
   local.get 10   ; $cast_25
   local.get 11   ; $cast_26
-  call 6   ; snippet$same_pair__Point
+  call 6   ; snippet$same_pair__snippet_Point
   local.set 9   ; and_res
   local.get 7   ; __buf_0
   local.get 8   ; __off_1
@@ -1038,7 +1038,7 @@ fn 3 snippet$main () -> i32
   bool.not
   if $L46 void
     local.get 3   ; s1
-    ref.cast 11   ; snippet$Box__Point
+    ref.cast 11   ; snippet$Box__snippet_Point
     local.get 1   ; q
     call 4   ; snippet$Box$Equals$equals__Any
     local.set 9   ; and_res
@@ -1064,7 +1064,7 @@ fn 3 snippet$main () -> i32
   bool.not
   if $L47 void
     local.get 3   ; s1
-    ref.cast 11   ; snippet$Box__Point
+    ref.cast 11   ; snippet$Box__snippet_Point
     local.get 1   ; q
     call 4   ; snippet$Box$Equals$equals__Any
     local.set 9   ; and_res
@@ -1120,7 +1120,7 @@ fn 4 snippet$Box$Equals$equals__Any (ref,ref) -> bool
   return
 end
 
-fn 5 snippet$same_opt__Point (any,any) -> bool
+fn 5 snippet$same_opt__snippet_Point (any,any) -> bool
   local $cast_5 any
   local.get 0   ; arg 0
   type_check 0   ; null
@@ -1136,7 +1136,7 @@ fn 5 snippet$same_opt__Point (any,any) -> bool
   return.lit bool.const false
 end
 
-fn 6 snippet$same_pair__Point (ref,ref) -> bool
+fn 6 snippet$same_pair__snippet_Point (ref,ref) -> bool
   local $field_2 any
   local $field_6 i32
   local $field_7 i32

@@ -61,7 +61,7 @@ fn 2 snippet$main () -> i32
   local.set 1   ; $idx_5
   local.get 0   ; local
   local.get 1   ; $idx_5
-  call 3   ; snippet$pick__Cfg
+  call 3   ; snippet$pick__i32__
   local.set 0   ; local
   call 1   ; snippet$make
   local.set 1   ; $idx_5
@@ -69,11 +69,11 @@ fn 2 snippet$main () -> i32
   local.set 2   ; $data_const_10
   local.get 1   ; $idx_5
   local.get 2   ; $data_const_10
-  call 3   ; snippet$pick__Cfg
+  call 3   ; snippet$pick__i32__
   local.set 2   ; $data_const_10
   data.const 1 1   ; pool[1] i32[]
   local.get 1   ; $idx_5
-  call 3   ; snippet$pick__Cfg
+  call 3   ; snippet$pick__i32__
   local.set 3   ; t
   call 0   ; __const_snippet$LIST
   local.set 4   ; $const_init_16
@@ -179,7 +179,7 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 snippet$pick__Cfg (any,any) -> any
+fn 3 snippet$pick__i32__ (any,any) -> any
   local.get 1   ; arg 1
   return
 end

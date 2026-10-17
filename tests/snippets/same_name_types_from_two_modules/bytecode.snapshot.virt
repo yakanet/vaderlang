@@ -1,0 +1,530 @@
+module _main
+type 0 primitive null
+type 1 struct snippet_shapes_a$Point { x:5 }
+type 2 primitive string
+type 3 struct snippet_shapes_b$Point { name:2 }
+type 4 ref snippet$Describe
+type 5 primitive i32
+type 6 ref _
+type 7 struct snippet$Box__Any { v:6 }
+type 8 union 1,3
+type 9 primitive bool
+type 10 struct snippet$Box__snippet_shapes_a_Point { v:6 }
+type 11 struct snippet$Box__snippet_shapes_b_Point { v:6 }
+type 12 primitive u8
+type 13 primitive usize
+type 14 struct std_core$Buffer {  }
+type 15 primitive i64
+type 16 array 12
+type 17 primitive void
+type 18 primitive isize
+string 0 "a point at "
+string 1 "a point named "
+string 2 " "
+string 3 "true"
+string 4 "false"
+string 5 "\n"
+string 6 "b"
+import 0 byte_len std_core$byte_len result_type=13 param_types=2 param_c_out= param_by_address= (string) -> usize
+import 1 bytes std_core$bytes result_type=16 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=5,16,13 param_c_out= param_by_address= (i32,ref,usize) -> isize
+impl 1 snippet$Describe
+impl 3 snippet$Describe
+impl 14 std_core$ByteAccess
+vtable snippet$Describe.describe 1 0
+vtable snippet$Describe.describe 3 1
+export main 3
+
+fn 0 snippet$snippet_shapes_a_Point$Describe$describe (ref) -> string
+  local __buf_0 ref
+  local __off_1 usize
+  local $cast_9 i64
+  i64.const 31
+  call 8   ; std_core$new_byte_buffer
+  local.set 1   ; __buf_0
+  i64.const 0
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  string.const 0   ; "a point at "
+  call 10   ; std_core$write_string_at
+  local.set 2   ; __off_1
+  local.field 0 1 0   ; arg 0 snippet_shapes_a$Point.x
+  ref.cast 5   ; i32
+  i32.to_i64
+  local.set 3   ; $cast_9
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_9
+  call 11   ; std_core$write_int
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  call 9   ; std_core$finish_buffer
+  return
+end
+
+fn 1 snippet$snippet_shapes_b_Point$Describe$describe (ref) -> string
+  local $field_2 string
+  local.field 0 3 0   ; arg 0 snippet_shapes_b$Point.name
+  ref.cast 2   ; string
+  local.set 1   ; $field_2
+  string.const 1   ; "a point named "
+  local.get 1   ; $field_2
+  call 7   ; concat_2
+  return
+end
+
+fn 2 snippet$show (any) -> string
+  local.get 0   ; arg 0
+  virtual.call 1 snippet$Describe.describe
+  return
+end
+
+fn 3 snippet$main () -> i32
+  local a ref
+  local __p_0 string
+  local $call_10 usize
+  local __buf_1 ref
+  local $cast_18 i64
+  local $call_54 ref
+  local $call_55 bool
+  call 16   ; snippet_shapes_a$make
+  struct.new_stack 7   ; snippet$Box__Any
+  local.set 0   ; a
+  call 17   ; snippet_shapes_b$make
+  struct.new_stack 7   ; snippet$Box__Any
+  struct.get 11 0   ; snippet$Box__snippet_shapes_b_Point.v
+  struct.get 3 0   ; snippet_shapes_b$Point.name
+  ref.cast 2   ; string
+  local.tee 1   ; __p_0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; $call_10
+  i64.const 21
+  local.get 2   ; $call_10
+  i64.add
+  call 8   ; std_core$new_byte_buffer
+  local.set 3   ; __buf_1
+  i64.const 0
+  local.set 2   ; $call_10
+  local.field 0 10 0   ; a snippet$Box__snippet_shapes_a_Point.v
+  struct.get 1 0   ; snippet_shapes_a$Point.x
+  ref.cast 5   ; i32
+  i32.to_i64
+  local.set 4   ; $cast_18
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  local.get 4   ; $cast_18
+  call 11   ; std_core$write_int
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  string.const 2   ; " "
+  call 10   ; std_core$write_string_at
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  local.get 1   ; __p_0
+  call 10   ; std_core$write_string_at
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  call 9   ; std_core$finish_buffer
+  call 15   ; std_io$println__string
+  call 16   ; snippet_shapes_a$make
+  call 4   ; snippet$wrap__snippet_shapes_a_Point
+  local.set 0   ; a
+  call 17   ; snippet_shapes_b$make
+  call 4   ; snippet$wrap__snippet_shapes_a_Point
+  struct.get 11 0   ; snippet$Box__snippet_shapes_b_Point.v
+  struct.get 3 0   ; snippet_shapes_b$Point.name
+  ref.cast 2   ; string
+  local.tee 1   ; __p_0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; $call_10
+  i64.const 21
+  local.get 2   ; $call_10
+  i64.add
+  call 8   ; std_core$new_byte_buffer
+  local.set 3   ; __buf_1
+  i64.const 0
+  local.set 2   ; $call_10
+  local.field 0 10 0   ; a snippet$Box__snippet_shapes_a_Point.v
+  struct.get 1 0   ; snippet_shapes_a$Point.x
+  ref.cast 5   ; i32
+  i32.to_i64
+  local.set 4   ; $cast_18
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  local.get 4   ; $cast_18
+  call 11   ; std_core$write_int
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  string.const 2   ; " "
+  call 10   ; std_core$write_string_at
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  local.get 1   ; __p_0
+  call 10   ; std_core$write_string_at
+  local.set 2   ; $call_10
+  local.get 3   ; __buf_1
+  local.get 2   ; $call_10
+  call 9   ; std_core$finish_buffer
+  call 15   ; std_io$println__string
+  i64.const 11
+  call 8   ; std_core$new_byte_buffer
+  local.set 0   ; a
+  i64.const 0
+  local.set 2   ; $call_10
+  call 16   ; snippet_shapes_a$make
+  local.set 3   ; __buf_1
+  call 17   ; snippet_shapes_b$make
+  local.set 5   ; $call_54
+  local.get 3   ; __buf_1
+  local.get 5   ; $call_54
+  call 5   ; snippet$holds__snippet_shapes_a_Point
+  local.set 6   ; $call_55
+  local.get 0   ; a
+  local.get 2   ; $call_10
+  local.get 6   ; $call_55
+  call 12   ; std_core$write_bool
+  local.set 2   ; $call_10
+  local.get 0   ; a
+  local.get 2   ; $call_10
+  string.const 2   ; " "
+  call 10   ; std_core$write_string_at
+  local.set 2   ; $call_10
+  call 17   ; snippet_shapes_b$make
+  local.set 3   ; __buf_1
+  call 17   ; snippet_shapes_b$make
+  local.set 5   ; $call_54
+  local.get 3   ; __buf_1
+  local.get 5   ; $call_54
+  call 6   ; snippet$holds__snippet_shapes_b_Point
+  local.set 6   ; $call_55
+  local.get 0   ; a
+  local.get 2   ; $call_10
+  local.get 6   ; $call_55
+  call 12   ; std_core$write_bool
+  local.set 2   ; $call_10
+  local.get 0   ; a
+  local.get 2   ; $call_10
+  call 9   ; std_core$finish_buffer
+  call 15   ; std_io$println__string
+  call 16   ; snippet_shapes_a$make
+  call 2   ; snippet$show
+  call 15   ; std_io$println__string
+  call 17   ; snippet_shapes_b$make
+  call 2   ; snippet$show
+  call 15   ; std_io$println__string
+  return.lit i32.const 0
+end
+
+fn 4 snippet$wrap__snippet_shapes_a_Point (any) -> ref
+  local.get 0   ; arg 0
+  struct.new 7   ; snippet$Box__Any
+  return
+end
+
+fn 5 snippet$holds__snippet_shapes_a_Point (ref,any) -> bool
+  local.get 1   ; arg 1
+  type_check 1   ; snippet_shapes_a$Point
+  return
+end
+
+fn 6 snippet$holds__snippet_shapes_b_Point (ref,any) -> bool
+  local.get 1   ; arg 1
+  type_check 3   ; snippet_shapes_b$Point
+  return
+end
+
+fn 7 concat_2 (string,string) -> string
+  local c0 usize
+  local $call_4 usize
+  local buf ref
+  local.get 0   ; arg 0
+  call.import 0   ; std_core$byte_len
+  local.set 2   ; c0
+  local.get 1   ; arg 1
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_4
+  local.get 2   ; c0
+  local.get 3   ; $call_4
+  i64.add
+  local.tee 3   ; $call_4
+  buffer.new
+  local.tee 4   ; buf
+  i64.const 0
+  local.get 0   ; arg 0
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 2   ; c0
+  local.get 1   ; arg 1
+  buffer_write_string
+  local.get 4   ; buf
+  local.get 3   ; $call_4
+  buffer_to_string
+  return
+end
+
+fn 8 std_core$new_byte_buffer (usize) -> ref
+  local.get 0   ; arg 0
+  buffer.new
+  return
+end
+
+fn 9 std_core$finish_buffer (ref,usize) -> string
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  buffer_to_string
+  return
+end
+
+fn 10 std_core$write_string_at (ref,usize,string) -> usize
+  local $call_3 usize
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  buffer_write_string
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_3
+  local.get 1   ; arg 1
+  local.get 3   ; $call_3
+  usize.checked_add
+  return
+end
+
+fn 11 std_core$write_int (ref,usize,i64) -> usize
+  local neg bool
+  local ndigits usize
+  local m i64
+  local total usize
+  local $cast_36 u8
+  local $add_checked_37 u8
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.eq
+  if $L0 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 48
+    store_u8
+    local.get 1   ; arg 1
+    i64.const 1
+    usize.checked_add
+    return
+  end $L0
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.lt
+  local.set 3   ; neg
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.gt
+  if $L1 void
+    local.get 2   ; arg 2
+    i64.checked_neg
+    local.set 2   ; arg 2
+  end $L1
+  i64.const 0
+  local.set 4   ; ndigits
+  local.get 2   ; arg 2
+  local.set 5   ; m
+  loop $L2 void
+    local.get 5   ; m
+    i64.const 0
+    i64.ne
+    if $L3 void
+      local.get 4   ; ndigits
+      i64.const 1
+      usize.checked_add
+      local.set 4   ; ndigits
+      local.get 5   ; m
+      i64.const 10
+      i64.div
+      local.set 5   ; m
+      br $L2
+    end $L3
+  end $L2
+  local.get 3   ; neg
+  if $L4 void
+    local.get 4   ; ndigits
+    i64.const 1
+    usize.checked_add
+    local.set 6   ; total
+  else
+    local.get 4   ; ndigits
+    local.set 6   ; total
+  end $L4
+  local.get 1   ; arg 1
+  local.get 6   ; total
+  usize.checked_add
+  local.set 4   ; ndigits
+  loop $L5 void
+    local.get 2   ; arg 2
+    i64.const 0
+    i64.ne
+    if $L6 void
+      local.get 4   ; ndigits
+      i64.const 1
+      usize.checked_sub
+      local.set 4   ; ndigits
+      local.get 2   ; arg 2
+      i64.const 10
+      i64.rem
+      i64.checked_neg
+      i64.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 7   ; $cast_36
+      i32.const 48
+      local.get 7   ; $cast_36
+      u8.checked_add
+      local.set 8   ; $add_checked_37
+      local.get 0   ; arg 0
+      local.get 4   ; ndigits
+      local.get 8   ; $add_checked_37
+      store_u8
+      local.get 2   ; arg 2
+      i64.const 10
+      i64.div
+      local.set 2   ; arg 2
+      br $L5
+    end $L6
+  end $L5
+  local.get 3   ; neg
+  if $L7 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 45
+    store_u8
+    local.get 1   ; arg 1
+    local.get 6   ; total
+    usize.checked_add
+    return
+  end $L7
+  local.get 1   ; arg 1
+  local.get 6   ; total
+  usize.checked_add
+  return
+end
+
+fn 12 std_core$write_bool (ref,usize,bool) -> usize
+  local.get 2   ; arg 2
+  if $L0 void
+  else
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    string.const 4   ; "false"
+    call 10   ; std_core$write_string_at
+    return
+  end $L0
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  string.const 3   ; "true"
+  call 10   ; std_core$write_string_at
+  return
+end
+
+fn 13 std_io$write (u8,string) -> void
+  local buf ref
+  local sent usize
+  local $len_6 usize
+  local $len_8 usize
+  local chunk ref
+  local $len_11 usize
+  local n i32
+  local $cast_16 usize
+  local.get 1   ; arg 1
+  call.import 1   ; std_core$bytes
+  local.set 2   ; buf
+  i64.const 0
+  local.set 3   ; sent
+  loop $L0 void
+    local.get 2   ; buf
+    array.len
+    local.set 4   ; $len_6
+    local.get 3   ; sent
+    local.get 4   ; $len_6
+    u64.ge
+    if $L1 void
+    else
+      local.get 2   ; buf
+      array.len
+      local.set 5   ; $len_8
+      local.get 2   ; buf
+      local.get 3   ; sent
+      local.get 5   ; $len_8
+      array.slice 16   ; u8[]
+      local.tee 6   ; chunk
+      array.len
+      local.set 7   ; $len_11
+      local.get 0   ; arg 0
+      local.get 6   ; chunk
+      local.get 7   ; $len_11
+      call 14   ; std_io$write_bytes
+      local.tee 8   ; n
+      i32.const 0
+      i32.le
+      if $L2 void
+        return
+      end $L2
+      local.get 8   ; n
+      i32.to_i64
+      local.set 9   ; $cast_16
+      local.get 3   ; sent
+      local.get 9   ; $cast_16
+      usize.checked_add
+      local.set 3   ; sent
+      br $L0
+    end $L1
+  end $L0
+  return
+end
+
+fn 14 std_io$write_bytes (u8,ref,usize) -> i32
+  local.get 0   ; arg 0
+  i32.const 0
+  i32.eq
+  if $L0 void
+    i32.const 1
+    local.get 1   ; arg 1
+    local.get 2   ; arg 2
+    call.import 2   ; system_posix$sys_write
+    isize.to_i32
+    return
+  end $L0
+  i32.const 2
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  call.import 2   ; system_posix$sys_write
+  isize.to_i32
+  return
+end
+
+fn 15 std_io$println__string (string) -> void
+  local $call_3 string
+  local.get 0   ; arg 0
+  string.const 5   ; "\n"
+  call 7   ; concat_2
+  local.set 1   ; $call_3
+  i32.const 0
+  local.get 1   ; $call_3
+  call 13   ; std_io$write
+  return
+end
+
+fn 16 snippet_shapes_a$make () -> ref
+  i32.const 1
+  struct.new 1   ; snippet_shapes_a$Point
+  return
+end
+
+fn 17 snippet_shapes_b$make () -> ref
+  string.const 6   ; "b"
+  struct.new 3   ; snippet_shapes_b$Point
+  return
+end

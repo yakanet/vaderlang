@@ -20,13 +20,13 @@
       } :string)
       return 0
   }
-  snippet.dup<Tag> :: fn(src: Tag[]) -> Tag[] {  // snippet$dup__Tag
-      out: Tag[] = @array.repeat([] :Tag[], @array.len(src))
+  snippet.dup<i32> :: fn(src: i32[]) -> i32[] {  // snippet$dup__i32
+      out: i32[] = @array.repeat([] :i32[], @array.len(src))
       @array.push_all(out, src)
       return out
   }
-  snippet.dup<i32> :: fn(src: i32[]) -> i32[] {  // snippet$dup__i32
-      out: i32[] = @array.repeat([] :i32[], @array.len(src))
+  snippet.dup<Tag> :: fn(src: Tag[]) -> Tag[] {  // snippet$dup__snippet_Tag
+      out: Tag[] = @array.repeat([] :Tag[], @array.len(src))
       @array.push_all(out, src)
       return out
   }

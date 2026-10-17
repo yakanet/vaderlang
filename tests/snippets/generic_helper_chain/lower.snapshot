@@ -15,8 +15,8 @@
   }
   snippet.Box<i32> :: struct { value: i32 }  // snippet$Box__i32
   snippet.Box<string> :: struct { value: string }  // snippet$Box__string
-  snippet.Box<Box<i32>> :: struct { value: Any }  // snippet$Box__Box_i32_
-  snippet.Box<Box<string>> :: struct { value: Box<string> }  // snippet$Box__Box_string_
+  snippet.Box<Box<i32>> :: struct { value: Any }  // snippet$Box__snippet_Box_i32_
+  snippet.Box<Box<string>> :: struct { value: Box<string> }  // snippet$Box__snippet_Box_string_
   snippet.inner<i32> :: fn(x: i32) -> i32 {  // snippet$inner__i32
       return x
   }
@@ -36,8 +36,8 @@
       return Box<Box<string>> { .value = snippet.middle<string>(x) }
   }
   snippet.Box<Any> :: struct { value: Any }  // snippet$Box__Any
-  snippet$Box__Box_Any :: struct { value: Any }
-  snippet$Box__Box_Any_ :: struct { value: Any }
+  snippet$Box__snippet_Box_Any :: struct { value: Any }
+  snippet$Box__snippet_Box_Any_ :: struct { value: Any }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: usize = std.core.byte_len(p0)
       c1: usize = c0 +% std.core.byte_len(p1)

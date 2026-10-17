@@ -134,7 +134,7 @@ fn 4 snippet$main () -> i32
   local __buf_3 ref
   local $struct_100 ref
   f64.const 2.5 4612811918334230528
-  call 11   ; snippet$twice__f64
+  call 8   ; snippet$twice__f64
   call 22   ; std_core$f64$Display$to_string
   local.tee 0   ; __p_0
   call.import 0   ; std_core$byte_len
@@ -152,7 +152,7 @@ fn 4 snippet$main () -> i32
   call 19   ; std_core$write_string_at
   local.set 1   ; $call_7
   i32.const 3
-  call 12   ; snippet$twice__i32
+  call 9   ; snippet$twice__i32
   i32.to_i64
   local.set 3   ; $cast_17
   local.get 2   ; __buf_1
@@ -202,7 +202,7 @@ fn 4 snippet$main () -> i32
   local.set 1   ; $call_7
   i64.const 3
   struct.new 1   ; snippet$Money
-  call 9   ; snippet$twice__Money
+  call 11   ; snippet$twice__snippet_Money
   struct.get 1 0   ; snippet$Money.cents
   ref.cast 12   ; i64
   local.set 3   ; $cast_17
@@ -217,7 +217,7 @@ fn 4 snippet$main () -> i32
   call 19   ; std_core$write_string_at
   local.set 1   ; $call_7
   local.get 2   ; __buf_1
-  call 9   ; snippet$twice__Money
+  call 11   ; snippet$twice__snippet_Money
   struct.get 1 0   ; snippet$Money.cents
   ref.cast 12   ; i64
   local.set 3   ; $cast_17
@@ -242,7 +242,7 @@ fn 4 snippet$main () -> i32
   local.set 1   ; $call_7
   i32.const 4
   struct.new 2   ; snippet$Points
-  call 10   ; snippet$twice__Points
+  call 12   ; snippet$twice__snippet_Points
   struct.get 2 0   ; snippet$Points.n
   ref.cast 5   ; i32
   i32.to_i64
@@ -268,7 +268,7 @@ fn 4 snippet$main () -> i32
   local.set 1   ; $call_7
   i32.const 6
   struct.new 3   ; snippet$Grams
-  call 8   ; snippet$twice__Grams
+  call 10   ; snippet$twice__snippet_Grams
   struct.get 3 0   ; snippet$Grams.g
   ref.cast 5   ; i32
   i32.to_i64
@@ -294,7 +294,7 @@ fn 4 snippet$main () -> i32
   local.set 1   ; $call_7
   i32.const 5
   struct.new 2   ; snippet$Points
-  call 14   ; snippet$relay__Points
+  call 14   ; snippet$relay__snippet_Points
   struct.get 2 0   ; snippet$Points.n
   ref.cast 5   ; i32
   i32.to_i64
@@ -327,7 +327,7 @@ fn 4 snippet$main () -> i32
   local.get 5   ; __buf_3
   local.get 6   ; $struct_100
   array.new 6 2   ; snippet$Money[]
-  call 15   ; snippet$both__Money__
+  call 15   ; snippet$both__snippet_Money__
   usize.to_i64
   local.set 4   ; $call_21
   local.get 2   ; __buf_1
@@ -351,7 +351,7 @@ fn 4 snippet$main () -> i32
   local.set 1   ; $call_7
   i32.const 1
   struct.new 4   ; snippet$Cfg
-  call 6   ; snippet$feed__Cfg
+  call 6   ; snippet$feed__snippet_Cfg
   i32.to_i64
   local.set 3   ; $cast_17
   local.get 2   ; __buf_1
@@ -366,7 +366,7 @@ fn 4 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 5 snippet$[]$Count$count__Money (ref,ref) -> usize
+fn 5 snippet$[]$Count$count__snippet_Money (ref,ref) -> usize
   local $len_2 usize
   local $len_3 usize
   local.get 0   ; arg 0
@@ -381,7 +381,7 @@ fn 5 snippet$[]$Count$count__Money (ref,ref) -> usize
   return
 end
 
-fn 6 snippet$feed__Cfg (ref) -> i32
+fn 6 snippet$feed__snippet_Cfg (ref) -> i32
   local.get 0   ; arg 0
   local.get 0   ; arg 0
   call 3   ; snippet$Cfg$Sink$put
@@ -395,38 +395,38 @@ fn 7 snippet$twice__Any (any) -> any
   return
 end
 
-fn 8 snippet$twice__Grams (ref) -> ref
-  local.get 0   ; arg 0
-  local.get 0   ; arg 0
-  call 2   ; snippet$Grams$Add$add
-  return
-end
-
-fn 9 snippet$twice__Money (ref) -> ref
-  local.get 0   ; arg 0
-  local.get 0   ; arg 0
-  call 0   ; snippet$Money$Add$add
-  return
-end
-
-fn 10 snippet$twice__Points (ref) -> ref
-  local.get 0   ; arg 0
-  local.get 0   ; arg 0
-  call 1   ; snippet$Points$Add$add
-  return
-end
-
-fn 11 snippet$twice__f64 (f64) -> f64
+fn 8 snippet$twice__f64 (f64) -> f64
   local.get 0   ; arg 0
   local.get 0   ; arg 0
   f64.add
   return
 end
 
-fn 12 snippet$twice__i32 (i32) -> i32
+fn 9 snippet$twice__i32 (i32) -> i32
   local.get 0   ; arg 0
   local.get 0   ; arg 0
   i32.checked_add
+  return
+end
+
+fn 10 snippet$twice__snippet_Grams (ref) -> ref
+  local.get 0   ; arg 0
+  local.get 0   ; arg 0
+  call 2   ; snippet$Grams$Add$add
+  return
+end
+
+fn 11 snippet$twice__snippet_Money (ref) -> ref
+  local.get 0   ; arg 0
+  local.get 0   ; arg 0
+  call 0   ; snippet$Money$Add$add
+  return
+end
+
+fn 12 snippet$twice__snippet_Points (ref) -> ref
+  local.get 0   ; arg 0
+  local.get 0   ; arg 0
+  call 1   ; snippet$Points$Add$add
   return
 end
 
@@ -437,16 +437,16 @@ fn 13 snippet$twice__u64 (u64) -> u64
   return
 end
 
-fn 14 snippet$relay__Points (any) -> any
+fn 14 snippet$relay__snippet_Points (any) -> any
   local.get 0   ; arg 0
   call 7   ; snippet$twice__Any
   return
 end
 
-fn 15 snippet$both__Money__ (ref) -> usize
+fn 15 snippet$both__snippet_Money__ (ref) -> usize
   local.get 0   ; arg 0
   local.get 0   ; arg 0
-  call 5   ; snippet$[]$Count$count__Money
+  call 5   ; snippet$[]$Count$count__snippet_Money
   return
 end
 

@@ -114,7 +114,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; cell
   i64.const 2
-  call 3   ; snippet$read_nth__Cell
+  call 3   ; snippet$read_nth__snippet_Cell
   i32.to_i64
   local.set 3   ; $cast_15
   local.get 1   ; __buf_0
@@ -129,7 +129,7 @@ fn 2 snippet$main () -> i32
   local.get 0   ; cell
   i64.const 2
   i32.const 77
-  call 4   ; snippet$write_nth__Cell
+  call 4   ; snippet$write_nth__snippet_Cell
   i64.const 40
   call 6   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
@@ -142,7 +142,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; cell
   i64.const 2
-  call 3   ; snippet$read_nth__Cell
+  call 3   ; snippet$read_nth__snippet_Cell
   i32.to_i64
   local.set 3   ; $cast_15
   local.get 1   ; __buf_0
@@ -157,14 +157,14 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 snippet$read_nth__Cell (ref,usize) -> i32
+fn 3 snippet$read_nth__snippet_Cell (ref,usize) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 0   ; snippet$Cell$Index$at
   return
 end
 
-fn 4 snippet$write_nth__Cell (ref,usize,i32) -> void
+fn 4 snippet$write_nth__snippet_Cell (ref,usize,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

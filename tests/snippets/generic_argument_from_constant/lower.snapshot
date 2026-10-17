@@ -43,12 +43,12 @@
       } :string)
       return 0
   }
-  snippet.Box<Point> :: struct { v: Any }  // snippet$Box__Point
+  snippet.Box<Point> :: struct { v: Any }  // snippet$Box__snippet_Point
   snippet.Box<Any> :: struct { v: Any }  // snippet$Box__Any
-  snippet.show<Point> :: fn(v: Any) -> i32 {  // snippet$show__Point
+  snippet.show<Point> :: fn(v: Any) -> i32 {  // snippet$show__snippet_Point
       1
   }
-  snippet.wrap<Point> :: fn(v: Any) -> Box<Any> {  // snippet$wrap__Point
+  snippet.wrap<Point> :: fn(v: Any) -> Box<Any> {  // snippet$wrap__snippet_Point
       Box<Any> { .v = v }
   }
   snippet.Box<Any> :: struct { v: Any }  // snippet$Box__Any

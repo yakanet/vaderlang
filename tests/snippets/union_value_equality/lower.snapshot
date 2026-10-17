@@ -138,14 +138,14 @@
       } :string)
       return 0
   }
-  snippet.Box<Point> :: struct { value: Any }  // snippet$Box__Point
+  snippet.Box<Point> :: struct { value: Any }  // snippet$Box__snippet_Point
   snippet.Box<Any>.equals :: fn(self: Box<Any>, other: Box<Any>) -> bool {  // snippet$Box$Equals$equals__Any
       @vcall(std.core.Equals.equals, self.value, other.value)
   }
-  snippet.same_opt<Point> :: fn(a: Any | null, b: Any) -> bool {  // snippet$same_opt__Point
+  snippet.same_opt<Point> :: fn(a: Any | null, b: Any) -> bool {  // snippet$same_opt__snippet_Point
       (!(a is null)) && @vcall(std.core.Equals.equals, Any(a), b)
   }
-  snippet.same_pair<Point> :: fn(a: [Any, i32], b: [Any, i32]) -> bool {  // snippet$same_pair__Point
+  snippet.same_pair<Point> :: fn(a: [Any, i32], b: [Any, i32]) -> bool {  // snippet$same_pair__snippet_Point
       @vcall(std.core.Equals.equals, a._0, b._0) && (a._1 == b._1)
   }
   snippet.Box<Any> :: struct { value: Any }  // snippet$Box__Any

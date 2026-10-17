@@ -101,7 +101,7 @@
       } :string)
       return 0
   }
-  snippet.pair_into<MutableMap<string, i32>> :: fn(c: MutableMap<string, i32>) -> void {  // snippet$pair_into__MutableMap_string__i32_
+  snippet.pair_into<MutableMap<string, i32>> :: fn(c: MutableMap<string, i32>) -> void {  // snippet$pair_into__std_collections_MutableMap_string__i32_
       {
           __destr_src_0: [i32, i32] = [3, 4] :[i32, i32]
           __destr_el_1: i32 = __destr_src_0._0
@@ -110,7 +110,7 @@
           std.collections.MutableMap<string, i32>.set_at(c, "y", __destr_el_2)
       }
   }
-  snippet.put_wider<MutableMap<i64, i32>> :: fn(c: MutableMap<i64, i32>) -> void {  // snippet$put_wider__MutableMap_i64__i32_
+  snippet.put_wider<MutableMap<i64, i32>> :: fn(c: MutableMap<i64, i32>) -> void {  // snippet$put_wider__std_collections_MutableMap_i64__i32_
       std.collections.MutableMap<i64, i32>.set_at(c, i64(9000000001), 8)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

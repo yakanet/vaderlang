@@ -12,7 +12,7 @@ type 9 primitive void
 type 10 ref _
 type 11 struct std_collections$MutableMap__i32__Any { ekeys:14,evals:15,index:14,mask:5,size:5,tombs:5 }
 type 12 union 10,0
-type 13 struct std_collections$MutableMap__i32__i32___Wrap { ekeys:14,evals:15,index:14,mask:5,size:5,tombs:5 }
+type 13 struct std_collections$MutableMap__i32__i32___snippet_lib_Wrap { ekeys:14,evals:15,index:14,mask:5,size:5,tombs:5 }
 type 14 array 1
 type 15 array 10
 type 16 struct snippet_lib$Wrap { items:14 }

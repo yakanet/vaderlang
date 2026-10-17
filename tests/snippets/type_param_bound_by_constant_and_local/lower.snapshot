@@ -13,10 +13,10 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       local: Cfg = Cfg { .n = 7 }
-      r: Cfg = snippet.pick<Cfg>(local, snippet.CFG)
+      r: Cfg = snippet.pick<i32[]>(local, snippet.CFG)
       got: i32[] = snippet.make()
-      s: i32[] = snippet.pick<Cfg>(got, snippet.LIST)
-      t: i32[] = snippet.pick<Cfg>(snippet.LIST, got)
+      s: i32[] = snippet.pick<i32[]>(got, snippet.LIST)
+      t: i32[] = snippet.pick<i32[]>(snippet.LIST, got)
       __tup_0: [i32[], i32[]] = snippet.pair<i32[]>(got, @fresh(snippet.LIST))
       p: i32[] = __tup_0._0
       q: i32[] = __tup_0._1
@@ -39,7 +39,7 @@
       } :string)
       return 0
   }
-  snippet.pick<Cfg> :: fn(a: Any, b: Any) -> Any {  // snippet$pick__Cfg
+  snippet.pick<i32[]> :: fn(a: Any, b: Any) -> Any {  // snippet$pick__i32__
       b
   }
   snippet.pair<i32[]> :: fn(a: Any, b: Any) -> [Any, Any] {  // snippet$pair__i32__

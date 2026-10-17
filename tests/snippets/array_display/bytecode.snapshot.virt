@@ -182,7 +182,7 @@ fn 1 snippet$main () -> i32
   i32.const 2
   struct.new 1   ; snippet$Point
   array.new 18 1   ; snippet$Point[]
-  call 17   ; std_core$[]$Display$to_string__Point
+  call 17   ; std_core$[]$Display$to_string__snippet_Point
   local.set 1   ; $call_6
   i32.const 1
   array.new 16 1   ; i32[]
@@ -224,7 +224,7 @@ fn 1 snippet$main () -> i32
   i32.const 6
   array.new 16 1   ; i32[]
   struct.new 4   ; snippet$Box
-  call 3   ; snippet$show__Box
+  call 3   ; snippet$show__snippet_Box
   local.set 2   ; $call_11
   local.get 1   ; $call_6
   string.const 3   ; " "
@@ -257,7 +257,7 @@ fn 2 snippet$Box$Display$to_string (ref) -> string
   return
 end
 
-fn 3 snippet$show__Box (any) -> string
+fn 3 snippet$show__snippet_Box (any) -> string
   local $vcall_2 string
   local.get 0   ; arg 0
   virtual.call 1 std_core$Display.to_string
@@ -1112,7 +1112,7 @@ fn 16 std_core$[]$Display$to_string__bool (ref) -> string
   return
 end
 
-fn 17 std_core$[]$Display$to_string__Point (ref) -> string
+fn 17 std_core$[]$Display$to_string__snippet_Point (ref) -> string
   local $arr_1 ref
   local $len_2 usize
   local __for_arr_0 ref

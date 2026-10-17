@@ -208,7 +208,7 @@
       }
       return 0
   }
-  snippet.Wrap<Vec2> :: struct { inner: Vec2 }  // snippet$Wrap__Vec2
+  snippet.Wrap<Vec2> :: struct { inner: Vec2 }  // snippet$Wrap__snippet_Vec2
   snippet.Wrap<Vec2>.scaled :: fn(self: Wrap<Vec2>) -> Vec2 {  // snippet$Wrap$Scale$scaled__snippet_Vec2
       snippet$Vec2$Mul$mul(self.inner, 2.0)
   }
@@ -222,16 +222,16 @@
   snippet$Pile$Add$add__i32$1 :: fn(self: Pile<i32>, k: f64) -> Pile<i32> {
       self
   }
-  snippet.built<Vec2> :: fn() -> Vec2 {  // snippet$built__Vec2
+  snippet.built<Vec2> :: fn() -> Vec2 {  // snippet$built__snippet_Vec2
       snippet$Vec2$Make$make$1("s")
   }
-  snippet.twice<Vec2> :: fn(v: Vec2) -> Vec2 {  // snippet$twice__Vec2
+  snippet.twice<Vec2> :: fn(v: Vec2) -> Vec2 {  // snippet$twice__snippet_Vec2
       snippet$Vec2$Mul$mul(v, 2.0)
   }
-  snippet.say_int<Vec2> :: fn(x: Vec2) -> string {  // snippet$say_int__Vec2
+  snippet.say_int<Vec2> :: fn(x: Vec2) -> string {  // snippet$say_int__snippet_Vec2
       snippet$Vec2$Describe$describe(x)
   }
-  snippet.say_str<Vec2> :: fn(x: Vec2) -> string {  // snippet$say_str__Vec2
+  snippet.say_str<Vec2> :: fn(x: Vec2) -> string {  // snippet$say_str__snippet_Vec2
       snippet$Vec2$Describe$describe$1(x)
   }
   snippet.Wrap<Any> :: struct { inner: Any }  // snippet$Wrap__Any

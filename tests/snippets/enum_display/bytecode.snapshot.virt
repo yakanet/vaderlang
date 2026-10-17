@@ -171,7 +171,7 @@ fn 3 snippet$main () -> i32
   i32.const 0
   i32.const 3
   array.new 7 2   ; u8[]
-  call 20   ; std_core$[]$Display$to_string__Direction
+  call 20   ; std_core$[]$Display$to_string__snippet_Direction
   call 71   ; std_io$println__string
   i32.const 1
   call 5   ; snippet$Status$Display$to_string
@@ -212,7 +212,7 @@ fn 3 snippet$main () -> i32
   call 6   ; snippet$show__snippet_Direction
   local.set 1   ; $call_2
   i32.const 0
-  call 8   ; snippet$show__snippet_Status
+  call 7   ; snippet$show__snippet_Status
   local.set 2   ; $call_5
   i32.const 0
   i32.const 1
@@ -231,7 +231,7 @@ fn 3 snippet$main () -> i32
   call 11   ; snippet$listed__snippet_Direction
   call 71   ; std_io$println__string
   i32.const 3
-  call 7   ; snippet$show__snippet_Weight
+  call 8   ; snippet$show__snippet_Weight
   local.set 1   ; $call_2
   i32.const 3
   call 9   ; snippet$show__u8
@@ -320,10 +320,10 @@ fn 6 snippet$show__snippet_Direction (u8) -> string
   return
 end
 
-fn 7 snippet$show__snippet_Weight (u8) -> string
+fn 7 snippet$show__snippet_Status (u8) -> string
   local $call_2 string
   local.get 0   ; arg 0
-  call 0   ; snippet$Weight$Display$to_string
+  call 5   ; snippet$Status$Display$to_string
   local.set 1   ; $call_2
   string.const 10   ; "<"
   local.get 1   ; $call_2
@@ -332,10 +332,10 @@ fn 7 snippet$show__snippet_Weight (u8) -> string
   return
 end
 
-fn 8 snippet$show__snippet_Status (u8) -> string
+fn 8 snippet$show__snippet_Weight (u8) -> string
   local $call_2 string
   local.get 0   ; arg 0
-  call 5   ; snippet$Status$Display$to_string
+  call 0   ; snippet$Weight$Display$to_string
   local.set 1   ; $call_2
   string.const 10   ; "<"
   local.get 1   ; $call_2
@@ -395,7 +395,7 @@ end
 
 fn 11 snippet$listed__snippet_Direction (ref) -> string
   local.get 0   ; arg 0
-  call 20   ; std_core$[]$Display$to_string__Direction
+  call 20   ; std_core$[]$Display$to_string__snippet_Direction
   return
 end
 
@@ -757,7 +757,7 @@ fn 19 std_core$write_unsigned (ref,usize,u64) -> usize
   return
 end
 
-fn 20 std_core$[]$Display$to_string__Direction (ref) -> string
+fn 20 std_core$[]$Display$to_string__snippet_Direction (ref) -> string
   local $arr_1 ref
   local $len_2 usize
   local __for_arr_0 ref
