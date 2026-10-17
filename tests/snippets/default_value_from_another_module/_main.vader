@@ -1,0 +1,22 @@
+// A default value written in another module: the call site fills it in, and
+// every name inside it resolves as it does in its own module, even where the
+// call site declares the same name, imports the callee through a namespace, or
+// does not import what the default names.
+module "snippet"
+
+import "std/io"
+L :: import "snippet/labels"
+import "snippet/util"
+
+label :: fn(x: i32) -> string = "caller ${x}"
+
+main :: fn() -> i32 {
+    println(named())
+    println(label(1))
+    println(greet())
+    println(L.tagged())
+    println("${apply(4)}")
+    println("${apply(4, (n: i32) -> n + 1)}")
+    println("${total([1, 2, 3])}")
+    return 0
+}

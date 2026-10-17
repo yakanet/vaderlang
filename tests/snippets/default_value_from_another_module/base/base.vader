@@ -1,0 +1,3 @@
+module "snippet/base"
+
+export greeting :: fn() -> string = "hello"

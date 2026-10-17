@@ -44,6 +44,10 @@ export FnContext :: struct {
     /// `await` legality. False for lambdas, `defer` bodies and synthetic
     /// contexts, so an `await` in one trips T3064.
     is_async: bool = false
+    /// True in a `defer` body, where `return` is refused (T3106): the body runs
+    /// while its block is left, once what the block returns is decided. A lambda
+    /// written in it has its own context and returns as anywhere.
+    in_defer: bool = false
     /// Union of every value `return`'s type seen in this body — accumulated by
     /// `check_return`. A block-body lambda that ends in `return` types its block
     /// as `never` (it diverges) ; this recovers the lambda's real return type

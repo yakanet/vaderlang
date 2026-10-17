@@ -1,0 +1,28 @@
+module "snippet/util"
+
+import "snippet/base"
+
+scale :: fn(x: i32) -> i32 = x * 10
+label :: fn(x: i32) -> string = "item ${x}"
+
+// The default calls a private fn, whose return type the call site reads.
+export named :: fn(s: string = label(7)) -> string = s
+
+// The default names a module the call site does not import.
+export greet :: fn(s: string = greeting()) -> string = s
+
+// The default is a lambda whose body names a private fn of this module.
+export apply :: fn(x: i32, f: fn(i32) -> i32 = (n: i32) -> { scale(n) }) -> i32 = f(x)
+
+// The default holds statements: a local, a loop, a match with an alias.
+export total :: fn(xs: i32[], f: fn(i32[]) -> i32 = (items: i32[]) -> {
+    sum := 0
+    for item in items {
+        step :: match item * 2 as doubled {
+            2 -> 100
+            _ -> doubled
+        }
+        sum += step
+    }
+    return sum
+}) -> i32 = f(xs)

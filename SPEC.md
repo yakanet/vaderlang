@@ -2351,6 +2351,8 @@ process :: fn(path: string) -> string | Error {
 
 A `return` computes its value **before** the defers it leaves run: `return read_all(file)` reads the file, then `close(file)` runs. A defer that writes a local the value reads does not change what is returned. The same holds for a block's trailing value.
 
+A `defer` body cannot `return` (`T3106`): it runs while its block is being left, once what the block returns is decided. Nor can it `break` or `continue` a loop it is not inside of. A lambda written in a `defer` body returns from the lambda, as anywhere.
+
 A `panic` runs the pending defers too: as the panic unwinds the call stack, each frame's own defers execute (LIFO, innermost frame first) before the process aborts. Cleanup — releasing a lock, closing a handle — therefore still happens on the abnormal path. The panic remains fatal; there is no `recover`.
 
 ---

@@ -1,0 +1,150 @@
+# Lower
+
+## snippet
+  snippet.label :: fn(x: i32) -> string {  // snippet$label
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(27))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "caller ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(x))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.io.println<string>(snippet.util.named(snippet.util.label(7)))
+      std.io.println<string>(snippet.label(1))
+      std.io.println<string>(snippet.util.greet(snippet.base.greeting()))
+      std.io.println<string>(snippet.labels.tagged(snippet.labels.tag()))
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(20))
+          __off_1: usize = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.util.apply(4, __lambda_snippet_0)))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(usize(20))
+          __off_3: usize = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.util.apply(4, __lambda_snippet_1)))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(usize(20))
+          __off_5: usize = 0
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.util.total([1, 2, 3] :i32[], __lambda_snippet_2)))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      return 0
+  }
+  __lambda_snippet_0 :: fn(n: i32) -> i32 {
+      snippet.util.scale(n)
+  }
+  __lambda_snippet_1 :: fn(n: i32) -> i32 {
+      n + 1
+  }
+  __lambda_snippet_2 :: fn(items: i32[]) -> i32 {
+      sum: i32 = 0
+      {
+          __for_arr_0: i32[] = items
+          __for_len_1: usize = @array.len(__for_arr_0)
+          __for_i_2: usize = 0
+          for __for_i_2 < __for_len_1 {
+              item: i32 = __for_arr_0[__for_i_2]
+              step: i32 = {
+                  __scrut_3: i32 = item * 2
+                  doubled: i32 = __scrut_3
+                  if __scrut_3 == 2 { 100 } else { doubled } :i32
+              }
+              sum = sum + step
+          } @step {
+              __for_i_2 = __for_i_2 +% usize(1)
+          }
+      }
+      return sum
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## snippet/base
+  snippet.base.greeting :: fn() -> string {  // snippet_base$greeting
+      "hello"
+  }
+
+## snippet/labels
+  snippet.labels.tagged :: fn(s: string) -> string {  // snippet_labels$tagged
+      s
+  }
+  snippet.labels.tag :: fn() -> string {  // snippet_labels$tag
+      "tagged"
+  }
+
+## snippet/util
+  snippet.util.named :: fn(s: string) -> string {  // snippet_util$named
+      s
+  }
+  snippet.util.label :: fn(x: i32) -> string {  // snippet_util$label
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(25))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "item ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(x))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.util.greet :: fn(s: string) -> string {  // snippet_util$greet
+      s
+  }
+  snippet.util.apply :: fn(x: i32, f: fn(i32) -> i32) -> i32 {  // snippet_util$apply
+      f(x)
+  }
+  snippet.util.scale :: fn(x: i32) -> i32 {  // snippet_util$scale
+      x * 10
+  }
+  snippet.util.total :: fn(xs: i32[], f: fn(i32[]) -> i32) -> i32 {  // snippet_util$total
+      f(xs)
+  }
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

@@ -485,6 +485,19 @@ populate_from :: fn(
                 per_module,
             )
         }
+        publish_namespace_defaults(mod_id, entry_typed, per_module)
+    }
+}
+
+// `P.f()` fills an omitted argument from `f`'s default as a wildcard call does,
+// so the default's resolutions travel the same way (`import_defaults.vader`).
+publish_namespace_defaults :: fn(
+    mod_id: string, into: TypedProgram, per_module: MutableMap<string, TypedProgram>,
+) -> void {
+    from :: per_module[mod_id] ?? return
+    decls :: into.namespace_export_decls[mod_id] ?? return
+    for [_, fd] in decls {
+        publish_default_resolutions(from, into, fd)
     }
 }
 

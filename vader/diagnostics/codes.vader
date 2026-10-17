@@ -139,6 +139,7 @@ export TypecheckCode :: enum(CodeInfo) {
     MisshapedSingleton              { .id = "T3103", .message = "a `@singleton` function takes no parameter and runs straight through" },
     GenericRecursionGrows           { .id = "T3104", .message = "a generic recursion cannot grow its type argument" },
     TypeArgumentCountMismatch       { .id = "T3105", .message = "wrong number of type arguments" },
+    ReturnInDefer                   { .id = "T3106", .message = "`return` is not allowed in a `defer` body" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

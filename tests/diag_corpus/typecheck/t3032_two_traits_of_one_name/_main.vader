@@ -1,0 +1,18 @@
+// Two traits of one name, each implemented for `Point`: the message names
+// them by module, since their bare names would read the same.
+module "snippet"
+
+import "std/io"
+import "snippet/tr_a"
+
+Point :: struct { x: i32 }
+
+Point implements Describe {
+    describe :: fn(self) -> string = "a ${self.x}"
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1 }
+    println(p.describe())
+    return 0
+}

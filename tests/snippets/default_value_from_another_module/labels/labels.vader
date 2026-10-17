@@ -1,0 +1,6 @@
+module "snippet/labels"
+
+tag :: fn() -> string = "tagged"
+
+// Reached only through a namespace alias by the caller.
+export tagged :: fn(s: string = tag()) -> string = s

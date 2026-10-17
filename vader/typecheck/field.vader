@@ -15,6 +15,7 @@
 
 module "vader/typecheck"
 
+import "std/iter"
 import "std/string"
 import "vader/diagnostics"
 AST :: import "toolchain/ast"
@@ -1174,10 +1175,7 @@ check_trait_ambiguity :: fn(
     if traits.len() < 2 {
         return
     }
-    names: string[]: []
-    for t in traits {
-        names.push(trait_key_name(t))
-    }
+    names :: trait_names_apart(traits, typed)
     diags.push(
         typecheck_error(
             .AmbiguousOverload,
@@ -1185,6 +1183,35 @@ check_trait_ambiguity :: fn(
             "`${e.field}` on ${display_type(target_ty)} is ambiguous between traits: ${names.join(", ")}",
         ),
     )
+}
+
+// The traits of `keys` by name, a name two of them share qualified by its module
+// (`snippet/tr_a.Describe`), so the message tells homonymous traits apart.
+trait_names_apart :: fn(keys: string[], typed: TypedProgram) -> string[] {
+    short: string[]: []
+    for key in keys {
+        short.push(trait_key_name(key))
+    }
+    out: string[]: []
+    for i in 0..<keys.len() {
+        if short_name_count(short, short[i]) > 1 {
+            out.push(qualified_trait_name(keys[i], typed) ?? short[i])
+        } else {
+            out.push(short[i])
+        }
+    }
+    return out
+}
+
+short_name_count :: fn(names: string[], name: string) -> usize =
+    names.filter((candidate) -> candidate == name).count()
+
+// `module.Name` of the trait whose key is `key`. The key's module segment is
+// mangled, so the module path comes from the declaring module itself.
+qualified_trait_name :: fn(key: string, typed: TypedProgram) -> string | null {
+    id :: find_trait_id(key, typed) ?? return null
+    owner :: typed.trait_decl_owners[id] ?? typed.resolved
+    return "${owner.display_path}.${trait_key_name(key)}"
 }
 
 // Bind a blanket array impl's type param to the concrete element. A blanket
