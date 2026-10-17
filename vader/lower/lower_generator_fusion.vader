@@ -314,7 +314,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
     decl :: recorded_decl(ctx.typed, call) ?? return null
     callee_sym :: ctx.project.fn_symbols[decl.id] ?? return null
     owner :: resolve_owner_typed(ctx, callee_sym.module) ?? return null
-    if !fn_is_generator(decl) { return null }
+    if !fn_is_generator(owner, decl) { return null }
     // v1: `self` plus zero (`indexed`) or one (map/filter/take/skip/chain) non-self param.
     if decl.params.len() != 1 && decl.params.len() != 2 { return null }
     loops :: extract_gen_source_loops(decl) ?? return null
@@ -612,7 +612,7 @@ try_descend_gen_source :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain |
     target :: call_target(ctx, call) ?? return null
     decl :: target.decl
     owner :: target.owner
-    if !fn_is_generator(decl) || decl.body == null {
+    if !fn_is_generator(owner, decl) || decl.body == null {
         return null
     }
     signature :: fn_signature(owner, target.callee) ?? return null
@@ -647,10 +647,10 @@ try_descend_into_gen_source :: fn(ctx: FnLowerCtx, expr: AST.Expr, span: Span) -
     receiver :: ctx.types.expr_type(expr)
     entry :: recorded_impl(ctx, into, receiver) ?? return null
     decl :: select_member(entry, into.decl.name) ?? return null
-    if !fn_is_generator(decl) || decl.body == null {
+    owner :: typed_module_named(ctx, entry.module) ?? return null
+    if !fn_is_generator(owner, decl) || decl.body == null {
         return null
     }
-    owner :: typed_module_named(ctx, entry.module) ?? return null
     signature :: owner.impl_method_decl_types[decl.name_span.hash()]
     if signature !is FnType {
         return null

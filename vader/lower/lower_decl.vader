@@ -231,7 +231,7 @@ lower_fn_decl :: fn(
     // at the `LoweredFnDecl` boundary — the body constructs + returns a boxed
     // `__asyncstate` frame, and callers type the call as `Async<T>`.
     gen_body :: fn_decl.body
-    if fn_is_async(fn_decl) && gen_body != null {
+    if fn_is_async(typed, fn_decl) && gen_body != null {
         // `async main` is the program entry : the entry point can't return an
         // `Async<i32>` frame as an exit code. Keep its return `i32` and inline
         // the run-driver into its body (build frame → resume → return the
@@ -284,7 +284,7 @@ lower_body_of :: fn(
     entry: MonoEntry, subst: Substitution, params: LoweredParam[], return_type: Type,
 ) -> LoweredBlock | null {
     body :: fn_decl.body ?? return null
-    if fn_is_generator(fn_decl) {
+    if fn_is_generator(typed, fn_decl) {
         return lower_generator_body(
             project_ctx, entry, typed, subst, fn_decl, body, params, return_type,
         )

@@ -154,8 +154,8 @@ export check_fn_body :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
-    is_generator :: fn_is_generator(fn_decl)
-    is_async :: fn_is_async(fn_decl)
+    is_generator :: fn_is_generator(typed, fn_decl)
+    is_async :: fn_is_async(typed, fn_decl)
     // Generators are inferred from a body `yield` (`is_generator`), so the
     // signature must honour it with an `Iterator<T>` return : extract that
     // element type (T3056 if the return isn't `Iterator<T>`). The body yields

@@ -25,22 +25,22 @@ AST :: import "toolchain/ast"
 /// `fn_is_async`) ; a generator states it in its signature by returning
 /// `Iterator<T>` (T3056).
 ///
+/// @param typed    the module whose `body_shapes` remembers the answer ; any
+///                 module will do, the declaration need not be its own.
 /// @param fn_decl  the declaration to scan ; a bodyless one is no generator.
-export fn_is_generator :: fn(fn_decl: AST.FnDecl) -> bool {
-    body :: fn_decl.body ?? return false
-    return block_contains(body, BodyProbe { .kind = .Yield })
-}
+export fn_is_generator :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> bool =
+    body_shape(typed, fn_decl).yields
 
 /// True when `fn_decl` is an async coroutine, i.e. it lexically `await`s.
 ///
 /// Async-ness is inferred from `await`, with no annotation ; a coroutine states
 /// it in its signature by returning `Async<T>`.
 ///
+/// @param typed    the module whose `body_shapes` remembers the answer ; any
+///                 module will do, the declaration need not be its own.
 /// @param fn_decl  the declaration to scan ; a bodyless one is not async.
-export fn_is_async :: fn(fn_decl: AST.FnDecl) -> bool {
-    body :: fn_decl.body ?? return false
-    return block_contains(body, BodyProbe { .kind = .Await })
-}
+export fn_is_async :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> bool =
+    body_shape(typed, fn_decl).awaits
 
 /// True when `s` is, or holds, a `yield` outside any nested body (a lambda, a
 /// `defer`).
@@ -73,6 +73,35 @@ loop_never_exits :: fn(s: AST.ForStmt) -> bool {
         .bare_counts = true,
     }
     return !block_contains(s.body, probe)
+}
+
+/// Whether a fn body `await`s and whether it `yields`, as `body_shape` found it.
+export BodyShape :: struct {
+    awaits: bool = false
+    yields: bool = false
+}
+
+// A declaration the lowering synthesises carries no node id, so it is scanned on
+// every request rather than remembered under an id it shares with the others.
+body_shape :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> BodyShape {
+    if fn_decl.id == AST.UNASSIGNED_NODE_ID {
+        return scan_body(fn_decl)
+    }
+    return typed.body_shapes[fn_decl.id] ?? remember_body_shape(typed, fn_decl)
+}
+
+remember_body_shape :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> BodyShape {
+    shape :: scan_body(fn_decl)
+    typed.body_shapes[fn_decl.id] = shape
+    return shape
+}
+
+scan_body :: fn(fn_decl: AST.FnDecl) -> BodyShape {
+    body :: fn_decl.body ?? return BodyShape {}
+    return BodyShape {
+        .awaits = block_contains(body, BodyProbe { .kind = .Await }),
+        .yields = block_contains(body, BodyProbe { .kind = .Yield }),
+    }
 }
 
 // ---- the walk -------------------------------------------------------------

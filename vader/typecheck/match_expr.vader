@@ -196,7 +196,7 @@ export infer_match :: fn(
                     covers_something :: is_overlap_checkable(scrut_ty)
                         && is_overlap_checkable(matched)
                         && types_overlap(scrut_ty, matched)
-                    if covers_something && display_type(narrowed) == display_type(remaining)
+                    if covers_something && equals_type(narrowed, remaining)
                         && remaining !is NeverType {
                         diags.push(
                             warning(

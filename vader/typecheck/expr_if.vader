@@ -66,20 +66,6 @@ settle_branch :: fn(
     return t
 }
 
-// `t` when it is a free literal, the first free member of a union ; null otherwise.
-free_member :: fn(t: Type) -> Type | null {
-    if is_free_numeric(t) {
-        return t
-    }
-    variants :: union_variants(t) ?? return null
-    for v in variants {
-        if is_free_numeric(v) {
-            return v
-        }
-    }
-    return null
-}
-
 // The concrete type `sibling` offers the free literal `free`: itself when it is of
 // `free`'s family, or the member a union settles such a literal on
 // (`union_literal_member`: `u8 | null` offers its `u8`).

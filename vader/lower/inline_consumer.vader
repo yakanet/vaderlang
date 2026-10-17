@@ -110,7 +110,7 @@ consumer_shape :: fn(project: LowerProjectCtx, target: CallTarget, signature: Fn
 
 find_consumer_shape :: fn(project: LowerProjectCtx, target: CallTarget, signature: FnType) -> ConsumerShape | null {
     decl :: target.decl
-    if fn_is_generator(decl) || fn_is_async(decl) {
+    if fn_is_generator(target.owner, decl) || fn_is_async(target.owner, decl) {
         return null
     }
     body :: decl.body ?? return null

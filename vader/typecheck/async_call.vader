@@ -29,7 +29,7 @@ export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concre
             // Unwrap-then-wrap-once handles both shapes uniformly : `-> T`
             // (inner = T) and `-> Async<T>` (inner = T) both yield `Async<T>`,
             // never a nested `Async<Async<T>>`.
-            if fn_is_async(fd) {
+            if fn_is_async(typed, fd) {
                 inner :: async_result_arg(async_inner_type(concrete_ret))
                 return mk_trait(async_sym, [inner])
             }

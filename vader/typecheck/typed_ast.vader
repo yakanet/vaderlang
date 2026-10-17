@@ -556,6 +556,9 @@ export TypedProgram :: struct {
     /// name are two generators. Written into every module by
     /// `register_generator_iter_impls`; read through `generator_state_of`.
     generator_states: MutableMap<u64, GeneratorState>
+    /// Whether each fn body `await`s or `yield`s, by `FnDecl` node id: filled on
+    /// the first `fn_is_async` / `fn_is_generator` asked of this module.
+    body_shapes: MutableMap<usize, BodyShape> = MutableMap<usize, BodyShape> {}
 
     /// C symbol name → first `@extern`-decorated FnDecl that claimed it.
     /// Lets `validate_extern` (decl.vader) emit T3050 on the second

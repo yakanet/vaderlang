@@ -211,6 +211,20 @@ export default_if_free :: fn(t: Type) -> Type {
     }
 }
 
+// `t` when it is a free literal, the first free member of a union ; null otherwise.
+free_member :: fn(t: Type) -> Type | null {
+    if is_free_numeric(t) {
+        return t
+    }
+    variants :: union_variants(t) ?? return null
+    for v in variants {
+        if is_free_numeric(v) {
+            return v
+        }
+    }
+    return null
+}
+
 /// `t` with each free literal defaulted, a union's members included: what a binding
 /// no annotation pins holds (`if a { 300 } else { null }` is a `null | i32`), as its
 /// literals lower at their default.
@@ -218,6 +232,9 @@ export default_if_free :: fn(t: Type) -> Type {
 /// @param t  the type the binding's value was given.
 export default_free_members :: fn(t: Type) -> Type {
     variants :: union_variants(t) ?? return default_if_free(t)
+    if free_member(t) == null {
+        return t
+    }
     out: Type[]: []
     for v in variants {
         out.push(default_if_free(v))
