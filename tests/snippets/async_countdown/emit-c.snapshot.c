@@ -51,7 +51,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 7u
 
-static vader_box_t snippet_CountDown_Async_resume(void* l0);
+static vader_box_t snippet_CountDown_std_core_Async_resume(void* l0);
 static vader_box_t snippet_waiter(void);
 static vader_string_t snippet_tag(vader_box_t l0);
 static int32_t snippet_main(void);
@@ -123,7 +123,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 /* vtable forwards */
 static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv);
 
-static vader_box_t snippet_CountDown_Async_resume(void* l0) {
+static vader_box_t snippet_CountDown_std_core_Async_resume(void* l0) {
     int32_t l1;
     int32_t t0;
     void* t1 = NULL;
@@ -524,7 +524,7 @@ static void std_io_println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet_CountDown_Async_resume(recv.payload.obj);
+        case 1u: return snippet_CountDown_std_core_Async_resume(recv.payload.obj);
         case 8u: return snippet___asyncstate_snippet_0_Async_resume(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Async.resume");
     }

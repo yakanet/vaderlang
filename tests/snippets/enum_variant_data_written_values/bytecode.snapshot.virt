@@ -113,7 +113,7 @@ fn 1 snippet$main () -> i32
       local.get 3   ; __for_i_2
       array.get 10   ; u8[]
       local.tee 4   ; s
-      call 2   ; snippet$HttpStatus$Display$to_string
+      call 2   ; snippet$HttpStatus$std_core_Display$to_string
       local.set 5   ; __p_3
       data.const 1 15   ; pool[1] snippet$StatusInfo[]
       local.set 6   ; $data_const_15
@@ -332,7 +332,7 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 snippet$HttpStatus$Display$to_string (u8) -> string
+fn 2 snippet$HttpStatus$std_core_Display$to_string (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0

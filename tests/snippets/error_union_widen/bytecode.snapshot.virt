@@ -33,7 +33,7 @@ vtable std_core$Error.message 1 0
 vtable std_core$Error.message 3 1
 export main 5
 
-fn 0 snippet$A$Error$message (ref) -> string
+fn 0 snippet$A$std_core_Error$message (ref) -> string
   local __buf_0 ref
   local __off_1 usize
   local $cast_9 i64
@@ -62,7 +62,7 @@ fn 0 snippet$A$Error$message (ref) -> string
   return
 end
 
-fn 1 snippet$B$Error$message (ref) -> string
+fn 1 snippet$B$std_core_Error$message (ref) -> string
   local __buf_0 ref
   local __off_1 usize
   local $cast_9 i64

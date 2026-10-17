@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.Tagged :: struct { n: i32 }  // snippet$Tagged
-  snippet.Tagged.equals :: fn(self: Tagged, other: Tagged) -> bool {  // snippet$Tagged$Equals$equals
+  snippet.Tagged.equals :: fn(self: Tagged, other: Tagged) -> bool {  // snippet$Tagged$std_core_Equals$equals
       self.n == other.n
   }
   snippet.pair :: fn(n: i32, s: string) -> [i32, string] {  // snippet$pair
@@ -146,10 +146,10 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  snippet$Tagged$Equals$equals$guard :: fn(self: Tagged, other: Any) -> bool {
+  snippet$Tagged$std_core_Equals$equals$guard :: fn(self: Tagged, other: Any) -> bool {
       (other is Tagged) && snippet.Tagged.equals(self, Tagged(other))
   }
-  vtable std.core.Equals.equals for Tagged  snippet$Tagged$Equals$equals$guard
+  vtable std.core.Equals.equals for Tagged  snippet$Tagged$std_core_Equals$equals$guard
 
 ## lowered in dependencies
   std/core

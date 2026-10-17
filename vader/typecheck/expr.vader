@@ -368,7 +368,7 @@ has_display :: fn(t: Type, typed: TypedProgram) -> bool = match t {
     is ArrayType     -> has_display(t.element, typed)
     is UnionType     -> all_display(t.variants, typed)
     is TypeParamType -> bound_names_display(typed.resolved.type_param_bounds[t.symbol.id], typed)
-    is TraitType     -> t.symbol.name == TRAIT_DISPLAY
+    is TraitType     -> is_core_trait(t, TRAIT_DISPLAY)
     is FreeIntType | FreeFloatType | FreeCharType | NeverType -> true
     // A trait's own body is checked once per implementor, with `Self` resolved.
     is SelfType -> true

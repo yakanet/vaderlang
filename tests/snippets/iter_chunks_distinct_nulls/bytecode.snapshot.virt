@@ -2574,7 +2574,7 @@ fn 32 std_iter$__gen_state_std_iter_2$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 33 std_collections$MutableMap$IndexSet$set_at__i32__bool (ref,i32,bool) -> void
+fn 33 std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool (ref,i32,bool) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -2582,7 +2582,7 @@ fn 33 std_collections$MutableMap$IndexSet$set_at__i32__bool (ref,i32,bool) -> vo
   return
 end
 
-fn 34 std_collections$MutableMap$Contains$contains__i32__bool (ref,i32) -> bool
+fn 34 std_collections$MutableMap$std_core_Contains$contains__i32__bool (ref,i32) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 53   ; std_collections$contains_key__i32__bool
@@ -3218,7 +3218,7 @@ fn 38 std_collections$__gen_state_std_collections_3$Iterator$next (ref) -> ref
   end $L0
 end
 
-fn 39 std_collections$MutableMap$IndexSet$set_at__string__bool (ref,string,bool) -> void
+fn 39 std_collections$MutableMap$std_core_IndexSet$set_at__string__bool (ref,string,bool) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -3226,7 +3226,7 @@ fn 39 std_collections$MutableMap$IndexSet$set_at__string__bool (ref,string,bool)
   return
 end
 
-fn 40 std_collections$MutableMap$Contains$contains__string__bool (ref,string) -> bool
+fn 40 std_collections$MutableMap$std_core_Contains$contains__string__bool (ref,string) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 54   ; std_collections$contains_key__string__bool
@@ -4443,13 +4443,13 @@ end
 fn 55 std_collections$add__i32 (ref,i32) -> bool
   local.field 0 50 0   ; arg 0 std_collections$MutableSet__i32.inner
   local.get 1   ; arg 1
-  call 34   ; std_collections$MutableMap$Contains$contains__i32__bool
+  call 34   ; std_collections$MutableMap$std_core_Contains$contains__i32__bool
   if $L0 void
   else
     local.field 0 50 0   ; arg 0 std_collections$MutableSet__i32.inner
     local.get 1   ; arg 1
     bool.const true
-    call 33   ; std_collections$MutableMap$IndexSet$set_at__i32__bool
+    call 33   ; std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
     return.lit bool.const true
   end $L0
   return.lit bool.const false
@@ -4458,13 +4458,13 @@ end
 fn 56 std_collections$add__string (ref,string) -> bool
   local.field 0 35 0   ; arg 0 std_collections$MutableSet__string.inner
   local.get 1   ; arg 1
-  call 40   ; std_collections$MutableMap$Contains$contains__string__bool
+  call 40   ; std_collections$MutableMap$std_core_Contains$contains__string__bool
   if $L0 void
   else
     local.field 0 35 0   ; arg 0 std_collections$MutableSet__string.inner
     local.get 1   ; arg 1
     bool.const true
-    call 39   ; std_collections$MutableMap$IndexSet$set_at__string__bool
+    call 39   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__bool
     return.lit bool.const true
   end $L0
   return.lit bool.const false

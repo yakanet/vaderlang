@@ -75,8 +75,8 @@ static int32_t snippet_main(void);
 static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0);
 static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0);
 static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0);
-static vader_box_t snippet_Ready_Async_resume__Any(void* l0);
-static vader_box_t snippet_Ready_Async_resume__i32(void* l0);
+static vader_box_t snippet_Ready_std_core_Async_resume__Any(void* l0);
+static vader_box_t snippet_Ready_std_core_Async_resume__i32(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
@@ -622,12 +622,12 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static vader_box_t snippet_Ready_Async_resume__Any(void* l0) {
+static vader_box_t snippet_Ready_std_core_Async_resume__Any(void* l0) {
 #line 9 "tests/snippets/async_await_in_value_positions/_main.vader"
     return ((vader_struct_snippet_Ready__Any_t*) l0)->f_v;
 }
 
-static vader_box_t snippet_Ready_Async_resume__i32(void* l0) {
+static vader_box_t snippet_Ready_std_core_Async_resume__i32(void* l0) {
     int32_t t0;
     vader_box_t t1;
 #line 9 "tests/snippets/async_await_in_value_positions/_main.vader"
@@ -851,8 +851,8 @@ static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
         case 5u: return snippet___asyncstate_snippet_0_Async_resume(recv.payload.obj);
         case 8u: return snippet___asyncstate_snippet_1_Async_resume(recv.payload.obj);
         case 11u: return snippet___asyncstate_snippet_2_Async_resume(recv.payload.obj);
-        case 12u: return snippet_Ready_Async_resume__Any(recv.payload.obj);
-        case 16u: return snippet_Ready_Async_resume__i32(recv.payload.obj);
+        case 12u: return snippet_Ready_std_core_Async_resume__Any(recv.payload.obj);
+        case 16u: return snippet_Ready_std_core_Async_resume__i32(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Async.resume");
     }
     vader_unreachable("vtable miss in std_core$Async.resume");

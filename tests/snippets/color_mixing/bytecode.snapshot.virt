@@ -20,7 +20,7 @@ impl 1 std_core$Add
 impl 6 std_core$ByteAccess
 export main 1
 
-fn 0 snippet$Color$Add$add (ref,ref) -> ref
+fn 0 snippet$Color$std_core_Add$add (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local $field_8 i32
@@ -88,7 +88,7 @@ fn 1 snippet$main () -> i32
   local.set 1   ; blue
   local.get 0   ; red
   local.get 1   ; blue
-  call 0   ; snippet$Color$Add$add
+  call 0   ; snippet$Color$std_core_Add$add
   local.set 1   ; blue
   i64.const 62
   call 3   ; std_core$new_byte_buffer

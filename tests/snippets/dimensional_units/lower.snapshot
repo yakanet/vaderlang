@@ -1,10 +1,10 @@
 # Lower
 
 ## snippet
-  snippet.Money.add :: fn(self: Money, other: Money) -> Money {  // snippet$Money$Add$add
+  snippet.Money.add :: fn(self: Money, other: Money) -> Money {  // snippet$Money$std_core_Add$add
       Money(i64(self) + i64(other))
   }
-  snippet.Money.compare :: fn(self: Money, other: Money) -> i32 {  // snippet$Money$Comparable$compare
+  snippet.Money.compare :: fn(self: Money, other: Money) -> i32 {  // snippet$Money$std_core_Comparable$compare
       if i64(self) < i64(other) {
           return -1
       }
@@ -13,10 +13,10 @@
       }
       return 0
   }
-  snippet.Instant.sub :: fn(self: Instant, other: Instant) -> Duration {  // snippet$Instant$Sub$sub
+  snippet.Instant.sub :: fn(self: Instant, other: Instant) -> Duration {  // snippet$Instant$std_core_Sub$sub
       Duration(i64(self) - i64(other))
   }
-  snippet.Instant.add :: fn(self: Instant, d: Duration) -> Instant {  // snippet$Instant$Add$add
+  snippet.Instant.add :: fn(self: Instant, d: Duration) -> Instant {  // snippet$Instant$std_core_Add$add
       Instant(i64(self) + i64(d))
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -67,10 +67,10 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Add.add for Instant  snippet.Instant.add  // snippet$Instant$Add$add
-  vtable std.core.Add.add for Money  snippet.Money.add  // snippet$Money$Add$add
-  vtable std.core.Comparable.compare for Money  snippet.Money.compare  // snippet$Money$Comparable$compare
-  vtable std.core.Sub.sub for Instant  snippet.Instant.sub  // snippet$Instant$Sub$sub
+  vtable std.core.Add.add for Instant  snippet.Instant.add  // snippet$Instant$std_core_Add$add
+  vtable std.core.Add.add for Money  snippet.Money.add  // snippet$Money$std_core_Add$add
+  vtable std.core.Comparable.compare for Money  snippet.Money.compare  // snippet$Money$std_core_Comparable$compare
+  vtable std.core.Sub.sub for Instant  snippet.Instant.sub  // snippet$Instant$std_core_Sub$sub
 
 ## lowered in dependencies
   std/core

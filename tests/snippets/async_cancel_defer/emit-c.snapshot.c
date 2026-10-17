@@ -68,8 +68,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 7u
 
-static vader_box_t snippet_Never_Async_resume(void* l0);
-static void snippet_Never_Async_cancel(void* l0);
+static vader_box_t snippet_Never_std_core_Async_resume(void* l0);
+static void snippet_Never_std_core_Async_cancel(void* l0);
 static vader_box_t snippet_inner(void);
 static vader_box_t snippet_outer(void);
 static int32_t snippet_main(void);
@@ -180,7 +180,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv);
 static void vader_vt_std_core_Async__cancel(vader_box_t recv);
 
-static vader_box_t snippet_Never_Async_resume(void* l0) {
+static vader_box_t snippet_Never_std_core_Async_resume(void* l0) {
     void* t0 = NULL;
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
@@ -194,7 +194,7 @@ static vader_box_t snippet_Never_Async_resume(void* l0) {
     { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void snippet_Never_Async_cancel(void* l0) {
+static void snippet_Never_std_core_Async_cancel(void* l0) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -732,7 +732,7 @@ static void std_io_println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet_Never_Async_resume(recv.payload.obj);
+        case 1u: return snippet_Never_std_core_Async_resume(recv.payload.obj);
         case 8u: return snippet___asyncstate_snippet_2_Async_resume(recv.payload.obj);
         case 10u: return snippet___asyncstate_snippet_5_Async_resume(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Async.resume");
@@ -742,7 +742,7 @@ static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
 
 static void vader_vt_std_core_Async__cancel(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: snippet_Never_Async_cancel(recv.payload.obj); return;
+        case 1u: snippet_Never_std_core_Async_cancel(recv.payload.obj); return;
         case 8u: snippet___asyncstate_snippet_2_Async_cancel(recv.payload.obj); return;
         case 10u: snippet___asyncstate_snippet_5_Async_cancel(recv.payload.obj); return;
         default: vader_unreachable("vtable miss in std_core$Async.cancel");

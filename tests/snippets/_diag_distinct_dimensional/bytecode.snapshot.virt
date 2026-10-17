@@ -4,7 +4,7 @@ type 1 primitive i64
 type 2 primitive i32
 export main 2
 
-fn 0 snippet$Instant$Sub$sub (i64,i64) -> i64
+fn 0 snippet$Instant$std_core_Sub$sub (i64,i64) -> i64
   local $cast_2 i64
   local $cast_3 i64
   local.get 0   ; arg 0
@@ -17,7 +17,7 @@ fn 0 snippet$Instant$Sub$sub (i64,i64) -> i64
   return
 end
 
-fn 1 snippet$Instant$Comparable$compare (i64,i64) -> i32
+fn 1 snippet$Instant$std_core_Comparable$compare (i64,i64) -> i32
   local a i64
   local b i64
   local.get 0   ; arg 0
@@ -49,11 +49,11 @@ fn 2 snippet$main () -> i32
   i64.const 250
   local.tee 1   ; t1
   local.get 0   ; t0
-  call 0   ; snippet$Instant$Sub$sub
+  call 0   ; snippet$Instant$std_core_Sub$sub
   local.set 2   ; d
   local.get 0   ; t0
   local.get 1   ; t1
-  call 1   ; snippet$Instant$Comparable$compare
+  call 1   ; snippet$Instant$std_core_Comparable$compare
   i32.const 0
   i32.lt
   if $L0 void

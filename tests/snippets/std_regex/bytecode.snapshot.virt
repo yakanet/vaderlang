@@ -1756,11 +1756,11 @@ fn 23 regex$replace_all (ref,string,string) -> string
     local.get 10   ; $call_18
     call 54   ; std_string_builder$append
     local.get 3   ; sb
-    call 55   ; std_string_builder$StringBuilder$Display$to_string
+    call 55   ; std_string_builder$StringBuilder$std_core_Display$to_string
     return
   end $L2
   local.get 3   ; sb
-  call 55   ; std_string_builder$StringBuilder$Display$to_string
+  call 55   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -4582,7 +4582,7 @@ fn 54 std_string_builder$append (ref,string) -> void
   return
 end
 
-fn 55 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 55 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize

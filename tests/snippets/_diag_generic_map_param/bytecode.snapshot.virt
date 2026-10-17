@@ -50,11 +50,11 @@ fn 1 snippet$bump__string__i32 (ref,string,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 2   ; std_collections$MutableMap$IndexSet$set_at__string__i32
+  call 2   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
   return
 end
 
-fn 2 std_collections$MutableMap$IndexSet$set_at__string__i32 (ref,string,i32) -> void
+fn 2 std_collections$MutableMap$std_core_IndexSet$set_at__string__i32 (ref,string,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

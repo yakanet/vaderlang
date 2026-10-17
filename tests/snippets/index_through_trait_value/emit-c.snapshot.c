@@ -92,7 +92,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 10u
 
-static void snippet_Log_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2);
+static void snippet_Log_std_core_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2);
 static void snippet_fill(vader_box_t l0);
 static int32_t snippet_peek(vader_box_t l0, vader_string_t l1);
 static void snippet_put_wide(vader_box_t l0);
@@ -114,14 +114,14 @@ static void std_core_codepoint_at_byte(vader_string_t l0, size_t l1, uint32_t* _
 static size_t std_core_codepoint_count(void* l0);
 static void std_core_decode_tail(vader_string_t l0, uint8_t l1, size_t l2, uint32_t* __o0, size_t* __o1);
 static bool std_core_is_utf8_continuation(uint8_t l0);
-static vader_box_t std_collections_MutableMap_Index_at__i32__bool(void* l0, int32_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__i32__bool(void* l0, int32_t l1, bool l2);
-static vader_box_t std_collections_MutableMap_Index_at__i32__i32(void* l0, int32_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__i32__i32(void* l0, int32_t l1, int32_t l2);
-static vader_box_t std_collections_MutableMap_Index_at__i64__i32(void* l0, int64_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__i64__i32(void* l0, int64_t l1, int32_t l2);
-static vader_box_t std_collections_MutableMap_Index_at__string__i32(void* l0, vader_string_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__string__i32(void* l0, vader_string_t l1, int32_t l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__i32__bool(void* l0, int32_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__i32__bool(void* l0, int32_t l1, bool l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__i32__i32(void* l0, int32_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__i32__i32(void* l0, int32_t l1, int32_t l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__i64__i32(void* l0, int64_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__i64__i32(void* l0, int64_t l1, int32_t l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__string__i32(void* l0, vader_string_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(void* l0, vader_string_t l1, int32_t l2);
 static size_t std_collections_first_slot(uint64_t l0, size_t l1);
 static size_t std_collections_next_slot(size_t l0, uint64_t l1, size_t l2);
 static void std_collections_ensure_index__i32__bool(void* l0);
@@ -265,7 +265,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 static void vader_vt_std_core_IndexSet__set_at(vader_box_t recv, vader_box_t a0, vader_box_t a1);
 static vader_box_t vader_vt_std_core_Index__at(vader_box_t recv, vader_box_t a0);
 
-static void snippet_Log_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2) {
+static void snippet_Log_std_core_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     vader_string_t l4 = 0;
@@ -415,8 +415,8 @@ static int32_t snippet_main(void) {
 #line 47 "tests/snippets/index_through_trait_value/_main.vader"
     snippet_fill(vader_ref_box(l0));
 #line 48 "tests/snippets/index_through_trait_value/_main.vader"
-    snippet_Log_IndexSet_set_at(l0, 8u, INT32_C(5));
-    snippet_Log_IndexSet_set_at(l0, 9u, INT32_C(6));
+    snippet_Log_std_core_IndexSet_set_at(l0, 8u, INT32_C(5));
+    snippet_Log_std_core_IndexSet_set_at(l0, 9u, INT32_C(6));
 #line 49 "tests/snippets/index_through_trait_value/_main.vader"
     vader_array_t* _a6_slotarr = ((vader_array_t*) ((vader_struct_snippet_Log_t*) l0)->f_lines);
     VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
@@ -470,7 +470,7 @@ static int32_t snippet_main(void) {
 #line 54 "tests/snippets/index_through_trait_value/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 62);
     l3 = (size_t) 0;
-    l9 = std_collections_MutableMap_Index_at__i64__i32(l0, l4);
+    l9 = std_collections_MutableMap_std_core_Index_at__i64__i32(l0, l4);
     if (l9.tag == 0u) {
         l10 = INT32_C(-1);
     } else {
@@ -480,7 +480,7 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_int(l1, l3, l11);
     l3 = std_core_write_string_at(l1, l3, 4u);
     l4 = vader_chk_add(i64, l4, INT64_C(1));
-    l9 = std_collections_MutableMap_Index_at__i64__i32(l0, l4);
+    l9 = std_collections_MutableMap_std_core_Index_at__i64__i32(l0, l4);
     if (l9.tag == 0u) {
         l10 = INT32_C(-1);
     } else {
@@ -504,8 +504,8 @@ static void snippet_pair_into__std_collections_MutableMap_string__i32_(void* l0)
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 30 "tests/snippets/index_through_trait_value/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__string__i32(l0, 5u, INT32_C(3));
-    std_collections_MutableMap_IndexSet_set_at__string__i32(l0, 6u, INT32_C(4));
+    std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(l0, 5u, INT32_C(3));
+    std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(l0, 6u, INT32_C(4));
 #line 29 "tests/snippets/index_through_trait_value/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -515,7 +515,7 @@ static void snippet_put_wider__std_collections_MutableMap_i64__i32_(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 38 "tests/snippets/index_through_trait_value/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__i64__i32(l0, INT64_C(9000000001), INT32_C(8));
+    std_collections_MutableMap_std_core_IndexSet_set_at__i64__i32(l0, INT64_C(9000000001), INT32_C(8));
 #line 37 "tests/snippets/index_through_trait_value/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -1033,14 +1033,14 @@ static bool std_core_is_utf8_continuation(uint8_t l0) {
     return (l0 & INT32_C(192)) == INT32_C(128);
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__i32__bool(void* l0, int32_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__i32__bool(void* l0, int32_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__i32__bool(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__i32__bool(void* l0, int32_t l1, bool l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__i32__bool(void* l0, int32_t l1, bool l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -1049,14 +1049,14 @@ static void std_collections_MutableMap_IndexSet_set_at__i32__bool(void* l0, int3
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__i32__i32(void* l0, int32_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__i32__i32(void* l0, int32_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__i32__i32(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__i32__i32(void* l0, int32_t l1, int32_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__i32__i32(void* l0, int32_t l1, int32_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -1065,14 +1065,14 @@ static void std_collections_MutableMap_IndexSet_set_at__i32__i32(void* l0, int32
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__i64__i32(void* l0, int64_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__i64__i32(void* l0, int64_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__i64__i32(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__i64__i32(void* l0, int64_t l1, int32_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__i64__i32(void* l0, int64_t l1, int32_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -1081,14 +1081,14 @@ static void std_collections_MutableMap_IndexSet_set_at__i64__i32(void* l0, int64
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__string__i32(void* l0, vader_string_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__string__i32(void* l0, vader_string_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__string__i32(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__string__i32(void* l0, vader_string_t l1, int32_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(void* l0, vader_string_t l1, int32_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = {
@@ -2832,11 +2832,11 @@ static uint64_t std_core_string_Hash_hash_vt(vader_string_t l0) {
 /* vtable dispatchers */
 static void vader_vt_std_core_IndexSet__set_at(vader_box_t recv, vader_box_t a0, vader_box_t a1) {
     switch (recv.tag) {
-        case 1u: snippet_Log_IndexSet_set_at(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
-        case 20u: std_collections_MutableMap_IndexSet_set_at__i32__bool(recv.payload.obj, ((int32_t) a0.payload.i), a1.payload.b); return;
-        case 22u: std_collections_MutableMap_IndexSet_set_at__i32__i32(recv.payload.obj, ((int32_t) a0.payload.i), ((int32_t) a1.payload.i)); return;
-        case 9u: std_collections_MutableMap_IndexSet_set_at__i64__i32(recv.payload.obj, ((int64_t) a0.payload.i), ((int32_t) a1.payload.i)); return;
-        case 8u: std_collections_MutableMap_IndexSet_set_at__string__i32(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
+        case 1u: snippet_Log_std_core_IndexSet_set_at(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
+        case 20u: std_collections_MutableMap_std_core_IndexSet_set_at__i32__bool(recv.payload.obj, ((int32_t) a0.payload.i), a1.payload.b); return;
+        case 22u: std_collections_MutableMap_std_core_IndexSet_set_at__i32__i32(recv.payload.obj, ((int32_t) a0.payload.i), ((int32_t) a1.payload.i)); return;
+        case 9u: std_collections_MutableMap_std_core_IndexSet_set_at__i64__i32(recv.payload.obj, ((int64_t) a0.payload.i), ((int32_t) a1.payload.i)); return;
+        case 8u: std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
         default: vader_unreachable("vtable miss in std_core$IndexSet.set_at");
     }
 }
@@ -2844,10 +2844,10 @@ static void vader_vt_std_core_IndexSet__set_at(vader_box_t recv, vader_box_t a0,
 static vader_box_t vader_vt_std_core_Index__at(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
         case 2u: return vader_box_i32(18u, (int32_t) std_core_string_Index_at(recv.payload.s, ((size_t) a0.payload.i)));
-        case 20u: return std_collections_MutableMap_Index_at__i32__bool(recv.payload.obj, ((int32_t) a0.payload.i));
-        case 22u: return std_collections_MutableMap_Index_at__i32__i32(recv.payload.obj, ((int32_t) a0.payload.i));
-        case 9u: return std_collections_MutableMap_Index_at__i64__i32(recv.payload.obj, ((int64_t) a0.payload.i));
-        case 8u: return std_collections_MutableMap_Index_at__string__i32(recv.payload.obj, a0.payload.s);
+        case 20u: return std_collections_MutableMap_std_core_Index_at__i32__bool(recv.payload.obj, ((int32_t) a0.payload.i));
+        case 22u: return std_collections_MutableMap_std_core_Index_at__i32__i32(recv.payload.obj, ((int32_t) a0.payload.i));
+        case 9u: return std_collections_MutableMap_std_core_Index_at__i64__i32(recv.payload.obj, ((int64_t) a0.payload.i));
+        case 8u: return std_collections_MutableMap_std_core_Index_at__string__i32(recv.payload.obj, a0.payload.s);
         default: vader_unreachable("vtable miss in std_core$Index.at");
     }
     vader_unreachable("vtable miss in std_core$Index.at");

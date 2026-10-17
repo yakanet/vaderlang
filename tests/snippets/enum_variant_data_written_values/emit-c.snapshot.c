@@ -108,7 +108,7 @@ static const vader_array_t vader_data_2 = {
 
 static vader_string_t snippet_describe(uint8_t l0);
 static int32_t snippet_main(void);
-static vader_string_t snippet_HttpStatus_Display_to_string(uint8_t l0);
+static vader_string_t snippet_HttpStatus_std_core_Display_to_string(uint8_t l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
@@ -244,7 +244,7 @@ static int32_t snippet_main(void) {
         t0 = vader_array_read_u8(_a1_slotarr, _a1_slotarr->offset + (size_t) l3, 1u);
         l4 = ((uint8_t) t0.payload.i);
 #line 37 "tests/snippets/enum_variant_data_written_values/_main.vader"
-        l5 = snippet_HttpStatus_Display_to_string(l4);
+        l5 = snippet_HttpStatus_std_core_Display_to_string(l4);
 #line 16 "tests/snippets/enum_variant_data_written_values/_main.vader"
         l6 = (void*) &vader_data_1;
 #line 37 "tests/snippets/enum_variant_data_written_values/_main.vader"
@@ -345,7 +345,7 @@ static int32_t snippet_main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static vader_string_t snippet_HttpStatus_Display_to_string(uint8_t l0) {
+static vader_string_t snippet_HttpStatus_std_core_Display_to_string(uint8_t l0) {
     vader_string_t l1;
 #line 3 "<displayable>:tests/snippets/enum_variant_data_written_values/_main.vader#HttpStatus"
     if (l0 == INT32_C(0)) {

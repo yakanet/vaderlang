@@ -1592,7 +1592,7 @@ fn 18 cli$parse (ref,ref) -> ref
             local.get 2   ; $arr_2
             local.get 20   ; $field_71
             string.const 36   ; "true"
-            call 27   ; std_collections$MutableMap$IndexSet$set_at__string__string
+            call 27   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__string
           else
             local.get 15   ; inline_value
             string.const 36   ; "true"
@@ -1616,7 +1616,7 @@ fn 18 cli$parse (ref,ref) -> ref
               local.get 2   ; $arr_2
               local.get 22   ; $field_80
               local.get 15   ; inline_value
-              call 27   ; std_collections$MutableMap$IndexSet$set_at__string__string
+              call 27   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__string
             else
               local.get 7   ; a
               string.const 42   ; ": bool flag accepts true or false, got \""
@@ -1792,7 +1792,7 @@ fn 19 cli$bool_flag (ref,string) -> bool
   local v any
   local.field 0 14 0   ; arg 0 cli$ParsedArgs.flags
   local.get 1   ; arg 1
-  call 26   ; std_collections$MutableMap$Index$at__string__string
+  call 26   ; std_collections$MutableMap$std_core_Index$at__string__string
   local.tee 2   ; v
   type_check 0   ; null
   if $L0 void
@@ -1815,7 +1815,7 @@ fn 20 cli$string_flag (ref,string,string) -> string
   local v any
   local.field 0 14 0   ; arg 0 cli$ParsedArgs.flags
   local.get 1   ; arg 1
-  call 26   ; std_collections$MutableMap$Index$at__string__string
+  call 26   ; std_collections$MutableMap$std_core_Index$at__string__string
   local.tee 3   ; v
   type_check 0   ; null
   if $L0 void
@@ -1946,7 +1946,7 @@ fn 22 cli$record_str_flag (ref,string,string,ref,ref) -> void
     local.get 3   ; arg 3
     local.get 5   ; $call_12
     local.get 2   ; arg 2
-    call 27   ; std_collections$MutableMap$IndexSet$set_at__string__string
+    call 27   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__string
     return
   end $L2
   local.field 0 13 0   ; arg 0 cli$FlagSpec.name
@@ -1955,7 +1955,7 @@ fn 22 cli$record_str_flag (ref,string,string,ref,ref) -> void
   local.get 3   ; arg 3
   local.get 5   ; $call_12
   local.get 2   ; arg 2
-  call 27   ; std_collections$MutableMap$IndexSet$set_at__string__string
+  call 27   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__string
   return
 end
 
@@ -2061,14 +2061,14 @@ fn 25 cli$value_list (ref) -> string
   return
 end
 
-fn 26 std_collections$MutableMap$Index$at__string__string (ref,string) -> any
+fn 26 std_collections$MutableMap$std_core_Index$at__string__string (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 34   ; std_collections$get__string__string
   return
 end
 
-fn 27 std_collections$MutableMap$IndexSet$set_at__string__string (ref,string,string) -> void
+fn 27 std_collections$MutableMap$std_core_IndexSet$set_at__string__string (ref,string,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -2831,7 +2831,7 @@ fn 39 std_string$join (ref,string) -> string
     end $L1
   end $L0
   local.get 2   ; sb
-  call 41   ; std_string_builder$StringBuilder$Display$to_string
+  call 41   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -2842,7 +2842,7 @@ fn 40 std_string_builder$append (ref,string) -> void
   return
 end
 
-fn 41 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 41 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize

@@ -1,13 +1,13 @@
 # Lower
 
 ## snippet
-  snippet.Instant.sub :: fn(self: Instant, other: Instant) -> Duration {  // snippet$Instant$Sub$sub
+  snippet.Instant.sub :: fn(self: Instant, other: Instant) -> Duration {  // snippet$Instant$std_core_Sub$sub
       Duration(i64(self) - i64(other))
   }
-  snippet.Duration.add :: fn(self: Duration, other: Duration) -> Duration {  // snippet$Duration$Add$add
+  snippet.Duration.add :: fn(self: Duration, other: Duration) -> Duration {  // snippet$Duration$std_core_Add$add
       Duration(i64(self) + i64(other))
   }
-  snippet.Instant.compare :: fn(self: Instant, other: Instant) -> i32 {  // snippet$Instant$Comparable$compare
+  snippet.Instant.compare :: fn(self: Instant, other: Instant) -> i32 {  // snippet$Instant$std_core_Comparable$compare
       a: i64 = i64(self)
       b: i64 = i64(other)
       if a < b {
@@ -27,9 +27,9 @@
       }
       return -1
   }
-  vtable std.core.Add.add for Duration  snippet.Duration.add  // snippet$Duration$Add$add
-  vtable std.core.Comparable.compare for Instant  snippet.Instant.compare  // snippet$Instant$Comparable$compare
-  vtable std.core.Sub.sub for Instant  snippet.Instant.sub  // snippet$Instant$Sub$sub
+  vtable std.core.Add.add for Duration  snippet.Duration.add  // snippet$Duration$std_core_Add$add
+  vtable std.core.Comparable.compare for Instant  snippet.Instant.compare  // snippet$Instant$std_core_Comparable$compare
+  vtable std.core.Sub.sub for Instant  snippet.Instant.sub  // snippet$Instant$std_core_Sub$sub
 
 ## lowered in dependencies
   std/core

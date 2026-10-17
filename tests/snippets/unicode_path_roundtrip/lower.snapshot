@@ -74,7 +74,7 @@
     struct std.core.Range<i32>  // std_core$Range__i32
     struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std.io.IOError.message  // std_io$IOError$Error$message
+    fn std.io.IOError.message  // std_io$IOError$std_core_Error$message
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.exists  // std_io$exists
     fn std.io.last_io_error  // std_io$last_io_error

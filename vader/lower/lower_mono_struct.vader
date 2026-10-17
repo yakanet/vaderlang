@@ -529,7 +529,11 @@ materialize_impl_for_instance :: fn(
         // dropping the call to the panic fallback. Co-locating with the impl keeps
         // the two in lock-step. No-op when owner == impl (the colocated case).
         mangled :: impl_member_name(
-            impl_typed.resolved.display_path, self_type, impl_decl.trait_name, member.name, suffix,
+            impl_typed.resolved.display_path,
+            self_type,
+            impl_entry.trait_symbol,
+            member.name,
+            suffix,
         )
         entry_decl: Decl: member
         entry :: MonoEntry {

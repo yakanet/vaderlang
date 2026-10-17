@@ -25,7 +25,7 @@
       return 0
   }
   snippet.Repeat<i32> :: struct { value: i32, remaining: i32 }  // snippet$Repeat__i32
-  snippet.Repeat<i32>.next :: fn(self: Repeat<i32>) -> [i32, Continuation] {  // snippet$Repeat$Iterator$next__i32
+  snippet.Repeat<i32>.next :: fn(self: Repeat<i32>) -> [i32, Continuation] {  // snippet$Repeat$std_core_Iterator$next__i32
       if self.remaining <= 0 {
           return [self.value, u8(1)] :[i32, Continuation]
       }
@@ -42,7 +42,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Iterator.next for Repeat<i32>  snippet.Repeat<i32>.next  // snippet$Repeat$Iterator$next__i32
+  vtable std.core.Iterator.next for Repeat<i32>  snippet.Repeat<i32>.next  // snippet$Repeat$std_core_Iterator$next__i32
 
 ## lowered in dependencies
   std/core

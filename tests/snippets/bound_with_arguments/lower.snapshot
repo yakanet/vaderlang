@@ -2,15 +2,15 @@
 
 ## snippet
   snippet.Money :: struct { cents: i64 }  // snippet$Money
-  snippet.Money.add :: fn(self: Money, other: Money) -> Money {  // snippet$Money$Add$add
+  snippet.Money.add :: fn(self: Money, other: Money) -> Money {  // snippet$Money$std_core_Add$add
       Money { .cents = self.cents + other.cents }
   }
   snippet.Points :: struct { n: i32 }  // snippet$Points
-  snippet.Points.add :: fn(self: Points, other: Points) -> Points {  // snippet$Points$Add$add
+  snippet.Points.add :: fn(self: Points, other: Points) -> Points {  // snippet$Points$std_core_Add$add
       Points { .n = self.n + other.n }
   }
   snippet.Grams :: struct { g: i32 }  // snippet$Grams
-  snippet.Grams.add :: fn(self: Grams, other: Grams) -> Grams {  // snippet$Grams$Add$add
+  snippet.Grams.add :: fn(self: Grams, other: Grams) -> Grams {  // snippet$Grams$std_core_Add$add
       Grams { .g = self.g + other.g }
   }
   snippet.Cfg :: struct { n: i32 }  // snippet$Cfg
@@ -122,9 +122,9 @@
   }
   vtable snippet.Count.count for Money[]  snippet.Money[].count  // snippet$[]$Count$count__snippet_Money
   vtable snippet.Sink.put for Cfg  snippet.Cfg.put  // snippet$Cfg$Sink$put
-  vtable std.core.Add.add for Grams  snippet.Grams.add  // snippet$Grams$Add$add
-  vtable std.core.Add.add for Money  snippet.Money.add  // snippet$Money$Add$add
-  vtable std.core.Add.add for Points  snippet.Points.add  // snippet$Points$Add$add
+  vtable std.core.Add.add for Grams  snippet.Grams.add  // snippet$Grams$std_core_Add$add
+  vtable std.core.Add.add for Money  snippet.Money.add  // snippet$Money$std_core_Add$add
+  vtable std.core.Add.add for Points  snippet.Points.add  // snippet$Points$std_core_Add$add
 
 ## lowered in dependencies
   std/core

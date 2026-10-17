@@ -101,8 +101,9 @@ export unify_type_param :: fn(
                 // callee then infers `Iterator<T>` (T3008 downstream) and the
                 // generic body is never specialised. Bind `T = element`.
                 is ArrayType -> {
-                    if param_type.symbol.name == TRAIT_ITERATOR && param_type.args.len() == 1 {
-                        unify_type_param(param_type.args[0], arg_type.element, out)
+                    element :: core_trait_arg(param_type, TRAIT_ITERATOR)
+                    if element != null {
+                        unify_type_param(element, arg_type.element, out)
                     }
                 }
                 _ -> {}
@@ -350,8 +351,9 @@ unify_infer :: fn(
             } else if actual is ArrayType {
                 // An array reaches an `Iterator<T>` parameter through the blanket
                 // `T[] -> Iterator<T>` conversion : its element binds `T`.
-                if pattern.symbol.name == TRAIT_ITERATOR && pattern.args.len() == 1 {
-                    unify_infer(pattern.args[0], actual.element, solutions, held)
+                element :: core_trait_arg(pattern, TRAIT_ITERATOR)
+                if element != null {
+                    unify_infer(element, actual.element, solutions, held)
                 }
             }
         }

@@ -705,7 +705,7 @@ fn 13 std_io$println__string (string) -> void
   return
 end
 
-fn 14 std_async$JoinAll$Async$resume__i32 (ref) -> any
+fn 14 std_async$JoinAll$std_core_Async$resume__i32 (ref) -> any
   local n usize
   local now i64
   local next i64
@@ -763,7 +763,7 @@ fn 14 std_async$JoinAll$Async$resume__i32 (ref) -> any
           local.get 8   ; $field_22
           local.get 4   ; i
           local.get 9   ; $cast_23
-          call 25   ; std_collections$MutableMap$IndexSet$set_at__usize__i32
+          call 25   ; std_collections$MutableMap$std_core_IndexSet$set_at__usize__i32
           local.field 0 18 2   ; arg 0 std_async$JoinAll__i32.wake_at
           local.get 4   ; i
           i64.const 9223372036854775807
@@ -805,7 +805,7 @@ fn 14 std_async$JoinAll$Async$resume__i32 (ref) -> any
     if $L6 void
       local.field 0 18 1   ; arg 0 std_async$JoinAll__i32.results
       local.get 4   ; i
-      call 24   ; std_collections$MutableMap$Index$at__usize__i32
+      call 24   ; std_collections$MutableMap$std_core_Index$at__usize__i32
       local.tee 5   ; r
       type_check 0   ; null
       if $L7 void
@@ -828,7 +828,7 @@ fn 14 std_async$JoinAll$Async$resume__i32 (ref) -> any
   return
 end
 
-fn 15 std_async$JoinAll$Async$cancel__i32 (ref) -> void
+fn 15 std_async$JoinAll$std_core_Async$cancel__i32 (ref) -> void
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
@@ -883,7 +883,7 @@ fn 18 std_async$earlier (i64,i64) -> i64
   return
 end
 
-fn 19 std_async$Sleep$Async$resume (ref) -> any
+fn 19 std_async$Sleep$std_core_Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
   local.field 0 21 2   ; arg 0 std_async$Sleep.armed
@@ -927,7 +927,7 @@ fn 19 std_async$Sleep$Async$resume (ref) -> any
   return.lit null.const
 end
 
-fn 20 std_async$Sleep$Async$cancel (ref) -> void
+fn 20 std_async$Sleep$std_core_Async$cancel (ref) -> void
   return
 end
 
@@ -998,14 +998,14 @@ fn 23 std_async$new_join_all__i32 (ref) -> ref
   return
 end
 
-fn 24 std_collections$MutableMap$Index$at__usize__i32 (ref,usize) -> any
+fn 24 std_collections$MutableMap$std_core_Index$at__usize__i32 (ref,usize) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 32   ; std_collections$get__usize__i32
   return
 end
 
-fn 25 std_collections$MutableMap$IndexSet$set_at__usize__i32 (ref,usize,i32) -> void
+fn 25 std_collections$MutableMap$std_core_IndexSet$set_at__usize__i32 (ref,usize,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

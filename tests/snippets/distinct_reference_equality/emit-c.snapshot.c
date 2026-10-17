@@ -39,8 +39,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 8u
 
-static bool snippet_Rgb_Equals_equals(void* l0, void* l1);
-static bool snippet_Row_Equals_equals(void* l0, void* l1);
+static bool snippet_Rgb_std_core_Equals_equals(void* l0, void* l1);
+static bool snippet_Row_std_core_Equals_equals(void* l0, void* l1);
 static int32_t snippet_main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
@@ -105,7 +105,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
     return write(a0, s1.ptr, a2);
 }
 
-static bool snippet_Rgb_Equals_equals(void* l0, void* l1) {
+static bool snippet_Rgb_std_core_Equals_equals(void* l0, void* l1) {
     int32_t l2, l3;
 #line 14 "tests/snippets/distinct_reference_equality/_main.vader"
     l2 = ((vader_struct_snippet_Rgb_t*) l0)->f_r;
@@ -113,7 +113,7 @@ static bool snippet_Rgb_Equals_equals(void* l0, void* l1) {
     return l2 == l3;
 }
 
-static bool snippet_Row_Equals_equals(void* l0, void* l1) {
+static bool snippet_Row_std_core_Equals_equals(void* l0, void* l1) {
     void* l2;
     void* l3;
     bool t0;
@@ -150,7 +150,7 @@ static int32_t snippet_main(void) {
     ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int32_t) INT32_C(2);
     ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int32_t) INT32_C(1);
     l3 = (void*) _a1_arr;
-    l4 = snippet_Row_Equals_equals(l2, l3);
+    l4 = snippet_Row_std_core_Equals_equals(l2, l3);
     l1 = std_core_write_bool(l0, l1, l4);
     l1 = std_core_write_string_at(l0, l1, 1u);
     vader_array_t* _a2_arr = vader_array_new(3u, 2u, 7u, 4u);
@@ -161,7 +161,7 @@ static int32_t snippet_main(void) {
     ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 1u] = (int32_t) INT32_C(1);
     ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = (int32_t) INT32_C(2);
     l3 = (void*) _a3_arr;
-    l4 = snippet_Row_Equals_equals(l2, l3);
+    l4 = snippet_Row_std_core_Equals_equals(l2, l3);
     l1 = std_core_write_bool(l0, l1, l4);
     l1 = std_core_write_string_at(l0, l1, 1u);
     vader_array_t* _a4_arr = vader_array_new(3u, 1u, 7u, 4u);
@@ -170,7 +170,7 @@ static int32_t snippet_main(void) {
     vader_array_t* _a5_arr = vader_array_new(3u, 1u, 7u, 4u);
     ((int32_t*) _a5_arr->buf->slots)[_a5_arr->offset + 0u] = (int32_t) INT32_C(1);
     l3 = (void*) _a5_arr;
-    t0 = snippet_Row_Equals_equals(l2, l3);
+    t0 = snippet_Row_std_core_Equals_equals(l2, l3);
     l4 = !(t0);
     l1 = std_core_write_bool(l0, l1, l4);
     t1 = std_core_finish_buffer(l0, l1);
@@ -187,14 +187,14 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a7_obj, 1u);
     _a7_obj->f_r = INT32_C(1);
     l3 = (void*) _a7_obj;
-    l4 = snippet_Rgb_Equals_equals(l0, l3);
+    l4 = snippet_Rgb_std_core_Equals_equals(l0, l3);
     l1 = std_core_write_bool(l2, l1, l4);
     l1 = std_core_write_string_at(l2, l1, 1u);
     vader_struct_snippet_Rgb_t* _a8_obj = (vader_struct_snippet_Rgb_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Rgb_t));
     vader_obj_header_init(_a8_obj, 1u);
     _a8_obj->f_r = INT32_C(2);
     l3 = (void*) _a8_obj;
-    l4 = snippet_Rgb_Equals_equals(l0, l3);
+    l4 = snippet_Rgb_std_core_Equals_equals(l0, l3);
     l1 = std_core_write_bool(l2, l1, l4);
     t1 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t1);

@@ -32,7 +32,7 @@ vtable std_core$Async.resume 1 0
 vtable std_core$Async.resume 8 4
 export main 3
 
-fn 0 snippet$CountDown$Async$resume (ref) -> any
+fn 0 snippet$CountDown$std_core_Async$resume (ref) -> any
   local $sub_checked_6 i32
   local.field 0 1 0   ; arg 0 snippet$CountDown.n
   ref.cast 3   ; i32

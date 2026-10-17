@@ -1,0 +1,11 @@
+// T3001: an array converts to `Iterator<T>`, the `std/core` trait, and to no
+// other trait of that name. `Iterator` here is the module's own.
+module "snippet"
+
+Iterator :: trait<T> {
+    peek :: fn(self) -> T
+}
+
+first :: fn(it: Iterator<i32>) -> i32 = it.peek()
+
+main :: fn() -> i32 = first([1, 2, 3])

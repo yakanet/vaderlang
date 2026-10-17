@@ -41,7 +41,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 9u
 
-static int32_t snippet_Rgb_Comparable_compare(void* l0, void* l1);
+static int32_t snippet_Rgb_std_core_Comparable_compare(void* l0, void* l1);
 static int32_t snippet_main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
@@ -93,7 +93,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
     return write(a0, s1.ptr, a2);
 }
 
-static int32_t snippet_Rgb_Comparable_compare(void* l0, void* l1) {
+static int32_t snippet_Rgb_std_core_Comparable_compare(void* l0, void* l1) {
     int32_t l2, l3;
     int32_t t0;
 #line 15 "tests/snippets/distinct_orders_as_backing/_main.vader"
@@ -151,15 +151,15 @@ static int32_t snippet_main(void) {
     l6 = std_core_new_byte_buffer((size_t) 26);
     l3 = (size_t) 0;
     l3 = std_core_write_string_at(l6, l3, 6u);
-    t1 = snippet_Rgb_Comparable_compare(l2, l5);
+    t1 = snippet_Rgb_std_core_Comparable_compare(l2, l5);
     l4 = (t1 < INT32_C(0));
     l3 = std_core_write_bool(l6, l3, l4);
     l3 = std_core_write_string_at(l6, l3, 4u);
-    t1 = snippet_Rgb_Comparable_compare(l5, l2);
+    t1 = snippet_Rgb_std_core_Comparable_compare(l5, l2);
     l4 = (t1 < INT32_C(0));
     l3 = std_core_write_bool(l6, l3, l4);
     l3 = std_core_write_string_at(l6, l3, 4u);
-    t1 = snippet_Rgb_Comparable_compare(l2, l2);
+    t1 = snippet_Rgb_std_core_Comparable_compare(l2, l2);
     l4 = (t1 >= INT32_C(0));
     l3 = std_core_write_bool(l6, l3, l4);
     t0 = std_core_finish_buffer(l6, l3);

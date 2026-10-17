@@ -17,7 +17,7 @@
       return 0
   }
   snippet.Wrap<Cat> :: struct { value: Any }  // snippet$Wrap__snippet_Cat
-  snippet.Wrap<Any>.to_string :: fn(self: Wrap<Any>) -> string {  // snippet$Wrap$Display$to_string__Any
+  snippet.Wrap<Any>.to_string :: fn(self: Wrap<Any>) -> string {  // snippet$Wrap$std_core_Display$to_string__Any
       return "wrapped"
   }
   snippet.Wrap<Dog> :: struct { value: Any }  // snippet$Wrap__snippet_Dog
@@ -32,7 +32,7 @@
   }
   vtable snippet.Tag.tag for Cat  snippet.Cat.tag  // snippet$Cat$Tag$tag
   vtable snippet.Tag.tag for Dog  snippet.Dog.tag  // snippet$Dog$Tag$tag
-  vtable std.core.Display.to_string for Wrap<Any>  snippet.Wrap<Any>.to_string  // snippet$Wrap$Display$to_string__Any
+  vtable std.core.Display.to_string for Wrap<Any>  snippet.Wrap<Any>.to_string  // snippet$Wrap$std_core_Display$to_string__Any
 
 ## lowered in dependencies
   std/core

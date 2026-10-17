@@ -496,11 +496,11 @@ populate_from :: fn(
 // equivalent types always match. Returns null for a blanket / generic receiver
 // (`T implements …`, `T[] implements …`) — their overlap rules are subtler than
 // concrete-vs-concrete, so they're left unchecked for now.
-coherence_key :: fn(for_ty: Type, trait_name: string, args: Type[]) -> string | null {
+coherence_key :: fn(for_ty: Type, trait_key: string, args: Type[]) -> string | null {
     if type_contains_type_param(for_ty) {
         return null
     }
-    return "${canonical_key(for_ty)}#${trait_name}<${canonical_args_key(args)}>"
+    return "${canonical_key(for_ty)}#${trait_key}<${canonical_args_key(args)}>"
 }
 
 // Project-wide trait coherence : at most one impl per (concrete type, trait,
@@ -542,18 +542,22 @@ check_module_impl_coherence :: fn(
     loaded :: project.modules[id] ?? return
     for decl in merge_module_program(loaded.module.files).decls {
         if decl is AST.ImplDecl {
+            // A trait is told apart by its declaration, not by the name an
+            // import gave it ; one that does not resolve is reported elsewhere.
+            trait_sym :: impl_trait_symbol(decl, tp.resolved) ?? continue
+            trait_key :: trait_key_of(trait_sym)
             for_ty :: type_from_expr(decl.for_type, tp.resolved, diag_sink())
-            if writes_builtin_impl(decl, for_ty, tp.resolved) {
+            if has_builtin_impl(for_ty, trait_key) {
                 detail :: ("every enum implements `Equals`, comparing by variant : "
                     + "`${display_type(for_ty)}` takes no impl of its own")
                 diags.push(resolver_error(.ConflictingImpl, decl.span, detail))
                 continue
             }
             args :: written_type_args(decl.trait_args, tp.resolved, diag_sink())
-            if reject_overlapping_impl(decl, for_ty, args, by_base, diags) {
+            if reject_overlapping_impl(decl, for_ty, trait_key, args, by_base, diags) {
                 continue
             }
-            key :: coherence_key(for_ty, decl.trait_name, args) ?? continue
+            key :: coherence_key(for_ty, trait_key, args) ?? continue
             if seen[key] != null {
                 // `ConflictingImpl` is a `ResolverCode` (declaration-level, like
                 // the R2018 orphan rule), so it's built with `resolver_error`.
@@ -583,6 +587,7 @@ ImplShape :: struct {
 reject_overlapping_impl :: fn(
     decl: AST.ImplDecl,
     for_ty: Type,
+    trait_key: string,
     args: Type[],
     by_base: MutableMap<string, ImplShape[]>,
     diags: Diagnostic[],
@@ -596,7 +601,7 @@ reject_overlapping_impl :: fn(
     if !type_contains_type_param(for_ty) && !any_contains(args) {
         return false
     }
-    bucket :: "${impl_base_key(for_ty)}#${decl.trait_name}"
+    bucket :: "${impl_base_key(for_ty)}#${trait_key}"
     shape :: ImplShape { .for_ty = for_ty, .args = args, .span = decl.span }
     seen :: by_base[bucket]
     if seen == null {
@@ -647,12 +652,6 @@ may_coincide_each :: fn(a: Type[], b: Type[]) -> bool {
         }
     }
     return true
-}
-
-// Whether `decl` writes an impl `for_ty` already has with none (`has_builtin_impl`).
-writes_builtin_impl :: fn(decl: AST.ImplDecl, for_ty: Type, resolved: ResolvedModule) -> bool {
-    trait_sym :: impl_trait_symbol(decl, resolved) ?? return false
-    return has_builtin_impl(for_ty, trait_key_of(trait_sym))
 }
 
 conflict_detail :: fn(decl: AST.ImplDecl, for_ty: Type) -> string {
@@ -857,7 +856,7 @@ index_impl_metadata :: fn(typed: TypedProgram, for_ty: Type, trait_key: string, 
     // A type that is an `Iterator` itself is walked through its own `next`, whatever
     // it converts into.
     if trait_key == core_trait_key(TRAIT_INTO) && trait_args.len() == 1 {
-        elem :: iterator_element_of(trait_args[0])
+        elem :: core_trait_arg(trait_args[0], TRAIT_ITERATOR)
         if elem != null && !has_iterator_impl(typed, key) {
             typed.iter_element_types[key] = elem
         }

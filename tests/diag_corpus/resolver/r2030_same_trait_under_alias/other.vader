@@ -1,0 +1,7 @@
+module "snippet"
+
+import "snippet/tr" { Describe as D2 }
+
+Point implements D2 {
+    describe :: fn(self) -> string = "second"
+}

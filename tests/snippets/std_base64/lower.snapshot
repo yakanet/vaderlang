@@ -73,7 +73,7 @@
 
 ## lowered in dependencies
   base64
-    fn base64.Base64Error.message  // base64$Base64Error$Error$message
+    fn base64.Base64Error.message  // base64$Base64Error$std_core_Error$message
     fn base64.decode  // base64$decode
     fn base64.decode_byte  // base64$decode_byte
     fn base64.encode  // base64$encode
@@ -114,7 +114,7 @@
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
   std/string_builder
-    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$Display$to_string
+    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$std_core_Display$to_string
     fn std.string_builder.append_char  // std_string_builder$append_char
     struct std.string_builder.StringBuilder  // std_string_builder$StringBuilder
   system/posix

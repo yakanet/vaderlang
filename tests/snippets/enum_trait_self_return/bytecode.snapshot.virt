@@ -97,7 +97,7 @@ fn 1 snippet$Direction$Turnable$turn_right (u8) -> u8
   return
 end
 
-fn 2 snippet$Direction$Display$to_string (u8) -> string
+fn 2 snippet$Direction$std_core_Display$to_string (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0
@@ -140,15 +140,15 @@ fn 3 snippet$main () -> i32
   local d u8
   i32.const 0
   local.tee 0   ; d
-  call 2   ; snippet$Direction$Display$to_string
+  call 2   ; snippet$Direction$std_core_Display$to_string
   call 7   ; std_io$println__string
   local.get 0   ; d
   call 0   ; snippet$Direction$Turnable$turn_left
-  call 2   ; snippet$Direction$Display$to_string
+  call 2   ; snippet$Direction$std_core_Display$to_string
   call 7   ; std_io$println__string
   local.get 0   ; d
   call 1   ; snippet$Direction$Turnable$turn_right
-  call 2   ; snippet$Direction$Display$to_string
+  call 2   ; snippet$Direction$std_core_Display$to_string
   call 7   ; std_io$println__string
   return.lit i32.const 0
 end

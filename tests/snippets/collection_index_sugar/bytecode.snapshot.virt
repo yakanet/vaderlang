@@ -72,18 +72,18 @@ fn 0 snippet$main () -> i32
   local.tee 0   ; $arr_0
   string.const 0   ; "a"
   i32.const 10
-  call 13   ; std_collections$MutableMap$IndexSet$set_at__string__i32
+  call 13   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
   local.get 0   ; $arr_0
   string.const 1   ; "b"
   i32.const 20
-  call 13   ; std_collections$MutableMap$IndexSet$set_at__string__i32
+  call 13   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
   local.get 0   ; $arr_0
   string.const 0   ; "a"
   i32.const 99
-  call 13   ; std_collections$MutableMap$IndexSet$set_at__string__i32
+  call 13   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
   local.get 0   ; $arr_0
   string.const 0   ; "a"
-  call 12   ; std_collections$MutableMap$Index$at__string__i32
+  call 12   ; std_collections$MutableMap$std_core_Index$at__string__i32
   local.tee 3   ; __scrut_0
   local.set 4   ; v
   local.get 3   ; __scrut_0
@@ -124,7 +124,7 @@ fn 0 snippet$main () -> i32
   end $L0
   local.get 0   ; $arr_0
   string.const 4   ; "c"
-  call 12   ; std_collections$MutableMap$Index$at__string__i32
+  call 12   ; std_collections$MutableMap$std_core_Index$at__string__i32
   local.tee 3   ; __scrut_0
   type_check 1   ; i32
   if $L2 void
@@ -142,14 +142,14 @@ fn 0 snippet$main () -> i32
   end $L2
   local.get 0   ; $arr_0
   string.const 0   ; "a"
-  call 14   ; std_collections$MutableMap$Contains$contains__string__i32
+  call 14   ; std_collections$MutableMap$std_core_Contains$contains__string__i32
   if $L4 void
     string.const 7   ; "a in m"
     call 9   ; std_io$println__string
   end $L4
   local.get 0   ; $arr_0
   string.const 8   ; "z"
-  call 14   ; std_collections$MutableMap$Contains$contains__string__i32
+  call 14   ; std_collections$MutableMap$std_core_Contains$contains__string__i32
   if $L5 void
   else
     string.const 9   ; "z not in m"
@@ -179,14 +179,14 @@ fn 0 snippet$main () -> i32
   drop
   local.get 0   ; $arr_0
   i32.const 1
-  call 15   ; std_collections$MutableSet$Contains$contains__i32
+  call 15   ; std_collections$MutableSet$std_core_Contains$contains__i32
   if $L6 void
     string.const 10   ; "1 in s"
     call 9   ; std_io$println__string
   end $L6
   local.get 0   ; $arr_0
   i32.const 3
-  call 15   ; std_collections$MutableSet$Contains$contains__i32
+  call 15   ; std_collections$MutableSet$std_core_Contains$contains__i32
   if $L7 void
     return.lit i32.const 0
   end $L7
@@ -461,7 +461,7 @@ fn 9 std_io$println__string (string) -> void
   return
 end
 
-fn 10 std_collections$MutableMap$IndexSet$set_at__i32__bool (ref,i32,bool) -> void
+fn 10 std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool (ref,i32,bool) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -469,21 +469,21 @@ fn 10 std_collections$MutableMap$IndexSet$set_at__i32__bool (ref,i32,bool) -> vo
   return
 end
 
-fn 11 std_collections$MutableMap$Contains$contains__i32__bool (ref,i32) -> bool
+fn 11 std_collections$MutableMap$std_core_Contains$contains__i32__bool (ref,i32) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 27   ; std_collections$contains_key__i32__bool
   return
 end
 
-fn 12 std_collections$MutableMap$Index$at__string__i32 (ref,string) -> any
+fn 12 std_collections$MutableMap$std_core_Index$at__string__i32 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 26   ; std_collections$get__string__i32
   return
 end
 
-fn 13 std_collections$MutableMap$IndexSet$set_at__string__i32 (ref,string,i32) -> void
+fn 13 std_collections$MutableMap$std_core_IndexSet$set_at__string__i32 (ref,string,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -491,17 +491,17 @@ fn 13 std_collections$MutableMap$IndexSet$set_at__string__i32 (ref,string,i32) -
   return
 end
 
-fn 14 std_collections$MutableMap$Contains$contains__string__i32 (ref,string) -> bool
+fn 14 std_collections$MutableMap$std_core_Contains$contains__string__i32 (ref,string) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 28   ; std_collections$contains_key__string__i32
   return
 end
 
-fn 15 std_collections$MutableSet$Contains$contains__i32 (ref,i32) -> bool
+fn 15 std_collections$MutableSet$std_core_Contains$contains__i32 (ref,i32) -> bool
   local.field 0 14 0   ; arg 0 std_collections$MutableSet__i32.inner
   local.get 1   ; arg 1
-  call 11   ; std_collections$MutableMap$Contains$contains__i32__bool
+  call 11   ; std_collections$MutableMap$std_core_Contains$contains__i32__bool
   return
 end
 
@@ -1485,13 +1485,13 @@ end
 fn 29 std_collections$add__i32 (ref,i32) -> bool
   local.field 0 14 0   ; arg 0 std_collections$MutableSet__i32.inner
   local.get 1   ; arg 1
-  call 11   ; std_collections$MutableMap$Contains$contains__i32__bool
+  call 11   ; std_collections$MutableMap$std_core_Contains$contains__i32__bool
   if $L0 void
   else
     local.field 0 14 0   ; arg 0 std_collections$MutableSet__i32.inner
     local.get 1   ; arg 1
     bool.const true
-    call 10   ; std_collections$MutableMap$IndexSet$set_at__i32__bool
+    call 10   ; std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
     return.lit bool.const true
   end $L0
   return.lit bool.const false

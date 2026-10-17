@@ -35,7 +35,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 6u
 
-static vader_string_t snippet_Age_Display_to_string(void* l0);
+static vader_string_t snippet_Age_std_core_Display_to_string(void* l0);
 static vader_string_t snippet_greet(vader_string_t l0, void* l1);
 static int32_t snippet_main(void);
 static vader_string_t concat_5(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4);
@@ -89,7 +89,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
     return write(a0, s1.ptr, a2);
 }
 
-static vader_string_t snippet_Age_Display_to_string(void* l0) {
+static vader_string_t snippet_Age_std_core_Display_to_string(void* l0) {
     void* l1 = NULL;
     size_t l2;
     int64_t l3;
@@ -122,7 +122,7 @@ static vader_string_t snippet_greet(vader_string_t l0, void* l1) {
     };
     vader_gc_top = &gc_frame;
 #line 14 "tests/snippets/interp_display/_main.vader"
-    l2 = snippet_Age_Display_to_string(l1);
+    l2 = snippet_Age_std_core_Display_to_string(l1);
     t0 = concat_5(2u, l0, 3u, l2, 4u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

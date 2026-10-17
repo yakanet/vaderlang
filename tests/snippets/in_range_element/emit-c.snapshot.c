@@ -67,7 +67,7 @@ static bool snippet_wide(int64_t l0);
 static bool snippet_byte(uint8_t l0);
 static bool snippet_near(int64_t l0);
 static bool snippet_blank(uint8_t l0);
-static bool snippet_Bag_Contains_contains(void* l0, int64_t l1);
+static bool snippet_Bag_std_core_Contains_contains(void* l0, int64_t l1);
 static bool snippet_has_big_value(vader_box_t l0);
 static bool snippet_listed(size_t l0, int64_t l1);
 static int32_t snippet_main(void);
@@ -221,7 +221,7 @@ static bool snippet_blank(uint8_t l0) {
     { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static bool snippet_Bag_Contains_contains(void* l0, int64_t l1) {
+static bool snippet_Bag_std_core_Contains_contains(void* l0, int64_t l1) {
     bool t0;
 #line 25 "tests/snippets/in_range_element/_main.vader"
     t0 = std_core____Contains_contains__i64(((vader_struct_snippet_Bag_t*) l0)->f_items, l1);
@@ -381,7 +381,7 @@ static int32_t snippet_main(void) {
 static bool snippet_has_big__snippet_Bag(void* l0) {
     bool t0;
 #line 28 "tests/snippets/in_range_element/_main.vader"
-    t0 = snippet_Bag_Contains_contains(l0, INT64_C(4000000000));
+    t0 = snippet_Bag_std_core_Contains_contains(l0, INT64_C(4000000000));
     return t0;
 }
 
@@ -693,7 +693,7 @@ static void std_io_println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static bool vader_vt_std_core_Contains__contains(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 4u: return snippet_Bag_Contains_contains(recv.payload.obj, ((int64_t) a0.payload.i));
+        case 4u: return snippet_Bag_std_core_Contains_contains(recv.payload.obj, ((int64_t) a0.payload.i));
         case 10u: return std_core_Range_Contains_contains__i32(recv.payload.obj, ((int32_t) a0.payload.i));
         case 11u: return std_core_Range_Contains_contains__i64(recv.payload.obj, ((int64_t) a0.payload.i));
         case 12u: return std_core_Range_Contains_contains__u8(recv.payload.obj, ((uint8_t) a0.payload.i));

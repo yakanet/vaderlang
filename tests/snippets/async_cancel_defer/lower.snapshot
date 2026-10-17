@@ -2,10 +2,10 @@
 
 ## snippet
   snippet.Never :: struct {}  // snippet$Never
-  snippet.Never.resume :: fn(self: Never) -> i32 | Suspended {  // snippet$Never$Async$resume
+  snippet.Never.resume :: fn(self: Never) -> i32 | Suspended {  // snippet$Never$std_core_Async$resume
       Suspended { .wake_at = i64(0) }
   }
-  snippet.Never.cancel :: fn(self: Never) -> void {  // snippet$Never$Async$cancel
+  snippet.Never.cancel :: fn(self: Never) -> void {  // snippet$Never$std_core_Async$cancel
       std.io.println<string>("never cancelled")
   }
   snippet.inner :: fn() -> Async<i32> {  // snippet$inner
@@ -145,10 +145,10 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Async.cancel for Never  snippet.Never.cancel  // snippet$Never$Async$cancel
+  vtable std.core.Async.cancel for Never  snippet.Never.cancel  // snippet$Never$std_core_Async$cancel
   vtable std.core.Async.cancel for __asyncstate_snippet_2  snippet$__asyncstate_snippet_2$Async$cancel
   vtable std.core.Async.cancel for __asyncstate_snippet_5  snippet$__asyncstate_snippet_5$Async$cancel
-  vtable std.core.Async.resume for Never  snippet.Never.resume  // snippet$Never$Async$resume
+  vtable std.core.Async.resume for Never  snippet.Never.resume  // snippet$Never$std_core_Async$resume
   vtable std.core.Async.resume for __asyncstate_snippet_2  snippet$__asyncstate_snippet_2$Async$resume
   vtable std.core.Async.resume for __asyncstate_snippet_5  snippet$__asyncstate_snippet_5$Async$resume
 

@@ -120,7 +120,7 @@ find_consumer_shape :: fn(project: LowerProjectCtx, target: CallTarget, signatur
         }
     }
     for k in 0..<decl.params.len() {
-        if iterator_element_of(signature.params[k]) == null {
+        if core_trait_arg(signature.params[k], TRAIT_ITERATOR) == null {
             continue
         }
         p :: decl.params[k]

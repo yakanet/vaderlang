@@ -53,7 +53,7 @@ fn 0 snippet$main () -> i32
   char.const 33
   call 12   ; std_string_builder$append_char
   local.get 0   ; sb
-  call 13   ; std_string_builder$StringBuilder$Display$to_string
+  call 13   ; std_string_builder$StringBuilder$std_core_Display$to_string
   call 10   ; std_io$println__string
   array.new 12 0   ; string[]
   struct.new 11   ; std_string_builder$StringBuilder
@@ -67,11 +67,11 @@ fn 0 snippet$main () -> i32
   string.const 5   ; "baz"
   call 11   ; std_string_builder$append
   local.get 0   ; sb
-  call 13   ; std_string_builder$StringBuilder$Display$to_string
+  call 13   ; std_string_builder$StringBuilder$std_core_Display$to_string
   call 10   ; std_io$println__string
   array.new 12 0   ; string[]
   struct.new 11   ; std_string_builder$StringBuilder
-  call 13   ; std_string_builder$StringBuilder$Display$to_string
+  call 13   ; std_string_builder$StringBuilder$std_core_Display$to_string
   local.set 1   ; $call_19
   string.const 6   ; "empty='"
   local.get 1   ; $call_19
@@ -87,7 +87,7 @@ fn 0 snippet$main () -> i32
   char.const 41
   call 12   ; std_string_builder$append_char
   local.get 0   ; sb
-  call 13   ; std_string_builder$StringBuilder$Display$to_string
+  call 13   ; std_string_builder$StringBuilder$std_core_Display$to_string
   call 10   ; std_io$println__string
   array.new 12 0   ; string[]
   struct.new 11   ; std_string_builder$StringBuilder
@@ -115,7 +115,7 @@ fn 0 snippet$main () -> i32
   local.get 1   ; $call_19
   call 11   ; std_string_builder$append
   local.get 0   ; sb
-  call 13   ; std_string_builder$StringBuilder$Display$to_string
+  call 13   ; std_string_builder$StringBuilder$std_core_Display$to_string
   call 10   ; std_io$println__string
   return.lit i32.const 0
 end
@@ -636,7 +636,7 @@ fn 12 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 13 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 13 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize

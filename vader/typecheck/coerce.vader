@@ -64,14 +64,13 @@ note_into :: fn(typed: TypedProgram, value: AST.Expr, source: Type, target: Type
 }
 
 export try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
-    if got !is ArrayType                      { return false }
-    if expected !is TraitType                 { return false }
-    if expected.symbol.name != TRAIT_ITERATOR { return false }
-    if expected.args.len() != 1               { return false }
+    if got !is ArrayType {
+        return false
+    }
+    element :: core_trait_arg(expected, TRAIT_ITERATOR) ?? return false
     // An erased parameter (`erase_type_params`) accepts any element ; anything
     // else, a type parameter included, must be the array's own.
-    if expected.args[0] is UnresolvedType     { return true }
-    return equals_type(got.element, expected.args[0])
+    return element is UnresolvedType || equals_type(got.element, element)
 }
 
 /// True when `got` implements the trait `expected`, at `expected`'s arguments
@@ -144,8 +143,9 @@ import "std/testing"
 import "toolchain/span"
 import "vader/resolver/symbol"
 
-// A minimal `Iterator<elem>` trait type — `try_array_to_iter` only reads
-// `symbol.name` and `args`, so the other Symbol fields are placeholders.
+// A minimal `Iterator<elem>` trait type — `try_array_to_iter` only reads the
+// symbol's name and module and the args, so the other Symbol fields are
+// placeholders.
 iter_trait_for_test :: fn(elem: Type) -> Type {
     sym :: Symbol {
         .id = 0,

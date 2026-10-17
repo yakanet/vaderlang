@@ -19,14 +19,14 @@
       return c
   }
   snippet.Cell :: struct { slots: i32[] }  // snippet$Cell
-  snippet.Cell.at :: fn(self: Cell, i: usize) -> i32 {  // snippet$Cell$Index$at
+  snippet.Cell.at :: fn(self: Cell, i: usize) -> i32 {  // snippet$Cell$std_core_Index$at
       self.slots[i]
   }
-  snippet.Cell.set_at :: fn(self: Cell, i: usize, v: i32) -> void {  // snippet$Cell$IndexSet$set_at
+  snippet.Cell.set_at :: fn(self: Cell, i: usize, v: i32) -> void {  // snippet$Cell$std_core_IndexSet$set_at
       self.slots[i] = v
   }
   snippet.Shelf :: struct { items: Counter[] }  // snippet$Shelf
-  snippet.Shelf.at :: fn(self: Shelf, i: usize) -> Counter {  // snippet$Shelf$Index$at
+  snippet.Shelf.at :: fn(self: Shelf, i: usize) -> Counter {  // snippet$Shelf$std_core_Index$at
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(usize(23))
           __off_1: usize = 0
@@ -209,9 +209,9 @@
   }
   vtable snippet.Stepper.advance for Two  snippet.Two.advance  // snippet$Two$Stepper$advance
   vtable snippet.Stepper.step for Two  snippet.Two.step  // snippet$Two$Stepper$step
-  vtable std.core.Index.at for Cell  snippet.Cell.at  // snippet$Cell$Index$at
-  vtable std.core.Index.at for Shelf  snippet.Shelf.at  // snippet$Shelf$Index$at
-  vtable std.core.IndexSet.set_at for Cell  snippet.Cell.set_at  // snippet$Cell$IndexSet$set_at
+  vtable std.core.Index.at for Cell  snippet.Cell.at  // snippet$Cell$std_core_Index$at
+  vtable std.core.Index.at for Shelf  snippet.Shelf.at  // snippet$Shelf$std_core_Index$at
+  vtable std.core.IndexSet.set_at for Cell  snippet.Cell.set_at  // snippet$Cell$std_core_IndexSet$set_at
 
 ## lowered in dependencies
   std/core

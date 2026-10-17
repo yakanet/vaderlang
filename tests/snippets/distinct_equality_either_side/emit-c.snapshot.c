@@ -36,7 +36,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 9u
 
-static bool snippet_Path_Equals_equals(vader_string_t l0, vader_string_t l1);
+static bool snippet_Path_std_core_Equals_equals(vader_string_t l0, vader_string_t l1);
 static int32_t snippet_main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
@@ -85,7 +85,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
     return write(a0, s1.ptr, a2);
 }
 
-static bool snippet_Path_Equals_equals(vader_string_t l0, vader_string_t l1) {
+static bool snippet_Path_std_core_Equals_equals(vader_string_t l0, vader_string_t l1) {
     size_t l2, l3;
 #line 10 "tests/snippets/distinct_equality_either_side/_main.vader"
     l2 = vader_host_std_core_byte_len(l0);
@@ -112,14 +112,14 @@ static int32_t snippet_main(void) {
     l1 = std_core_new_byte_buffer((size_t) 25);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 2u);
-    l3 = snippet_Path_Equals_equals(l0, 3u);
+    l3 = snippet_Path_std_core_Equals_equals(l0, 3u);
     l2 = std_core_write_bool(l1, l2, l3);
     l2 = std_core_write_string_at(l1, l2, 4u);
-    t0 = snippet_Path_Equals_equals(l0, 3u);
+    t0 = snippet_Path_std_core_Equals_equals(l0, 3u);
     l3 = !(t0);
     l2 = std_core_write_bool(l1, l2, l3);
     l2 = std_core_write_string_at(l1, l2, 4u);
-    l3 = snippet_Path_Equals_equals(l0, 5u);
+    l3 = snippet_Path_std_core_Equals_equals(l0, 5u);
     l2 = std_core_write_bool(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t1);
@@ -127,14 +127,14 @@ static int32_t snippet_main(void) {
     l1 = std_core_new_byte_buffer((size_t) 25);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 6u);
-    l3 = snippet_Path_Equals_equals(l0, 3u);
+    l3 = snippet_Path_std_core_Equals_equals(l0, 3u);
     l2 = std_core_write_bool(l1, l2, l3);
     l2 = std_core_write_string_at(l1, l2, 4u);
-    t0 = snippet_Path_Equals_equals(l0, 3u);
+    t0 = snippet_Path_std_core_Equals_equals(l0, 3u);
     l3 = !(t0);
     l2 = std_core_write_bool(l1, l2, l3);
     l2 = std_core_write_string_at(l1, l2, 4u);
-    l3 = snippet_Path_Equals_equals(l0, 5u);
+    l3 = snippet_Path_std_core_Equals_equals(l0, 5u);
     l2 = std_core_write_bool(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t1);

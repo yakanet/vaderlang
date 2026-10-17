@@ -400,6 +400,27 @@ export trait_key_of :: fn(trait_sym: Symbol) -> string =
 /// @param name  a `TRAIT_*` constant.
 export core_trait_key :: fn(name: string) -> string = "std_core\$${name}"
 
+/// Whether `t` is the `std/core` trait `name`, told by its declaration rather
+/// than its spelling: a user trait named `Iterator` is not the core one.
+///
+/// @param t     a trait type.
+/// @param name  a `TRAIT_*` constant.
+export is_core_trait :: fn(t: TraitType, name: string) -> bool =
+    trait_key_of(t.symbol) == core_trait_key(name)
+
+/// The argument of `t` when it is the one-argument `std/core` trait `name`:
+/// `E` for `Iterator<E>`, `T` for `Async<T>`.
+///
+/// @param t     the type to read.
+/// @param name  a `TRAIT_*` constant.
+/// @return      null for any other type.
+export core_trait_arg :: fn(t: Type, name: string) -> Type | null {
+    if t is TraitType && is_core_trait(t, name) && t.args.len() > 0 {
+        return t.args[0]
+    }
+    return null
+}
+
 /// Whether `t` implements `trait_key` with no impl : every enum implements
 /// `Equals`, comparing by variant, and `Hash`, so it keys a `MutableMap`. A boxed
 /// enum carries its integer, whose `Equals` and `Hash` a vtable reaches. No impl is

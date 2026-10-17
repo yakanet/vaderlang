@@ -68,8 +68,8 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2);
 static size_t std_core_write_bool(void* l0, size_t l1, bool l2);
 static uint64_t std_core_u8_Hash_hash(uint8_t l0);
-static vader_box_t std_collections_MutableMap_Index_at__snippet_HttpStatus__string(void* l0, uint8_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_HttpStatus__string(void* l0, uint8_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2);
 static size_t std_collections_first_slot(uint64_t l0, size_t l1);
 static size_t std_collections_next_slot(size_t l0, uint64_t l1, size_t l2);
 static void std_collections_ensure_index__snippet_HttpStatus__string(void* l0);
@@ -214,17 +214,17 @@ static int32_t snippet_main(void) {
     _a3_obj->f_tombs = (size_t) 0;
     l0 = (void*) _a3_obj;
 #line 40 "tests/snippets/generic_enum_argument/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(l0, (uint8_t) 1, 2u);
+    std_collections_MutableMap_std_core_IndexSet_set_at__snippet_HttpStatus__string(l0, (uint8_t) 1, 2u);
 #line 41 "tests/snippets/generic_enum_argument/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(l0, (uint8_t) 0, 3u);
+    std_collections_MutableMap_std_core_IndexSet_set_at__snippet_HttpStatus__string(l0, (uint8_t) 0, 3u);
 #line 42 "tests/snippets/generic_enum_argument/_main.vader"
-    l8 = std_collections_MutableMap_Index_at__snippet_HttpStatus__string(l0, (uint8_t) 1);
+    l8 = std_collections_MutableMap_std_core_Index_at__snippet_HttpStatus__string(l0, (uint8_t) 1);
     if (l8.tag == 0u) {
         l7 = 4u;
     } else {
         l7 = l8.payload.s;
     }
-    l8 = std_collections_MutableMap_Index_at__snippet_HttpStatus__string(l0, (uint8_t) 0);
+    l8 = std_collections_MutableMap_std_core_Index_at__snippet_HttpStatus__string(l0, (uint8_t) 0);
     if (l8.tag == 0u) {
         l9 = 4u;
     } else {
@@ -517,14 +517,14 @@ static uint64_t std_core_u8_Hash_hash(uint8_t l0) {
     return (uint64_t) (int64_t) ((int64_t) (uint8_t) l0);
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__snippet_HttpStatus__string(void* l0, uint8_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_HttpStatus__string(void* l0, uint8_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__snippet_HttpStatus__string(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = {

@@ -30,7 +30,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
-static int32_t snippet_units_Meters_Into_into(void* l0);
+static int32_t snippet_units_Meters_std_core_Into_into(void* l0);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__string(vader_string_t l0);
@@ -105,7 +105,7 @@ static int32_t snippet_main(void) {
 #line 13 "tests/snippets/into_across_modules/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 20);
     l2 = (size_t) 0;
-    t0 = snippet_units_Meters_Into_into(l0);
+    t0 = snippet_units_Meters_std_core_Into_into(l0);
     t1 = snippet_take(t0);
     l3 = ((int64_t) (int32_t) t1);
     l2 = std_core_write_int(l1, l2, l3);
@@ -235,7 +235,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     return (size_t) (int64_t) t0;
 }
 
-static int32_t snippet_units_Meters_Into_into(void* l0) {
+static int32_t snippet_units_Meters_std_core_Into_into(void* l0) {
     int32_t t0;
 #line 6 "tests/snippets/into_across_modules/units/units.vader"
     t0 = ((vader_struct_snippet_units_Meters_t*) l0)->f_v;

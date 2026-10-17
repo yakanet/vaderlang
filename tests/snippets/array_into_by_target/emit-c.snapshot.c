@@ -119,7 +119,7 @@ static int32_t snippet_drain(vader_box_t l0);
 static vader_string_t snippet_show(void* l0);
 static int32_t snippet_main(void);
 static void* snippet___genstate_labels_Iterator_next(void* l0);
-static void* snippet____Into_into__snippet_Mon(void* l0);
+static void* snippet____std_core_Into_into__snippet_Mon(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static int32_t std_core_i32_Step_step(int32_t l0);
 static void* std_core_Range_Iterator_next__i32(void* l0);
@@ -293,7 +293,7 @@ static int32_t snippet_main(void) {
 #line 43 "tests/snippets/array_into_by_target/_main.vader"
     t0 = (void*) &vader_data_0;
 #line 46 "tests/snippets/array_into_by_target/_main.vader"
-    t1 = snippet____Into_into__snippet_Mon(t0);
+    t1 = snippet____std_core_Into_into__snippet_Mon(t0);
     t2 = snippet_show(t1);
     std_io_println__string(t2);
 #line 47 "tests/snippets/array_into_by_target/_main.vader"
@@ -363,7 +363,7 @@ static int32_t snippet_main(void) {
 #line 43 "tests/snippets/array_into_by_target/_main.vader"
     t0 = (void*) &vader_data_0;
 #line 49 "tests/snippets/array_into_by_target/_main.vader"
-    t1 = snippet____Into_into__snippet_Mon(t0);
+    t1 = snippet____std_core_Into_into__snippet_Mon(t0);
 #line 50 "tests/snippets/array_into_by_target/_main.vader"
     t2 = ((vader_struct_snippet_Label_t*) t1)->f_s;
     std_io_println__string(t2);
@@ -382,7 +382,7 @@ static int32_t snippet_main(void) {
 #line 43 "tests/snippets/array_into_by_target/_main.vader"
     t0 = (void*) &vader_data_0;
 #line 53 "tests/snippets/array_into_by_target/_main.vader"
-    t1 = snippet____Into_into__snippet_Mon(t0);
+    t1 = snippet____std_core_Into_into__snippet_Mon(t0);
     t2 = ((vader_struct_snippet_Label_t*) t1)->f_s;
     std_io_println__string(t2);
 #line 54 "tests/snippets/array_into_by_target/_main.vader"
@@ -514,7 +514,7 @@ static void* snippet___genstate_labels_Iterator_next(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static void* snippet____Into_into__snippet_Mon(void* l0) {
+static void* snippet____std_core_Into_into__snippet_Mon(void* l0) {
     void* l1 = NULL;
     size_t l2;
     uint64_t l3;

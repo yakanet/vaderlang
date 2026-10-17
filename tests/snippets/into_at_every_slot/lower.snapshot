@@ -3,7 +3,7 @@
 ## snippet
   snippet.Celsius :: struct { v: i32 }  // snippet$Celsius
   snippet.Label :: struct { text: string }  // snippet$Label
-  snippet$Celsius$Into$into :: fn(self: Celsius) -> Label {
+  snippet$Celsius$std_core_Into$into :: fn(self: Celsius) -> Label {
       Label {
           .text = {
               __buf_0: Buffer = std.core.new_byte_buffer(usize(21))
@@ -14,7 +14,7 @@
           } :string,
       }
   }
-  snippet$Celsius$Into$into$1 :: fn(self: Celsius) -> string {
+  snippet$Celsius$std_core_Into$into$1 :: fn(self: Celsius) -> string {
       {
           __buf_0: Buffer = std.core.new_byte_buffer(usize(23))
           __off_1: usize = 0
@@ -28,14 +28,14 @@
   snippet.fallback :: fn(x: Label | null) -> Label {  // snippet$fallback
       {
           __coalesce_0: Label | null = x
-          if __coalesce_0 is null { snippet$Celsius$Into$into(Celsius { .v = 4 }) } else { Label(__coalesce_0) } :Label
+          if __coalesce_0 is null { snippet$Celsius$std_core_Into$into(Celsius { .v = 4 }) } else { Label(__coalesce_0) } :Label
       } :Label
   }
   snippet.labels :: fn() -> Iterator<Label> {  // snippet$labels
       return __genstate_labels { .state = 1 }
   }
   snippet.returned :: fn(c: Celsius) -> Label {  // snippet$returned
-      snippet$Celsius$Into$into(c)
+      snippet$Celsius$std_core_Into$into(c)
   }
   snippet.apply :: fn(f: fn(Celsius) -> Label, c: Celsius) -> Label {  // snippet$apply
       f(c)
@@ -45,14 +45,14 @@
       l.text
   }
   snippet.through_trait :: fn(s: Shower, c: Celsius) -> string {  // snippet$through_trait
-      @vcall(snippet.Shower.show, s, snippet$Celsius$Into$into(c))
+      @vcall(snippet.Shower.show, s, snippet$Celsius$std_core_Into$into(c))
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       l: Label = Label { .text = "none" }
-      l = snippet$Celsius$Into$into(Celsius { .v = 3 })
+      l = snippet$Celsius$std_core_Into$into(Celsius { .v = 3 })
       std.io.println<string>(concat_3("assign [", l.text, "]"))
       h: Holder = Holder { .l = Label { .text = "none" } }
-      h.l = snippet$Celsius$Into$into(Celsius { .v = 6 })
+      h.l = snippet$Celsius$std_core_Into$into(Celsius { .v = 6 })
       std.io.println<string>(concat_3("field [", h.l.text, "]"))
       m: MutableMap<string, Label> = MutableMap<string, Any> {
           .ekeys = [] :string[],
@@ -62,7 +62,7 @@
           .size = usize(0),
           .tombs = usize(0),
       }
-      std.collections.MutableMap<string, Any>.set_at(m, "k", snippet$Celsius$Into$into(Celsius { .v = 8 }))
+      std.collections.MutableMap<string, Any>.set_at(m, "k", snippet$Celsius$std_core_Into$into(Celsius { .v = 8 }))
       got: Label = {
           __coalesce_0: Label | null = std.collections.MutableMap<string, Any>.at(m, "k")
           if __coalesce_0 is null { Label { .text = "absent" } } else { Label(__coalesce_0) } :Label
@@ -72,7 +72,7 @@
       pair: [Celsius, i32] = [Celsius { .v = 13 }, 1] :[Celsius, i32]
       {
           __destr_src_1: [Celsius, i32] = pair
-          __destr_el_2: Label = snippet$Celsius$Into$into(__destr_src_1._0)
+          __destr_el_2: Label = snippet$Celsius$std_core_Into$into(__destr_src_1._0)
           __destr_el_3: i32 = __destr_src_1._1
           l = __destr_el_2
           n = __destr_el_3
@@ -88,15 +88,15 @@
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       xs: Label[] = [] :Label[]
-      @array.push(xs, snippet$Celsius$Into$into(Celsius { .v = 14 }))
+      @array.push(xs, snippet$Celsius$std_core_Into$into(Celsius { .v = 14 }))
       std.io.println<string>(concat_3("push [", xs[0].text, "]"))
       std.io.println<string>(concat_3("coalesce [", snippet.fallback(null).text, "]"))
       {
-          g: Label = snippet$Celsius$Into$into(Celsius { .v = 5 })
+          g: Label = snippet$Celsius$std_core_Into$into(Celsius { .v = 5 })
           std.io.println<string>(concat_3("yield [", g.text, "]"))
       }
-      std.io.println<string>(concat_3("namespace [", std.string.trim(snippet$Celsius$Into$into$1(Celsius { .v = 9 })), "]"))
-      std.io.println<string>(concat_3("explicit [", snippet.first<i32>(1, snippet$Celsius$Into$into(Celsius { .v = 10 })), "]"))
+      std.io.println<string>(concat_3("namespace [", std.string.trim(snippet$Celsius$std_core_Into$into$1(Celsius { .v = 9 })), "]"))
+      std.io.println<string>(concat_3("explicit [", snippet.first<i32>(1, snippet$Celsius$std_core_Into$into(Celsius { .v = 10 })), "]"))
       std.io.println<string>(concat_3("trait value [", snippet.through_trait(Box { .n = 1 }, Celsius { .v = 15 }), "]"))
       std.io.println<string>(concat_3("bound [", snippet.through_bound<Box>(Box { .n = 1 }, Celsius { .v = 16 }), "]"))
       std.io.println<string>(concat_3("return [", snippet.returned(Celsius { .v = 11 }).text, "]"))
@@ -110,17 +110,17 @@
               __self_0.state = -1
           } else if __self_0.state == 1 {
               __self_0.state = 0
-              return [snippet$Celsius$Into$into(Celsius { .v = 5 }), u8(0)] :[Label, Continuation]
+              return [snippet$Celsius$std_core_Into$into(Celsius { .v = 5 }), u8(0)] :[Label, Continuation]
           } else {
               return [null, u8(1)] :[Label, Continuation]
           }
       }
   }
   __lambda_snippet_0 :: fn(c: Celsius) -> Label {
-      snippet$Celsius$Into$into(c)
+      snippet$Celsius$std_core_Into$into(c)
   }
   snippet.through_bound<Box> :: fn(s: Box, c: Celsius) -> string {  // snippet$through_bound__snippet_Box
-      snippet.Box.show(s, snippet$Celsius$Into$into(c))
+      snippet.Box.show(s, snippet$Celsius$std_core_Into$into(c))
   }
   snippet.first<i32> :: fn(x: i32, l: Label) -> string {  // snippet$first__i32
       l.text
@@ -144,30 +144,30 @@
       std.core.Buffer.intern_string(buf, c1)
   }
   vtable snippet.Shower.show for Box  snippet.Box.show  // snippet$Box$Shower$show
-  vtable std.core.Into.into for Celsius  snippet$Celsius$Into$into
-  vtable std.core.Into.into for Celsius  snippet$Celsius$Into$into$1
+  vtable std.core.Into.into for Celsius  snippet$Celsius$std_core_Into$into
+  vtable std.core.Into.into for Celsius  snippet$Celsius$std_core_Into$into$1
   vtable std.core.Iterator.next for __genstate_labels  snippet$__genstate_labels$Iterator$next
 
 ## lowered in dependencies
   std/collections
-    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$Index$at__i32__bool
-    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$Contains$contains__i32__bool
-    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$Into$into__i32__bool
-    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$IndexSet$set_at__i32__bool
-    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$Index$at__i32__i32
-    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$Contains$contains__i32__i32
-    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$Into$into__i32__i32
-    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$IndexSet$set_at__i32__i32
-    fn std.collections.MutableMap<string, Any>.at  // std_collections$MutableMap$Index$at__string__Any
-    fn std.collections.MutableMap<string, Any>.contains  // std_collections$MutableMap$Contains$contains__string__Any
-    fn std.collections.MutableMap<string, Any>.into  // std_collections$MutableMap$Into$into__string__Any
-    fn std.collections.MutableMap<string, Any>.set_at  // std_collections$MutableMap$IndexSet$set_at__string__Any
-    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$Index$at__string__i32
-    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$Contains$contains__string__i32
-    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$Into$into__string__i32
-    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$IndexSet$set_at__string__i32
-    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$Contains$contains__i32
-    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$Into$into__i32
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core_Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core_Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core_Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core_Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, Any>.at  // std_collections$MutableMap$std_core_Index$at__string__Any
+    fn std.collections.MutableMap<string, Any>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__Any
+    fn std.collections.MutableMap<string, Any>.into  // std_collections$MutableMap$std_core_Into$into__string__Any
+    fn std.collections.MutableMap<string, Any>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__Any
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core_Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core_Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core_Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core_Into$into__i32
     fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
     fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
     fn std.collections.contains_key<string, Any>  // std_collections$contains_key__string__Any

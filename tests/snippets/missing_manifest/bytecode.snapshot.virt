@@ -66,7 +66,7 @@ fn 0 snippet$describe (string) -> string
   end $L0
   local.get 1   ; r
   ref.cast 9   ; std_io$IOError
-  call 11   ; std_io$IOError$Error$message
+  call 11   ; std_io$IOError$std_core_Error$message
   local.set 2   ; $call_7
   local.get 1   ; r
   ref.cast 9   ; std_io$IOError
@@ -659,7 +659,7 @@ fn 10 std_io$describe_io_error_kind (u8) -> string
   return
 end
 
-fn 11 std_io$IOError$Error$message (ref) -> string
+fn 11 std_io$IOError$std_core_Error$message (ref) -> string
   local.field 0 9 0   ; arg 0 std_io$IOError.msg
   ref.cast 1   ; string
   return

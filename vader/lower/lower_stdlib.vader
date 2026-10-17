@@ -72,8 +72,10 @@ surface_stdlib_impl_externs :: fn(
     out: LoweredDecl[]: []
     if impl_decl.type_params.len() > 0 { return out }
     if impl_decl.for_type is GenericInstExpr { return out }
+    // An impl whose trait does not resolve has no entry ; resolution reported it.
+    impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return out
     self_type :: lower_for_type(impl_decl, typed)
-    impl_trait :: impl_trait_key(project_ctx, impl_decl)
+    impl_trait :: impl_entry.trait_key
     // An impl whose trait was reached by a VIRTUAL dispatch must place EVERY
     // implementor in the vtable — the boxed receiver tag picks the impl at
     // runtime, so no single concrete mangle was recorded. This is the only path
@@ -98,7 +100,7 @@ surface_stdlib_impl_externs :: fn(
         vtable_receiver_eligible(self_type, project_ctx)
     for member in impl_decl.members {
         if member.type_params.len() > 0 { continue }
-        mangled :: impl_member_mangled(impl_decl, member, self_type, typed, project_ctx.impls)
+        mangled :: impl_member_mangled(impl_entry, member, self_type)
         // Only emit members an actual call referenced (direct call → exact
         // mangle) OR an eligible implementor of a virtually-dispatched trait
         // (`vtable_gate`, above) — emitting every stdlib impl member

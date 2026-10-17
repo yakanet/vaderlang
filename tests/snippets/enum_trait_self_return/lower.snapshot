@@ -31,7 +31,7 @@
           } :Direction
       } :Direction
   }
-  snippet.Direction.to_string :: fn(self: Direction) -> string {  // snippet$Direction$Display$to_string
+  snippet.Direction.to_string :: fn(self: Direction) -> string {  // snippet$Direction$std_core_Display$to_string
       {
           if self == u8(0) {
               "N"
@@ -63,7 +63,7 @@
   }
   vtable snippet.Turnable.turn_left for Direction  snippet.Direction.turn_left  // snippet$Direction$Turnable$turn_left
   vtable snippet.Turnable.turn_right for Direction  snippet.Direction.turn_right  // snippet$Direction$Turnable$turn_right
-  vtable std.core.Display.to_string for Direction  snippet.Direction.to_string  // snippet$Direction$Display$to_string
+  vtable std.core.Display.to_string for Direction  snippet.Direction.to_string  // snippet$Direction$std_core_Display$to_string
 
 ## lowered in dependencies
   std/core

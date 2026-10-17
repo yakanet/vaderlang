@@ -845,12 +845,12 @@ static const vader_array_t vader_data_3 = {
     { 25u, 0u, 0u, 0u, NULL }, 47u, 47u, 0u, (vader_array_buf_t*) &vader_data_3_buf,
 };
 
-static vader_string_t snippet_Weight_Display_to_string(uint8_t l0);
+static vader_string_t snippet_Weight_std_core_Display_to_string(uint8_t l0);
 static vader_box_t snippet_maybe_direction(bool l0);
 static vader_box_t snippet_maybe_byte(bool l0);
 static int32_t snippet_main(void);
-static vader_string_t snippet_Direction_Display_to_string(uint8_t l0);
-static vader_string_t snippet_Status_Display_to_string(uint8_t l0);
+static vader_string_t snippet_Direction_std_core_Display_to_string(uint8_t l0);
+static vader_string_t snippet_Status_std_core_Display_to_string(uint8_t l0);
 static vader_string_t snippet_show__snippet_Direction(uint8_t l0);
 static vader_string_t snippet_show__snippet_Status(uint8_t l0);
 static vader_string_t snippet_show__snippet_Weight(uint8_t l0);
@@ -994,7 +994,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 /* vtable forwards */
 static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv);
 
-static vader_string_t snippet_Weight_Display_to_string(uint8_t l0) {
+static vader_string_t snippet_Weight_std_core_Display_to_string(uint8_t l0) {
     void* l1 = NULL;
     size_t l2;
     uint64_t l3;
@@ -1056,9 +1056,9 @@ static int32_t snippet_main(void) {
 #line 38 "tests/snippets/enum_display/_main.vader"
     l0 = (uint8_t) 2;
 #line 39 "tests/snippets/enum_display/_main.vader"
-    l1 = snippet_Direction_Display_to_string(l0);
-    l2 = snippet_Direction_Display_to_string((uint8_t) 3);
-    l3 = snippet_Direction_Display_to_string(l0);
+    l1 = snippet_Direction_std_core_Display_to_string(l0);
+    l2 = snippet_Direction_std_core_Display_to_string((uint8_t) 3);
+    l3 = snippet_Direction_std_core_Display_to_string(l0);
     t0 = concat_5(l1, 2u, l2, 2u, l3);
     std_io_println__string(t0);
 #line 40 "tests/snippets/enum_display/_main.vader"
@@ -1067,7 +1067,7 @@ static int32_t snippet_main(void) {
     if (!(l4.tag == 0u)) {
 #line 42 "tests/snippets/enum_display/_main.vader"
         t1 = ((uint8_t) l4.payload.i);
-        l1 = snippet_Direction_Display_to_string(t1);
+        l1 = snippet_Direction_std_core_Display_to_string(t1);
         t0 = concat_2(3u, l1);
         std_io_println__string(t0);
 #line 41 "tests/snippets/enum_display/_main.vader"
@@ -1080,7 +1080,7 @@ static int32_t snippet_main(void) {
     t0 = std_core____Display_to_string__snippet_Direction(t2);
     std_io_println__string(t0);
 #line 45 "tests/snippets/enum_display/_main.vader"
-    l1 = snippet_Status_Display_to_string((uint8_t) 1);
+    l1 = snippet_Status_std_core_Display_to_string((uint8_t) 1);
     l5 = vader_host_std_core_byte_len(l1);
     l6 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(21) + l5));
     l5 = (size_t) 0;
@@ -1117,7 +1117,7 @@ static int32_t snippet_main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static vader_string_t snippet_Direction_Display_to_string(uint8_t l0) {
+static vader_string_t snippet_Direction_std_core_Display_to_string(uint8_t l0) {
     vader_string_t l1;
 #line 3 "<displayable>:tests/snippets/enum_display/_main.vader#Direction"
     if (l0 == INT32_C(0)) {
@@ -1147,7 +1147,7 @@ static vader_string_t snippet_Direction_Display_to_string(uint8_t l0) {
     return l1;
 }
 
-static vader_string_t snippet_Status_Display_to_string(uint8_t l0) {
+static vader_string_t snippet_Status_std_core_Display_to_string(uint8_t l0) {
 #line 3 "<displayable>:tests/snippets/enum_display/_main.vader#Status"
     if (l0 == INT32_C(0)) {
         return 9u;
@@ -1168,7 +1168,7 @@ static vader_string_t snippet_show__snippet_Direction(uint8_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 27 "tests/snippets/enum_display/_main.vader"
-    l1 = snippet_Direction_Display_to_string(l0);
+    l1 = snippet_Direction_std_core_Display_to_string(l0);
     t0 = concat_3(11u, l1, 12u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1180,7 +1180,7 @@ static vader_string_t snippet_show__snippet_Status(uint8_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 27 "tests/snippets/enum_display/_main.vader"
-    l1 = snippet_Status_Display_to_string(l0);
+    l1 = snippet_Status_std_core_Display_to_string(l0);
     t0 = concat_3(11u, l1, 12u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1192,7 +1192,7 @@ static vader_string_t snippet_show__snippet_Weight(uint8_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 27 "tests/snippets/enum_display/_main.vader"
-    l1 = snippet_Weight_Display_to_string(l0);
+    l1 = snippet_Weight_std_core_Display_to_string(l0);
     t0 = concat_3(11u, l1, 12u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1229,8 +1229,8 @@ static vader_string_t snippet_pair__snippet_Direction(uint8_t l0, uint8_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 29 "tests/snippets/enum_display/_main.vader"
-    l2 = snippet_Direction_Display_to_string(l0);
-    l3 = snippet_Direction_Display_to_string(l1);
+    l2 = snippet_Direction_std_core_Display_to_string(l0);
+    l3 = snippet_Direction_std_core_Display_to_string(l1);
     t0 = concat_3(l2, 13u, l3);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1528,7 +1528,7 @@ static vader_string_t std_core____Display_to_string__snippet_Direction(void* l0)
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l5)
         t0 = vader_array_read_u8(_a2_slotarr, _a2_slotarr->offset + (size_t) l5, 1u);
 #line 374 "lib/std/core/core.vader"
-        l6 = snippet_Direction_Display_to_string(((uint8_t) t0.payload.i));
+        l6 = snippet_Direction_std_core_Display_to_string(((uint8_t) t0.payload.i));
 #line 375 "lib/std/core/core.vader"
         l7 = vader_host_std_core_byte_len(l6);
         t1 = vader_chk_add(usize, l2, l7);

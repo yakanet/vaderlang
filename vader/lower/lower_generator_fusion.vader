@@ -229,14 +229,16 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
 //      impl decl. Returns `null` when no source resolves.
 trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Type[] | null {
     if concrete is TraitType {
-        if concrete.symbol.name == tt.symbol.name { return concrete.args }
+        if trait_key_of(concrete.symbol) == trait_key_of(tt.symbol) {
+            return concrete.args
+        }
         return null
     }
     recorded :: lookup_struct_trait_args(concrete, trait_key_of(tt.symbol), ctx.typed)
     if recorded != null {
         if all_concrete(recorded) { return recorded }
     }
-    if tt.symbol.name == TRAIT_ITERATOR && tt.args.len() == 1 {
+    if is_core_trait(tt, TRAIT_ITERATOR) {
         if concrete is StructType {
             if concrete.args.len() > 0 { return [concrete.args[0]] }
         }
@@ -494,7 +496,7 @@ gen_combo_subst :: fn(
     // is unified with `self`'s element PATTERN, which need not be a bare `T` —
     // `Iterator<T | null>` over `i32 | null` elements binds `T = i32`. A `self`
     // that is not an `Iterator` (a `T[]`) unifies with the receiver's type.
-    self_element :: iterator_element_of(signature.params[0])
+    self_element :: core_trait_arg(signature.params[0], TRAIT_ITERATOR)
     if self_element != null {
         patterns.push(self_element)
         actuals.push(source_elem)
@@ -660,7 +662,8 @@ try_descend_into_gen_source :: fn(ctx: FnLowerCtx, expr: AST.Expr, span: Span) -
         return null
     }
     subst :: build_impl_subst(entry, type_args)
-    element :: iterator_element_of(substitute(signature.return_type, subst)) ?? return null
+    returned :: substitute(signature.return_type, subst)
+    element :: core_trait_arg(returned, TRAIT_ITERATOR) ?? return null
     if is_void(element) || !all_concrete([element]) {
         return null
     }

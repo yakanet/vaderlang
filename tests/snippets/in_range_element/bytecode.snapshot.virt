@@ -136,7 +136,7 @@ fn 3 snippet$blank (u8) -> bool
   return
 end
 
-fn 4 snippet$Bag$Contains$contains (ref,i64) -> bool
+fn 4 snippet$Bag$std_core_Contains$contains (ref,i64) -> bool
   local.field 0 4 0   ; arg 0 snippet$Bag.items
   local.get 1   ; arg 1
   call 19   ; std_core$[]$Contains$contains__i64
@@ -447,7 +447,7 @@ end
 fn 8 snippet$has_big__snippet_Bag (ref) -> bool
   local.get 0   ; arg 0
   i64.const 4000000000
-  call 4   ; snippet$Bag$Contains$contains
+  call 4   ; snippet$Bag$std_core_Contains$contains
   return
 end
 

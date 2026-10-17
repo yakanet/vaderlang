@@ -83,7 +83,7 @@ fn 0 snippet$show_decode (string,string) -> void
   if $L0 void
     local.get 2   ; out
     ref.cast 13   ; base64$Base64Error
-    call 22   ; base64$Base64Error$Error$message
+    call 22   ; base64$Base64Error$std_core_Error$message
     local.set 3   ; $call_7
     local.get 0   ; arg 0
     string.const 0   ; "=ERR:"
@@ -1814,7 +1814,7 @@ fn 20 base64$encode (ref) -> string
     char.const 61
     call 23   ; std_string_builder$append_char
     local.get 3   ; sb
-    call 24   ; std_string_builder$StringBuilder$Display$to_string
+    call 24   ; std_string_builder$StringBuilder$std_core_Display$to_string
     return
   end $L2
   local.get 2   ; n
@@ -1895,7 +1895,7 @@ fn 20 base64$encode (ref) -> string
     call 23   ; std_string_builder$append_char
   end $L3
   local.get 3   ; sb
-  call 24   ; std_string_builder$StringBuilder$Display$to_string
+  call 24   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -1991,7 +1991,7 @@ fn 21 base64$decode_byte (u8) -> i32
   return
 end
 
-fn 22 base64$Base64Error$Error$message (ref) -> string
+fn 22 base64$Base64Error$std_core_Error$message (ref) -> string
   local.field 0 13 0   ; arg 0 base64$Base64Error.msg
   ref.cast 1   ; string
   return
@@ -2012,7 +2012,7 @@ fn 23 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 24 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 24 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize

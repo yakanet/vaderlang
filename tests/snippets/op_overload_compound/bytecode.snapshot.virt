@@ -23,7 +23,7 @@ impl 1 std_core$Sub
 impl 6 std_core$ByteAccess
 export main 2
 
-fn 0 snippet$Vec$Add$add (ref,ref) -> ref
+fn 0 snippet$Vec$std_core_Add$add (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local $field_6 i32
@@ -53,7 +53,7 @@ fn 0 snippet$Vec$Add$add (ref,ref) -> ref
   return
 end
 
-fn 1 snippet$Vec$Sub$sub (ref,ref) -> ref
+fn 1 snippet$Vec$std_core_Sub$sub (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local $field_6 i32
@@ -116,7 +116,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; $struct_18
   local.get 1   ; v
   local.get 2   ; $struct_18
-  call 0   ; snippet$Vec$Add$add
+  call 0   ; snippet$Vec$std_core_Add$add
   local.set 1   ; v
   i32.const 1
   i32.const 1
@@ -124,7 +124,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; $struct_18
   local.get 1   ; v
   local.get 2   ; $struct_18
-  call 1   ; snippet$Vec$Sub$sub
+  call 1   ; snippet$Vec$std_core_Sub$sub
   local.set 1   ; v
   i64.const 69
   call 4   ; std_core$new_byte_buffer

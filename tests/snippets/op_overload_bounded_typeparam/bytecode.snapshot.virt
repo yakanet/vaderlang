@@ -42,7 +42,7 @@ impl 1 std_core$Comparable
 impl 15 std_core$ByteAccess
 export main 2
 
-fn 0 snippet$V$Add$add (ref,ref) -> ref
+fn 0 snippet$V$std_core_Add$add (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local.field 0 1 0   ; arg 0 snippet$V.x
@@ -58,7 +58,7 @@ fn 0 snippet$V$Add$add (ref,ref) -> ref
   return
 end
 
-fn 1 snippet$V$Comparable$compare (ref,ref) -> i32
+fn 1 snippet$V$std_core_Comparable$compare (ref,ref) -> i32
   local $field_2 i32
   local $field_3 i32
   local.field 0 1 0   ; arg 0 snippet$V.x
@@ -270,7 +270,7 @@ fn 5 snippet$total__snippet_V (ref) -> ref
       local.set 5   ; x
       local.get 1   ; s
       local.get 5   ; x
-      call 0   ; snippet$V$Add$add
+      call 0   ; snippet$V$std_core_Add$add
       local.set 1   ; s
       local.get 4   ; __for_i_2
       i64.const 1
@@ -351,7 +351,7 @@ fn 7 snippet$largest__snippet_V (ref) -> ref
       array.get 7   ; snippet$V[]
       local.tee 5   ; x
       local.get 1   ; best
-      call 1   ; snippet$V$Comparable$compare
+      call 1   ; snippet$V$std_core_Comparable$compare
       i32.const 0
       i32.gt
       if $L2 void

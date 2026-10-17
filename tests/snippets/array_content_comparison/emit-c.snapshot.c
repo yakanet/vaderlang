@@ -43,10 +43,10 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 10u
 
-static bool snippet_Point_Equals_equals(void* l0, void* l1);
+static bool snippet_Point_std_core_Equals_equals(void* l0, void* l1);
 static int32_t snippet_main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static bool snippet_Point_Equals_equals_guard(void* l0, vader_box_t l1);
+static bool snippet_Point_std_core_Equals_equals_guard(void* l0, vader_box_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
@@ -154,7 +154,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 /* vtable forwards */
 static bool vader_vt_std_core_Equals__equals(vader_box_t recv, vader_box_t a0);
 
-static bool snippet_Point_Equals_equals(void* l0, void* l1) {
+static bool snippet_Point_std_core_Equals_equals(void* l0, void* l1) {
     int32_t l2, l3;
 #line 14 "tests/snippets/array_content_comparison/_main.vader"
     l2 = ((vader_struct_snippet_Point_t*) l0)->f_x;
@@ -347,12 +347,12 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static bool snippet_Point_Equals_equals_guard(void* l0, vader_box_t l1) {
+static bool snippet_Point_std_core_Equals_equals_guard(void* l0, vader_box_t l1) {
     void* l2;
     bool t0;
     if (l1.tag == 1u) {
         l2 = l1.payload.obj;
-        t0 = snippet_Point_Equals_equals(l0, l2);
+        t0 = snippet_Point_std_core_Equals_equals(l0, l2);
         return t0;
     }
     return false;
@@ -918,7 +918,7 @@ static void std_io_println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static bool vader_vt_std_core_Equals__equals(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 1u: return snippet_Point_Equals_equals_guard(recv.payload.obj, a0);
+        case 1u: return snippet_Point_std_core_Equals_equals_guard(recv.payload.obj, a0);
         case 15u: return std_core_i8_Equals_equals_guard(((int8_t) recv.payload.i), a0);
         case 16u: return std_core_i16_Equals_equals_guard(((int16_t) recv.payload.i), a0);
         case 3u: return std_core_i32_Equals_equals_guard(((int32_t) recv.payload.i), a0);

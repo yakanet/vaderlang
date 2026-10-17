@@ -82,7 +82,7 @@
     fn std.string.replace_all  // std_string$replace_all
     fn std.string.split  // std_string$split
   std/string_builder
-    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$Display$to_string
+    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$std_core_Display$to_string
     fn std.string_builder.append  // std_string_builder$append
     struct std.string_builder.StringBuilder  // std_string_builder$StringBuilder
   system/posix

@@ -141,7 +141,7 @@ fn 3 snippet$main () -> i32
   local.set 1   ; __in_x_0
   local.get 2   ; $arr_21
   local.get 1   ; __in_x_0
-  call 13   ; std_collections$MutableSet$Contains$contains__i32
+  call 13   ; std_collections$MutableSet$std_core_Contains$contains__i32
   if $L2 void
     string.const 6   ; "set: yes"
     local.set 0   ; if_res
@@ -383,7 +383,7 @@ fn 10 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
   return.lit bool.const false
 end
 
-fn 11 std_collections$MutableMap$IndexSet$set_at__i32__bool (ref,i32,bool) -> void
+fn 11 std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool (ref,i32,bool) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -391,17 +391,17 @@ fn 11 std_collections$MutableMap$IndexSet$set_at__i32__bool (ref,i32,bool) -> vo
   return
 end
 
-fn 12 std_collections$MutableMap$Contains$contains__i32__bool (ref,i32) -> bool
+fn 12 std_collections$MutableMap$std_core_Contains$contains__i32__bool (ref,i32) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 20   ; std_collections$contains_key__i32__bool
   return
 end
 
-fn 13 std_collections$MutableSet$Contains$contains__i32 (ref,i32) -> bool
+fn 13 std_collections$MutableSet$std_core_Contains$contains__i32 (ref,i32) -> bool
   local.field 0 13 0   ; arg 0 std_collections$MutableSet__i32.inner
   local.get 1   ; arg 1
-  call 12   ; std_collections$MutableMap$Contains$contains__i32__bool
+  call 12   ; std_collections$MutableMap$std_core_Contains$contains__i32__bool
   return
 end
 
@@ -872,13 +872,13 @@ end
 fn 21 std_collections$add__i32 (ref,i32) -> bool
   local.field 0 13 0   ; arg 0 std_collections$MutableSet__i32.inner
   local.get 1   ; arg 1
-  call 12   ; std_collections$MutableMap$Contains$contains__i32__bool
+  call 12   ; std_collections$MutableMap$std_core_Contains$contains__i32__bool
   if $L0 void
   else
     local.field 0 13 0   ; arg 0 std_collections$MutableSet__i32.inner
     local.get 1   ; arg 1
     bool.const true
-    call 11   ; std_collections$MutableMap$IndexSet$set_at__i32__bool
+    call 11   ; std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
     return.lit bool.const true
   end $L0
   return.lit bool.const false

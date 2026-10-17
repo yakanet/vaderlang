@@ -38,8 +38,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 5u
 
-static vader_string_t snippet_ParseErr_Error_message(void* l0);
-static vader_string_t snippet_NetErr_Error_message(void* l0);
+static vader_string_t snippet_ParseErr_std_core_Error_message(void* l0);
+static vader_string_t snippet_NetErr_std_core_Error_message(void* l0);
 static vader_string_t snippet_report(vader_box_t l0);
 static int32_t snippet_main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
@@ -100,7 +100,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 /* vtable forwards */
 static vader_string_t vader_vt_std_core_Error__message(vader_box_t recv);
 
-static vader_string_t snippet_ParseErr_Error_message(void* l0) {
+static vader_string_t snippet_ParseErr_std_core_Error_message(void* l0) {
     vader_string_t l1 = 0;
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
@@ -115,7 +115,7 @@ static vader_string_t snippet_ParseErr_Error_message(void* l0) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t snippet_NetErr_Error_message(void* l0) {
+static vader_string_t snippet_NetErr_std_core_Error_message(void* l0) {
     vader_string_t l1 = 0;
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
@@ -273,8 +273,8 @@ static void std_io_println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static vader_string_t vader_vt_std_core_Error__message(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet_ParseErr_Error_message(recv.payload.obj);
-        case 3u: return snippet_NetErr_Error_message(recv.payload.obj);
+        case 1u: return snippet_ParseErr_std_core_Error_message(recv.payload.obj);
+        case 3u: return snippet_NetErr_std_core_Error_message(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Error.message");
     }
     vader_unreachable("vtable miss in std_core$Error.message");

@@ -336,7 +336,7 @@ build_step_call :: fn(
     step_union: Type,
     span: Span,
 ) -> LoweredExpr {
-    if iter_type is TraitType && iter_type.symbol.name == TRAIT_ITERATOR {
+    if iter_type is TraitType && is_core_trait(iter_type, TRAIT_ITERATOR) {
         args: LoweredExpr[]: []
         return LoweredVirtualCall {
             .span = span, .type = step_union,

@@ -42,14 +42,7 @@ export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concre
 /// `Async<T>` return (target form), or the declared return itself (transitional
 /// `-> T`). NOT normalized — `void` stays `void` (the body is void-bodied) ; the
 /// void→null step happens only where the erased `Async<...>` type is built.
-export async_inner_type :: fn(t: Type) -> Type {
-    if t is TraitType {
-        if t.symbol.name == TRAIT_ASYNC && t.args.len() > 0 {
-            return t.args[0]
-        }
-    }
-    return t
-}
+export async_inner_type :: fn(t: Type) -> Type = core_trait_arg(t, TRAIT_ASYNC) ?? t
 
 /// The `Async` type argument for an `async fn`'s declared result : `void`
 /// normalizes to `null` (see `async_call_result_type`), everything else passes

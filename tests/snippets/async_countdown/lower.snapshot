@@ -2,14 +2,14 @@
 
 ## snippet
   snippet.CountDown :: struct { n: i32 }  // snippet$CountDown
-  snippet.CountDown.resume :: fn(self: CountDown) -> i32 | Suspended {  // snippet$CountDown$Async$resume
+  snippet.CountDown.resume :: fn(self: CountDown) -> i32 | Suspended {  // snippet$CountDown$std_core_Async$resume
       if self.n > 0 {
           self.n = self.n - 1
           return Suspended { .wake_at = i64(0) }
       }
       return 42
   }
-  snippet.CountDown.cancel :: fn(self: CountDown) -> void {  // snippet$CountDown$Async$cancel
+  snippet.CountDown.cancel :: fn(self: CountDown) -> void {  // snippet$CountDown$std_core_Async$cancel
   }
   snippet.waiter :: fn() -> Async<i32> {  // snippet$waiter
       return __asyncstate_snippet_0 {
@@ -84,9 +84,9 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Async.cancel for CountDown  snippet.CountDown.cancel  // snippet$CountDown$Async$cancel
+  vtable std.core.Async.cancel for CountDown  snippet.CountDown.cancel  // snippet$CountDown$std_core_Async$cancel
   vtable std.core.Async.cancel for __asyncstate_snippet_0  snippet$__asyncstate_snippet_0$Async$cancel
-  vtable std.core.Async.resume for CountDown  snippet.CountDown.resume  // snippet$CountDown$Async$resume
+  vtable std.core.Async.resume for CountDown  snippet.CountDown.resume  // snippet$CountDown$std_core_Async$resume
   vtable std.core.Async.resume for __asyncstate_snippet_0  snippet$__asyncstate_snippet_0$Async$resume
 
 ## lowered in dependencies

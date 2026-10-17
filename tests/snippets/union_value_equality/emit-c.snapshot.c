@@ -62,16 +62,16 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 6u
 
-static bool snippet_Point_Equals_equals(void* l0, void* l1);
-static bool snippet_Label_Equals_equals(void* l0, void* l1);
-static bool snippet_Pair_Equals_equals(void* l0, void* l1);
+static bool snippet_Point_std_core_Equals_equals(void* l0, void* l1);
+static bool snippet_Label_std_core_Equals_equals(void* l0, void* l1);
+static bool snippet_Pair_std_core_Equals_equals(void* l0, void* l1);
 static int32_t snippet_main(void);
-static bool snippet_Box_Equals_equals__Any(void* l0, void* l1);
+static bool snippet_Box_std_core_Equals_equals__Any(void* l0, void* l1);
 static bool snippet_same_opt__snippet_Point(vader_box_t l0, vader_box_t l1);
 static bool snippet_same_pair__snippet_Point(void* l0, void* l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static bool snippet_Point_Equals_equals_guard(void* l0, vader_box_t l1);
-static bool snippet_Label_Equals_equals_guard(void* l0, vader_box_t l1);
+static bool snippet_Point_std_core_Equals_equals_guard(void* l0, vader_box_t l1);
+static bool snippet_Label_std_core_Equals_equals_guard(void* l0, vader_box_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
@@ -185,7 +185,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 /* vtable forwards */
 static bool vader_vt_std_core_Equals__equals(vader_box_t recv, vader_box_t a0);
 
-static bool snippet_Point_Equals_equals(void* l0, void* l1) {
+static bool snippet_Point_std_core_Equals_equals(void* l0, void* l1) {
     int32_t l2, l3;
 #line 19 "tests/snippets/union_value_equality/_main.vader"
     l2 = ((vader_struct_snippet_Point_t*) l0)->f_x;
@@ -193,7 +193,7 @@ static bool snippet_Point_Equals_equals(void* l0, void* l1) {
     return l2 == l3;
 }
 
-static bool snippet_Label_Equals_equals(void* l0, void* l1) {
+static bool snippet_Label_std_core_Equals_equals(void* l0, void* l1) {
     vader_string_t l2, l3;
 #line 25 "tests/snippets/union_value_equality/_main.vader"
     l2 = ((vader_struct_snippet_Label_t*) l0)->f_text;
@@ -201,7 +201,7 @@ static bool snippet_Label_Equals_equals(void* l0, void* l1) {
     return l2 == l3;
 }
 
-static bool snippet_Pair_Equals_equals(void* l0, void* l1) {
+static bool snippet_Pair_std_core_Equals_equals(void* l0, void* l1) {
     int32_t l2, l3;
 #line 40 "tests/snippets/union_value_equality/_main.vader"
     l2 = (((vader_obj_header_t*) l0)->type_index == 9u ? ((int32_t) ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l0)->f__0.payload.i) : ((vader_struct___Tuple_i32_i32_3103e027_t*) l0)->f__0);
@@ -268,7 +268,7 @@ static int32_t snippet_main(void) {
     if (l9) {
         l10 = l3.payload.obj;
         l11 = l4.payload.obj;
-        l9 = snippet_Label_Equals_equals(l10, l11);
+        l9 = snippet_Label_std_core_Equals_equals(l10, l11);
     } else {
         l9 = false;
     }
@@ -283,7 +283,7 @@ static int32_t snippet_main(void) {
         if (l12) {
             l10 = l3.payload.obj;
             l11 = l4.payload.obj;
-            l12 = snippet_Point_Equals_equals(l10, l11);
+            l12 = snippet_Point_std_core_Equals_equals(l10, l11);
         } else {
             l12 = false;
         }
@@ -299,7 +299,7 @@ static int32_t snippet_main(void) {
     if (l9) {
         l10 = l3.payload.obj;
         l11 = l5.payload.obj;
-        l9 = snippet_Label_Equals_equals(l10, l11);
+        l9 = snippet_Label_std_core_Equals_equals(l10, l11);
     } else {
         l9 = false;
     }
@@ -314,7 +314,7 @@ static int32_t snippet_main(void) {
         if (l12) {
             l10 = l3.payload.obj;
             l11 = l5.payload.obj;
-            l12 = snippet_Point_Equals_equals(l10, l11);
+            l12 = snippet_Point_std_core_Equals_equals(l10, l11);
         } else {
             l12 = false;
         }
@@ -330,7 +330,7 @@ static int32_t snippet_main(void) {
     if (l9) {
         l10 = l3.payload.obj;
         l11 = l6.payload.obj;
-        l9 = snippet_Label_Equals_equals(l10, l11);
+        l9 = snippet_Label_std_core_Equals_equals(l10, l11);
     } else {
         l9 = false;
     }
@@ -345,7 +345,7 @@ static int32_t snippet_main(void) {
         if (l12) {
             l10 = l3.payload.obj;
             l11 = l6.payload.obj;
-            l12 = snippet_Point_Equals_equals(l10, l11);
+            l12 = snippet_Point_std_core_Equals_equals(l10, l11);
         } else {
             l12 = false;
         }
@@ -361,7 +361,7 @@ static int32_t snippet_main(void) {
     if (l9) {
         l10 = l3.payload.obj;
         l11 = l5.payload.obj;
-        l9 = snippet_Label_Equals_equals(l10, l11);
+        l9 = snippet_Label_std_core_Equals_equals(l10, l11);
     } else {
         l9 = false;
     }
@@ -376,7 +376,7 @@ static int32_t snippet_main(void) {
         if (l12) {
             l10 = l3.payload.obj;
             l11 = l5.payload.obj;
-            l12 = snippet_Point_Equals_equals(l10, l11);
+            l12 = snippet_Point_std_core_Equals_equals(l10, l11);
         } else {
             l12 = false;
         }
@@ -391,7 +391,7 @@ static int32_t snippet_main(void) {
     l8 = (size_t) 0;
     if (l3.tag == 1u) {
         t0 = l3.payload.obj;
-        l9 = snippet_Point_Equals_equals(t0, l1);
+        l9 = snippet_Point_std_core_Equals_equals(t0, l1);
     } else {
         l9 = false;
     }
@@ -399,7 +399,7 @@ static int32_t snippet_main(void) {
     l8 = std_core_write_string_at(l7, l8, 2u);
     if (l3.tag == 1u) {
         l10 = l3.payload.obj;
-        l9 = snippet_Point_Equals_equals(l1, l10);
+        l9 = snippet_Point_std_core_Equals_equals(l1, l10);
     } else {
         l9 = false;
     }
@@ -407,7 +407,7 @@ static int32_t snippet_main(void) {
     l8 = std_core_write_string_at(l7, l8, 2u);
     if (l6.tag == 1u) {
         t0 = l6.payload.obj;
-        l9 = snippet_Point_Equals_equals(t0, l1);
+        l9 = snippet_Point_std_core_Equals_equals(t0, l1);
     } else {
         l9 = false;
     }
@@ -441,7 +441,7 @@ static int32_t snippet_main(void) {
     l8 = (size_t) 0;
     if (l5.tag == 1u) {
         t0 = l5.payload.obj;
-        l9 = snippet_Point_Equals_equals(t0, l1);
+        l9 = snippet_Point_std_core_Equals_equals(t0, l1);
     } else {
         l9 = false;
     }
@@ -463,7 +463,7 @@ static int32_t snippet_main(void) {
         if (l12) {
             l10 = l6.payload.obj;
             l11 = l13.payload.obj;
-            l12 = snippet_Point_Equals_equals(l10, l11);
+            l12 = snippet_Point_std_core_Equals_equals(l10, l11);
         } else {
             l12 = false;
         }
@@ -487,7 +487,7 @@ static int32_t snippet_main(void) {
         if (l12) {
             l10 = l5.payload.obj;
             l11 = l6.payload.obj;
-            l12 = snippet_Point_Equals_equals(l10, l11);
+            l12 = snippet_Point_std_core_Equals_equals(l10, l11);
         } else {
             l12 = false;
         }
@@ -551,7 +551,7 @@ static int32_t snippet_main(void) {
         if (l12) {
             l10 = l3.payload.obj;
             l11 = l4.payload.obj;
-            l12 = snippet_Label_Equals_equals(l10, l11);
+            l12 = snippet_Label_std_core_Equals_equals(l10, l11);
         } else {
             l12 = false;
         }
@@ -566,7 +566,7 @@ static int32_t snippet_main(void) {
             if (l14) {
                 l10 = l3.payload.obj;
                 l11 = l4.payload.obj;
-                l14 = snippet_Point_Equals_equals(l10, l11);
+                l14 = snippet_Point_std_core_Equals_equals(l10, l11);
             } else {
                 l14 = false;
             }
@@ -666,7 +666,7 @@ static int32_t snippet_main(void) {
     l1 = (void*) _a9_obj;
     if (!(l3.tag == 0u)) {
         t0 = l3.payload.obj;
-        l9 = snippet_Box_Equals_equals__Any(t0, l1);
+        l9 = snippet_Box_std_core_Equals_equals__Any(t0, l1);
     } else {
         l9 = false;
     }
@@ -678,7 +678,7 @@ static int32_t snippet_main(void) {
     l1 = (void*) _a10_obj;
     if (!(l3.tag == 0u)) {
         t0 = l3.payload.obj;
-        l9 = snippet_Box_Equals_equals__Any(t0, l1);
+        l9 = snippet_Box_std_core_Equals_equals__Any(t0, l1);
     } else {
         l9 = false;
     }
@@ -700,7 +700,7 @@ static int32_t snippet_main(void) {
 #line 80 "tests/snippets/union_value_equality/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) 5);
     l8 = (size_t) 0;
-    l9 = snippet_Pair_Equals_equals(l0, l1);
+    l9 = snippet_Pair_std_core_Equals_equals(l0, l1);
     l8 = std_core_write_bool(l2, l8, l9);
     t1 = std_core_finish_buffer(l2, l8);
     std_io_println__string(t1);
@@ -708,7 +708,7 @@ static int32_t snippet_main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static bool snippet_Box_Equals_equals__Any(void* l0, void* l1) {
+static bool snippet_Box_std_core_Equals_equals__Any(void* l0, void* l1) {
     vader_box_t l2 = vader_box_null();
     bool t0;
     vader_box_t* gc_roots[1] = { &l2 };
@@ -777,23 +777,23 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static bool snippet_Point_Equals_equals_guard(void* l0, vader_box_t l1) {
+static bool snippet_Point_std_core_Equals_equals_guard(void* l0, vader_box_t l1) {
     void* l2;
     bool t0;
     if (l1.tag == 1u) {
         l2 = l1.payload.obj;
-        t0 = snippet_Point_Equals_equals(l0, l2);
+        t0 = snippet_Point_std_core_Equals_equals(l0, l2);
         return t0;
     }
     return false;
 }
 
-static bool snippet_Label_Equals_equals_guard(void* l0, vader_box_t l1) {
+static bool snippet_Label_std_core_Equals_equals_guard(void* l0, vader_box_t l1) {
     void* l2;
     bool t0;
     if (l1.tag == 3u) {
         l2 = l1.payload.obj;
-        t0 = snippet_Label_Equals_equals(l0, l2);
+        t0 = snippet_Label_std_core_Equals_equals(l0, l2);
         return t0;
     }
     return false;
@@ -1062,9 +1062,9 @@ static void std_io_println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static bool vader_vt_std_core_Equals__equals(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 6u: return snippet_Box_Equals_equals__Any(recv.payload.obj, a0.payload.obj);
-        case 1u: return snippet_Point_Equals_equals_guard(recv.payload.obj, a0);
-        case 3u: return snippet_Label_Equals_equals_guard(recv.payload.obj, a0);
+        case 6u: return snippet_Box_std_core_Equals_equals__Any(recv.payload.obj, a0.payload.obj);
+        case 1u: return snippet_Point_std_core_Equals_equals_guard(recv.payload.obj, a0);
+        case 3u: return snippet_Label_std_core_Equals_equals_guard(recv.payload.obj, a0);
         case 15u: return std_core_i8_Equals_equals_guard(((int8_t) recv.payload.i), a0);
         case 16u: return std_core_i16_Equals_equals_guard(((int16_t) recv.payload.i), a0);
         case 5u: return std_core_i32_Equals_equals_guard(((int32_t) recv.payload.i), a0);
@@ -1080,7 +1080,7 @@ static bool vader_vt_std_core_Equals__equals(vader_box_t recv, vader_box_t a0) {
         case 2u: return std_core_bool_Equals_equals_guard(recv.payload.b, a0);
         case 24u: return std_core_char_Equals_equals_guard(((uint32_t) recv.payload.i), a0);
         case 10u: return std_core_string_Equals_equals_guard(recv.payload.s, a0);
-        case 4u: return snippet_Pair_Equals_equals(recv.payload.obj, a0.payload.obj);
+        case 4u: return snippet_Pair_std_core_Equals_equals(recv.payload.obj, a0.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Equals.equals");
     }
     vader_unreachable("vtable miss in std_core$Equals.equals");

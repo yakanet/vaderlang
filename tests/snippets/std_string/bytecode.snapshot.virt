@@ -84,7 +84,7 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __off_1
   string.const 3   ; "foobar"
   string.const 4   ; "oba"
-  call 28   ; std_string$string$Contains$contains
+  call 28   ; std_string$string$std_core_Contains$contains
   local.set 4   ; $call_24
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -1201,7 +1201,7 @@ fn 19 std_string$to_upper (string) -> string
     end $L1
   end $L0
   local.get 1   ; sb
-  call 31   ; std_string_builder$StringBuilder$Display$to_string
+  call 31   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -1277,7 +1277,7 @@ fn 20 std_string$to_lower (string) -> string
     end $L1
   end $L0
   local.get 1   ; sb
-  call 31   ; std_string_builder$StringBuilder$Display$to_string
+  call 31   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -1707,7 +1707,7 @@ fn 27 std_string$matches_at (string,usize,string) -> bool
   return.lit bool.const true
 end
 
-fn 28 std_string$string$Contains$contains (string,string) -> bool
+fn 28 std_string$string$std_core_Contains$contains (string,string) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 29   ; std_string$byte_contains
@@ -1792,7 +1792,7 @@ fn 30 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 31 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 31 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize

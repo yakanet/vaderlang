@@ -28,7 +28,7 @@ impl 12 std_core$ByteAccess
 impl 5 snippet$Make
 export main 1
 
-fn 0 snippet$i64$Into$into (i64) -> ref
+fn 0 snippet$i64$std_core_Into$into (i64) -> ref
   local.get 0   ; arg 0
   struct.new 2   ; snippet$Box__i64
   return
@@ -99,7 +99,7 @@ fn 1 snippet$main () -> i32
   call 7   ; std_core$finish_buffer
   call 14   ; std_io$println__string
   i64.const 7
-  call 0   ; snippet$i64$Into$into
+  call 0   ; snippet$i64$std_core_Into$into
   struct.get 2 0   ; snippet$Box__i64.v
   ref.cast 1   ; i64
   call 13   ; std_io$println__i64

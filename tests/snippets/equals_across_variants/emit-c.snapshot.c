@@ -62,15 +62,15 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 7u
 
-static bool snippet_Point_Equals_equals(void* l0, void* l1);
-static uint64_t snippet_Point_Hash_hash(void* l0);
-static bool snippet_Label_Equals_equals(void* l0, void* l1);
-static uint64_t snippet_Label_Hash_hash(void* l0);
+static bool snippet_Point_std_core_Equals_equals(void* l0, void* l1);
+static uint64_t snippet_Point_std_core_Hash_hash(void* l0);
+static bool snippet_Label_std_core_Equals_equals(void* l0, void* l1);
+static uint64_t snippet_Label_std_core_Hash_hash(void* l0);
 static int32_t snippet_main(void);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
-static bool snippet_Point_Equals_equals_guard(void* l0, vader_box_t l1);
-static bool snippet_Label_Equals_equals_guard(void* l0, vader_box_t l1);
+static bool snippet_Point_std_core_Equals_equals_guard(void* l0, vader_box_t l1);
+static bool snippet_Label_std_core_Equals_equals_guard(void* l0, vader_box_t l1);
 static uint64_t std_core_i32_Hash_hash(int32_t l0);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
@@ -103,8 +103,8 @@ static bool std_core_f32_Equals_equals_guard(float l0, vader_box_t l1);
 static bool std_core_f64_Equals_equals_guard(double l0, vader_box_t l1);
 static bool std_core_bool_Equals_equals_guard(bool l0, vader_box_t l1);
 static bool std_core_char_Equals_equals_guard(uint32_t l0, vader_box_t l1);
-static vader_box_t std_collections_MutableMap_Index_at__Any__string(void* l0, vader_box_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__Any__string(void* l0, vader_box_t l1, vader_string_t l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__Any__string(void* l0, vader_box_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__Any__string(void* l0, vader_box_t l1, vader_string_t l2);
 static size_t std_collections_first_slot(uint64_t l0, size_t l1);
 static size_t std_collections_next_slot(size_t l0, uint64_t l1, size_t l2);
 static void std_collections_ensure_index__Any__string(void* l0);
@@ -217,7 +217,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 static uint64_t vader_vt_std_core_Hash__hash(vader_box_t recv);
 static bool vader_vt_std_core_Equals__equals(vader_box_t recv, vader_box_t a0);
 
-static bool snippet_Point_Equals_equals(void* l0, void* l1) {
+static bool snippet_Point_std_core_Equals_equals(void* l0, void* l1) {
     int32_t l2, l3;
 #line 16 "tests/snippets/equals_across_variants/_main.vader"
     l2 = ((vader_struct_snippet_Point_t*) l0)->f_x;
@@ -225,14 +225,14 @@ static bool snippet_Point_Equals_equals(void* l0, void* l1) {
     return l2 == l3;
 }
 
-static uint64_t snippet_Point_Hash_hash(void* l0) {
+static uint64_t snippet_Point_std_core_Hash_hash(void* l0) {
     int32_t t0;
 #line 18 "tests/snippets/equals_across_variants/_main.vader"
     t0 = ((vader_struct_snippet_Point_t*) l0)->f_x;
     return (uint64_t) (int64_t) ((int64_t) (int32_t) t0);
 }
 
-static bool snippet_Label_Equals_equals(void* l0, void* l1) {
+static bool snippet_Label_std_core_Equals_equals(void* l0, void* l1) {
     int32_t l2, l3;
 #line 24 "tests/snippets/equals_across_variants/_main.vader"
     l2 = ((vader_struct_snippet_Label_t*) l0)->f_n;
@@ -240,7 +240,7 @@ static bool snippet_Label_Equals_equals(void* l0, void* l1) {
     return l2 == l3;
 }
 
-static uint64_t snippet_Label_Hash_hash(void* l0) {
+static uint64_t snippet_Label_std_core_Hash_hash(void* l0) {
     int32_t t0;
 #line 26 "tests/snippets/equals_across_variants/_main.vader"
     t0 = ((vader_struct_snippet_Label_t*) l0)->f_n;
@@ -290,13 +290,13 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a4_obj, 1u);
     _a4_obj->f_x = INT32_C(1);
     l1 = (void*) _a4_obj;
-    std_collections_MutableMap_IndexSet_set_at__Any__string(l0, vader_ref_box(l1), 1u);
+    std_collections_MutableMap_std_core_IndexSet_set_at__Any__string(l0, vader_ref_box(l1), 1u);
 #line 33 "tests/snippets/equals_across_variants/_main.vader"
     vader_struct_snippet_Label_t* _a5_obj = (vader_struct_snippet_Label_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Label_t));
     vader_obj_header_init(_a5_obj, 4u);
     _a5_obj->f_n = INT32_C(1);
     l1 = (void*) _a5_obj;
-    l3 = std_collections_MutableMap_Index_at__Any__string(l0, vader_ref_box(l1));
+    l3 = std_collections_MutableMap_std_core_Index_at__Any__string(l0, vader_ref_box(l1));
     if (l3.tag == 0u) {
         l4 = 2u;
     } else {
@@ -306,7 +306,7 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a6_obj, 1u);
     _a6_obj->f_x = INT32_C(1);
     l1 = (void*) _a6_obj;
-    l3 = std_collections_MutableMap_Index_at__Any__string(l0, vader_ref_box(l1));
+    l3 = std_collections_MutableMap_std_core_Index_at__Any__string(l0, vader_ref_box(l1));
     if (l3.tag == 0u) {
         l5 = 2u;
     } else {
@@ -424,23 +424,23 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static bool snippet_Point_Equals_equals_guard(void* l0, vader_box_t l1) {
+static bool snippet_Point_std_core_Equals_equals_guard(void* l0, vader_box_t l1) {
     void* l2;
     bool t0;
     if (l1.tag == 1u) {
         l2 = l1.payload.obj;
-        t0 = snippet_Point_Equals_equals(l0, l2);
+        t0 = snippet_Point_std_core_Equals_equals(l0, l2);
         return t0;
     }
     return false;
 }
 
-static bool snippet_Label_Equals_equals_guard(void* l0, vader_box_t l1) {
+static bool snippet_Label_std_core_Equals_equals_guard(void* l0, vader_box_t l1) {
     void* l2;
     bool t0;
     if (l1.tag == 4u) {
         l2 = l1.payload.obj;
-        t0 = snippet_Label_Equals_equals(l0, l2);
+        t0 = snippet_Label_std_core_Equals_equals(l0, l2);
         return t0;
     }
     return false;
@@ -522,7 +522,7 @@ static bool std_core____Contains_contains__snippet_Label___snippet_Point(void* l
             if (l1.tag == 4u) {
                 l6 = l5.payload.obj;
                 l7 = l1.payload.obj;
-                t0 = snippet_Label_Equals_equals(l6, l7);
+                t0 = snippet_Label_std_core_Equals_equals(l6, l7);
                 if (t0) {
                     return true;
                 }
@@ -532,7 +532,7 @@ static bool std_core____Contains_contains__snippet_Label___snippet_Point(void* l
             if (l1.tag == 1u) {
                 l8 = l5.payload.obj;
                 l9 = l1.payload.obj;
-                t0 = snippet_Point_Equals_equals(l8, l9);
+                t0 = snippet_Point_std_core_Equals_equals(l8, l9);
                 if (t0) {
                     return true;
                 }
@@ -774,7 +774,7 @@ static bool std_core_char_Equals_equals_guard(uint32_t l0, vader_box_t l1) {
     return false;
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__Any__string(void* l0, vader_box_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__Any__string(void* l0, vader_box_t l1) {
     vader_box_t t0 = vader_box_null();
     vader_box_t* gc_roots[2] = { &l1, &t0 };
     void** gc_raw_roots[1] = { &l0 };
@@ -785,7 +785,7 @@ static vader_box_t std_collections_MutableMap_Index_at__Any__string(void* l0, va
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__Any__string(void* l0, vader_box_t l1, vader_string_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__Any__string(void* l0, vader_box_t l1, vader_string_t l2) {
     vader_box_t* gc_roots[1] = { &l1 };
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
@@ -1333,8 +1333,8 @@ static uint64_t std_core_string_Hash_hash_vt(vader_string_t l0) {
 /* vtable dispatchers */
 static uint64_t vader_vt_std_core_Hash__hash(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet_Point_Hash_hash(recv.payload.obj);
-        case 4u: return snippet_Label_Hash_hash(recv.payload.obj);
+        case 1u: return snippet_Point_std_core_Hash_hash(recv.payload.obj);
+        case 4u: return snippet_Label_std_core_Hash_hash(recv.payload.obj);
         case 5u: return std_core_i32_Hash_hash(((int32_t) recv.payload.i));
         case 6u: return std_core_string_Hash_hash_vt(recv.payload.s);
         case 16u: return std_core_i8_Hash_hash(((int8_t) recv.payload.i));
@@ -1354,8 +1354,8 @@ static uint64_t vader_vt_std_core_Hash__hash(vader_box_t recv) {
 
 static bool vader_vt_std_core_Equals__equals(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 1u: return snippet_Point_Equals_equals_guard(recv.payload.obj, a0);
-        case 4u: return snippet_Label_Equals_equals_guard(recv.payload.obj, a0);
+        case 1u: return snippet_Point_std_core_Equals_equals_guard(recv.payload.obj, a0);
+        case 4u: return snippet_Label_std_core_Equals_equals_guard(recv.payload.obj, a0);
         case 5u: return std_core_i32_Equals_equals_guard(((int32_t) recv.payload.i), a0);
         case 6u: return std_core_string_Equals_equals_guard(recv.payload.s, a0);
         case 16u: return std_core_i8_Equals_equals_guard(((int8_t) recv.payload.i), a0);

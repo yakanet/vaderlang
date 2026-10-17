@@ -27,7 +27,7 @@ impl 1 std_core$Equals
 impl 7 std_core$ByteAccess
 export main 2
 
-fn 0 snippet$Money$Equals$equals (ref,ref) -> bool
+fn 0 snippet$Money$std_core_Equals$equals (ref,ref) -> bool
   local $field_2 i32
   local $field_3 i32
   local.field 0 1 0   ; arg 0 snippet$Money.amount
@@ -42,7 +42,7 @@ fn 0 snippet$Money$Equals$equals (ref,ref) -> bool
   return
 end
 
-fn 1 snippet$Money$Comparable$compare (ref,ref) -> i32
+fn 1 snippet$Money$std_core_Comparable$compare (ref,ref) -> i32
   local $field_2 i32
   local $field_3 i32
   local.field 0 1 0   ; arg 0 snippet$Money.amount
@@ -101,7 +101,7 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; a
   local.get 1   ; b
-  call 0   ; snippet$Money$Equals$equals
+  call 0   ; snippet$Money$std_core_Equals$equals
   local.set 5   ; $call_16
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
@@ -115,7 +115,7 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; a
   local.get 2   ; c
-  call 0   ; snippet$Money$Equals$equals
+  call 0   ; snippet$Money$std_core_Equals$equals
   bool.not
   local.set 5   ; $call_16
   local.get 3   ; __buf_0
@@ -139,7 +139,7 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; a
   local.get 2   ; c
-  call 1   ; snippet$Money$Comparable$compare
+  call 1   ; snippet$Money$std_core_Comparable$compare
   i32.const 0
   i32.lt
   local.set 5   ; $call_16
@@ -155,7 +155,7 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 2   ; c
   local.get 0   ; a
-  call 1   ; snippet$Money$Comparable$compare
+  call 1   ; snippet$Money$std_core_Comparable$compare
   i32.const 0
   i32.gt
   local.set 5   ; $call_16
@@ -171,7 +171,7 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 0   ; a
   local.get 1   ; b
-  call 1   ; snippet$Money$Comparable$compare
+  call 1   ; snippet$Money$std_core_Comparable$compare
   i32.const 0
   i32.ge
   local.set 5   ; $call_16
@@ -187,7 +187,7 @@ fn 2 snippet$main () -> i32
   local.set 4   ; __off_1
   local.get 2   ; c
   local.get 2   ; c
-  call 1   ; snippet$Money$Comparable$compare
+  call 1   ; snippet$Money$std_core_Comparable$compare
   i32.const 0
   i32.le
   local.set 5   ; $call_16

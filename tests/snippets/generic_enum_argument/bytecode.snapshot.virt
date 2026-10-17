@@ -146,14 +146,14 @@ fn 0 snippet$main () -> i32
   local.tee 0   ; __buf_0
   i32.const 1
   string.const 1   ; "gone"
-  call 14   ; std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string
+  call 14   ; std_collections$MutableMap$std_core_IndexSet$set_at__snippet_HttpStatus__string
   local.get 0   ; __buf_0
   i32.const 0
   string.const 2   ; "here"
-  call 14   ; std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string
+  call 14   ; std_collections$MutableMap$std_core_IndexSet$set_at__snippet_HttpStatus__string
   local.get 0   ; __buf_0
   i32.const 1
-  call 13   ; std_collections$MutableMap$Index$at__snippet_HttpStatus__string
+  call 13   ; std_collections$MutableMap$std_core_Index$at__snippet_HttpStatus__string
   local.tee 8   ; __coalesce_4
   type_check 0   ; null
   if $L0 void
@@ -166,7 +166,7 @@ fn 0 snippet$main () -> i32
   end $L0
   local.get 0   ; __buf_0
   i32.const 0
-  call 13   ; std_collections$MutableMap$Index$at__snippet_HttpStatus__string
+  call 13   ; std_collections$MutableMap$std_core_Index$at__snippet_HttpStatus__string
   local.tee 8   ; __coalesce_4
   type_check 0   ; null
   if $L1 void
@@ -580,14 +580,14 @@ fn 12 std_core$u8$Hash$hash (u8) -> u64
   return
 end
 
-fn 13 std_collections$MutableMap$Index$at__snippet_HttpStatus__string (ref,u8) -> any
+fn 13 std_collections$MutableMap$std_core_Index$at__snippet_HttpStatus__string (ref,u8) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 21   ; std_collections$get__snippet_HttpStatus__string
   return
 end
 
-fn 14 std_collections$MutableMap$IndexSet$set_at__snippet_HttpStatus__string (ref,u8,string) -> void
+fn 14 std_collections$MutableMap$std_core_IndexSet$set_at__snippet_HttpStatus__string (ref,u8,string) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

@@ -1,0 +1,14 @@
+// R2030: one trait implemented twice for one type, once under the name its
+// module gives it and once under an import alias in a sibling file. The trait is
+// told by its declaration, not by the name written.
+module "snippet"
+
+import "snippet/tr"
+
+Point :: struct { x: i32 }
+
+Point implements Describe {
+    describe :: fn(self) -> string = "first"
+}
+
+main :: fn() -> i32 = 0

@@ -82,7 +82,7 @@
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
   std/string_builder
-    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$Display$to_string
+    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$std_core_Display$to_string
     fn std.string_builder.append  // std_string_builder$append
     fn std.string_builder.append_char  // std_string_builder$append_char
     struct std.string_builder.StringBuilder  // std_string_builder$StringBuilder

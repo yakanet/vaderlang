@@ -38,7 +38,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__string(vader_string_t l0);
-static void* snippet_feet_Length_Into_into(void* l0);
+static void* snippet_feet_Length_std_core_Into_into(void* l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -115,7 +115,7 @@ static int32_t snippet_main(void) {
 #line 16 "tests/snippets/into_between_same_named_types/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 20);
     l2 = (size_t) 0;
-    t0 = snippet_feet_Length_Into_into(l0);
+    t0 = snippet_feet_Length_std_core_Into_into(l0);
     t1 = snippet_take(t0);
     l3 = ((int64_t) (int32_t) t1);
     l2 = std_core_write_int(l1, l2, l3);
@@ -323,7 +323,7 @@ static void std_io_println__string(vader_string_t l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static void* snippet_feet_Length_Into_into(void* l0) {
+static void* snippet_feet_Length_std_core_Into_into(void* l0) {
     int32_t t0, t1;
     void* t2 = NULL;
     void** gc_raw_roots[2] = { &l0, &t2 };

@@ -94,7 +94,7 @@ vtable std_core$Display.to_string 27 35
 vtable std_core$Display.to_string 7 36
 export main 1
 
-fn 0 snippet$Point$Display$to_string (ref) -> string
+fn 0 snippet$Point$std_core_Display$to_string (ref) -> string
   local __buf_0 ref
   local __off_1 usize
   local $cast_9 i64
@@ -219,7 +219,7 @@ fn 1 snippet$main () -> i32
   i32.const 5
   array.new 16 2   ; i32[]
   struct.new 4   ; snippet$Box
-  call 2   ; snippet$Box$Display$to_string
+  call 2   ; snippet$Box$std_core_Display$to_string
   local.set 1   ; $call_6
   i32.const 6
   array.new 16 1   ; i32[]
@@ -246,7 +246,7 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 snippet$Box$Display$to_string (ref) -> string
+fn 2 snippet$Box$std_core_Display$to_string (ref) -> string
   local $vcall_3 string
   local.field 0 4 0   ; arg 0 snippet$Box.value
   virtual.call 1 std_core$Display.to_string
@@ -1145,7 +1145,7 @@ fn 17 std_core$[]$Display$to_string__snippet_Point (ref) -> string
       local.get 3   ; __for_arr_0
       local.get 5   ; __for_i_2
       array.get 18   ; snippet$Point[]
-      call 0   ; snippet$Point$Display$to_string
+      call 0   ; snippet$Point$std_core_Display$to_string
       local.tee 6   ; part
       call.import 0   ; std_core$byte_len
       local.set 7   ; $call_17

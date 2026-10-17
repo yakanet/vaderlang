@@ -26,7 +26,7 @@ impl 1 std_core$Comparable
 impl 7 std_core$ByteAccess
 export main 1
 
-fn 0 snippet$Rgb$Comparable$compare (ref,ref) -> i32
+fn 0 snippet$Rgb$std_core_Comparable$compare (ref,ref) -> i32
   local $field_2 i32
   local $field_3 i32
   local.field 0 1 0   ; arg 0 snippet$Rgb.r
@@ -128,7 +128,7 @@ fn 1 snippet$main () -> i32
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 5   ; bright
-  call 0   ; snippet$Rgb$Comparable$compare
+  call 0   ; snippet$Rgb$std_core_Comparable$compare
   i32.const 0
   i32.lt
   local.set 4   ; $lt_15
@@ -144,7 +144,7 @@ fn 1 snippet$main () -> i32
   local.set 3   ; __off_1
   local.get 5   ; bright
   local.get 2   ; __buf_0
-  call 0   ; snippet$Rgb$Comparable$compare
+  call 0   ; snippet$Rgb$std_core_Comparable$compare
   i32.const 0
   i32.lt
   local.set 4   ; $lt_15
@@ -160,7 +160,7 @@ fn 1 snippet$main () -> i32
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 2   ; __buf_0
-  call 0   ; snippet$Rgb$Comparable$compare
+  call 0   ; snippet$Rgb$std_core_Comparable$compare
   i32.const 0
   i32.ge
   local.set 4   ; $lt_15

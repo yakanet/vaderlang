@@ -94,14 +94,14 @@
     fn std.string.matches_at  // std_string$matches_at
     fn std.string.split  // std_string$split
     fn std.string.starts_with  // std_string$starts_with
-    fn std.string.string.contains  // std_string$string$Contains$contains
+    fn std.string.string.contains  // std_string$string$std_core_Contains$contains
     fn std.string.to_lower  // std_string$to_lower
     fn std.string.to_lower_cp  // std_string$to_lower_cp
     fn std.string.to_upper  // std_string$to_upper
     fn std.string.to_upper_cp  // std_string$to_upper_cp
     fn std.string.trim  // std_string$trim
   std/string_builder
-    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$Display$to_string
+    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$std_core_Display$to_string
     fn std.string_builder.append_char  // std_string_builder$append_char
     struct std.string_builder.StringBuilder  // std_string_builder$StringBuilder
   system/posix

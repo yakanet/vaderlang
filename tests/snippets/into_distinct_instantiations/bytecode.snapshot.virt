@@ -21,14 +21,14 @@ impl 1 std_core$Into
 impl 8 std_core$ByteAccess
 export main 4
 
-fn 0 snippet$UserId$Into$into (ref) -> ref
+fn 0 snippet$UserId$std_core_Into$into (ref) -> ref
   local.field 0 1 0   ; arg 0 snippet$UserId.value
   ref.cast 5   ; i32
   struct.new 2   ; snippet$Box__i32
   return
 end
 
-fn 1 snippet$UserId$Into$into$1 (ref) -> ref
+fn 1 snippet$UserId$std_core_Into$into$1 (ref) -> ref
   local __buf_0 ref
   local __off_1 usize
   local $cast_9 i64
@@ -80,7 +80,7 @@ fn 4 snippet$main () -> i32
   i32.const 42
   struct.new 1   ; snippet$UserId
   local.tee 0   ; u
-  call 1   ; snippet$UserId$Into$into$1
+  call 1   ; snippet$UserId$std_core_Into$into$1
   call 2   ; snippet$take_string
   call 12   ; std_io$println__string
   i64.const 20
@@ -89,7 +89,7 @@ fn 4 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; u
-  call 0   ; snippet$UserId$Into$into
+  call 0   ; snippet$UserId$std_core_Into$into
   call 3   ; snippet$take_int
   i32.to_i64
   local.set 3   ; $cast_12

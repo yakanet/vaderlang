@@ -34,19 +34,8 @@ import "vader/comptime"
 /// Extract `T` from a `generator`'s `-> Iterator<T>` return type. The
 /// typechecker (T3056) already guaranteed the shape ; fall back to `TY_VOID`
 /// defensively if something slipped through.
-generator_element_of :: fn(return_type: Type) -> Type = iterator_element_of(return_type) ?? TY_VOID
-
-/// The element `t` yields when it is `Iterator<E>` ; null for any other type.
-///
-/// @param t  the type to read.
-iterator_element_of :: fn(t: Type) -> Type | null {
-    if t is TraitType {
-        if t.symbol.name == TRAIT_ITERATOR && t.args.len() > 0 {
-            return t.args[0]
-        }
-    }
-    return null
-}
+generator_element_of :: fn(return_type: Type) -> Type =
+    core_trait_arg(return_type, TRAIT_ITERATOR) ?? TY_VOID
 
 // A zero value of `ty` for a local `g$State` field's initial slot — overwritten
 // in `next()` before its first read, but `struct.new` needs every field set.

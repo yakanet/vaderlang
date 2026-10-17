@@ -59,7 +59,7 @@ vtable std_core$Equals.equals 23 29
 vtable std_core$Equals.equals 4 30
 export main 1
 
-fn 0 snippet$Point$Equals$equals (ref,ref) -> bool
+fn 0 snippet$Point$std_core_Equals$equals (ref,ref) -> bool
   local $field_2 i32
   local $field_3 i32
   local.field 0 1 0   ; arg 0 snippet$Point.x
@@ -394,7 +394,7 @@ fn 2 concat_2 (string,string) -> string
   return
 end
 
-fn 3 snippet$Point$Equals$equals$guard (ref,any) -> bool
+fn 3 snippet$Point$std_core_Equals$equals$guard (ref,any) -> bool
   local $cast_4 ref
   local.get 1   ; arg 1
   type_check 1   ; snippet$Point
@@ -404,7 +404,7 @@ fn 3 snippet$Point$Equals$equals$guard (ref,any) -> bool
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
-    call 0   ; snippet$Point$Equals$equals
+    call 0   ; snippet$Point$std_core_Equals$equals
     return
   end $L0
   return.lit bool.const false

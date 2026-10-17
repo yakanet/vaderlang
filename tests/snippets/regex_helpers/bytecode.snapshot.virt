@@ -1034,7 +1034,7 @@ fn 16 std_string$replace_chars_where (string,ref,string) -> string
     end $L1
   end $L0
   local.get 3   ; sb
-  call 24   ; std_string_builder$StringBuilder$Display$to_string
+  call 24   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -1091,7 +1091,7 @@ fn 17 std_string$split_where (string,ref) -> ref
           local.get 4   ; has_pending
           if $L4 void
             local.get 3   ; sb
-            call 24   ; std_string_builder$StringBuilder$Display$to_string
+            call 24   ; std_string_builder$StringBuilder$std_core_Display$to_string
             local.set 10   ; $call_23
             local.get 2   ; out
             local.get 10   ; $call_23
@@ -1130,7 +1130,7 @@ fn 17 std_string$split_where (string,ref) -> ref
         local.get 4   ; has_pending
         if $L6 void
           local.get 3   ; sb
-          call 24   ; std_string_builder$StringBuilder$Display$to_string
+          call 24   ; std_string_builder$StringBuilder$std_core_Display$to_string
           local.set 13   ; $call_37
           local.get 2   ; out
           local.get 13   ; $call_37
@@ -1154,7 +1154,7 @@ fn 17 std_string$split_where (string,ref) -> ref
   local.get 4   ; has_pending
   if $L7 void
     local.get 3   ; sb
-    call 24   ; std_string_builder$StringBuilder$Display$to_string
+    call 24   ; std_string_builder$StringBuilder$std_core_Display$to_string
     local.set 5   ; self
     local.get 2   ; out
     local.get 5   ; self
@@ -1327,7 +1327,7 @@ fn 23 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 24 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 24 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize

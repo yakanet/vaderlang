@@ -93,8 +93,8 @@ static vader_gc_frame_t vader_global_frame = {
 };
 
 static void* snippet_resumes(void);
-static vader_box_t snippet_Counted_Async_resume(void* l0);
-static void snippet_Counted_Async_cancel(void* l0);
+static vader_box_t snippet_Counted_std_core_Async_resume(void* l0);
+static void snippet_Counted_std_core_Async_cancel(void* l0);
 static vader_box_t snippet_task(int64_t l0);
 static int32_t snippet_main(void);
 static void* snippet_resumes_singleton(void);
@@ -108,21 +108,21 @@ static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
-static vader_box_t std_async_JoinAll_Async_resume__i64(void* l0);
-static void std_async_JoinAll_Async_cancel__i64(void* l0);
+static vader_box_t std_async_JoinAll_std_core_Async_resume__i64(void* l0);
+static void std_async_JoinAll_std_core_Async_cancel__i64(void* l0);
 static vader_box_t std_async_sleep(int64_t l0);
 static int32_t std_async_run_async_main(vader_box_t l0);
 static int64_t std_async_earlier(int64_t l0, int64_t l1);
-static vader_box_t std_async_Sleep_Async_resume(void* l0);
-static void std_async_Sleep_Async_cancel(void* l0);
+static vader_box_t std_async_Sleep_std_core_Async_resume(void* l0);
+static void std_async_Sleep_std_core_Async_cancel(void* l0);
 static int32_t std_async_block_on__i32(vader_box_t l0);
 static vader_box_t std_async_join_all__i64(void* l0);
 static void* std_async_new_join_all__i64(void* l0);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__string(vader_string_t l0);
-static vader_box_t std_collections_MutableMap_Index_at__usize__i64(void* l0, size_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__usize__i64(void* l0, size_t l1, int64_t l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__usize__i64(void* l0, size_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__usize__i64(void* l0, size_t l1, int64_t l2);
 static size_t std_collections_first_slot(uint64_t l0, size_t l1);
 static size_t std_collections_next_slot(size_t l0, uint64_t l1, size_t l2);
 static void std_collections_ensure_index__usize__i64(void* l0);
@@ -289,7 +289,7 @@ static void* snippet_resumes(void) {
     vader_gc_top = gc_frame.prev;
 }
 
-static vader_box_t snippet_Counted_Async_resume(void* l0) {
+static vader_box_t snippet_Counted_std_core_Async_resume(void* l0) {
     void* l1 = NULL;
     int64_t l2;
     int64_t t0;
@@ -308,7 +308,7 @@ static vader_box_t snippet_Counted_Async_resume(void* l0) {
     { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void snippet_Counted_Async_cancel(void* l0) {
+static void snippet_Counted_std_core_Async_cancel(void* l0) {
 #line 23572 "<clone>:tests/snippets/async_join_all_due_children/_main.vader"
     return;
 }
@@ -770,7 +770,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     return (size_t) (int64_t) t0;
 }
 
-static vader_box_t std_async_JoinAll_Async_resume__i64(void* l0) {
+static vader_box_t std_async_JoinAll_std_core_Async_resume__i64(void* l0) {
     size_t l1, l4;
     int64_t l2, l3, l7, l9, l10;
     vader_box_t l5 = vader_box_null();
@@ -820,7 +820,7 @@ static vader_box_t std_async_JoinAll_Async_resume__i64(void* l0) {
             } else {
                 l8 = ((vader_struct_std_async_JoinAll__i64_t*) l0)->f_results;
                 l9 = ((int64_t) l5.payload.i);
-                std_collections_MutableMap_IndexSet_set_at__usize__i64(l8, l4, l9);
+                std_collections_MutableMap_std_core_IndexSet_set_at__usize__i64(l8, l4, l9);
 #line 131 "lib/std/async/async.vader"
                 vader_array_t* _a3_slotarr = ((vader_array_t*) ((vader_struct_std_async_JoinAll__i64_t*) l0)->f_wake_at);
                 VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
@@ -863,7 +863,7 @@ static vader_box_t std_async_JoinAll_Async_resume__i64(void* l0) {
     for (;;) {
         if ((l4 < l1)) {
 #line 141 "lib/std/async/async.vader"
-            l5 = std_collections_MutableMap_Index_at__usize__i64(((vader_struct_std_async_JoinAll__i64_t*) l0)->f_results, l4);
+            l5 = std_collections_MutableMap_std_core_Index_at__usize__i64(((vader_struct_std_async_JoinAll__i64_t*) l0)->f_results, l4);
 #line 142 "lib/std/async/async.vader"
             if (!(l5.tag == 0u)) {
                 l2 = ((int64_t) l5.payload.i);
@@ -897,7 +897,7 @@ static vader_box_t std_async_JoinAll_Async_resume__i64(void* l0) {
     { vader_box_t __vret = vader_ref_box(l6); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void std_async_JoinAll_Async_cancel__i64(void* l0) {
+static void std_async_JoinAll_std_core_Async_cancel__i64(void* l0) {
     void* l1 = NULL;
     size_t l2, l3;
     vader_box_t t0 = vader_box_null();
@@ -956,7 +956,7 @@ static int64_t std_async_earlier(int64_t l0, int64_t l1) {
     return l1;
 }
 
-static vader_box_t std_async_Sleep_Async_resume(void* l0) {
+static vader_box_t std_async_Sleep_std_core_Async_resume(void* l0) {
     int64_t l1, l2;
     bool t0;
     int64_t t1;
@@ -995,7 +995,7 @@ static vader_box_t std_async_Sleep_Async_resume(void* l0) {
     { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
 }
 
-static void std_async_Sleep_Async_cancel(void* l0) {
+static void std_async_Sleep_std_core_Async_cancel(void* l0) {
 #line 37906 "<clone>:lib/std/async/async.vader"
     return;
 }
@@ -1163,14 +1163,14 @@ static void std_io_println__string(vader_string_t l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__usize__i64(void* l0, size_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__usize__i64(void* l0, size_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__usize__i64(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__usize__i64(void* l0, size_t l1, int64_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__usize__i64(void* l0, size_t l1, int64_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -1605,11 +1605,11 @@ static size_t std_collections_len__usize__i64(void* l0) {
 /* vtable dispatchers */
 static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
-        case 2u: return snippet_Counted_Async_resume(recv.payload.obj);
+        case 2u: return snippet_Counted_std_core_Async_resume(recv.payload.obj);
         case 9u: return snippet___asyncstate_snippet_0_Async_resume(recv.payload.obj);
         case 11u: return snippet___asyncstate_snippet_1_Async_resume(recv.payload.obj);
-        case 23u: return std_async_JoinAll_Async_resume__i64(recv.payload.obj);
-        case 26u: return std_async_Sleep_Async_resume(recv.payload.obj);
+        case 23u: return std_async_JoinAll_std_core_Async_resume__i64(recv.payload.obj);
+        case 26u: return std_async_Sleep_std_core_Async_resume(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Async.resume");
     }
     vader_unreachable("vtable miss in std_core$Async.resume");
@@ -1617,11 +1617,11 @@ static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
 
 static void vader_vt_std_core_Async__cancel(vader_box_t recv) {
     switch (recv.tag) {
-        case 2u: snippet_Counted_Async_cancel(recv.payload.obj); return;
+        case 2u: snippet_Counted_std_core_Async_cancel(recv.payload.obj); return;
         case 9u: snippet___asyncstate_snippet_0_Async_cancel(recv.payload.obj); return;
         case 11u: snippet___asyncstate_snippet_1_Async_cancel(recv.payload.obj); return;
-        case 23u: std_async_JoinAll_Async_cancel__i64(recv.payload.obj); return;
-        case 26u: std_async_Sleep_Async_cancel(recv.payload.obj); return;
+        case 23u: std_async_JoinAll_std_core_Async_cancel__i64(recv.payload.obj); return;
+        case 26u: std_async_Sleep_std_core_Async_cancel(recv.payload.obj); return;
         default: vader_unreachable("vtable miss in std_core$Async.cancel");
     }
 }

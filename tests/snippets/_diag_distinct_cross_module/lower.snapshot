@@ -14,10 +14,10 @@
   snippet.units.elapsed :: fn(start: Instant, end: Instant) -> i64 {  // snippet_units$elapsed
       i64(snippet.units.Instant.sub(end, start))
   }
-  snippet.units.Instant.sub :: fn(self: Instant, other: Instant) -> Duration {  // snippet_units$Instant$Sub$sub
+  snippet.units.Instant.sub :: fn(self: Instant, other: Instant) -> Duration {  // snippet_units$Instant$std_core_Sub$sub
       Duration(i64(self) - i64(other))
   }
-  vtable std.core.Sub.sub for Instant  snippet.units.Instant.sub  // snippet_units$Instant$Sub$sub
+  vtable std.core.Sub.sub for Instant  snippet.units.Instant.sub  // snippet_units$Instant$std_core_Sub$sub
 
 ## lowered in dependencies
   std/core

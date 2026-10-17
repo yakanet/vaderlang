@@ -24,11 +24,11 @@
   }
 
 ## snippet/units
-  snippet.units.Meters.into :: fn(self: Meters) -> i32 {  // snippet_units$Meters$Into$into
+  snippet.units.Meters.into :: fn(self: Meters) -> i32 {  // snippet_units$Meters$std_core_Into$into
       self.v
   }
   snippet.units.Meters :: struct { v: i32 }  // snippet_units$Meters
-  vtable std.core.Into.into for Meters  snippet.units.Meters.into  // snippet_units$Meters$Into$into
+  vtable std.core.Into.into for Meters  snippet.units.Meters.into  // snippet_units$Meters$std_core_Into$into
 
 ## lowered in dependencies
   std/core

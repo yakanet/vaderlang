@@ -128,13 +128,6 @@ import "vader/typecheck"
 export has_impl_for :: fn(ctx: LowerProjectCtx, for_type: Type, trait_sym: Symbol) -> bool =
     ctx.impls.impls_for(for_type, trait_key_of(trait_sym)).len() > 0
 
-// The `trait_key` of the trait `impl_decl` implements, as the registry resolved
-// it. Empty when its name binds to no trait.
-impl_trait_key :: fn(ctx: LowerProjectCtx, impl_decl: ImplDecl) -> string {
-    entry :: ctx.impls.entry_of(impl_decl) ?? return ""
-    return entry.trait_key
-}
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

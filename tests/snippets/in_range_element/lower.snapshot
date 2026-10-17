@@ -14,7 +14,7 @@
       std.core.u8[].contains([u8(32), u8(9)] :u8[], b)
   }
   snippet.Bag :: struct { items: i64[] }  // snippet$Bag
-  snippet.Bag.contains :: fn(self: Bag, value: i64) -> bool {  // snippet$Bag$Contains$contains
+  snippet.Bag.contains :: fn(self: Bag, value: i64) -> bool {  // snippet$Bag$std_core_Contains$contains
       std.core.i64[].contains(self.items, value)
   }
   snippet.has_big_value :: fn(c: Contains<i64>) -> bool {  // snippet$has_big_value
@@ -104,7 +104,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Contains.contains for Bag  snippet.Bag.contains  // snippet$Bag$Contains$contains
+  vtable std.core.Contains.contains for Bag  snippet.Bag.contains  // snippet$Bag$std_core_Contains$contains
 
 ## lowered in dependencies
   std/core

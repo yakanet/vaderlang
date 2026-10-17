@@ -39,10 +39,10 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 8u
 
-static int32_t snippet_Offset_Index_at(void* l0, size_t l1);
-static void snippet_Offset_IndexSet_set_at(void* l0, size_t l1, int32_t l2);
-static int32_t snippet_Cells_Index_at(void* l0, size_t l1);
-static int32_t snippet_Log_Index_at(void* l0, size_t l1);
+static int32_t snippet_Offset_std_core_Index_at(void* l0, size_t l1);
+static void snippet_Offset_std_core_IndexSet_set_at(void* l0, size_t l1, int32_t l2);
+static int32_t snippet_Cells_std_core_Index_at(void* l0, size_t l1);
+static int32_t snippet_Log_std_core_Index_at(void* l0, size_t l1);
 static int32_t snippet_main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
@@ -100,7 +100,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
     return write(a0, s1.ptr, a2);
 }
 
-static int32_t snippet_Offset_Index_at(void* l0, size_t l1) {
+static int32_t snippet_Offset_std_core_Index_at(void* l0, size_t l1) {
     int32_t l2, l3;
     size_t t0;
     int32_t t1;
@@ -112,7 +112,7 @@ static int32_t snippet_Offset_Index_at(void* l0, size_t l1) {
     return t1;
 }
 
-static void snippet_Offset_IndexSet_set_at(void* l0, size_t l1, int32_t l2) {
+static void snippet_Offset_std_core_IndexSet_set_at(void* l0, size_t l1, int32_t l2) {
     void* l3 = NULL;
     size_t l4;
     uint64_t l5;
@@ -141,14 +141,14 @@ static void snippet_Offset_IndexSet_set_at(void* l0, size_t l1, int32_t l2) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static int32_t snippet_Cells_Index_at(void* l0, size_t l1) {
+static int32_t snippet_Cells_std_core_Index_at(void* l0, size_t l1) {
     int32_t t0;
 #line 29 "tests/snippets/distinct_own_index/_main.vader"
     t0 = vader_chk_mul(i32, ((int32_t) (size_t) l1), INT32_C(10));
     return t0;
 }
 
-static int32_t snippet_Log_Index_at(void* l0, size_t l1) {
+static int32_t snippet_Log_std_core_Index_at(void* l0, size_t l1) {
 #line 35 "tests/snippets/distinct_own_index/_main.vader"
     return INT32_C(-1);
 }
@@ -184,13 +184,13 @@ static int32_t snippet_main(void) {
     l1 = std_core_new_byte_buffer((size_t) 32);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 3u);
-    t0 = snippet_Offset_Index_at(l0, (size_t) 1);
+    t0 = snippet_Offset_std_core_Index_at(l0, (size_t) 1);
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core_write_int(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t1);
 #line 41 "tests/snippets/distinct_own_index/_main.vader"
-    snippet_Offset_IndexSet_set_at(l0, (size_t) 0, INT32_C(9));
+    snippet_Offset_std_core_IndexSet_set_at(l0, (size_t) 0, INT32_C(9));
 #line 42 "tests/snippets/distinct_own_index/_main.vader"
     vader_struct_snippet_Grid_t* _a1_obj = (vader_struct_snippet_Grid_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Grid_t));
     vader_obj_header_init(_a1_obj, 5u);
@@ -200,7 +200,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_new_byte_buffer((size_t) 31);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 4u);
-    t0 = snippet_Cells_Index_at(l0, (size_t) 2);
+    t0 = snippet_Cells_std_core_Index_at(l0, (size_t) 2);
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core_write_int(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
@@ -217,7 +217,7 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_CHECK_INDEX(_a3_slotarr, INT32_C(0))
     ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) INT32_C(0)] = (int32_t) INT32_C(7);
 #line 46 "tests/snippets/distinct_own_index/_main.vader"
-    t0 = snippet_Log_Index_at(l0, (size_t) 1);
+    t0 = snippet_Log_std_core_Index_at(l0, (size_t) 1);
     l4 = vader_chk_add(i32, t0, INT32_C(100));
     vader_array_t* _a4_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
@@ -230,7 +230,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_new_byte_buffer((size_t) 29);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 5u);
-    t0 = snippet_Log_Index_at(l0, (size_t) 0);
+    t0 = snippet_Log_std_core_Index_at(l0, (size_t) 0);
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core_write_int(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);

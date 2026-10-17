@@ -54,10 +54,10 @@ fn 0 snippet$main () -> i32
   local.field 0 3 0   ; $arr_0 snippet$Counts.by_name
   string.const 0   ; "x"
   i32.const 7
-  call 7   ; std_collections$MutableMap$IndexSet$set_at__string__i32
+  call 7   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
   local.field 0 3 0   ; $arr_0 snippet$Counts.by_name
   string.const 0   ; "x"
-  call 6   ; std_collections$MutableMap$Index$at__string__i32
+  call 6   ; std_collections$MutableMap$std_core_Index$at__string__i32
   local.tee 3   ; v
   type_check 0   ; null
   if $L0 void
@@ -264,14 +264,14 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 6 std_collections$MutableMap$Index$at__string__i32 (ref,string) -> any
+fn 6 std_collections$MutableMap$std_core_Index$at__string__i32 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 14   ; std_collections$get__string__i32
   return
 end
 
-fn 7 std_collections$MutableMap$IndexSet$set_at__string__i32 (ref,string,i32) -> void
+fn 7 std_collections$MutableMap$std_core_IndexSet$set_at__string__i32 (ref,string,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

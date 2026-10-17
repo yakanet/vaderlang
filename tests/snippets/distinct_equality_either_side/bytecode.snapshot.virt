@@ -24,7 +24,7 @@ import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 par
 impl 6 std_core$ByteAccess
 export main 1
 
-fn 0 snippet$Path$Equals$equals (string,string) -> bool
+fn 0 snippet$Path$std_core_Equals$equals (string,string) -> bool
   local $call_3 usize
   local $call_5 usize
   local.get 0   ; arg 0
@@ -58,7 +58,7 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; p
   string.const 2   ; "readme"
-  call 0   ; snippet$Path$Equals$equals
+  call 0   ; snippet$Path$std_core_Equals$equals
   local.set 3   ; $call_11
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -72,7 +72,7 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; p
   string.const 2   ; "readme"
-  call 0   ; snippet$Path$Equals$equals
+  call 0   ; snippet$Path$std_core_Equals$equals
   bool.not
   local.set 3   ; $call_11
   local.get 1   ; __buf_0
@@ -87,7 +87,7 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; p
   string.const 4   ; "abc"
-  call 0   ; snippet$Path$Equals$equals
+  call 0   ; snippet$Path$std_core_Equals$equals
   local.set 3   ; $call_11
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -110,7 +110,7 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; p
   string.const 2   ; "readme"
-  call 0   ; snippet$Path$Equals$equals
+  call 0   ; snippet$Path$std_core_Equals$equals
   local.set 3   ; $call_11
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
@@ -124,7 +124,7 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; p
   string.const 2   ; "readme"
-  call 0   ; snippet$Path$Equals$equals
+  call 0   ; snippet$Path$std_core_Equals$equals
   bool.not
   local.set 3   ; $call_11
   local.get 1   ; __buf_0
@@ -139,7 +139,7 @@ fn 1 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; p
   string.const 4   ; "abc"
-  call 0   ; snippet$Path$Equals$equals
+  call 0   ; snippet$Path$std_core_Equals$equals
   local.set 3   ; $call_11
   local.get 1   ; __buf_0
   local.get 2   ; __off_1

@@ -19,7 +19,7 @@ import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 par
 impl 6 std_core$ByteAccess
 export main 1
 
-fn 0 snippet$Direction$Display$to_string (u8) -> string
+fn 0 snippet$Direction$std_core_Display$to_string (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0
@@ -176,7 +176,7 @@ end
 fn 5 std_io$println__snippet_Direction (u8) -> void
   local $call_4 string
   local.get 0   ; arg 0
-  call 0   ; snippet$Direction$Display$to_string
+  call 0   ; snippet$Direction$std_core_Display$to_string
   string.const 4   ; "\n"
   call 2   ; concat_2
   local.set 1   ; $call_4

@@ -65,11 +65,11 @@ static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2);
 static size_t std_core_write_bool(void* l0, size_t l1, bool l2);
-static vader_box_t std_collections_MutableMap_Index_at__string__i32(void* l0, vader_string_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__string__i32(void* l0, vader_string_t l1, int32_t l2);
-static bool std_collections_MutableSet_Contains_contains__string(void* l0, vader_string_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__string__bool(void* l0, vader_string_t l1, bool l2);
-static bool std_collections_MutableMap_Contains_contains__string__bool(void* l0, vader_string_t l1);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__string__i32(void* l0, vader_string_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(void* l0, vader_string_t l1, int32_t l2);
+static bool std_collections_MutableSet_std_core_Contains_contains__string(void* l0, vader_string_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__string__bool(void* l0, vader_string_t l1, bool l2);
+static bool std_collections_MutableMap_std_core_Contains_contains__string__bool(void* l0, vader_string_t l1);
 static size_t std_collections_first_slot(uint64_t l0, size_t l1);
 static size_t std_collections_next_slot(size_t l0, uint64_t l1, size_t l2);
 static void std_collections_ensure_index__string__bool(void* l0);
@@ -302,21 +302,21 @@ static int32_t snippet_main(void) {
             t3 = vader_array_box_slots(_a11_slotarr->buf)[_a11_slotarr->offset + (size_t) l12];
             l13 = t3.payload.s;
 #line 27 "tests/snippets/string_key_lookup_gc/_main.vader"
-            t4 = std_collections_MutableSet_Contains_contains__string(l0, l13);
+            t4 = std_collections_MutableSet_std_core_Contains_contains__string(l0, l13);
             if (t4) {
 #line 28 "tests/snippets/string_key_lookup_gc/_main.vader"
                 t5 = vader_host_std_core_byte_at(l13, (size_t) 1);
                 l14 = ((int32_t) (uint8_t) t5);
                 l3 = vader_chk_add(i32, l3, l14);
 #line 29 "tests/snippets/string_key_lookup_gc/_main.vader"
-                l15 = std_collections_MutableMap_Index_at__string__i32(l1, l13);
+                l15 = std_collections_MutableMap_std_core_Index_at__string__i32(l1, l13);
                 if (l15.tag == 0u) {
                     l16 = INT32_C(0);
                 } else {
                     l16 = ((int32_t) l15.payload.i);
                 }
                 l17 = vader_chk_add(i32, l16, INT32_C(1));
-                std_collections_MutableMap_IndexSet_set_at__string__i32(l1, l13, l17);
+                std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(l1, l13, l17);
 #line 27 "tests/snippets/string_key_lookup_gc/_main.vader"
             }
 #line 26 "tests/snippets/string_key_lookup_gc/_main.vader"
@@ -544,14 +544,14 @@ static size_t std_core_write_bool(void* l0, size_t l1, bool l2) {
     return t0;
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__string__i32(void* l0, vader_string_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__string__i32(void* l0, vader_string_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__string__i32(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__string__i32(void* l0, vader_string_t l1, int32_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(void* l0, vader_string_t l1, int32_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = {
@@ -563,14 +563,14 @@ static void std_collections_MutableMap_IndexSet_set_at__string__i32(void* l0, va
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static bool std_collections_MutableSet_Contains_contains__string(void* l0, vader_string_t l1) {
+static bool std_collections_MutableSet_std_core_Contains_contains__string(void* l0, vader_string_t l1) {
     bool t0;
 #line 374 "lib/std/collections/collections.vader"
-    t0 = std_collections_MutableMap_Contains_contains__string__bool(((vader_struct_std_collections_MutableSet__string_t*) l0)->f_inner, l1);
+    t0 = std_collections_MutableMap_std_core_Contains_contains__string__bool(((vader_struct_std_collections_MutableSet__string_t*) l0)->f_inner, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__string__bool(void* l0, vader_string_t l1, bool l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__string__bool(void* l0, vader_string_t l1, bool l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = {
@@ -582,7 +582,7 @@ static void std_collections_MutableMap_IndexSet_set_at__string__bool(void* l0, v
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static bool std_collections_MutableMap_Contains_contains__string__bool(void* l0, vader_string_t l1) {
+static bool std_collections_MutableMap_std_core_Contains_contains__string__bool(void* l0, vader_string_t l1) {
     bool t0;
 #line 283 "lib/std/collections/collections.vader"
     t0 = std_collections_contains_key__string__bool(l0, l1);
@@ -1456,10 +1456,10 @@ static bool std_collections_add__string(void* l0, vader_string_t l1) {
     };
     vader_gc_top = &gc_frame;
 #line 347 "lib/std/collections/collections.vader"
-    t0 = std_collections_MutableMap_Contains_contains__string__bool(((vader_struct_std_collections_MutableSet__string_t*) l0)->f_inner, l1);
+    t0 = std_collections_MutableMap_std_core_Contains_contains__string__bool(((vader_struct_std_collections_MutableSet__string_t*) l0)->f_inner, l1);
     if (!(t0)) {
 #line 348 "lib/std/collections/collections.vader"
-        std_collections_MutableMap_IndexSet_set_at__string__bool(((vader_struct_std_collections_MutableSet__string_t*) l0)->f_inner, l1, true);
+        std_collections_MutableMap_std_core_IndexSet_set_at__string__bool(((vader_struct_std_collections_MutableSet__string_t*) l0)->f_inner, l1, true);
 #line 349 "lib/std/collections/collections.vader"
         { vader_gc_top = gc_frame.prev; return true; }
 #line 347 "lib/std/collections/collections.vader"

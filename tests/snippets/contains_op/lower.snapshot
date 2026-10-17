@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.DigitSet :: struct { bits: i32 }  // snippet$DigitSet
-  snippet.DigitSet.contains :: fn(self: DigitSet, value: i32) -> bool {  // snippet$DigitSet$Contains$contains
+  snippet.DigitSet.contains :: fn(self: DigitSet, value: i32) -> bool {  // snippet$DigitSet$std_core_Contains$contains
       if (value < 0) || (value > 9) {
           return false
       }
@@ -57,7 +57,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Contains.contains for DigitSet  snippet.DigitSet.contains  // snippet$DigitSet$Contains$contains
+  vtable std.core.Contains.contains for DigitSet  snippet.DigitSet.contains  // snippet$DigitSet$std_core_Contains$contains
 
 ## lowered in dependencies
   std/core

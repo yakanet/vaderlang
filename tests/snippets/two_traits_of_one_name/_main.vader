@@ -1,0 +1,22 @@
+// Two traits of one name, from two modules, each implemented for `Point` by a
+// file of this module that imports it. They are two traits: each impl keeps its
+// own members, and each call reaches its own.
+module "snippet"
+
+import "std/io"
+import "snippet/tr_a"
+
+Point :: struct { x: i32 }
+
+Point implements Describe {
+    describe :: fn(self) -> string = "a ${self.x}"
+}
+
+show_a :: fn(d: Describe) -> string = d.describe()
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1 }
+    println(show_a(p))
+    println(show_b(p))
+    return 0
+}

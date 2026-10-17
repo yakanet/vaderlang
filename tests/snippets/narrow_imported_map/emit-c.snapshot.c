@@ -59,8 +59,8 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__string(vader_string_t l0);
-static vader_box_t std_collections_MutableMap_Index_at__i32__Any(void* l0, int32_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__i32__Any(void* l0, int32_t l1, vader_box_t l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__i32__Any(void* l0, int32_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__i32__Any(void* l0, int32_t l1, vader_box_t l2);
 static size_t std_collections_first_slot(uint64_t l0, size_t l1);
 static size_t std_collections_next_slot(size_t l0, uint64_t l1, size_t l2);
 static void std_collections_ensure_index__i32__Any(void* l0);
@@ -191,7 +191,7 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a5_obj, 16u);
     _a5_obj->f_items = t0;
     l1 = (void*) _a5_obj;
-    std_collections_MutableMap_IndexSet_set_at__i32__Any(l0, INT32_C(1), vader_ref_box(l1));
+    std_collections_MutableMap_std_core_IndexSet_set_at__i32__Any(l0, INT32_C(1), vader_ref_box(l1));
 #line 19 "tests/snippets/narrow_imported_map/_main.vader"
     snippet_lib_pick(l0, INT32_C(1), &t1, &t2);
     l6 = t2;
@@ -428,14 +428,14 @@ static void std_io_println__string(vader_string_t l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__i32__Any(void* l0, int32_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__i32__Any(void* l0, int32_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__i32__Any(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__i32__Any(void* l0, int32_t l1, vader_box_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__i32__Any(void* l0, int32_t l1, vader_box_t l2) {
     vader_box_t* gc_roots[1] = { &l2 };
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
@@ -869,7 +869,7 @@ static void snippet_lib_pick(void* l0, int32_t l1, int32_t* __o0, int32_t* __o1)
     int32_t l3;
     void* t0;
 #line 14 "tests/snippets/narrow_imported_map/lib/lib.vader"
-    l2 = std_collections_MutableMap_Index_at__i32__Any(l0, l1);
+    l2 = std_collections_MutableMap_std_core_Index_at__i32__Any(l0, l1);
 #line 15 "tests/snippets/narrow_imported_map/lib/lib.vader"
     if (l2.tag == 0u) {
         *__o1 = INT32_C(0); *__o0 = INT32_C(0); return;

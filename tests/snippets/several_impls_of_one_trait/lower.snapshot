@@ -2,30 +2,30 @@
 
 ## snippet
   snippet.Vec2 :: struct { x: f64, y: f64 }  // snippet$Vec2
-  snippet$Vec2$Mul$mul :: fn(self: Vec2, k: f64) -> Vec2 {
+  snippet$Vec2$std_core_Mul$mul :: fn(self: Vec2, k: f64) -> Vec2 {
       Vec2 { .x = self.x * k, .y = self.y * k }
   }
-  snippet$Vec2$Mul$mul$1 :: fn(self: Vec2, o: Vec2) -> Vec2 {
+  snippet$Vec2$std_core_Mul$mul$1 :: fn(self: Vec2, o: Vec2) -> Vec2 {
       Vec2 { .x = self.x * o.x, .y = self.y * o.y }
   }
   snippet.Grid :: struct { cells: i32[], names: string[] }  // snippet$Grid
-  snippet$Grid$Index$at :: fn(self: Grid, i: i32) -> i32 {
+  snippet$Grid$std_core_Index$at :: fn(self: Grid, i: i32) -> i32 {
       self.cells[i]
   }
-  snippet$Grid$Index$at$1 :: fn(self: Grid, k: string) -> string {
+  snippet$Grid$std_core_Index$at$1 :: fn(self: Grid, k: string) -> string {
       concat_3(k, ":", self.names[0])
   }
-  snippet$Grid$IndexSet$set_at :: fn(self: Grid, i: i32, v: i32) -> void {
+  snippet$Grid$std_core_IndexSet$set_at :: fn(self: Grid, i: i32, v: i32) -> void {
       self.cells[i] = v
   }
-  snippet$Grid$IndexSet$set_at$1 :: fn(self: Grid, k: string, v: string) -> void {
+  snippet$Grid$std_core_IndexSet$set_at$1 :: fn(self: Grid, k: string, v: string) -> void {
       self.names[0] = concat_3(k, "=", v)
   }
   snippet.Bag :: struct { n: i32 }  // snippet$Bag
-  snippet$Bag$Contains$contains :: fn(self: Bag, x: i32) -> bool {
+  snippet$Bag$std_core_Contains$contains :: fn(self: Bag, x: i32) -> bool {
       x == self.n
   }
-  snippet$Bag$Contains$contains$1 :: fn(self: Bag, s: string) -> bool {
+  snippet$Bag$std_core_Contains$contains$1 :: fn(self: Bag, s: string) -> bool {
       s == "bag"
   }
   snippet$Vec2$Make$make :: fn(x: f64) -> Vec2 {
@@ -49,7 +49,7 @@
   snippet.Mon :: struct { v: i32 }  // snippet$Mon
   snippet.Label :: struct { s: string }  // snippet$Label
   snippet.Tag :: struct { n: i32 }  // snippet$Tag
-  snippet$Mon$Into$into :: fn(self: Mon) -> Label {
+  snippet$Mon$std_core_Into$into :: fn(self: Mon) -> Label {
       Label {
           .s = {
               __buf_0: Buffer = std.core.new_byte_buffer(usize(21))
@@ -60,52 +60,52 @@
           } :string,
       }
   }
-  snippet$Mon$Into$into$1 :: fn(self: Mon) -> Tag {
+  snippet$Mon$std_core_Into$into$1 :: fn(self: Mon) -> Tag {
       Tag { .n = 100 + self.v }
   }
   snippet.Sheet :: struct { cells: i32[] }  // snippet$Sheet
-  snippet$Sheet$Index$at :: fn(self: Sheet, i: i32) -> i32 {
+  snippet$Sheet$std_core_Index$at :: fn(self: Sheet, i: i32) -> i32 {
       self.cells[i]
   }
-  snippet.Sheet.set_at :: fn(self: Sheet, i: i32, v: i32) -> void {  // snippet$Sheet$IndexSet$set_at
+  snippet.Sheet.set_at :: fn(self: Sheet, i: i32, v: i32) -> void {  // snippet$Sheet$std_core_IndexSet$set_at
       self.cells[i] = v
   }
-  snippet$Sheet$Index$at$1 :: fn(self: Sheet, k: string) -> string {
+  snippet$Sheet$std_core_Index$at$1 :: fn(self: Sheet, k: string) -> string {
       concat_2("sheet ", k)
   }
   snippet.Rec :: struct { a: i32, b: i32, s: string, t: string, u: string }  // snippet$Rec
-  snippet$Rec$Into$into :: fn(self: Rec) -> [i32, i32] {
+  snippet$Rec$std_core_Into$into :: fn(self: Rec) -> [i32, i32] {
       [self.a, self.b] :[i32, i32]
   }
-  snippet$Rec$Into$into$1 :: fn(self: Rec) -> [string, string, string] {
+  snippet$Rec$std_core_Into$into$1 :: fn(self: Rec) -> [string, string, string] {
       [self.s, self.t, self.u] :[string, string, string]
   }
   snippet.Counter :: struct { n: i32 }  // snippet$Counter
-  snippet.Counter.next :: fn(self: Counter) -> [i32, Continuation] {  // snippet$Counter$Iterator$next
+  snippet.Counter.next :: fn(self: Counter) -> [i32, Continuation] {  // snippet$Counter$std_core_Iterator$next
       if self.n >= 2 {
           return [0, u8(1)] :[i32, Continuation]
       }
       self.n = self.n + 1
       return [self.n, u8(0)] :[i32, Continuation]
   }
-  snippet.Counter.into :: fn(self: Counter) -> Iterator<string> {  // snippet$Counter$Into$into
+  snippet.Counter.into :: fn(self: Counter) -> Iterator<string> {  // snippet$Counter$std_core_Into$into
       std.core.string[].into(["a", "b"] :string[])
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       v: Vec2 = Vec2 { .x = 1.0, .y = 2.0 }
-      a: Vec2 = snippet$Vec2$Mul$mul(v, 3.0)
-      b: Vec2 = snippet$Vec2$Mul$mul$1(v, v)
-      c: Vec2 = snippet$Vec2$Mul$mul(v, 10.0)
+      a: Vec2 = snippet$Vec2$std_core_Mul$mul(v, 3.0)
+      b: Vec2 = snippet$Vec2$std_core_Mul$mul$1(v, v)
+      c: Vec2 = snippet$Vec2$std_core_Mul$mul(v, 10.0)
       d: Vec2 = snippet.twice<Vec2>(v)
       std.io.println<string>(concat_7(std.core.f64.to_string(a.x), " ", std.core.f64.to_string(b.y), " ", std.core.f64.to_string(c.x), " ", std.core.f64.to_string(d.x)))
       g: Grid = Grid { .cells = [1, 2, 3] :i32[], .names = ["a"] :string[] }
-      snippet$Grid$IndexSet$set_at(g, 1, 20)
-      snippet$Grid$IndexSet$set_at$1(g, "k", "v")
+      snippet$Grid$std_core_IndexSet$set_at(g, 1, 20)
+      snippet$Grid$std_core_IndexSet$set_at$1(g, "k", "v")
       std.io.println<string>({
-          __p_0: string = snippet$Grid$Index$at$1(g, "x")
+          __p_0: string = snippet$Grid$std_core_Index$at$1(g, "x")
           __buf_1: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_0))
           __off_2: usize = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(snippet$Grid$Index$at(g, 1)))
+          __off_2 = std.core.write_int(__buf_1, __off_2, i64(snippet$Grid$std_core_Index$at(g, 1)))
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           std.core.finish_buffer(__buf_1, __off_2)
@@ -114,19 +114,19 @@
       std.io.println<string>({
           __buf_3: Buffer = std.core.new_byte_buffer(usize(17))
           __off_4: usize = 0
-          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet$Bag$Contains$contains(bag, 3))
+          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet$Bag$std_core_Contains$contains(bag, 3))
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet$Bag$Contains$contains(bag, 4))
+          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet$Bag$std_core_Contains$contains(bag, 4))
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet$Bag$Contains$contains$1(bag, "bag"))
+          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet$Bag$std_core_Contains$contains$1(bag, "bag"))
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       m: Vec2 = snippet$Vec2$Make$make(1.5)
       n: Vec2 = snippet$Vec2$Make$make$1("s")
       std.io.println<string>(concat_7(std.core.f64.to_string(m.x), " ", std.core.f64.to_string(n.x), " ", snippet.say_int<Vec2>(m), " ", snippet.say_str<Vec2>(m)))
       mon: Mon = Mon { .v = 7 }
-      t: Tag = snippet$Mon$Into$into$1(mon)
-      l: Label = snippet$Mon$Into$into(mon)
+      t: Tag = snippet$Mon$std_core_Into$into$1(mon)
+      l: Label = snippet$Mon$std_core_Into$into(mon)
       std.io.println<string>({
           __p_5: string = l.s
           __buf_6: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_5))
@@ -141,9 +141,9 @@
       std.io.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(usize(41))
           __off_9: usize = 0
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet$Pile$Add$add__i32(p, q).top))
+          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet$Pile$std_core_Add$add__i32(p, q).top))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet$Pile$Add$add__i32$1(p, 1.0).top))
+          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet$Pile$std_core_Add$add__i32$1(p, 1.0).top))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       w: Wrap<Vec2> = Wrap<Vec2> { .inner = v }
@@ -152,10 +152,10 @@
       sheet: Sheet = Sheet { .cells = [1, 2, 3] :i32[] }
       snippet.Sheet.set_at(sheet, 1, 20)
       std.io.println<string>({
-          __p_10: string = snippet$Sheet$Index$at$1(sheet, "q")
+          __p_10: string = snippet$Sheet$std_core_Index$at$1(sheet, "q")
           __buf_11: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_10))
           __off_12: usize = 0
-          __off_12 = std.core.write_int(__buf_11, __off_12, i64(snippet$Sheet$Index$at(sheet, 1)))
+          __off_12 = std.core.write_int(__buf_11, __off_12, i64(snippet$Sheet$std_core_Index$at(sheet, 1)))
           __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
           __off_12 = std.core.write_string_at(__buf_11, __off_12, __p_10)
           std.core.finish_buffer(__buf_11, __off_12)
@@ -210,23 +210,23 @@
   }
   snippet.Wrap<Vec2> :: struct { inner: Vec2 }  // snippet$Wrap__snippet_Vec2
   snippet.Wrap<Vec2>.scaled :: fn(self: Wrap<Vec2>) -> Vec2 {  // snippet$Wrap$Scale$scaled__snippet_Vec2
-      snippet$Vec2$Mul$mul(self.inner, 2.0)
+      snippet$Vec2$std_core_Mul$mul(self.inner, 2.0)
   }
   snippet.Wrap<Vec2>.show :: fn(self: Wrap<Vec2>) -> string {  // snippet$Wrap$Show$show__snippet_Vec2
       snippet$Vec2$Describe$tag$1(self.inner)
   }
   snippet.Pile<i32> :: struct { top: i32 }  // snippet$Pile__i32
-  snippet$Pile$Add$add__i32 :: fn(self: Pile<i32>, o: Pile<i32>) -> Pile<i32> {
+  snippet$Pile$std_core_Add$add__i32 :: fn(self: Pile<i32>, o: Pile<i32>) -> Pile<i32> {
       o
   }
-  snippet$Pile$Add$add__i32$1 :: fn(self: Pile<i32>, k: f64) -> Pile<i32> {
+  snippet$Pile$std_core_Add$add__i32$1 :: fn(self: Pile<i32>, k: f64) -> Pile<i32> {
       self
   }
   snippet.built<Vec2> :: fn() -> Vec2 {  // snippet$built__snippet_Vec2
       snippet$Vec2$Make$make$1("s")
   }
   snippet.twice<Vec2> :: fn(v: Vec2) -> Vec2 {  // snippet$twice__snippet_Vec2
-      snippet$Vec2$Mul$mul(v, 2.0)
+      snippet$Vec2$std_core_Mul$mul(v, 2.0)
   }
   snippet.say_int<Vec2> :: fn(x: Vec2) -> string {  // snippet$say_int__snippet_Vec2
       snippet$Vec2$Describe$describe(x)
@@ -292,25 +292,25 @@
   vtable snippet.Describe.tag for Vec2  snippet$Vec2$Describe$tag$1
   vtable snippet.Scale.scaled for Wrap<Vec2>  snippet.Wrap<Vec2>.scaled  // snippet$Wrap$Scale$scaled__snippet_Vec2
   vtable snippet.Show.show for Wrap<Vec2>  snippet.Wrap<Vec2>.show  // snippet$Wrap$Show$show__snippet_Vec2
-  vtable std.core.Add.add for Pile<i32>  snippet$Pile$Add$add__i32
-  vtable std.core.Add.add for Pile<i32>  snippet$Pile$Add$add__i32$1
-  vtable std.core.Contains.contains for Bag  snippet$Bag$Contains$contains
-  vtable std.core.Contains.contains for Bag  snippet$Bag$Contains$contains$1
-  vtable std.core.Index.at for Grid  snippet$Grid$Index$at
-  vtable std.core.Index.at for Grid  snippet$Grid$Index$at$1
-  vtable std.core.Index.at for Sheet  snippet$Sheet$Index$at
-  vtable std.core.Index.at for Sheet  snippet$Sheet$Index$at$1
-  vtable std.core.IndexSet.set_at for Grid  snippet$Grid$IndexSet$set_at
-  vtable std.core.IndexSet.set_at for Grid  snippet$Grid$IndexSet$set_at$1
-  vtable std.core.IndexSet.set_at for Sheet  snippet.Sheet.set_at  // snippet$Sheet$IndexSet$set_at
-  vtable std.core.Into.into for Counter  snippet.Counter.into  // snippet$Counter$Into$into
-  vtable std.core.Into.into for Mon  snippet$Mon$Into$into
-  vtable std.core.Into.into for Mon  snippet$Mon$Into$into$1
-  vtable std.core.Into.into for Rec  snippet$Rec$Into$into
-  vtable std.core.Into.into for Rec  snippet$Rec$Into$into$1
-  vtable std.core.Iterator.next for Counter  snippet.Counter.next  // snippet$Counter$Iterator$next
-  vtable std.core.Mul.mul for Vec2  snippet$Vec2$Mul$mul
-  vtable std.core.Mul.mul for Vec2  snippet$Vec2$Mul$mul$1
+  vtable std.core.Add.add for Pile<i32>  snippet$Pile$std_core_Add$add__i32
+  vtable std.core.Add.add for Pile<i32>  snippet$Pile$std_core_Add$add__i32$1
+  vtable std.core.Contains.contains for Bag  snippet$Bag$std_core_Contains$contains
+  vtable std.core.Contains.contains for Bag  snippet$Bag$std_core_Contains$contains$1
+  vtable std.core.Index.at for Grid  snippet$Grid$std_core_Index$at
+  vtable std.core.Index.at for Grid  snippet$Grid$std_core_Index$at$1
+  vtable std.core.Index.at for Sheet  snippet$Sheet$std_core_Index$at
+  vtable std.core.Index.at for Sheet  snippet$Sheet$std_core_Index$at$1
+  vtable std.core.IndexSet.set_at for Grid  snippet$Grid$std_core_IndexSet$set_at
+  vtable std.core.IndexSet.set_at for Grid  snippet$Grid$std_core_IndexSet$set_at$1
+  vtable std.core.IndexSet.set_at for Sheet  snippet.Sheet.set_at  // snippet$Sheet$std_core_IndexSet$set_at
+  vtable std.core.Into.into for Counter  snippet.Counter.into  // snippet$Counter$std_core_Into$into
+  vtable std.core.Into.into for Mon  snippet$Mon$std_core_Into$into
+  vtable std.core.Into.into for Mon  snippet$Mon$std_core_Into$into$1
+  vtable std.core.Into.into for Rec  snippet$Rec$std_core_Into$into
+  vtable std.core.Into.into for Rec  snippet$Rec$std_core_Into$into$1
+  vtable std.core.Iterator.next for Counter  snippet.Counter.next  // snippet$Counter$std_core_Iterator$next
+  vtable std.core.Mul.mul for Vec2  snippet$Vec2$std_core_Mul$mul
+  vtable std.core.Mul.mul for Vec2  snippet$Vec2$std_core_Mul$mul$1
 
 ## lowered in dependencies
   std/core

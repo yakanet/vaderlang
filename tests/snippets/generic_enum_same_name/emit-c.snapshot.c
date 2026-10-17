@@ -39,10 +39,10 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static uint64_t std_core_u8_Hash_hash(uint8_t l0);
-static vader_box_t std_collections_MutableMap_Index_at__snippet_alpha_Status__i64(void* l0, uint8_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__snippet_alpha_Status__i64(void* l0, uint8_t l1, int64_t l2);
-static vader_box_t std_collections_MutableMap_Index_at__snippet_beta_Status__i64(void* l0, uint8_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__snippet_beta_Status__i64(void* l0, uint8_t l1, int64_t l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_alpha_Status__i64(void* l0, uint8_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_alpha_Status__i64(void* l0, uint8_t l1, int64_t l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_beta_Status__i64(void* l0, uint8_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_beta_Status__i64(void* l0, uint8_t l1, int64_t l2);
 static size_t std_collections_first_slot(uint64_t l0, size_t l1);
 static size_t std_collections_next_slot(size_t l0, uint64_t l1, size_t l2);
 static void std_collections_ensure_index__snippet_alpha_Status__i64(void* l0);
@@ -179,16 +179,16 @@ static int32_t snippet_main(void) {
     _a7_obj->f_tombs = (size_t) 0;
     l3 = (void*) _a7_obj;
 #line 19 "tests/snippets/generic_enum_same_name/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__snippet_alpha_Status__i64(l0, (uint8_t) 1, INT64_C(405));
+    std_collections_MutableMap_std_core_IndexSet_set_at__snippet_alpha_Status__i64(l0, (uint8_t) 1, INT64_C(405));
 #line 20 "tests/snippets/generic_enum_same_name/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__snippet_beta_Status__i64(l3, (uint8_t) 1, INT64_C(1001));
+    std_collections_MutableMap_std_core_IndexSet_set_at__snippet_beta_Status__i64(l3, (uint8_t) 1, INT64_C(1001));
 #line 21 "tests/snippets/generic_enum_same_name/_main.vader"
     l2 = snippet_as_int__snippet_beta_Status((uint8_t) 0);
-    std_collections_MutableMap_IndexSet_set_at__snippet_beta_Status__i64(l3, (uint8_t) 0, l2);
+    std_collections_MutableMap_std_core_IndexSet_set_at__snippet_beta_Status__i64(l3, (uint8_t) 0, l2);
 #line 22 "tests/snippets/generic_enum_same_name/_main.vader"
     l4 = std_core_new_byte_buffer((size_t) 62);
     l1 = (size_t) 0;
-    l6 = std_collections_MutableMap_Index_at__snippet_alpha_Status__i64(l0, (uint8_t) 1);
+    l6 = std_collections_MutableMap_std_core_Index_at__snippet_alpha_Status__i64(l0, (uint8_t) 1);
     if (l6.tag == 0u) {
         l2 = INT64_C(-1);
     } else {
@@ -196,7 +196,7 @@ static int32_t snippet_main(void) {
     }
     l1 = std_core_write_int(l4, l1, l2);
     l1 = std_core_write_string_at(l4, l1, 1u);
-    l6 = std_collections_MutableMap_Index_at__snippet_beta_Status__i64(l3, (uint8_t) 1);
+    l6 = std_collections_MutableMap_std_core_Index_at__snippet_beta_Status__i64(l3, (uint8_t) 1);
     if (l6.tag == 0u) {
         l2 = INT64_C(-1);
     } else {
@@ -204,7 +204,7 @@ static int32_t snippet_main(void) {
     }
     l1 = std_core_write_int(l4, l1, l2);
     l1 = std_core_write_string_at(l4, l1, 1u);
-    l6 = std_collections_MutableMap_Index_at__snippet_beta_Status__i64(l3, (uint8_t) 0);
+    l6 = std_collections_MutableMap_std_core_Index_at__snippet_beta_Status__i64(l3, (uint8_t) 0);
     if (l6.tag == 0u) {
         l2 = INT64_C(-1);
     } else {
@@ -363,14 +363,14 @@ static uint64_t std_core_u8_Hash_hash(uint8_t l0) {
     return (uint64_t) (int64_t) ((int64_t) (uint8_t) l0);
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__snippet_alpha_Status__i64(void* l0, uint8_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_alpha_Status__i64(void* l0, uint8_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__snippet_alpha_Status__i64(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__snippet_alpha_Status__i64(void* l0, uint8_t l1, int64_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_alpha_Status__i64(void* l0, uint8_t l1, int64_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -379,14 +379,14 @@ static void std_collections_MutableMap_IndexSet_set_at__snippet_alpha_Status__i6
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__snippet_beta_Status__i64(void* l0, uint8_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_beta_Status__i64(void* l0, uint8_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__snippet_beta_Status__i64(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__snippet_beta_Status__i64(void* l0, uint8_t l1, int64_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_beta_Status__i64(void* l0, uint8_t l1, int64_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;

@@ -9,7 +9,7 @@
   snippet.Holder :: struct { v: i64 | string }  // snippet$Holder
   snippet.Measure :: struct { m: f64 | string }  // snippet$Measure
   snippet.Point :: struct { x: i32 }  // snippet$Point
-  snippet.Path.equals :: fn(self: Path, other: Path) -> bool {  // snippet$Path$Equals$equals
+  snippet.Path.equals :: fn(self: Path, other: Path) -> bool {  // snippet$Path$std_core_Equals$equals
       std.string.to_lower(string(self)) == std.string.to_lower(string(other))
   }
   snippet.describe :: fn(u: i64 | string) -> string {  // snippet$describe
@@ -160,7 +160,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Equals.equals for Path  snippet.Path.equals  // snippet$Path$Equals$equals
+  vtable std.core.Equals.equals for Path  snippet.Path.equals  // snippet$Path$std_core_Equals$equals
 
 ## lowered in dependencies
   std/core
@@ -199,7 +199,7 @@
     fn std.string.to_lower  // std_string$to_lower
     fn std.string.to_lower_cp  // std_string$to_lower_cp
   std/string_builder
-    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$Display$to_string
+    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$std_core_Display$to_string
     fn std.string_builder.append_char  // std_string_builder$append_char
     struct std.string_builder.StringBuilder  // std_string_builder$StringBuilder
   system/posix

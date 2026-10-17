@@ -54,7 +54,7 @@ static int32_t snippet_drive(vader_box_t l0);
 static int32_t snippet_main(void);
 static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0);
 static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0);
-static vader_box_t snippet_Ready_Async_resume__i32(void* l0);
+static vader_box_t snippet_Ready_std_core_Async_resume__i32(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
@@ -387,7 +387,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static vader_box_t snippet_Ready_Async_resume__i32(void* l0) {
+static vader_box_t snippet_Ready_std_core_Async_resume__i32(void* l0) {
     int32_t t0;
     vader_box_t t1;
 #line 10 "tests/snippets/async_trailing/_main.vader"
@@ -610,7 +610,7 @@ static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
         case 3u: return snippet___asyncstate_snippet_0_Async_resume(recv.payload.obj);
         case 6u: return snippet___asyncstate_snippet_1_Async_resume(recv.payload.obj);
-        case 7u: return snippet_Ready_Async_resume__i32(recv.payload.obj);
+        case 7u: return snippet_Ready_std_core_Async_resume__i32(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Async.resume");
     }
     vader_unreachable("vtable miss in std_core$Async.resume");

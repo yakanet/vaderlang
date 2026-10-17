@@ -2,19 +2,19 @@
 
 ## snippet
   snippet.Vec :: struct { x: i32, y: i32 }  // snippet$Vec
-  snippet.Vec.add :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$Add$add
+  snippet.Vec.add :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core_Add$add
       return Vec { .x = self.x + other.x, .y = self.y + other.y }
   }
-  snippet.Vec.sub :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$Sub$sub
+  snippet.Vec.sub :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core_Sub$sub
       return Vec { .x = self.x - other.x, .y = self.y - other.y }
   }
-  snippet.Vec.mul :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$Mul$mul
+  snippet.Vec.mul :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core_Mul$mul
       return Vec { .x = self.x * other.x, .y = self.y * other.y }
   }
-  snippet.Vec.div :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$Div$div
+  snippet.Vec.div :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core_Div$div
       return Vec { .x = self.x / other.x, .y = self.y / other.y }
   }
-  snippet.Vec.rem :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$Rem$rem
+  snippet.Vec.rem :: fn(self: Vec, other: Vec) -> Vec {  // snippet$Vec$std_core_Rem$rem
       return Vec { .x = self.x % other.x, .y = self.y % other.y }
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -61,11 +61,11 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Add.add for Vec  snippet.Vec.add  // snippet$Vec$Add$add
-  vtable std.core.Div.div for Vec  snippet.Vec.div  // snippet$Vec$Div$div
-  vtable std.core.Mul.mul for Vec  snippet.Vec.mul  // snippet$Vec$Mul$mul
-  vtable std.core.Rem.rem for Vec  snippet.Vec.rem  // snippet$Vec$Rem$rem
-  vtable std.core.Sub.sub for Vec  snippet.Vec.sub  // snippet$Vec$Sub$sub
+  vtable std.core.Add.add for Vec  snippet.Vec.add  // snippet$Vec$std_core_Add$add
+  vtable std.core.Div.div for Vec  snippet.Vec.div  // snippet$Vec$std_core_Div$div
+  vtable std.core.Mul.mul for Vec  snippet.Vec.mul  // snippet$Vec$std_core_Mul$mul
+  vtable std.core.Rem.rem for Vec  snippet.Vec.rem  // snippet$Vec$std_core_Rem$rem
+  vtable std.core.Sub.sub for Vec  snippet.Vec.sub  // snippet$Vec$std_core_Sub$sub
 
 ## lowered in dependencies
   std/core

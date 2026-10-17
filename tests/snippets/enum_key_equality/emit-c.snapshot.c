@@ -99,10 +99,10 @@ static bool std_core_f32_Equals_equals_guard(float l0, vader_box_t l1);
 static bool std_core_f64_Equals_equals_guard(double l0, vader_box_t l1);
 static bool std_core_bool_Equals_equals_guard(bool l0, vader_box_t l1);
 static bool std_core_char_Equals_equals_guard(uint32_t l0, vader_box_t l1);
-static vader_box_t std_collections_MutableMap_Index_at__Any__i32(void* l0, vader_box_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__Any__i32(void* l0, vader_box_t l1, int32_t l2);
-static vader_box_t std_collections_MutableMap_Index_at__snippet_HttpStatus__string(void* l0, uint8_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__Any__i32(void* l0, vader_box_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__Any__i32(void* l0, vader_box_t l1, int32_t l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_HttpStatus__string(void* l0, uint8_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2);
 static size_t std_collections_first_slot(uint64_t l0, size_t l1);
 static size_t std_collections_next_slot(size_t l0, uint64_t l1, size_t l2);
 static void std_collections_ensure_index__Any__i32(void* l0);
@@ -301,13 +301,13 @@ static int32_t snippet_main(void) {
     _a3_obj->f_tombs = (size_t) 0;
     l1 = (void*) _a3_obj;
 #line 36 "tests/snippets/enum_key_equality/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__Any__i32(l1, vader_box_i32(3u, INT32_C(0)), INT32_C(1));
+    std_collections_MutableMap_std_core_IndexSet_set_at__Any__i32(l1, vader_box_i32(3u, INT32_C(0)), INT32_C(1));
 #line 37 "tests/snippets/enum_key_equality/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__Any__i32(l1, vader_box_i32(3u, INT32_C(2)), INT32_C(3));
+    std_collections_MutableMap_std_core_IndexSet_set_at__Any__i32(l1, vader_box_i32(3u, INT32_C(2)), INT32_C(3));
 #line 38 "tests/snippets/enum_key_equality/_main.vader"
     l4 = std_core_new_byte_buffer((size_t) 62);
     l2 = (size_t) 0;
-    l6 = std_collections_MutableMap_Index_at__Any__i32(l1, vader_box_i32(3u, INT32_C(0)));
+    l6 = std_collections_MutableMap_std_core_Index_at__Any__i32(l1, vader_box_i32(3u, INT32_C(0)));
     if (l6.tag == 0u) {
         l7 = INT32_C(-1);
     } else {
@@ -316,7 +316,7 @@ static int32_t snippet_main(void) {
     l8 = ((int64_t) (int32_t) l7);
     l2 = std_core_write_int(l4, l2, l8);
     l2 = std_core_write_string_at(l4, l2, 1u);
-    l6 = std_collections_MutableMap_Index_at__Any__i32(l1, vader_box_i32(3u, INT32_C(1)));
+    l6 = std_collections_MutableMap_std_core_Index_at__Any__i32(l1, vader_box_i32(3u, INT32_C(1)));
     if (l6.tag == 0u) {
         l7 = INT32_C(-1);
     } else {
@@ -325,7 +325,7 @@ static int32_t snippet_main(void) {
     l8 = ((int64_t) (int32_t) l7);
     l2 = std_core_write_int(l4, l2, l8);
     l2 = std_core_write_string_at(l4, l2, 1u);
-    l6 = std_collections_MutableMap_Index_at__Any__i32(l1, vader_box_i32(3u, INT32_C(2)));
+    l6 = std_collections_MutableMap_std_core_Index_at__Any__i32(l1, vader_box_i32(3u, INT32_C(2)));
     if (l6.tag == 0u) {
         l7 = INT32_C(-1);
     } else {
@@ -355,19 +355,19 @@ static int32_t snippet_main(void) {
     _a7_obj->f_tombs = (size_t) 0;
     l1 = (void*) _a7_obj;
 #line 41 "tests/snippets/enum_key_equality/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(l1, (uint8_t) 1, 2u);
+    std_collections_MutableMap_std_core_IndexSet_set_at__snippet_HttpStatus__string(l1, (uint8_t) 1, 2u);
 #line 42 "tests/snippets/enum_key_equality/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(l1, (uint8_t) 0, 3u);
+    std_collections_MutableMap_std_core_IndexSet_set_at__snippet_HttpStatus__string(l1, (uint8_t) 0, 3u);
 #line 43 "tests/snippets/enum_key_equality/_main.vader"
-    std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(l1, (uint8_t) 1, 4u);
+    std_collections_MutableMap_std_core_IndexSet_set_at__snippet_HttpStatus__string(l1, (uint8_t) 1, 4u);
 #line 44 "tests/snippets/enum_key_equality/_main.vader"
-    l6 = std_collections_MutableMap_Index_at__snippet_HttpStatus__string(l1, (uint8_t) 1);
+    l6 = std_collections_MutableMap_std_core_Index_at__snippet_HttpStatus__string(l1, (uint8_t) 1);
     if (l6.tag == 0u) {
         l9 = 5u;
     } else {
         l9 = l6.payload.s;
     }
-    l6 = std_collections_MutableMap_Index_at__snippet_HttpStatus__string(l1, (uint8_t) 0);
+    l6 = std_collections_MutableMap_std_core_Index_at__snippet_HttpStatus__string(l1, (uint8_t) 0);
     if (l6.tag == 0u) {
         l10 = 5u;
     } else {
@@ -791,7 +791,7 @@ static bool std_core_char_Equals_equals_guard(uint32_t l0, vader_box_t l1) {
     return false;
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__Any__i32(void* l0, vader_box_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__Any__i32(void* l0, vader_box_t l1) {
     vader_box_t t0 = vader_box_null();
     vader_box_t* gc_roots[2] = { &l1, &t0 };
     void** gc_raw_roots[1] = { &l0 };
@@ -802,7 +802,7 @@ static vader_box_t std_collections_MutableMap_Index_at__Any__i32(void* l0, vader
     { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__Any__i32(void* l0, vader_box_t l1, int32_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__Any__i32(void* l0, vader_box_t l1, int32_t l2) {
     vader_box_t* gc_roots[1] = { &l1 };
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
@@ -812,14 +812,14 @@ static void std_collections_MutableMap_IndexSet_set_at__Any__i32(void* l0, vader
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__snippet_HttpStatus__string(void* l0, uint8_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_HttpStatus__string(void* l0, uint8_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__snippet_HttpStatus__string(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &l2 };
     vader_gc_frame_t gc_frame = {

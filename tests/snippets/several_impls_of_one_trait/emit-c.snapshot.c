@@ -836,31 +836,31 @@ static const vader_array_t vader_data_1 = {
     { 28u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 
-static void* snippet_Vec2_Mul_mul(void* l0, double l1);
-static void* snippet_Vec2_Mul_mul_1(void* l0, void* l1);
-static int32_t snippet_Grid_Index_at(void* l0, int32_t l1);
-static vader_string_t snippet_Grid_Index_at_1(void* l0, vader_string_t l1);
-static void snippet_Grid_IndexSet_set_at(void* l0, int32_t l1, int32_t l2);
-static void snippet_Grid_IndexSet_set_at_1(void* l0, vader_string_t l1, vader_string_t l2);
-static bool snippet_Bag_Contains_contains(void* l0, int32_t l1);
-static bool snippet_Bag_Contains_contains_1(void* l0, vader_string_t l1);
+static void* snippet_Vec2_std_core_Mul_mul(void* l0, double l1);
+static void* snippet_Vec2_std_core_Mul_mul_1(void* l0, void* l1);
+static int32_t snippet_Grid_std_core_Index_at(void* l0, int32_t l1);
+static vader_string_t snippet_Grid_std_core_Index_at_1(void* l0, vader_string_t l1);
+static void snippet_Grid_std_core_IndexSet_set_at(void* l0, int32_t l1, int32_t l2);
+static void snippet_Grid_std_core_IndexSet_set_at_1(void* l0, vader_string_t l1, vader_string_t l2);
+static bool snippet_Bag_std_core_Contains_contains(void* l0, int32_t l1);
+static bool snippet_Bag_std_core_Contains_contains_1(void* l0, vader_string_t l1);
 static void* snippet_Vec2_Make_make(double l0);
 static void* snippet_Vec2_Make_make_1(vader_string_t l0);
 static vader_string_t snippet_Vec2_Describe_tag(void* l0);
 static vader_string_t snippet_Vec2_Describe_describe(void* l0);
 static vader_string_t snippet_Vec2_Describe_tag_1(void* l0);
 static vader_string_t snippet_Vec2_Describe_describe_1(void* l0);
-static void* snippet_Mon_Into_into(void* l0);
-static void* snippet_Mon_Into_into_1(void* l0);
-static int32_t snippet_Sheet_Index_at(void* l0, int32_t l1);
-static void snippet_Sheet_IndexSet_set_at(void* l0, int32_t l1, int32_t l2);
-static vader_string_t snippet_Sheet_Index_at_1(void* l0, vader_string_t l1);
-static void snippet_Counter_Iterator_next_v(void* l0, int32_t* __o0, uint8_t* __o1);
+static void* snippet_Mon_std_core_Into_into(void* l0);
+static void* snippet_Mon_std_core_Into_into_1(void* l0);
+static int32_t snippet_Sheet_std_core_Index_at(void* l0, int32_t l1);
+static void snippet_Sheet_std_core_IndexSet_set_at(void* l0, int32_t l1, int32_t l2);
+static vader_string_t snippet_Sheet_std_core_Index_at_1(void* l0, vader_string_t l1);
+static void snippet_Counter_std_core_Iterator_next_v(void* l0, int32_t* __o0, uint8_t* __o1);
 static int32_t snippet_main(void);
 static void* snippet_Wrap_Scale_scaled__snippet_Vec2(void* l0);
 static vader_string_t snippet_Wrap_Show_show__snippet_Vec2(void* l0);
-static void* snippet_Pile_Add_add__i32(void* l0, void* l1);
-static void* snippet_Pile_Add_add__i32_1(void* l0, double l1);
+static void* snippet_Pile_std_core_Add_add__i32(void* l0, void* l1);
+static void* snippet_Pile_std_core_Add_add__i32_1(void* l0, double l1);
 static void* snippet_built__snippet_Vec2(void);
 static void* snippet_twice__snippet_Vec2(void* l0);
 static vader_string_t snippet_say_int__snippet_Vec2(void* l0);
@@ -1008,7 +1008,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
     return write(a0, s1.ptr, a2);
 }
 
-static void* snippet_Vec2_Mul_mul(void* l0, double l1) {
+static void* snippet_Vec2_std_core_Mul_mul(void* l0, double l1) {
     double l2, l3;
     double t0;
     void* t1 = NULL;
@@ -1028,7 +1028,7 @@ static void* snippet_Vec2_Mul_mul(void* l0, double l1) {
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet_Vec2_Mul_mul_1(void* l0, void* l1) {
+static void* snippet_Vec2_std_core_Mul_mul_1(void* l0, void* l1) {
     double l2, l3, l4;
     void* t0 = NULL;
     void** gc_raw_roots[3] = { &l0, &l1, &t0 };
@@ -1049,7 +1049,7 @@ static void* snippet_Vec2_Mul_mul_1(void* l0, void* l1) {
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int32_t snippet_Grid_Index_at(void* l0, int32_t l1) {
+static int32_t snippet_Grid_std_core_Index_at(void* l0, int32_t l1) {
     int32_t t0;
 #line 34 "tests/snippets/several_impls_of_one_trait/_main.vader"
     vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_snippet_Grid_t*) l0)->f_cells);
@@ -1059,7 +1059,7 @@ static int32_t snippet_Grid_Index_at(void* l0, int32_t l1) {
     return t0;
 }
 
-static vader_string_t snippet_Grid_Index_at_1(void* l0, vader_string_t l1) {
+static vader_string_t snippet_Grid_std_core_Index_at_1(void* l0, vader_string_t l1) {
     vader_string_t l2 = 0;
     vader_box_t t0 = vader_box_null();
     vader_string_t t1 = 0;
@@ -1080,7 +1080,7 @@ static vader_string_t snippet_Grid_Index_at_1(void* l0, vader_string_t l1) {
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void snippet_Grid_IndexSet_set_at(void* l0, int32_t l1, int32_t l2) {
+static void snippet_Grid_std_core_IndexSet_set_at(void* l0, int32_t l1, int32_t l2) {
 #line 43 "tests/snippets/several_impls_of_one_trait/_main.vader"
     vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_snippet_Grid_t*) l0)->f_cells);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
@@ -1090,7 +1090,7 @@ static void snippet_Grid_IndexSet_set_at(void* l0, int32_t l1, int32_t l2) {
     return;
 }
 
-static void snippet_Grid_IndexSet_set_at_1(void* l0, vader_string_t l1, vader_string_t l2) {
+static void snippet_Grid_std_core_IndexSet_set_at_1(void* l0, vader_string_t l1, vader_string_t l2) {
     void* l3 = NULL;
     vader_string_t l4 = 0;
     void** gc_raw_roots[2] = { &l0, &l3 };
@@ -1111,14 +1111,14 @@ static void snippet_Grid_IndexSet_set_at_1(void* l0, vader_string_t l1, vader_st
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static bool snippet_Bag_Contains_contains(void* l0, int32_t l1) {
+static bool snippet_Bag_std_core_Contains_contains(void* l0, int32_t l1) {
     int32_t l2;
 #line 58 "tests/snippets/several_impls_of_one_trait/_main.vader"
     l2 = ((vader_struct_snippet_Bag_t*) l0)->f_n;
     return l1 == l2;
 }
 
-static bool snippet_Bag_Contains_contains_1(void* l0, vader_string_t l1) {
+static bool snippet_Bag_std_core_Contains_contains_1(void* l0, vader_string_t l1) {
 #line 62 "tests/snippets/several_impls_of_one_trait/_main.vader"
     return l1 == 3u;
 }
@@ -1194,7 +1194,7 @@ static vader_string_t snippet_Vec2_Describe_describe_1(void* l0) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet_Mon_Into_into(void* l0) {
+static void* snippet_Mon_std_core_Into_into(void* l0) {
     void* l1 = NULL;
     size_t l2;
     int64_t l3;
@@ -1222,7 +1222,7 @@ static void* snippet_Mon_Into_into(void* l0) {
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet_Mon_Into_into_1(void* l0) {
+static void* snippet_Mon_std_core_Into_into_1(void* l0) {
     int32_t l1;
     int32_t t0;
     void* t1 = NULL;
@@ -1239,7 +1239,7 @@ static void* snippet_Mon_Into_into_1(void* l0) {
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int32_t snippet_Sheet_Index_at(void* l0, int32_t l1) {
+static int32_t snippet_Sheet_std_core_Index_at(void* l0, int32_t l1) {
     int32_t t0;
 #line 141 "tests/snippets/several_impls_of_one_trait/_main.vader"
     vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_snippet_Sheet_t*) l0)->f_cells);
@@ -1249,7 +1249,7 @@ static int32_t snippet_Sheet_Index_at(void* l0, int32_t l1) {
     return t0;
 }
 
-static void snippet_Sheet_IndexSet_set_at(void* l0, int32_t l1, int32_t l2) {
+static void snippet_Sheet_std_core_IndexSet_set_at(void* l0, int32_t l1, int32_t l2) {
 #line 146 "tests/snippets/several_impls_of_one_trait/_main.vader"
     vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_snippet_Sheet_t*) l0)->f_cells);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
@@ -1259,7 +1259,7 @@ static void snippet_Sheet_IndexSet_set_at(void* l0, int32_t l1, int32_t l2) {
     return;
 }
 
-static vader_string_t snippet_Sheet_Index_at_1(void* l0, vader_string_t l1) {
+static vader_string_t snippet_Sheet_std_core_Index_at_1(void* l0, vader_string_t l1) {
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
@@ -1272,7 +1272,7 @@ static vader_string_t snippet_Sheet_Index_at_1(void* l0, vader_string_t l1) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void snippet_Counter_Iterator_next_v(void* l0, int32_t* __o0, uint8_t* __o1) {
+static void snippet_Counter_std_core_Iterator_next_v(void* l0, int32_t* __o0, uint8_t* __o1) {
     int32_t l1;
     int32_t t0;
 #line 176 "tests/snippets/several_impls_of_one_trait/_main.vader"
@@ -1327,11 +1327,11 @@ static int32_t snippet_main(void) {
     _a0_obj->f_y = 2.0;
     l0 = (void*) _a0_obj;
 #line 202 "tests/snippets/several_impls_of_one_trait/_main.vader"
-    l1 = snippet_Vec2_Mul_mul(l0, 3.0);
+    l1 = snippet_Vec2_std_core_Mul_mul(l0, 3.0);
 #line 203 "tests/snippets/several_impls_of_one_trait/_main.vader"
-    l2 = snippet_Vec2_Mul_mul_1(l0, l0);
+    l2 = snippet_Vec2_std_core_Mul_mul_1(l0, l0);
 #line 204 "tests/snippets/several_impls_of_one_trait/_main.vader"
-    l3 = snippet_Vec2_Mul_mul(l0, 10.0);
+    l3 = snippet_Vec2_std_core_Mul_mul(l0, 10.0);
 #line 205 "tests/snippets/several_impls_of_one_trait/_main.vader"
     l4 = snippet_twice__snippet_Vec2(l0);
 #line 206 "tests/snippets/several_impls_of_one_trait/_main.vader"
@@ -1360,15 +1360,15 @@ static int32_t snippet_main(void) {
     _a3_obj->f_names = l2;
     l1 = (void*) _a3_obj;
 #line 208 "tests/snippets/several_impls_of_one_trait/_main.vader"
-    snippet_Grid_IndexSet_set_at(l1, INT32_C(1), INT32_C(20));
+    snippet_Grid_std_core_IndexSet_set_at(l1, INT32_C(1), INT32_C(20));
 #line 209 "tests/snippets/several_impls_of_one_trait/_main.vader"
-    snippet_Grid_IndexSet_set_at_1(l1, 13u, 14u);
+    snippet_Grid_std_core_IndexSet_set_at_1(l1, 13u, 14u);
 #line 210 "tests/snippets/several_impls_of_one_trait/_main.vader"
-    l5 = snippet_Grid_Index_at_1(l1, 15u);
+    l5 = snippet_Grid_std_core_Index_at_1(l1, 15u);
     l9 = vader_host_std_core_byte_len(l5);
     l2 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(21) + l9));
     l9 = (size_t) 0;
-    t2 = snippet_Grid_Index_at(l1, INT32_C(1));
+    t2 = snippet_Grid_std_core_Index_at(l1, INT32_C(1));
     l10 = ((int64_t) (int32_t) t2);
     l9 = std_core_write_int(l2, l9, l10);
     l9 = std_core_write_string_at(l2, l9, 12u);
@@ -1383,13 +1383,13 @@ static int32_t snippet_main(void) {
 #line 212 "tests/snippets/several_impls_of_one_trait/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) 17);
     l9 = (size_t) 0;
-    l11 = snippet_Bag_Contains_contains(l1, INT32_C(3));
+    l11 = snippet_Bag_std_core_Contains_contains(l1, INT32_C(3));
     l9 = std_core_write_bool(l2, l9, l11);
     l9 = std_core_write_string_at(l2, l9, 12u);
-    l11 = snippet_Bag_Contains_contains(l1, INT32_C(4));
+    l11 = snippet_Bag_std_core_Contains_contains(l1, INT32_C(4));
     l9 = std_core_write_bool(l2, l9, l11);
     l9 = std_core_write_string_at(l2, l9, 12u);
-    l11 = snippet_Bag_Contains_contains_1(l1, 3u);
+    l11 = snippet_Bag_std_core_Contains_contains_1(l1, 3u);
     l9 = std_core_write_bool(l2, l9, l11);
     t1 = std_core_finish_buffer(l2, l9);
     std_io_println__string(t1);
@@ -1412,9 +1412,9 @@ static int32_t snippet_main(void) {
     _a5_obj->f_v = INT32_C(7);
     l1 = (void*) _a5_obj;
 #line 217 "tests/snippets/several_impls_of_one_trait/_main.vader"
-    l2 = snippet_Mon_Into_into_1(l1);
+    l2 = snippet_Mon_std_core_Into_into_1(l1);
 #line 218 "tests/snippets/several_impls_of_one_trait/_main.vader"
-    t3 = snippet_Mon_Into_into(l1);
+    t3 = snippet_Mon_std_core_Into_into(l1);
 #line 219 "tests/snippets/several_impls_of_one_trait/_main.vader"
     l5 = ((vader_struct_snippet_Label_t*) t3)->f_s;
     l9 = vader_host_std_core_byte_len(l5);
@@ -1440,12 +1440,12 @@ static int32_t snippet_main(void) {
 #line 222 "tests/snippets/several_impls_of_one_trait/_main.vader"
     l3 = std_core_new_byte_buffer((size_t) 41);
     l9 = (size_t) 0;
-    t3 = snippet_Pile_Add_add__i32(l1, l2);
+    t3 = snippet_Pile_std_core_Add_add__i32(l1, l2);
     t2 = ((vader_struct_snippet_Pile__i32_t*) t3)->f_top;
     l10 = ((int64_t) (int32_t) t2);
     l9 = std_core_write_int(l3, l9, l10);
     l9 = std_core_write_string_at(l3, l9, 12u);
-    t3 = snippet_Pile_Add_add__i32_1(l1, 1.0);
+    t3 = snippet_Pile_std_core_Add_add__i32_1(l1, 1.0);
     t2 = ((vader_struct_snippet_Pile__i32_t*) t3)->f_top;
     l10 = ((int64_t) (int32_t) t2);
     l9 = std_core_write_int(l3, l9, l10);
@@ -1478,13 +1478,13 @@ static int32_t snippet_main(void) {
     _a10_obj->f_cells = t3;
     l0 = (void*) _a10_obj;
 #line 227 "tests/snippets/several_impls_of_one_trait/_main.vader"
-    snippet_Sheet_IndexSet_set_at(l0, INT32_C(1), INT32_C(20));
+    snippet_Sheet_std_core_IndexSet_set_at(l0, INT32_C(1), INT32_C(20));
 #line 228 "tests/snippets/several_impls_of_one_trait/_main.vader"
-    l5 = snippet_Sheet_Index_at_1(l0, 17u);
+    l5 = snippet_Sheet_std_core_Index_at_1(l0, 17u);
     l9 = vader_host_std_core_byte_len(l5);
     l1 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(21) + l9));
     l9 = (size_t) 0;
-    t2 = snippet_Sheet_Index_at(l0, INT32_C(1));
+    t2 = snippet_Sheet_std_core_Index_at(l0, INT32_C(1));
     l10 = ((int64_t) (int32_t) t2);
     l9 = std_core_write_int(l1, l9, l10);
     l9 = std_core_write_string_at(l1, l9, 12u);
@@ -1534,7 +1534,7 @@ static int32_t snippet_main(void) {
     l0 = (void*) _a13_obj;
 #line 240 "tests/snippets/several_impls_of_one_trait/_main.vader"
     for (;;) {
-        snippet_Counter_Iterator_next_v(l0, &t2, &t5);
+        snippet_Counter_std_core_Iterator_next_v(l0, &t2, &t5);
         l15 = t5;
         l13 = t2;
         if (!(l15 == INT32_C(1))) {
@@ -1563,7 +1563,7 @@ static void* snippet_Wrap_Scale_scaled__snippet_Vec2(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 123 "tests/snippets/several_impls_of_one_trait/_main.vader"
-    t0 = snippet_Vec2_Mul_mul(((vader_struct_snippet_Wrap__snippet_Vec2_t*) l0)->f_inner, 2.0);
+    t0 = snippet_Vec2_std_core_Mul_mul(((vader_struct_snippet_Wrap__snippet_Vec2_t*) l0)->f_inner, 2.0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1574,12 +1574,12 @@ static vader_string_t snippet_Wrap_Show_show__snippet_Vec2(void* l0) {
     return t0;
 }
 
-static void* snippet_Pile_Add_add__i32(void* l0, void* l1) {
+static void* snippet_Pile_std_core_Add_add__i32(void* l0, void* l1) {
 #line 193 "tests/snippets/several_impls_of_one_trait/_main.vader"
     return l1;
 }
 
-static void* snippet_Pile_Add_add__i32_1(void* l0, double l1) {
+static void* snippet_Pile_std_core_Add_add__i32_1(void* l0, double l1) {
 #line 197 "tests/snippets/several_impls_of_one_trait/_main.vader"
     return l0;
 }
@@ -1600,7 +1600,7 @@ static void* snippet_twice__snippet_Vec2(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 26 "tests/snippets/several_impls_of_one_trait/_main.vader"
-    t0 = snippet_Vec2_Mul_mul(l0, 2.0);
+    t0 = snippet_Vec2_std_core_Mul_mul(l0, 2.0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

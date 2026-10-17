@@ -18,7 +18,7 @@ impl 1 snippet_score$Scored
 impl 6 std_core$ByteAccess
 export main 1
 
-fn 0 snippet$Foo$Scored$score (ref) -> i32
+fn 0 snippet$Foo$snippet_score_Scored$score (ref) -> i32
   local.field 0 1 0   ; arg 0 snippet$Foo.x
   ref.cast 2   ; i32
   return
@@ -38,7 +38,7 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; fa
-  call 0   ; snippet$Foo$Scored$score
+  call 0   ; snippet$Foo$snippet_score_Scored$score
   i32.to_i64
   local.set 3   ; $cast_9
   local.get 1   ; __buf_0

@@ -1052,7 +1052,7 @@ fn 21 std_string$replace_chars_where (string,ref,string) -> string
     end $L1
   end $L0
   local.get 3   ; sb
-  call 25   ; std_string_builder$StringBuilder$Display$to_string
+  call 25   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -1112,7 +1112,7 @@ fn 24 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 25 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 25 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize

@@ -1,0 +1,36 @@
+# Typecheck
+
+## tests/snippets/two_traits_of_one_name
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  FnDecl         show_a               :: fn(Describe) -> string
+  FnDecl         show_b               :: fn(Describe) -> string
+  expr 12:38    StringLitExpr  :: string
+  expr 12:43    FieldExpr      :: i32
+  expr 12:43    IdentExpr      :: Point
+  expr 15:39    CallExpr       :: string
+  expr 15:39    FieldExpr      :: fn() -> string
+  expr 15:39    IdentExpr      :: Describe
+  expr 18:10    StructLitExpr  :: Point
+  expr 19:13    CallExpr       :: string
+  expr 19:13    IdentExpr      :: fn(Describe) -> string
+  expr 19:20    IdentExpr      :: Point
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 20:13    CallExpr       :: string
+  expr 20:13    IdentExpr      :: fn(Describe) -> string
+  expr 20:20    IdentExpr      :: Point
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 6:38     StringLitExpr  :: string
+  expr 6:43     FieldExpr      :: i32
+  expr 6:43     IdentExpr      :: Point
+  expr 9:39     CallExpr       :: string
+  expr 9:39     FieldExpr      :: fn() -> string
+  expr 9:39     IdentExpr      :: Describe
+
+## tests/snippets/two_traits_of_one_name/tr_a
+  TraitDecl      Describe             :: Describe
+
+## tests/snippets/two_traits_of_one_name/tr_b
+  TraitDecl      Describe             :: Describe

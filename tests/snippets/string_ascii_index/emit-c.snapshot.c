@@ -118,7 +118,7 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__string(vader_string_t l0);
 static vader_string_t std_string_join(void* l0, vader_string_t l1);
 static void std_string_builder_append(void* l0, vader_string_t l1);
-static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0);
+static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_string(void* l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -1383,7 +1383,7 @@ static vader_string_t std_string_join(void* l0, vader_string_t l1) {
         l3 = (size_t) (int64_t) t2;
     }
 #line 278 "lib/std/string/string.vader"
-    t3 = std_string_builder_StringBuilder_Display_to_string(l2);
+    t3 = std_string_builder_StringBuilder_std_core_Display_to_string(l2);
     { vader_string_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1400,7 +1400,7 @@ static void std_string_builder_append(void* l0, vader_string_t l1) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0) {
+static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_string(void* l0) {
     size_t l1, l3, l4, l5, l8;
     void* l2 = NULL;
     void* l6 = NULL;

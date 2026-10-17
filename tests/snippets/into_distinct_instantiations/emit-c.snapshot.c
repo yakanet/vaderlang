@@ -35,8 +35,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 2u
 
-static void* snippet_UserId_Into_into(void* l0);
-static void* snippet_UserId_Into_into_1(void* l0);
+static void* snippet_UserId_std_core_Into_into(void* l0);
+static void* snippet_UserId_std_core_Into_into_1(void* l0);
 static vader_string_t snippet_take_string(void* l0);
 static int32_t snippet_take_int(void* l0);
 static int32_t snippet_main(void);
@@ -101,7 +101,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
     return write(a0, s1.ptr, a2);
 }
 
-static void* snippet_UserId_Into_into(void* l0) {
+static void* snippet_UserId_std_core_Into_into(void* l0) {
     int32_t t0;
     void* t1 = NULL;
     void** gc_raw_roots[2] = { &l0, &t1 };
@@ -116,7 +116,7 @@ static void* snippet_UserId_Into_into(void* l0) {
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet_UserId_Into_into_1(void* l0) {
+static void* snippet_UserId_std_core_Into_into_1(void* l0) {
     void* l1 = NULL;
     size_t l2;
     int64_t l3;
@@ -179,13 +179,13 @@ static int32_t snippet_main(void) {
     _a0_obj->f_value = INT32_C(42);
     l0 = (void*) _a0_obj;
 #line 26 "tests/snippets/into_distinct_instantiations/_main.vader"
-    t0 = snippet_UserId_Into_into_1(l0);
+    t0 = snippet_UserId_std_core_Into_into_1(l0);
     t1 = snippet_take_string(t0);
     std_io_println__string(t1);
 #line 27 "tests/snippets/into_distinct_instantiations/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 20);
     l2 = (size_t) 0;
-    t0 = snippet_UserId_Into_into(l0);
+    t0 = snippet_UserId_std_core_Into_into(l0);
     t2 = snippet_take_int(t0);
     l3 = ((int64_t) (int32_t) t2);
     l2 = std_core_write_int(l1, l2, l3);

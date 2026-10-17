@@ -1944,7 +1944,7 @@ fn 26 std_string$join (ref,string) -> string
     end $L1
   end $L0
   local.get 2   ; sb
-  call 28   ; std_string_builder$StringBuilder$Display$to_string
+  call 28   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -1955,7 +1955,7 @@ fn 27 std_string_builder$append (ref,string) -> void
   return
 end
 
-fn 28 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 28 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize

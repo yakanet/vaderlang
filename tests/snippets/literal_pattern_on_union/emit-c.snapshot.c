@@ -91,7 +91,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 24u
 
-static bool snippet_Path_Equals_equals(vader_string_t l0, vader_string_t l1);
+static bool snippet_Path_std_core_Equals_equals(vader_string_t l0, vader_string_t l1);
 static vader_string_t snippet_describe(vader_box_t l0);
 static vader_string_t snippet_describe_float(vader_box_t l0);
 static vader_string_t snippet_held(void* l0);
@@ -118,7 +118,7 @@ static void std_io_println__string(vader_string_t l0);
 static vader_string_t std_string_to_lower(vader_string_t l0);
 static uint32_t std_string_to_lower_cp(uint32_t l0);
 static void std_string_builder_append_char(void* l0, uint32_t l1);
-static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0);
+static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_string(void* l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -205,7 +205,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
     return write(a0, s1.ptr, a2);
 }
 
-static bool snippet_Path_Equals_equals(vader_string_t l0, vader_string_t l1) {
+static bool snippet_Path_std_core_Equals_equals(vader_string_t l0, vader_string_t l1) {
     vader_string_t l2 = 0;
     vader_string_t l3 = 0;
     vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &l3 };
@@ -329,7 +329,7 @@ static vader_string_t snippet_named(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 68 "tests/snippets/literal_pattern_on_union/_main.vader"
-    t0 = snippet_Path_Equals_equals(l0, 13u);
+    t0 = snippet_Path_std_core_Equals_equals(l0, 13u);
     if (t0) {
         { vader_gc_top = gc_frame.prev; return 13u; }
     }
@@ -1104,7 +1104,7 @@ static vader_string_t std_string_to_lower(vader_string_t l0) {
         break;
     }
 #line 401 "lib/std/string/string.vader"
-    t5 = std_string_builder_StringBuilder_Display_to_string(l1);
+    t5 = std_string_builder_StringBuilder_std_core_Display_to_string(l1);
     { vader_string_t __vret = t5; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1178,7 +1178,7 @@ static void std_string_builder_append_char(void* l0, uint32_t l1) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0) {
+static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_string(void* l0) {
     size_t l1, l3, l4, l5, l8;
     void* l2 = NULL;
     void* l6 = NULL;

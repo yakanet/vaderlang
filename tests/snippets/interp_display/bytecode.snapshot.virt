@@ -23,7 +23,7 @@ impl 1 std_core$Display
 impl 6 std_core$ByteAccess
 export main 2
 
-fn 0 snippet$Age$Display$to_string (ref) -> string
+fn 0 snippet$Age$std_core_Display$to_string (ref) -> string
   local __buf_0 ref
   local __off_1 usize
   local $cast_7 i64
@@ -55,7 +55,7 @@ end
 fn 1 snippet$greet (string,ref) -> string
   local $call_4 string
   local.get 1   ; arg 1
-  call 0   ; snippet$Age$Display$to_string
+  call 0   ; snippet$Age$std_core_Display$to_string
   local.set 2   ; $call_4
   string.const 1   ; "Hello, "
   local.get 0   ; arg 0

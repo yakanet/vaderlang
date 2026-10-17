@@ -86,7 +86,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 2u
 
-static vader_box_t snippet_Deck_Into_into(void* l0);
+static vader_box_t snippet_Deck_std_core_Into_into(void* l0);
 static int32_t snippet_total(vader_box_t l0);
 static uint32_t snippet_codepoint_sum(vader_box_t l0);
 static int32_t snippet_main(void);
@@ -106,7 +106,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__i32(int32_t l0);
 static void std_io_println__u32(uint32_t l0);
-static vader_box_t std_string_string_Into_into(vader_string_t l0);
+static vader_box_t std_string_string_std_core_Into_into(vader_string_t l0);
 static void* std_string___gen_state_std_string_0_Iterator_next(void* l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
@@ -201,7 +201,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 /* vtable forwards */
 static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv);
 
-static vader_box_t snippet_Deck_Into_into(void* l0) {
+static vader_box_t snippet_Deck_std_core_Into_into(void* l0) {
     void* t0 = NULL;
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
@@ -294,11 +294,11 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a0_obj, 1u);
     _a0_obj->f_n = INT32_C(4);
     t0 = (void*) _a0_obj;
-    t1 = snippet_Deck_Into_into(t0);
+    t1 = snippet_Deck_std_core_Into_into(t0);
     t2 = snippet_total(t1);
     std_io_println__i32(t2);
 #line 41 "tests/snippets/into_generator_held_as_value/_main.vader"
-    t1 = std_string_string_Into_into(1u);
+    t1 = std_string_string_std_core_Into_into(1u);
 #line 42 "tests/snippets/into_generator_held_as_value/_main.vader"
     t3 = snippet_codepoint_sum(t1);
     std_io_println__u32(t3);
@@ -1007,7 +1007,7 @@ static void std_io_println__u32(uint32_t l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_box_t std_string_string_Into_into(vader_string_t l0) {
+static vader_box_t std_string_string_std_core_Into_into(vader_string_t l0) {
     void* l1 = NULL;
     uint32_t l2;
     void* t0 = NULL;

@@ -102,8 +102,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 22u
 
-static void* snippet_Celsius_Into_into(void* l0);
-static vader_string_t snippet_Celsius_Into_into_1(void* l0);
+static void* snippet_Celsius_std_core_Into_into(void* l0);
+static vader_string_t snippet_Celsius_std_core_Into_into_1(void* l0);
 static void* snippet_fallback(vader_box_t l0);
 static void* snippet_returned(void* l0);
 static void* snippet_apply(void* l0, void* l1);
@@ -119,8 +119,8 @@ static void* std_core_new_byte_buffer(size_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
 static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
 static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
-static vader_box_t std_collections_MutableMap_Index_at__string__Any(void* l0, vader_string_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__string__Any(void* l0, vader_string_t l1, vader_box_t l2);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__string__Any(void* l0, vader_string_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__string__Any(void* l0, vader_string_t l1, vader_box_t l2);
 static size_t std_collections_first_slot(uint64_t l0, size_t l1);
 static size_t std_collections_next_slot(size_t l0, uint64_t l1, size_t l2);
 static void std_collections_ensure_index__string__Any(void* l0);
@@ -257,7 +257,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 /* vtable forwards */
 static vader_string_t vader_vt_snippet_Shower__show(vader_box_t recv, vader_box_t a0);
 
-static void* snippet_Celsius_Into_into(void* l0) {
+static void* snippet_Celsius_std_core_Into_into(void* l0) {
     void* l1 = NULL;
     size_t l2;
     int64_t l3;
@@ -285,7 +285,7 @@ static void* snippet_Celsius_Into_into(void* l0) {
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t snippet_Celsius_Into_into_1(void* l0) {
+static vader_string_t snippet_Celsius_std_core_Into_into_1(void* l0) {
     void* l1 = NULL;
     size_t l2;
     int64_t l3;
@@ -324,7 +324,7 @@ static void* snippet_fallback(vader_box_t l0) {
         vader_obj_header_init(_a0_obj, 1u);
         _a0_obj->f_v = INT32_C(4);
         t0 = (void*) _a0_obj;
-        t1 = snippet_Celsius_Into_into(t0);
+        t1 = snippet_Celsius_std_core_Into_into(t0);
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
     t0 = l1.payload.obj;
@@ -337,7 +337,7 @@ static void* snippet_returned(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 35 "tests/snippets/into_at_every_slot/_main.vader"
-    t0 = snippet_Celsius_Into_into(l0);
+    t0 = snippet_Celsius_std_core_Into_into(l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -373,7 +373,7 @@ static vader_string_t snippet_through_trait(vader_box_t l0, void* l1) {
     };
     vader_gc_top = &gc_frame;
 #line 49 "tests/snippets/into_at_every_slot/_main.vader"
-    t0 = snippet_Celsius_Into_into(l1);
+    t0 = snippet_Celsius_std_core_Into_into(l1);
     t1 = vader_vt_snippet_Shower__show(l0, vader_ref_box(t0));
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -415,7 +415,7 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a2_obj, 1u);
     _a2_obj->f_v = INT32_C(3);
     t0 = (void*) _a2_obj;
-    l0 = snippet_Celsius_Into_into(t0);
+    l0 = snippet_Celsius_std_core_Into_into(t0);
 #line 56 "tests/snippets/into_at_every_slot/_main.vader"
     l1 = ((vader_struct_snippet_Label_t*) l0)->f_text;
     t1 = concat_3(5u, l1, 6u);
@@ -434,7 +434,7 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a7_obj, 1u);
     _a7_obj->f_v = INT32_C(6);
     t0 = (void*) _a7_obj;
-    l3 = snippet_Celsius_Into_into(t0);
+    l3 = snippet_Celsius_std_core_Into_into(t0);
     ((vader_struct_snippet_Holder_t*) l2)->f_l = l3;
 #line 59 "tests/snippets/into_at_every_slot/_main.vader"
     l1 = ((vader_struct_snippet_Label_t*) ((vader_struct_snippet_Holder_t*) l2)->f_l)->f_text;
@@ -464,10 +464,10 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a12_obj, 1u);
     _a12_obj->f_v = INT32_C(8);
     t0 = (void*) _a12_obj;
-    l3 = snippet_Celsius_Into_into(t0);
-    std_collections_MutableMap_IndexSet_set_at__string__Any(l2, 8u, vader_ref_box(l3));
+    l3 = snippet_Celsius_std_core_Into_into(t0);
+    std_collections_MutableMap_std_core_IndexSet_set_at__string__Any(l2, 8u, vader_ref_box(l3));
 #line 62 "tests/snippets/into_at_every_slot/_main.vader"
-    l5 = std_collections_MutableMap_Index_at__string__Any(l2, 8u);
+    l5 = std_collections_MutableMap_std_core_Index_at__string__Any(l2, 8u);
     if (l5.tag == 0u) {
         vader_struct_snippet_Label_t* _a14_obj = &_a13_storage;
         vader_obj_header_init(_a14_obj, 2u);
@@ -488,7 +488,7 @@ static int32_t snippet_main(void) {
     _a15_obj->f_v = INT32_C(13);
     t0 = (void*) _a15_obj;
 #line 66 "tests/snippets/into_at_every_slot/_main.vader"
-    l0 = snippet_Celsius_Into_into(t0);
+    l0 = snippet_Celsius_std_core_Into_into(t0);
     l6 = INT32_C(1);
 #line 67 "tests/snippets/into_at_every_slot/_main.vader"
     l1 = ((vader_struct_snippet_Label_t*) l0)->f_text;
@@ -510,7 +510,7 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a17_obj, 1u);
     _a17_obj->f_v = INT32_C(14);
     t0 = (void*) _a17_obj;
-    l2 = snippet_Celsius_Into_into(t0);
+    l2 = snippet_Celsius_std_core_Into_into(t0);
     vader_array_push((vader_array_t*) l0, vader_ref_box(l2));
 #line 70 "tests/snippets/into_at_every_slot/_main.vader"
     vader_array_t* _a18_slotarr = ((vader_array_t*) l0);
@@ -530,7 +530,7 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a19_obj, 1u);
     _a19_obj->f_v = INT32_C(5);
     t0 = (void*) _a19_obj;
-    l0 = snippet_Celsius_Into_into(t0);
+    l0 = snippet_Celsius_std_core_Into_into(t0);
 #line 73 "tests/snippets/into_at_every_slot/_main.vader"
     l1 = ((vader_struct_snippet_Label_t*) l0)->f_text;
     t1 = concat_3(15u, l1, 6u);
@@ -540,7 +540,7 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a20_obj, 1u);
     _a20_obj->f_v = INT32_C(9);
     t0 = (void*) _a20_obj;
-    t1 = snippet_Celsius_Into_into_1(t0);
+    t1 = snippet_Celsius_std_core_Into_into_1(t0);
     l1 = std_string_trim(t1);
     t1 = concat_3(16u, l1, 6u);
     std_io_println__string(t1);
@@ -549,7 +549,7 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a21_obj, 1u);
     _a21_obj->f_v = INT32_C(10);
     t0 = (void*) _a21_obj;
-    l0 = snippet_Celsius_Into_into(t0);
+    l0 = snippet_Celsius_std_core_Into_into(t0);
     l1 = snippet_first__i32(INT32_C(1), l0);
     t1 = concat_3(17u, l1, 6u);
     std_io_println__string(t1);
@@ -606,7 +606,7 @@ static void* __lambda_snippet_0(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 80 "tests/snippets/into_at_every_slot/_main.vader"
-    t0 = snippet_Celsius_Into_into(l0);
+    t0 = snippet_Celsius_std_core_Into_into(l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -620,7 +620,7 @@ static vader_string_t snippet_through_bound__snippet_Box(void* l0, void* l1) {
     };
     vader_gc_top = &gc_frame;
 #line 51 "tests/snippets/into_at_every_slot/_main.vader"
-    l2 = snippet_Celsius_Into_into(l1);
+    l2 = snippet_Celsius_std_core_Into_into(l1);
     t0 = snippet_Box_Shower_show(l0, l2);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -789,14 +789,14 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     return (size_t) (int64_t) t0;
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__string__Any(void* l0, vader_string_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__string__Any(void* l0, vader_string_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__string__Any(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__string__Any(void* l0, vader_string_t l1, vader_box_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__string__Any(void* l0, vader_string_t l1, vader_box_t l2) {
     vader_box_t* gc_roots[1] = { &l2 };
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &l1 };

@@ -807,7 +807,7 @@ fn 8 crypto$md5 (string) -> string
   local.get 4   ; d0
   call 14   ; crypto$append_hex_u32_le
   local.get 5   ; msg
-  call 23   ; std_string_builder$StringBuilder$Display$to_string
+  call 23   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -847,7 +847,7 @@ fn 9 crypto$hex_of_bytes (ref) -> string
     end $L1
   end $L0
   local.get 1   ; sb
-  call 23   ; std_string_builder$StringBuilder$Display$to_string
+  call 23   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -1854,7 +1854,7 @@ fn 22 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 23 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 23 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize

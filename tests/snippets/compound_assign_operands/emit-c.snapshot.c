@@ -99,9 +99,9 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 static size_t snippet_slot(size_t l0);
 static void* snippet_pick(void* l0);
-static int32_t snippet_Cell_Index_at(void* l0, size_t l1);
-static void snippet_Cell_IndexSet_set_at(void* l0, size_t l1, int32_t l2);
-static void* snippet_Shelf_Index_at(void* l0, size_t l1);
+static int32_t snippet_Cell_std_core_Index_at(void* l0, size_t l1);
+static void snippet_Cell_std_core_IndexSet_set_at(void* l0, size_t l1, int32_t l2);
+static void* snippet_Shelf_std_core_Index_at(void* l0, size_t l1);
 static int32_t snippet_Two_Stepper_step(void* l0);
 static void snippet_Two_Stepper_advance(void* l0, void* l1);
 static int32_t snippet_main(void);
@@ -247,7 +247,7 @@ static void* snippet_pick(void* l0) {
     { void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int32_t snippet_Cell_Index_at(void* l0, size_t l1) {
+static int32_t snippet_Cell_std_core_Index_at(void* l0, size_t l1) {
     int32_t t0;
 #line 41 "tests/snippets/compound_assign_operands/_main.vader"
     vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_snippet_Cell_t*) l0)->f_slots);
@@ -257,7 +257,7 @@ static int32_t snippet_Cell_Index_at(void* l0, size_t l1) {
     return t0;
 }
 
-static void snippet_Cell_IndexSet_set_at(void* l0, size_t l1, int32_t l2) {
+static void snippet_Cell_std_core_IndexSet_set_at(void* l0, size_t l1, int32_t l2) {
 #line 46 "tests/snippets/compound_assign_operands/_main.vader"
     vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_snippet_Cell_t*) l0)->f_slots);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
@@ -267,7 +267,7 @@ static void snippet_Cell_IndexSet_set_at(void* l0, size_t l1, int32_t l2) {
     return;
 }
 
-static void* snippet_Shelf_Index_at(void* l0, size_t l1) {
+static void* snippet_Shelf_std_core_Index_at(void* l0, size_t l1) {
     void* l2 = NULL;
     size_t l3;
     uint64_t l4;
@@ -501,7 +501,7 @@ static int32_t snippet_main(void) {
     l3 = (void*) _a24_obj;
 #line 96 "tests/snippets/compound_assign_operands/_main.vader"
     l1 = snippet_slot((size_t) 1);
-    l5 = snippet_Shelf_Index_at(l3, l1);
+    l5 = snippet_Shelf_std_core_Index_at(l3, l1);
     t0 = ((vader_struct_snippet_Counter_t*) l5)->f_count;
     l2 = vader_chk_add(i32, t0, INT32_C(10));
     ((vader_struct_snippet_Counter_t*) l5)->f_count = l2;
@@ -576,14 +576,14 @@ static int32_t snippet_main(void) {
     l3 = (void*) _a31_obj;
 #line 108 "tests/snippets/compound_assign_operands/_main.vader"
     l1 = snippet_slot((size_t) 2);
-    t0 = snippet_Cell_Index_at(l3, l1);
+    t0 = snippet_Cell_std_core_Index_at(l3, l1);
     l2 = vader_chk_sub(i32, t0, INT32_C(1));
-    snippet_Cell_IndexSet_set_at(l3, l1, l2);
+    snippet_Cell_std_core_IndexSet_set_at(l3, l1, l2);
 #line 109 "tests/snippets/compound_assign_operands/_main.vader"
     l5 = std_core_new_byte_buffer((size_t) 27);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l5, l1, 14u);
-    t0 = snippet_Cell_Index_at(l3, (size_t) 2);
+    t0 = snippet_Cell_std_core_Index_at(l3, (size_t) 2);
     l4 = ((int64_t) (int32_t) t0);
     l1 = std_core_write_int(l5, l1, l4);
     t1 = std_core_finish_buffer(l5, l1);
@@ -594,7 +594,7 @@ static int32_t snippet_main(void) {
     l5 = std_core_new_byte_buffer((size_t) 30);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l5, l1, 15u);
-    t0 = snippet_Cell_Index_at(l3, (size_t) 0);
+    t0 = snippet_Cell_std_core_Index_at(l3, (size_t) 0);
     l4 = ((int64_t) (int32_t) t0);
     l1 = std_core_write_int(l5, l1, l4);
     t1 = std_core_finish_buffer(l5, l1);
@@ -705,9 +705,9 @@ static void snippet_bump_nth__snippet_Cell(void* l0, size_t l1) {
     vader_gc_top = &gc_frame;
 #line 52 "tests/snippets/compound_assign_operands/_main.vader"
     l2 = snippet_slot(l1);
-    t0 = snippet_Cell_Index_at(l0, l2);
+    t0 = snippet_Cell_std_core_Index_at(l0, l2);
     l3 = vader_chk_add(i32, t0, INT32_C(100));
-    snippet_Cell_IndexSet_set_at(l0, l2, l3);
+    snippet_Cell_std_core_IndexSet_set_at(l0, l2, l3);
 #line 51 "tests/snippets/compound_assign_operands/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }

@@ -925,19 +925,19 @@ static double snippet_area_of(vader_box_t l0);
 static vader_string_t snippet_i32_Loud_loud(int32_t l0);
 static vader_string_t snippet_string_Loud_loud(vader_string_t l0);
 static vader_string_t snippet_shout(vader_box_t l0);
-static void snippet_Log_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2);
+static void snippet_Log_std_core_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2);
 static void snippet_put(vader_box_t l0);
-static int32_t snippet_Tally_Index_at(void* l0, vader_string_t l1);
-static void snippet_Tally_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2);
-static int32_t snippet_Cell_Index_at(void* l0, vader_string_t l1);
-static void snippet_Cell_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2);
+static int32_t snippet_Tally_std_core_Index_at(void* l0, vader_string_t l1);
+static void snippet_Tally_std_core_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2);
+static int32_t snippet_Cell_std_core_Index_at(void* l0, vader_string_t l1);
+static void snippet_Cell_std_core_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2);
 static int32_t snippet_bump(vader_box_t l0);
-static bool snippet_Odd_Contains_contains(void* l0, int64_t l1);
+static bool snippet_Odd_std_core_Contains_contains(void* l0, int64_t l1);
 static bool snippet_holds(vader_box_t l0, int64_t l1);
 static bool snippet_lacks(vader_box_t l0, int64_t l1);
 static bool snippet_holds_value(vader_box_t l0, int64_t l1);
-static void* snippet_Money_Add_add(void* l0, int32_t l1);
-static vader_string_t snippet_Money_Display_to_string(void* l0);
+static void* snippet_Money_std_core_Add_add(void* l0, int32_t l1);
+static vader_string_t snippet_Money_std_core_Display_to_string(void* l0);
 static vader_box_t snippet_plus_five(vader_box_t l0);
 static vader_string_t snippet_plus_one(vader_box_t l0);
 static int32_t snippet_main(void);
@@ -1011,16 +1011,16 @@ static size_t std_core_insert_point(void* l0, size_t l1, int32_t l2, int32_t l3)
 static void std_core_umul128(uint64_t l0, uint64_t l1, uint64_t* __o0, uint64_t* __o1);
 static uint64_t std_core_shiftright128(uint64_t l0, uint64_t l1, uint64_t l2);
 static int32_t std_core_pow5_factor(uint64_t l0);
-static vader_box_t std_collections_MutableMap_Index_at__i32__bool(void* l0, int32_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__i32__bool(void* l0, int32_t l1, bool l2);
-static bool std_collections_MutableMap_Contains_contains__i32__bool(void* l0, int32_t l1);
-static vader_box_t std_collections_MutableMap_Index_at__i32__i32(void* l0, int32_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__i32__i32(void* l0, int32_t l1, int32_t l2);
-static bool std_collections_MutableMap_Contains_contains__i32__i32(void* l0, int32_t l1);
-static vader_box_t std_collections_MutableMap_Index_at__string__i32(void* l0, vader_string_t l1);
-static void std_collections_MutableMap_IndexSet_set_at__string__i32(void* l0, vader_string_t l1, int32_t l2);
-static bool std_collections_MutableMap_Contains_contains__string__i32(void* l0, vader_string_t l1);
-static bool std_collections_MutableSet_Contains_contains__i32(void* l0, int32_t l1);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__i32__bool(void* l0, int32_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__i32__bool(void* l0, int32_t l1, bool l2);
+static bool std_collections_MutableMap_std_core_Contains_contains__i32__bool(void* l0, int32_t l1);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__i32__i32(void* l0, int32_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__i32__i32(void* l0, int32_t l1, int32_t l2);
+static bool std_collections_MutableMap_std_core_Contains_contains__i32__i32(void* l0, int32_t l1);
+static vader_box_t std_collections_MutableMap_std_core_Index_at__string__i32(void* l0, vader_string_t l1);
+static void std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(void* l0, vader_string_t l1, int32_t l2);
+static bool std_collections_MutableMap_std_core_Contains_contains__string__i32(void* l0, vader_string_t l1);
+static bool std_collections_MutableSet_std_core_Contains_contains__i32(void* l0, int32_t l1);
 static size_t std_collections_first_slot(uint64_t l0, size_t l1);
 static size_t std_collections_next_slot(size_t l0, uint64_t l1, size_t l2);
 static void std_collections_ensure_index__i32__bool(void* l0);
@@ -1314,7 +1314,7 @@ static vader_string_t snippet_shout(vader_box_t l0) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void snippet_Log_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2) {
+static void snippet_Log_std_core_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2) {
     void* l3 = NULL;
     void* l6 = NULL;
     vader_string_t l4 = 0;
@@ -1354,11 +1354,11 @@ static void snippet_put(vader_box_t l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static int32_t snippet_Tally_Index_at(void* l0, vader_string_t l1) {
+static int32_t snippet_Tally_std_core_Index_at(void* l0, vader_string_t l1) {
     vader_box_t l2;
     int32_t t0;
 #line 72 "tests/snippets/union_trait_dispatch/_main.vader"
-    l2 = std_collections_MutableMap_Index_at__string__i32(((vader_struct_snippet_Tally_t*) l0)->f_counts, l1);
+    l2 = std_collections_MutableMap_std_core_Index_at__string__i32(((vader_struct_snippet_Tally_t*) l0)->f_counts, l1);
     if (l2.tag == 0u) {
         return INT32_C(0);
     }
@@ -1366,7 +1366,7 @@ static int32_t snippet_Tally_Index_at(void* l0, vader_string_t l1) {
     return t0;
 }
 
-static void snippet_Tally_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2) {
+static void snippet_Tally_std_core_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2) {
     void* l3 = NULL;
     int32_t l4;
     void** gc_raw_roots[2] = { &l0, &l3 };
@@ -1378,12 +1378,12 @@ static void snippet_Tally_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l
 #line 77 "tests/snippets/union_trait_dispatch/_main.vader"
     l3 = ((vader_struct_snippet_Tally_t*) l0)->f_counts;
     l4 = vader_chk_mul(i32, l2, INT32_C(10));
-    std_collections_MutableMap_IndexSet_set_at__string__i32(l3, l1, l4);
+    std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(l3, l1, l4);
 #line 76 "tests/snippets/union_trait_dispatch/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static int32_t snippet_Cell_Index_at(void* l0, vader_string_t l1) {
+static int32_t snippet_Cell_std_core_Index_at(void* l0, vader_string_t l1) {
     int32_t t0;
 #line 86 "tests/snippets/union_trait_dispatch/_main.vader"
     vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_snippet_Cell_t*) l0)->f_cells);
@@ -1393,7 +1393,7 @@ static int32_t snippet_Cell_Index_at(void* l0, vader_string_t l1) {
     return t0;
 }
 
-static void snippet_Cell_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2) {
+static void snippet_Cell_std_core_IndexSet_set_at(void* l0, vader_string_t l1, int32_t l2) {
 #line 91 "tests/snippets/union_trait_dispatch/_main.vader"
     vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_snippet_Cell_t*) l0)->f_cells);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
@@ -1418,7 +1418,7 @@ static int32_t snippet_bump(vader_box_t l0) {
     { int32_t __vret = ((int32_t) t0.payload.i); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static bool snippet_Odd_Contains_contains(void* l0, int64_t l1) {
+static bool snippet_Odd_std_core_Contains_contains(void* l0, int64_t l1) {
     int64_t t0;
 #line 105 "tests/snippets/union_trait_dispatch/_main.vader"
     t0 = vader_mod_i64(l1, INT64_C(2));
@@ -1455,7 +1455,7 @@ static bool snippet_holds_value(vader_box_t l0, int64_t l1) {
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet_Money_Add_add(void* l0, int32_t l1) {
+static void* snippet_Money_std_core_Add_add(void* l0, int32_t l1) {
     int32_t t0, t1;
     void* t2 = NULL;
     void** gc_raw_roots[2] = { &l0, &t2 };
@@ -1471,7 +1471,7 @@ static void* snippet_Money_Add_add(void* l0, int32_t l1) {
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t snippet_Money_Display_to_string(void* l0) {
+static vader_string_t snippet_Money_std_core_Display_to_string(void* l0) {
     void* l1 = NULL;
     size_t l2;
     int64_t l3;
@@ -1517,7 +1517,7 @@ static vader_string_t snippet_plus_one(vader_box_t l0) {
     l1 = vader_vt_std_core_Add__add(l0, vader_box_i32(6u, INT32_C(1)));
 #line 130 "tests/snippets/union_trait_dispatch/_main.vader"
     if (l1.tag == 22u) {
-        t0 = snippet_Money_Display_to_string(l1.payload.obj);
+        t0 = snippet_Money_std_core_Display_to_string(l1.payload.obj);
         { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return 8u; }
@@ -4324,14 +4324,14 @@ static int32_t std_core_pow5_factor(uint64_t l0) {
     return l2;
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__i32__bool(void* l0, int32_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__i32__bool(void* l0, int32_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__i32__bool(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__i32__bool(void* l0, int32_t l1, bool l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__i32__bool(void* l0, int32_t l1, bool l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -4340,21 +4340,21 @@ static void std_collections_MutableMap_IndexSet_set_at__i32__bool(void* l0, int3
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static bool std_collections_MutableMap_Contains_contains__i32__bool(void* l0, int32_t l1) {
+static bool std_collections_MutableMap_std_core_Contains_contains__i32__bool(void* l0, int32_t l1) {
     bool t0;
 #line 283 "lib/std/collections/collections.vader"
     t0 = std_collections_contains_key__i32__bool(l0, l1);
     return t0;
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__i32__i32(void* l0, int32_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__i32__i32(void* l0, int32_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__i32__i32(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__i32__i32(void* l0, int32_t l1, int32_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__i32__i32(void* l0, int32_t l1, int32_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -4363,21 +4363,21 @@ static void std_collections_MutableMap_IndexSet_set_at__i32__i32(void* l0, int32
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static bool std_collections_MutableMap_Contains_contains__i32__i32(void* l0, int32_t l1) {
+static bool std_collections_MutableMap_std_core_Contains_contains__i32__i32(void* l0, int32_t l1) {
     bool t0;
 #line 283 "lib/std/collections/collections.vader"
     t0 = std_collections_contains_key__i32__i32(l0, l1);
     return t0;
 }
 
-static vader_box_t std_collections_MutableMap_Index_at__string__i32(void* l0, vader_string_t l1) {
+static vader_box_t std_collections_MutableMap_std_core_Index_at__string__i32(void* l0, vader_string_t l1) {
     vader_box_t t0;
 #line 275 "lib/std/collections/collections.vader"
     t0 = std_collections_get__string__i32(l0, l1);
     return t0;
 }
 
-static void std_collections_MutableMap_IndexSet_set_at__string__i32(void* l0, vader_string_t l1, int32_t l2) {
+static void std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(void* l0, vader_string_t l1, int32_t l2) {
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = {
@@ -4389,17 +4389,17 @@ static void std_collections_MutableMap_IndexSet_set_at__string__i32(void* l0, va
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static bool std_collections_MutableMap_Contains_contains__string__i32(void* l0, vader_string_t l1) {
+static bool std_collections_MutableMap_std_core_Contains_contains__string__i32(void* l0, vader_string_t l1) {
     bool t0;
 #line 283 "lib/std/collections/collections.vader"
     t0 = std_collections_contains_key__string__i32(l0, l1);
     return t0;
 }
 
-static bool std_collections_MutableSet_Contains_contains__i32(void* l0, int32_t l1) {
+static bool std_collections_MutableSet_std_core_Contains_contains__i32(void* l0, int32_t l1) {
     bool t0;
 #line 374 "lib/std/collections/collections.vader"
-    t0 = std_collections_MutableMap_Contains_contains__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) l0)->f_inner, l1);
+    t0 = std_collections_MutableMap_std_core_Contains_contains__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) l0)->f_inner, l1);
     return t0;
 }
 
@@ -5993,24 +5993,24 @@ static vader_string_t vader_vt_snippet_Loud__loud(vader_box_t recv) {
 
 static void vader_vt_std_core_IndexSet__set_at(vader_box_t recv, vader_box_t a0, vader_box_t a1) {
     switch (recv.tag) {
-        case 9u: snippet_Log_IndexSet_set_at(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
-        case 13u: snippet_Tally_IndexSet_set_at(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
-        case 14u: snippet_Cell_IndexSet_set_at(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
-        case 44u: std_collections_MutableMap_IndexSet_set_at__i32__bool(recv.payload.obj, ((int32_t) a0.payload.i), a1.payload.b); return;
-        case 46u: std_collections_MutableMap_IndexSet_set_at__i32__i32(recv.payload.obj, ((int32_t) a0.payload.i), ((int32_t) a1.payload.i)); return;
-        case 12u: std_collections_MutableMap_IndexSet_set_at__string__i32(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
+        case 9u: snippet_Log_std_core_IndexSet_set_at(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
+        case 13u: snippet_Tally_std_core_IndexSet_set_at(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
+        case 14u: snippet_Cell_std_core_IndexSet_set_at(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
+        case 44u: std_collections_MutableMap_std_core_IndexSet_set_at__i32__bool(recv.payload.obj, ((int32_t) a0.payload.i), a1.payload.b); return;
+        case 46u: std_collections_MutableMap_std_core_IndexSet_set_at__i32__i32(recv.payload.obj, ((int32_t) a0.payload.i), ((int32_t) a1.payload.i)); return;
+        case 12u: std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(recv.payload.obj, a0.payload.s, ((int32_t) a1.payload.i)); return;
         default: vader_unreachable("vtable miss in std_core$IndexSet.set_at");
     }
 }
 
 static vader_box_t vader_vt_std_core_Index__at(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 13u: return vader_box_i32(6u, snippet_Tally_Index_at(recv.payload.obj, a0.payload.s));
-        case 14u: return vader_box_i32(6u, snippet_Cell_Index_at(recv.payload.obj, a0.payload.s));
+        case 13u: return vader_box_i32(6u, snippet_Tally_std_core_Index_at(recv.payload.obj, a0.payload.s));
+        case 14u: return vader_box_i32(6u, snippet_Cell_std_core_Index_at(recv.payload.obj, a0.payload.s));
         case 7u: return vader_box_i32(38u, (int32_t) std_core_string_Index_at(recv.payload.s, ((size_t) a0.payload.i)));
-        case 44u: return std_collections_MutableMap_Index_at__i32__bool(recv.payload.obj, ((int32_t) a0.payload.i));
-        case 46u: return std_collections_MutableMap_Index_at__i32__i32(recv.payload.obj, ((int32_t) a0.payload.i));
-        case 12u: return std_collections_MutableMap_Index_at__string__i32(recv.payload.obj, a0.payload.s);
+        case 44u: return std_collections_MutableMap_std_core_Index_at__i32__bool(recv.payload.obj, ((int32_t) a0.payload.i));
+        case 46u: return std_collections_MutableMap_std_core_Index_at__i32__i32(recv.payload.obj, ((int32_t) a0.payload.i));
+        case 12u: return std_collections_MutableMap_std_core_Index_at__string__i32(recv.payload.obj, a0.payload.s);
         default: vader_unreachable("vtable miss in std_core$Index.at");
     }
     vader_unreachable("vtable miss in std_core$Index.at");
@@ -6018,14 +6018,14 @@ static vader_box_t vader_vt_std_core_Index__at(vader_box_t recv, vader_box_t a0)
 
 static bool vader_vt_std_core_Contains__contains(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 16u: return snippet_Odd_Contains_contains(recv.payload.obj, ((int64_t) a0.payload.i));
+        case 16u: return snippet_Odd_std_core_Contains_contains(recv.payload.obj, ((int64_t) a0.payload.i));
         case 28u: return std_core_Range_Contains_contains__i32(recv.payload.obj, ((int32_t) a0.payload.i));
         case 30u: return std_core_Range_Contains_contains__usize(recv.payload.obj, ((size_t) a0.payload.i));
         case 20u: return std_core____Contains_contains__i64(recv.payload.obj, ((int64_t) a0.payload.i));
-        case 44u: return std_collections_MutableMap_Contains_contains__i32__bool(recv.payload.obj, ((int32_t) a0.payload.i));
-        case 46u: return std_collections_MutableMap_Contains_contains__i32__i32(recv.payload.obj, ((int32_t) a0.payload.i));
-        case 12u: return std_collections_MutableMap_Contains_contains__string__i32(recv.payload.obj, a0.payload.s);
-        case 48u: return std_collections_MutableSet_Contains_contains__i32(recv.payload.obj, ((int32_t) a0.payload.i));
+        case 44u: return std_collections_MutableMap_std_core_Contains_contains__i32__bool(recv.payload.obj, ((int32_t) a0.payload.i));
+        case 46u: return std_collections_MutableMap_std_core_Contains_contains__i32__i32(recv.payload.obj, ((int32_t) a0.payload.i));
+        case 12u: return std_collections_MutableMap_std_core_Contains_contains__string__i32(recv.payload.obj, a0.payload.s);
+        case 48u: return std_collections_MutableSet_std_core_Contains_contains__i32(recv.payload.obj, ((int32_t) a0.payload.i));
         default: vader_unreachable("vtable miss in std_core$Contains.contains");
     }
     vader_unreachable("vtable miss in std_core$Contains.contains");
@@ -6033,7 +6033,7 @@ static bool vader_vt_std_core_Contains__contains(vader_box_t recv, vader_box_t a
 
 static vader_box_t vader_vt_std_core_Add__add(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 22u: return vader_ref_box(snippet_Money_Add_add(recv.payload.obj, ((int32_t) a0.payload.i)));
+        case 22u: return vader_ref_box(snippet_Money_std_core_Add_add(recv.payload.obj, ((int32_t) a0.payload.i)));
         case 33u: return vader_box_i32(33u, std_core_i8_Add_add_vt(((int8_t) recv.payload.i), ((int8_t) a0.payload.i)));
         case 34u: return vader_box_i32(34u, std_core_i16_Add_add_vt(((int16_t) recv.payload.i), ((int16_t) a0.payload.i)));
         case 6u: return vader_box_i32(6u, std_core_i32_Add_add_vt(((int32_t) recv.payload.i), ((int32_t) a0.payload.i)));
@@ -6054,7 +6054,7 @@ static vader_box_t vader_vt_std_core_Add__add(vader_box_t recv, vader_box_t a0) 
 
 static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv) {
     switch (recv.tag) {
-        case 22u: return snippet_Money_Display_to_string(recv.payload.obj);
+        case 22u: return snippet_Money_std_core_Display_to_string(recv.payload.obj);
         case 33u: return std_core_i8_Display_to_string(((int8_t) recv.payload.i));
         case 34u: return std_core_i16_Display_to_string(((int16_t) recv.payload.i));
         case 6u: return std_core_i32_Display_to_string(((int32_t) recv.payload.i));

@@ -850,9 +850,9 @@ static const vader_array_t vader_data_3 = {
     { 33u, 0u, 0u, 0u, NULL }, 47u, 47u, 0u, (vader_array_buf_t*) &vader_data_3_buf,
 };
 
-static vader_string_t snippet_Point_Display_to_string(void* l0);
+static vader_string_t snippet_Point_std_core_Display_to_string(void* l0);
 static int32_t snippet_main(void);
-static vader_string_t snippet_Box_Display_to_string(void* l0);
+static vader_string_t snippet_Box_std_core_Display_to_string(void* l0);
 static vader_string_t snippet_show__snippet_Box(vader_box_t l0);
 static vader_string_t snippet_listed__f64(void* l0);
 static vader_string_t snippet_listed__string(void* l0);
@@ -1032,7 +1032,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 /* vtable forwards */
 static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv);
 
-static vader_string_t snippet_Point_Display_to_string(void* l0) {
+static vader_string_t snippet_Point_std_core_Display_to_string(void* l0) {
     void* l1 = NULL;
     size_t l2;
     int64_t l3;
@@ -1142,7 +1142,7 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a12_obj, 4u);
     _a12_obj->f_value = vader_ref_box(t0);
     t0 = (void*) _a12_obj;
-    l1 = snippet_Box_Display_to_string(t0);
+    l1 = snippet_Box_std_core_Display_to_string(t0);
     vader_array_t* _a13_arr = vader_array_new(16u, 1u, 7u, 3u);
     ((int32_t*) _a13_arr->buf->slots)[_a13_arr->offset + 0u] = (int32_t) INT32_C(6);
     t0 = (void*) _a13_arr;
@@ -1165,7 +1165,7 @@ static int32_t snippet_main(void) {
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
-static vader_string_t snippet_Box_Display_to_string(void* l0) {
+static vader_string_t snippet_Box_std_core_Display_to_string(void* l0) {
     vader_string_t l1 = 0;
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
@@ -1822,7 +1822,7 @@ static vader_string_t std_core____Display_to_string__snippet_Point(void* l0) {
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l5)
         t0 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) l5);
 #line 374 "lib/std/core/core.vader"
-        l6 = snippet_Point_Display_to_string(t0);
+        l6 = snippet_Point_std_core_Display_to_string(t0);
 #line 375 "lib/std/core/core.vader"
         l7 = vader_host_std_core_byte_len(l6);
         t1 = vader_chk_add(usize, l2, l7);
@@ -4193,8 +4193,8 @@ static void std_io_println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static vader_string_t vader_vt_std_core_Display__to_string(vader_box_t recv) {
     switch (recv.tag) {
-        case 1u: return snippet_Point_Display_to_string(recv.payload.obj);
-        case 4u: return snippet_Box_Display_to_string(recv.payload.obj);
+        case 1u: return snippet_Point_std_core_Display_to_string(recv.payload.obj);
+        case 4u: return snippet_Box_std_core_Display_to_string(recv.payload.obj);
         case 16u: return std_core____Display_to_string__i32(recv.payload.obj);
         case 8u: return std_core____Display_to_string__string(recv.payload.obj);
         case 17u: return std_core____Display_to_string__bool(recv.payload.obj);

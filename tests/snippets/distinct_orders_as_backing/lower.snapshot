@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.Rgb :: struct { r: i32 }  // snippet$Rgb
-  snippet.Rgb.compare :: fn(self: Rgb, other: Rgb) -> i32 {  // snippet$Rgb$Comparable$compare
+  snippet.Rgb.compare :: fn(self: Rgb, other: Rgb) -> i32 {  // snippet$Rgb$std_core_Comparable$compare
       self.r - other.r
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -42,7 +42,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Comparable.compare for Rgb  snippet.Rgb.compare  // snippet$Rgb$Comparable$compare
+  vtable std.core.Comparable.compare for Rgb  snippet.Rgb.compare  // snippet$Rgb$std_core_Comparable$compare
 
 ## lowered in dependencies
   std/core

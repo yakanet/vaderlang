@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  snippet.Tag.into :: fn(self: Tag) -> string {  // snippet$Tag$Into$into
+  snippet.Tag.into :: fn(self: Tag) -> string {  // snippet$Tag$std_core_Into$into
       string(self)
   }
   snippet.takes :: fn(s: string) -> string {  // snippet$takes
@@ -20,7 +20,7 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Into.into for Tag  snippet.Tag.into  // snippet$Tag$Into$into
+  vtable std.core.Into.into for Tag  snippet.Tag.into  // snippet$Tag$std_core_Into$into
 
 ## lowered in dependencies
   std/core

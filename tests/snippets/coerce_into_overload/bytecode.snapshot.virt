@@ -20,7 +20,7 @@ impl 1 std_core$Into
 impl 6 std_core$ByteAccess
 export main 3
 
-fn 0 snippet$UserId$Into$into (ref) -> i32
+fn 0 snippet$UserId$std_core_Into$into (ref) -> i32
   local.field 0 1 0   ; arg 0 snippet$UserId.value
   ref.cast 2   ; i32
   return
@@ -46,7 +46,7 @@ fn 3 snippet$main () -> i32
   i32.const 42
   struct.new 1   ; snippet$UserId
   local.tee 0   ; u
-  call 0   ; snippet$UserId$Into$into
+  call 0   ; snippet$UserId$std_core_Into$into
   call 1   ; snippet$double
   local.set 1   ; a
   i64.const 22

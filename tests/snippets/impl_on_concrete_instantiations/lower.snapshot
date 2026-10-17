@@ -10,7 +10,7 @@
       return 0
   }
   snippet.Box<i32> :: struct { value: i32 }  // snippet$Box__i32
-  snippet.Box<i32>.to_string :: fn(self: Box<i32>) -> string {  // snippet$Box$Display$to_string__i32
+  snippet.Box<i32>.to_string :: fn(self: Box<i32>) -> string {  // snippet$Box$std_core_Display$to_string__i32
       {
           __buf_0: Buffer = std.core.new_byte_buffer(usize(24))
           __off_1: usize = 0
@@ -20,7 +20,7 @@
       } :string
   }
   snippet.Box<string> :: struct { value: string }  // snippet$Box__string
-  snippet.Box<string>.to_string :: fn(self: Box<string>) -> string {  // snippet$Box$Display$to_string__string$1
+  snippet.Box<string>.to_string :: fn(self: Box<string>) -> string {  // snippet$Box$std_core_Display$to_string__string$1
       concat_2("str ", self.value)
   }
   snippet.Box<Any> :: struct { value: Any }  // snippet$Box__Any
@@ -42,8 +42,8 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Display.to_string for Box<i32>  snippet.Box<i32>.to_string  // snippet$Box$Display$to_string__i32
-  vtable std.core.Display.to_string for Box<string>  snippet.Box<string>.to_string  // snippet$Box$Display$to_string__string$1
+  vtable std.core.Display.to_string for Box<i32>  snippet.Box<i32>.to_string  // snippet$Box$std_core_Display$to_string__i32
+  vtable std.core.Display.to_string for Box<string>  snippet.Box<string>.to_string  // snippet$Box$std_core_Display$to_string__string$1
 
 ## lowered in dependencies
   std/core

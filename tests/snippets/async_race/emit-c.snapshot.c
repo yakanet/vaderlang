@@ -82,13 +82,13 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__string(vader_string_t l0);
-static vader_box_t std_async_Race_Async_resume__string(void* l0);
-static void std_async_Race_Async_cancel__string(void* l0);
+static vader_box_t std_async_Race_std_core_Async_resume__string(void* l0);
+static void std_async_Race_std_core_Async_cancel__string(void* l0);
 static vader_box_t std_async_sleep(int64_t l0);
 static int32_t std_async_run_async_main(vader_box_t l0);
 static int64_t std_async_earlier(int64_t l0, int64_t l1);
-static vader_box_t std_async_Sleep_Async_resume(void* l0);
-static void std_async_Sleep_Async_cancel(void* l0);
+static vader_box_t std_async_Sleep_std_core_Async_resume(void* l0);
+static void std_async_Sleep_std_core_Async_cancel(void* l0);
 static int32_t std_async_block_on__i32(vader_box_t l0);
 static vader_box_t std_async_race__string(void* l0);
 
@@ -655,7 +655,7 @@ static void std_io_println__string(vader_string_t l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_box_t std_async_Race_Async_resume__string(void* l0) {
+static vader_box_t std_async_Race_std_core_Async_resume__string(void* l0) {
     size_t l1, l4, l8;
     int64_t l2, l3, l7, l9;
     vader_box_t l5 = vader_box_null();
@@ -745,7 +745,7 @@ static vader_box_t std_async_Race_Async_resume__string(void* l0) {
     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void std_async_Race_Async_cancel__string(void* l0) {
+static void std_async_Race_std_core_Async_cancel__string(void* l0) {
     void* l1 = NULL;
     size_t l2, l3;
     vader_box_t t0 = vader_box_null();
@@ -804,7 +804,7 @@ static int64_t std_async_earlier(int64_t l0, int64_t l1) {
     return l1;
 }
 
-static vader_box_t std_async_Sleep_Async_resume(void* l0) {
+static vader_box_t std_async_Sleep_std_core_Async_resume(void* l0) {
     int64_t l1, l2;
     bool t0;
     int64_t t1;
@@ -843,7 +843,7 @@ static vader_box_t std_async_Sleep_Async_resume(void* l0) {
     { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
 }
 
-static void std_async_Sleep_Async_cancel(void* l0) {
+static void std_async_Sleep_std_core_Async_cancel(void* l0) {
 #line 37906 "<clone>:lib/std/async/async.vader"
     return;
 }
@@ -906,8 +906,8 @@ static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
         case 7u: return snippet___asyncstate_snippet_2_Async_resume(recv.payload.obj);
         case 10u: return snippet___asyncstate_snippet_3_Async_resume(recv.payload.obj);
-        case 20u: return std_async_Race_Async_resume__string(recv.payload.obj);
-        case 23u: return std_async_Sleep_Async_resume(recv.payload.obj);
+        case 20u: return std_async_Race_std_core_Async_resume__string(recv.payload.obj);
+        case 23u: return std_async_Sleep_std_core_Async_resume(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Async.resume");
     }
     vader_unreachable("vtable miss in std_core$Async.resume");
@@ -917,8 +917,8 @@ static void vader_vt_std_core_Async__cancel(vader_box_t recv) {
     switch (recv.tag) {
         case 7u: snippet___asyncstate_snippet_2_Async_cancel(recv.payload.obj); return;
         case 10u: snippet___asyncstate_snippet_3_Async_cancel(recv.payload.obj); return;
-        case 20u: std_async_Race_Async_cancel__string(recv.payload.obj); return;
-        case 23u: std_async_Sleep_Async_cancel(recv.payload.obj); return;
+        case 20u: std_async_Race_std_core_Async_cancel__string(recv.payload.obj); return;
+        case 23u: std_async_Sleep_std_core_Async_cancel(recv.payload.obj); return;
         default: vader_unreachable("vtable miss in std_core$Async.cancel");
     }
 }

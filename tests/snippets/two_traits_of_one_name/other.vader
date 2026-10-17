@@ -1,0 +1,9 @@
+module "snippet"
+
+import "snippet/tr_b"
+
+Point implements Describe {
+    describe :: fn(self) -> string = "b ${self.x}"
+}
+
+show_b :: fn(d: Describe) -> string = d.describe()

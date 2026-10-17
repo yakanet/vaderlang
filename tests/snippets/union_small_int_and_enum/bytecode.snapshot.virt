@@ -988,7 +988,7 @@ fn 39 std_core$char$Equals$equals$guard (char,any) -> bool
   return.lit bool.const false
 end
 
-fn 40 std_collections$MutableMap$IndexSet$set_at__string___u8__bool (ref,any,bool) -> void
+fn 40 std_collections$MutableMap$std_core_IndexSet$set_at__string___u8__bool (ref,any,bool) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -996,7 +996,7 @@ fn 40 std_collections$MutableMap$IndexSet$set_at__string___u8__bool (ref,any,boo
   return
 end
 
-fn 41 std_collections$MutableMap$Contains$contains__string___u8__bool (ref,any) -> bool
+fn 41 std_collections$MutableMap$std_core_Contains$contains__string___u8__bool (ref,any) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 48   ; std_collections$contains_key__string___u8__bool
@@ -1476,13 +1476,13 @@ end
 fn 49 std_collections$add__string___u8 (ref,any) -> bool
   local.field 0 28 0   ; arg 0 std_collections$MutableSet__string___u8.inner
   local.get 1   ; arg 1
-  call 41   ; std_collections$MutableMap$Contains$contains__string___u8__bool
+  call 41   ; std_collections$MutableMap$std_core_Contains$contains__string___u8__bool
   if $L0 void
   else
     local.field 0 28 0   ; arg 0 std_collections$MutableSet__string___u8.inner
     local.get 1   ; arg 1
     bool.const true
-    call 40   ; std_collections$MutableMap$IndexSet$set_at__string___u8__bool
+    call 40   ; std_collections$MutableMap$std_core_IndexSet$set_at__string___u8__bool
     return.lit bool.const true
   end $L0
   return.lit bool.const false

@@ -21,11 +21,11 @@ end
 fn 2 snippet_units$elapsed (i64,i64) -> i64
   local.get 1   ; arg 1
   local.get 0   ; arg 0
-  call 3   ; snippet_units$Instant$Sub$sub
+  call 3   ; snippet_units$Instant$std_core_Sub$sub
   return
 end
 
-fn 3 snippet_units$Instant$Sub$sub (i64,i64) -> i64
+fn 3 snippet_units$Instant$std_core_Sub$sub (i64,i64) -> i64
   local $cast_2 i64
   local $cast_3 i64
   local.get 0   ; arg 0

@@ -4982,7 +4982,7 @@ fn 57 json$stringify (any) -> string
   i32.const 0
   call 63   ; json$write_value
   local.get 1   ; sb
-  call 97   ; std_string_builder$StringBuilder$Display$to_string
+  call 97   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -5510,7 +5510,7 @@ fn 66 json$parse_object (ref,i32) -> any
       local.get 2   ; $arr_9
       local.get 8   ; $cast_40
       local.get 9   ; $cast_41
-      call 98   ; std_collections$MutableMap$IndexSet$set_at__string__Any
+      call 98   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__Any
       local.get 0   ; arg 0
       call 60   ; json$skip_ws
       local.get 0   ; arg 0
@@ -6327,7 +6327,7 @@ fn 77 json$parse_string_with_escapes (ref,ref) -> any
         local.get 0   ; arg 0
         call 71   ; json$advance
         local.get 1   ; arg 1
-        call 97   ; std_string_builder$StringBuilder$Display$to_string
+        call 97   ; std_string_builder$StringBuilder$std_core_Display$to_string
         retag 1   ; string
         return
       end $L2
@@ -6966,7 +6966,7 @@ fn 85 std_string$pad_start (string,usize,char) -> string
   local.get 0   ; arg 0
   call 94   ; std_string_builder$append
   local.get 4   ; sb
-  call 97   ; std_string_builder$StringBuilder$Display$to_string
+  call 97   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -7201,7 +7201,7 @@ fn 96 std_string_builder$append_repeated (ref,char,i32) -> void
   return
 end
 
-fn 97 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 97 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -7303,7 +7303,7 @@ fn 97 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   return
 end
 
-fn 98 std_collections$MutableMap$IndexSet$set_at__string__Any (ref,string,any) -> void
+fn 98 std_collections$MutableMap$std_core_IndexSet$set_at__string__Any (ref,string,any) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -7840,7 +7840,7 @@ fn 107 std_numbers$to_hex (u64) -> string
     end $L4
   end $L3
   local.get 5   ; sb
-  call 97   ; std_string_builder$StringBuilder$Display$to_string
+  call 97   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 

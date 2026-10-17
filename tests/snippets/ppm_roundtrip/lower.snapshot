@@ -77,8 +77,8 @@
   std/target/baked
     const VADER_OS: Os  inline
   images/ppm
-    fn images.ppm.Ppm.to_string  // images_ppm$Ppm$Display$to_string
-    fn images.ppm.PpmError.message  // images_ppm$PpmError$Error$message
+    fn images.ppm.Ppm.to_string  // images_ppm$Ppm$std_core_Display$to_string
+    fn images.ppm.PpmError.message  // images_ppm$PpmError$std_core_Error$message
     fn images.ppm.bytes_per_sample  // images_ppm$bytes_per_sample
     fn images.ppm.decode  // images_ppm$decode
     fn images.ppm.encode  // images_ppm$encode
@@ -114,7 +114,7 @@
     struct std.core.Range<i32>  // std_core$Range__i32
     struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std.io.IOError.message  // std_io$IOError$Error$message
+    fn std.io.IOError.message  // std_io$IOError$std_core_Error$message
     fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
     fn std.io.last_io_error  // std_io$last_io_error
     fn std.io.println<string>  // std_io$println__string

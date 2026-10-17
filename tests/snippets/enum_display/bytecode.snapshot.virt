@@ -79,7 +79,7 @@ vtable std_core$Display.to_string 18 35
 vtable std_core$Display.to_string 19 36
 export main 3
 
-fn 0 snippet$Weight$Display$to_string (u8) -> string
+fn 0 snippet$Weight$std_core_Display$to_string (u8) -> string
   local __buf_0 ref
   local __off_1 usize
   local $cast_7 u64
@@ -138,13 +138,13 @@ fn 3 snippet$main () -> i32
   local $cast_36 i64
   i32.const 2
   local.tee 0   ; d
-  call 4   ; snippet$Direction$Display$to_string
+  call 4   ; snippet$Direction$std_core_Display$to_string
   local.set 1   ; $call_2
   i32.const 3
-  call 4   ; snippet$Direction$Display$to_string
+  call 4   ; snippet$Direction$std_core_Display$to_string
   local.set 2   ; $call_5
   local.get 0   ; d
-  call 4   ; snippet$Direction$Display$to_string
+  call 4   ; snippet$Direction$std_core_Display$to_string
   local.set 3   ; $call_7
   local.get 1   ; $call_2
   string.const 1   ; " "
@@ -161,7 +161,7 @@ fn 3 snippet$main () -> i32
   else
     local.get 4   ; v
     ref.cast 1   ; u8
-    call 4   ; snippet$Direction$Display$to_string
+    call 4   ; snippet$Direction$std_core_Display$to_string
     local.set 1   ; $call_2
     string.const 2   ; "narrowed "
     local.get 1   ; $call_2
@@ -174,7 +174,7 @@ fn 3 snippet$main () -> i32
   call 20   ; std_core$[]$Display$to_string__snippet_Direction
   call 71   ; std_io$println__string
   i32.const 1
-  call 5   ; snippet$Status$Display$to_string
+  call 5   ; snippet$Status$std_core_Display$to_string
   local.tee 1   ; $call_2
   call.import 0   ; std_core$byte_len
   local.set 5   ; $call_25
@@ -252,7 +252,7 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 snippet$Direction$Display$to_string (u8) -> string
+fn 4 snippet$Direction$std_core_Display$to_string (u8) -> string
   local if_res string
   local.get 0   ; arg 0
   i32.const 0
@@ -291,7 +291,7 @@ fn 4 snippet$Direction$Display$to_string (u8) -> string
   return
 end
 
-fn 5 snippet$Status$Display$to_string (u8) -> string
+fn 5 snippet$Status$std_core_Display$to_string (u8) -> string
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -311,7 +311,7 @@ end
 fn 6 snippet$show__snippet_Direction (u8) -> string
   local $call_2 string
   local.get 0   ; arg 0
-  call 4   ; snippet$Direction$Display$to_string
+  call 4   ; snippet$Direction$std_core_Display$to_string
   local.set 1   ; $call_2
   string.const 10   ; "<"
   local.get 1   ; $call_2
@@ -323,7 +323,7 @@ end
 fn 7 snippet$show__snippet_Status (u8) -> string
   local $call_2 string
   local.get 0   ; arg 0
-  call 5   ; snippet$Status$Display$to_string
+  call 5   ; snippet$Status$std_core_Display$to_string
   local.set 1   ; $call_2
   string.const 10   ; "<"
   local.get 1   ; $call_2
@@ -335,7 +335,7 @@ end
 fn 8 snippet$show__snippet_Weight (u8) -> string
   local $call_2 string
   local.get 0   ; arg 0
-  call 0   ; snippet$Weight$Display$to_string
+  call 0   ; snippet$Weight$std_core_Display$to_string
   local.set 1   ; $call_2
   string.const 10   ; "<"
   local.get 1   ; $call_2
@@ -381,10 +381,10 @@ fn 10 snippet$pair__snippet_Direction (u8,u8) -> string
   local $call_2 string
   local $call_4 string
   local.get 0   ; arg 0
-  call 4   ; snippet$Direction$Display$to_string
+  call 4   ; snippet$Direction$std_core_Display$to_string
   local.set 2   ; $call_2
   local.get 1   ; arg 1
-  call 4   ; snippet$Direction$Display$to_string
+  call 4   ; snippet$Direction$std_core_Display$to_string
   local.set 3   ; $call_4
   local.get 2   ; $call_2
   string.const 12   ; "/"
@@ -790,7 +790,7 @@ fn 20 std_core$[]$Display$to_string__snippet_Direction (ref) -> string
       local.get 3   ; __for_arr_0
       local.get 5   ; __for_i_2
       array.get 7   ; u8[]
-      call 4   ; snippet$Direction$Display$to_string
+      call 4   ; snippet$Direction$std_core_Display$to_string
       local.tee 6   ; part
       call.import 0   ; std_core$byte_len
       local.set 7   ; $call_17

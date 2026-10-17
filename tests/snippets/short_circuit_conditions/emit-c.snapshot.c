@@ -74,7 +74,7 @@ static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
 static void std_io_println__string(vader_string_t l0);
 static void std_string_builder_append(void* l0, vader_string_t l1);
-static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0);
+static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_string(void* l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -256,7 +256,7 @@ static vader_string_t snippet_shapes(bool l0, bool l1, bool l2) {
 #line 36 "tests/snippets/short_circuit_conditions/_main.vader"
         std_string_builder_append(l3, 11u);
 #line 42 "tests/snippets/short_circuit_conditions/_main.vader"
-        t2 = std_string_builder_StringBuilder_Display_to_string(l3);
+        t2 = std_string_builder_StringBuilder_std_core_Display_to_string(l3);
         { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 #line 35 "tests/snippets/short_circuit_conditions/_main.vader"
     }
@@ -277,7 +277,7 @@ static vader_string_t snippet_shapes(bool l0, bool l1, bool l2) {
 #line 37 "tests/snippets/short_circuit_conditions/_main.vader"
     }
 #line 42 "tests/snippets/short_circuit_conditions/_main.vader"
-    t2 = std_string_builder_StringBuilder_Display_to_string(l3);
+    t2 = std_string_builder_StringBuilder_std_core_Display_to_string(l3);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -821,7 +821,7 @@ static void std_string_builder_append(void* l0, vader_string_t l1) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static vader_string_t std_string_builder_StringBuilder_Display_to_string(void* l0) {
+static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_string(void* l0) {
     size_t l1, l3, l4, l5, l8;
     void* l2 = NULL;
     void* l6 = NULL;

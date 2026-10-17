@@ -56,7 +56,7 @@ impl 15 std_core$ByteAccess
 impl 21 std_core$Display
 export main 8
 
-fn 0 snippet$Path$Equals$equals (string,string) -> bool
+fn 0 snippet$Path$std_core_Equals$equals (string,string) -> bool
   local $call_3 string
   local $call_5 string
   local.get 0   ; arg 0
@@ -215,7 +215,7 @@ end
 fn 6 snippet$named (string) -> string
   local.get 0   ; arg 0
   string.const 12   ; "readme"
-  call 0   ; snippet$Path$Equals$equals
+  call 0   ; snippet$Path$std_core_Equals$equals
   if $L0 void
     return.lit string.const 12   ; "readme"
   end $L0
@@ -1399,7 +1399,7 @@ fn 24 std_string$to_lower (string) -> string
     end $L1
   end $L0
   local.get 1   ; sb
-  call 27   ; std_string_builder$StringBuilder$Display$to_string
+  call 27   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -1495,7 +1495,7 @@ fn 26 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 27 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize

@@ -1,0 +1,5 @@
+module "snippet/tr_a"
+
+export Describe :: trait {
+    describe :: fn(self) -> string
+}

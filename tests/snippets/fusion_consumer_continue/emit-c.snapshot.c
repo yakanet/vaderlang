@@ -415,7 +415,7 @@ static vader_box_t std_core_array_iter__i32(void* l0);
 static void* std_core___gen_state_std_core_0_Iterator_next(void* l0);
 static vader_box_t std_async_sleep(int64_t l0);
 static int32_t std_async_run_async_main(vader_box_t l0);
-static vader_box_t std_async_Sleep_Async_resume(void* l0);
+static vader_box_t std_async_Sleep_std_core_Async_resume(void* l0);
 static int32_t std_async_block_on__i32(vader_box_t l0);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
@@ -431,8 +431,8 @@ static void* std_iter___gen_state_std_iter_3_Iterator_next(void* l0);
 static vader_box_t std_iter_take__i32(vader_box_t l0, size_t l1);
 static void* std_iter___gen_state_std_iter_1_Iterator_next(void* l0);
 static void* std_string_chars(vader_string_t l0);
-static void* std_string_StringChars_Iterator_next(void* l0);
-static void std_string_StringChars_Iterator_next_v(void* l0, uint32_t* __o0, uint8_t* __o1);
+static void* std_string_StringChars_std_core_Iterator_next(void* l0);
+static void std_string_StringChars_std_core_Iterator_next_v(void* l0, uint32_t* __o0, uint8_t* __o1);
 static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l0);
 static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l0);
 static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l0);
@@ -1349,7 +1349,7 @@ static void snippet_chars_indexed_continue(void) {
     l2 = (size_t) 0;
 #line 134 "tests/snippets/fusion_consumer_continue/_main.vader"
     for (;;) {
-        std_string_StringChars_Iterator_next_v(l1, &t0, &t1);
+        std_string_StringChars_std_core_Iterator_next_v(l1, &t0, &t1);
         l11 = t1;
         l10 = t0;
         if (!(l11 == INT32_C(1))) {
@@ -3737,7 +3737,7 @@ static int32_t std_async_run_async_main(vader_box_t l0) {
     { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_box_t std_async_Sleep_Async_resume(void* l0) {
+static vader_box_t std_async_Sleep_std_core_Async_resume(void* l0) {
     int64_t l1, l2;
     bool t0;
     int64_t t1;
@@ -4894,7 +4894,7 @@ static void* std_string_chars(vader_string_t l0) {
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* std_string_StringChars_Iterator_next(void* l0) {
+static void* std_string_StringChars_std_core_Iterator_next(void* l0) {
     uint8_t l1;
     uint32_t t0;
     uint8_t t1;
@@ -4903,7 +4903,7 @@ static void* std_string_StringChars_Iterator_next(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 83 "lib/std/string/string.vader"
-    std_string_StringChars_Iterator_next_v(l0, &t0, &t1);
+    std_string_StringChars_std_core_Iterator_next_v(l0, &t0, &t1);
     l1 = t1;
     vader_struct___Tuple_char_u8_37971378_t* _a0_obj = (vader_struct___Tuple_char_u8_37971378_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_char_u8_37971378_t));
     vader_obj_header_init(_a0_obj, 47u);
@@ -4913,7 +4913,7 @@ static void* std_string_StringChars_Iterator_next(void* l0) {
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void std_string_StringChars_Iterator_next_v(void* l0, uint32_t* __o0, uint8_t* __o1) {
+static void std_string_StringChars_std_core_Iterator_next_v(void* l0, uint32_t* __o0, uint8_t* __o1) {
     size_t l1, l2, l5;
     uint8_t l3;
     uint32_t l4;
@@ -5456,7 +5456,7 @@ static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv) {
         case 43u: return vader_ref_box(std_iter___gen_state_std_iter_0_Iterator_next(recv.payload.obj));
         case 45u: return vader_ref_box(std_iter___gen_state_std_iter_3_Iterator_next(recv.payload.obj));
         case 46u: return vader_ref_box(std_iter___gen_state_std_iter_1_Iterator_next(recv.payload.obj));
-        case 48u: return vader_ref_box(std_string_StringChars_Iterator_next(recv.payload.obj));
+        case 48u: return vader_ref_box(std_string_StringChars_std_core_Iterator_next(recv.payload.obj));
         case 50u: return vader_ref_box(std_collections___gen_state_std_collections_0_Iterator_next(recv.payload.obj));
         case 54u: return vader_ref_box(std_collections___gen_state_std_collections_1_Iterator_next(recv.payload.obj));
         case 58u: return vader_ref_box(std_collections___gen_state_std_collections_2_Iterator_next(recv.payload.obj));
@@ -5471,7 +5471,7 @@ static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
         case 12u: return snippet___asyncstate_snippet_0_Async_resume(recv.payload.obj);
         case 15u: return snippet___asyncstate_snippet_1_Async_resume(recv.payload.obj);
         case 16u: return snippet___asyncstate_snippet_2_Async_resume(recv.payload.obj);
-        case 35u: return std_async_Sleep_Async_resume(recv.payload.obj);
+        case 35u: return std_async_Sleep_std_core_Async_resume(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Async.resume");
     }
     vader_unreachable("vtable miss in std_core$Async.resume");

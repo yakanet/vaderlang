@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.StatusInfo :: struct { code: i32 }  // snippet$StatusInfo
-  snippet.Weight.to_string :: fn(self: Weight) -> string {  // snippet$Weight$Display$to_string
+  snippet.Weight.to_string :: fn(self: Weight) -> string {  // snippet$Weight$std_core_Display$to_string
       {
           __buf_0: Buffer = std.core.new_byte_buffer(usize(23))
           __off_1: usize = 0
@@ -40,7 +40,7 @@
       std.io.println<string>(concat_2("byte ", @vcall(std.core.Display.to_string, snippet.maybe_byte(true))))
       return 0
   }
-  snippet.Direction.to_string :: fn(self: Direction) -> string {  // snippet$Direction$Display$to_string
+  snippet.Direction.to_string :: fn(self: Direction) -> string {  // snippet$Direction$std_core_Display$to_string
       {
           if self == u8(0) {
               "North"
@@ -55,7 +55,7 @@
           } :string
       } :string
   }
-  snippet.Status.to_string :: fn(self: Status) -> string {  // snippet$Status$Display$to_string
+  snippet.Status.to_string :: fn(self: Status) -> string {  // snippet$Status$std_core_Display$to_string
       {
           if self == u8(0) {
               "Ok"
@@ -123,9 +123,9 @@
       std.core.Buffer.write_string(buf, c1, p2)
       std.core.Buffer.intern_string(buf, c2)
   }
-  vtable std.core.Display.to_string for Direction  snippet.Direction.to_string  // snippet$Direction$Display$to_string
-  vtable std.core.Display.to_string for Status  snippet.Status.to_string  // snippet$Status$Display$to_string
-  vtable std.core.Display.to_string for Weight  snippet.Weight.to_string  // snippet$Weight$Display$to_string
+  vtable std.core.Display.to_string for Direction  snippet.Direction.to_string  // snippet$Direction$std_core_Display$to_string
+  vtable std.core.Display.to_string for Status  snippet.Status.to_string  // snippet$Status$std_core_Display$to_string
+  vtable std.core.Display.to_string for Weight  snippet.Weight.to_string  // snippet$Weight$std_core_Display$to_string
 
 ## lowered in dependencies
   std/core

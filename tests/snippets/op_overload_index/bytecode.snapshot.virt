@@ -27,7 +27,7 @@ impl 1 std_core$IndexSet
 impl 9 std_core$ByteAccess
 export main 2
 
-fn 0 snippet$Cell$Index$at (ref,string) -> i32
+fn 0 snippet$Cell$std_core_Index$at (ref,string) -> i32
   local i i32
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -71,7 +71,7 @@ fn 0 snippet$Cell$Index$at (ref,string) -> i32
   return.lit i32.const 0
 end
 
-fn 1 snippet$Cell$IndexSet$set_at (ref,string,i32) -> void
+fn 1 snippet$Cell$std_core_IndexSet$set_at (ref,string,i32) -> void
   local i i32
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -137,15 +137,15 @@ fn 2 snippet$main () -> i32
   local.tee 0   ; $arr_0
   string.const 0   ; "a"
   i32.const 10
-  call 1   ; snippet$Cell$IndexSet$set_at
+  call 1   ; snippet$Cell$std_core_IndexSet$set_at
   local.get 0   ; $arr_0
   string.const 1   ; "b"
   i32.const 20
-  call 1   ; snippet$Cell$IndexSet$set_at
+  call 1   ; snippet$Cell$std_core_IndexSet$set_at
   local.get 0   ; $arr_0
   string.const 0   ; "a"
   i32.const 100
-  call 1   ; snippet$Cell$IndexSet$set_at
+  call 1   ; snippet$Cell$std_core_IndexSet$set_at
   i64.const 68
   call 4   ; std_core$new_byte_buffer
   local.set 1   ; $arr_1
@@ -158,7 +158,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; $arr_0
   string.const 0   ; "a"
-  call 0   ; snippet$Cell$Index$at
+  call 0   ; snippet$Cell$std_core_Index$at
   i32.to_i64
   local.set 3   ; $cast_19
   local.get 1   ; $arr_1
@@ -173,7 +173,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; $arr_0
   string.const 1   ; "b"
-  call 0   ; snippet$Cell$Index$at
+  call 0   ; snippet$Cell$std_core_Index$at
   i32.to_i64
   local.set 3   ; $cast_19
   local.get 1   ; $arr_1
@@ -188,7 +188,7 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 0   ; $arr_0
   string.const 5   ; "c"
-  call 0   ; snippet$Cell$Index$at
+  call 0   ; snippet$Cell$std_core_Index$at
   i32.to_i64
   local.set 3   ; $cast_19
   local.get 1   ; $arr_1

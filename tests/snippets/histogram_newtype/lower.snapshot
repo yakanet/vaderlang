@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  snippet.Histogram.mul :: fn(self: Histogram, k: u32) -> Histogram {  // snippet$Histogram$Mul$mul
+  snippet.Histogram.mul :: fn(self: Histogram, k: u32) -> Histogram {  // snippet$Histogram$std_core_Mul$mul
       out: Histogram = @array.repeat([] :Histogram, @array.len(self))
       {
           i: usize = 0
@@ -14,7 +14,7 @@
       }
       return out
   }
-  snippet.Histogram.div :: fn(self: Histogram, k: u32) -> [Histogram, u32] {  // snippet$Histogram$Div$div
+  snippet.Histogram.div :: fn(self: Histogram, k: u32) -> [Histogram, u32] {  // snippet$Histogram$std_core_Div$div
       out: Histogram = @array.repeat([] :Histogram, @array.len(self))
       {
           i: usize = 0
@@ -96,8 +96,8 @@
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
-  vtable std.core.Div.div for Histogram  snippet.Histogram.div  // snippet$Histogram$Div$div
-  vtable std.core.Mul.mul for Histogram  snippet.Histogram.mul  // snippet$Histogram$Mul$mul
+  vtable std.core.Div.div for Histogram  snippet.Histogram.div  // snippet$Histogram$std_core_Div$div
+  vtable std.core.Mul.mul for Histogram  snippet.Histogram.mul  // snippet$Histogram$std_core_Mul$mul
 
 ## lowered in dependencies
   std/core

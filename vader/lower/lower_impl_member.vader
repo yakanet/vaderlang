@@ -186,7 +186,6 @@ build_ufcs_member :: fn(
     entry: ImplEntry,
     is_identity: bool,
 ) -> UfcsMember {
-    decl :: entry.decl
     // Synthesise a Fn symbol carrying the member's deterministic mangle so the
     // call site resolves to the synth decl's mangle index
     // (`function_index_by_mangle`, consulted first in the CFG call emit). The
@@ -202,7 +201,7 @@ build_ufcs_member :: fn(
     // Then what tells its members from another impl of the trait on that base
     // (`ImplEntry.overload_suffix`), as every materialiser names them.
     suffix :: "${receiver_suffix(ctx, entry, target_type)}${entry.overload_suffix}"
-    mangled :: impl_member_name(entry.module, target_type, decl.trait_name, member.name, suffix)
+    mangled :: impl_member_name(entry.module, target_type, entry.trait_symbol, member.name, suffix)
     // Record the call so the post-lowering pass surfaces referenced stdlib impl
     // members : bodyless (`@intrinsic`) → import ; with-body (e.g. `i32
     // implements Hash -> u64(self)`) → materialised real fn.
@@ -358,29 +357,38 @@ impl_is_intrinsic :: fn(decl: ImplDecl) -> bool {
     return false
 }
 
-// The name of an impl member : the impl's module, its target segment, its trait,
-// the member, then what tells it from its siblings. With `impl_member_segment_name`,
-// the one place that spells the scheme, so the call sites and the materialisers
-// name each member alike.
+// The name of an impl member : the impl's module, its target segment, its trait
+// segment, the member, then what tells it from its siblings. With
+// `impl_member_segment_name`, the one place that spells the scheme, so the call
+// sites and the materialisers name each member alike.
 impl_member_name :: fn(
-    impl_module: string, target: Type, trait_name: string, member: string, suffix: string,
+    impl_module: string, target: Type, trait_symbol: Symbol, member: string, suffix: string,
 ) -> string {
     segment :: impl_target_segment(impl_module, target)
-    return impl_member_segment_name(impl_module, segment, trait_name, member, suffix)
+    trait_segment :: impl_symbol_segment(impl_module, trait_symbol)
+    return impl_member_segment_name(impl_module, segment, trait_segment, member, suffix)
 }
 
-// The scheme over a target segment already chosen : a state struct the lowering
-// synthesises lives in the module that lowers it, so its bare name is its segment.
+// The scheme over segments already chosen. A state struct the lowering
+// synthesises lives in the module that lowers it, and its members are reached
+// through their vtable slot, never by a name rebuilt with `impl_member_name` :
+// its bare name and its trait's are its segments.
 impl_member_segment_name :: fn(
-    impl_module: string, segment: string, trait_name: string, member: string, suffix: string,
-) -> string = "${mangle_module_id(impl_module)}$${segment}$${trait_name}$${member}${suffix}"
+    impl_module: string, segment: string, trait_segment: string, member: string, suffix: string,
+) -> string = "${mangle_module_id(impl_module)}$${segment}$${trait_segment}$${member}${suffix}"
 
-// The target segment of an impl member's name. A nominal target declared in the
-// impl's own module keeps its bare name ; one declared elsewhere is qualified by
-// its module, so impls of one trait for `pa.Point` and `pb.Point` written in the
-// same module name apart.
+// The target segment of an impl member's name : its nominal target's segment,
+// so impls of one trait for `pa.Point` and `pb.Point` written in the same module
+// name apart.
 impl_target_segment :: fn(impl_module: string, target: Type) -> string {
     sym :: type_to_target_symbol(target) ?? return type_surface_name(target)
+    return impl_symbol_segment(impl_module, sym)
+}
+
+// The segment of a type or a trait in an impl member's name : its bare name when
+// declared in the impl's own module, qualified by its module otherwise, so two
+// declarations of one name never meet in one member name.
+impl_symbol_segment :: fn(impl_module: string, sym: Symbol) -> string {
     if sym.module_name == impl_module {
         return sym.name
     }

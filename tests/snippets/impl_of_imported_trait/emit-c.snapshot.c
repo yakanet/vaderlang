@@ -24,7 +24,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 1u
 
-static int32_t snippet_Foo_Scored_score(void* l0);
+static int32_t snippet_Foo_snippet_score_Scored_score(void* l0);
 static int32_t snippet_main(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static void* std_core_new_byte_buffer(size_t l0);
@@ -75,7 +75,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
     return write(a0, s1.ptr, a2);
 }
 
-static int32_t snippet_Foo_Scored_score(void* l0) {
+static int32_t snippet_Foo_snippet_score_Scored_score(void* l0) {
     int32_t t0;
 #line 12 "tests/snippets/impl_of_imported_trait/_main.vader"
     t0 = ((vader_struct_snippet_Foo_t*) l0)->f_x;
@@ -103,7 +103,7 @@ static int32_t snippet_main(void) {
 #line 17 "tests/snippets/impl_of_imported_trait/_main.vader"
     l1 = std_core_new_byte_buffer((size_t) 20);
     l2 = (size_t) 0;
-    t0 = snippet_Foo_Scored_score(l0);
+    t0 = snippet_Foo_snippet_score_Scored_score(l0);
     l3 = ((int64_t) (int32_t) t0);
     l2 = std_core_write_int(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);

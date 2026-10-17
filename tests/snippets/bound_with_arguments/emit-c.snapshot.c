@@ -767,9 +767,9 @@ static const vader_array_t vader_data_1 = {
     { 26u, 0u, 0u, 0u, NULL }, 652u, 652u, 0u, (vader_array_buf_t*) &vader_data_1_buf,
 };
 
-static void* snippet_Money_Add_add(void* l0, void* l1);
-static void* snippet_Points_Add_add(void* l0, void* l1);
-static void* snippet_Grams_Add_add(void* l0, void* l1);
+static void* snippet_Money_std_core_Add_add(void* l0, void* l1);
+static void* snippet_Points_std_core_Add_add(void* l0, void* l1);
+static void* snippet_Grams_std_core_Add_add(void* l0, void* l1);
 static int32_t snippet_Cfg_Sink_put(void* l0, void* l1);
 static int32_t snippet_main(void);
 static size_t snippet____Count_count__snippet_Money(void* l0, void* l1);
@@ -907,7 +907,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 /* vtable forwards */
 static vader_box_t vader_vt_std_core_Add__add(vader_box_t recv, vader_box_t a0);
 
-static void* snippet_Money_Add_add(void* l0, void* l1) {
+static void* snippet_Money_std_core_Add_add(void* l0, void* l1) {
     int64_t l2, l3;
     int64_t t0;
     void* t1 = NULL;
@@ -925,7 +925,7 @@ static void* snippet_Money_Add_add(void* l0, void* l1) {
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet_Points_Add_add(void* l0, void* l1) {
+static void* snippet_Points_std_core_Add_add(void* l0, void* l1) {
     int32_t l2, l3;
     int32_t t0;
     void* t1 = NULL;
@@ -943,7 +943,7 @@ static void* snippet_Points_Add_add(void* l0, void* l1) {
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* snippet_Grams_Add_add(void* l0, void* l1) {
+static void* snippet_Grams_std_core_Add_add(void* l0, void* l1) {
     int32_t l2, l3;
     int32_t t0;
     void* t1 = NULL;
@@ -1158,7 +1158,7 @@ static void* snippet_twice__snippet_Grams(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 40 "tests/snippets/bound_with_arguments/_main.vader"
-    t0 = snippet_Grams_Add_add(l0, l0);
+    t0 = snippet_Grams_std_core_Add_add(l0, l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1168,7 +1168,7 @@ static void* snippet_twice__snippet_Money(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 40 "tests/snippets/bound_with_arguments/_main.vader"
-    t0 = snippet_Money_Add_add(l0, l0);
+    t0 = snippet_Money_std_core_Add_add(l0, l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1178,7 +1178,7 @@ static void* snippet_twice__snippet_Points(void* l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 40 "tests/snippets/bound_with_arguments/_main.vader"
-    t0 = snippet_Points_Add_add(l0, l0);
+    t0 = snippet_Points_std_core_Add_add(l0, l0);
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -2577,9 +2577,9 @@ static double std_core_f64_Add_add_vt(double l0, double l1) {
 /* vtable dispatchers */
 static vader_box_t vader_vt_std_core_Add__add(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 1u: return vader_ref_box(snippet_Money_Add_add(recv.payload.obj, a0.payload.obj));
-        case 2u: return vader_ref_box(snippet_Points_Add_add(recv.payload.obj, a0.payload.obj));
-        case 3u: return vader_ref_box(snippet_Grams_Add_add(recv.payload.obj, a0.payload.obj));
+        case 1u: return vader_ref_box(snippet_Money_std_core_Add_add(recv.payload.obj, a0.payload.obj));
+        case 2u: return vader_ref_box(snippet_Points_std_core_Add_add(recv.payload.obj, a0.payload.obj));
+        case 3u: return vader_ref_box(snippet_Grams_std_core_Add_add(recv.payload.obj, a0.payload.obj));
         case 20u: return vader_box_i32(20u, std_core_i8_Add_add_vt(((int8_t) recv.payload.i), ((int8_t) a0.payload.i)));
         case 21u: return vader_box_i32(21u, std_core_i16_Add_add_vt(((int16_t) recv.payload.i), ((int16_t) a0.payload.i)));
         case 5u: return vader_box_i32(5u, std_core_i32_Add_add_vt(((int32_t) recv.payload.i), ((int32_t) a0.payload.i)));

@@ -269,7 +269,7 @@ fn 0 snippet$main () -> i32
   end $L7
   local.get 2   ; enc
   ref.cast 14   ; images_ppm$Ppm
-  call 26   ; images_ppm$Ppm$Display$to_string
+  call 26   ; images_ppm$Ppm$std_core_Display$to_string
   call 17   ; std_io$println__string
   local.get 5   ; ok
   if $L10 void
@@ -1115,7 +1115,7 @@ fn 15 std_io$describe_io_error_kind (u8) -> string
   return
 end
 
-fn 16 std_io$IOError$Error$message (ref) -> string
+fn 16 std_io$IOError$std_core_Error$message (ref) -> string
   local.field 0 11 0   ; arg 0 std_io$IOError.msg
   ref.cast 2   ; string
   return
@@ -1836,13 +1836,13 @@ fn 24 images_ppm$is_digit_byte (u8) -> bool
   return.lit bool.const false
 end
 
-fn 25 images_ppm$PpmError$Error$message (ref) -> string
+fn 25 images_ppm$PpmError$std_core_Error$message (ref) -> string
   local.field 0 16 0   ; arg 0 images_ppm$PpmError.msg
   ref.cast 2   ; string
   return
 end
 
-fn 26 images_ppm$Ppm$Display$to_string (ref) -> string
+fn 26 images_ppm$Ppm$std_core_Display$to_string (ref) -> string
   local depth string
   local $call_10 usize
   local __buf_1 ref

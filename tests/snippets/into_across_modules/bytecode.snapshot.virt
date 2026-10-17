@@ -39,7 +39,7 @@ fn 1 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   local.get 0   ; m
-  call 6   ; snippet_units$Meters$Into$into
+  call 6   ; snippet_units$Meters$std_core_Into$into
   call 0   ; snippet$take
   i32.to_i64
   local.set 3   ; $cast_10
@@ -212,7 +212,7 @@ fn 5 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 6 snippet_units$Meters$Into$into (ref) -> i32
+fn 6 snippet_units$Meters$std_core_Into$into (ref) -> i32
   local.field 0 9 0   ; arg 0 snippet_units$Meters.v
   ref.cast 1   ; i32
   return

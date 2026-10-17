@@ -117,7 +117,7 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
 static size_t std_core_write_unsigned(void* l0, size_t l1, uint64_t l2);
 static vader_box_t std_async_sleep(int64_t l0);
 static int32_t std_async_run_async_main(vader_box_t l0);
-static vader_box_t std_async_Sleep_Async_resume(void* l0);
+static vader_box_t std_async_Sleep_std_core_Async_resume(void* l0);
 static int32_t std_async_block_on__i32(vader_box_t l0);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
@@ -1431,7 +1431,7 @@ static int32_t std_async_run_async_main(vader_box_t l0) {
     { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_box_t std_async_Sleep_Async_resume(void* l0) {
+static vader_box_t std_async_Sleep_std_core_Async_resume(void* l0) {
     int64_t l1, l2;
     bool t0;
     int64_t t1;
@@ -1583,7 +1583,7 @@ static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv) {
     switch (recv.tag) {
         case 12u: return snippet___asyncstate_snippet_0_Async_resume(recv.payload.obj);
         case 15u: return snippet___asyncstate_snippet_1_Async_resume(recv.payload.obj);
-        case 24u: return std_async_Sleep_Async_resume(recv.payload.obj);
+        case 24u: return std_async_Sleep_std_core_Async_resume(recv.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Async.resume");
     }
     vader_unreachable("vtable miss in std_core$Async.resume");

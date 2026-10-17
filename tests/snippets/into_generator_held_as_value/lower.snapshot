@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.Deck :: struct { n: i32 }  // snippet$Deck
-  snippet.Deck.into :: fn(self: Deck) -> Iterator<i32> {  // snippet$Deck$Into$into
+  snippet.Deck.into :: fn(self: Deck) -> Iterator<i32> {  // snippet$Deck$std_core_Into$into
       return __gen_state_snippet_0 {
           .s0 = self,
           .s1 = 0,
@@ -76,7 +76,7 @@
           }
       }
   }
-  vtable std.core.Into.into for Deck  snippet.Deck.into  // snippet$Deck$Into$into
+  vtable std.core.Into.into for Deck  snippet.Deck.into  // snippet$Deck$std_core_Into$into
   vtable std.core.Iterator.next for __gen_state_snippet_0  snippet$__gen_state_snippet_0$Iterator$next
 
 ## lowered in dependencies
@@ -112,7 +112,7 @@
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
   std/string
-    fn std.string.string.into  // std_string$string$Into$into
+    fn std.string.string.into  // std_string$string$std_core_Into$into
     fn std_string$__gen_state_std_string_0$Iterator$next
     struct std_string$__gen_state_std_string_0
   system/posix

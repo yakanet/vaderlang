@@ -15,7 +15,7 @@ import "vader/resolver/symbol"
 import "toolchain/span"
 
 // Each `T implements Trait { method ... }` member surfaces as a fn
-// decl with mangled name `<module>$<for-type>$<trait>$<method>`.
+// decl with mangled name `<module>$<for-type>$<trait-segment>$<method>`.
 // `self` is the first parameter ; its type comes from the impl's
 // `for_type`. The lifted fns are appended to `project_ctx.synth_decls`
 // so the module driver drains them in the right order.
@@ -51,10 +51,12 @@ lower_impl_member_list :: fn(
     if impl_decl.type_params.len() > 0 { return out }
     if impl_decl.for_type is GenericInstExpr { return out }
     if impl_decl.for_type is ArrayTypeExpr { return out }
+    // An impl whose trait does not resolve has no entry ; resolution reported it.
+    impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return out
     self_type :: lower_for_type(impl_decl, typed)
     for member in impl_decl.members {
         if member.type_params.len() > 0 { continue }
-        mangled :: impl_member_mangled(impl_decl, member, self_type, typed, project_ctx.impls)
+        mangled :: impl_member_mangled(impl_entry, member, self_type)
         if !claim_impl_member(project_ctx, mangled) {
             continue
         }
@@ -62,7 +64,7 @@ lower_impl_member_list :: fn(
         types :: make_entry_types(typed, subst)
         params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
         return_type :: return_type_of(member, types)
-        entry :: synth_impl_entry(member, typed, mangled, impl_trait_key(project_ctx, impl_decl))
+        entry :: synth_impl_entry(member, typed, mangled, impl_entry.trait_key)
         body :: lower_body_of(member, typed, project_ctx, entry, subst, params, return_type)
         out.push(LoweredFnDecl {
             .mangled     = mangled,
@@ -139,19 +141,9 @@ synth_param_or :: fn(symbol_or_null: Symbol | null, name: string, typed: TypedPr
     }
 }
 
-impl_member_mangled :: fn(
-    impl_decl: ImplDecl, member: FnDecl, self_type: Type, typed: TypedProgram, impls: ImplRegistry,
-) -> string {
-    impl_module :: typed.resolved.display_path
-    suffix :: impl_overload_suffix(impls, impl_decl)
-    return impl_member_name(impl_module, self_type, impl_decl.trait_name, member.name, suffix)
-}
-
-// What tells the members of `impl_decl` from another impl of its trait on that
-// base ; nothing for an impl the registry does not hold.
-impl_overload_suffix :: fn(impls: ImplRegistry, impl_decl: ImplDecl) -> string {
-    entry :: impls.entry_of(impl_decl) ?? return ""
-    return entry.overload_suffix
+impl_member_mangled :: fn(entry: ImplEntry, member: FnDecl, self_type: Type) -> string {
+    suffix :: entry.overload_suffix
+    return impl_member_name(entry.module, self_type, entry.trait_symbol, member.name, suffix)
 }
 
 lower_for_type :: fn(impl_decl: ImplDecl, typed: TypedProgram) -> Type {

@@ -33,7 +33,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 #define VADER_COMPTIME_ATOM_COUNT 5u
 
-static void* snippet_i64_Into_into(int64_t l0);
+static void* snippet_i64_std_core_Into_into(int64_t l0);
 static int32_t snippet_main(void);
 static void* snippet_Bag_Make_make__f64(vader_box_t l0);
 static vader_string_t snippet_widen__i64__string(int64_t l0, vader_string_t l1);
@@ -105,7 +105,7 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
     return write(a0, s1.ptr, a2);
 }
 
-static void* snippet_i64_Into_into(int64_t l0) {
+static void* snippet_i64_std_core_Into_into(int64_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
@@ -168,7 +168,7 @@ static int32_t snippet_main(void) {
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
 #line 44 "tests/snippets/explicit_type_arguments_on_members/_main.vader"
-    t3 = snippet_i64_Into_into(INT64_C(7));
+    t3 = snippet_i64_std_core_Into_into(INT64_C(7));
 #line 45 "tests/snippets/explicit_type_arguments_on_members/_main.vader"
     t2 = ((vader_struct_snippet_Box__i64_t*) t3)->f_v;
     std_io_println__i64(t2);

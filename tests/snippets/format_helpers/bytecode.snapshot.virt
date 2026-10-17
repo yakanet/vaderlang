@@ -1054,7 +1054,7 @@ fn 16 std_string$pad_start (string,usize,char) -> string
   local.get 0   ; arg 0
   call 23   ; std_string_builder$append
   local.get 4   ; sb
-  call 24   ; std_string_builder$StringBuilder$Display$to_string
+  call 24   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -1091,7 +1091,7 @@ fn 17 std_string$pad_end (string,usize,char) -> string
     end $L2
   end $L1
   local.get 4   ; sb
-  call 24   ; std_string_builder$StringBuilder$Display$to_string
+  call 24   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -1204,7 +1204,7 @@ fn 19 std_numbers$to_hex (u64) -> string
     end $L4
   end $L3
   local.get 5   ; sb
-  call 24   ; std_string_builder$StringBuilder$Display$to_string
+  call 24   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -1289,7 +1289,7 @@ fn 20 std_numbers$to_bin (u64) -> string
     end $L5
   end $L4
   local.get 4   ; sb
-  call 24   ; std_string_builder$StringBuilder$Display$to_string
+  call 24   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
@@ -1343,7 +1343,7 @@ fn 23 std_string_builder$append (ref,string) -> void
   return
 end
 
-fn 24 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 24 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize

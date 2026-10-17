@@ -158,7 +158,7 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
   end $L0
 end
 
-fn 3 snippet$Ready$Async$resume__string (ref) -> any
+fn 3 snippet$Ready$std_core_Async$resume__string (ref) -> any
   local.field 0 6 0   ; arg 0 snippet$Ready__string.v
   ref.cast 8   ; string
   retag 8   ; string

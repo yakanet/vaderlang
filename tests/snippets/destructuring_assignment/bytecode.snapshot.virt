@@ -347,7 +347,7 @@ fn 1 snippet$main () -> i32
   local.tee 2   ; __buf_3
   string.const 12   ; "k"
   i32.const 1
-  call 10   ; std_collections$MutableMap$IndexSet$set_at__string__i32
+  call 10   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
   i32.const 0
   local.set 5   ; __destr_el_6
   i32.const 40
@@ -355,7 +355,7 @@ fn 1 snippet$main () -> i32
   local.get 2   ; __buf_3
   string.const 12   ; "k"
   i32.const 30
-  call 10   ; std_collections$MutableMap$IndexSet$set_at__string__i32
+  call 10   ; std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
   i64.const 54
   call 4   ; std_core$new_byte_buffer
   local.set 8   ; arr
@@ -368,7 +368,7 @@ fn 1 snippet$main () -> i32
   local.set 3   ; __off_4
   local.get 2   ; __buf_3
   string.const 12   ; "k"
-  call 9   ; std_collections$MutableMap$Index$at__string__i32
+  call 9   ; std_collections$MutableMap$std_core_Index$at__string__i32
   local.tee 12   ; __coalesce_30
   type_check 0   ; null
   if $L0 void
@@ -986,14 +986,14 @@ fn 8 std_core$write_unsigned (ref,usize,u64) -> usize
   return
 end
 
-fn 9 std_collections$MutableMap$Index$at__string__i32 (ref,string) -> any
+fn 9 std_collections$MutableMap$std_core_Index$at__string__i32 (ref,string) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 17   ; std_collections$get__string__i32
   return
 end
 
-fn 10 std_collections$MutableMap$IndexSet$set_at__string__i32 (ref,string,i32) -> void
+fn 10 std_collections$MutableMap$std_core_IndexSet$set_at__string__i32 (ref,string,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2

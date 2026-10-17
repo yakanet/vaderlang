@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.Outage :: struct { service: string }  // snippet$Outage
-  snippet.Outage.message :: fn(self: Outage) -> string {  // snippet$Outage$Error$message
+  snippet.Outage.message :: fn(self: Outage) -> string {  // snippet$Outage$std_core_Error$message
       concat_2("down: ", self.service)
   }
   snippet.fetch :: fn(service: string, ms: i64, up: bool) -> Async<i32 | Outage> {  // snippet$fetch
@@ -193,16 +193,16 @@
   vtable std.core.Async.cancel for __asyncstate_snippet_1  snippet$__asyncstate_snippet_1$Async$cancel
   vtable std.core.Async.resume for __asyncstate_snippet_0  snippet$__asyncstate_snippet_0$Async$resume
   vtable std.core.Async.resume for __asyncstate_snippet_1  snippet$__asyncstate_snippet_1$Async$resume
-  vtable std.core.Error.message for Outage  snippet.Outage.message  // snippet$Outage$Error$message
+  vtable std.core.Error.message for Outage  snippet.Outage.message  // snippet$Outage$std_core_Error$message
 
 ## lowered in dependencies
   std/async
-    fn std.async.JoinAll<Any>.cancel  // std_async$JoinAll$Async$cancel__Any
-    fn std.async.JoinAll<Any>.resume  // std_async$JoinAll$Async$resume__Any
-    fn std.async.Sleep.cancel  // std_async$Sleep$Async$cancel
-    fn std.async.Sleep.resume  // std_async$Sleep$Async$resume
-    fn std.async.TryJoinAll<i32, Any>.cancel  // std_async$TryJoinAll$Async$cancel__i32__Any
-    fn std.async.TryJoinAll<i32, Any>.resume  // std_async$TryJoinAll$Async$resume__i32__Any
+    fn std.async.JoinAll<Any>.cancel  // std_async$JoinAll$std_core_Async$cancel__Any
+    fn std.async.JoinAll<Any>.resume  // std_async$JoinAll$std_core_Async$resume__Any
+    fn std.async.Sleep.cancel  // std_async$Sleep$std_core_Async$cancel
+    fn std.async.Sleep.resume  // std_async$Sleep$std_core_Async$resume
+    fn std.async.TryJoinAll<i32, Any>.cancel  // std_async$TryJoinAll$std_core_Async$cancel__i32__Any
+    fn std.async.TryJoinAll<i32, Any>.resume  // std_async$TryJoinAll$std_core_Async$resume__i32__Any
     fn std.async.block_on<i32>  // std_async$block_on__i32
     fn std.async.earlier  // std_async$earlier
     fn std.async.new_join_all<Any | i32>  // std_async$new_join_all__Any___i32
@@ -214,24 +214,24 @@
     struct std.async.Sleep  // std_async$Sleep
     struct std.async.TryJoinAll<i32, Any>  // std_async$TryJoinAll__i32__Any
   std/collections
-    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$Index$at__i32__bool
-    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$Contains$contains__i32__bool
-    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$Into$into__i32__bool
-    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$IndexSet$set_at__i32__bool
-    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$Index$at__i32__i32
-    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$Contains$contains__i32__i32
-    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$Into$into__i32__i32
-    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$IndexSet$set_at__i32__i32
-    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$Index$at__string__i32
-    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$Contains$contains__string__i32
-    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$Into$into__string__i32
-    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$IndexSet$set_at__string__i32
-    fn std.collections.MutableMap<usize, Any>.at  // std_collections$MutableMap$Index$at__usize__Any
-    fn std.collections.MutableMap<usize, Any>.contains  // std_collections$MutableMap$Contains$contains__usize__Any
-    fn std.collections.MutableMap<usize, Any>.into  // std_collections$MutableMap$Into$into__usize__Any
-    fn std.collections.MutableMap<usize, Any>.set_at  // std_collections$MutableMap$IndexSet$set_at__usize__Any
-    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$Contains$contains__i32
-    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$Into$into__i32
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core_Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core_Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core_Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core_Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core_Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core_Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
+    fn std.collections.MutableMap<usize, Any>.at  // std_collections$MutableMap$std_core_Index$at__usize__Any
+    fn std.collections.MutableMap<usize, Any>.contains  // std_collections$MutableMap$std_core_Contains$contains__usize__Any
+    fn std.collections.MutableMap<usize, Any>.into  // std_collections$MutableMap$std_core_Into$into__usize__Any
+    fn std.collections.MutableMap<usize, Any>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__usize__Any
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core_Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core_Into$into__i32
     fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
     fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
     fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32

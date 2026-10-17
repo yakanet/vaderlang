@@ -46,7 +46,7 @@ fn 1 snippet$count_ls (string) -> usize
   local.set 2   ; total
   loop $L0 void
     local.get 1   ; __fuse_iter_0
-    call 15   ; std_string$StringChars$Iterator$next$v
+    call 15   ; std_string$StringChars$std_core_Iterator$next$v
     local.set 4   ; $call_elem_19
     local.set 3   ; $call_elem_18
     local.get 4   ; $call_elem_19
@@ -857,7 +857,7 @@ fn 14 std_string$chars (string) -> ref
   return
 end
 
-fn 15 std_string$StringChars$Iterator$next$v (ref) -> (char,u8)
+fn 15 std_string$StringChars$std_core_Iterator$next$v (ref) -> (char,u8)
   local i usize
   local $call_4 usize
   local b u8

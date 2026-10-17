@@ -118,7 +118,7 @@ fn 0 snippet$main () -> i32
       local.get 0   ; $arr_0
       local.get 4   ; $cast_12
       local.get 5   ; $mul_checked_14
-      call 31   ; std_collections$MutableMap$IndexSet$set_at__u8__i32
+      call 31   ; std_collections$MutableMap$std_core_IndexSet$set_at__u8__i32
       local.get 3   ; i
       i32.const 1
       i32.add
@@ -213,15 +213,15 @@ fn 0 snippet$main () -> i32
   local.tee 0   ; $arr_0
   i32.const 1
   i32.const 100
-  call 29   ; std_collections$MutableMap$IndexSet$set_at__u16__i32
+  call 29   ; std_collections$MutableMap$std_core_IndexSet$set_at__u16__i32
   local.get 0   ; $arr_0
   i32.const 50000
   i32.const 200
-  call 29   ; std_collections$MutableMap$IndexSet$set_at__u16__i32
+  call 29   ; std_collections$MutableMap$std_core_IndexSet$set_at__u16__i32
   local.get 0   ; $arr_0
   i32.const 12345
   i32.const 300
-  call 29   ; std_collections$MutableMap$IndexSet$set_at__u16__i32
+  call 29   ; std_collections$MutableMap$std_core_IndexSet$set_at__u16__i32
   i64.const 75
   call 14   ; std_core$new_byte_buffer
   local.set 1   ; $arr_1
@@ -295,15 +295,15 @@ fn 0 snippet$main () -> i32
   local.tee 0   ; $arr_0
   i32.const -1000
   i32.const 11
-  call 25   ; std_collections$MutableMap$IndexSet$set_at__i16__i32
+  call 25   ; std_collections$MutableMap$std_core_IndexSet$set_at__i16__i32
   local.get 0   ; $arr_0
   i32.const 1000
   i32.const 22
-  call 25   ; std_collections$MutableMap$IndexSet$set_at__i16__i32
+  call 25   ; std_collections$MutableMap$std_core_IndexSet$set_at__i16__i32
   local.get 0   ; $arr_0
   i32.const -1
   i32.const 33
-  call 25   ; std_collections$MutableMap$IndexSet$set_at__i16__i32
+  call 25   ; std_collections$MutableMap$std_core_IndexSet$set_at__i16__i32
   i64.const 77
   call 14   ; std_core$new_byte_buffer
   local.set 1   ; $arr_1
@@ -377,15 +377,15 @@ fn 0 snippet$main () -> i32
   local.tee 0   ; $arr_0
   char.const 97
   i32.const 1
-  call 23   ; std_collections$MutableMap$IndexSet$set_at__char__i32
+  call 23   ; std_collections$MutableMap$std_core_IndexSet$set_at__char__i32
   local.get 0   ; $arr_0
   char.const 90
   i32.const 26
-  call 23   ; std_collections$MutableMap$IndexSet$set_at__char__i32
+  call 23   ; std_collections$MutableMap$std_core_IndexSet$set_at__char__i32
   local.get 0   ; $arr_0
   char.const 233
   i32.const 99
-  call 23   ; std_collections$MutableMap$IndexSet$set_at__char__i32
+  call 23   ; std_collections$MutableMap$std_core_IndexSet$set_at__char__i32
   i64.const 101
   call 14   ; std_core$new_byte_buffer
   local.set 1   ; $arr_1
@@ -480,11 +480,11 @@ fn 0 snippet$main () -> i32
   local.get 0   ; $arr_0
   local.get 8   ; $cast_33
   i32.const 7
-  call 27   ; std_collections$MutableMap$IndexSet$set_at__i64__i32
+  call 27   ; std_collections$MutableMap$std_core_IndexSet$set_at__i64__i32
   local.get 0   ; $arr_0
   local.get 9   ; knegbig
   i32.const 8
-  call 27   ; std_collections$MutableMap$IndexSet$set_at__i64__i32
+  call 27   ; std_collections$MutableMap$std_core_IndexSet$set_at__i64__i32
   i64.const 56
   call 14   ; std_core$new_byte_buffer
   local.set 1   ; $arr_1
@@ -557,7 +557,7 @@ fn 0 snippet$main () -> i32
       local.get 0   ; $arr_0
       local.get 6   ; __off_1
       local.get 5   ; $mul_checked_14
-      call 33   ; std_collections$MutableMap$IndexSet$set_at__usize__i32
+      call 33   ; std_collections$MutableMap$std_core_IndexSet$set_at__usize__i32
       local.get 3   ; i
       i32.const 1
       i32.add
@@ -643,7 +643,7 @@ fn 1 snippet$get_or__char (ref,char,i32) -> i32
   local v any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 22   ; std_collections$MutableMap$Index$at__char__i32
+  call 22   ; std_collections$MutableMap$std_core_Index$at__char__i32
   local.tee 3   ; v
   type_check 0   ; null
   if $L0 void
@@ -660,7 +660,7 @@ fn 2 snippet$get_or__i16 (ref,i16,i32) -> i32
   local v any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 24   ; std_collections$MutableMap$Index$at__i16__i32
+  call 24   ; std_collections$MutableMap$std_core_Index$at__i16__i32
   local.tee 3   ; v
   type_check 0   ; null
   if $L0 void
@@ -677,7 +677,7 @@ fn 3 snippet$get_or__i64 (ref,i64,i32) -> i32
   local v any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 26   ; std_collections$MutableMap$Index$at__i64__i32
+  call 26   ; std_collections$MutableMap$std_core_Index$at__i64__i32
   local.tee 3   ; v
   type_check 0   ; null
   if $L0 void
@@ -694,7 +694,7 @@ fn 4 snippet$get_or__u16 (ref,u16,i32) -> i32
   local v any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 28   ; std_collections$MutableMap$Index$at__u16__i32
+  call 28   ; std_collections$MutableMap$std_core_Index$at__u16__i32
   local.tee 3   ; v
   type_check 0   ; null
   if $L0 void
@@ -711,7 +711,7 @@ fn 5 snippet$get_or__u8 (ref,u8,i32) -> i32
   local v any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 30   ; std_collections$MutableMap$Index$at__u8__i32
+  call 30   ; std_collections$MutableMap$std_core_Index$at__u8__i32
   local.tee 3   ; v
   type_check 0   ; null
   if $L0 void
@@ -728,7 +728,7 @@ fn 6 snippet$get_or__usize (ref,usize,i32) -> i32
   local v any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 32   ; std_collections$MutableMap$Index$at__usize__i32
+  call 32   ; std_collections$MutableMap$std_core_Index$at__usize__i32
   local.tee 3   ; v
   type_check 0   ; null
   if $L0 void
@@ -1117,14 +1117,14 @@ fn 21 std_io$println__string (string) -> void
   return
 end
 
-fn 22 std_collections$MutableMap$Index$at__char__i32 (ref,char) -> any
+fn 22 std_collections$MutableMap$std_core_Index$at__char__i32 (ref,char) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 60   ; std_collections$get__char__i32
   return
 end
 
-fn 23 std_collections$MutableMap$IndexSet$set_at__char__i32 (ref,char,i32) -> void
+fn 23 std_collections$MutableMap$std_core_IndexSet$set_at__char__i32 (ref,char,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -1132,14 +1132,14 @@ fn 23 std_collections$MutableMap$IndexSet$set_at__char__i32 (ref,char,i32) -> vo
   return
 end
 
-fn 24 std_collections$MutableMap$Index$at__i16__i32 (ref,i16) -> any
+fn 24 std_collections$MutableMap$std_core_Index$at__i16__i32 (ref,i16) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 61   ; std_collections$get__i16__i32
   return
 end
 
-fn 25 std_collections$MutableMap$IndexSet$set_at__i16__i32 (ref,i16,i32) -> void
+fn 25 std_collections$MutableMap$std_core_IndexSet$set_at__i16__i32 (ref,i16,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -1147,14 +1147,14 @@ fn 25 std_collections$MutableMap$IndexSet$set_at__i16__i32 (ref,i16,i32) -> void
   return
 end
 
-fn 26 std_collections$MutableMap$Index$at__i64__i32 (ref,i64) -> any
+fn 26 std_collections$MutableMap$std_core_Index$at__i64__i32 (ref,i64) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 62   ; std_collections$get__i64__i32
   return
 end
 
-fn 27 std_collections$MutableMap$IndexSet$set_at__i64__i32 (ref,i64,i32) -> void
+fn 27 std_collections$MutableMap$std_core_IndexSet$set_at__i64__i32 (ref,i64,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -1162,14 +1162,14 @@ fn 27 std_collections$MutableMap$IndexSet$set_at__i64__i32 (ref,i64,i32) -> void
   return
 end
 
-fn 28 std_collections$MutableMap$Index$at__u16__i32 (ref,u16) -> any
+fn 28 std_collections$MutableMap$std_core_Index$at__u16__i32 (ref,u16) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 63   ; std_collections$get__u16__i32
   return
 end
 
-fn 29 std_collections$MutableMap$IndexSet$set_at__u16__i32 (ref,u16,i32) -> void
+fn 29 std_collections$MutableMap$std_core_IndexSet$set_at__u16__i32 (ref,u16,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -1177,14 +1177,14 @@ fn 29 std_collections$MutableMap$IndexSet$set_at__u16__i32 (ref,u16,i32) -> void
   return
 end
 
-fn 30 std_collections$MutableMap$Index$at__u8__i32 (ref,u8) -> any
+fn 30 std_collections$MutableMap$std_core_Index$at__u8__i32 (ref,u8) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 64   ; std_collections$get__u8__i32
   return
 end
 
-fn 31 std_collections$MutableMap$IndexSet$set_at__u8__i32 (ref,u8,i32) -> void
+fn 31 std_collections$MutableMap$std_core_IndexSet$set_at__u8__i32 (ref,u8,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -1192,14 +1192,14 @@ fn 31 std_collections$MutableMap$IndexSet$set_at__u8__i32 (ref,u8,i32) -> void
   return
 end
 
-fn 32 std_collections$MutableMap$Index$at__usize__i32 (ref,usize) -> any
+fn 32 std_collections$MutableMap$std_core_Index$at__usize__i32 (ref,usize) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call 65   ; std_collections$get__usize__i32
   return
 end
 
-fn 33 std_collections$MutableMap$IndexSet$set_at__usize__i32 (ref,usize,i32) -> void
+fn 33 std_collections$MutableMap$std_core_IndexSet$set_at__usize__i32 (ref,usize,i32) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
