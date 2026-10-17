@@ -91,6 +91,14 @@ lower_project_impl :: fn(
     if entry_typed != null { project.trait_membership = entry_typed.struct_traits_by_sym }
 
     module_ids :: typed.modules.keys()
+    // Every module lowered with its bodies is marked before any is lowered : a
+    // call from one into another must not queue for the call-site harvest a
+    // function the eager walk lowers as well.
+    for module_id in module_ids {
+        if is_eager_module(module_id, loaded, eager_modules) {
+            seed_eager_module(project_ctx, loaded.modules[module_id] ?? continue)
+        }
+    }
     for module_id in module_ids {
         // EVERY non-entry module is lowered lazily : don't lower its with-body
         // fns up front (would bloat the project + pollute the synthetic-id
@@ -108,8 +116,7 @@ lower_project_impl :: fn(
         // stdlib and user modules : the same lazy path serves both. In staging
         // mode the eager set is the vm_required-owning modules rather than the
         // single entry — every other module stays bodyless.
-        should_eager :: if is_staging { module_id in eager_modules } else { module_id == loaded.entry }
-        if !should_eager {
+        if !is_eager_module(module_id, loaded, eager_modules) {
             imported_loaded :: loaded.modules[module_id]
             imported_typed_opt :: typed.modules[module_id]
             imported_decls: LoweredDecl[]: []
@@ -147,28 +154,6 @@ lower_project_impl :: fn(
         module_loaded :: loaded.modules[module_id] ?? continue
         decls :: module_decls(module_loaded)
         display_path :: module_loaded.module.display_path
-        // The entry is the ONLY module lowered eagerly (`lower_module` below
-        // lowers its fns / consts WITH bodies, lifting any lambdas). Seed the
-        // call-site-harvest seen-sets with its non-generic fns AND consts BEFORE
-        // that walk so a reference from one entry decl to another (e.g.
-        // `test_x` → `strip_numeric_text`, or a read of a sibling const) does
-        // NOT also queue it into `nongeneric_imported_order` /
-        // `nongeneric_imported_const_order`. A second lowering by
-        // `materialize_nongeneric_imported_*` re-lifts a fn's lambdas under FRESH
-        // ids (the emitted make-closure misses the surviving decl at emit →
-        // make-closure GATE-B1 panic) or duplicates a const decl. The skip
-        // branch above seeds each non-entry module's bodyless fns ; this is the
-        // entry's with-body analogue, now that the harvest is module-agnostic.
-        for d in decls {
-            if d is FnDecl {
-                if d.type_params.len() == 0 {
-                    seed_fn_seen(project_ctx, d)
-                }
-            } else if d is ConstDecl {
-                sym :: module_loaded.collected.symbols[d.name] ?? continue
-                project_ctx.nongeneric_imported_consts[sym.id] = true
-            }
-        }
         lowered_module :: lower_module(module_id, display_path, module_typed, decls, project_ctx, diags)
         project.modules[module_id] = lowered_module
     }
@@ -279,6 +264,7 @@ lower_project_impl :: fn(
     }
     // Last, so the passes above that rewrite a `let`'s value in place are checked too.
     verify_captured_cells(project, project_ctx.closures.cell_symbols, diags)
+    verify_functions_defined_once(project, diags)
     return project
 }
 
@@ -361,6 +347,34 @@ lower_decl :: fn(
     }
 }
 
+
+// The modules lowered with their bodies : the entry, or in staging the modules
+// owning a constant the comptime VM evaluates. Every other module is lowered on
+// demand, through the call-site harvest.
+is_eager_module :: fn(module_id: string, loaded: LoadedProject, eager_modules: string[]) -> bool {
+    if eager_modules.len() > 0 {
+        return module_id in eager_modules
+    }
+    return module_id == loaded.entry
+}
+
+// Mark a module lowered with its bodies, its non-generic functions and its
+// constants, as reached : the call-site harvest (`materialize_nongeneric_imported_*`)
+// would otherwise lower one again when a declaration refers to it, re-lifting a
+// function's lambdas under fresh ids (the make-closure then misses the surviving
+// decl : a GATE B1 panic at emit) or duplicating a constant.
+seed_eager_module :: fn(project_ctx: LowerProjectCtx, module_loaded: LoadedModule) -> void {
+    for d in module_decls(module_loaded) {
+        if d is FnDecl {
+            if d.type_params.len() == 0 {
+                seed_fn_seen(project_ctx, d)
+            }
+        } else if d is ConstDecl {
+            sym :: module_loaded.collected.symbols[d.name] ?? continue
+            project_ctx.nongeneric_imported_consts[sym.id] = true
+        }
+    }
+}
 
 // Mark a function lowered up front as reached, so the call-site harvest
 // (`materialize_nongeneric_imported_fns`) does not lower it again. It is found by

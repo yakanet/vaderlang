@@ -11,8 +11,8 @@
 // and lives in `vader/midir/verify.vader`. Do not replay it here.
 //
 // Pure read over the IR — no mutation, no IO. `verify_lowered` is wired behind
-// `--verify`; `verify_captured_cells` runs on every build, because the defect
-// it looks for is otherwise silent.
+// `--verify`; `verify_captured_cells` and `verify_functions_defined_once` run on
+// every build, because the defect each looks for is otherwise silent.
 
 module "vader/lower"
 
@@ -21,8 +21,9 @@ import "vader/diagnostics"
 
 // ---- entry point ----------------------------------------------------------
 
-/// Check every structural invariant of `project`, pushing one diagnostic per
-/// violation.
+/// Check that no transient coroutine marker survives in `project`, pushing one
+/// diagnostic per violation. The checks whose defect is silent run on every
+/// build instead (`verify_captured_cells`, `verify_functions_defined_once`).
 ///
 /// Reports all violations rather than stopping at the first : a transform
 /// that drops a marker usually drops several, and the set is what identifies
@@ -35,7 +36,6 @@ import "vader/diagnostics"
 /// @param diags    accumulator ; violations are pushed as `I7xxx` errors.
 export verify_lowered :: fn(project: LoweredProject, after: string, diags: Diagnostic[]) -> void {
     verify_no_coroutine_markers(project, after, diags)
-    verify_functions_defined_once(project, after, diags)
 }
 
 // ---- checks ---------------------------------------------------------------
@@ -64,22 +64,31 @@ verify_no_coroutine_markers :: fn(
     }
 }
 
-// I7012: one function mangle given a body twice. Downstream both copies resolve
-// to one function slot, which then receives both bodies, the second dead behind
-// the first `return`. Reported against the second body.
-verify_functions_defined_once :: fn(
-    project: LoweredProject, after: string, diags: Diagnostic[],
-) -> void {
-    seen :: MutableSet<string> {}
+// I7012: a function given a body twice, under one mangle or from one symbol.
+// The backend keys a function's slot by both (`vader/midir/emit.vader`), so the
+// copies collide : one slot receives both bodies, the second dead behind the
+// first `return`. Reported against the second body.
+verify_functions_defined_once :: fn(project: LoweredProject, diags: Diagnostic[]) -> void {
+    mangles :: MutableSet<string> {}
+    symbols :: MutableMap<i32, string> {}
     for [_module_id, m] in project.modules {
         for d in m.decls {
             if d !is LoweredFnDecl {
                 continue
             }
             body :: d.body ?? continue
-            if !seen.add(d.mangled) {
+            if !mangles.add(d.mangled) {
                 diags.push(internal_error(.FunctionDefinedTwice, body.span,
-                    "after `${after}`: `${d.mangled}` has a second body"))
+                    "`${d.mangled}` has a second body"))
+                continue
+            }
+            symbol :: d.origin.symbol ?? continue
+            first :: symbols[symbol.id]
+            if first == null {
+                symbols[symbol.id] = d.mangled
+            } else {
+                diags.push(internal_error(.FunctionDefinedTwice, body.span,
+                    "`${d.mangled}` and `${first}` come from one symbol"))
             }
         }
     }
@@ -176,7 +185,19 @@ test_verify_functions_defined_once_reports_the_second_body :: fn() -> void {
     second :: test_fn_decl(f, fresh_test_body([]))
     project :: one_module_project([first, second])
     diags: Diagnostic[]: []
-    verify_functions_defined_once(project, "test", diags)
+    verify_functions_defined_once(project, diags)
+    assert_eq(diags.len(), 1)
+    assert_eq(diags[0].code.id, "I7012")
+}
+
+@test
+test_verify_functions_defined_once_reports_one_symbol_under_two_names :: fn() -> void {
+    f :: test_fn_symbol(2, "f")
+    first :: test_fn_decl(f, fresh_test_body([]))
+    copy :: LoweredFnDecl { ...test_fn_decl(f, fresh_test_body([])), .mangled = "f_copy" }
+    project :: one_module_project([first, copy])
+    diags: Diagnostic[]: []
+    verify_functions_defined_once(project, diags)
     assert_eq(diags.len(), 1)
     assert_eq(diags[0].code.id, "I7012")
 }
