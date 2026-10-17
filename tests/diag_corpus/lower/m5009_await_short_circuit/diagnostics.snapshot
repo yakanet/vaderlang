@@ -3,4 +3,6 @@
 [18:1] warning[W0007]
 [21:1] warning[W0007]
 [22:15] error[M5009]
+[27:1] warning[W0007]
+[29:14] error[M5009]
 [8:1] warning[W0007]

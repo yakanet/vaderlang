@@ -1,0 +1,80 @@
+// An `await` in a branch runs only when that branch is taken: the condition of
+// an `else if`, an arm of a `match` (an expression or a block, used as a value
+// or as a statement), and a block used as a value.
+module "snippet"
+
+import "std/io"
+
+Ready :: struct<T> { v: T }
+Ready<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended { return self.v }
+}
+
+probe :: fn(tag: string, v: i32) -> Async<i32> {
+    println("ran ${tag}")
+    return Ready<i32> { .v = v }
+}
+
+Color :: enum { Red, Green, Blue }
+
+later_condition :: fn(a: bool) -> Async<i32> {
+    if a {
+        return 1
+    } else if await probe("else-if condition", 1) > 0 {
+        return 2
+    }
+    return 0
+}
+
+chained_value :: fn(a: i32) -> Async<i32> {
+    r :: if a == 0 {
+        10
+    } else if a == 1 {
+        await probe("else-if arm", 11)
+    } else {
+        12
+    }
+    return r
+}
+
+by_color :: fn(c: Color) -> Async<i32> {
+    r :: match c {
+        .Red   -> await probe("red arm", 1)
+        .Green -> 2
+        .Blue  -> {
+            v :: await probe("blue arm", 3)
+            v * 10
+        }
+    }
+    return r
+}
+
+announce :: fn(x: i32) -> Async<i32> {
+    match x {
+        1 -> await probe("statement arm", 1)
+        _ -> println("other arm")
+    }
+    return x
+}
+
+block_value :: fn() -> Async<i32> {
+    x :: {
+        v :: await probe("block", 4)
+        v + 1
+    }
+    return x
+}
+
+main :: fn() -> i32 {
+    println("${await later_condition(true)}")
+    println("${await later_condition(false)}")
+    println("${await chained_value(0)}")
+    println("${await chained_value(1)}")
+    println("${await by_color(.Green)}")
+    println("${await by_color(.Red)}")
+    println("${await by_color(.Blue)}")
+    println("${await announce(7)}")
+    println("${await announce(1)}")
+    println("${await block_value()}")
+    return 0
+}

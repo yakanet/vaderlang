@@ -1,0 +1,20 @@
+# stdout
+1
+ran else-if condition
+2
+10
+ran else-if arm
+11
+2
+ran red arm
+1
+ran blue arm
+30
+other arm
+7
+ran statement arm
+1
+ran block
+5
+# exit
+0

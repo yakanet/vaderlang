@@ -1,0 +1,132 @@
+# Typecheck
+
+## tests/snippets/async_await_in_branches
+  FnDecl         announce             :: fn(i32) -> Async<i32>
+  FnDecl         block_value          :: fn() -> Async<i32>
+  FnDecl         by_color             :: fn(Color) -> Async<i32>
+  FnDecl         chained_value        :: fn(i32) -> Async<i32>
+  EnumDecl       Color                :: Color
+  FnDecl         later_condition      :: fn(bool) -> Async<i32>
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         probe                :: fn(string, i32) -> Async<i32>
+  StructDecl     Ready                :: Ready<T>
+  expr 10:50    FieldExpr      :: T
+  expr 10:50    IdentExpr      :: Ready<T>
+  expr 14:13    StringLitExpr  :: string
+  expr 14:20    IdentExpr      :: string
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 15:12    StructLitExpr  :: Ready<i32>
+  expr 15:30    IdentExpr      :: i32
+  expr 21:5     IfExpr         :: void
+  expr 21:8     IdentExpr      :: bool
+  expr 23:12    IfExpr         :: void
+  expr 23:15    AwaitExpr      :: i32
+  expr 23:15    BinaryExpr     :: bool
+  expr 23:21    CallExpr       :: Async<i32>
+  expr 23:21    IdentExpr      :: fn(string, i32) -> Async<i32>
+  expr 23:27    StringLitExpr  :: string
+  expr 30:10    IfExpr         :: i32
+  expr 30:13    BinaryExpr     :: bool
+  expr 30:13    IdentExpr      :: i32
+  expr 32:12    IfExpr         :: i32
+  expr 32:15    BinaryExpr     :: bool
+  expr 32:15    IdentExpr      :: i32
+  expr 33:15    CallExpr       :: Async<i32>
+  expr 33:15    IdentExpr      :: fn(string, i32) -> Async<i32>
+  expr 33:21    StringLitExpr  :: string
+  expr 33:9     AwaitExpr      :: i32
+  expr 37:12    IdentExpr      :: i32
+  expr 41:10    MatchExpr      :: i32
+  expr 41:16    IdentExpr      :: Color
+  expr 42:19    AwaitExpr      :: i32
+  expr 42:25    CallExpr       :: Async<i32>
+  expr 42:25    IdentExpr      :: fn(string, i32) -> Async<i32>
+  expr 42:31    StringLitExpr  :: string
+  expr 45:18    AwaitExpr      :: i32
+  expr 45:24    CallExpr       :: Async<i32>
+  expr 45:24    IdentExpr      :: fn(string, i32) -> Async<i32>
+  expr 45:30    StringLitExpr  :: string
+  expr 46:13    BinaryExpr     :: i32
+  expr 46:13    IdentExpr      :: i32
+  expr 49:12    IdentExpr      :: i32
+  expr 53:11    IdentExpr      :: i32
+  expr 53:5     MatchExpr      :: i32 | void
+  expr 54:14    AwaitExpr      :: i32
+  expr 54:20    CallExpr       :: Async<i32>
+  expr 54:20    IdentExpr      :: fn(string, i32) -> Async<i32>
+  expr 54:26    StringLitExpr  :: string
+  expr 55:14    CallExpr       :: void
+  expr 55:14    IdentExpr      :: fn(T) -> void
+  expr 55:22    StringLitExpr  :: string
+  expr 57:12    IdentExpr      :: i32
+  expr 62:14    AwaitExpr      :: i32
+  expr 62:20    CallExpr       :: Async<i32>
+  expr 62:20    IdentExpr      :: fn(string, i32) -> Async<i32>
+  expr 62:26    StringLitExpr  :: string
+  expr 63:9     BinaryExpr     :: i32
+  expr 63:9     IdentExpr      :: i32
+  expr 65:12    IdentExpr      :: i32
+  expr 69:13    StringLitExpr  :: string
+  expr 69:16    AwaitExpr      :: i32
+  expr 69:22    CallExpr       :: Async<i32>
+  expr 69:22    IdentExpr      :: fn(bool) -> Async<i32>
+  expr 69:5     CallExpr       :: void
+  expr 69:5     IdentExpr      :: fn(T) -> void
+  expr 70:13    StringLitExpr  :: string
+  expr 70:16    AwaitExpr      :: i32
+  expr 70:22    CallExpr       :: Async<i32>
+  expr 70:22    IdentExpr      :: fn(bool) -> Async<i32>
+  expr 70:5     CallExpr       :: void
+  expr 70:5     IdentExpr      :: fn(T) -> void
+  expr 71:13    StringLitExpr  :: string
+  expr 71:16    AwaitExpr      :: i32
+  expr 71:22    CallExpr       :: Async<i32>
+  expr 71:22    IdentExpr      :: fn(i32) -> Async<i32>
+  expr 71:5     CallExpr       :: void
+  expr 71:5     IdentExpr      :: fn(T) -> void
+  expr 72:13    StringLitExpr  :: string
+  expr 72:16    AwaitExpr      :: i32
+  expr 72:22    CallExpr       :: Async<i32>
+  expr 72:22    IdentExpr      :: fn(i32) -> Async<i32>
+  expr 72:5     CallExpr       :: void
+  expr 72:5     IdentExpr      :: fn(T) -> void
+  expr 73:13    StringLitExpr  :: string
+  expr 73:16    AwaitExpr      :: i32
+  expr 73:22    CallExpr       :: Async<i32>
+  expr 73:22    IdentExpr      :: fn(Color) -> Async<i32>
+  expr 73:31    DotVariantExpr :: Color
+  expr 73:5     CallExpr       :: void
+  expr 73:5     IdentExpr      :: fn(T) -> void
+  expr 74:13    StringLitExpr  :: string
+  expr 74:16    AwaitExpr      :: i32
+  expr 74:22    CallExpr       :: Async<i32>
+  expr 74:22    IdentExpr      :: fn(Color) -> Async<i32>
+  expr 74:31    DotVariantExpr :: Color
+  expr 74:5     CallExpr       :: void
+  expr 74:5     IdentExpr      :: fn(T) -> void
+  expr 75:13    StringLitExpr  :: string
+  expr 75:16    AwaitExpr      :: i32
+  expr 75:22    CallExpr       :: Async<i32>
+  expr 75:22    IdentExpr      :: fn(Color) -> Async<i32>
+  expr 75:31    DotVariantExpr :: Color
+  expr 75:5     CallExpr       :: void
+  expr 75:5     IdentExpr      :: fn(T) -> void
+  expr 76:13    StringLitExpr  :: string
+  expr 76:16    AwaitExpr      :: i32
+  expr 76:22    CallExpr       :: Async<i32>
+  expr 76:22    IdentExpr      :: fn(i32) -> Async<i32>
+  expr 76:5     CallExpr       :: void
+  expr 76:5     IdentExpr      :: fn(T) -> void
+  expr 77:13    StringLitExpr  :: string
+  expr 77:16    AwaitExpr      :: i32
+  expr 77:22    CallExpr       :: Async<i32>
+  expr 77:22    IdentExpr      :: fn(i32) -> Async<i32>
+  expr 77:5     CallExpr       :: void
+  expr 77:5     IdentExpr      :: fn(T) -> void
+  expr 78:13    StringLitExpr  :: string
+  expr 78:16    AwaitExpr      :: i32
+  expr 78:22    CallExpr       :: Async<i32>
+  expr 78:22    IdentExpr      :: fn() -> Async<i32>
+  expr 78:5     CallExpr       :: void
+  expr 78:5     IdentExpr      :: fn(T) -> void

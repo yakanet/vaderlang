@@ -259,7 +259,7 @@ export LowerCode :: enum(CodeInfo) {
     IntrinsicUnsupported     { .id = "M5005", .message = "intrinsic not implemented by the lowerer" },
     SelfReceiverMissing      { .id = "M5006", .message = "method call lacks a resolvable `self` receiver" },
     UnresolvedIdent          { .id = "M5007", .message = "identifier did not resolve at lowering" },
-    AwaitInShortCircuit      { .id = "M5009", .message = "`await` in a short-circuit operand or loop condition is not yet supported" },
+    AwaitInShortCircuit      { .id = "M5009", .message = "`await` in a short-circuit operand, loop condition or match guard is not yet supported" },
     ComptimeForNotUnrollable { .id = "M5010", .message = "`@comptime for` cannot be unrolled" },
 }
 

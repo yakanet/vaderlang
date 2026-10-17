@@ -154,7 +154,11 @@ lower_arm :: fn(
 ) -> LoweredBlock {
     stmts: LoweredStmt[]: []
     introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, stmts, arm.span)
-    body :: recurse(ctx, arm.body)
+    // The body runs only once its pattern matched: the awaits of an expression
+    // body open the arm instead of preceding the whole `match`.
+    base :: ctx.pending_awaits.len()
+    body :: lower_unlifted(ctx, arm.body)
+    drain_pending_from(ctx, stmts, base)
     return LoweredBlock {
         .span = arm.span, .type = type_of(body),
         .stmts = stmts, .trailing = body,
@@ -179,7 +183,10 @@ arm_predicate :: fn(
     // to the same slots is idempotent.)
     binding_stmts: LoweredStmt[]: []
     introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, binding_stmts, arm.span)
+    // The guard is the right operand of the `&&` below: same rule (M5009).
+    guard_base :: ctx.pending_awaits.len()
     guard := recurse(ctx, arm_guard)
+    guard_no_pending_await(ctx, guard_base, arm_guard.span)
     if binding_stmts.len() > 0 {
         guard = LoweredBlock {
             .span = arm_guard.span, .type = TY_BOOL,

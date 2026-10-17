@@ -588,6 +588,8 @@ const C_PARITY = new Set<string>([
   "lambda_spread_capture",
   // An `await` on the left of a `??` or in an interpolation makes a coroutine.
   "async_await_in_value_positions",
+  // An `await` in an `else if` condition, a match arm or a value block.
+  "async_await_in_branches",
   // A `yield` in a binding's value or in an argument block makes a generator.
   "generator_yield_in_value",
   // Two modules' same-named types name apart every instance and impl member.

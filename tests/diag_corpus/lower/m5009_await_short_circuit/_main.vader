@@ -22,3 +22,12 @@ fallback :: fn(a: i32 | null) -> Async<i32> {
     r :: a ?? await count_of()
     return r
 }
+
+// A match guard is the right operand of its arm's `&&`: same rule.
+guarded :: fn(x: i32) -> Async<i32> {
+    r :: match x {
+        1 if await flag_of() -> 10
+        _ -> 20
+    }
+    return r
+}
