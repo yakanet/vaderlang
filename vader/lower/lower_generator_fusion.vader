@@ -442,7 +442,7 @@ extract_gen_source_loops :: fn(decl: AST.FnDecl) -> GenSourceLoop[] | null {
         } else {
             // A prelude runs once, outside every source loop: a `yield` there would
             // splice the consumer body where none of its jumps has a loop to reach.
-            if stmt_has_yield(stmt) {
+            if has_yield(stmt) {
                 return null
             }
             pending.push(stmt)

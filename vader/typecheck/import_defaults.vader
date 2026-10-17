@@ -18,7 +18,8 @@
 // folds in the file path, so an entry copied from another file cannot collide
 // with one of the importing module's own.
 //
-// A gap in the walk below is no longer silent: `lower_ident` reports M5007.
+// A resolution the walk below fails to copy is not silent: `lower_ident` reports
+// M5007.
 
 module "vader/typecheck"
 
@@ -34,7 +35,9 @@ import "vader/types"
 /// @param into  the module importing it — the resolutions are copied here.
 /// @param fd    the exported declaration whose defaults may name something.
 publish_default_resolutions :: fn(
-    from: TypedProgram, into: TypedProgram, fd: AST.FnDecl,
+    from: TypedProgram,
+    into: TypedProgram,
+    fd: AST.FnDecl,
 ) -> void {
     for pm in fd.params {
         copy_maybe_resolutions(pm.default_value, from, into)
@@ -43,175 +46,60 @@ publish_default_resolutions :: fn(
 
 // ---- the walk -------------------------------------------------------------
 
-// Exhaustive over `AST.Expr`, `AST.Stmt` and `AST.Pattern` deliberately: a
-// `_ ->` here would let a new node kind carry an identifier across unnoticed,
-// which is the failure this file exists to end. A default holding a lambda
-// takes the resolutions of its params and locals too, which the resolver keyed
-// at their binding spans.
-copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram) -> void {
-    match e {
-        is AST.IdentExpr -> { copy_span(e.span, from, into) }
-        is AST.CallExpr -> {
-            copy_expr_resolutions(e.callee, from, into)
-            for t in e.type_args {
-                copy_expr_resolutions(t, from, into)
-            }
-            for a in e.args {
-                copy_expr_resolutions(a.value, from, into)
-            }
-        }
-        is AST.FieldExpr -> { copy_expr_resolutions(e.target, from, into) }
-        is AST.IndexExpr -> {
-            copy_expr_resolutions(e.target, from, into)
-            copy_expr_resolutions(e.index, from, into)
-        }
-        is AST.UnaryExpr  -> { copy_expr_resolutions(e.operand, from, into) }
-        is AST.BinaryExpr -> {
-            copy_expr_resolutions(e.left, from, into)
-            copy_expr_resolutions(e.right, from, into)
-            copy_alias(e.bind_as, from, into)
-        }
-        is AST.NullCoalesceExpr -> {
-            copy_expr_resolutions(e.left, from, into)
-            copy_maybe_resolutions(AST.coalesce_fallback_expr(e.fallback), from, into)
-        }
-        is AST.IfExpr    -> { copy_if_resolutions(e, from, into) }
-        is AST.MatchExpr -> {
-            copy_expr_resolutions(e.scrutinee, from, into)
-            copy_alias(e.bind_as, from, into)
-            for arm in e.arms {
-                copy_pattern_resolutions(arm.pattern, from, into)
-                copy_maybe_resolutions(arm.guard, from, into)
-                copy_expr_resolutions(arm.body, from, into)
-            }
-        }
-        is AST.BlockExpr -> { copy_block_resolutions(e, from, into) }
+copy_maybe_resolutions :: fn(e: AST.Expr | null, from: TypedProgram, into: TypedProgram) -> void {
+    present :: e ?? return
+    _ :: AST.inspect(present, (n) -> copy_node_resolutions(n, from, into))
+}
+
+// `inspect` reaches every node, so every identifier is copied ; what the visitor
+// adds is the span of each binding a node introduces, since a default holding a
+// lambda takes the resolutions of its params and locals too, which the resolver
+// keyed at their binding spans. Exhaustive, so a new node kind that binds a name
+// gets an arm.
+copy_node_resolutions :: fn(n: AST.Node, from: TypedProgram, into: TypedProgram) -> AST.Walk {
+    match n {
+        is AST.IdentExpr -> { copy_span(n.span, from, into) }
+        is AST.LetStmt -> { copy_binding_resolutions(n.binding, from, into) }
+        is AST.ForStmt -> { copy_loop_var_resolutions(n.form, from, into) }
+        is AST.BinaryExpr -> { copy_alias(n.bind_as, from, into) }
+        is AST.MatchExpr -> { copy_alias(n.bind_as, from, into) }
         is AST.LambdaExpr -> {
-            copy_param_resolutions(e.params, from, into)
-            copy_maybe_resolutions(e.return_type, from, into)
-            copy_block_resolutions(e.body, from, into)
+            for p in n.params {
+                copy_span(p.span, from, into)
+            }
         }
-        is AST.StructLitExpr -> {
-            copy_expr_resolutions(e.type_name, from, into)
-            for item in e.items {
-                if item is AST.StructLitField {
-                    copy_expr_resolutions(item.value, from, into)
-                } else if item is AST.StructLitSpread {
-                    copy_expr_resolutions(item.expr, from, into)
+        is AST.StructPattern -> {
+            for f in n.fields {
+                if f.value is AST.PatternBinding {
+                    copy_span(f.name_span, from, into)
                 }
             }
         }
-        is AST.SeqLitExpr -> {
-            for el in e.elements {
-                copy_expr_resolutions(el, from, into)
-            }
-        }
-        is AST.RangeExpr -> {
-            copy_expr_resolutions(e.lower, from, into)
-            copy_expr_resolutions(e.upper, from, into)
-        }
-        is AST.CastExpr -> {
-            copy_expr_resolutions(e.target, from, into)
-            copy_expr_resolutions(e.value, from, into)
-        }
-        is AST.GenericInstExpr -> {
-            copy_expr_resolutions(e.callee, from, into)
-            for ta in e.type_args {
-                copy_expr_resolutions(ta, from, into)
-            }
-        }
-        is AST.IntrinsicCallExpr -> {
-            for a in e.args {
-                copy_expr_resolutions(a, from, into)
-            }
-        }
-        is AST.StringLitExpr -> {
-            for part in e.parts {
-                if part is AST.StringLitInterp {
-                    copy_expr_resolutions(part.expr, from, into)
-                }
-            }
-        }
-        is AST.FnTypeExpr -> {
-            for pt in e.params {
-                copy_expr_resolutions(pt, from, into)
-            }
-            copy_maybe_resolutions(e.return_type, from, into)
-        }
-        is AST.ArrayTypeExpr   -> { copy_expr_resolutions(e.element, from, into) }
-        is AST.AwaitExpr       -> { copy_expr_resolutions(e.inner, from, into) }
-        is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
-         | AST.CharLitExpr | AST.DotVariantExpr -> {}
+        // Binds nothing: what it names is an identifier among its children.
+        is AST.FieldExpr | AST.CallExpr | AST.StringLitExpr | AST.IntLitExpr | AST.BoolLitExpr
+            | AST.NullLitExpr | AST.CharLitExpr | AST.FloatLitExpr | AST.ExprStmt | AST.BlockExpr
+            | AST.ReturnStmt | AST.IfExpr | AST.DotVariantExpr | AST.StructLitExpr | AST.UnaryExpr
+            | AST.AssignStmt | AST.IndexExpr | AST.NullCoalesceExpr | AST.GenericInstExpr
+            | AST.SeqLitExpr | AST.RangeExpr | AST.IntrinsicCallExpr | AST.ArrayTypeExpr
+            | AST.FnTypeExpr | AST.AwaitExpr | AST.CastExpr | AST.BreakStmt | AST.ContinueStmt
+            | AST.YieldStmt | AST.DeferStmt | AST.DestructureAssignStmt | AST.IsPattern
+            | AST.EnumVariantPattern | AST.WildcardPattern | AST.RangePattern | AST.LiteralPattern
+            | AST.OrPattern -> {}
+        // A default value holds no declaration.
+        is AST.Decl -> {}
     }
+    return .Descend
 }
 
-copy_if_resolutions :: fn(f: AST.IfExpr, from: TypedProgram, into: TypedProgram) -> void {
-    copy_expr_resolutions(f.cond, from, into)
-    copy_block_resolutions(f.then_block, from, into)
-    branch :: f.else_branch
-    if branch is AST.IfElseIf {
-        copy_if_resolutions(branch.branch, from, into)
-    } else if branch is AST.IfElseBlock {
-        copy_block_resolutions(branch.block, from, into)
+copy_loop_var_resolutions :: fn(form: AST.ForForm, from: TypedProgram, into: TypedProgram) -> void {
+    if form !is AST.InFor {
+        return
     }
-}
-
-copy_block_resolutions :: fn(b: AST.BlockExpr, from: TypedProgram, into: TypedProgram) -> void {
-    for s in b.stmts {
-        copy_stmt_resolutions(s, from, into)
-    }
-    copy_maybe_resolutions(b.trailing, from, into)
-}
-
-copy_stmt_resolutions :: fn(s: AST.Stmt, from: TypedProgram, into: TypedProgram) -> void {
-    match s {
-        is AST.LetStmt -> {
-            copy_binding_resolutions(s.binding, from, into)
-            copy_maybe_resolutions(s.ty, from, into)
-            copy_expr_resolutions(s.value, from, into)
-        }
-        is AST.AssignStmt -> {
-            copy_expr_resolutions(s.target, from, into)
-            copy_expr_resolutions(s.value, from, into)
-        }
-        is AST.DestructureAssignStmt -> {
-            for place in AST.assign_places(s) {
-                copy_expr_resolutions(place, from, into)
-            }
-            copy_expr_resolutions(s.value, from, into)
-        }
-        is AST.ExprStmt  -> { copy_expr_resolutions(s.expr, from, into) }
-        is AST.YieldStmt -> { copy_expr_resolutions(s.value, from, into) }
-        is AST.ReturnStmt -> { copy_maybe_resolutions(s.value, from, into) }
-        is AST.ForStmt -> {
-            copy_for_form_resolutions(s.form, from, into)
-            copy_block_resolutions(s.body, from, into)
-        }
-        is AST.DeferStmt -> {
-            body :: s.body
-            if body is AST.DeferStmtBody {
-                copy_stmt_resolutions(body.stmt, from, into)
-            } else if body is AST.DeferBlockBody {
-                copy_block_resolutions(body.block, from, into)
-            }
-        }
-        is AST.BreakStmt | AST.ContinueStmt -> {}
-    }
-}
-
-copy_for_form_resolutions :: fn(form: AST.ForForm, from: TypedProgram, into: TypedProgram) -> void {
-    match form {
-        is AST.InfiniteFor -> {}
-        is AST.WhileFor    -> { copy_expr_resolutions(form.cond, from, into) }
-        is AST.InFor       -> {
-            var :: form.loop_var
-            if var is AST.NamedVar {
-                copy_span(var.span, from, into)
-            } else if var is AST.DestructureVar {
-                copy_binding_resolutions(var.pattern, from, into)
-            }
-            copy_expr_resolutions(form.iter, from, into)
-        }
+    var :: form.loop_var
+    if var is AST.NamedVar {
+        copy_span(var.span, from, into)
+    } else if var is AST.DestructureVar {
+        copy_binding_resolutions(var.pattern, from, into)
     }
 }
 
@@ -226,52 +114,6 @@ copy_binding_resolutions :: fn(b: AST.LetBinding, from: TypedProgram, into: Type
             }
         }
     }
-}
-
-copy_pattern_resolutions :: fn(p: AST.Pattern, from: TypedProgram, into: TypedProgram) -> void {
-    match p {
-        is AST.IsPattern -> {
-            copy_expr_resolutions(p.ty, from, into)
-            inner :: p.inner ?? return
-            copy_pattern_resolutions(inner, from, into)
-        }
-        is AST.StructPattern -> {
-            for f in p.fields {
-                value :: f.value
-                if value is AST.PatternBinding {
-                    copy_span(f.name_span, from, into)
-                } else if value is AST.PatternLiteral {
-                    copy_expr_resolutions(value.value, from, into)
-                }
-            }
-        }
-        is AST.LiteralPattern -> { copy_expr_resolutions(p.value, from, into) }
-        is AST.RangePattern -> {
-            copy_expr_resolutions(p.lower, from, into)
-            copy_expr_resolutions(p.upper, from, into)
-        }
-        is AST.OrPattern -> {
-            for alternative in p.patterns {
-                copy_pattern_resolutions(alternative, from, into)
-            }
-        }
-        is AST.WildcardPattern | AST.EnumVariantPattern -> {}
-    }
-}
-
-copy_param_resolutions :: fn(
-    params: AST.FnParam[], from: TypedProgram, into: TypedProgram,
-) -> void {
-    for p in params {
-        copy_span(p.span, from, into)
-        copy_maybe_resolutions(p.ty, from, into)
-        copy_maybe_resolutions(p.default_value, from, into)
-    }
-}
-
-copy_maybe_resolutions :: fn(e: AST.Expr | null, from: TypedProgram, into: TypedProgram) -> void {
-    present :: e ?? return
-    copy_expr_resolutions(present, from, into)
 }
 
 copy_alias :: fn(alias: AST.AsBinding | null, from: TypedProgram, into: TypedProgram) -> void {

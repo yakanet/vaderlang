@@ -5,8 +5,7 @@
 // T3083). Each reads the source as written, never a type, so it answers the
 // same at a definition and at a call site.
 //
-// The walk visits every sub-expression and statement, and its matches are
-// exhaustive, so a new `Expr` or `Stmt` variant trips T3013 here. An `await`,
+// The walk is `inspect`'s (`toolchain/ast`), which reaches every node. An `await`,
 // a `yield` or a `break` can sit wherever a value does: `total += next() ??
 // break` puts the `break` in the right operand of the `+` that a compound
 // assignment desugars to. The walk does not enter a lambda body, nor a `defer`
@@ -42,16 +41,11 @@ export fn_is_generator :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> bool =
 export fn_is_async :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> bool =
     body_shape(typed, fn_decl).awaits
 
-/// True when `s` is, or holds, a `yield` outside any nested body (a lambda, a
+/// True when `n` is, or holds, a `yield` outside any nested body (a lambda, a
 /// `defer`).
 ///
-/// @param s  the statement to scan.
-export stmt_has_yield :: fn(s: AST.Stmt) -> bool = stmt_contains(s, BodyProbe { .kind = .Yield })
-
-/// True when `e` holds a `yield` outside any nested body (a lambda, a `defer`).
-///
-/// @param e  the expression to scan.
-export expr_has_yield :: fn(e: AST.Expr) -> bool = expr_contains(e, BodyProbe { .kind = .Yield })
+/// @param n  the statement or expression to scan.
+export has_yield :: fn(n: AST.Node) -> bool = node_contains(n, BodyProbe { .kind = .Yield })
 
 /// True when `s` is an infinite `for { … }` that no `break` can leave.
 ///
@@ -72,7 +66,7 @@ loop_never_exits :: fn(s: AST.ForStmt) -> bool {
         .label = s.label,
         .bare_counts = true,
     }
-    return !block_contains(s.body, probe)
+    return !node_contains(s.body, probe)
 }
 
 /// Whether a fn body `await`s and whether it `yields`, as `body_shape` found it.
@@ -96,18 +90,19 @@ remember_body_shape :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> BodyShape
     return shape
 }
 
+// One walk answers both questions.
 scan_body :: fn(fn_decl: AST.FnDecl) -> BodyShape {
     body :: fn_decl.body ?? return BodyShape {}
-    return BodyShape {
-        .awaits = block_contains(body, BodyProbe { .kind = .Await }),
-        .yields = block_contains(body, BodyProbe { .kind = .Yield }),
-    }
+    probe :: BodyProbe { .kind = .Shape }
+    _ :: node_contains(body, probe)
+    return BodyShape { .awaits = probe.awaits, .yields = probe.yields }
 }
 
 // ---- the walk -------------------------------------------------------------
 
 ProbeKind :: enum {
-    Await,
+    /// Whether the body awaits and whether it yields, noted on the probe.
+    Shape,
     Yield,
     LoopExit,
 }
@@ -115,6 +110,9 @@ ProbeKind :: enum {
 /// What a scan looks for.
 BodyProbe :: struct {
     kind: ProbeKind
+    /// `Shape` only: whether the walk met an `await`, and a `yield`, so far.
+    awaits: bool = false
+    yields: bool = false
     /// `LoopExit` only: the label of the loop being judged.
     label: string | null = null
     /// `LoopExit` only: whether a bare `break` still targets the loop being
@@ -123,146 +121,79 @@ BodyProbe :: struct {
     bare_counts: bool = false
 }
 
-block_contains :: fn(block: AST.BlockExpr, probe: BodyProbe) -> bool {
-    for s in block.stmts {
-        if stmt_contains(s, probe) {
-            return true
-        }
+node_contains :: fn(n: AST.Node, probe: BodyProbe) -> bool =
+    AST.inspect(n, (m) -> probe_step(m, probe))
+
+// Exhaustive, so a new node kind that suspends, yields or jumps gets an arm.
+probe_step :: fn(n: AST.Node, probe: BodyProbe) -> AST.Walk = match n {
+    // Holds what its children hold.
+    is AST.IdentExpr | AST.FieldExpr | AST.CallExpr | AST.StringLitExpr | AST.IntLitExpr
+        | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.FloatLitExpr | AST.BinaryExpr
+        | AST.ExprStmt | AST.LetStmt | AST.BlockExpr | AST.ReturnStmt | AST.IfExpr
+        | AST.DotVariantExpr | AST.StructLitExpr | AST.UnaryExpr | AST.AssignStmt | AST.IndexExpr
+        | AST.MatchExpr | AST.NullCoalesceExpr | AST.GenericInstExpr | AST.SeqLitExpr
+        | AST.RangeExpr | AST.IntrinsicCallExpr | AST.CastExpr | AST.ContinueStmt
+        | AST.DestructureAssignStmt | AST.Decl -> .Descend
+    is AST.ForStmt -> loop_step(n, probe)
+    // A nested body runs as a fn of its own ; a pattern or a type evaluates nothing.
+    is AST.LambdaExpr | AST.DeferStmt | AST.Pattern | AST.ArrayTypeExpr | AST.FnTypeExpr -> .Skip
+    is AST.BreakStmt -> stop_if(break_leaves_loop(n, probe))
+    is AST.AwaitExpr -> note_await(probe)
+    is AST.YieldStmt -> note_yield(probe)
+}
+
+// A `Shape` scan notes what it meets, and stops once it has met both.
+note_await :: fn(probe: BodyProbe) -> AST.Walk {
+    if probe.kind != .Shape {
+        return .Descend
     }
-    trailing :: block.trailing ?? return false
-    return expr_contains(trailing, probe)
+    probe.awaits = true
+    return stop_if(probe.yields)
 }
 
-stmt_contains :: fn(s: AST.Stmt, probe: BodyProbe) -> bool = match s {
-    is AST.YieldStmt             -> probe.kind == .Yield || expr_contains(s.value, probe)
-    is AST.BreakStmt             -> probe.kind == .LoopExit && break_leaves_loop(s, probe)
-    is AST.ContinueStmt          -> false
-    is AST.LetStmt               -> expr_contains(s.value, probe)
-    is AST.AssignStmt            -> expr_contains(s.target, probe) || expr_contains(s.value, probe)
-    is AST.DestructureAssignStmt -> destructure_contains(s, probe)
-    is AST.ExprStmt              -> expr_contains(s.expr, probe)
-    is AST.ReturnStmt            -> maybe_contains(s.value, probe)
-    is AST.ForStmt               -> for_contains(s, probe)
-    is AST.DeferStmt             -> false
+note_yield :: fn(probe: BodyProbe) -> AST.Walk {
+    if probe.kind == .Yield {
+        return .Stop
+    }
+    if probe.kind != .Shape {
+        return .Descend
+    }
+    probe.yields = true
+    return stop_if(probe.awaits)
 }
 
-expr_contains :: fn(e: AST.Expr, probe: BodyProbe) -> bool = match e {
-    is AST.AwaitExpr -> probe.kind == .Await || expr_contains(e.inner, probe)
-    is AST.LambdaExpr -> false
-    is AST.BlockExpr -> block_contains(e, probe)
-    is AST.IfExpr -> if_contains(e, probe)
-    is AST.MatchExpr -> expr_contains(e.scrutinee, probe) || arms_contain(e.arms, probe)
-    is AST.NullCoalesceExpr -> expr_contains(e.left, probe) || fallback_contains(e.fallback, probe)
-    is AST.CallExpr -> expr_contains(e.callee, probe) || args_contain(e.args, probe)
-    is AST.StringLitExpr -> parts_contain(e.parts, probe)
-    is AST.StructLitExpr -> items_contain(e.items, probe)
-    is AST.SeqLitExpr -> exprs_contain(e.elements, probe)
-    is AST.IntrinsicCallExpr -> exprs_contain(e.args, probe)
-    is AST.BinaryExpr -> expr_contains(e.left, probe) || expr_contains(e.right, probe)
-    is AST.IndexExpr -> expr_contains(e.target, probe) || expr_contains(e.index, probe)
-    is AST.RangeExpr -> expr_contains(e.lower, probe) || expr_contains(e.upper, probe)
-    is AST.UnaryExpr -> expr_contains(e.operand, probe)
-    is AST.FieldExpr -> expr_contains(e.target, probe)
-    is AST.CastExpr -> expr_contains(e.value, probe)
-    is AST.GenericInstExpr -> expr_contains(e.callee, probe)
-    is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr | AST.IdentExpr | AST.DotVariantExpr | AST.FnTypeExpr | AST.ArrayTypeExpr -> false
+stop_if :: fn(found: bool) -> AST.Walk {
+    if found {
+        return .Stop
+    }
+    return .Descend
 }
 
 // Does this `break` leave the loop being judged ? A bare one targets the
 // innermost loop ; a labelled one reaches any enclosing loop carrying that label.
 break_leaves_loop :: fn(b: AST.BreakStmt, probe: BodyProbe) -> bool {
+    if probe.kind != .LoopExit {
+        return false
+    }
     named :: b.label ?? return probe.bare_counts
     return probe.label != null && named == probe.label
 }
 
-destructure_contains :: fn(s: AST.DestructureAssignStmt, probe: BodyProbe) -> bool =
-    exprs_contain(AST.assign_places(s), probe) || expr_contains(s.value, probe)
-
-// The iterable and the condition are checked before the loop is entered, so a
-// bare `break` in them still targets the enclosing loop.
-for_contains :: fn(s: AST.ForStmt, probe: BodyProbe) -> bool =
-    form_contains(s.form, probe) || block_contains(s.body, inside_loop(probe))
-
-inside_loop :: fn(probe: BodyProbe) -> BodyProbe {
-    if !probe.bare_counts {
-        return probe
+// A nested loop swallows the bare `break`s of its body, but not those of its
+// iterable or its condition, which are evaluated before the loop is entered.
+loop_step :: fn(s: AST.ForStmt, probe: BodyProbe) -> AST.Walk {
+    if probe.kind != .LoopExit || !probe.bare_counts {
+        return .Descend
     }
-    return BodyProbe { ...probe, .bare_counts = false }
+    inside :: BodyProbe { ...probe, .bare_counts = false }
+    if form_contains(s.form, probe) || node_contains(s.body, inside) {
+        return .Stop
+    }
+    return .Skip
 }
 
 form_contains :: fn(form: AST.ForForm, probe: BodyProbe) -> bool = match form {
-    is AST.InFor       -> expr_contains(form.iter, probe)
-    is AST.WhileFor    -> expr_contains(form.cond, probe)
+    is AST.InFor       -> node_contains(form.iter, probe)
+    is AST.WhileFor    -> node_contains(form.cond, probe)
     is AST.InfiniteFor -> false
-}
-
-// In `?? break` the fallback IS the jump, a statement rather than an expression.
-fallback_contains :: fn(f: AST.CoalesceFallback, probe: BodyProbe) -> bool = match f {
-    is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt -> stmt_contains(f, probe)
-    is AST.Expr -> expr_contains(f, probe)
-}
-
-if_contains :: fn(i: AST.IfExpr, probe: BodyProbe) -> bool =
-    expr_contains(i.cond, probe) || block_contains(i.then_block, probe)
-        || else_contains(i.else_branch, probe)
-
-else_contains :: fn(tail: AST.IfElse | null, probe: BodyProbe) -> bool = match tail {
-    is null            -> false
-    is AST.IfElseIf    -> if_contains(tail.branch, probe)
-    is AST.IfElseBlock -> block_contains(tail.block, probe)
-}
-
-arms_contain :: fn(arms: AST.MatchArm[], probe: BodyProbe) -> bool {
-    for arm in arms {
-        if maybe_contains(arm.guard, probe) || expr_contains(arm.body, probe) {
-            return true
-        }
-    }
-    return false
-}
-
-args_contain :: fn(args: AST.CallArg[], probe: BodyProbe) -> bool {
-    for a in args {
-        if expr_contains(a.value, probe) {
-            return true
-        }
-    }
-    return false
-}
-
-parts_contain :: fn(parts: AST.StringLitPart[], probe: BodyProbe) -> bool {
-    for part in parts {
-        if part is AST.StringLitInterp && expr_contains(part.expr, probe) {
-            return true
-        }
-    }
-    return false
-}
-
-items_contain :: fn(items: AST.StructLitItem[], probe: BodyProbe) -> bool {
-    for item in items {
-        if item_contains(item, probe) {
-            return true
-        }
-    }
-    return false
-}
-
-item_contains :: fn(item: AST.StructLitItem, probe: BodyProbe) -> bool = match item {
-    is AST.StructLitField  -> expr_contains(item.value, probe)
-    is AST.StructLitSpread -> expr_contains(item.expr, probe)
-}
-
-exprs_contain :: fn(es: AST.Expr[], probe: BodyProbe) -> bool {
-    for e in es {
-        if expr_contains(e, probe) {
-            return true
-        }
-    }
-    return false
-}
-
-maybe_contains :: fn(e: AST.Expr | null, probe: BodyProbe) -> bool {
-    present :: e ?? return false
-    return expr_contains(present, probe)
 }

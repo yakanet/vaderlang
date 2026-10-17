@@ -195,7 +195,7 @@ stmt_placement :: fn(s: AST.Stmt, tail: bool) -> YieldPlacement {
         return expr_placement(s.expr, tail)
     }
     // A nested loop, or a statement whose `yield` this walk does not follow.
-    return unfollowed_placement(stmt_has_yield(s))
+    return unfollowed_placement(has_yield(s))
 }
 
 // @partial: a block, an `if` and a `match` are the expressions that place a
@@ -205,7 +205,7 @@ expr_placement :: fn(e: AST.Expr, tail: bool) -> YieldPlacement = @partial match
     is AST.BlockExpr -> block_placement(e, tail)
     is AST.IfExpr    -> if_placement(e, tail)
     is AST.MatchExpr -> arms_placement(e.arms, tail)
-    _                -> unfollowed_placement(expr_has_yield(e))
+    _                -> unfollowed_placement(has_yield(e))
 }
 
 arms_placement :: fn(arms: AST.MatchArm[], tail: bool) -> YieldPlacement {
