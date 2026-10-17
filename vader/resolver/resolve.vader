@@ -62,7 +62,8 @@ export ResolvedModule :: struct {
     /// concrete exported counterpart. Lets `type_from_expr` resolve
     /// `ParseError` to the real struct symbol on the std/string side
     /// instead of the local import binding. Populated by the
-    /// typecheck orchestrator after `wire_imports`.
+    /// typecheck orchestrator after `wire_imports`: one project-wide
+    /// table every module of a check shares.
     imports_to: MutableMap<i32, Symbol>
     /// `alias_types[sym.id]` carries the resolved Type for any
     /// `TypeAlias` symbol (local or imported). Lets `type_from_expr`
@@ -88,8 +89,9 @@ export ResolvedModule :: struct {
     /// `namespace_sym.id → field_name → Type` for every `P :: import
     /// "..."` namespace binding. Lets `type_from_expr`'s FieldExpr
     /// arm resolve `P.Decl` in type position without needing
-    /// TypedProgram. Populated by the typecheck orchestrator after
-    /// `namespace_exports` builds. Holds EXPORTED members only.
+    /// TypedProgram. Populated by the typecheck orchestrator before any
+    /// declaration, one project-wide table every module of a check shares.
+    /// Holds EXPORTED members only.
     namespace_member_types: MutableMap<i32, MutableMap<string, Type>>
     /// `namespace_sym.id → private-member-name → true` for every
     /// `P :: import "..."` binding : the PRIVATE (non-`export`) members

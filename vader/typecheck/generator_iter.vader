@@ -88,21 +88,26 @@ generator_of_state :: fn(state: StructType, typed: TypedProgram) -> AST.FnDecl |
 /// Runs before any body walk so `try_trait_widen` sees `<fn>$State → Iterator`
 /// while typing chained receivers.
 ///
-/// Each generator registers from the module that declares it: `fn_decls` also
-/// holds the declarations other modules publish into it (`cross_publish_fn_decls`),
-/// and a signature resolves only in its owner — read from a consumer declaring a
-/// fn of the same name, it would take that fn's.
+/// Each generator registers from the module that declares it, walking only that
+/// module's own fns (`fn_overloads`): `fn_decls` is the project-wide table
+/// (`cross_publish_fn_decls`), and a signature resolves only in its owner. Read
+/// from a consumer declaring a fn of the same name, it would take that fn's.
 export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
     states :: MutableMap<u64, GeneratorState> {}
     for [_, owner] in per_module {
         sink: Diagnostic[]: []
-        for [sym_id, fn_decl] in owner.fn_decls {
-            if !declares_fn(owner, sym_id, fn_decl.name) || !fn_is_generator(owner, fn_decl) { continue }
-            elem :: generator_element_type(fn_decl, lookup_return_type(fn_decl, owner), sink)
-            if elem is null { continue }
-            states[fn_decl.name_span.hash()] = GeneratorState {
-                .symbol = gen_state_symbol(sym_id, fn_decl, owner),
-                .element = elem,
+        for [_, bucket] in owner.resolved.fn_overloads {
+            for sym in bucket {
+                fn_decl :: owner.fn_decls[sym.id] ?? continue
+                if !fn_is_generator(owner, fn_decl) {
+                    continue
+                }
+                returned :: lookup_return_type(fn_decl, owner)
+                elem :: generator_element_type(fn_decl, returned, sink) ?? continue
+                states[fn_decl.name_span.hash()] = GeneratorState {
+                    .symbol = gen_state_symbol(sym.id, fn_decl, owner),
+                    .element = elem,
+                }
             }
         }
     }
@@ -114,17 +119,6 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
             record_struct_trait_args(tp, state_ty, core_trait_key(TRAIT_ITERATOR), [state.element])
         }
     }
-}
-
-// Whether `owner` itself declares the fn whose symbol is `sym_id`.
-declares_fn :: fn(owner: TypedProgram, sym_id: i32, name: string) -> bool {
-    bucket :: owner.resolved.fn_overloads[name] ?? return false
-    for sym in bucket {
-        if sym.id == sym_id {
-            return true
-        }
-    }
-    return false
 }
 
 /// The concrete result type for a call whose callee is a `generator`, or null.

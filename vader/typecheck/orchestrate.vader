@@ -156,11 +156,11 @@ check_project_modules :: fn(
     // alias lookups (`Pet` from `./types`) follow ImportBinding to
     // the real symbol during fn-signature lowering below.
     wire_targets :: wire_imports(project)
+    imports_to :: resolver_imports(wire_targets)
     for [_, typed] in per_module {
         typed.import_targets = wire_targets
+        typed.resolved.imports_to = imports_to
     }
-    populate_resolver_imports(entry_typed)
-    populate_resolver_imports_for_others(entry_typed, project, per_module)
     // R2018 orphan-rule pre-resolve check (project-level — needs the
     // wire_imports redirect table to resolve ImportBinding to the
     // concrete owner). Diagnostics fold into each module's resolved
@@ -192,7 +192,7 @@ check_project_modules :: fn(
     // FieldExpr arm can resolve `P.Decl` in fn-signature type positions (which run
     // during `declare_module` below, before `populate_external_types` builds
     // `namespace_exports`), and settle the aliases that name such a member.
-    settle_namespace_member_aliases(project, per_module, unsettled)
+    settle_namespace_member_aliases(project, wire_targets, per_module, unsettled)
     merge_external_alias_types(entry_typed, per_module)
     // Phase B : declare every decl (fn signatures, struct types, etc.)
     // across ALL files of the module. decl_types is Symbol.id-keyed and
@@ -274,7 +274,7 @@ check_project_modules :: fn(
     settle_external_expr_bodied_returns(project, per_module)
     populate_external_types(entry_typed, project, per_module)
     populate_imported_fn_overloads(entry_typed, entry_loaded.collected.files, typed_by_name)
-    merge_struct_decls(entry_typed, per_module)
+    pull_field_external_types(entry_typed, per_module)
     merge_external_impl_methods(entry_typed, project, per_module)
     // Coherence : at most one impl per (concrete type, trait, trait-args) across
     // the whole program — the prelude's `i32 implements Display` etc. are in
@@ -326,10 +326,6 @@ check_project_modules :: fn(
             continue
         }
         other_typed :: per_module[id] ?? continue
-        // `import_targets` and `namespace_member_types` were both set for every
-        // module before any `declare_module` (`settle_namespace_member_aliases`)
-        // and persist: no need to re-set or rebuild them here.
-        populate_resolver_imports(other_typed)
         populate_external_types(other_typed, project, per_module)
         // The pre-settle populate (so settle's own UFCS sees cross-module
         // overloads) captured expr-bodied callees' returns while still `?` ;
@@ -1474,19 +1470,16 @@ settle_project_aliases :: fn(
 // declarations nor that of the modules matters.
 settle_namespace_member_aliases :: fn(
     project: LoadedProject,
+    targets: ImportTargetTable,
     per_module: MutableMap<string, TypedProgram>,
     unsettled: MutableMap<string, AST.Decl[]>,
 ) -> void {
-    // A target's private-name set depends on its collected symbols alone; its
-    // member map also on its `alias_types`, so it is rebuilt each round. Both are
-    // shared by all the target's importers and read-only downstream
-    // (`type_expr.vader::namespace_member_type`).
-    private_cache :: MutableMap<string, MutableMap<string, bool>> {}
+    // A target's private-name set depends on its collected symbols alone, so it is
+    // built once ; its member map also on its `alias_types`, so it is rebuilt each
+    // round.
+    share_namespace_private_members(targets, project, per_module)
     for {
-        member_cache :: MutableMap<string, MutableMap<string, Type>> {}
-        for [_, typed] in per_module {
-            prepopulate_namespace_member_types(typed, project, per_module, member_cache, private_cache)
-        }
+        share_namespace_member_types(targets, project, per_module)
         // The retry merges every module's aliases into each pending one: skip it
         // when no pending decl can settle, which is every project without such an
         // alias.
@@ -1541,14 +1534,12 @@ share_type_param_symbols :: fn(per_module: MutableMap<string, TypedProgram>) -> 
 }
 
 // Cross-module struct visibility : each module's `declare_module` only
-// populates its OWN `struct_decls` / `struct_field_types`. Field access
-// on a local variable typed as a struct from another module (e.g.
-// `block: LoweredBlock` in main.vader, with LoweredBlock from
-// vader/lower) lookups `typed.struct_decls[sym.id]` on the CURRENT
-// module's view — misses → `?` → cascading. Merge every module's
-// struct tables into every other module's view so the lookup hits
-// regardless of where the struct was declared. Symbol.id is the global
-// key, so a flat merge is enough. Mirror of `broadcast_enum_types`.
+// populates its OWN `struct_decls` / `struct_field_types`, yet a field access on
+// a local typed as another module's struct (`block: LoweredBlock` in main.vader)
+// looks `typed.struct_decls[sym.id]` up in the CURRENT module, and a miss turns
+// into `?` and cascades. Symbol ids being project-global, the union of every
+// module's tables is one table, written by nothing after the declarations:
+// every module shares that instance.
 broadcast_struct_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
     all_decls :: MutableMap<i32, AST.StructDecl> {}
     all_fields :: MutableMap<i32, MutableMap<string, Type>> {}
@@ -1561,16 +1552,8 @@ broadcast_struct_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> vo
         }
     }
     for [_, typed] in per_module {
-        for [sid, d] in all_decls {
-            if typed.struct_decls[sid] == null {
-                typed.struct_decls[sid] = d
-            }
-        }
-        for [sid, f] in all_fields {
-            if typed.struct_field_types[sid] == null {
-                typed.struct_field_types[sid] = f
-            }
-        }
+        typed.struct_decls = all_decls
+        typed.struct_field_types = all_fields
     }
 }
 
@@ -1709,35 +1692,22 @@ merge_external_alias_types :: fn(
     }
 }
 
-/// Copy every typed program's `trait_decls` (+ owner) into every
-/// other typed program's tables. After this each per_module knows
-/// about every project-wide trait, so default-method dispatch from
-/// any body can find the trait declaration regardless of which
-/// module the trait lives in.
+/// Give every typed program the project-wide `trait_decls` (+ owner), so
+/// default-method dispatch from any body can find the trait declaration
+/// regardless of which module the trait lives in. Nothing writes these tables
+/// after the declarations, so one instance serves every module.
 cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
-    // Pass 1 : collect every (trait_sym_id, decl, owner) tuple.
-    ids: i32[]: []
-    decls: AST.TraitDecl[]: []
-    owners: ResolvedModule[]: []
+    decls :: MutableMap<i32, AST.TraitDecl> {}
+    owners :: MutableMap<i32, ResolvedModule> {}
     for [_, tp] in per_module {
         for [sym_id, d] in tp.trait_decls {
-            o :: tp.trait_decl_owners[sym_id]
-            owner_resolved: ResolvedModule = tp.resolved
-            if o !is null {
-                owner_resolved = o
-            }
-            ids.push(sym_id)
-            decls.push(d)
-            owners.push(owner_resolved)
+            decls[sym_id] = d
+            owners[sym_id] = tp.trait_decl_owners[sym_id] ?? tp.resolved
         }
     }
-    // Pass 2 : write back into every typed program.
     for [_, tp] in per_module {
-        for i in 0..<ids.len() {
-            sid :: ids[i]
-            tp.trait_decls[sid] = decls[i]
-            tp.trait_decl_owners[sid] = owners[i]
-        }
+        tp.trait_decls = decls
+        tp.trait_decl_owners = owners
     }
 }
 
@@ -1745,59 +1715,30 @@ cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram>) ->
 /// Lets `lookup_callee_fn_decl` reach a callee declared in another module
 /// (`std/math.min` from an entry call site).
 cross_publish_fn_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
-    ids: i32[]: []
-    fdecls: AST.FnDecl[]: []
+    fdecls :: MutableMap<i32, AST.FnDecl> {}
     for [_, tp] in per_module {
         for [sym_id, d] in tp.fn_decls {
-            ids.push(sym_id)
-            fdecls.push(d)
+            fdecls[sym_id] = d
         }
     }
     for [_, tp] in per_module {
-        for i in 0..<ids.len() {
-            tp.fn_decls[ids[i]] = fdecls[i]
-        }
+        tp.fn_decls = fdecls
     }
 }
 
-// Merge every other module's `struct_decls` and `trait_decls` into
-// the entry's tables so `field.vader` can look up cross-module
-// struct field definitions when resolving `external_pt.field`.
-merge_struct_decls :: fn(
+// Pull into the entry's `external_types` the named types a struct field reaches
+// only transitively (an Enum / Struct / Trait declared in a module the entry does
+// not import), so the passes that lift placeholders (`lift_enum_placeholder` in
+// `expr_dot_variant.vader`) can find them: without it, `FlagSpec { .kind = .Str }`
+// rejects `.Str` when `FlagKind` is reached only through the struct's field.
+// `struct_field_types` is the project-wide table `broadcast_struct_decls` shares.
+pull_field_external_types :: fn(
     entry_typed: TypedProgram,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
-    entry_path :: entry_typed.resolved.path
-    for [_, other] in per_module {
-        if other.resolved.path == entry_path {
-            continue
-        }
-        for [sym_id, decl] in other.struct_decls {
-            entry_typed.struct_decls[sym_id] = decl
-        }
-        for [sym_id, decl] in other.trait_decls {
-            entry_typed.trait_decls[sym_id] = decl
-            owner :: other.trait_decl_owners[sym_id]
-            entry_typed.trait_decl_owners[sym_id] = if owner is null {
-                other.resolved
-            } else {
-                owner
-            }
-        }
-        for [sym_id, fmap] in other.struct_field_types {
-            entry_typed.struct_field_types[sym_id] = fmap
-            // Walk every field type for transitively-referenced named
-            // types (Enum / Struct / Trait declared in other modules
-            // but not directly imported by the entry). Pull their real
-            // `decl_types` entries into `external_types` so passes that
-            // lift placeholders (e.g. `lift_enum_placeholder` in
-            // `expr_dot_variant.vader`) can find them. Without this,
-            // `FlagSpec { .kind = .Str }` rejects `.Str` because
-            // `FlagKind` (only reached transitively via the struct
-            // field) never lands in any lookup table.
-            for [_, ft] in fmap {
-                pull_referenced_external_types(ft, entry_typed, per_module)
-            }
+    for [_, fmap] in entry_typed.struct_field_types {
+        for [_, ft] in fmap {
+            pull_referenced_external_types(ft, entry_typed, per_module)
         }
     }
 }
@@ -2100,43 +2041,16 @@ push_overload :: fn(
     }
 }
 
-// Mirror `import_targets.symbol_targets` into the resolver's
-// `imports_to` table so `type_from_expr` can dereference ImportBinding
-// symbols (e.g. `ParseError` from `std/string`) to their real exported
-// counterpart without needing the full `TypedProgram`.
-populate_resolver_imports :: fn(entry_typed: TypedProgram) -> void {
-    if entry_typed.import_targets !is null {
-        for [sym_id, st] in entry_typed.import_targets.symbol_targets {
-            entry_typed.resolved.imports_to[sym_id] = st.symbol
-        }
+// The resolver-side `imports_to` table, so `type_from_expr` can dereference an
+// ImportBinding symbol (`ParseError` from `std/string`) to its real export
+// without the full `TypedProgram`. Symbol ids are project-global, so one table
+// serves every module: each looks up only the import symbols it resolves.
+resolver_imports :: fn(targets: ImportTargetTable) -> MutableMap<i32, Symbol> {
+    out :: MutableMap<i32, Symbol> {}
+    for [sym_id, st] in targets.symbol_targets {
+        out[sym_id] = st.symbol
     }
-}
-
-/// Mirror `entry_typed.import_targets` onto every non-entry module's
-/// `resolved.imports_to`. Without this, the non-entry typecheck pass
-/// can't follow its own ImportBinding symbols to the real exports —
-/// every cross-module type reference (e.g. `LexerCode` in
-/// `diagnostic.vader` when the entry isn't `diagnostic.vader` itself)
-/// collapses to `?` (Unresolved) and cascades through every
-/// downstream `match` / `is` check. Each non-entry module owns its
-/// own subset of sym.ids ; we walk per-module collected.imports to
-/// route each id back to its owning module's `imports_to`.
-populate_resolver_imports_for_others :: fn(
-    entry_typed: TypedProgram,
-    project: LoadedProject,
-    per_module: MutableMap<string, TypedProgram>,
-) -> void {
-    targets :: entry_typed.import_targets ?? return
-    for [id, loaded] in project.modules {
-        if id == project.entry {
-            continue
-        }
-        other_typed :: per_module[id] ?? continue
-        for [sym_id, _] in loaded.collected.imports {
-            st :: targets.symbol_targets[sym_id] ?? continue
-            other_typed.resolved.imports_to[sym_id] = st.symbol
-        }
-    }
+    return out
 }
 
 populate_core_symbols :: fn(
@@ -2283,38 +2197,50 @@ build_namespace_export_decls :: fn(
     return out
 }
 
-/// Pre-populate `typed.resolved.namespace_member_types` from each target
+/// Build the `namespace_member_types` every module shares from each target
 /// module's `collected.symbols` + `alias_types`. Runs BEFORE any `declare_module`
 /// (`settle_namespace_member_aliases`) so fn signatures referencing `P.Decl` in
 /// type position resolve correctly. The full `namespace_exports` table (built
 /// later from `decl_types`) is only used for value-position field access via
-/// `field.vader::try_namespace_field`. Called for every module: the
+/// `field.vader::try_namespace_field`. Every module needs it: the
 /// whole-program lowerer lowers imported bodies too, so their fn signatures can
 /// reference `P.Decl` namespace-qualified types that must resolve here instead
 /// of degrading to `?`. Plain (non-namespace) imports still resolve via
 /// `imports_to` + `alias_types` and don't need this.
 ///
-/// `member_cache` / `private_cache` are keyed by target `mod_id` and shared by
-/// the calls of one round, so a module namespace-imported by N others has its
-/// (importer-independent) member map + private-name set built once, not N times.
-prepopulate_namespace_member_types :: fn(
-    typed: TypedProgram,
+/// The member maps are cached by target `mod_id`, so a module namespace-imported
+/// by N others has its map built once, not N times. The table is keyed by the
+/// project-global id of each namespace binding, so one serves every module.
+share_namespace_member_types :: fn(
+    targets: ImportTargetTable,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
-    member_cache: MutableMap<string, MutableMap<string, Type>>,
-    private_cache: MutableMap<string, MutableMap<string, bool>>,
 ) -> void {
-    targets :: typed.import_targets ?? return
+    member_cache :: MutableMap<string, MutableMap<string, Type>> {}
+    members :: MutableMap<i32, MutableMap<string, Type>> {}
     for [sym_id, mod_id] in targets.namespace_targets {
-        members :: build_namespace_type_members(mod_id, project, per_module, member_cache)
-        typed.resolved.namespace_member_types[sym_id] = members
-        // Companion set of the target's PRIVATE member names, so a `P.private`
-        // access can be told apart from a genuinely-absent member and fire R2008.
-        typed.resolved.namespace_private_members[sym_id] = build_namespace_private_names(
-            mod_id,
-            project,
-            private_cache,
-        )
+        members[sym_id] = build_namespace_type_members(mod_id, project, per_module, member_cache)
+    }
+    for [_, typed] in per_module {
+        typed.resolved.namespace_member_types = members
+    }
+}
+
+// The companion of `share_namespace_member_types` : each namespace binding's set
+// of the target's PRIVATE member names, so a `P.private` access can be told apart
+// from a genuinely-absent member and fire R2008.
+share_namespace_private_members :: fn(
+    targets: ImportTargetTable,
+    project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>,
+) -> void {
+    private_cache :: MutableMap<string, MutableMap<string, bool>> {}
+    privates :: MutableMap<i32, MutableMap<string, bool>> {}
+    for [sym_id, mod_id] in targets.namespace_targets {
+        privates[sym_id] = build_namespace_private_names(mod_id, project, private_cache)
+    }
+    for [_, typed] in per_module {
+        typed.resolved.namespace_private_members = privates
     }
 }
 

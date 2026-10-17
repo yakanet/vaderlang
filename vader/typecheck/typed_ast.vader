@@ -272,22 +272,27 @@ export TypedProgram :: struct {
     /// `StructDecl` keyed by the symbol's id. Populated by `decl.vader`
     /// while it mints struct types ; consumed by `field.vader` so it
     /// can walk a struct's field list to type `obj.f` accesses without
-    /// re-walking the program AST.
+    /// re-walking the program AST. Project-wide once `broadcast_struct_decls`
+    /// runs: one instance every module shares, so iterating it yields every
+    /// module's structs, and only `declare_module` may write it.
     struct_decls: MutableMap<i32, AST.StructDecl>
 
     /// `TraitDecl` keyed by the symbol's id. Same shape as
-    /// `struct_decls` ; consumed by orchestrate's T3036 check.
+    /// `struct_decls` ; consumed by orchestrate's T3036 check. Project-wide and
+    /// shared once `cross_publish_trait_decls` runs.
     trait_decls: MutableMap<i32, AST.TraitDecl>
 
     /// `Symbol.id → FnDecl` for every top-level fn (and impl method).
     /// Lets call-site code reach the fn's `type_params` (with bounds)
-    /// without re-walking the AST. Populated at `declare_module` time.
+    /// without re-walking the AST. Populated at `declare_module` time, then
+    /// project-wide and shared once `cross_publish_fn_decls` runs, so nothing
+    /// else may write it: a module's own fns are its `resolved.fn_overloads`.
     fn_decls: MutableMap<i32, AST.FnDecl>
 
     /// Owner module of each trait — used when resolving trait method
     /// signatures so cross-module `Iterator<T>.next` types `T` against
     /// std/core's resolved.idents, not the entry's. Keyed by the
-    /// trait's Symbol id, populated alongside `trait_decls`.
+    /// trait's Symbol id, populated and shared alongside `trait_decls`.
     trait_decl_owners: MutableMap<i32, ResolvedModule>
 
     /// `type::method_name → ImplMethod[]`, every impl member of that name, under two
@@ -487,7 +492,7 @@ export TypedProgram :: struct {
     /// at declare-time using the OWNING module's resolved.idents so
     /// cross-module field lookups (`entry.value` where `entry`'s
     /// struct lives in another module) get the right TypeParams /
-    /// nominal references.
+    /// nominal references. Project-wide and shared alongside `struct_decls`.
     struct_field_types: MutableMap<i32, MutableMap<string, Type>>
 
     /// A type parameter's declaration site (`tp.span.hash()`) → the symbol the
