@@ -21,14 +21,12 @@ AST :: import "toolchain/ast"
 import "vader/resolver/symbol"
 import "vader/types"
 
-/// Type-check a `BinaryExpr`. `check_expr_fn` is threaded to break the
-/// cyclic import with `expr.vader::check_expr`.
+/// Type-check a `BinaryExpr`.
 infer_binary :: fn(
     e: AST.BinaryExpr,
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     // `[lhs] * n` array-repeat : when an array result is expected, thread the
     // expectation into the LHS so an empty `[]` (or a `[lit]` whose element is a
@@ -36,7 +34,7 @@ infer_binary :: fn(
     // existing context-typing across the `*`. See `check_arith`'s Mul/array case.
     left_ctx :: if e.op == .Mul && expected is ArrayType { expected } else { null }
     record_site(typed, e, .Operator, operator_default(e.op))
-    left := check_expr_fn(e.left, left_ctx, typed, diags)
+    left := check_expr(e.left, left_ctx, typed, diags)
     // `x is T` — right side is a type expression. Record its
     // resolved type directly so dump entries show e.g. `i32`
     // instead of the `type` metatype.
@@ -66,29 +64,29 @@ infer_binary :: fn(
         push_cond_narrows_into(e.left, e.op == .And, typed, diag_sink(), pushed)
     }
     calls_before :: typed.narrow.calls
-    right := check_expr_fn(e.right, right_ctx, typed, diags)
+    right := check_expr(e.right, right_ctx, typed, diags)
     note_right_operand_calls(typed, e.id, calls_before)
     pop_narrows(pushed, typed)
     // Symmetric repin : a free literal operand adopts the CONCRETE counterpart's
     // type first (so `4 * i` with `i: i32` stays i32, not the outer expected),
     // repinning its recorded type (and any inner shift / bitwise leaves) and
     // bounds-checking a char literal at its pin.
-    left = repin_operand(e.left, left, right, typed, diags, check_expr_fn)
-    right = repin_operand(e.right, right, left, typed, diags, check_expr_fn)
+    left = repin_operand(e.left, left, right, typed, diags)
+    right = repin_operand(e.right, right, left, typed, diags)
     // `x in c` : a free element takes `c`'s, `4_000_000_000 in r` an `i64` on a
     // `Range<i64>`.
     if classify(e.op) == .In && is_free_numeric(left) {
         element :: contained_element(right, e.right.span, typed)
         if element != null {
-            left = repin_operand(e.left, left, element, typed, diags, check_expr_fn)
+            left = repin_operand(e.left, left, element, typed, diags)
         }
     }
     // Only when BOTH operands are still free does the outer `expected` decide the
     // width — `x: u32 = 1 << 31` pins both `1` and `31` to u32.
     oc :: op_expected_ctx(e.op, expected)
     if oc != null && is_free_numeric(left) && is_free_numeric(right) {
-        left = check_expr_fn(e.left, oc, typed, diags)
-        right = check_expr_fn(e.right, oc, typed, diags)
+        left = check_expr(e.left, oc, typed, diags)
+        right = check_expr(e.right, oc, typed, diags)
     }
     return match classify(e.op) {
         .Arith    -> { check_arith(e, left, right, typed, diags) }
@@ -122,9 +120,8 @@ infer_null_coalesce :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    left_ty :: check_expr_fn(e.left, null, typed, diags)
+    left_ty :: check_expr(e.left, null, typed, diags)
     result :: subtract_type(left_ty, TY_NULL)
     if equals_type(result, left_ty) {
         diags.push(typecheck_error(.NullCoalesceOnNonOptional, e.span, ""))
@@ -135,10 +132,10 @@ infer_null_coalesce :: fn(
             // `check_stmt`'s existing `return` / `break` / `continue` dispatch
             // (ctx = null resolves to the global `current_fn_ctx` / `loop_stack`).
 
-            check_stmt(fallback, typed, diags, null, check_expr_fn)
+            check_stmt(fallback, typed, diags, null)
         }
         is AST.Expr -> {
-            got :: check_expr_fn(fallback, result, typed, diags)
+            got :: check_expr(fallback, result, typed, diags)
             if !flows_into(got, result, fallback, typed) {
                 diags.push(
                     typecheck_error(
@@ -1248,12 +1245,11 @@ repin_operand :: fn(
     other: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     if equals_type(narrow_for_expected(got, other), got) {
         return got
     }
-    return check_expr_fn(operand, other, typed, diags)
+    return check_expr(operand, other, typed, diags)
 }
 
 // Compute the result type of a numeric binary op. Both operands must
@@ -1386,31 +1382,6 @@ import "vader/parser"
 import "vader/resolver"
 import "toolchain/span"
 
-binary_check_stub :: fn(
-    e: AST.Expr,
-    expected: Type | null,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-) -> Type {
-    // @partial: test stub — only the literal / ident / binary expr kinds the
-    // binary tests build are typed; every other Expr is irrelevant → unresolved.
-    @partial match e {
-        is AST.IntLitExpr    -> { return narrow(TY_FREE_INT, expected) }
-        is AST.StringLitExpr -> { return TY_STRING }
-        is AST.IdentExpr     -> { return infer_ident(e, typed) }
-        is AST.BinaryExpr    -> { return infer_binary(e, null, typed, diags, binary_check_stub) }
-        _                    -> { return TY_UNRESOLVED }
-    }
-}
-
-narrow :: fn(got: Type, expected: Type | null) -> Type {
-    if expected is null                                     { return got }
-    if expected !is PrimitiveType                           { return got }
-    if got is FreeIntType && is_int_name(expected.name)     { return expected }
-    if got is FreeFloatType && is_float_name(expected.name) { return expected }
-    return got
-}
-
 accept_binary :: fn(e: AST.Expr) -> AST.Expr | null {
     if e is AST.BinaryExpr {
         return e
@@ -1471,7 +1442,7 @@ synthetic_binary :: fn() -> AST.BinaryExpr {
 test_arith_int_returns_concrete :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> i32 { return a + b }")
     diags: Diagnostic[]: []
-    assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "i32")
+    assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags)), "i32")
     assert_eq(diags.len(), 0)
 }
 
@@ -1479,24 +1450,21 @@ test_arith_int_returns_concrete :: fn() -> void {
 test_arith_string_concat :: fn() -> void {
     eb :: expect_binary("""f :: fn(a: string, b: string) -> string { return a + b }""")
     diags: Diagnostic[]: []
-    assert_eq(
-        display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)),
-        "string",
-    )
+    assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags)), "string")
 }
 
 @test
 test_compare_returns_bool :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a < b }")
     diags: Diagnostic[]: []
-    assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "bool")
+    assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags)), "bool")
 }
 
 @test
 test_logical_requires_bool :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: bool) -> bool { return a && b }")
     diags: Diagnostic[]: []
-    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
+    infer_binary(eb.bin, null, eb.typed, diags)
     found := false
     for d in diags {
         if d.code.id == "T3017" {
@@ -1512,7 +1480,7 @@ test_in_requires_contains :: fn() -> void {
     // stub that lowers to an `unreachable` trap (a runtime crash).
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a in b }")
     diags: Diagnostic[]: []
-    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
+    infer_binary(eb.bin, null, eb.typed, diags)
     found := false
     for d in diags {
         if d.code.id == "T3043" {
@@ -1526,7 +1494,7 @@ test_in_requires_contains :: fn() -> void {
 test_arith_width_mismatch_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i64) -> i64 { return a + b }")
     diags: Diagnostic[]: []
-    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
+    infer_binary(eb.bin, null, eb.typed, diags)
     found := false
     for d in diags {
         if d.code.id == "T3017" {
@@ -1540,7 +1508,7 @@ test_arith_width_mismatch_emits_T3017 :: fn() -> void {
 test_compare_width_mismatch_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i64) -> bool { return a < b }")
     diags: Diagnostic[]: []
-    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
+    infer_binary(eb.bin, null, eb.typed, diags)
     found := false
     for d in diags {
         if d.code.id == "T3017" {
@@ -1554,7 +1522,7 @@ test_compare_width_mismatch_emits_T3017 :: fn() -> void {
 test_compare_cross_family_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: f64, b: i32) -> bool { return a < b }")
     diags: Diagnostic[]: []
-    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
+    infer_binary(eb.bin, null, eb.typed, diags)
     found := false
     for d in diags {
         if d.code.id == "T3017" {
@@ -1568,7 +1536,7 @@ test_compare_cross_family_emits_T3017 :: fn() -> void {
 test_equality_width_mismatch_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: u32, b: i32) -> bool { return a == b }")
     diags: Diagnostic[]: []
-    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
+    infer_binary(eb.bin, null, eb.typed, diags)
     found := false
     for d in diags {
         if d.code.id == "T3017" {
@@ -1583,7 +1551,7 @@ test_equality_width_mismatch_emits_T3017 :: fn() -> void {
 equality_diags :: fn(src: string) -> Diagnostic[] {
     eb :: expect_binary(src)
     diags: Diagnostic[]: []
-    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
+    infer_binary(eb.bin, null, eb.typed, diags)
     return diags
 }
 
@@ -1644,56 +1612,29 @@ test_equality_distinct_over_distinct_ok :: fn() -> void {
 test_equality_same_width_ok :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a == b }")
     diags: Diagnostic[]: []
-    assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "bool")
+    assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags)), "bool")
     assert_eq(diags.len(), 0)
 }
 
-// Run the full typecheck pipeline : decl-level + body-walking. The result
-// carries the same `TypedProgram` + `ImplRegistry` as `check_module`, with
-// `expr_types` / `local_types` populated.
-check_module_with_bodies :: fn(
-    program: AST.Program,
-    resolved: ResolvedModule,
-    diags: Diagnostic[],
-) -> CheckResult {
-    result :: check_module(program, resolved, diags)
-    walk_bodies(program.decls, result.typed, diags, .Full)
-    return CheckResult {
-        .typed = result.typed,
-        .impls = result.impls,
-        .others = [],
-        .all_modules = MutableMap<string, TypedProgram> {},
-    }
-}
-
-// W0013 reads element types out of `expr_types`, which only a body walk fills —
-// `check_module` alone stops at the declarations. `check_module_with_bodies`
-// runs both, so these exercise the real trigger (`check_arith`'s Mul/array
-// guard) against the types the pipeline actually records.
-repeat_diagnostics :: fn(src: string) -> Diagnostic[] {
-    parsed :: parse_source(src, "t.vader")
-    factory :: SymbolFactory {}
-    rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[]: []
-    check_module_with_bodies(parsed.program, rm, diags)
-    return diags
-}
+// W0013 reads element types out of `expr_types`, which only a body walk fills :
+// `check_source_bodies` walks them, so these exercise the real trigger
+// (`check_arith`'s Mul/array guard) against the types the pipeline records.
 
 @test
 test_repeat_of_fresh_element_warns :: fn() -> void {
-    diags :: repeat_diagnostics("f :: fn() -> i32[][] { return [[]] * 3 }")
+    diags :: check_source_bodies("f :: fn() -> i32[][] { return [[]] * 3 }").diags
     assert(has_code(diags, "W0013"), "expected W0013 for `[[]] * 3`")
 }
 
 @test
 test_repeat_of_value_element_is_silent :: fn() -> void {
-    diags :: repeat_diagnostics("f :: fn() -> i32[] { return [0] * 3 }")
+    diags :: check_source_bodies("f :: fn() -> i32[] { return [0] * 3 }").diags
     assert(!has_code(diags, "W0013"), "a value element is never aliased")
 }
 
 @test
 test_repeat_of_existing_binding_is_silent :: fn() -> void {
     // The element is a binding, not a fresh allocation — sharing is deliberate.
-    diags :: repeat_diagnostics("f :: fn(row: i32[]) -> i32[][] { return [row] * 3 }")
+    diags :: check_source_bodies("f :: fn(row: i32[]) -> i32[][] { return [row] * 3 }").diags
     assert(!has_code(diags, "W0013"), "sharing an existing binding is deliberate")
 }

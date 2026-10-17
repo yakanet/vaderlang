@@ -24,7 +24,6 @@ check_block :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     // Track flow-narrowing pushed by divergent guards (`if x is T
     // { return … }`) so subsequent stmts see the complement type ; each
@@ -38,7 +37,7 @@ check_block :: fn(
         if diverged && first_unreachable_span is null {
             first_unreachable_span = stmt_span(stmt)
         }
-        check_stmt(stmt, typed, diags, ctx, check_expr_fn)
+        check_stmt(stmt, typed, diags, ctx)
         if !diverged && is_divergent_stmt(stmt, typed) {
             diverged = true
         }
@@ -65,7 +64,7 @@ check_block :: fn(
                 if is_divergent_stmt(last, typed) { result = TY_NEVER }
             }
         }
-        _       -> { result = check_expr_fn(block.trailing, expected, typed, diags) }
+        _       -> { result = check_expr(block.trailing, expected, typed, diags) }
     }
     // Restore the binding's static type on block exit so outer scopes don't see
     // the narrowed shape. In reverse: a binding several guards narrowed gets back
@@ -96,28 +95,27 @@ check_stmt :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     match stmt {
-        is AST.LetStmt               -> { check_let(stmt, typed, diags, check_expr_fn) }
-        is AST.AssignStmt            -> { check_assign(stmt, typed, diags, check_expr_fn) }
+        is AST.LetStmt               -> { check_let(stmt, typed, diags) }
+        is AST.AssignStmt            -> { check_assign(stmt, typed, diags) }
         is AST.DestructureAssignStmt -> {
-            check_destructuring_assign(stmt, typed, diags, check_expr_fn)
+            check_destructuring_assign(stmt, typed, diags)
         }
-        is AST.ExprStmt              -> { check_expr_fn(stmt.expr, null, typed, diags) }
-        is AST.ReturnStmt            -> { check_return(stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.ExprStmt              -> { check_expr(stmt.expr, null, typed, diags) }
+        is AST.ReturnStmt            -> { check_return(stmt, typed, diags, ctx) }
         is AST.YieldStmt             -> {
-            check_yield(stmt, typed, diags, ctx, check_expr_fn)
+            check_yield(stmt, typed, diags, ctx)
             retire_narrowings_across_call(typed)
         }
-        is AST.ForStmt               -> { check_for(stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.ForStmt               -> { check_for(stmt, typed, diags, ctx) }
         is AST.BreakStmt             -> {
             check_loop_jump(stmt.span, stmt.id, stmt.label, typed, ctx, diags)
         }
         is AST.ContinueStmt          -> {
             check_loop_jump(stmt.span, stmt.id, stmt.label, typed, ctx, diags)
         }
-        is AST.DeferStmt             -> { check_defer(stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.DeferStmt             -> { check_defer(stmt, typed, diags, ctx) }
     }
     return
 }
@@ -150,7 +148,6 @@ check_fn_body :: fn(
     body: AST.BlockExpr,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
     is_generator :: fn_is_generator(typed, fn_decl)
@@ -189,7 +186,7 @@ check_fn_body :: fn(
     }
     prev :: typed.current_fn_ctx
     typed.current_fn_ctx = ctx
-    got :: check_block(body, expected, typed, diags, ctx, check_expr_fn)
+    got :: check_block(body, expected, typed, diags, ctx)
     if is_generator {
         // A generator returns its stream via `yield`, not the trailing
         // expression — skip the implicit-return obligation entirely.
@@ -370,18 +367,13 @@ resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext | nul
 
 // ---- per-stmt helpers -----------------------------------------------------
 
-check_let :: fn(
-    s: AST.LetStmt,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> void {
+check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> void {
     ann: Type | null = null
     written_ty :: s.ty
     if written_ty !is null {
         ann = type_from_expr(written_ty, typed.resolved, diags)
     }
-    got :: check_expr_fn(s.value, ann, typed, diags)
+    got :: check_expr(s.value, ann, typed, diags)
     declared: Type = TY_UNRESOLVED
     if ann == null {
         declared = default_free_members(got)
@@ -443,12 +435,7 @@ record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgra
     typed.empty_array_inits[s.binding.name_span.hash()] = s.value.id
 }
 
-check_assign :: fn(
-    s: AST.AssignStmt,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> void {
+check_assign :: fn(s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[]) -> void {
     // T3041 : bare-ident assignment to a `::`-bound local or a module constant.
     // Surface the diag and skip the value-side typing so the dump doesn't carry
     // extra expr_types for a rejected write.
@@ -464,15 +451,15 @@ check_assign :: fn(
         return
     }
     if s.target is AST.FieldExpr as fe {
-        if reject_field_write(fe, typed, diags, check_expr_fn) {
+        if reject_field_write(fe, typed, diags) {
             return
         }
     }
     if target is AST.IndexExpr {
         // Pin a free-literal write value to the slot (`m[k] = 9000000000`) and check
         // the write fits it.
-        slot :: index_write_slot(target, typed, diags, check_expr_fn) ?? return
-        value_ty :: check_expr_fn(s.value, slot, typed, diags)
+        slot :: index_write_slot(target, typed, diags) ?? return
+        value_ty :: check_expr(s.value, slot, typed, diags)
         emit_assign_mismatch_if(value_ty, slot, s.span, s.value, typed, diags)
         // Past an array, the write runs a user `IndexSet`'s `set_at` : a call.
         if typed.expr_types[target.target.id] !is ArrayType {
@@ -480,12 +467,12 @@ check_assign :: fn(
         }
         return
     }
-    target_ty :: check_expr_fn(s.target, null, typed, diags)
+    target_ty :: check_expr(s.target, null, typed, diags)
     value_hint: Type | null = null
     if target_ty !is UnresolvedType {
         value_hint = target_ty
     }
-    value_ty :: check_expr_fn(s.value, value_hint, typed, diags)
+    value_ty :: check_expr(s.value, value_hint, typed, diags)
     // Enforce the slot's *declared* type — not `target_ty`, which may be a
     // flow-narrowing. `x: A|B = a ; if x is A { x = b_value }` is legal (the
     // write retires the narrowing, per `invalidate_narrow_on_assign`), so the
@@ -567,7 +554,6 @@ check_destructuring_assign :: fn(
     s: AST.DestructureAssignStmt,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     // `[] = v` — P1023 already reported it.
     if s.targets.len() == 0 {
@@ -580,16 +566,16 @@ check_destructuring_assign :: fn(
     rest_slot: Type | null = null
     for t in s.targets {
         if t is AST.RestTarget {
-            rest_slot = check_expr_fn(t.place, null, typed, diags)
+            rest_slot = check_expr(t.place, null, typed, diags)
         }
     }
     if rest_slot != null {
         for t in s.targets {
             if t is AST.PlaceTarget {
-                _ :: place_slot(t.place, typed, diags, check_expr_fn)
+                _ :: place_slot(t.place, typed, diags)
             }
         }
-        value_ty :: check_expr_fn(s.value, rest_slot, typed, diags)
+        value_ty :: check_expr(s.value, rest_slot, typed, diags)
         arr :: array_backing(value_ty)
         if arr == null {
             if value_ty !is UnresolvedType {
@@ -603,10 +589,10 @@ check_destructuring_assign :: fn(
         for t in s.targets {
             match t {
                 is AST.PlaceTarget    -> {
-                    check_destructure_target(t.place, arr.element, typed, diags, check_expr_fn)
+                    check_destructure_target(t.place, arr.element, typed, diags)
                 }
                 is AST.RestTarget     -> {
-                    check_destructure_target(t.place, arr, typed, diags, check_expr_fn)
+                    check_destructure_target(t.place, arr, typed, diags)
                 }
                 is AST.WildcardTarget -> {}
             }
@@ -617,7 +603,7 @@ check_destructuring_assign :: fn(
     for t in s.targets {
         match t {
             is AST.PlaceTarget    -> {
-                slot_types.push(place_slot(t.place, typed, diags, check_expr_fn))
+                slot_types.push(place_slot(t.place, typed, diags))
             }
             is AST.WildcardTarget -> {
                 slot_types.push(TY_UNRESOLVED)
@@ -630,14 +616,14 @@ check_destructuring_assign :: fn(
     // an array it would lose its arity.
     if s.value is AST.SeqLitExpr as lit {
         if lit.elements.len() != s.targets.len() {
-            _ :: check_expr_fn(s.value, null, typed, diags)
+            _ :: check_expr(s.value, null, typed, diags)
             diags.push(typecheck_error(
                 .CannotDestructure, s.value.span,
                 "a literal of ${lit.elements.len()} elements into ${s.targets.len()} targets"))
             return
         }
     }
-    value_ty :: check_expr_fn(s.value, mk_tuple(slot_types), typed, diags)
+    value_ty :: check_expr(s.value, mk_tuple(slot_types), typed, diags)
     elem_types :: destructure_element_types(value_ty, s.targets.len())
     if elem_types == null {
         diags.push(typecheck_error(
@@ -647,7 +633,7 @@ check_destructuring_assign :: fn(
     }
     for i in 0..<s.targets.len() {
         if s.targets[i] is AST.PlaceTarget as t {
-            check_destructure_target(t.place, elem_types[i], typed, diags, check_expr_fn)
+            check_destructure_target(t.place, elem_types[i], typed, diags)
         }
     }
 }
@@ -655,16 +641,11 @@ check_destructuring_assign :: fn(
 // The slot a destructuring place offers, typed before the source so the source
 // takes its shape. An index place is a write : it offers what its receiver stores,
 // never what an `Index` read gives back — `check_destructure_target` judges it.
-place_slot :: fn(
-    place: AST.Expr,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> Type {
+place_slot :: fn(place: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     if place !is AST.IndexExpr {
-        return check_expr_fn(place, null, typed, diags)
+        return check_expr(place, null, typed, diags)
     }
-    receiver :: check_expr_fn(place.target, null, typed, diags)
+    receiver :: check_expr(place.target, null, typed, diags)
     return index_write_type(receiver, typed) ?? TY_UNRESOLVED
 }
 
@@ -696,14 +677,9 @@ destructure_element_types :: fn(value_ty: Type, count: usize) -> Type[] | null {
 // element, else the `IndexSet` value of a receiver dispatching through the trait
 // (`dispatched_index_args`) or of its own impl. Null when the receiver is
 // unresolved or the write is refused — reported.
-index_write_slot :: fn(
-    ix: AST.IndexExpr,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> Type | null {
+index_write_slot :: fn(ix: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type | null {
     set_trait :: core_trait_key(TRAIT_INDEX_SET)
-    receiver_ty :: check_expr_fn(ix.target, null, typed, diags)
+    receiver_ty :: check_expr(ix.target, null, typed, diags)
     // Each route below files what it runs.
     record_site(typed, ix, .IndexWrite, UNSETTLED_CALLEE)
     dispatched :: dispatched_index_args(ix, receiver_ty, set_trait, typed, diags)
@@ -712,7 +688,7 @@ index_write_slot :: fn(
     } else {
         index_key_expected(ix.index, receiver_ty, set_trait, typed)
     }
-    index_ty :: check_expr_fn(ix.index, key_ty, typed, diags)
+    index_ty :: check_expr(ix.index, key_ty, typed, diags)
     arr :: stored_array(receiver_ty, typed)
     if arr != null {
         record_site(typed, ix, .IndexWrite, BUILTIN_CALLEE)
@@ -776,13 +752,8 @@ array_write_slot :: fn(
 /// the CONTAINER first records its type, which the checks read.
 ///
 /// @return  whether one reported, the write then going no further.
-reject_field_write :: fn(
-    field: AST.FieldExpr,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> bool {
-    _ :: check_expr_fn(field.target, null, typed, diags)
+reject_field_write :: fn(field: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[]) -> bool {
+    _ :: check_expr(field.target, null, typed, diags)
     // `Color.Red = v`, `Point.x = v` : what a type names is no place (T3082).
     base :: bare_name_symbol(field.target, typed)
     if base != null && is_type_kind(base.kind) {
@@ -854,7 +825,6 @@ check_destructure_target :: fn(
     elem_ty: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     if target is AST.IdentExpr {
         if reject_const_reassign(target, typed, diags) {
@@ -862,12 +832,12 @@ check_destructure_target :: fn(
         }
     } else if target is AST.FieldExpr {
         // The same rules a bare `p.x = v` is held to.
-        if reject_field_write(target, typed, diags, check_expr_fn) {
+        if reject_field_write(target, typed, diags) {
             return
         }
     } else if target is AST.IndexExpr {
         // Judged as `m[k] = v` is.
-        slot :: index_write_slot(target, typed, diags, check_expr_fn) ?? return
+        slot :: index_write_slot(target, typed, diags) ?? return
         // The lowering types the element it writes by the target's own type.
         record_expr(typed, target, slot)
         emit_assign_mismatch_if(elem_ty, slot, target.span, target, typed, diags)
@@ -878,7 +848,7 @@ check_destructure_target :: fn(
             "a destructuring assignment writes to names, fields and indices — not to this"))
         return
     }
-    slot_ty :: check_expr_fn(target, elem_ty, typed, diags)
+    slot_ty :: check_expr(target, elem_ty, typed, diags)
     emit_assign_mismatch_if(elem_ty, slot_ty, target.span, target, typed, diags)
 }
 
@@ -933,12 +903,11 @@ check_return :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     effective :: resolve_ctx(ctx, typed)
     if effective != null && effective.in_defer {
         if s.value != null {
-            check_expr_fn(s.value, null, typed, diags)
+            check_expr(s.value, null, typed, diags)
         }
         diags.push(typecheck_error(.ReturnInDefer, s.span, ""))
         return
@@ -947,7 +916,7 @@ check_return :: fn(
     // a bare `return` stops the stream and needs no return-type check.
     if effective != null && effective.is_generator {
         if s.value !is null {
-            check_expr_fn(s.value, null, typed, diags)
+            check_expr(s.value, null, typed, diags)
             diags.push(typecheck_error(.ReturnValueInGenerator, s.span, ""))
         }
         return
@@ -975,7 +944,7 @@ check_return :: fn(
     if effective !is null {
         expected = effective.return_type
     }
-    got :: check_expr_fn(v, expected, typed, diags)
+    got :: check_expr(v, expected, typed, diags)
     if effective !is null {
         // Accumulate the returned value's type so a divergent block-body
         // lambda can recover its real return type (see `pick_final_return`).
@@ -994,13 +963,12 @@ check_yield :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     effective :: resolve_ctx(ctx, typed)
     if effective != null && effective.is_generator {
         // `yield e` must coerce to the generator's element type `T` (T3061).
         yt :: effective.yield_type
-        got :: check_expr_fn(s.value, yt, typed, diags)
+        got :: check_expr(s.value, yt, typed, diags)
         if yt != null {
             emit_mismatch_if(
                 got,
@@ -1018,7 +986,7 @@ check_yield :: fn(
     // illegal positions left are a nested lambda and a `defer` body: their ctx is
     // never a generator, and `fn_is_generator` does not descend them. T3059.
     // Still type the value so downstream passes see its type.
-    check_expr_fn(s.value, null, typed, diags)
+    check_expr(s.value, null, typed, diags)
     diags.push(typecheck_error(.YieldOutsideGenerator, s.span, ""))
 }
 
@@ -1027,7 +995,6 @@ check_for :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     binding: string | null = null
     // What the loop repeats (a condition, the body) runs after the body's own
@@ -1037,7 +1004,7 @@ check_for :: fn(
         is AST.InfiniteFor -> { retire_narrowings_entering_loop(s, typed) }
         is AST.WhileFor    -> {
             retire_narrowings_entering_loop(s, typed)
-            got :: check_expr_fn(w.cond, null, typed, diags)
+            got :: check_expr(w.cond, null, typed, diags)
             // `for X { ... }` desugars to `for _ in X { ... }` when X
             // is iterable (array today ; custom Iterator impls land
             // with coerce.vader). Skip T3019 in that case.
@@ -1056,7 +1023,7 @@ check_for :: fn(
             }
         }
         is AST.InFor       -> {
-            iter_ty :: check_expr_fn(w.iter, null, typed, diags)
+            iter_ty :: check_expr(w.iter, null, typed, diags)
             retire_narrowings_entering_loop(s, typed)
             elem :: for_in_element(iter_ty, typed)
             // A `for` reaches `Iterator`, or the `Into` toward one, without its
@@ -1119,7 +1086,7 @@ check_for :: fn(
     // iteration variable (or label). Balanced push / remove_last.
     typed.loop_stack.push(EnclosingLoop { .for_id = s.id, .binding = binding, .label = s.label })
     inner_ctx :: bump_loop_depth(ctx)
-    check_block(s.body, null, typed, diags, inner_ctx, check_expr_fn)
+    check_block(s.body, null, typed, diags, inner_ctx)
     typed.loop_stack.remove_last()
     return
 }
@@ -1222,7 +1189,6 @@ check_defer :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     // `defer` inside a generator is still forbidden in v1 — a generator can be
     // abandoned mid-iteration, and the runtime has no drop hook to fire pending
@@ -1243,8 +1209,8 @@ check_defer :: fn(
     typed.loop_stack = []
     typed.current_fn_ctx = body_ctx
     match s.body as b {
-        is AST.DeferStmtBody  -> { check_stmt(b.stmt, typed, diags, body_ctx, check_expr_fn) }
-        is AST.DeferBlockBody -> { check_block(b.block, null, typed, diags, body_ctx, check_expr_fn) }
+        is AST.DeferStmtBody  -> { check_stmt(b.stmt, typed, diags, body_ctx) }
+        is AST.DeferBlockBody -> { check_block(b.block, null, typed, diags, body_ctx) }
     }
     typed.loop_stack = prev_loops
     typed.current_fn_ctx = prev_ctx
@@ -1730,60 +1696,26 @@ into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Ty
 }
 
 // ---- tests ----------------------------------------------------------------
-//
-// Local `stmt_check_stub` avoids importing `expr.vader` (would create a
-// load-time cycle through `expr → stmt`). Full end-to-end coverage runs
-// via `check_module_with_bodies` in `binary.vader`'s tests.
 
 import "std/testing"
 import "toolchain/span"
 import "vader/parser"
 
-// Bundles parse + resolve + declare + walks fn bodies with the stub.
-// Returns both `typed` and `diags` so test sites can assert on either.
-StubResult :: struct {
+// A source checked as the pipeline checks a module : its declarations, then
+// every body. Both `typed` and `diags`, so a test can assert on either.
+CheckedSource :: struct {
     typed: TypedProgram
     diags: Diagnostic[]
 }
 
-stub_check_module :: fn(src: string) -> StubResult {
+check_source_bodies :: fn(src: string) -> CheckedSource {
     parsed :: parse_source(src, "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
-    typed :: new_typed_program(rm)
     diags: Diagnostic[]: []
-    declare_module(parsed.program.decls, rm, typed, diags)
-    for decl in parsed.program.decls {
-        if decl is AST.FnDecl {
-            match decl.body as body {
-                is AST.BlockExpr -> {
-                    check_fn_body(decl, body, typed, diags, stmt_check_stub)
-                }
-                is null          -> {}
-            }
-        }
-    }
-    return StubResult { .typed = typed, .diags = diags }
-}
-
-// Tiny check_expr replacement — only the variants the inline tests
-// exercise (int / string literals + idents). FreeInt narrowing reuses
-// the shared `narrow_for_expected` so the stub matches the real
-// orchestrator's behavior.
-stmt_check_stub :: fn(
-    e: AST.Expr,
-    expected: Type | null,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-) -> Type {
-    // @partial: test stub — only the literal / ident expr kinds the inline
-    // tests build are typed; every other Expr is irrelevant here → unresolved.
-    @partial match e {
-        is AST.IntLitExpr    -> { return narrow_for_expected(TY_FREE_INT, expected) }
-        is AST.StringLitExpr -> { return TY_STRING }
-        is AST.IdentExpr     -> { return infer_ident(e, typed) }
-        _                    -> { return TY_UNRESOLVED }
-    }
+    result :: check_module(parsed.program, rm, diags)
+    walk_bodies(parsed.program.decls, result.typed, diags, .Full)
+    return CheckedSource { .typed = result.typed, .diags = diags }
 }
 
 has_code :: fn(diags: Diagnostic[], code: string) -> bool {
@@ -1798,7 +1730,7 @@ has_code :: fn(diags: Diagnostic[], code: string) -> bool {
 @test
 test_let_simple_binding_records_local_type :: fn() -> void {
     src :: "f :: fn() -> i32 { x :: 42 }"
-    out :: stub_check_module(src)
+    out :: check_source_bodies(src)
     sb :: first_simple_binding(src)
     if sb is null {
         assert(false, "expected SimpleBinding")
@@ -1816,7 +1748,7 @@ test_let_simple_binding_records_local_type :: fn() -> void {
 @test
 test_let_with_annotation_narrows_free_int :: fn() -> void {
     src :: "f :: fn() -> i64 { x: i64 = 5 }"
-    out :: stub_check_module(src)
+    out :: check_source_bodies(src)
     sb :: first_simple_binding(src)
     if sb is null {
         assert(false, "expected SimpleBinding")
@@ -1832,38 +1764,38 @@ test_let_with_annotation_narrows_free_int :: fn() -> void {
 
 @test
 test_let_annotation_mismatch_emits_T3001 :: fn() -> void {
-    out :: stub_check_module("f :: fn() -> void { x: i32 = \"hello\" }")
+    out :: check_source_bodies("f :: fn() -> void { x: i32 = \"hello\" }")
     assert(has_code(out.diags, "T3001"), "expected T3001 on annotation mismatch")
 }
 
 @test
 test_assign_incompatible_emits_T3063 :: fn() -> void {
-    out :: stub_check_module("f :: fn() -> void { y := 5\n    y = \"nope\" }")
+    out :: check_source_bodies("f :: fn() -> void { y := 5\n    y = \"nope\" }")
     assert(has_code(out.diags, "T3063"), "expected T3063 on incompatible reassignment")
 }
 
 @test
 test_assign_compatible_no_T3063 :: fn() -> void {
-    out :: stub_check_module("f :: fn() -> void { y := 5\n    y = 6 }")
+    out :: check_source_bodies("f :: fn() -> void { y := 5\n    y = 6 }")
     assert(!has_code(out.diags, "T3063"), "compatible reassignment must not emit T3063")
 }
 
 @test
 test_return_value_mismatch_emits_T3020 :: fn() -> void {
-    out :: stub_check_module("f :: fn() -> i32 { return \"hello\" }")
+    out :: check_source_bodies("f :: fn() -> i32 { return \"hello\" }")
     assert(has_code(out.diags, "T3020"), "expected T3020 on return-type mismatch")
 }
 
 @test
 test_return_bare_in_non_void_emits_T3020 :: fn() -> void {
-    out :: stub_check_module("f :: fn() -> i32 { return }")
+    out :: check_source_bodies("f :: fn() -> i32 { return }")
     assert(has_code(out.diags, "T3020"), "expected T3020 on bare return in non-void fn")
 }
 
 @test
 test_for_in_array_narrows_binding :: fn() -> void {
     src :: "f :: fn(xs: i32[]) -> void { for x in xs { } }"
-    out :: stub_check_module(src)
+    out :: check_source_bodies(src)
     sp :: first_for_in_binding_span(src)
     if sp is null {
         assert(false, "expected a for-in")

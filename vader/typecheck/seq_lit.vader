@@ -26,23 +26,22 @@ infer_seq_lit :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     // Union → pick the most appropriate variant, then recurse.
     if expected is UnionType {
         picked :: pick_seq_variant(expected, e.elements.len())
         if picked !is null {
-            return infer_seq_lit(e, picked, typed, diags, check_expr_fn)
+            return infer_seq_lit(e, picked, typed, diags)
         }
     }
     // @partial: only a tuple- or array-shaped expectation drives contextual
     // disambiguation; for every other (or absent) slot type we infer freely.
     @partial match expected {
         is TupleType -> {
-            return infer_against_tuple(e, expected, typed, diags, check_expr_fn)
+            return infer_against_tuple(e, expected, typed, diags)
         }
         is ArrayType -> {
-            return infer_against_array(e, expected, typed, diags, check_expr_fn)
+            return infer_against_array(e, expected, typed, diags)
         }
         is DistinctType -> {
             // Composite-backed distinct newtype (`f: BigInt = [1]`,
@@ -52,18 +51,18 @@ infer_seq_lit :: fn(
 
             ab :: array_backing(expected)
             if ab != null {
-                infer_against_array(e, ab, typed, diags, check_expr_fn)
+                infer_against_array(e, ab, typed, diags)
                 return expected
             }
             tb :: tuple_backing(expected)
             if tb != null {
-                infer_against_tuple(e, tb, typed, diags, check_expr_fn)
+                infer_against_tuple(e, tb, typed, diags)
                 return expected
             }
-            return infer_no_expected(e, typed, diags, check_expr_fn)
+            return infer_no_expected(e, typed, diags)
         }
         _ -> {
-            return infer_no_expected(e, typed, diags, check_expr_fn)
+            return infer_no_expected(e, typed, diags)
         }
     }
 }
@@ -75,7 +74,6 @@ infer_against_tuple :: fn(
     tup: TupleType,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     if tup.elements.len() != e.elements.len() {
         diags.push(
@@ -90,17 +88,17 @@ infer_against_tuple :: fn(
         n :: min(tup.elements.len(), e.elements.len())
         elem_types: Type[]: []
         for i in 0..<n {
-            elem_types.push(check_expr_fn(e.elements[i], tup.elements[i], typed, diags))
+            elem_types.push(check_expr(e.elements[i], tup.elements[i], typed, diags))
         }
         for i in n..<e.elements.len() {
-            elem_types.push(check_expr_fn(e.elements[i], null, typed, diags))
+            elem_types.push(check_expr(e.elements[i], null, typed, diags))
         }
         return mk_tuple(default_each(elem_types))
     }
     elem_types: Type[]: []
     for i in 0..<e.elements.len() {
         slot :: tup.elements[i]
-        got :: check_expr_fn(e.elements[i], slot, typed, diags)
+        got :: check_expr(e.elements[i], slot, typed, diags)
         // When the expected slot is a generic type-param the element
         // can't narrow against it ; default Free* so the unifier binds
         // a concrete type instead of `{integer}` / `{float}`.
@@ -139,9 +137,8 @@ infer_against_array :: fn(
     arr: ArrayType,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    elem_types :: walk_elements(e, arr.element, typed, diags, check_expr_fn)
+    elem_types :: walk_elements(e, arr.element, typed, diags)
     if elem_types.len() == 0 {
         return arr
     }
@@ -164,13 +161,8 @@ infer_against_array :: fn(
     return mk_array(actual)
 }
 
-infer_no_expected :: fn(
-    e: AST.SeqLitExpr,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> Type {
-    elem_types :: walk_elements(e, null, typed, diags, check_expr_fn)
+infer_no_expected :: fn(e: AST.SeqLitExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    elem_types :: walk_elements(e, null, typed, diags)
     if elem_types.len() == 0 {
         return mk_array(TY_UNRESOLVED)
     }
@@ -193,11 +185,10 @@ walk_elements :: fn(
     hint: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type[] {
     out: Type[]: []
     for el in e.elements {
-        out.push(check_expr_fn(el, hint, typed, diags))
+        out.push(check_expr(el, hint, typed, diags))
     }
     return out
 }
@@ -237,29 +228,6 @@ import "vader/parser"
 import "vader/resolver"
 import "vader/resolver/symbol"
 import "toolchain/span"
-
-seq_lit_check_stub :: fn(
-    e: AST.Expr,
-    expected: Type | null,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-) -> Type {
-    // @partial: test stub — only the literal / ident / seq expr kinds the seq
-    // tests build are typed; every other Expr is irrelevant → unresolved.
-    @partial match e {
-        is AST.IntLitExpr    -> { return narrow_for_expected(TY_FREE_INT, expected) }
-        is AST.StringLitExpr -> { return TY_STRING }
-        is AST.IdentExpr     -> { return infer_ident(e, typed) }
-        is AST.SeqLitExpr -> { return infer_seq_lit(
-            e,
-            expected,
-            typed,
-            diags,
-            seq_lit_check_stub,
-        ) }
-        _                    -> { return TY_UNRESOLVED }
-    }
-}
 
 accept_seq :: fn(e: AST.Expr) -> AST.Expr | null {
     if e is AST.SeqLitExpr {
@@ -313,7 +281,7 @@ test_seq_homogeneous_int_returns_array :: fn() -> void {
     src :: "f :: fn() -> i32[] { return [1, 2, 3] }"
     es :: expect_seq(src)
     diags: Diagnostic[]: []
-    ty :: infer_seq_lit(es.sl, null, es.typed, diags, seq_lit_check_stub)
+    ty :: infer_seq_lit(es.sl, null, es.typed, diags)
     assert_eq(display_type(ty), "i32[]")
 }
 
@@ -322,7 +290,7 @@ test_seq_heterogeneous_returns_tuple :: fn() -> void {
     src :: "f :: fn() -> [i32, string] { return [1, \"two\"] }"
     es :: expect_seq(src)
     diags: Diagnostic[]: []
-    ty :: infer_seq_lit(es.sl, null, es.typed, diags, seq_lit_check_stub)
+    ty :: infer_seq_lit(es.sl, null, es.typed, diags)
     assert_eq(display_type(ty), "[i32, string]")
 }
 
@@ -332,7 +300,7 @@ test_seq_with_expected_array_narrows :: fn() -> void {
     es :: expect_seq(src)
     diags: Diagnostic[]: []
     expected: Type: mk_array(mk_primitive("i64"))
-    ty :: infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
+    ty :: infer_seq_lit(es.sl, expected, es.typed, diags)
     assert_eq(display_type(ty), "i64[]")
 }
 
@@ -342,7 +310,7 @@ test_seq_empty_with_array_expected :: fn() -> void {
     es :: expect_seq(src)
     diags: Diagnostic[]: []
     expected: Type: mk_array(mk_primitive("i32"))
-    ty :: infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
+    ty :: infer_seq_lit(es.sl, expected, es.typed, diags)
     assert_eq(display_type(ty), "i32[]")
 }
 
@@ -352,7 +320,7 @@ test_seq_tuple_arity_mismatch_emits_T3001 :: fn() -> void {
     es :: expect_seq(src)
     diags: Diagnostic[]: []
     expected: Type: mk_tuple([mk_primitive("i32"), mk_primitive("i32")])
-    infer_seq_lit(es.sl, expected, es.typed, diags, seq_lit_check_stub)
+    infer_seq_lit(es.sl, expected, es.typed, diags)
     found := false
     for d in diags {
         if d.code.id == "T3001" {

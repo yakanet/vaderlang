@@ -14,15 +14,12 @@ AST :: import "toolchain/ast"
 
 /// Type-check `await e` : diagnose it outside an `async` body, type the inner,
 /// and return the awaited element type.
-infer_await :: fn(
-    e: AST.AwaitExpr, typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> Type {
+infer_await :: fn(e: AST.AwaitExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     ctx :: resolve_ctx(null, typed)
     is_async :: if ctx == null { false } else { ctx.is_async }
     if !is_async {
         diags.push(typecheck_error(.AwaitOutsideAsync, e.span, ""))
     }
-    inner :: check_expr_fn(e.inner, null, typed, diags)
+    inner :: check_expr(e.inner, null, typed, diags)
     return async_inner_type(inner)
 }

@@ -1,9 +1,7 @@
 // vader/typecheck/orchestrate — full-pipeline typecheck.
 //
 // Adds body-walking on top of `check.vader::check_module` so CLI / dump
-// callers get a fully-typed program in one call. Kept separate so
-// `check.vader` stays free of `expr` / `stmt` imports (see header
-// of `check.vader` for the cycle rationale).
+// callers get a fully-typed program in one call.
 //
 // Also exposes `check_project_with_bodies` which takes a
 // `LoadedProject` (multi-module) and propagates wire + cross-module
@@ -2384,7 +2382,7 @@ walk_bodies :: fn(
                 }
                 typed.enclosing_impl = 0
             }
-            is AST.EnumDecl      -> { check_variant_data(decl, typed, diags, check_expr) }
+            is AST.EnumDecl      -> { check_variant_data(decl, typed, diags) }
             // Body-less decl kinds — nothing to walk. Listed explicitly (not
             // `_`) so a new Decl variant trips T3013 and forces a decision.
             is AST.TraitDecl     -> {}
@@ -2638,7 +2636,7 @@ walk_fn_body :: fn(
     // no error).
     if mode == .ReturnsOnly && !needs_return_inference(fd) { return }
     if fd.body is AST.BlockExpr as body {
-        check_fn_body(fd, body, typed, diags, check_expr)
+        check_fn_body(fd, body, typed, diags)
     }
 }
 

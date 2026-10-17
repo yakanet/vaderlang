@@ -13,10 +13,7 @@ AST :: import "toolchain/ast"
 
 /// Type-check a `StructLitExpr`. Always returns the struct type even
 /// when the body has errors so downstream passes keep flowing.
-infer_struct_lit :: fn(
-    e: AST.StructLitExpr, typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> Type {
+infer_struct_lit :: fn(e: AST.StructLitExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     ty :: type_from_expr(e.type_name, typed.resolved, diags)
     // A struct-backed distinct newtype (`Color :: Rgb`) constructs through the
     // backing struct's fields but keeps its nominal identity — check the body
@@ -25,13 +22,13 @@ infer_struct_lit :: fn(
     if st_backing != null {
         reject_partial_type_args(e.type_name, st_backing, typed, diags)
         reject_unmet_struct_bounds(st_backing, e.type_name.span, typed, diags)
-        check_struct_items(e.items, e.span, st_backing, typed, diags, check_expr_fn)
+        check_struct_items(e.items, e.span, st_backing, typed, diags)
         return ty
     }
     diags.push(typecheck_error(.TypeMismatch, e.type_name.span,
         "${display_type(ty)} is not a struct"))
     // Still type every item so nested diagnostics surface.
-    for item in e.items { check_item_no_expected(item, typed, diags, check_expr_fn) }
+    for item in e.items { check_item_no_expected(item, typed, diags) }
     return ty
 }
 
@@ -76,15 +73,17 @@ reject_unmet_struct_bounds :: fn(
 /// against its declared type, each spread against `st`, then T3037 for a
 /// required field nothing provides.
 ///
-/// @param items          the literal's entries, as written.
-/// @param span           where T3037 points — the literal, or the enum
-///                       variant that carries these items.
-/// @param st             the struct the items build.
-/// @param check_expr_fn  the expression checker the caller runs under.
-/// @return               `st`.
+/// @param items  the literal's entries, as written.
+/// @param span   where T3037 points — the literal, or the enum variant that
+///               carries these items.
+/// @param st     the struct the items build.
+/// @return       `st`.
 check_struct_items :: fn(
-    items: AST.StructLitItem[], span: Span, st: StructType, typed: TypedProgram,
-    diags: Diagnostic[], check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+    items: AST.StructLitItem[],
+    span: Span,
+    st: StructType,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> Type {
     decl :: typed.struct_decls[st.symbol.id]
     provided: string[]: []
@@ -93,14 +92,14 @@ check_struct_items :: fn(
         match item {
             is AST.StructLitSpread -> {
                 has_spread = true
-                got :: check_expr_fn(item.expr, st, typed, diags)
+                got :: check_expr(item.expr, st, typed, diags)
                 if !is_assignable(got, st) {
                     diags.push(typecheck_error(.TypeMismatch, item.span,
                         "spread source must be assignable to ${display_type(st)}, got ${display_type(got)}"))
                 }
             }
             is AST.StructLitField -> {
-                check_field(item, st, decl, typed, diags, provided, check_expr_fn)
+                check_field(item, st, decl, typed, diags, provided)
             }
         }
     }
@@ -116,7 +115,6 @@ check_struct_items :: fn(
 check_field :: fn(
     f: AST.StructLitField, st: StructType, decl: AST.StructDecl | null,
     typed: TypedProgram, diags: Diagnostic[], provided: string[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     expected: Type | null = null
     if decl is AST.StructDecl {
@@ -132,7 +130,7 @@ check_field :: fn(
             expected = substitute_struct_args(raw, st, typed)
         }
     }
-    got :: check_expr_fn(f.value, expected, typed, diags)
+    got :: check_expr(f.value, expected, typed, diags)
     if expected is null {
         diags.push(typecheck_error(.FieldDoesNotExist, f.name_span,
             "`${f.name}` on ${display_type(st)}"))
@@ -178,11 +176,10 @@ check_missing_fields :: fn(
 
 check_item_no_expected :: fn(
     item: AST.StructLitItem, typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     match item {
-        is AST.StructLitField  -> { check_expr_fn(item.value, null, typed, diags) }
-        is AST.StructLitSpread -> { check_expr_fn(item.expr,  null, typed, diags) }
+        is AST.StructLitField  -> { check_expr(item.value, null, typed, diags) }
+        is AST.StructLitSpread -> { check_expr(item.expr,  null, typed, diags) }
     }
     return
 }
@@ -195,20 +192,6 @@ import "vader/parser"
 import "vader/resolver"
 import "vader/resolver/symbol"
 import "toolchain/span"
-
-struct_lit_check_stub :: fn(
-    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
-) -> Type {
-    // @partial: test stub — only the literal / ident / struct-lit expr kinds the
-    // struct-lit tests build are typed; every other Expr is irrelevant → unresolved.
-    @partial match e {
-        is AST.IntLitExpr    -> { return narrow_for_expected(TY_FREE_INT, expected) }
-        is AST.StringLitExpr -> { return TY_STRING }
-        is AST.IdentExpr     -> { return infer_ident(e, typed) }
-        is AST.StructLitExpr -> { return infer_struct_lit(e, typed, diags, struct_lit_check_stub) }
-        _                    -> { return TY_UNRESOLVED }
-    }
-}
 
 accept_struct_lit :: fn(e: AST.Expr) -> AST.Expr | null {
     if e is AST.StructLitExpr { return e }
@@ -266,7 +249,7 @@ f :: fn() -> Point { return Point { .x = 1, .y = 2 } }
 """
     eb :: expect_struct_lit(src)
     diags: Diagnostic[]: []
-    assert_eq(display_type(infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)), "Point")
+    assert_eq(display_type(infer_struct_lit(eb.sl, eb.typed, diags)), "Point")
     assert_eq(diags.len(), 0)
 }
 
@@ -278,7 +261,7 @@ f :: fn() -> Point { return Point { .x = 1, .z = 2 } }
 """
     eb :: expect_struct_lit(src)
     diags: Diagnostic[]: []
-    infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)
+    infer_struct_lit(eb.sl, eb.typed, diags)
     found := false
     for d in diags { if d.code.id == "T3009" { found = true } }
     assert(found, "expected T3009 on unknown field")
@@ -295,7 +278,7 @@ f :: fn() -> Point { return Point { .x = 1 } }
 """
     eb :: expect_struct_lit(src)
     diags: Diagnostic[]: []
-    infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)
+    infer_struct_lit(eb.sl, eb.typed, diags)
     found := false
     for d in diags { if d.code.id == "T3037" { found = true } }
     assert(found, "expected T3037 on missing field")
@@ -309,7 +292,7 @@ f :: fn() -> Point { return Point { .x = "hello" } }
 """
     eb :: expect_struct_lit(src)
     diags: Diagnostic[]: []
-    infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)
+    infer_struct_lit(eb.sl, eb.typed, diags)
     found := false
     for d in diags { if d.code.id == "T3001" { found = true } }
     assert(found, "expected T3001 on field type mismatch")

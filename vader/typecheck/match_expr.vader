@@ -26,18 +26,17 @@ check_pattern_bound_exprs :: fn(
     rest: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     match pat {
         is AST.LiteralPattern -> {
-            check_pattern_literal(pat.value, compared, scrut, rest, typed, diags, check_expr_fn)
+            check_pattern_literal(pat.value, compared, scrut, rest, typed, diags)
         }
         is AST.RangePattern -> {
-            check_range_pattern(pat, scrut, rest, typed, diags, check_expr_fn)
+            check_range_pattern(pat, scrut, rest, typed, diags)
         }
         is AST.OrPattern -> {
             for sub in pat.patterns {
-                check_pattern_bound_exprs(sub, compared, scrut, rest, typed, diags, check_expr_fn)
+                check_pattern_bound_exprs(sub, compared, scrut, rest, typed, diags)
             }
         }
         _ -> {}
@@ -68,9 +67,8 @@ infer_match :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     ctx: FnContext | null,
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    raw_scrut :: check_expr_fn(e.scrutinee, null, typed, diags)
+    raw_scrut :: check_expr(e.scrutinee, null, typed, diags)
     scrut_ty :: lift_enum_placeholder(raw_scrut, typed)
     // `match e as x { … }` : the alias IS the narrowing slot, so an EXPRESSION
     // scrutinee narrows exactly like a named one — which is the whole point of the
@@ -110,13 +108,11 @@ infer_match :: fn(
                 ),
             )
         }
-        check_pattern_bound_exprs(
-            arm.pattern, scrut, scrut_ty, remaining, typed, diags, check_expr_fn,
-        )
+        check_pattern_bound_exprs(arm.pattern, scrut, scrut_ty, remaining, typed, diags)
         // Re-bind the pattern types against the narrowed `remaining`
         // so the wildcard arm sees only the still-possible
         // variants ("union − matched").
-        bind_pattern_types(arm.pattern, remaining, typed, diags, check_expr_fn)
+        bind_pattern_types(arm.pattern, remaining, typed, diags)
         // Per-arm narrowing — `is T` arms see just T, the wildcard
         // arm sees `remaining` (subset of `scrut_ty` after
         // earlier arms removed their matched variants).
@@ -135,7 +131,7 @@ infer_match :: fn(
         }
         guard :: arm.guard
         if guard !is null {
-            got :: check_expr_fn(guard, TY_BOOL, typed, diags)
+            got :: check_expr(guard, TY_BOOL, typed, diags)
             if !is_assignable(got, TY_BOOL) {
                 diags.push(
                     typecheck_error(
@@ -146,7 +142,7 @@ infer_match :: fn(
                 )
             }
         }
-        arm_types.push(check_expr_fn(arm.body, expected, typed, diags))
+        arm_types.push(check_expr(arm.body, expected, typed, diags))
         bodies.push(arm.body)
         if scrut_sym_id != -1 {
             if arm_narrow !is null {
@@ -416,7 +412,6 @@ scrutinee_field_key :: fn(scrut: AST.Expr, typed: TypedProgram) -> string {
 /// `typed.local_types`. Struct patterns bind through `bind_struct_pattern`.
 bind_pattern_types :: fn(
     p: AST.Pattern, scrut: Type, typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     match p {
         is AST.IsPattern      -> {
@@ -428,13 +423,13 @@ bind_pattern_types :: fn(
             // with the narrowed type so inner StructPattern bindings
             // pick up T's field types.
             if p.inner !is null {
-                bind_pattern_types(p.inner, narrowed, typed, diags, check_expr_fn)
+                bind_pattern_types(p.inner, narrowed, typed, diags)
             }
         }
-        is AST.StructPattern -> { bind_struct_pattern(p, scrut, typed, diags, check_expr_fn) }
+        is AST.StructPattern -> { bind_struct_pattern(p, scrut, typed, diags) }
         is AST.OrPattern     -> {
             for sub in p.patterns {
-                bind_pattern_types(sub, scrut, typed, diags, check_expr_fn)
+                bind_pattern_types(sub, scrut, typed, diags)
             }
         }
         _                           -> {}
@@ -448,7 +443,6 @@ bind_struct_pattern :: fn(
     scrut: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     st :: struct_backing(scrut)
     if st == null {
@@ -476,7 +470,7 @@ bind_struct_pattern :: fn(
         match field.value as value {
             is AST.PatternBinding -> { typed.local_types[value.span.hash()] = ft }
             is AST.PatternLiteral -> {
-                check_pattern_literal(value.value, value.value, ft, ft, typed, diags, check_expr_fn)
+                check_pattern_literal(value.value, value.value, ft, ft, typed, diags)
             }
         }
     }
@@ -497,16 +491,15 @@ check_pattern_literal :: fn(
     rest: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
-    alone :: check_expr_fn(literal, null, typed, diags)
+    alone :: check_expr(literal, null, typed, diags)
     if rest is NeverType {
-        _ :: repin_operand(literal, alone, scrut, typed, diags, check_expr_fn)
+        _ :: repin_operand(literal, alone, scrut, typed, diags)
         return
     }
-    got :: repin_operand(literal, alone, rest, typed, diags, check_expr_fn)
+    got :: repin_operand(literal, alone, rest, typed, diags)
     if counterpart(rest, got) == null && !equals_type(rest, scrut) {
-        whole :: repin_operand(literal, alone, scrut, typed, diags, check_expr_fn)
+        whole :: repin_operand(literal, alone, scrut, typed, diags)
         if counterpart(scrut, whole) != null {
             diags.push(
                 warning(
@@ -538,18 +531,17 @@ check_range_pattern :: fn(
     rest: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
-    lower :: check_expr_fn(pat.lower, null, typed, diags)
-    upper :: check_expr_fn(pat.upper, null, typed, diags)
+    lower :: check_expr(pat.lower, null, typed, diags)
+    upper :: check_expr(pat.upper, null, typed, diags)
     written :: range_target(scrut, rest)
     target :: strip_distinct(written)
     if !offers_range(target) {
-        report_range_scrutinee(pat, lower, upper, scrut, written, typed, diags, check_expr_fn)
+        report_range_scrutinee(pat, lower, upper, scrut, written, typed, diags)
         return
     }
-    low :: repin_operand(pat.lower, lower, target, typed, diags, check_expr_fn)
-    high :: repin_operand(pat.upper, upper, target, typed, diags, check_expr_fn)
+    low :: repin_operand(pat.lower, lower, target, typed, diags)
+    high :: repin_operand(pat.upper, upper, target, typed, diags)
     ordered :: range_variant(target, low)
     if ordered == null {
         variants :: "an integer or `char` variant of `${display_type(written)}`"
@@ -578,7 +570,6 @@ report_range_scrutinee :: fn(
     written: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     whole_target :: strip_distinct(scrut)
     if !offers_range(whole_target) {
@@ -591,8 +582,8 @@ report_range_scrutinee :: fn(
         )
         return
     }
-    whole :: repin_operand(pat.lower, lower, whole_target, typed, diags, check_expr_fn)
-    _ :: repin_operand(pat.upper, upper, whole_target, typed, diags, check_expr_fn)
+    whole :: repin_operand(pat.lower, lower, whole_target, typed, diags)
+    _ :: repin_operand(pat.upper, upper, whole_target, typed, diags)
     diags.push(
         warning(
             .UnreachableMatchArm,
@@ -664,31 +655,6 @@ import "vader/resolver"
 import "vader/resolver/symbol"
 import "toolchain/span"
 
-match_expr_check_stub :: fn(
-    e: AST.Expr,
-    expected: Type | null,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-) -> Type {
-    // @partial: test stub — only the literal / ident / match expr kinds the
-    // match tests build are typed; every other Expr is irrelevant → unresolved.
-    @partial match e {
-        is AST.IntLitExpr    -> { return narrow_for_expected(TY_FREE_INT, expected) }
-        is AST.BoolLitExpr   -> { return TY_BOOL }
-        is AST.StringLitExpr -> { return TY_STRING }
-        is AST.IdentExpr     -> { return infer_ident(e, typed) }
-        is AST.MatchExpr     -> { return infer_match(
-            e,
-            expected,
-            typed,
-            diags,
-            null,
-            match_expr_check_stub,
-        ) }
-        _                    -> { return TY_UNRESOLVED }
-    }
-}
-
 accept_match :: fn(e: AST.Expr) -> AST.Expr | null {
     if e is AST.MatchExpr {
         return e
@@ -748,10 +714,7 @@ test_match_single_arm_returns_arm_type :: fn() -> void {
     src :: "f :: fn(x: i32) -> i32 { return match x { _ -> 42 } }"
     em :: expect_match(src)
     diags: Diagnostic[]: []
-    assert_eq(
-        display_type(infer_match(em.m, null, em.typed, diags, null, match_expr_check_stub)),
-        "{integer}",
-    )
+    assert_eq(display_type(infer_match(em.m, null, em.typed, diags, null)), "{integer}")
 }
 
 @test
@@ -759,7 +722,7 @@ test_match_two_arms_unions :: fn() -> void {
     src :: "f :: fn(x: i32) -> string | i32 { return match x { 0 -> \"zero\", _ -> 1 } }"
     em :: expect_match(src)
     diags: Diagnostic[]: []
-    ty :: infer_match(em.m, null, em.typed, diags, null, match_expr_check_stub)
+    ty :: infer_match(em.m, null, em.typed, diags, null)
     // union_of sorts by display (`s` < `{`), so `string | {integer}`.
     assert_eq(display_type(ty), "string | {integer}")
 }
@@ -769,7 +732,7 @@ test_match_guard_non_bool_emits_T3019 :: fn() -> void {
     src :: "f :: fn(x: i32) -> i32 { return match x { _ if 1 -> 0, _ -> 1 } }"
     em :: expect_match(src)
     diags: Diagnostic[]: []
-    infer_match(em.m, null, em.typed, diags, null, match_expr_check_stub)
+    infer_match(em.m, null, em.typed, diags, null)
     found := false
     for d in diags {
         if d.code.id == "T3019" {

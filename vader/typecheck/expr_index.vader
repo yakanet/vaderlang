@@ -10,11 +10,8 @@ AST :: import "toolchain/ast"
 
 /// Type-check the read `target[index]` : an array's element, a bound's or an impl's
 /// `Index` result, a slice for a `Range` index on an array.
-infer_index :: fn(
-    e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> Type {
-    target :: check_expr_fn(e.target, null, typed, diags)
+infer_index :: fn(e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    target :: check_expr(e.target, null, typed, diags)
     // Each route below files what it runs.
     record_site(typed, e, .IndexRead, UNSETTLED_CALLEE)
     index_trait :: core_trait_key(TRAIT_INDEX)
@@ -27,7 +24,7 @@ infer_index :: fn(
     } else {
         index_key_expected(e.index, target, index_trait, typed)
     }
-    index :: check_expr_fn(e.index, key_ty, typed, diags)
+    index :: check_expr(e.index, key_ty, typed, diags)
     if target is UnresolvedType {
         record_site(typed, e, .IndexRead, ERRONEOUS_CALLEE)
         return TY_UNRESOLVED

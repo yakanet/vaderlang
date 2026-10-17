@@ -34,7 +34,6 @@ infer_field :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     // Namespace-import field access — `mod.foo` where `mod` is an
     // import binding. Runs before the recursive target check.
@@ -42,7 +41,7 @@ infer_field :: fn(
     if ns_lookup !is null {
         return ns_lookup
     }
-    target_ty :: check_expr_fn(e.target, null, typed, diags)
+    target_ty :: check_expr(e.target, null, typed, diags)
     if target_ty is UnresolvedType {
         return TY_UNRESOLVED
     }
@@ -1773,25 +1772,6 @@ import "std/testing"
 import "toolchain/span"
 import "vader/parser"
 
-// Stub that handles only the variants the field tests touch — Ident
-// (for `p` in `p.x`), Field (for nested `obj.a.b`), and Int literals.
-field_check_stub :: fn(
-    e: AST.Expr,
-    expected: Type | null,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-) -> Type {
-    // @partial: test stub — only the ident / field / literal expr kinds the
-    // field tests build are typed; every other Expr is irrelevant → unresolved.
-    @partial match e {
-        is AST.IntLitExpr    -> { return TY_FREE_INT }
-        is AST.StringLitExpr -> { return TY_STRING }
-        is AST.IdentExpr     -> { return infer_ident(e, typed) }
-        is AST.FieldExpr     -> { return infer_field(e, null, typed, diags, field_check_stub) }
-        _                    -> { return TY_UNRESOLVED }
-    }
-}
-
 accept_field :: fn(e: AST.Expr) -> AST.Expr | null {
     if e is AST.FieldExpr {
         return e
@@ -1843,7 +1823,7 @@ get_x :: fn(p: Point) -> i32 { return p.x }
         is null          -> { assert(false, "expected a field expr") }
         is AST.FieldExpr -> {
             diags: Diagnostic[]: []
-            assert_eq(display_type(infer_field(f, null, fx.typed, diags, field_check_stub)), "i32")
+            assert_eq(display_type(infer_field(f, null, fx.typed, diags)), "i32")
             assert_eq(diags.len(), 0)
         }
     }
@@ -1862,7 +1842,7 @@ get_z :: fn(p: Point) -> i32 { return p.z }
         is null          -> { assert(false, "expected a field expr") }
         is AST.FieldExpr -> {
             diags: Diagnostic[]: []
-            infer_field(f, null, fx.typed, diags, field_check_stub)
+            infer_field(f, null, fx.typed, diags)
             assert(diags.len() >= 1, "expected a diagnostic")
             assert_eq(diags[0].code.id, "T3009")
         }
@@ -1879,7 +1859,7 @@ f :: fn(n: i32) -> i32 { return n.x }
         is null          -> { assert(false, "expected a field expr") }
         is AST.FieldExpr -> {
             diags: Diagnostic[]: []
-            infer_field(f, null, fx.typed, diags, field_check_stub)
+            infer_field(f, null, fx.typed, diags)
             assert(diags.len() >= 1, "expected a diagnostic")
             assert_eq(diags[0].code.id, "T3008")
         }

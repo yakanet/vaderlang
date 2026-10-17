@@ -23,13 +23,12 @@ import "vader/resolver/symbol"
 // One generic call being solved : its signature with the quantified parameters
 // turned into this call's variables (`own`), and what binds them so far.
 CallInference :: struct {
-    call:          AST.CallExpr
-    inst:          FnType
-    own:           InferVar[]
-    solutions:     MutableMap<i32, Type>
-    held:          MutableSet<i32> | null
-    typed:         TypedProgram
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type
+    call:      AST.CallExpr
+    inst:      FnType
+    own:       InferVar[]
+    solutions: MutableMap<i32, Type>
+    held:      MutableSet<i32> | null
+    typed:     TypedProgram
 }
 
 // Type a call whose callee quantifies over parameters (`callee_ty.type_params`), each
@@ -42,7 +41,6 @@ type_generic_call :: fn(
     n: usize,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     vars :: MutableMap<i32, Type> {}
     own: InferVar[]: []
@@ -60,7 +58,6 @@ type_generic_call :: fn(
         .solutions = solutions,
         .held = seed_explicit_infer(c, written, typed, solutions, diags),
         .typed = typed,
-        .check_expr_fn = check_expr_fn,
     }
     seed_ufcs_infer(ctx, vars)
     // Lambda arguments go last, once the other arguments and the result slot have
@@ -149,7 +146,7 @@ check_infer_arg :: fn(ctx: CallInference, i: usize, diags: Diagnostic[]) -> Type
     if !ctx.typed.infer_leak_possible && type_contains_infer_var(slot) {
         ctx.typed.infer_leak_possible = true
     }
-    arg_ty :: ctx.check_expr_fn(ctx.call.args[i].value, slot, ctx.typed, diags)
+    arg_ty :: check_expr(ctx.call.args[i].value, slot, ctx.typed, diags)
     actual :: zonk(arg_ty, ctx.solutions)
     unify_infer(pattern, actual, ctx.solutions, ctx.held)
     unify_struct_to_trait_infer(pattern, actual, ctx.typed, ctx.solutions, ctx.held)

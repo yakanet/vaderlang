@@ -30,10 +30,6 @@ import "vader/types"
 import "vader/resolver/symbol"
 import "toolchain/span"
 
-// Inspect the callee : when it's a bare ident whose `fn_overloads`
-// bucket has 2+ entries, pre-walk arg[0] and pick the overload whose
-// first param accepts it. Falls back to the initial type when no
-// overload bucket exists or none match.
 // True when the callee names a free fn with 2+ overloads — the only shape where
 // an argument's enum prefix is load-bearing. Mirrors `pick_overload`'s own gate,
 // which is where the candidates come from.
@@ -45,12 +41,15 @@ callee_has_overloads :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
     return collect_overload_candidates(name, c.callee.span.start.file, typed).len() >= 2
 }
 
+// Inspect the callee : when it's a bare ident whose `fn_overloads`
+// bucket has 2+ entries, pre-walk arg[0] and pick the overload whose
+// first param accepts it. Falls back to the initial type when no
+// overload bucket exists or none match.
 pick_overload :: fn(
     c: AST.CallExpr,
     initial: Type,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     callee :: c.callee
     if callee !is AST.IdentExpr {
@@ -88,7 +87,7 @@ pick_overload :: fn(
     if c.args.len() == 0 {
         return initial
     }
-    arg0_ty :: check_expr_fn(c.args[0].value, null, typed, [])
+    arg0_ty :: check_expr(c.args[0].value, null, typed, [])
     // Among candidates whose first param accepts arg0, pick the one with the
     // highest `overload_rank`. Eligibility is unchanged : only the
     // `is_assignable` gate below. Ties keep the first declared, unless
@@ -136,7 +135,6 @@ pick_member_overload :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     field :: c.callee
     if field !is AST.FieldExpr {
@@ -150,15 +148,7 @@ pick_member_overload :: fn(
         sigs.push(if is_static { m.ty } else { impl_member_type(m, receiver, typed) })
     }
     // An ambiguity is reported : nothing more to say about this call.
-    index :: pick_member_index(
-        c,
-        field,
-        sigs,
-        expected,
-        typed,
-        diags,
-        check_expr_fn,
-    ) ?? return TY_UNRESOLVED
+    index :: pick_member_index(c, field, sigs, expected, typed, diags) ?? return TY_UNRESOLVED
     chosen :: candidates[index]
     typed.callees[field.id] = member_callee(chosen.decl, receiver)
     ty :: if is_static {
@@ -180,10 +170,9 @@ pick_member_index :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> usize | null {
     if c.args.len() > 0 {
-        arg0 :: check_expr_fn(c.args[0].value, null, typed, [])
+        arg0 :: check_expr(c.args[0].value, null, typed, [])
         pick :: pick_by_first_arg(sigs, arg0, c.args.len(), typed)
         if pick.rival != null {
             diags.push(member_ambiguity_error(field, sigs, "accept ${display_type(arg0)}"))
@@ -615,8 +604,7 @@ ufcs_tail_params :: fn(fd: AST.FnDecl) -> AST.FnParam[] | null {
     return tail
 }
 
-/// Type-check a `CallExpr`. `check_expr_fn` is threaded the same way as in
-/// `binary.vader::infer_binary`, standing in for `expr.vader::check_expr`.
+/// Type-check a `CallExpr`.
 ///
 /// @param expected  the slot the call's result flows into, when there is one.
 ///                  Only a generic callee reads it : a type-param no argument
@@ -627,13 +615,12 @@ infer_call :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     // The calls nested in the callee's target and in the arguments each set
     // `callee_field_id` in turn : each puts back the one it found, so the member
     // this call settles after typing its arguments is still known as its callee.
     enclosing :: typed.callee_field_id
-    ty :: type_call(c, expected, typed, diags, check_expr_fn)
+    ty :: type_call(c, expected, typed, diags)
     typed.callee_field_id = enclosing
     return ty
 }
@@ -643,32 +630,29 @@ type_call :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     if c.callee is AST.FieldExpr {
         typed.callee_field_id = c.callee.id
     }
-    initial_callee_ty :: check_expr_fn(c.callee, null, typed, diags)
+    initial_callee_ty :: check_expr(c.callee, null, typed, diags)
     // Overload dispatch : when the callee is a bare ident whose name
     // has multiple fn overloads (`describe :: fn(Box) -> ... ;
     // describe :: fn(Bag) -> ...`), pre-walk the args and pick the
     // overload whose first param accepts the first arg. A member several impls
     // of one trait offer is picked the same way.
-    member_ty :: pick_member_overload(c, initial_callee_ty, expected, typed, diags, check_expr_fn)
-    callee_ty :: ufcs_generic_signature(
-        c.callee, pick_overload(c, member_ty, typed, diags, check_expr_fn), typed,
-    )
+    member_ty :: pick_member_overload(c, initial_callee_ty, expected, typed, diags)
+    callee_ty :: ufcs_generic_signature(c.callee, pick_overload(c, member_ty, typed, diags), typed)
     // `T(x)` cast-style call : treat the call as a conversion and return the target
     // type. Folded before reaching the not-callable arm.
     if converts_by_name(c, callee_ty, typed) {
-        return cast_call_target(c, typed, diags, check_expr_fn)
+        return cast_call_target(c, typed, diags)
     }
     named :: lookup_callee_fn_decl(c.callee, typed)
     record_call_site(typed, c, callee_of_call(typed, c, callee_ty, named))
     // Unresolved callee : upstream error already reported, fall through
     // to keep checking args (drives narrowing in their inner literals).
     if callee_ty is UnresolvedType {
-        check_args_no_expected(c, typed, diags, check_expr_fn)
+        check_args_no_expected(c, typed, diags)
         return TY_UNRESOLVED
     }
     if callee_ty !is FnType {
@@ -679,7 +663,7 @@ type_call :: fn(
                 "callee has type ${display_type(callee_ty)}, not a function",
             ),
         )
-        check_args_no_expected(c, typed, diags, check_expr_fn)
+        check_args_no_expected(c, typed, diags)
         return TY_UNRESOLVED
     }
     // Reorder named args + fill defaults in place, so the positional checks
@@ -720,7 +704,7 @@ type_call :: fn(
     n :: min(c.args.len(), callee_ty.params.len())
     reject_extra_type_args(c, callee_ty, typed, diags)
     if callee_ty.type_params.len() > 0 {
-        returned :: type_generic_call(c, callee_ty, expected, n, typed, diags, check_expr_fn)
+        returned :: type_generic_call(c, callee_ty, expected, n, typed, diags)
         return call_result(c, returned, diverges, typed)
     }
     // See `TypedProgram.overloaded_arg_depth`. Raised around the ARGUMENTS only:
@@ -731,7 +715,7 @@ type_call :: fn(
     }
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
-        arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
+        arg_ty :: check_expr(c.args[i].value, param_ty, typed, diags)
         if fits_argument(typed, c.args[i].value, arg_ty, param_ty) { continue }
         if try_into(arg_ty, param_ty, typed, c.args[i].value)      { continue }
         diags.push(mismatch_diagnostic(arg_ty, param_ty, c.args[i].span, .TypeMismatch, typed))
@@ -909,12 +893,7 @@ is_checked_conversion :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
 ///
 /// @error T3010 when a `(value → target)` pair is not a legal conversion
 ///        (`i32("hello")`, `bool(someStruct)`).
-cast_call_target :: fn(
-    c: AST.CallExpr,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> Type {
+cast_call_target :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     target :: cast_target_type(c, typed, diags)
     // The cast itself calls nothing ; an `into` it runs is its value's site.
     site: Callee = BUILTIN_CALLEE
@@ -929,7 +908,7 @@ cast_call_target :: fn(
     // `i64(-250)` types the `-250` as `i64`, not `{integer}`.
     expected :: cast_operand_expected(target)
     for arg in c.args {
-        src :: check_expr_fn(arg.value, expected, typed, diags)
+        src :: check_expr(arg.value, expected, typed, diags)
         // Variant data is constant : reading it hands back a read-only value.
         data :: enum_data_of(src, target)
         if data != null {
@@ -1193,14 +1172,9 @@ callee_name :: fn(callee: AST.Expr) -> string {
 // Walk the args once for their side-effects only — type them in a
 // fresh-position context so inner literals get a sensible type even
 // when the callee itself didn't resolve to a Fn (already errored).
-check_args_no_expected :: fn(
-    c: AST.CallExpr,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> void {
+check_args_no_expected :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]) -> void {
     for a in c.args {
-        check_expr_fn(a.value, null, typed, diags)
+        check_expr(a.value, null, typed, diags)
     }
 }
 
@@ -1209,25 +1183,6 @@ check_args_no_expected :: fn(
 import "std/testing"
 import "vader/parser"
 import "vader/resolver"
-
-// Tiny stub : handles the variants the call tests touch. Real call sites
-// use `expr.vader::check_expr` — we can't import that here (cycle).
-call_check_stub :: fn(
-    e: AST.Expr,
-    expected: Type | null,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-) -> Type {
-    // @partial: test stub — only the literal / ident / call expr kinds the call
-    // tests build are typed; every other Expr is irrelevant → unresolved.
-    @partial match e {
-        is AST.IntLitExpr    -> { return TY_FREE_INT }
-        is AST.StringLitExpr -> { return TY_STRING }
-        is AST.IdentExpr     -> { return infer_ident(e, typed) }
-        is AST.CallExpr      -> { return infer_call(e, null, typed, diags, call_check_stub) }
-        _                    -> { return TY_UNRESOLVED }
-    }
-}
 
 // Parse + resolve + check `src`, then find the first `CallExpr` reached
 // by a depth-first walk of the last decl's body via the shared
@@ -1280,7 +1235,7 @@ main :: fn() -> i32 { return add(1, 2) }
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
-            assert_eq(display_type(infer_call(c, null, fx.typed, diags, call_check_stub)), "i32")
+            assert_eq(display_type(infer_call(c, null, fx.typed, diags)), "i32")
             assert_eq(diags.len(), 0)
         }
     }
@@ -1297,7 +1252,7 @@ main :: fn() -> i32 { return add(1) }
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
-            infer_call(c, null, fx.typed, diags, call_check_stub)
+            infer_call(c, null, fx.typed, diags)
             assert(diags.len() >= 1, "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3005")
         }
@@ -1315,7 +1270,7 @@ main :: fn() -> i32 { return add(1, 2, 3) }
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
-            infer_call(c, null, fx.typed, diags, call_check_stub)
+            infer_call(c, null, fx.typed, diags)
             assert(diags.len() >= 1, "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3003")
         }
@@ -1332,7 +1287,7 @@ f :: fn() -> i32 { return i32("hello") }
         is null         -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
-            infer_call(c, null, fx.typed, diags, call_check_stub)
+            infer_call(c, null, fx.typed, diags)
             found := false
             for d in diags {
                 if d.code.id == "T3010" {
@@ -1354,7 +1309,7 @@ f :: fn(a: i32) -> i64 { return i64(a) }
         is null         -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
-            assert_eq(display_type(infer_call(c, null, fx.typed, diags, call_check_stub)), "i64")
+            assert_eq(display_type(infer_call(c, null, fx.typed, diags)), "i64")
             found := false
             for d in diags {
                 if d.code.id == "T3010" {
@@ -1377,7 +1332,7 @@ main :: fn() -> i32 { return greet(1) }
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
-            infer_call(c, null, fx.typed, diags, call_check_stub)
+            infer_call(c, null, fx.typed, diags)
             // The omitted trailing param is filled from its default.
             assert_eq(c.args.len(), 2)
         }
@@ -1395,7 +1350,7 @@ main :: fn() -> void { greet(42) }
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
-            infer_call(c, null, fx.typed, diags, call_check_stub)
+            infer_call(c, null, fx.typed, diags)
             // FreeInt is not assignable to string ; T3001 fires.
             found := false
             for d in diags {

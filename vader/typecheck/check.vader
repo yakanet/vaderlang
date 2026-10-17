@@ -1,10 +1,7 @@
 // vader/typecheck/check — declaration-time orchestrator.
 //
 // Builds the `ImplRegistry` and mints per-decl types. Body walking
-// lives in `orchestrate.vader` so this file stays free of `expr` /
-// `stmt` imports — `binary.vader` / `call.vader` / … pull `check_module`
-// from their test blocks and would form `binary → check → expr →
-// binary` cycles otherwise.
+// lives in `orchestrate.vader`.
 
 module "vader/typecheck"
 

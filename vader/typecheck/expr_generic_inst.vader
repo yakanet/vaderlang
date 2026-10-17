@@ -17,10 +17,7 @@ AST :: import "toolchain/ast"
 /// @param typed  the module it sits in.
 /// @param diags  receives what the type's arguments get wrong.
 /// @return       the instance, `Bag<f64>`.
-infer_generic_inst :: fn(
-    e: AST.GenericInstExpr, typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> Type {
-    check_expr_fn(e.callee, null, typed, diags)
+infer_generic_inst :: fn(e: AST.GenericInstExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    check_expr(e.callee, null, typed, diags)
     return type_from_expr(e, typed.resolved, diags)
 }

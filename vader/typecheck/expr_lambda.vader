@@ -20,7 +20,6 @@ import "vader/types"
 infer_lambda :: fn(
     e: AST.LambdaExpr, expected: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     expected_fn: FnType | null = null
     match expected {
@@ -41,14 +40,14 @@ infer_lambda :: fn(
     }
     // Mirror `check_fn_body`: push the lambda's ctx onto the global
     // stack so nested `if` / `match` arms (which `check_return` reaches
-    // via the recursive `check_expr_fn` path with `ctx=null`) validate
+    // via the recursive `check_expr` path with `ctx=null`) validate
     // against the lambda's return type instead of the enclosing fn's.
     prev_ctx :: typed.current_fn_ctx
     typed.current_fn_ctx = ctx
     // A lambda is a fn of its own: no enclosing loop is one its jumps can reach.
     prev_loops :: typed.loop_stack
     typed.loop_stack = []
-    body :: check_block(e.body, expected_ret, typed, diags, ctx, check_expr_fn)
+    body :: check_block(e.body, expected_ret, typed, diags, ctx)
     typed.loop_stack = prev_loops
     typed.current_fn_ctx = prev_ctx
     // T3083 — the same obligation `check_fn_body` puts on a named fn. A body with
