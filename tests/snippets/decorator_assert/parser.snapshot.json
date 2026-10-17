@@ -7,6 +7,56 @@
     },
     "decls": [
       {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "BinaryExpr",
+          "op": "eq",
+          "left": {
+            "kind": "BinaryExpr",
+            "op": "add",
+            "left": {
+              "kind": "IntLitExpr",
+              "value": "2n"
+            },
+            "right": {
+              "kind": "IntLitExpr",
+              "value": "2n"
+            }
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "4n"
+          }
+        },
+        "message": null,
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "BinaryExpr",
+          "op": "eq",
+          "left": {
+            "kind": "BinaryExpr",
+            "op": "add",
+            "left": {
+              "kind": "IntLitExpr",
+              "value": "40n"
+            },
+            "right": {
+              "kind": "IntLitExpr",
+              "value": "2n"
+            }
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "42n"
+          }
+        },
+        "message": null,
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "DOUBLE",
         "visibility": "private",
@@ -47,58 +97,7 @@
           ],
           "trailing": null
         },
-        "decorators": [
-          {
-            "name": "assert",
-            "args": [
-              {
-                "kind": "BinaryExpr",
-                "op": "eq",
-                "left": {
-                  "kind": "BinaryExpr",
-                  "op": "add",
-                  "left": {
-                    "kind": "IntLitExpr",
-                    "value": "2n"
-                  },
-                  "right": {
-                    "kind": "IntLitExpr",
-                    "value": "2n"
-                  }
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "4n"
-                }
-              }
-            ]
-          },
-          {
-            "name": "assert",
-            "args": [
-              {
-                "kind": "BinaryExpr",
-                "op": "eq",
-                "left": {
-                  "kind": "BinaryExpr",
-                  "op": "add",
-                  "left": {
-                    "kind": "IntLitExpr",
-                    "value": "40n"
-                  },
-                  "right": {
-                    "kind": "IntLitExpr",
-                    "value": "2n"
-                  }
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "42n"
-                }
-              }
-            ]
-          }
-        ]
+        "decorators": []
       },
       {
         "kind": "AssertDecl",

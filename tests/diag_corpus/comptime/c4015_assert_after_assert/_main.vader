@@ -1,0 +1,10 @@
+// Two `@assert` lines in a row are two declarations : the second one, which
+// fails, is checked.
+module "snippet"
+
+@assert(1 + 1 == 2)
+@assert(1 + 1 == 3)
+
+main :: fn() -> i32 {
+    return 0
+}

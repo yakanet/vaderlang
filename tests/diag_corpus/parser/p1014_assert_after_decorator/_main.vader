@@ -1,0 +1,10 @@
+// An `@assert` after another decorator would decorate the declaration below,
+// and nothing would check it.
+module "snippet"
+
+@comptime @assert(1 + 1 == 3)
+TWO :: 1 + 1
+
+main :: fn() -> i32 {
+    return TWO
+}

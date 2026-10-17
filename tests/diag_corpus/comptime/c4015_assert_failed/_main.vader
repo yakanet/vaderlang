@@ -1,6 +1,4 @@
-// `@assert(false)` — TS emits C4015 ("compile-time assertion failed").
-// Vader's codes.vader maps AssertFailed to C4004 instead, so this
-// snippet flips between TS-only C4015 and Vader-only C4004.
+// A top-level `@assert` whose condition is false fails the build.
 module "snippet"
 
 @assert(1 + 1 == 3)

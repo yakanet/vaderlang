@@ -43,6 +43,102 @@
         "decorators": []
       },
       {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "BinaryExpr",
+          "op": "eq",
+          "left": {
+            "kind": "IntrinsicCallExpr",
+            "name": "field_index",
+            "args": [
+              {
+                "kind": "IdentExpr",
+                "name": "Vec3"
+              },
+              {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "x"
+                  }
+                ]
+              }
+            ]
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "0n"
+          }
+        },
+        "message": null,
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "BinaryExpr",
+          "op": "eq",
+          "left": {
+            "kind": "IntrinsicCallExpr",
+            "name": "field_index",
+            "args": [
+              {
+                "kind": "IdentExpr",
+                "name": "Vec3"
+              },
+              {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "y"
+                  }
+                ]
+              }
+            ]
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "1n"
+          }
+        },
+        "message": null,
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "BinaryExpr",
+          "op": "eq",
+          "left": {
+            "kind": "IntrinsicCallExpr",
+            "name": "field_index",
+            "args": [
+              {
+                "kind": "IdentExpr",
+                "name": "Vec3"
+              },
+              {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "z"
+                  }
+                ]
+              }
+            ]
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "2n"
+          }
+        },
+        "message": null,
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "main",
         "visibility": "private",
@@ -65,104 +161,7 @@
           ],
           "trailing": null
         },
-        "decorators": [
-          {
-            "name": "assert",
-            "args": [
-              {
-                "kind": "BinaryExpr",
-                "op": "eq",
-                "left": {
-                  "kind": "IntrinsicCallExpr",
-                  "name": "field_index",
-                  "args": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "Vec3"
-                    },
-                    {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "x"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "0n"
-                }
-              }
-            ]
-          },
-          {
-            "name": "assert",
-            "args": [
-              {
-                "kind": "BinaryExpr",
-                "op": "eq",
-                "left": {
-                  "kind": "IntrinsicCallExpr",
-                  "name": "field_index",
-                  "args": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "Vec3"
-                    },
-                    {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "y"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "1n"
-                }
-              }
-            ]
-          },
-          {
-            "name": "assert",
-            "args": [
-              {
-                "kind": "BinaryExpr",
-                "op": "eq",
-                "left": {
-                  "kind": "IntrinsicCallExpr",
-                  "name": "field_index",
-                  "args": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "Vec3"
-                    },
-                    {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "z"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "2n"
-                }
-              }
-            ]
-          }
-        ]
+        "decorators": []
       }
     ]
   },

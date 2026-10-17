@@ -8,3 +8,7 @@
   expr 13:9     BinaryExpr     :: bool
   expr 13:9     CallExpr       :: i32
   expr 13:9     IdentExpr      :: fn(i32) -> i32
+  expr 8:9      BinaryExpr     :: bool
+  expr 8:9      BinaryExpr     :: {integer}
+  expr 9:9      BinaryExpr     :: bool
+  expr 9:9      BinaryExpr     :: {integer}

@@ -5,3 +5,15 @@
   StructDecl     Pair                 :: Pair
   EnumDecl       Side                 :: Side
   StructDecl     Triple               :: Triple
+  expr 24:9     BinaryExpr     :: bool
+  expr 24:9     IntrinsicCallExpr :: usize
+  expr 25:9     BinaryExpr     :: bool
+  expr 25:9     IntrinsicCallExpr :: usize
+  expr 26:9     BinaryExpr     :: bool
+  expr 26:9     IntrinsicCallExpr :: usize
+  expr 27:9     BinaryExpr     :: bool
+  expr 27:9     IntrinsicCallExpr :: usize
+  expr 28:9     BinaryExpr     :: bool
+  expr 28:9     IntrinsicCallExpr :: usize
+  expr 29:9     BinaryExpr     :: bool
+  expr 29:9     IntrinsicCallExpr :: usize

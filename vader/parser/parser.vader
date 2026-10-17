@@ -555,7 +555,11 @@ is_module_segment_continue :: fn(c: char) = c in 'a'..='z' || c.is_digit() || c 
 // ============================================================================
 
 parse_decl :: fn(p: Parser) -> Decl | null {
+    if p.check(.At) && p.check_at(.Ident, 1) && p.peek_at(1).text == "assert" {
+        return p.parse_assert_decl()
+    }
     decorators :: p.parse_decorators()
+    p.reject_assert_decorator(decorators)
     visibility: Visibility = .Private
     if p.match_kind(.KwExport) != null {
         visibility = .Public
@@ -567,58 +571,56 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     return decl
 }
 
+// `@assert(condition)` or `@assert(condition, "message")` : a top-level
+// statement of its own, which decorates nothing.
+parse_assert_decl :: fn(p: Parser) -> AssertDecl | null {
+    dec :: p.parse_decorator()
+    p.skip_newlines()
+    if dec.args.len() < 1 || dec.args.len() > 2 {
+        p.error(.DecoratorArgumentCount, dec.span,
+            "`@assert` expects 1 or 2 arguments : `@assert(cond)` or `@assert(cond, \"message\")`")
+        return null
+    }
+    message: string | null = null
+    if dec.args.len() == 2 {
+        message = p.static_assert_message(dec.args[1]) ?? return null
+    }
+    return AssertDecl {
+        .span       = dec.span,
+        .condition  = dec.args[0],
+        .message    = message,
+        .decorators = [],
+    }
+}
+
+// The optional message of an `@assert` : a string literal without
+// interpolation, whose decoded text is its single `StringLitText` part.
+static_assert_message :: fn(p: Parser, arg: Expr) -> string | null {
+    if arg is StringLitExpr && arg.parts.len() == 1 {
+        text :: arg.parts[0]
+        if text is StringLitText {
+            return text.value
+        }
+    }
+    p.error(.DecoratorArgumentForm, arg.span,
+        "`@assert` message must be a static string literal (no interpolation)")
+    return null
+}
+
+// An `@assert` after another decorator would decorate the declaration below,
+// which nothing checks.
+reject_assert_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
+    for d in decorators {
+        if d.name == "assert" {
+            p.error(.UnknownDecoratorPlacement, d.span,
+                "`@assert` stands on its own line, before any decorator")
+        }
+    }
+}
+
 parse_decorated_decl :: fn(
     p: Parser, decorators: Decorator[], visibility: Visibility,
 ) -> Decl | null {
-    // `@assert(condition)` is a "decorator-statement" that stands on its
-    // own at the top level rather than annotating a following decl. Only
-    // the lone-decorator form promotes — mixing `@comptime @assert(...)`
-    // would be ambiguous.
-    if decorators.len() == 1 && decorators[0].name == "assert" {
-        dec :: decorators[0]
-        if dec.args.len() < 1 || dec.args.len() > 2 {
-            p.error(.DecoratorArgumentCount, dec.span,
-                "`@assert` expects 1 or 2 arguments : `@assert(cond)` or `@assert(cond, \"message\")`")
-            return null
-        }
-        message: string | null = null
-        if dec.args.len() == 2 {
-            msg_arg :: dec.args[1]
-            // Optional second arg : a *static* string literal (no
-            // interpolation). Extract its decoded text from the single
-            // `StringLitText` part, otherwise surface P1014.
-            match msg_arg {
-                is StringLitExpr -> {
-                    if msg_arg.parts.len() == 1 {
-                        match msg_arg.parts[0] as t {
-                            is StringLitText -> { message = t.value }
-                            _                -> {
-                                p.error(.DecoratorArgumentForm, msg_arg.span,
-                                    "`@assert` message must be a static string literal (no interpolation)")
-                                return null
-                            }
-                        }
-                    } else {
-                        p.error(.DecoratorArgumentForm, msg_arg.span,
-                            "`@assert` message must be a static string literal (no interpolation)")
-                        return null
-                    }
-                }
-                _ -> {
-                    p.error(.DecoratorArgumentForm, msg_arg.span,
-                        "`@assert` message must be a static string literal (no interpolation)")
-                    return null
-                }
-            }
-        }
-        return AssertDecl {
-            .span       = dec.span,
-            .condition  = dec.args[0],
-            .message    = message,
-            .decorators = [],
-        }
-    }
-
     if p.check(.KwImport) {
         return p.parse_import_decl(decorators)
     }
@@ -699,31 +701,35 @@ reject_displayable_decorator :: fn(p: Parser, decorators: Decorator[]) -> void {
 parse_decorators :: fn(p: Parser) -> Decorator[] {
     out: Decorator[]: []
     for p.check(.At) {
-        at :: p.advance()
-        name_tok :: p.expect(.Ident, "decorator name after `@`")
-        args: Expr[]: []
-        if p.match_kind(.LParen) != null {
-            if !p.check(.RParen) {
-                first := true
-                for {
-                    if !first {
-                        if p.match_kind(.Comma) == null { break }
-                        if p.check(.RParen) { break }
-                    }
-                    first = false
-                    args.push(p.parse_expr(0))
-                }
-            }
-            p.expect(.RParen, "`)` after decorator arguments")
-        }
-        out.push(Decorator {
-            .span = p.span_of(at, p.peek_at(-1)),
-            .name = name_tok.text,
-            .args = args,
-        })
+        out.push(p.parse_decorator())
         p.skip_newlines()
     }
     return out
+}
+
+parse_decorator :: fn(p: Parser) -> Decorator {
+    at :: p.advance()
+    name_tok :: p.expect(.Ident, "decorator name after `@`")
+    args: Expr[]: []
+    if p.match_kind(.LParen) != null {
+        if !p.check(.RParen) {
+            first := true
+            for {
+                if !first {
+                    if p.match_kind(.Comma) == null { break }
+                    if p.check(.RParen) { break }
+                }
+                first = false
+                args.push(p.parse_expr(0))
+            }
+        }
+        p.expect(.RParen, "`)` after decorator arguments")
+    }
+    return Decorator {
+        .span = p.span_of(at, p.peek_at(-1)),
+        .name = name_tok.text,
+        .args = args,
+    }
 }
 
 /// Statement-position `import "..."`. A brace block `{ a, b }` is a destructure

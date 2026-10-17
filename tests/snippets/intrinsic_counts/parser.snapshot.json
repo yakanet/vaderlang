@@ -89,6 +89,161 @@
         "decorators": []
       },
       {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "BinaryExpr",
+          "op": "eq",
+          "left": {
+            "kind": "IntrinsicCallExpr",
+            "name": "field_count",
+            "args": [
+              {
+                "kind": "IdentExpr",
+                "name": "Pair"
+              }
+            ]
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "2n"
+          }
+        },
+        "message": null,
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "BinaryExpr",
+          "op": "eq",
+          "left": {
+            "kind": "IntrinsicCallExpr",
+            "name": "field_count",
+            "args": [
+              {
+                "kind": "IdentExpr",
+                "name": "Triple"
+              }
+            ]
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "3n"
+          }
+        },
+        "message": null,
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "BinaryExpr",
+          "op": "eq",
+          "left": {
+            "kind": "IntrinsicCallExpr",
+            "name": "field_count",
+            "args": [
+              {
+                "kind": "SeqLitExpr",
+                "elements": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  },
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                ]
+              }
+            ]
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "2n"
+          }
+        },
+        "message": null,
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "BinaryExpr",
+          "op": "eq",
+          "left": {
+            "kind": "IntrinsicCallExpr",
+            "name": "field_count",
+            "args": [
+              {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            ]
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "0n"
+          }
+        },
+        "message": null,
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "BinaryExpr",
+          "op": "eq",
+          "left": {
+            "kind": "IntrinsicCallExpr",
+            "name": "variant_count",
+            "args": [
+              {
+                "kind": "IdentExpr",
+                "name": "Side"
+              }
+            ]
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "2n"
+          }
+        },
+        "message": null,
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "BinaryExpr",
+          "op": "eq",
+          "left": {
+            "kind": "IntrinsicCallExpr",
+            "name": "variant_count",
+            "args": [
+              {
+                "kind": "BinaryExpr",
+                "op": "bitor",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "string"
+                }
+              }
+            ]
+          },
+          "right": {
+            "kind": "IntLitExpr",
+            "value": "2n"
+          }
+        },
+        "message": null,
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "main",
         "visibility": "private",
@@ -111,163 +266,7 @@
           ],
           "trailing": null
         },
-        "decorators": [
-          {
-            "name": "assert",
-            "args": [
-              {
-                "kind": "BinaryExpr",
-                "op": "eq",
-                "left": {
-                  "kind": "IntrinsicCallExpr",
-                  "name": "field_count",
-                  "args": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "Pair"
-                    }
-                  ]
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "2n"
-                }
-              }
-            ]
-          },
-          {
-            "name": "assert",
-            "args": [
-              {
-                "kind": "BinaryExpr",
-                "op": "eq",
-                "left": {
-                  "kind": "IntrinsicCallExpr",
-                  "name": "field_count",
-                  "args": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "Triple"
-                    }
-                  ]
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "3n"
-                }
-              }
-            ]
-          },
-          {
-            "name": "assert",
-            "args": [
-              {
-                "kind": "BinaryExpr",
-                "op": "eq",
-                "left": {
-                  "kind": "IntrinsicCallExpr",
-                  "name": "field_count",
-                  "args": [
-                    {
-                      "kind": "SeqLitExpr",
-                      "elements": [
-                        {
-                          "kind": "IdentExpr",
-                          "name": "i32"
-                        },
-                        {
-                          "kind": "IdentExpr",
-                          "name": "i32"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "2n"
-                }
-              }
-            ]
-          },
-          {
-            "name": "assert",
-            "args": [
-              {
-                "kind": "BinaryExpr",
-                "op": "eq",
-                "left": {
-                  "kind": "IntrinsicCallExpr",
-                  "name": "field_count",
-                  "args": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "i32"
-                    }
-                  ]
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "0n"
-                }
-              }
-            ]
-          },
-          {
-            "name": "assert",
-            "args": [
-              {
-                "kind": "BinaryExpr",
-                "op": "eq",
-                "left": {
-                  "kind": "IntrinsicCallExpr",
-                  "name": "variant_count",
-                  "args": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "Side"
-                    }
-                  ]
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "2n"
-                }
-              }
-            ]
-          },
-          {
-            "name": "assert",
-            "args": [
-              {
-                "kind": "BinaryExpr",
-                "op": "eq",
-                "left": {
-                  "kind": "IntrinsicCallExpr",
-                  "name": "variant_count",
-                  "args": [
-                    {
-                      "kind": "BinaryExpr",
-                      "op": "bitor",
-                      "left": {
-                        "kind": "IdentExpr",
-                        "name": "i32"
-                      },
-                      "right": {
-                        "kind": "IdentExpr",
-                        "name": "string"
-                      }
-                    }
-                  ]
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "2n"
-                }
-              }
-            ]
-          }
-        ]
+        "decorators": []
       }
     ]
   },
