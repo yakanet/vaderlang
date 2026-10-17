@@ -1,0 +1,14 @@
+// A generator of another module, inlined into the `for` that consumes it. Its
+// counter is captured and rebound by a lambda, so the inlined copy must live in
+// a cell too, though no body of `snippet/gens` was lowered before.
+module "snippet"
+
+import "std/io"
+import "snippet/gens"
+
+main :: fn() -> i32 {
+    for v in ticks(3) {
+        println("${v}")
+    }
+    return 0
+}

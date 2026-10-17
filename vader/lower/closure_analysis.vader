@@ -26,29 +26,29 @@ import "vader/typecheck"
 import "vader/resolver"
 import "toolchain/span"
 
-/// Walk every fn body in the project, populate `ClosureAnalysis` with
-/// each lambda's capture list + the union of captured symbol IDs.
-/// @param loaded  the loaded project (carries source decls per module).
-/// @param typed   the typed project (resolver view + side-tables).
-/// @return        the analysis result.
-export analyze_closures :: fn(loaded: LoadedProject, typed: TypedProject) -> ClosureAnalysis {
-    analysis :: new_closure_analysis()
-    for [module_id, module_typed] in typed.modules {
-        module_loaded :: loaded.modules[module_id] ?? continue
-        analyze_module(module_loaded, module_typed, analysis)
+/// Record in `project.closures` each lambda's and `defer`'s capture list, and the
+/// symbols captured as cells, for every body of `typed`'s module. A capture never
+/// crosses a module, so a module is walked the first time a body of it is
+/// lowered, and only modules that are lowered are walked.
+///
+/// @param project  the shared project context, whose `closures` is filled.
+/// @param typed    the module about to have a body lowered.
+export ensure_closure_analysis :: fn(project: LowerProjectCtx, typed: TypedProgram) -> void {
+    path :: typed.resolved.path
+    if !project.closure_modules.add(path) {
+        return
     }
-    return analysis
+    loaded :: project.loaded.modules[path] ?? return
+    analyze_module(project, loaded, typed)
 }
 
 // Per-module walker. Walks every top-level AST.FnDecl + AST.ImplDecl member
 // body, plus ConstDecl values — a const can be initialised by a block that
 // declares locals and returns a capturing lambda, which hosts a closure just
 // like a fn body.
-analyze_module :: fn(loaded: LoadedModule, typed: TypedProgram, analysis: ClosureAnalysis) -> void {
-    // Build the defined-span → Symbol index once per module ; the body
-    // walker hits this dozens of times per lambda, so the previous
-    // O(symbols) linear scan was wasted work.
-    symbol_index :: build_symbol_by_span_index(typed)
+analyze_module :: fn(project: LowerProjectCtx, loaded: LoadedModule, typed: TypedProgram) -> void {
+    analysis :: project.closures
+    symbol_index :: ensure_local_symbol_index(project, typed.resolved)
     for source_file in loaded.module.files {
         for decl in source_file.program.decls {
             match decl {
@@ -70,31 +70,6 @@ analyze_module :: fn(loaded: LoadedModule, typed: TypedProgram, analysis: Closur
             }
         }
     }
-}
-
-// Build a `defined_at.hash() -> Symbol` index for one module. Mirrors
-// the cache logic in `lower_expr::ensure_local_symbol_index` but local
-// to closure-analysis since that pass runs before the lower-project ctx
-// exists. Covers both `idents` (used bindings) and `symbols` (unused).
-build_symbol_by_span_index :: fn(typed: TypedProgram) -> MutableMap<u64, Symbol> {
-    index :: MutableMap<u64, Symbol> {}
-    for [_, symbol] in typed.resolved.idents {
-        match symbol.defined_at as defined {
-            is null -> {}
-            is Span -> { index[defined.hash()] = symbol }
-        }
-    }
-    for symbol in typed.resolved.symbols {
-        match symbol.defined_at as defined {
-            is null -> {}
-            is Span -> {
-                key :: defined.hash()
-                existing :: index[key]
-                if existing is null { index[key] = symbol }
-            }
-        }
-    }
-    return index
 }
 
 // Top-level fn-body walker. The fn's own params seed the owned scope ;

@@ -419,40 +419,29 @@ materialize_impl_members_for :: fn(
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> void {
     ensure_receiver_struct(inst, loaded, typed, project_ctx, project)
-    // Walk every module's impls (impls can be in foreign modules) and
-    // emit a synth fn for each matching impl member.
-    for [module_id, mt] in typed.modules {
-        module_loaded :: loaded.modules[module_id] ?? continue
-        if module_loaded is LoadedModule {
-            for d in module_decls(module_loaded) {
-                if d is ImplDecl {
-                    if !impl_applies_to_instance(project_ctx, d, inst) { continue }
-                    materialize_impl_for_instance(
-                        d, inst, mt, owner_typed, project_ctx, project,
-                    )
-                    // The impl body virtual-calls the bound traits'
-                    // methods on the type-param (`cursor.step()` in
-                    // `Range.next`). Materialise
-                    // those bound-trait impls for the concrete args so
-                    // the vtable carries the matching entries.
-                    materialize_bound_trait_impls(
-                        d, inst, mt, project_ctx, project, loaded, typed, diags,
-                    )
-                }
-            }
-        }
+    // The impls of the instance's declaration, wherever they are written, emit a
+    // synth fn per member.
+    for entry in project_ctx.impls.impls_on(declaration_key(inst.symbol)) {
+        if !impl_applies_to_instance(project_ctx, entry, inst) { continue }
+        d :: entry.decl
+        mt :: typed_by_display_path(project_ctx, entry.module) ?? continue
+        materialize_impl_for_instance(d, inst, mt, owner_typed, project_ctx, project)
+        // The impl body virtual-calls the bound traits' methods on the
+        // type-param (`cursor.step()` in `Range.next`). Materialise those
+        // bound-trait impls for the concrete args so the vtable carries the
+        // matching entries.
+        materialize_bound_trait_impls(d, inst, mt, project_ctx, project, loaded, typed, diags)
     }
 }
 
-// True when `impl_decl` serves the struct `inst` instantiates : an impl on that
+
+// True when `entry`'s impl serves the struct `inst` instantiates : an impl on that
 // instance (`Box<i32> implements …`), or a generic impl of its declaration unless
 // one on the instance implements the same trait instance.
-impl_applies_to_instance :: fn(project_ctx: LowerProjectCtx, impl_decl: ImplDecl, inst: GenericInstance) -> bool {
-    if !(impl_decl.for_type is GenericInstExpr) {
-        return false
-    }
-    entry :: project_ctx.impls.entry_of(impl_decl) ?? return false
-    if entry.target != declaration_key(inst.symbol) {
+impl_applies_to_instance :: fn(
+    project_ctx: LowerProjectCtx, entry: ImplEntry, inst: GenericInstance,
+) -> bool {
+    if !(entry.decl.for_type is GenericInstExpr) {
         return false
     }
     instance :: mk_struct(inst.symbol, inst.args)

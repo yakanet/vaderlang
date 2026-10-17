@@ -13,8 +13,9 @@
 // a value lowers to, so a call through it is direct and a value of it is the
 // fn's static closure.
 //
-// Captures come from `ctx.project.closures.lambda_captures[lambda.id]`,
-// populated once at project entry by `analyze_closures`. The lifted
+// Captures come from `ctx.project.closures.lambda_captures`, keyed by
+// `capture_key(module path, lambda.id)` and filled for the module by
+// `ensure_closure_analysis` when its fn ctx is built. The lifted
 // fn's body is lowered with a `lifted_context` so captured idents
 // route through `env.cap_N` rather than resolving to outer locals.
 

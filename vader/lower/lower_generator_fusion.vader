@@ -647,7 +647,7 @@ try_descend_into_gen_source :: fn(ctx: FnLowerCtx, expr: AST.Expr, span: Span) -
     receiver :: ctx.types.expr_type(expr)
     entry :: recorded_impl(ctx, into, receiver) ?? return null
     decl :: select_member(entry, into.decl.name) ?? return null
-    owner :: typed_module_named(ctx, entry.module) ?? return null
+    owner :: typed_by_display_path(ctx.project, entry.module) ?? return null
     if !fn_is_generator(owner, decl) || decl.body == null {
         return null
     }
@@ -696,20 +696,6 @@ impl_member_id :: fn(ctx: FnLowerCtx, decl: AST.FnDecl) -> i32 {
     minted :: next_project_synthetic_id(ctx.project)
     ctx.project.impl_member_ids[decl.id] = minted
     return minted
-}
-
-// The typed program of the module whose display path is `display` (an
-// `ImplEntry.module`).
-typed_module_named :: fn(ctx: FnLowerCtx, display: string) -> TypedProgram | null {
-    if ctx.typed.resolved.display_path == display {
-        return ctx.typed
-    }
-    for [_, m] in ctx.project.typed.modules {
-        if m.resolved.display_path == display {
-            return m
-        }
-    }
-    return null
 }
 
 // The instance substitution of a generator source: the type arguments the

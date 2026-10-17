@@ -1,0 +1,12 @@
+// A generator whose counter a lambda captures and rebinds, so the counter lives
+// in a cell.
+module "snippet/gens"
+
+export ticks :: fn(n: i32) -> Iterator<i32> {
+    count := 0
+    bump :: () -> { count += 1 }
+    for _ in 0..<n {
+        bump()
+        yield count
+    }
+}

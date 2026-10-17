@@ -38,7 +38,7 @@ export Capture :: struct {
 /// mirrors this order). `defer_captures` plays the same role for
 /// `defer body` thunks — the body lifts to a synthetic fn carrying its
 /// captured outer symbols through a `__defer_env_N` struct. Both
-/// populated by `analyze_closures`.
+/// populated by `ensure_closure_analysis`, one module at a time.
 ///
 /// `lambda_captures` / `defer_captures` key by `capture_key(module, node.id)`
 /// — a MODULE-QUALIFIED node id, NOT the bare `node.id`. AST node ids are
@@ -161,6 +161,9 @@ export LowerProjectCtx :: struct {
     /// Free-variable analysis output, populated by `closure_analysis`.
     /// A closure-free project leaves it empty (no captures).
     closures:            ClosureAnalysis
+    /// The modules whose bodies `ensure_closure_analysis` has walked into
+    /// `closures`, by `ResolvedModule.path`.
+    closure_modules:     MutableSet<string> = MutableSet<string> {}
 
     /// Synthetic decls produced during lowering — chiefly the lifted
     /// top-level fns and their env structs spawned by lambda lifting.
@@ -297,6 +300,10 @@ export LowerProjectCtx :: struct {
     /// interns as a bare `ref`, and its first field access panics in
     /// `midir/emit`).
     materialized_struct_mangles: MutableSet<string>
+
+    /// Each module's typed program by its display path (`ImplEntry.module`),
+    /// built on the first `typed_by_display_path`.
+    typed_by_display: MutableMap<string, TypedProgram> = MutableMap<string, TypedProgram> {}
 
     /// Mangles of impl-member calls actually resolved during lowering
     /// (recorded by `find_impl_member_for`). The post-lowering
@@ -606,6 +613,22 @@ InlineConsumer :: struct {
     result_type: Type
 }
 
+/// The typed program of the module whose display path is `display`
+/// (`ImplEntry.module`), through the `typed_by_display` cache.
+///
+/// @param project  the shared project context.
+/// @param display  a module's declared name.
+export typed_by_display_path :: fn(
+    project: LowerProjectCtx, display: string,
+) -> TypedProgram | null {
+    if project.typed_by_display.is_empty() {
+        for [_, m] in project.typed.modules {
+            project.typed_by_display[m.resolved.display_path] = m
+        }
+    }
+    return project.typed_by_display[display]
+}
+
 /// Build a fresh `FnLowerCtx` for `entry`'s body. Populates the
 /// `EntryTypes` accessor from `(typed, subst)` and snapshots the
 /// entry's substitution ; further blocks / lifted contexts are pushed
@@ -620,6 +643,7 @@ export new_fn_lower_ctx :: fn(
     project: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, return_type: Type,
 ) -> FnLowerCtx {
+    ensure_closure_analysis(project, typed)
     return FnLowerCtx {
         .project           = project,
         .entry             = entry,

@@ -198,6 +198,7 @@ ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl,
     // that silently corrupts the struct cross-module.
     own_args :: build_mixed_subst(ctx.project.impls, decl.type_params, args, owner_typed)
     merged :: merge_subst(ctx.subst, own_args)
+    ensure_closure_analysis(ctx.project, owner_typed)
     return FnLowerCtx {
         ...ctx,
         .typed = owner_typed,

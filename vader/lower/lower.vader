@@ -62,10 +62,6 @@ lower_project_impl :: fn(
     // skipped since the comptime callee closure (bigint kernels) needs none.
     is_staging :: eager_modules.len() > 0
     project_ctx :: new_lower_project_ctx(evaluated, loaded, typed)
-    // Closure analysis runs once at entry — every lambda's capture set
-    // is precomputed so per-decl lowering can read it without re-
-    // walking the AST.
-    project_ctx.closures = analyze_closures(loaded, typed)
     // Populate the lowerer's core-symbol cache directly from the std/core
     // module (one seed). Lookups like `find_core_type("Yield", [T])` go
     // through this cache.

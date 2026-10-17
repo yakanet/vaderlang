@@ -59,6 +59,9 @@ new_inline_instance :: fn(
     if callee_id in project.inlining_callees {
         return null
     }
+    // Which bindings are cells is known once `owner`'s bodies are analysed, and no
+    // ctx of `owner` may have been built yet : the body is inlined from the caller.
+    ensure_closure_analysis(project, owner)
     clones :: MutableMap<i32, Symbol> {}
     for binding in declared_bindings(project, callee_id, decl, owner) {
         clone :: Symbol { ...binding, .id = next_project_synthetic_id(project) }
