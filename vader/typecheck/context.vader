@@ -30,11 +30,6 @@ export FnContext :: struct {
     /// don't collide. A lambda carries its enclosing fn's ; `0` for a lambda
     /// typed outside any fn body (in a module-level const, say).
     fn_id: usize = 0
-    /// Ids of the type parameters in scope : the enclosing impl's
-    /// (`impl_type_param_ids`) and the fn's own `<…>`. Fixed for the body, so a
-    /// call inside it binds none of them (`hold_type_params_in_scope`). A lambda
-    /// carries its enclosing fn's.
-    type_params_in_scope: i32[] = []
     /// True when the enclosing fn is a generator (it `yield`s). Drives `yield`
     /// legality, forbids `return <value>`, and suppresses the
     /// missing-return obligation on the `-> Iterator<T>` body. False for

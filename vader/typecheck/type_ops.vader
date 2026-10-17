@@ -84,6 +84,7 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is AnyType        -> b is AnyType
     is PrimitiveType  -> if b is PrimitiveType as bx { a.name == bx.name } else { false }
     is TypeParamType  -> if b is TypeParamType as bx { a.symbol.id == bx.symbol.id } else { false }
+    is InferVar       -> if b is InferVar as bx { a.id == bx.id } else { false }
     // `StructType<EnumSym>` is the placeholder `type_from_expr` returns
     // for enum names ; treat it as equivalent to the real `EnumType` so
     // body-time assignability (annotation vs inferred) doesn't fight the
@@ -638,7 +639,7 @@ satisfies_bound :: fn(arg: Type, trait_key: string, typed: TypedProgram) -> bool
         || satisfies_bound(arg.backing, trait_key, typed))
     is ArrayType     -> trait_key != core_trait_key(TRAIT_DISPLAY) && struct_implements_trait(arg, trait_key, typed)
     is AnyType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType
-        | SelfType -> true
+        | SelfType | InferVar -> true
     is PrimitiveType | StructType | EnumType | TupleType | FnType | TypeMetaType -> {
         struct_implements_trait(arg, trait_key, typed)
     }
@@ -685,7 +686,7 @@ all_satisfy_bound :: fn(types: Type[], trait_key: string, typed: TypedProgram) -
 /// The trait args recorded for `t implements <trait_key>` in
 /// `struct_trait_args` (`Hello implements Greeter(i32)` →
 /// `[i32]`), or `null` when no concrete impl is registered for `t`'s
-/// nominal carrier. Shared by the typecheck's `unify_struct_to_trait_args`
+/// nominal carrier. Shared by the typecheck's `unify_struct_to_trait_infer`
 /// and the lowerer's trait-param monomorphisation.
 export lookup_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
     // Several impls of the trait give `t` several argument lists : nothing single
@@ -847,8 +848,8 @@ literal_family_holds :: fn(got: Type, name: string) -> bool = match got {
     is FreeFloatType -> is_float_name(name)
     is FreeCharType  -> is_int_name(name) || name == "char"
     is PrimitiveType | EnumType | DistinctType | ArrayType | StructType | TraitType | UnionType
-     | TupleType | FnType | TypeParamType | TypeMetaType | SelfType | UnresolvedType | NeverType
-     | AnyType -> false
+     | TupleType | FnType | TypeParamType | InferVar | TypeMetaType | SelfType | UnresolvedType
+     | NeverType | AnyType -> false
 }
 
 /// Do `a` and `b` share any concrete runtime value ? Powers T3040

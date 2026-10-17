@@ -157,6 +157,7 @@ canonical_type_key :: fn(t: Type) -> string = match t {
     is TupleType     -> "U:(${instance_args_key(t.elements)})"
     is FnType        -> "F:(${instance_args_key(t.params)})->${canonical_type_key(t.return_type)}"
     is TypeParamType -> "X:${t.symbol.id}"
+    is InferVar      -> leaked_infer_var(t)
     is UnionType     -> "N:(${instance_args_key(t.variants)})"
     // Sentinel / metatype variants get a distinct constant key each — a single
     // shared `_ -> "?"` collapsed all of them, colliding e.g. Never with Any

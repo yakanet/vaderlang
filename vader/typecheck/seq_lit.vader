@@ -104,7 +104,7 @@ infer_against_tuple :: fn(
         // When the expected slot is a generic type-param the element
         // can't narrow against it ; default Free* so the unifier binds
         // a concrete type instead of `{integer}` / `{float}`.
-        if slot is TypeParamType {
+        if slot is TypeParamType | InferVar {
             elem_types.push(default_if_free(got))
         }
         else {

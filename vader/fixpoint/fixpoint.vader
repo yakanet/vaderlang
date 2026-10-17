@@ -207,6 +207,22 @@ export solve_reachability :: fn(g: Graph, marked: bool[]) -> void {
     }
 }
 
+/// Per node of `g`, the index of its strongly connected component : two nodes share
+/// one when each reaches the other, and an edge lies on a cycle when its two ends
+/// share one.
+///
+/// @param g  the graph.
+export component_of_each_node :: fn(g: Graph) -> i32[] {
+    out :: g.successors.len().filled(() -> 0)
+    components :: components_bottom_up(g)
+    for c in 0..<components.len() {
+        for node in components[c] {
+            out[node] = i32(c)
+        }
+    }
+    return out
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/sort"

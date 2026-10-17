@@ -1,0 +1,10 @@
+// An explicit type argument binds the parameter of a function another module
+// declares : `println<string>` takes a string, not `7`. T3001.
+module "snippet"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    println<string>(7)
+    return 0
+}

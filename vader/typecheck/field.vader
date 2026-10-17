@@ -1099,7 +1099,8 @@ export substitute_struct_args :: fn(t: Type, st: StructType, typed: TypedProgram
 export substitute_type_params :: fn(
     t: Type, tps: AST.TypeParam[], args: Type[], typed: TypedProgram,
 ) -> Type {
-    if tps.len() == 0 || args.len() == 0 || !type_contains_type_param(t) {
+    // A function type's quantifier may name the parameters its signature does not.
+    if tps.len() == 0 || args.len() == 0 || (t !is FnType && !type_contains_type_param(t)) {
         return t
     }
     return substitute_map(t, type_param_bindings(tps, args, typed))
@@ -1319,7 +1320,11 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
             for p in t.params {
                 ps.push(substitute_self(p, self_ty))
             }
-            return mk_fn(ps, substitute_self(t.return_type, self_ty))
+            return FnType {
+                ...t,
+                .params = ps,
+                .return_type = substitute_self(t.return_type, self_ty),
+            }
         }
         is UnionType -> {
             vs: Type[]: []
@@ -1456,7 +1461,11 @@ trait_member_type :: fn(trait_id: i32, m: AST.FnDecl, typed: TypedProgram) -> Fn
     for i in receiver_count(m)..<m.params.len() {
         params.push(opt_or_void(m.params[i].ty, owner_resolved, []))
     }
-    return mk_fn(params, opt_or_void(m.return_type, owner_resolved, []))
+    return mk_fn(
+        params,
+        opt_or_void(m.return_type, owner_resolved, []),
+        quantifier_of(m.type_params, owner_resolved),
+    )
 }
 
 // A written type with `Self` read as `self_ty`.

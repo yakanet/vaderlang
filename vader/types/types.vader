@@ -8,6 +8,7 @@
 
 module "vader/types"
 
+import "std/abort"
 import "std/collections"
 import "std/string_builder"
 import "vader/resolver/symbol"
@@ -73,6 +74,9 @@ export UnionType :: struct {
 export FnType :: struct {
     params:      Type[]
     return_type: Type
+    /// The parameters this signature quantifies over : each use instantiates them
+    /// afresh. Empty for a monomorphic signature, and for an instance.
+    type_params: TypeParamType[] = []
 }
 
 export ArrayType :: struct {
@@ -86,6 +90,25 @@ export TupleType :: struct {
 
 export TypeParamType :: struct {
     symbol: Symbol
+}
+
+/// A flexible inference variable, minted fresh for one parameter of one
+/// instantiation. Only the typecheck sees one : it is replaced by what it was
+/// solved to before any type is recorded for a later pass.
+export InferVar :: struct {
+    id:     i32
+    /// The declared parameter this variable instantiates.
+    origin: Symbol
+}
+
+/// Stop the compiler on an inference variable met after the typecheck, which
+/// replaces every one by what it was solved to : a later pass reading one would
+/// build on a type nothing settled.
+///
+/// @param v  the variable.
+@no_return
+export leaked_infer_var :: fn(v: InferVar) -> void {
+    panic("an inference variable for `${v.origin.name}` outlived the typecheck")
 }
 
 export TypeMetaType :: struct {}
@@ -131,6 +154,7 @@ export Type ::
     | NeverType
     | AnyType
     | DistinctType
+    | InferVar
 
 // ---- name registries ------------------------------------------------------
 
@@ -212,7 +236,7 @@ export is_counting_type :: fn(t: Type) -> bool = match t {
     is PrimitiveType -> is_int_name(t.name)
     is FreeIntType | FreeCharType -> true
     is FreeFloatType | StructType | EnumType | DistinctType | ArrayType | TupleType -> false
-    is UnionType | FnType | TraitType | TypeParamType | SelfType | AnyType -> false
+    is UnionType | FnType | TraitType | TypeParamType | InferVar | SelfType | AnyType -> false
     is NeverType | UnresolvedType | TypeMetaType -> false
 }
 
@@ -271,7 +295,7 @@ export slot_byte_size :: fn(t: Type) -> i64 = match t {
     is DistinctType -> slot_byte_size(t.backing)
     is StructType | ArrayType | TupleType | FnType   -> REF_SLOT_BYTES
     is TraitType | UnionType | AnyType               -> BOX_SLOT_BYTES
-    is TypeMetaType | TypeParamType | SelfType | UnresolvedType
+    is TypeMetaType | TypeParamType | InferVar | SelfType | UnresolvedType
      | FreeIntType | FreeFloatType | FreeCharType | NeverType -> 0
 }
 
@@ -454,14 +478,20 @@ export mk_array :: fn(element: Type) -> Type = ArrayType { .element = element }
 export mk_fn_drop_self :: fn(src: FnType) -> FnType = FnType {
     .params      = src.params[1..<src.params.len()],
     .return_type = src.return_type,
+    .type_params = src.type_params,
 }
 
 /// A tuple type, one element type per position.
 export mk_tuple :: fn(elements: Type[]) -> Type = TupleType { .elements = elements }
 
-/// A function type.
-export mk_fn :: fn(params: Type[], return_type: Type) -> FnType =
-    FnType { .params = params, .return_type = return_type }
+/// A function type, quantified over `type_params` when it is generic.
+export mk_fn :: fn(
+    params: Type[], return_type: Type, type_params: TypeParamType[] = [],
+) -> FnType = FnType {
+    .params = params,
+    .return_type = return_type,
+    .type_params = type_params,
+}
 
 /// Raw union constructor. Callers that need flattening + dedup must go
 /// through `union_of` in `type_ops.vader`.
@@ -512,6 +542,7 @@ export display_type :: fn(t: Type) -> string {
         is SelfType       -> { return "Self" }
         is TypeMetaType   -> { return "type" }
         is AnyType        -> { return "Any" }
+        is InferVar       -> { return t.origin.name }
         _                 -> {}  // fall through for composite types
     }
     sb :: StringBuilder {}
@@ -583,6 +614,7 @@ write_type :: fn(sb: StringBuilder, t: Type) -> void {
         }
         is UnionType -> { sb.write_type_list(t.variants, " | ") }
         is AnyType   -> { sb.append("Any") }
+        is InferVar  -> { sb.append(t.origin.name) }
     }
 }
 
@@ -628,6 +660,7 @@ export canonical_key :: fn(t: Type) -> string {
         is FreeCharType   -> { return "FC" }
         is FreeFloatType  -> { return "FF" }
         is AnyType        -> { return "A" }
+        is InferVar       -> { return "I${t.id}" }
     }
 }
 
@@ -846,7 +879,7 @@ export is_untagged :: fn(t: Type) -> bool {
 export carries_own_tag :: fn(t: Type) -> bool = match t {
     is StructType -> !is_untagged(t)
     is ArrayType | PrimitiveType -> true
-    is EnumType | DistinctType | AnyType | TypeParamType -> false
+    is EnumType | DistinctType | AnyType | TypeParamType | InferVar -> false
     // Never the receiver of an impl.
     is UnionType | TupleType | TraitType | FnType | SelfType | TypeMetaType -> false
     is NeverType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType -> false

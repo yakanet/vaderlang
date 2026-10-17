@@ -308,6 +308,7 @@ written_keys :: fn(t: Type | null) -> string[] = match t {
     is UnionType    -> t.variants.flat_map(written_keys).collect()
     is DistinctType -> written_keys(t.backing)
     is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType | null -> [ANYTHING]
+    is InferVar -> leaked_infer_var(t)
     is PrimitiveType | EnumType | FnType | TypeMetaType | FreeIntType | FreeFloatType
      | FreeCharType | NeverType -> []
 }
@@ -329,6 +330,7 @@ may_be_written :: fn(
         is UnionType    -> t.variants.any_match(reaches)
         is DistinctType -> reaches(t.backing)
         is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType | null -> true
+        is InferVar -> leaked_infer_var(t)
         is PrimitiveType | EnumType | FnType | TypeMetaType | FreeIntType | FreeFloatType
          | FreeCharType | NeverType -> false
     }

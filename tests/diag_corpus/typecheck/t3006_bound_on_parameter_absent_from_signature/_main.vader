@@ -1,0 +1,11 @@
+// A type argument meets its parameter's bound even when the parameter appears
+// nowhere in the signature : `Plain` does not implement `Display`. T3006.
+module "snippet"
+
+Plain :: struct {
+    v: i32
+}
+
+need :: fn<T: Display>() -> i32 = 1
+
+main :: fn() -> i32 = need<Plain>()

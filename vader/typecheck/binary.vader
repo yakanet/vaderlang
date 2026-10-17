@@ -915,7 +915,7 @@ has_identity :: fn(t: Type) -> bool = match t {
     is UnionType -> union_has_identity(t)
     is DistinctType -> has_identity(t.backing)
     is PrimitiveType | EnumType | TupleType | FnType | TraitType | AnyType | TypeParamType
-        | SelfType | TypeMetaType | FreeIntType | FreeFloatType | FreeCharType -> false
+        | InferVar | SelfType | TypeMetaType | FreeIntType | FreeFloatType | FreeCharType -> false
 }
 
 union_has_identity :: fn(u: UnionType) -> bool {
@@ -936,7 +936,7 @@ part_without_equality :: fn(t: Type, typed: TypedProgram) -> Type | null = match
     is UnionType -> first_without_equality(t.variants, typed)
     is TupleType -> first_without_equality(t.elements, typed)
     is TraitType | FnType -> t
-    is StructType | ArrayType | TypeParamType ->
+    is StructType | ArrayType | TypeParamType | InferVar ->
         if satisfies_bound(t, core_trait_key(TRAIT_EQUALS), typed) { null } else { t }
     is DistinctType ->
         if struct_implements_trait(t, core_trait_key(TRAIT_EQUALS), typed) {

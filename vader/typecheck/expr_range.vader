@@ -67,7 +67,7 @@ range_element :: fn(expected: Type | null, typed: TypedProgram) -> Type | null {
 ///
 /// @param t  the element the slot expects.
 is_pinned_element :: fn(t: Type) -> bool =
-    !is_free_numeric(t) && t !is UnionType | UnresolvedType | NeverType | TypeParamType
+    !is_free_numeric(t) && t !is UnionType | UnresolvedType | NeverType | TypeParamType | InferVar
 
 infer_range_from_bounds :: fn(
     e: AST.RangeExpr,

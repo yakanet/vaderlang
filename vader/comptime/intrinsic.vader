@@ -159,6 +159,7 @@ export type_kind_label :: fn(t: Type) -> string = match t {
     is TraitType      -> "trait"
     is TypeMetaType   -> "type"
     is TypeParamType  -> "unknown"
+    is InferVar       -> leaked_infer_var(t)
     is SelfType       -> "unknown"
     is UnresolvedType -> "unknown"
     is FreeIntType    -> "unknown"

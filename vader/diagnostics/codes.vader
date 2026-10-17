@@ -137,6 +137,7 @@ export TypecheckCode :: enum(CodeInfo) {
     CannotWriteTupleElement         { .id = "T3101", .message = "a tuple's element cannot be written" },
     UnsafeArrayWidening             { .id = "T3102", .message = "array argument cannot be widened" },
     MisshapedSingleton              { .id = "T3103", .message = "a `@singleton` function takes no parameter and runs straight through" },
+    GenericRecursionGrows           { .id = "T3104", .message = "a generic recursion cannot grow its type argument" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

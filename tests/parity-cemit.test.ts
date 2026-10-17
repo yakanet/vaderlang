@@ -580,6 +580,8 @@ const C_PARITY = new Set<string>([
   "impl_names_its_own_parameters",
   // An explicit type argument on a generic fn of another module.
   "explicit_type_argument_on_imported_fn",
+  // Generic calls inside a generic body, bound by the result slot.
+  "generic_call_inside_generic_body",
   // Declaration-shape snippets whose `main` runs what they declare.
   "decorators_ok",
   "expressions",

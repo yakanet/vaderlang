@@ -364,28 +364,16 @@ if_has_yield :: fn(i: AST.IfExpr) -> bool {
     }
 }
 
-// The symbol ids of the type parameters `params` declares.
-type_param_ids :: fn(params: AST.TypeParam[], typed: TypedProgram) -> i32[] {
-    ids: i32[]: []
-    for tp in params {
-        sym :: typed.resolved.idents[tp.span.hash()] ?? continue
-        ids.push(sym.id)
-    }
-    return ids
-}
-
 /// Type-check a fn body. Reads the fn's declared return type from
 /// `decl_types`, builds an initial `FnContext`, then walks the body.
 /// Final-expression / implicit-return type-checking happens through
-/// the trailing-expr arm of `check_block`. `impl_type_params` are the enclosing
-/// impl's, fixed in the body like the fn's own (`FnContext.type_params_in_scope`).
+/// the trailing-expr arm of `check_block`.
 export check_fn_body :: fn(
     fn_decl: AST.FnDecl,
     body: AST.BlockExpr,
     typed: TypedProgram,
     diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-    impl_type_params: i32[] = [],
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
     is_generator :: fn_is_generator(fn_decl)
@@ -418,7 +406,6 @@ export check_fn_body :: fn(
         .self_type = null,
         .loop_depth = 0,
         .fn_id = fn_decl.id,
-        .type_params_in_scope = impl_type_params + type_param_ids(fn_decl.type_params, typed),
         .is_generator = is_generator,
         .yield_type = yield_type,
         .is_async = is_async,
@@ -1935,7 +1922,7 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
 // judge, `never` is dead code), nor a string, whose element comes from the
 // `into` of `std/string`: without that module, the lowering reports it (M5001).
 is_known_non_iterable :: fn(t: Type) -> bool {
-    if t is UnresolvedType | TypeParamType | SelfType | AnyType | NeverType {
+    if t is UnresolvedType | TypeParamType | InferVar | SelfType | AnyType | NeverType {
         return false
     }
     if t is PrimitiveType {

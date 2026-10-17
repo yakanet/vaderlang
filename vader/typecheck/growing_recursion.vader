@@ -1,0 +1,116 @@
+// vader/typecheck/growing_recursion — a generic recursion may not grow its type argument.
+//
+// Every call of a generic function records the type each parameter of the callee
+// takes there (`DirectFn.bindings`). A type parameter `Q` met in the type a callee's
+// parameter `P` takes gives an edge `Q → P` : `Q`'s instances ask for `P`'s. The
+// edge grows when that type nests `Q` (`[Q, Q]`, `Q[]`, `Box<Q>`) rather than being
+// `Q` itself. An instance of a function then reaches finitely many others, unless
+// a growing edge lies on a cycle : `wrap<T>` calling `wrap([x, x], …)` gives the
+// edge `T → T`, and each instance would ask for a larger one, without end. Such a
+// call is refused (T3104). A recursion that passes its parameters on unchanged, or
+// calls itself on a fixed type, is not.
+//
+// Only the calls that record bindings are seen : a member called on a receiver,
+// which binds the impl's parameters through the receiver's type, adds no edge.
+
+module "vader/typecheck"
+
+import "std/collections"
+import "toolchain/span"
+import "vader/diagnostics"
+import "vader/fixpoint"
+import "vader/resolver/symbol"
+import "vader/types"
+
+// The graph of instantiations, over the type parameters' symbol ids.
+InstantiationGraph :: struct {
+    nodes:      MutableMap<i32, i32> = MutableMap<i32, i32> {}
+    successors: i32[][] = []
+}
+
+// A call that passes `from` on inside a larger type.
+GrowingCall :: struct {
+    from:   Symbol
+    edge:   [i32, i32]
+    callee: string
+    bound:  Type
+    span:   Span
+}
+
+/// T3104 on every call that passes a type parameter on in a larger type, along a
+/// cycle of calls that leads back to it.
+///
+/// @param per_module  every module's typed program, its bodies walked.
+/// @param diags       where the diagnostics go.
+reject_growing_recursion :: fn(
+    per_module: MutableMap<string, TypedProgram>, diags: Diagnostic[],
+) -> void {
+    graph :: InstantiationGraph {}
+    growing: GrowingCall[]: []
+    for [_, typed] in per_module {
+        for [id, callee] in typed.call_sites.calls {
+            if callee !is DirectFn {
+                continue
+            }
+            bindings :: callee.bindings ?? continue
+            span :: typed.call_sites.instantiation_spans[id] ?? continue
+            for [param, bound] in bindings {
+                to :: graph.node_of(param)
+                for from in type_params_in(bound) {
+                    origin :: graph.node_of(from.id)
+                    graph.successors[origin].push(to)
+                    if bound !is TypeParamType {
+                        growing.push(GrowingCall {
+                            .from = from,
+                            .edge = [origin, to],
+                            .callee = callee.decl.name,
+                            .bound = bound,
+                            .span = span,
+                        })
+                    }
+                }
+            }
+        }
+    }
+    component :: component_of_each_node(Graph { .successors = graph.successors })
+    reported :: MutableSet<u64> {}
+    for call in growing {
+        [from, to] :: call.edge
+        if component[from] != component[to] || call.span.hash() in reported {
+            continue
+        }
+        reported.add(call.span.hash())
+        diags.push(
+            typecheck_error(
+                .GenericRecursionGrows,
+                call.span,
+                "this call passes `${call.from.name}` on as `${display_type(call.bound)}` to"
+                    + " `${call.callee}`, and the calls lead back here : each instance would"
+                    + " ask for a larger one",
+            ),
+        )
+    }
+}
+
+// The node of type parameter `id`, added on first sight.
+node_of :: fn(graph: InstantiationGraph, id: i32) -> i32 {
+    known :: graph.nodes[id]
+    if known != null {
+        return known
+    }
+    node :: i32(graph.successors.len())
+    graph.nodes[id] = node
+    graph.successors.push([])
+    return node
+}
+
+// The type parameters `t` names.
+type_params_in :: fn(t: Type) -> Symbol[] {
+    out: Symbol[]: []
+    for_each_type(t, (x: Type) -> {
+        if x is TypeParamType {
+            out.push(x.symbol)
+        }
+    })
+    return out
+}

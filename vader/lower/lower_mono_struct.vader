@@ -151,6 +151,7 @@ all_concrete_args :: fn(args: Type[]) -> bool {
 has_type_param :: fn(t: Type) -> bool {
     match t {
         is TypeParamType -> { return true }
+        is InferVar -> { leaked_infer_var(t) }
         is StructType -> {
             for a in t.args { if has_type_param(a) { return true } }
             return false

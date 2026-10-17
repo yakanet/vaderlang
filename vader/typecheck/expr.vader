@@ -373,7 +373,7 @@ has_display :: fn(t: Type, typed: TypedProgram) -> bool = match t {
     // A trait's own body is checked once per implementor, with `Self` resolved.
     is SelfType -> true
     // Already reported where the type failed to resolve.
-    is UnresolvedType | AnyType -> true
+    is UnresolvedType | AnyType | InferVar -> true
     is TupleType | FnType | TypeMetaType -> false
 }
 

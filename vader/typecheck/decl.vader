@@ -177,13 +177,13 @@ declare_decl :: fn(
 record_type_param_symbols :: fn(
     decl: AST.Decl, resolved: ResolvedModule, typed: TypedProgram,
 ) -> void {
-    for tp in declared_type_params(decl) {
+    for tp in listed_type_params(decl) {
         sym :: resolved.idents[tp.span.hash()] ?? continue
         typed.type_param_symbols[tp.span.hash()] = sym
     }
 }
 
-declared_type_params :: fn(decl: AST.Decl) -> AST.TypeParam[] {
+listed_type_params :: fn(decl: AST.Decl) -> AST.TypeParam[] {
     out: AST.TypeParam[]: []
     match decl {
         is AST.FnDecl        -> { out.push_all(decl.type_params) }
@@ -250,7 +250,9 @@ declare_fn :: fn(
     // Match by span so each overload gets its own decl_types entry.
     sym :: lookup_fn_symbol_by_span(decl, resolved, by_name)
     if sym is Symbol {
-        typed.decl_types[sym.id] = mk_fn(params, return_type)
+        typed.decl_types[sym.id] = mk_fn(
+            params, return_type, quantifier_of(decl.type_params, resolved),
+        )
         typed.fn_decls[sym.id] = decl
     }
     if decl.name == "main" {
@@ -291,6 +293,20 @@ declare_fn :: fn(
         check_singleton_shape(decl, diags)
     }
     check_public_fn_visibility(decl, params, return_type, diags)
+}
+
+/// The type parameters a `<…>` declares, as the parameters a signature
+/// quantifies over.
+///
+/// @param params    the written parameters.
+/// @param resolved  the module declaring them, whose `idents` bind the names.
+quantifier_of :: fn(params: AST.TypeParam[], resolved: ResolvedModule) -> TypeParamType[] {
+    out: TypeParamType[]: []
+    for tp in params {
+        sym :: resolved.idents[tp.span.hash()] ?? continue
+        out.push(TypeParamType { .symbol = sym })
+    }
+    return out
 }
 
 // A `@singleton` function builds one instance for the whole program: an argument or
@@ -432,6 +448,7 @@ first_unexported_type :: fn(t: Type) -> Symbol | null {
         }
         is PrimitiveType     -> { return null }
         is TypeParamType     -> { return null }
+        is InferVar          -> { return null }
         is TypeMetaType      -> { return null }
         is SelfType          -> { return null }
         is UnresolvedType    -> { return null }
@@ -1194,7 +1211,7 @@ declare_type_alias :: fn(
         if s.name == decl.name {
             typed.decl_types[s.id] = aliased
             resolved.alias_types[s.id] = aliased
-            resolved.alias_params[s.id] = type_param_ids(decl.type_params, typed)
+            resolved.alias_params[s.id] = quantifier_of(decl.type_params, resolved)
         }
     }
 }

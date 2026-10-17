@@ -111,7 +111,7 @@ is_machine_word :: fn(t: Type) -> bool {
     return false
 }
 
-not_decidable :: fn(t: Type) = t is UnresolvedType | TypeParamType | TypeMetaType
+not_decidable :: fn(t: Type) = t is UnresolvedType | TypeParamType | InferVar | TypeMetaType
 
 // Numeric (int / float, free or concrete), `char`, or an enum — everything the
 // `Convert` op can move between. `is_numeric` already covers the free / numeric

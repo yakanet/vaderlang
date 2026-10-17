@@ -222,7 +222,8 @@ build_impl_mixed_subst :: fn(
 ) -> Substitution {
     bindings :: impl_param_bindings(entry, args)
     kept :: MutableMap<i32, Type> {}
-    for id in impl_type_param_ids(entry.decl, impl_typed.resolved) {
+    for tp in impl_type_params_of(entry.decl, impl_typed.resolved) {
+        id :: tp.symbol.id
         kept[id] = impls.kept_argument(bindings[id] ?? TY_ANY) ?? TY_ANY
     }
     return substitution_of(kept)

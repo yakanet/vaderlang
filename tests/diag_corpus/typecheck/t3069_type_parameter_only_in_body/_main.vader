@@ -1,0 +1,7 @@
+// A type parameter only the body names cannot be inferred from the call : nothing
+// at `tag()` says what `T` is. T3069.
+module "snippet"
+
+tag :: fn<T>() -> string = @type_name(T)
+
+main :: fn() -> i32 = i32(tag().byte_len())

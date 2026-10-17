@@ -69,10 +69,10 @@ export ResolvedModule :: struct {
     /// expand `Maybe<T>` to `T | null` instead of leaving it as a
     /// placeholder StructType. Populated by the typecheck orchestrator.
     alias_types: MutableMap<i32, Type>
-    /// `alias_params[sym.id]` holds the symbol ids of a generic alias's type
-    /// parameters, in order, so `type_from_expr` can substitute them when the
-    /// alias is instantiated (`Maybe(i32)` → `i32 | null`).
-    alias_params: MutableMap<i32, i32[]>
+    /// `alias_params[sym.id]` holds a generic alias's type parameters, in order,
+    /// so `type_from_expr` can substitute them when the alias is instantiated
+    /// (`Maybe(i32)` → `i32 | null`).
+    alias_params: MutableMap<i32, TypeParamType[]>
     /// `type_param_bounds[type_param_sym.id]` → bound TypeExpr (e.g.
     /// `fn[T: Add]` records the `Add` ident here). Consumed by
     /// `field.vader` so `x.method()` on a bounded TypeParam can
@@ -179,7 +179,7 @@ export resolve_module_files :: fn(
         .fn_overloads     = collected.fn_overloads,
         .imports_to       = MutableMap<i32, Symbol> {},
         .alias_types      = MutableMap<i32, Type> {},
-        .alias_params     = MutableMap<i32, i32[]> {},
+        .alias_params     = MutableMap<i32, TypeParamType[]> {},
         .type_param_bounds = resolved.type_param_bounds,
         .diags            = resolved.diags,
         .deprecated_messages = MutableMap<i32, string> {},

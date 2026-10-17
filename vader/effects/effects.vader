@@ -185,15 +185,3 @@ settle :: fn(s: Skeleton, ctx: EvalCtx) -> bool {
     }
     return grew
 }
-
-// Per node of `g`, the index of its strongly connected component.
-component_of_each_node :: fn(g: Graph) -> i32[] {
-    out :: g.successors.len().filled(() -> 0)
-    components :: components_bottom_up(g)
-    for c in 0..<components.len() {
-        for node in components[c] {
-            out[node] = i32(c)
-        }
-    }
-    return out
-}

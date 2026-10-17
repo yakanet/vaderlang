@@ -386,6 +386,7 @@ type_surface_name :: fn(t: Type) -> string = match t {
     is UnionType          -> ""
     is TraitType          -> ""
     is TypeParamType      -> ""
+    is InferVar           -> leaked_infer_var(t)
     is TypeMetaType       -> ""
     is SelfType           -> ""
     is UnresolvedType     -> ""

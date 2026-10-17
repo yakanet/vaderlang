@@ -9,6 +9,7 @@
 module "vader/typecheck"
 
 import "std/collections"
+import "std/iter"
 import "toolchain/ast"
 import "vader/parser"
 import "vader/resolver"
@@ -204,28 +205,20 @@ impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
     return false
 }
 
-/// The symbol ids of `impl_`'s type parameters : its `implements<…>`, and the
-/// fresh names its `for_type`'s arguments bind when it writes none
-/// (`Stack<T> implements Trait<T>`). Empty for a concrete impl.
-///
-/// @param impl_     the impl declaration.
-/// @param resolved  the module that declares it, whose `idents` bind the names.
-/// @return          the ids, explicit parameters first.
-export impl_type_param_ids :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> i32[] {
-    ids: i32[]: []
-    for tp in impl_.type_params {
-        sym :: resolved.idents[tp.span.hash()] ?? continue
-        ids.push(sym.id)
-    }
+/// The parameters an impl declares : its `implements<…>`, and the fresh names its
+/// `for_type`'s arguments bind when it writes none (`Stack<T> implements Trait<T>`).
+/// An impl member's signature quantifies over them.
+export impl_type_params_of :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> TypeParamType[] {
+    out :: quantifier_of(impl_.type_params, resolved)
     if impl_.for_type is GenericInstExpr as gi {
         for ta in gi.type_args {
             bound :: resolved.idents[ta.span.hash()] ?? continue
-            if bound.kind == .TypeParam && bound.id !in ids {
-                ids.push(bound.id)
+            if bound.kind == .TypeParam && !out.any_match((tp) -> tp.symbol.id == bound.id) {
+                out.push(TypeParamType { .symbol = bound })
             }
         }
     }
-    return ids
+    return out
 }
 
 // ---- query API ------------------------------------------------------------
@@ -377,7 +370,7 @@ any_of_trait :: fn(entries: ImplEntry[], trait_key: string) -> bool {
 /// @param receiver  a type the impl covers.
 export impl_bindings_at :: fn(entry: ImplEntry, receiver: Type) -> MutableMap<i32, Type> {
     bindings :: MutableMap<i32, Type> {}
-    unify_type_param(entry.for_type, receiver, bindings, null)
+    unify_type_param(entry.for_type, receiver, bindings)
     return bindings
 }
 

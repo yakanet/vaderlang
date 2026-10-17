@@ -46,6 +46,7 @@ export type_intern_key :: fn(t: Type) -> string = match t {
     is TupleType      -> "Tuple<${type_key_join(t.elements, "|")}>"
     is FnType         -> "Fn(${type_key_join(t.params, ",")})->${type_intern_key(t.return_type)}"
     is TypeParamType  -> display_type(t)
+    is InferVar       -> leaked_infer_var(t)
     is TypeMetaType   -> display_type(t)
     is SelfType       -> display_type(t)
     is UnresolvedType -> display_type(t)
@@ -198,6 +199,7 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is TraitType          -> .Any
     is UnionType          -> .Any
     is TypeParamType      -> .Any
+    is InferVar           -> leaked_infer_var(t)
     is TypeMetaType       -> .Any
     is SelfType           -> .Any
     is AnyType            -> .Any
@@ -278,6 +280,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> B
         // No first-class bytecode shape — opaque `ref`. Listed explicitly
         // (not a `_` catch-all) so a new `Type` variant trips T3013.
         is TypeParamType  -> { return OPAQUE_REF }
+        is InferVar       -> { leaked_infer_var(t) }
         is TypeMetaType   -> { return OPAQUE_REF }
         is SelfType       -> { return OPAQUE_REF }
         is UnresolvedType -> { return OPAQUE_REF }
@@ -377,6 +380,7 @@ export type_intern_hash :: fn(t: Type) -> u64 = match t {
     is AnyType        -> bare_hash("Any")
     is TypeParamType | TypeMetaType | SelfType | UnresolvedType
      | FreeIntType | FreeCharType | FreeFloatType | NeverType -> bare_hash(display_type(t))
+    is InferVar       -> leaked_infer_var(t)
     is DistinctType   -> type_intern_hash(t.backing)
     // The composite cases DO carry a distinct prefix (`Struct#`, `Array<`, …),
     // so a tag mirrors what the string already separates.
@@ -442,6 +446,7 @@ bare_intern_name :: fn(t: Type) -> string = match t {
     is AnyType       -> "Any"
     is TypeParamType | TypeMetaType | SelfType | UnresolvedType
      | FreeIntType | FreeCharType | FreeFloatType | NeverType -> display_type(t)
+    is InferVar      -> leaked_infer_var(t)
     is StructType | TraitType | ArrayType | UnionType | TupleType | FnType | DistinctType -> ""
 }
 

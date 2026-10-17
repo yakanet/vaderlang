@@ -12,9 +12,8 @@
 //
 // Layered on top : overload dispatch (`pick_overload` over the
 // `fn_overloads` buckets), named-arg + default-value normalisation
-// (`normalize_call_args`), and generic-fn type-arg inference
-// (`seed_explicit_type_args` + `unify_type_param`, substituting the
-// resolved bindings into the return type).
+// (`normalize_call_args`), and the call of a generic fn
+// (`type_generic_call`, `call_infer.vader`).
 //
 // Not handled :
 //   - Spread-arg handling (`f(...rest)`) ; a variadic param also bails
@@ -352,58 +351,6 @@ collect_overload_candidates :: fn(
     return out
 }
 
-// Re-unify a UFCS-curried fn's original first param (the receiver
-// type, stashed in `ufcs_receiver_types` at FieldExpr time) against
-// the receiver itself so type-params from the dispatched fn (e.g.
-// `fn<T>(x: T) -> T` called as `42.identity()`) get their bindings
-// before arg unification.
-seed_ufcs_bindings :: fn(
-    callee: AST.Expr,
-    typed: TypedProgram,
-    bindings: MutableMap<i32, Type>,
-    held: MutableSet<i32> | null,
-) -> void {
-    if callee !is AST.FieldExpr {
-        return
-    }
-    receiver_ty :: typed.ufcs_receiver_types[callee.id] ?? return
-    target_ty :: typed.expr_types[callee.target.id] ?? return
-    unify_type_param(receiver_ty, target_ty, bindings, held)
-    // A struct receiver impl'ing the trait the first param expects (a concrete
-    // `FilterIterator<i32>` / a generator state struct curried into `self: Iterator<T>`)
-    // binds `T` from the impl args — `unify_type_param` can't (different nominal
-    // heads). Without this a lazy combinator/terminal's SOURCE `T` stays unbound, so
-    // `filter`/`take`/`skip` (element = `T`) and `collect` (`-> T[]`) erase.
-    unify_struct_to_trait_args(receiver_ty, target_ty, typed, bindings, held)
-}
-
-// Seed `bindings` from a `f<T1, T2>(…)` callee's explicit type args.
-// Zips the resolved fn-decl's ordered type-params (recovered from
-// `idents` by their decl-site span) with the resolved
-// `<…>` argument types. No-op when the callee isn't an explicit generic
-// instantiation. Lets a free-literal arg pin to the named concrete type.
-// Returns the type params it seeded, whose binding no argument may change.
-seed_explicit_type_args :: fn(
-    callee: AST.Expr,
-    typed: TypedProgram,
-    bindings: MutableMap<i32, Type>,
-    diags: Diagnostic[],
-) -> MutableSet<i32> | null {
-    if callee !is AST.GenericInstExpr {
-        return null
-    }
-    decl :: lookup_callee_fn_decl(callee, typed) ?? return null
-    held :: MutableSet<i32> {}
-    n :: min(decl.type_params.len(), callee.type_args.len())
-    for i in 0..<n {
-        tp_sym :: typed.type_param_symbols[decl.type_params[i].span.hash()] ?? continue
-        written :: callee.type_args[i]
-        bindings[tp_sym.id] = type_from_expr(written, typed.resolved, diags)
-        held.add(tp_sym.id)
-    }
-    return held
-}
-
 // ---- named-arg + default-value normalisation -----------------------------
 
 // Reorder `c`'s args into positional parameter order, filling omitted params
@@ -668,200 +615,6 @@ ufcs_tail_params :: fn(fd: AST.FnDecl) -> AST.FnParam[] | null {
     return tail
 }
 
-
-
-/// T3069 for every type-param of `callee_ty` that nothing at this call site
-/// bound — no argument, no explicit `<…>`, no result slot.
-///
-/// Left unreported, an unbound type-param doesn't fail : `substitute_map`
-/// returns it unchanged and the call flows on erased, so the failure lands far
-/// downstream and unrecognisably — a vtable miss at runtime, or the lowerer's
-/// GATE B1 "unresolved callee" panic.
-///
-/// Deliberately silent in two cases, both of which would be noise :
-///   - an arity mismatch (a T3003 / T3005 already names the real problem, and
-///     the missing argument is exactly why the binding is missing) ;
-///   - an `expected` that still mentions a type-param — inside a generic body
-///     the enclosing fn's own params are legitimately abstract, so nothing can
-///     be concluded about what the call should have bound.
-report_unbound_type_args :: fn(
-    c: AST.CallExpr,
-    callee_ty: FnType,
-    bindings: MutableMap<i32, Type>,
-    arg_types: Type[],
-    expected: Type | null,
-    checked_arg_count: usize,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-) -> void {
-    if checked_arg_count != callee_ty.params.len() {
-        return
-    }
-    // Calling a fn-VALUE (a local or pattern binding whose type happens
-    // to mention type-params, e.g. `f: fn(T) -> U[]` inside a generic body):
-    // there is nothing to infer and no syntax to pass a type argument through.
-    if callee_is_kind(c, .Local, typed) || callee_is_kind(c, .Binding, typed) {
-        return
-    }
-    if expected != null && type_contains_type_param(expected) {
-        return
-    }
-    // Inside a generic body every abstract type in scope is legitimately
-    // unbound, so an abstract argument — or an abstract UFCS receiver, as in
-    // `arr.clone()` on a `T[]` — means nothing can be concluded here. This also
-    // under-reports a lambda argument typed against its own still-abstract
-    // signature (`a :: build(1, () -> [])` stays silent, and surfaces as a T3008
-    // downstream instead) : distinguishing the two costs more false positives
-    // than the extra coverage is worth — 35 of them across the tree when tried.
-    for at in arg_types {
-        if type_contains_type_param(at) {
-            return
-        }
-    }
-    if c.callee is AST.FieldExpr as fe {
-        receiver :: typed.expr_types[fe.target.id]
-        if receiver != null && type_contains_type_param(receiver) {
-            return
-        }
-    }
-    unbound: Symbol[]: []
-    for p in callee_ty.params {
-        collect_unbound_type_params(p, bindings, unbound)
-    }
-    collect_unbound_type_params(callee_ty.return_type, bindings, unbound)
-    for tp in unbound {
-        diags.push(
-            typecheck_error(
-                .TypeArgumentNotInferable,
-                c.span,
-                "`${tp.name}` — annotate the result slot, or pass the type argument explicitly",
-            ),
-        )
-    }
-}
-
-// Hold each type parameter in scope (`FnContext.type_params_in_scope`) that
-// `callee_ty` names and nothing bound yet to itself, and add it to `held`. A static
-// member called on a type name (`Bag.make(5)`) binds that type's parameters at each
-// call, as a receiver would, even inside the type's own impl.
-hold_type_params_in_scope :: fn(
-    c: AST.CallExpr,
-    callee_ty: FnType,
-    typed: TypedProgram,
-    bindings: MutableMap<i32, Type>,
-    held: MutableSet<i32> | null,
-) -> MutableSet<i32> | null {
-    ctx :: typed.current_fn_ctx ?? return held
-    if ctx.type_params_in_scope.len() == 0 || calls_static_member_on_type_name(c, typed) {
-        return held
-    }
-    named: Symbol[]: []
-    collect_unbound_type_params(callee_ty, bindings, named)
-    out := held
-    for sym in named {
-        if sym.id in ctx.type_params_in_scope {
-            bindings[sym.id] = TypeParamType { .symbol = sym }
-            out = with_held(out, sym.id)
-        }
-    }
-    return out
-}
-
-// `held` with `id` added, created for the first one.
-with_held :: fn(held: MutableSet<i32> | null, id: i32) -> MutableSet<i32> {
-    out :: held ?? MutableSet<i32> {}
-    out.add(id)
-    return out
-}
-
-// Whether `c` calls a static member on a named type rather than on a type parameter.
-calls_static_member_on_type_name :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
-    if c.callee !is AST.FieldExpr {
-        return false
-    }
-    member :: typed.static_members[c.callee.id] ?? return false
-    return member.owner !is TypeParamType
-}
-
-// Whether `c` calls a name that resolves to a symbol of `kind`.
-callee_is_kind :: fn(c: AST.CallExpr, kind: SymbolKind, typed: TypedProgram) -> bool {
-    if c.callee !is AST.IdentExpr {
-        return false
-    }
-    callee_sym :: typed.resolved.idents[c.callee.span.hash()]
-    return callee_sym is Symbol && callee_sym.kind == kind
-}
-
-// Whether `t` names a type parameter `bindings` has no entry for.
-mentions_unbound_type_param :: fn(t: Type, bindings: MutableMap<i32, Type>) -> bool {
-    unbound: Symbol[]: []
-    collect_unbound_type_params(t, bindings, unbound)
-    return unbound.len() > 0
-}
-
-// Walk `t` and append every type-param `bindings` has no entry for, skipping
-// ones already collected. Mirrors `type_contains_type_param`'s traversal rather
-// than threading a closure through `for_each_type`.
-collect_unbound_type_params :: fn(t: Type, bindings: MutableMap<i32, Type>, out: Symbol[]) -> void {
-    // @partial: only these variants can hold a type-param ; every scalar /
-    // primitive variant has no inner type to walk.
-    @partial match t {
-        is TypeParamType -> {
-            if bindings[t.symbol.id] != null {
-                return
-            }
-            for seen in out {
-                if seen.id == t.symbol.id {
-                    return
-                }
-            }
-            out.push(t.symbol)
-        }
-        is ArrayType -> { collect_unbound_type_params(t.element, bindings, out) }
-        is TupleType -> {
-            for el in t.elements { collect_unbound_type_params(el, bindings, out) }
-        }
-        is StructType -> {
-            for a in t.args { collect_unbound_type_params(a, bindings, out) }
-        }
-        is TraitType -> {
-            for a in t.args { collect_unbound_type_params(a, bindings, out) }
-        }
-        is FnType -> {
-            for p in t.params { collect_unbound_type_params(p, bindings, out) }
-            collect_unbound_type_params(t.return_type, bindings, out)
-        }
-        is UnionType -> {
-            for v in t.variants { collect_unbound_type_params(v, bindings, out) }
-        }
-        is DistinctType -> { collect_unbound_type_params(t.backing, bindings, out) }
-        _ -> {}
-    }
-}
-
-// Check ONE argument of a generic call against its substituted param type, then
-// feed both unifiers from what came back. Shared by the eager pass and the
-// deferred-lambda pass so a future unify step can't land in only one of them.
-check_generic_arg :: fn(
-    c: AST.CallExpr,
-    i: usize,
-    callee_ty: FnType,
-    bindings: MutableMap<i32, Type>,
-    held: MutableSet<i32> | null,
-    typed: TypedProgram,
-    diags: Diagnostic[],
-    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
-) -> Type {
-    param_ty :: substitute_map(callee_ty.params[i], bindings)
-    arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
-    unify_type_param(callee_ty.params[i], arg_ty, bindings, held)
-    // `fn<T>(g: Greeter<T>)` called with `Hello{}` (where `Hello implements
-    // Greeter(i32)`) : unify can't recover T from a struct→trait dispatch —
-    // read it from the recorded impl args.
-    unify_struct_to_trait_args(callee_ty.params[i], arg_ty, typed, bindings, held)
-    return arg_ty
-}
-
 /// Type-check a `CallExpr`. `check_expr_fn` is threaded the same way as in
 /// `binary.vader::infer_binary`, standing in for `expr.vader::check_expr`.
 ///
@@ -965,166 +718,9 @@ type_call :: fn(
     // type-checked first so a bad argument to `todo(...)` is still flagged.
     diverges :: named != null && AST.decorators_have(named.decorators, "no_return")
     n :: min(c.args.len(), callee_ty.params.len())
-    if fn_has_type_params(callee_ty) {
-        bindings :: MutableMap<i32, Type> {}
-        // Explicit type args `f<i64>(…)` : seed bindings from the
-        // callee's `<…>` BEFORE arg-checking so each param substitutes
-        // to its concrete type and a free-literal arg pins to it (e.g.
-        // `9000000000` → i64) instead of defaulting to i32 and
-        // truncating. Authoritative — seeded first so arg-unify can't
-        // loosen it.
-        held := seed_explicit_type_args(c.callee, typed, bindings, diags)
-        // UFCS dispatch : seed bindings from the receiver's type so
-        // type-params bound by the (curried-away) first param
-        // (`fn<T>(x: T) -> T` called as `42.identity()`) still
-        // substitute through the return type.
-        seed_ufcs_bindings(c.callee, typed, bindings, held)
-        // After the receiver, which still binds an impl's own parameters at the
-        // instance it names (`other.m()` with `other: Box<i32>` inside `Box<T>`'s).
-        held = hold_type_params_in_scope(c, callee_ty, typed, bindings, held)
-        arg_types: Type[]: []
-        // Lambda arguments are checked LAST. Their param type may mention a
-        // type-param that nothing has bound yet — one a later argument, or the
-        // call's `expected`, resolves. Checking `() -> []` against an
-        // unsubstituted `fn() -> T` types the body under erasure (`?[]`), and a
-        // `?[]` array literal lowers to a BOXED buffer that the concrete
-        // call-site then reads back as packed elements — silent corruption, not
-        // a diagnostic.
-        has_lambda := false
-        for i in 0..<n {
-            if c.args[i].value is AST.LambdaExpr {
-                arg_types.push(TY_UNRESOLVED)
-                has_lambda = true
-                continue
-            }
-            arg_types.push(
-                check_generic_arg(c, i, callee_ty, bindings, held, typed, diags, check_expr_fn),
-            )
-        }
-        // Whatever the arguments left unbound, the result slot may pin :
-        // `out: i32[][] = filled(n, () -> [])` binds `T = i32[]` through
-        // `T[]` ↔ `i32[][]`, and `rows: i32[] = empty()` is a type-param NO
-        // argument can reach. Arguments keep priority — `unify_type_param` only
-        // fills a type-param that has no binding yet. An `expected` that still
-        // mentions a type-param is NOT a pin : nested inside another generic
-        // call (`my_filter(my_map(xs, f), p)`), the inner call's expected is the
-        // outer's still-unbound `Iterator<T>`, and binding to it would carry
-        // that foreign type-param into the result instead of a concrete type.
-        if expected != null && !type_contains_type_param(expected) {
-            unify_type_param(callee_ty.return_type, expected, bindings, held)
-        }
-        if has_lambda {
-            // Run the deferred lambdas to a FIXPOINT, not once : within the
-            // group, an earlier lambda can need a type-param a later one binds
-            // (`zip_with(() -> [], (s: string) -> s.len())` — the second binds
-            // `T`, the first consumes it), and a single ordered pass would type
-            // the first one under erasure. Diagnostics from these rounds go to a
-            // scratch sink so a lambda that reports twice isn't counted twice ;
-            // the authoritative pass below re-runs them against `diags`.
-            // Bounded by the argument count : every round that continues has
-            // bound at least one more type-param. Skipped when every lambda's
-            // slot is bound already : the rounds could bind nothing, and nested
-            // lambdas would be checked twice per level.
-            if lambda_slot_unbound(c, callee_ty, bindings, n) {
-                scratch: Diagnostic[]: []
-                for 0..<n {
-                    before :: bindings.len()
-                    for i in 0..<n {
-                        if c.args[i].value !is AST.LambdaExpr {
-                            continue
-                        }
-                        check_generic_arg(
-                            c, i, callee_ty, bindings, held, typed, scratch, check_expr_fn,
-                        )
-                    }
-                    if bindings.len() == before {
-                        break
-                    }
-                }
-            }
-            for i in 0..<n {
-                if c.args[i].value !is AST.LambdaExpr {
-                    continue
-                }
-                arg_types[i] = check_generic_arg(
-                    c, i, callee_ty, bindings, held, typed, diags, check_expr_fn,
-                )
-            }
-        }
-        report_unbound_type_args(c, callee_ty, bindings, arg_types, expected, n, typed, diags)
-        reject_ufcs_receiver_at_instance(c, bindings, typed, diags)
-        instance :: substitute_fn_map(callee_ty, bindings)
-        for i in 0..<n {
-            want :: instance.params[i]
-            // A parameter still naming a type parameter of the callee that nothing
-            // bound has nothing to check against. One bound to the enclosing fn's
-            // `T` does : `pick(x, 0)` hands a literal to that `T`.
-            if mentions_unbound_type_param(callee_ty.params[i], bindings) {
-                // `count(it)` with `it: I` and `I: Iterator<i32>` : the callee's `T`
-                // is only knowable from the instance's concrete `I`, which an erased
-                // instance does not keep.
-                if arg_types[i] is TypeParamType {
-                    keep_instances_concrete(typed)
-                }
-                continue
-            }
-            if fits_argument(typed, c.args[i].value, arg_types[i], want) { continue }
-            if try_into(arg_types[i], want, typed, c.args[i].value)  { continue }
-            span :: c.args[i].span
-            diags.push(mismatch_diagnostic(arg_types[i], want, span, .TypeMismatch, typed))
-        }
-        // Records the bindings, each free literal pinned to its default, so the
-        // return type substituted below comes back concrete (`i32` / `f64`).
-        note_call_bindings(typed, c, bindings)
-        // A method-form callee reads as the call binds it, receiver and arguments
-        // together, not as the receiver alone did (`local.pick(CFG)` reads
-        // `fn(Cfg) -> Cfg`, `cfg.wrap("s")` reads `fn(string) -> string`) : what
-        // tooling shows.
-        if c.callee is AST.FieldExpr && typed.ufcs_receiver_types[c.callee.id] != null {
-            typed.expr_types[c.callee.id] = substitute_fn_map(callee_ty, bindings)
-        }
-        // A Free* numeric arg takes what its parameter was bound to. Into a
-        // trait-typed param it is boxed : when `7` flows into `Doubler<T>` and
-        // `i32 implements Doubler(i32)`, the arg expr records the substituted trait
-        // type so the lowerer emits `int(7) :Doubler(i32)`. Into a primitive it is
-        // settled there (`settle_free_value`), its nested literals bounds-checked:
-        // `pick(1, x)` with `x: i64` binds `T = i64`, and the lowerer instantiates
-        // `pick` from the types recorded on the arguments.
-        for i in 0..<n {
-            got :: arg_types[i]
-            if !is_free_numeric(got) {
-                continue
-            }
-            want :: substitute_map(callee_ty.params[i], bindings)
-            if want !is TraitType {
-                settle_free_at_slot(c.args[i].value, want, typed, diags)
-            } else if got !is FreeCharType {
-                if struct_implements_trait(default_if_free(got), trait_key_of(want.symbol), typed) {
-                    typed.expr_types[c.args[i].value.id] = want
-                }
-            }
-        }
-        repin_free_ufcs_receiver_at_instance(c, bindings, typed, diags)
-        // T3006 : enforce `T: Trait` bounds on the callee's fn-decl
-        // type-params against the bindings we ended up with.
-        check_typeparam_bounds(c, bindings, typed, diags)
-        if diverges {
-            return TY_NEVER
-        }
-        // Direction A : a `generator` call is typed as its concrete `<fn>$State`
-        // iterator (chains resolve on a concrete receiver), not the erased return.
-        // The substituted return (`Iterator<i32>`) carries the concrete element so
-        // `<fn>$State<i32>` implements `Iterator<i32>` (collect/find concretise).
-        concrete_ret :: substitute_map(callee_ty.return_type, bindings)
-        gen_res :: generator_call_result_type(c, typed, concrete_ret)
-        if gen_res != null {
-            return gen_res
-        }
-        async_res :: async_call_result_type(c, typed, concrete_ret)
-        if async_res != null {
-            return async_res
-        }
-        return concrete_ret
+    if callee_ty.type_params.len() > 0 {
+        returned :: type_generic_call(c, callee_ty, expected, n, typed, diags, check_expr_fn)
+        return call_result(c, returned, diverges, typed)
     }
     // See `TypedProgram.overloaded_arg_depth`. Raised around the ARGUMENTS only:
     // the callee was typed above, and the loop below has no early return.
@@ -1143,19 +739,24 @@ type_call :: fn(
         typed.overloaded_arg_depth = typed.overloaded_arg_depth - 1
     }
     widen_empty_array_on_push(c, typed)
-    check_receiver_alone(c, typed, diags)
+    return call_result(c, callee_ty.return_type, diverges, typed)
+}
+
+// What a call to a function returning `returned` evaluates to : nothing when the
+// callee never returns, a generator's or an async function's handle when it is one.
+call_result :: fn(c: AST.CallExpr, returned: Type, diverges: bool, typed: TypedProgram) -> Type {
     if diverges {
         return TY_NEVER
     }
-    gen_res :: generator_call_result_type(c, typed, callee_ty.return_type)
+    gen_res :: generator_call_result_type(c, typed, returned)
     if gen_res != null {
         return gen_res
     }
-    async_res :: async_call_result_type(c, typed, callee_ty.return_type)
+    async_res :: async_call_result_type(c, typed, returned)
     if async_res != null {
         return async_res
     }
-    return callee_ty.return_type
+    return returned
 }
 
 /// Empty-array back-widening : on `arr.push(elem)` where `arr` is a
@@ -1376,7 +977,11 @@ ufcs_generic_signature :: fn(callee: AST.Expr, callee_ty: Type, typed: TypedProg
 // The receiver of a UFCS call of a generic fn, held to its parameter as the instance
 // has it, as any argument is (`rows.put(LIST)` is `put(rows, LIST)`).
 reject_ufcs_receiver_at_instance :: fn(
-    c: AST.CallExpr, bindings: MutableMap<i32, Type>, typed: TypedProgram, diags: Diagnostic[],
+    c: AST.CallExpr,
+    bindings: MutableMap<i32, Type>,
+    unsolved: Symbol[],
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
     callee :: c.callee
     if callee !is AST.FieldExpr {
@@ -1384,7 +989,7 @@ reject_ufcs_receiver_at_instance :: fn(
     }
     chosen :: generic_ufcs_callee(callee, typed) ?? return
     first :: chosen.ty.params[0]
-    if mentions_unbound_type_param(first, bindings) {
+    if names_any(first, unsolved) {
         return
     }
     receiver_ty :: typed.expr_types[callee.target.id] ?? return
@@ -1413,28 +1018,6 @@ fits_by_widening :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type)
     return true
 }
 
-// Whether a lambda argument's parameter still names a type parameter of the callee
-// that a round over the lambdas could bind : one nothing has bound, or one only a
-// free literal has (`fold(0, (acc: i32, x: i32) -> …)` settles `U` on `i32`).
-lambda_slot_unbound :: fn(
-    c: AST.CallExpr, callee_ty: FnType, bindings: MutableMap<i32, Type>, n: usize,
-) -> bool {
-    for i in 0..<n {
-        if c.args[i].value !is AST.LambdaExpr {
-            continue
-        }
-        slot :: callee_ty.params[i]
-        if mentions_unbound_type_param(slot, bindings) {
-            return true
-        }
-        if any_type(substitute_map(slot, bindings), is_free_numeric) {
-            return true
-        }
-    }
-    return false
-}
-
-
 // A free literal receiver of a UFCS call takes what its parameter was bound to, as
 // a free literal argument does : `1.pick(x)` with `x: i64` is an `i64` receiver.
 repin_free_ufcs_receiver_at_instance :: fn(
@@ -1453,32 +1036,6 @@ repin_free_ufcs_receiver_at_instance :: fn(
         return
     }
     settle_free_at_slot(callee.target, substitute_map(chosen.ty.params[0], bindings), typed, diags)
-}
-
-// A UFCS call whose signature minus the receiver names none of the callee's type
-// parameters (`m.println()` on `println<T: Display>(msg: T)`) : the receiver alone
-// binds them, so the generic path never ran. Its bounds (T3006) are judged here.
-check_receiver_alone :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]) -> void {
-    if c.callee !is AST.FieldExpr || generic_ufcs_callee(c.callee, typed) == null {
-        return
-    }
-    bindings :: MutableMap<i32, Type> {}
-    seed_ufcs_bindings(c.callee, typed, bindings, null)
-    note_call_bindings(typed, c, bindings)
-    reject_ufcs_receiver_at_instance(c, bindings, typed, diags)
-    decl :: chosen_decl(typed, c.callee.id) ?? return
-    if has_bounded_type_param(decl) {
-        check_typeparam_bounds(c, bindings, typed, diags)
-    }
-}
-
-has_bounded_type_param :: fn(decl: AST.FnDecl) -> bool {
-    for tp in decl.type_params {
-        if tp.bound !is null {
-            return true
-        }
-    }
-    return false
 }
 
 /// The declaration a call's callee names: a bare or explicitly instantiated name
@@ -1575,40 +1132,6 @@ callee_name :: fn(callee: AST.Expr) -> string {
     }
 }
 
-import "vader/resolver"
-
-/// When `param` is `Trait(T, U, …)` and `arg` is a struct (or
-/// primitive — e.g. `i32 implements Doubler(i32)`) that implements
-/// that trait, bind `T`, `U`, … from `struct_trait_args`.
-unify_struct_to_trait_args :: fn(
-    param: Type,
-    arg: Type,
-    typed: TypedProgram,
-    out: MutableMap<i32, Type>,
-    held: MutableSet<i32> | null,
-) -> void {
-    if param !is TraitType {
-        return
-    }
-    // Resolve (not just look up) so a GENERIC impl's `[T]` args are substituted by
-    // the concrete receiver instance (`FilterIterator<i32>` → `[i32]`), binding the
-    // param's `T` to `i32` instead of the impl's own `T`.
-    impl_args :: resolve_struct_trait_args(arg, trait_key_of(param.symbol), typed) ?? return
-    n :: min(param.args.len(), impl_args.len())
-    for i in 0..<n {
-        unify_type_param(param.args[i], impl_args[i], out, held)
-    }
-}
-
-fn_has_type_params :: fn(f: FnType) -> bool {
-    for p in f.params {
-        if type_contains_type_param(p) {
-            return true
-        }
-    }
-    return type_contains_type_param(f.return_type)
-}
-
 // Walk the args once for their side-effects only — type them in a
 // fresh-position context so inner literals get a sensible type even
 // when the callee itself didn't resolve to a Fn (already errored).
@@ -1627,6 +1150,7 @@ check_args_no_expected :: fn(
 
 import "std/testing"
 import "vader/parser"
+import "vader/resolver"
 
 // Tiny stub : handles the variants the call tests touch. Real call sites
 // use `expr.vader::check_expr` — we can't import that here (cycle).

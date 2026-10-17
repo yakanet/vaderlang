@@ -38,7 +38,7 @@ export is_assignable :: fn(from: Type, to: Type) -> bool {
     // instance returning an integer), and it fits nothing but a union naming it
     // (`check_common` below). Matching an argument against a signature nothing has
     // instantiated yet is another question, asked on `erase_type_params(param)`.
-    if to is TypeParamType { return false }
+    if to is TypeParamType | InferVar { return false }
 
     // @partial: variants with a bespoke rule are listed; everything else shares check_common.
     return @partial match from {
@@ -356,7 +356,7 @@ slot_layout :: fn(t: Type) -> SlotLayout = match t {
     is StructType | ArrayType | FnType | TupleType | TraitType | AnyType -> .Dispatched
     is UnionType -> union_slot_layout(t)
     is DistinctType -> slot_layout(t.backing)
-    is EnumType | TypeParamType | SelfType | TypeMetaType -> .Raw
+    is EnumType | TypeParamType | InferVar | SelfType | TypeMetaType -> .Raw
     is NeverType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType -> .Raw
 }
 

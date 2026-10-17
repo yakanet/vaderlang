@@ -120,6 +120,9 @@ export CallSites :: struct {
     /// its enclosing function's, whose instances it shares.
     calls_in_fn: MutableMap<usize, usize[]> = MutableMap<usize, usize[]> {}
     calls: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    /// Where each call of a generic fn sits, by its node id : the calls `calls`
+    /// records with bindings.
+    instantiation_spans: MutableMap<usize, Span> = MutableMap<usize, Span> {}
     operators: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
     index_reads: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
     index_writes: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
@@ -293,6 +296,7 @@ note_call_bindings :: fn(
         return
     }
     typed.call_sites.calls[c.id] = DirectFn { ...callee, .bindings = bindings }
+    typed.call_sites.instantiation_spans[c.id] = c.span
 }
 
 // Pin every free literal type `bindings` holds to its default (`{integer}` → `i32`).
@@ -483,7 +487,8 @@ counts_in_place :: fn(typed: TypedProgram, iter: AST.Expr) -> bool {
 display_callee :: fn(typed: TypedProgram, t: Type) -> Callee = match t {
     is PrimitiveType -> primitive_display(typed, t)
     is FreeIntType | FreeFloatType | FreeCharType -> display_callee(typed, default_if_free(t))
-    is TypeParamType | SelfType | TraitType | UnionType | AnyType -> dispatched_display(t)
+    is TypeParamType | InferVar | SelfType | TraitType
+     | UnionType | AnyType -> dispatched_display(t)
     is StructType | EnumType | ArrayType -> display_member(typed, t)
     is DistinctType -> distinct_display(typed, t)
     // A value that never exists is never rendered.
@@ -535,7 +540,8 @@ equality_callee :: fn(left: Type, right: Type, typed: TypedProgram) -> Callee {
         is TupleType -> parts_equality(left.elements, typed)
         is StructType | ArrayType -> first_member_callee(typed, left, equals_key, METHOD_EQUALS)
         is DistinctType -> distinct_equality(left, typed)
-        is TypeParamType | SelfType | AnyType -> dispatched_callee(left, equals_key, METHOD_EQUALS)
+        is TypeParamType | InferVar
+         | SelfType | AnyType -> dispatched_callee(left, equals_key, METHOD_EQUALS)
         is PrimitiveType | EnumType | FreeIntType | FreeFloatType | FreeCharType -> BUILTIN_CALLEE
         is TraitType | FnType -> ERRONEOUS_CALLEE
         is TypeMetaType | NeverType | UnresolvedType -> ERRONEOUS_CALLEE

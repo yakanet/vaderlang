@@ -1,0 +1,37 @@
+// A generic function that calls itself, directly or through another one, on a
+// type built from its own parameter would need a larger instance at each call.
+// T3104 twice : `wrap` directly, `ping` through `pong`. `count_down` passes its
+// parameter on unchanged and `fixed` calls itself on a fixed type : both pass.
+module "snippet"
+
+wrap :: fn<T>(x: T, n: i32) -> i32 {
+    if n == 0 {
+        return 1
+    }
+    return wrap([x, x], n - 1) + 1
+}
+
+ping :: fn<A>(a: A, n: i32) -> i32 {
+    if n == 0 {
+        return 0
+    }
+    return pong([a], n - 1)
+}
+
+pong :: fn<B>(b: B, n: i32) -> i32 = ping(b, n)
+
+count_down :: fn<T>(x: T, n: i32) -> i32 {
+    if n == 0 {
+        return 0
+    }
+    return count_down(x, n - 1) + 1
+}
+
+fixed :: fn<T>(x: T, n: i32) -> i32 {
+    if n == 0 {
+        return 0
+    }
+    return fixed(n, n - 1) + 1
+}
+
+main :: fn() -> i32 = wrap(1, 2) + ping(1, 3) + count_down("s", 3) + fixed("s", 2)

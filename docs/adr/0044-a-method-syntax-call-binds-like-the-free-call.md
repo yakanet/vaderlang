@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted (2026-10-07). Closes the order item 0040 left open.
+Accepted (2026-10-07). Closes the order item 0040 left open. Superseded in part by
+0070: the receiver binds the callee's inference variables like any argument, and
+`seed_ufcs_bindings` and `check_receiver_alone` are gone.
 
 ## Context
 

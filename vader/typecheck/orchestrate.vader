@@ -354,6 +354,8 @@ check_project_modules :: fn(
         // the LSP still filters to the open document.
         check_dead_code(other_decls, other.module.module_name, diags, other.discarded_bodies)
     }
+    // Once every body is typed : the cycles run through any module.
+    reject_growing_recursion(per_module, diags)
     // Forward resolver-side R-codes (unresolved-ident, reserved-name, …)
     // so the CLI's `# Diagnostics` block surfaces them next to T-codes.
     for d in entry_typed.resolved.diags {
@@ -432,7 +434,7 @@ synth_resolved :: fn() -> ResolvedModule {
         .fn_overloads = MutableMap<string, Symbol[]> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
-        .alias_params = MutableMap<i32, i32[]> {},
+        .alias_params = MutableMap<i32, TypeParamType[]> {},
         .type_param_bounds = MutableMap<i32, AST.Expr> {},
         .diags = [],
         .deprecated_messages = MutableMap<i32, string> {},
@@ -1423,7 +1425,7 @@ register_alias_decl :: fn(decl: AST.Decl, typed: TypedProgram) -> bool {
         for s in typed.resolved.symbols {
             if s.name == decl.name {
                 typed.resolved.alias_types[s.id] = aliased
-                typed.resolved.alias_params[s.id] = type_param_ids(decl.type_params, typed)
+                typed.resolved.alias_params[s.id] = quantifier_of(decl.type_params, typed.resolved)
             }
         }
         return !contains_unresolved(aliased)
@@ -2471,9 +2473,8 @@ export walk_bodies :: fn(
                 // (`register_impl_metadata`) so forward references resolve ;
                 // only the member bodies remain to walk here.
                 typed.enclosing_impl = decl.span.hash()
-                impl_type_params :: impl_type_param_ids(decl, typed.resolved)
                 for m in decl.members {
-                    walk_fn_body(m, typed, diags, mode, impl_type_params)
+                    walk_fn_body(m, typed, diags, mode)
                 }
                 typed.enclosing_impl = 0
             }
@@ -2497,6 +2498,7 @@ export walk_bodies :: fn(
     if mode == .Full {
         report_literals_past_default(typed, diags)
     }
+    zonk_module_tables(typed)
 }
 
 // Type each field's default against the field's declared type (`delta: isize = -1`
@@ -2582,6 +2584,29 @@ impl_params_as_struct_params :: fn(for_ty: Type, typed: TypedProgram) -> Mutable
     return bindings
 }
 
+// A member's signature read in the struct's own parameters (`as_struct` renames the
+// impl's to them) : a parameter the signature quantifies over stays quantified,
+// under the struct's name, so a static call (`Bag.make(1)`) still instantiates it.
+in_struct_frame :: fn(member_ty: FnType, as_struct: MutableMap<i32, Type>) -> FnType {
+    if as_struct.is_empty() {
+        return member_ty
+    }
+    quantifier: TypeParamType[]: []
+    for tp in member_ty.type_params {
+        quantifier.push(renamed_param(tp, as_struct))
+    }
+    return FnType { ...substitute_fn_map(member_ty, as_struct), .type_params = quantifier }
+}
+
+// `tp` under the struct's name for it, or as is when `as_struct` does not rename it.
+renamed_param :: fn(tp: TypeParamType, as_struct: MutableMap<i32, Type>) -> TypeParamType {
+    to :: as_struct[tp.symbol.id]
+    if to is TypeParamType {
+        return to
+    }
+    return tp
+}
+
 // The trait membership an impl declares — `is Trait`, trait widening, the bounds
 // its type parameters put on the arguments. Recorded for every impl before
 // anything else, so a member type that widens to a later-declared impl resolves.
@@ -2630,9 +2655,9 @@ record_impl_members :: fn(
     side :: impl_side_key(for_ty)
     for m in decl.members {
         trait_method :: lookup_trait_method(trait_decl, m.name)
-        written_ty :: ufcs_method_type(m, for_ty, trait_method, owner, diags)
+        written_ty :: ufcs_method_type(decl, m, for_ty, trait_method, owner, diags)
         entry :: ImplMethod {
-            .ty = substitute_map(written_ty, as_struct),
+            .ty = in_struct_frame(written_ty, as_struct),
             .decl = m,
             .impl_key = decl.span.hash(),
             .trait_key = trait_key,
@@ -2684,7 +2709,6 @@ walk_fn_body :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
     mode: WalkMode,
-    impl_type_params: i32[] = [],
 ) -> void {
     // SAM short-impl synthetics carry no real body to type ; skip them.
     // Default-method clones are also `materialized` but DO need typing —
@@ -2708,7 +2732,7 @@ walk_fn_body :: fn(
     // no error).
     if mode == .ReturnsOnly && !needs_return_inference(fd) { return }
     if fd.body is AST.BlockExpr as body {
-        check_fn_body(fd, body, typed, diags, check_expr, impl_type_params)
+        check_fn_body(fd, body, typed, diags, check_expr)
     }
 }
 
@@ -2833,24 +2857,40 @@ impl_has_method :: fn(id: AST.ImplDecl, name: string) -> bool {
 /// since the receiver binds `self` at the call site. Always returns a type — a
 /// member with no params, or whose first param isn't `self`, just keeps them all.
 ///
+/// @param impl_         the impl block, whose type parameters the signature
+///                      quantifies over with the member's own.
 /// @param fd            the impl member.
 /// @param for_ty        the impl block's for-type, substituted into each param.
 /// @param trait_method  the matching trait signature, when the impl is for a
 ///                      trait ; supplies the return type the member elides.
 /// @return              the receiver-dropped fn type stored in `impl_methods`.
 ufcs_method_type :: fn(
+    impl_: AST.ImplDecl,
     fd: AST.FnDecl,
     for_ty: Type,
     trait_method: AST.FnDecl | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-) -> Type {
+) -> FnType {
     rest: Type[]: []
     for i in receiver_count(fd)..<fd.params.len() {
         rest.push(param_type(fd.params[i], for_ty, typed, diags))
     }
     ret :: declare_impl_return(fd, for_ty, trait_method, typed, diags)
-    return mk_fn(rest, ret)
+    return mk_fn(rest, ret, impl_member_quantifier(impl_, fd, typed.resolved))
+}
+
+// The parameters an impl member quantifies over : the enclosing impl's, then its
+// own `<…>`. A receiver binds the impl's (`substitute_impl_method`) ; a static
+// call binds them at the call, as its own.
+impl_member_quantifier :: fn(
+    impl_: AST.ImplDecl, fd: AST.FnDecl, resolved: ResolvedModule,
+) -> TypeParamType[] {
+    of_impl :: impl_type_params_of(impl_, resolved)
+    if fd.type_params.len() == 0 {
+        return of_impl
+    }
+    return of_impl + quantifier_of(fd.type_params, resolved)
 }
 
 /// Pre-walk an impl method's signature so `self` resolves to the impl block's

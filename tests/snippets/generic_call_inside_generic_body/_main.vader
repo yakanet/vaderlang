@@ -1,0 +1,41 @@
+// A generic body calls generic functions on its own parameter : the call's result
+// slot binds the callee's parameters (`empty()` into a `T[]`), and a static member
+// called on the generic type takes the body's `T`.
+
+module "snippet"
+
+import "std/io"
+
+empty :: fn<U>() -> U[] = []
+
+Make :: trait {
+    make :: fn(v: i32) -> Self
+}
+
+Bag :: struct<T> {
+    items: T[]
+}
+
+Bag<T> implements<T> Make {
+    make :: fn(v: i32) -> Bag<T> = Bag<T> { .items = [] }
+}
+
+grow :: fn<T>(x: T) -> i32 {
+    rows: T[]: empty()
+    rows.push(x)
+    rows.push(x)
+    return i32(rows.len())
+}
+
+fill :: fn<T>(x: T) -> i32 {
+    b: Bag<T>: Bag.make(1)
+    b.items.push(x)
+    return i32(b.items.len())
+}
+
+main :: fn() -> i32 {
+    println(grow(5))
+    println(grow("text"))
+    println(fill(2.5))
+    return 0
+}

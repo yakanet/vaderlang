@@ -1,0 +1,54 @@
+# Typecheck
+
+## tests/snippets/generic_call_inside_generic_body
+  StructDecl     Bag                  :: Bag<T>
+  FnDecl         empty                :: fn() -> U[]
+  FnDecl         fill                 :: fn(T) -> i32
+  FnDecl         grow                 :: fn(T) -> i32
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Make                 :: Make
+  expr 20:36    StructLitExpr  :: Bag<T>
+  expr 20:54    SeqLitExpr     :: T[]
+  expr 24:16    CallExpr       :: T[]
+  expr 24:16    IdentExpr      :: fn() -> U[]
+  expr 25:15    IdentExpr      :: T
+  expr 25:5     CallExpr       :: void
+  expr 25:5     FieldExpr      :: fn(T) -> void
+  expr 25:5     IdentExpr      :: T[]
+  expr 26:15    IdentExpr      :: T
+  expr 26:5     CallExpr       :: void
+  expr 26:5     FieldExpr      :: fn(T) -> void
+  expr 26:5     IdentExpr      :: T[]
+  expr 27:12    CallExpr       :: i32
+  expr 27:12    IdentExpr      :: type
+  expr 27:16    CallExpr       :: usize
+  expr 27:16    FieldExpr      :: fn() -> usize
+  expr 27:16    IdentExpr      :: T[]
+  expr 31:16    CallExpr       :: Bag<T>
+  expr 31:16    FieldExpr      :: fn(i32) -> Bag<T>
+  expr 31:16    IdentExpr      :: Bag<T>
+  expr 32:18    IdentExpr      :: T
+  expr 32:5     CallExpr       :: void
+  expr 32:5     FieldExpr      :: T[]
+  expr 32:5     FieldExpr      :: fn(T) -> void
+  expr 32:5     IdentExpr      :: Bag<T>
+  expr 33:12    CallExpr       :: i32
+  expr 33:12    IdentExpr      :: type
+  expr 33:16    CallExpr       :: usize
+  expr 33:16    FieldExpr      :: T[]
+  expr 33:16    FieldExpr      :: fn() -> usize
+  expr 33:16    IdentExpr      :: Bag<T>
+  expr 37:13    CallExpr       :: i32
+  expr 37:13    IdentExpr      :: fn(T) -> i32
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 38:13    CallExpr       :: i32
+  expr 38:13    IdentExpr      :: fn(T) -> i32
+  expr 38:18    StringLitExpr  :: string
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    CallExpr       :: i32
+  expr 39:13    IdentExpr      :: fn(T) -> i32
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 9:27     SeqLitExpr     :: U[]

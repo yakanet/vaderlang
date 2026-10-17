@@ -151,10 +151,10 @@ resolve_named_type :: fn(sym: Symbol, resolved: ResolvedModule) -> Type {
 // Substitute an alias's type-params with the call-site's args.
 // `Maybe<T> :: T | null` instantiated as `Maybe(i32)` walks the
 // alias body and replaces every `TypeParam<T>` with `i32`.
-substitute_alias_args :: fn(t: Type, param_ids: i32[], args: Type[]) -> Type {
+substitute_alias_args :: fn(t: Type, params: TypeParamType[], args: Type[]) -> Type {
     bindings :: MutableMap<i32, Type> {}
-    for i in 0..<min(param_ids.len(), args.len()) {
-        bindings[param_ids[i]] = args[i]
+    for i in 0..<min(params.len(), args.len()) {
+        bindings[params[i].symbol.id] = args[i]
     }
     return substitute_map(t, bindings)
 }
@@ -163,8 +163,8 @@ substitute_alias_args :: fn(t: Type, param_ids: i32[], args: Type[]) -> Type {
 // substituted, any other type built from its symbol.
 instantiate_named :: fn(target: Symbol, args: Type[], resolved: ResolvedModule) -> Type {
     aliased :: resolved.alias_types[target.id] ?? return type_from_symbol(target, args)
-    param_ids :: resolved.alias_params[target.id] ?? return aliased
-    return substitute_alias_args(aliased, param_ids, args)
+    params :: resolved.alias_params[target.id] ?? return aliased
+    return substitute_alias_args(aliased, params, args)
 }
 
 // Follow an `ImportBinding` symbol to its concrete exported

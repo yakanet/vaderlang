@@ -65,6 +65,7 @@ may_hold_bytes :: fn(t: Type | null) -> bool = match t {
     is UnionType    -> t.variants.any_match(may_hold_bytes)
     is DistinctType -> may_hold_bytes(t.backing)
     is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType | null -> true
+    is InferVar -> leaked_infer_var(t)
     is StructType | TupleType | PrimitiveType | EnumType | FnType | TypeMetaType | FreeIntType
      | FreeFloatType | FreeCharType | NeverType -> false
 }
@@ -75,6 +76,7 @@ may_be_byte :: fn(t: Type) -> bool = match t {
     is UnionType     -> t.variants.any_match(may_be_byte)
     is DistinctType  -> may_be_byte(t.backing)
     is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType -> true
+    is InferVar -> leaked_infer_var(t)
     is StructType | TupleType | ArrayType | EnumType | FnType | TypeMetaType | FreeIntType
      | FreeFloatType | FreeCharType | NeverType -> false
 }
