@@ -49,8 +49,12 @@ try_lower_value_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | n
     }
     span :: binary.span
     stmts: LoweredStmt[]: []
-    left  :: bind_unless_stable(ctx, lower_expr(ctx, binary.left), "eq_l", span, stmts)
-    right :: bind_unless_stable(ctx, lower_expr(ctx, binary.right), "eq_r", span, stmts)
+    left_value :: lower_expr(ctx, binary.left)
+    mark :: ctx.pending_awaits.len()
+    right_value :: lower_expr(ctx, binary.right)
+    kept_left :: bind_one_before_hoisted(ctx, left_value, mark)
+    left  :: bind_unless_stable(ctx, kept_left, "eq_l", span, stmts)
+    right :: bind_unless_stable(ctx, right_value, "eq_r", span, stmts)
     equal :: value_eq(ctx, left, left_ty, right, right_ty, span)
     return with_prelude(stmts, maybe_negate(equal, binary.op == .Neq, span), span)
 }

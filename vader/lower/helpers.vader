@@ -74,9 +74,13 @@ lower_converted :: fn(ctx: FnLowerCtx, value: Expr) -> LoweredExpr {
 /// Every argument is lowered before the first one is prepared.
 ///
 /// `params` is the callee's FULL param list and `first_slot` the index the first
-/// element of `args` binds to — 0 for a plain call, 1 on the UFCS paths where the
+/// element of `args` binds to : 0 for a plain call, 1 on the UFCS paths where the
 /// receiver already took `params[0]`. Args past the end of `params` (a variadic
 /// tail, or a signature the lowerer couldn't resolve) pass through untouched.
+///
+/// The arguments are lowered in source order (`lower_in_order`). What the call
+/// evaluates ahead of them, its callee or a method's receiver, is the caller's
+/// to keep ahead (`bind_one_before_hoisted`).
 ///
 /// @param ctx         the fn-body context.
 /// @param args        the call's arguments, in source order.
@@ -91,7 +95,10 @@ lower_call_args :: fn(
 ) -> LoweredExpr[] {
     lowered: LoweredExpr[]: []
     for arg in args {
-        lowered.push(lower_expr(ctx, arg.value))
+        mark :: ctx.pending_awaits.len()
+        value :: lower_expr(ctx, arg.value)
+        bind_before_hoisted(ctx, lowered, mark)
+        lowered.push(value)
     }
     out: LoweredExpr[]: []
     for i in 0..<lowered.len() {
@@ -104,6 +111,97 @@ lower_call_args :: fn(
         }
     }
     return out
+}
+
+/// Lower `operands` in source order, as a call does its arguments.
+///
+/// An `await` hoists to the statement's sink, ahead of the whole expression : the
+/// operands lowered before it would then run after it. An operand that hoists one
+/// first binds every operand before it that may read a different value once
+/// statements run, in the sink ahead of what it hoisted (`bind_before_hoisted`).
+/// Outside async nothing hoists and this is a plain loop.
+///
+/// @param ctx       the fn-body context.
+/// @param operands  the expressions, in the order the source evaluates them.
+/// @return          each one lowered, in the same order.
+lower_in_order :: fn(ctx: FnLowerCtx, operands: Expr[]) -> LoweredExpr[] {
+    out: LoweredExpr[]: []
+    for operand in operands {
+        mark :: ctx.pending_awaits.len()
+        value :: lower_expr(ctx, operand)
+        bind_before_hoisted(ctx, out, mark)
+        out.push(value)
+    }
+    return out
+}
+
+/// `value`, lowered before what was lowered since sink length `mark` : itself, or,
+/// when that hoisted an `await`, the local it is bound to ahead of it. For the
+/// operand a two-operand form evaluates first, and for a call's callee or
+/// receiver once its arguments are lowered.
+///
+/// @param ctx    the fn-body context.
+/// @param value  the operand lowered first.
+/// @param mark   the sink length when the later operands began.
+/// @return       what to read in its place.
+bind_one_before_hoisted :: fn(ctx: FnLowerCtx, value: LoweredExpr, mark: usize) -> LoweredExpr {
+    if ctx.pending_awaits.len() == mark || bound_by_sink(ctx, value) {
+        return value
+    }
+    prelude: LoweredStmt[]: []
+    bound :: bind_unless_invariant(ctx, value, "operand", span_of(value), prelude)
+    hoist_prelude_before(ctx, prelude, mark)
+    return bound
+}
+
+// When the operand lowered since sink length `mark` hoisted an `await`, each of
+// `earlier` that may read a different value once statements run is bound to a
+// local placed ahead of it, and replaced by that local.
+bind_before_hoisted :: fn(ctx: FnLowerCtx, earlier: LoweredExpr[], mark: usize) -> void {
+    if ctx.pending_awaits.len() == mark {
+        return
+    }
+    prelude: LoweredStmt[]: []
+    for i in 0..<earlier.len() {
+        value :: earlier[i]
+        if !bound_by_sink(ctx, value) {
+            earlier[i] = bind_unless_invariant(ctx, value, "operand", span_of(value), prelude)
+        }
+    }
+    hoist_prelude_before(ctx, prelude, mark)
+}
+
+// Whether `value` reads a local a statement of the sink binds : an `await`'s
+// target, an operand bound before. Such a local is written only by statements
+// ahead of it in the sink, so the read gives the same value after the awaits
+// hoisted later.
+bound_by_sink :: fn(ctx: FnLowerCtx, value: LoweredExpr) -> bool {
+    if value !is LoweredIdent {
+        return false
+    }
+    for stmt in ctx.pending_awaits {
+        if stmt is LoweredAwait && stmt.target.id == value.symbol.id {
+            return true
+        }
+        if stmt is LoweredLet && stmt.symbol.id == value.symbol.id {
+            return true
+        }
+    }
+    return false
+}
+
+// When what was lowered since sink length `mark` hoisted an `await`, the
+// statements a value runs ahead of it (its prelude) move into the sink ahead of
+// that `await`, so they still run first. `prelude` is left empty.
+hoist_prelude_before :: fn(ctx: FnLowerCtx, prelude: LoweredStmt[], mark: usize) -> void {
+    if ctx.pending_awaits.len() == mark || prelude.len() == 0 {
+        return
+    }
+    hoisted: LoweredStmt[]: []
+    drain_pending_from(ctx, hoisted, mark)
+    ctx.pending_awaits.push_all(prelude)
+    prelude.clear()
+    ctx.pending_awaits.push_all(hoisted)
 }
 
 /// Mint a synthetic local symbol unique within the entry's body.

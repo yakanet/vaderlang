@@ -78,8 +78,10 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
                 if scalar_backing(ctx.types.expr_type(binary.left)) != null {
                     observe_no_call(ctx, binary, .Operator, "bounds")
                     span :: binary.span
-                    lo_value :: lower_expr(ctx, range_lit.lower)
+                    lo_first :: lower_expr(ctx, range_lit.lower)
+                    mark :: ctx.pending_awaits.len()
                     hi_value :: lower_expr(ctx, range_lit.upper)
+                    lo_value :: bind_one_before_hoisted(ctx, lo_first, mark)
                     bounds: LoweredStmt[]: []
                     hoist :: !is_effect_free_read(hi_value)
                     lo :: if hoist {
@@ -126,8 +128,10 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         // `contains` takes the collection first: `x` is bound ahead of it unless
         // neither can change what the other reads.
         prelude: LoweredStmt[]: []
-        element_value :: lower_expr(ctx, binary.left)
+        element_first :: lower_expr(ctx, binary.left)
+        mark :: ctx.pending_awaits.len()
         coll :: lower_expr(ctx, binary.right)
+        element_value :: bind_one_before_hoisted(ctx, element_first, mark)
         element :: if reads_independently(element_value, coll) {
             element_value
         } else {
@@ -165,7 +169,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
             .span = binary.span,
             .type = type,
             .name = INTRINSIC_ARRAY_REPEAT,
-            .args = [lower_expr(ctx, binary.left), lower_expr(ctx, binary.right)],
+            .args = lower_in_order(ctx, [binary.left, binary.right]),
         }
     }
     // Arithmetic + / − / × / ÷ on a user struct with a matching impl
@@ -201,11 +205,15 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
             .left = left, .right = right,
         }
     }
+    left :: lower_expr(ctx, binary.left)
+    mark :: ctx.pending_awaits.len()
+    right :: lower_expr(ctx, binary.right)
     return LoweredBinary {
-        .span = binary.span, .type = type,
-        .op    = lower_binary_op(binary.op),
-        .left  = lower_expr(ctx, binary.left),
-        .right = lower_expr(ctx, binary.right),
+        .span = binary.span,
+        .type = type,
+        .op = lower_binary_op(binary.op),
+        .left = bind_one_before_hoisted(ctx, left, mark),
+        .right = right,
     }
 }
 
@@ -227,9 +235,10 @@ is_primitive_string_concat :: fn(ctx: FnLowerCtx, b: BinaryExpr) -> bool {
     return is_string_type(ctx.types.expr_type(b.right))
 }
 
-// Flatten a primitive string `+` tree into its leaf operands, lowered in order.
-// `((a + b) + c)` collects `[a, b, c]`. A nested node is recursed into only when
-// it is itself a primitive string `+` ; everything else is an opaque leaf.
+// Flatten a primitive string `+` tree into its leaf operands, lowered in order
+// (`lower_in_order`). `((a + b) + c)` collects `[a, b, c]`. A nested node is
+// recursed into only when it is itself a primitive string `+` ; everything else
+// is an opaque leaf.
 collect_concat_operands :: fn(ctx: FnLowerCtx, e: Expr, out: LoweredExpr[]) -> void {
     if e is BinaryExpr {
         if is_primitive_string_concat(ctx, e) {
@@ -238,7 +247,10 @@ collect_concat_operands :: fn(ctx: FnLowerCtx, e: Expr, out: LoweredExpr[]) -> v
             return
         }
     }
-    out.push(lower_expr(ctx, e))
+    mark :: ctx.pending_awaits.len()
+    value :: lower_expr(ctx, e)
+    bind_before_hoisted(ctx, out, mark)
+    out.push(value)
 }
 
 try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr | null {
@@ -259,11 +271,10 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
             return null
         }
         observe_symbol(ctx, binary, .Operator, target.symbol)
-        lowered_left  :: lower_expr(ctx, binary.left)
+        lowered_left :: lower_expr(ctx, binary.left)
+        mark :: ctx.pending_awaits.len()
         lowered_right :: lower_expr(ctx, binary.right)
-        call_args: LoweredExpr[]: []
-        call_args.push(lowered_left)
-        call_args.push(lowered_right)
+        call_args: LoweredExpr[]: [bind_one_before_hoisted(ctx, lowered_left, mark), lowered_right]
         // For Eq, the call's value IS the bool result. For Neq we wrap in `not`.
         // For Lt/Lte/Gt/Gte, we keep the outer BinaryOp with the call as left +
         // `0` as right (compare returns i32).
@@ -349,8 +360,11 @@ contains_call :: fn(
 lower_op_overload_via_vcall :: fn(
     ctx: FnLowerCtx, binary: BinaryExpr, type: Type, oti: OpTraitInfo,
 ) -> LoweredExpr | null {
-    lowered_left  :: lower_expr(ctx, binary.left)
-    args: LoweredExpr[]: [lower_expr(ctx, binary.right)]
+    first :: lower_expr(ctx, binary.left)
+    mark :: ctx.pending_awaits.len()
+    lowered_right :: lower_expr(ctx, binary.right)
+    lowered_left :: bind_one_before_hoisted(ctx, first, mark)
+    args: LoweredExpr[]: [lowered_right]
     // The call's own result : `compare`'s `i32`, `equals`' `bool`, else the
     // operator's (`Add`'s `Self`).
     result :: match oti.shape {

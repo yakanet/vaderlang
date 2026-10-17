@@ -1,0 +1,57 @@
+# stdout
+call arguments
+  first
+  second (awaited)
+12
+operator
+  left
+  right (awaited)
+7
+interpolation
+  a
+  b (awaited)
+5 6
+array
+  x0
+  x1 (awaited)
+7 8
+index
+  at
+  offset (awaited)
+8
+method receiver
+  receiver
+  argument (awaited)
+105
+struct literal
+  spread
+  right field (awaited)
+1 2 9
+range
+  low
+  high (awaited)
+1 3
+compound assignment
+  slot
+  added (awaited)
+  total (awaited)
+25 3
+assignment
+  slot
+  stored (awaited)
+7
+push
+  list
+  pushed (awaited)
+4 9
+for bounds
+  from
+  to (awaited)
+    0
+    1
+tuple equality
+  t0
+  t1 (awaited)
+true
+# exit
+0

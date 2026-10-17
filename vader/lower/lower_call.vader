@@ -67,8 +67,14 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     generic_form :: try_lower_generic_fn_call(ctx, call, type)
     if generic_form != null { return observed(ctx, call, .Call, generic_form) }
     callee :: lower_callee(ctx, call)
+    mark :: ctx.pending_awaits.len()
     args :: lower_call_args(ctx, call.args, param_types_of(type_of(callee)), 0)
-    plain :: LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
+    plain :: LoweredCall {
+        .span = call.span,
+        .type = type,
+        .callee = bind_one_before_hoisted(ctx, callee, mark),
+        .args = args,
+    }
     return observed(ctx, call, .Call, plain)
 }
 
@@ -180,7 +186,9 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
         // bodies) fall through to the UFCS direct-call path.
         if receiver_ty is EnumType || kept_type_argument(receiver_ty) != null {
             if runs_builtin_equals(ctx, call) && call.args.len() > 0 {
-                return equals_primop(receiver, lower_expr(ctx, call.args[0].value), call.span)
+                mark :: ctx.pending_awaits.len()
+                other :: lower_expr(ctx, call.args[0].value)
+                return equals_primop(bind_one_before_hoisted(ctx, receiver, mark), other, call.span)
             }
         }
     }
@@ -198,8 +206,10 @@ dispatched_method_call :: fn(
     type: Type,
 ) -> LoweredVirtualCall {
     param_types :: param_types_of(ctx.types.expr_type(call.callee))
+    mark :: ctx.pending_awaits.len()
     args :: lower_call_args(ctx, call.args, param_types, 0)
-    return virtual_call(ctx, trait_key, field.field, receiver, args, type, call.span, param_types)
+    kept :: bind_one_before_hoisted(ctx, receiver, mark)
+    return virtual_call(ctx, trait_key, field.field, kept, args, type, call.span, param_types)
 }
 
 // Detect `<namespace_ident>.<member>(args)`. The target ident's
@@ -389,11 +399,14 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
         }
     }
     if callee.field == "push" && call.args.len() == 1 {
+        target :: lower_expr(ctx, callee.target)
+        mark :: ctx.pending_awaits.len()
+        value :: lower_for_slot(ctx, call.args[0].value, array.element, call.span)
         return LoweredArrayPush {
             .span = call.span,
             .type = mk_primitive("void"),
-            .target = lower_expr(ctx, callee.target),
-            .value = lower_for_slot(ctx, call.args[0].value, array.element, call.span),
+            .target = bind_one_before_hoisted(ctx, target, mark),
+            .value = value,
         }
     }
     // `push_all` / `copy_to` / `remove_last` / `clear` lower to `array.*`
@@ -406,7 +419,7 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
             .span = call.span,
             .type = type,
             .name = INTRINSIC_ARRAY_PUSH_ALL,
-            .args = [lower_expr(ctx, callee.target), lower_expr(ctx, call.args[0].value)],
+            .args = lower_in_order(ctx, [callee.target, call.args[0].value]),
         }
     }
     if callee.field == "copy_to" && call.args.len() == 4 {
@@ -414,13 +427,13 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
             .span = call.span,
             .type = type,
             .name = INTRINSIC_ARRAY_COPY,
-            .args = [
-                lower_expr(ctx, callee.target),
-                lower_expr(ctx, call.args[0].value),
-                lower_expr(ctx, call.args[1].value),
-                lower_expr(ctx, call.args[2].value),
-                lower_expr(ctx, call.args[3].value),
-            ],
+            .args = lower_in_order(ctx, [
+                callee.target,
+                call.args[0].value,
+                call.args[1].value,
+                call.args[2].value,
+                call.args[3].value,
+            ]),
         }
     }
     if callee.field == "remove_last" && call.args.len() == 0 {

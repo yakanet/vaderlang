@@ -586,6 +586,8 @@ const C_PARITY = new Set<string>([
   "struct_literal_of_another_module",
   // A default method inherited by two impls tests against each one's own type argument.
   "default_method_matches_its_type_argument",
+  // The operands of one expression run left to right across a hoisted `await`.
+  "async_operands_run_in_order",
   // An impl whose type parameters differ from its struct's in name or order.
   "impl_names_its_own_parameters",
   // An explicit type argument on a generic fn of another module.

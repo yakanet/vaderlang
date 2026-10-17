@@ -537,8 +537,11 @@ try_lower_for_in_int_range :: fn(
     // `int(0) :i32`. The counter's declared slot already widens to
     // bound_type, but the literal's own type carries the i32 default
     // unless the typer narrowed it ; rewrite the LoweredIntLit here.
-    lo :: widen_int_lit(recurse(ctx, range.lower), bound_type)
-    hi_raw :: widen_int_lit(recurse(ctx, range.upper), bound_type)
+    lo_value :: recurse(ctx, range.lower)
+    mark :: ctx.pending_awaits.len()
+    hi_value :: recurse(ctx, range.upper)
+    lo :: widen_int_lit(bind_one_before_hoisted(ctx, lo_value, mark), bound_type)
+    hi_raw :: widen_int_lit(hi_value, bound_type)
 
     // When a closure in the body captures the loop var and the body rebinds it,
     // the var lives in a cell, which the in-place counter cannot be. Run the

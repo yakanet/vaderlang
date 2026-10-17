@@ -12,27 +12,46 @@ import "vader/types"
 import "toolchain/span"
 
 lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
-    // A bare name has no operands ; a field or an element does.
-    if compound_assign_op(assign_stmt) != null && !(assign_stmt.target is IdentExpr) {
-        return lower_compound_assign(ctx, assign_stmt)
+    compound :: compound_assign_op(assign_stmt) != null
+    if takes_place_order(ctx, assign_stmt, compound) {
+        return lower_place_assign(ctx, assign_stmt, compound)
     }
     value :: lower_converted(ctx, assign_stmt.value)
     return lower_assign_one(ctx, assign_stmt.target, value, assign_stmt.span)
 }
 
-// `lhs op= rhs`, whose `lhs` node is both the target and the left operand of
-// `value`. The operands of that place — an index, a receiver that is not itself a
-// place — are evaluated once, ahead of the statement, then the write and the read
-// of `lhs op rhs` both lower them to that one value (`bound_operands`). The place
-// itself is read twice : a name, a field or an array element does no work.
-lower_compound_assign :: fn(ctx: FnLowerCtx, s: AssignStmt) -> LoweredStmt {
+// Whether the place's operands, or the read of a compound place, need an order of
+// their own : a compound place with operands uses them twice, and in async a value
+// may hoist an `await` past them. A bare name has no operands.
+takes_place_order :: fn(ctx: FnLowerCtx, s: AssignStmt, compound: bool) -> bool {
+    if s.target is IdentExpr {
+        return compound && ctx.in_async
+    }
+    return compound || ctx.in_async
+}
+
+// `target = value`, or `lhs op= rhs` whose `lhs` node is both the target and the
+// left operand of `value`. The operands of the place (an index, a receiver that
+// is not itself a place) are evaluated once, first, then the value ; the write,
+// and the read of `lhs op rhs`, both lower them to that one value
+// (`bound_operands`). The place itself is read at the write : a name, a field or
+// an array element does no work, and with `rhs` lowered ahead, nothing suspends
+// between the read and the write.
+lower_place_assign :: fn(ctx: FnLowerCtx, s: AssignStmt, compound: bool) -> LoweredStmt {
     // A compound assignment in a block of `rhs` gets a table of its own ; this one
     // is back before this statement's write lowers.
     outer :: ctx.bound_operands
     ctx.bound_operands = MutableMap<usize, LoweredExpr> {}
     stmts: LoweredStmt[]: []
     bind_place_operands(ctx, s.target, stmts)
-    stmts.push(lower_assign_one(ctx, s.target, lower_expr(ctx, s.value), s.span))
+    mark :: ctx.pending_awaits.len()
+    value_expr :: s.value
+    if compound && ctx.in_async && value_expr is BinaryExpr {
+        ctx.bound_operands[value_expr.right.id] = lower_expr(ctx, value_expr.right)
+    }
+    value :: lower_converted(ctx, s.value)
+    hoist_prelude_before(ctx, stmts, mark)
+    stmts.push(lower_assign_one(ctx, s.target, value, s.span))
     ctx.bound_operands = outer
     return wrap_stmts(s.span, stmts)
 }
@@ -72,7 +91,9 @@ bind_place_receiver :: fn(ctx: FnLowerCtx, receiver: Expr, out: LoweredStmt[]) -
 // `rhs` runs between the read and the write, so the operand stays in place only
 // when nothing can rebind it.
 bind_place_operand :: fn(ctx: FnLowerCtx, operand: Expr, out: LoweredStmt[]) -> void {
+    mark :: ctx.pending_awaits.len()
     value :: lower_expr(ctx, operand)
+    hoist_prelude_before(ctx, out, mark)
     bound :: bind_unless_invariant(ctx, value, "place_operand", span_of(value), out)
     ctx.bound_operands[operand.id] = bound
 }
@@ -257,29 +278,30 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
     // (`try_lower_virtual_call`). `s[i]` on a `string`, a user struct or a distinct
     // with its own `Index<I, T>` impl : a direct call to the member the key picked.
     callee :: recorded_target(ctx, expr, .IndexRead, target_type)
+    target_value :: lower_expr(ctx, expr.target)
+    mark :: ctx.pending_awaits.len()
+    index :: lower_expr(ctx, expr.index)
+    target :: bind_one_before_hoisted(ctx, target_value, mark)
     if callee is RecordedVirtual {
-        receiver :: lower_expr(ctx, expr.target)
-        index :: lower_expr(ctx, expr.index)
-        read :: virtual_call(ctx, callee.trait_key, METHOD_AT, receiver, [index], type, expr.span)
+        read :: virtual_call(ctx, callee.trait_key, METHOD_AT, target, [index], type, expr.span)
         return observed(ctx, expr, .IndexRead, read)
     }
     if callee is UfcsMember {
-        args: LoweredExpr[]: []
-        args.push(lower_expr(ctx, expr.target))
-        args.push(lower_expr(ctx, expr.index))
         at :: LoweredCall {
-            .span = expr.span, .type = type,
+            .span = expr.span,
+            .type = type,
             .callee = LoweredIdent {
                 .span = expr.span, .type = type, .symbol = callee.symbol,
             },
-            .args = args,
+            .args = [target, index],
         }
         return observed(ctx, expr, .IndexRead, at)
     }
     element :: LoweredIndex {
-        .span = expr.span, .type = type,
-        .target = lower_expr(ctx, expr.target),
-        .index  = lower_expr(ctx, expr.index),
+        .span = expr.span,
+        .type = type,
+        .target = target,
+        .index = index,
     }
     return observed(ctx, expr, .IndexRead, element)
 }
@@ -289,9 +311,10 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
 try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr | null {
     match expr.index as range_lit {
         is RangeExpr -> {
-            target_lowered :: lower_expr(ctx, expr.target)
-            lo_value :: cast_to_usize(lower_expr(ctx, range_lit.lower), range_lit.span)
-            hi_raw   :: cast_to_usize(lower_expr(ctx, range_lit.upper), range_lit.span)
+            parts :: lower_in_order(ctx, [expr.target, range_lit.lower, range_lit.upper])
+            target_lowered :: parts[0]
+            lo_value :: cast_to_usize(parts[1], range_lit.span)
+            hi_raw   :: cast_to_usize(parts[2], range_lit.span)
             hi_value :: adjust_hi_inclusive(hi_raw, range_lit.inclusive, range_lit.span)
             return LoweredArraySlice {
                 .span = expr.span,
@@ -312,8 +335,10 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
         span :: expr.span
         stmts: LoweredStmt[]: []
         // The target is evaluated ahead of the range, as written.
-        target_value :: lower_expr(ctx, expr.target)
+        first_value :: lower_expr(ctx, expr.target)
+        mark :: ctx.pending_awaits.len()
         range_value :: lower_expr(ctx, expr.index)
+        target_value :: bind_one_before_hoisted(ctx, first_value, mark)
         target :: if reads_independently(target_value, range_value) {
             target_value
         } else {

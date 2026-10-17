@@ -56,10 +56,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
     // the arg's underlying Type.
     folded :: try_fold_static_intrinsic(ctx, intrinsic, type)
     if folded != null { return folded }
-    args: LoweredExpr[]: []
-    for arg_expr in intrinsic.args {
-        args.push(lower_expr(ctx, arg_expr))
-    }
+    args :: lower_in_order(ctx, intrinsic.args)
     // Late-fold path : `@size_of` / `@align_of` / `@type_name` /
     // `@type_kind` over a single arg that lowered to a
     // `LoweredTypeConst` (e.g. via `@comptime for` substitution of

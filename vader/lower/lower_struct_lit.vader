@@ -29,7 +29,9 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
         match item {
             is StructLitField -> { provided[item.name] = item.value }
             is StructLitSpread -> {
+                mark :: ctx.pending_awaits.len()
                 value :: lower_expr(ctx, item.expr)
+                hoist_prelude_before(ctx, spread_stmts, mark)
                 sym :: fresh_synthetic_symbol(ctx, "spread")
                 spread_sym = sym
                 spread_stmts.push(LoweredLet {
@@ -39,7 +41,9 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
             }
         }
     }
+    fields_mark :: ctx.pending_awaits.len()
     fields :: build_struct_lit_fields(ctx, type, provided, lit, spread_sym)
+    hoist_prelude_before(ctx, spread_stmts, fields_mark)
     // Erased generic struct instance (`FilterIterator<Any>`, constructed inside
     // an erased generic fn body where T→Any) : the comptime instance harvest
     // only observes the CONCRETE call-site instance (`FilterIterator<i32>`), so
@@ -258,13 +262,31 @@ build_struct_lit_fields :: fn(
                 })
             }
         } else {
-            out.push(LoweredStructLitField {
-                .name = field_decl.name,
-                .value = lower_for_slot(ctx, user_value, field_type, user_value.span),
-            })
+            mark :: ctx.pending_awaits.len()
+            value :: lower_for_slot(ctx, user_value, field_type, user_value.span)
+            bind_fields_before_hoisted(ctx, out, mark)
+            out.push(LoweredStructLitField { .name = field_decl.name, .value = value })
         }
     }
     return out
+}
+
+// When the field value lowered since sink length `mark` hoisted an `await`, the
+// fields lowered before it are kept ahead of it (`bind_before_hoisted`).
+bind_fields_before_hoisted :: fn(
+    ctx: FnLowerCtx, fields: LoweredStructLitField[], mark: usize,
+) -> void {
+    if ctx.pending_awaits.len() == mark {
+        return
+    }
+    values: LoweredExpr[]: []
+    for field in fields {
+        values.push(field.value)
+    }
+    bind_before_hoisted(ctx, values, mark)
+    for i in 0..<fields.len() {
+        fields[i] = LoweredStructLitField { .name = fields[i].name, .value = values[i] }
+    }
 }
 
 // A literal's field type : its declaration's, through the entry's substitution.
@@ -335,9 +357,10 @@ fallback_provided_order :: fn(ctx: FnLowerCtx, lit: StructLitExpr) -> LoweredStr
     for item in lit.items {
         match item {
             is StructLitField -> {
-                out.push(LoweredStructLitField {
-                    .name = item.name, .value = lower_expr(ctx, item.value),
-                })
+                mark :: ctx.pending_awaits.len()
+                value :: lower_expr(ctx, item.value)
+                bind_fields_before_hoisted(ctx, out, mark)
+                out.push(LoweredStructLitField { .name = item.name, .value = value })
             }
             is StructLitSpread -> {}
         }
@@ -351,18 +374,16 @@ lower_seq_lit :: fn(ctx: FnLowerCtx, lit: SeqLitExpr, type: Type) -> LoweredExpr
     // newtypes, via `tuple_backing`) become struct lits with synthetic
     // `_0` / `_1` / ... fields ; the bytecode emit reads them off the same
     // struct layout the typer pins (distinct wrappers strip at the emit boundary).
+    elements :: lower_in_order(ctx, lit.elements)
     if tuple_backing(type) != null {
         fields: LoweredStructLitField[]: []
-        for i in 0..<lit.elements.len() {
+        for i in 0..<elements.len() {
             fields.push(LoweredStructLitField {
                 .name = "_${i}",
-                .value = lower_expr(ctx, lit.elements[i]),
+                .value = elements[i],
             })
         }
         return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
-    } else {
-        elements: LoweredExpr[]: []
-        for element in lit.elements { elements.push(lower_expr(ctx, element)) }
-        return LoweredArrayLit { .span = lit.span, .type = type, .elements = elements }
     }
+    return LoweredArrayLit { .span = lit.span, .type = type, .elements = elements }
 }

@@ -117,7 +117,10 @@ build_ufcs_args :: fn(
     } else {
         args.push(receiver)
     }
-    args.push_all(lower_call_args(ctx, call.args, params, first_slot))
+    mark :: ctx.pending_awaits.len()
+    rest :: lower_call_args(ctx, call.args, params, first_slot)
+    args[0] = bind_one_before_hoisted(ctx, args[0], mark)
+    args.push_all(rest)
     return args
 }
 

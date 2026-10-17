@@ -161,7 +161,7 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             return LoweredIdent { .span = expr.span, .type = type, .symbol = target }
         }
         is LambdaExpr -> { return lower_lambda(ctx, expr, lower_block) }
-        is RangeExpr -> { return lower_range_expr(ctx, expr, type, lower_expr) }
+        is RangeExpr -> { return lower_range_expr(ctx, expr, type) }
         is DotVariantExpr -> { return lower_dot_variant(ctx, expr, type) }
         // Type-position expressions in value position — earlier phases
         // emit T3035 ; the lowerer just emits a stub.

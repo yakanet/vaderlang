@@ -1,0 +1,94 @@
+// The operands of one expression run left to right even when a later one
+// awaits : the `await` is hoisted ahead of the statement, so what precedes it is
+// computed first. Each `note` prints when it runs.
+module "snippet"
+
+import "std/io"
+
+Ready :: struct<T> { v: T }
+Ready<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended { return self.v }
+}
+
+note :: fn(tag: string, v: i32) -> i32 {
+    println("  ${tag}")
+    return v
+}
+
+later :: fn(tag: string, v: i32) -> Async<i32> {
+    println("  ${tag} (awaited)")
+    return Ready<i32> { .v = v }
+}
+
+Pair :: struct {
+    left: i32
+    right: i32
+    extra: i32
+}
+
+Counter :: struct { base: i32 }
+
+add :: fn(c: Counter, n: i32) -> i32 = c.base + n
+
+pair :: fn(a: i32, b: i32) -> i32 = a * 10 + b
+
+make :: fn() -> Pair = Pair {
+    .left = note("spread", 1),
+    .right = 0,
+    .extra = 9,
+}
+
+counter :: fn() -> Counter = Counter { .base = note("receiver", 100) }
+
+pair_of :: fn(a: i32, b: i32) -> [i32, i32] = [a, b]
+
+list :: fn(xs: i32[]) -> i32[] {
+    println("  list")
+    return xs
+}
+
+run :: fn() -> Async<i32> {
+    println("call arguments")
+    println("${pair(note("first", 1), await later("second", 2))}")
+    println("operator")
+    println("${note("left", 3) + await later("right", 4)}")
+    println("interpolation")
+    println("${note("a", 5)} ${await later("b", 6)}")
+    println("array")
+    xs :: [note("x0", 7), await later("x1", 8)]
+    println("${xs[0]} ${xs[1]}")
+    println("index")
+    println("${xs[note("at", 1) - 1 + await later("offset", 1)]}")
+    println("method receiver")
+    println("${counter().add(await later("argument", 5))}")
+    println("struct literal")
+    p :: Pair { ...make(), .right = await later("right field", 2) }
+    println("${p.left} ${p.right} ${p.extra}")
+    println("range")
+    r :: note("low", 1)..<await later("high", 3)
+    println("${r.start} ${r.end}")
+    println("compound assignment")
+    ys :: [10, 20, 30]
+    ys[note("slot", 1)] += await later("added", 5)
+    total := 1
+    total += await later("total", 2)
+    println("${ys[1]} ${total}")
+    println("assignment")
+    ys[note("slot", 2)] = await later("stored", 7)
+    println("${ys[2]}")
+    println("push")
+    list(ys).push(await later("pushed", 9))
+    println("${ys.len()} ${ys[3]}")
+    println("for bounds")
+    for i in note("from", 0)..<await later("to", 2) {
+        println("    ${i}")
+    }
+    println("tuple equality")
+    same :: pair_of(note("t0", 1), 2) == pair_of(await later("t1", 1), 2)
+    println("${same}")
+    return 0
+}
+
+main :: fn() -> i32 {
+    return await run()
+}
