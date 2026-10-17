@@ -1,48 +1,28 @@
 # Lower
 
 ## snippet
-  fn snippet$i32$Tagger$tag(self: i32) -> i32
-    return
-      mul_checked :i32
-        l:
-          self :i32
-        r:
-          int(10) :i32
-  fn snippet$main() -> i32
-    return
-      call :i32
-        callee:
-          snippet$apply_tag__i32 :i32
-        arg0:
-          int(7) :i32
-  fn snippet$apply_tag__i32(x: i32) -> i32
-    return
-      add_checked :i32
-        l:
-          call :i32
-            callee:
-              snippet$i32$Tagger$tag :i32
-            arg0:
-              x :i32
-        r:
-          call :i32
-            callee:
-              snippet$i32$Tagger$tag :i32
-            arg0:
-              x :i32
-  vtable snippet$Tagger.tag for i32  snippet$i32$Tagger$tag
+  snippet.i32.tag :: fn(self: i32) -> i32 {  // snippet$i32$Tagger$tag
+      return self * 10
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      return snippet.apply_tag<i32>(7)
+  }
+  snippet.apply_tag<i32> :: fn(x: i32) -> i32 {  // snippet$apply_tag__i32
+      return snippet.i32.tag(x) + snippet.i32.tag(x)
+  }
+  vtable snippet.Tagger.tag for i32  snippet.i32.tag  // snippet$i32$Tagger$tag
 
 ## lowered in dependencies
   std/core
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize

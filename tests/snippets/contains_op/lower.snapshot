@@ -1,259 +1,93 @@
 # Lower
 
 ## snippet
-  struct snippet$DigitSet { bits: i32 }
-  fn snippet$DigitSet$Contains$contains(self: DigitSet, value: i32) -> bool
-    if :void
-      cond:
-        or :bool
-          l:
-            lt :bool
-              l:
-                value :i32
-              r:
-                int(0) :i32
-          r:
-            gt :bool
-              l:
-                value :i32
-              r:
-                int(9) :i32
-      then:
-        return false
-    let mask: i32 =
-      shl :i32
-        l:
-          int(1) :i32
-        r:
-          value :i32
-    return
-      neq :bool
-        l:
-          bitand :i32
-            l:
-              .bits :i32
-                self :DigitSet
-            r:
-              mask :i32
-        r:
-          int(0) :i32
-  fn snippet$main() -> i32
-    if :void
-      cond:
-        call :bool
-          callee:
-            std_core$Range$Contains$contains__i32 :bool
-          arg0:
-            Range<i32> {
-              start: int(0) :i32
-              end: int(10) :i32
-              inclusive: false
-              done: false
-              cursor: int(0) :i32
-            }
-          arg1:
-            int(5) :i32
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            "range yes" :string
-    if :void
-      cond:
-        not :bool
-          call :bool
-            callee:
-              std_core$Range$Contains$contains__i32 :bool
-            arg0:
-              Range<i32> {
-                start: int(0) :i32
-                end: int(10) :i32
-                inclusive: false
-                done: false
-                cursor: int(0) :i32
-              }
-            arg1:
-              int(10) :i32
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            "range !in yes" :string
-    if :void
-      cond:
-        call :bool
-          callee:
-            std_core$Range$Contains$contains__i32 :bool
-          arg0:
-            Range<i32> {
-              start: int(0) :i32
-              end: int(10) :i32
-              inclusive: true
-              done: false
-              cursor: int(0) :i32
-            }
-          arg1:
-            int(10) :i32
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            "range incl yes" :string
-    let s: DigitSet =
-      DigitSet {
-        bits:
-          bitor :i32
-            l:
-              bitor :i32
-                l:
-                  shl :i32
-                    l:
-                      int(1) :i32
-                    r:
-                      int(1) :i32
-                r:
-                  shl :i32
-                    l:
-                      int(1) :i32
-                    r:
-                      int(4) :i32
-            r:
-              shl :i32
-                l:
-                  int(1) :i32
-                r:
-                  int(7) :i32
+  snippet.DigitSet :: struct { bits: i32 }  // snippet$DigitSet
+  snippet.DigitSet.contains :: fn(self: DigitSet, value: i32) -> bool {  // snippet$DigitSet$Contains$contains
+      if (value < 0) || (value > 9) {
+          return false
       }
-    if :void
-      cond:
-        call :bool
-          callee:
-            snippet$DigitSet$Contains$contains :bool
-          arg0:
-            s :DigitSet
-          arg1:
-            int(4) :i32
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            "set has 4" :string
-    if :void
-      cond:
-        not :bool
-          call :bool
-            callee:
-              snippet$DigitSet$Contains$contains :bool
-            arg0:
-              s :DigitSet
-            arg1:
-              int(5) :i32
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            "set lacks 5" :string
-    if :void
-      cond:
-        call :bool
-          callee:
-            snippet$DigitSet$Contains$contains :bool
-          arg0:
-            s :DigitSet
-          arg1:
-            int(7) :i32
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            "set has 7" :string
-    return int(0) :i32
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
-  vtable std_core$Contains.contains for DigitSet  snippet$DigitSet$Contains$contains
+      mask: i32 = 1 << value
+      return (self.bits & mask) != 0
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      if std.core.Range<i32>.contains(Range<i32> {
+          .start = 0,
+          .end = 10,
+          .inclusive = false,
+          .done = false,
+          .cursor = 0,
+      }, 5) {
+          std.io.println<string>("range yes")
+      }
+      if !std.core.Range<i32>.contains(Range<i32> {
+          .start = 0,
+          .end = 10,
+          .inclusive = false,
+          .done = false,
+          .cursor = 0,
+      }, 10) {
+          std.io.println<string>("range !in yes")
+      }
+      if std.core.Range<i32>.contains(Range<i32> {
+          .start = 0,
+          .end = 10,
+          .inclusive = true,
+          .done = false,
+          .cursor = 0,
+      }, 10) {
+          std.io.println<string>("range incl yes")
+      }
+      s: DigitSet = DigitSet { .bits = ((1 << 1) | (1 << 4)) | (1 << 7) }
+      if snippet.DigitSet.contains(s, 4) {
+          std.io.println<string>("set has 4")
+      }
+      if !snippet.DigitSet.contains(s, 5) {
+          std.io.println<string>("set lacks 5")
+      }
+      if snippet.DigitSet.contains(s, 7) {
+          std.io.println<string>("set has 7")
+      }
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable std.core.Contains.contains for DigitSet  snippet.DigitSet.contains  // snippet$DigitSet$Contains$contains
 
 ## lowered in dependencies
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

@@ -1,181 +1,43 @@
 # Lower
 
 ## snippet
-  fn snippet$describe(r: Celsius | Tag) -> string
-    ~>
-      block :string
-        ~>
-          if :string
-            cond:
-              is Celsius :bool
-                r :Celsius | Tag
-            then:
-              ~>
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    call :string
-                      callee:
-                        std_core$f64$Display$to_string :string
-                      arg0:
-                        cast → f64
-                          cast → Celsius
-                            r :Celsius | Tag
-                  arg1:
-                    " C" :string
-            else:
-              ~>
-                if :string
-                  cond:
-                    is Tag :bool
-                      r :Celsius | Tag
-                  then:
-                    ~>
-                      call :string
-                        callee:
-                          concat_2 :string
-                        arg0:
-                          "tag " :string
-                        arg1:
-                          cast → string
-                            cast → Tag
-                              r :Celsius | Tag
-                  else:
-                    ~>
-                      unreachable("non-exhaustive match (T3013 should have caught this)") :string
-  fn snippet$annotate(r: f64 | Note) -> string
-    ~>
-      block :string
-        ~>
-          if :string
-            cond:
-              is f64 :bool
-                r :f64 | Note
-            then:
-              ~>
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    call :string
-                      callee:
-                        std_core$f64$Display$to_string :string
-                      arg0:
-                        cast → f64
-                          r :f64 | Note
-                  arg1:
-                    " C" :string
-            else:
-              ~>
-                if :string
-                  cond:
-                    is Note :bool
-                      r :f64 | Note
-                  then:
-                    ~>
-                      call :string
-                        callee:
-                          concat_2 :string
-                        arg0:
-                          "note " :string
-                        arg1:
-                          cast → string
-                            cast → Note
-                              r :f64 | Note
-                  else:
-                    ~>
-                      unreachable("non-exhaustive match (T3013 should have caught this)") :string
-  fn snippet$main() -> i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            describe :fn(Celsius | Tag) -> string
-          arg0:
-            cast → Celsius
-              float(21.5) :f64
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            describe :fn(Celsius | Tag) -> string
-          arg0:
-            cast → Tag
-              "cold" :string
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            annotate :fn(f64 | Note) -> string
-          arg0:
-            float(18.0) :f64
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            annotate :fn(f64 | Note) -> string
-          arg0:
-            cast → Note
-              "windy" :string
-    return int(0) :i32
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
+  snippet.describe :: fn(r: Celsius | Tag) -> string {  // snippet$describe
+      {
+          if r is Celsius {
+              concat_2(std.core.f64.to_string(f64(Celsius(r))), " C")
+          } else if r is Tag {
+              concat_2("tag ", string(Tag(r)))
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  snippet.annotate :: fn(r: f64 | Note) -> string {  // snippet$annotate
+      {
+          if r is f64 {
+              concat_2(std.core.f64.to_string(f64(r)), " C")
+          } else if r is Note {
+              concat_2("note ", string(Note(r)))
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.io.println<string>(snippet.describe(Celsius(21.5)))
+      std.io.println<string>(snippet.describe(Tag("cold")))
+      std.io.println<string>(snippet.annotate(18.0))
+      std.io.println<string>(snippet.annotate(Note("windy")))
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
 
 ## snippet/units
 
@@ -183,58 +45,58 @@
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$memory_copy
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$b2i
-    fn std_core$b2u
-    fn std_core$d2d
-    fn std_core$decimal_width
-    fn std_core$f64$Display$to_string
-    fn std_core$f64$FloatBits$to_bits
-    fn std_core$format_f64
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$insert_point
-    fn std_core$log10_pow2
-    fn std_core$log10_pow5
-    fn std_core$mul_shift_all_64
-    fn std_core$multiple_of_power_of_2
-    fn std_core$multiple_of_power_of_5
-    fn std_core$pow5_factor
-    fn std_core$pow5bits
-    fn std_core$render
-    fn std_core$shiftright128
-    fn std_core$three_way
-    fn std_core$umul128
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_decimal
-    fn std_core$write_digits
-    fn std_core$write_unsigned
-    fn std_core$write_zeros
-    struct std_core$Buffer
-    struct std_core$Dec64
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Dec64  // std_core$Dec64
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

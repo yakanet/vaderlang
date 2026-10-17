@@ -6,143 +6,82 @@
     const PRIMES: i32[]  data pool #1, built again by __const_snippet$PRIMES for a use that reads it fresh
     const START: Counter  data pool #0, element 0, built again by __const_snippet$START for a use that reads it fresh
     const STARTS: Counter[]  inline
-  struct snippet$Counter { n: i32 }
-  fn __const_snippet$START() -> Counter
-    ~>
-      Counter {
-        n: int(1) :i32
-      }
-  fn __const_snippet$PRIMES() -> i32[]
-    ~>
-      array :i32[]
-        int(2) :i32
-        int(3) :i32
-        int(5) :i32
-  const snippet$STARTS: Counter[] =
-    array :Counter[]
-      START :Counter
-      START :Counter
-  const snippet$ALIAS: Counter =
-    START :Counter
-  fn snippet$start() -> Counter
-    ~>
-      START :Counter
-  fn snippet$first_prime() -> i32
-    ~>
-      index :i32
-        on:
-          PRIMES :i32[]
-        ix:
-          int(0) :i32
-  fn snippet$primes() -> i32[]
-    ~>
-      PRIMES :i32[]
-  fn snippet$starts() -> Counter[]
-    ~>
-      STARTS :Counter[]
-  fn snippet$alias() -> Counter
-    ~>
-      ALIAS :Counter
-  fn snippet$bump(c: Counter) -> void
-    assign
-      target:
-        .n :i32
-          c :Counter
-      value:
-        add_checked :i32
-          l:
-            .n :i32
-              c :Counter
-          r:
-            int(1) :i32
-  fn snippet$main() -> i32
-    let c: Counter =
-      Counter {
-        n: int(5) :i32
-      }
-    call :void
-      callee:
-        bump :fn(Counter) -> void
-      arg0:
-        c :Counter
-    call :void
-      callee:
-        std_io$println__i32 :void
-      arg0:
-        .n :i32
-          c :Counter
-    call :void
-      callee:
-        std_io$println__i32 :void
-      arg0:
-        .n :i32
-          call :Counter
-            callee:
-              start :fn() -> Counter
-    call :void
-      callee:
-        std_io$println__i32 :void
-      arg0:
-        call :i32
-          callee:
-            first_prime :fn() -> i32
-    call :void
-      callee:
-        std_io$println__usize :void
-      arg0:
-        LoweredArrayLen
-    call :void
-      callee:
-        std_io$println__usize :void
-      arg0:
-        LoweredArrayLen
-    call :void
-      callee:
-        std_io$println__i32 :void
-      arg0:
-        .n :i32
-          call :Counter
-            callee:
-              alias :fn() -> Counter
-    return int(0) :i32
+  snippet.Counter :: struct { n: i32 }  // snippet$Counter
+  __const_snippet$START :: fn() -> Counter {
+      Counter { .n = 1 }
+  }
+  __const_snippet$PRIMES :: fn() -> i32[] {
+      [2, 3, 5] :i32[]
+  }
+  snippet.STARTS: Counter[]: [@fresh(snippet.START), @fresh(snippet.START)] :Counter[]  // snippet$STARTS
+  snippet.ALIAS: Counter: @fresh(snippet.START)  // snippet$ALIAS
+  snippet.start :: fn() -> Counter {  // snippet$start
+      @fresh(snippet.START)
+  }
+  snippet.first_prime :: fn() -> i32 {  // snippet$first_prime
+      snippet.PRIMES[0]
+  }
+  snippet.primes :: fn() -> i32[] {  // snippet$primes
+      @fresh(snippet.PRIMES)
+  }
+  snippet.starts :: fn() -> Counter[] {  // snippet$starts
+      @fresh(snippet.STARTS)
+  }
+  snippet.alias :: fn() -> Counter {  // snippet$alias
+      @fresh(snippet.ALIAS)
+  }
+  snippet.bump :: fn(c: Counter) -> void {  // snippet$bump
+      c.n = c.n + 1
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      c: Counter = Counter { .n = 5 }
+      snippet.bump(c)
+      std.io.println<i32>(c.n)
+      std.io.println<i32>(snippet.start().n)
+      std.io.println<i32>(snippet.first_prime())
+      std.io.println<usize>(@array.len(snippet.primes()))
+      std.io.println<usize>(@array.len(snippet.starts()))
+      std.io.println<i32>(snippet.alias().n)
+      return 0
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$finish_buffer
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$new_byte_buffer
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__i32
-    fn std_io$println__usize
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<i32>  // std_io$println__i32
+    fn std.io.println<usize>  // std_io$println__usize
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

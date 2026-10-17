@@ -1,1049 +1,258 @@
 # Lower
 
 ## snippet
-  struct snippet$Sq { s: f64 }
-  struct snippet$Circle { r: f64 }
-  fn snippet$Sq$Shape$area(self: Sq) -> f64
-    ~>
-      mul_checked :f64
-        l:
-          .s :f64
-            self :Sq
-        r:
-          .s :f64
-            self :Sq
-  fn snippet$Circle$Shape$area(self: Circle) -> f64
-    ~>
-      mul_checked :f64
-        l:
-          mul_checked :f64
-            l:
-              float(3.0) :f64
-            r:
-              .r :f64
-                self :Circle
-        r:
-          .r :f64
-            self :Circle
-  fn snippet$area_of(u: Circle | f64[] | Sq) -> f64
-    ~>
-      vcall snippet$Shape.area :f64
-        recv:
-          u :Circle | f64[] | Sq
-  fn snippet$i32$Loud$loud(self: i32) -> string
-    ~>
-      block :string
-        let __buf_0: Buffer =
-          call :Buffer
-            callee:
-              new_byte_buffer :Buffer
-            arg0:
-              int(24) :usize
-        let __off_1: usize = int(0) :usize
-        assign
-          target:
-            __off_1 :usize
-          value:
-            call :usize
-              callee:
-                write_string_at :usize
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-              arg2:
-                "INT " :string
-        assign
-          target:
-            __off_1 :usize
-          value:
-            call :usize
-              callee:
-                write_int :usize
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-              arg2:
-                cast → i64
-                  self :i32
-        ~>
-          call :string
-            callee:
-              finish_buffer :string
-            arg0:
-              __buf_0 :Buffer
-            arg1:
-              __off_1 :usize
-  fn snippet$string$Loud$loud(self: string) -> string
-    ~>
-      call :string
-        callee:
-          concat_2 :string
-        arg0:
-          "STR " :string
-        arg1:
-          self :string
-  fn snippet$shout(x: i32 | string) -> string
-    ~>
-      vcall snippet$Loud.loud :string
-        recv:
-          x :i32 | string
-  struct snippet$Log { lines: string[] }
-  fn snippet$Log$IndexSet$set_at(self: Log, k: string, v: i32) -> void
-    ~>
-      LoweredArrayPush
-  fn snippet$put(target: Log | MutableMap<string, i32>) -> void
-    vcall std_core$IndexSet.set_at :void
-      recv:
-        target :Log | MutableMap<string, i32>
-      arg0:
-        "k" :string
-      arg1:
-        int(1) :i32
-    vcall std_core$IndexSet.set_at :void
-      recv:
-        target :Log | MutableMap<string, i32>
-      arg0:
-        "j" :string
-      arg1:
-        int(2) :i32
-  struct snippet$Tally { counts: MutableMap<string, i32> }
-  fn snippet$Tally$Index$at(self: Tally, k: string) -> i32
-    ~>
-      block :i32
-        let __coalesce_0: i32 | null =
-          call :i32 | null
-            callee:
-              std_collections$MutableMap$Index$at__string__i32 :i32 | null
-            arg0:
-              .counts :MutableMap<string, i32>
-                self :Tally
-            arg1:
-              k :string
-        ~>
-          if :i32
-            cond:
-              is null :bool
-                __coalesce_0 :i32 | null
-            then:
-              ~>
-                int(0) :i32
-            else:
-              ~>
-                cast → i32
-                  __coalesce_0 :i32 | null
-  fn snippet$Tally$IndexSet$set_at(self: Tally, k: string, v: i32) -> void
-    call :void
-      callee:
-        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
-      arg0:
-        .counts :MutableMap<string, i32>
-          self :Tally
-      arg1:
-        k :string
-      arg2:
-        mul_checked :i32
-          l:
-            v :i32
-          r:
-            int(10) :i32
-  struct snippet$Cell { cells: i32[] }
-  fn snippet$Cell$Index$at(self: Cell, k: string) -> i32
-    ~>
-      index :i32
-        on:
-          .cells :i32[]
-            self :Cell
-        ix:
-          int(0) :i32
-  fn snippet$Cell$IndexSet$set_at(self: Cell, k: string, v: i32) -> void
-    assign
-      target:
-        index :i32
-          on:
-            .cells :i32[]
-              self :Cell
-          ix:
-            int(0) :i32
-      value:
-        v :i32
-  fn snippet$bump(u: Cell | Tally) -> i32
-    vcall std_core$IndexSet.set_at :void
-      recv:
-        u :Cell | Tally
-      arg0:
-        "a" :string
-      arg1:
-        add_checked :i32
-          l:
-            vcall std_core$Index.at :i32
-              recv:
-                u :Cell | Tally
-              arg0:
-                "a" :string
-          r:
-            int(1) :i32
-    return
-      vcall std_core$Index.at :i32
-        recv:
-          u :Cell | Tally
-        arg0:
-          "a" :string
-  struct snippet$Odd { n: i64 }
-  fn snippet$Odd$Contains$contains(self: Odd, x: i64) -> bool
-    ~>
-      eq :bool
-        l:
-          mod :i64
-            l:
-              x :i64
-            r:
-              int(2) :i64
-        r:
-          int(1) :i64
-  fn snippet$holds(c: i64[] | Odd, k: i64) -> bool
-    ~>
-      vcall std_core$Contains.contains :bool
-        recv:
-          c :i64[] | Odd
-        arg0:
-          k :i64
-  fn snippet$lacks(c: i64[] | Odd, k: i64) -> bool
-    ~>
-      not :bool
-        vcall std_core$Contains.contains :bool
-          recv:
-            c :i64[] | Odd
-          arg0:
-            k :i64
-  fn snippet$holds_value(c: Contains<i64>, k: i64) -> bool
-    ~>
-      vcall std_core$Contains.contains :bool
-        recv:
-          c :Contains<i64>
-        arg0:
-          k :i64
-  struct snippet$Money { c: i32 }
-  fn snippet$Money$Add$add(self: Money, k: i32) -> Money
-    ~>
-      Money {
-        c:
-          add_checked :i32
-            l:
-              .c :i32
-                self :Money
-            r:
-              k :i32
+  snippet.Sq :: struct { s: f64 }  // snippet$Sq
+  snippet.Circle :: struct { r: f64 }  // snippet$Circle
+  snippet.Sq.area :: fn(self: Sq) -> f64 {  // snippet$Sq$Shape$area
+      self.s * self.s
+  }
+  snippet.Circle.area :: fn(self: Circle) -> f64 {  // snippet$Circle$Shape$area
+      (3.0 * self.r) * self.r
+  }
+  snippet.area_of :: fn(u: Circle | f64[] | Sq) -> f64 {  // snippet$area_of
+      @vcall(snippet.Shape.area, u)
+  }
+  snippet.i32.loud :: fn(self: i32) -> string {  // snippet$i32$Loud$loud
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(24))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "INT ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(self))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.string.loud :: fn(self: string) -> string {  // snippet$string$Loud$loud
+      concat_2("STR ", self)
+  }
+  snippet.shout :: fn(x: i32 | string) -> string {  // snippet$shout
+      @vcall(snippet.Loud.loud, x)
+  }
+  snippet.Log :: struct { lines: string[] }  // snippet$Log
+  snippet.Log.set_at :: fn(self: Log, k: string, v: i32) -> void {  // snippet$Log$IndexSet$set_at
+      @array.push(self.lines, {
+          __p_0: string = k
+          __buf_1: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_0))
+          __off_2: usize = 0
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, "=")
+          __off_2 = std.core.write_int(__buf_1, __off_2, i64(v))
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string)
+  }
+  snippet.put :: fn(target: Log | MutableMap<string, i32>) -> void {  // snippet$put
+      @vcall(std.core.IndexSet.set_at, target, "k", 1)
+      @vcall(std.core.IndexSet.set_at, target, "j", 2)
+  }
+  snippet.Tally :: struct { counts: MutableMap<string, i32> }  // snippet$Tally
+  snippet.Tally.at :: fn(self: Tally, k: string) -> i32 {  // snippet$Tally$Index$at
+      {
+          __coalesce_0: i32 | null = std.collections.MutableMap<string, i32>.at(self.counts, k)
+          if __coalesce_0 is null { 0 } else { i32(__coalesce_0) } :i32
+      } :i32
+  }
+  snippet.Tally.set_at :: fn(self: Tally, k: string, v: i32) -> void {  // snippet$Tally$IndexSet$set_at
+      std.collections.MutableMap<string, i32>.set_at(self.counts, k, v * 10)
+  }
+  snippet.Cell :: struct { cells: i32[] }  // snippet$Cell
+  snippet.Cell.at :: fn(self: Cell, k: string) -> i32 {  // snippet$Cell$Index$at
+      self.cells[0]
+  }
+  snippet.Cell.set_at :: fn(self: Cell, k: string, v: i32) -> void {  // snippet$Cell$IndexSet$set_at
+      self.cells[0] = v
+  }
+  snippet.bump :: fn(u: Cell | Tally) -> i32 {  // snippet$bump
+      @vcall(std.core.IndexSet.set_at, u, "a", @vcall(std.core.Index.at, u, "a") + 1)
+      return @vcall(std.core.Index.at, u, "a")
+  }
+  snippet.Odd :: struct { n: i64 }  // snippet$Odd
+  snippet.Odd.contains :: fn(self: Odd, x: i64) -> bool {  // snippet$Odd$Contains$contains
+      (x % i64(2)) == i64(1)
+  }
+  snippet.holds :: fn(c: i64[] | Odd, k: i64) -> bool {  // snippet$holds
+      @vcall(std.core.Contains.contains, c, k)
+  }
+  snippet.lacks :: fn(c: i64[] | Odd, k: i64) -> bool {  // snippet$lacks
+      !@vcall(std.core.Contains.contains, c, k)
+  }
+  snippet.holds_value :: fn(c: Contains<i64>, k: i64) -> bool {  // snippet$holds_value
+      @vcall(std.core.Contains.contains, c, k)
+  }
+  snippet.Money :: struct { c: i32 }  // snippet$Money
+  snippet.Money.add :: fn(self: Money, k: i32) -> Money {  // snippet$Money$Add$add
+      Money { .c = self.c + k }
+  }
+  snippet.Money.to_string :: fn(self: Money) -> string {  // snippet$Money$Display$to_string
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(21))
+          __off_1: usize = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(self.c))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "c")
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.plus_five :: fn(a: i32 | Money) -> i32 | Money {  // snippet$plus_five
+      @vcall(std.core.Add.add, a, 5)
+  }
+  snippet.plus_one :: fn(a: Add<i32>) -> string {  // snippet$plus_one
+      sum: Add<i32> = @vcall(std.core.Add.add, a, 1)
+      return if sum is Money { snippet.Money.to_string(sum) } else { "?" } :string
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.io.println<string>(concat_5(std.core.f64.to_string(snippet.area_of(Sq { .s = 2.0 })), " ", std.core.f64.to_string(snippet.area_of(Circle { .r = 1.0 })), " ", std.core.f64.to_string(snippet.area_of([1.0] :f64[]))))
+      std.io.println<string>(concat_3(snippet.shout(3), " ", snippet.shout("a")))
+      m: MutableMap<string, i32> = MutableMap<string, i32> {
+          .ekeys = [] :string[],
+          .evals = [] :i32[],
+          .index = [] :i32[],
+          .mask = usize(0),
+          .size = usize(0),
+          .tombs = usize(0),
       }
-  fn snippet$Money$Display$to_string(self: Money) -> string
-    ~>
-      block :string
-        let __buf_0: Buffer =
-          call :Buffer
-            callee:
-              new_byte_buffer :Buffer
-            arg0:
-              int(21) :usize
-        let __off_1: usize = int(0) :usize
-        assign
-          target:
-            __off_1 :usize
-          value:
-            call :usize
-              callee:
-                write_int :usize
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-              arg2:
-                cast → i64
-                  .c :i32
-                    self :Money
-        assign
-          target:
-            __off_1 :usize
-          value:
-            call :usize
-              callee:
-                write_string_at :usize
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-              arg2:
-                "c" :string
-        ~>
-          call :string
-            callee:
-              finish_buffer :string
-            arg0:
-              __buf_0 :Buffer
-            arg1:
-              __off_1 :usize
-  fn snippet$plus_five(a: i32 | Money) -> i32 | Money
-    ~>
-      vcall std_core$Add.add :i32 | Money
-        recv:
-          a :i32 | Money
-        arg0:
-          int(5) :i32
-  fn snippet$plus_one(a: Add<i32>) -> string
-    let sum: Add<i32> =
-      vcall std_core$Add.add :Add<i32>
-        recv:
-          a :Add<i32>
-        arg0:
-          int(1) :i32
-    return
-      if :string
-        cond:
-          is Money :bool
-            sum :Add<i32>
-        then:
-          ~>
-            call :string
-              callee:
-                snippet$Money$Display$to_string :string
-              arg0:
-                sum :Money
-        else:
-          ~>
-            "?" :string
-  fn snippet$main() -> i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            concat_5 :string
-          arg0:
-            call :string
-              callee:
-                std_core$f64$Display$to_string :string
-              arg0:
-                call :f64
-                  callee:
-                    area_of :fn(Circle | f64[] | Sq) -> f64
-                  arg0:
-                    Sq {
-                      s: float(2.0) :f64
-                    }
-          arg1:
-            " " :string
-          arg2:
-            call :string
-              callee:
-                std_core$f64$Display$to_string :string
-              arg0:
-                call :f64
-                  callee:
-                    area_of :fn(Circle | f64[] | Sq) -> f64
-                  arg0:
-                    Circle {
-                      r: float(1.0) :f64
-                    }
-          arg3:
-            " " :string
-          arg4:
-            call :string
-              callee:
-                std_core$f64$Display$to_string :string
-              arg0:
-                call :f64
-                  callee:
-                    area_of :fn(Circle | f64[] | Sq) -> f64
-                  arg0:
-                    array :f64[]
-                      float(1.0) :f64
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            concat_3 :string
-          arg0:
-            call :string
-              callee:
-                shout :fn(i32 | string) -> string
-              arg0:
-                int(3) :i32
-          arg1:
-            " " :string
-          arg2:
-            call :string
-              callee:
-                shout :fn(i32 | string) -> string
-              arg0:
-                "a" :string
-    let m: MutableMap<string, i32> =
-      MutableMap<string, i32> {
-        ekeys:
-          array :string[]
-        evals:
-          array :i32[]
-        index:
-          array :i32[]
-        mask: int(0) :usize
-        size: int(0) :usize
-        tombs: int(0) :usize
+      snippet.put(m)
+      l: Log = Log { .lines = [] :string[] }
+      snippet.put(l)
+      std.io.println<string>({
+          __p_0: string = l.lines[1]
+          __buf_1: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_0))
+          __off_2: usize = 0
+          __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(std.collections.len<string, i32>(m)))
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string)
+      t: Tally = Tally {
+          .counts = MutableMap<string, i32> {
+              .ekeys = [] :string[],
+              .evals = [] :i32[],
+              .index = [] :i32[],
+              .mask = usize(0),
+              .size = usize(0),
+              .tombs = usize(0),
+          },
       }
-    call :void
-      callee:
-        put :fn(Log | MutableMap<string, i32>) -> void
-      arg0:
-        m :MutableMap<string, i32>
-    let l: Log =
-      Log {
-        lines:
-          array :string[]
-      }
-    call :void
-      callee:
-        put :fn(Log | MutableMap<string, i32>) -> void
-      arg0:
-        l :Log
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __p_0: string =
-            index :string
-              on:
-                .lines :string[]
-                  l :Log
-              ix:
-                int(1) :i32
-          let __buf_1: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                add :usize
-                  l:
-                    int(21) :usize
-                  r:
-                    call :usize
-                      callee:
-                        byte_len :usize
-                      arg0:
-                        __p_0 :string
-          let __off_2: usize = int(0) :usize
-          assign
-            target:
-              __off_2 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_1 :Buffer
-                arg1:
-                  __off_2 :usize
-                arg2:
-                  cast → u64
-                    call :usize
-                      callee:
-                        std_collections$len__string__i32 :usize
-                      arg0:
-                        m :MutableMap<string, i32>
-          assign
-            target:
-              __off_2 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_1 :Buffer
-                arg1:
-                  __off_2 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_2 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_1 :Buffer
-                arg1:
-                  __off_2 :usize
-                arg2:
-                  __p_0 :string
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_1 :Buffer
-              arg1:
-                __off_2 :usize
-    let t: Tally =
-      Tally {
-        counts:
-          MutableMap<string, i32> {
-            ekeys:
-              array :string[]
-            evals:
-              array :i32[]
-            index:
-              array :i32[]
-            mask: int(0) :usize
-            size: int(0) :usize
-            tombs: int(0) :usize
-          }
-      }
-    let c: Cell =
-      Cell {
-        cells:
-          array :i32[]
-            int(5) :i32
-      }
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_3: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(41) :usize
-          let __off_4: usize = int(0) :usize
-          assign
-            target:
-              __off_4 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_3 :Buffer
-                arg1:
-                  __off_4 :usize
-                arg2:
-                  cast → i64
-                    call :i32
-                      callee:
-                        bump :fn(Cell | Tally) -> i32
-                      arg0:
-                        t :Tally
-          assign
-            target:
-              __off_4 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_3 :Buffer
-                arg1:
-                  __off_4 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_4 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_3 :Buffer
-                arg1:
-                  __off_4 :usize
-                arg2:
-                  cast → i64
-                    call :i32
-                      callee:
-                        bump :fn(Cell | Tally) -> i32
-                      arg0:
-                        c :Cell
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_3 :Buffer
-              arg1:
-                __off_4 :usize
-    let xs: i64[] =
-      array :i64[]
-        int(4) :i64
-        int(8) :i64
-    let odd: Odd =
-      Odd {
-        n: int(0) :i64
-      }
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_5: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(23) :usize
-          let __off_6: usize = int(0) :usize
-          assign
-            target:
-              __off_6 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_5 :Buffer
-                arg1:
-                  __off_6 :usize
-                arg2:
-                  call :bool
-                    callee:
-                      holds :fn(i64[] | Odd, i64) -> bool
-                    arg0:
-                      xs :i64[]
-                    arg1:
-                      int(8) :i64
-          assign
-            target:
-              __off_6 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_5 :Buffer
-                arg1:
-                  __off_6 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_6 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_5 :Buffer
-                arg1:
-                  __off_6 :usize
-                arg2:
-                  call :bool
-                    callee:
-                      holds :fn(i64[] | Odd, i64) -> bool
-                    arg0:
-                      odd :Odd
-                    arg1:
-                      int(5) :i64
-          assign
-            target:
-              __off_6 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_5 :Buffer
-                arg1:
-                  __off_6 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_6 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_5 :Buffer
-                arg1:
-                  __off_6 :usize
-                arg2:
-                  call :bool
-                    callee:
-                      lacks :fn(i64[] | Odd, i64) -> bool
-                    arg0:
-                      xs :i64[]
-                    arg1:
-                      int(5) :i64
-          assign
-            target:
-              __off_6 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_5 :Buffer
-                arg1:
-                  __off_6 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_6 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_5 :Buffer
-                arg1:
-                  __off_6 :usize
-                arg2:
-                  call :bool
-                    callee:
-                      holds_value :fn(Contains<i64>, i64) -> bool
-                    arg0:
-                      odd :Odd
-                    arg1:
-                      int(4) :i64
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_5 :Buffer
-              arg1:
-                __off_6 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            concat_5 :string
-          arg0:
-            vcall std_core$Display.to_string :string
-              recv:
-                call :i32 | Money
-                  callee:
-                    plus_five :fn(i32 | Money) -> i32 | Money
-                  arg0:
-                    int(1) :i32
-          arg1:
-            " " :string
-          arg2:
-            vcall std_core$Display.to_string :string
-              recv:
-                call :i32 | Money
-                  callee:
-                    plus_five :fn(i32 | Money) -> i32 | Money
-                  arg0:
-                    Money {
-                      c: int(1) :i32
-                    }
-          arg3:
-            " " :string
-          arg4:
-            call :string
-              callee:
-                plus_one :fn(Add<i32>) -> string
-              arg0:
-                Money {
-                  c: int(2) :i32
-                }
-    return int(0) :i32
-  fn snippet$[]$Shape$area__f64(self: f64[]) -> f64
-    ~>
-      float(0.5) :f64
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
-  fn concat_5(p0: string, p1: string, p2: string, p3: string, p4: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let c3: usize =
-      add :usize
-        l:
-          c2 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p3 :string
-    let c4: usize =
-      add :usize
-        l:
-          c3 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p4 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c4 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c2 :usize
-      arg2:
-        p3 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c3 :usize
-      arg2:
-        p4 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c4 :usize
-  fn concat_3(p0: string, p1: string, p2: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c2 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c2 :usize
-  vtable snippet$Loud.loud for i32  snippet$i32$Loud$loud
-  vtable snippet$Loud.loud for string  snippet$string$Loud$loud
-  vtable snippet$Shape.area for Circle  snippet$Circle$Shape$area
-  vtable snippet$Shape.area for Sq  snippet$Sq$Shape$area
-  vtable snippet$Shape.area for f64[]  snippet$[]$Shape$area__f64
-  vtable std_core$Add.add for Money  snippet$Money$Add$add
-  vtable std_core$Contains.contains for Odd  snippet$Odd$Contains$contains
-  vtable std_core$Display.to_string for Money  snippet$Money$Display$to_string
-  vtable std_core$Index.at for Cell  snippet$Cell$Index$at
-  vtable std_core$Index.at for Tally  snippet$Tally$Index$at
-  vtable std_core$IndexSet.set_at for Cell  snippet$Cell$IndexSet$set_at
-  vtable std_core$IndexSet.set_at for Log  snippet$Log$IndexSet$set_at
-  vtable std_core$IndexSet.set_at for Tally  snippet$Tally$IndexSet$set_at
+      c: Cell = Cell { .cells = [5] :i32[] }
+      std.io.println<string>({
+          __buf_3: Buffer = std.core.new_byte_buffer(usize(41))
+          __off_4: usize = 0
+          __off_4 = std.core.write_int(__buf_3, __off_4, i64(snippet.bump(t)))
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_int(__buf_3, __off_4, i64(snippet.bump(c)))
+          std.core.finish_buffer(__buf_3, __off_4)
+      } :string)
+      xs: i64[] = [i64(4), i64(8)] :i64[]
+      odd: Odd = Odd { .n = i64(0) }
+      std.io.println<string>({
+          __buf_5: Buffer = std.core.new_byte_buffer(usize(23))
+          __off_6: usize = 0
+          __off_6 = std.core.write_bool(__buf_5, __off_6, snippet.holds(xs, i64(8)))
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+          __off_6 = std.core.write_bool(__buf_5, __off_6, snippet.holds(odd, i64(5)))
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+          __off_6 = std.core.write_bool(__buf_5, __off_6, snippet.lacks(xs, i64(5)))
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+          __off_6 = std.core.write_bool(__buf_5, __off_6, snippet.holds_value(odd, i64(4)))
+          std.core.finish_buffer(__buf_5, __off_6)
+      } :string)
+      std.io.println<string>(concat_5(@vcall(std.core.Display.to_string, snippet.plus_five(1)), " ", @vcall(std.core.Display.to_string, snippet.plus_five(Money { .c = 1 })), " ", snippet.plus_one(Money { .c = 2 })))
+      return 0
+  }
+  snippet.f64[].area :: fn(self: f64[]) -> f64 {  // snippet$[]$Shape$area__f64
+      0.5
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      c3: usize = c2 +% std.core.byte_len(p3)
+      c4: usize = c3 +% std.core.byte_len(p4)
+      buf: Buffer = std.core.usize.new_buffer(c4)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.write_string(buf, c3, p4)
+      std.core.Buffer.intern_string(buf, c4)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.usize.new_buffer(c2)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+  vtable snippet.Loud.loud for i32  snippet.i32.loud  // snippet$i32$Loud$loud
+  vtable snippet.Loud.loud for string  snippet.string.loud  // snippet$string$Loud$loud
+  vtable snippet.Shape.area for Circle  snippet.Circle.area  // snippet$Circle$Shape$area
+  vtable snippet.Shape.area for Sq  snippet.Sq.area  // snippet$Sq$Shape$area
+  vtable snippet.Shape.area for f64[]  snippet.f64[].area  // snippet$[]$Shape$area__f64
+  vtable std.core.Add.add for Money  snippet.Money.add  // snippet$Money$Add$add
+  vtable std.core.Contains.contains for Odd  snippet.Odd.contains  // snippet$Odd$Contains$contains
+  vtable std.core.Display.to_string for Money  snippet.Money.to_string  // snippet$Money$Display$to_string
+  vtable std.core.Index.at for Cell  snippet.Cell.at  // snippet$Cell$Index$at
+  vtable std.core.Index.at for Tally  snippet.Tally.at  // snippet$Tally$Index$at
+  vtable std.core.IndexSet.set_at for Cell  snippet.Cell.set_at  // snippet$Cell$IndexSet$set_at
+  vtable std.core.IndexSet.set_at for Log  snippet.Log.set_at  // snippet$Log$IndexSet$set_at
+  vtable std.core.IndexSet.set_at for Tally  snippet.Tally.set_at  // snippet$Tally$IndexSet$set_at
 
 ## lowered in dependencies
   std/collections
-    fn std_collections$MutableMap$Contains$contains__i32__bool
-    fn std_collections$MutableMap$Contains$contains__i32__i32
-    fn std_collections$MutableMap$Contains$contains__string__i32
-    fn std_collections$MutableMap$Index$at__i32__bool
-    fn std_collections$MutableMap$Index$at__i32__i32
-    fn std_collections$MutableMap$Index$at__string__i32
-    fn std_collections$MutableMap$IndexSet$set_at__i32__bool
-    fn std_collections$MutableMap$IndexSet$set_at__i32__i32
-    fn std_collections$MutableMap$IndexSet$set_at__string__i32
-    fn std_collections$MutableMap$Into$into__i32__bool
-    fn std_collections$MutableMap$Into$into__i32__i32
-    fn std_collections$MutableMap$Into$into__string__i32
-    fn std_collections$MutableSet$Contains$contains__i32
-    fn std_collections$MutableSet$Into$into__i32
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$IndexSet$set_at__string__i32
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$Into$into__i32
+    fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
+    fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
+    fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
+    fn std.collections.ensure_index<i32, bool>  // std_collections$ensure_index__i32__bool
+    fn std.collections.ensure_index<i32, i32>  // std_collections$ensure_index__i32__i32
+    fn std.collections.ensure_index<string, i32>  // std_collections$ensure_index__string__i32
+    fn std.collections.first_slot  // std_collections$first_slot
+    fn std.collections.get<i32, bool>  // std_collections$get__i32__bool
+    fn std.collections.get<i32, i32>  // std_collections$get__i32__i32
+    fn std.collections.get<string, i32>  // std_collections$get__string__i32
+    fn std.collections.len<string, i32>  // std_collections$len__string__i32
+    fn std.collections.next_slot  // std_collections$next_slot
+    fn std.collections.put<i32, bool>  // std_collections$put__i32__bool
+    fn std.collections.put<i32, i32>  // std_collections$put__i32__i32
+    fn std.collections.put<string, i32>  // std_collections$put__string__i32
+    fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
+    fn std.collections.rehash<i32, i32>  // std_collections$rehash__i32__i32
+    fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
+    fn std.collections.write_entry<i32, bool>  // std_collections$write_entry__i32__bool
+    fn std.collections.write_entry<i32, i32>  // std_collections$write_entry__i32__i32
+    fn std.collections.write_entry<string, i32>  // std_collections$write_entry__string__i32
     fn std_collections$__gen_state_std_collections_0$Iterator$next
     fn std_collections$__gen_state_std_collections_1$Iterator$next
     fn std_collections$__gen_state_std_collections_2$Iterator$next
     fn std_collections$__gen_state_std_collections_3$Iterator$next
-    fn std_collections$contains_key__i32__bool
-    fn std_collections$contains_key__i32__i32
-    fn std_collections$contains_key__string__i32
-    fn std_collections$ensure_index__i32__bool
-    fn std_collections$ensure_index__i32__i32
-    fn std_collections$ensure_index__string__i32
-    fn std_collections$first_slot
-    fn std_collections$get__i32__bool
-    fn std_collections$get__i32__i32
-    fn std_collections$get__string__i32
-    fn std_collections$len__string__i32
-    fn std_collections$next_slot
-    fn std_collections$put__i32__bool
-    fn std_collections$put__i32__i32
-    fn std_collections$put__string__i32
-    fn std_collections$rehash__i32__bool
-    fn std_collections$rehash__i32__i32
-    fn std_collections$rehash__string__i32
-    fn std_collections$write_entry__i32__bool
-    fn std_collections$write_entry__i32__i32
-    fn std_collections$write_entry__string__i32
-    struct std_collections$MutableMap__Any__Any
-    struct std_collections$MutableMap__Any__bool
-    struct std_collections$MutableMap__i32__bool
-    struct std_collections$MutableMap__i32__i32
-    struct std_collections$MutableMap__string__i32
-    struct std_collections$MutableSet__Any
-    struct std_collections$MutableSet__i32
+    struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
+    struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
+    struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
+    struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
+    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
+    struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
+    struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32
     struct std_collections$__gen_state_std_collections_0
     struct std_collections$__gen_state_std_collections_1
     struct std_collections$__gen_state_std_collections_2
@@ -1053,118 +262,118 @@
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
     const FLOAT_POW5_INV_SPLIT: u64[]  data pool #2
     const FLOAT_POW5_SPLIT: u64[]  data pool #3
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$memory_copy
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$[]$Contains$contains__i64
-    fn std_core$b2i
-    fn std_core$b2u
-    fn std_core$b2u32
-    fn std_core$bool$Display$to_string
-    fn std_core$char$Display$to_string
-    fn std_core$codepoint_at_byte
-    fn std_core$codepoint_count
-    fn std_core$codepoint_offset
-    fn std_core$d2d
-    fn std_core$decimal_width
-    fn std_core$decode_tail
-    fn std_core$f2d
-    fn std_core$f32$Add$add
-    fn std_core$f32$Display$to_string
-    fn std_core$f32$Float32Bits$to_bits
-    fn std_core$f64$Add$add
-    fn std_core$f64$Display$to_string
-    fn std_core$f64$FloatBits$to_bits
-    fn std_core$finish_buffer
-    fn std_core$format_f32
-    fn std_core$format_f64
-    fn std_core$format_signed
-    fn std_core$format_unsigned
-    fn std_core$i16$Add$add
-    fn std_core$i16$Display$to_string
-    fn std_core$i32$Add$add
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Display$to_string
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.b2u32  // std_core$b2u32
+    fn std.core.bool.to_string  // std_core$bool$Display$to_string
+    fn std.core.char.to_string  // std_core$char$Display$to_string
+    fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
+    fn std.core.codepoint_count  // std_core$codepoint_count
+    fn std.core.codepoint_offset  // std_core$codepoint_offset
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.decode_tail  // std_core$decode_tail
+    fn std.core.f2d  // std_core$f2d
+    fn std.core.f32.add  // std_core$f32$Add$add
+    fn std.core.f32.to_bits  // std_core$f32$Float32Bits$to_bits
+    fn std.core.f32.to_string  // std_core$f32$Display$to_string
+    fn std.core.f64.add  // std_core$f64$Add$add
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f32  // std_core$format_f32
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.format_signed  // std_core$format_signed
+    fn std.core.format_unsigned  // std_core$format_unsigned
+    fn std.core.i16.add  // std_core$i16$Add$add
+    fn std.core.i16.to_string  // std_core$i16$Display$to_string
+    fn std.core.i32.add  // std_core$i32$Add$add
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.hash  // std_core$i32$Hash$hash
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.i64.add  // std_core$i64$Add$add
+    fn std.core.i64.to_string  // std_core$i64$Display$to_string
+    fn std.core.i64[].contains  // std_core$[]$Contains$contains__i64
+    fn std.core.i8.add  // std_core$i8$Add$add
+    fn std.core.i8.to_string  // std_core$i8$Display$to_string
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
+    fn std.core.isize.add  // std_core$isize$Add$add
+    fn std.core.isize.to_string  // std_core$isize$Display$to_string
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_pow5_div_pow2  // std_core$mul_pow5_div_pow2
+    fn std.core.mul_pow5_inv_div_pow2  // std_core$mul_pow5_inv_div_pow2
+    fn std.core.mul_shift_32  // std_core$mul_shift_32
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_2_32  // std_core$multiple_of_power_of_2_32
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.multiple_of_power_of_5_32  // std_core$multiple_of_power_of_5_32
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.null.to_string  // std_core$null$Display$to_string
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5_factor_32  // std_core$pow5_factor_32
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.scalar_or_replacement  // std_core$scalar_or_replacement
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.string.add  // std_core$string$Add$add
+    fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.string.to_string  // std_core$string$Display$to_string
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.u16.add  // std_core$u16$Add$add
+    fn std.core.u16.to_string  // std_core$u16$Display$to_string
+    fn std.core.u32.add  // std_core$u32$Add$add
+    fn std.core.u32.to_string  // std_core$u32$Display$to_string
+    fn std.core.u64.add  // std_core$u64$Add$add
+    fn std.core.u64.to_string  // std_core$u64$Display$to_string
+    fn std.core.u8.add  // std_core$u8$Add$add
+    fn std.core.u8.to_string  // std_core$u8$Display$to_string
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.usize.add  // std_core$usize$Add$add
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.usize.to_string  // std_core$usize$Display$to_string
+    fn std.core.utf8_encode  // std_core$utf8_encode
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
     fn std_core$i32$Equals$equals$guard
-    fn std_core$i32$Hash$hash
-    fn std_core$i32$Step$step
-    fn std_core$i64$Add$add
-    fn std_core$i64$Display$to_string
-    fn std_core$i8$Add$add
-    fn std_core$i8$Display$to_string
-    fn std_core$insert_point
-    fn std_core$is_utf8_continuation
-    fn std_core$isize$Add$add
-    fn std_core$isize$Display$to_string
-    fn std_core$log10_pow2
-    fn std_core$log10_pow5
-    fn std_core$mul_pow5_div_pow2
-    fn std_core$mul_pow5_inv_div_pow2
-    fn std_core$mul_shift_32
-    fn std_core$mul_shift_all_64
-    fn std_core$multiple_of_power_of_2
-    fn std_core$multiple_of_power_of_2_32
-    fn std_core$multiple_of_power_of_5
-    fn std_core$multiple_of_power_of_5_32
-    fn std_core$new_byte_buffer
-    fn std_core$null$Display$to_string
-    fn std_core$pow5_factor
-    fn std_core$pow5_factor_32
-    fn std_core$pow5bits
-    fn std_core$render
-    fn std_core$scalar_or_replacement
-    fn std_core$shiftright128
-    fn std_core$string$Add$add
-    fn std_core$string$Display$to_string
     fn std_core$string$Equals$equals$guard
-    fn std_core$string$Hash$hash
     fn std_core$string$Index$at
     fn std_core$string$Index$at$1
-    fn std_core$three_way
-    fn std_core$u16$Add$add
-    fn std_core$u16$Display$to_string
-    fn std_core$u32$Add$add
-    fn std_core$u32$Display$to_string
-    fn std_core$u64$Add$add
-    fn std_core$u64$Display$to_string
-    fn std_core$u8$Add$add
-    fn std_core$u8$Display$to_string
-    fn std_core$umul128
-    fn std_core$usize$Add$add
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Display$to_string
-    fn std_core$usize$Step$step
-    fn std_core$utf8_encode
-    fn std_core$write_bool
-    fn std_core$write_decimal
-    fn std_core$write_digits
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    fn std_core$write_zeros
-    struct std_core$Buffer
-    struct std_core$Dec64
-    struct std_core$FloatDec32
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Dec64  // std_core$Dec64
+    struct std.core.FloatDec32  // std_core$FloatDec32
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

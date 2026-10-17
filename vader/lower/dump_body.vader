@@ -1,0 +1,377 @@
+// vader/lower/dump_body — a lowered body, printed as Vader.
+//
+// One statement per line, in the syntax of the source wherever the language has
+// one. `+` is the checked addition and `+%` the one the lowering leaves
+// unchecked ; `==` is the lowered compare, a value's payload or an object's
+// reference. What has no source syntax takes an `@` form : `@cell(x)`,
+// `@pool(k)`, `@global(k)`, `@vcall(trait.method, receiver, …)`,
+// `@closure(f, env)`, `@defer_push(f)`, `@defer_run(n)`, and `@fresh(NAME)` for
+// a use that reads its constant fresh. A type is printed where it says
+// something : on a `let`, on a literal (`dump_literals.vader`), on a conversion,
+// on a value joining branches that no slot types, and as `:?` on any value whose
+// type is unresolved.
+
+module "vader/lower"
+
+import "std/string"
+import "vader/typecheck"
+import "vader/types"
+
+INDENT_STEP :: "    "
+
+// ---- statements -----------------------------------------------------------
+
+emit_body :: fn(names: DumpNames, lines: string[], block: LoweredBlock, indent: string) -> void {
+    for stmt in block.stmts {
+        lines.push("${indent}${stmt_text(names, stmt, indent)}")
+    }
+    trailing :: block.trailing ?? return
+    lines.push("${indent}${expr_text(names, trailing, indent)}")
+}
+
+stmt_text :: fn(names: DumpNames, stmt: LoweredStmt, indent: string) -> string = match stmt {
+    is LoweredLet           -> let_text(names, stmt, indent)
+    is LoweredAssign        -> assign_text(names, stmt.target, stmt.value, indent)
+    is LoweredCellSet       -> cell_set_text(names, stmt, indent)
+    is LoweredGlobalSet     -> "@global(${stmt.slot}) = ${expr_text(names, stmt.value, indent)}"
+    is LoweredExprStmt      -> statement_text(names, stmt.expr, indent)
+    is LoweredReturn        -> return_text(names, stmt.value, indent)
+    is LoweredYield         -> "yield ${expr_text(names, stmt.value, indent)}"
+    is LoweredAwait         -> await_text(names, stmt, indent)
+    is LoweredLoop          -> loop_text(names, stmt, indent)
+    is LoweredLabelledBlock -> "${stmt.label}: ${braced_text(names, stmt.body, indent)}"
+    is LoweredBreak         -> "break${label_suffix(stmt.label)}"
+    is LoweredContinue      -> "continue${label_suffix(stmt.label)}"
+    is LoweredDeferPush     -> "@defer_push(${expr_text(names, stmt.thunk, indent)})"
+    is LoweredDeferPopExec  -> "@defer_run(${stmt.count})"
+}
+
+let_text :: fn(names: DumpNames, stmt: LoweredLet, indent: string) -> string {
+    value :: slot_value_text(names, stmt.value, stmt.type, indent)
+    return "${stmt.name}: ${let_type_text(stmt)} = ${value}"
+}
+
+// A captured local lives in a cell, which the lowering leaves without a type.
+let_type_text :: fn(stmt: LoweredLet) -> string {
+    cell :: stmt.value
+    if cell is LoweredCellNew {
+        return "@cell<${display_type(cell.value_type)}>"
+    }
+    return display_type(stmt.type)
+}
+
+assign_text :: fn(
+    names: DumpNames, target: LoweredExpr, value: LoweredExpr, indent: string,
+) -> string {
+    written :: slot_value_text(names, value, type_of(target), indent)
+    return "${expr_text(names, target, indent)} = ${written}"
+}
+
+cell_set_text :: fn(names: DumpNames, stmt: LoweredCellSet, indent: string) -> string =
+    "${cell_text(names, stmt.target, indent)} = ${expr_text(names, stmt.value, indent)}"
+
+await_text :: fn(names: DumpNames, stmt: LoweredAwait, indent: string) -> string {
+    declared :: "${stmt.target.name}: ${display_type(stmt.target_type)}"
+    return "${declared} = await ${expr_text(names, stmt.awaited, indent)}"
+}
+
+// An `if` or a block standing as a statement : its value, if any, is dropped,
+// so it is printed without a type.
+statement_text :: fn(names: DumpNames, e: LoweredExpr, indent: string) -> string {
+    if e is LoweredIf {
+        return if_text(names, e, indent, false)
+    }
+    if e is LoweredBlock {
+        return braced_text(names, e, indent)
+    }
+    return expr_text(names, e, indent)
+}
+
+return_text :: fn(names: DumpNames, value: LoweredExpr | null, indent: string) -> string {
+    if value == null {
+        return "return"
+    }
+    return "return ${expr_text(names, value, indent)}"
+}
+
+// A loop's step statements run at the end of each turn, `continue` included.
+loop_text :: fn(names: DumpNames, loop: LoweredLoop, indent: string) -> string {
+    head := "for "
+    label :: loop.label
+    if label != null {
+        head = "${label}: for "
+    }
+    cond :: loop.cond
+    if cond != null {
+        head = "${head}${expr_text(names, cond, indent)} "
+    }
+    text :: "${head}${braced_text(names, loop.body, indent)}"
+    if loop.step.len() == 0 {
+        return text
+    }
+    return "${text} @step ${braced_text(names, loop_step_block(loop), indent)}"
+}
+
+label_suffix :: fn(label: string | null) -> string {
+    if label == null {
+        return ""
+    }
+    return " ${label}"
+}
+
+braced_text :: fn(names: DumpNames, block: LoweredBlock, indent: string) -> string {
+    inner: string[]: []
+    emit_body(names, inner, block, "${indent}${INDENT_STEP}")
+    if inner.len() == 0 {
+        return "{}"
+    }
+    return "{\n${inner.join("\n")}\n${indent}}"
+}
+
+// ---- expressions ----------------------------------------------------------
+
+// A value whose type is unresolved says so (`:?`), being a gap upstream. The
+// lowering leaves a cell without a type on purpose, and the closure a `defer`
+// pushes, which the dump cannot tell from a lambda's ; what holds a cell prints
+// through `cell_text`.
+expr_text :: fn(names: DumpNames, e: LoweredExpr, indent: string) -> string {
+    text :: bare_expr_text(names, e, indent)
+    if type_of(e) is UnresolvedType && !is_untyped_by_design(e) {
+        return "${text} :?"
+    }
+    return text
+}
+
+is_untyped_by_design :: fn(e: LoweredExpr) -> bool = e is LoweredCellNew || e is LoweredMakeClosure
+
+cell_text :: fn(names: DumpNames, target: LoweredExpr, indent: string) -> string =
+    "@cell(${bare_expr_text(names, target, indent)})"
+
+bare_expr_text :: fn(names: DumpNames, e: LoweredExpr, indent: string) -> string = match e {
+    is LoweredIntLit        -> literal_text(format_int_value(e.value, e.type), e.type, "i32")
+    is LoweredFloatLit      -> literal_text("${e.value}", e.type, "f64")
+    is LoweredBoolLit       -> "${e.value}"
+    is LoweredNullLit       -> "null"
+    is LoweredCharLit       -> literal_text("'${char_body(e.value)}'", e.type, "char")
+    is LoweredStringLit     -> vader_string(e.value)
+    is LoweredIdent         -> ident_text(names, e)
+    is LoweredTypeConst     -> "@type(${display_type(e.value)})"
+    is LoweredCall          -> call_text(names, e, indent)
+    is LoweredVirtualCall   -> virtual_call_text(names, e, indent)
+    is LoweredFieldAccess   -> "${operand_text(names, e.target, indent)}.${e.field}"
+    is LoweredIndex         -> index_text(names, e, indent)
+    is LoweredUnary         -> "${unary_symbol(e.op)}${operand_text(names, e.operand, indent)}"
+    is LoweredBinary        -> binary_text(names, e, indent)
+    is LoweredIf            -> typed_value(if_text(names, e, indent, !is_void(e.type)), e.type)
+    is LoweredBlock         -> typed_value(braced_text(names, e, indent), e.type)
+    is LoweredStructLit     -> struct_lit_text(names, e, indent)
+    is LoweredArrayLit      -> typed_value("[${list_text(names, e.elements, indent)}]", e.type)
+    is LoweredDataConst     -> "@pool(${e.pool_index})"
+    is LoweredGlobalGet     -> "@global(${e.slot})"
+    is LoweredCast          -> cast_text(names, e, indent)
+    is LoweredTypeCheck     -> type_check_text(names, e, indent)
+    is LoweredUnreachable   -> "@unreachable(${vader_string(e.reason)})"
+    is LoweredIntrinsicCall -> "@${e.name}(${list_text(names, e.args, indent)})"
+    is LoweredArrayLen      -> "@array.len(${expr_text(names, e.target, indent)})"
+    is LoweredArrayPush     -> array_push_text(names, e, indent)
+    is LoweredArraySlice    -> array_slice_text(names, e, indent)
+    is LoweredCellNew       -> "@cell_new(${expr_text(names, e.value, indent)})"
+    is LoweredCellGet       -> cell_text(names, e.target, indent)
+    is LoweredMakeClosure   -> closure_text(names, e, indent)
+}
+
+// An operand that would read differently without them takes parentheses.
+operand_text :: fn(names: DumpNames, e: LoweredExpr, indent: string) -> string {
+    text :: expr_text(names, e, indent)
+    if needs_parentheses(e) {
+        return "(${text})"
+    }
+    return text
+}
+
+needs_parentheses :: fn(e: LoweredExpr) -> bool =
+    e is LoweredBinary || e is LoweredUnary || e is LoweredTypeCheck
+    || e is LoweredIf || e is LoweredBlock || e is LoweredArrayLit
+    || (e is LoweredStructLit && e.type is TupleType)
+
+// A conversion to a function, union or tuple type wraps the type's spelling.
+conversion_name :: fn(t: Type) -> string {
+    if t is FnType || t is UnionType || t is TupleType {
+        return "(${display_type(t)})"
+    }
+    return display_type(t)
+}
+
+cast_text :: fn(names: DumpNames, e: LoweredCast, indent: string) -> string =
+    "${conversion_name(e.type)}(${slot_value_text(names, e.value, e.type, indent)})"
+
+list_text :: fn(names: DumpNames, items: LoweredExpr[], indent: string) -> string {
+    shown: string[]: []
+    for item in items {
+        shown.push(expr_text(names, item, indent))
+    }
+    return shown.join(", ")
+}
+
+// A value that joins branches, or a literal whose elements do not say it, shows
+// its type ; nothing is said of a value that has none.
+typed_value :: fn(text: string, t: Type) -> string {
+    if t is UnresolvedType || t is NeverType || is_void(t) {
+        return text
+    }
+    return "${text} :${display_type(t)}"
+}
+
+ident_text :: fn(names: DumpNames, e: LoweredIdent) -> string {
+    name :: symbol_text(names, e.symbol)
+    if e.fresh {
+        return "@fresh(${name})"
+    }
+    return name
+}
+
+call_text :: fn(names: DumpNames, e: LoweredCall, indent: string) -> string =
+    "${callee_text(names, e.callee, indent)}(${list_text(names, e.args, indent)})"
+
+index_text :: fn(names: DumpNames, e: LoweredIndex, indent: string) -> string =
+    "${operand_text(names, e.target, indent)}[${expr_text(names, e.index, indent)}]"
+
+type_check_text :: fn(names: DumpNames, e: LoweredTypeCheck, indent: string) -> string =
+    "${operand_text(names, e.value, indent)} is ${display_type(e.check_type)}"
+
+callee_text :: fn(names: DumpNames, callee: LoweredExpr, indent: string) -> string {
+    if callee is LoweredIdent {
+        return ident_text(names, callee)
+    }
+    return operand_text(names, callee, indent)
+}
+
+virtual_call_text :: fn(names: DumpNames, e: LoweredVirtualCall, indent: string) -> string {
+    operands: LoweredExpr[]: [e.receiver]
+    operands.push_all(e.args)
+    slot :: "${trait_text(names, e.trait_name)}.${e.method}"
+    return "@vcall(${slot}, ${list_text(names, operands, indent)})"
+}
+
+closure_text :: fn(names: DumpNames, e: LoweredMakeClosure, indent: string) -> string =
+    "@closure(${symbol_text(names, e.fn_symbol)}, ${expr_text(names, e.env, indent)})"
+
+array_push_text :: fn(names: DumpNames, e: LoweredArrayPush, indent: string) -> string {
+    operands :: "${expr_text(names, e.target, indent)}, ${expr_text(names, e.value, indent)}"
+    if e.cached {
+        return "@array.push_cached(${operands})"
+    }
+    return "@array.push(${operands})"
+}
+
+array_slice_text :: fn(names: DumpNames, e: LoweredArraySlice, indent: string) -> string {
+    range :: "${expr_text(names, e.lo, indent)}..<${expr_text(names, e.hi, indent)}"
+    return "${operand_text(names, e.target, indent)}[${range}]"
+}
+
+binary_text :: fn(names: DumpNames, e: LoweredBinary, indent: string) -> string {
+    left :: operand_text(names, e.left, indent)
+    right :: operand_text(names, e.right, indent)
+    return "${left} ${binary_symbol(e.op, type_of(e.left))} ${right}"
+}
+
+// Integer arithmetic the lowering leaves unchecked wraps (`+%`) ; a float's has
+// nothing to check.
+binary_symbol :: fn(op: LoweredBinaryOp, operand: Type) -> string {
+    symbol :: binary_op_symbol(op)
+    if (op == .Add || op == .Sub || op == .Mul) && is_integer(strip_distinct(operand)) {
+        return "${symbol}%"
+    }
+    return symbol
+}
+
+is_integer :: fn(t: Type) -> bool = t is PrimitiveType && is_int_name(t.name)
+
+unary_symbol :: fn(op: LoweredUnaryOp) -> string = match op {
+    .Neg    -> "-"
+    .Not    -> "!"
+    .BitNot -> "~"
+}
+
+// ---- if -------------------------------------------------------------------
+
+// One branch, rendered once : braced, and on one line too when it is a lone
+// value that fits there.
+Branch :: struct {
+    braced: string
+    inline: string | null = null
+}
+
+branch_of :: fn(names: DumpNames, block: LoweredBlock, indent: string) -> Branch {
+    value :: lone_value(block) ?? return Branch { .braced = braced_text(names, block, indent) }
+    inner :: "${indent}${INDENT_STEP}"
+    text :: expr_text(names, value, inner)
+    braced :: "{\n${inner}${text}\n${indent}}"
+    if text.contains("\n") || value is LoweredIf {
+        return Branch { .braced = braced }
+    }
+    return Branch { .braced = braced, .inline = text }
+}
+
+lone_value :: fn(block: LoweredBlock) -> LoweredExpr | null {
+    if block.stmts.len() > 0 {
+        return null
+    }
+    return block.trailing
+}
+
+// An `else` holding a single `if` reads `else if`. An `if` producing a value
+// takes one line when it has a lone value in each of two branches, each fitting
+// on one.
+if_text :: fn(names: DumpNames, e: LoweredIf, indent: string, may_inline: bool) -> string {
+    arms: string[]: []
+    current := e
+    for {
+        head :: "if ${expr_text(names, current.cond, indent)}"
+        then_branch :: branch_of(names, current.then_block, indent)
+        else_block :: current.else_block
+        if else_block == null {
+            arms.push("${head} ${then_branch.braced}")
+            break
+        }
+        nested :: lone_if(else_block)
+        if nested != null {
+            arms.push("${head} ${then_branch.braced}")
+            current = nested
+            continue
+        }
+        else_branch :: branch_of(names, else_block, indent)
+        one_line :: inline_pair(then_branch, else_branch)
+        if may_inline && arms.len() == 0 && one_line != null {
+            return "${head} ${one_line}"
+        }
+        arms.push("${head} ${then_branch.braced} else ${else_branch.braced}")
+        break
+    }
+    return arms.join(" else ")
+}
+
+inline_pair :: fn(then_branch: Branch, else_branch: Branch) -> string | null {
+    then_text :: then_branch.inline ?? return null
+    else_text :: else_branch.inline ?? return null
+    return "{ ${then_text} } else { ${else_text} }"
+}
+
+lone_if :: fn(block: LoweredBlock) -> LoweredIf | null {
+    trailing :: block.trailing
+    if block.stmts.len() == 0 && trailing is LoweredIf {
+        return trailing
+    }
+    if block.stmts.len() != 1 || trailing != null {
+        return null
+    }
+    only :: block.stmts[0]
+    if only !is LoweredExprStmt {
+        return null
+    }
+    inner :: only.expr
+    if inner is LoweredIf {
+        return inner
+    }
+    return null
+}

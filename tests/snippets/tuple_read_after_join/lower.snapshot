@@ -1,99 +1,43 @@
 # Lower
 
 ## snippet
-  fn snippet$mk(n: i32) -> [i32, i32]
-    ~>
-      [i32, i32] {
-        _0: n :i32
-        _1:
-          mul_checked :i32
-            l:
-              n :i32
-            r:
-              int(2) :i32
+  snippet.mk :: fn(n: i32) -> [i32, i32] {  // snippet$mk
+      [n, n * 2] :[i32, i32]
+  }
+  snippet.read_after_join :: fn(n: i32, flag: bool) -> i32 {  // snippet$read_after_join
+      p: [i32, i32] = snippet.mk(n)
+      bump: i32 = 0
+      if flag {
+          bump = 1
+      } else {
+          bump = 2
       }
-  fn snippet$read_after_join(n: i32, flag: bool) -> i32
-    let p: [i32, i32] =
-      call :[i32, i32]
-        callee:
-          mk :fn(i32) -> [i32, i32]
-        arg0:
-          n :i32
-    let bump: i32 = int(0) :i32
-    if :void
-      cond:
-        flag :bool
-      then:
-        assign
-          target:
-            bump :i32
-          value:
-            int(1) :i32
-      else:
-        assign
-          target:
-            bump :i32
-          value:
-            int(2) :i32
-    return
-      add_checked :i32
-        l:
-          add_checked :i32
-            l:
-              bump :i32
-            r:
-              ._0 :i32
-                p :[i32, i32]
-        r:
-          ._1 :i32
-            p :[i32, i32]
-  fn snippet$main() -> i32
-    let total: i32 = int(0) :i32
-    block :void
-      let i: i32 = int(0) :i32
-      loop while (<…>)
-        assign
-          target:
-            total :i32
-          value:
-            add_checked :i32
-              l:
-                total :i32
-              r:
-                call :i32
-                  callee:
-                    read_after_join :fn(i32, bool) -> i32
-                  arg0:
-                    i :i32
-                  arg1:
-                    eq :bool
-                      l:
-                        i :i32
-                      r:
-                        int(1) :i32
-      step
-        assign
-          target:
-            i :i32
-          value:
-            add :i32
-              l:
-                i :i32
-              r:
-                int(1) :i32
-    return total :i32
+      return (bump + p._0) + p._1
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      total: i32 = 0
+      {
+          i: i32 = 0
+          for i < 3 {
+              total = total + snippet.read_after_join(i, i == 1)
+          } @step {
+              i = i +% 1
+          }
+      }
+      return total
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize

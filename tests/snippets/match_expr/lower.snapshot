@@ -1,320 +1,82 @@
 # Lower
 
 ## snippet
-  fn snippet$classify(x: i32 | null | string) -> string
-    return
-      block :string
-        let __scrut_0: i32 | null | string = x :i32 | null | string
-        ~>
-          if :string
-            cond:
-              and :bool
-                l:
-                  is i32 :bool
-                    __scrut_0 :i32 | null | string
-                r:
-                  gt :bool
-                    l:
-                      cast → i32
-                        x :i32 | null | string
-                    r:
-                      int(0) :i32
-            then:
-              ~>
-                "positive" :string
-            else:
-              ~>
-                if :string
-                  cond:
-                    is i32 :bool
-                      __scrut_0 :i32 | null | string
-                  then:
-                    ~>
-                      "non-positive" :string
-                  else:
-                    ~>
-                      if :string
-                        cond:
-                          is string :bool
-                            __scrut_0 :i32 | null | string
-                        then:
-                          ~>
-                            cast → string
-                              x :i32 | null | string
-                        else:
-                          ~>
-                            if :string
-                              cond:
-                                is null :bool
-                                  __scrut_0 :i32 | null | string
-                              then:
-                                ~>
-                                  "nothing" :string
-                              else:
-                                ~>
-                                  unreachable("non-exhaustive match (T3013 should have caught this)") :string
-  fn snippet$main() -> i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            concat_7 :string
-          arg0:
-            call :string
-              callee:
-                classify :fn(i32 | null | string) -> string
-              arg0:
-                int(5) :i32
-          arg1:
-            " " :string
-          arg2:
-            call :string
-              callee:
-                classify :fn(i32 | null | string) -> string
-              arg0:
-                int(-1) :i32
-          arg3:
-            " " :string
-          arg4:
-            call :string
-              callee:
-                classify :fn(i32 | null | string) -> string
-              arg0:
-                "hi" :string
-          arg5:
-            " " :string
-          arg6:
-            call :string
-              callee:
-                classify :fn(i32 | null | string) -> string
-              arg0:
-                null
-    return int(0) :i32
-  fn concat_7(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string, p6: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let c3: usize =
-      add :usize
-        l:
-          c2 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p3 :string
-    let c4: usize =
-      add :usize
-        l:
-          c3 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p4 :string
-    let c5: usize =
-      add :usize
-        l:
-          c4 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p5 :string
-    let c6: usize =
-      add :usize
-        l:
-          c5 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p6 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c6 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c2 :usize
-      arg2:
-        p3 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c3 :usize
-      arg2:
-        p4 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c4 :usize
-      arg2:
-        p5 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c5 :usize
-      arg2:
-        p6 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c6 :usize
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
+  snippet.classify :: fn(x: i32 | null | string) -> string {  // snippet$classify
+      return {
+          __scrut_0: i32 | null | string = x
+          if (__scrut_0 is i32) && (i32(x) > 0) {
+              "positive"
+          } else if __scrut_0 is i32 {
+              "non-positive"
+          } else if __scrut_0 is string {
+              string(x)
+          } else if __scrut_0 is null {
+              "nothing"
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.io.println<string>(concat_7(snippet.classify(5), " ", snippet.classify(-1), " ", snippet.classify("hi"), " ", snippet.classify(null)))
+      return 0
+  }
+  concat_7 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string, p6: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      c3: usize = c2 +% std.core.byte_len(p3)
+      c4: usize = c3 +% std.core.byte_len(p4)
+      c5: usize = c4 +% std.core.byte_len(p5)
+      c6: usize = c5 +% std.core.byte_len(p6)
+      buf: Buffer = std.core.usize.new_buffer(c6)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.write_string(buf, c3, p4)
+      std.core.Buffer.write_string(buf, c4, p5)
+      std.core.Buffer.write_string(buf, c5, p6)
+      std.core.Buffer.intern_string(buf, c6)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

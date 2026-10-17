@@ -47,25 +47,28 @@ pooled_text :: fn(pooled: PooledConst) -> string {
 }
 
 // The vtable rows the module's functions fill.
-vtable_lines :: fn(module: LoweredModule) -> string[] {
+vtable_lines :: fn(names: DumpNames, module: LoweredModule) -> string[] {
     rows: string[]: []
     for decl in module.decls {
         if decl !is LoweredFnDecl {
             continue
         }
         entry :: vtable_entry_of(decl) ?? continue
-        row :: "${entry.trait_name}.${entry.method_name} for ${display_type(entry.struct_type)}"
-        rows.push("vtable ${row}  ${decl.mangled}")
+        slot :: "${trait_text(names, entry.trait_name)}.${entry.method_name}"
+        rows.push("vtable ${slot} for ${display_type(entry.struct_type)}  "
+            + declared_line(names, decl.mangled))
     }
     return sort(rows, compare_ascending)
 }
 
 // What the lowering materialised in a module outside the scope : the storage of
 // its constants and slots, then its functions and structs.
-dependency_lines :: fn(project: LoweredProject, module: LoweredModule) -> string[] {
+dependency_lines :: fn(
+    names: DumpNames, project: LoweredProject, module: LoweredModule,
+) -> string[] {
     lowered: string[]: []
     for decl in module.decls {
-        lowered.push(dependency_line(decl) ?? continue)
+        lowered.push(dependency_line(names, decl) ?? continue)
     }
     lines :: storage_lines(project, module.module_id)
     lines.push_all(sort(lowered, compare_ascending))
@@ -76,15 +79,15 @@ dependency_lines :: fn(project: LoweredProject, module: LoweredModule) -> string
 // (`@extern`, `@intrinsic`) is lowered whether or not anything calls it, so it
 // says nothing of the program ; a bodyless impl member is lowered only when
 // reached, and the one filling a vtable slot is kept.
-dependency_line :: fn(decl: LoweredDecl) -> string | null = match decl {
-    is LoweredFnDecl     -> dependency_fn_line(decl)
-    is LoweredStructDecl -> "struct ${decl.mangled}"
+dependency_line :: fn(names: DumpNames, decl: LoweredDecl) -> string | null = match decl {
+    is LoweredFnDecl     -> dependency_fn_line(names, decl)
+    is LoweredStructDecl -> "struct ${declared_line(names, decl.mangled)}"
     is LoweredConstDecl  -> null
 }
 
-dependency_fn_line :: fn(decl: LoweredFnDecl) -> string | null {
+dependency_fn_line :: fn(names: DumpNames, decl: LoweredFnDecl) -> string | null {
     if decl.body == null && decl.origin.vtable_slot == null {
         return null
     }
-    return "fn ${decl.mangled}"
+    return "fn ${declared_line(names, decl.mangled)}"
 }

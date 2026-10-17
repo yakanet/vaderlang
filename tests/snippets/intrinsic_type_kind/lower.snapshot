@@ -1,58 +1,29 @@
 # Lower
 
 ## snippet
-  struct snippet$Pair { first: i32, second: i32 }
-  fn snippet$main() -> i32
-    let kp: string = "primitive" :string
-    let ks: string = "struct" :string
-    let ka: string = "array" :string
-    let kt: string = "tuple" :string
-    if :void
-      cond:
-        and :bool
-          l:
-            and :bool
-              l:
-                and :bool
-                  l:
-                    eq :bool
-                      l:
-                        kp :string
-                      r:
-                        "primitive" :string
-                  r:
-                    eq :bool
-                      l:
-                        ks :string
-                      r:
-                        "struct" :string
-              r:
-                eq :bool
-                  l:
-                    ka :string
-                  r:
-                    "array" :string
-          r:
-            eq :bool
-              l:
-                kt :string
-              r:
-                "tuple" :string
-      then:
-        return int(0) :i32
-    return int(1) :i32
+  snippet.Pair :: struct { first: i32, second: i32 }  // snippet$Pair
+  snippet.main :: fn() -> i32 {  // snippet$main
+      kp: string = "primitive"
+      ks: string = "struct"
+      ka: string = "array"
+      kt: string = "tuple"
+      if (((kp == "primitive") && (ks == "struct")) && (ka == "array")) && (kt == "tuple") {
+          return 0
+      }
+      return 1
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize

@@ -1,1044 +1,244 @@
 # Lower
 
 ## snippet
-  fn snippet$run_match(label: string, p: Pattern, input: string) -> void
-    ~>
-      call :void
-        callee:
-          std_io$println__string :void
-        arg0:
-          block :string
-            let __p_0: string = label :string
-            let __buf_1: Buffer =
-              call :Buffer
-                callee:
-                  new_byte_buffer :Buffer
-                arg0:
-                  add :usize
-                    l:
-                      int(6) :usize
-                    r:
-                      call :usize
-                        callee:
-                          byte_len :usize
-                        arg0:
-                          __p_0 :string
-            let __off_2: usize = int(0) :usize
-            assign
-              target:
-                __off_2 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_1 :Buffer
-                  arg1:
-                    __off_2 :usize
-                  arg2:
-                    __p_0 :string
-            assign
-              target:
-                __off_2 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_1 :Buffer
-                  arg1:
-                    __off_2 :usize
-                  arg2:
-                    "=" :string
-            assign
-              target:
-                __off_2 :usize
-              value:
-                call :usize
-                  callee:
-                    write_bool :usize
-                  arg0:
-                    __buf_1 :Buffer
-                  arg1:
-                    __off_2 :usize
-                  arg2:
-                    call :bool
-                      callee:
-                        matches :bool
-                      arg0:
-                        p :Pattern
-                      arg1:
-                        input :string
-            ~>
-              call :string
-                callee:
-                  finish_buffer :string
-                arg0:
-                  __buf_1 :Buffer
-                arg1:
-                  __off_2 :usize
-  fn snippet$run_find(label: string, p: Pattern, input: string) -> void
-    let r: Match | null =
-      call :Match | null
-        callee:
-          find :Match | null
-        arg0:
-          p :Pattern
-        arg1:
-          input :string
-    ~>
-      if :void
-        cond:
-          is Match :bool
-            r :Match | null
-        then:
-          ~>
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                block :string
-                  let __p_0: string = label :string
-                  let __p_1: string =
-                    index :string
-                      on:
-                        .groups :string[]
-                          cast → Match
-                            r :Match | null
-                      ix:
-                        int(0) :i32
-                  let __buf_2: Buffer =
-                    call :Buffer
-                      callee:
-                        new_byte_buffer :Buffer
-                      arg0:
-                        add :usize
-                          l:
-                            int(44) :usize
-                          r:
-                            add :usize
-                              l:
-                                call :usize
-                                  callee:
-                                    byte_len :usize
-                                  arg0:
-                                    __p_0 :string
-                              r:
-                                call :usize
-                                  callee:
-                                    byte_len :usize
-                                  arg0:
-                                    __p_1 :string
-                  let __off_3: usize = int(0) :usize
-                  assign
-                    target:
-                      __off_3 :usize
-                    value:
-                      call :usize
-                        callee:
-                          write_string_at :usize
-                        arg0:
-                          __buf_2 :Buffer
-                        arg1:
-                          __off_3 :usize
-                        arg2:
-                          __p_0 :string
-                  assign
-                    target:
-                      __off_3 :usize
-                    value:
-                      call :usize
-                        callee:
-                          write_string_at :usize
-                        arg0:
-                          __buf_2 :Buffer
-                        arg1:
-                          __off_3 :usize
-                        arg2:
-                          "=" :string
-                  assign
-                    target:
-                      __off_3 :usize
-                    value:
-                      call :usize
-                        callee:
-                          write_unsigned :usize
-                        arg0:
-                          __buf_2 :Buffer
-                        arg1:
-                          __off_3 :usize
-                        arg2:
-                          cast → u64
-                            .start :usize
-                              cast → Match
-                                r :Match | null
-                  assign
-                    target:
-                      __off_3 :usize
-                    value:
-                      call :usize
-                        callee:
-                          write_string_at :usize
-                        arg0:
-                          __buf_2 :Buffer
-                        arg1:
-                          __off_3 :usize
-                        arg2:
-                          ".." :string
-                  assign
-                    target:
-                      __off_3 :usize
-                    value:
-                      call :usize
-                        callee:
-                          write_unsigned :usize
-                        arg0:
-                          __buf_2 :Buffer
-                        arg1:
-                          __off_3 :usize
-                        arg2:
-                          cast → u64
-                            .end :usize
-                              cast → Match
-                                r :Match | null
-                  assign
-                    target:
-                      __off_3 :usize
-                    value:
-                      call :usize
-                        callee:
-                          write_string_at :usize
-                        arg0:
-                          __buf_2 :Buffer
-                        arg1:
-                          __off_3 :usize
-                        arg2:
-                          ":" :string
-                  assign
-                    target:
-                      __off_3 :usize
-                    value:
-                      call :usize
-                        callee:
-                          write_string_at :usize
-                        arg0:
-                          __buf_2 :Buffer
-                        arg1:
-                          __off_3 :usize
-                        arg2:
-                          __p_1 :string
-                  ~>
-                    call :string
-                      callee:
-                        finish_buffer :string
-                      arg0:
-                        __buf_2 :Buffer
-                      arg1:
-                        __off_3 :usize
-        else:
-          ~>
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    label :string
-                  arg1:
-                    "=null" :string
-  fn snippet$main() -> i32
-    let p_lit: Pattern | RegexError =
-      call :Pattern | RegexError
-        callee:
-          compile :fn(string) -> Pattern | RegexError
-        arg0:
-          "hello" :string
-    if :void
-      cond:
-        is Pattern :bool
-          p_lit :Pattern | RegexError
-      then:
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "lit-exact" :string
-          arg1:
-            cast → Pattern
-              p_lit :Pattern | RegexError
-          arg2:
-            "hello" :string
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "lit-partial" :string
-          arg1:
-            cast → Pattern
-              p_lit :Pattern | RegexError
-          arg2:
-            "hellox" :string
-    let p_digits: Pattern | RegexError =
-      call :Pattern | RegexError
-        callee:
-          compile :fn(string) -> Pattern | RegexError
-        arg0:
-          "\\d{3}-\\d{4}" :string
-    if :void
-      cond:
-        is Pattern :bool
-          p_digits :Pattern | RegexError
-      then:
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "phone-good" :string
-          arg1:
-            cast → Pattern
-              p_digits :Pattern | RegexError
-          arg2:
-            "555-1234" :string
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "phone-bad" :string
-          arg1:
-            cast → Pattern
-              p_digits :Pattern | RegexError
-          arg2:
-            "55-1234" :string
-    let p_word: Pattern | RegexError =
-      call :Pattern | RegexError
-        callee:
-          compile :fn(string) -> Pattern | RegexError
-        arg0:
-          "[a-z]+" :string
-    if :void
-      cond:
-        is Pattern :bool
-          p_word :Pattern | RegexError
-      then:
-        call :void
-          callee:
-            run_find :fn(string, Pattern, string) -> void
-          arg0:
-            "first-word" :string
-          arg1:
-            cast → Pattern
-              p_word :Pattern | RegexError
-          arg2:
-            "abc def ghi" :string
-        let all: Match[] =
-          call :Match[]
-            callee:
-              find_all :Match[]
-            arg0:
-              cast → Pattern
-                p_word :Pattern | RegexError
-            arg1:
-              "abc def ghi" :string
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            block :string
-              let __buf_0: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    int(31) :usize
-              let __off_1: usize = int(0) :usize
-              assign
-                target:
-                  __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      "word-count=" :string
-              assign
-                target:
-                  __off_1 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_unsigned :usize
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-                    arg2:
-                      cast → u64
-                        LoweredArrayLen
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-        let i: usize = int(0) :usize
-        loop while (<…>)
-          call :void
-            callee:
-              std_io$println__string :void
-            arg0:
-              block :string
-                let __p_2: string =
-                  index :string
-                    on:
-                      .groups :string[]
-                        index :Match
-                          on:
-                            all :Match[]
-                          ix:
-                            i :usize
-                    ix:
-                      int(0) :i32
-                let __buf_3: Buffer =
-                  call :Buffer
-                    callee:
-                      new_byte_buffer :Buffer
-                    arg0:
-                      add :usize
-                        l:
-                          int(27) :usize
-                        r:
-                          call :usize
-                            callee:
-                              byte_len :usize
-                            arg0:
-                              __p_2 :string
-                let __off_4: usize = int(0) :usize
-                assign
-                  target:
-                    __off_4 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_3 :Buffer
-                      arg1:
-                        __off_4 :usize
-                      arg2:
-                        "word[" :string
-                assign
-                  target:
-                    __off_4 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_unsigned :usize
-                      arg0:
-                        __buf_3 :Buffer
-                      arg1:
-                        __off_4 :usize
-                      arg2:
-                        cast → u64
-                          i :usize
-                assign
-                  target:
-                    __off_4 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_3 :Buffer
-                      arg1:
-                        __off_4 :usize
-                      arg2:
-                        "]=" :string
-                assign
-                  target:
-                    __off_4 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_3 :Buffer
-                      arg1:
-                        __off_4 :usize
-                      arg2:
-                        __p_2 :string
-                ~>
-                  call :string
-                    callee:
-                      finish_buffer :string
-                    arg0:
-                      __buf_3 :Buffer
-                    arg1:
-                      __off_4 :usize
-          assign
-            target:
-              i :usize
-            value:
-              add_checked :usize
-                l:
-                  i :usize
-                r:
-                  cast → usize
-                    int(1) :usize
-    let p_anchor: Pattern | RegexError =
-      call :Pattern | RegexError
-        callee:
-          compile :fn(string) -> Pattern | RegexError
-        arg0:
-          "^foo" :string
-    if :void
-      cond:
-        is Pattern :bool
-          p_anchor :Pattern | RegexError
-      then:
-        call :void
-          callee:
-            run_find :fn(string, Pattern, string) -> void
-          arg0:
-            "anchor-hit" :string
-          arg1:
-            cast → Pattern
-              p_anchor :Pattern | RegexError
-          arg2:
-            "foo bar" :string
-        call :void
-          callee:
-            run_find :fn(string, Pattern, string) -> void
-          arg0:
-            "anchor-miss" :string
-          arg1:
-            cast → Pattern
-              p_anchor :Pattern | RegexError
-          arg2:
-            "bar foo" :string
-    let p_email: Pattern | RegexError =
-      call :Pattern | RegexError
-        callee:
-          compile :fn(string) -> Pattern | RegexError
-        arg0:
-          "(\\w+)@(\\w+)\\.(\\w+)" :string
-    if :void
-      cond:
-        is Pattern :bool
-          p_email :Pattern | RegexError
-      then:
-        let r: Match | null =
-          call :Match | null
-            callee:
-              find :Match | null
-            arg0:
-              cast → Pattern
-                p_email :Pattern | RegexError
-            arg1:
-              "contact user@domain.com please" :string
-        if :void
-          cond:
-            is Match :bool
-              r :Match | null
-          then:
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    "email-match=" :string
-                  arg1:
-                    index :string
-                      on:
-                        .groups :string[]
-                          cast → Match
-                            r :Match | null
-                      ix:
-                        int(0) :i32
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    "email-user=" :string
-                  arg1:
-                    index :string
-                      on:
-                        .groups :string[]
-                          cast → Match
-                            r :Match | null
-                      ix:
-                        int(1) :i32
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    "email-host=" :string
-                  arg1:
-                    index :string
-                      on:
-                        .groups :string[]
-                          cast → Match
-                            r :Match | null
-                      ix:
-                        int(2) :i32
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    "email-tld=" :string
-                  arg1:
-                    index :string
-                      on:
-                        .groups :string[]
-                          cast → Match
-                            r :Match | null
-                      ix:
-                        int(3) :i32
-    let p_alt: Pattern | RegexError =
-      call :Pattern | RegexError
-        callee:
-          compile :fn(string) -> Pattern | RegexError
-        arg0:
-          "cat|dog|bird" :string
-    if :void
-      cond:
-        is Pattern :bool
-          p_alt :Pattern | RegexError
-      then:
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "alt-cat" :string
-          arg1:
-            cast → Pattern
-              p_alt :Pattern | RegexError
-          arg2:
-            "cat" :string
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "alt-dog" :string
-          arg1:
-            cast → Pattern
-              p_alt :Pattern | RegexError
-          arg2:
-            "dog" :string
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "alt-bird" :string
-          arg1:
-            cast → Pattern
-              p_alt :Pattern | RegexError
-          arg2:
-            "bird" :string
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "alt-fish" :string
-          arg1:
-            cast → Pattern
-              p_alt :Pattern | RegexError
-          arg2:
-            "fish" :string
-    let p_3a: Pattern | RegexError =
-      call :Pattern | RegexError
-        callee:
-          compile :fn(string) -> Pattern | RegexError
-        arg0:
-          "a{3}" :string
-    if :void
-      cond:
-        is Pattern :bool
-          p_3a :Pattern | RegexError
-      then:
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "3a-yes" :string
-          arg1:
-            cast → Pattern
-              p_3a :Pattern | RegexError
-          arg2:
-            "aaa" :string
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "3a-no" :string
-          arg1:
-            cast → Pattern
-              p_3a :Pattern | RegexError
-          arg2:
-            "aa" :string
-    let p_2to4: Pattern | RegexError =
-      call :Pattern | RegexError
-        callee:
-          compile :fn(string) -> Pattern | RegexError
-        arg0:
-          "a{2,4}" :string
-    if :void
-      cond:
-        is Pattern :bool
-          p_2to4 :Pattern | RegexError
-      then:
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "2to4-1" :string
-          arg1:
-            cast → Pattern
-              p_2to4 :Pattern | RegexError
-          arg2:
-            "a" :string
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "2to4-3" :string
-          arg1:
-            cast → Pattern
-              p_2to4 :Pattern | RegexError
-          arg2:
-            "aaa" :string
-        call :void
-          callee:
-            run_match :fn(string, Pattern, string) -> void
-          arg0:
-            "2to4-5" :string
-          arg1:
-            cast → Pattern
-              p_2to4 :Pattern | RegexError
-          arg2:
-            "aaaaa" :string
-    let p_swap: Pattern | RegexError =
-      call :Pattern | RegexError
-        callee:
-          compile :fn(string) -> Pattern | RegexError
-        arg0:
-          "(\\w+) (\\w+)" :string
-    if :void
-      cond:
-        is Pattern :bool
-          p_swap :Pattern | RegexError
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "swap=" :string
-              arg1:
-                call :string
-                  callee:
-                    replace_all :string
-                  arg0:
-                    cast → Pattern
-                      p_swap :Pattern | RegexError
-                  arg1:
-                    "Mathieu Broutin" :string
-                  arg2:
-                    "$2 $1" :string
-    let p_redact: Pattern | RegexError =
-      call :Pattern | RegexError
-        callee:
-          compile :fn(string) -> Pattern | RegexError
-        arg0:
-          "\\d+" :string
-    if :void
-      cond:
-        is Pattern :bool
-          p_redact :Pattern | RegexError
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "redact=" :string
-              arg1:
-                call :string
-                  callee:
-                    replace_all :string
-                  arg0:
-                    cast → Pattern
-                      p_redact :Pattern | RegexError
-                  arg1:
-                    "a1b22c333" :string
-                  arg2:
-                    "X" :string
-    let bad: Pattern | RegexError =
-      call :Pattern | RegexError
-        callee:
-          compile :fn(string) -> Pattern | RegexError
-        arg0:
-          "[abc" :string
-    if :void
-      cond:
-        is RegexError :bool
-          bad :Pattern | RegexError
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            "bad-compile=caught" :string
-    return int(0) :i32
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
-  fn concat_3(p0: string, p1: string, p2: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c2 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c2 :usize
+  snippet.run_match :: fn(label: string, p: Pattern, input: string) -> void {  // snippet$run_match
+      std.io.println<string>({
+          __p_0: string = label
+          __buf_1: Buffer = std.core.new_byte_buffer(usize(6) +% std.core.byte_len(__p_0))
+          __off_2: usize = 0
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, "=")
+          __off_2 = std.core.write_bool(__buf_1, __off_2, regex.matches(p, input))
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string)
+  }
+  snippet.run_find :: fn(label: string, p: Pattern, input: string) -> void {  // snippet$run_find
+      r: Match | null = regex.find(p, input)
+      if r is Match {
+          std.io.println<string>({
+              __p_0: string = label
+              __p_1: string = Match(r).groups[0]
+              __buf_2: Buffer = std.core.new_byte_buffer(usize(44) +% (std.core.byte_len(__p_0) +% std.core.byte_len(__p_1)))
+              __off_3: usize = 0
+              __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_0)
+              __off_3 = std.core.write_string_at(__buf_2, __off_3, "=")
+              __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(Match(r).start))
+              __off_3 = std.core.write_string_at(__buf_2, __off_3, "..")
+              __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(Match(r).end))
+              __off_3 = std.core.write_string_at(__buf_2, __off_3, ":")
+              __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+              std.core.finish_buffer(__buf_2, __off_3)
+          } :string)
+      } else {
+          std.io.println<string>(concat_2(label, "=null"))
+      }
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      p_lit: Pattern | RegexError = regex.compile("hello")
+      if p_lit is Pattern {
+          snippet.run_match("lit-exact", Pattern(p_lit), "hello")
+          snippet.run_match("lit-partial", Pattern(p_lit), "hellox")
+      }
+      p_digits: Pattern | RegexError = regex.compile("\\d{3}-\\d{4}")
+      if p_digits is Pattern {
+          snippet.run_match("phone-good", Pattern(p_digits), "555-1234")
+          snippet.run_match("phone-bad", Pattern(p_digits), "55-1234")
+      }
+      p_word: Pattern | RegexError = regex.compile("[a-z]+")
+      if p_word is Pattern {
+          snippet.run_find("first-word", Pattern(p_word), "abc def ghi")
+          all: Match[] = regex.find_all(Pattern(p_word), "abc def ghi")
+          std.io.println<string>({
+              __buf_0: Buffer = std.core.new_byte_buffer(usize(31))
+              __off_1: usize = 0
+              __off_1 = std.core.write_string_at(__buf_0, __off_1, "word-count=")
+              __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(@array.len(all)))
+              std.core.finish_buffer(__buf_0, __off_1)
+          } :string)
+          i: usize = 0
+          for i < @array.len(all) {
+              std.io.println<string>({
+                  __p_2: string = all[i].groups[0]
+                  __buf_3: Buffer = std.core.new_byte_buffer(usize(27) +% std.core.byte_len(__p_2))
+                  __off_4: usize = 0
+                  __off_4 = std.core.write_string_at(__buf_3, __off_4, "word[")
+                  __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64(i))
+                  __off_4 = std.core.write_string_at(__buf_3, __off_4, "]=")
+                  __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_2)
+                  std.core.finish_buffer(__buf_3, __off_4)
+              } :string)
+              i = i + usize(1)
+          }
+      }
+      p_anchor: Pattern | RegexError = regex.compile("^foo")
+      if p_anchor is Pattern {
+          snippet.run_find("anchor-hit", Pattern(p_anchor), "foo bar")
+          snippet.run_find("anchor-miss", Pattern(p_anchor), "bar foo")
+      }
+      p_email: Pattern | RegexError = regex.compile("(\\w+)@(\\w+)\\.(\\w+)")
+      if p_email is Pattern {
+          r: Match | null = regex.find(Pattern(p_email), "contact user@domain.com please")
+          if r is Match {
+              std.io.println<string>(concat_2("email-match=", Match(r).groups[0]))
+              std.io.println<string>(concat_2("email-user=", Match(r).groups[1]))
+              std.io.println<string>(concat_2("email-host=", Match(r).groups[2]))
+              std.io.println<string>(concat_2("email-tld=", Match(r).groups[3]))
+          }
+      }
+      p_alt: Pattern | RegexError = regex.compile("cat|dog|bird")
+      if p_alt is Pattern {
+          snippet.run_match("alt-cat", Pattern(p_alt), "cat")
+          snippet.run_match("alt-dog", Pattern(p_alt), "dog")
+          snippet.run_match("alt-bird", Pattern(p_alt), "bird")
+          snippet.run_match("alt-fish", Pattern(p_alt), "fish")
+      }
+      p_3a: Pattern | RegexError = regex.compile("a{3}")
+      if p_3a is Pattern {
+          snippet.run_match("3a-yes", Pattern(p_3a), "aaa")
+          snippet.run_match("3a-no", Pattern(p_3a), "aa")
+      }
+      p_2to4: Pattern | RegexError = regex.compile("a{2,4}")
+      if p_2to4 is Pattern {
+          snippet.run_match("2to4-1", Pattern(p_2to4), "a")
+          snippet.run_match("2to4-3", Pattern(p_2to4), "aaa")
+          snippet.run_match("2to4-5", Pattern(p_2to4), "aaaaa")
+      }
+      p_swap: Pattern | RegexError = regex.compile("(\\w+) (\\w+)")
+      if p_swap is Pattern {
+          std.io.println<string>(concat_2("swap=", regex.replace_all(Pattern(p_swap), "Mathieu Broutin", "\$2 \$1")))
+      }
+      p_redact: Pattern | RegexError = regex.compile("\\d+")
+      if p_redact is Pattern {
+          std.io.println<string>(concat_2("redact=", regex.replace_all(Pattern(p_redact), "a1b22c333", "X")))
+      }
+      bad: Pattern | RegexError = regex.compile("[abc")
+      if bad is RegexError {
+          std.io.println<string>("bad-compile=caught")
+      }
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.usize.new_buffer(c2)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
 
 ## lowered in dependencies
   regex
-    fn regex$add_thread
-    fn regex$apply_counted
-    fn regex$apply_optional
-    fn regex$apply_plus
-    fn regex$apply_star
-    fn regex$at_digit
-    fn regex$at_end
-    fn regex$captured_groups
-    fn regex$class_matches
-    fn regex$compile
-    fn regex$expand_replacement
-    fn regex$extract_range
-    fn regex$find
-    fn regex$find_all
-    fn regex$is_digit_byte
-    fn regex$matches
-    fn regex$next_codepoint
-    fn regex$parse_alternation
-    fn regex$parse_atom
-    fn regex$parse_atom_with_quantifier
-    fn regex$parse_char_class
-    fn regex$parse_concat
-    fn regex$parse_decimal_usize
-    fn regex$parse_escape
-    fn regex$peek
-    fn regex$push_atom_rebased
-    fn regex$push_fragment_rebased
-    fn regex$read_class_char
-    fn regex$replace_all
-    fn regex$run_at
-    fn regex$run_vm
-    fn regex$space_class_ranges
-    fn regex$truncate_threads
-    fn regex$truncate_to
-    fn regex$word_class_ranges
-    struct regex$CharRange
-    struct regex$InstAnchorEnd
-    struct regex$InstAnchorStart
-    struct regex$InstAny
-    struct regex$InstChar
-    struct regex$InstClass
-    struct regex$InstJump
-    struct regex$InstMatch
-    struct regex$InstSave
-    struct regex$InstSplit
-    struct regex$Match
-    struct regex$Parser
-    struct regex$Pattern
-    struct regex$RegexError
-    struct regex$Thread
-    struct regex$WorkItem
+    fn regex.add_thread  // regex$add_thread
+    fn regex.apply_counted  // regex$apply_counted
+    fn regex.apply_optional  // regex$apply_optional
+    fn regex.apply_plus  // regex$apply_plus
+    fn regex.apply_star  // regex$apply_star
+    fn regex.at_digit  // regex$at_digit
+    fn regex.at_end  // regex$at_end
+    fn regex.captured_groups  // regex$captured_groups
+    fn regex.class_matches  // regex$class_matches
+    fn regex.compile  // regex$compile
+    fn regex.expand_replacement  // regex$expand_replacement
+    fn regex.extract_range  // regex$extract_range
+    fn regex.find  // regex$find
+    fn regex.find_all  // regex$find_all
+    fn regex.is_digit_byte  // regex$is_digit_byte
+    fn regex.matches  // regex$matches
+    fn regex.next_codepoint  // regex$next_codepoint
+    fn regex.parse_alternation  // regex$parse_alternation
+    fn regex.parse_atom  // regex$parse_atom
+    fn regex.parse_atom_with_quantifier  // regex$parse_atom_with_quantifier
+    fn regex.parse_char_class  // regex$parse_char_class
+    fn regex.parse_concat  // regex$parse_concat
+    fn regex.parse_decimal_usize  // regex$parse_decimal_usize
+    fn regex.parse_escape  // regex$parse_escape
+    fn regex.peek  // regex$peek
+    fn regex.push_atom_rebased  // regex$push_atom_rebased
+    fn regex.push_fragment_rebased  // regex$push_fragment_rebased
+    fn regex.read_class_char  // regex$read_class_char
+    fn regex.replace_all  // regex$replace_all
+    fn regex.run_at  // regex$run_at
+    fn regex.run_vm  // regex$run_vm
+    fn regex.space_class_ranges  // regex$space_class_ranges
+    fn regex.truncate_threads  // regex$truncate_threads
+    fn regex.truncate_to  // regex$truncate_to
+    fn regex.word_class_ranges  // regex$word_class_ranges
+    struct regex.CharRange  // regex$CharRange
+    struct regex.InstAnchorEnd  // regex$InstAnchorEnd
+    struct regex.InstAnchorStart  // regex$InstAnchorStart
+    struct regex.InstAny  // regex$InstAny
+    struct regex.InstChar  // regex$InstChar
+    struct regex.InstClass  // regex$InstClass
+    struct regex.InstJump  // regex$InstJump
+    struct regex.InstMatch  // regex$InstMatch
+    struct regex.InstSave  // regex$InstSave
+    struct regex.InstSplit  // regex$InstSplit
+    struct regex.Match  // regex$Match
+    struct regex.Parser  // regex$Parser
+    struct regex.Pattern  // regex$Pattern
+    struct regex.RegexError  // regex$RegexError
+    struct regex.Thread  // regex$Thread
+    struct regex.WorkItem  // regex$WorkItem
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__char
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__char
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$char$Comparable$compare
-    fn std_core$char$Display$to_string
-    fn std_core$char$Step$step
-    fn std_core$codepoint_at_byte
-    fn std_core$decode_tail
-    fn std_core$finish_buffer
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$is_utf8_continuation
-    fn std_core$new_byte_buffer
-    fn std_core$scalar_or_replacement
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$utf8_encode
-    fn std_core$write_bool
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__char
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<char>.contains  // std_core$Range$Contains$contains__char
+    fn std.core.Range<char>.next  // std_core$Range$Iterator$next__char
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.char.compare  // std_core$char$Comparable$compare
+    fn std.core.char.step  // std_core$char$Step$step
+    fn std.core.char.to_string  // std_core$char$Display$to_string
+    fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
+    fn std.core.decode_tail  // std_core$decode_tail
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.scalar_or_replacement  // std_core$scalar_or_replacement
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.utf8_encode  // std_core$utf8_encode
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<char>  // std_core$Range__char
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   std/string_builder
-    fn std_string_builder$StringBuilder$Display$to_string
-    fn std_string_builder$append
-    struct std_string_builder$StringBuilder
+    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$Display$to_string
+    fn std.string_builder.append  // std_string_builder$append
+    struct std.string_builder.StringBuilder  // std_string_builder$StringBuilder
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

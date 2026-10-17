@@ -1,41 +1,27 @@
 # Lower
 
 ## snippet
-  fn snippet$triple(n: i32) -> i32
-    return
-      mul_checked :i32
-        l:
-          n :i32
-        r:
-          int(3) :i32
-  fn snippet$apply(f: fn(i32) -> i32, n: i32) -> i32
-    return
-      call :i32
-        callee:
-          f :fn(i32) -> i32
-        arg0:
-          n :i32
-  fn snippet$main() -> i32
-    return
-      call :i32
-        callee:
-          apply :fn(fn(i32) -> i32, i32) -> i32
-        arg0:
-          triple :fn(i32) -> i32
-        arg1:
-          int(7) :i32
+  snippet.triple :: fn(n: i32) -> i32 {  // snippet$triple
+      return n * 3
+  }
+  snippet.apply :: fn(f: fn(i32) -> i32, n: i32) -> i32 {  // snippet$apply
+      return f(n)
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      return snippet.apply(snippet.triple, 7)
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize

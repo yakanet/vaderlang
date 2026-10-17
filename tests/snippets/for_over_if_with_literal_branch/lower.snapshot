@@ -1,241 +1,85 @@
 # Lower
 
 ## snippet
-  struct snippet$A { n: i32 }
-  struct snippet$B { m: i32 }
-  struct snippet$Group { items: (A | B)[] }
-  fn snippet$count(g: Group, one: A | B, many: bool) -> i32
-    let total: i32 = int(0) :i32
-    block :void
-      let __for_arr_0: (A | B)[] =
-        if :(A | B)[]
-          cond:
-            many :bool
-          then:
-            ~>
-              .items :(A | B)[]
-                g :Group
-          else:
-            ~>
-              array :(A | B)[]
-                one :A | B
-      let __for_len_1: usize =
-        LoweredArrayLen
-      let __for_i_2: usize = int(0) :usize
-      loop while (<…>)
-        let s: A | B =
-          index :A | B
-            on:
-              __for_arr_0 :(A | B)[]
-            ix:
-              __for_i_2 :usize
-        assign
-          target:
-            total :i32
-          value:
-            add_checked :i32
-              l:
-                total :i32
-              r:
-                int(1) :i32
-      step
-        assign
-          target:
-            __for_i_2 :usize
-          value:
-            add :usize
-              l:
-                __for_i_2 :usize
-              r:
-                int(1) :usize
-    return total :i32
-  fn snippet$main() -> i32
-    let g: Group =
-      Group {
-        items:
-          array :(A | B)[]
-            A {
-              n: int(1) :i32
-            }
-            B {
-              m: int(2) :i32
-            }
+  snippet.A :: struct { n: i32 }  // snippet$A
+  snippet.B :: struct { m: i32 }  // snippet$B
+  snippet.Group :: struct { items: (A | B)[] }  // snippet$Group
+  snippet.count :: fn(g: Group, one: A | B, many: bool) -> i32 {  // snippet$count
+      total: i32 = 0
+      {
+          __for_arr_0: (A | B)[] = if many { g.items } else { [one] :(A | B)[] }
+          __for_len_1: usize = @array.len(__for_arr_0)
+          __for_i_2: usize = 0
+          for __for_i_2 < __for_len_1 {
+              s: A | B = __for_arr_0[__for_i_2]
+              total = total + 1
+          } @step {
+              __for_i_2 = __for_i_2 +% usize(1)
+          }
       }
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_0: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(20) :usize
-          let __off_1: usize = int(0) :usize
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  cast → i64
-                    call :i32
-                      callee:
-                        count :fn(Group, A | B, bool) -> i32
-                      arg0:
-                        g :Group
-                      arg1:
-                        A {
-                          n: int(0) :i32
-                        }
-                      arg2:
-                        true
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_2: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(20) :usize
-          let __off_3: usize = int(0) :usize
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  cast → i64
-                    call :i32
-                      callee:
-                        count :fn(Group, A | B, bool) -> i32
-                      arg0:
-                        g :Group
-                      arg1:
-                        B {
-                          m: int(0) :i32
-                        }
-                      arg2:
-                        false
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_2 :Buffer
-              arg1:
-                __off_3 :usize
-    return int(0) :i32
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
+      return total
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      g: Group = Group { .items = [A { .n = 1 }, B { .m = 2 }] :(A | B)[] }
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(20))
+          __off_1: usize = 0
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.count(g, A { .n = 0 }, true)))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(usize(20))
+          __off_3: usize = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.count(g, B { .m = 0 }, false)))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$finish_buffer
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$new_byte_buffer
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

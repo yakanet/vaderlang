@@ -1,461 +1,140 @@
 # Lower
 
 ## snippet
-  fn snippet$main() -> i32
-    let path: string =
-      call :string
-        callee:
-          concat_2 :string
-        arg0:
-          call :string
-            callee:
-              temp_dir :fn() -> string
-        arg1:
-          "/vader_ppm_roundtrip.ppm" :string
-    let px: u8[] =
-      array :u8[]
-        int(0) :u8
-        int(128) :u8
-        int(255) :u8
-        int(16) :u8
-        int(32) :u8
-        int(48) :u8
-        int(195) :u8
-        int(40) :u8
-        int(169) :u8
-        int(127) :u8
-        int(1) :u8
-        int(254) :u8
-    let img: Ppm =
-      Ppm {
-        width: int(2) :u32
-        height: int(2) :u32
-        maxval: int(255) :u32
-        pixels: px :u8[]
+  snippet.main :: fn() -> i32 {  // snippet$main
+      path: string = concat_2(std.io.temp_dir(), "/vader_ppm_roundtrip.ppm")
+      px: u8[] = [u8(0), u8(128), u8(255), u8(16), u8(32), u8(48), u8(195), u8(40), u8(169), u8(127), u8(1), u8(254)] :u8[]
+      img: Ppm = Ppm {
+          .width = u32(2),
+          .height = u32(2),
+          .maxval = u32(255),
+          .pixels = px,
       }
-    let enc: PpmError | u8[] =
-      call :PpmError | u8[]
-        callee:
-          encode :fn(Ppm) -> PpmError | u8[]
-        arg0:
-          img :Ppm
-    if :void
-      cond:
-        is PpmError :bool
-          enc :PpmError | u8[]
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            "encode failed" :string
-        return int(1) :i32
-    let wr: IOError | null =
-      call :IOError | null
-        callee:
-          write_file_bytes :fn(string, u8[]) -> IOError | null
-        arg0:
-          path :string
-        arg1:
-          cast → u8[]
-            enc :PpmError | u8[]
-    if :void
-      cond:
-        is Error :bool
-          wr :IOError | null
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                concat_5 :string
-              arg0:
-                "write failed: " :string
-              arg1:
-                vcall std_core$Error.message :string
-                  recv:
-                    cast → Error
-                      wr :IOError | null
-              arg2:
-                " path=[" :string
-              arg3:
-                path :string
-              arg4:
-                "]" :string
-        return int(1) :i32
-    let raw: IOError | u8[] =
-      call :IOError | u8[]
-        callee:
-          read_file_bytes :fn(string, usize) -> IOError | u8[]
-        arg0:
-          path :string
-        arg1:
-          int(16777216) :usize
-    if :void
-      cond:
-        is Error :bool
-          raw :IOError | u8[]
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "read failed: " :string
-              arg1:
-                vcall std_core$Error.message :string
-                  recv:
-                    cast → Error
-                      raw :IOError | u8[]
-        return int(1) :i32
-    let dec: Ppm | PpmError =
-      call :Ppm | PpmError
-        callee:
-          decode :fn(u8[]) -> Ppm | PpmError
-        arg0:
-          cast → u8[]
-            raw :IOError | u8[]
-    if :void
-      cond:
-        is PpmError :bool
-          dec :Ppm | PpmError
-      then:
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            "decode failed" :string
-        return int(1) :i32
-    let ok: bool =
-      and :bool
-        l:
-          and :bool
-            l:
-              and :bool
-                l:
-                  eq :bool
-                    l:
-                      .width :u32
-                        cast → Ppm
-                          dec :Ppm | PpmError
-                    r:
-                      cast → u32
-                        int(2) :u32
-                r:
-                  eq :bool
-                    l:
-                      .height :u32
-                        cast → Ppm
-                          dec :Ppm | PpmError
-                    r:
-                      cast → u32
-                        int(2) :u32
-            r:
-              eq :bool
-                l:
-                  .maxval :u32
-                    cast → Ppm
-                      dec :Ppm | PpmError
-                r:
-                  cast → u32
-                    int(255) :u32
-        r:
-          eq :bool
-            l:
-              LoweredArrayLen
-            r:
-              cast → usize
-                int(12) :usize
-    block :void
-      let i: usize = int(0) :usize
-      let __for_hi_0: usize =
-        LoweredArrayLen
-      loop while (<…>)
-        ~>
-          if :void
-            cond:
-              neq :bool
-                l:
-                  index :u8
-                    on:
-                      .pixels :u8[]
-                        cast → Ppm
-                          dec :Ppm | PpmError
-                    ix:
-                      i :usize
-                r:
-                  index :u8
-                    on:
-                      px :u8[]
-                    ix:
-                      i :usize
-            then:
-              assign
-                target:
-                  ok :bool
-                value:
-                  false
-      step
-        assign
-          target:
-            i :usize
-          value:
-            add :usize
-              l:
-                i :usize
-              r:
-                int(1) :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            images_ppm$Ppm$Display$to_string :string
-          arg0:
-            cast → Ppm
-              dec :Ppm | PpmError
-    if :void
-      cond:
-        ok :bool
-      then:
-        ~>
-          call :void
-            callee:
-              std_io$println__string :void
-            arg0:
-              "OK" :string
-      else:
-        ~>
-          call :void
-            callee:
-              std_io$println__string :void
-            arg0:
-              "MISMATCH" :string
-    return int(0) :i32
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
-  fn concat_5(p0: string, p1: string, p2: string, p3: string, p4: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let c3: usize =
-      add :usize
-        l:
-          c2 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p3 :string
-    let c4: usize =
-      add :usize
-        l:
-          c3 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p4 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c4 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c2 :usize
-      arg2:
-        p3 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c3 :usize
-      arg2:
-        p4 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c4 :usize
+      enc: PpmError | u8[] = images.ppm.encode(img)
+      if enc is PpmError {
+          std.io.println<string>("encode failed")
+          return 1
+      }
+      wr: IOError | null = std.io.write_file_bytes(path, u8[](enc))
+      if wr is Error {
+          std.io.println<string>(concat_5("write failed: ", @vcall(std.core.Error.message, Error(wr)), " path=[", path, "]"))
+          return 1
+      }
+      raw: IOError | u8[] = std.io.read_file_bytes(path, usize(16777216))
+      if raw is Error {
+          std.io.println<string>(concat_2("read failed: ", @vcall(std.core.Error.message, Error(raw))))
+          return 1
+      }
+      dec: Ppm | PpmError = images.ppm.decode(u8[](raw))
+      if dec is PpmError {
+          std.io.println<string>("decode failed")
+          return 1
+      }
+      ok: bool = (((Ppm(dec).width == u32(2)) && (Ppm(dec).height == u32(2))) && (Ppm(dec).maxval == u32(255))) && (@array.len(Ppm(dec).pixels) == usize(12))
+      {
+          i: usize = 0
+          __for_hi_0: usize = @array.len(Ppm(dec).pixels)
+          for i < __for_hi_0 {
+              if Ppm(dec).pixels[i] != px[i] {
+                  ok = false
+              }
+          } @step {
+              i = i +% usize(1)
+          }
+      }
+      std.io.println<string>(images.ppm.Ppm.to_string(Ppm(dec)))
+      if ok {
+          std.io.println<string>("OK")
+      } else {
+          std.io.println<string>("MISMATCH")
+      }
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      c3: usize = c2 +% std.core.byte_len(p3)
+      c4: usize = c3 +% std.core.byte_len(p4)
+      buf: Buffer = std.core.usize.new_buffer(c4)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.write_string(buf, c3, p4)
+      std.core.Buffer.intern_string(buf, c4)
+  }
 
 ## lowered in dependencies
   std/target/baked
     const VADER_OS: Os  inline
   images/ppm
-    fn images_ppm$Ppm$Display$to_string
-    fn images_ppm$PpmError$Error$message
-    fn images_ppm$bytes_per_sample
-    fn images_ppm$decode
-    fn images_ppm$encode
-    fn images_ppm$is_digit_byte
-    fn images_ppm$is_ws_byte
-    fn images_ppm$scan_uint
-    fn images_ppm$skip_ws
-    struct images_ppm$Ppm
-    struct images_ppm$PpmError
-    struct images_ppm$ScanInt
+    fn images.ppm.Ppm.to_string  // images_ppm$Ppm$Display$to_string
+    fn images.ppm.PpmError.message  // images_ppm$PpmError$Error$message
+    fn images.ppm.bytes_per_sample  // images_ppm$bytes_per_sample
+    fn images.ppm.decode  // images_ppm$decode
+    fn images.ppm.encode  // images_ppm$encode
+    fn images.ppm.is_digit_byte  // images_ppm$is_digit_byte
+    fn images.ppm.is_ws_byte  // images_ppm$is_ws_byte
+    fn images.ppm.scan_uint  // images_ppm$scan_uint
+    fn images.ppm.skip_ws  // images_ppm$skip_ws
+    struct images.ppm.Ppm  // images_ppm$Ppm
+    struct images.ppm.PpmError  // images_ppm$PpmError
+    struct images.ppm.ScanInt  // images_ppm$ScanInt
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$finish_buffer
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$new_byte_buffer
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$IOError$Error$message
-    fn std_io$describe_io_error_kind
-    fn std_io$last_io_error
-    fn std_io$println__string
-    fn std_io$read_file_bytes
-    fn std_io$temp_dir
-    fn std_io$temp_dir_of
-    fn std_io$without_trailing_sep
-    fn std_io$write
-    fn std_io$write_bytes
-    fn std_io$write_file_bytes
-    struct std_io$IOError
+    fn std.io.IOError.message  // std_io$IOError$Error$message
+    fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
+    fn std.io.last_io_error  // std_io$last_io_error
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.read_file_bytes  // std_io$read_file_bytes
+    fn std.io.temp_dir  // std_io$temp_dir
+    fn std.io.temp_dir_of  // std_io$temp_dir_of
+    fn std.io.without_trailing_sep  // std_io$without_trailing_sep
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_file_bytes  // std_io$write_file_bytes
+    struct std.io.IOError  // std_io$IOError
   system/posix
     const EAGAIN: i32  inline
     const ENOTEMPTY: i32  inline
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

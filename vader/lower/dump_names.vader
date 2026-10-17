@@ -1,0 +1,196 @@
+// vader/lower/dump_names — the qualified names the `# Lower` dump prints.
+//
+// A declaration the program wrote is named after its module and its source
+// name, `std.io.println<string>` or `std.core.Range<i32>.next` for an impl
+// member, built from its `MonoEntry` origin, never by reading the mangled name
+// back. A declaration the lowering made up (a lambda, an accessor, `concat_N`)
+// keeps its mangled name, and so does any pair of declarations that would print
+// the same. A use resolves its symbol as the backend does (`resolve_fn_index`):
+// the mangled name first, then the symbol id.
+
+module "vader/lower"
+
+import "std/collections"
+import "std/string"
+import "toolchain/ast"
+import "vader/comptime"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "vader/types"
+
+/// The printed name of every lowered declaration, by mangled name and by the
+/// id of the symbol it was lowered from, and of every trait by its key.
+DumpNames :: struct {
+    by_mangle: MutableMap<string, string> = MutableMap<string, string> {}
+    by_symbol: MutableMap<i32, string> = MutableMap<i32, string> {}
+    traits: MutableMap<string, string> = MutableMap<string, string> {}
+}
+
+// One declaration's mangled name, origin and qualified name, before the names
+// two declarations share fall back to their mangled ones.
+NamedDecl :: struct {
+    mangled: string
+    origin: MonoEntry
+    qualified: string
+}
+
+new_dump_names :: fn(project: LoweredProject) -> DumpNames {
+    named: NamedDecl[]: []
+    for module in project.modules.values() {
+        for decl in module.decls {
+            named.push(named_decl(decl))
+        }
+    }
+    claimed :: MutableMap<string, string> {}
+    shared :: MutableSet<string> {}
+    for n in named {
+        first :: claimed[n.qualified]
+        if first == null {
+            claimed[n.qualified] = n.mangled
+        } else if first != n.mangled {
+            shared.add(n.qualified)
+        }
+    }
+    names :: DumpNames { .traits = trait_names(named) }
+    for n in named {
+        printed :: printed_name(n, shared)
+        names.by_mangle[n.mangled] = printed
+        symbol :: n.origin.symbol ?? continue
+        names.by_symbol[symbol.id] = printed
+    }
+    return names
+}
+
+printed_name :: fn(n: NamedDecl, shared: MutableSet<string>) -> string {
+    if n.qualified in shared {
+        return n.mangled
+    }
+    return n.qualified
+}
+
+named_decl :: fn(decl: LoweredDecl) -> NamedDecl = match decl {
+    is LoweredFnDecl     -> named(decl.mangled, decl.origin, decl.params)
+    is LoweredStructDecl -> named(decl.mangled, decl.origin, [])
+    is LoweredConstDecl  -> named(decl.mangled, decl.origin, [])
+}
+
+named :: fn(mangled: string, origin: MonoEntry, params: LoweredParam[]) -> NamedDecl = NamedDecl {
+    .mangled = mangled,
+    .origin = origin,
+    .qualified = qualified_name(origin, mangled, params),
+}
+
+// A trait's key (`trait_key_of`) to its qualified name, for every trait of a
+// module some declaration was lowered from.
+trait_names :: fn(named: NamedDecl[]) -> MutableMap<string, string> {
+    seen :: MutableSet<string> {}
+    traits :: MutableMap<string, string> {}
+    for n in named {
+        module :: n.origin.module ?? continue
+        if module.resolved.path in seen {
+            continue
+        }
+        seen.add(module.resolved.path)
+        for symbol in module.resolved.symbols {
+            if symbol.kind == .Trait {
+                traits[trait_key_of(symbol)] = "${dotted(symbol.module_name)}.${symbol.name}"
+            }
+        }
+    }
+    return traits
+}
+
+// A free function prints as `module.name<args>`, an impl member as
+// `module.Receiver.name`. A static impl member names no receiver, so it keeps its
+// mangled name, as does what the lowering made up.
+qualified_name :: fn(origin: MonoEntry, mangled: string, params: LoweredParam[]) -> string {
+    symbol :: origin.symbol
+    if symbol != null && is_made_up(symbol) {
+        return mangled
+    }
+    module :: origin.module ?? return mangled
+    path :: dotted(module.resolved.display_path)
+    decl :: origin.decl
+    if decl is FnDecl {
+        if is_free_fn(decl, module) {
+            return "${path}.${decl.name}${type_arguments_text(origin)}"
+        }
+        if has_self_param(decl) && params.len() > 0 {
+            return "${path}.${display_type(params[0].type)}.${decl.name}"
+        }
+        return mangled
+    }
+    if decl is StructDecl {
+        return "${path}.${decl.name}${type_arguments_text(origin)}"
+    }
+    if decl is ConstDecl {
+        return "${path}.${decl.name}"
+    }
+    return mangled
+}
+
+// A free function is one the module's overload table holds, under the name span
+// its symbol was minted at ; an impl member is not there.
+is_free_fn :: fn(decl: FnDecl, module: TypedProgram) -> bool {
+    overloads :: module.resolved.fn_overloads[decl.name] ?? return false
+    for symbol in overloads {
+        if symbol.defined_at == decl.name_span {
+            return true
+        }
+    }
+    return false
+}
+
+is_made_up :: fn(symbol: Symbol) -> bool = symbol.id < 0 || symbol.kind == .Synthetic
+
+type_arguments_text :: fn(origin: MonoEntry) -> string {
+    if origin.type_arguments.len() == 0 {
+        return ""
+    }
+    shown: string[]: []
+    for t in origin.type_arguments {
+        shown.push(display_type(t))
+    }
+    return "<${shown.join(", ")}>"
+}
+
+// A module path as a name prefix : `std/io` reads `std.io`.
+dotted :: fn(path: string) -> string = path.replace_all("/", ".")
+
+// The name a use of `symbol` prints : the declaration it reaches, a module
+// constant or function under its module, a local as it is.
+symbol_text :: fn(names: DumpNames, symbol: Symbol) -> string {
+    if is_local_binding(symbol.kind) {
+        return symbol.name
+    }
+    by_mangle :: names.by_mangle[symbol.name]
+    if by_mangle != null {
+        return by_mangle
+    }
+    by_symbol :: names.by_symbol[symbol.id]
+    if by_symbol != null {
+        return by_symbol
+    }
+    if symbol.kind == .Const || symbol.kind == .Fn {
+        return "${dotted(symbol.module_name)}.${symbol.name}"
+    }
+    return symbol.name
+}
+
+declared_text :: fn(names: DumpNames, mangled: string) -> string =
+    names.by_mangle[mangled] ?? mangled
+
+// A declaration's mangled name as a trailing comment when it prints under
+// another, so a grep from the bytecode or the C finds it.
+mangle_comment :: fn(names: DumpNames, mangled: string) -> string {
+    if declared_text(names, mangled) == mangled {
+        return ""
+    }
+    return "  // ${mangled}"
+}
+
+// A declaration's name, with its mangled one as a trailing comment.
+declared_line :: fn(names: DumpNames, mangled: string) -> string =
+    "${declared_text(names, mangled)}${mangle_comment(names, mangled)}"
+
+trait_text :: fn(names: DumpNames, key: string) -> string = names.traits[key] ?? key

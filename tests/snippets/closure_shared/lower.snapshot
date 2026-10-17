@@ -1,61 +1,36 @@
 # Lower
 
 ## snippet
-  fn snippet$main() -> i32
-    let n: ? =
-      LoweredCellNew
-    let inc: __lambda_env_snippet_1 =
-      __lambda_env_snippet_1 {
-        cap_0: n :i32
-      }
-    let get: __lambda_env_snippet_3 =
-      __lambda_env_snippet_3 {
-        cap_0: n :i32
-      }
-    call :void
-      callee:
-        __lambda_snippet_0 :fn() -> void
-      arg0:
-        inc :__lambda_env_snippet_1
-    call :void
-      callee:
-        __lambda_snippet_0 :fn() -> void
-      arg0:
-        inc :__lambda_env_snippet_1
-    call :void
-      callee:
-        __lambda_snippet_0 :fn() -> void
-      arg0:
-        inc :__lambda_env_snippet_1
-    call :void
-      callee:
-        __lambda_snippet_0 :fn() -> void
-      arg0:
-        inc :__lambda_env_snippet_1
-    return
-      call :i32
-        callee:
-          __lambda_snippet_2 :fn() -> i32
-        arg0:
-          get :__lambda_env_snippet_3
-  struct __lambda_env_snippet_1 { cap_0: ? }
-  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1) -> void
-  struct __lambda_env_snippet_3 { cap_0: ? }
-  fn __lambda_snippet_2(__env_1: __lambda_env_snippet_3) -> i32
-    return
-      LoweredCellGet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      n: @cell<i32> = @cell_new(0)
+      inc: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = n }
+      get: __lambda_env_snippet_3 = __lambda_env_snippet_3 { .cap_0 = n }
+      __lambda_snippet_0(inc)
+      __lambda_snippet_0(inc)
+      __lambda_snippet_0(inc)
+      __lambda_snippet_0(inc)
+      return __lambda_snippet_2(get)
+  }
+  __lambda_env_snippet_1 :: struct { cap_0: ? }
+  __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1) -> void {
+      @cell(__env_0.cap_0) = @cell(__env_0.cap_0) + 1
+  }
+  __lambda_env_snippet_3 :: struct { cap_0: ? }
+  __lambda_snippet_2 :: fn(__env_1: __lambda_env_snippet_3) -> i32 {
+      return @cell(__env_1.cap_0)
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize

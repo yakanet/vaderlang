@@ -1,559 +1,203 @@
 # Lower
 
 ## snippet
-  struct snippet$V { x: i32 }
-  fn snippet$V$Add$add(self: V, other: V) -> V
-    ~>
-      V {
-        x:
-          add_checked :i32
-            l:
-              .x :i32
-                self :V
-            r:
-              .x :i32
-                other :V
+  snippet.V :: struct { x: i32 }  // snippet$V
+  snippet.V.add :: fn(self: V, other: V) -> V {  // snippet$V$Add$add
+      V { .x = self.x + other.x }
+  }
+  snippet.V.compare :: fn(self: V, other: V) -> i32 {  // snippet$V$Comparable$compare
+      self.x - other.x
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.io.println<i64>(snippet.total<i64>([i64(3000000000), i64(1)] :i64[]))
+      std.io.println<f64>(snippet.total<f64>([1.5, 2.25] :f64[]))
+      std.io.println<i32>(snippet.total<V>([V { .x = 2 }, V { .x = 3 }] :V[]).x)
+      std.io.println<i32>(snippet.largest<i32>([3, 9, 4] :i32[]))
+      std.io.println<i32>(snippet.largest<V>([V { .x = 7 }, V { .x = 1 }] :V[]).x)
+      std.io.println<i32>(snippet.count_of<string>(["a", "b", "a"] :string[], "a"))
+      std.io.println<bool>(snippet.holds<i32[]>([4, 5] :i32[], 5))
+      std.io.println<bool>(snippet.holds<i32[]>([4, 5] :i32[], 6))
+      std.io.println<bool>(snippet.matches<i32>(7, 7))
+      return 0
+  }
+  snippet.total<V> :: fn(xs: V[]) -> V {  // snippet$total__V
+      s: V = xs[0]
+      {
+          __for_arr_0: V[] = xs[usize(1)..<@array.len(xs)]
+          __for_len_1: usize = @array.len(__for_arr_0)
+          __for_i_2: usize = 0
+          for __for_i_2 < __for_len_1 {
+              x: V = __for_arr_0[__for_i_2]
+              s = snippet.V.add(s, x)
+          } @step {
+              __for_i_2 = __for_i_2 +% usize(1)
+          }
       }
-  fn snippet$V$Comparable$compare(self: V, other: V) -> i32
-    ~>
-      sub_checked :i32
-        l:
-          .x :i32
-            self :V
-        r:
-          .x :i32
-            other :V
-  fn snippet$main() -> i32
-    call :void
-      callee:
-        std_io$println__i64 :void
-      arg0:
-        call :i64
-          callee:
-            snippet$total__i64 :i64
-          arg0:
-            array :i64[]
-              cast → i64
-                int(3000000000) :i64
-              cast → i64
-                int(1) :i64
-    call :void
-      callee:
-        std_io$println__f64 :void
-      arg0:
-        call :f64
-          callee:
-            snippet$total__f64 :f64
-          arg0:
-            array :f64[]
-              float(1.5) :f64
-              float(2.25) :f64
-    call :void
-      callee:
-        std_io$println__i32 :void
-      arg0:
-        .x :i32
-          call :V
-            callee:
-              snippet$total__V :V
-            arg0:
-              array :V[]
-                V {
-                  x: int(2) :i32
-                }
-                V {
-                  x: int(3) :i32
-                }
-    call :void
-      callee:
-        std_io$println__i32 :void
-      arg0:
-        call :i32
-          callee:
-            snippet$largest__i32 :i32
-          arg0:
-            array :i32[]
-              int(3) :i32
-              int(9) :i32
-              int(4) :i32
-    call :void
-      callee:
-        std_io$println__i32 :void
-      arg0:
-        .x :i32
-          call :V
-            callee:
-              snippet$largest__V :V
-            arg0:
-              array :V[]
-                V {
-                  x: int(7) :i32
-                }
-                V {
-                  x: int(1) :i32
-                }
-    call :void
-      callee:
-        std_io$println__i32 :void
-      arg0:
-        call :i32
-          callee:
-            snippet$count_of__string :i32
-          arg0:
-            array :string[]
-              "a" :string
-              "b" :string
-              "a" :string
-          arg1:
-            "a" :string
-    call :void
-      callee:
-        std_io$println__bool :void
-      arg0:
-        call :bool
-          callee:
-            snippet$holds__i32__ :bool
-          arg0:
-            array :i32[]
-              int(4) :i32
-              int(5) :i32
-          arg1:
-            int(5) :i32
-    call :void
-      callee:
-        std_io$println__bool :void
-      arg0:
-        call :bool
-          callee:
-            snippet$holds__i32__ :bool
-          arg0:
-            array :i32[]
-              int(4) :i32
-              int(5) :i32
-          arg1:
-            int(6) :i32
-    call :void
-      callee:
-        std_io$println__bool :void
-      arg0:
-        call :bool
-          callee:
-            snippet$matches__i32 :bool
-          arg0:
-            int(7) :i32
-          arg1:
-            int(7) :i32
-    return int(0) :i32
-  fn snippet$total__V(xs: V[]) -> V
-    let s: V =
-      index :V
-        on:
-          xs :V[]
-        ix:
-          int(0) :i32
-    block :void
-      let __for_arr_0: V[] =
-        slice :V[]
-          on:
-            xs :V[]
-          lo:
-            int(1) :usize
-          hi:
-            LoweredArrayLen
-      let __for_len_1: usize =
-        LoweredArrayLen
-      let __for_i_2: usize = int(0) :usize
-      loop while (<…>)
-        let x: V =
-          index :V
-            on:
-              __for_arr_0 :V[]
-            ix:
-              __for_i_2 :usize
-        assign
-          target:
-            s :V
-          value:
-            call :V
-              callee:
-                snippet$V$Add$add :V
-              arg0:
-                s :V
-              arg1:
-                x :V
-      step
-        assign
-          target:
-            __for_i_2 :usize
-          value:
-            add :usize
-              l:
-                __for_i_2 :usize
-              r:
-                int(1) :usize
-    return s :V
-  fn snippet$total__f64(xs: f64[]) -> f64
-    let s: f64 =
-      index :f64
-        on:
-          xs :f64[]
-        ix:
-          int(0) :i32
-    block :void
-      let __for_arr_0: f64[] =
-        slice :f64[]
-          on:
-            xs :f64[]
-          lo:
-            int(1) :usize
-          hi:
-            LoweredArrayLen
-      let __for_len_1: usize =
-        LoweredArrayLen
-      let __for_i_2: usize = int(0) :usize
-      loop while (<…>)
-        let x: f64 =
-          index :f64
-            on:
-              __for_arr_0 :f64[]
-            ix:
-              __for_i_2 :usize
-        assign
-          target:
-            s :f64
-          value:
-            add_checked :f64
-              l:
-                s :f64
-              r:
-                x :f64
-      step
-        assign
-          target:
-            __for_i_2 :usize
-          value:
-            add :usize
-              l:
-                __for_i_2 :usize
-              r:
-                int(1) :usize
-    return s :f64
-  fn snippet$total__i64(xs: i64[]) -> i64
-    let s: i64 =
-      index :i64
-        on:
-          xs :i64[]
-        ix:
-          int(0) :i32
-    block :void
-      let __for_arr_0: i64[] =
-        slice :i64[]
-          on:
-            xs :i64[]
-          lo:
-            int(1) :usize
-          hi:
-            LoweredArrayLen
-      let __for_len_1: usize =
-        LoweredArrayLen
-      let __for_i_2: usize = int(0) :usize
-      loop while (<…>)
-        let x: i64 =
-          index :i64
-            on:
-              __for_arr_0 :i64[]
-            ix:
-              __for_i_2 :usize
-        assign
-          target:
-            s :i64
-          value:
-            add_checked :i64
-              l:
-                s :i64
-              r:
-                x :i64
-      step
-        assign
-          target:
-            __for_i_2 :usize
-          value:
-            add :usize
-              l:
-                __for_i_2 :usize
-              r:
-                int(1) :usize
-    return s :i64
-  fn snippet$largest__V(xs: V[]) -> V
-    let best: V =
-      index :V
-        on:
-          xs :V[]
-        ix:
-          int(0) :i32
-    block :void
-      let __for_arr_0: V[] = xs :V[]
-      let __for_len_1: usize =
-        LoweredArrayLen
-      let __for_i_2: usize = int(0) :usize
-      loop while (<…>)
-        let x: V =
-          index :V
-            on:
-              __for_arr_0 :V[]
-            ix:
-              __for_i_2 :usize
-        ~>
-          if :void
-            cond:
-              gt :bool
-                l:
-                  call :i32
-                    callee:
-                      snippet$V$Comparable$compare :i32
-                    arg0:
-                      x :V
-                    arg1:
-                      best :V
-                r:
-                  int(0) :i32
-            then:
-              assign
-                target:
-                  best :V
-                value:
-                  x :V
-      step
-        assign
-          target:
-            __for_i_2 :usize
-          value:
-            add :usize
-              l:
-                __for_i_2 :usize
-              r:
-                int(1) :usize
-    return best :V
-  fn snippet$largest__i32(xs: i32[]) -> i32
-    let best: i32 =
-      index :i32
-        on:
-          xs :i32[]
-        ix:
-          int(0) :i32
-    block :void
-      let __for_arr_0: i32[] = xs :i32[]
-      let __for_len_1: usize =
-        LoweredArrayLen
-      let __for_i_2: usize = int(0) :usize
-      loop while (<…>)
-        let x: i32 =
-          index :i32
-            on:
-              __for_arr_0 :i32[]
-            ix:
-              __for_i_2 :usize
-        ~>
-          if :void
-            cond:
-              gt :bool
-                l:
-                  x :i32
-                r:
-                  best :i32
-            then:
-              assign
-                target:
-                  best :i32
-                value:
-                  x :i32
-      step
-        assign
-          target:
-            __for_i_2 :usize
-          value:
-            add :usize
-              l:
-                __for_i_2 :usize
-              r:
-                int(1) :usize
-    return best :i32
-  fn snippet$count_of__string(xs: string[], wanted: string) -> i32
-    let n: i32 = int(0) :i32
-    block :void
-      let __for_arr_0: string[] = xs :string[]
-      let __for_len_1: usize =
-        LoweredArrayLen
-      let __for_i_2: usize = int(0) :usize
-      loop while (<…>)
-        let x: string =
-          index :string
-            on:
-              __for_arr_0 :string[]
-            ix:
-              __for_i_2 :usize
-        ~>
-          if :void
-            cond:
-              eq :bool
-                l:
-                  x :string
-                r:
-                  wanted :string
-            then:
-              assign
-                target:
-                  n :i32
-                value:
-                  add_checked :i32
-                    l:
-                      n :i32
-                    r:
-                      int(1) :i32
-      step
-        assign
-          target:
-            __for_i_2 :usize
-          value:
-            add :usize
-              l:
-                __for_i_2 :usize
-              r:
-                int(1) :usize
-    return n :i32
-  fn snippet$holds__i32__(c: i32[], x: i32) -> bool
-    ~>
-      call :bool
-        callee:
-          std_core$[]$Contains$contains__i32 :bool
-        arg0:
-          c :i32[]
-        arg1:
-          x :i32
-  fn snippet$matches__i32(found: i32 | null, wanted: i32) -> bool
-    ~>
-      eq :bool
-        l:
-          found :i32 | null
-        r:
-          wanted :i32
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
-  vtable std_core$Add.add for V  snippet$V$Add$add
-  vtable std_core$Comparable.compare for V  snippet$V$Comparable$compare
+      return s
+  }
+  snippet.total<f64> :: fn(xs: f64[]) -> f64 {  // snippet$total__f64
+      s: f64 = xs[0]
+      {
+          __for_arr_0: f64[] = xs[usize(1)..<@array.len(xs)]
+          __for_len_1: usize = @array.len(__for_arr_0)
+          __for_i_2: usize = 0
+          for __for_i_2 < __for_len_1 {
+              x: f64 = __for_arr_0[__for_i_2]
+              s = s + x
+          } @step {
+              __for_i_2 = __for_i_2 +% usize(1)
+          }
+      }
+      return s
+  }
+  snippet.total<i64> :: fn(xs: i64[]) -> i64 {  // snippet$total__i64
+      s: i64 = xs[0]
+      {
+          __for_arr_0: i64[] = xs[usize(1)..<@array.len(xs)]
+          __for_len_1: usize = @array.len(__for_arr_0)
+          __for_i_2: usize = 0
+          for __for_i_2 < __for_len_1 {
+              x: i64 = __for_arr_0[__for_i_2]
+              s = s + x
+          } @step {
+              __for_i_2 = __for_i_2 +% usize(1)
+          }
+      }
+      return s
+  }
+  snippet.largest<V> :: fn(xs: V[]) -> V {  // snippet$largest__V
+      best: V = xs[0]
+      {
+          __for_arr_0: V[] = xs
+          __for_len_1: usize = @array.len(__for_arr_0)
+          __for_i_2: usize = 0
+          for __for_i_2 < __for_len_1 {
+              x: V = __for_arr_0[__for_i_2]
+              if snippet.V.compare(x, best) > 0 {
+                  best = x
+              }
+          } @step {
+              __for_i_2 = __for_i_2 +% usize(1)
+          }
+      }
+      return best
+  }
+  snippet.largest<i32> :: fn(xs: i32[]) -> i32 {  // snippet$largest__i32
+      best: i32 = xs[0]
+      {
+          __for_arr_0: i32[] = xs
+          __for_len_1: usize = @array.len(__for_arr_0)
+          __for_i_2: usize = 0
+          for __for_i_2 < __for_len_1 {
+              x: i32 = __for_arr_0[__for_i_2]
+              if x > best {
+                  best = x
+              }
+          } @step {
+              __for_i_2 = __for_i_2 +% usize(1)
+          }
+      }
+      return best
+  }
+  snippet.count_of<string> :: fn(xs: string[], wanted: string) -> i32 {  // snippet$count_of__string
+      n: i32 = 0
+      {
+          __for_arr_0: string[] = xs
+          __for_len_1: usize = @array.len(__for_arr_0)
+          __for_i_2: usize = 0
+          for __for_i_2 < __for_len_1 {
+              x: string = __for_arr_0[__for_i_2]
+              if x == wanted {
+                  n = n + 1
+              }
+          } @step {
+              __for_i_2 = __for_i_2 +% usize(1)
+          }
+      }
+      return n
+  }
+  snippet.holds<i32[]> :: fn(c: i32[], x: i32) -> bool {  // snippet$holds__i32__
+      std.core.i32[].contains(c, x)
+  }
+  snippet.matches<i32> :: fn(found: i32 | null, wanted: i32) -> bool {  // snippet$matches__i32
+      found == wanted
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable std.core.Add.add for V  snippet.V.add  // snippet$V$Add$add
+  vtable std.core.Comparable.compare for V  snippet.V.compare  // snippet$V$Comparable$compare
 
 ## lowered in dependencies
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$memory_copy
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$[]$Contains$contains__i32
-    fn std_core$b2i
-    fn std_core$b2u
-    fn std_core$d2d
-    fn std_core$decimal_width
-    fn std_core$f64$Display$to_string
-    fn std_core$f64$FloatBits$to_bits
-    fn std_core$finish_buffer
-    fn std_core$format_f64
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$insert_point
-    fn std_core$log10_pow2
-    fn std_core$log10_pow5
-    fn std_core$mul_shift_all_64
-    fn std_core$multiple_of_power_of_2
-    fn std_core$multiple_of_power_of_5
-    fn std_core$new_byte_buffer
-    fn std_core$pow5_factor
-    fn std_core$pow5bits
-    fn std_core$render
-    fn std_core$shiftright128
-    fn std_core$three_way
-    fn std_core$umul128
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_decimal
-    fn std_core$write_digits
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    fn std_core$write_zeros
-    struct std_core$Buffer
-    struct std_core$Dec64
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i32[].contains  // std_core$[]$Contains$contains__i32
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Dec64  // std_core$Dec64
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__bool
-    fn std_io$println__f64
-    fn std_io$println__i32
-    fn std_io$println__i64
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<bool>  // std_io$println__bool
+    fn std.io.println<f64>  // std_io$println__f64
+    fn std.io.println<i32>  // std_io$println__i32
+    fn std.io.println<i64>  // std_io$println__i64
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

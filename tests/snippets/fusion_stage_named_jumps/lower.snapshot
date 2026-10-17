@@ -1,2565 +1,607 @@
 # Lower
 
 ## snippet
-  fn snippet$spread(x: i32) -> i32[]
-    ~>
-      array :i32[]
-        x :i32
-        add_checked :i32
-          l:
-            x :i32
-          r:
-            int(1) :i32
-  fn snippet$until_over(self: Iterator<i32>, limit: i32) -> Iterator<i32>
-    return
-      __genstate_until_over {
-        s0: self :Iterator<i32>
-        s1: limit :i32
-        s2: null
-        s3: null
-        s4: int(0) :i32
-        s5: int(0) :i32
-        state: int(18) :i32
+  snippet.spread :: fn(x: i32) -> i32[] {  // snippet$spread
+      [x, x + 1] :i32[]
+  }
+  snippet.until_over :: fn(self: Iterator<i32>, limit: i32) -> Iterator<i32> {  // snippet$until_over
+      return __genstate_until_over {
+          .s0 = self,
+          .s1 = limit,
+          .s2 = null,
+          .s3 = null,
+          .s4 = 0,
+          .s5 = 0,
+          .state = 18,
       }
-  fn snippet$stop_at(self: Iterator<i32>, stop: i32) -> Iterator<i32>
-    return
-      __genstate_stop_at {
-        s0: self :Iterator<i32>
-        s1: stop :i32
-        s2: null
-        s3: null
-        s4: int(0) :i32
-        s5: int(0) :i32
-        state: int(18) :i32
+  }
+  snippet.stop_at :: fn(self: Iterator<i32>, stop: i32) -> Iterator<i32> {  // snippet$stop_at
+      return __genstate_stop_at {
+          .s0 = self,
+          .s1 = stop,
+          .s2 = null,
+          .s3 = null,
+          .s4 = 0,
+          .s5 = 0,
+          .state = 18,
       }
-  fn snippet$first_two_of_odd(self: Iterator<i32>) -> Iterator<i32>
-    return
-      __genstate_first_two_of_odd {
-        s0: self :Iterator<i32>
-        s1: null
-        s2: null
-        s3: int(0) :i32
-        s4: int(0) :i32
-        state: int(18) :i32
+  }
+  snippet.first_two_of_odd :: fn(self: Iterator<i32>) -> Iterator<i32> {  // snippet$first_two_of_odd
+      return __genstate_first_two_of_odd {
+          .s0 = self,
+          .s1 = null,
+          .s2 = null,
+          .s3 = 0,
+          .s4 = 0,
+          .state = 18,
       }
-  fn snippet$break_over_array() -> void
-    let fused: string = "" :string
-    block :void
-      let __fuse_arr_2: i32[] =
-        array :i32[]
-          int(1) :i32
-          int(2) :i32
-          int(3) :i32
-      let limit: i32 = int(21) :i32
-      block :$leave27
-        let __fuse_len_3: usize =
-          LoweredArrayLen
-        let __fuse_i_4: usize = int(0) :usize
-        loop while (<…>)
-          let x: i32 =
-            index :i32
-              on:
-                __fuse_arr_2 :i32[]
-              ix:
-                __fuse_i_4 :usize
-          block :void
-            let j: i32 = int(0) :i32
-            loop while (<…>)
-              if :void
-                cond:
-                  gt :bool
-                    l:
-                      add_checked :i32
-                        l:
-                          mul_checked :i32
-                            l:
-                              x :i32
-                            r:
-                              int(10) :i32
-                        r:
-                          j :i32
-                    r:
-                      limit :i32
-                then:
-                  break :$leave27
-              let v: i32 =
-                add_checked :i32
-                  l:
-                    mul_checked :i32
-                      l:
-                        x :i32
-                      r:
-                        int(10) :i32
-                  r:
-                    j :i32
-              assign
-                target:
-                  fused :string
-                value:
-                  call :string
-                    callee:
-                      concat_2 :string
-                    arg0:
-                      fused :string
-                    arg1:
-                      block :string
-                        let __buf_0: Buffer =
-                          call :Buffer
-                            callee:
-                              new_byte_buffer :Buffer
-                            arg0:
-                              int(21) :usize
-                        let __off_1: usize = int(0) :usize
-                        assign
-                          target:
-                            __off_1 :usize
-                          value:
-                            call :usize
-                              callee:
-                                write_string_at :usize
-                              arg0:
-                                __buf_0 :Buffer
-                              arg1:
-                                __off_1 :usize
-                              arg2:
-                                " " :string
-                        assign
-                          target:
-                            __off_1 :usize
-                          value:
-                            call :usize
-                              callee:
-                                write_int :usize
-                              arg0:
-                                __buf_0 :Buffer
-                              arg1:
-                                __off_1 :usize
-                              arg2:
-                                cast → i64
-                                  v :i32
-                        ~>
-                          call :string
-                            callee:
-                              finish_buffer :string
-                            arg0:
-                              __buf_0 :Buffer
-                            arg1:
-                              __off_1 :usize
-            step
-              assign
-                target:
-                  j :i32
-                value:
-                  add :i32
-                    l:
-                      j :i32
-                    r:
-                      int(1) :i32
-        step
-          assign
-            target:
-              __fuse_i_4 :usize
-            value:
-              add :usize
-                l:
-                  __fuse_i_4 :usize
-                r:
-                  int(1) :usize
-    let lazy: string = "" :string
-    let it: __genstate_until_over<i32> =
-      call :__genstate_until_over<i32>
-        callee:
-          until_over :__genstate_until_over<i32>
-        arg0:
-          call :Iterator<i32>
-            callee:
-              std_core$[]$Into$into__i32 :Iterator<i32>
-            arg0:
-              array :i32[]
-                int(1) :i32
-                int(2) :i32
-                int(3) :i32
-        arg1:
-          int(21) :i32
-    block :void
-      let __iter_5: Iterator<i32> = it :__genstate_until_over<i32>
-      loop
-        let __step_6: [i32, Continuation] =
-          vcall std_core$Iterator.next :[i32, Continuation]
-            recv:
-              __iter_5 :Iterator<i32>
-        if :void
-          cond:
-            eq :bool
-              l:
-                ._1 :Continuation
-                  __step_6 :[i32, Continuation]
-              r:
-                int(1) :u8
-          then:
-            break
-          else:
-            let v: i32 =
-              ._0 :i32
-                __step_6 :[i32, Continuation]
-            assign
-              target:
-                lazy :string
-              value:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    lazy :string
-                  arg1:
-                    block :string
-                      let __buf_7: Buffer =
-                        call :Buffer
-                          callee:
-                            new_byte_buffer :Buffer
-                          arg0:
-                            int(21) :usize
-                      let __off_8: usize = int(0) :usize
-                      assign
-                        target:
-                          __off_8 :usize
-                        value:
-                          call :usize
-                            callee:
-                              write_string_at :usize
-                            arg0:
-                              __buf_7 :Buffer
-                            arg1:
-                              __off_8 :usize
-                            arg2:
-                              " " :string
-                      assign
-                        target:
-                          __off_8 :usize
-                        value:
-                          call :usize
-                            callee:
-                              write_int :usize
-                            arg0:
-                              __buf_7 :Buffer
-                            arg1:
-                              __off_8 :usize
-                            arg2:
-                              cast → i64
-                                v :i32
-                      ~>
-                        call :string
-                          callee:
-                            finish_buffer :string
-                          arg0:
-                            __buf_7 :Buffer
-                          arg1:
-                            __off_8 :usize
-    ~>
-      call :void
-        callee:
-          std_io$println__string :void
-        arg0:
-          call :string
-            callee:
-              concat_4 :string
-            arg0:
-              "until_over(21), break x:" :string
-            arg1:
-              fused :string
-            arg2:
-              " |" :string
-            arg3:
-              lazy :string
-  fn snippet$break_over_flat_map() -> void
-    let fused: string = "" :string
-    block :void
-      let __fuse_arr_2: i32[] =
-        array :i32[]
-          int(1) :i32
-          int(3) :i32
-      let f: fn(i32) -> i32[] = spread :fn(i32) -> i32[]
-      let stop: i32 = int(2) :i32
-      block :$leave57
-        let __fuse_len_3: usize =
-          LoweredArrayLen
-        let __fuse_i_4: usize = int(0) :usize
-        loop while (<…>)
-          let x: i32 =
-            index :i32
-              on:
-                __fuse_arr_2 :i32[]
-              ix:
-                __fuse_i_4 :usize
-          block :void
-            let __for_arr_0: i32[] =
-              call :i32[]
-                callee:
-                  spread :fn(i32) -> i32[]
-                arg0:
-                  x :i32
-            let __for_len_1: usize =
-              LoweredArrayLen
-            let __for_i_2: usize = int(0) :usize
-            loop while (<…>)
-              let y: i32 =
-                index :i32
-                  on:
-                    __for_arr_0 :i32[]
-                  ix:
-                    __for_i_2 :usize
-              let x: i32 = y :i32
-              block :void
-                let j: i32 = int(0) :i32
-                loop while (<…>)
-                  if :void
-                    cond:
-                      eq :bool
-                        l:
-                          x :i32
-                        r:
-                          stop :i32
-                    then:
-                      break :$leave57
-                  let v: i32 =
-                    add_checked :i32
-                      l:
-                        mul_checked :i32
-                          l:
-                            x :i32
-                          r:
-                            int(10) :i32
-                      r:
-                        j :i32
-                  assign
-                    target:
-                      fused :string
-                    value:
-                      call :string
-                        callee:
-                          concat_2 :string
-                        arg0:
-                          fused :string
-                        arg1:
-                          block :string
-                            let __buf_0: Buffer =
-                              call :Buffer
-                                callee:
-                                  new_byte_buffer :Buffer
-                                arg0:
-                                  int(21) :usize
-                            let __off_1: usize = int(0) :usize
-                            assign
-                              target:
-                                __off_1 :usize
-                              value:
-                                call :usize
-                                  callee:
-                                    write_string_at :usize
-                                  arg0:
-                                    __buf_0 :Buffer
-                                  arg1:
-                                    __off_1 :usize
-                                  arg2:
-                                    " " :string
-                            assign
-                              target:
-                                __off_1 :usize
-                              value:
-                                call :usize
-                                  callee:
-                                    write_int :usize
-                                  arg0:
-                                    __buf_0 :Buffer
-                                  arg1:
-                                    __off_1 :usize
-                                  arg2:
-                                    cast → i64
-                                      v :i32
-                            ~>
-                              call :string
-                                callee:
-                                  finish_buffer :string
-                                arg0:
-                                  __buf_0 :Buffer
-                                arg1:
-                                  __off_1 :usize
-                step
-                  assign
-                    target:
-                      j :i32
-                    value:
-                      add :i32
-                        l:
-                          j :i32
-                        r:
-                          int(1) :i32
-            step
-              assign
-                target:
-                  __for_i_2 :usize
-                value:
-                  add :usize
-                    l:
-                      __for_i_2 :usize
-                    r:
-                      int(1) :usize
-        step
-          assign
-            target:
-              __fuse_i_4 :usize
-            value:
-              add :usize
-                l:
-                  __fuse_i_4 :usize
-                r:
-                  int(1) :usize
-    let lazy: string = "" :string
-    let it: __genstate_stop_at<i32> =
-      call :__genstate_stop_at<i32>
-        callee:
-          stop_at :__genstate_stop_at<i32>
-        arg0:
-          call :__genstate_flat_map<i32>
-            callee:
-              std_iter$flat_map__i32__i32 :__genstate_flat_map<i32>
-            arg0:
-              call :Iterator<T>
-                callee:
-                  std_core$[]$Into$into__i32 :Iterator<T>
-                arg0:
-                  array :i32[]
-                    int(1) :i32
-                    int(3) :i32
-            arg1:
-              spread :fn(i32) -> i32[]
-        arg1:
-          int(2) :i32
-    block :void
-      let __iter_5: Iterator<i32> = it :__genstate_stop_at<i32>
-      loop
-        let __step_6: [i32, Continuation] =
-          vcall std_core$Iterator.next :[i32, Continuation]
-            recv:
-              __iter_5 :Iterator<i32>
-        if :void
-          cond:
-            eq :bool
-              l:
-                ._1 :Continuation
-                  __step_6 :[i32, Continuation]
-              r:
-                int(1) :u8
-          then:
-            break
-          else:
-            let v: i32 =
-              ._0 :i32
-                __step_6 :[i32, Continuation]
-            assign
-              target:
-                lazy :string
-              value:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    lazy :string
-                  arg1:
-                    block :string
-                      let __buf_7: Buffer =
-                        call :Buffer
-                          callee:
-                            new_byte_buffer :Buffer
-                          arg0:
-                            int(21) :usize
-                      let __off_8: usize = int(0) :usize
-                      assign
-                        target:
-                          __off_8 :usize
-                        value:
-                          call :usize
-                            callee:
-                              write_string_at :usize
-                            arg0:
-                              __buf_7 :Buffer
-                            arg1:
-                              __off_8 :usize
-                            arg2:
-                              " " :string
-                      assign
-                        target:
-                          __off_8 :usize
-                        value:
-                          call :usize
-                            callee:
-                              write_int :usize
-                            arg0:
-                              __buf_7 :Buffer
-                            arg1:
-                              __off_8 :usize
-                            arg2:
-                              cast → i64
-                                v :i32
-                      ~>
-                        call :string
-                          callee:
-                            finish_buffer :string
-                          arg0:
-                            __buf_7 :Buffer
-                          arg1:
-                            __off_8 :usize
-    ~>
-      call :void
-        callee:
-          std_io$println__string :void
-        arg0:
-          call :string
-            callee:
-              concat_4 :string
-            arg0:
-              "flat_map.stop_at(2), break x:" :string
-            arg1:
-              fused :string
-            arg2:
-              " |" :string
-            arg3:
-              lazy :string
-  fn snippet$continue_over_array() -> void
-    let fused: string = "" :string
-    block :void
-      let __fuse_arr_2: i32[] =
-        array :i32[]
-          int(1) :i32
-          int(2) :i32
-          int(3) :i32
-      let __fuse_len_3: usize =
-        LoweredArrayLen
-      let __fuse_i_4: usize = int(0) :usize
-      loop while (<…>)
-        let x: i32 =
-          index :i32
-            on:
-              __fuse_arr_2 :i32[]
-            ix:
-              __fuse_i_4 :usize
-        block :$resume74
-          block :void
-            let j: i32 = int(0) :i32
-            loop while (<…>)
-              if :void
-                cond:
-                  or :bool
-                    l:
-                      eq :bool
-                        l:
-                          mod :i32
-                            l:
-                              x :i32
-                            r:
-                              int(2) :i32
-                        r:
-                          int(0) :i32
-                    r:
-                      eq :bool
-                        l:
-                          j :i32
-                        r:
-                          int(2) :i32
-                then:
-                  break :$resume74
-              let v: i32 =
-                add_checked :i32
-                  l:
-                    mul_checked :i32
-                      l:
-                        x :i32
-                      r:
-                        int(10) :i32
-                  r:
-                    j :i32
-              assign
-                target:
-                  fused :string
-                value:
-                  call :string
-                    callee:
-                      concat_2 :string
-                    arg0:
-                      fused :string
-                    arg1:
-                      block :string
-                        let __buf_0: Buffer =
-                          call :Buffer
-                            callee:
-                              new_byte_buffer :Buffer
-                            arg0:
-                              int(21) :usize
-                        let __off_1: usize = int(0) :usize
-                        assign
-                          target:
-                            __off_1 :usize
-                          value:
-                            call :usize
-                              callee:
-                                write_string_at :usize
-                              arg0:
-                                __buf_0 :Buffer
-                              arg1:
-                                __off_1 :usize
-                              arg2:
-                                " " :string
-                        assign
-                          target:
-                            __off_1 :usize
-                          value:
-                            call :usize
-                              callee:
-                                write_int :usize
-                              arg0:
-                                __buf_0 :Buffer
-                              arg1:
-                                __off_1 :usize
-                              arg2:
-                                cast → i64
-                                  v :i32
-                        ~>
-                          call :string
-                            callee:
-                              finish_buffer :string
-                            arg0:
-                              __buf_0 :Buffer
-                            arg1:
-                              __off_1 :usize
-            step
-              assign
-                target:
-                  j :i32
-                value:
-                  add :i32
-                    l:
-                      j :i32
-                    r:
-                      int(1) :i32
-      step
-        assign
-          target:
-            __fuse_i_4 :usize
-          value:
-            add :usize
-              l:
-                __fuse_i_4 :usize
-              r:
-                int(1) :usize
-    let lazy: string = "" :string
-    let it: __genstate_first_two_of_odd<i32> =
-      call :__genstate_first_two_of_odd<i32>
-        callee:
-          first_two_of_odd :__genstate_first_two_of_odd<i32>
-        arg0:
-          call :Iterator<i32>
-            callee:
-              std_core$[]$Into$into__i32 :Iterator<i32>
-            arg0:
-              array :i32[]
-                int(1) :i32
-                int(2) :i32
-                int(3) :i32
-    block :void
-      let __iter_5: Iterator<i32> = it :__genstate_first_two_of_odd<i32>
-      loop
-        let __step_6: [i32, Continuation] =
-          vcall std_core$Iterator.next :[i32, Continuation]
-            recv:
-              __iter_5 :Iterator<i32>
-        if :void
-          cond:
-            eq :bool
-              l:
-                ._1 :Continuation
-                  __step_6 :[i32, Continuation]
-              r:
-                int(1) :u8
-          then:
-            break
-          else:
-            let v: i32 =
-              ._0 :i32
-                __step_6 :[i32, Continuation]
-            assign
-              target:
-                lazy :string
-              value:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    lazy :string
-                  arg1:
-                    block :string
-                      let __buf_7: Buffer =
-                        call :Buffer
-                          callee:
-                            new_byte_buffer :Buffer
-                          arg0:
-                            int(21) :usize
-                      let __off_8: usize = int(0) :usize
-                      assign
-                        target:
-                          __off_8 :usize
-                        value:
-                          call :usize
-                            callee:
-                              write_string_at :usize
-                            arg0:
-                              __buf_7 :Buffer
-                            arg1:
-                              __off_8 :usize
-                            arg2:
-                              " " :string
-                      assign
-                        target:
-                          __off_8 :usize
-                        value:
-                          call :usize
-                            callee:
-                              write_int :usize
-                            arg0:
-                              __buf_7 :Buffer
-                            arg1:
-                              __off_8 :usize
-                            arg2:
-                              cast → i64
-                                v :i32
-                      ~>
-                        call :string
-                          callee:
-                            finish_buffer :string
-                          arg0:
-                            __buf_7 :Buffer
-                          arg1:
-                            __off_8 :usize
-    ~>
-      call :void
-        callee:
-          std_io$println__string :void
-        arg0:
-          call :string
-            callee:
-              concat_4 :string
-            arg0:
-              "first_two_of_odd, continue x:" :string
-            arg1:
-              fused :string
-            arg2:
-              " |" :string
-            arg3:
-              lazy :string
-  fn snippet$continue_over_take() -> void
-    let fused: string = "" :string
-    block :void
-      let __fuse_arr_2: i32[] =
-        array :i32[]
-          int(1) :i32
-          int(2) :i32
-          int(3) :i32
-          int(4) :i32
-          int(5) :i32
-      let n: usize = int(3) :usize
-      block :$exit$i85
-        if :void
-          cond:
-            eq :bool
-              l:
-                n :usize
-              r:
-                int(0) :usize
-          then:
-            break :$exit$i85
-        let i: usize = int(0) :usize
-        let __fuse_len_3: usize =
-          LoweredArrayLen
-        let __fuse_i_4: usize = int(0) :usize
-        loop while (<…>)
-          let x: i32 =
-            index :i32
-              on:
-                __fuse_arr_2 :i32[]
-              ix:
-                __fuse_i_4 :usize
-          let x: i32 = x :i32
-          block :$resume93
-            block :void
-              let j: i32 = int(0) :i32
-              loop while (<…>)
-                if :void
-                  cond:
-                    or :bool
-                      l:
-                        eq :bool
-                          l:
-                            mod :i32
-                              l:
-                                x :i32
-                              r:
-                                int(2) :i32
-                          r:
-                            int(0) :i32
-                      r:
-                        eq :bool
-                          l:
-                            j :i32
-                          r:
-                            int(2) :i32
-                  then:
-                    break :$resume93
-                let v: i32 =
-                  add_checked :i32
-                    l:
-                      mul_checked :i32
-                        l:
-                          x :i32
-                        r:
-                          int(10) :i32
-                    r:
-                      j :i32
-                assign
-                  target:
-                    fused :string
-                  value:
-                    call :string
-                      callee:
-                        concat_2 :string
-                      arg0:
-                        fused :string
-                      arg1:
-                        block :string
-                          let __buf_0: Buffer =
-                            call :Buffer
-                              callee:
-                                new_byte_buffer :Buffer
-                              arg0:
-                                int(21) :usize
-                          let __off_1: usize = int(0) :usize
-                          assign
-                            target:
-                              __off_1 :usize
-                            value:
-                              call :usize
-                                callee:
-                                  write_string_at :usize
-                                arg0:
-                                  __buf_0 :Buffer
-                                arg1:
-                                  __off_1 :usize
-                                arg2:
-                                  " " :string
-                          assign
-                            target:
-                              __off_1 :usize
-                            value:
-                              call :usize
-                                callee:
-                                  write_int :usize
-                                arg0:
-                                  __buf_0 :Buffer
-                                arg1:
-                                  __off_1 :usize
-                                arg2:
-                                  cast → i64
-                                    v :i32
-                          ~>
-                            call :string
-                              callee:
-                                finish_buffer :string
-                              arg0:
-                                __buf_0 :Buffer
-                              arg1:
-                                __off_1 :usize
-              step
-                assign
-                  target:
-                    j :i32
-                  value:
-                    add :i32
-                      l:
-                        j :i32
-                      r:
-                        int(1) :i32
-          assign
-            target:
-              i :usize
-            value:
-              add_checked :usize
-                l:
-                  i :usize
-                r:
-                  int(1) :usize
-          ~>
-            if :void
-              cond:
-                gte :bool
-                  l:
-                    i :usize
-                  r:
-                    n :usize
-              then:
-                break
-        step
-          assign
-            target:
-              __fuse_i_4 :usize
-            value:
-              add :usize
-                l:
-                  __fuse_i_4 :usize
-                r:
-                  int(1) :usize
-    let lazy: string = "" :string
-    let it: __genstate_first_two_of_odd<i32> =
-      call :__genstate_first_two_of_odd<i32>
-        callee:
-          first_two_of_odd :__genstate_first_two_of_odd<i32>
-        arg0:
-          call :__genstate_take<i32>
-            callee:
-              std_iter$take__i32 :__genstate_take<i32>
-            arg0:
-              call :Iterator<T>
-                callee:
-                  std_core$[]$Into$into__i32 :Iterator<T>
-                arg0:
-                  array :i32[]
-                    int(1) :i32
-                    int(2) :i32
-                    int(3) :i32
-                    int(4) :i32
-                    int(5) :i32
-            arg1:
-              int(3) :usize
-    block :void
-      let __iter_5: Iterator<i32> = it :__genstate_first_two_of_odd<i32>
-      loop
-        let __step_6: [i32, Continuation] =
-          vcall std_core$Iterator.next :[i32, Continuation]
-            recv:
-              __iter_5 :Iterator<i32>
-        if :void
-          cond:
-            eq :bool
-              l:
-                ._1 :Continuation
-                  __step_6 :[i32, Continuation]
-              r:
-                int(1) :u8
-          then:
-            break
-          else:
-            let v: i32 =
-              ._0 :i32
-                __step_6 :[i32, Continuation]
-            assign
-              target:
-                lazy :string
-              value:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    lazy :string
-                  arg1:
-                    block :string
-                      let __buf_7: Buffer =
-                        call :Buffer
-                          callee:
-                            new_byte_buffer :Buffer
-                          arg0:
-                            int(21) :usize
-                      let __off_8: usize = int(0) :usize
-                      assign
-                        target:
-                          __off_8 :usize
-                        value:
-                          call :usize
-                            callee:
-                              write_string_at :usize
-                            arg0:
-                              __buf_7 :Buffer
-                            arg1:
-                              __off_8 :usize
-                            arg2:
-                              " " :string
-                      assign
-                        target:
-                          __off_8 :usize
-                        value:
-                          call :usize
-                            callee:
-                              write_int :usize
-                            arg0:
-                              __buf_7 :Buffer
-                            arg1:
-                              __off_8 :usize
-                            arg2:
-                              cast → i64
-                                v :i32
-                      ~>
-                        call :string
-                          callee:
-                            finish_buffer :string
-                          arg0:
-                            __buf_7 :Buffer
-                          arg1:
-                            __off_8 :usize
-    ~>
-      call :void
-        callee:
-          std_io$println__string :void
-        arg0:
-          call :string
-            callee:
-              concat_4 :string
-            arg0:
-              "take(3).first_two_of_odd, continue x:" :string
-            arg1:
-              fused :string
-            arg2:
-              " |" :string
-            arg3:
-              lazy :string
-  fn snippet$main() -> i32
-    call :void
-      callee:
-        break_over_array :fn() -> void
-    call :void
-      callee:
-        break_over_flat_map :fn() -> void
-    call :void
-      callee:
-        continue_over_array :fn() -> void
-    call :void
-      callee:
-        continue_over_take :fn() -> void
-    return int(0) :i32
-  struct snippet$__genstate_until_over { s0: Iterator<i32>, s1: i32, s2: Iterator<i32>, s3: [i32, Continuation], s4: i32, s5: i32, state: i32 }
-  fn snippet$__genstate_until_over$Iterator$next(self: __genstate_until_over) -> [i32, Continuation]
-    loop :dispatch$
-      if :void
-        cond:
-          eq :bool
-            l:
-              .state :i32
-                __self_2 :__genstate_until_over
-            r:
-              int(0) :i32
-        then:
-          assign
-            target:
-              .state :i32
-                __self_2 :__genstate_until_over
-            value:
-              int(-1) :i32
-        else:
-          if :void
-            cond:
-              eq :bool
-                l:
-                  .state :i32
-                    __self_2 :__genstate_until_over
-                r:
-                  int(1) :i32
-            then:
-              assign
-                target:
-                  .state :i32
-                    __self_2 :__genstate_until_over
-                value:
-                  int(0) :i32
-            else:
-              if :void
-                cond:
-                  eq :bool
-                    l:
-                      .state :i32
-                        __self_2 :__genstate_until_over
-                    r:
-                      int(2) :i32
-                then:
-                  assign
-                    target:
-                      .state :i32
-                        __self_2 :__genstate_until_over
-                    value:
-                      int(17) :i32
-                else:
-                  if :void
-                    cond:
-                      eq :bool
-                        l:
-                          .state :i32
-                            __self_2 :__genstate_until_over
-                        r:
-                          int(3) :i32
-                    then:
-                      assign
-                        target:
-                          .state :i32
-                            __self_2 :__genstate_until_over
-                        value:
-                          int(2) :i32
-                    else:
-                      if :void
-                        cond:
-                          eq :bool
-                            l:
-                              .state :i32
-                                __self_2 :__genstate_until_over
-                            r:
-                              int(4) :i32
-                        then:
-                          assign
-                            target:
-                              .state :i32
-                                __self_2 :__genstate_until_over
-                            value:
-                              int(3) :i32
-                        else:
-                          if :void
-                            cond:
-                              eq :bool
-                                l:
-                                  .state :i32
-                                    __self_2 :__genstate_until_over
-                                r:
-                                  int(5) :i32
-                            then:
-                              assign
-                                target:
-                                  .state :i32
-                                    __self_2 :__genstate_until_over
-                                value:
-                                  int(1) :i32
-                            else:
-                              if :void
-                                cond:
-                                  eq :bool
-                                    l:
-                                      .state :i32
-                                        __self_2 :__genstate_until_over
-                                    r:
-                                      int(6) :i32
-                                then:
-                                  assign
-                                    target:
-                                      .state :i32
-                                        __self_2 :__genstate_until_over
-                                    value:
-                                      int(3) :i32
-                                else:
-                                  if :void
-                                    cond:
-                                      eq :bool
-                                        l:
-                                          .state :i32
-                                            __self_2 :__genstate_until_over
-                                        r:
-                                          int(7) :i32
-                                    then:
-                                      assign
-                                        target:
-                                          .state :i32
-                                            __self_2 :__genstate_until_over
-                                        value:
-                                          int(6) :i32
-                                    else:
-                                      if :void
-                                        cond:
-                                          eq :bool
-                                            l:
-                                              .state :i32
-                                                __self_2 :__genstate_until_over
-                                            r:
-                                              int(8) :i32
-                                        then:
-                                          if :void
-                                            cond:
-                                              lt :bool
-                                                l:
-                                                  .s5 :i32
-                                                    __self_2 :__genstate_until_over
-                                                r:
-                                                  int(3) :i32
-                                            then:
-                                              assign
-                                                target:
-                                                  .state :i32
-                                                    __self_2 :__genstate_until_over
-                                                value:
-                                                  int(13) :i32
-                                            else:
-                                              assign
-                                                target:
-                                                  .state :i32
-                                                    __self_2 :__genstate_until_over
-                                                value:
-                                                  int(7) :i32
-                                        else:
-                                          if :void
-                                            cond:
-                                              eq :bool
-                                                l:
-                                                  .state :i32
-                                                    __self_2 :__genstate_until_over
-                                                r:
-                                                  int(9) :i32
-                                            then:
-                                              assign
-                                                target:
-                                                  .s5 :i32
-                                                    __self_2 :__genstate_until_over
-                                                value:
-                                                  add :i32
-                                                    l:
-                                                      .s5 :i32
-                                                        __self_2 :__genstate_until_over
-                                                    r:
-                                                      int(1) :i32
-                                              assign
-                                                target:
-                                                  .state :i32
-                                                    __self_2 :__genstate_until_over
-                                                value:
-                                                  int(8) :i32
-                                            else:
-                                              if :void
-                                                cond:
-                                                  eq :bool
-                                                    l:
-                                                      .state :i32
-                                                        __self_2 :__genstate_until_over
-                                                    r:
-                                                      int(10) :i32
-                                                then:
-                                                  assign
-                                                    target:
-                                                      .state :i32
-                                                        __self_2 :__genstate_until_over
-                                                    value:
-                                                      int(9) :i32
-                                                  return
-                                                    [i32, Continuation] {
-                                                      _0:
-                                                        add_checked :i32
-                                                          l:
-                                                            mul_checked :i32
-                                                              l:
-                                                                .s4 :i32
-                                                                  __self_2 :__genstate_until_over
-                                                              r:
-                                                                int(10) :i32
-                                                          r:
-                                                            .s5 :i32
-                                                              __self_2 :__genstate_until_over
-                                                      _1: int(0) :u8
-                                                    }
-                                                else:
-                                                  if :void
-                                                    cond:
-                                                      eq :bool
-                                                        l:
-                                                          .state :i32
-                                                            __self_2 :__genstate_until_over
-                                                        r:
-                                                          int(11) :i32
-                                                    then:
-                                                      assign
-                                                        target:
-                                                          .state :i32
-                                                            __self_2 :__genstate_until_over
-                                                        value:
-                                                          int(10) :i32
-                                                    else:
-                                                      if :void
-                                                        cond:
-                                                          eq :bool
-                                                            l:
-                                                              .state :i32
-                                                                __self_2 :__genstate_until_over
-                                                            r:
-                                                              int(12) :i32
-                                                        then:
-                                                          assign
-                                                            target:
-                                                              .state :i32
-                                                                __self_2 :__genstate_until_over
-                                                            value:
-                                                              int(1) :i32
-                                                        else:
-                                                          if :void
-                                                            cond:
-                                                              eq :bool
-                                                                l:
-                                                                  .state :i32
-                                                                    __self_2 :__genstate_until_over
-                                                                r:
-                                                                  int(13) :i32
-                                                            then:
-                                                              if :void
-                                                                cond:
-                                                                  gt :bool
-                                                                    l:
-                                                                      add_checked :i32
-                                                                        l:
-                                                                          mul_checked :i32
-                                                                            l:
-                                                                              .s4 :i32
-                                                                                __self_2 :__genstate_until_over
-                                                                            r:
-                                                                              int(10) :i32
-                                                                        r:
-                                                                          .s5 :i32
-                                                                            __self_2 :__genstate_until_over
-                                                                    r:
-                                                                      .s1 :i32
-                                                                        __self_2 :__genstate_until_over
-                                                                then:
-                                                                  assign
-                                                                    target:
-                                                                      .state :i32
-                                                                        __self_2 :__genstate_until_over
-                                                                    value:
-                                                                      int(12) :i32
-                                                                else:
-                                                                  assign
-                                                                    target:
-                                                                      .state :i32
-                                                                        __self_2 :__genstate_until_over
-                                                                    value:
-                                                                      int(10) :i32
-                                                            else:
-                                                              if :void
-                                                                cond:
-                                                                  eq :bool
-                                                                    l:
-                                                                      .state :i32
-                                                                        __self_2 :__genstate_until_over
-                                                                    r:
-                                                                      int(14) :i32
-                                                                then:
-                                                                  assign
-                                                                    target:
-                                                                      .s5 :i32
-                                                                        __self_2 :__genstate_until_over
-                                                                    value:
-                                                                      int(0) :i32
-                                                                  assign
-                                                                    target:
-                                                                      .state :i32
-                                                                        __self_2 :__genstate_until_over
-                                                                    value:
-                                                                      int(8) :i32
-                                                                else:
-                                                                  if :void
-                                                                    cond:
-                                                                      eq :bool
-                                                                        l:
-                                                                          .state :i32
-                                                                            __self_2 :__genstate_until_over
-                                                                        r:
-                                                                          int(15) :i32
-                                                                    then:
-                                                                      assign
-                                                                        target:
-                                                                          .s4 :i32
-                                                                            __self_2 :__genstate_until_over
-                                                                        value:
-                                                                          ._0 :i32
-                                                                            .s3 :[i32, Continuation]
-                                                                              __self_2 :__genstate_until_over
-                                                                      assign
-                                                                        target:
-                                                                          .state :i32
-                                                                            __self_2 :__genstate_until_over
-                                                                        value:
-                                                                          int(14) :i32
-                                                                    else:
-                                                                      if :void
-                                                                        cond:
-                                                                          eq :bool
-                                                                            l:
-                                                                              .state :i32
-                                                                                __self_2 :__genstate_until_over
-                                                                            r:
-                                                                              int(16) :i32
-                                                                        then:
-                                                                          if :void
-                                                                            cond:
-                                                                              eq :bool
-                                                                                l:
-                                                                                  ._1 :Continuation
-                                                                                    .s3 :[i32, Continuation]
-                                                                                      __self_2 :__genstate_until_over
-                                                                                r:
-                                                                                  int(1) :u8
-                                                                            then:
-                                                                              assign
-                                                                                target:
-                                                                                  .state :i32
-                                                                                    __self_2 :__genstate_until_over
-                                                                                value:
-                                                                                  int(5) :i32
-                                                                            else:
-                                                                              assign
-                                                                                target:
-                                                                                  .state :i32
-                                                                                    __self_2 :__genstate_until_over
-                                                                                value:
-                                                                                  int(15) :i32
-                                                                        else:
-                                                                          if :void
-                                                                            cond:
-                                                                              eq :bool
-                                                                                l:
-                                                                                  .state :i32
-                                                                                    __self_2 :__genstate_until_over
-                                                                                r:
-                                                                                  int(17) :i32
-                                                                            then:
-                                                                              assign
-                                                                                target:
-                                                                                  .s3 :[i32, Continuation]
-                                                                                    __self_2 :__genstate_until_over
-                                                                                value:
-                                                                                  vcall std_core$Iterator.next :[i32, Continuation]
-                                                                                    recv:
-                                                                                      .s2 :Iterator<i32>
-                                                                                        __self_2 :__genstate_until_over
-                                                                              assign
-                                                                                target:
-                                                                                  .state :i32
-                                                                                    __self_2 :__genstate_until_over
-                                                                                value:
-                                                                                  int(16) :i32
-                                                                            else:
-                                                                              if :void
-                                                                                cond:
-                                                                                  eq :bool
-                                                                                    l:
-                                                                                      .state :i32
-                                                                                        __self_2 :__genstate_until_over
-                                                                                    r:
-                                                                                      int(18) :i32
-                                                                                then:
-                                                                                  assign
-                                                                                    target:
-                                                                                      .s2 :Iterator<i32>
-                                                                                        __self_2 :__genstate_until_over
-                                                                                    value:
-                                                                                      .s0 :Iterator<i32>
-                                                                                        __self_2 :__genstate_until_over
-                                                                                  assign
-                                                                                    target:
-                                                                                      .state :i32
-                                                                                        __self_2 :__genstate_until_over
-                                                                                    value:
-                                                                                      int(2) :i32
-                                                                                else:
-                                                                                  return
-                                                                                    [i32, Continuation] {
-                                                                                      _0: int(0) :i32
-                                                                                      _1: int(1) :u8
-                                                                                    }
-  struct snippet$__genstate_stop_at { s0: Iterator<i32>, s1: i32, s2: Iterator<i32>, s3: [i32, Continuation], s4: i32, s5: i32, state: i32 }
-  fn snippet$__genstate_stop_at$Iterator$next(self: __genstate_stop_at) -> [i32, Continuation]
-    loop :dispatch$
-      if :void
-        cond:
-          eq :bool
-            l:
-              .state :i32
-                __self_2 :__genstate_stop_at
-            r:
-              int(0) :i32
-        then:
-          assign
-            target:
-              .state :i32
-                __self_2 :__genstate_stop_at
-            value:
-              int(-1) :i32
-        else:
-          if :void
-            cond:
-              eq :bool
-                l:
-                  .state :i32
-                    __self_2 :__genstate_stop_at
-                r:
-                  int(1) :i32
-            then:
-              assign
-                target:
-                  .state :i32
-                    __self_2 :__genstate_stop_at
-                value:
-                  int(0) :i32
-            else:
-              if :void
-                cond:
-                  eq :bool
-                    l:
-                      .state :i32
-                        __self_2 :__genstate_stop_at
-                    r:
-                      int(2) :i32
-                then:
-                  assign
-                    target:
-                      .state :i32
-                        __self_2 :__genstate_stop_at
-                    value:
-                      int(17) :i32
-                else:
-                  if :void
-                    cond:
-                      eq :bool
-                        l:
-                          .state :i32
-                            __self_2 :__genstate_stop_at
-                        r:
-                          int(3) :i32
-                    then:
-                      assign
-                        target:
-                          .state :i32
-                            __self_2 :__genstate_stop_at
-                        value:
-                          int(2) :i32
-                    else:
-                      if :void
-                        cond:
-                          eq :bool
-                            l:
-                              .state :i32
-                                __self_2 :__genstate_stop_at
-                            r:
-                              int(4) :i32
-                        then:
-                          assign
-                            target:
-                              .state :i32
-                                __self_2 :__genstate_stop_at
-                            value:
-                              int(3) :i32
-                        else:
-                          if :void
-                            cond:
-                              eq :bool
-                                l:
-                                  .state :i32
-                                    __self_2 :__genstate_stop_at
-                                r:
-                                  int(5) :i32
-                            then:
-                              assign
-                                target:
-                                  .state :i32
-                                    __self_2 :__genstate_stop_at
-                                value:
-                                  int(1) :i32
-                            else:
-                              if :void
-                                cond:
-                                  eq :bool
-                                    l:
-                                      .state :i32
-                                        __self_2 :__genstate_stop_at
-                                    r:
-                                      int(6) :i32
-                                then:
-                                  assign
-                                    target:
-                                      .state :i32
-                                        __self_2 :__genstate_stop_at
-                                    value:
-                                      int(3) :i32
-                                else:
-                                  if :void
-                                    cond:
-                                      eq :bool
-                                        l:
-                                          .state :i32
-                                            __self_2 :__genstate_stop_at
-                                        r:
-                                          int(7) :i32
-                                    then:
-                                      assign
-                                        target:
-                                          .state :i32
-                                            __self_2 :__genstate_stop_at
-                                        value:
-                                          int(6) :i32
-                                    else:
-                                      if :void
-                                        cond:
-                                          eq :bool
-                                            l:
-                                              .state :i32
-                                                __self_2 :__genstate_stop_at
-                                            r:
-                                              int(8) :i32
-                                        then:
-                                          if :void
-                                            cond:
-                                              lt :bool
-                                                l:
-                                                  .s5 :i32
-                                                    __self_2 :__genstate_stop_at
-                                                r:
-                                                  int(2) :i32
-                                            then:
-                                              assign
-                                                target:
-                                                  .state :i32
-                                                    __self_2 :__genstate_stop_at
-                                                value:
-                                                  int(13) :i32
-                                            else:
-                                              assign
-                                                target:
-                                                  .state :i32
-                                                    __self_2 :__genstate_stop_at
-                                                value:
-                                                  int(7) :i32
-                                        else:
-                                          if :void
-                                            cond:
-                                              eq :bool
-                                                l:
-                                                  .state :i32
-                                                    __self_2 :__genstate_stop_at
-                                                r:
-                                                  int(9) :i32
-                                            then:
-                                              assign
-                                                target:
-                                                  .s5 :i32
-                                                    __self_2 :__genstate_stop_at
-                                                value:
-                                                  add :i32
-                                                    l:
-                                                      .s5 :i32
-                                                        __self_2 :__genstate_stop_at
-                                                    r:
-                                                      int(1) :i32
-                                              assign
-                                                target:
-                                                  .state :i32
-                                                    __self_2 :__genstate_stop_at
-                                                value:
-                                                  int(8) :i32
-                                            else:
-                                              if :void
-                                                cond:
-                                                  eq :bool
-                                                    l:
-                                                      .state :i32
-                                                        __self_2 :__genstate_stop_at
-                                                    r:
-                                                      int(10) :i32
-                                                then:
-                                                  assign
-                                                    target:
-                                                      .state :i32
-                                                        __self_2 :__genstate_stop_at
-                                                    value:
-                                                      int(9) :i32
-                                                  return
-                                                    [i32, Continuation] {
-                                                      _0:
-                                                        add_checked :i32
-                                                          l:
-                                                            mul_checked :i32
-                                                              l:
-                                                                .s4 :i32
-                                                                  __self_2 :__genstate_stop_at
-                                                              r:
-                                                                int(10) :i32
-                                                          r:
-                                                            .s5 :i32
-                                                              __self_2 :__genstate_stop_at
-                                                      _1: int(0) :u8
-                                                    }
-                                                else:
-                                                  if :void
-                                                    cond:
-                                                      eq :bool
-                                                        l:
-                                                          .state :i32
-                                                            __self_2 :__genstate_stop_at
-                                                        r:
-                                                          int(11) :i32
-                                                    then:
-                                                      assign
-                                                        target:
-                                                          .state :i32
-                                                            __self_2 :__genstate_stop_at
-                                                        value:
-                                                          int(10) :i32
-                                                    else:
-                                                      if :void
-                                                        cond:
-                                                          eq :bool
-                                                            l:
-                                                              .state :i32
-                                                                __self_2 :__genstate_stop_at
-                                                            r:
-                                                              int(12) :i32
-                                                        then:
-                                                          assign
-                                                            target:
-                                                              .state :i32
-                                                                __self_2 :__genstate_stop_at
-                                                            value:
-                                                              int(1) :i32
-                                                        else:
-                                                          if :void
-                                                            cond:
-                                                              eq :bool
-                                                                l:
-                                                                  .state :i32
-                                                                    __self_2 :__genstate_stop_at
-                                                                r:
-                                                                  int(13) :i32
-                                                            then:
-                                                              if :void
-                                                                cond:
-                                                                  eq :bool
-                                                                    l:
-                                                                      .s4 :i32
-                                                                        __self_2 :__genstate_stop_at
-                                                                    r:
-                                                                      .s1 :i32
-                                                                        __self_2 :__genstate_stop_at
-                                                                then:
-                                                                  assign
-                                                                    target:
-                                                                      .state :i32
-                                                                        __self_2 :__genstate_stop_at
-                                                                    value:
-                                                                      int(12) :i32
-                                                                else:
-                                                                  assign
-                                                                    target:
-                                                                      .state :i32
-                                                                        __self_2 :__genstate_stop_at
-                                                                    value:
-                                                                      int(10) :i32
-                                                            else:
-                                                              if :void
-                                                                cond:
-                                                                  eq :bool
-                                                                    l:
-                                                                      .state :i32
-                                                                        __self_2 :__genstate_stop_at
-                                                                    r:
-                                                                      int(14) :i32
-                                                                then:
-                                                                  assign
-                                                                    target:
-                                                                      .s5 :i32
-                                                                        __self_2 :__genstate_stop_at
-                                                                    value:
-                                                                      int(0) :i32
-                                                                  assign
-                                                                    target:
-                                                                      .state :i32
-                                                                        __self_2 :__genstate_stop_at
-                                                                    value:
-                                                                      int(8) :i32
-                                                                else:
-                                                                  if :void
-                                                                    cond:
-                                                                      eq :bool
-                                                                        l:
-                                                                          .state :i32
-                                                                            __self_2 :__genstate_stop_at
-                                                                        r:
-                                                                          int(15) :i32
-                                                                    then:
-                                                                      assign
-                                                                        target:
-                                                                          .s4 :i32
-                                                                            __self_2 :__genstate_stop_at
-                                                                        value:
-                                                                          ._0 :i32
-                                                                            .s3 :[i32, Continuation]
-                                                                              __self_2 :__genstate_stop_at
-                                                                      assign
-                                                                        target:
-                                                                          .state :i32
-                                                                            __self_2 :__genstate_stop_at
-                                                                        value:
-                                                                          int(14) :i32
-                                                                    else:
-                                                                      if :void
-                                                                        cond:
-                                                                          eq :bool
-                                                                            l:
-                                                                              .state :i32
-                                                                                __self_2 :__genstate_stop_at
-                                                                            r:
-                                                                              int(16) :i32
-                                                                        then:
-                                                                          if :void
-                                                                            cond:
-                                                                              eq :bool
-                                                                                l:
-                                                                                  ._1 :Continuation
-                                                                                    .s3 :[i32, Continuation]
-                                                                                      __self_2 :__genstate_stop_at
-                                                                                r:
-                                                                                  int(1) :u8
-                                                                            then:
-                                                                              assign
-                                                                                target:
-                                                                                  .state :i32
-                                                                                    __self_2 :__genstate_stop_at
-                                                                                value:
-                                                                                  int(5) :i32
-                                                                            else:
-                                                                              assign
-                                                                                target:
-                                                                                  .state :i32
-                                                                                    __self_2 :__genstate_stop_at
-                                                                                value:
-                                                                                  int(15) :i32
-                                                                        else:
-                                                                          if :void
-                                                                            cond:
-                                                                              eq :bool
-                                                                                l:
-                                                                                  .state :i32
-                                                                                    __self_2 :__genstate_stop_at
-                                                                                r:
-                                                                                  int(17) :i32
-                                                                            then:
-                                                                              assign
-                                                                                target:
-                                                                                  .s3 :[i32, Continuation]
-                                                                                    __self_2 :__genstate_stop_at
-                                                                                value:
-                                                                                  vcall std_core$Iterator.next :[i32, Continuation]
-                                                                                    recv:
-                                                                                      .s2 :Iterator<i32>
-                                                                                        __self_2 :__genstate_stop_at
-                                                                              assign
-                                                                                target:
-                                                                                  .state :i32
-                                                                                    __self_2 :__genstate_stop_at
-                                                                                value:
-                                                                                  int(16) :i32
-                                                                            else:
-                                                                              if :void
-                                                                                cond:
-                                                                                  eq :bool
-                                                                                    l:
-                                                                                      .state :i32
-                                                                                        __self_2 :__genstate_stop_at
-                                                                                    r:
-                                                                                      int(18) :i32
-                                                                                then:
-                                                                                  assign
-                                                                                    target:
-                                                                                      .s2 :Iterator<i32>
-                                                                                        __self_2 :__genstate_stop_at
-                                                                                    value:
-                                                                                      .s0 :Iterator<i32>
-                                                                                        __self_2 :__genstate_stop_at
-                                                                                  assign
-                                                                                    target:
-                                                                                      .state :i32
-                                                                                        __self_2 :__genstate_stop_at
-                                                                                    value:
-                                                                                      int(2) :i32
-                                                                                else:
-                                                                                  return
-                                                                                    [i32, Continuation] {
-                                                                                      _0: int(0) :i32
-                                                                                      _1: int(1) :u8
-                                                                                    }
-  struct snippet$__genstate_first_two_of_odd { s0: Iterator<i32>, s1: Iterator<i32>, s2: [i32, Continuation], s3: i32, s4: i32, state: i32 }
-  fn snippet$__genstate_first_two_of_odd$Iterator$next(self: __genstate_first_two_of_odd) -> [i32, Continuation]
-    loop :dispatch$
-      if :void
-        cond:
-          eq :bool
-            l:
-              .state :i32
-                __self_2 :__genstate_first_two_of_odd
-            r:
-              int(0) :i32
-        then:
-          assign
-            target:
-              .state :i32
-                __self_2 :__genstate_first_two_of_odd
-            value:
-              int(-1) :i32
-        else:
-          if :void
-            cond:
-              eq :bool
-                l:
-                  .state :i32
-                    __self_2 :__genstate_first_two_of_odd
-                r:
-                  int(1) :i32
-            then:
-              assign
-                target:
-                  .state :i32
-                    __self_2 :__genstate_first_two_of_odd
-                value:
-                  int(0) :i32
-            else:
-              if :void
-                cond:
-                  eq :bool
-                    l:
-                      .state :i32
-                        __self_2 :__genstate_first_two_of_odd
-                    r:
-                      int(2) :i32
-                then:
-                  assign
-                    target:
-                      .state :i32
-                        __self_2 :__genstate_first_two_of_odd
-                    value:
-                      int(17) :i32
-                else:
-                  if :void
-                    cond:
-                      eq :bool
-                        l:
-                          .state :i32
-                            __self_2 :__genstate_first_two_of_odd
-                        r:
-                          int(3) :i32
-                    then:
-                      assign
-                        target:
-                          .state :i32
-                            __self_2 :__genstate_first_two_of_odd
-                        value:
-                          int(2) :i32
-                    else:
-                      if :void
-                        cond:
-                          eq :bool
-                            l:
-                              .state :i32
-                                __self_2 :__genstate_first_two_of_odd
-                            r:
-                              int(4) :i32
-                        then:
-                          assign
-                            target:
-                              .state :i32
-                                __self_2 :__genstate_first_two_of_odd
-                            value:
-                              int(3) :i32
-                        else:
-                          if :void
-                            cond:
-                              eq :bool
-                                l:
-                                  .state :i32
-                                    __self_2 :__genstate_first_two_of_odd
-                                r:
-                                  int(5) :i32
-                            then:
-                              assign
-                                target:
-                                  .state :i32
-                                    __self_2 :__genstate_first_two_of_odd
-                                value:
-                                  int(1) :i32
-                            else:
-                              if :void
-                                cond:
-                                  eq :bool
-                                    l:
-                                      .state :i32
-                                        __self_2 :__genstate_first_two_of_odd
-                                    r:
-                                      int(6) :i32
-                                then:
-                                  assign
-                                    target:
-                                      .state :i32
-                                        __self_2 :__genstate_first_two_of_odd
-                                    value:
-                                      int(3) :i32
-                                else:
-                                  if :void
-                                    cond:
-                                      eq :bool
-                                        l:
-                                          .state :i32
-                                            __self_2 :__genstate_first_two_of_odd
-                                        r:
-                                          int(7) :i32
-                                    then:
-                                      assign
-                                        target:
-                                          .state :i32
-                                            __self_2 :__genstate_first_two_of_odd
-                                        value:
-                                          int(6) :i32
-                                    else:
-                                      if :void
-                                        cond:
-                                          eq :bool
-                                            l:
-                                              .state :i32
-                                                __self_2 :__genstate_first_two_of_odd
-                                            r:
-                                              int(8) :i32
-                                        then:
-                                          if :void
-                                            cond:
-                                              lt :bool
-                                                l:
-                                                  .s4 :i32
-                                                    __self_2 :__genstate_first_two_of_odd
-                                                r:
-                                                  int(3) :i32
-                                            then:
-                                              assign
-                                                target:
-                                                  .state :i32
-                                                    __self_2 :__genstate_first_two_of_odd
-                                                value:
-                                                  int(13) :i32
-                                            else:
-                                              assign
-                                                target:
-                                                  .state :i32
-                                                    __self_2 :__genstate_first_two_of_odd
-                                                value:
-                                                  int(7) :i32
-                                        else:
-                                          if :void
-                                            cond:
-                                              eq :bool
-                                                l:
-                                                  .state :i32
-                                                    __self_2 :__genstate_first_two_of_odd
-                                                r:
-                                                  int(9) :i32
-                                            then:
-                                              assign
-                                                target:
-                                                  .s4 :i32
-                                                    __self_2 :__genstate_first_two_of_odd
-                                                value:
-                                                  add :i32
-                                                    l:
-                                                      .s4 :i32
-                                                        __self_2 :__genstate_first_two_of_odd
-                                                    r:
-                                                      int(1) :i32
-                                              assign
-                                                target:
-                                                  .state :i32
-                                                    __self_2 :__genstate_first_two_of_odd
-                                                value:
-                                                  int(8) :i32
-                                            else:
-                                              if :void
-                                                cond:
-                                                  eq :bool
-                                                    l:
-                                                      .state :i32
-                                                        __self_2 :__genstate_first_two_of_odd
-                                                    r:
-                                                      int(10) :i32
-                                                then:
-                                                  assign
-                                                    target:
-                                                      .state :i32
-                                                        __self_2 :__genstate_first_two_of_odd
-                                                    value:
-                                                      int(9) :i32
-                                                  return
-                                                    [i32, Continuation] {
-                                                      _0:
-                                                        add_checked :i32
-                                                          l:
-                                                            mul_checked :i32
-                                                              l:
-                                                                .s3 :i32
-                                                                  __self_2 :__genstate_first_two_of_odd
-                                                              r:
-                                                                int(10) :i32
-                                                          r:
-                                                            .s4 :i32
-                                                              __self_2 :__genstate_first_two_of_odd
-                                                      _1: int(0) :u8
-                                                    }
-                                                else:
-                                                  if :void
-                                                    cond:
-                                                      eq :bool
-                                                        l:
-                                                          .state :i32
-                                                            __self_2 :__genstate_first_two_of_odd
-                                                        r:
-                                                          int(11) :i32
-                                                    then:
-                                                      assign
-                                                        target:
-                                                          .state :i32
-                                                            __self_2 :__genstate_first_two_of_odd
-                                                        value:
-                                                          int(10) :i32
-                                                    else:
-                                                      if :void
-                                                        cond:
-                                                          eq :bool
-                                                            l:
-                                                              .state :i32
-                                                                __self_2 :__genstate_first_two_of_odd
-                                                            r:
-                                                              int(12) :i32
-                                                        then:
-                                                          assign
-                                                            target:
-                                                              .state :i32
-                                                                __self_2 :__genstate_first_two_of_odd
-                                                            value:
-                                                              int(2) :i32
-                                                        else:
-                                                          if :void
-                                                            cond:
-                                                              eq :bool
-                                                                l:
-                                                                  .state :i32
-                                                                    __self_2 :__genstate_first_two_of_odd
-                                                                r:
-                                                                  int(13) :i32
-                                                            then:
-                                                              if :void
-                                                                cond:
-                                                                  or :bool
-                                                                    l:
-                                                                      eq :bool
-                                                                        l:
-                                                                          mod :i32
-                                                                            l:
-                                                                              .s3 :i32
-                                                                                __self_2 :__genstate_first_two_of_odd
-                                                                            r:
-                                                                              int(2) :i32
-                                                                        r:
-                                                                          int(0) :i32
-                                                                    r:
-                                                                      eq :bool
-                                                                        l:
-                                                                          .s4 :i32
-                                                                            __self_2 :__genstate_first_two_of_odd
-                                                                        r:
-                                                                          int(2) :i32
-                                                                then:
-                                                                  assign
-                                                                    target:
-                                                                      .state :i32
-                                                                        __self_2 :__genstate_first_two_of_odd
-                                                                    value:
-                                                                      int(12) :i32
-                                                                else:
-                                                                  assign
-                                                                    target:
-                                                                      .state :i32
-                                                                        __self_2 :__genstate_first_two_of_odd
-                                                                    value:
-                                                                      int(10) :i32
-                                                            else:
-                                                              if :void
-                                                                cond:
-                                                                  eq :bool
-                                                                    l:
-                                                                      .state :i32
-                                                                        __self_2 :__genstate_first_two_of_odd
-                                                                    r:
-                                                                      int(14) :i32
-                                                                then:
-                                                                  assign
-                                                                    target:
-                                                                      .s4 :i32
-                                                                        __self_2 :__genstate_first_two_of_odd
-                                                                    value:
-                                                                      int(0) :i32
-                                                                  assign
-                                                                    target:
-                                                                      .state :i32
-                                                                        __self_2 :__genstate_first_two_of_odd
-                                                                    value:
-                                                                      int(8) :i32
-                                                                else:
-                                                                  if :void
-                                                                    cond:
-                                                                      eq :bool
-                                                                        l:
-                                                                          .state :i32
-                                                                            __self_2 :__genstate_first_two_of_odd
-                                                                        r:
-                                                                          int(15) :i32
-                                                                    then:
-                                                                      assign
-                                                                        target:
-                                                                          .s3 :i32
-                                                                            __self_2 :__genstate_first_two_of_odd
-                                                                        value:
-                                                                          ._0 :i32
-                                                                            .s2 :[i32, Continuation]
-                                                                              __self_2 :__genstate_first_two_of_odd
-                                                                      assign
-                                                                        target:
-                                                                          .state :i32
-                                                                            __self_2 :__genstate_first_two_of_odd
-                                                                        value:
-                                                                          int(14) :i32
-                                                                    else:
-                                                                      if :void
-                                                                        cond:
-                                                                          eq :bool
-                                                                            l:
-                                                                              .state :i32
-                                                                                __self_2 :__genstate_first_two_of_odd
-                                                                            r:
-                                                                              int(16) :i32
-                                                                        then:
-                                                                          if :void
-                                                                            cond:
-                                                                              eq :bool
-                                                                                l:
-                                                                                  ._1 :Continuation
-                                                                                    .s2 :[i32, Continuation]
-                                                                                      __self_2 :__genstate_first_two_of_odd
-                                                                                r:
-                                                                                  int(1) :u8
-                                                                            then:
-                                                                              assign
-                                                                                target:
-                                                                                  .state :i32
-                                                                                    __self_2 :__genstate_first_two_of_odd
-                                                                                value:
-                                                                                  int(5) :i32
-                                                                            else:
-                                                                              assign
-                                                                                target:
-                                                                                  .state :i32
-                                                                                    __self_2 :__genstate_first_two_of_odd
-                                                                                value:
-                                                                                  int(15) :i32
-                                                                        else:
-                                                                          if :void
-                                                                            cond:
-                                                                              eq :bool
-                                                                                l:
-                                                                                  .state :i32
-                                                                                    __self_2 :__genstate_first_two_of_odd
-                                                                                r:
-                                                                                  int(17) :i32
-                                                                            then:
-                                                                              assign
-                                                                                target:
-                                                                                  .s2 :[i32, Continuation]
-                                                                                    __self_2 :__genstate_first_two_of_odd
-                                                                                value:
-                                                                                  vcall std_core$Iterator.next :[i32, Continuation]
-                                                                                    recv:
-                                                                                      .s1 :Iterator<i32>
-                                                                                        __self_2 :__genstate_first_two_of_odd
-                                                                              assign
-                                                                                target:
-                                                                                  .state :i32
-                                                                                    __self_2 :__genstate_first_two_of_odd
-                                                                                value:
-                                                                                  int(16) :i32
-                                                                            else:
-                                                                              if :void
-                                                                                cond:
-                                                                                  eq :bool
-                                                                                    l:
-                                                                                      .state :i32
-                                                                                        __self_2 :__genstate_first_two_of_odd
-                                                                                    r:
-                                                                                      int(18) :i32
-                                                                                then:
-                                                                                  assign
-                                                                                    target:
-                                                                                      .s1 :Iterator<i32>
-                                                                                        __self_2 :__genstate_first_two_of_odd
-                                                                                    value:
-                                                                                      .s0 :Iterator<i32>
-                                                                                        __self_2 :__genstate_first_two_of_odd
-                                                                                  assign
-                                                                                    target:
-                                                                                      .state :i32
-                                                                                        __self_2 :__genstate_first_two_of_odd
-                                                                                    value:
-                                                                                      int(2) :i32
-                                                                                else:
-                                                                                  return
-                                                                                    [i32, Continuation] {
-                                                                                      _0: int(0) :i32
-                                                                                      _1: int(1) :u8
-                                                                                    }
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
-  fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let c3: usize =
-      add :usize
-        l:
-          c2 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p3 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c3 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c2 :usize
-      arg2:
-        p3 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c3 :usize
-  vtable std_core$Iterator.next for __genstate_first_two_of_odd  snippet$__genstate_first_two_of_odd$Iterator$next
-  vtable std_core$Iterator.next for __genstate_stop_at  snippet$__genstate_stop_at$Iterator$next
-  vtable std_core$Iterator.next for __genstate_until_over  snippet$__genstate_until_over$Iterator$next
+  }
+  snippet.break_over_array :: fn() -> void {  // snippet$break_over_array
+      fused: string = ""
+      {
+          __fuse_arr_2: i32[] = [1, 2, 3] :i32[]
+          limit: i32 = 21
+          $leave27: {
+              __fuse_len_3: usize = @array.len(__fuse_arr_2)
+              __fuse_i_4: usize = 0
+              for __fuse_i_4 < __fuse_len_3 {
+                  x: i32 = __fuse_arr_2[__fuse_i_4]
+                  {
+                      j: i32 = 0
+                      for j < 3 {
+                          if ((x * 10) + j) > limit {
+                              break $leave27
+                          }
+                          v: i32 = (x * 10) + j
+                          fused = concat_2(fused, {
+                              __buf_0: Buffer = std.core.new_byte_buffer(usize(21))
+                              __off_1: usize = 0
+                              __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+                              __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                              std.core.finish_buffer(__buf_0, __off_1)
+                          } :string)
+                      } @step {
+                          j = j +% 1
+                      }
+                  }
+              } @step {
+                  __fuse_i_4 = __fuse_i_4 +% usize(1)
+              }
+          }
+      }
+      lazy: string = ""
+      it: __genstate_until_over<i32> = snippet.until_over(std.core.i32[].into([1, 2, 3] :i32[]), 21)
+      {
+          __iter_5: Iterator<i32> = it
+          for {
+              __step_6: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_5)
+              if __step_6._1 == u8(1) {
+                  break
+              } else {
+                  v: i32 = __step_6._0
+                  lazy = concat_2(lazy, {
+                      __buf_7: Buffer = std.core.new_byte_buffer(usize(21))
+                      __off_8: usize = 0
+                      __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
+                      __off_8 = std.core.write_int(__buf_7, __off_8, i64(v))
+                      std.core.finish_buffer(__buf_7, __off_8)
+                  } :string)
+              }
+          }
+      }
+      std.io.println<string>(concat_4("until_over(21), break x:", fused, " |", lazy))
+  }
+  snippet.break_over_flat_map :: fn() -> void {  // snippet$break_over_flat_map
+      fused: string = ""
+      {
+          __fuse_arr_2: i32[] = [1, 3] :i32[]
+          f: fn(i32) -> i32[] = snippet.spread
+          stop: i32 = 2
+          $leave57: {
+              __fuse_len_3: usize = @array.len(__fuse_arr_2)
+              __fuse_i_4: usize = 0
+              for __fuse_i_4 < __fuse_len_3 {
+                  x: i32 = __fuse_arr_2[__fuse_i_4]
+                  {
+                      __for_arr_0: i32[] = snippet.spread(x)
+                      __for_len_1: usize = @array.len(__for_arr_0)
+                      __for_i_2: usize = 0
+                      for __for_i_2 < __for_len_1 {
+                          y: i32 = __for_arr_0[__for_i_2]
+                          x: i32 = y
+                          {
+                              j: i32 = 0
+                              for j < 2 {
+                                  if x == stop {
+                                      break $leave57
+                                  }
+                                  v: i32 = (x * 10) + j
+                                  fused = concat_2(fused, {
+                                      __buf_0: Buffer = std.core.new_byte_buffer(usize(21))
+                                      __off_1: usize = 0
+                                      __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+                                      __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                                      std.core.finish_buffer(__buf_0, __off_1)
+                                  } :string)
+                              } @step {
+                                  j = j +% 1
+                              }
+                          }
+                      } @step {
+                          __for_i_2 = __for_i_2 +% usize(1)
+                      }
+                  }
+              } @step {
+                  __fuse_i_4 = __fuse_i_4 +% usize(1)
+              }
+          }
+      }
+      lazy: string = ""
+      it: __genstate_stop_at<i32> = snippet.stop_at(std.iter.flat_map<i32, i32>(std.core.i32[].into([1, 3] :i32[]), snippet.spread), 2)
+      {
+          __iter_5: Iterator<i32> = it
+          for {
+              __step_6: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_5)
+              if __step_6._1 == u8(1) {
+                  break
+              } else {
+                  v: i32 = __step_6._0
+                  lazy = concat_2(lazy, {
+                      __buf_7: Buffer = std.core.new_byte_buffer(usize(21))
+                      __off_8: usize = 0
+                      __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
+                      __off_8 = std.core.write_int(__buf_7, __off_8, i64(v))
+                      std.core.finish_buffer(__buf_7, __off_8)
+                  } :string)
+              }
+          }
+      }
+      std.io.println<string>(concat_4("flat_map.stop_at(2), break x:", fused, " |", lazy))
+  }
+  snippet.continue_over_array :: fn() -> void {  // snippet$continue_over_array
+      fused: string = ""
+      {
+          __fuse_arr_2: i32[] = [1, 2, 3] :i32[]
+          __fuse_len_3: usize = @array.len(__fuse_arr_2)
+          __fuse_i_4: usize = 0
+          for __fuse_i_4 < __fuse_len_3 {
+              x: i32 = __fuse_arr_2[__fuse_i_4]
+              $resume74: {
+                  {
+                      j: i32 = 0
+                      for j < 3 {
+                          if ((x % 2) == 0) || (j == 2) {
+                              break $resume74
+                          }
+                          v: i32 = (x * 10) + j
+                          fused = concat_2(fused, {
+                              __buf_0: Buffer = std.core.new_byte_buffer(usize(21))
+                              __off_1: usize = 0
+                              __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+                              __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                              std.core.finish_buffer(__buf_0, __off_1)
+                          } :string)
+                      } @step {
+                          j = j +% 1
+                      }
+                  }
+              }
+          } @step {
+              __fuse_i_4 = __fuse_i_4 +% usize(1)
+          }
+      }
+      lazy: string = ""
+      it: __genstate_first_two_of_odd<i32> = snippet.first_two_of_odd(std.core.i32[].into([1, 2, 3] :i32[]))
+      {
+          __iter_5: Iterator<i32> = it
+          for {
+              __step_6: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_5)
+              if __step_6._1 == u8(1) {
+                  break
+              } else {
+                  v: i32 = __step_6._0
+                  lazy = concat_2(lazy, {
+                      __buf_7: Buffer = std.core.new_byte_buffer(usize(21))
+                      __off_8: usize = 0
+                      __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
+                      __off_8 = std.core.write_int(__buf_7, __off_8, i64(v))
+                      std.core.finish_buffer(__buf_7, __off_8)
+                  } :string)
+              }
+          }
+      }
+      std.io.println<string>(concat_4("first_two_of_odd, continue x:", fused, " |", lazy))
+  }
+  snippet.continue_over_take :: fn() -> void {  // snippet$continue_over_take
+      fused: string = ""
+      {
+          __fuse_arr_2: i32[] = [1, 2, 3, 4, 5] :i32[]
+          n: usize = 3
+          $exit$i85: {
+              if n == usize(0) {
+                  break $exit$i85
+              }
+              i: usize = 0
+              __fuse_len_3: usize = @array.len(__fuse_arr_2)
+              __fuse_i_4: usize = 0
+              for __fuse_i_4 < __fuse_len_3 {
+                  x: i32 = __fuse_arr_2[__fuse_i_4]
+                  x: i32 = x
+                  $resume93: {
+                      {
+                          j: i32 = 0
+                          for j < 3 {
+                              if ((x % 2) == 0) || (j == 2) {
+                                  break $resume93
+                              }
+                              v: i32 = (x * 10) + j
+                              fused = concat_2(fused, {
+                                  __buf_0: Buffer = std.core.new_byte_buffer(usize(21))
+                                  __off_1: usize = 0
+                                  __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+                                  __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                                  std.core.finish_buffer(__buf_0, __off_1)
+                              } :string)
+                          } @step {
+                              j = j +% 1
+                          }
+                      }
+                  }
+                  i = i + usize(1)
+                  if i >= n {
+                      break
+                  }
+              } @step {
+                  __fuse_i_4 = __fuse_i_4 +% usize(1)
+              }
+          }
+      }
+      lazy: string = ""
+      it: __genstate_first_two_of_odd<i32> = snippet.first_two_of_odd(std.iter.take<i32>(std.core.i32[].into([1, 2, 3, 4, 5] :i32[]), usize(3)))
+      {
+          __iter_5: Iterator<i32> = it
+          for {
+              __step_6: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_5)
+              if __step_6._1 == u8(1) {
+                  break
+              } else {
+                  v: i32 = __step_6._0
+                  lazy = concat_2(lazy, {
+                      __buf_7: Buffer = std.core.new_byte_buffer(usize(21))
+                      __off_8: usize = 0
+                      __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
+                      __off_8 = std.core.write_int(__buf_7, __off_8, i64(v))
+                      std.core.finish_buffer(__buf_7, __off_8)
+                  } :string)
+              }
+          }
+      }
+      std.io.println<string>(concat_4("take(3).first_two_of_odd, continue x:", fused, " |", lazy))
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      snippet.break_over_array()
+      snippet.break_over_flat_map()
+      snippet.continue_over_array()
+      snippet.continue_over_take()
+      return 0
+  }
+  snippet$__genstate_until_over :: struct { s0: Iterator<i32>, s1: i32, s2: Iterator<i32>, s3: [i32, Continuation], s4: i32, s5: i32, state: i32 }
+  snippet$__genstate_until_over$Iterator$next :: fn(self: __genstate_until_over) -> [i32, Continuation] {
+      dispatch$: for {
+          if __self_2.state == 0 {
+              __self_2.state = -1
+          } else if __self_2.state == 1 {
+              __self_2.state = 0
+          } else if __self_2.state == 2 {
+              __self_2.state = 17
+          } else if __self_2.state == 3 {
+              __self_2.state = 2
+          } else if __self_2.state == 4 {
+              __self_2.state = 3
+          } else if __self_2.state == 5 {
+              __self_2.state = 1
+          } else if __self_2.state == 6 {
+              __self_2.state = 3
+          } else if __self_2.state == 7 {
+              __self_2.state = 6
+          } else if __self_2.state == 8 {
+              if __self_2.s5 < 3 {
+                  __self_2.state = 13
+              } else {
+                  __self_2.state = 7
+              }
+          } else if __self_2.state == 9 {
+              __self_2.s5 = __self_2.s5 +% 1
+              __self_2.state = 8
+          } else if __self_2.state == 10 {
+              __self_2.state = 9
+              return [(__self_2.s4 * 10) + __self_2.s5, u8(0)] :[i32, Continuation]
+          } else if __self_2.state == 11 {
+              __self_2.state = 10
+          } else if __self_2.state == 12 {
+              __self_2.state = 1
+          } else if __self_2.state == 13 {
+              if ((__self_2.s4 * 10) + __self_2.s5) > __self_2.s1 {
+                  __self_2.state = 12
+              } else {
+                  __self_2.state = 10
+              }
+          } else if __self_2.state == 14 {
+              __self_2.s5 = 0
+              __self_2.state = 8
+          } else if __self_2.state == 15 {
+              __self_2.s4 = __self_2.s3._0
+              __self_2.state = 14
+          } else if __self_2.state == 16 {
+              if __self_2.s3._1 == u8(1) {
+                  __self_2.state = 5
+              } else {
+                  __self_2.state = 15
+              }
+          } else if __self_2.state == 17 {
+              __self_2.s3 = @vcall(std.core.Iterator.next, __self_2.s2)
+              __self_2.state = 16
+          } else if __self_2.state == 18 {
+              __self_2.s2 = __self_2.s0
+              __self_2.state = 2
+          } else {
+              return [0, u8(1)] :[i32, Continuation]
+          }
+      }
+  }
+  snippet$__genstate_stop_at :: struct { s0: Iterator<i32>, s1: i32, s2: Iterator<i32>, s3: [i32, Continuation], s4: i32, s5: i32, state: i32 }
+  snippet$__genstate_stop_at$Iterator$next :: fn(self: __genstate_stop_at) -> [i32, Continuation] {
+      dispatch$: for {
+          if __self_2.state == 0 {
+              __self_2.state = -1
+          } else if __self_2.state == 1 {
+              __self_2.state = 0
+          } else if __self_2.state == 2 {
+              __self_2.state = 17
+          } else if __self_2.state == 3 {
+              __self_2.state = 2
+          } else if __self_2.state == 4 {
+              __self_2.state = 3
+          } else if __self_2.state == 5 {
+              __self_2.state = 1
+          } else if __self_2.state == 6 {
+              __self_2.state = 3
+          } else if __self_2.state == 7 {
+              __self_2.state = 6
+          } else if __self_2.state == 8 {
+              if __self_2.s5 < 2 {
+                  __self_2.state = 13
+              } else {
+                  __self_2.state = 7
+              }
+          } else if __self_2.state == 9 {
+              __self_2.s5 = __self_2.s5 +% 1
+              __self_2.state = 8
+          } else if __self_2.state == 10 {
+              __self_2.state = 9
+              return [(__self_2.s4 * 10) + __self_2.s5, u8(0)] :[i32, Continuation]
+          } else if __self_2.state == 11 {
+              __self_2.state = 10
+          } else if __self_2.state == 12 {
+              __self_2.state = 1
+          } else if __self_2.state == 13 {
+              if __self_2.s4 == __self_2.s1 {
+                  __self_2.state = 12
+              } else {
+                  __self_2.state = 10
+              }
+          } else if __self_2.state == 14 {
+              __self_2.s5 = 0
+              __self_2.state = 8
+          } else if __self_2.state == 15 {
+              __self_2.s4 = __self_2.s3._0
+              __self_2.state = 14
+          } else if __self_2.state == 16 {
+              if __self_2.s3._1 == u8(1) {
+                  __self_2.state = 5
+              } else {
+                  __self_2.state = 15
+              }
+          } else if __self_2.state == 17 {
+              __self_2.s3 = @vcall(std.core.Iterator.next, __self_2.s2)
+              __self_2.state = 16
+          } else if __self_2.state == 18 {
+              __self_2.s2 = __self_2.s0
+              __self_2.state = 2
+          } else {
+              return [0, u8(1)] :[i32, Continuation]
+          }
+      }
+  }
+  snippet$__genstate_first_two_of_odd :: struct { s0: Iterator<i32>, s1: Iterator<i32>, s2: [i32, Continuation], s3: i32, s4: i32, state: i32 }
+  snippet$__genstate_first_two_of_odd$Iterator$next :: fn(self: __genstate_first_two_of_odd) -> [i32, Continuation] {
+      dispatch$: for {
+          if __self_2.state == 0 {
+              __self_2.state = -1
+          } else if __self_2.state == 1 {
+              __self_2.state = 0
+          } else if __self_2.state == 2 {
+              __self_2.state = 17
+          } else if __self_2.state == 3 {
+              __self_2.state = 2
+          } else if __self_2.state == 4 {
+              __self_2.state = 3
+          } else if __self_2.state == 5 {
+              __self_2.state = 1
+          } else if __self_2.state == 6 {
+              __self_2.state = 3
+          } else if __self_2.state == 7 {
+              __self_2.state = 6
+          } else if __self_2.state == 8 {
+              if __self_2.s4 < 3 {
+                  __self_2.state = 13
+              } else {
+                  __self_2.state = 7
+              }
+          } else if __self_2.state == 9 {
+              __self_2.s4 = __self_2.s4 +% 1
+              __self_2.state = 8
+          } else if __self_2.state == 10 {
+              __self_2.state = 9
+              return [(__self_2.s3 * 10) + __self_2.s4, u8(0)] :[i32, Continuation]
+          } else if __self_2.state == 11 {
+              __self_2.state = 10
+          } else if __self_2.state == 12 {
+              __self_2.state = 2
+          } else if __self_2.state == 13 {
+              if ((__self_2.s3 % 2) == 0) || (__self_2.s4 == 2) {
+                  __self_2.state = 12
+              } else {
+                  __self_2.state = 10
+              }
+          } else if __self_2.state == 14 {
+              __self_2.s4 = 0
+              __self_2.state = 8
+          } else if __self_2.state == 15 {
+              __self_2.s3 = __self_2.s2._0
+              __self_2.state = 14
+          } else if __self_2.state == 16 {
+              if __self_2.s2._1 == u8(1) {
+                  __self_2.state = 5
+              } else {
+                  __self_2.state = 15
+              }
+          } else if __self_2.state == 17 {
+              __self_2.s2 = @vcall(std.core.Iterator.next, __self_2.s1)
+              __self_2.state = 16
+          } else if __self_2.state == 18 {
+              __self_2.s1 = __self_2.s0
+              __self_2.state = 2
+          } else {
+              return [0, u8(1)] :[i32, Continuation]
+          }
+      }
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_4 :: fn(p0: string, p1: string, p2: string, p3: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      c3: usize = c2 +% std.core.byte_len(p3)
+      buf: Buffer = std.core.usize.new_buffer(c3)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.intern_string(buf, c3)
+  }
+  vtable std.core.Iterator.next for __genstate_first_two_of_odd  snippet$__genstate_first_two_of_odd$Iterator$next
+  vtable std.core.Iterator.next for __genstate_stop_at  snippet$__genstate_stop_at$Iterator$next
+  vtable std.core.Iterator.next for __genstate_until_over  snippet$__genstate_until_over$Iterator$next
 
 ## lowered in dependencies
   std/collections
-    fn std_collections$MutableMap$Contains$contains__i32__bool
-    fn std_collections$MutableMap$Contains$contains__i32__i32
-    fn std_collections$MutableMap$Contains$contains__string__i32
-    fn std_collections$MutableMap$Index$at__i32__bool
-    fn std_collections$MutableMap$Index$at__i32__i32
-    fn std_collections$MutableMap$Index$at__string__i32
-    fn std_collections$MutableMap$IndexSet$set_at__i32__bool
-    fn std_collections$MutableMap$IndexSet$set_at__i32__i32
-    fn std_collections$MutableMap$IndexSet$set_at__string__i32
-    fn std_collections$MutableMap$Into$into__i32__bool
-    fn std_collections$MutableMap$Into$into__i32__i32
-    fn std_collections$MutableMap$Into$into__string__i32
-    fn std_collections$MutableSet$Contains$contains__i32
-    fn std_collections$MutableSet$Into$into__i32
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$IndexSet$set_at__string__i32
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$Into$into__i32
+    fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
+    fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
+    fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
+    fn std.collections.ensure_index<i32, bool>  // std_collections$ensure_index__i32__bool
+    fn std.collections.ensure_index<i32, i32>  // std_collections$ensure_index__i32__i32
+    fn std.collections.ensure_index<string, i32>  // std_collections$ensure_index__string__i32
+    fn std.collections.first_slot  // std_collections$first_slot
+    fn std.collections.get<i32, bool>  // std_collections$get__i32__bool
+    fn std.collections.get<i32, i32>  // std_collections$get__i32__i32
+    fn std.collections.get<string, i32>  // std_collections$get__string__i32
+    fn std.collections.next_slot  // std_collections$next_slot
+    fn std.collections.put<i32, bool>  // std_collections$put__i32__bool
+    fn std.collections.put<i32, i32>  // std_collections$put__i32__i32
+    fn std.collections.put<string, i32>  // std_collections$put__string__i32
+    fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
+    fn std.collections.rehash<i32, i32>  // std_collections$rehash__i32__i32
+    fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
+    fn std.collections.write_entry<i32, bool>  // std_collections$write_entry__i32__bool
+    fn std.collections.write_entry<i32, i32>  // std_collections$write_entry__i32__i32
+    fn std.collections.write_entry<string, i32>  // std_collections$write_entry__string__i32
     fn std_collections$__gen_state_std_collections_0$Iterator$next
     fn std_collections$__gen_state_std_collections_1$Iterator$next
     fn std_collections$__gen_state_std_collections_2$Iterator$next
     fn std_collections$__gen_state_std_collections_3$Iterator$next
-    fn std_collections$contains_key__i32__bool
-    fn std_collections$contains_key__i32__i32
-    fn std_collections$contains_key__string__i32
-    fn std_collections$ensure_index__i32__bool
-    fn std_collections$ensure_index__i32__i32
-    fn std_collections$ensure_index__string__i32
-    fn std_collections$first_slot
-    fn std_collections$get__i32__bool
-    fn std_collections$get__i32__i32
-    fn std_collections$get__string__i32
-    fn std_collections$next_slot
-    fn std_collections$put__i32__bool
-    fn std_collections$put__i32__i32
-    fn std_collections$put__string__i32
-    fn std_collections$rehash__i32__bool
-    fn std_collections$rehash__i32__i32
-    fn std_collections$rehash__string__i32
-    fn std_collections$write_entry__i32__bool
-    fn std_collections$write_entry__i32__i32
-    fn std_collections$write_entry__string__i32
-    struct std_collections$MutableMap__Any__Any
-    struct std_collections$MutableMap__Any__bool
-    struct std_collections$MutableMap__i32__bool
-    struct std_collections$MutableMap__i32__i32
-    struct std_collections$MutableMap__string__i32
-    struct std_collections$MutableSet__Any
-    struct std_collections$MutableSet__i32
+    struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
+    struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
+    struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
+    struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
+    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
+    struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
+    struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32
     struct std_collections$__gen_state_std_collections_0
     struct std_collections$__gen_state_std_collections_1
     struct std_collections$__gen_state_std_collections_2
     struct std_collections$__gen_state_std_collections_3
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$[]$Into$into__i32
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.array_iter<i32>  // std_core$array_iter__i32
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.hash  // std_core$i32$Hash$hash
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i32[].into  // std_core$[]$Into$into__i32
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
     fn std_core$__gen_state_std_core_0$Iterator$next
-    fn std_core$array_iter__i32
-    fn std_core$finish_buffer
-    fn std_core$i32$Comparable$compare
     fn std_core$i32$Equals$equals$guard
-    fn std_core$i32$Hash$hash
-    fn std_core$i32$Step$step
-    fn std_core$new_byte_buffer
     fn std_core$string$Equals$equals$guard
-    fn std_core$string$Hash$hash
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
     struct std_core$__gen_state_std_core_0
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   std/iter
+    fn std.iter.flat_map<i32, i32>  // std_iter$flat_map__i32__i32
+    fn std.iter.take<i32>  // std_iter$take__i32
     fn std_iter$__gen_state_std_iter_0$Iterator$next
     fn std_iter$__gen_state_std_iter_1$Iterator$next
-    fn std_iter$flat_map__i32__i32
-    fn std_iter$take__i32
     struct std_iter$__gen_state_std_iter_0
     struct std_iter$__gen_state_std_iter_1
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

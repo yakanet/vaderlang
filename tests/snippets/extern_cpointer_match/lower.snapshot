@@ -1,251 +1,97 @@
 # Lower
 
 ## snippet
-  fn snippet$c_fopen(path: string, mode: string) -> CPointer | null
-    <extern / signature only>
-  fn snippet$c_fclose(f: CPointer) -> i32
-    <extern / signature only>
-  fn snippet$main() -> i32
-    let path: string =
-      call :string
-        callee:
-          concat_2 :string
-        arg0:
-          call :string
-            callee:
-              temp_dir :fn() -> string
-        arg1:
-          "/vader_cpointer_probe" :string
-    let wrote: IOError | null =
-      call :IOError | null
-        callee:
-          write_file_string :fn(string, string) -> IOError | null
-        arg0:
-          path :string
-        arg1:
-          "x" :string
-    if :void
-      cond:
-        is IOError :bool
-          wrote :IOError | null
-      then:
-        let e: IOError =
-          cast → IOError
-            wrote :IOError | null
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "setup failed: " :string
-              arg1:
-                .msg :string
-                  e :IOError
-        return int(1) :i32
-    let r: CPointer | null =
-      call :CPointer | null
-        callee:
-          c_fopen :fn(string, string) -> CPointer | null
-        arg0:
-          path :string
-        arg1:
-          "rb" :string
-    block :i32 | void
-      ~>
-        if :i32 | void
-          cond:
-            is CPointer :bool
-              r :CPointer | null
-          then:
-            ~>
-              block :i32
-                call :void
-                  callee:
-                    std_io$println__string :void
-                  arg0:
-                    "matched CPointer" :string
-                ~>
-                  call :i32
-                    callee:
-                      c_fclose :fn(CPointer) -> i32
-                    arg0:
-                      cast → CPointer
-                        r :CPointer | null
-          else:
-            ~>
-              if :i32 | void
-                cond:
-                  is null :bool
-                    r :CPointer | null
-                then:
-                  ~>
-                    call :void
-                      callee:
-                        std_io$println__string :void
-                      arg0:
-                        "matched null" :string
-                else:
-                  ~>
-                    unreachable("non-exhaustive match (T3013 should have caught this)") :i32 | void
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        "after match" :string
-    let missing: CPointer | null =
-      call :CPointer | null
-        callee:
-          c_fopen :fn(string, string) -> CPointer | null
-        arg0:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              call :string
-                callee:
-                  temp_dir :fn() -> string
-            arg1:
-              "/vader_no_such_probe_at_all" :string
-        arg1:
-          "rb" :string
-    block :i32 | void
-      ~>
-        if :i32 | void
-          cond:
-            is CPointer :bool
-              missing :CPointer | null
-          then:
-            ~>
-              block :i32
-                call :void
-                  callee:
-                    std_io$println__string :void
-                  arg0:
-                    "unexpectedly opened" :string
-                ~>
-                  call :i32
-                    callee:
-                      c_fclose :fn(CPointer) -> i32
-                    arg0:
-                      cast → CPointer
-                        missing :CPointer | null
-          else:
-            ~>
-              if :i32 | void
-                cond:
-                  is null :bool
-                    missing :CPointer | null
-                then:
-                  ~>
-                    call :void
-                      callee:
-                        std_io$println__string :void
-                      arg0:
-                        "matched null" :string
-                else:
-                  ~>
-                    unreachable("non-exhaustive match (T3013 should have caught this)") :i32 | void
-    call :IOError | null
-      callee:
-        remove_file :fn(string) -> IOError | null
-      arg0:
-        path :string
-    return int(0) :i32
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
+  snippet.c_fopen :: fn(path: string, mode: string) -> CPointer | null  // snippet$c_fopen
+  snippet.c_fclose :: fn(f: CPointer) -> i32  // snippet$c_fclose
+  snippet.main :: fn() -> i32 {  // snippet$main
+      path: string = concat_2(std.io.temp_dir(), "/vader_cpointer_probe")
+      wrote: IOError | null = std.io.write_file_string(path, "x")
+      if wrote is IOError {
+          e: IOError = IOError(wrote)
+          std.io.println<string>(concat_2("setup failed: ", e.msg))
+          return 1
+      }
+      r: CPointer | null = snippet.c_fopen(path, "rb")
+      {
+          if r is CPointer {
+              {
+                  std.io.println<string>("matched CPointer")
+                  snippet.c_fclose(CPointer(r))
+              } :i32
+          } else if r is null {
+              std.io.println<string>("matched null")
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :i32 | void
+      }
+      std.io.println<string>("after match")
+      missing: CPointer | null = snippet.c_fopen(concat_2(std.io.temp_dir(), "/vader_no_such_probe_at_all"), "rb")
+      {
+          if missing is CPointer {
+              {
+                  std.io.println<string>("unexpectedly opened")
+                  snippet.c_fclose(CPointer(missing))
+              } :i32
+          } else if missing is null {
+              std.io.println<string>("matched null")
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :i32 | void
+      }
+      std.io.remove_file(path)
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
 
 ## lowered in dependencies
   std/target/baked
     const VADER_OS: Os  inline
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$describe_io_error_kind
-    fn std_io$last_io_error
-    fn std_io$println__string
-    fn std_io$remove_file
-    fn std_io$temp_dir
-    fn std_io$temp_dir_of
-    fn std_io$without_trailing_sep
-    fn std_io$write
-    fn std_io$write_bytes
-    fn std_io$write_file_bytes
-    fn std_io$write_file_string
-    struct std_io$IOError
+    fn std.io.describe_io_error_kind  // std_io$describe_io_error_kind
+    fn std.io.last_io_error  // std_io$last_io_error
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.remove_file  // std_io$remove_file
+    fn std.io.temp_dir  // std_io$temp_dir
+    fn std.io.temp_dir_of  // std_io$temp_dir_of
+    fn std.io.without_trailing_sep  // std_io$without_trailing_sep
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+    fn std.io.write_file_bytes  // std_io$write_file_bytes
+    fn std.io.write_file_string  // std_io$write_file_string
+    struct std.io.IOError  // std_io$IOError
   system/posix
     const EAGAIN: i32  inline
     const ENOTEMPTY: i32  inline
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

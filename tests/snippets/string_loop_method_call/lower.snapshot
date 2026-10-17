@@ -1,178 +1,76 @@
 # Lower
 
 ## snippet
-  fn snippet$is_vowel(c: char) -> bool
-    ~>
-      or :bool
-        l:
-          or :bool
-            l:
-              or :bool
-                l:
-                  eq :bool
-                    l:
-                      c :char
-                    r:
-                      char(0x61)
-                r:
-                  eq :bool
-                    l:
-                      c :char
-                    r:
-                      char(0x65)
-            r:
-              eq :bool
-                l:
-                  c :char
-                r:
-                  char(0xe9)
-        r:
-          eq :bool
-            l:
-              c :char
-            r:
-              char(0x6f)
-  fn snippet$main() -> i32
-    let vowels: i32 = int(0) :i32
-    block :void
-      let self: string = "héllo, vader" :string
-      let i: usize = int(0) :usize
-      loop while (<…>)
-        let b: u8 =
-          call :u8
-            callee:
-              byte_at :u8
-            arg0:
-              self :string
-            arg1:
-              i :usize
-        ~>
-          if :void
-            cond:
-              lt :bool
-                l:
-                  b :u8
-                r:
-                  int(128) :u8
-            then:
-              assign
-                target:
-                  i :usize
-                value:
-                  add_checked :usize
-                    l:
-                      i :usize
-                    r:
-                      int(1) :usize
-              let c: char =
-                cast → char
-                  b :u8
-              if :void
-                cond:
-                  call :bool
-                    callee:
-                      is_vowel :bool
-                    arg0:
-                      c :char
-                then:
-                  assign
-                    target:
-                      vowels :i32
-                    value:
-                      add_checked :i32
-                        l:
-                          vowels :i32
-                        r:
-                          int(1) :i32
-            else:
-              let __tup_0: [char, usize] =
-                call :[char, usize]
-                  callee:
-                    decode_tail :fn(string, u8, usize) -> [char, usize]
-                  arg0:
-                    self :string
-                  arg1:
-                    b :u8
-                  arg2:
-                    i :usize
-              let c: char =
-                ._0 :char
-                  __tup_0 :[char, usize]
-              let width: usize =
-                ._1 :usize
-                  __tup_0 :[char, usize]
-              assign
-                target:
-                  i :usize
-                value:
-                  add_checked :usize
-                    l:
-                      i :usize
-                    r:
-                      width :usize
-              let c: char = c :char
-              if :void
-                cond:
-                  call :bool
-                    callee:
-                      is_vowel :bool
-                    arg0:
-                      c :char
-                then:
-                  assign
-                    target:
-                      vowels :i32
-                    value:
-                      add_checked :i32
-                        l:
-                          vowels :i32
-                        r:
-                          int(1) :i32
-    call :void
-      callee:
-        std_io$println__i32 :void
-      arg0:
-        vowels :i32
-    return int(0) :i32
+  snippet.is_vowel :: fn(c: char) -> bool {  // snippet$is_vowel
+      (((c == 'a') || (c == 'e')) || (c == '\u{e9}')) || (c == 'o')
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      vowels: i32 = 0
+      {
+          self: string = "héllo, vader"
+          i: usize = 0
+          for i < std.core.byte_len(self) {
+              b: u8 = std.core.byte_at(self, i)
+              if b < u8(128) {
+                  i = i + usize(1)
+                  c: char = char(b)
+                  if snippet.is_vowel(c) {
+                      vowels = vowels + 1
+                  }
+              } else {
+                  __tup_0: [char, usize] = std.core.decode_tail(self, b, i)
+                  c: char = __tup_0._0
+                  width: usize = __tup_0._1
+                  i = i + width
+                  c: char = c
+                  if snippet.is_vowel(c) {
+                      vowels = vowels + 1
+                  }
+              }
+          }
+      }
+      std.io.println<i32>(vowels)
+      return 0
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$decode_tail
-    fn std_core$finish_buffer
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$is_utf8_continuation
-    fn std_core$new_byte_buffer
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.decode_tail  // std_core$decode_tail
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__i32
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<i32>  // std_io$println__i32
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

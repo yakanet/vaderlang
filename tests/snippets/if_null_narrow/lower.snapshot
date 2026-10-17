@@ -1,381 +1,109 @@
 # Lower
 
 ## snippet
-  struct snippet$Cat { name: string, age: i32 }
-  struct snippet$Dog { name: string, age: i32 }
-  fn snippet$greet(a: Cat | Dog | null) -> string
-    if :void
-      cond:
-        not :bool
-          is null :bool
-            a :Cat | Dog | null
-      then:
-        return
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              "hello " :string
-            arg1:
-              .name :string
-                cast → Cat
-                  cast → Cat | Dog
-                    a :Cat | Dog | null
-    return "no animal" :string
-  fn snippet$greet_v2(a: Cat | Dog | null) -> string
-    if :void
-      cond:
-        is null :bool
-          a :Cat | Dog | null
-      then:
-        return "no animal" :string
-    return
-      call :string
-        callee:
-          concat_2 :string
-        arg0:
-          "hi " :string
-        arg1:
-          .name :string
-            cast → Cat
-              cast → Cat | Dog
-                a :Cat | Dog | null
-  fn snippet$greet_v3(a: Cat | Dog | null) -> string
-    if :void
-      cond:
-        not :bool
-          is null :bool
-            a :Cat | Dog | null
-      then:
-        return
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              "yo " :string
-            arg1:
-              .name :string
-                cast → Cat
-                  cast → Cat | Dog
-                    a :Cat | Dog | null
-    return "nada" :string
-  fn snippet$greet_v4(a: Cat | Dog | null) -> string
-    let out: string = "" :string
-    ~>
-      if :never
-        cond:
-          not :bool
-            is null :bool
-              a :Cat | Dog | null
-        then:
-          let out2: string =
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "ok " :string
-              arg1:
-                .name :string
-                  cast → Cat
-                    cast → Cat | Dog
-                      a :Cat | Dog | null
-          return out2 :string
-        else:
-          return "missing" :string
-  fn snippet$combine(a: Cat | Dog | null, b: Cat | Dog | null) -> string
-    if :void
-      cond:
-        is null :bool
-          a :Cat | Dog | null
-      then:
-        return "first missing" :string
-    if :void
-      cond:
-        is null :bool
-          b :Cat | Dog | null
-      then:
-        return "second missing" :string
-    return
-      call :string
-        callee:
-          concat_3 :string
-        arg0:
-          .name :string
-            cast → Cat
-              cast → Cat | Dog
-                a :Cat | Dog | null
-        arg1:
-          " & " :string
-        arg2:
-          .name :string
-            cast → Cat
-              cast → Cat | Dog
-                b :Cat | Dog | null
-  fn snippet$main() -> i32
-    let cat: Cat | Dog | null =
-      Cat {
-        name: "Whiskers" :string
-        age: int(3) :i32
+  snippet.Cat :: struct { name: string, age: i32 }  // snippet$Cat
+  snippet.Dog :: struct { name: string, age: i32 }  // snippet$Dog
+  snippet.greet :: fn(a: Cat | Dog | null) -> string {  // snippet$greet
+      if !(a is null) {
+          return concat_2("hello ", Cat((Cat | Dog)(a)).name)
       }
-    let dog: Cat | Dog | null =
-      Dog {
-        name: "Rex" :string
-        age: int(7) :i32
+      return "no animal"
+  }
+  snippet.greet_v2 :: fn(a: Cat | Dog | null) -> string {  // snippet$greet_v2
+      if a is null {
+          return "no animal"
       }
-    let nothing: Cat | Dog | null = null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet :fn(Cat | Dog | null) -> string
-          arg0:
-            cat :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet :fn(Cat | Dog | null) -> string
-          arg0:
-            nothing :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet_v2 :fn(Cat | Dog | null) -> string
-          arg0:
-            cat :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet_v2 :fn(Cat | Dog | null) -> string
-          arg0:
-            nothing :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet_v3 :fn(Cat | Dog | null) -> string
-          arg0:
-            cat :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet_v3 :fn(Cat | Dog | null) -> string
-          arg0:
-            nothing :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet_v4 :fn(Cat | Dog | null) -> string
-          arg0:
-            cat :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            greet_v4 :fn(Cat | Dog | null) -> string
-          arg0:
-            nothing :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            combine :fn(Cat | Dog | null, Cat | Dog | null) -> string
-          arg0:
-            cat :Cat | Dog | null
-          arg1:
-            dog :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            combine :fn(Cat | Dog | null, Cat | Dog | null) -> string
-          arg0:
-            nothing :Cat | Dog | null
-          arg1:
-            dog :Cat | Dog | null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            combine :fn(Cat | Dog | null, Cat | Dog | null) -> string
-          arg0:
-            cat :Cat | Dog | null
-          arg1:
-            nothing :Cat | Dog | null
-    return int(0) :i32
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
-  fn concat_3(p0: string, p1: string, p2: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c2 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c2 :usize
+      return concat_2("hi ", Cat((Cat | Dog)(a)).name)
+  }
+  snippet.greet_v3 :: fn(a: Cat | Dog | null) -> string {  // snippet$greet_v3
+      if !(a is null) {
+          return concat_2("yo ", Cat((Cat | Dog)(a)).name)
+      }
+      return "nada"
+  }
+  snippet.greet_v4 :: fn(a: Cat | Dog | null) -> string {  // snippet$greet_v4
+      out: string = ""
+      if !(a is null) {
+          out2: string = concat_2("ok ", Cat((Cat | Dog)(a)).name)
+          return out2
+      } else {
+          return "missing"
+      }
+  }
+  snippet.combine :: fn(a: Cat | Dog | null, b: Cat | Dog | null) -> string {  // snippet$combine
+      if a is null {
+          return "first missing"
+      }
+      if b is null {
+          return "second missing"
+      }
+      return concat_3(Cat((Cat | Dog)(a)).name, " & ", Cat((Cat | Dog)(b)).name)
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      cat: Cat | Dog | null = Cat { .name = "Whiskers", .age = 3 }
+      dog: Cat | Dog | null = Dog { .name = "Rex", .age = 7 }
+      nothing: Cat | Dog | null = null
+      std.io.println<string>(snippet.greet(cat))
+      std.io.println<string>(snippet.greet(nothing))
+      std.io.println<string>(snippet.greet_v2(cat))
+      std.io.println<string>(snippet.greet_v2(nothing))
+      std.io.println<string>(snippet.greet_v3(cat))
+      std.io.println<string>(snippet.greet_v3(nothing))
+      std.io.println<string>(snippet.greet_v4(cat))
+      std.io.println<string>(snippet.greet_v4(nothing))
+      std.io.println<string>(snippet.combine(cat, dog))
+      std.io.println<string>(snippet.combine(nothing, dog))
+      std.io.println<string>(snippet.combine(cat, nothing))
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.usize.new_buffer(c2)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

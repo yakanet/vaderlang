@@ -1,1388 +1,254 @@
 # Lower
 
 ## snippet
-  fn snippet$slot(i: usize) -> usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_0: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(26) :usize
-          let __off_1: usize = int(0) :usize
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  "index " :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  cast → u64
-                    i :usize
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-    return i :usize
-  struct snippet$Counter { count: i32 }
-  struct snippet$Holder { items: i32[] }
-  struct snippet$Row { cells: i32[] }
-  fn snippet$pick(c: Counter) -> Counter
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        "pick" :string
-    return c :Counter
-  struct snippet$Cell { slots: i32[] }
-  fn snippet$Cell$Index$at(self: Cell, i: usize) -> i32
-    ~>
-      index :i32
-        on:
-          .slots :i32[]
-            self :Cell
-        ix:
-          i :usize
-  fn snippet$Cell$IndexSet$set_at(self: Cell, i: usize, v: i32) -> void
-    assign
-      target:
-        index :i32
-          on:
-            .slots :i32[]
-              self :Cell
-          ix:
-            i :usize
-      value:
-        v :i32
-  struct snippet$Shelf { items: Counter[] }
-  fn snippet$Shelf$Index$at(self: Shelf, i: usize) -> Counter
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_0: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(23) :usize
-          let __off_1: usize = int(0) :usize
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  "at " :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  cast → u64
-                    i :usize
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-    return
-      index :Counter
-        on:
-          .items :Counter[]
-            self :Shelf
-        ix:
-          i :usize
-  struct snippet$Two {  }
-  fn snippet$Two$Stepper$step(self: Two) -> i32
-    ~>
-      int(2) :i32
-  fn snippet$Two$Stepper$advance(self: Two, xs: i32[]) -> void
-    block :void
-      let __place_operand_0: usize =
-        call :usize
-          callee:
-            slot :fn(usize) -> usize
-          arg0:
-            int(0) :usize
-      assign
-        target:
-          index :i32
-            on:
-              xs :i32[]
-            ix:
-              __place_operand_0 :usize
-        value:
-          add_checked :i32
-            l:
-              index :i32
-                on:
-                  xs :i32[]
-                ix:
-                  __place_operand_0 :usize
-            r:
-              call :i32
-                callee:
-                  snippet$Two$Stepper$step :i32
-                arg0:
-                  self :Two
-  fn snippet$main() -> i32
-    let a: i32[] =
-      array :i32[]
-        int(10) :i32
-        int(20) :i32
-        int(30) :i32
-    block :void
-      let __place_operand_0: usize =
-        call :usize
-          callee:
-            slot :fn(usize) -> usize
-          arg0:
-            int(1) :usize
-      assign
-        target:
-          index :i32
-            on:
-              a :i32[]
-            ix:
-              __place_operand_0 :usize
-        value:
-          add_checked :i32
-            l:
-              index :i32
-                on:
-                  a :i32[]
-                ix:
-                  __place_operand_0 :usize
-            r:
-              int(1) :i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_1: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(66) :usize
-          let __off_2: usize = int(0) :usize
-          assign
-            target:
-              __off_2 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_1 :Buffer
-                arg1:
-                  __off_2 :usize
-                arg2:
-                  "a = " :string
-          assign
-            target:
-              __off_2 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_1 :Buffer
-                arg1:
-                  __off_2 :usize
-                arg2:
-                  cast → i64
-                    index :i32
-                      on:
-                        a :i32[]
-                      ix:
-                        int(0) :i32
-          assign
-            target:
-              __off_2 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_1 :Buffer
-                arg1:
-                  __off_2 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_2 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_1 :Buffer
-                arg1:
-                  __off_2 :usize
-                arg2:
-                  cast → i64
-                    index :i32
-                      on:
-                        a :i32[]
-                      ix:
-                        int(1) :i32
-          assign
-            target:
-              __off_2 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_1 :Buffer
-                arg1:
-                  __off_2 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_2 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_1 :Buffer
-                arg1:
-                  __off_2 :usize
-                arg2:
-                  cast → i64
-                    index :i32
-                      on:
-                        a :i32[]
-                      ix:
-                        int(2) :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_1 :Buffer
-              arg1:
-                __off_2 :usize
-    let holder: Holder =
-      Holder {
-        items:
-          array :i32[]
-            int(1) :i32
-            int(2) :i32
+  snippet.slot :: fn(i: usize) -> usize {  // snippet$slot
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(26))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "index ")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(i))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      return i
+  }
+  snippet.Counter :: struct { count: i32 }  // snippet$Counter
+  snippet.Holder :: struct { items: i32[] }  // snippet$Holder
+  snippet.Row :: struct { cells: i32[] }  // snippet$Row
+  snippet.pick :: fn(c: Counter) -> Counter {  // snippet$pick
+      std.io.println<string>("pick")
+      return c
+  }
+  snippet.Cell :: struct { slots: i32[] }  // snippet$Cell
+  snippet.Cell.at :: fn(self: Cell, i: usize) -> i32 {  // snippet$Cell$Index$at
+      self.slots[i]
+  }
+  snippet.Cell.set_at :: fn(self: Cell, i: usize, v: i32) -> void {  // snippet$Cell$IndexSet$set_at
+      self.slots[i] = v
+  }
+  snippet.Shelf :: struct { items: Counter[] }  // snippet$Shelf
+  snippet.Shelf.at :: fn(self: Shelf, i: usize) -> Counter {  // snippet$Shelf$Index$at
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(23))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "at ")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(i))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      return self.items[i]
+  }
+  snippet.Two :: struct {}  // snippet$Two
+  snippet.Two.step :: fn(self: Two) -> i32 {  // snippet$Two$Stepper$step
+      2
+  }
+  snippet.Two.advance :: fn(self: Two, xs: i32[]) -> void {  // snippet$Two$Stepper$advance
+      {
+          __place_operand_0: usize = snippet.slot(usize(0))
+          xs[__place_operand_0] = xs[__place_operand_0] + snippet.Two.step(self)
       }
-    block :void
-      let __place_operand_3: usize =
-        call :usize
-          callee:
-            slot :fn(usize) -> usize
-          arg0:
-            int(0) :usize
-      assign
-        target:
-          index :i32
-            on:
-              .items :i32[]
-                holder :Holder
-            ix:
-              __place_operand_3 :usize
-        value:
-          mul_checked :i32
-            l:
-              index :i32
-                on:
-                  .items :i32[]
-                    holder :Holder
-                ix:
-                  __place_operand_3 :usize
-            r:
-              int(7) :i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_4: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(50) :usize
-          let __off_5: usize = int(0) :usize
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  "holder = " :string
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  cast → i64
-                    index :i32
-                      on:
-                        .items :i32[]
-                          holder :Holder
-                      ix:
-                        int(0) :i32
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  cast → i64
-                    index :i32
-                      on:
-                        .items :i32[]
-                          holder :Holder
-                      ix:
-                        int(1) :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_4 :Buffer
-              arg1:
-                __off_5 :usize
-    let rows: Row[] =
-      array :Row[]
-        Row {
-          cells:
-            array :i32[]
-              int(0) :i32
-              int(0) :i32
-        }
-        Row {
-          cells:
-            array :i32[]
-              int(0) :i32
-              int(0) :i32
-        }
-    block :void
-      let __place_operand_6: usize =
-        call :usize
-          callee:
-            slot :fn(usize) -> usize
-          arg0:
-            int(1) :usize
-      let __place_operand_7: usize =
-        call :usize
-          callee:
-            slot :fn(usize) -> usize
-          arg0:
-            int(0) :usize
-      assign
-        target:
-          index :i32
-            on:
-              .cells :i32[]
-                index :Row
-                  on:
-                    rows :Row[]
-                  ix:
-                    __place_operand_6 :usize
-            ix:
-              __place_operand_7 :usize
-        value:
-          add_checked :i32
-            l:
-              index :i32
-                on:
-                  .cells :i32[]
-                    index :Row
-                      on:
-                        rows :Row[]
-                      ix:
-                        __place_operand_6 :usize
-                ix:
-                  __place_operand_7 :usize
-            r:
-              int(5) :i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_8: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(27) :usize
-          let __off_9: usize = int(0) :usize
-          assign
-            target:
-              __off_9 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_8 :Buffer
-                arg1:
-                  __off_9 :usize
-                arg2:
-                  "rows = " :string
-          assign
-            target:
-              __off_9 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_8 :Buffer
-                arg1:
-                  __off_9 :usize
-                arg2:
-                  cast → i64
-                    index :i32
-                      on:
-                        .cells :i32[]
-                          index :Row
-                            on:
-                              rows :Row[]
-                            ix:
-                              int(1) :i32
-                      ix:
-                        int(0) :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_8 :Buffer
-              arg1:
-                __off_9 :usize
-    let shelf: Shelf =
-      Shelf {
-        items:
-          array :Counter[]
-            Counter {
-              count: int(1) :i32
-            }
-            Counter {
-              count: int(2) :i32
-            }
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      a: i32[] = [10, 20, 30] :i32[]
+      {
+          __place_operand_0: usize = snippet.slot(usize(1))
+          a[__place_operand_0] = a[__place_operand_0] + 1
       }
-    block :void
-      let __place_operand_10: Counter =
-        call :Counter
-          callee:
-            snippet$Shelf$Index$at :Counter
-          arg0:
-            shelf :Shelf
-          arg1:
-            call :usize
-              callee:
-                slot :fn(usize) -> usize
-              arg0:
-                int(1) :usize
-      assign
-        target:
-          .count :i32
-            __place_operand_10 :Counter
-        value:
-          add_checked :i32
-            l:
-              .count :i32
-                __place_operand_10 :Counter
-            r:
-              int(10) :i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_11: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(28) :usize
-          let __off_12: usize = int(0) :usize
-          assign
-            target:
-              __off_12 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_11 :Buffer
-                arg1:
-                  __off_12 :usize
-                arg2:
-                  "shelf = " :string
-          assign
-            target:
-              __off_12 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_11 :Buffer
-                arg1:
-                  __off_12 :usize
-                arg2:
-                  cast → i64
-                    .count :i32
-                      index :Counter
-                        on:
-                          .items :Counter[]
-                            shelf :Shelf
-                        ix:
-                          int(1) :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_11 :Buffer
-              arg1:
-                __off_12 :usize
-    let shared: Counter =
-      Counter {
-        count: int(0) :i32
+      std.io.println<string>({
+          __buf_1: Buffer = std.core.new_byte_buffer(usize(66))
+          __off_2: usize = 0
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, "a = ")
+          __off_2 = std.core.write_int(__buf_1, __off_2, i64(a[0]))
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
+          __off_2 = std.core.write_int(__buf_1, __off_2, i64(a[1]))
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
+          __off_2 = std.core.write_int(__buf_1, __off_2, i64(a[2]))
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string)
+      holder: Holder = Holder { .items = [1, 2] :i32[] }
+      {
+          __place_operand_3: usize = snippet.slot(usize(0))
+          holder.items[__place_operand_3] = holder.items[__place_operand_3] * 7
       }
-    block :void
-      let __place_operand_13: Counter =
-        call :Counter
-          callee:
-            pick :fn(Counter) -> Counter
-          arg0:
-            shared :Counter
-      assign
-        target:
-          .count :i32
-            __place_operand_13 :Counter
-        value:
-          add_checked :i32
-            l:
-              .count :i32
-                __place_operand_13 :Counter
-            r:
-              int(3) :i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_14: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(29) :usize
-          let __off_15: usize = int(0) :usize
-          assign
-            target:
-              __off_15 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_14 :Buffer
-                arg1:
-                  __off_15 :usize
-                arg2:
-                  "shared = " :string
-          assign
-            target:
-              __off_15 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_14 :Buffer
-                arg1:
-                  __off_15 :usize
-                arg2:
-                  cast → i64
-                    .count :i32
-                      shared :Counter
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_14 :Buffer
-              arg1:
-                __off_15 :usize
-    let words: string[] =
-      array :string[]
-        "a" :string
-        "b" :string
-    block :void
-      let __place_operand_16: usize =
-        call :usize
-          callee:
-            slot :fn(usize) -> usize
-          arg0:
-            int(1) :usize
-      assign
-        target:
-          index :string
-            on:
-              words :string[]
-            ix:
-              __place_operand_16 :usize
-        value:
-          call :string
-            callee:
-              concat_2 :string
-            arg0:
-              index :string
-                on:
-                  words :string[]
-                ix:
-                  __place_operand_16 :usize
-            arg1:
-              "!" :string
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            concat_4 :string
-          arg0:
-            "words = " :string
-          arg1:
-            index :string
-              on:
-                words :string[]
-              ix:
-                int(0) :i32
-          arg2:
-            " " :string
-          arg3:
-            index :string
-              on:
-                words :string[]
-              ix:
-                int(1) :i32
-    let cell: Cell =
-      Cell {
-        slots:
-          array :i32[]
-            int(1) :i32
-            int(2) :i32
-            int(3) :i32
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(usize(50))
+          __off_5: usize = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "holder = ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(holder.items[0]))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(holder.items[1]))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      rows: Row[] = [Row { .cells = [0, 0] :i32[] }, Row { .cells = [0, 0] :i32[] }] :Row[]
+      {
+          __place_operand_6: usize = snippet.slot(usize(1))
+          __place_operand_7: usize = snippet.slot(usize(0))
+          rows[__place_operand_6].cells[__place_operand_7] = rows[__place_operand_6].cells[__place_operand_7] + 5
       }
-    block :void
-      let __place_operand_17: usize =
-        call :usize
-          callee:
-            slot :fn(usize) -> usize
-          arg0:
-            int(2) :usize
-      call :void
-        callee:
-          snippet$Cell$IndexSet$set_at :void
-        arg0:
-          cell :Cell
-        arg1:
-          __place_operand_17 :usize
-        arg2:
-          sub_checked :i32
-            l:
-              call :i32
-                callee:
-                  snippet$Cell$Index$at :i32
-                arg0:
-                  cell :Cell
-                arg1:
-                  __place_operand_17 :usize
-            r:
-              int(1) :i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_18: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(27) :usize
-          let __off_19: usize = int(0) :usize
-          assign
-            target:
-              __off_19 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_18 :Buffer
-                arg1:
-                  __off_19 :usize
-                arg2:
-                  "cell = " :string
-          assign
-            target:
-              __off_19 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_18 :Buffer
-                arg1:
-                  __off_19 :usize
-                arg2:
-                  cast → i64
-                    call :i32
-                      callee:
-                        snippet$Cell$Index$at :i32
-                      arg0:
-                        cell :Cell
-                      arg1:
-                        int(2) :usize
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_18 :Buffer
-              arg1:
-                __off_19 :usize
-    call :void
-      callee:
-        snippet$bump_nth__Cell :void
-      arg0:
-        cell :Cell
-      arg1:
-        int(0) :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_20: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(30) :usize
-          let __off_21: usize = int(0) :usize
-          assign
-            target:
-              __off_21 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_20 :Buffer
-                arg1:
-                  __off_21 :usize
-                arg2:
-                  "bounded = " :string
-          assign
-            target:
-              __off_21 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_20 :Buffer
-                arg1:
-                  __off_21 :usize
-                arg2:
-                  cast → i64
-                    call :i32
-                      callee:
-                        snippet$Cell$Index$at :i32
-                      arg0:
-                        cell :Cell
-                      arg1:
-                        int(0) :usize
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_20 :Buffer
-              arg1:
-                __off_21 :usize
-    let k: ? =
-      LoweredCellNew
-    let move_k: __lambda_env_snippet_1 =
-      __lambda_env_snippet_1 {
-        cap_0: k :usize
+      std.io.println<string>({
+          __buf_8: Buffer = std.core.new_byte_buffer(usize(27))
+          __off_9: usize = 0
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, "rows = ")
+          __off_9 = std.core.write_int(__buf_8, __off_9, i64(rows[1].cells[0]))
+          std.core.finish_buffer(__buf_8, __off_9)
+      } :string)
+      shelf: Shelf = Shelf { .items = [Counter { .count = 1 }, Counter { .count = 2 }] :Counter[] }
+      {
+          __place_operand_10: Counter = snippet.Shelf.at(shelf, snippet.slot(usize(1)))
+          __place_operand_10.count = __place_operand_10.count + 10
       }
-    block :void
-      let __place_operand_23: usize =
-        LoweredCellGet
-      assign
-        target:
-          index :i32
-            on:
-              a :i32[]
-            ix:
-              __place_operand_23 :usize
-        value:
-          add_checked :i32
-            l:
-              index :i32
-                on:
-                  a :i32[]
-                ix:
-                  __place_operand_23 :usize
-            r:
-              call :i32
-                callee:
-                  __lambda_snippet_0 :fn() -> i32
-                arg0:
-                  move_k :__lambda_env_snippet_1
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_24: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(74) :usize
-          let __off_25: usize = int(0) :usize
-          assign
-            target:
-              __off_25 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_24 :Buffer
-                arg1:
-                  __off_25 :usize
-                arg2:
-                  "rebound = " :string
-          assign
-            target:
-              __off_25 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_24 :Buffer
-                arg1:
-                  __off_25 :usize
-                arg2:
-                  cast → i64
-                    index :i32
-                      on:
-                        a :i32[]
-                      ix:
-                        int(0) :i32
-          assign
-            target:
-              __off_25 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_24 :Buffer
-                arg1:
-                  __off_25 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_25 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_24 :Buffer
-                arg1:
-                  __off_25 :usize
-                arg2:
-                  cast → i64
-                    index :i32
-                      on:
-                        a :i32[]
-                      ix:
-                        int(2) :i32
-          assign
-            target:
-              __off_25 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_24 :Buffer
-                arg1:
-                  __off_25 :usize
-                arg2:
-                  " k=" :string
-          assign
-            target:
-              __off_25 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_24 :Buffer
-                arg1:
-                  __off_25 :usize
-                arg2:
-                  cast → u64
-                    LoweredCellGet
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_24 :Buffer
-              arg1:
-                __off_25 :usize
-    let two: Two =
-      Two {
+      std.io.println<string>({
+          __buf_11: Buffer = std.core.new_byte_buffer(usize(28))
+          __off_12: usize = 0
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, "shelf = ")
+          __off_12 = std.core.write_int(__buf_11, __off_12, i64(shelf.items[1].count))
+          std.core.finish_buffer(__buf_11, __off_12)
+      } :string)
+      shared: Counter = Counter { .count = 0 }
+      {
+          __place_operand_13: Counter = snippet.pick(shared)
+          __place_operand_13.count = __place_operand_13.count + 3
       }
-    call :void
-      callee:
-        snippet$Two$Stepper$advance :void
-      arg0:
-        two :Two
-      arg1:
-        a :i32[]
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_26: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(37) :usize
-          let __off_27: usize = int(0) :usize
-          assign
-            target:
-              __off_27 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_26 :Buffer
-                arg1:
-                  __off_27 :usize
-                arg2:
-                  "default method = " :string
-          assign
-            target:
-              __off_27 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_26 :Buffer
-                arg1:
-                  __off_27 :usize
-                arg2:
-                  cast → i64
-                    index :i32
-                      on:
-                        a :i32[]
-                      ix:
-                        int(0) :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_26 :Buffer
-              arg1:
-                __off_27 :usize
-    assign
-      target:
-        index :i32
-          on:
-            a :i32[]
-          ix:
-            call :usize
-              callee:
-                slot :fn(usize) -> usize
-              arg0:
-                int(2) :usize
-      value:
-        add_checked :i32
-          l:
-            index :i32
-              on:
-                a :i32[]
-              ix:
-                call :usize
-                  callee:
-                    slot :fn(usize) -> usize
-                  arg0:
-                    int(2) :usize
-          r:
-            int(1) :i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_28: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(34) :usize
-          let __off_29: usize = int(0) :usize
-          assign
-            target:
-              __off_29 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_28 :Buffer
-                arg1:
-                  __off_29 :usize
-                arg2:
-                  "written out = " :string
-          assign
-            target:
-              __off_29 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_28 :Buffer
-                arg1:
-                  __off_29 :usize
-                arg2:
-                  cast → i64
-                    index :i32
-                      on:
-                        a :i32[]
-                      ix:
-                        int(2) :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_28 :Buffer
-              arg1:
-                __off_29 :usize
-    return int(0) :i32
-  struct __lambda_env_snippet_1 { cap_0: ? }
-  fn __lambda_snippet_0(__env_22: __lambda_env_snippet_1) -> i32
-    ~>
-      int(1) :i32
-  fn snippet$bump_nth__Cell(c: Cell, i: usize) -> void
-    block :void
-      let __place_operand_0: usize =
-        call :usize
-          callee:
-            slot :fn(usize) -> usize
-          arg0:
-            i :usize
-      call :void
-        callee:
-          snippet$Cell$IndexSet$set_at :void
-        arg0:
-          c :Cell
-        arg1:
-          __place_operand_0 :usize
-        arg2:
-          add_checked :i32
-            l:
-              call :i32
-                callee:
-                  snippet$Cell$Index$at :i32
-                arg0:
-                  c :Cell
-                arg1:
-                  __place_operand_0 :usize
-            r:
-              int(100) :i32
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
-  fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let c3: usize =
-      add :usize
-        l:
-          c2 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p3 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c3 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c2 :usize
-      arg2:
-        p3 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c3 :usize
-  vtable snippet$Stepper.advance for Two  snippet$Two$Stepper$advance
-  vtable snippet$Stepper.step for Two  snippet$Two$Stepper$step
-  vtable std_core$Index.at for Cell  snippet$Cell$Index$at
-  vtable std_core$Index.at for Shelf  snippet$Shelf$Index$at
-  vtable std_core$IndexSet.set_at for Cell  snippet$Cell$IndexSet$set_at
+      std.io.println<string>({
+          __buf_14: Buffer = std.core.new_byte_buffer(usize(29))
+          __off_15: usize = 0
+          __off_15 = std.core.write_string_at(__buf_14, __off_15, "shared = ")
+          __off_15 = std.core.write_int(__buf_14, __off_15, i64(shared.count))
+          std.core.finish_buffer(__buf_14, __off_15)
+      } :string)
+      words: string[] = ["a", "b"] :string[]
+      {
+          __place_operand_16: usize = snippet.slot(usize(1))
+          words[__place_operand_16] = concat_2(words[__place_operand_16], "!")
+      }
+      std.io.println<string>(concat_4("words = ", words[0], " ", words[1]))
+      cell: Cell = Cell { .slots = [1, 2, 3] :i32[] }
+      {
+          __place_operand_17: usize = snippet.slot(usize(2))
+          snippet.Cell.set_at(cell, __place_operand_17, snippet.Cell.at(cell, __place_operand_17) - 1)
+      }
+      std.io.println<string>({
+          __buf_18: Buffer = std.core.new_byte_buffer(usize(27))
+          __off_19: usize = 0
+          __off_19 = std.core.write_string_at(__buf_18, __off_19, "cell = ")
+          __off_19 = std.core.write_int(__buf_18, __off_19, i64(snippet.Cell.at(cell, usize(2))))
+          std.core.finish_buffer(__buf_18, __off_19)
+      } :string)
+      snippet.bump_nth<Cell>(cell, usize(0))
+      std.io.println<string>({
+          __buf_20: Buffer = std.core.new_byte_buffer(usize(30))
+          __off_21: usize = 0
+          __off_21 = std.core.write_string_at(__buf_20, __off_21, "bounded = ")
+          __off_21 = std.core.write_int(__buf_20, __off_21, i64(snippet.Cell.at(cell, usize(0))))
+          std.core.finish_buffer(__buf_20, __off_21)
+      } :string)
+      k: @cell<usize> = @cell_new(usize(0))
+      move_k: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = k }
+      {
+          __place_operand_23: usize = @cell(k)
+          a[__place_operand_23] = a[__place_operand_23] + __lambda_snippet_0(move_k)
+      }
+      std.io.println<string>({
+          __buf_24: Buffer = std.core.new_byte_buffer(usize(74))
+          __off_25: usize = 0
+          __off_25 = std.core.write_string_at(__buf_24, __off_25, "rebound = ")
+          __off_25 = std.core.write_int(__buf_24, __off_25, i64(a[0]))
+          __off_25 = std.core.write_string_at(__buf_24, __off_25, " ")
+          __off_25 = std.core.write_int(__buf_24, __off_25, i64(a[2]))
+          __off_25 = std.core.write_string_at(__buf_24, __off_25, " k=")
+          __off_25 = std.core.write_unsigned(__buf_24, __off_25, u64(@cell(k)))
+          std.core.finish_buffer(__buf_24, __off_25)
+      } :string)
+      two: Two = Two {}
+      snippet.Two.advance(two, a)
+      std.io.println<string>({
+          __buf_26: Buffer = std.core.new_byte_buffer(usize(37))
+          __off_27: usize = 0
+          __off_27 = std.core.write_string_at(__buf_26, __off_27, "default method = ")
+          __off_27 = std.core.write_int(__buf_26, __off_27, i64(a[0]))
+          std.core.finish_buffer(__buf_26, __off_27)
+      } :string)
+      a[snippet.slot(usize(2))] = a[snippet.slot(usize(2))] + 1
+      std.io.println<string>({
+          __buf_28: Buffer = std.core.new_byte_buffer(usize(34))
+          __off_29: usize = 0
+          __off_29 = std.core.write_string_at(__buf_28, __off_29, "written out = ")
+          __off_29 = std.core.write_int(__buf_28, __off_29, i64(a[2]))
+          std.core.finish_buffer(__buf_28, __off_29)
+      } :string)
+      return 0
+  }
+  __lambda_env_snippet_1 :: struct { cap_0: ? }
+  __lambda_snippet_0 :: fn(__env_22: __lambda_env_snippet_1) -> i32 {
+      @cell(__env_22.cap_0) = usize(2)
+      1
+  }
+  snippet.bump_nth<Cell> :: fn(c: Cell, i: usize) -> void {  // snippet$bump_nth__Cell
+      {
+          __place_operand_0: usize = snippet.slot(i)
+          snippet.Cell.set_at(c, __place_operand_0, snippet.Cell.at(c, __place_operand_0) + 100)
+      }
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_4 :: fn(p0: string, p1: string, p2: string, p3: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      c3: usize = c2 +% std.core.byte_len(p3)
+      buf: Buffer = std.core.usize.new_buffer(c3)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.intern_string(buf, c3)
+  }
+  vtable snippet.Stepper.advance for Two  snippet.Two.advance  // snippet$Two$Stepper$advance
+  vtable snippet.Stepper.step for Two  snippet.Two.step  // snippet$Two$Stepper$step
+  vtable std.core.Index.at for Cell  snippet.Cell.at  // snippet$Cell$Index$at
+  vtable std.core.Index.at for Shelf  snippet.Shelf.at  // snippet$Shelf$Index$at
+  vtable std.core.IndexSet.set_at for Cell  snippet.Cell.set_at  // snippet$Cell$IndexSet$set_at
 
 ## lowered in dependencies
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$finish_buffer
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$new_byte_buffer
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

@@ -1,64 +1,35 @@
 # Lower
 
 ## snippet
-  fn snippet$main() -> i32
-    let a: Instant =
-      call :Instant
-        callee:
-          make_instant :fn(i64) -> Instant
-        arg0:
-          int(100) :i64
-    let b: Instant =
-      cast → Instant
-        int(250) :i64
-    return
-      cast → i32
-        call :i64
-          callee:
-            elapsed :fn(Instant, Instant) -> i64
-          arg0:
-            a :Instant
-          arg1:
-            b :Instant
+  snippet.main :: fn() -> i32 {  // snippet$main
+      a: Instant = snippet.units.make_instant(i64(100))
+      b: Instant = Instant(i64(250))
+      return i32(snippet.units.elapsed(a, b))
+  }
 
 ## snippet/units
-  fn snippet_units$make_instant(ns: i64) -> Instant
-    ~>
-      cast → Instant
-        ns :i64
-  fn snippet_units$elapsed(start: Instant, end: Instant) -> i64
-    ~>
-      cast → i64
-        call :Duration
-          callee:
-            snippet_units$Instant$Sub$sub :Duration
-          arg0:
-            end :Instant
-          arg1:
-            start :Instant
-  fn snippet_units$Instant$Sub$sub(self: Instant, other: Instant) -> Duration
-    ~>
-      cast → Duration
-        sub_checked :i64
-          l:
-            cast → i64
-              self :Instant
-          r:
-            cast → i64
-              other :Instant
-  vtable std_core$Sub.sub for Instant  snippet_units$Instant$Sub$sub
+  snippet.units.make_instant :: fn(ns: i64) -> Instant {  // snippet_units$make_instant
+      Instant(ns)
+  }
+  snippet.units.elapsed :: fn(start: Instant, end: Instant) -> i64 {  // snippet_units$elapsed
+      i64(snippet.units.Instant.sub(end, start))
+  }
+  snippet.units.Instant.sub :: fn(self: Instant, other: Instant) -> Duration {  // snippet_units$Instant$Sub$sub
+      Duration(i64(self) - i64(other))
+  }
+  vtable std.core.Sub.sub for Instant  snippet.units.Instant.sub  // snippet_units$Instant$Sub$sub
 
 ## lowered in dependencies
   std/core
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize

@@ -1,133 +1,64 @@
 # Lower
 
 ## snippet
-  struct snippet$Hello {  }
-  fn snippet$Hello$Greeter$greet(self: Hello) -> i32
-    return int(100) :i32
-  fn snippet$i32$Doubler$doubled(self: i32) -> i32
-    return
-      add_checked :i32
-        l:
-          self :i32
-        r:
-          self :i32
-  fn snippet$main() -> i32
-    let a: i32 =
-      call :i32
-        callee:
-          snippet$count__i32 :i32
-        arg0:
-          Range<i32> {
-            start: int(0) :i32
-            end: int(5) :i32
-            inclusive: false
-            done: false
-            cursor: int(0) :i32
+  snippet.Hello :: struct {}  // snippet$Hello
+  snippet.Hello.greet :: fn(self: Hello) -> i32 {  // snippet$Hello$Greeter$greet
+      return 100
+  }
+  snippet.i32.doubled :: fn(self: i32) -> i32 {  // snippet$i32$Doubler$doubled
+      return self + self
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      a: i32 = snippet.count<i32>(Range<i32> {
+          .start = 0,
+          .end = 5,
+          .inclusive = false,
+          .done = false,
+          .cursor = 0,
+      })
+      b: i32 = snippet.count<i32>(std.core.i32[].into([10, 20, 30] :i32[]))
+      c: i32 = snippet.invoke<i32>(Hello {})
+      d: i32 = snippet.twice<i32>(Doubler<i32>(7))
+      return ((a + b) + c) + d
+  }
+  snippet.count<i32> :: fn(it: Iterator<i32>) -> i32 {  // snippet$count__i32
+      n: i32 = 0
+      cont: bool = true
+      for cont {
+          __tup_0: [i32, Continuation] = @vcall(std.core.Iterator.next, it)
+          c: Continuation = __tup_0._1
+          if c == u8(1) {
+              cont = false
+          } else {
+              n = n + 1
           }
-    let b: i32 =
-      call :i32
-        callee:
-          snippet$count__i32 :i32
-        arg0:
-          call :Iterator<T>
-            callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
-            arg0:
-              array :i32[]
-                int(10) :i32
-                int(20) :i32
-                int(30) :i32
-    let c: i32 =
-      call :i32
-        callee:
-          snippet$invoke__i32 :i32
-        arg0:
-          Hello {
-          }
-    let d: i32 =
-      call :i32
-        callee:
-          snippet$twice__i32 :i32
-        arg0:
-          int(7) :Doubler<i32>
-    return
-      add_checked :i32
-        l:
-          add_checked :i32
-            l:
-              add_checked :i32
-                l:
-                  a :i32
-                r:
-                  b :i32
-            r:
-              c :i32
-        r:
-          d :i32
-  fn snippet$count__i32(it: Iterator<i32>) -> i32
-    let n: i32 = int(0) :i32
-    let cont: bool = true
-    loop while (cont :bool)
-      let __tup_0: [i32, Continuation] =
-        vcall std_core$Iterator.next :[i32, Continuation]
-          recv:
-            it :Iterator<i32>
-      let c: Continuation =
-        ._1 :Continuation
-          __tup_0 :[i32, Continuation]
-      ~>
-        if :void
-          cond:
-            eq :bool
-              l:
-                c :Continuation
-              r:
-                int(1) :u8
-          then:
-            assign
-              target:
-                cont :bool
-              value:
-                false
-          else:
-            assign
-              target:
-                n :i32
-              value:
-                add_checked :i32
-                  l:
-                    n :i32
-                  r:
-                    int(1) :i32
-    return n :i32
-  fn snippet$invoke__i32(g: Greeter<i32>) -> i32
-    return
-      vcall snippet$Greeter.greet :i32
-        recv:
-          g :Greeter<i32>
-  fn snippet$twice__i32(x: Doubler<i32>) -> i32
-    return
-      vcall snippet$Doubler.doubled :i32
-        recv:
-          x :Doubler<i32>
-  vtable snippet$Doubler.doubled for i32  snippet$i32$Doubler$doubled
-  vtable snippet$Greeter.greet for Hello  snippet$Hello$Greeter$greet
+      }
+      return n
+  }
+  snippet.invoke<i32> :: fn(g: Greeter<i32>) -> i32 {  // snippet$invoke__i32
+      return @vcall(snippet.Greeter.greet, g)
+  }
+  snippet.twice<i32> :: fn(x: Doubler<i32>) -> i32 {  // snippet$twice__i32
+      return @vcall(snippet.Doubler.doubled, x)
+  }
+  vtable snippet.Doubler.doubled for i32  snippet.i32.doubled  // snippet$i32$Doubler$doubled
+  vtable snippet.Greeter.greet for Hello  snippet.Hello.greet  // snippet$Hello$Greeter$greet
 
 ## lowered in dependencies
   std/core
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$[]$Into$into__i32
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.array_iter<i32>  // std_core$array_iter__i32
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i32[].into  // std_core$[]$Into$into__i32
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.step  // std_core$usize$Step$step
     fn std_core$__gen_state_std_core_0$Iterator$next
-    fn std_core$array_iter__i32
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
     struct std_core$__gen_state_std_core_0

@@ -1,44 +1,29 @@
 # Lower
 
 ## snippet
-  fn snippet$main() -> i32
-    if :void
-      cond:
-        call :bool
-          callee:
-            snippet$needs_hash__string :bool
-          arg0:
-            "foo" :string
-      then:
-        return int(0) :i32
-    return int(1) :i32
-  fn snippet$needs_hash__string(x: string) -> bool
-    let h: u64 =
-      call :u64
-        callee:
-          std_core$string$Hash$hash :u64
-        arg0:
-          x :string
-    return
-      gt :bool
-        l:
-          h :u64
-        r:
-          cast → u64
-            int(0) :u64
+  snippet.main :: fn() -> i32 {  // snippet$main
+      if snippet.needs_hash<string>("foo") {
+          return 0
+      }
+      return 1
+  }
+  snippet.needs_hash<string> :: fn(x: string) -> bool {  // snippet$needs_hash__string
+      h: u64 = std.core.string.hash(x)
+      return h > u64(0)
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$string$Hash$hash
-    fn std_core$three_way
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize

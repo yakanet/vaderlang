@@ -189,30 +189,9 @@ site_label :: fn(ctx: RangeContext, site: SiteInstruction) -> string = match sit
 }
 
 binop_label :: fn(ctx: RangeContext, ins: InstrBinOp) -> string =
-    "${local_name(ctx, ins.lhs)} ${operator_symbol(ins.op)} ${local_name(ctx, ins.rhs)}"
+    "${local_name(ctx, ins.lhs)} ${binary_op_symbol(ins.op)} ${local_name(ctx, ins.rhs)}"
 
 local_name :: fn(ctx: RangeContext, local: LocalId) -> string = ctx.locals[i32(local)].name
-
-operator_symbol :: fn(op: LoweredBinaryOp) -> string = match op {
-    .Add | .AddChecked -> "+"
-    .Sub | .SubChecked -> "-"
-    .Mul | .MulChecked -> "*"
-    .Div               -> "/"
-    .Mod               -> "%"
-    .Shl               -> "<<"
-    .Shr               -> ">>"
-    .BitAnd            -> "&"
-    .BitOr             -> "|"
-    .BitXor            -> "^"
-    .And               -> "&&"
-    .Or                -> "||"
-    .Eq                -> "=="
-    .Neq               -> "!="
-    .Lt                -> "<"
-    .Lte               -> "<="
-    .Gt                -> ">"
-    .Gte               -> ">="
-}
 
 // The verdict on `site` from `s`, what holds just before it.
 verdict_at :: fn(

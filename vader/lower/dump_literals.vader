@@ -1,0 +1,133 @@
+// vader/lower/dump_literals — the literals of a lowered body, as Vader writes them.
+//
+// A literal of the type a bare one takes in the source (`i32`, `f64`, `char`,
+// `string`, `bool`) prints bare, and so does one written into a slot of its own
+// type ; any other prints as the conversion that names its type, `usize(27)`.
+// A string escapes its `$`, which would open an interpolation.
+
+module "vader/lower"
+
+import "std/numbers"
+import "std/string"
+import "std/string_builder"
+import "vader/typecheck"
+import "vader/types"
+
+// A value written into a slot of its own type : a literal prints bare, and a
+// value joining branches drops the type the slot already gives.
+slot_value_text :: fn(names: DumpNames, value: LoweredExpr, slot: Type, indent: string) -> string {
+    if slot is UnresolvedType || !equals_type(type_of(value), slot) {
+        return expr_text(names, value, indent)
+    }
+    if value is LoweredIf {
+        return if_text(names, value, indent, !is_void(value.type))
+    }
+    if value is LoweredBlock {
+        return braced_text(names, value, indent)
+    }
+    return bare_literal_text(value) ?? expr_text(names, value, indent)
+}
+
+// @partial: only the numeric and char literals have a bare spelling to give.
+bare_literal_text :: fn(value: LoweredExpr) -> string | null = @partial match value {
+    is LoweredIntLit   -> format_int_value(value.value, value.type)
+    is LoweredFloatLit -> "${value.value}"
+    is LoweredCharLit  -> "'${char_body(value.value)}'"
+    _                  -> null
+}
+
+// `bare` as a literal of type `t`, where a bare literal takes `bare_type`.
+literal_text :: fn(bare: string, t: Type, bare_type: string) -> string {
+    if t is UnresolvedType || (t is PrimitiveType && t.name == bare_type) {
+        return bare
+    }
+    return "${conversion_name(t)}(${bare})"
+}
+
+// Two entries stay on one line, more take one line each, as the source does.
+struct_lit_text :: fn(names: DumpNames, e: LoweredStructLit, indent: string) -> string {
+    inner :: "${indent}${INDENT_STEP}"
+    if e.type is TupleType {
+        elements: LoweredExpr[]: []
+        for field in e.fields {
+            elements.push(field.value)
+        }
+        return typed_value("[${list_text(names, elements, indent)}]", e.type)
+    }
+    fields: string[]: []
+    for field in e.fields {
+        fields.push(".${field.name} = ${expr_text(names, field.value, inner)}")
+    }
+    name :: display_type(e.type)
+    if fields.len() == 0 {
+        return "${name} {}"
+    }
+    if fields.len() <= 2 {
+        one_line :: fields.join(", ")
+        if !one_line.contains("\n") {
+            return "${name} { ${one_line} }"
+        }
+    }
+    return "${name} {\n${inner}${fields.join(",\n${inner}")},\n${indent}}"
+}
+
+char_body :: fn(code: u32) -> string {
+    if code == 0x27 { return "\\'" }
+    if code == 0x5C { return "\\\\" }
+    if code >= 0x20 && code < 0x7F {
+        return "${char(code)}"
+    }
+    return escaped(code)
+}
+
+vader_string :: fn(s: string) -> string {
+    sb :: StringBuilder {}
+    sb.append_char('"')
+    for c in s {
+        escape :: string_escape(c)
+        if escape == null {
+            sb.append_char(c)
+        } else {
+            sb.append(escape)
+        }
+    }
+    sb.append_char('"')
+    return sb.to_string()
+}
+
+// A `$` would open an interpolation, so it is escaped like `"`, `\` and the
+// control characters.
+string_escape :: fn(c: char) -> string | null {
+    code :: u32(c)
+    if code == 0x22 { return "\\\"" }
+    if code == 0x24 { return "\\\$" }
+    if code == 0x5C { return "\\\\" }
+    if code < 0x20 || code == 0x7F {
+        return escaped(code)
+    }
+    return null
+}
+
+escaped :: fn(code: u32) -> string {
+    if code == 0x0A { return "\\n" }
+    if code == 0x09 { return "\\t" }
+    if code == 0x0D { return "\\r" }
+    if code == 0    { return "\\0" }
+    return "\\u{${to_hex(u64(code))}}"
+}
+
+/// Print `value` as a decimal string ; for `u32` / `u64` / `usize` types
+/// reinterpret the i64 storage as the matching unsigned width so the
+/// snapshot keeps `18446744073700000000` rather than the sign-flipped
+/// `-9551616`.
+format_int_value :: fn(value: i64, t: Type) -> string {
+    if value < 0 && t is PrimitiveType {
+        if t.name == "u64" || t.name == "usize" {
+            return "${u64(value)}"
+        }
+        if t.name == "u32" {
+            return "${u32(value)}"
+        }
+    }
+    return "${value}"
+}

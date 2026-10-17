@@ -4,473 +4,140 @@
   storage
     global #0 i32  seen.state
     global #1 string[]  seen.instance
-  fn snippet$seen() -> string[]
-    if :void
-      cond:
-        eq :bool
-          l:
-            global_get #0 :i32
-          r:
-            int(2) :i32
-      then:
-        return
-          global_get #1 :string[]
-    if :void
-      cond:
-        eq :bool
-          l:
-            global_get #0 :i32
-          r:
-            int(1) :i32
-      then:
-        unreachable("singleton `seen` called while it initialises") :void
-    global_set #0
-      int(1) :i32
-    global_set #1
-      call :string[]
-        callee:
-          snippet$seen$singleton :string[]
-    global_set #0
-      int(2) :i32
-    return
-      global_get #1 :string[]
-  fn snippet$main() -> i32
-    let local: i32[] =
-      @array.repeat :i32[]
-        array :i32[]
-        int(200) :usize
-    block :void
-      let i: i32 = int(0) :i32
-      loop while (<…>)
-        LoweredArrayPush
-        ~>
-          if :void
-            cond:
-              gt :bool
-                l:
-                  LoweredArrayLen
-                r:
-                  int(4) :usize
-            then:
-              @array.clear :void
-                local :i32[]
-      step
-        assign
-          target:
-            i :i32
-          value:
-            add :i32
-              l:
-                i :i32
-              r:
-                int(1) :i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_0: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(26) :usize
-          let __off_1: usize = int(0) :usize
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  "local=" :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  cast → u64
-                    LoweredArrayLen
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-    block :void
-      let i: i32 = int(0) :i32
-      loop while (<…>)
-        LoweredArrayPush
-        ~>
-          if :void
-            cond:
-              gt :bool
-                l:
-                  LoweredArrayLen
-                r:
-                  int(128) :usize
-            then:
-              @array.clear :void
-                call :string[]
-                  callee:
-                    seen :fn() -> string[]
-      step
-        assign
-          target:
-            i :i32
-          value:
-            add :i32
-              l:
-                i :i32
-              r:
-                int(1) :i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_4: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(27) :usize
-          let __off_5: usize = int(0) :usize
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  "module=" :string
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  cast → u64
-                    LoweredArrayLen
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_4 :Buffer
-              arg1:
-                __off_5 :usize
-    LoweredArrayPush
-    LoweredArrayPush
-    let popped: null | string =
-      @array.remove_last :null | string
-        call :string[]
-          callee:
-            seen :fn() -> string[]
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __p_7: string =
-            block :string
-              let __coalesce_6: null | string = popped :null | string
-              ~>
-                if :string
-                  cond:
-                    is null :bool
-                      __coalesce_6 :null | string
-                  then:
-                    ~>
-                      "<null>" :string
-                  else:
-                    ~>
-                      cast → string
-                        __coalesce_6 :null | string
-          let __buf_8: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                add :usize
-                  l:
-                    int(33) :usize
-                  r:
-                    call :usize
-                      callee:
-                        byte_len :usize
-                      arg0:
-                        __p_7 :string
-          let __off_9: usize = int(0) :usize
-          assign
-            target:
-              __off_9 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_8 :Buffer
-                arg1:
-                  __off_9 :usize
-                arg2:
-                  "popped=" :string
-          assign
-            target:
-              __off_9 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_8 :Buffer
-                arg1:
-                  __off_9 :usize
-                arg2:
-                  __p_7 :string
-          assign
-            target:
-              __off_9 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_8 :Buffer
-                arg1:
-                  __off_9 :usize
-                arg2:
-                  " left=" :string
-          assign
-            target:
-              __off_9 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_8 :Buffer
-                arg1:
-                  __off_9 :usize
-                arg2:
-                  cast → u64
-                    LoweredArrayLen
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_8 :Buffer
-              arg1:
-                __off_9 :usize
-    let src: i32[] =
-      array :i32[]
-        int(1) :i32
-        int(2) :i32
-        int(3) :i32
-        int(4) :i32
-        int(5) :i32
-    let view: i32[] =
-      slice :i32[]
-        on:
-          src :i32[]
-        lo:
-          cast → usize
-            int(1) :i32
-        hi:
-          cast → usize
-            int(3) :i32
-    @array.clear :void
-      src :i32[]
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_10: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(50) :usize
-          let __off_11: usize = int(0) :usize
-          assign
-            target:
-              __off_11 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_10 :Buffer
-                arg1:
-                  __off_11 :usize
-                arg2:
-                  "view=" :string
-          assign
-            target:
-              __off_11 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_10 :Buffer
-                arg1:
-                  __off_11 :usize
-                arg2:
-                  cast → u64
-                    LoweredArrayLen
-          assign
-            target:
-              __off_11 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_10 :Buffer
-                arg1:
-                  __off_11 :usize
-                arg2:
-                  " src=" :string
-          assign
-            target:
-              __off_11 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_10 :Buffer
-                arg1:
-                  __off_11 :usize
-                arg2:
-                  cast → u64
-                    LoweredArrayLen
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_10 :Buffer
-              arg1:
-                __off_11 :usize
-    return int(0) :i32
-  fn snippet$seen$singleton() -> string[]
-    ~>
-      array :string[]
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
+  snippet.seen :: fn() -> string[] {  // snippet$seen
+      if @global(0) == 2 {
+          return @global(1)
+      }
+      if @global(0) == 1 {
+          @unreachable("singleton `seen` called while it initialises")
+      }
+      @global(0) = 1
+      @global(1) = snippet$seen$singleton()
+      @global(0) = 2
+      return @global(1)
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      local: i32[] = @array.repeat([] :i32[], usize(200))
+      {
+          i: i32 = 0
+          for i < 200 {
+              @array.push(local, i)
+              if @array.len(local) > usize(4) {
+                  @array.clear(local)
+              }
+          } @step {
+              i = i +% 1
+          }
+      }
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(26))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "local=")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(@array.len(local)))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      {
+          i: i32 = 0
+          for i < 5000 {
+              @array.push(snippet.seen(), {
+                  __buf_2: Buffer = std.core.new_byte_buffer(usize(25))
+                  __off_3: usize = 0
+                  __off_3 = std.core.write_string_at(__buf_2, __off_3, "step ")
+                  __off_3 = std.core.write_int(__buf_2, __off_3, i64(i))
+                  std.core.finish_buffer(__buf_2, __off_3)
+              } :string)
+              if @array.len(snippet.seen()) > usize(128) {
+                  @array.clear(snippet.seen())
+              }
+          } @step {
+              i = i +% 1
+          }
+      }
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(usize(27))
+          __off_5: usize = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "module=")
+          __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64(@array.len(snippet.seen())))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      @array.push(snippet.seen(), "x")
+      @array.push(snippet.seen(), "y")
+      popped: null | string = @array.remove_last(snippet.seen())
+      std.io.println<string>({
+          __p_7: string = {
+              __coalesce_6: null | string = popped
+              if __coalesce_6 is null { "<null>" } else { string(__coalesce_6) } :string
+          }
+          __buf_8: Buffer = std.core.new_byte_buffer(usize(33) +% std.core.byte_len(__p_7))
+          __off_9: usize = 0
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, "popped=")
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_7)
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " left=")
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(@array.len(snippet.seen())))
+          std.core.finish_buffer(__buf_8, __off_9)
+      } :string)
+      src: i32[] = [1, 2, 3, 4, 5] :i32[]
+      view: i32[] = src[usize(1)..<usize(3)]
+      @array.clear(src)
+      std.io.println<string>({
+          __buf_10: Buffer = std.core.new_byte_buffer(usize(50))
+          __off_11: usize = 0
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, "view=")
+          __off_11 = std.core.write_unsigned(__buf_10, __off_11, u64(@array.len(view)))
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, " src=")
+          __off_11 = std.core.write_unsigned(__buf_10, __off_11, u64(@array.len(src)))
+          std.core.finish_buffer(__buf_10, __off_11)
+      } :string)
+      return 0
+  }
+  snippet$seen$singleton :: fn() -> string[] {
+      [] :string[]
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$finish_buffer
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$new_byte_buffer
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

@@ -1,101 +1,47 @@
 # Lower
 
 ## snippet
-  fn snippet$Instant$Sub$sub(self: Instant, other: Instant) -> Duration
-    ~>
-      cast → Duration
-        sub_checked :i64
-          l:
-            cast → i64
-              self :Instant
-          r:
-            cast → i64
-              other :Instant
-  fn snippet$Duration$Add$add(self: Duration, other: Duration) -> Duration
-    ~>
-      cast → Duration
-        add_checked :i64
-          l:
-            cast → i64
-              self :Duration
-          r:
-            cast → i64
-              other :Duration
-  fn snippet$Instant$Comparable$compare(self: Instant, other: Instant) -> i32
-    let a: i64 =
-      cast → i64
-        self :Instant
-    let b: i64 =
-      cast → i64
-        other :Instant
-    if :void
-      cond:
-        lt :bool
-          l:
-            a :i64
-          r:
-            b :i64
-      then:
-        return int(-1) :i32
-    if :void
-      cond:
-        gt :bool
-          l:
-            a :i64
-          r:
-            b :i64
-      then:
-        return int(1) :i32
-    return int(0) :i32
-  fn snippet$main() -> i32
-    let t0: Instant =
-      cast → Instant
-        int(100) :i64
-    let t1: Instant =
-      cast → Instant
-        int(250) :i64
-    let d: Duration =
-      call :Duration
-        callee:
-          snippet$Instant$Sub$sub :Duration
-        arg0:
-          t1 :Instant
-        arg1:
-          t0 :Instant
-    if :void
-      cond:
-        lt :bool
-          l:
-            call :i32
-              callee:
-                snippet$Instant$Comparable$compare :i32
-              arg0:
-                t0 :Instant
-              arg1:
-                t1 :Instant
-          r:
-            int(0) :i32
-      then:
-        return
-          cast → i32
-            cast → i64
-              d :Duration
-    return int(-1) :i32
-  vtable std_core$Add.add for Duration  snippet$Duration$Add$add
-  vtable std_core$Comparable.compare for Instant  snippet$Instant$Comparable$compare
-  vtable std_core$Sub.sub for Instant  snippet$Instant$Sub$sub
+  snippet.Instant.sub :: fn(self: Instant, other: Instant) -> Duration {  // snippet$Instant$Sub$sub
+      Duration(i64(self) - i64(other))
+  }
+  snippet.Duration.add :: fn(self: Duration, other: Duration) -> Duration {  // snippet$Duration$Add$add
+      Duration(i64(self) + i64(other))
+  }
+  snippet.Instant.compare :: fn(self: Instant, other: Instant) -> i32 {  // snippet$Instant$Comparable$compare
+      a: i64 = i64(self)
+      b: i64 = i64(other)
+      if a < b {
+          return -1
+      }
+      if a > b {
+          return 1
+      }
+      return 0
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      t0: Instant = Instant(i64(100))
+      t1: Instant = Instant(i64(250))
+      d: Duration = snippet.Instant.sub(t1, t0)
+      if snippet.Instant.compare(t0, t1) < 0 {
+          return i32(i64(d))
+      }
+      return -1
+  }
+  vtable std.core.Add.add for Duration  snippet.Duration.add  // snippet$Duration$Add$add
+  vtable std.core.Comparable.compare for Instant  snippet.Instant.compare  // snippet$Instant$Comparable$compare
+  vtable std.core.Sub.sub for Instant  snippet.Instant.sub  // snippet$Instant$Sub$sub
 
 ## lowered in dependencies
   std/core
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize

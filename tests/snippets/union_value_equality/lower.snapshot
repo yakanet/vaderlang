@@ -1,1483 +1,224 @@
 # Lower
 
 ## snippet
-  struct snippet$Point { x: i32 }
-  fn snippet$Point$Equals$equals(self: Point, other: Point) -> bool
-    ~>
-      eq :bool
-        l:
-          .x :i32
-            self :Point
-        r:
-          .x :i32
-            other :Point
-  struct snippet$Label { text: string }
-  fn snippet$Label$Equals$equals(self: Label, other: Label) -> bool
-    ~>
-      eq :bool
-        l:
-          .text :string
-            self :Label
-        r:
-          .text :string
-            other :Label
-  fn snippet$Pair$Equals$equals(self: Pair, other: Pair) -> bool
-    ~>
-      eq :bool
-        l:
-          ._0 :i32
-            self :Pair
-        r:
-          ._0 :i32
-            other :Pair
-  fn snippet$main() -> i32
-    let p: Point =
-      Point {
-        x: int(1) :i32
-      }
-    let q: Point =
-      Point {
-        x: int(1) :i32
-      }
-    let r: Point =
-      Point {
-        x: int(2) :i32
-      }
-    let s1: Label | Point = p :Point
-    let s2: Label | Point = q :Point
-    let s3: Label | Point = r :Point
-    let s4: Label | Point =
-      Label {
-        text: "a" :string
-      }
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_0: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(23) :usize
-          let __off_1: usize = int(0) :usize
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  or :bool
-                    l:
-                      and :bool
-                        l:
-                          and :bool
-                            l:
-                              is Label :bool
-                                s1 :Label | Point
-                            r:
-                              is Label :bool
-                                s2 :Label | Point
-                        r:
-                          call :bool
-                            callee:
-                              snippet$Label$Equals$equals :bool
-                            arg0:
-                              cast → Label
-                                s1 :Label | Point
-                            arg1:
-                              cast → Label
-                                s2 :Label | Point
-                    r:
-                      and :bool
-                        l:
-                          and :bool
-                            l:
-                              is Point :bool
-                                s1 :Label | Point
-                            r:
-                              is Point :bool
-                                s2 :Label | Point
-                        r:
-                          call :bool
-                            callee:
-                              snippet$Point$Equals$equals :bool
-                            arg0:
-                              cast → Point
-                                s1 :Label | Point
-                            arg1:
-                              cast → Point
-                                s2 :Label | Point
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  or :bool
-                    l:
-                      and :bool
-                        l:
-                          and :bool
-                            l:
-                              is Label :bool
-                                s1 :Label | Point
-                            r:
-                              is Label :bool
-                                s3 :Label | Point
-                        r:
-                          call :bool
-                            callee:
-                              snippet$Label$Equals$equals :bool
-                            arg0:
-                              cast → Label
-                                s1 :Label | Point
-                            arg1:
-                              cast → Label
-                                s3 :Label | Point
-                    r:
-                      and :bool
-                        l:
-                          and :bool
-                            l:
-                              is Point :bool
-                                s1 :Label | Point
-                            r:
-                              is Point :bool
-                                s3 :Label | Point
-                        r:
-                          call :bool
-                            callee:
-                              snippet$Point$Equals$equals :bool
-                            arg0:
-                              cast → Point
-                                s1 :Label | Point
-                            arg1:
-                              cast → Point
-                                s3 :Label | Point
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  or :bool
-                    l:
-                      and :bool
-                        l:
-                          and :bool
-                            l:
-                              is Label :bool
-                                s1 :Label | Point
-                            r:
-                              is Label :bool
-                                s4 :Label | Point
-                        r:
-                          call :bool
-                            callee:
-                              snippet$Label$Equals$equals :bool
-                            arg0:
-                              cast → Label
-                                s1 :Label | Point
-                            arg1:
-                              cast → Label
-                                s4 :Label | Point
-                    r:
-                      and :bool
-                        l:
-                          and :bool
-                            l:
-                              is Point :bool
-                                s1 :Label | Point
-                            r:
-                              is Point :bool
-                                s4 :Label | Point
-                        r:
-                          call :bool
-                            callee:
-                              snippet$Point$Equals$equals :bool
-                            arg0:
-                              cast → Point
-                                s1 :Label | Point
-                            arg1:
-                              cast → Point
-                                s4 :Label | Point
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  not :bool
-                    or :bool
-                      l:
-                        and :bool
-                          l:
-                            and :bool
-                              l:
-                                is Label :bool
-                                  s1 :Label | Point
-                              r:
-                                is Label :bool
-                                  s3 :Label | Point
-                          r:
-                            call :bool
-                              callee:
-                                snippet$Label$Equals$equals :bool
-                              arg0:
-                                cast → Label
-                                  s1 :Label | Point
-                              arg1:
-                                cast → Label
-                                  s3 :Label | Point
-                      r:
-                        and :bool
-                          l:
-                            and :bool
-                              l:
-                                is Point :bool
-                                  s1 :Label | Point
-                              r:
-                                is Point :bool
-                                  s3 :Label | Point
-                          r:
-                            call :bool
-                              callee:
-                                snippet$Point$Equals$equals :bool
-                              arg0:
-                                cast → Point
-                                  s1 :Label | Point
-                              arg1:
-                                cast → Point
-                                  s3 :Label | Point
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_2: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(17) :usize
-          let __off_3: usize = int(0) :usize
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  and :bool
-                    l:
-                      is Point :bool
-                        s1 :Label | Point
-                    r:
-                      call :bool
-                        callee:
-                          snippet$Point$Equals$equals :bool
-                        arg0:
-                          cast → Point
-                            s1 :Label | Point
-                        arg1:
-                          q :Point
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  and :bool
-                    l:
-                      is Point :bool
-                        s1 :Label | Point
-                    r:
-                      call :bool
-                        callee:
-                          snippet$Point$Equals$equals :bool
-                        arg0:
-                          q :Point
-                        arg1:
-                          cast → Point
-                            s1 :Label | Point
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  and :bool
-                    l:
-                      is Point :bool
-                        s4 :Label | Point
-                    r:
-                      call :bool
-                        callee:
-                          snippet$Point$Equals$equals :bool
-                        arg0:
-                          cast → Point
-                            s4 :Label | Point
-                        arg1:
-                          q :Point
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_2 :Buffer
-              arg1:
-                __off_3 :usize
-    let n1: i64 | string =
-      cast → i64
-        int(5) :i64
-    let n2: i64 | string =
-      cast → i64
-        int(5) :i64
-    let n3: i64 | string = "5" :string
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_4: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(11) :usize
-          let __off_5: usize = int(0) :usize
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  eq :bool
-                    l:
-                      n1 :i64 | string
-                    r:
-                      n2 :i64 | string
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  eq :bool
-                    l:
-                      n1 :i64 | string
-                    r:
-                      n3 :i64 | string
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_4 :Buffer
-              arg1:
-                __off_5 :usize
-    let o1: null | Point = p :Point
-    let o2: null | Point = null
-    let o3: null | Point = null
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_6: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(17) :usize
-          let __off_7: usize = int(0) :usize
-          assign
-            target:
-              __off_7 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_6 :Buffer
-                arg1:
-                  __off_7 :usize
-                arg2:
-                  and :bool
-                    l:
-                      is Point :bool
-                        o1 :null | Point
-                    r:
-                      call :bool
-                        callee:
-                          snippet$Point$Equals$equals :bool
-                        arg0:
-                          cast → Point
-                            o1 :null | Point
-                        arg1:
-                          q :Point
-          assign
-            target:
-              __off_7 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_6 :Buffer
-                arg1:
-                  __off_7 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_7 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_6 :Buffer
-                arg1:
-                  __off_7 :usize
-                arg2:
-                  or :bool
-                    l:
-                      and :bool
-                        l:
-                          is null :bool
-                            o2 :null | Point
-                        r:
-                          is null :bool
-                            o3 :null | Point
-                    r:
-                      and :bool
-                        l:
-                          and :bool
-                            l:
-                              is Point :bool
-                                o2 :null | Point
-                            r:
-                              is Point :bool
-                                o3 :null | Point
-                        r:
-                          call :bool
-                            callee:
-                              snippet$Point$Equals$equals :bool
-                            arg0:
-                              cast → Point
-                                o2 :null | Point
-                            arg1:
-                              cast → Point
-                                o3 :null | Point
-          assign
-            target:
-              __off_7 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_6 :Buffer
-                arg1:
-                  __off_7 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_7 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_6 :Buffer
-                arg1:
-                  __off_7 :usize
-                arg2:
-                  or :bool
-                    l:
-                      and :bool
-                        l:
-                          is null :bool
-                            o1 :null | Point
-                        r:
-                          is null :bool
-                            o2 :null | Point
-                    r:
-                      and :bool
-                        l:
-                          and :bool
-                            l:
-                              is Point :bool
-                                o1 :null | Point
-                            r:
-                              is Point :bool
-                                o2 :null | Point
-                        r:
-                          call :bool
-                            callee:
-                              snippet$Point$Equals$equals :bool
-                            arg0:
-                              cast → Point
-                                o1 :null | Point
-                            arg1:
-                              cast → Point
-                                o2 :null | Point
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_6 :Buffer
-              arg1:
-                __off_7 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_8: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(17) :usize
-          let __off_9: usize = int(0) :usize
-          assign
-            target:
-              __off_9 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_8 :Buffer
-                arg1:
-                  __off_9 :usize
-                arg2:
-                  call :bool
-                    callee:
-                      snippet$same_opt__Point :bool
-                    arg0:
-                      p :Point
-                    arg1:
-                      q :Point
-          assign
-            target:
-              __off_9 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_8 :Buffer
-                arg1:
-                  __off_9 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_9 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_8 :Buffer
-                arg1:
-                  __off_9 :usize
-                arg2:
-                  call :bool
-                    callee:
-                      snippet$same_opt__Point :bool
-                    arg0:
-                      null
-                    arg1:
-                      q :Point
-          assign
-            target:
-              __off_9 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_8 :Buffer
-                arg1:
-                  __off_9 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_9 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_8 :Buffer
-                arg1:
-                  __off_9 :usize
-                arg2:
-                  call :bool
-                    callee:
-                      snippet$same_opt__Point :bool
-                    arg0:
-                      r :Point
-                    arg1:
-                      q :Point
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_8 :Buffer
-              arg1:
-                __off_9 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_10: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(11) :usize
-          let __off_11: usize = int(0) :usize
-          assign
-            target:
-              __off_11 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_10 :Buffer
-                arg1:
-                  __off_11 :usize
-                arg2:
-                  call :bool
-                    callee:
-                      snippet$same_pair__Point :bool
-                    arg0:
-                      [Point, i32] {
-                        _0: p :Point
-                        _1: int(1) :i32
-                      }
-                    arg1:
-                      [Point, i32] {
-                        _0: q :Point
-                        _1: int(1) :i32
-                      }
-          assign
-            target:
-              __off_11 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_10 :Buffer
-                arg1:
-                  __off_11 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_11 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_10 :Buffer
-                arg1:
-                  __off_11 :usize
-                arg2:
-                  call :bool
-                    callee:
-                      snippet$same_pair__Point :bool
-                    arg0:
-                      [Point, i32] {
-                        _0: p :Point
-                        _1: int(1) :i32
-                      }
-                    arg1:
-                      [Point, i32] {
-                        _0: r :Point
-                        _1: int(1) :i32
-                      }
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_10 :Buffer
-              arg1:
-                __off_11 :usize
-    let t1: [i32, Label | Point] =
-      [i32, Label | Point] {
-        _0: int(1) :i32
-        _1: s1 :Label | Point
-      }
-    let t2: [i32, Label | Point] =
-      [i32, Label | Point] {
-        _0: int(1) :i32
-        _1: s2 :Label | Point
-      }
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_12: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(5) :usize
-          let __off_13: usize = int(0) :usize
-          assign
-            target:
-              __off_13 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_12 :Buffer
-                arg1:
-                  __off_13 :usize
-                arg2:
-                  and :bool
-                    l:
-                      eq :bool
-                        l:
-                          ._0 :i32
-                            t1 :[i32, Label | Point]
-                        r:
-                          ._0 :i32
-                            t2 :[i32, Label | Point]
-                    r:
-                      or :bool
-                        l:
-                          and :bool
-                            l:
-                              and :bool
-                                l:
-                                  is Label :bool
-                                    ._1 :Label | Point
-                                      t1 :[i32, Label | Point]
-                                r:
-                                  is Label :bool
-                                    ._1 :Label | Point
-                                      t2 :[i32, Label | Point]
-                            r:
-                              call :bool
-                                callee:
-                                  snippet$Label$Equals$equals :bool
-                                arg0:
-                                  cast → Label
-                                    ._1 :Label | Point
-                                      t1 :[i32, Label | Point]
-                                arg1:
-                                  cast → Label
-                                    ._1 :Label | Point
-                                      t2 :[i32, Label | Point]
-                        r:
-                          and :bool
-                            l:
-                              and :bool
-                                l:
-                                  is Point :bool
-                                    ._1 :Label | Point
-                                      t1 :[i32, Label | Point]
-                                r:
-                                  is Point :bool
-                                    ._1 :Label | Point
-                                      t2 :[i32, Label | Point]
-                            r:
-                              call :bool
-                                callee:
-                                  snippet$Point$Equals$equals :bool
-                                arg0:
-                                  cast → Point
-                                    ._1 :Label | Point
-                                      t1 :[i32, Label | Point]
-                                arg1:
-                                  cast → Point
-                                    ._1 :Label | Point
-                                      t2 :[i32, Label | Point]
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_12 :Buffer
-              arg1:
-                __off_13 :usize
-    let c: Color | null = int(0) :u8
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_14: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(11) :usize
-          let __off_15: usize = int(0) :usize
-          assign
-            target:
-              __off_15 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_14 :Buffer
-                arg1:
-                  __off_15 :usize
-                arg2:
-                  eq :bool
-                    l:
-                      c :Color | null
-                    r:
-                      int(0) :u8
-          assign
-            target:
-              __off_15 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_14 :Buffer
-                arg1:
-                  __off_15 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_15 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_14 :Buffer
-                arg1:
-                  __off_15 :usize
-                arg2:
-                  eq :bool
-                    l:
-                      c :Color | null
-                    r:
-                      int(1) :u8
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_14 :Buffer
-              arg1:
-                __off_15 :usize
-    let nan: f64 =
-      div :{float}
-        l:
-          float(0.0) :f64
-        r:
-          float(0.0) :f64
-    let f1: f64 | null = nan :f64
-    let z1: f64 | null = float(0.0) :f64
-    let z2: f64 | null = float(-0.0) :f64
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_16: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(11) :usize
-          let __off_17: usize = int(0) :usize
-          assign
-            target:
-              __off_17 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_16 :Buffer
-                arg1:
-                  __off_17 :usize
-                arg2:
-                  or :bool
-                    l:
-                      and :bool
-                        l:
-                          and :bool
-                            l:
-                              is f64 :bool
-                                f1 :f64 | null
-                            r:
-                              is f64 :bool
-                                f1 :f64 | null
-                        r:
-                          eq :bool
-                            l:
-                              cast → f64
-                                f1 :f64 | null
-                            r:
-                              cast → f64
-                                f1 :f64 | null
-                    r:
-                      and :bool
-                        l:
-                          is null :bool
-                            f1 :f64 | null
-                        r:
-                          is null :bool
-                            f1 :f64 | null
-          assign
-            target:
-              __off_17 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_16 :Buffer
-                arg1:
-                  __off_17 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_17 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_16 :Buffer
-                arg1:
-                  __off_17 :usize
-                arg2:
-                  or :bool
-                    l:
-                      and :bool
-                        l:
-                          and :bool
-                            l:
-                              is f64 :bool
-                                z1 :f64 | null
-                            r:
-                              is f64 :bool
-                                z2 :f64 | null
-                        r:
-                          eq :bool
-                            l:
-                              cast → f64
-                                z1 :f64 | null
-                            r:
-                              cast → f64
-                                z2 :f64 | null
-                    r:
-                      and :bool
-                        l:
-                          is null :bool
-                            z1 :f64 | null
-                        r:
-                          is null :bool
-                            z2 :f64 | null
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_16 :Buffer
-              arg1:
-                __off_17 :usize
-    let boxed: Box<Point> | null =
-      Box<Any> {
-        value: p :Point
-      }
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_20: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(11) :usize
-          let __off_21: usize = int(0) :usize
-          assign
-            target:
-              __off_21 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_20 :Buffer
-                arg1:
-                  __off_21 :usize
-                arg2:
-                  block :bool
-                    let __eq_r_18: Box<Any> =
-                      Box<Any> {
-                        value: q :Point
-                      }
-                    ~>
-                      and :bool
-                        l:
-                          not :bool
-                            is null :bool
-                              boxed :Box<Point> | null
-                        r:
-                          call :bool
-                            callee:
-                              snippet$Box$Equals$equals__Any :bool
-                            arg0:
-                              cast → Box<Point>
-                                boxed :Box<Point> | null
-                            arg1:
-                              __eq_r_18 :Box<Any>
-          assign
-            target:
-              __off_21 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_20 :Buffer
-                arg1:
-                  __off_21 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_21 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_20 :Buffer
-                arg1:
-                  __off_21 :usize
-                arg2:
-                  block :bool
-                    let __eq_r_19: Box<Any> =
-                      Box<Any> {
-                        value: r :Point
-                      }
-                    ~>
-                      and :bool
-                        l:
-                          not :bool
-                            is null :bool
-                              boxed :Box<Point> | null
-                        r:
-                          call :bool
-                            callee:
-                              snippet$Box$Equals$equals__Any :bool
-                            arg0:
-                              cast → Box<Point>
-                                boxed :Box<Point> | null
-                            arg1:
-                              __eq_r_19 :Box<Any>
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_20 :Buffer
-              arg1:
-                __off_21 :usize
-    let first: Pair =
-      Pair {
-        _0: int(1) :i32
-        _1: int(2) :i32
-      }
-    let second: Pair =
-      Pair {
-        _0: int(1) :i32
-        _1: int(3) :i32
-      }
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_22: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(5) :usize
-          let __off_23: usize = int(0) :usize
-          assign
-            target:
-              __off_23 :usize
-            value:
-              call :usize
-                callee:
-                  write_bool :usize
-                arg0:
-                  __buf_22 :Buffer
-                arg1:
-                  __off_23 :usize
-                arg2:
-                  call :bool
-                    callee:
-                      snippet$Pair$Equals$equals :bool
-                    arg0:
-                      first :Pair
-                    arg1:
-                      second :Pair
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_22 :Buffer
-              arg1:
-                __off_23 :usize
-    return int(0) :i32
-  struct snippet$Box__Point { value: Any }
-  fn snippet$Box$Equals$equals__Any(self: Box<Any>, other: Box<Any>) -> bool
-    ~>
-      vcall std_core$Equals.equals :bool
-        recv:
-          .value :Any
-            self :Box<Any>
-        arg0:
-          .value :Any
-            other :Box<Any>
-  fn snippet$same_opt__Point(a: Any | null, b: Any) -> bool
-    ~>
-      and :bool
-        l:
-          not :bool
-            is null :bool
-              a :Any | null
-        r:
-          vcall std_core$Equals.equals :bool
-            recv:
-              cast → Any
-                a :Any | null
-            arg0:
-              b :Any
-  fn snippet$same_pair__Point(a: [Any, i32], b: [Any, i32]) -> bool
-    ~>
-      and :bool
-        l:
-          vcall std_core$Equals.equals :bool
-            recv:
-              ._0 :Any
-                a :[Any, i32]
-            arg0:
-              ._0 :Any
-                b :[Any, i32]
-        r:
-          eq :bool
-            l:
-              ._1 :i32
-                a :[Any, i32]
-            r:
-              ._1 :i32
-                b :[Any, i32]
-  struct snippet$Box__Any { value: Any }
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
-  fn snippet$Point$Equals$equals$guard(self: Point, other: Any) -> bool
-    ~>
-      and :bool
-        l:
-          is Point :bool
-            other :Any
-        r:
-          call :bool
-            callee:
-              snippet$Point$Equals$equals :bool
-            arg0:
-              self :Point
-            arg1:
-              cast → Point
-                other :Any
-  fn snippet$Label$Equals$equals$guard(self: Label, other: Any) -> bool
-    ~>
-      and :bool
-        l:
-          is Label :bool
-            other :Any
-        r:
-          call :bool
-            callee:
-              snippet$Label$Equals$equals :bool
-            arg0:
-              self :Label
-            arg1:
-              cast → Label
-                other :Any
-  vtable std_core$Equals.equals for Box<Any>  snippet$Box$Equals$equals__Any
-  vtable std_core$Equals.equals for Label  snippet$Label$Equals$equals$guard
-  vtable std_core$Equals.equals for Pair  snippet$Pair$Equals$equals
-  vtable std_core$Equals.equals for Point  snippet$Point$Equals$equals$guard
+  snippet.Point :: struct { x: i32 }  // snippet$Point
+  snippet.Point.equals :: fn(self: Point, other: Point) -> bool {  // snippet$Point$Equals$equals
+      self.x == other.x
+  }
+  snippet.Label :: struct { text: string }  // snippet$Label
+  snippet.Label.equals :: fn(self: Label, other: Label) -> bool {  // snippet$Label$Equals$equals
+      self.text == other.text
+  }
+  snippet.Pair.equals :: fn(self: Pair, other: Pair) -> bool {  // snippet$Pair$Equals$equals
+      self._0 == other._0
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      p: Point = Point { .x = 1 }
+      q: Point = Point { .x = 1 }
+      r: Point = Point { .x = 2 }
+      s1: Label | Point = p
+      s2: Label | Point = q
+      s3: Label | Point = r
+      s4: Label | Point = Label { .text = "a" }
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(23))
+          __off_1: usize = 0
+          __off_1 = std.core.write_bool(__buf_0, __off_1, (((s1 is Label) && (s2 is Label)) && snippet.Label.equals(Label(s1), Label(s2))) || (((s1 is Point) && (s2 is Point)) && snippet.Point.equals(Point(s1), Point(s2))))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, (((s1 is Label) && (s3 is Label)) && snippet.Label.equals(Label(s1), Label(s3))) || (((s1 is Point) && (s3 is Point)) && snippet.Point.equals(Point(s1), Point(s3))))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, (((s1 is Label) && (s4 is Label)) && snippet.Label.equals(Label(s1), Label(s4))) || (((s1 is Point) && (s4 is Point)) && snippet.Point.equals(Point(s1), Point(s4))))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, !((((s1 is Label) && (s3 is Label)) && snippet.Label.equals(Label(s1), Label(s3))) || (((s1 is Point) && (s3 is Point)) && snippet.Point.equals(Point(s1), Point(s3)))))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(usize(17))
+          __off_3: usize = 0
+          __off_3 = std.core.write_bool(__buf_2, __off_3, (s1 is Point) && snippet.Point.equals(Point(s1), q))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_bool(__buf_2, __off_3, (s1 is Point) && snippet.Point.equals(q, Point(s1)))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_bool(__buf_2, __off_3, (s4 is Point) && snippet.Point.equals(Point(s4), q))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      n1: i64 | string = i64(5)
+      n2: i64 | string = i64(5)
+      n3: i64 | string = "5"
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(usize(11))
+          __off_5: usize = 0
+          __off_5 = std.core.write_bool(__buf_4, __off_5, n1 == n2)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_bool(__buf_4, __off_5, n1 == n3)
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      o1: null | Point = p
+      o2: null | Point = null
+      o3: null | Point = null
+      std.io.println<string>({
+          __buf_6: Buffer = std.core.new_byte_buffer(usize(17))
+          __off_7: usize = 0
+          __off_7 = std.core.write_bool(__buf_6, __off_7, (o1 is Point) && snippet.Point.equals(Point(o1), q))
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, ((o2 is null) && (o3 is null)) || (((o2 is Point) && (o3 is Point)) && snippet.Point.equals(Point(o2), Point(o3))))
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, ((o1 is null) && (o2 is null)) || (((o1 is Point) && (o2 is Point)) && snippet.Point.equals(Point(o1), Point(o2))))
+          std.core.finish_buffer(__buf_6, __off_7)
+      } :string)
+      std.io.println<string>({
+          __buf_8: Buffer = std.core.new_byte_buffer(usize(17))
+          __off_9: usize = 0
+          __off_9 = std.core.write_bool(__buf_8, __off_9, snippet.same_opt<Point>(p, q))
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_bool(__buf_8, __off_9, snippet.same_opt<Point>(null, q))
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_bool(__buf_8, __off_9, snippet.same_opt<Point>(r, q))
+          std.core.finish_buffer(__buf_8, __off_9)
+      } :string)
+      std.io.println<string>({
+          __buf_10: Buffer = std.core.new_byte_buffer(usize(11))
+          __off_11: usize = 0
+          __off_11 = std.core.write_bool(__buf_10, __off_11, snippet.same_pair<Point>([p, 1] :[Point, i32], [q, 1] :[Point, i32]))
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
+          __off_11 = std.core.write_bool(__buf_10, __off_11, snippet.same_pair<Point>([p, 1] :[Point, i32], [r, 1] :[Point, i32]))
+          std.core.finish_buffer(__buf_10, __off_11)
+      } :string)
+      t1: [i32, Label | Point] = [1, s1] :[i32, Label | Point]
+      t2: [i32, Label | Point] = [1, s2] :[i32, Label | Point]
+      std.io.println<string>({
+          __buf_12: Buffer = std.core.new_byte_buffer(usize(5))
+          __off_13: usize = 0
+          __off_13 = std.core.write_bool(__buf_12, __off_13, (t1._0 == t2._0) && ((((t1._1 is Label) && (t2._1 is Label)) && snippet.Label.equals(Label(t1._1), Label(t2._1))) || (((t1._1 is Point) && (t2._1 is Point)) && snippet.Point.equals(Point(t1._1), Point(t2._1)))))
+          std.core.finish_buffer(__buf_12, __off_13)
+      } :string)
+      c: Color | null = u8(0)
+      std.io.println<string>({
+          __buf_14: Buffer = std.core.new_byte_buffer(usize(11))
+          __off_15: usize = 0
+          __off_15 = std.core.write_bool(__buf_14, __off_15, c == u8(0))
+          __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
+          __off_15 = std.core.write_bool(__buf_14, __off_15, c == u8(1))
+          std.core.finish_buffer(__buf_14, __off_15)
+      } :string)
+      nan: f64 = 0.0 / 0.0
+      f1: f64 | null = nan
+      z1: f64 | null = 0.0
+      z2: f64 | null = -0.0
+      std.io.println<string>({
+          __buf_16: Buffer = std.core.new_byte_buffer(usize(11))
+          __off_17: usize = 0
+          __off_17 = std.core.write_bool(__buf_16, __off_17, (((f1 is f64) && (f1 is f64)) && (f64(f1) == f64(f1))) || ((f1 is null) && (f1 is null)))
+          __off_17 = std.core.write_string_at(__buf_16, __off_17, " ")
+          __off_17 = std.core.write_bool(__buf_16, __off_17, (((z1 is f64) && (z2 is f64)) && (f64(z1) == f64(z2))) || ((z1 is null) && (z2 is null)))
+          std.core.finish_buffer(__buf_16, __off_17)
+      } :string)
+      boxed: Box<Point> | null = Box<Any> { .value = p }
+      std.io.println<string>({
+          __buf_20: Buffer = std.core.new_byte_buffer(usize(11))
+          __off_21: usize = 0
+          __off_21 = std.core.write_bool(__buf_20, __off_21, {
+              __eq_r_18: Box<Any> = Box<Any> { .value = q }
+              (!(boxed is null)) && snippet.Box<Any>.equals(Box<Point>(boxed), __eq_r_18)
+          } :bool)
+          __off_21 = std.core.write_string_at(__buf_20, __off_21, " ")
+          __off_21 = std.core.write_bool(__buf_20, __off_21, {
+              __eq_r_19: Box<Any> = Box<Any> { .value = r }
+              (!(boxed is null)) && snippet.Box<Any>.equals(Box<Point>(boxed), __eq_r_19)
+          } :bool)
+          std.core.finish_buffer(__buf_20, __off_21)
+      } :string)
+      first: Pair = Pair { ._0 = 1, ._1 = 2 }
+      second: Pair = Pair { ._0 = 1, ._1 = 3 }
+      std.io.println<string>({
+          __buf_22: Buffer = std.core.new_byte_buffer(usize(5))
+          __off_23: usize = 0
+          __off_23 = std.core.write_bool(__buf_22, __off_23, snippet.Pair.equals(first, second))
+          std.core.finish_buffer(__buf_22, __off_23)
+      } :string)
+      return 0
+  }
+  snippet.Box<Point> :: struct { value: Any }  // snippet$Box__Point
+  snippet.Box<Any>.equals :: fn(self: Box<Any>, other: Box<Any>) -> bool {  // snippet$Box$Equals$equals__Any
+      @vcall(std.core.Equals.equals, self.value, other.value)
+  }
+  snippet.same_opt<Point> :: fn(a: Any | null, b: Any) -> bool {  // snippet$same_opt__Point
+      (!(a is null)) && @vcall(std.core.Equals.equals, Any(a), b)
+  }
+  snippet.same_pair<Point> :: fn(a: [Any, i32], b: [Any, i32]) -> bool {  // snippet$same_pair__Point
+      @vcall(std.core.Equals.equals, a._0, b._0) && (a._1 == b._1)
+  }
+  snippet.Box<Any> :: struct { value: Any }  // snippet$Box__Any
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  snippet$Point$Equals$equals$guard :: fn(self: Point, other: Any) -> bool {
+      (other is Point) && snippet.Point.equals(self, Point(other))
+  }
+  snippet$Label$Equals$equals$guard :: fn(self: Label, other: Any) -> bool {
+      (other is Label) && snippet.Label.equals(self, Label(other))
+  }
+  vtable std.core.Equals.equals for Box<Any>  snippet.Box<Any>.equals  // snippet$Box$Equals$equals__Any
+  vtable std.core.Equals.equals for Label  snippet$Label$Equals$equals$guard
+  vtable std.core.Equals.equals for Pair  snippet.Pair.equals  // snippet$Pair$Equals$equals
+  vtable std.core.Equals.equals for Point  snippet$Point$Equals$equals$guard
 
 ## lowered in dependencies
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
     fn std_core$bool$Equals$equals$guard
     fn std_core$char$Equals$equals$guard
     fn std_core$f32$Equals$equals$guard
     fn std_core$f64$Equals$equals$guard
-    fn std_core$finish_buffer
     fn std_core$i16$Equals$equals$guard
-    fn std_core$i32$Comparable$compare
     fn std_core$i32$Equals$equals$guard
-    fn std_core$i32$Step$step
     fn std_core$i64$Equals$equals$guard
     fn std_core$i8$Equals$equals$guard
     fn std_core$isize$Equals$equals$guard
-    fn std_core$new_byte_buffer
     fn std_core$string$Equals$equals$guard
-    fn std_core$three_way
     fn std_core$u16$Equals$equals$guard
     fn std_core$u32$Equals$equals$guard
     fn std_core$u64$Equals$equals$guard
     fn std_core$u8$Equals$equals$guard
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
     fn std_core$usize$Equals$equals$guard
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

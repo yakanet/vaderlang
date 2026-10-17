@@ -1,357 +1,188 @@
 # Lower
 
 ## snippet
-  fn snippet$main() -> i32
-    block :void
-      let __scrut_0: ParseError | Version =
-        call :ParseError | Version
-          callee:
-            parse :fn(string) -> ParseError | Version
-          arg0:
-            "1.2.3-rc.1" :string
-      let ver: ParseError | Version = __scrut_0 :ParseError | Version
-      ~>
-        if :void
-          cond:
-            is Version :bool
-              __scrut_0 :ParseError | Version
-          then:
-            ~>
-              block :void
-                call :void
-                  callee:
-                    std_io$println__string :void
-                  arg0:
-                    call :string
-                      callee:
-                        semver$Version$Display$to_string :string
-                      arg0:
-                        cast → Version
-                          ver :ParseError | Version
-                let base: Version =
-                  call :Version
-                    callee:
-                      parse_one :fn(string) -> Version
-                    arg0:
-                      "1.0.0" :string
-                if :void
-                  cond:
-                    gt :bool
-                      l:
-                        call :i32
-                          callee:
-                            semver$Version$Comparable$compare :i32
-                          arg0:
-                            cast → Version
-                              ver :ParseError | Version
-                          arg1:
-                            base :Version
-                      r:
-                        int(0) :i32
-                  then:
-                    call :void
-                      callee:
-                        std_io$println__string :void
-                      arg0:
-                        "after 1.0.0" :string
-                ~>
-                  block :void
-                    let __scrut_1: ParseError | VersionRange =
-                      call :ParseError | VersionRange
-                        callee:
-                          parse_range :fn(string) -> ParseError | VersionRange
-                        arg0:
-                          "^1.0.0" :string
-                    let rg: ParseError | VersionRange = __scrut_1 :ParseError | VersionRange
-                    ~>
-                      if :void
-                        cond:
-                          is VersionRange :bool
-                            __scrut_1 :ParseError | VersionRange
-                        then:
-                          ~>
-                            block :void
-                              let target: Version =
-                                call :Version
-                                  callee:
-                                    parse_one :fn(string) -> Version
-                                  arg0:
-                                    "1.5.0" :string
-                              ~>
-                                if :void
-                                  cond:
-                                    call :bool
-                                      callee:
-                                        semver$VersionRange$Contains$contains :bool
-                                      arg0:
-                                        cast → VersionRange
-                                          rg :ParseError | VersionRange
-                                      arg1:
-                                        target :Version
-                                  then:
-                                    call :void
-                                      callee:
-                                        std_io$println__string :void
-                                      arg0:
-                                        "1.5.0 in ^1.0.0" :string
-                        else:
-                          ~>
-                            if :void
-                              cond:
-                                is ParseError :bool
-                                  __scrut_1 :ParseError | VersionRange
-                              then:
-                                ~>
-                                  block :void
-                                    call :void
-                                      callee:
-                                        std_io$eprintln__string :void
-                                      arg0:
-                                        call :string
-                                          callee:
-                                            concat_2 :string
-                                          arg0:
-                                            "range err: " :string
-                                          arg1:
-                                            call :string
-                                              callee:
-                                                std_string$ParseError$Error$message :string
-                                              arg0:
-                                                cast → ParseError
-                                                  rg :ParseError | VersionRange
-                                    return int(1) :i32
-                              else:
-                                ~>
-                                  unreachable("non-exhaustive match (T3013 should have caught this)") :void
-          else:
-            ~>
-              if :void
-                cond:
-                  is ParseError :bool
-                    __scrut_0 :ParseError | Version
-                then:
-                  ~>
-                    block :void
-                      call :void
-                        callee:
-                          std_io$eprintln__string :void
-                        arg0:
-                          call :string
-                            callee:
-                              concat_2 :string
-                            arg0:
-                              "err: " :string
-                            arg1:
-                              call :string
-                                callee:
-                                  std_string$ParseError$Error$message :string
-                                arg0:
-                                  cast → ParseError
-                                    ver :ParseError | Version
-                      return int(1) :i32
-                else:
-                  ~>
-                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    return int(0) :i32
-  fn snippet$parse_one(s: string) -> Version
-    ~>
-      block :never
-        let __scrut_0: ParseError | Version =
-          call :ParseError | Version
-            callee:
-              parse :fn(string) -> ParseError | Version
-            arg0:
-              s :string
-        let v: ParseError | Version = __scrut_0 :ParseError | Version
-        ~>
-          if :never
-            cond:
-              is Version :bool
-                __scrut_0 :ParseError | Version
-            then:
-              ~>
-                block :void
-                  return
-                    cast → Version
-                      v :ParseError | Version
-            else:
-              ~>
-                if :never
-                  cond:
-                    is ParseError :bool
-                      __scrut_0 :ParseError | Version
-                  then:
-                    ~>
-                      block :void
-                        return
-                          Version {
-                            major: int(0) :i32
-                            minor: int(0) :i32
-                            patch: int(0) :i32
-                            prerelease: "" :string
-                            build: "" :string
+  snippet.main :: fn() -> i32 {  // snippet$main
+      {
+          __scrut_0: ParseError | Version = semver.parse("1.2.3-rc.1")
+          ver: ParseError | Version = __scrut_0
+          if __scrut_0 is Version {
+              {
+                  std.io.println<string>(semver.Version.to_string(Version(ver)))
+                  base: Version = snippet.parse_one("1.0.0")
+                  if semver.Version.compare(Version(ver), base) > 0 {
+                      std.io.println<string>("after 1.0.0")
+                  }
+                  {
+                      __scrut_1: ParseError | VersionRange = semver.parse_range("^1.0.0")
+                      rg: ParseError | VersionRange = __scrut_1
+                      if __scrut_1 is VersionRange {
+                          {
+                              target: Version = snippet.parse_one("1.5.0")
+                              if semver.VersionRange.contains(VersionRange(rg), target) {
+                                  std.io.println<string>("1.5.0 in ^1.0.0")
+                              }
                           }
-                  else:
-                    ~>
-                      unreachable("non-exhaustive match (T3013 should have caught this)") :never
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
+                      } else if __scrut_1 is ParseError {
+                          {
+                              std.io.eprintln<string>(concat_2("range err: ", std.string.ParseError.message(ParseError(rg))))
+                              return 1
+                          }
+                      } else {
+                          @unreachable("non-exhaustive match (T3013 should have caught this)")
+                      }
+                  }
+              }
+          } else if __scrut_0 is ParseError {
+              {
+                  std.io.eprintln<string>(concat_2("err: ", std.string.ParseError.message(ParseError(ver))))
+                  return 1
+              }
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          }
+      }
+      return 0
+  }
+  snippet.parse_one :: fn(s: string) -> Version {  // snippet$parse_one
+      {
+          __scrut_0: ParseError | Version = semver.parse(s)
+          v: ParseError | Version = __scrut_0
+          if __scrut_0 is Version {
+              {
+                  return Version(v)
+              }
+          } else if __scrut_0 is ParseError {
+              {
+                  return Version {
+                      .major = 0,
+                      .minor = 0,
+                      .patch = 0,
+                      .prerelease = "",
+                      .build = "",
+                  }
+              }
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          }
+      }
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
 
 ## lowered in dependencies
   semver
-    fn semver$Version$Comparable$compare
-    fn semver$Version$Display$to_string
-    fn semver$VersionRange$Contains$contains
-    fn semver$bounded
-    fn semver$bump_major
-    fn semver$bump_minor
-    fn semver$bump_patch
-    fn semver$caret_upper
-    fn semver$clause_contains
-    fn semver$compare_id
-    fn semver$compare_lex
-    fn semver$compare_prerelease
-    fn semver$compare_versions
-    fn semver$expand_caret
-    fn semver$expand_hyphen
-    fn semver$expand_tilde
-    fn semver$expand_xrange
-    fn semver$is_all_digits
-    fn semver$is_bare_operator
-    fn semver$is_x_token
-    fn semver$parse
-    fn semver$parse_clause
-    fn semver$parse_comparator_token
-    fn semver$parse_numeric_id
-    fn semver$parse_partial
-    fn semver$parse_range
-    fn semver$parse_token
-    fn semver$partial_to_lower
-    fn semver$split_or
-    fn semver$split_ws
-    fn semver$term_satisfies
-    fn semver$validate_build
-    fn semver$validate_build_id
-    fn semver$validate_prerelease
-    fn semver$validate_prerelease_id
-    fn semver$wildcard_range
-    fn semver$zero_pre
-    struct semver$PartialVersion
-    struct semver$RangeClause
-    struct semver$RangeTerm
-    struct semver$Version
-    struct semver$VersionRange
+    fn semver.Version.compare  // semver$Version$Comparable$compare
+    fn semver.Version.to_string  // semver$Version$Display$to_string
+    fn semver.VersionRange.contains  // semver$VersionRange$Contains$contains
+    fn semver.bounded  // semver$bounded
+    fn semver.bump_major  // semver$bump_major
+    fn semver.bump_minor  // semver$bump_minor
+    fn semver.bump_patch  // semver$bump_patch
+    fn semver.caret_upper  // semver$caret_upper
+    fn semver.clause_contains  // semver$clause_contains
+    fn semver.compare_id  // semver$compare_id
+    fn semver.compare_lex  // semver$compare_lex
+    fn semver.compare_prerelease  // semver$compare_prerelease
+    fn semver.compare_versions  // semver$compare_versions
+    fn semver.expand_caret  // semver$expand_caret
+    fn semver.expand_hyphen  // semver$expand_hyphen
+    fn semver.expand_tilde  // semver$expand_tilde
+    fn semver.expand_xrange  // semver$expand_xrange
+    fn semver.is_all_digits  // semver$is_all_digits
+    fn semver.is_bare_operator  // semver$is_bare_operator
+    fn semver.is_x_token  // semver$is_x_token
+    fn semver.parse  // semver$parse
+    fn semver.parse_clause  // semver$parse_clause
+    fn semver.parse_comparator_token  // semver$parse_comparator_token
+    fn semver.parse_numeric_id  // semver$parse_numeric_id
+    fn semver.parse_partial  // semver$parse_partial
+    fn semver.parse_range  // semver$parse_range
+    fn semver.parse_token  // semver$parse_token
+    fn semver.partial_to_lower  // semver$partial_to_lower
+    fn semver.split_or  // semver$split_or
+    fn semver.split_ws  // semver$split_ws
+    fn semver.term_satisfies  // semver$term_satisfies
+    fn semver.validate_build  // semver$validate_build
+    fn semver.validate_build_id  // semver$validate_build_id
+    fn semver.validate_prerelease  // semver$validate_prerelease
+    fn semver.validate_prerelease_id  // semver$validate_prerelease_id
+    fn semver.wildcard_range  // semver$wildcard_range
+    fn semver.zero_pre  // semver$zero_pre
+    struct semver.PartialVersion  // semver$PartialVersion
+    struct semver.RangeClause  // semver$RangeClause
+    struct semver.RangeTerm  // semver$RangeTerm
+    struct semver.Version  // semver$Version
+    struct semver.VersionRange  // semver$VersionRange
   std/char
-    fn std_char$is_alnum
-    fn std_char$is_alpha
-    fn std_char$is_digit
-    fn std_char$is_white_char
+    fn std.char.is_alnum  // std_char$is_alnum
+    fn std.char.is_alpha  // std_char$is_alpha
+    fn std.char.is_digit  // std_char$is_digit
+    fn std.char.is_white_char  // std_char$is_white_char
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__char
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__char
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$char$Comparable$compare
-    fn std_core$char$Step$step
-    fn std_core$codepoint_at_byte
-    fn std_core$decode_tail
-    fn std_core$finish_buffer
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$is_utf8_continuation
-    fn std_core$new_byte_buffer
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__char
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<char>.contains  // std_core$Range$Contains$contains__char
+    fn std.core.Range<char>.next  // std_core$Range$Iterator$next__char
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.char.compare  // std_core$char$Comparable$compare
+    fn std.core.char.step  // std_core$char$Step$step
+    fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
+    fn std.core.decode_tail  // std_core$decode_tail
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<char>  // std_core$Range__char
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$eprintln__string
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.eprintln<string>  // std_io$eprintln__string
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   std/string
-    fn std_string$ParseError$Error$message
-    fn std_string$is_empty
-    fn std_string$is_white_byte
-    fn std_string$matches_at
-    fn std_string$parse_int
-    fn std_string$split
-    fn std_string$starts_with
-    fn std_string$trim
-    fn std_string$trim_prefix
-    struct std_string$ParseError
+    fn std.string.ParseError.message  // std_string$ParseError$Error$message
+    fn std.string.is_empty  // std_string$is_empty
+    fn std.string.is_white_byte  // std_string$is_white_byte
+    fn std.string.matches_at  // std_string$matches_at
+    fn std.string.parse_int  // std_string$parse_int
+    fn std.string.split  // std_string$split
+    fn std.string.starts_with  // std_string$starts_with
+    fn std.string.trim  // std_string$trim
+    fn std.string.trim_prefix  // std_string$trim_prefix
+    struct std.string.ParseError  // std_string$ParseError
   std/string_builder
-    fn std_string_builder$StringBuilder$Display$to_string
-    fn std_string_builder$append
-    struct std_string_builder$StringBuilder
+    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$Display$to_string
+    fn std.string_builder.append  // std_string_builder$append
+    struct std.string_builder.StringBuilder  // std_string_builder$StringBuilder
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

@@ -1,1441 +1,255 @@
 # Lower
 
 ## snippet
-  fn snippet$nested(s: null | string, deep: bool, n: i32) -> u8
-    let k: u8 =
-      block :u8
-        ~>
-          if :u8
-            cond:
-              is string :bool
-                s :null | string
-            then:
-              ~>
-                cast → u8
-                  int(7) :u8
-            else:
-              ~>
-                if :u8
-                  cond:
-                    is null :bool
-                      s :null | string
-                  then:
-                    ~>
-                      if :u8
-                        cond:
-                          deep :bool
-                        then:
-                          ~>
-                            int(250) :u8
-                        else:
-                          ~>
-                            if :u8
-                              cond:
-                                gt :bool
-                                  l:
-                                    n :i32
-                                  r:
-                                    int(0) :i32
-                              then:
-                                ~>
-                                  block :u8
-                                    ~>
-                                      if :u8
-                                        cond:
-                                          eq :bool
-                                            l:
-                                              n :i32
-                                            r:
-                                              int(1) :i32
-                                        then:
-                                          ~>
-                                            int(200) :u8
-                                        else:
-                                          ~>
-                                            int(100) :u8
-                              else:
-                                ~>
-                                  block :u8
-                                    ~>
-                                      int(50) :u8
-                  else:
-                    ~>
-                      unreachable("non-exhaustive match (T3013 should have caught this)") :u8
-    return
-      add_checked :u8
-        l:
-          k :u8
-        r:
-          int(5) :u8
-  fn snippet$wide_if(flag: bool) -> i64
-    let k: i64 =
-      if :i64
-        cond:
-          flag :bool
-        then:
-          ~>
-            cast → i64
-              int(1) :i64
-        else:
-          ~>
-            int(9000000000) :i64
-    return k :i64
-  struct snippet$Probe { flag: bool }
-  struct snippet$Wide { n: u64 }
-  fn snippet$arithmetic(s: Probe | Wide) -> u64
-    let k: u64 =
-      block :u64
-        ~>
-          if :u64
-            cond:
-              is Probe :bool
-                s :Probe | Wide
-            then:
-              ~>
-                add_checked :u64
-                  l:
-                    shl :u64
-                      l:
-                        int(1) :u64
-                      r:
-                        int(40) :u64
-                  r:
-                    if :u64
-                      cond:
-                        .flag :bool
-                          cast → Probe
-                            s :Probe | Wide
-                      then:
-                        ~>
-                          int(1) :u64
-                      else:
-                        ~>
-                          int(2) :u64
-            else:
-              ~>
-                if :u64
-                  cond:
-                    is Wide :bool
-                      s :Probe | Wide
-                  then:
-                    ~>
-                      .n :u64
-                        cast → Wide
-                          s :Probe | Wide
-                  else:
-                    ~>
-                      unreachable("non-exhaustive match (T3013 should have caught this)") :u64
-    return k :u64
-  fn snippet$optional(a: bool, b: bool) -> string
-    let k: null | u8 =
-      if :null | u8
-        cond:
-          a :bool
-        then:
-          ~>
-            cast → u8
-              int(1) :u8
-        else:
-          ~>
-            if :null | u8
-              cond:
-                b :bool
-              then:
-                ~>
-                  int(200) :u8
-              else:
-                ~>
-                  null
-    if :void
-      cond:
-        is u8 :bool
-          k :null | u8
-      then:
-        return
-          block :string
-            let __buf_0: Buffer =
-              call :Buffer
-                callee:
-                  new_byte_buffer :Buffer
-                arg0:
-                  int(23) :usize
-            let __off_1: usize = int(0) :usize
-            assign
-              target:
-                __off_1 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-                  arg2:
-                    "u8 " :string
-            assign
-              target:
-                __off_1 :usize
-              value:
-                call :usize
-                  callee:
-                    write_unsigned :usize
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-                  arg2:
-                    cast → u64
-                      cast → u8
-                        k :null | u8
-            ~>
-              call :string
-                callee:
-                  finish_buffer :string
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-    if :void
-      cond:
-        eq :bool
-          l:
-            cast → null
-              k :null | u8
-          r:
-            null
-      then:
-        return "null" :string
-    return "other" :string
-  fn snippet$beside_optional(a: bool, m: null | u8) -> string
-    let k: null | u8 =
-      if :null | u8
-        cond:
-          a :bool
-        then:
-          ~>
-            m :null | u8
-        else:
-          ~>
-            int(200) :u8
-    if :void
-      cond:
-        is u8 :bool
-          k :null | u8
-      then:
-        return
-          block :string
-            let __buf_0: Buffer =
-              call :Buffer
-                callee:
-                  new_byte_buffer :Buffer
-                arg0:
-                  int(23) :usize
-            let __off_1: usize = int(0) :usize
-            assign
-              target:
-                __off_1 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-                  arg2:
-                    "u8 " :string
-            assign
-              target:
-                __off_1 :usize
-              value:
-                call :usize
-                  callee:
-                    write_unsigned :usize
-                  arg0:
-                    __buf_0 :Buffer
-                  arg1:
-                    __off_1 :usize
-                  arg2:
-                    cast → u64
-                      cast → u8
-                        k :null | u8
-            ~>
-              call :string
-                callee:
-                  finish_buffer :string
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-    return "other" :string
-  fn snippet$coalesced(c: bool, b: bool) -> u8
-    let k: u8 =
-      if :u8
-        cond:
-          c :bool
-        then:
-          ~>
-            cast → u8
-              int(1) :u8
-        else:
-          ~>
-            block :u8
-              let __coalesce_0: null | u8 =
-                if :null | u8
-                  cond:
-                    b :bool
-                  then:
-                    ~>
-                      int(200) :u8
-                  else:
-                    ~>
-                      null
-              ~>
-                if :u8
-                  cond:
-                    is null :bool
-                      __coalesce_0 :null | u8
-                  then:
-                    ~>
-                      int(5) :u8
-                  else:
-                    ~>
-                      cast → u8
-                        __coalesce_0 :null | u8
-    return k :u8
-  fn snippet$main() -> i32
-    let out: u8[] =
-      array :u8[]
-        int(65) :u8
-    let last: u8 =
-      if :u8
-        cond:
-          gt :bool
-            l:
-              LoweredArrayLen
-            r:
-              int(0) :usize
-        then:
-          ~>
-            index :u8
-              on:
-                out :u8[]
-              ix:
-                sub_checked :usize
-                  l:
-                    LoweredArrayLen
-                  r:
-                    int(1) :usize
-        else:
-          ~>
-            int(40) :u8
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        if :string
-          cond:
-            neq :bool
-              l:
-                last :u8
-              r:
-                int(40) :u8
-          then:
-            ~>
-              "if, byte or char: byte" :string
-          else:
-            ~>
-              "if, byte or char: char" :string
-    let empty: u8[] =
-      array :u8[]
-    let first: u8 =
-      if :u8
-        cond:
-          gt :bool
-            l:
-              LoweredArrayLen
-            r:
-              int(0) :usize
-        then:
-          ~>
-            index :u8
-              on:
-                empty :u8[]
-              ix:
-                int(0) :i32
-        else:
-          ~>
-            int(40) :u8
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        if :string
-          cond:
-            eq :bool
-              l:
-                first :u8
-              r:
-                int(40) :u8
-          then:
-            ~>
-              "if, empty: char" :string
-          else:
-            ~>
-              "if, empty: byte" :string
-    let n: usize =
-      LoweredArrayLen
-    let picked: u8 =
-      block :u8
-        ~>
-          if :u8
-            cond:
-              eq :bool
-                l:
-                  n :usize
-                r:
-                  int(0) :usize
-            then:
-              ~>
-                int(40) :u8
-            else:
-              ~>
-                index :u8
-                  on:
-                    empty :u8[]
-                  ix:
-                    sub_checked :usize
-                      l:
-                        n :usize
-                      r:
-                        int(1) :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        if :string
-          cond:
-            eq :bool
-              l:
-                picked :u8
-              r:
-                int(40) :u8
-          then:
-            ~>
-              "match, byte or char: char" :string
-          else:
-            ~>
-              "match, byte or char: byte" :string
-    let big: i64 = int(5000000000) :i64
-    let wide: i64 =
-      block :i64
-        ~>
-          if :i64
-            cond:
-              eq :bool
-                l:
-                  n :usize
-                r:
-                  int(0) :usize
-            then:
-              ~>
-                int(1) :i64
-            else:
-              ~>
-                big :i64
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_0: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(39) :usize
-          let __off_1: usize = int(0) :usize
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  "match, i64 or int: " :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  add_checked :i64
-                    l:
-                      wide :i64
-                    r:
-                      big :i64
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_2: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(70) :usize
-          let __off_3: usize = int(0) :usize
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  "nested: " :string
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  cast → u64
-                    call :u8
-                      callee:
-                        nested :fn(null | string, bool, i32) -> u8
-                      arg0:
-                        null
-                      arg1:
-                        true
-                      arg2:
-                        int(0) :i32
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  cast → u64
-                    call :u8
-                      callee:
-                        nested :fn(null | string, bool, i32) -> u8
-                      arg0:
-                        null
-                      arg1:
-                        false
-                      arg2:
-                        int(1) :i32
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_3 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_2 :Buffer
-                arg1:
-                  __off_3 :usize
-                arg2:
-                  cast → u64
-                    call :u8
-                      callee:
-                        nested :fn(null | string, bool, i32) -> u8
-                      arg0:
-                        null
-                      arg1:
-                        false
-                      arg2:
-                        int(2) :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_2 :Buffer
-              arg1:
-                __off_3 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_4: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(49) :usize
-          let __off_5: usize = int(0) :usize
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  "nested: " :string
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  cast → u64
-                    call :u8
-                      callee:
-                        nested :fn(null | string, bool, i32) -> u8
-                      arg0:
-                        null
-                      arg1:
-                        false
-                      arg2:
-                        int(0) :i32
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_5 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-                arg2:
-                  cast → u64
-                    call :u8
-                      callee:
-                        nested :fn(null | string, bool, i32) -> u8
-                      arg0:
-                        "x" :string
-                      arg1:
-                        false
-                      arg2:
-                        int(0) :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_4 :Buffer
-              arg1:
-                __off_5 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_6: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(36) :usize
-          let __off_7: usize = int(0) :usize
-          assign
-            target:
-              __off_7 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_6 :Buffer
-                arg1:
-                  __off_7 :usize
-                arg2:
-                  "if, i64 or int: " :string
-          assign
-            target:
-              __off_7 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_6 :Buffer
-                arg1:
-                  __off_7 :usize
-                arg2:
-                  call :i64
-                    callee:
-                      wide_if :fn(bool) -> i64
-                    arg0:
-                      false
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_6 :Buffer
-              arg1:
-                __off_7 :usize
-    let probes: string =
-      block :string
-        let __buf_8: Buffer =
-          call :Buffer
-            callee:
-              new_byte_buffer :Buffer
-            arg0:
-              int(41) :usize
-        let __off_9: usize = int(0) :usize
-        assign
-          target:
-            __off_9 :usize
-          value:
-            call :usize
-              callee:
-                write_unsigned :usize
-              arg0:
-                __buf_8 :Buffer
-              arg1:
-                __off_9 :usize
-              arg2:
-                call :u64
-                  callee:
-                    arithmetic :fn(Probe | Wide) -> u64
-                  arg0:
-                    Probe {
-                      flag: true
-                    }
-        assign
-          target:
-            __off_9 :usize
-          value:
-            call :usize
-              callee:
-                write_string_at :usize
-              arg0:
-                __buf_8 :Buffer
-              arg1:
-                __off_9 :usize
-              arg2:
-                " " :string
-        assign
-          target:
-            __off_9 :usize
-          value:
-            call :usize
-              callee:
-                write_unsigned :usize
-              arg0:
-                __buf_8 :Buffer
-              arg1:
-                __off_9 :usize
-              arg2:
-                call :u64
-                  callee:
-                    arithmetic :fn(Probe | Wide) -> u64
-                  arg0:
-                    Probe {
-                      flag: false
-                    }
-        ~>
-          call :string
-            callee:
-              finish_buffer :string
-            arg0:
-              __buf_8 :Buffer
-            arg1:
-              __off_9 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __p_10: string = probes :string
-          let __buf_11: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                add :usize
-                  l:
-                    int(33) :usize
-                  r:
-                    call :usize
-                      callee:
-                        byte_len :usize
-                      arg0:
-                        __p_10 :string
-          let __off_12: usize = int(0) :usize
-          assign
-            target:
-              __off_12 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_11 :Buffer
-                arg1:
-                  __off_12 :usize
-                arg2:
-                  "arithmetic: " :string
-          assign
-            target:
-              __off_12 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_11 :Buffer
-                arg1:
-                  __off_12 :usize
-                arg2:
-                  __p_10 :string
-          assign
-            target:
-              __off_12 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_11 :Buffer
-                arg1:
-                  __off_12 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_12 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_11 :Buffer
-                arg1:
-                  __off_12 :usize
-                arg2:
-                  call :u64
-                    callee:
-                      arithmetic :fn(Probe | Wide) -> u64
-                    arg0:
-                      Wide {
-                        n: int(3) :u64
-                      }
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_11 :Buffer
-              arg1:
-                __off_12 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            concat_6 :string
-          arg0:
-            "optional: " :string
-          arg1:
-            call :string
-              callee:
-                optional :fn(bool, bool) -> string
-              arg0:
-                true
-              arg1:
-                false
-          arg2:
-            " " :string
-          arg3:
-            call :string
-              callee:
-                optional :fn(bool, bool) -> string
-              arg0:
-                false
-              arg1:
-                true
-          arg4:
-            " " :string
-          arg5:
-            call :string
-              callee:
-                optional :fn(bool, bool) -> string
-              arg0:
-                false
-              arg1:
-                false
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            concat_4 :string
-          arg0:
-            "beside optional: " :string
-          arg1:
-            call :string
-              callee:
-                beside_optional :fn(bool, null | u8) -> string
-              arg0:
-                false
-              arg1:
-                null
-          arg2:
-            " " :string
-          arg3:
-            call :string
-              callee:
-                beside_optional :fn(bool, null | u8) -> string
-              arg0:
-                true
-              arg1:
-                cast → u8
-                  int(7) :u8
-    let both: string =
-      block :string
-        let __buf_13: Buffer =
-          call :Buffer
-            callee:
-              new_byte_buffer :Buffer
-            arg0:
-              int(41) :usize
-        let __off_14: usize = int(0) :usize
-        assign
-          target:
-            __off_14 :usize
-          value:
-            call :usize
-              callee:
-                write_unsigned :usize
-              arg0:
-                __buf_13 :Buffer
-              arg1:
-                __off_14 :usize
-              arg2:
-                cast → u64
-                  call :u8
-                    callee:
-                      coalesced :fn(bool, bool) -> u8
-                    arg0:
-                      false
-                    arg1:
-                      true
-        assign
-          target:
-            __off_14 :usize
-          value:
-            call :usize
-              callee:
-                write_string_at :usize
-              arg0:
-                __buf_13 :Buffer
-              arg1:
-                __off_14 :usize
-              arg2:
-                " " :string
-        assign
-          target:
-            __off_14 :usize
-          value:
-            call :usize
-              callee:
-                write_unsigned :usize
-              arg0:
-                __buf_13 :Buffer
-              arg1:
-                __off_14 :usize
-              arg2:
-                cast → u64
-                  call :u8
-                    callee:
-                      coalesced :fn(bool, bool) -> u8
-                    arg0:
-                      false
-                    arg1:
-                      false
-        ~>
-          call :string
-            callee:
-              finish_buffer :string
-            arg0:
-              __buf_13 :Buffer
-            arg1:
-              __off_14 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __p_15: string = both :string
-          let __buf_16: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                add :usize
-                  l:
-                    int(32) :usize
-                  r:
-                    call :usize
-                      callee:
-                        byte_len :usize
-                      arg0:
-                        __p_15 :string
-          let __off_17: usize = int(0) :usize
-          assign
-            target:
-              __off_17 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_16 :Buffer
-                arg1:
-                  __off_17 :usize
-                arg2:
-                  "coalesced: " :string
-          assign
-            target:
-              __off_17 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_16 :Buffer
-                arg1:
-                  __off_17 :usize
-                arg2:
-                  __p_15 :string
-          assign
-            target:
-              __off_17 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_16 :Buffer
-                arg1:
-                  __off_17 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_17 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_16 :Buffer
-                arg1:
-                  __off_17 :usize
-                arg2:
-                  cast → u64
-                    call :u8
-                      callee:
-                        coalesced :fn(bool, bool) -> u8
-                      arg0:
-                        true
-                      arg1:
-                        true
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_16 :Buffer
-              arg1:
-                __off_17 :usize
-    return int(0) :i32
-  fn concat_6(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let c3: usize =
-      add :usize
-        l:
-          c2 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p3 :string
-    let c4: usize =
-      add :usize
-        l:
-          c3 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p4 :string
-    let c5: usize =
-      add :usize
-        l:
-          c4 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p5 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c5 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c2 :usize
-      arg2:
-        p3 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c3 :usize
-      arg2:
-        p4 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c4 :usize
-      arg2:
-        p5 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c5 :usize
-  fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let c3: usize =
-      add :usize
-        l:
-          c2 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p3 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c3 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c2 :usize
-      arg2:
-        p3 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c3 :usize
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
+  snippet.nested :: fn(s: null | string, deep: bool, n: i32) -> u8 {  // snippet$nested
+      k: u8 = {
+          if s is string {
+              u8(7)
+          } else if s is null {
+              if deep {
+                  u8(250)
+              } else if n > 0 {
+                  {
+                      if n == 1 { u8(200) } else { u8(100) } :u8
+                  } :u8
+              } else {
+                  {
+                      u8(50)
+                  } :u8
+              } :u8
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :u8
+      }
+      return k + u8(5)
+  }
+  snippet.wide_if :: fn(flag: bool) -> i64 {  // snippet$wide_if
+      k: i64 = if flag { i64(1) } else { i64(9000000000) }
+      return k
+  }
+  snippet.Probe :: struct { flag: bool }  // snippet$Probe
+  snippet.Wide :: struct { n: u64 }  // snippet$Wide
+  snippet.arithmetic :: fn(s: Probe | Wide) -> u64 {  // snippet$arithmetic
+      k: u64 = {
+          if s is Probe {
+              (u64(1) << u64(40)) + (if Probe(s).flag { u64(1) } else { u64(2) } :u64)
+          } else if s is Wide {
+              Wide(s).n
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :u64
+      }
+      return k
+  }
+  snippet.optional :: fn(a: bool, b: bool) -> string {  // snippet$optional
+      k: null | u8 = if a {
+          u8(1)
+      } else if b {
+          u8(200)
+      } else {
+          null
+      }
+      if k is u8 {
+          return {
+              __buf_0: Buffer = std.core.new_byte_buffer(usize(23))
+              __off_1: usize = 0
+              __off_1 = std.core.write_string_at(__buf_0, __off_1, "u8 ")
+              __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u8(k)))
+              std.core.finish_buffer(__buf_0, __off_1)
+          } :string
+      }
+      if null(k) == null {
+          return "null"
+      }
+      return "other"
+  }
+  snippet.beside_optional :: fn(a: bool, m: null | u8) -> string {  // snippet$beside_optional
+      k: null | u8 = if a { m } else { u8(200) }
+      if k is u8 {
+          return {
+              __buf_0: Buffer = std.core.new_byte_buffer(usize(23))
+              __off_1: usize = 0
+              __off_1 = std.core.write_string_at(__buf_0, __off_1, "u8 ")
+              __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u8(k)))
+              std.core.finish_buffer(__buf_0, __off_1)
+          } :string
+      }
+      return "other"
+  }
+  snippet.coalesced :: fn(c: bool, b: bool) -> u8 {  // snippet$coalesced
+      k: u8 = if c {
+          u8(1)
+      } else {
+          {
+              __coalesce_0: null | u8 = if b { u8(200) } else { null }
+              if __coalesce_0 is null { u8(5) } else { u8(__coalesce_0) } :u8
+          } :u8
+      }
+      return k
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      out: u8[] = [u8(65)] :u8[]
+      last: u8 = if @array.len(out) > usize(0) { out[@array.len(out) - usize(1)] } else { u8(40) }
+      std.io.println<string>(if last != u8(40) { "if, byte or char: byte" } else { "if, byte or char: char" } :string)
+      empty: u8[] = [] :u8[]
+      first: u8 = if @array.len(empty) > usize(0) { empty[0] } else { u8(40) }
+      std.io.println<string>(if first == u8(40) { "if, empty: char" } else { "if, empty: byte" } :string)
+      n: usize = @array.len(empty)
+      picked: u8 = {
+          if n == usize(0) { u8(40) } else { empty[n - usize(1)] } :u8
+      }
+      std.io.println<string>(if picked == u8(40) { "match, byte or char: char" } else { "match, byte or char: byte" } :string)
+      big: i64 = 5000000000
+      wide: i64 = {
+          if n == usize(0) { i64(1) } else { big } :i64
+      }
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(39))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "match, i64 or int: ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, wide + big)
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(usize(70))
+          __off_3: usize = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "nested: ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.nested(null, true, 0)))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.nested(null, false, 1)))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.nested(null, false, 2)))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(usize(49))
+          __off_5: usize = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "nested: ")
+          __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64(snippet.nested(null, false, 0)))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64(snippet.nested("x", false, 0)))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      std.io.println<string>({
+          __buf_6: Buffer = std.core.new_byte_buffer(usize(36))
+          __off_7: usize = 0
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, "if, i64 or int: ")
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.wide_if(false))
+          std.core.finish_buffer(__buf_6, __off_7)
+      } :string)
+      probes: string = {
+          __buf_8: Buffer = std.core.new_byte_buffer(usize(41))
+          __off_9: usize = 0
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, snippet.arithmetic(Probe { .flag = true }))
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, snippet.arithmetic(Probe { .flag = false }))
+          std.core.finish_buffer(__buf_8, __off_9)
+      }
+      std.io.println<string>({
+          __p_10: string = probes
+          __buf_11: Buffer = std.core.new_byte_buffer(usize(33) +% std.core.byte_len(__p_10))
+          __off_12: usize = 0
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, "arithmetic: ")
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, __p_10)
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
+          __off_12 = std.core.write_unsigned(__buf_11, __off_12, snippet.arithmetic(Wide { .n = u64(3) }))
+          std.core.finish_buffer(__buf_11, __off_12)
+      } :string)
+      std.io.println<string>(concat_6("optional: ", snippet.optional(true, false), " ", snippet.optional(false, true), " ", snippet.optional(false, false)))
+      std.io.println<string>(concat_4("beside optional: ", snippet.beside_optional(false, null), " ", snippet.beside_optional(true, u8(7))))
+      both: string = {
+          __buf_13: Buffer = std.core.new_byte_buffer(usize(41))
+          __off_14: usize = 0
+          __off_14 = std.core.write_unsigned(__buf_13, __off_14, u64(snippet.coalesced(false, true)))
+          __off_14 = std.core.write_string_at(__buf_13, __off_14, " ")
+          __off_14 = std.core.write_unsigned(__buf_13, __off_14, u64(snippet.coalesced(false, false)))
+          std.core.finish_buffer(__buf_13, __off_14)
+      }
+      std.io.println<string>({
+          __p_15: string = both
+          __buf_16: Buffer = std.core.new_byte_buffer(usize(32) +% std.core.byte_len(__p_15))
+          __off_17: usize = 0
+          __off_17 = std.core.write_string_at(__buf_16, __off_17, "coalesced: ")
+          __off_17 = std.core.write_string_at(__buf_16, __off_17, __p_15)
+          __off_17 = std.core.write_string_at(__buf_16, __off_17, " ")
+          __off_17 = std.core.write_unsigned(__buf_16, __off_17, u64(snippet.coalesced(true, true)))
+          std.core.finish_buffer(__buf_16, __off_17)
+      } :string)
+      return 0
+  }
+  concat_6 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      c3: usize = c2 +% std.core.byte_len(p3)
+      c4: usize = c3 +% std.core.byte_len(p4)
+      c5: usize = c4 +% std.core.byte_len(p5)
+      buf: Buffer = std.core.usize.new_buffer(c5)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.write_string(buf, c3, p4)
+      std.core.Buffer.write_string(buf, c4, p5)
+      std.core.Buffer.intern_string(buf, c5)
+  }
+  concat_4 :: fn(p0: string, p1: string, p2: string, p3: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      c3: usize = c2 +% std.core.byte_len(p3)
+      buf: Buffer = std.core.usize.new_buffer(c3)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.intern_string(buf, c3)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$finish_buffer
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$new_byte_buffer
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

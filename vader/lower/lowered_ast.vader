@@ -544,6 +544,58 @@ export LoweredBinaryOp :: enum(u8) {
     MulChecked,
 }
 
+/// The operator a lowered binary node applies, as a name.
+///
+/// @param op  the operator.
+export binary_op_name :: fn(op: LoweredBinaryOp) -> string = match op {
+    .Add        -> "add"
+    .Sub        -> "sub"
+    .Mul        -> "mul"
+    .Div        -> "div"
+    .Mod        -> "mod"
+    .Shl        -> "shl"
+    .Shr        -> "shr"
+    .BitAnd     -> "bitand"
+    .BitOr      -> "bitor"
+    .BitXor     -> "bitxor"
+    .And        -> "and"
+    .Or         -> "or"
+    .Eq         -> "eq"
+    .Neq        -> "neq"
+    .Lt         -> "lt"
+    .Lte        -> "lte"
+    .Gt         -> "gt"
+    .Gte        -> "gte"
+    .AddChecked -> "add_checked"
+    .SubChecked -> "sub_checked"
+    .MulChecked -> "mul_checked"
+}
+
+/// The operator a lowered binary node applies, as the source writes it ; the
+/// checked and unchecked forms of an operation share their symbol.
+///
+/// @param op  the operator.
+export binary_op_symbol :: fn(op: LoweredBinaryOp) -> string = match op {
+    .Add | .AddChecked -> "+"
+    .Sub | .SubChecked -> "-"
+    .Mul | .MulChecked -> "*"
+    .Div               -> "/"
+    .Mod               -> "%"
+    .Shl               -> "<<"
+    .Shr               -> ">>"
+    .BitAnd            -> "&"
+    .BitOr             -> "|"
+    .BitXor            -> "^"
+    .And               -> "&&"
+    .Or                -> "||"
+    .Eq                -> "=="
+    .Neq               -> "!="
+    .Lt                -> "<"
+    .Lte               -> "<="
+    .Gt                -> ">"
+    .Gte               -> ">="
+}
+
 export LoweredBinary :: struct {
     span:  Span
     type:  Type

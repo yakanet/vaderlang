@@ -1,41 +1,27 @@
 # Lower
 
 ## snippet
-  fn snippet$main() -> i32
-    let x: i32 = int(10) :i32
-    let add_x: __lambda_env_snippet_1 =
-      __lambda_env_snippet_1 {
-        cap_0: x :i32
-      }
-    return
-      call :i32
-        callee:
-          __lambda_snippet_0 :fn(i32) -> i32
-        arg0:
-          add_x :__lambda_env_snippet_1
-        arg1:
-          int(5) :i32
-  struct __lambda_env_snippet_1 { cap_0: i32 }
-  fn __lambda_snippet_0(__env_0: __lambda_env_snippet_1, y: i32) -> i32
-    return
-      add_checked :i32
-        l:
-          .cap_0 :i32
-            __env_0 :__lambda_env_snippet_1
-        r:
-          y :i32
+  snippet.main :: fn() -> i32 {  // snippet$main
+      x: i32 = 10
+      add_x: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = x }
+      return __lambda_snippet_0(add_x, 5)
+  }
+  __lambda_env_snippet_1 :: struct { cap_0: i32 }
+  __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1, y: i32) -> i32 {
+      return __env_0.cap_0 + y
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$three_way
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize

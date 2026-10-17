@@ -1,1544 +1,406 @@
 # Lower
 
 ## snippet
-  fn snippet$upto(n: i32) -> Iterator<i32>
-    return
-      __genstate_upto {
-        s0: n :i32
-        s1: int(0) :i32
-        state: int(5) :i32
+  snippet$upto :: fn(n: i32) -> Iterator<i32> {
+      return __genstate_upto {
+          .s0 = n,
+          .s1 = 0,
+          .state = 5,
       }
-  fn snippet$upto_1(s: string) -> Iterator<string>
-    return
-      __genstate_upto_1 {
-        s0: s :string
-        s1: int(0) :usize
-        s2: int(0) :usize
-        s3: "" :string
-        s4: null
-        s5: int(0) :usize
-        state: int(5) :i32
+  }
+  snippet$upto_1 :: fn(s: string) -> Iterator<string> {
+      return __genstate_upto_1 {
+          .s0 = s,
+          .s1 = usize(0),
+          .s2 = usize(0),
+          .s3 = "",
+          .s4 = null,
+          .s5 = usize(0),
+          .state = 5,
       }
-  fn snippet$main() -> i32
-    block :void
-      let n: i32 = int(2) :i32
-      block :void
-        let i: i32 = int(0) :i32
-        loop while (<…>)
-          let x: i32 = i :i32
-          call :void
-            callee:
-              std_io$println__string :void
-            arg0:
-              block :string
-                let __buf_0: Buffer =
-                  call :Buffer
-                    callee:
-                      new_byte_buffer :Buffer
-                    arg0:
-                      int(26) :usize
-                let __off_1: usize = int(0) :usize
-                assign
-                  target:
-                    __off_1 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_string_at :usize
-                      arg0:
-                        __buf_0 :Buffer
-                      arg1:
-                        __off_1 :usize
-                      arg2:
-                        "fused " :string
-                assign
-                  target:
-                    __off_1 :usize
-                  value:
-                    call :usize
-                      callee:
-                        write_int :usize
-                      arg0:
-                        __buf_0 :Buffer
-                      arg1:
-                        __off_1 :usize
-                      arg2:
-                        cast → i64
-                          x :i32
-                ~>
-                  call :string
-                    callee:
-                      finish_buffer :string
-                    arg0:
-                      __buf_0 :Buffer
-                    arg1:
-                      __off_1 :usize
-        step
-          assign
-            target:
-              i :i32
-            value:
-              add :i32
-                l:
-                  i :i32
-                r:
-                  int(1) :i32
-    block :void
-      let s: string = "ab" :string
-      block :void
-        let i: usize = int(0) :usize
-        let __for_hi_3: usize =
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              s :string
-        loop while (<…>)
-          let w: string =
-            block :string
-              let __p_0: string = s :string
-              let __buf_1: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    add :usize
-                      l:
-                        int(20) :usize
-                      r:
-                        call :usize
-                          callee:
-                            byte_len :usize
-                          arg0:
-                            __p_0 :string
-              let __off_2: usize = int(0) :usize
-              assign
-                target:
-                  __off_2 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_1 :Buffer
-                    arg1:
-                      __off_2 :usize
-                    arg2:
-                      __p_0 :string
-              assign
-                target:
-                  __off_2 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_unsigned :usize
-                    arg0:
-                      __buf_1 :Buffer
-                    arg1:
-                      __off_2 :usize
-                    arg2:
-                      cast → u64
-                        i :usize
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_1 :Buffer
-                  arg1:
-                    __off_2 :usize
-          call :void
-            callee:
-              std_io$println__string :void
-            arg0:
-              call :string
-                callee:
-                  concat_2 :string
-                arg0:
-                  "fused " :string
-                arg1:
-                  w :string
-        step
-          assign
-            target:
-              i :usize
-            value:
-              add :usize
-                l:
-                  i :usize
-                r:
-                  int(1) :usize
-    block :void
-      let limit: f64 = float(1.0) :f64
-      let x: f64 = float(0.5) :f64
-      loop while (<…>)
-        let h: f64 = x :f64
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                concat_2 :string
-              arg0:
-                "fused " :string
-              arg1:
-                call :string
-                  callee:
-                    std_core$f64$Display$to_string :string
-                  arg0:
-                    h :f64
-        assign
-          target:
-            x :f64
-          value:
-            add_checked :f64
-              l:
-                x :f64
-              r:
-                float(0.5) :f64
-    let words: __genstate_upto_1<string> =
-      call :__genstate_upto_1<string>
-        callee:
-          upto :fn(string) -> Iterator<string>
-        arg0:
-          "xyz" :string
-    let numbers: __genstate_upto<i32> =
-      call :__genstate_upto<i32>
-        callee:
-          upto :fn(i32) -> Iterator<i32>
-        arg0:
-          int(3) :i32
-    let halves: __genstate_upto<f64> =
-      call :__genstate_upto<f64>
-        callee:
-          upto :fn(f64) -> Iterator<f64>
-        arg0:
-          float(1.5) :f64
-    block :void
-      let __iter_2: Iterator<string> = words :__genstate_upto_1<string>
-      loop
-        let __step_3: [string, Continuation] =
-          vcall std_core$Iterator.next :[string, Continuation]
-            recv:
-              __iter_2 :Iterator<string>
-        if :void
-          cond:
-            eq :bool
-              l:
-                ._1 :Continuation
-                  __step_3 :[string, Continuation]
-              r:
-                int(1) :u8
-          then:
-            break
-          else:
-            let w: string =
-              ._0 :string
-                __step_3 :[string, Continuation]
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    "lazy " :string
-                  arg1:
-                    w :string
-    block :void
-      let __iter_4: Iterator<i32> = numbers :__genstate_upto<i32>
-      loop
-        let __step_5: [i32, Continuation] =
-          vcall std_core$Iterator.next :[i32, Continuation]
-            recv:
-              __iter_4 :Iterator<i32>
-        if :void
-          cond:
-            eq :bool
-              l:
-                ._1 :Continuation
-                  __step_5 :[i32, Continuation]
-              r:
-                int(1) :u8
-          then:
-            break
-          else:
-            let x: i32 =
-              ._0 :i32
-                __step_5 :[i32, Continuation]
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                block :string
-                  let __buf_6: Buffer =
-                    call :Buffer
-                      callee:
-                        new_byte_buffer :Buffer
-                      arg0:
-                        int(25) :usize
-                  let __off_7: usize = int(0) :usize
-                  assign
-                    target:
-                      __off_7 :usize
-                    value:
-                      call :usize
-                        callee:
-                          write_string_at :usize
-                        arg0:
-                          __buf_6 :Buffer
-                        arg1:
-                          __off_7 :usize
-                        arg2:
-                          "lazy " :string
-                  assign
-                    target:
-                      __off_7 :usize
-                    value:
-                      call :usize
-                        callee:
-                          write_int :usize
-                        arg0:
-                          __buf_6 :Buffer
-                        arg1:
-                          __off_7 :usize
-                        arg2:
-                          cast → i64
-                            x :i32
-                  ~>
-                    call :string
-                      callee:
-                        finish_buffer :string
-                      arg0:
-                        __buf_6 :Buffer
-                      arg1:
-                        __off_7 :usize
-    block :void
-      let __iter_8: Iterator<f64> = halves :__genstate_upto<f64>
-      loop
-        let __step_9: [f64, Continuation] =
-          vcall std_core$Iterator.next :[f64, Continuation]
-            recv:
-              __iter_8 :Iterator<f64>
-        if :void
-          cond:
-            eq :bool
-              l:
-                ._1 :Continuation
-                  __step_9 :[f64, Continuation]
-              r:
-                int(1) :u8
-          then:
-            break
-          else:
-            let h: f64 =
-              ._0 :f64
-                __step_9 :[f64, Continuation]
-            call :void
-              callee:
-                std_io$println__string :void
-              arg0:
-                call :string
-                  callee:
-                    concat_2 :string
-                  arg0:
-                    "lazy " :string
-                  arg1:
-                    call :string
-                      callee:
-                        std_core$f64$Display$to_string :string
-                      arg0:
-                        h :f64
-    let lengths: usize[] =
-      block :usize[]
-        let s: string = "pq" :string
-        let f: fn(string) -> usize = __lambda_snippet_0 :fn(string) -> usize
-        let out: usize[] =
-          array :usize[]
-        block :void
-          block :void
-            let i: usize = int(0) :usize
-            let __for_hi_3: usize =
-              call :usize
-                callee:
-                  byte_len :usize
-                arg0:
-                  s :string
-            loop while (<…>)
-              let x: string =
-                block :string
-                  let __p_0: string = s :string
-                  let __buf_1: Buffer =
-                    call :Buffer
-                      callee:
-                        new_byte_buffer :Buffer
-                      arg0:
-                        add :usize
-                          l:
-                            int(20) :usize
-                          r:
-                            call :usize
-                              callee:
-                                byte_len :usize
-                              arg0:
-                                __p_0 :string
-                  let __off_2: usize = int(0) :usize
-                  assign
-                    target:
-                      __off_2 :usize
-                    value:
-                      call :usize
-                        callee:
-                          write_string_at :usize
-                        arg0:
-                          __buf_1 :Buffer
-                        arg1:
-                          __off_2 :usize
-                        arg2:
-                          __p_0 :string
-                  assign
-                    target:
-                      __off_2 :usize
-                    value:
-                      call :usize
-                        callee:
-                          write_unsigned :usize
-                        arg0:
-                          __buf_1 :Buffer
-                        arg1:
-                          __off_2 :usize
-                        arg2:
-                          cast → u64
-                            i :usize
-                  ~>
-                    call :string
-                      callee:
-                        finish_buffer :string
-                      arg0:
-                        __buf_1 :Buffer
-                      arg1:
-                        __off_2 :usize
-              let x: usize =
-                call :usize
-                  callee:
-                    __lambda_snippet_0 :fn(string) -> usize
-                  arg0:
-                    x :string
-              LoweredArrayPush
-            step
-              assign
-                target:
-                  i :usize
-                value:
-                  add :usize
-                    l:
-                      i :usize
-                    r:
-                      int(1) :usize
-        ~>
-          out :usize[]
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_11: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(41) :usize
-          let __off_12: usize = int(0) :usize
-          assign
-            target:
-              __off_12 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_11 :Buffer
-                arg1:
-                  __off_12 :usize
-                arg2:
-                  cast → u64
-                    LoweredArrayLen
-          assign
-            target:
-              __off_12 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_11 :Buffer
-                arg1:
-                  __off_12 :usize
-                arg2:
-                  " " :string
-          assign
-            target:
-              __off_12 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_11 :Buffer
-                arg1:
-                  __off_12 :usize
-                arg2:
-                  cast → u64
-                    index :usize
-                      on:
-                        lengths :usize[]
-                      ix:
-                        int(0) :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_11 :Buffer
-              arg1:
-                __off_12 :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_14: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(20) :usize
-          let __off_15: usize = int(0) :usize
-          assign
-            target:
-              __off_15 :usize
-            value:
-              call :usize
-                callee:
-                  write_unsigned :usize
-                arg0:
-                  __buf_14 :Buffer
-                arg1:
-                  __off_15 :usize
-                arg2:
-                  cast → u64
-                    block :usize
-                      let n: i32 = int(4) :i32
-                      let pred: fn(i32) -> bool = __lambda_snippet_1 :fn(i32) -> bool
-                      let total: usize = int(0) :usize
-                      block :void
-                        block :void
-                          let i: i32 = int(0) :i32
-                          loop while (<…>)
-                            let x: i32 = i :i32
-                            if :void
-                              cond:
-                                call :bool
-                                  callee:
-                                    __lambda_snippet_1 :fn(i32) -> bool
-                                  arg0:
-                                    x :i32
-                              then:
-                                let _: i32 = x :i32
-                                assign
-                                  target:
-                                    total :usize
-                                  value:
-                                    add_checked :usize
-                                      l:
-                                        total :usize
-                                      r:
-                                        int(1) :usize
-                          step
-                            assign
-                              target:
-                                i :i32
-                              value:
-                                add :i32
-                                  l:
-                                    i :i32
-                                  r:
-                                    int(1) :i32
-                      ~>
-                        total :usize
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_14 :Buffer
-              arg1:
-                __off_15 :usize
-    block :void
-      let s: string = "k" :string
-      block :void
-        let i: usize = int(0) :usize
-        let __for_hi_3: usize =
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              s :string
-        loop while (<…>)
-          let w: string =
-            block :string
-              let __p_0: string = s :string
-              let __buf_1: Buffer =
-                call :Buffer
-                  callee:
-                    new_byte_buffer :Buffer
-                  arg0:
-                    add :usize
-                      l:
-                        int(20) :usize
-                      r:
-                        call :usize
-                          callee:
-                            byte_len :usize
-                          arg0:
-                            __p_0 :string
-              let __off_2: usize = int(0) :usize
-              assign
-                target:
-                  __off_2 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_string_at :usize
-                    arg0:
-                      __buf_1 :Buffer
-                    arg1:
-                      __off_2 :usize
-                    arg2:
-                      __p_0 :string
-              assign
-                target:
-                  __off_2 :usize
-                value:
-                  call :usize
-                    callee:
-                      write_unsigned :usize
-                    arg0:
-                      __buf_1 :Buffer
-                    arg1:
-                      __off_2 :usize
-                    arg2:
-                      cast → u64
-                        i :usize
-              ~>
-                call :string
-                  callee:
-                    finish_buffer :string
-                  arg0:
-                    __buf_1 :Buffer
-                  arg1:
-                    __off_2 :usize
-          call :void
-            callee:
-              std_io$println__string :void
-            arg0:
-              call :string
-                callee:
-                  concat_2 :string
-                arg0:
-                  "ufcs " :string
-                arg1:
-                  w :string
-        step
-          assign
-            target:
-              i :usize
-            value:
-              add :usize
-                l:
-                  i :usize
-                r:
-                  int(1) :usize
-    return int(0) :i32
-  struct snippet$__genstate_upto { s0: i32, s1: i32, state: i32 }
-  fn snippet$__genstate_upto$Iterator$next(self: __genstate_upto) -> [i32, Continuation]
-    loop :dispatch$
-      if :void
-        cond:
-          eq :bool
-            l:
-              .state :i32
-                __self_0 :__genstate_upto
-            r:
-              int(0) :i32
-        then:
-          assign
-            target:
-              .state :i32
-                __self_0 :__genstate_upto
-            value:
-              int(-1) :i32
-        else:
-          if :void
-            cond:
-              eq :bool
-                l:
-                  .state :i32
-                    __self_0 :__genstate_upto
-                r:
-                  int(1) :i32
-            then:
-              assign
-                target:
-                  .state :i32
-                    __self_0 :__genstate_upto
-                value:
-                  int(0) :i32
-            else:
-              if :void
-                cond:
-                  eq :bool
-                    l:
-                      .state :i32
-                        __self_0 :__genstate_upto
-                    r:
-                      int(2) :i32
-                then:
-                  if :void
-                    cond:
-                      lt :bool
-                        l:
-                          .s1 :i32
-                            __self_0 :__genstate_upto
-                        r:
-                          .s0 :i32
-                            __self_0 :__genstate_upto
-                    then:
-                      assign
-                        target:
-                          .state :i32
-                            __self_0 :__genstate_upto
-                        value:
-                          int(4) :i32
-                    else:
-                      assign
-                        target:
-                          .state :i32
-                            __self_0 :__genstate_upto
-                        value:
-                          int(1) :i32
-                else:
-                  if :void
-                    cond:
-                      eq :bool
-                        l:
-                          .state :i32
-                            __self_0 :__genstate_upto
-                        r:
-                          int(3) :i32
-                    then:
-                      assign
-                        target:
-                          .s1 :i32
-                            __self_0 :__genstate_upto
-                        value:
-                          add :i32
-                            l:
-                              .s1 :i32
-                                __self_0 :__genstate_upto
-                            r:
-                              int(1) :i32
-                      assign
-                        target:
-                          .state :i32
-                            __self_0 :__genstate_upto
-                        value:
-                          int(2) :i32
-                    else:
-                      if :void
-                        cond:
-                          eq :bool
-                            l:
-                              .state :i32
-                                __self_0 :__genstate_upto
-                            r:
-                              int(4) :i32
-                        then:
-                          assign
-                            target:
-                              .state :i32
-                                __self_0 :__genstate_upto
-                            value:
-                              int(3) :i32
-                          return
-                            [i32, Continuation] {
-                              _0:
-                                .s1 :i32
-                                  __self_0 :__genstate_upto
-                              _1: int(0) :u8
-                            }
-                        else:
-                          if :void
-                            cond:
-                              eq :bool
-                                l:
-                                  .state :i32
-                                    __self_0 :__genstate_upto
-                                r:
-                                  int(5) :i32
-                            then:
-                              assign
-                                target:
-                                  .s1 :i32
-                                    __self_0 :__genstate_upto
-                                value:
-                                  int(0) :i32
-                              assign
-                                target:
-                                  .state :i32
-                                    __self_0 :__genstate_upto
-                                value:
-                                  int(2) :i32
-                            else:
-                              return
-                                [i32, Continuation] {
-                                  _0: int(0) :i32
-                                  _1: int(1) :u8
-                                }
-  struct snippet$__genstate_upto_1 { s0: string, s1: usize, s2: usize, s3: string, s4: Buffer, s5: usize, state: i32 }
-  fn snippet$__genstate_upto_1$Iterator$next(self: __genstate_upto_1) -> [string, Continuation]
-    loop :dispatch$
-      if :void
-        cond:
-          eq :bool
-            l:
-              .state :i32
-                __self_4 :__genstate_upto_1
-            r:
-              int(0) :i32
-        then:
-          assign
-            target:
-              .state :i32
-                __self_4 :__genstate_upto_1
-            value:
-              int(-1) :i32
-        else:
-          if :void
-            cond:
-              eq :bool
-                l:
-                  .state :i32
-                    __self_4 :__genstate_upto_1
-                r:
-                  int(1) :i32
-            then:
-              assign
-                target:
-                  .state :i32
-                    __self_4 :__genstate_upto_1
-                value:
-                  int(0) :i32
-            else:
-              if :void
-                cond:
-                  eq :bool
-                    l:
-                      .state :i32
-                        __self_4 :__genstate_upto_1
-                    r:
-                      int(2) :i32
-                then:
-                  if :void
-                    cond:
-                      lt :bool
-                        l:
-                          .s1 :usize
-                            __self_4 :__genstate_upto_1
-                        r:
-                          .s2 :usize
-                            __self_4 :__genstate_upto_1
-                    then:
-                      assign
-                        target:
-                          .state :i32
-                            __self_4 :__genstate_upto_1
-                        value:
-                          int(4) :i32
-                    else:
-                      assign
-                        target:
-                          .state :i32
-                            __self_4 :__genstate_upto_1
-                        value:
-                          int(1) :i32
-                else:
-                  if :void
-                    cond:
-                      eq :bool
-                        l:
-                          .state :i32
-                            __self_4 :__genstate_upto_1
-                        r:
-                          int(3) :i32
-                    then:
-                      assign
-                        target:
-                          .s1 :usize
-                            __self_4 :__genstate_upto_1
-                        value:
-                          add :usize
-                            l:
-                              .s1 :usize
-                                __self_4 :__genstate_upto_1
-                            r:
-                              int(1) :usize
-                      assign
-                        target:
-                          .state :i32
-                            __self_4 :__genstate_upto_1
-                        value:
-                          int(2) :i32
-                    else:
-                      if :void
-                        cond:
-                          eq :bool
-                            l:
-                              .state :i32
-                                __self_4 :__genstate_upto_1
-                            r:
-                              int(4) :i32
-                        then:
-                          assign
-                            target:
-                              .state :i32
-                                __self_4 :__genstate_upto_1
-                            value:
-                              int(3) :i32
-                          return
-                            [string, Continuation] {
-                              _0:
-                                block :string
-                                  assign
-                                    target:
-                                      .s3 :string
-                                        __self_4 :__genstate_upto_1
-                                    value:
-                                      .s0 :string
-                                        __self_4 :__genstate_upto_1
-                                  assign
-                                    target:
-                                      .s4 :Buffer
-                                        __self_4 :__genstate_upto_1
-                                    value:
-                                      call :Buffer
-                                        callee:
-                                          new_byte_buffer :Buffer
-                                        arg0:
-                                          add :usize
-                                            l:
-                                              int(20) :usize
-                                            r:
-                                              call :usize
-                                                callee:
-                                                  byte_len :usize
-                                                arg0:
-                                                  .s3 :string
-                                                    __self_4 :__genstate_upto_1
-                                  assign
-                                    target:
-                                      .s5 :usize
-                                        __self_4 :__genstate_upto_1
-                                    value:
-                                      int(0) :usize
-                                  assign
-                                    target:
-                                      .s5 :usize
-                                        __self_4 :__genstate_upto_1
-                                    value:
-                                      call :usize
-                                        callee:
-                                          write_string_at :usize
-                                        arg0:
-                                          .s4 :Buffer
-                                            __self_4 :__genstate_upto_1
-                                        arg1:
-                                          .s5 :usize
-                                            __self_4 :__genstate_upto_1
-                                        arg2:
-                                          .s3 :string
-                                            __self_4 :__genstate_upto_1
-                                  assign
-                                    target:
-                                      .s5 :usize
-                                        __self_4 :__genstate_upto_1
-                                    value:
-                                      call :usize
-                                        callee:
-                                          write_unsigned :usize
-                                        arg0:
-                                          .s4 :Buffer
-                                            __self_4 :__genstate_upto_1
-                                        arg1:
-                                          .s5 :usize
-                                            __self_4 :__genstate_upto_1
-                                        arg2:
-                                          cast → u64
-                                            .s1 :usize
-                                              __self_4 :__genstate_upto_1
-                                  ~>
-                                    call :string
-                                      callee:
-                                        finish_buffer :string
-                                      arg0:
-                                        .s4 :Buffer
-                                          __self_4 :__genstate_upto_1
-                                      arg1:
-                                        .s5 :usize
-                                          __self_4 :__genstate_upto_1
-                              _1: int(0) :u8
-                            }
-                        else:
-                          if :void
-                            cond:
-                              eq :bool
-                                l:
-                                  .state :i32
-                                    __self_4 :__genstate_upto_1
-                                r:
-                                  int(5) :i32
-                            then:
-                              assign
-                                target:
-                                  .s1 :usize
-                                    __self_4 :__genstate_upto_1
-                                value:
-                                  int(0) :usize
-                              assign
-                                target:
-                                  .s2 :usize
-                                    __self_4 :__genstate_upto_1
-                                value:
-                                  call :usize
-                                    callee:
-                                      byte_len :usize
-                                    arg0:
-                                      .s0 :string
-                                        __self_4 :__genstate_upto_1
-                              assign
-                                target:
-                                  .state :i32
-                                    __self_4 :__genstate_upto_1
-                                value:
-                                  int(2) :i32
-                            else:
-                              return
-                                [string, Continuation] {
-                                  _0: "" :string
-                                  _1: int(1) :u8
-                                }
-  fn __lambda_snippet_0(w: string) -> usize
-    ~>
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          w :string
-  fn __lambda_snippet_1(x: i32) -> bool
-    ~>
-      eq :bool
-        l:
-          mod :i32
-            l:
-              x :i32
-            r:
-              int(2) :i32
-        r:
-          int(0) :i32
-  fn snippet$upto_1(s: string) -> Iterator<string>
-    return
-      __genstate_upto_1 {
-        s0: s :string
-        s1: int(0) :usize
-        s2: int(0) :usize
-        s3: "" :string
-        s4: null
-        s5: int(0) :usize
-        state: int(5) :i32
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      {
+          n: i32 = 2
+          {
+              i: i32 = 0
+              for i < n {
+                  x: i32 = i
+                  std.io.println<string>({
+                      __buf_0: Buffer = std.core.new_byte_buffer(usize(26))
+                      __off_1: usize = 0
+                      __off_1 = std.core.write_string_at(__buf_0, __off_1, "fused ")
+                      __off_1 = std.core.write_int(__buf_0, __off_1, i64(x))
+                      std.core.finish_buffer(__buf_0, __off_1)
+                  } :string)
+              } @step {
+                  i = i +% 1
+              }
+          }
       }
-  struct snippet$__genstate_upto_1 { s0: string, s1: usize, s2: usize, s3: string, s4: Buffer, s5: usize, state: i32 }
-  fn snippet$__genstate_upto_1$Iterator$next(self: __genstate_upto_1) -> [string, Continuation]
-    loop :dispatch$
-      if :void
-        cond:
-          eq :bool
-            l:
-              .state :i32
-                __self_4 :__genstate_upto_1
-            r:
-              int(0) :i32
-        then:
-          assign
-            target:
-              .state :i32
-                __self_4 :__genstate_upto_1
-            value:
-              int(-1) :i32
-        else:
-          if :void
-            cond:
-              eq :bool
-                l:
-                  .state :i32
-                    __self_4 :__genstate_upto_1
-                r:
-                  int(1) :i32
-            then:
-              assign
-                target:
-                  .state :i32
-                    __self_4 :__genstate_upto_1
-                value:
-                  int(0) :i32
-            else:
-              if :void
-                cond:
-                  eq :bool
-                    l:
-                      .state :i32
-                        __self_4 :__genstate_upto_1
-                    r:
-                      int(2) :i32
-                then:
-                  if :void
-                    cond:
-                      lt :bool
-                        l:
-                          .s1 :usize
-                            __self_4 :__genstate_upto_1
-                        r:
-                          .s2 :usize
-                            __self_4 :__genstate_upto_1
-                    then:
-                      assign
-                        target:
-                          .state :i32
-                            __self_4 :__genstate_upto_1
-                        value:
-                          int(4) :i32
-                    else:
-                      assign
-                        target:
-                          .state :i32
-                            __self_4 :__genstate_upto_1
-                        value:
-                          int(1) :i32
-                else:
-                  if :void
-                    cond:
-                      eq :bool
-                        l:
-                          .state :i32
-                            __self_4 :__genstate_upto_1
-                        r:
-                          int(3) :i32
-                    then:
-                      assign
-                        target:
-                          .s1 :usize
-                            __self_4 :__genstate_upto_1
-                        value:
-                          add :usize
-                            l:
-                              .s1 :usize
-                                __self_4 :__genstate_upto_1
-                            r:
-                              int(1) :usize
-                      assign
-                        target:
-                          .state :i32
-                            __self_4 :__genstate_upto_1
-                        value:
-                          int(2) :i32
-                    else:
-                      if :void
-                        cond:
-                          eq :bool
-                            l:
-                              .state :i32
-                                __self_4 :__genstate_upto_1
-                            r:
-                              int(4) :i32
-                        then:
-                          assign
-                            target:
-                              .state :i32
-                                __self_4 :__genstate_upto_1
-                            value:
-                              int(3) :i32
-                          return
-                            [string, Continuation] {
-                              _0:
-                                block :string
-                                  assign
-                                    target:
-                                      .s3 :string
-                                        __self_4 :__genstate_upto_1
-                                    value:
-                                      .s0 :string
-                                        __self_4 :__genstate_upto_1
-                                  assign
-                                    target:
-                                      .s4 :Buffer
-                                        __self_4 :__genstate_upto_1
-                                    value:
-                                      call :Buffer
-                                        callee:
-                                          new_byte_buffer :Buffer
-                                        arg0:
-                                          add :usize
-                                            l:
-                                              int(20) :usize
-                                            r:
-                                              call :usize
-                                                callee:
-                                                  byte_len :usize
-                                                arg0:
-                                                  .s3 :string
-                                                    __self_4 :__genstate_upto_1
-                                  assign
-                                    target:
-                                      .s5 :usize
-                                        __self_4 :__genstate_upto_1
-                                    value:
-                                      int(0) :usize
-                                  assign
-                                    target:
-                                      .s5 :usize
-                                        __self_4 :__genstate_upto_1
-                                    value:
-                                      call :usize
-                                        callee:
-                                          write_string_at :usize
-                                        arg0:
-                                          .s4 :Buffer
-                                            __self_4 :__genstate_upto_1
-                                        arg1:
-                                          .s5 :usize
-                                            __self_4 :__genstate_upto_1
-                                        arg2:
-                                          .s3 :string
-                                            __self_4 :__genstate_upto_1
-                                  assign
-                                    target:
-                                      .s5 :usize
-                                        __self_4 :__genstate_upto_1
-                                    value:
-                                      call :usize
-                                        callee:
-                                          write_unsigned :usize
-                                        arg0:
-                                          .s4 :Buffer
-                                            __self_4 :__genstate_upto_1
-                                        arg1:
-                                          .s5 :usize
-                                            __self_4 :__genstate_upto_1
-                                        arg2:
-                                          cast → u64
-                                            .s1 :usize
-                                              __self_4 :__genstate_upto_1
-                                  ~>
-                                    call :string
-                                      callee:
-                                        finish_buffer :string
-                                      arg0:
-                                        .s4 :Buffer
-                                          __self_4 :__genstate_upto_1
-                                      arg1:
-                                        .s5 :usize
-                                          __self_4 :__genstate_upto_1
-                              _1: int(0) :u8
-                            }
-                        else:
-                          if :void
-                            cond:
-                              eq :bool
-                                l:
-                                  .state :i32
-                                    __self_4 :__genstate_upto_1
-                                r:
-                                  int(5) :i32
-                            then:
-                              assign
-                                target:
-                                  .s1 :usize
-                                    __self_4 :__genstate_upto_1
-                                value:
-                                  int(0) :usize
-                              assign
-                                target:
-                                  .s2 :usize
-                                    __self_4 :__genstate_upto_1
-                                value:
-                                  call :usize
-                                    callee:
-                                      byte_len :usize
-                                    arg0:
-                                      .s0 :string
-                                        __self_4 :__genstate_upto_1
-                              assign
-                                target:
-                                  .state :i32
-                                    __self_4 :__genstate_upto_1
-                                value:
-                                  int(2) :i32
-                            else:
-                              return
-                                [string, Continuation] {
-                                  _0: "" :string
-                                  _1: int(1) :u8
-                                }
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
-  vtable std_core$Iterator.next for __genstate_upto  snippet$__genstate_upto$Iterator$next
-  vtable std_core$Iterator.next for __genstate_upto_1  snippet$__genstate_upto_1$Iterator$next
-  vtable std_core$Iterator.next for __genstate_upto_1  snippet$__genstate_upto_1$Iterator$next
+      {
+          s: string = "ab"
+          {
+              i: usize = 0
+              __for_hi_3: usize = std.core.byte_len(s)
+              for i < __for_hi_3 {
+                  w: string = {
+                      __p_0: string = s
+                      __buf_1: Buffer = std.core.new_byte_buffer(usize(20) +% std.core.byte_len(__p_0))
+                      __off_2: usize = 0
+                      __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+                      __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(i))
+                      std.core.finish_buffer(__buf_1, __off_2)
+                  }
+                  std.io.println<string>(concat_2("fused ", w))
+              } @step {
+                  i = i +% usize(1)
+              }
+          }
+      }
+      {
+          limit: f64 = 1.0
+          x: f64 = 0.5
+          for x <= limit {
+              h: f64 = x
+              std.io.println<string>(concat_2("fused ", std.core.f64.to_string(h)))
+              x = x + 0.5
+          }
+      }
+      words: __genstate_upto_1<string> = snippet$upto_1("xyz")
+      numbers: __genstate_upto<i32> = snippet$upto(3)
+      halves: __genstate_upto<f64> = snippet.halves.upto(1.5)
+      {
+          __iter_2: Iterator<string> = words
+          for {
+              __step_3: [string, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
+              if __step_3._1 == u8(1) {
+                  break
+              } else {
+                  w: string = __step_3._0
+                  std.io.println<string>(concat_2("lazy ", w))
+              }
+          }
+      }
+      {
+          __iter_4: Iterator<i32> = numbers
+          for {
+              __step_5: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_4)
+              if __step_5._1 == u8(1) {
+                  break
+              } else {
+                  x: i32 = __step_5._0
+                  std.io.println<string>({
+                      __buf_6: Buffer = std.core.new_byte_buffer(usize(25))
+                      __off_7: usize = 0
+                      __off_7 = std.core.write_string_at(__buf_6, __off_7, "lazy ")
+                      __off_7 = std.core.write_int(__buf_6, __off_7, i64(x))
+                      std.core.finish_buffer(__buf_6, __off_7)
+                  } :string)
+              }
+          }
+      }
+      {
+          __iter_8: Iterator<f64> = halves
+          for {
+              __step_9: [f64, Continuation] = @vcall(std.core.Iterator.next, __iter_8)
+              if __step_9._1 == u8(1) {
+                  break
+              } else {
+                  h: f64 = __step_9._0
+                  std.io.println<string>(concat_2("lazy ", std.core.f64.to_string(h)))
+              }
+          }
+      }
+      lengths: usize[] = {
+          s: string = "pq"
+          f: fn(string) -> usize = __lambda_snippet_0
+          out: usize[] = [] :usize[]
+          {
+              {
+                  i: usize = 0
+                  __for_hi_3: usize = std.core.byte_len(s)
+                  for i < __for_hi_3 {
+                      x: string = {
+                          __p_0: string = s
+                          __buf_1: Buffer = std.core.new_byte_buffer(usize(20) +% std.core.byte_len(__p_0))
+                          __off_2: usize = 0
+                          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+                          __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(i))
+                          std.core.finish_buffer(__buf_1, __off_2)
+                      }
+                      x: usize = __lambda_snippet_0(x)
+                      @array.push(out, x)
+                  } @step {
+                      i = i +% usize(1)
+                  }
+              }
+          }
+          out
+      }
+      std.io.println<string>({
+          __buf_11: Buffer = std.core.new_byte_buffer(usize(41))
+          __off_12: usize = 0
+          __off_12 = std.core.write_unsigned(__buf_11, __off_12, u64(@array.len(lengths)))
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
+          __off_12 = std.core.write_unsigned(__buf_11, __off_12, u64(lengths[0]))
+          std.core.finish_buffer(__buf_11, __off_12)
+      } :string)
+      std.io.println<string>({
+          __buf_14: Buffer = std.core.new_byte_buffer(usize(20))
+          __off_15: usize = 0
+          __off_15 = std.core.write_unsigned(__buf_14, __off_15, u64({
+              n: i32 = 4
+              pred: fn(i32) -> bool = __lambda_snippet_1
+              total: usize = 0
+              {
+                  {
+                      i: i32 = 0
+                      for i < n {
+                          x: i32 = i
+                          if __lambda_snippet_1(x) {
+                              _: i32 = x
+                              total = total + usize(1)
+                          }
+                      } @step {
+                          i = i +% 1
+                      }
+                  }
+              }
+              total
+          } :usize))
+          std.core.finish_buffer(__buf_14, __off_15)
+      } :string)
+      {
+          s: string = "k"
+          {
+              i: usize = 0
+              __for_hi_3: usize = std.core.byte_len(s)
+              for i < __for_hi_3 {
+                  w: string = {
+                      __p_0: string = s
+                      __buf_1: Buffer = std.core.new_byte_buffer(usize(20) +% std.core.byte_len(__p_0))
+                      __off_2: usize = 0
+                      __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+                      __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(i))
+                      std.core.finish_buffer(__buf_1, __off_2)
+                  }
+                  std.io.println<string>(concat_2("ufcs ", w))
+              } @step {
+                  i = i +% usize(1)
+              }
+          }
+      }
+      return 0
+  }
+  snippet$__genstate_upto :: struct { s0: i32, s1: i32, state: i32 }
+  snippet$__genstate_upto$Iterator$next :: fn(self: __genstate_upto) -> [i32, Continuation] {
+      dispatch$: for {
+          if __self_0.state == 0 {
+              __self_0.state = -1
+          } else if __self_0.state == 1 {
+              __self_0.state = 0
+          } else if __self_0.state == 2 {
+              if __self_0.s1 < __self_0.s0 {
+                  __self_0.state = 4
+              } else {
+                  __self_0.state = 1
+              }
+          } else if __self_0.state == 3 {
+              __self_0.s1 = __self_0.s1 +% 1
+              __self_0.state = 2
+          } else if __self_0.state == 4 {
+              __self_0.state = 3
+              return [__self_0.s1, u8(0)] :[i32, Continuation]
+          } else if __self_0.state == 5 {
+              __self_0.s1 = 0
+              __self_0.state = 2
+          } else {
+              return [0, u8(1)] :[i32, Continuation]
+          }
+      }
+  }
+  snippet$__genstate_upto_1 :: struct { s0: string, s1: usize, s2: usize, s3: string, s4: Buffer, s5: usize, state: i32 }
+  snippet$__genstate_upto_1$Iterator$next :: fn(self: __genstate_upto_1) -> [string, Continuation] {
+      dispatch$: for {
+          if __self_4.state == 0 {
+              __self_4.state = -1
+          } else if __self_4.state == 1 {
+              __self_4.state = 0
+          } else if __self_4.state == 2 {
+              if __self_4.s1 < __self_4.s2 {
+                  __self_4.state = 4
+              } else {
+                  __self_4.state = 1
+              }
+          } else if __self_4.state == 3 {
+              __self_4.s1 = __self_4.s1 +% usize(1)
+              __self_4.state = 2
+          } else if __self_4.state == 4 {
+              __self_4.state = 3
+              return [{
+                  __self_4.s3 = __self_4.s0
+                  __self_4.s4 = std.core.new_byte_buffer(usize(20) +% std.core.byte_len(__self_4.s3))
+                  __self_4.s5 = 0
+                  __self_4.s5 = std.core.write_string_at(__self_4.s4, __self_4.s5, __self_4.s3)
+                  __self_4.s5 = std.core.write_unsigned(__self_4.s4, __self_4.s5, u64(__self_4.s1))
+                  std.core.finish_buffer(__self_4.s4, __self_4.s5)
+              } :string, u8(0)] :[string, Continuation]
+          } else if __self_4.state == 5 {
+              __self_4.s1 = 0
+              __self_4.s2 = std.core.byte_len(__self_4.s0)
+              __self_4.state = 2
+          } else {
+              return ["", u8(1)] :[string, Continuation]
+          }
+      }
+  }
+  __lambda_snippet_0 :: fn(w: string) -> usize {
+      std.core.byte_len(w)
+  }
+  __lambda_snippet_1 :: fn(x: i32) -> bool {
+      (x % 2) == 0
+  }
+  snippet$upto_1 :: fn(s: string) -> Iterator<string> {
+      return __genstate_upto_1 {
+          .s0 = s,
+          .s1 = usize(0),
+          .s2 = usize(0),
+          .s3 = "",
+          .s4 = null,
+          .s5 = usize(0),
+          .state = 5,
+      }
+  }
+  snippet$__genstate_upto_1 :: struct { s0: string, s1: usize, s2: usize, s3: string, s4: Buffer, s5: usize, state: i32 }
+  snippet$__genstate_upto_1$Iterator$next :: fn(self: __genstate_upto_1) -> [string, Continuation] {
+      dispatch$: for {
+          if __self_4.state == 0 {
+              __self_4.state = -1
+          } else if __self_4.state == 1 {
+              __self_4.state = 0
+          } else if __self_4.state == 2 {
+              if __self_4.s1 < __self_4.s2 {
+                  __self_4.state = 4
+              } else {
+                  __self_4.state = 1
+              }
+          } else if __self_4.state == 3 {
+              __self_4.s1 = __self_4.s1 +% usize(1)
+              __self_4.state = 2
+          } else if __self_4.state == 4 {
+              __self_4.state = 3
+              return [{
+                  __self_4.s3 = __self_4.s0
+                  __self_4.s4 = std.core.new_byte_buffer(usize(20) +% std.core.byte_len(__self_4.s3))
+                  __self_4.s5 = 0
+                  __self_4.s5 = std.core.write_string_at(__self_4.s4, __self_4.s5, __self_4.s3)
+                  __self_4.s5 = std.core.write_unsigned(__self_4.s4, __self_4.s5, u64(__self_4.s1))
+                  std.core.finish_buffer(__self_4.s4, __self_4.s5)
+              } :string, u8(0)] :[string, Continuation]
+          } else if __self_4.state == 5 {
+              __self_4.s1 = 0
+              __self_4.s2 = std.core.byte_len(__self_4.s0)
+              __self_4.state = 2
+          } else {
+              return ["", u8(1)] :[string, Continuation]
+          }
+      }
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable std.core.Iterator.next for __genstate_upto  snippet$__genstate_upto$Iterator$next
+  vtable std.core.Iterator.next for __genstate_upto_1  snippet$__genstate_upto_1$Iterator$next
+  vtable std.core.Iterator.next for __genstate_upto_1  snippet$__genstate_upto_1$Iterator$next
 
 ## snippet/halves
-  fn snippet_halves$upto(limit: f64) -> Iterator<f64>
-    return
-      __genstate_upto {
-        s0: limit :f64
-        s1: float(0.0) :f64
-        state: int(4) :i32
+  snippet.halves.upto :: fn(limit: f64) -> Iterator<f64> {  // snippet_halves$upto
+      return __genstate_upto {
+          .s0 = limit,
+          .s1 = 0.0,
+          .state = 4,
       }
-  struct snippet_halves$__genstate_upto { s0: f64, s1: f64, state: i32 }
-  fn snippet_halves$__genstate_upto$Iterator$next(self: __genstate_upto) -> [f64, Continuation]
-    loop :dispatch$
-      if :void
-        cond:
-          eq :bool
-            l:
-              .state :i32
-                __self_0 :__genstate_upto
-            r:
-              int(0) :i32
-        then:
-          assign
-            target:
-              .state :i32
-                __self_0 :__genstate_upto
-            value:
-              int(-1) :i32
-        else:
-          if :void
-            cond:
-              eq :bool
-                l:
-                  .state :i32
-                    __self_0 :__genstate_upto
-                r:
-                  int(1) :i32
-            then:
-              if :void
-                cond:
-                  lte :bool
-                    l:
-                      .s1 :f64
-                        __self_0 :__genstate_upto
-                    r:
-                      .s0 :f64
-                        __self_0 :__genstate_upto
-                then:
-                  assign
-                    target:
-                      .state :i32
-                        __self_0 :__genstate_upto
-                    value:
-                      int(3) :i32
-                else:
-                  assign
-                    target:
-                      .state :i32
-                        __self_0 :__genstate_upto
-                    value:
-                      int(0) :i32
-            else:
-              if :void
-                cond:
-                  eq :bool
-                    l:
-                      .state :i32
-                        __self_0 :__genstate_upto
-                    r:
-                      int(2) :i32
-                then:
-                  assign
-                    target:
-                      .s1 :f64
-                        __self_0 :__genstate_upto
-                    value:
-                      add_checked :f64
-                        l:
-                          .s1 :f64
-                            __self_0 :__genstate_upto
-                        r:
-                          float(0.5) :f64
-                  assign
-                    target:
-                      .state :i32
-                        __self_0 :__genstate_upto
-                    value:
-                      int(1) :i32
-                else:
-                  if :void
-                    cond:
-                      eq :bool
-                        l:
-                          .state :i32
-                            __self_0 :__genstate_upto
-                        r:
-                          int(3) :i32
-                    then:
-                      assign
-                        target:
-                          .state :i32
-                            __self_0 :__genstate_upto
-                        value:
-                          int(2) :i32
-                      return
-                        [f64, Continuation] {
-                          _0:
-                            .s1 :f64
-                              __self_0 :__genstate_upto
-                          _1: int(0) :u8
-                        }
-                    else:
-                      if :void
-                        cond:
-                          eq :bool
-                            l:
-                              .state :i32
-                                __self_0 :__genstate_upto
-                            r:
-                              int(4) :i32
-                        then:
-                          assign
-                            target:
-                              .s1 :f64
-                                __self_0 :__genstate_upto
-                            value:
-                              float(0.5) :f64
-                          assign
-                            target:
-                              .state :i32
-                                __self_0 :__genstate_upto
-                            value:
-                              int(1) :i32
-                        else:
-                          return
-                            [f64, Continuation] {
-                              _0: float(0.0) :f64
-                              _1: int(1) :u8
-                            }
-  vtable std_core$Iterator.next for __genstate_upto  snippet_halves$__genstate_upto$Iterator$next
+  }
+  snippet_halves$__genstate_upto :: struct { s0: f64, s1: f64, state: i32 }
+  snippet_halves$__genstate_upto$Iterator$next :: fn(self: __genstate_upto) -> [f64, Continuation] {
+      dispatch$: for {
+          if __self_0.state == 0 {
+              __self_0.state = -1
+          } else if __self_0.state == 1 {
+              if __self_0.s1 <= __self_0.s0 {
+                  __self_0.state = 3
+              } else {
+                  __self_0.state = 0
+              }
+          } else if __self_0.state == 2 {
+              __self_0.s1 = __self_0.s1 + 0.5
+              __self_0.state = 1
+          } else if __self_0.state == 3 {
+              __self_0.state = 2
+              return [__self_0.s1, u8(0)] :[f64, Continuation]
+          } else if __self_0.state == 4 {
+              __self_0.s1 = 0.5
+              __self_0.state = 1
+          } else {
+              return [0.0, u8(1)] :[f64, Continuation]
+          }
+      }
+  }
+  vtable std.core.Iterator.next for __genstate_upto  snippet_halves$__genstate_upto$Iterator$next
 
 ## lowered in dependencies
   std/collections
-    fn std_collections$MutableMap$Contains$contains__i32__bool
-    fn std_collections$MutableMap$Contains$contains__i32__i32
-    fn std_collections$MutableMap$Contains$contains__string__i32
-    fn std_collections$MutableMap$Index$at__i32__bool
-    fn std_collections$MutableMap$Index$at__i32__i32
-    fn std_collections$MutableMap$Index$at__string__i32
-    fn std_collections$MutableMap$IndexSet$set_at__i32__bool
-    fn std_collections$MutableMap$IndexSet$set_at__i32__i32
-    fn std_collections$MutableMap$IndexSet$set_at__string__i32
-    fn std_collections$MutableMap$Into$into__i32__bool
-    fn std_collections$MutableMap$Into$into__i32__i32
-    fn std_collections$MutableMap$Into$into__string__i32
-    fn std_collections$MutableSet$Contains$contains__i32
-    fn std_collections$MutableSet$Into$into__i32
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$IndexSet$set_at__string__i32
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$Into$into__i32
+    fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
+    fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
+    fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
+    fn std.collections.ensure_index<i32, bool>  // std_collections$ensure_index__i32__bool
+    fn std.collections.ensure_index<i32, i32>  // std_collections$ensure_index__i32__i32
+    fn std.collections.ensure_index<string, i32>  // std_collections$ensure_index__string__i32
+    fn std.collections.first_slot  // std_collections$first_slot
+    fn std.collections.get<i32, bool>  // std_collections$get__i32__bool
+    fn std.collections.get<i32, i32>  // std_collections$get__i32__i32
+    fn std.collections.get<string, i32>  // std_collections$get__string__i32
+    fn std.collections.next_slot  // std_collections$next_slot
+    fn std.collections.put<i32, bool>  // std_collections$put__i32__bool
+    fn std.collections.put<i32, i32>  // std_collections$put__i32__i32
+    fn std.collections.put<string, i32>  // std_collections$put__string__i32
+    fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
+    fn std.collections.rehash<i32, i32>  // std_collections$rehash__i32__i32
+    fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
+    fn std.collections.write_entry<i32, bool>  // std_collections$write_entry__i32__bool
+    fn std.collections.write_entry<i32, i32>  // std_collections$write_entry__i32__i32
+    fn std.collections.write_entry<string, i32>  // std_collections$write_entry__string__i32
     fn std_collections$__gen_state_std_collections_0$Iterator$next
     fn std_collections$__gen_state_std_collections_1$Iterator$next
     fn std_collections$__gen_state_std_collections_2$Iterator$next
     fn std_collections$__gen_state_std_collections_3$Iterator$next
-    fn std_collections$contains_key__i32__bool
-    fn std_collections$contains_key__i32__i32
-    fn std_collections$contains_key__string__i32
-    fn std_collections$ensure_index__i32__bool
-    fn std_collections$ensure_index__i32__i32
-    fn std_collections$ensure_index__string__i32
-    fn std_collections$first_slot
-    fn std_collections$get__i32__bool
-    fn std_collections$get__i32__i32
-    fn std_collections$get__string__i32
-    fn std_collections$next_slot
-    fn std_collections$put__i32__bool
-    fn std_collections$put__i32__i32
-    fn std_collections$put__string__i32
-    fn std_collections$rehash__i32__bool
-    fn std_collections$rehash__i32__i32
-    fn std_collections$rehash__string__i32
-    fn std_collections$write_entry__i32__bool
-    fn std_collections$write_entry__i32__i32
-    fn std_collections$write_entry__string__i32
-    struct std_collections$MutableMap__Any__Any
-    struct std_collections$MutableMap__Any__bool
-    struct std_collections$MutableMap__i32__bool
-    struct std_collections$MutableMap__i32__i32
-    struct std_collections$MutableMap__string__i32
-    struct std_collections$MutableSet__Any
-    struct std_collections$MutableSet__i32
+    struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
+    struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
+    struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
+    struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
+    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
+    struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
+    struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32
     struct std_collections$__gen_state_std_collections_0
     struct std_collections$__gen_state_std_collections_1
     struct std_collections$__gen_state_std_collections_2
@@ -1546,67 +408,67 @@
   std/core
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
     const DOUBLE_POW5_SPLIT: u64[]  data pool #1
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$memory_copy
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$b2i
-    fn std_core$b2u
-    fn std_core$d2d
-    fn std_core$decimal_width
-    fn std_core$f64$Display$to_string
-    fn std_core$f64$FloatBits$to_bits
-    fn std_core$finish_buffer
-    fn std_core$format_f64
-    fn std_core$i32$Comparable$compare
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.hash  // std_core$i32$Hash$hash
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
     fn std_core$i32$Equals$equals$guard
-    fn std_core$i32$Hash$hash
-    fn std_core$i32$Step$step
-    fn std_core$insert_point
-    fn std_core$log10_pow2
-    fn std_core$log10_pow5
-    fn std_core$mul_shift_all_64
-    fn std_core$multiple_of_power_of_2
-    fn std_core$multiple_of_power_of_5
-    fn std_core$new_byte_buffer
-    fn std_core$pow5_factor
-    fn std_core$pow5bits
-    fn std_core$render
-    fn std_core$shiftright128
     fn std_core$string$Equals$equals$guard
-    fn std_core$string$Hash$hash
-    fn std_core$three_way
-    fn std_core$umul128
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_decimal
-    fn std_core$write_digits
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    fn std_core$write_zeros
-    struct std_core$Buffer
-    struct std_core$Dec64
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Dec64  // std_core$Dec64
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

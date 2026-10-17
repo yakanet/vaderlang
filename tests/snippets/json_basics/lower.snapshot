@@ -1,535 +1,179 @@
 # Lower
 
 ## snippet
-  fn snippet$show(label: string, src: string) -> void
-    let parsed: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString =
-      call :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-        callee:
-          parse :fn(string) -> JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-        arg0:
-          src :string
-    ~>
-      block :void
-        ~>
-          if :void
-            cond:
-              is JsonError :bool
-                parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-            then:
-              ~>
-                block :void
-                  ~>
-                    call :void
-                      callee:
-                        std_io$println__string :void
-                      arg0:
-                        call :string
-                          callee:
-                            concat_3 :string
-                          arg0:
-                            label :string
-                          arg1:
-                            ": error: " :string
-                          arg2:
-                            .msg :string
-                              cast → JsonError
-                                parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-            else:
-              ~>
-                if :void
-                  cond:
-                    is JsonString :bool
-                      parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                  then:
-                    ~>
-                      block :void
-                        ~>
-                          call :void
-                            callee:
-                              std_io$println__string :void
-                            arg0:
-                              call :string
-                                callee:
-                                  concat_3 :string
-                                arg0:
-                                  label :string
-                                arg1:
-                                  ": " :string
-                                arg2:
-                                  call :string
-                                    callee:
-                                      stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                    arg0:
-                                      cast → JsonString
-                                        parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                  else:
-                    ~>
-                      if :void
-                        cond:
-                          is JsonNumber :bool
-                            parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                        then:
-                          ~>
-                            block :void
-                              ~>
-                                call :void
-                                  callee:
-                                    std_io$println__string :void
-                                  arg0:
-                                    call :string
-                                      callee:
-                                        concat_3 :string
-                                      arg0:
-                                        label :string
-                                      arg1:
-                                        ": " :string
-                                      arg2:
-                                        call :string
-                                          callee:
-                                            stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                          arg0:
-                                            cast → JsonNumber
-                                              parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                        else:
-                          ~>
-                            if :void
-                              cond:
-                                is JsonBool :bool
-                                  parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                              then:
-                                ~>
-                                  block :void
-                                    ~>
-                                      call :void
-                                        callee:
-                                          std_io$println__string :void
-                                        arg0:
-                                          call :string
-                                            callee:
-                                              concat_3 :string
-                                            arg0:
-                                              label :string
-                                            arg1:
-                                              ": " :string
-                                            arg2:
-                                              call :string
-                                                callee:
-                                                  stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                arg0:
-                                                  cast → JsonBool
-                                                    parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                              else:
-                                ~>
-                                  if :void
-                                    cond:
-                                      is JsonNull :bool
-                                        parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                    then:
-                                      ~>
-                                        block :void
-                                          ~>
-                                            call :void
-                                              callee:
-                                                std_io$println__string :void
-                                              arg0:
-                                                call :string
-                                                  callee:
-                                                    concat_3 :string
-                                                  arg0:
-                                                    label :string
-                                                  arg1:
-                                                    ": " :string
-                                                  arg2:
-                                                    call :string
-                                                      callee:
-                                                        stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                      arg0:
-                                                        cast → JsonNull
-                                                          parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                    else:
-                                      ~>
-                                        if :void
-                                          cond:
-                                            is JsonArray :bool
-                                              parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                          then:
-                                            ~>
-                                              block :void
-                                                ~>
-                                                  call :void
-                                                    callee:
-                                                      std_io$println__string :void
-                                                    arg0:
-                                                      call :string
-                                                        callee:
-                                                          concat_3 :string
-                                                        arg0:
-                                                          label :string
-                                                        arg1:
-                                                          ": " :string
-                                                        arg2:
-                                                          call :string
-                                                            callee:
-                                                              stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                            arg0:
-                                                              cast → JsonArray
-                                                                parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                          else:
-                                            ~>
-                                              if :void
-                                                cond:
-                                                  is JsonObject :bool
-                                                    parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                                then:
-                                                  ~>
-                                                    block :void
-                                                      ~>
-                                                        call :void
-                                                          callee:
-                                                            std_io$println__string :void
-                                                          arg0:
-                                                            call :string
-                                                              callee:
-                                                                concat_3 :string
-                                                              arg0:
-                                                                label :string
-                                                              arg1:
-                                                                ": " :string
-                                                              arg2:
-                                                                call :string
-                                                                  callee:
-                                                                    stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                                  arg0:
-                                                                    cast → JsonObject
-                                                                      parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                                else:
-                                                  ~>
-                                                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
-  fn snippet$main() -> i32
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "null" :string
-      arg1:
-        "null" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "true" :string
-      arg1:
-        "true" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "false" :string
-      arg1:
-        "false" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "number" :string
-      arg1:
-        "42" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "neg" :string
-      arg1:
-        "-3.14" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "expo" :string
-      arg1:
-        "1.5e2" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "string" :string
-      arg1:
-        "\"hello\"" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "escaped" :string
-      arg1:
-        "\"a\\nb\\tc\\\"d\"" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "array" :string
-      arg1:
-        "[1, 2, 3]" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "nested" :string
-      arg1:
-        "[[1, 2], [\"x\", \"y\"]]" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "object" :string
-      arg1:
-        "{\"a\": 1, \"b\": true}" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "mixed" :string
-      arg1:
-        "{\"name\": \"vader\", \"version\": 0.1, \"flags\": [\"-O0\", \"-g\"]}" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "err: trailing" :string
-      arg1:
-        "42 garbage" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "err: bad bool" :string
-      arg1:
-        "tru" :string
-    call :void
-      callee:
-        show :fn(string, string) -> void
-      arg0:
-        "err: bad escape" :string
-      arg1:
-        "\"\\q\"" :string
-    return int(0) :i32
-  fn concat_3(p0: string, p1: string, p2: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let c2: usize =
-      add :usize
-        l:
-          c1 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p2 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c2 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c1 :usize
-      arg2:
-        p2 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c2 :usize
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
+  snippet.show :: fn(label: string, src: string) -> void {  // snippet$show
+      parsed: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString = json.parse(src)
+      {
+          if parsed is JsonError {
+              {
+                  std.io.println<string>(concat_3(label, ": error: ", JsonError(parsed).msg))
+              }
+          } else if parsed is JsonString {
+              {
+                  std.io.println<string>(concat_3(label, ": ", json.stringify(JsonString(parsed))))
+              }
+          } else if parsed is JsonNumber {
+              {
+                  std.io.println<string>(concat_3(label, ": ", json.stringify(JsonNumber(parsed))))
+              }
+          } else if parsed is JsonBool {
+              {
+                  std.io.println<string>(concat_3(label, ": ", json.stringify(JsonBool(parsed))))
+              }
+          } else if parsed is JsonNull {
+              {
+                  std.io.println<string>(concat_3(label, ": ", json.stringify(JsonNull(parsed))))
+              }
+          } else if parsed is JsonArray {
+              {
+                  std.io.println<string>(concat_3(label, ": ", json.stringify(JsonArray(parsed))))
+              }
+          } else if parsed is JsonObject {
+              {
+                  std.io.println<string>(concat_3(label, ": ", json.stringify(JsonObject(parsed))))
+              }
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          }
+      }
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      snippet.show("null", "null")
+      snippet.show("true", "true")
+      snippet.show("false", "false")
+      snippet.show("number", "42")
+      snippet.show("neg", "-3.14")
+      snippet.show("expo", "1.5e2")
+      snippet.show("string", "\"hello\"")
+      snippet.show("escaped", "\"a\\nb\\tc\\\"d\"")
+      snippet.show("array", "[1, 2, 3]")
+      snippet.show("nested", "[[1, 2], [\"x\", \"y\"]]")
+      snippet.show("object", "{\"a\": 1, \"b\": true}")
+      snippet.show("mixed", "{\"name\": \"vader\", \"version\": 0.1, \"flags\": [\"-O0\", \"-g\"]}")
+      snippet.show("err: trailing", "42 garbage")
+      snippet.show("err: bad bool", "tru")
+      snippet.show("err: bad escape", "\"\\q\"")
+      return 0
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.usize.new_buffer(c2)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
 
 ## lowered in dependencies
   json
-    fn json$advance
-    fn json$at_end
-    fn json$decode_unicode_escape
-    fn json$escape_of
-    fn json$expect_byte
-    fn json$fail
-    fn json$match_keyword
-    fn json$new_parser
-    fn json$parse
-    fn json$parse_array
-    fn json$parse_bool
-    fn json$parse_null
-    fn json$parse_number
-    fn json$parse_object
-    fn json$parse_string
-    fn json$parse_string_with_escapes
-    fn json$parse_value
-    fn json$peek_byte
-    fn json$read_hex4
-    fn json$skip_ws
-    fn json$stringify
-    fn json$write_array
-    fn json$write_indent
-    fn json$write_number
-    fn json$write_object
-    fn json$write_string
-    fn json$write_value
-    struct json$JsonArray
-    struct json$JsonBool
-    struct json$JsonError
-    struct json$JsonNull
-    struct json$JsonNumber
-    struct json$JsonObject
-    struct json$JsonString
-    struct json$Parser
+    fn json.advance  // json$advance
+    fn json.at_end  // json$at_end
+    fn json.decode_unicode_escape  // json$decode_unicode_escape
+    fn json.escape_of  // json$escape_of
+    fn json.expect_byte  // json$expect_byte
+    fn json.fail  // json$fail
+    fn json.match_keyword  // json$match_keyword
+    fn json.new_parser  // json$new_parser
+    fn json.parse  // json$parse
+    fn json.parse_array  // json$parse_array
+    fn json.parse_bool  // json$parse_bool
+    fn json.parse_null  // json$parse_null
+    fn json.parse_number  // json$parse_number
+    fn json.parse_object  // json$parse_object
+    fn json.parse_string  // json$parse_string
+    fn json.parse_string_with_escapes  // json$parse_string_with_escapes
+    fn json.parse_value  // json$parse_value
+    fn json.peek_byte  // json$peek_byte
+    fn json.read_hex4  // json$read_hex4
+    fn json.skip_ws  // json$skip_ws
+    fn json.stringify  // json$stringify
+    fn json.write_array  // json$write_array
+    fn json.write_indent  // json$write_indent
+    fn json.write_number  // json$write_number
+    fn json.write_object  // json$write_object
+    fn json.write_string  // json$write_string
+    fn json.write_value  // json$write_value
+    struct json.JsonArray  // json$JsonArray
+    struct json.JsonBool  // json$JsonBool
+    struct json.JsonError  // json$JsonError
+    struct json.JsonNull  // json$JsonNull
+    struct json.JsonNumber  // json$JsonNumber
+    struct json.JsonObject  // json$JsonObject
+    struct json.JsonString  // json$JsonString
+    struct json.Parser  // json$Parser
   std/char
-    fn std_char$is_digit
-    fn std_char$is_white_char
+    fn std.char.is_digit  // std_char$is_digit
+    fn std.char.is_white_char  // std_char$is_white_char
   std/collections
-    fn std_collections$MutableMap$Contains$contains__i32__bool
-    fn std_collections$MutableMap$Contains$contains__i32__i32
-    fn std_collections$MutableMap$Contains$contains__string__Any
-    fn std_collections$MutableMap$Contains$contains__string__i32
-    fn std_collections$MutableMap$Index$at__i32__bool
-    fn std_collections$MutableMap$Index$at__i32__i32
-    fn std_collections$MutableMap$Index$at__string__Any
-    fn std_collections$MutableMap$Index$at__string__i32
-    fn std_collections$MutableMap$IndexSet$set_at__i32__bool
-    fn std_collections$MutableMap$IndexSet$set_at__i32__i32
-    fn std_collections$MutableMap$IndexSet$set_at__string__Any
-    fn std_collections$MutableMap$IndexSet$set_at__string__i32
-    fn std_collections$MutableMap$Into$into__i32__bool
-    fn std_collections$MutableMap$Into$into__i32__i32
-    fn std_collections$MutableMap$Into$into__string__Any
-    fn std_collections$MutableMap$Into$into__string__i32
-    fn std_collections$MutableSet$Contains$contains__i32
-    fn std_collections$MutableSet$Into$into__i32
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, Any>.at  // std_collections$MutableMap$Index$at__string__Any
+    fn std.collections.MutableMap<string, Any>.contains  // std_collections$MutableMap$Contains$contains__string__Any
+    fn std.collections.MutableMap<string, Any>.into  // std_collections$MutableMap$Into$into__string__Any
+    fn std.collections.MutableMap<string, Any>.set_at  // std_collections$MutableMap$IndexSet$set_at__string__Any
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$IndexSet$set_at__string__i32
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$Into$into__i32
+    fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
+    fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
+    fn std.collections.contains_key<string, Any>  // std_collections$contains_key__string__Any
+    fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
+    fn std.collections.ensure_index<i32, bool>  // std_collections$ensure_index__i32__bool
+    fn std.collections.ensure_index<i32, i32>  // std_collections$ensure_index__i32__i32
+    fn std.collections.ensure_index<string, Any>  // std_collections$ensure_index__string__Any
+    fn std.collections.ensure_index<string, i32>  // std_collections$ensure_index__string__i32
+    fn std.collections.first_slot  // std_collections$first_slot
+    fn std.collections.get<i32, bool>  // std_collections$get__i32__bool
+    fn std.collections.get<i32, i32>  // std_collections$get__i32__i32
+    fn std.collections.get<string, Any>  // std_collections$get__string__Any
+    fn std.collections.get<string, i32>  // std_collections$get__string__i32
+    fn std.collections.len<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>  // std_collections$len__string__Any
+    fn std.collections.next_slot  // std_collections$next_slot
+    fn std.collections.put<i32, bool>  // std_collections$put__i32__bool
+    fn std.collections.put<i32, i32>  // std_collections$put__i32__i32
+    fn std.collections.put<string, Any>  // std_collections$put__string__Any
+    fn std.collections.put<string, i32>  // std_collections$put__string__i32
+    fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
+    fn std.collections.rehash<i32, i32>  // std_collections$rehash__i32__i32
+    fn std.collections.rehash<string, Any>  // std_collections$rehash__string__Any
+    fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
+    fn std.collections.write_entry<i32, bool>  // std_collections$write_entry__i32__bool
+    fn std.collections.write_entry<i32, i32>  // std_collections$write_entry__i32__i32
+    fn std.collections.write_entry<string, Any>  // std_collections$write_entry__string__Any
+    fn std.collections.write_entry<string, i32>  // std_collections$write_entry__string__i32
     fn std_collections$__gen_state_std_collections_0$Iterator$next
     fn std_collections$__gen_state_std_collections_1$Iterator$next
     fn std_collections$__gen_state_std_collections_2$Iterator$next
     fn std_collections$__gen_state_std_collections_3$Iterator$next
     fn std_collections$__gen_state_std_collections_4$Iterator$next
-    fn std_collections$contains_key__i32__bool
-    fn std_collections$contains_key__i32__i32
-    fn std_collections$contains_key__string__Any
-    fn std_collections$contains_key__string__i32
-    fn std_collections$ensure_index__i32__bool
-    fn std_collections$ensure_index__i32__i32
-    fn std_collections$ensure_index__string__Any
-    fn std_collections$ensure_index__string__i32
-    fn std_collections$first_slot
-    fn std_collections$get__i32__bool
-    fn std_collections$get__i32__i32
-    fn std_collections$get__string__Any
-    fn std_collections$get__string__i32
-    fn std_collections$len__string__Any
-    fn std_collections$next_slot
-    fn std_collections$put__i32__bool
-    fn std_collections$put__i32__i32
-    fn std_collections$put__string__Any
-    fn std_collections$put__string__i32
-    fn std_collections$rehash__i32__bool
-    fn std_collections$rehash__i32__i32
-    fn std_collections$rehash__string__Any
-    fn std_collections$rehash__string__i32
-    fn std_collections$write_entry__i32__bool
-    fn std_collections$write_entry__i32__i32
-    fn std_collections$write_entry__string__Any
-    fn std_collections$write_entry__string__i32
-    struct std_collections$MutableMap__Any__Any
-    struct std_collections$MutableMap__Any__bool
-    struct std_collections$MutableMap__i32__bool
-    struct std_collections$MutableMap__i32__i32
-    struct std_collections$MutableMap__string__Any
-    struct std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString
-    struct std_collections$MutableMap__string__i32
-    struct std_collections$MutableSet__Any
-    struct std_collections$MutableSet__i32
+    struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
+    struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
+    struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
+    struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
+    struct std.collections.MutableMap<string, Any>  // std_collections$MutableMap__string__Any
+    struct std.collections.MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>  // std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString
+    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
+    struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
+    struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32
     struct std_collections$__gen_state_std_collections_0
     struct std_collections$__gen_state_std_collections_1
     struct std_collections$__gen_state_std_collections_2
@@ -539,122 +183,122 @@
     const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #1
     const DOUBLE_POW5_SPLIT: u64[]  data pool #2
     const POW5_128: u64[]  data pool #0
-    fn std_core$BigInt$Div$div
-    fn std_core$BigInt$Mul$mul
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$memory_copy
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__char
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__char
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$any_below
-    fn std_core$ascii_prefix
-    fn std_core$b2i
-    fn std_core$b2u
-    fn std_core$bit_len
-    fn std_core$bits64
-    fn std_core$char$Comparable$compare
-    fn std_core$char$Step$step
-    fn std_core$clz32
-    fn std_core$d2d
-    fn std_core$decimal_width
-    fn std_core$decode_tail
-    fn std_core$eisel_lemire
-    fn std_core$f64$Display$to_string
-    fn std_core$f64$FloatBits$to_bits
-    fn std_core$finish_buffer
-    fn std_core$format_f64
-    fn std_core$i32$Comparable$compare
+    fn std.core.BigInt.div  // std_core$BigInt$Div$div
+    fn std.core.BigInt.mul  // std_core$BigInt$Mul$mul
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<char>.contains  // std_core$Range$Contains$contains__char
+    fn std.core.Range<char>.next  // std_core$Range$Iterator$next__char
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.any_below  // std_core$any_below
+    fn std.core.ascii_prefix  // std_core$ascii_prefix
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.bit_len  // std_core$bit_len
+    fn std.core.bits64  // std_core$bits64
+    fn std.core.char.compare  // std_core$char$Comparable$compare
+    fn std.core.char.step  // std_core$char$Step$step
+    fn std.core.clz32  // std_core$clz32
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.decode_tail  // std_core$decode_tail
+    fn std.core.eisel_lemire  // std_core$eisel_lemire
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.hash  // std_core$i32$Hash$hash
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
+    fn std.core.is_zero  // std_core$is_zero
+    fn std.core.len  // std_core$len
+    fn std.core.limb  // std_core$limb
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_add_small  // std_core$mul_add_small
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.parse_f64  // std_core$parse_f64
+    fn std.core.parse_f64_slow  // std_core$parse_f64_slow
+    fn std.core.pf_clz64  // std_core$pf_clz64
+    fn std.core.pf_is_digit  // std_core$pf_is_digit
+    fn std.core.pf_product  // std_core$pf_product
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.scalar_or_replacement  // std_core$scalar_or_replacement
+    fn std.core.scan_decimal  // std_core$scan_decimal
+    fn std.core.sd_round_at  // std_core$sd_round_at
+    fn std.core.sd_scan  // std_core$sd_scan
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.shl  // std_core$shl
+    fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.u64.from_bits  // std_core$u64$BitsFloat$from_bits
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.utf8_encode  // std_core$utf8_encode
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
     fn std_core$i32$Equals$equals$guard
-    fn std_core$i32$Hash$hash
-    fn std_core$i32$Step$step
-    fn std_core$insert_point
-    fn std_core$is_utf8_continuation
-    fn std_core$is_zero
-    fn std_core$len
-    fn std_core$limb
-    fn std_core$log10_pow2
-    fn std_core$log10_pow5
-    fn std_core$mul_add_small
-    fn std_core$mul_shift_all_64
-    fn std_core$multiple_of_power_of_2
-    fn std_core$multiple_of_power_of_5
-    fn std_core$new_byte_buffer
-    fn std_core$parse_f64
-    fn std_core$parse_f64_slow
-    fn std_core$pf_clz64
-    fn std_core$pf_is_digit
-    fn std_core$pf_product
-    fn std_core$pow5_factor
-    fn std_core$pow5bits
-    fn std_core$render
-    fn std_core$scalar_or_replacement
-    fn std_core$scan_decimal
-    fn std_core$sd_round_at
-    fn std_core$sd_scan
-    fn std_core$shiftright128
-    fn std_core$shl
     fn std_core$string$Equals$equals$guard
-    fn std_core$string$Hash$hash
-    fn std_core$three_way
-    fn std_core$u64$BitsFloat$from_bits
-    fn std_core$umul128
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$utf8_encode
-    fn std_core$write_bool
-    fn std_core$write_decimal
-    fn std_core$write_digits
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    fn std_core$write_zeros
-    struct std_core$Buffer
-    struct std_core$Dec64
-    struct std_core$DecimalParts
-    struct std_core$Range__Any
-    struct std_core$Range__char
-    struct std_core$Range__i32
-    struct std_core$Range__usize
-    struct std_core$SlowParts
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Dec64  // std_core$Dec64
+    struct std.core.DecimalParts  // std_core$DecimalParts
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<char>  // std_core$Range__char
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+    struct std.core.SlowParts  // std_core$SlowParts
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   std/numbers
-    fn std_numbers$hex_digit
-    fn std_numbers$hex_digit_value
-    fn std_numbers$to_compact_str
-    fn std_numbers$to_hex
+    fn std.numbers.hex_digit  // std_numbers$hex_digit
+    fn std.numbers.hex_digit_value  // std_numbers$hex_digit_value
+    fn std.numbers.to_compact_str  // std_numbers$to_compact_str
+    fn std.numbers.to_hex  // std_numbers$to_hex
   std/string
-    fn std_string$combine_surrogates
-    fn std_string$ends_with
-    fn std_string$is_high_surrogate
-    fn std_string$is_low_surrogate
-    fn std_string$is_surrogate
-    fn std_string$matches_at
-    fn std_string$pad_start
-    fn std_string$parse_float
-    fn std_string$trim_suffix
-    struct std_string$ParseError
+    fn std.string.combine_surrogates  // std_string$combine_surrogates
+    fn std.string.ends_with  // std_string$ends_with
+    fn std.string.is_high_surrogate  // std_string$is_high_surrogate
+    fn std.string.is_low_surrogate  // std_string$is_low_surrogate
+    fn std.string.is_surrogate  // std_string$is_surrogate
+    fn std.string.matches_at  // std_string$matches_at
+    fn std.string.pad_start  // std_string$pad_start
+    fn std.string.parse_float  // std_string$parse_float
+    fn std.string.trim_suffix  // std_string$trim_suffix
+    struct std.string.ParseError  // std_string$ParseError
   std/string_builder
-    fn std_string_builder$StringBuilder$Display$to_string
-    fn std_string_builder$append
-    fn std_string_builder$append_char
-    fn std_string_builder$append_repeated
-    struct std_string_builder$StringBuilder
+    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$Display$to_string
+    fn std.string_builder.append  // std_string_builder$append
+    fn std.string_builder.append_char  // std_string_builder$append_char
+    fn std.string_builder.append_repeated  // std_string_builder$append_repeated
+    struct std.string_builder.StringBuilder  // std_string_builder$StringBuilder
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

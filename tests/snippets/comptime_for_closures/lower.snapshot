@@ -1,625 +1,170 @@
 # Lower
 
 ## snippet
-  fn snippet$main() -> i32
-    block :void
-      defer.push
-        LoweredMakeClosure
-      call :void
-        callee:
-          std_io$println__string :void
-        arg0:
-          block :string
-            let __buf_1: Buffer =
-              call :Buffer
-                callee:
-                  new_byte_buffer :Buffer
-                arg0:
-                  int(25) :usize
-            let __off_2: usize = int(0) :usize
-            assign
-              target:
-                __off_2 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_1 :Buffer
-                  arg1:
-                    __off_2 :usize
-                  arg2:
-                    "body " :string
-            assign
-              target:
-                __off_2 :usize
-              value:
-                call :usize
-                  callee:
-                    write_int :usize
-                  arg0:
-                    __buf_1 :Buffer
-                  arg1:
-                    __off_2 :usize
-                  arg2:
-                    cast → i64
-                      int(1) :i32
-            ~>
-              call :string
-                callee:
-                  finish_buffer :string
-                arg0:
-                  __buf_1 :Buffer
-                arg1:
-                  __off_2 :usize
-      defer.pop_exec 1
-      defer.push
-        LoweredMakeClosure
-      call :void
-        callee:
-          std_io$println__string :void
-        arg0:
-          block :string
-            let __buf_4: Buffer =
-              call :Buffer
-                callee:
-                  new_byte_buffer :Buffer
-                arg0:
-                  int(25) :usize
-            let __off_5: usize = int(0) :usize
-            assign
-              target:
-                __off_5 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_4 :Buffer
-                  arg1:
-                    __off_5 :usize
-                  arg2:
-                    "body " :string
-            assign
-              target:
-                __off_5 :usize
-              value:
-                call :usize
-                  callee:
-                    write_int :usize
-                  arg0:
-                    __buf_4 :Buffer
-                  arg1:
-                    __off_5 :usize
-                  arg2:
-                    cast → i64
-                      int(2) :i32
-            ~>
-              call :string
-                callee:
-                  finish_buffer :string
-                arg0:
-                  __buf_4 :Buffer
-                arg1:
-                  __off_5 :usize
-      defer.pop_exec 1
-      defer.push
-        LoweredMakeClosure
-      call :void
-        callee:
-          std_io$println__string :void
-        arg0:
-          block :string
-            let __buf_7: Buffer =
-              call :Buffer
-                callee:
-                  new_byte_buffer :Buffer
-                arg0:
-                  int(25) :usize
-            let __off_8: usize = int(0) :usize
-            assign
-              target:
-                __off_8 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_7 :Buffer
-                  arg1:
-                    __off_8 :usize
-                  arg2:
-                    "body " :string
-            assign
-              target:
-                __off_8 :usize
-              value:
-                call :usize
-                  callee:
-                    write_int :usize
-                  arg0:
-                    __buf_7 :Buffer
-                  arg1:
-                    __off_8 :usize
-                  arg2:
-                    cast → i64
-                      int(3) :i32
-            ~>
-              call :string
-                callee:
-                  finish_buffer :string
-                arg0:
-                  __buf_7 :Buffer
-                arg1:
-                  __off_8 :usize
-      defer.pop_exec 1
-    let total: i32 = int(0) :i32
-    block :void
-      let add: fn(i32) -> i32 = __lambda_snippet_6 :fn(i32) -> i32
-      assign
-        target:
-          total :i32
-        value:
-          call :i32
-            callee:
-              add :fn(i32) -> i32
-            arg0:
-              total :i32
-      let add: fn(i32) -> i32 = __lambda_snippet_7 :fn(i32) -> i32
-      assign
-        target:
-          total :i32
-        value:
-          call :i32
-            callee:
-              add :fn(i32) -> i32
-            arg0:
-              total :i32
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_9: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(26) :usize
-          let __off_10: usize = int(0) :usize
-          assign
-            target:
-              __off_10 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_9 :Buffer
-                arg1:
-                  __off_10 :usize
-                arg2:
-                  "total " :string
-          assign
-            target:
-              __off_10 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_9 :Buffer
-                arg1:
-                  __off_10 :usize
-                arg2:
-                  cast → i64
-                    total :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_9 :Buffer
-              arg1:
-                __off_10 :usize
-    let base: i32 = int(100) :i32
-    block :void
-      let outer: fn() -> i32 =
-        LoweredMakeClosure
-      call :void
-        callee:
-          std_io$println__string :void
-        arg0:
-          block :string
-            let __buf_12: Buffer =
-              call :Buffer
-                callee:
-                  new_byte_buffer :Buffer
-                arg0:
-                  int(27) :usize
-            let __off_13: usize = int(0) :usize
-            assign
-              target:
-                __off_13 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_12 :Buffer
-                  arg1:
-                    __off_13 :usize
-                  arg2:
-                    "nested " :string
-            assign
-              target:
-                __off_13 :usize
-              value:
-                call :usize
-                  callee:
-                    write_int :usize
-                  arg0:
-                    __buf_12 :Buffer
-                  arg1:
-                    __off_13 :usize
-                  arg2:
-                    cast → i64
-                      call :i32
-                        callee:
-                          outer :fn() -> i32
-            ~>
-              call :string
-                callee:
-                  finish_buffer :string
-                arg0:
-                  __buf_12 :Buffer
-                arg1:
-                  __off_13 :usize
-      let outer: fn() -> i32 =
-        LoweredMakeClosure
-      call :void
-        callee:
-          std_io$println__string :void
-        arg0:
-          block :string
-            let __buf_15: Buffer =
-              call :Buffer
-                callee:
-                  new_byte_buffer :Buffer
-                arg0:
-                  int(27) :usize
-            let __off_16: usize = int(0) :usize
-            assign
-              target:
-                __off_16 :usize
-              value:
-                call :usize
-                  callee:
-                    write_string_at :usize
-                  arg0:
-                    __buf_15 :Buffer
-                  arg1:
-                    __off_16 :usize
-                  arg2:
-                    "nested " :string
-            assign
-              target:
-                __off_16 :usize
-              value:
-                call :usize
-                  callee:
-                    write_int :usize
-                  arg0:
-                    __buf_15 :Buffer
-                  arg1:
-                    __off_16 :usize
-                  arg2:
-                    cast → i64
-                      call :i32
-                        callee:
-                          outer :fn() -> i32
-            ~>
-              call :string
-                callee:
-                  finish_buffer :string
-                arg0:
-                  __buf_15 :Buffer
-                arg1:
-                  __off_16 :usize
-    return int(0) :i32
-  struct __defer_env_snippet_1 {  }
-  fn __defer_snippet_0(__env_0: __defer_env_snippet_1) -> void
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_0: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(29) :usize
-          let __off_1: usize = int(0) :usize
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  "deferred " :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  cast → i64
-                    int(1) :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-  struct __defer_env_snippet_3 {  }
-  fn __defer_snippet_2(__env_3: __defer_env_snippet_3) -> void
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_0: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(29) :usize
-          let __off_1: usize = int(0) :usize
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  "deferred " :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  cast → i64
-                    int(2) :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-  struct __defer_env_snippet_5 {  }
-  fn __defer_snippet_4(__env_6: __defer_env_snippet_5) -> void
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        block :string
-          let __buf_0: Buffer =
-            call :Buffer
-              callee:
-                new_byte_buffer :Buffer
-              arg0:
-                int(29) :usize
-          let __off_1: usize = int(0) :usize
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_string_at :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  "deferred " :string
-          assign
-            target:
-              __off_1 :usize
-            value:
-              call :usize
-                callee:
-                  write_int :usize
-                arg0:
-                  __buf_0 :Buffer
-                arg1:
-                  __off_1 :usize
-                arg2:
-                  cast → i64
-                    int(3) :i32
-          ~>
-            call :string
-              callee:
-                finish_buffer :string
-              arg0:
-                __buf_0 :Buffer
-              arg1:
-                __off_1 :usize
-  fn __lambda_snippet_6(n: i32) -> i32
-    ~>
-      add_checked :i32
-        l:
-          n :i32
-        r:
-          int(10) :i32
-  fn __lambda_snippet_7(n: i32) -> i32
-    ~>
-      add_checked :i32
-        l:
-          n :i32
-        r:
-          int(20) :i32
-  struct __lambda_env_snippet_11 { cap_0: i32 }
-  fn __lambda_snippet_10(__env_0: __lambda_env_snippet_11) -> i32
-    ~>
-      add_checked :i32
-        l:
-          .cap_0 :i32
-            __env_0 :__lambda_env_snippet_11
-        r:
-          int(1) :i32
-  struct __lambda_env_snippet_9 { cap_0: i32 }
-  fn __lambda_snippet_8(__env_11: __lambda_env_snippet_9) -> i32
-    let inner: __lambda_env_snippet_11 =
-      __lambda_env_snippet_11 {
-        cap_0:
-          .cap_0 :i32
-            __env_11 :__lambda_env_snippet_9
+  snippet.main :: fn() -> i32 {  // snippet$main
+      {
+          @defer_push(@closure(__defer_snippet_0, __defer_env_snippet_1 {}))
+          std.io.println<string>({
+              __buf_1: Buffer = std.core.new_byte_buffer(usize(25))
+              __off_2: usize = 0
+              __off_2 = std.core.write_string_at(__buf_1, __off_2, "body ")
+              __off_2 = std.core.write_int(__buf_1, __off_2, i64(1))
+              std.core.finish_buffer(__buf_1, __off_2)
+          } :string)
+          @defer_run(1)
+          @defer_push(@closure(__defer_snippet_2, __defer_env_snippet_3 {}))
+          std.io.println<string>({
+              __buf_4: Buffer = std.core.new_byte_buffer(usize(25))
+              __off_5: usize = 0
+              __off_5 = std.core.write_string_at(__buf_4, __off_5, "body ")
+              __off_5 = std.core.write_int(__buf_4, __off_5, i64(2))
+              std.core.finish_buffer(__buf_4, __off_5)
+          } :string)
+          @defer_run(1)
+          @defer_push(@closure(__defer_snippet_4, __defer_env_snippet_5 {}))
+          std.io.println<string>({
+              __buf_7: Buffer = std.core.new_byte_buffer(usize(25))
+              __off_8: usize = 0
+              __off_8 = std.core.write_string_at(__buf_7, __off_8, "body ")
+              __off_8 = std.core.write_int(__buf_7, __off_8, i64(3))
+              std.core.finish_buffer(__buf_7, __off_8)
+          } :string)
+          @defer_run(1)
       }
-    return
-      call :i32
-        callee:
-          __lambda_snippet_10 :fn() -> i32
-        arg0:
-          inner :__lambda_env_snippet_11
-  struct __lambda_env_snippet_15 { cap_0: i32 }
-  fn __lambda_snippet_14(__env_0: __lambda_env_snippet_15) -> i32
-    ~>
-      add_checked :i32
-        l:
-          .cap_0 :i32
-            __env_0 :__lambda_env_snippet_15
-        r:
-          int(2) :i32
-  struct __lambda_env_snippet_13 { cap_0: i32 }
-  fn __lambda_snippet_12(__env_14: __lambda_env_snippet_13) -> i32
-    let inner: __lambda_env_snippet_15 =
-      __lambda_env_snippet_15 {
-        cap_0:
-          .cap_0 :i32
-            __env_14 :__lambda_env_snippet_13
+      total: i32 = 0
+      {
+          add: fn(i32) -> i32 = __lambda_snippet_6
+          total = add(total)
+          add: fn(i32) -> i32 = __lambda_snippet_7
+          total = add(total)
       }
-    return
-      call :i32
-        callee:
-          __lambda_snippet_14 :fn() -> i32
-        arg0:
-          inner :__lambda_env_snippet_15
-  fn concat_2(p0: string, p1: string) -> string
-    let c0: usize =
-      call :usize
-        callee:
-          byte_len :usize
-        arg0:
-          p0 :string
-    let c1: usize =
-      add :usize
-        l:
-          c0 :usize
-        r:
-          call :usize
-            callee:
-              byte_len :usize
-            arg0:
-              p1 :string
-    let buf: Buffer =
-      call :Buffer
-        callee:
-          std_core$usize$BufferAlloc$new_buffer :Buffer
-        arg0:
-          c1 :usize
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        int(0) :usize
-      arg2:
-        p0 :string
-    call :void
-      callee:
-        std_core$Buffer$ByteAccess$write_string :void
-      arg0:
-        buf :Buffer
-      arg1:
-        c0 :usize
-      arg2:
-        p1 :string
-    ~>
-      call :string
-        callee:
-          std_core$Buffer$ByteAccess$intern_string :string
-        arg0:
-          buf :Buffer
-        arg1:
-          c1 :usize
+      std.io.println<string>({
+          __buf_9: Buffer = std.core.new_byte_buffer(usize(26))
+          __off_10: usize = 0
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, "total ")
+          __off_10 = std.core.write_int(__buf_9, __off_10, i64(total))
+          std.core.finish_buffer(__buf_9, __off_10)
+      } :string)
+      base: i32 = 100
+      {
+          outer: fn() -> i32 = @closure(__lambda_snippet_8, __lambda_env_snippet_9 { .cap_0 = base })
+          std.io.println<string>({
+              __buf_12: Buffer = std.core.new_byte_buffer(usize(27))
+              __off_13: usize = 0
+              __off_13 = std.core.write_string_at(__buf_12, __off_13, "nested ")
+              __off_13 = std.core.write_int(__buf_12, __off_13, i64(outer()))
+              std.core.finish_buffer(__buf_12, __off_13)
+          } :string)
+          outer: fn() -> i32 = @closure(__lambda_snippet_12, __lambda_env_snippet_13 { .cap_0 = base })
+          std.io.println<string>({
+              __buf_15: Buffer = std.core.new_byte_buffer(usize(27))
+              __off_16: usize = 0
+              __off_16 = std.core.write_string_at(__buf_15, __off_16, "nested ")
+              __off_16 = std.core.write_int(__buf_15, __off_16, i64(outer()))
+              std.core.finish_buffer(__buf_15, __off_16)
+          } :string)
+      }
+      return 0
+  }
+  __defer_env_snippet_1 :: struct {}
+  __defer_snippet_0 :: fn(__env_0: __defer_env_snippet_1) -> void {
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(29))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "deferred ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(1))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+  }
+  __defer_env_snippet_3 :: struct {}
+  __defer_snippet_2 :: fn(__env_3: __defer_env_snippet_3) -> void {
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(29))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "deferred ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(2))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+  }
+  __defer_env_snippet_5 :: struct {}
+  __defer_snippet_4 :: fn(__env_6: __defer_env_snippet_5) -> void {
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(29))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "deferred ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(3))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+  }
+  __lambda_snippet_6 :: fn(n: i32) -> i32 {
+      n + 10
+  }
+  __lambda_snippet_7 :: fn(n: i32) -> i32 {
+      n + 20
+  }
+  __lambda_env_snippet_11 :: struct { cap_0: i32 }
+  __lambda_snippet_10 :: fn(__env_0: __lambda_env_snippet_11) -> i32 {
+      __env_0.cap_0 + 1
+  }
+  __lambda_env_snippet_9 :: struct { cap_0: i32 }
+  __lambda_snippet_8 :: fn(__env_11: __lambda_env_snippet_9) -> i32 {
+      inner: __lambda_env_snippet_11 = __lambda_env_snippet_11 { .cap_0 = __env_11.cap_0 }
+      return __lambda_snippet_10(inner)
+  }
+  __lambda_env_snippet_15 :: struct { cap_0: i32 }
+  __lambda_snippet_14 :: fn(__env_0: __lambda_env_snippet_15) -> i32 {
+      __env_0.cap_0 + 2
+  }
+  __lambda_env_snippet_13 :: struct { cap_0: i32 }
+  __lambda_snippet_12 :: fn(__env_14: __lambda_env_snippet_13) -> i32 {
+      inner: __lambda_env_snippet_15 = __lambda_env_snippet_15 { .cap_0 = __env_14.cap_0 }
+      return __lambda_snippet_14(inner)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
 
 ## lowered in dependencies
   std/core
-    fn std_core$Buffer$ByteAccess$intern_string
-    fn std_core$Buffer$ByteAccess$store_u8
-    fn std_core$Buffer$ByteAccess$write_string
-    fn std_core$Range$Contains$contains__i32
-    fn std_core$Range$Contains$contains__usize
-    fn std_core$Range$Iterator$next__i32
-    fn std_core$Range$Iterator$next__usize
-    fn std_core$finish_buffer
-    fn std_core$i32$Comparable$compare
-    fn std_core$i32$Step$step
-    fn std_core$new_byte_buffer
-    fn std_core$three_way
-    fn std_core$usize$BufferAlloc$new_buffer
-    fn std_core$usize$Comparable$compare
-    fn std_core$usize$Step$step
-    fn std_core$write_bool
-    fn std_core$write_int
-    fn std_core$write_string_at
-    fn std_core$write_unsigned
-    struct std_core$Buffer
-    struct std_core$Range__Any
-    struct std_core$Range__i32
-    struct std_core$Range__usize
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
-    fn std_io$println__string
-    fn std_io$write
-    fn std_io$write_bytes
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
   system/posix
-    struct system_posix$Pollfd
-    struct system_posix$Winsize
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
   system/windows
-    struct system_windows$Coord
-    struct system_windows$ProcessInformation
-    struct system_windows$ScreenBufferInfo
-    struct system_windows$SecurityAttributes
-    struct system_windows$SmallRect
-    struct system_windows$StartupInfo
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo
