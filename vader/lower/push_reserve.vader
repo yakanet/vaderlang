@@ -29,7 +29,7 @@ import "vader/types"
 /// sees a reserved array as the fresh array it is.
 ///
 /// @param stmts  the block's statements so far ; the `let`s are rewritten in place.
-export reserve_push_tail :: fn(stmts: LoweredStmt[]) -> void {
+reserve_push_tail :: fn(stmts: LoweredStmt[]) -> void {
     n :: stmts.len()
     if n < 2 || stmts[n - 2] !is LoweredLet {
         return

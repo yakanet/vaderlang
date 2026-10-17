@@ -33,7 +33,7 @@ import "toolchain/span"
 ///
 /// @param project  the shared project context, whose `closures` is filled.
 /// @param typed    the module about to have a body lowered.
-export ensure_closure_analysis :: fn(project: LowerProjectCtx, typed: TypedProgram) -> void {
+ensure_closure_analysis :: fn(project: LowerProjectCtx, typed: TypedProgram) -> void {
     path :: typed.resolved.path
     if !project.closure_modules.add(path) {
         return

@@ -96,7 +96,7 @@ cur_field_narrow_gen :: fn(typed: TypedProgram, key: string) -> i32 = typed.narr
 
 /// Push a narrowed type for `sym_id` ; returns the prior narrowing
 /// (or null) so the caller can restore it on scope exit.
-export push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> NarrowSlot | null {
+push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> NarrowSlot | null {
     prev :: typed.narrow.bindings[sym_id]
     typed.narrow.bindings[sym_id] = NarrowSlot {
         .ty = narrowed,
@@ -114,7 +114,7 @@ export push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> Na
 /// `settle_external_expr_bodied_returns`, which runs before a module's
 /// imports are wired and so sees `?` for `m[k]`-bound locals — must not
 /// outlive its scope and poison the authoritative re-walk.
-export pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: NarrowSlot | null) -> void {
+pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: NarrowSlot | null) -> void {
     if prev == null {
         _ :: typed.narrow.bindings.remove(sym_id)
     } else {
@@ -126,7 +126,7 @@ export pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: NarrowSlot | nul
 /// `static_ty` when no narrowing is active for that binding. An entry
 /// from an older kill generation (retired by a reassignment) counts as
 /// absent.
-export narrow_for_binding :: fn(typed: TypedProgram, sym_id: i32, static_ty: Type) -> Type {
+narrow_for_binding :: fn(typed: TypedProgram, sym_id: i32, static_ty: Type) -> Type {
     cur :: typed.narrow.bindings[sym_id] ?? return static_ty
     if cur.gen != cur_narrow_gen(typed, sym_id) {
         return static_ty
@@ -138,7 +138,7 @@ export narrow_for_binding :: fn(typed: TypedProgram, sym_id: i32, static_ty: Typ
 /// `fields` must be ordered root-to-leaf. The `#` separator avoids
 /// collisions with `.`-prefixed identifiers and field names like `0`
 /// (tuple positional access).
-export chain_key :: fn(root_sym_id: i32, fields: string[]) -> string {
+chain_key :: fn(root_sym_id: i32, fields: string[]) -> string {
     key := "${root_sym_id}"
     for f in fields {
         key = "${key}#${f}"
@@ -150,7 +150,7 @@ export chain_key :: fn(root_sym_id: i32, fields: string[]) -> string {
 /// key + the type recorded by `check_expr` on its outermost FieldExpr.
 /// Shared by `expr_if.vader` / `stmt.vader` / `match_expr.vader` so
 /// they don't each re-derive the chain's declared type from scratch.
-export FieldChainStatic :: struct {
+FieldChainStatic :: struct {
     field_key: string
     static_ty: Type
 }
@@ -158,7 +158,7 @@ export FieldChainStatic :: struct {
 /// Pick the FieldExpr operand of a `field == null` / `null != field`
 /// comparison. Returns null when neither side is a FieldExpr-vs-null
 /// pair.
-export pick_field_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.FieldExpr | null {
+pick_field_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.FieldExpr | null {
     if a is AST.FieldExpr {
         if b is AST.NullLitExpr {
             return a
@@ -174,7 +174,7 @@ export pick_field_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.FieldExpr | nul
 
 /// Pick the IdentExpr operand of an `ident == null` / `null != ident`
 /// comparison. Mirrors `pick_field_vs_null` for plain bindings.
-export pick_ident_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.IdentExpr | null {
+pick_ident_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.IdentExpr | null {
     if a is AST.IdentExpr && b is AST.NullLitExpr {
         return a
     }
@@ -188,7 +188,7 @@ export pick_ident_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.IdentExpr | nul
 /// type recorded by `check_expr`. Returns null when the chain root
 /// isn't a plain ident-bound Symbol or the chain's type wasn't
 /// resolved (no point in narrowing an Unresolved slot).
-export resolve_field_chain_static :: fn(
+resolve_field_chain_static :: fn(
     e: AST.FieldExpr,
     typed: TypedProgram,
 ) -> FieldChainStatic | null {
@@ -207,7 +207,7 @@ export resolve_field_chain_static :: fn(
 /// matching `chain_key`. Returns `""` when the root isn't a plain ident
 /// or it doesn't resolve to a Symbol — callers gate narrowing on the
 /// empty string sentinel.
-export field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
+field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
     // Collect fields leaf-to-root, then reverse for chain_key.
     parts_leaf_first: string[]: []
     cur: AST.Expr = e
@@ -235,7 +235,7 @@ export field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
 /// Push a narrowed type for a `${receiver_sym_id}.${field_name}` slot ;
 /// returns the prior narrowing (or null) so the caller can restore it
 /// on scope exit. Mirrors `push_narrow` for ident bindings.
-export push_field_narrow :: fn(typed: TypedProgram, key: string, narrowed: Type) -> NarrowSlot | null {
+push_field_narrow :: fn(typed: TypedProgram, key: string, narrowed: Type) -> NarrowSlot | null {
     prev :: typed.narrow.fields[key]
     typed.narrow.fields[key] = NarrowSlot {
         .ty = narrowed,
@@ -248,7 +248,7 @@ export push_field_narrow :: fn(typed: TypedProgram, key: string, narrowed: Type)
 /// When `prev` is null the slot is *removed* so subsequent
 /// `narrow_for_field` lookups fall through to the field's then-current
 /// static type. See `pop_narrow` for why removal (not overwrite) matters.
-export pop_field_narrow :: fn(typed: TypedProgram, key: string, prev: NarrowSlot | null) -> void {
+pop_field_narrow :: fn(typed: TypedProgram, key: string, prev: NarrowSlot | null) -> void {
     // A `prev` from an older generation is dead : dropping it, rather than
     // restoring it, keeps the table empty once a call has retired everything.
     if prev == null || prev.gen != cur_field_narrow_gen(typed, key) {
@@ -261,7 +261,7 @@ export pop_field_narrow :: fn(typed: TypedProgram, key: string, prev: NarrowSlot
 /// Look up the current narrowed type for `key`, falling back to
 /// `static_ty` when no narrowing is active for that field slot. An
 /// entry from an older kill generation counts as absent.
-export narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type) -> Type {
+narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type) -> Type {
     cur :: typed.narrow.fields[key] ?? return static_ty
     if cur.gen != cur_field_narrow_gen(typed, key) {
         return static_ty
@@ -292,7 +292,7 @@ export narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type)
 /// @param target    the assignment's LHS expression.
 /// @param value_ty  the checked type of the RHS.
 /// @param typed     the program's typing tables.
-export invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed: TypedProgram) -> void {
+invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed: TypedProgram) -> void {
     // Fast path first : with no active narrowing there is nothing to
     // retire, and this runs on every assignment in the program — skip
     // before any symbol lookup / key interpolation allocates.
@@ -386,7 +386,7 @@ retire_field_chain :: fn(typed: TypedProgram, key: string) -> void {
 /// operator's impl, an interpolation's `Display`) is not counted.
 ///
 /// @param typed  the program's typing tables.
-export retire_narrowings_across_call :: fn(typed: TypedProgram) -> void {
+retire_narrowings_across_call :: fn(typed: TypedProgram) -> void {
     typed.narrow.calls += 1
     retire_all_field_chains(typed)
     for [sym_id, _] in typed.narrow.bindings {
@@ -403,7 +403,7 @@ export retire_narrowings_across_call :: fn(typed: TypedProgram) -> void {
 ///
 /// @param loop   the loop being entered.
 /// @param typed  the program's typing tables.
-export retire_narrowings_entering_loop :: fn(loop: AST.ForStmt, typed: TypedProgram) -> void {
+retire_narrowings_entering_loop :: fn(loop: AST.ForStmt, typed: TypedProgram) -> void {
     retire_narrowings_across_call(typed)
     rebinds :: typed.resolved.loop_rebinds[loop.span.hash()] ?? return
     for sym_id in rebinds {
@@ -417,7 +417,7 @@ export retire_narrowings_entering_loop :: fn(loop: AST.ForStmt, typed: TypedProg
 /// @param typed         the program's typing tables.
 /// @param id            the `&&` / `||` node.
 /// @param calls_before  `typed.narrow.calls` before its right operand was checked.
-export note_right_operand_calls :: fn(typed: TypedProgram, id: usize, calls_before: i32) -> void {
+note_right_operand_calls :: fn(typed: TypedProgram, id: usize, calls_before: i32) -> void {
     if typed.narrow.calls != calls_before {
         _ :: typed.narrow.calling_right_operands.add(id)
     }

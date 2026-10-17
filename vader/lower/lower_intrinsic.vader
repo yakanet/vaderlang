@@ -104,7 +104,7 @@ try_late_fold_type_arg :: fn(name: string, args: LoweredExpr[], span: Span, type
 
 runtime_intrinsic_name :: fn(name: string, args: LoweredExpr[]) -> string {
     if name == "size_of" && args.len() == 1 {
-        return "size_of.type"
+        return INTRINSIC_SIZE_OF_TYPE
     }
     return name
 }

@@ -21,7 +21,7 @@ AST :: import "toolchain/ast"
 
 /// Type a bracketed literal contextually : returns `Tuple(...)` when
 /// `expected` is a tuple-shaped slot, `Array(...)` otherwise.
-export infer_seq_lit :: fn(
+infer_seq_lit :: fn(
     e: AST.SeqLitExpr,
     expected: Type | null,
     typed: TypedProgram,

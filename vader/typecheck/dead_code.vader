@@ -495,7 +495,7 @@ bfs_reachable :: fn(
 ///                     platform's body is live source, not dead code, and saying
 ///                     otherwise is a false positive on every multi-platform
 ///                     module (see `resolver::discarded_bodies`).
-export check_dead_code :: fn(
+check_dead_code :: fn(
     decls: AST.Decl[],
     module_name: string,
     diags: Diagnostic[],
@@ -583,7 +583,7 @@ export DeadExport :: struct {
 ///
 /// @param decls  the merged top-level decls of every non-stdlib module.
 /// @return       every dead exported fn, in the order encountered.
-export dead_exports :: fn(decls: AST.Decl[], discarded: AST.FnDecl[] = []) -> DeadExport[] {
+dead_exports :: fn(decls: AST.Decl[], discarded: AST.FnDecl[] = []) -> DeadExport[] {
     refs_by_name :: MutableMap<string, string[]> {}
     root_names: string[]: []
     seed_refs: string[]: []
@@ -626,7 +626,7 @@ export dead_exports :: fn(decls: AST.Decl[], discarded: AST.FnDecl[] = []) -> De
 /// ⚠️ A build driver's `build` is deliberately NOT accepted as that seed, unlike
 /// in W0007's per-module roots. Rooting it makes the lint RUN on a driven
 /// project, whose closure is the whole compiler — and every compiler export the
-/// driver does not reach then reports as unused (51 of them, measured), all of
+/// driver does not reach then reports as unused, all of
 /// them alive and called by `vader/cli`, which is not in that closure. Running it
 /// needs a scope predicate first: "was this module provided by a TOOLCHAIN root or
 /// by the project?", which `Module.origin` answers for `lib/` but not for
@@ -683,11 +683,10 @@ export dead_exports_of_project :: fn(project: LoadedProject) -> UnusedExportRepo
     }
 }
 
-/// Render one `DeadExport` as its W0012 warning. The single mapper both the CLI
-/// and the LSP use, so the code + wording stay in one place.
+/// Render one `DeadExport` as its W0012 warning.
 ///
 /// @param e  the dead exported fn to report.
-export dead_export_diag :: fn(e: DeadExport) = warning(
+dead_export_diag :: fn(e: DeadExport) = warning(
     .UnusedExport,
     e.name_span,
     "`${e.name}` is never used",

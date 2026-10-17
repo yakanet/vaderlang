@@ -1,10 +1,11 @@
-// vader/typecheck/match_expr — MatchExpr inference (MVP).
+// vader/typecheck/match_expr — MatchExpr inference.
 //
 // `match scrutinee { p1 -> b1, p2 -> b2 }` types as the join of its arm bodies
 // (`join_branch_types`: their union, a free literal arm repinned to a concrete one).
-// Out of scope: exhaustiveness check (T3013), per-arm scrutinee
-// narrowing (the header alias `match e as x` typing `x` per arm) — both
-// land with `narrow.vader`. Guards must be `bool` (T3019).
+// An `is T` arm narrows the scrutinee (a name, a field chain, or the header alias
+// of `match e as x`) to `T`, the wildcard arm to what the arms above leave
+// (`arm_narrow_for`). Every match is exhaustive (T3013) : a union or an enum by
+// its variants, any other scrutinee by `_`. Guards must be `bool` (T3019).
 
 module "vader/typecheck"
 
@@ -61,7 +62,7 @@ pattern_span :: fn(p: AST.Pattern) -> Span = match p {
     is AST.OrPattern          -> p.span
 }
 
-export infer_match :: fn(
+infer_match :: fn(
     e: AST.MatchExpr,
     expected: Type | null,
     typed: TypedProgram,
@@ -363,13 +364,11 @@ is_never :: fn(t: Type) -> bool {
 
 // The type an `is T` pattern denotes.
 //
-// `diags` is the sink `type_from_expr` writes into. Three of the four callers pass
-// a throwaway one because they RE-DERIVE a pattern already lowered elsewhere, and a
-// real sink there would report the same type four times ; only `bind_pattern_types`,
-// which walks each pattern once, passes the caller's. Before it did, every
-// diagnostic raised while lowering an arm pattern was dropped on the floor — an
-// `is Alias.Nope` compiled clean and took a branch under the VM that native never
-// takes.
+// `diags` is the sink `type_from_expr` writes into. The callers that re-derive a
+// pattern checked elsewhere pass a throwaway one, so a type is reported once ;
+// `bind_pattern_types`, which walks each pattern once, passes the caller's, and a
+// pattern's diagnostics must reach it : an unreported `is Alias.Nope` takes a
+// branch under the VM that native never takes.
 pattern_type_of :: fn(ty: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type =
     type_from_expr(ty, typed.resolved, diags)
 

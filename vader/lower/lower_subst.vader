@@ -75,11 +75,9 @@ any_leaves_of :: fn(t: Type) -> Type {
     if t is UnionType {
         // Erase THEN dedupe. Every variant that carries no args erases to `Any`,
         // so a union of N such variants — a type-param's trait bounds, say
-        // `Hash & Equals`, or a 19-trait array bound — would otherwise become a
-        // union of N `Any`s. That is a distinct SHAPE per arity: measured on one
-        // driven build, 136 distinct `MutableMap` shapes and a mangle 1 539
-        // characters long (`MutableMap__i32__ArrayClear___ArrayCopy___…`), each
-        // one materialised as its own struct decl. `Any | Any` is `Any`.
+        // `Hash & Equals`, or a many-trait array bound — would otherwise become a
+        // union of N `Any`s, a distinct SHAPE per arity, each one materialised as
+        // its own struct decl under its own, very long, mangle. `Any | Any` is `Any`.
         new_vars: Type[]: []
         seen :: MutableSet<string> {}
         for v in t.variants {
@@ -277,7 +275,7 @@ args_suffix :: fn(args: Type[]) -> string {
 /// @param args   the impl's concrete type arguments.
 /// @return       `"__<type>"` per arg `kept_argument` keeps, `"__Any"` per
 ///               other arg.
-export mixed_any_suffix :: fn(impls: ImplRegistry, args: Type[]) -> string {
+mixed_any_suffix :: fn(impls: ImplRegistry, args: Type[]) -> string {
     sb :: StringBuilder {}
     for a in args {
         sb.append("__")

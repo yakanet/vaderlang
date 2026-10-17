@@ -34,7 +34,7 @@ import "toolchain/span"
 /// @param defer_stmt    the source defer.
 /// @param block_lowerer callback to lower a `BlockExpr` (cycle-breaker).
 /// @return              the lowered defer.push stmt.
-export lower_defer :: fn(
+lower_defer :: fn(
     ctx: FnLowerCtx, defer_stmt: AST.DeferStmt,
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredStmt {

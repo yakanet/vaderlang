@@ -26,7 +26,7 @@ import "vader/types"
 import "std/abort"
 
 /// How a callee consumes its iterator parameter — found once per callee.
-export ConsumerShape :: struct {
+ConsumerShape :: struct {
     /// The consumed parameter's index.
     param:       usize
     /// The consumed parameter's symbol, as the resolver recorded it.
@@ -41,7 +41,7 @@ export ConsumerShape :: struct {
 /// @param call  the call expression.
 /// @param type  the call's result type from typecheck.
 /// @return      a block-expression evaluating to the call's result, or null.
-export try_inline_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type: Type) -> LoweredExpr | null {
+try_inline_consumer :: fn(ctx: FnLowerCtx, call: AST.CallExpr, type: Type) -> LoweredExpr | null {
     if is_known_non_consumer(ctx, call) {
         return null
     }

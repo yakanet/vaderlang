@@ -41,7 +41,7 @@ CfAppend :: struct {
 /// @param ctx    the lowering context — `lower_concat_chain` mints the fused
 ///               arity's `concat_N` through it.
 /// @param stmts  the block's statements so far ; rewritten in place.
-export fuse_concat_tail :: fn(ctx: FnLowerCtx, stmts: LoweredStmt[]) -> void {
+fuse_concat_tail :: fn(ctx: FnLowerCtx, stmts: LoweredStmt[]) -> void {
     n :: stmts.len()
     if n < 2 {
         return

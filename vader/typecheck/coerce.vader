@@ -3,8 +3,8 @@
 // Consults `typed.impl_methods` (populated by `orchestrate.vader`
 // per-impl) for an `into` method registered on `got` whose return
 // type unifies with `expected`. Lets the typechecker suppress
-// T3001/T3020 when a valid coercion exists. Auto-array-to-Iterator
-// coercion lands once the resolver indexes core's Iterator trait.
+// T3001/T3020 when a valid coercion exists, an array into an `Iterator`
+// included.
 
 module "vader/typecheck"
 
@@ -24,7 +24,7 @@ AST :: import "toolchain/ast"
 ///               `.into()` hint, the lowering where the slot type is not at hand),
 ///               and the `into` is filed as its site ; trait widening records
 ///               nothing.
-export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, value: AST.Expr) -> bool {
+try_into :: fn(got: Type, expected: Type, typed: TypedProgram, value: AST.Expr) -> bool {
     targeted :: into_impl_method(typed, got, expected)
     if targeted !is null {
         if targeted.ty is FnType as f {
@@ -41,9 +41,9 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram, value: AST
         return true
     }
     // `T[] → Iterator<T>` : lowerer materialises the `array_iter` generator
-    // at the call site. Lives in `try_into` (not `is_assignable`) to
-    // keep the recursive assignability check small enough that
-    // c-emit doesn't monomorphise a 3× larger main.c.
+    // at the call site. Lives in `try_into`, not `is_assignable` : the
+    // conversion is recorded on `value` (`note_into`), which a check over
+    // types alone never sees.
     if try_array_to_iter(got, expected) {
         note_into(typed, value, got, expected)
         return true
@@ -63,7 +63,7 @@ note_into :: fn(typed: TypedProgram, value: AST.Expr, source: Type, target: Type
     record_site(typed, value, .Into, conversion_callee(typed, source, target) ?? BUILTIN_CALLEE)
 }
 
-export try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
+try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
     if got !is ArrayType {
         return false
     }
@@ -77,7 +77,7 @@ export try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
 /// (or a variant of `expected` if it's a union). Handles struct receivers AND primitives
 /// — `i32 implements Doubler(i32)` is a valid impl whose receiver name
 /// is "i32" in `struct_implemented_traits`. Free* gets defaulted first.
-export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
+try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
     // Union SOURCE : `A | B` widens into `expected` iff *every* variant does —
     // each via plain assignability or its own trait widen. This is subtyping
     // (no runtime coercion), mirroring `is_assignable_union` but through the
@@ -120,7 +120,7 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
 /// @param got       the value's type.
 /// @param expected  the slot's type.
 /// @param typed     the module checking it, whose impls a trait slot needs.
-export fits_or_implements :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool =
+fits_or_implements :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool =
     is_assignable(got, expected) || try_trait_widen(got, expected, typed)
 
 // A type parameter is the traits its bound names : `x: T` with `T: Display` fits a

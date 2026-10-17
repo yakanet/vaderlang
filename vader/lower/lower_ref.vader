@@ -164,7 +164,7 @@ for_each_lowered_expr :: fn(e: LoweredExpr, visit: fn(Type) -> void) -> void {
 /// @param visit_virtual called with `(trait_name, method_name)` for every
 ///                      virtual call so the vtable fixpoint can keep the
 ///                      matching impl fns.
-export for_each_lowered_ref :: fn(
+for_each_lowered_ref :: fn(
     decl: LoweredDecl,
     visit_fn: fn(i32, string) -> void,
     visit_virtual: fn(string, string) -> void,

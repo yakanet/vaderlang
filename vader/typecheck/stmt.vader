@@ -2,24 +2,23 @@
 //
 // Walks every statement of a fn body, types each one, tracks loop
 // depth + return type via `FnContext`, and writes results into
-// `local_types` / `expr_types`. Stops short of W0002 dead-code
-// detection, T3041 mutate-`::`-local, IndexSet dispatch, custom
-// Iterator trait lookup, `comptime for` unrolling, and `Self`
-// substitution — those land with later phases.
+// `local_types` / `expr_types`. Reports the code a divergent statement
+// leaves unreachable (W0002).
 
 module "vader/typecheck"
 
 import "std/collections"
-import "vader/diagnostics"
 AST :: import "toolchain/ast"
+import "vader/diagnostics"
 import "vader/resolver"
+import "vader/resolver/symbol"
 import "vader/types"
 
 /// Check every statement in `block`, then type the trailing expression
 /// (or `void` when none). Writes the block's type into `expr_types`.
 /// `ctx` carries the surrounding fn's return type + loop depth ;
 /// pass `null` for stand-alone block exprs.
-export check_block :: fn(
+check_block :: fn(
     block: AST.BlockExpr,
     expected: Type | null,
     typed: TypedProgram,
@@ -92,7 +91,7 @@ export check_block :: fn(
 
 /// Type-check a single statement. Reads `ctx` for `return` / `break` /
 /// `continue` validation ; writes `local_types` for let-bindings.
-export check_stmt :: fn(
+check_stmt :: fn(
     stmt: AST.Stmt,
     typed: TypedProgram,
     diags: Diagnostic[],
@@ -146,7 +145,7 @@ generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diag
 /// `decl_types`, builds an initial `FnContext`, then walks the body.
 /// Final-expression / implicit-return type-checking happens through
 /// the trailing-expr arm of `check_block`.
-export check_fn_body :: fn(
+check_fn_body :: fn(
     fn_decl: AST.FnDecl,
     body: AST.BlockExpr,
     typed: TypedProgram,
@@ -259,12 +258,12 @@ patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) 
     }
 }
 
+// @partial: a union, an array, a fn, a tuple or a struct's arguments are searched ;
+// every other variant, a trait's arguments and a distinct's backing included,
+// answers false.
 contains_unresolved :: fn(t: Type) -> bool = @partial match t {
     is UnresolvedType -> { return true }
     is UnionType      -> {
-        // @partial: only the composite type variants can carry an Unresolved leaf;
-        // every scalar / primitive variant is unresolved-free, so `false` is right.
-
         for v in t.variants {
             if contains_unresolved(v) {
                 return true
@@ -443,8 +442,6 @@ record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgra
     }
     typed.empty_array_inits[s.binding.name_span.hash()] = s.value.id
 }
-
-import "vader/resolver/symbol"
 
 check_assign :: fn(
     s: AST.AssignStmt,
@@ -1592,7 +1589,7 @@ lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
 /// `typed.local_types` keyed by the binding span (the same span the
 /// resolver passed to `mint_local`). Wildcards are skipped — they
 /// don't introduce a Symbol.
-export assign_binding_types :: fn(
+assign_binding_types :: fn(
     b: AST.LetBinding,
     declared: Type,
     typed: TypedProgram,
@@ -1736,11 +1733,12 @@ into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Ty
 //
 // Local `stmt_check_stub` avoids importing `expr.vader` (would create a
 // load-time cycle through `expr → stmt`). Full end-to-end coverage runs
-// via `check_module_with_bodies` in `orchestrate.vader`.
+// via `check_module_with_bodies` in `binary.vader`'s tests.
 
 import "std/testing"
-import "vader/parser"
 import "toolchain/span"
+import "vader/parser"
+
 // Bundles parse + resolve + declare + walks fn bodies with the stub.
 // Returns both `typed` and `diags` so test sites can assert on either.
 StubResult :: struct {

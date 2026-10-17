@@ -15,18 +15,21 @@
 
 module "vader/typecheck"
 
+import "std/collections"
 import "std/iter"
+import "std/math"
 import "std/string"
-import "vader/diagnostics"
 AST :: import "toolchain/ast"
+import "vader/diagnostics"
 import "vader/resolver"
+import "vader/resolver/symbol"
 import "vader/types"
 
 /// Type-check a `FieldExpr`. Chains the per-target-shape attempts in
 /// priority order ; each `try_*` returns `Type | null` (null = "not
 /// my case"). `try_struct_field` is the terminal fallback that emits
 /// T3008/T3009 when nothing matches.
-export infer_field :: fn(
+infer_field :: fn(
     e: AST.FieldExpr,
     expected: Type | null,
     typed: TypedProgram,
@@ -99,8 +102,8 @@ export infer_field :: fn(
 //
 // Each `try_*` returns null when the target_ty kind doesn't match its
 // shape, or when the shape matches but the lookup yielded nothing.
-// Splitting `infer_field`'s cascade into these tiny fns keeps each C
-// body bounded instead of the original 40 k-line monster.
+// Keep the cascade split : folded back into `infer_field`, it compiles
+// to one oversized C function.
 
 // `x.method()` where `<x-type> implements <Trait> { method :: ... }`.
 // Indexed by orchestrate.vader at impl-load time (`impl_candidates`). A member
@@ -177,7 +180,7 @@ receiver_impl_members :: fn(key_ty: Type, field: string, typed: TypedProgram) ->
 /// @param e          the call's callee.
 /// @param target_ty  the receiver's type.
 /// @return           the member's signature without its receiver.
-export settle_impl_member :: fn(
+settle_impl_member :: fn(
     chosen: ImplMethod,
     e: AST.FieldExpr,
     target_ty: Type,
@@ -230,7 +233,7 @@ member_ambiguity_error :: fn(field: AST.FieldExpr, sigs: Type[], what: string) -
 /// @param trait_key  the trait whose impl the form dispatches through.
 /// @param code       T3006, or T3043 for an operator.
 /// @return           true when reported.
-export reject_unmet_impl_bounds :: fn(
+reject_unmet_impl_bounds :: fn(
     receiver: Type, trait_key: string, code: TypecheckCode, span: Span,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> bool {
@@ -795,7 +798,7 @@ bare_name_symbol :: fn(target: AST.Expr, typed: TypedProgram) -> Symbol | null {
 
 /// Whether `target` is a bare name bound to a declaration of `kind`, through
 /// an import (`{ Info as I }`) included.
-export names_symbol_of_kind :: fn(target: AST.Expr, kind: SymbolKind, typed: TypedProgram) -> bool {
+names_symbol_of_kind :: fn(target: AST.Expr, kind: SymbolKind, typed: TypedProgram) -> bool {
     sym :: bare_name_symbol(target, typed) ?? return false
     return sym.kind == kind
 }
@@ -1021,7 +1024,7 @@ export declared_struct_field_type :: fn(
 /// @param span        where to point the diagnostic.
 /// @error             T3054 when `field_name` is `@internal` and the access is
 ///                    from a different module than `st.symbol.module`.
-export check_internal_field :: fn(
+check_internal_field :: fn(
     st: StructType,
     decl: AST.StructDecl,
     field_name: string,
@@ -1108,7 +1111,7 @@ resolved_field_type :: fn(
 /// @param st     an instance of the struct.
 /// @param typed  the program whose struct and parameter tables are read.
 /// @return       `t` as is when `st` names no struct of the project.
-export substitute_struct_args :: fn(t: Type, st: StructType, typed: TypedProgram) -> Type {
+substitute_struct_args :: fn(t: Type, st: StructType, typed: TypedProgram) -> Type {
     decl :: typed.struct_decls[st.symbol.id] ?? return t
     return substitute_type_params(t, decl.type_params, st.args, typed)
 }
@@ -1119,7 +1122,7 @@ export substitute_struct_args :: fn(t: Type, st: StructType, typed: TypedProgram
 /// @param tps    the declaration's type parameters.
 /// @param args   the arguments, one per parameter ; fewer leaves the rest.
 /// @param typed  the program whose shared parameter table is read.
-export substitute_type_params :: fn(
+substitute_type_params :: fn(
     t: Type, tps: AST.TypeParam[], args: Type[], typed: TypedProgram,
 ) -> Type {
     // A function type's quantifier may name the parameters its signature does not.
@@ -1148,29 +1151,6 @@ export type_param_bindings :: fn(
     return bindings
 }
 
-import "std/collections"
-import "std/math"
-
-/// MVP UFCS for the canonical primitive (string / char) methods.
-/// Mirrors the stdlib `T` free fns the lowerer wires in.
-///
-/// MID-REORG : this hardcoded string/char surface is being retired. The typer
-/// claims these methods but the lowerer reaches them only via free-fn UFCS over
-/// loaded modules, so any entry whose impl isn't loaded miscompiles. `len` was
-/// the first removed — it lives in `std/core` (the prelude) now. The remaining
-/// string/char entries move to `std/string` / `std/char` (import-required) or
-/// get implemented/dropped as that reorg lands.
-import "vader/resolver/symbol"
-
-/// When `e.target` is an `IdentExpr` resolving to a namespace
-/// `ImportBinding`, look up `e.field` in the target module's
-/// exports and return its declared type. Returns null when the
-/// pattern doesn't match (caller falls through to the struct-field
-/// path).
-// `s.foo()` where `foo` is a free fn whose first param accepts `s`'s
-// type. Walks `resolved.fn_overloads[foo]` and returns the curried
-// `FnType` (receiver stripped) of the first overload whose first
-// param accepts `s`. Null when no overload matches.
 // Emit T3032 when two distinct traits both provide `e.field` on
 // `target_ty`. The impl_method dispatch picks one silently ; this
 // hook surfaces the ambiguity instead of letting it bite later.
@@ -1773,7 +1753,7 @@ collect_bound_method_names :: fn(bound: AST.Expr, typed: TypedProgram, out: stri
 /// or `null` if the field doesn't exist. Shared with `struct_lit.vader`
 /// so the lookup convention stays in one place — generic substitution,
 /// when it lands, plugs in here.
-export find_struct_field_type :: fn(
+find_struct_field_type :: fn(
     decl: AST.StructDecl,
     name: string,
     resolved: ResolvedModule,
@@ -1790,8 +1770,8 @@ export find_struct_field_type :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser"
 import "toolchain/span"
+import "vader/parser"
 
 // Stub that handles only the variants the field tests touch — Ident
 // (for `p` in `p.x`), Field (for nested `obj.a.b`), and Int literals.

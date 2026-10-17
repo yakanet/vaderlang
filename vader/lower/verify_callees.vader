@@ -26,10 +26,10 @@ import "vader/typecheck"
 import "vader/types"
 
 /// Environment variable that turns the verification on.
-export VERIFY_CALLEES_VAR :: "VADER_VERIFY_CALLEES"
+VERIFY_CALLEES_VAR :: "VADER_VERIFY_CALLEES"
 
 /// The verifier's state for one lowering run.
-export CalleeVerifier :: struct {
+CalleeVerifier :: struct {
     /// Where the lowering chose another callee than the record.
     mismatches: CalleeMismatch[] = []
     /// The (node, role, choice) already reported.
@@ -42,7 +42,7 @@ export CalleeVerifier :: struct {
 }
 
 /// A verifier when `$VADER_VERIFY_CALLEES` is set, else null.
-export new_callee_verifier :: fn() -> CalleeVerifier | null {
+new_callee_verifier :: fn() -> CalleeVerifier | null {
     if !env_flag_set(VERIFY_CALLEES_VAR) {
         return null
     }
@@ -50,7 +50,7 @@ export new_callee_verifier :: fn() -> CalleeVerifier | null {
 }
 
 /// A call to a known function.
-export ObservedFn :: struct {
+ObservedFn :: struct {
     /// Null when the lowering names a function no declaration backs.
     decl: FnDecl | null
     /// The trait the function implements as an impl member ; "" for a free fn.
@@ -60,28 +60,28 @@ export ObservedFn :: struct {
 }
 
 /// A call dispatched at run time through the vtable of `trait_key`.
-export ObservedVirtual :: struct {
+ObservedVirtual :: struct {
     trait_key: string
     member: string
 }
 
 /// No call: a primitive operation, an intrinsic, a counter loop.
-export ObservedNoCall :: struct {
+ObservedNoCall :: struct {
     what: string
     /// An operator applied to two references compares them, whatever the type.
     on_reference: bool = false
 }
 
 /// A call through a value of function type.
-export ObservedIndirect :: struct {}
+ObservedIndirect :: struct {}
 
 /// Several calls at one site: the `equals` of each part a structural `==` compares.
-export ObservedEach :: struct {
+ObservedEach :: struct {
     parts: ObservedCallee[]
 }
 
 /// What the lowering chose at a site.
-export ObservedCallee ::
+ObservedCallee ::
     | ObservedFn
     | ObservedVirtual
     | ObservedNoCall
@@ -89,7 +89,7 @@ export ObservedCallee ::
     | ObservedEach
 
 /// A site where the lowering chose something the record does not account for.
-export CalleeMismatch :: struct {
+CalleeMismatch :: struct {
     span: Span
     role: CallRole
     /// Null when the typecheck filed nothing for the site.

@@ -5,9 +5,8 @@
 // (`struct_implemented_traits` / `struct_trait_args`), which is why
 // `struct_implements_trait` can live here while the registry-driven widening
 // stays with its callers — `field.vader::receiver_fits_first_param` via
-// `try_trait_widen`. `is_assignable`
-// and its per-variant helpers are in `type_assign.vader`, split out so each
-// variant compiles to a small dedicated C fn rather than one monster cascade.
+// `try_trait_widen`. `is_assignable` and its per-variant helpers are in
+// `type_assign.vader` (see its header).
 
 module "vader/typecheck"
 
@@ -35,7 +34,7 @@ export is_void :: fn(t: Type) -> bool {
 /// `b == '💩'` (u8) is rejected. Delegates to the authoritative per-repr range
 /// table (`repr_range` / `contains`), so the byte/short bounds stay in one place.
 /// Non-integer names return false (a char never coerces to e.g. f64).
-export char_fits :: fn(codepoint: u32, type_name: string) -> bool {
+char_fits :: fn(codepoint: u32, type_name: string) -> bool {
     if !is_int_name(type_name) { return false }
     return contains(repr_range(type_name), i64(codepoint))
 }
@@ -48,7 +47,7 @@ export char_fits :: fn(codepoint: u32, type_name: string) -> bool {
 /// @param value     the literal's magnitude, the `u64` the AST carries.
 /// @param negative  whether the literal is written with a `-` (`IntLitExpr.negative`).
 /// @param type_name the integer primitive the literal lands in.
-export int_fits :: fn(value: u64, negative: bool, type_name: string) -> bool {
+int_fits :: fn(value: u64, negative: bool, type_name: string) -> bool {
     if !is_int_name(type_name) {
         return false
     }
@@ -230,7 +229,7 @@ free_member :: fn(t: Type) -> Type | null {
 /// literals lower at their default.
 ///
 /// @param t  the type the binding's value was given.
-export default_free_members :: fn(t: Type) -> Type {
+default_free_members :: fn(t: Type) -> Type {
     variants :: union_variants(t) ?? return default_if_free(t)
     if free_member(t) == null {
         return t
@@ -245,16 +244,16 @@ export default_free_members :: fn(t: Type) -> Type {
 /// Dispatch key for trait-impl side-tables (`struct_implemented_traits`,
 /// `struct_trait_args`). Defaults Free* first so a `7` literal keys the
 /// same as `i32` for impls like `i32 implements Doubler`.
-export dispatch_key :: fn(t: Type) -> string = impl_base_key(default_if_free(t))
+dispatch_key :: fn(t: Type) -> string = impl_base_key(default_if_free(t))
 
 /// The impl tables' key for a type itself, arguments included (`Wrapper<i32>`).
-export impl_type_key :: fn(t: Type) -> string = canonical_key(t)
+impl_type_key :: fn(t: Type) -> string = canonical_key(t)
 
 /// Whether an impl for `t` covers one instance of a generic base — `Wrapper<MonType>`,
 /// `MonType[]` — and so wins over the base's generic impl for that instance alone.
 ///
 /// @param t  an impl's receiver.
-export is_instance_receiver :: fn(t: Type) -> bool =
+is_instance_receiver :: fn(t: Type) -> bool =
     (t is ArrayType || (t is StructType && t.args.len() > 0)) && !type_contains_type_param(t)
 
 /// The key an impl's side tables register it under : its own type for an impl on
@@ -262,7 +261,7 @@ export is_instance_receiver :: fn(t: Type) -> bool =
 /// instance the impl covers.
 ///
 /// @param for_ty  the impl's receiver.
-export impl_side_key :: fn(for_ty: Type) -> string =
+impl_side_key :: fn(for_ty: Type) -> string =
     if is_instance_receiver(for_ty) { impl_type_key(for_ty) } else { impl_base_key(for_ty) }
 
 // The key `t`'s own impls register under, or null when no impl on one instance
@@ -286,7 +285,7 @@ own_impl_key :: fn(typed: TypedProgram, t: Type) -> string | null {
 /// @param t       the receiver asked about.
 /// @param suffix  appended to both keys : `"::member"` for `impl_methods`, `""` for
 ///                a table keyed by the type alone.
-export impl_side :: fn<V>(
+impl_side :: fn<V>(
     typed: TypedProgram, table: MutableMap<string, V>, t: Type, suffix: string,
 ) -> V | null {
     own_key :: own_impl_key(typed, t)
@@ -306,7 +305,7 @@ export impl_side :: fn<V>(
 /// @param table   a table keyed by `impl_side_key`, followed by `suffix`.
 /// @param t       the receiver asked about.
 /// @param suffix  appended to both keys : `"::member"`, or `""` for a key alone.
-export impl_side_list :: fn(
+impl_side_list :: fn(
     typed: TypedProgram, table: MutableMap<string, string[]>, t: Type, suffix: string,
 ) -> string[] {
     base :: table["${dispatch_key(t)}${suffix}"] ?? []
@@ -355,7 +354,7 @@ NO_IMPL_METHODS: ImplMethod[]: []
 /// @param t          the receiver.
 /// @param trait_key  the trait the use site dispatches through.
 /// @param method     the member's name.
-export trait_members :: fn(
+trait_members :: fn(
     typed: TypedProgram,
     t: Type,
     trait_key: string,
@@ -418,7 +417,7 @@ into_toward_suffix :: fn(target: Type) -> string = "::${METHOD_INTO}::${impl_bas
 ///                impls of every module it sees.
 /// @param source  the converted value's type.
 /// @param target  the type it converts into.
-export into_impl_method :: fn(
+into_impl_method :: fn(
     typed: TypedProgram,
     source: Type,
     target: Type,
@@ -435,7 +434,7 @@ export into_impl_method :: fn(
 /// @param typed   the module the conversion is written in.
 /// @param source  the converted value's type.
 /// @param target  the slot's type.
-export into_method_toward :: fn(
+into_method_toward :: fn(
     typed: TypedProgram, source: Type, target: Type,
 ) -> ImplMethod | null {
     exact :: into_impl_method(typed, source, target)
@@ -451,7 +450,7 @@ export into_method_toward :: fn(
 /// True iff an impl on `t` itself or on its base registers `trait_key` in
 /// `typed.struct_implemented_traits` — every argument of a generic impl
 /// included, whatever its bounds.
-export base_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool =
+base_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool =
     trait_key in impl_side_list(typed, typed.struct_implemented_traits, t, "")
 
 /// True iff `t` implements `trait_key` : it has the impl built in
@@ -480,7 +479,7 @@ export struct_implements_trait :: fn(t: Type, trait_key: string, typed: TypedPro
 /// @param t       the implementing type.
 /// @param wanted  the trait instance a slot asks for.
 /// @param typed   the module asking ; its tables carry every impl it sees.
-export implements_trait_instance :: fn(t: Type, wanted: TraitType, typed: TypedProgram) -> bool {
+implements_trait_instance :: fn(t: Type, wanted: TraitType, typed: TypedProgram) -> bool {
     key :: trait_key_of(wanted.symbol)
     if !struct_implements_trait(t, key, typed) {
         return false
@@ -530,7 +529,7 @@ with_trait_defaults :: fn(
 ///
 /// @param t          the type that failed the check.
 /// @param trait_key  the trait it was checked against.
-export unmet_impl_bound_note :: fn(t: Type, trait_key: string, typed: TypedProgram) -> string {
+unmet_impl_bound_note :: fn(t: Type, trait_key: string, typed: TypedProgram) -> string {
     unmet :: blocking_bound(t, trait_key, typed) ?? return ""
     return impl_bound_note(unmet)
 }
@@ -549,7 +548,7 @@ impl_bound_note :: fn(unmet: UnmetBound) -> string {
 /// @param required  one trait of the parameter's bound ; arguments naming a type
 ///                  parameter are left undecided.
 /// @return          the end of a sentence (`` `Cfg` does not implement it ``), or null.
-export unmet_bound_reason :: fn(
+unmet_bound_reason :: fn(
     arg: Type, required: TraitType, typed: TypedProgram,
 ) -> string | null {
     key :: trait_key_of(required.symbol)
@@ -635,7 +634,7 @@ first_unmet_bound :: fn(
 /// @param owner     the generic fn or struct that declares it.
 /// @param required  the bound trait it fails.
 /// @param reason    `unmet_bound_reason`'s answer.
-export unmet_bound_detail :: fn(
+unmet_bound_detail :: fn(
     param: string, owner: string, required: TraitType, reason: string,
 ) -> string =
     "type parameter `${param}` of `${owner}` requires `${display_type(required)}`, and ${reason}"
@@ -719,7 +718,7 @@ export lookup_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedPr
 ///
 /// @param t          the implementing type.
 /// @param trait_key  the trait.
-export struct_trait_arg_lists :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[][] {
+struct_trait_arg_lists :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[][] {
     base :: trait_arg_lists_at(typed, dispatch_key(t), trait_key)
     own_key :: own_impl_key(typed, t) ?? return base
     own :: trait_arg_lists_at(typed, own_key, trait_key)
@@ -743,7 +742,7 @@ NO_ARG_LISTS: Type[][]: []
 ///
 /// @param t          the type asked about.
 /// @param trait_key  the trait.
-export implements_more_than_once :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool =
+implements_more_than_once :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool =
     struct_trait_arg_lists(t, trait_key, typed).len() > 1
 
 trait_arg_lists_at :: fn(typed: TypedProgram, key: string, trait_key: string) -> Type[][] {
@@ -769,7 +768,7 @@ coincides_with_any :: fn(lists: Type[][], args: Type[]) -> bool {
 /// when `t` isn't a struct instance or its decl is unavailable. Mirrors
 /// `field.vader::substitute_trait_typeparams`; the source of truth for binding a
 /// combinator/terminal's `Iterator<T>` param `T` from a concrete receiver.
-export resolve_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
+resolve_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
     // A `generator`'s `<fn>$State<E>` implements `Iterator<E>` — its trait args ARE
     // its own type args (the concrete element carried per instance). The synthetic
     // struct has no `struct_decl`, so the generic-substitution path below can't apply.
@@ -808,7 +807,7 @@ resolve_trait_args_for :: fn(t: Type, raw: Type[], typed: TypedProgram) -> Type[
 /// wants a concrete numeric of the matching family, fold the literal to
 /// the concrete primitive — into a union, to the member it settles on
 /// (`union_literal_member`). Used by every check_expr-style call site.
-export narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
+narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
     if expected is UnionType {
         member :: union_literal_member(got, expected) ?? return got
         return member
@@ -872,7 +871,7 @@ literal_family_holds :: fn(got: Type, name: string) -> bool = match got {
 /// Do `a` and `b` share any concrete runtime value ? Powers T3040
 /// ("test can never match") and the match-arm overlap check.
 /// UnionType on either side recurses into its variants.
-export types_overlap :: fn(a: Type, b: Type) -> bool {
+types_overlap :: fn(a: Type, b: Type) -> bool {
     av :: union_variants(a)
     if !(av is null) {
         for v in av { if types_overlap(v, b) { return true } }
@@ -892,7 +891,7 @@ export types_overlap :: fn(a: Type, b: Type) -> bool {
 ///
 /// @param a  a variant of one operand, or the operand itself.
 /// @param b  a variant of the other operand, or the operand itself.
-export same_variant :: fn(a: Type, b: Type) -> bool =
+same_variant :: fn(a: Type, b: Type) -> bool =
     equals_type(a, b)
         || (is_free_numeric(a) && is_assignable(a, b))
         || (is_free_numeric(b) && is_assignable(b, a))
@@ -945,7 +944,7 @@ export subtract_type :: fn(from: Type, removed: Type) -> Type {
 /// `ref_type_matches`), so those variants leave the remainder too —
 /// `match x: IOError | string { is string …, is Error … }` is exhaustive.
 /// A non-trait `removed` delegates to plain `subtract_type`.
-export subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedProgram) -> Type {
+subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedProgram) -> Type {
     if !(removed is TraitType) { return subtract_type(from, removed) }
     trait_key :: trait_key_of(removed.symbol)
     if from is UnionType {

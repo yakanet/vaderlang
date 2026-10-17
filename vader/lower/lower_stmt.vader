@@ -24,7 +24,7 @@ import "toolchain/span"
 /// @param loop_id       the `ForStmt.id` of the loop this is the body of; null
 ///                      for any other block.
 /// @return              the lowered block.
-export lower_block :: fn(
+lower_block :: fn(
     ctx: FnLowerCtx, block: BlockExpr, is_fn_root: bool, loop_id: usize | null,
 ) -> LoweredBlock {
     entry_depth :: ctx.blocks.len()
@@ -118,7 +118,7 @@ drain_pending_from :: fn(ctx: FnLowerCtx, out: LoweredStmt[], base: usize) -> vo
 // leaves the awaits hoisted: the build stops on the diagnostic, and the reads of
 // their targets keep a definition. No-op when nothing was hoisted, as always
 // outside async.
-export guard_no_pending_await :: fn(ctx: FnLowerCtx, base: usize, span: Span) -> void {
+guard_no_pending_await :: fn(ctx: FnLowerCtx, base: usize, span: Span) -> void {
     if ctx.pending_awaits.len() <= base { return }
     ctx.project.diags.push(lower_error(.AwaitInShortCircuit, span, ""))
 }
@@ -310,7 +310,7 @@ synth_unused_local :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
 /// @return             the resolver-minted symbol, or `null` when the binding
 ///                     has no use site (an unused local — callers fall back to
 ///                     `synth_unused_local`).
-export lookup_local_symbol :: fn(
+lookup_local_symbol :: fn(
     project_ctx: LowerProjectCtx, resolved: ResolvedModule, name_span: Span,
 ) -> Symbol | null {
     index :: ensure_local_symbol_index(project_ctx, resolved)

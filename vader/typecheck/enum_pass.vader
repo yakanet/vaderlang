@@ -27,7 +27,7 @@ import "toolchain/span"
 /// Side effects : pushes T3030 (out-of-range) and T3031 (duplicate value)
 /// onto `diags`. The map still includes every variant even on error so
 /// downstream phases don't cascade with "unknown variant" noise.
-export resolve_enum_indices :: fn(
+resolve_enum_indices :: fn(
     decl: EnumDecl, repr: string, diags: Diagnostic[],
 ) -> MutableMap<string, i64> {
     out :: MutableMap<string, i64> {}
@@ -112,7 +112,7 @@ export value_bounds :: fn(values: i64[]) -> [i64, i64] {
 /// @error                T3085 for a block on an enum whose header declares no
 ///                       data ; T3037 for a variant, with or without a block,
 ///                       that leaves a required field unset.
-export check_variant_data :: fn(
+check_variant_data :: fn(
     decl: EnumDecl, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
@@ -167,7 +167,7 @@ export declared_enum_data :: fn(decl: EnumDecl, typed: TypedProgram) -> StructTy
 /// Inclusive `[min, max]` integer range for a backing primitive.
 /// `contains(v)` returns true when v lands in the range (or always-true
 /// when the repr isn't an integer — defensive fallback).
-export ReprRange :: struct {
+ReprRange :: struct {
     min: i64
     max: i64
     /// True when the range is meaningful. False for non-integer reprs

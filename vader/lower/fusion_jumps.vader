@@ -28,7 +28,7 @@ import "std/abort"
 
 /// A loop whose body is being lowered with no loop of its own around it: spliced
 /// into its producer's code, or copied by an unrolled `@comptime for`.
-export JumpFrame :: struct {
+JumpFrame :: struct {
     /// The loop's `ForStmt.id`, in the module the body is lowered from.
     loop_id:        usize
     /// True when a bare `break` of the loop lands right as written.

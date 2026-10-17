@@ -33,7 +33,7 @@ import "toolchain/span"
 /// Walk every top-level decl in `program.decls` and mint its `Type` into
 /// `typed.decl_types`. The pass is single-shot — re-running it is
 /// idempotent if `decl_types` is cleared first.
-export declare_module :: fn(
+declare_module :: fn(
     program_decls: AST.Decl[],
     resolved: ResolvedModule,
     typed: TypedProgram,
@@ -1036,6 +1036,7 @@ is_nullable_pointer :: fn(t: Type) -> bool {
 /// @param t  the array's element type.
 /// @return   whether a `T[]` of it can be lent across the C ABI.
 is_extern_abi_element :: fn(t: Type) -> bool {
+    // @partial: only a primitive can be lent, and an unresolved type was reported.
     @partial match t {
         is UnresolvedType -> { return true }
         is PrimitiveType  -> {
@@ -1225,7 +1226,7 @@ distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
 /// @param diags     receives T3029, T3030, T3031 and T3084.
 /// @return          the enum type ; a malformed header still yields one,
 ///                  backed by `i32`, so the rest of the module keeps checking.
-export build_enum_type :: fn(
+build_enum_type :: fn(
     sym: Symbol, decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
     header :: classify_enum_header(decl, resolved, diags)

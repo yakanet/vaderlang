@@ -23,7 +23,7 @@ import "vader/types"
 
 /// Type-check a `BinaryExpr`. `check_expr_fn` is threaded to break the
 /// cyclic import with `expr.vader::check_expr`.
-export infer_binary :: fn(
+infer_binary :: fn(
     e: AST.BinaryExpr,
     expected: Type | null,
     typed: TypedProgram,
@@ -117,7 +117,7 @@ operator_default :: fn(op: AST.BinaryOp) -> Callee = match classify(op) {
 ///
 /// @error T3068 when `left` can never be null (the fallback is unreachable).
 /// @error T3001 when a value fallback isn't assignable to the non-null result.
-export infer_null_coalesce :: fn(
+infer_null_coalesce :: fn(
     e: AST.NullCoalesceExpr,
     expected: Type | null,
     typed: TypedProgram,
@@ -1380,6 +1380,7 @@ push_op_undefined :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagn
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/collections"
 import "std/testing"
 import "vader/parser"
 import "vader/resolver"
@@ -1645,6 +1646,24 @@ test_equality_same_width_ok :: fn() -> void {
     diags: Diagnostic[]: []
     assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "bool")
     assert_eq(diags.len(), 0)
+}
+
+// Run the full typecheck pipeline : decl-level + body-walking. The result
+// carries the same `TypedProgram` + `ImplRegistry` as `check_module`, with
+// `expr_types` / `local_types` populated.
+check_module_with_bodies :: fn(
+    program: AST.Program,
+    resolved: ResolvedModule,
+    diags: Diagnostic[],
+) -> CheckResult {
+    result :: check_module(program, resolved, diags)
+    walk_bodies(program.decls, result.typed, diags, .Full)
+    return CheckResult {
+        .typed = result.typed,
+        .impls = result.impls,
+        .others = [],
+        .all_modules = MutableMap<string, TypedProgram> {},
+    }
 }
 
 // W0013 reads element types out of `expr_types`, which only a body walk fills —

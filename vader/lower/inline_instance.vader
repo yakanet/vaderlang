@@ -30,7 +30,7 @@ import "std/abort"
 /// has a clone of its `Symbol` under a fresh id, and every label it writes takes
 /// a suffix of its own, so two instances of one callee in one function body are
 /// two sets of locals and loops.
-export InlineInstance :: struct {
+InlineInstance :: struct {
     /// The callee's id (its symbol's, or an impl member's minted one): while its
     /// body is inlined, the id sits in `LowerProjectCtx.inlining_callees`.
     callee_id:    i32

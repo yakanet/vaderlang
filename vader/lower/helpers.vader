@@ -210,7 +210,7 @@ hoist_prelude_before :: fn(ctx: FnLowerCtx, prelude: LoweredStmt[], mark: usize)
 /// @param ctx   the fn-body context (carries `uniq` + project counter).
 /// @param hint  short kebab-case-ish tag describing the synth slot.
 /// @return      the freshly minted symbol.
-export fresh_synthetic_symbol :: fn(ctx: FnLowerCtx, hint: string) -> Symbol {
+fresh_synthetic_symbol :: fn(ctx: FnLowerCtx, hint: string) -> Symbol {
     n :: ctx.uniq
     ctx.uniq = n + 1
     next_id :: next_project_synthetic_id(ctx.project)
@@ -232,7 +232,7 @@ export fresh_synthetic_symbol :: fn(ctx: FnLowerCtx, hint: string) -> Symbol {
 /// @param span   span to attach to the wrapping stmt.
 /// @param stmts  statements to wrap.
 /// @return       a single stmt that runs every input stmt in order.
-export wrap_stmts :: fn(span: Span, stmts: LoweredStmt[]) -> LoweredStmt {
+wrap_stmts :: fn(span: Span, stmts: LoweredStmt[]) -> LoweredStmt {
     if stmts.len() == 1 { return stmts[0] }
     block :: LoweredBlock {
         .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null,
@@ -256,7 +256,7 @@ export wrap_as_block :: fn(expr: LoweredExpr, span: Span) -> LoweredBlock {
 /// @param block  the block to re-shape.
 /// @return       the stmts list, with the trailing expression appended
 ///               as an `LoweredExprStmt` when one is present.
-export block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
+block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
     trailing :: block.trailing ?? return block.stmts
     out: LoweredStmt[]: []
     for stmt in block.stmts { out.push(stmt) }
@@ -269,7 +269,7 @@ export block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
 /// @param span   span attached to every synthesised binary node.
 /// @param parts  individual boolean expressions.
 /// @return       the OR-chained expression.
-export or_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr = chain_all(span, parts, .Or)
+or_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr = chain_all(span, parts, .Or)
 
 /// Combine a list of boolean expressions with short-circuit AND, left to
 /// right — a later part is only evaluated once every earlier one held. Empty
@@ -277,7 +277,7 @@ export or_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr = chain_all
 /// @param span   span attached to every synthesised binary node.
 /// @param parts  individual boolean expressions.
 /// @return       the AND-chained expression.
-export and_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr = chain_all(span, parts, .And)
+and_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr = chain_all(span, parts, .And)
 
 chain_all :: fn(span: Span, parts: LoweredExpr[], op: LoweredBinaryOp) -> LoweredExpr {
     if parts.len() == 0 {
@@ -296,7 +296,7 @@ chain_all :: fn(span: Span, parts: LoweredExpr[], op: LoweredBinaryOp) -> Lowere
 /// Initialisation result for a let-binding whose owning slot may need
 /// heap-promotion to a `Cell<T>`. The lowerer threads `slot_type` into
 /// the binding's static type and `value` into its initialiser.
-export CellInit :: struct {
+CellInit :: struct {
     value:     LoweredExpr
     slot_type: Type
 }
@@ -316,7 +316,7 @@ lives_in_cell :: fn(ctx: FnLowerCtx, symbol_id: i32) -> bool {
 /// @param value_type  the statically-known slot type.
 /// @param span        span attached to the cell-new node when emitted.
 /// @return            the `(value, slot_type)` to use for the binding.
-export lower_cell_init :: fn(
+lower_cell_init :: fn(
     ctx: FnLowerCtx, symbol: Symbol, value: LoweredExpr, value_type: Type, span: Span,
 ) -> CellInit {
     if !lives_in_cell(ctx, symbol.id) {
@@ -338,7 +338,7 @@ export lower_cell_init :: fn(
 /// @param value       the initialiser.
 /// @param value_type  the statically-known slot type.
 /// @param span        span of the `let` and of the cell-new when emitted.
-export cell_aware_let :: fn(
+cell_aware_let :: fn(
     ctx: FnLowerCtx, symbol: Symbol, name: string, value: LoweredExpr, value_type: Type, span: Span,
 ) -> LoweredStmt {
     init :: lower_cell_init(ctx, symbol, value, value_type, span)
@@ -446,7 +446,7 @@ env_field :: fn(lifted: LiftedFnContext, field: string, span: Span, type: Type) 
 /// @param block   the body to prepend onto.
 /// @return        a fresh `LoweredBlock` ; `block` is returned untouched when
 ///                `prefix` is empty.
-export prepend_stmts_to_block :: fn(prefix: LoweredStmt[], block: LoweredBlock) -> LoweredBlock {
+prepend_stmts_to_block :: fn(prefix: LoweredStmt[], block: LoweredBlock) -> LoweredBlock {
     if prefix.len() == 0 { return block }
     stmts: LoweredStmt[]: []
     stmts.push_all(prefix)

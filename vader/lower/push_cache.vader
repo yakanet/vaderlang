@@ -29,7 +29,7 @@ module "vader/lower"
 /// Runs over the whole project after lowering.
 ///
 /// @param project  the lowered project ; pushes are marked in place.
-export push_cache_tag :: fn(project: LoweredProject) -> void {
+push_cache_tag :: fn(project: LoweredProject) -> void {
     ctx :: new_purity_ctx(project)
     for [_, m] in project.modules {
         for d in m.decls {

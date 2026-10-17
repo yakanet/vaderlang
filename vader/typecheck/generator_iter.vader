@@ -92,7 +92,7 @@ generator_of_state :: fn(state: StructType, typed: TypedProgram) -> AST.FnDecl |
 /// module's own fns (`fn_overloads`): `fn_decls` is the project-wide table
 /// (`cross_publish_fn_decls`), and a signature resolves only in its owner. Read
 /// from a consumer declaring a fn of the same name, it would take that fn's.
-export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
+register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
     states :: MutableMap<u64, GeneratorState> {}
     for [_, owner] in per_module {
         sink: Diagnostic[]: []
@@ -128,7 +128,7 @@ export register_generator_iter_impls :: fn(per_module: MutableMap<string, TypedP
 /// element (`collect -> element[]`, `find -> element | null`) on a chain of these
 /// concretises instead of erasing to `T[]` (the `<fn>$State<E> implements
 /// Iterator<E>` convention that `resolve_struct_trait_args` reads).
-export generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_ret: Type) -> Type | null {
+generator_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_ret: Type) -> Type | null {
     // Cheap program-level bail: a generator-free program skips the per-call
     // callee probe entirely.
     if typed.generator_states.is_empty() { return null }

@@ -6,9 +6,10 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics"
-import "vader/types"
 AST :: import "toolchain/ast"
+import "vader/diagnostics"
+import "vader/resolver/symbol"
+import "vader/types"
 
 /// Type-check a range. Resolves to `Range<T>` when `std/core::Range`
 /// is loaded (auto-loaded by `loader.vader`), otherwise Unresolved.
@@ -18,7 +19,7 @@ AST :: import "toolchain/ast"
 ///                  otherwise `T` is picked from the bounds.
 /// @error           T3066 when a literal bound does not fit the expected element.
 /// @error           T3001 when a bound is of another type than the expected element.
-export infer_range :: fn(
+infer_range :: fn(
     e: AST.RangeExpr,
     expected: Type | null,
     typed: TypedProgram,
@@ -105,5 +106,3 @@ pick_bound_or_default :: fn(t: Type) -> Type {
         _                -> { return mk_primitive("i32") }
     }
 }
-
-import "vader/resolver/symbol"

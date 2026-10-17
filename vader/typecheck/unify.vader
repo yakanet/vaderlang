@@ -6,15 +6,15 @@
 // (and UFCS receiver re-unification in `field.vader`) to infer a call's
 // type-args from its positional args.
 //
-// MVP-trimmed: no trait-impl branch (the `paramType is TraitType +
-// concrete arg → look up impl + bind trait args` arm). That
-// path needs `ImplRegistry.find_for(...)` plus impl-typeParam
-// inversion which lands once `coerce.vader` materialises.
+// A `TraitType` param binds only against a value of that same trait :
+// binding it from a concrete argument would need the impl registry,
+// which this module does not see.
 
 module "vader/typecheck"
 
 import "std/collections"
 import "std/iter"
+import "std/math"
 import "vader/types"
 
 is_free_numeric :: fn(t: Type) -> bool {
@@ -32,7 +32,7 @@ is_free_numeric :: fn(t: Type) -> bool {
 /// binding into `out`. The first binding wins. Matches a declaration's own
 /// pattern (an impl's target, a UFCS first parameter) ; a call binds through
 /// `unify_infer` instead.
-export unify_type_param :: fn(
+unify_type_param :: fn(
     param_type: Type,
     arg_type: Type,
     out: MutableMap<i32, Type>,
@@ -136,7 +136,7 @@ export unify_type_param :: fn(
 /// True when `t` carries an `UnresolvedType` anywhere in its tree — i.e. the
 /// checker failed to work out part of it, so the type says nothing. Used by
 /// `unify_type_param` to refuse a binding that would freeze a type-param at `?`.
-export type_contains_unresolved :: fn(t: Type) -> bool {
+type_contains_unresolved :: fn(t: Type) -> bool {
     // @partial: only these variants have inner types to walk ; every scalar /
     // primitive variant carries nothing unresolved.
     @partial match t {
@@ -272,8 +272,6 @@ find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
     }
     return i32(-1)
 }
-
-import "std/math"
 
 /// Walk `t` and replace each `TypeParam` whose symbol id appears in
 /// `subst` with the bound concrete type. The `_map` suffix distinguishes
@@ -500,7 +498,7 @@ zonk_each :: fn(types: Type[], solutions: MutableMap<i32, Type>) -> Type[] {
 ///
 /// @param t  a type from a generic signature or declaration.
 /// @return   `t`, its type parameters turned into `TY_UNRESOLVED`.
-export erase_type_params :: fn(t: Type) -> Type =
+erase_type_params :: fn(t: Type) -> Type =
     if type_contains_type_param(t) { erase_params_in(t) } else { t }
 
 // The rebuilt shape is only ever an `is_assignable` target, so a union keeps its

@@ -22,7 +22,7 @@ import "vader/types"
 /// @param expr         the source range.
 /// @param result_type  the surrounding context's expected type.
 /// @return             the lowered struct literal (or unreachable on miss).
-export lower_range_expr :: fn(ctx: FnLowerCtx, expr: RangeExpr, result_type: Type) -> LoweredExpr {
+lower_range_expr :: fn(ctx: FnLowerCtx, expr: RangeExpr, result_type: Type) -> LoweredExpr {
     range_symbol :: ctx.project.core_symbols[STRUCT_RANGE]
     match range_symbol {
         is null -> {

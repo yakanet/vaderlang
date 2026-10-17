@@ -21,15 +21,16 @@
 module "vader/typecheck"
 
 import "std/collections"
-import "vader/resolver/symbol"
 AST :: import "toolchain/ast"
+import "vader/resolver"
+import "vader/resolver/symbol"
 import "vader/types"
 
 /// Return the Type of an `IdentExpr` in value position. Returns
 /// `TY_UNRESOLVED` when the resolver couldn't bind the ident (the
 /// resolver already emitted R2006) or when the symbol's kind doesn't
 /// carry a typecheck-time type yet.
-export infer_ident :: fn(e: AST.IdentExpr, typed: TypedProgram) -> Type {
+infer_ident :: fn(e: AST.IdentExpr, typed: TypedProgram) -> Type {
     sym :: typed.resolved.idents[e.span.hash()] ?? return TY_UNRESOLVED
     redirected :: declared_symbol(sym, typed)
     static_ty :: type_of_symbol(redirected, typed)
@@ -38,8 +39,6 @@ export infer_ident :: fn(e: AST.IdentExpr, typed: TypedProgram) -> Type {
     // return the narrowed type instead of the binding's static type.
     return narrow_for_binding(typed, redirected.id, static_ty)
 }
-
-import "vader/resolver"
 
 /// The declaration `sym` stands for: an import binding (`import "m" { TABLE as T }`)
 /// is followed to the export it binds, when the wire pass recorded it. Any other

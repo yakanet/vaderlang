@@ -10,7 +10,7 @@ AST :: import "toolchain/ast"
 
 /// Type-check the read `target[index]` : an array's element, a bound's or an impl's
 /// `Index` result, a slice for a `Range` index on an array.
-export infer_index :: fn(
+infer_index :: fn(
     e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
@@ -191,7 +191,7 @@ export index_route :: fn(target: Type, trait_key: string, typed: TypedProgram) -
 /// `Index<I, T>` / `IndexSet<I, V>` in `[C: Index<usize, T>]`), or null when the
 /// bound names no such trait. Walks `A & B` intersections the same way
 /// `bound_trait_declaring` (field.vader) does.
-export bounded_trait_args :: fn(bound: AST.Expr, trait_key: string, typed: TypedProgram) -> Type[] | null {
+bounded_trait_args :: fn(bound: AST.Expr, trait_key: string, typed: TypedProgram) -> Type[] | null {
     if bound is AST.BinaryExpr {
         if bound.op == .BitAnd {
             l :: bounded_trait_args(bound.left, trait_key, typed)

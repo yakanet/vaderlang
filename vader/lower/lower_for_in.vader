@@ -39,7 +39,7 @@ import "toolchain/span"
 /// @param recurse      callback to lower nested expressions.
 /// @param block_lowerer callback to lower the body block (cycle break).
 /// @return             the lowered stmt (a block wrapping the loop).
-export lower_for_in :: fn(
+lower_for_in :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
@@ -240,7 +240,7 @@ bind_loop_var :: fn(
 // ctx that resolved the pattern's leaves (the CONSUMER's fn-ctx) : the generator
 // fusion path pre-lowers this into the sink body there, since the sink itself is
 // spliced in the generator's own ctx where those leaf symbols don't resolve.
-export emit_for_pattern_destructure :: fn(
+emit_for_pattern_destructure :: fn(
     ctx: FnLowerCtx, tup: AST.TupleBinding, elem_sym: Symbol, elem_type: Type, span: Span,
 ) -> LoweredStmt[] {
     out: LoweredStmt[]: []

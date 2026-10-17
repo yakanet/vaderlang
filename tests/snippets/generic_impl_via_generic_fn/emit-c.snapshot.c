@@ -131,7 +131,7 @@ static int32_t snippet_main(void) {
         t2 = ((int32_t) l0.payload.i);
         { int32_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_unreachable("async `main` suspended, but this build has no scheduler (Phase 2b) to resume it");
+    vader_unreachable("async `main` suspended, and no `std/async` scheduler resumes it");
     vader_gc_top = gc_frame.prev;
 }
 

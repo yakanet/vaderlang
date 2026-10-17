@@ -35,7 +35,7 @@ import "std/string_builder"
 import "toolchain/span"
 
 /// One point where an optimisation pass handed over to the general path.
-export OptMiss :: struct {
+OptMiss :: struct {
     /// The pass that gave up, in the words a reader would use — "for-in fusion",
     /// not `try_lower_chain_fusion`.
     pass: string
@@ -48,7 +48,7 @@ export OptMiss :: struct {
 }
 
 /// Environment variable that turns the report on.
-export OPT_REPORT_VAR :: "VADER_OPT_REPORT"
+OPT_REPORT_VAR :: "VADER_OPT_REPORT"
 
 /// Whether `$VADER_OPT_REPORT` is set to something other than `0`.
 ///
@@ -78,7 +78,7 @@ export source_position :: fn(span: Span) -> string =
 /// @param ctx   the lowering project context, which accumulates the misses.
 /// @param pass  the pass, named for a reader.
 /// @param note  what runs instead, and what would have been needed.
-export record_miss :: fn(ctx: LowerProjectCtx, pass: string, span: Span, note: string) -> void {
+record_miss :: fn(ctx: LowerProjectCtx, pass: string, span: Span, note: string) -> void {
     if !ctx.opt_report {
         return
     }
@@ -90,7 +90,7 @@ export record_miss :: fn(ctx: LowerProjectCtx, pass: string, span: Span, note: s
 ///
 /// Returns "" when the report is off or nothing missed, so the caller can print
 /// unconditionally.
-export render_opt_report :: fn(ctx: LowerProjectCtx) -> string {
+render_opt_report :: fn(ctx: LowerProjectCtx) -> string {
     if ctx.opt_misses.len() == 0 {
         return ""
     }

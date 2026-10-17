@@ -22,7 +22,7 @@ AST :: import "toolchain/ast"
 /// @param expected  the slot's type, as threaded through typecheck.
 /// @param variant   the variant name, without its leading dot.
 /// @return          the resolved `EnumType`, or null when the slot can't name one.
-export enum_for_bare_variant :: fn(
+enum_for_bare_variant :: fn(
     expected: Type | null, variant: string, typed: TypedProgram,
 ) -> Type | null {
     slot :: expected ?? return null
@@ -52,7 +52,7 @@ export enum_for_bare_variant :: fn(
 }
 
 /// Resolve a `.Variant` against the expected enum slot.
-export infer_dot_variant :: fn(
+infer_dot_variant :: fn(
     e: AST.DotVariantExpr, expected: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {

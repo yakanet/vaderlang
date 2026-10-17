@@ -33,7 +33,7 @@ import "vader/types"
 /// @param from  the module that declared `fd` — the resolutions come from here.
 /// @param into  the module importing it — the resolutions are copied here.
 /// @param fd    the exported declaration whose defaults may name something.
-export publish_default_resolutions :: fn(
+publish_default_resolutions :: fn(
     from: TypedProgram, into: TypedProgram, fd: AST.FnDecl,
 ) -> void {
     for pm in fd.params {

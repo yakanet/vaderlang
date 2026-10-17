@@ -11,13 +11,14 @@ module "vader/lower"
 import "std/collections"
 import "toolchain/ast"
 import "vader/resolver/symbol"
+import "vader/typecheck"
 import "vader/types"
 
 /// Resolve a `std/core` symbol by name from the project's cache.
 /// @param ctx   the fn-body context.
 /// @param name  the symbol's source-level name (e.g. `"Iterator"`).
 /// @return      the resolved symbol, or `null` when no entry exists.
-export lookup_core_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null {
+lookup_core_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null {
     return ctx.project.core_symbols[name]
 }
 
@@ -29,7 +30,7 @@ export lookup_core_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null 
 /// @param args  concrete type arguments in source order ; empty for
 ///              non-generic structs.
 /// @return      the struct type, or `null` when not resolvable.
-export find_core_type :: fn(ctx: FnLowerCtx, name: string, args: Type[]) -> Type | null {
+find_core_type :: fn(ctx: FnLowerCtx, name: string, args: Type[]) -> Type | null {
     symbol :: lookup_core_symbol(ctx, name)
     match symbol {
         is null -> { return null }
@@ -48,7 +49,7 @@ export find_core_type :: fn(ctx: FnLowerCtx, name: string, args: Type[]) -> Type
 /// @param name  the source-level trait name (e.g. `"Display"`).
 /// @return      the resolved trait symbol, or `null` when the name has no entry
 ///              or resolves to a non-trait kind.
-export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | null {
+find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | null {
     raw :: ctx.core_symbols[name]
     match raw {
         is null -> { return null }
@@ -74,7 +75,7 @@ export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | nul
 /// @param ctx   the fn-body context.
 /// @param name  the source-level enum name (e.g. `"Continuation"`).
 /// @return      the enum type, or `null` when not resolvable.
-export find_core_enum :: fn(ctx: FnLowerCtx, name: string) -> Type | null {
+find_core_enum :: fn(ctx: FnLowerCtx, name: string) -> Type | null {
     cached :: ctx.project.core_enum_types[name]
     if cached != null {
         return cached
@@ -103,7 +104,7 @@ export find_core_enum :: fn(ctx: FnLowerCtx, name: string) -> Type | null {
 /// @param element  the iterator's element type.
 /// @param cont     the `Continuation` enum type.
 /// @return         the tuple type `[T, Continuation]`.
-export iterator_step_type :: fn(element: Type, cont: Type) -> Type =
+iterator_step_type :: fn(element: Type, cont: Type) -> Type =
     mk_tuple([element, cont])
 
 /// Build the `T | Suspended` union an `async fn`'s synthesised `resume`
@@ -114,10 +115,8 @@ export iterator_step_type :: fn(element: Type, cont: Type) -> Type =
 /// @param result     the async fn's declared result type `T`.
 /// @param suspended  the `Suspended` sentinel struct type.
 /// @return           the flattened resume-return union.
-export union_of_result_suspended :: fn(result: Type, suspended: Type) -> Type =
+union_of_result_suspended :: fn(result: Type, suspended: Type) -> Type =
     union_of([result, suspended])
-
-import "vader/typecheck"
 
 /// True when an impl of `trait_sym` is written for `for_type`'s declaration — a
 /// primitive by its name, every array as `[]`.
@@ -125,7 +124,7 @@ import "vader/typecheck"
 /// @param ctx        the project context.
 /// @param for_type   the receiver type.
 /// @param trait_sym  the trait's declaration symbol.
-export has_impl_for :: fn(ctx: LowerProjectCtx, for_type: Type, trait_sym: Symbol) -> bool =
+has_impl_for :: fn(ctx: LowerProjectCtx, for_type: Type, trait_sym: Symbol) -> bool =
     ctx.impls.impls_for(for_type, trait_key_of(trait_sym)).len() > 0
 
 // ---- tests ----------------------------------------------------------------

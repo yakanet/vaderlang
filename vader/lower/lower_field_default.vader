@@ -46,7 +46,7 @@ lower_field_default :: fn(
 }
 
 /// A field-default thunk and the type its call returns.
-export DefaultThunk :: struct {
+DefaultThunk :: struct {
     symbol: Symbol
     type: Type
 }

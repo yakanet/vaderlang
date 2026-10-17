@@ -126,7 +126,7 @@ async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBl
 ///                      and return `T` (the exit code) instead of the `Async<T>`
 ///                      frame ; every other async fn returns the frame.
 /// @return              the rewritten `f` body.
-export lower_async_fn :: fn(
+lower_async_fn :: fn(
     fn_ctx: FnLowerCtx, fn_decl: FnDecl, params: LoweredParam[],
     lowered_body: LoweredBlock, result_type: Type, is_main: bool,
 ) -> LoweredBlock {
@@ -271,7 +271,7 @@ async_main_driver :: fn(
             .args = [], .param_types = [],
         },
     }
-    // if r is Suspended { trap }   — a parked root can't progress in Phase 2a.
+    // if r is Suspended { trap } : without the scheduler, a parked root cannot progress.
     guard :: LoweredIf {
         .span = span, .type = TY_VOID,
         .cond = LoweredTypeCheck { .span = span, .type = TY_BOOL, .value = r_ref, .check_type = suspended_ty },
@@ -281,7 +281,7 @@ async_main_driver :: fn(
                 .span = span,
                 .expr = LoweredUnreachable {
                     .span = span, .type = TY_VOID,
-                    .reason = "async `main` suspended, but this build has no scheduler (Phase 2b) to resume it",
+                    .reason = "async `main` suspended, and no `std/async` scheduler resumes it",
                 },
             }],
             .trailing = null,

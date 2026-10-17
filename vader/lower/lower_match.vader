@@ -32,7 +32,7 @@ import "toolchain/span"
 /// @param recurse      callback to lower nested expressions (breaks the
 ///                     `lower_expr ↔ lower_match` import cycle).
 /// @return             the lowered block.
-export lower_match :: fn(
+lower_match :: fn(
     ctx: FnLowerCtx, expr: MatchExpr, result_type: Type,
     recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
 ) -> LoweredExpr {

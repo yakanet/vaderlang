@@ -347,6 +347,8 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
 // receiver is statically an array — else null (a non-array `.into()` head, e.g.
 // `set.into()`, is not a fusible array bottom).
 array_from_into_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | null {
+    // @partial: only a method or a free call names `into` ; any other callee is not
+    // an array head.
     @partial match call.callee as fe {
         is AST.FieldExpr -> {
             if fe.field != METHOD_INTO { return null }

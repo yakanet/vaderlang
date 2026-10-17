@@ -11,12 +11,13 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics"
-import "vader/types"
 AST :: import "toolchain/ast"
+import "vader/diagnostics"
+import "vader/resolver"
+import "vader/types"
 
 /// Type-check a `LambdaExpr`. Returns `fn(params...) -> body`.
-export infer_lambda :: fn(
+infer_lambda :: fn(
     e: AST.LambdaExpr, expected: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
@@ -111,8 +112,6 @@ infer_param :: fn(
     return TY_UNRESOLVED
 }
 
-import "vader/resolver"
-
 pick_return :: fn(
     annot: AST.TypeExpr | null, expected_fn: FnType | null,
     resolved: ResolvedModule, diags: Diagnostic[],
@@ -150,4 +149,3 @@ pick_final_return :: fn(expected: Type | null, body: Type, ctx: FnContext) -> Ty
     if expected is FreeFloatType { return default_if_free(effective_body) }
     return expected
 }
-

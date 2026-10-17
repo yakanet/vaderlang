@@ -89,7 +89,7 @@ export ImplRegistry :: struct {
 ///
 /// @param program_decls  one module's declarations.
 /// @param resolved       that module.
-export build_impl_registry :: fn(program_decls: Decl[], resolved: ResolvedModule) -> ImplRegistry {
+build_impl_registry :: fn(program_decls: Decl[], resolved: ResolvedModule) -> ImplRegistry {
     reg :: ImplRegistry {}
     reg.collect_impls(program_decls, resolved)
     return reg
@@ -114,7 +114,7 @@ export collect_impls :: fn(self: ImplRegistry, decls: Decl[], resolved: Resolved
 ///
 /// @param decl      the impl.
 /// @param resolved  the module that declares `decl`.
-export impl_trait_symbol :: fn(decl: ImplDecl, resolved: ResolvedModule) -> Symbol | null {
+impl_trait_symbol :: fn(decl: ImplDecl, resolved: ResolvedModule) -> Symbol | null {
     bound :: resolved.idents[decl.trait_name_span.hash()] ?? return null
     target :: redirect_import(bound, resolved)
     return if target.kind == .Trait { target } else { null }

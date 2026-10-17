@@ -28,7 +28,7 @@ export EntryTypes :: struct {
 /// @param typed  the module's typed program.
 /// @param subst  the entry's substitution (may be empty).
 /// @return       a fresh view.
-export make_entry_types :: fn(typed: TypedProgram, subst: Substitution) -> EntryTypes {
+make_entry_types :: fn(typed: TypedProgram, subst: Substitution) -> EntryTypes {
     return EntryTypes { .typed = typed, .subst = subst }
 }
 
@@ -57,7 +57,7 @@ apply_or_unresolved :: fn(self: EntryTypes, raw: Type | null) -> Type {
 /// @param self  the entry-types view.
 /// @param expr  the AST expression node.
 /// @return      the resolved type.
-export expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
+expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
     return apply_or_unresolved(self, self.typed.expr_types[expr.id])
 }
 
@@ -70,7 +70,7 @@ export expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
 /// @param expr  the AST expression node.
 /// @return      the recorded type, no substitution applied; `TY_UNRESOLVED`
 ///              on a miss.
-export raw_expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
+raw_expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
     raw :: self.typed.expr_types[expr.id] ?? return TY_UNRESOLVED
     return raw
 }
@@ -113,7 +113,7 @@ export local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
 /// @param self  the entry-types view.
 /// @param key   the span hash the type was recorded under.
 /// @return      the concrete type, or null when the caller must fall back.
-export concrete_local_type :: fn(self: EntryTypes, key: u64) -> Type | null {
+concrete_local_type :: fn(self: EntryTypes, key: u64) -> Type | null {
     raw :: self.typed.local_types[key] ?? return null
     if raw is UnresolvedType {
         return null
@@ -137,7 +137,7 @@ export param_type :: fn(self: EntryTypes, param: FnParam) -> Type {
 /// @param self       the entry-types view.
 /// @param type_expr  the `TypeExpr` AST node.
 /// @return           the resolved type.
-export type_expr_type :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
+type_expr_type :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
     return apply_or_unresolved(self, self.typed.type_expr_types[type_expr.span.hash()])
 }
 
@@ -150,7 +150,7 @@ export type_expr_type :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
 ///
 /// @param self       the entry-types view.
 /// @param type_expr  the `TypeExpr` AST node.
-export recorded_type_expr :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
+recorded_type_expr :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
     recorded :: self.typed.expr_types[type_expr.id]
         ?? panic("lower: type expression at ${source_position(type_expr.span)} is not recorded")
     return apply(self, recorded)
@@ -164,7 +164,7 @@ export recorded_type_expr :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
 /// @param typed          any module's typed program : the table is shared.
 /// @param struct_symbol  the struct's declaration symbol.
 /// @param name           the field.
-export declared_field_type :: fn(typed: TypedProgram, struct_symbol: Symbol, name: string) -> Type =
+declared_field_type :: fn(typed: TypedProgram, struct_symbol: Symbol, name: string) -> Type =
     lookup_pre_resolved_field(struct_symbol.id, name, typed)
         ?? panic("lower: no type recorded for `${struct_symbol.name}.${name}`")
 

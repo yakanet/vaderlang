@@ -24,7 +24,7 @@ AST :: import "toolchain/ast"
 /// expression itself (to stop the walk) or `null` to keep walking.
 /// Callers narrow the returned `AST.Expr | null` to the variant
 /// they're looking for.
-export find_first_in_block :: fn(
+find_first_in_block :: fn(
     b: AST.BlockExpr, pred: fn(AST.Expr) -> AST.Expr | null,
 ) -> AST.Expr | null {
     for stmt in b.stmts {

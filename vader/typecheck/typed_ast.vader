@@ -13,6 +13,8 @@ module "vader/typecheck"
 
 import "std/collections"
 AST :: import "toolchain/ast"
+import "toolchain/span"
+import "vader/diagnostics"
 import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/types"
@@ -67,7 +69,7 @@ export overload_suffix :: fn(module: ResolvedModule, name: string, name_span: Sp
 /// @param file   the source file the lookup is on behalf of — `Span.start.file`
 ///               of the node being resolved, never a hard-coded path.
 /// @return       that file's name → overloads table, or null.
-export imported_overloads_table_in :: fn(
+imported_overloads_table_in :: fn(
     typed: TypedProgram, file: string,
 ) -> MutableMap<string, FnCandidate[]> | null = typed.imported_fn_overloads[file]
 
@@ -137,7 +139,7 @@ export chosen_impl_decl :: fn(typed: TypedProgram, callee_id: usize) -> AST.FnDe
 /// @param file   the source file the call site sits in.
 /// @param name   the fn name being dispatched.
 /// @return       the candidate signatures, in the order they were imported.
-export imported_overloads_in :: fn(
+imported_overloads_in :: fn(
     typed: TypedProgram, file: string, name: string,
 ) -> FnCandidate[] {
     table :: imported_overloads_table_in(typed, file) ?? return []
@@ -150,7 +152,7 @@ export imported_overloads_in :: fn(
 /// @param sym_id  the binding's id, as an id-keyed table carries it.
 /// @param typed   the typechecked program carrying the resolved bindings.
 /// @return        the binding, or `null` when the id is not one of the module's.
-export import_binding_by_id :: fn(sym_id: i32, typed: TypedProgram) -> Symbol | null {
+import_binding_by_id :: fn(sym_id: i32, typed: TypedProgram) -> Symbol | null {
     for binding in typed.resolved.import_bindings {
         if binding.id == sym_id {
             return binding
@@ -707,9 +709,6 @@ export EnclosingLoop :: struct {
     label:   string | null
 }
 
-import "vader/diagnostics"
-import "toolchain/span"
-
 /// Across the whole project — multi-module aggregation. Populated by
 /// the orchestrator (`check.vader`).
 export TypedProject :: struct {
@@ -741,7 +740,7 @@ export WidenedArgument :: struct {
     span: Span
 }
 
-export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
+new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .resolved        = resolved,
     .expr_types      = MutableMap<usize, Type> {},
     .loop_target_labels = MutableMap<usize, string> {},

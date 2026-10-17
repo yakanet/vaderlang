@@ -13,13 +13,14 @@ module "vader/typecheck"
 
 import "std/collections"
 import "std/iter"
-import "vader/diagnostics"
+import "std/string"
 AST :: import "toolchain/ast"
+import "toolchain/span"
+import "vader/diagnostics"
 import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/target"
 import "vader/types"
-import "toolchain/span"
 
 // Concatenate every file of a (possibly multi-file) module into one
 // synthetic Program so the resolver body-walks ALL files, not just
@@ -32,24 +33,6 @@ merge_module_program :: fn(files: SourceFile[]) -> AST.Program {
         return first
     }
     return AST.Program { ...first, .decls = concat_file_decls(files) }
-}
-
-/// Run the full typecheck pipeline : decl-level + body-walking. The
-/// result carries the same `TypedProgram` + `ImplRegistry` as
-/// `check_module`, just with `expr_types` / `local_types` populated.
-export check_module_with_bodies :: fn(
-    program: AST.Program,
-    resolved: ResolvedModule,
-    diags: Diagnostic[],
-) -> CheckResult {
-    result :: check_module(program, resolved, diags)
-    walk_bodies(program.decls, result.typed, diags, .Full)
-    return CheckResult {
-        .typed = result.typed,
-        .impls = result.impls,
-        .others = [],
-        .all_modules = MutableMap<string, TypedProgram> {},
-    }
 }
 
 /// Multi-module typecheck. Types the entry module fully, then
@@ -405,8 +388,6 @@ collect_direct_imports :: fn(
     }
     return out
 }
-
-import "std/string"
 
 empty_impls :: fn() -> ImplRegistry { return ImplRegistry {} }
 
@@ -1618,7 +1599,7 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
 /// type by that name (`namespace_member_types`). Those tables are filled after
 /// `register_aliases`; `settle_namespace_member_aliases` retries the consts left
 /// pending once they are.
-export is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
+is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.IdentExpr {
         if primitive_from_name(e.name) !is null {
             return true
@@ -1898,7 +1879,7 @@ populate_imported_fn_overloads :: fn(
             // bucket in place, so one array reachable from two files' tables
             // would let a file's own overload of that name leak into a sibling.
             // The prelude is in scope with no import, so it honours no modifier
-            // list, and at ~30 fns a per-file copy costs little.
+            // list, and a per-file copy of its few fns costs little.
             push_module_exported_fns(core, entry_typed, table, [])
         }
     }
@@ -2328,18 +2309,17 @@ lookup_external_type :: fn(
 }
 
 /// How `walk_bodies` treats fn bodies that don't need return inference.
-export WalkMode :: enum(u8) {
+WalkMode :: enum(u8) {
+    /// Type-check every body — populate `expr_types`, materialise stdlib fns.
     Full,
+    /// Settle returns only : walk ONLY `needs_return_inference` fns to patch
+    /// their return into `decl_types` ; skip every other body (its return is
+    /// already final). Used by `settle_external_expr_bodied_returns` + the
+    /// forward-reference throwaway re-walks. Valid ONLY where a following
+    /// `Full` walk resets/overwrites `expr_types` — see the `walk_fn_body`
+    /// contract.
     ReturnsOnly,
 }
-/// Type-check every body — populate `expr_types`, materialise stdlib fns.
-
-/// Settle returns only : walk ONLY `needs_return_inference` fns to patch
-/// their return into `decl_types` ; skip every other body (its return is
-/// already final). Used by `settle_external_expr_bodied_returns` + the
-/// forward-reference throwaway re-walks. Valid ONLY where a following
-/// `Full` walk resets/overwrites `expr_types` — see the `walk_fn_body`
-/// contract.
 
 /// Walk every fn / const body in `decls` and type-check it. Skips
 /// extern / abstract decls (no body). For ConstDecls without an
@@ -2347,7 +2327,7 @@ export WalkMode :: enum(u8) {
 /// declared type (post `default_if_free`) so `IdentExpr` lookups
 /// against it return a concrete type. A `Full` walk ends with the free
 /// literals past their default (`report_literals_past_default`).
-export walk_bodies :: fn(
+walk_bodies :: fn(
     decls: AST.Decl[],
     typed: TypedProgram,
     diags: Diagnostic[],

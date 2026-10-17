@@ -81,7 +81,7 @@ family_member :: fn(sibling: Type, free: Type) -> PrimitiveType | null {
 
 /// Type-check an `IfExpr`. `expected` flows into both branches so
 /// `let x: i64 = if c { 1 } else { 2 }` narrows each literal to i64.
-export infer_if :: fn(
+infer_if :: fn(
     e: AST.IfExpr, expected: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
     ctx: FnContext | null,

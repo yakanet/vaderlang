@@ -285,13 +285,12 @@ ambiguous_overload_error :: fn(
 /// Specificity of `param0` for a receiver `arg0` : the count of `arg0`'s (union)
 /// variants that match a CONCRETE (non-type-param) variant of `param0`. A bare `T`
 /// scores 0 ; each union member pinned to a concrete receiver variant scores 1, so
-/// `T | Boom` ranks above `T | null` for an `i32 | Boom` receiver. The lowerer's
-/// UFCS resolution ranks with it too, so both passes pick the same candidate.
+/// `T | Boom` ranks above `T | null` for an `i32 | Boom` receiver.
 ///
 /// @param arg0    the receiver's, or the first argument's, type.
 /// @param param0  a candidate's declared first parameter.
 /// @return        the score ; the highest wins.
-export overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
+overload_specificity :: fn(arg0: Type, param0: Type) -> i32 {
     if param0 is TypeParamType {
         return 0
     }
@@ -623,7 +622,7 @@ ufcs_tail_params :: fn(fd: AST.FnDecl) -> AST.FnParam[] | null {
 ///                  Only a generic callee reads it : a type-param no argument
 ///                  binds takes its binding from the return type (see the
 ///                  deferred-lambda pass below).
-export infer_call :: fn(
+infer_call :: fn(
     c: AST.CallExpr,
     expected: Type | null,
     typed: TypedProgram,

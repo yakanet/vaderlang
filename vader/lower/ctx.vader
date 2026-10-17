@@ -26,7 +26,7 @@ import "vader/resolver"
 /// One captured-by-an-inner-lambda binding. `symbol` is the outer slot
 /// (param / local / pattern binding) and `type` its statically-known type
 /// at capture time. `closure_analysis` populates the list per lambda.
-export Capture :: struct {
+Capture :: struct {
     symbol: Symbol
     type:   Type
 }
@@ -50,7 +50,7 @@ export Capture :: struct {
 /// out-of-scope symbol → "unresolved ident" → mis-compile. `cell_symbols`
 /// keys by symbol id, which IS project-global-unique (one shared factory),
 /// so it needs no qualification.
-export ClosureAnalysis :: struct {
+ClosureAnalysis :: struct {
     cell_symbols: MutableSet<i32>
     lambda_captures:  MutableMap<string, Capture[]>
     defer_captures:   MutableMap<string, Capture[]>
@@ -59,12 +59,12 @@ export ClosureAnalysis :: struct {
 /// Module-qualified key for the closure-analysis capture maps. Combines the
 /// module's stable path with the node id so two modules' identically-numbered
 /// AST nodes don't collide in the project-global maps.
-export capture_key :: fn(module_path: string, node_id: usize) -> string = "${module_path}#${node_id}"
+capture_key :: fn(module_path: string, node_id: usize) -> string = "${module_path}#${node_id}"
 
 /// Construct an empty `ClosureAnalysis`. Lets the phase-2 orchestrator
 /// build a `LowerProjectCtx` before the analyser has populated it.
 /// @return  a fresh analysis with no captures recorded.
-export new_closure_analysis :: fn() -> ClosureAnalysis {
+new_closure_analysis :: fn() -> ClosureAnalysis {
     return ClosureAnalysis {
         .cell_symbols = MutableSet<i32> {},
         .lambda_captures  = MutableMap<string, Capture[]> {},
@@ -77,7 +77,7 @@ export new_closure_analysis :: fn() -> ClosureAnalysis {
 // ============================================================================
 
 /// An array impl member a call reached (`LowerProjectCtx.array_member_uses`).
-export ArrayMemberUse :: struct {
+ArrayMemberUse :: struct {
     /// The array's element : the member is materialised with `T → element`.
     element:     Type
     /// The span of the member the call chose — the body the mangle names.
@@ -87,7 +87,7 @@ export ArrayMemberUse :: struct {
 /// Inputs every lowering pass reads. Built once at `lower_project`
 /// entry — passes never mutate the upstream `evaluated` view, only the
 /// mutable side-tables (`synth_decls`, `next_synthetic_id`, `diags`).
-export LowerProjectCtx :: struct {
+LowerProjectCtx :: struct {
     evaluated:           EvaluatedProject
     /// The upstream loaded project — kept on the ctx so passes that
     /// need the source-level decls (e.g. `@fields(T)` reach-through
@@ -381,7 +381,7 @@ export LowerProjectCtx :: struct {
 /// Per-(generic fn, concrete args) instance captured at a call site.
 /// The mangled name embeds the source module + args' surface names so
 /// downstream consumers (bytecode emit, vtable build) can route by id.
-export GenericFnInstance :: struct {
+GenericFnInstance :: struct {
     fn_symbol:    Symbol
     type_args:    Type[]
     mangled:      string
@@ -393,7 +393,7 @@ export GenericFnInstance :: struct {
 /// queues that the lowering passes populate as they run.
 /// @param evaluated  the comptime engine's output for this project.
 /// @return           a fresh project context with empty side-tables.
-export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, typed: TypedProject) -> LowerProjectCtx {
+new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, typed: TypedProject) -> LowerProjectCtx {
     return LowerProjectCtx {
         .opt_report          = opt_report_enabled(),
         .callee_verifier     = new_callee_verifier(),
@@ -450,7 +450,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
 /// reverse. `is_fn_root` is true for the body of the enclosing fn, `loop_id`
 /// set on the body of a loop — both fields drive `break` / `continue` /
 /// `return` defer replay semantics.
-export BlockCtx :: struct {
+BlockCtx :: struct {
     defers:     Stmt[]
     is_fn_root: bool
     /// The `ForStmt.id` of the loop this block is the body of; null for any
@@ -462,7 +462,7 @@ export BlockCtx :: struct {
 /// @param is_fn_root  true when this block is the enclosing fn body.
 /// @param loop_id     the loop this block is the body of; null for any other.
 /// @return            a fresh block context.
-export new_block_ctx :: fn(is_fn_root: bool, loop_id: usize | null) -> BlockCtx {
+new_block_ctx :: fn(is_fn_root: bool, loop_id: usize | null) -> BlockCtx {
     return BlockCtx {
         .defers     = [],
         .is_fn_root = is_fn_root,
@@ -475,7 +475,7 @@ export new_block_ctx :: fn(is_fn_root: bool, loop_id: usize | null) -> BlockCtx 
 // ============================================================================
 
 /// Where a lifted body finds one capture in its env.
-export EnvSlot :: struct {
+EnvSlot :: struct {
     field:      string
     /// The type the env stores the capture's value at, or `null` when it holds
     /// the capture's cell.
@@ -485,7 +485,7 @@ export EnvSlot :: struct {
 /// Per-lambda lifting context. Set on `FnLowerCtx` when we're lowering a
 /// lambda's lifted top-level body : captured outer symbols are reached
 /// via `env.<field>` rather than as direct locals.
-export LiftedFnContext :: struct {
+LiftedFnContext :: struct {
     env_symbol: Symbol
     env_type:   Type
     /// Each capture's slot, keyed by the outer symbol's id.
@@ -502,7 +502,7 @@ export LiftedFnContext :: struct {
 /// inside the body of a lifted lambda ; `comptime_bindings` carries
 /// `@comptime for x in arr { … }` substitutions active inside an
 /// unrolled body.
-export FnLowerCtx :: struct {
+FnLowerCtx :: struct {
     project:            LowerProjectCtx
     entry:              MonoEntry
     typed:              TypedProgram
@@ -589,7 +589,7 @@ export FnLowerCtx :: struct {
 /// that consumes it, so each `yield e` lowers to `<bind binding_symbol = e>` +
 /// the consumer's body instead of the state-machine marker. Lives here (not the
 /// fusion module) to avoid a `ctx` → fusion import cycle — mirrors `LiftedFnContext`.
-export GenInlineSink :: struct {
+GenInlineSink :: struct {
     binding_symbol: Symbol
     binding_name:   string
     element_type:   Type
@@ -619,7 +619,7 @@ InlineConsumer :: struct {
 ///
 /// @param project  the shared project context.
 /// @param display  a module's declared name.
-export typed_by_display_path :: fn(
+typed_by_display_path :: fn(
     project: LowerProjectCtx, display: string,
 ) -> TypedProgram | null {
     if project.typed_by_display.is_empty() {
@@ -640,7 +640,7 @@ export typed_by_display_path :: fn(
 /// @param subst        the entry's substitution (empty for non-generic).
 /// @param return_type  the entry's resolved return type.
 /// @return             a fresh fn-body context.
-export new_fn_lower_ctx :: fn(
+new_fn_lower_ctx :: fn(
     project: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, return_type: Type,
 ) -> FnLowerCtx {
@@ -660,14 +660,14 @@ export new_fn_lower_ctx :: fn(
 }
 
 /// An enum table due for materialisation, with the const that will hold it.
-export EnumTable :: struct {
+EnumTable :: struct {
     enum_type: EnumType
     symbol:    Symbol
     kind:      EnumTableKind
 }
 
 /// Which of an enum's tables : its variant data, or its written values.
-export EnumTableKind :: enum { Data, Values }
+EnumTableKind :: enum { Data, Values }
 
 // ---- tests ----------------------------------------------------------------
 

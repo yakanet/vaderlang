@@ -35,7 +35,7 @@ import "vader/types"
 
 /// Rewrite calls through a fn-value local into direct calls to the concrete
 /// callable, in place, across every fn body in `project`.
-export devirtualize_fn_refs :: fn(project: LoweredProject) -> void {
+devirtualize_fn_refs :: fn(project: LoweredProject) -> void {
     for [_, m] in project.modules {
         for d in m.decls {
             if d is LoweredFnDecl {

@@ -12,7 +12,7 @@
           .state = 4,
       }))
       if __root_3 is Suspended {
-          @unreachable("async `main` suspended, but this build has no scheduler (Phase 2b) to resume it")
+          @unreachable("async `main` suspended, and no `std/async` scheduler resumes it")
       }
       return i32(__root_3)
   }

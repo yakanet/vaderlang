@@ -30,7 +30,7 @@ import "toolchain/span"
 /// Type-check `expr`. `expected` provides bidirectional context — pass
 /// `null` for fresh-position uses. The returned `Type` is the post-
 /// narrowing type ; it's also written into `typed.expr_types`.
-export check_expr :: fn(
+check_expr :: fn(
     expr: AST.Expr, expected: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
@@ -201,7 +201,7 @@ settle_ambiguous_literal :: fn(
 /// three in lockstep. `expr_kinds` / `node_spans` are populated only when
 /// `typed.dump_types` is set (the typed-ast dump) — they feed nothing else,
 /// so build / run / LSP skip those two inserts per expression.
-export record_expr :: fn(typed: TypedProgram, expr: AST.Expr, ty: Type) -> void {
+record_expr :: fn(typed: TypedProgram, expr: AST.Expr, ty: Type) -> void {
     typed.expr_types[expr.id] = ty
     if typed.dump_types {
         typed.expr_kinds[expr.id] = expr_kind_name(expr)

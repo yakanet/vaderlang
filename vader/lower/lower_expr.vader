@@ -43,7 +43,7 @@ lower_char_lit :: fn(e: CharLitExpr, ty: Type) -> LoweredExpr {
     return LoweredCharLit { .span = e.span, .type = mk_primitive("char"), .value = e.value }
 }
 
-export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
+lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
     if !ctx.bound_operands.is_empty() {
         bound :: ctx.bound_operands[expr.id]
         if bound != null {
@@ -218,7 +218,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // cell / lifted-env handling for the same symbol.
             // Size short-circuit : `comptime_bindings` is empty for
             // every fn that doesn't use `@comptime for`, so skip the
-            // hash probe in the 99% case. Per-ident hot path.
+            // hash probe there. Per-ident hot path.
             if !ctx.comptime_bindings.is_empty() {
                 comptime_val :: ctx.comptime_bindings[symbol.id]
                 if !(comptime_val is null) { return comptime_val }
@@ -398,7 +398,7 @@ is_numeric_conversion_of_literal :: fn(c: CallExpr) -> bool {
 
 /// Materialise a `ComptimeValue` as a `LoweredExpr` literal. Compound
 /// values (arrays, structs) recurse field-by-field.
-export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: Span) -> LoweredExpr {
+comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: Span) -> LoweredExpr {
     match v {
         is IntValue    -> { return LoweredIntLit { .span = span, .type = scalar_type(v.type_name, TY_FREE_INT, type_hint), .value = v.value } }
         is FloatValue  -> { return LoweredFloatLit { .span = span, .type = scalar_type(v.type_name, TY_FREE_FLOAT, type_hint), .value = v.value } }

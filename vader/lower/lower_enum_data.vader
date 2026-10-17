@@ -32,7 +32,7 @@ import "vader/types"
 /// @param enum_type  its enum ; one without variant data yields a stub.
 /// @param span       the read, stamped on every node built here.
 /// @return           the slot, typed as the enum's read-only data.
-export lower_enum_data_slot :: fn(
+lower_enum_data_slot :: fn(
     ctx: FnLowerCtx, value: LoweredExpr, enum_type: EnumType, span: Span,
 ) -> LoweredExpr {
     data :: enum_type.data ?? return stub(span, TY_UNRESOLVED, "enum without variant data")
@@ -57,7 +57,7 @@ export lower_enum_data_slot :: fn(
 /// @param value      the enum value, lowered.
 /// @param enum_type  its enum.
 /// @param span       the conversion.
-export lower_enum_data_read :: fn(
+lower_enum_data_read :: fn(
     ctx: FnLowerCtx, node: usize, value: LoweredExpr, enum_type: EnumType, span: Span,
 ) -> LoweredExpr {
     slot :: lower_enum_data_slot(ctx, value, enum_type, span)
@@ -90,7 +90,7 @@ export lower_enum_data_read :: fn(
 /// @param source   the expression, for its checked type.
 /// @param lowered  `source`, lowered.
 /// @return         an `i64` holding the written value, or `lowered`.
-export as_written_value :: fn(ctx: FnLowerCtx, source: Expr, lowered: LoweredExpr) -> LoweredExpr {
+as_written_value :: fn(ctx: FnLowerCtx, source: Expr, lowered: LoweredExpr) -> LoweredExpr {
     enum_type :: enum_type_or_unwrap(ctx, ctx.types.expr_type(source))
     if enum_type is EnumType && enum_type.data != null {
         return lower_enum_value(ctx, lowered, enum_type, source.span)
@@ -185,7 +185,7 @@ enum_table_const :: fn(ctx: FnLowerCtx, enum_type: EnumType, kind: EnumTableKind
 /// @param project      the lowered project ; the owning modules gain the tables.
 /// @error              C4001 when a variant's data is not a constant the data
 ///                     pool can bake.
-export materialize_enum_tables :: fn(
+materialize_enum_tables :: fn(
     typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
     for project_ctx.enum_table_cursor < project_ctx.enum_table_order.len() {
