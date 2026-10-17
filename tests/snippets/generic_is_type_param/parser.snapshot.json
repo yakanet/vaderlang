@@ -671,30 +671,27 @@
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
-                              "kind": "GenericInstExpr",
-                              "callee": {
+                              "kind": "IdentExpr",
+                              "name": "is_a"
+                            },
+                            "typeArgs": [
+                              {
                                 "kind": "IdentExpr",
-                                "name": "is_a"
+                                "name": "Circle"
                               },
-                              "typeArgs": [
-                                {
+                              {
+                                "kind": "BinaryExpr",
+                                "op": "bitor",
+                                "left": {
                                   "kind": "IdentExpr",
                                   "name": "Circle"
                                 },
-                                {
-                                  "kind": "BinaryExpr",
-                                  "op": "bitor",
-                                  "left": {
-                                    "kind": "IdentExpr",
-                                    "name": "Circle"
-                                  },
-                                  "right": {
-                                    "kind": "IdentExpr",
-                                    "name": "Square"
-                                  }
+                                "right": {
+                                  "kind": "IdentExpr",
+                                  "name": "Square"
                                 }
-                              ]
-                            },
+                              }
+                            ],
                             "args": [
                               {
                                 "name": null,
@@ -716,30 +713,27 @@
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
-                              "kind": "GenericInstExpr",
-                              "callee": {
+                              "kind": "IdentExpr",
+                              "name": "is_a"
+                            },
+                            "typeArgs": [
+                              {
                                 "kind": "IdentExpr",
-                                "name": "is_a"
+                                "name": "Square"
                               },
-                              "typeArgs": [
-                                {
+                              {
+                                "kind": "BinaryExpr",
+                                "op": "bitor",
+                                "left": {
+                                  "kind": "IdentExpr",
+                                  "name": "Circle"
+                                },
+                                "right": {
                                   "kind": "IdentExpr",
                                   "name": "Square"
-                                },
-                                {
-                                  "kind": "BinaryExpr",
-                                  "op": "bitor",
-                                  "left": {
-                                    "kind": "IdentExpr",
-                                    "name": "Circle"
-                                  },
-                                  "right": {
-                                    "kind": "IdentExpr",
-                                    "name": "Square"
-                                  }
                                 }
-                              ]
-                            },
+                              }
+                            ],
                             "args": [
                               {
                                 "name": null,
@@ -778,30 +772,27 @@
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
-                              "kind": "GenericInstExpr",
-                              "callee": {
+                              "kind": "IdentExpr",
+                              "name": "kind"
+                            },
+                            "typeArgs": [
+                              {
                                 "kind": "IdentExpr",
-                                "name": "kind"
+                                "name": "Circle"
                               },
-                              "typeArgs": [
-                                {
+                              {
+                                "kind": "BinaryExpr",
+                                "op": "bitor",
+                                "left": {
                                   "kind": "IdentExpr",
                                   "name": "Circle"
                                 },
-                                {
-                                  "kind": "BinaryExpr",
-                                  "op": "bitor",
-                                  "left": {
-                                    "kind": "IdentExpr",
-                                    "name": "Circle"
-                                  },
-                                  "right": {
-                                    "kind": "IdentExpr",
-                                    "name": "Square"
-                                  }
+                                "right": {
+                                  "kind": "IdentExpr",
+                                  "name": "Square"
                                 }
-                              ]
-                            },
+                              }
+                            ],
                             "args": [
                               {
                                 "name": null,
@@ -823,30 +814,27 @@
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
-                              "kind": "GenericInstExpr",
-                              "callee": {
+                              "kind": "IdentExpr",
+                              "name": "kind"
+                            },
+                            "typeArgs": [
+                              {
                                 "kind": "IdentExpr",
-                                "name": "kind"
+                                "name": "Square"
                               },
-                              "typeArgs": [
-                                {
+                              {
+                                "kind": "BinaryExpr",
+                                "op": "bitor",
+                                "left": {
+                                  "kind": "IdentExpr",
+                                  "name": "Circle"
+                                },
+                                "right": {
                                   "kind": "IdentExpr",
                                   "name": "Square"
-                                },
-                                {
-                                  "kind": "BinaryExpr",
-                                  "op": "bitor",
-                                  "left": {
-                                    "kind": "IdentExpr",
-                                    "name": "Circle"
-                                  },
-                                  "right": {
-                                    "kind": "IdentExpr",
-                                    "name": "Square"
-                                  }
                                 }
-                              ]
-                            },
+                              }
+                            ],
                             "args": [
                               {
                                 "name": null,

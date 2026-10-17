@@ -120,7 +120,6 @@
   expr 75:5     IdentExpr      :: fn(T) -> void
   expr 76:13    StringLitExpr  :: string
   expr 76:26    CallExpr       :: string
-  expr 76:26    GenericInstExpr :: fn(T, Label) -> string
   expr 76:26    IdentExpr      :: fn(T, Label) -> string
   expr 76:40    StructLitExpr  :: Celsius
   expr 76:5     CallExpr       :: void

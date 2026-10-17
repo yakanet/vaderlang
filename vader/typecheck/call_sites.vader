@@ -334,7 +334,7 @@ named_callee :: fn(typed: TypedProgram, callee: AST.Expr, named: AST.FnDecl | nu
 // A callee that is no name (`make()(1)`, `fs[0](1)`), or a name bound to a value :
 // a parameter, a local, a pattern binding, a constant.
 calls_a_value :: fn(typed: TypedProgram, callee: AST.Expr) -> bool {
-    if callee is AST.FieldExpr || callee is AST.GenericInstExpr {
+    if callee is AST.FieldExpr {
         return false
     }
     if callee !is AST.IdentExpr {

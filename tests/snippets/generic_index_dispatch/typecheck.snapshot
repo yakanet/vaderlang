@@ -35,18 +35,15 @@
   expr 44:5     IdentExpr      :: fn(T) -> void
   expr 47:13    StringLitExpr  :: string
   expr 47:29    CallExpr       :: i32
-  expr 47:29    GenericInstExpr :: fn(C, usize) -> i32
   expr 47:29    IdentExpr      :: fn(C, usize) -> i32
   expr 47:44    IdentExpr      :: Cell
   expr 47:5     CallExpr       :: void
   expr 47:5     IdentExpr      :: fn(T) -> void
   expr 48:21    IdentExpr      :: Cell
   expr 48:5     CallExpr       :: void
-  expr 48:5     GenericInstExpr :: fn(C, usize, i32) -> void
   expr 48:5     IdentExpr      :: fn(C, usize, i32) -> void
   expr 49:13    StringLitExpr  :: string
   expr 49:36    CallExpr       :: i32
-  expr 49:36    GenericInstExpr :: fn(C, usize) -> i32
   expr 49:36    IdentExpr      :: fn(C, usize) -> i32
   expr 49:5     CallExpr       :: void
   expr 49:5     IdentExpr      :: fn(T) -> void

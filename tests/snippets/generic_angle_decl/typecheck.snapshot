@@ -27,7 +27,6 @@
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
   expr 41:10    CallExpr       :: i32
-  expr 41:10    GenericInstExpr :: fn(T) -> T
   expr 41:10    IdentExpr      :: fn(T) -> T
   expr 42:13    StringLitExpr  :: string
   expr 42:20    IdentExpr      :: i32

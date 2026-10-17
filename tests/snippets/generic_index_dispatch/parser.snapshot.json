@@ -512,18 +512,15 @@
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
-                              "kind": "GenericInstExpr",
-                              "callee": {
-                                "kind": "IdentExpr",
-                                "name": "read_nth"
-                              },
-                              "typeArgs": [
-                                {
-                                  "kind": "IdentExpr",
-                                  "name": "Cell"
-                                }
-                              ]
+                              "kind": "IdentExpr",
+                              "name": "read_nth"
                             },
+                            "typeArgs": [
+                              {
+                                "kind": "IdentExpr",
+                                "name": "Cell"
+                              }
+                            ],
                             "args": [
                               {
                                 "name": null,
@@ -556,18 +553,15 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "GenericInstExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "write_nth"
-                  },
-                  "typeArgs": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "Cell"
-                    }
-                  ]
+                  "kind": "IdentExpr",
+                  "name": "write_nth"
                 },
+                "typeArgs": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "Cell"
+                  }
+                ],
                 "args": [
                   {
                     "name": null,
@@ -619,18 +613,15 @@
                           "expr": {
                             "kind": "CallExpr",
                             "callee": {
-                              "kind": "GenericInstExpr",
-                              "callee": {
-                                "kind": "IdentExpr",
-                                "name": "read_nth"
-                              },
-                              "typeArgs": [
-                                {
-                                  "kind": "IdentExpr",
-                                  "name": "Cell"
-                                }
-                              ]
+                              "kind": "IdentExpr",
+                              "name": "read_nth"
                             },
+                            "typeArgs": [
+                              {
+                                "kind": "IdentExpr",
+                                "name": "Cell"
+                              }
+                            ],
                             "args": [
                               {
                                 "name": null,

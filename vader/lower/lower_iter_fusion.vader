@@ -292,21 +292,11 @@ FluentCombinator :: struct {
     fn_arg:   AST.Expr | null
 }
 
-// The callee to match a combinator call on, seeing through an explicit type-arg
-// wrapper: `chain<T>(a, b)`'s callee is a `GenericInstExpr` whose own `.callee`
-// is the `chain` ident/field. Unwrapping it lets both the free-fn and UFCS forms
-// fuse with explicit type args instead of falling to the virtual `next()` path.
-combinator_effective_callee :: fn(callee: AST.Expr) -> AST.Expr =
-    if callee is AST.GenericInstExpr { callee.callee } else { callee }
-
 // Recognise the fluent `it.map(f)` / `it.indexed()` (UFCS) and the direct
 // `map(it, f)` / `indexed(it)` shapes. Returns the receiver + optional fn arg
 // (null for a 0-arg combinator), or null when the call isn't a fusible combinator.
 unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCombinator | null {
-    // An explicit type-arg call `chain<T>(a, b)` wraps the callee in a
-    // `GenericInstExpr` — unwrap to the inner `chain` callee so the direct-call
-    // form still fuses (otherwise it falls to the unwired virtual `next()`).
-    callee :: combinator_effective_callee(call.callee)
+    callee :: call.callee
     // @partial: only a FieldExpr (UFCS) or IdentExpr (direct call) callee can be
     // a fusible combinator; every other Expr callee → null.
     @partial match callee {

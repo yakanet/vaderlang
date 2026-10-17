@@ -23,6 +23,7 @@ export infer_struct_lit :: fn(
     // against the backing, return the distinct `Color` (not the raw `Rgb`).
     st_backing :: struct_backing(ty)
     if st_backing != null {
+        reject_partial_type_args(e.type_name, st_backing, typed, diags)
         reject_unmet_struct_bounds(st_backing, e.type_name.span, typed, diags)
         check_struct_items(e.items, e.span, st_backing, typed, diags, check_expr_fn)
         return ty
@@ -32,6 +33,29 @@ export infer_struct_lit :: fn(
     // Still type every item so nested diagnostics surface.
     for item in e.items { check_item_no_expected(item, typed, diags, check_expr_fn) }
     return ty
+}
+
+// T3105 on a generic struct written with some of its type arguments where nothing
+// infers the rest : a literal (`Pair<i32> { … }`), whose fields bind none once some
+// are written, or the owner of a static member (`Pair<f64>.make(1)`).
+reject_partial_type_args :: fn(
+    name: AST.Expr, st: StructType, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    if name !is AST.GenericInstExpr {
+        return
+    }
+    decl :: typed.struct_decls[st.symbol.id] ?? return
+    declared :: decl.type_params.len()
+    if name.type_args.len() == declared {
+        return
+    }
+    diags.push(
+        typecheck_error(
+            .TypeArgumentCountMismatch,
+            name.span,
+            "`${decl.name}` takes ${declared}, got ${name.type_args.len()}",
+        ),
+    )
 }
 
 // T3006 — a literal is where a value of `Wrapper<X>` comes to exist, so `X` meets the

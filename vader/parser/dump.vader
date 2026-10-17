@@ -826,6 +826,10 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.kind_entry(level + 1, "CallExpr")
             sb.entry(false, level + 1, "callee")
             sb.write_expr(e.callee, level + 1)
+            if e.type_args.len() > 0 {
+                sb.entry(false, level + 1, "typeArgs")
+                sb.write_types(e.type_args, level + 1)
+            }
             sb.entry(false, level + 1, "args")
             sb.write_call_args(e.args, level + 1)
             sb.close_obj(level)

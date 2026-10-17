@@ -85,7 +85,7 @@ CallTarget :: struct {
 // callee with no declaration in a loaded module, or one the arguments do not
 // fill parameter for parameter.
 call_target :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> CallTarget | null {
-    callee :: combinator_effective_callee(call.callee)
+    callee :: call.callee
     if callee is AST.FieldExpr {
         if ctx.typed.ufcs_receiver_types[callee.id] == null {
             return null

@@ -1721,6 +1721,9 @@ emit_ident :: fn(self: Printer, x: p.IdentExpr) -> void {
 emit_call :: fn(self: Printer, x: p.CallExpr) -> void {
     inline :: self.fits_inline(x, x.args.len() == 0, x.trailing_comma)
     self.emit_postfix_target(x.callee)
+    if x.type_args.len() > 0 {
+        self.emit_comma_list(x.type_args, "<", ">", false, true, emit_type_expr_item)
+    }
     self.emit_comma_list(x.args, "(", ")", false, inline, emit_call_arg)
 }
 

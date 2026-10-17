@@ -22,6 +22,7 @@
 module "vader/typecheck"
 
 import "std/collections"
+import "std/iter"
 import "std/math"
 import "vader/diagnostics"
 AST :: import "toolchain/ast"
@@ -718,6 +719,7 @@ type_call :: fn(
     // type-checked first so a bad argument to `todo(...)` is still flagged.
     diverges :: named != null && AST.decorators_have(named.decorators, "no_return")
     n :: min(c.args.len(), callee_ty.params.len())
+    reject_extra_type_args(c, callee_ty, typed, diags)
     if callee_ty.type_params.len() > 0 {
         returned :: type_generic_call(c, callee_ty, expected, n, typed, diags, check_expr_fn)
         return call_result(c, returned, diverges, typed)
@@ -740,6 +742,47 @@ type_call :: fn(
     }
     widen_empty_array_on_push(c, typed)
     return call_result(c, callee_ty.return_type, diverges, typed)
+}
+
+// T3105 on a call writing more type arguments than its callee quantifies over ; it
+// may write fewer, and the call infers the rest.
+reject_extra_type_args :: fn(
+    c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    declared :: explicit_params(c, callee_ty.type_params, typed).len()
+    if c.type_args.len() <= declared {
+        return
+    }
+    taken :: type_args_taken(declared)
+    detail :: "`${callee_name(c.callee)}` takes ${taken}, got ${c.type_args.len()}"
+    diags.push(typecheck_error(.TypeArgumentCountMismatch, c.type_args[declared].span, detail))
+}
+
+// The parameters a call's written type arguments fix, in order : the callee's, but
+// for a static member not those of the type it is called on, which that type's own
+// arguments fix (`Bag.make<i64>(1)` gives `i64` to `make`'s own parameter).
+explicit_params :: fn(
+    c: AST.CallExpr, quantifier: TypeParamType[], typed: TypedProgram,
+) -> TypeParamType[] {
+    if c.callee !is AST.FieldExpr {
+        return quantifier
+    }
+    found :: typed.static_members[c.callee.id] ?? return quantifier
+    of_owner :: type_params_in(found.owner)
+    out: TypeParamType[]: []
+    for tp in quantifier {
+        if !of_owner.any_match((s) -> s.id == tp.symbol.id) {
+            out.push(tp)
+        }
+    }
+    return out
+}
+
+type_args_taken :: fn(declared: usize) -> string {
+    if declared == 0 {
+        return "no type argument"
+    }
+    return "at most ${declared}"
 }
 
 // What a call to a function returning `returned` evaluates to : nothing when the
@@ -830,6 +873,29 @@ converts_by_name :: fn(c: AST.CallExpr, callee_ty: Type, typed: TypedProgram) ->
     return names_symbol_of_kind(c.callee, .Struct, typed)
 }
 
+// The type a conversion `T(x)` converts to : the callee's, with the type arguments
+// the call writes (`Box<i64>(7)`), all of them.
+cast_target_type :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    if c.type_args.len() == 0 {
+        return type_from_expr(c.callee, typed.resolved, diags)
+    }
+    last :: c.type_args[c.type_args.len() - 1]
+    written :: AST.GenericInstExpr {
+        .span = Span { .start = c.callee.span.start, .end = last.span.end },
+        .callee = c.callee,
+        .type_args = c.type_args,
+    }
+    target :: type_from_expr(written, typed.resolved, diags)
+    st :: struct_backing(target)
+    if st != null {
+        reject_partial_type_args(written, st, typed, diags)
+        return target
+    }
+    detail :: "`${callee_name(c.callee)}` takes no type argument"
+    diags.push(typecheck_error(.TypeArgumentCountMismatch, c.type_args[0].span, detail))
+    return type_from_expr(c.callee, typed.resolved, diags)
+}
+
 // Whether `c`, once checked, was a conversion `T(x)`, which runs no user code.
 is_checked_conversion :: fn(c: AST.CallExpr, typed: TypedProgram) -> bool {
     callee_ty :: typed.expr_types[c.callee.id] ?? return false
@@ -850,7 +916,7 @@ cast_call_target :: fn(
     diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    target :: type_from_expr(c.callee, typed.resolved, diags)
+    target :: cast_target_type(c, typed, diags)
     // The cast itself calls nothing ; an `into` it runs is its value's site.
     site: Callee = BUILTIN_CALLEE
     if c.args.len() != 1 {
@@ -1046,26 +1112,20 @@ repin_free_ufcs_receiver_at_instance :: fn(
 /// @param typed   the module the call sits in.
 /// @return        the `FnDecl`, or null when the callee is no named fn.
 export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
-    // See through an explicit `f<…>` instantiation to the underlying
-    // ident, so `f<i64>(…)` finds its decl too.
-    base: AST.Expr = callee
-    if callee is AST.GenericInstExpr {
-        base = callee.callee
-    }
     // A namespace-qualified name — `M.f`, the form §7 of the style guide
     // mandates for an aliased import. It is a `FieldExpr`, not an ident, and
     // treating it as unresolvable had two costs: a valid callback argument was
     // refused T3080, and a call whose CALLEE wore that shape skipped the check
     // entirely and reached `midir/build`'s panic.
-    if base is AST.FieldExpr {
-        mod_id :: namespace_call_mod_id(base, typed) ?? return null
+    if callee is AST.FieldExpr {
+        mod_id :: namespace_call_mod_id(callee, typed) ?? return null
         by_name :: typed.namespace_export_decls[mod_id] ?? return null
-        return by_name[base.field]
+        return by_name[callee.field]
     }
-    if base !is AST.IdentExpr {
+    if callee !is AST.IdentExpr {
         return null
     }
-    sym :: typed.resolved.idents[base.span.hash()] ?? return null
+    sym :: typed.resolved.idents[callee.span.hash()] ?? return null
     redirected :: declared_symbol(sym, typed)
     return typed.fn_decls[redirected.id]
 }
@@ -1122,13 +1182,12 @@ reject_indirect_callbacks :: fn(
 }
 
 callee_name :: fn(callee: AST.Expr) -> string {
-    // @partial: only ident / field / generic-inst callees carry a source name;
-    // any other callee shape is anonymous → the "<callee>" placeholder.
+    // @partial: only ident / field callees carry a source name; any other callee
+    // shape is anonymous → the "<callee>" placeholder.
     @partial match callee {
-        is AST.IdentExpr       -> { return callee.name }
-        is AST.FieldExpr       -> { return callee.field }
-        is AST.GenericInstExpr -> { return callee_name(callee.callee) }
-        _                      -> { return "<callee>" }
+        is AST.IdentExpr -> { return callee.name }
+        is AST.FieldExpr -> { return callee.field }
+        _                -> { return "<callee>" }
     }
 }
 

@@ -32,18 +32,15 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "GenericInstExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "println"
-                  },
-                  "typeArgs": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "i64"
-                    }
-                  ]
+                  "kind": "IdentExpr",
+                  "name": "println"
                 },
+                "typeArgs": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i64"
+                  }
+                ],
                 "args": [
                   {
                     "name": null,
@@ -61,18 +58,15 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "GenericInstExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "println"
-                  },
-                  "typeArgs": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "u8"
-                    }
-                  ]
+                  "kind": "IdentExpr",
+                  "name": "println"
                 },
+                "typeArgs": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "u8"
+                  }
+                ],
                 "args": [
                   {
                     "name": null,
@@ -90,18 +84,15 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "GenericInstExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "println"
-                  },
-                  "typeArgs": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "string"
-                    }
-                  ]
+                  "kind": "IdentExpr",
+                  "name": "println"
                 },
+                "typeArgs": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "string"
+                  }
+                ],
                 "args": [
                   {
                     "name": null,

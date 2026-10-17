@@ -284,15 +284,14 @@ add_recorded_sites :: fn(index: IndexBuilder, e: AST.Expr, at: RecordedFns) -> v
     }
 }
 
-// The span of the name a callee calls by : `f`, the `f` of `x.f` or `NS.f`, through
-// explicit type arguments ; null for a callee that names nothing.
+// The span of the name a callee calls by : `f`, the `f` of `x.f` or `NS.f` ; null
+// for a callee that names nothing.
 callee_name_span :: fn(callee: AST.Expr) -> Span | null {
-    // @partial: only a name, a member access or an instantiation of one names a fn.
+    // @partial: only a name or a member access names a fn.
     return @partial match callee {
-        is AST.IdentExpr       -> callee.span
-        is AST.FieldExpr       -> callee.field_span
-        is AST.GenericInstExpr -> callee_name_span(callee.callee)
-        _                      -> null
+        is AST.IdentExpr -> callee.span
+        is AST.FieldExpr -> callee.field_span
+        _                -> null
     }
 }
 
@@ -472,6 +471,7 @@ collect_expr :: fn(e: AST.Expr, out: Collected) -> void {
         }
         is AST.CallExpr -> {
             collect_expr(e.callee, out)
+            for t in e.type_args { collect_type(t, out) }
             for a in e.args { collect_expr(a.value, out) }
         }
         is AST.FieldExpr -> { collect_expr(e.target, out) }

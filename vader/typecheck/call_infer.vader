@@ -52,12 +52,13 @@ type_generic_call :: fn(
         own.push(v)
     }
     solutions :: typed.infer_solutions
+    written :: written_vars(c, callee_ty, own, typed)
     ctx :: CallInference {
         .call = c,
         .inst = substitute_fn_map(callee_ty, vars),
         .own = own,
         .solutions = solutions,
-        .held = seed_explicit_infer(c.callee, own, typed, solutions, diags),
+        .held = seed_explicit_infer(c, written, typed, solutions, diags),
         .typed = typed,
         .check_expr_fn = check_expr_fn,
     }
@@ -116,7 +117,6 @@ type_generic_call :: fn(
     // Free literals in `bindings` take their default here : what follows reads the
     // instance as recorded.
     note_call_bindings(typed, c, bindings)
-    settle_static_owner(c, bindings, typed)
     recorded :: substitute_fn_map(callee_ty, bindings)
     if c.callee is AST.FieldExpr && typed.ufcs_receiver_types[c.callee.id] != null {
         typed.expr_types[c.callee.id] = recorded
@@ -176,21 +176,38 @@ solve_through_lambdas :: fn(ctx: CallInference, lambdas: usize[]) -> void {
     }
 }
 
+// The variables of `own` a call's written type arguments fix (`explicit_params`).
+written_vars :: fn(
+    c: AST.CallExpr, callee_ty: FnType, own: InferVar[], typed: TypedProgram,
+) -> InferVar[] {
+    explicit :: explicit_params(c, callee_ty.type_params, typed)
+    if explicit.len() == own.len() {
+        return own
+    }
+    out: InferVar[]: []
+    for v in own {
+        if explicit.any_match((tp) -> tp.symbol.id == v.origin.id) {
+            out.push(v)
+        }
+    }
+    return out
+}
+
 // Fix the variables an explicit `<…>` writes, in the order the callee declares its
 // parameters. Returns the ids of the variables it fixed.
 seed_explicit_infer :: fn(
-    callee: AST.Expr,
+    c: AST.CallExpr,
     own: InferVar[],
     typed: TypedProgram,
     solutions: MutableMap<i32, Type>,
     diags: Diagnostic[],
 ) -> MutableSet<i32> | null {
-    if callee !is AST.GenericInstExpr {
+    if c.type_args.len() == 0 {
         return null
     }
     held :: MutableSet<i32> {}
-    for i in 0..<min(own.len(), callee.type_args.len()) {
-        solutions[own[i].id] = type_from_expr(callee.type_args[i], typed.resolved, diags)
+    for i in 0..<min(own.len(), c.type_args.len()) {
+        solutions[own[i].id] = type_from_expr(c.type_args[i], typed.resolved, diags)
         held.add(own[i].id)
     }
     return held
@@ -236,20 +253,6 @@ unify_struct_to_trait_infer :: fn(
     }
     impl_args :: resolve_struct_trait_args(actual, trait_key_of(pattern.symbol), typed) ?? return
     unify_infer_each(pattern.args, impl_args, solutions, held)
-}
-
-// A static member called on a generic type written without its arguments
-// (`Bag.make(1)`) is called on the instance its call bound : the lowering builds
-// that instance's member.
-settle_static_owner :: fn(
-    c: AST.CallExpr, bindings: MutableMap<i32, Type>, typed: TypedProgram,
-) -> void {
-    if c.callee !is AST.FieldExpr {
-        return
-    }
-    found :: typed.static_members[c.callee.id] ?? return
-    owner :: substitute_map(found.owner, bindings)
-    typed.static_members[c.callee.id] = StaticMember { .owner = owner }
 }
 
 // Whether a lambda argument's parameter still names a variable of this call that a

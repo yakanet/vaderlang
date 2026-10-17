@@ -116,8 +116,9 @@ try_lower_static_member_call :: fn(
 ) -> LoweredExpr | null {
     field :: as_field_expr(call.callee) ?? return null
     found :: ctx.typed.static_members[field.id] ?? return null
-    owner :: ctx.types.apply(found.owner)
-    member :: recorded_target(ctx, call, .Call, owner)
+    callee :: recorded_callee(ctx, call, .Call)
+    owner :: ctx.types.apply(owner_at_call(callee, found.owner))
+    member :: callee_target(ctx, callee, owner)
     // No impl only when typecheck refused the instance's bound (T3006) : lowering
     // still runs so every diagnostic gets reported, and the call becomes a trap.
     if member !is UfcsMember {
@@ -129,6 +130,16 @@ try_lower_static_member_call :: fn(
     }
     args :: lower_call_args(ctx, call.args, member.arg_types, 0)
     return build_member_call_or_inline(member, args, type, call.span)
+}
+
+// The owner a static member call reaches : the written one, with the type parameters
+// the call bound (`Bag.make(1)` under `fill<T>` calls `Bag<T>`'s `make`).
+owner_at_call :: fn(callee: Callee | null, written: Type) -> Type {
+    if callee !is DirectFn {
+        return written
+    }
+    bindings :: callee.bindings ?? return written
+    return substitute_map(written, bindings)
 }
 
 /// `recv.method(args)` dispatched at run time lowers to a `LoweredVirtualCall` —

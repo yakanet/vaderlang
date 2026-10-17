@@ -99,9 +99,15 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                     .spread = a.spread,
                 })
             }
+            new_type_args: AST.TypeExpr[]: []
+            for t in e.type_args {
+                new_type_args.push(substitute_type_expr(t, subst))
+            }
             return AST.CallExpr {
-                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .span = e.span,
+                .id = AST.UNASSIGNED_NODE_ID,
                 .callee = substitute_expr_full(e.callee, subst),
+                .type_args = new_type_args,
                 .args = new_args,
             }
         }
@@ -600,6 +606,9 @@ stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
         is AST.CallExpr -> {
             e.span = next_clone_span(stamp)
             stamp_expr_spans(e.callee, stamp)
+            for t in e.type_args {
+                stamp_expr_spans(t, stamp)
+            }
             for a in e.args {
                 a.span = next_clone_span(stamp)
                 stamp_expr_spans(a.value, stamp)

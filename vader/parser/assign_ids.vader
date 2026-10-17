@@ -199,6 +199,7 @@ walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
         is CallExpr -> {
             e.id = f.mint()
             walk_expr(e.callee, f)
+            for t in e.type_args { walk_expr(t, f) }
             for a in e.args {
                 a.id = f.mint()
                 walk_expr(a.value, f)

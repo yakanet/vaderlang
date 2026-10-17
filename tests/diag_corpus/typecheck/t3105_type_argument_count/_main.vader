@@ -1,0 +1,37 @@
+// A call may write fewer type arguments than its callee declares, never more ; a
+// generic type written with its arguments writes them all, as a struct literal's
+// name, as the owner of a static member, as the target of a conversion. T3105 seven
+// times : one argument too many, one on a function that takes none (twice, the
+// second through UFCS), a literal writing one of two, an owner writing one of two
+// then three of two, and a conversion to a type that takes none.
+module "snippet"
+
+import "std/abort"
+
+Make :: trait {
+    make :: fn(v: i32) -> Self
+}
+
+pair :: fn<A, B>(a: A, b: B) -> i32 = 1
+
+plain :: fn(x: i32) -> i32 = x
+
+Pair :: struct<A, B> {
+    a: A
+    b: B
+}
+
+Pair<A, B> implements<A, B> Make {
+    make :: fn(v: i32) -> Pair<A, B> = panic("not built")
+}
+
+main :: fn() -> i32 {
+    one :: pair<i64, string, bool>(5, "x")
+    two :: plain<i32>(5)
+    three :: 5.plain<i32>()
+    p :: Pair<i32> { .a = 5, .b = "x" }
+    q: Pair<f64, i32>: Pair<f64>.make(1)
+    r :: Pair<f64, i32, bool>.make(1)
+    n :: i32<u8>(5)
+    return one + two + three + p.a + n
+}

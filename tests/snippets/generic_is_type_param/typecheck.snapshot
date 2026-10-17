@@ -44,24 +44,20 @@
   expr 38:26    StructLitExpr  :: Square
   expr 39:13    StringLitExpr  :: string
   expr 39:16    CallExpr       :: bool
-  expr 39:16    GenericInstExpr :: fn(T) -> bool
   expr 39:16    IdentExpr      :: fn(T) -> bool
   expr 39:46    IdentExpr      :: Circle | Square
   expr 39:5     CallExpr       :: void
   expr 39:5     IdentExpr      :: fn(T) -> void
   expr 39:53    CallExpr       :: bool
-  expr 39:53    GenericInstExpr :: fn(T) -> bool
   expr 39:53    IdentExpr      :: fn(T) -> bool
   expr 39:83    IdentExpr      :: Circle | Square
   expr 40:13    StringLitExpr  :: string
   expr 40:16    CallExpr       :: string
-  expr 40:16    GenericInstExpr :: fn(T) -> string
   expr 40:16    IdentExpr      :: fn(T) -> string
   expr 40:46    IdentExpr      :: Circle | Square
   expr 40:5     CallExpr       :: void
   expr 40:5     IdentExpr      :: fn(T) -> void
   expr 40:53    CallExpr       :: string
-  expr 40:53    GenericInstExpr :: fn(T) -> string
   expr 40:53    IdentExpr      :: fn(T) -> string
   expr 40:83    IdentExpr      :: Circle | Square
   expr 41:13    StringLitExpr  :: string

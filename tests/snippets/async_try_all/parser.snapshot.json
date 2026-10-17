@@ -278,22 +278,19 @@
                 "inner": {
                   "kind": "CallExpr",
                   "callee": {
-                    "kind": "GenericInstExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "try_join_all"
-                    },
-                    "typeArgs": [
-                      {
-                        "kind": "IdentExpr",
-                        "name": "i32"
-                      },
-                      {
-                        "kind": "IdentExpr",
-                        "name": "Outage"
-                      }
-                    ]
+                    "kind": "IdentExpr",
+                    "name": "try_join_all"
                   },
+                  "typeArgs": [
+                    {
+                      "kind": "IdentExpr",
+                      "name": "i32"
+                    },
+                    {
+                      "kind": "IdentExpr",
+                      "name": "Outage"
+                    }
+                  ],
                   "args": [
                     {
                       "name": null,
@@ -496,22 +493,19 @@
                 "inner": {
                   "kind": "CallExpr",
                   "callee": {
-                    "kind": "GenericInstExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "try_join_all"
-                    },
-                    "typeArgs": [
-                      {
-                        "kind": "IdentExpr",
-                        "name": "i32"
-                      },
-                      {
-                        "kind": "IdentExpr",
-                        "name": "Outage"
-                      }
-                    ]
+                    "kind": "IdentExpr",
+                    "name": "try_join_all"
                   },
+                  "typeArgs": [
+                    {
+                      "kind": "IdentExpr",
+                      "name": "i32"
+                    },
+                    {
+                      "kind": "IdentExpr",
+                      "name": "Outage"
+                    }
+                  ],
                   "args": [
                     {
                       "name": null,

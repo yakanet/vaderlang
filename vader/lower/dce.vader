@@ -9,8 +9,8 @@
 // shared rather than per-emitter.
 //
 // Generic-fn instances share their generic's symbol id (Vader mono does
-// not allocate a fresh id per instance — `register_and_emit_generic_call`
-// reuses `fn_sym.id` and distinguishes instances by mangle). The call
+// not allocate a fresh id per instance : `instance_symbol` reuses
+// `fn_sym.id` and distinguishes instances by mangle). The call
 // graph is therefore followed by MANGLE first, then symbol id. That keeps
 // DCE-survival ⟺ emit-resolvable : the emitter
 // (`midir/emit.vader::emit_bytecode_from_cfg`) reserves every fn under BOTH keys

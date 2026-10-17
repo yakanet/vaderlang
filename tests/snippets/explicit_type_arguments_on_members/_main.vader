@@ -1,0 +1,47 @@
+// A call writes its type arguments on every form of callee : a function, a function
+// called on a receiver, a member of an aliased module, a static member of a generic
+// type, and a conversion to a generic type. Writing fewer than the callee declares
+// fixes the first ones and infers the rest ; on a static member, they go to the
+// member's own parameters, the type's coming from the type.
+
+module "snippet"
+
+import "std/io"
+IO :: import "std/io"
+
+widen :: fn<T, U>(x: T, y: U) -> string = "${@type_name(T)} ${@type_name(U)}"
+
+Make :: trait {
+    make :: fn<U>(v: U) -> Self
+}
+
+Bag :: struct<T> {
+    items: T[]
+}
+
+Bag<T> implements<T> Make {
+    make :: fn<U>(v: U) -> Bag<T> = Bag<T> { .items = [] }
+}
+
+Box :: struct<T> {
+    v: T
+}
+
+i64 implements Into<Box<i64>> {
+    into :: fn(self) -> Box<i64> = Box<i64> { .v = self }
+}
+
+main :: fn() -> i32 {
+    println(widen<i64, string>(5, "a"))
+    println(widen<i64>(5, "a"))
+    println(5.widen<u8>(true))
+    IO.println<i64>(9000000000)
+    b :: Bag<f64>.make<i64>(1)
+    b.items.push(2.5)
+    inferred: Bag<f64>: Bag.make<i64>(1)
+    inferred.items.push(1.5)
+    println("${b.items.len()} ${inferred.items.len()}")
+    boxed :: Box<i64>(i64(7))
+    println(boxed.v)
+    return 0
+}

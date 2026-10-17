@@ -469,18 +469,15 @@
               "value": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "GenericInstExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "identity"
-                  },
-                  "typeArgs": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "i32"
-                    }
-                  ]
+                  "kind": "IdentExpr",
+                  "name": "identity"
                 },
+                "typeArgs": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "i32"
+                  }
+                ],
                 "args": [
                   {
                     "name": null,

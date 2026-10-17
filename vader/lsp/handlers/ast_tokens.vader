@@ -493,26 +493,20 @@ walk_call :: fn(c: AST.CallExpr, out: RawToken[]) -> void {
     // ident names a primitive type, in which case the call is a cast
     // (`i32(x)`, `usize(n)`) and the callee is a type.
     match c.callee as callee {
-        is AST.IdentExpr       -> {
+        is AST.IdentExpr -> {
             if callee.name.is_primitive_type_name() {
                 push_span(out, callee.span, .Type)
             } else {
                 push_span(out, callee.span, .Function)
             }
         }
-        is AST.FieldExpr       -> {
+        is AST.FieldExpr -> {
             walk_expr(callee.target, out)
             push_span(out, callee.field_span, .Function)
         }
-        is AST.GenericInstExpr -> {
-            match callee.callee as i {
-                is AST.IdentExpr -> { push_span(out, i.span, .Function) }
-                _                -> { walk_expr(callee.callee, out) }
-            }
-            for a in callee.type_args { walk_type_expr(a, out) }
-        }
-        _                      -> { walk_expr(c.callee, out) }
+        _                -> { walk_expr(c.callee, out) }
     }
+    for t in c.type_args { walk_type_expr(t, out) }
     for a in c.args { walk_expr(a.value, out) }
 }
 

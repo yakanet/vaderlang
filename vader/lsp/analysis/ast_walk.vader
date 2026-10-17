@@ -172,6 +172,7 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
     match e {
         is AST.CallExpr -> {
             hv_walk_expr(e.callee, typed, st)
+            for t in e.type_args { hv_walk_expr(t, typed, st) }
             for a in e.args { hv_walk_expr(a.value, typed, st) }
         }
         is AST.FieldExpr -> { hv_walk_expr(e.target, typed, st) }
@@ -593,6 +594,7 @@ ee_walk_expr :: fn(e: AST.Expr, st: EncloseState) -> void {
     match e {
         is AST.CallExpr -> {
             ee_walk_expr(e.callee, st)
+            for t in e.type_args { ee_walk_expr(t, st) }
             for a in e.args { ee_walk_expr(a.value, st) }
         }
         is AST.FieldExpr -> { ee_walk_expr(e.target, st) }

@@ -825,6 +825,9 @@ export CallExpr :: struct {
     span:   Span
     id:     usize = UNASSIGNED_NODE_ID
     callee: Expr
+    /// The type arguments written on the call (`f<i64>(x)`, `x.f<i64>(y)`) : the
+    /// callee's type parameters, first ones first. Empty when the call infers them.
+    type_args: TypeExpr[] = []
     args:   CallArg[]
     /// Source wrote a trailing comma before `)` — formatter keeps it exploded.
     trailing_comma: bool = false
@@ -1128,7 +1131,9 @@ export CastExpr :: struct {
     value:  Expr
 }
 
-/// An explicit type-argument list, `f[i32]` or `Vec[T]`.
+/// A generic type with its arguments written, `Box<i32>` : in a type, as a struct
+/// literal's name, as the owner of a static member call (`Bag<T>.make()`). A call's
+/// own type arguments are `CallExpr.type_args`.
 export GenericInstExpr :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID

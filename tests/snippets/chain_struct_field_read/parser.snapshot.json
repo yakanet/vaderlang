@@ -717,18 +717,15 @@
                 "iter": {
                   "kind": "CallExpr",
                   "callee": {
-                    "kind": "GenericInstExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "chain"
-                    },
-                    "typeArgs": [
-                      {
-                        "kind": "IdentExpr",
-                        "name": "Rec"
-                      }
-                    ]
+                    "kind": "IdentExpr",
+                    "name": "chain"
                   },
+                  "typeArgs": [
+                    {
+                      "kind": "IdentExpr",
+                      "name": "Rec"
+                    }
+                  ],
                   "args": [
                     {
                       "name": null,

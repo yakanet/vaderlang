@@ -1,11 +1,9 @@
-// vader/typecheck/expr_generic_inst — `fn<T>()` explicit generic
-// instantiation in value position.
+// vader/typecheck/expr_generic_inst — a generic type written with its arguments in
+// value position.
 //
-// MVP : type the callee, lower each type-arg for side-effects, return
-// the callee's type. Per-argument typeParam substitution lands with
-// `unify.vader` (Phase 5.2) — until then the callee's raw FnType is
-// returned as-is and `call.vader` uses the concrete arg types it
-// derives from positional args.
+// The only such expression is the owner of a static member, `Bag<f64>.make(1)` : a
+// call's own type arguments are `CallExpr.type_args`, and a struct literal's name is
+// read as a type.
 
 module "vader/typecheck"
 
@@ -13,12 +11,16 @@ import "vader/diagnostics"
 import "vader/types"
 AST :: import "toolchain/ast"
 
-/// Type-check `callee[T1, T2, …]`. Returns the callee's type for now.
+/// Type `Name<T1, T2, …>` as the instance it names.
+///
+/// @param e      the written instance.
+/// @param typed  the module it sits in.
+/// @param diags  receives what the type's arguments get wrong.
+/// @return       the instance, `Bag<f64>`.
 export infer_generic_inst :: fn(
     e: AST.GenericInstExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    callee :: check_expr_fn(e.callee, null, typed, diags)
-    for arg in e.type_args { type_from_expr(arg, typed.resolved, diags) }
-    return callee
+    check_expr_fn(e.callee, null, typed, diags)
+    return type_from_expr(e, typed.resolved, diags)
 }

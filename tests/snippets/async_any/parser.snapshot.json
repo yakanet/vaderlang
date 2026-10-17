@@ -270,22 +270,19 @@
                 "inner": {
                   "kind": "CallExpr",
                   "callee": {
-                    "kind": "GenericInstExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "join_any"
-                    },
-                    "typeArgs": [
-                      {
-                        "kind": "IdentExpr",
-                        "name": "string"
-                      },
-                      {
-                        "kind": "IdentExpr",
-                        "name": "Boom"
-                      }
-                    ]
+                    "kind": "IdentExpr",
+                    "name": "join_any"
                   },
+                  "typeArgs": [
+                    {
+                      "kind": "IdentExpr",
+                      "name": "string"
+                    },
+                    {
+                      "kind": "IdentExpr",
+                      "name": "Boom"
+                    }
+                  ],
                   "args": [
                     {
                       "name": null,

@@ -1,0 +1,90 @@
+# Lower
+
+## snippet
+  snippet.i64.into :: fn(self: i64) -> Box<i64> {  // snippet$i64$Into$into
+      Box<i64> { .v = self }
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.io.println<string>(snippet.widen<i64, string>(i64(5), "a"))
+      std.io.println<string>(snippet.widen<i64, string>(i64(5), "a"))
+      std.io.println<string>(snippet.widen<u8, bool>(u8(5), true))
+      std.io.println<i64>(i64(9000000000))
+      b: Bag<f64> = snippet$Bag$Make$make__f64(i64(1))
+      @array.push(b.items, 2.5)
+      inferred: Bag<f64> = snippet$Bag$Make$make__f64(i64(1))
+      @array.push(inferred.items, 1.5)
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(41))
+          __off_1: usize = 0
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(@array.len(b.items)))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(@array.len(inferred.items)))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      boxed: Box<i64> = snippet.i64.into(i64(7))
+      std.io.println<i64>(boxed.v)
+      return 0
+  }
+  snippet.Bag<f64> :: struct { items: f64[] }  // snippet$Bag__f64
+  snippet$Bag$Make$make__f64 :: fn(v: U) -> Bag<f64> {
+      Bag<f64> { .items = [] :f64[] }
+  }
+  snippet.Box<i64> :: struct { v: i64 }  // snippet$Box__i64
+  snippet.widen<i64, string> :: fn(x: i64, y: string) -> string {  // snippet$widen__i64__string
+      "i64 string"
+  }
+  snippet.widen<u8, bool> :: fn(x: u8, y: bool) -> string {  // snippet$widen__u8__bool
+      "u8 bool"
+  }
+  snippet.Bag<Any> :: struct { items: Any[] }  // snippet$Bag__Any
+  snippet.Box<Any> :: struct { v: Any }  // snippet$Box__Any
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable std.core.Into.into for i64  snippet.i64.into  // snippet$i64$Into$into
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<i64>  // std_io$println__i64
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

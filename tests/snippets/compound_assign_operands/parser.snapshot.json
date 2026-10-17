@@ -1988,18 +1988,15 @@
               "expr": {
                 "kind": "CallExpr",
                 "callee": {
-                  "kind": "GenericInstExpr",
-                  "callee": {
-                    "kind": "IdentExpr",
-                    "name": "bump_nth"
-                  },
-                  "typeArgs": [
-                    {
-                      "kind": "IdentExpr",
-                      "name": "Cell"
-                    }
-                  ]
+                  "kind": "IdentExpr",
+                  "name": "bump_nth"
                 },
+                "typeArgs": [
+                  {
+                    "kind": "IdentExpr",
+                    "name": "Cell"
+                  }
+                ],
                 "args": [
                   {
                     "name": null,

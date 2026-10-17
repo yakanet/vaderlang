@@ -64,6 +64,9 @@ copy_expr_resolutions :: fn(e: AST.Expr, from: TypedProgram, into: TypedProgram)
         }
         is AST.CallExpr -> {
             copy_expr_resolutions(e.callee, from, into)
+            for t in e.type_args {
+                copy_expr_resolutions(t, from, into)
+            }
             for a in e.args {
                 copy_expr_resolutions(a.value, from, into)
             }

@@ -55,6 +55,9 @@ collect_expr_names :: fn(e: AST.Expr, out: string[]) -> void {
         }
         is AST.CallExpr          -> {
             collect_expr_names(e.callee, out)
+            for t in e.type_args {
+                collect_expr_names(t, out)
+            }
             for a in e.args {
                 collect_expr_names(a.value, out)
             }

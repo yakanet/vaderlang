@@ -3188,6 +3188,11 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
             .field_span = name.span,
             .is_numeric = false,
         }
+        // `x.f<T>(…)`, `M.f<T>(…)`, `M.Box<T> { … }` : the same shapes as on a bare
+        // name.
+        if scan_angle_generic(p, p.pos) {
+            return p.parse_generic_use(field_expr)
+        }
         // Qualified struct literal : `module.Type { .field = …, … }`. The
         // bare-ident path goes through `parse_ident_or_struct_lit` at
         // prefix time ; the qualified form lands here because `module` was
@@ -3279,43 +3284,15 @@ parse_call_args :: fn(p: Parser) -> CommaList<CallArg> {
 
 parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
     t :: p.advance()
-    // Angle-bracket generic in expression position. Two shapes :
-    //   `Ident<T, ...>(args)`        — generic call ; build a CallExpr whose
-    //                                  callee is GenericInstExpr.
-    //   `Ident<T, ...> { .f = ... }` — generic struct literal.
+    // Angle-bracket generic in expression position, three shapes :
+    //   `Ident<T, ...>(args)`        : a call writing its type arguments ;
+    //   `Ident<T, ...> { .f = ... }` : a generic struct literal ;
+    //   `Ident<T, ...>.member(args)` : a static member of a generic type.
     // Hard precedence rule (SPEC §3) : commit only when the scan finds a
-    // matching `>` whose IMMEDIATELY-NEXT token is `(` or `{`. Otherwise
+    // matching `>` that one of those follows (`generic_use_follows`). Otherwise
     // leave the `<` to Pratt as a comparison.
-    if p.check(.Lt) && scan_angle_generic(p, p.pos) {
-        p.advance()  // `<`
-        args :: p.parse_type_list_until_angle()
-        callee :: ident_expr(t.span, t.text)
-        generic_inst :: GenericInstExpr {
-            .span      = p.span_of(t, p.peek_at(-1)),
-            .callee    = callee,
-            .type_args = args,
-        }
-        if p.allows_struct_lit() && p.check(.LBrace) {
-            p.advance()
-            fields :: p.parse_struct_lit_fields()
-            rb :: p.expect(.RBrace, "`}` to close struct literal")
-            return StructLitExpr {
-                .span      = p.span_of(t, rb),
-                .type_name = generic_inst,
-                .items     = fields.items,
-                .trailing_comma = fields.trailing_comma,
-            }
-        }
-        // Must be a call — the scan only commits on `(` or `{`.
-        p.expect(.LParen, "`(` after generic argument list")
-        call_args :: p.parse_call_args()
-        rp :: p.expect(.RParen, "`)` to close argument list")
-        return CallExpr {
-            .span   = p.span_of(t, rp),
-            .callee = generic_inst,
-            .args   = call_args.items,
-            .trailing_comma = call_args.trailing_comma,
-        }
+    if scan_angle_generic(p, p.pos) {
+        return p.parse_generic_use(ident_expr(t.span, t.text))
     }
 
     if p.allows_struct_lit() && p.check(.LBrace) && looks_like_struct_lit_body(p.tokens, p.pos) {
@@ -3332,10 +3309,45 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
     return ident_expr(t.span, t.text)
 }
 
-/// Speculative scan for `Ident < args > ( | {` in expression position.
-/// Starts at the `<` token's position. Returns true only when a matching
-/// `>` (or the first half of a `Shr`) is found at angle depth zero AND
-/// the immediately-following token is `LParen` or `LBrace`.
+// `head<…>` followed by a call, a struct literal or a member, `<` next.
+parse_generic_use :: fn(p: Parser, head: Expr) -> Expr {
+    p.advance()  // `<`
+    args :: p.parse_type_list_until_angle()
+    if p.check(.LParen) {
+        p.advance()
+        call_args :: p.parse_call_args()
+        rp :: p.expect(.RParen, "`)` to close argument list")
+        return CallExpr {
+            .span      = Span { .start = head.span.start, .end = rp.span.end },
+            .callee    = head,
+            .type_args = args,
+            .args      = call_args.items,
+            .trailing_comma = call_args.trailing_comma,
+        }
+    }
+    generic_inst :: GenericInstExpr {
+        .span      = Span { .start = head.span.start, .end = p.peek_at(-1).span.end },
+        .callee    = head,
+        .type_args = args,
+    }
+    if p.allows_struct_lit() && p.check(.LBrace) {
+        p.advance()
+        fields :: p.parse_struct_lit_fields()
+        rb :: p.expect(.RBrace, "`}` to close struct literal")
+        return StructLitExpr {
+            .span      = Span { .start = head.span.start, .end = rb.span.end },
+            .type_name = generic_inst,
+            .items     = fields.items,
+            .trailing_comma = fields.trailing_comma,
+        }
+    }
+    // A member of the instance (`Bag<T>.make()`) : the postfix loop reads it.
+    return generic_inst
+}
+
+/// Speculative scan for `name < args >` in expression position, starting at the
+/// `<` token. True only when a matching `>` (or the first half of a `Shr`) is
+/// found at angle depth zero and a generic use follows it (`generic_use_follows`).
 ///
 /// Bails early on tokens that can't appear inside a type expression
 /// (`LBrace`, `DeclConst`, statement keywords, assignment ops, ...) so
@@ -3358,16 +3370,12 @@ scan_angle_generic :: fn(p: Parser, lt_pos: i32) -> bool {
             } else if t.kind == .Gt {
                 angle_depth = angle_depth - 1
                 if angle_depth == 0 {
-                    if i + 1 >= n { return false }
-                    next :: p.tokens[usize(i + 1)].kind
-                    return next == .LParen || next == .LBrace
+                    return generic_use_follows(p, i)
                 }
             } else if t.kind == .Shr {
                 angle_depth = angle_depth - 2
                 if angle_depth == 0 {
-                    if i + 1 >= n { return false }
-                    next :: p.tokens[usize(i + 1)].kind
-                    return next == .LParen || next == .LBrace
+                    return generic_use_follows(p, i)
                 }
                 if angle_depth < 0 { return false }
             }
@@ -3385,6 +3393,20 @@ scan_angle_generic :: fn(p: Parser, lt_pos: i32) -> bool {
         }
     }
     return false
+}
+
+// Whether the `>` at `close` ends a generic argument list : a call `(`, a struct
+// literal `{`, or a member `.name` of the instance follows it.
+generic_use_follows :: fn(p: Parser, close: i32) -> bool {
+    n :: i32(p.tokens.len())
+    if close + 1 >= n {
+        return false
+    }
+    next :: p.tokens[usize(close + 1)].kind
+    if next == .LParen || next == .LBrace {
+        return true
+    }
+    return next == .Dot && close + 2 < n && p.tokens[usize(close + 2)].kind == .Ident
 }
 
 is_angle_scan_bailout :: fn(k: TokenKind) -> bool {

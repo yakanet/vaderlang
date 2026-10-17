@@ -767,6 +767,7 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
         }
         is AST.CallExpr -> {
             self.walk_expr(e.callee)
+            for t in e.type_args { self.walk_expr(t) }
             for a in e.args { self.walk_expr(a.value) }
         }
         is AST.FieldExpr -> { self.walk_expr(e.target) }

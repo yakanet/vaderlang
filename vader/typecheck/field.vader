@@ -384,12 +384,25 @@ try_static_member :: fn(
         }
     }
     typed.static_members[e.id] = StaticMember { .owner = owner }
+    // Written with its arguments (`Bag<f64>.make`), the owner binds the type's
+    // parameters, all of them ; written bare, the call infers them.
+    if e.target is AST.GenericInstExpr && owner is StructType {
+        reject_partial_type_args(e.target, owner, typed, diags)
+        return substitute_struct_args(member.ty, owner, typed)
+    }
     return member.ty
 }
 
 // The type a field access's target names : a bare type name, or a namespace member
 // that is a type (`ns.Sq`) ; null for a value.
 static_owner :: fn(target: AST.Expr, target_ty: Type, typed: TypedProgram) -> Type | null {
+    // A generic type with its arguments written (`Bag<f64>.make(1)`) : that instance,
+    // which is the target's type.
+    if target is AST.GenericInstExpr {
+        callee_ty :: typed.expr_types[target.callee.id] ?? return null
+        _ :: static_owner(target.callee, callee_ty, typed) ?? return null
+        return target_ty
+    }
     if target is AST.FieldExpr {
         if target.target !is AST.IdentExpr {
             return null

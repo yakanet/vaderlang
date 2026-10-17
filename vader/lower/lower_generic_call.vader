@@ -32,29 +32,6 @@ follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
 // A call to a top-level generic fn lowers to a direct call to its monomorphized
 // instance, at the type arguments the typecheck recorded (`emit_generic_fn_call`).
 try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
-    // Explicit-args generic call : `identity<i32>(42)`. The callee
-    // is a GenericInstExpr whose inner callee is the fn IdentExpr.
-    // Type args come from the GenericInstExpr's type_args slot.
-    if call.callee is GenericInstExpr as gi {
-        if gi.callee is IdentExpr as inner_id {
-            fn_sym :: recorded_fn_symbol(ctx, call)
-                ?? follow_import_binding(ctx, resolve_ident(ctx, inner_id.span) ?? return null)
-            if fn_sym.kind == .Fn {
-                type_args: Type[]: []
-                for ta in gi.type_args {
-                    resolved :: ctx.types.type_expr_type(ta)
-                    if resolved is UnresolvedType {
-                        type_args.push(type_from_expr(ta, ctx.typed.resolved, []))
-                    } else {
-                        type_args.push(resolved)
-                    }
-                }
-                if all_concrete(type_args) {
-                    return register_and_emit_generic_call(ctx, call, type, fn_sym, type_args, inner_id.span)
-                }
-            }
-        }
-    }
     callee_ident :: as_ident(call.callee) ?? return null
     // An overloaded name binds to its first declaration ; the overload the
     // typecheck picked is the one this call instantiates.
@@ -167,24 +144,6 @@ register_fn_instance_mangle :: fn(
             ctx.project.fn_instances_order.push(new_inst)
             return fresh
         }
-    }
-}
-
-// The call to the instance of `fn_sym` at the written type arguments of an
-// explicit `fn<T>(args)` call.
-register_and_emit_generic_call :: fn(
-    ctx: FnLowerCtx, call: CallExpr, type: Type,
-    fn_sym: Symbol, concrete_args: Type[], callee_span: Span,
-) -> LoweredExpr {
-    mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args)
-    lowered_args: LoweredExpr[]: []
-    for ca in call.args { lowered_args.push(lower_converted(ctx, ca.value)) }
-    return LoweredCall {
-        .span = call.span, .type = type,
-        .callee = LoweredIdent {
-            .span = callee_span, .type = type, .symbol = instance_symbol(fn_sym, mangled),
-        },
-        .args = lowered_args,
     }
 }
 
