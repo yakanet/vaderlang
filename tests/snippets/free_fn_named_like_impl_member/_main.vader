@@ -1,0 +1,32 @@
+// A free function named like an impl member it does not belong to. Each call
+// reaches its own function : `area(c)` and `u.area()` on the union take the free
+// `area`, `Sq`'s own `area` stays the impl member.
+
+module "snippet"
+
+import "std/io"
+
+Shape :: trait {
+    area :: fn(self) -> f64
+}
+
+Sq :: struct { s: f64 }
+Circle :: struct { r: f64 }
+
+Sq implements Shape {
+    area :: fn(self) -> f64 = self.s * self.s
+}
+
+Circle implements Shape {
+    area :: fn(self) -> f64 = 3.0 * self.r * self.r
+}
+
+area :: fn(u: Sq | Circle) -> f64 = 99.0
+
+go :: fn(u: Sq | Circle) -> f64 = u.area()
+
+main :: fn() -> i32 {
+    println("${go(Sq { .s = 2.0 })} ${go(Circle { .r = 1.0 })} ${area(Circle { .r = 1.0 })}")
+    println("${Sq { .s = 2.0 }.area()}")
+    return 0
+}

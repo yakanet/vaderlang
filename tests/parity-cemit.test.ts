@@ -574,6 +574,8 @@ const C_PARITY = new Set<string>([
   // An enum with variant data crosses `@extern` as its written value, through a
   // function that converts the rank, a call through a fn value included.
   "extern_enum_data_param",
+  // A free function named like an impl member keeps its own slot.
+  "free_fn_named_like_impl_member",
   // Declaration-shape snippets whose `main` runs what they declare.
   "decorators_ok",
   "expressions",

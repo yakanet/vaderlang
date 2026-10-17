@@ -1,0 +1,41 @@
+# Typecheck
+
+## tests/snippets/free_fn_named_like_impl_member
+  FnDecl         area                 :: fn(Circle | Sq) -> f64
+  StructDecl     Circle               :: Circle
+  FnDecl         go                   :: fn(Circle | Sq) -> f64
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Shape                :: Shape
+  StructDecl     Sq                   :: Sq
+  expr 17:31    BinaryExpr     :: f64
+  expr 17:31    FieldExpr      :: f64
+  expr 17:31    IdentExpr      :: Sq
+  expr 17:40    FieldExpr      :: f64
+  expr 17:40    IdentExpr      :: Sq
+  expr 21:31    BinaryExpr     :: f64
+  expr 21:31    BinaryExpr     :: f64
+  expr 21:37    FieldExpr      :: f64
+  expr 21:37    IdentExpr      :: Circle
+  expr 21:46    FieldExpr      :: f64
+  expr 21:46    IdentExpr      :: Circle
+  expr 26:35    CallExpr       :: f64
+  expr 26:35    FieldExpr      :: fn() -> f64
+  expr 26:35    IdentExpr      :: Circle | Sq
+  expr 29:13    StringLitExpr  :: string
+  expr 29:16    CallExpr       :: f64
+  expr 29:16    IdentExpr      :: fn(Circle | Sq) -> f64
+  expr 29:19    StructLitExpr  :: Sq
+  expr 29:39    CallExpr       :: f64
+  expr 29:39    IdentExpr      :: fn(Circle | Sq) -> f64
+  expr 29:42    StructLitExpr  :: Circle
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 29:66    CallExpr       :: f64
+  expr 29:66    IdentExpr      :: fn(Circle | Sq) -> f64
+  expr 29:71    StructLitExpr  :: Circle
+  expr 30:13    StringLitExpr  :: string
+  expr 30:16    CallExpr       :: f64
+  expr 30:16    FieldExpr      :: fn() -> f64
+  expr 30:16    StructLitExpr  :: Sq
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void

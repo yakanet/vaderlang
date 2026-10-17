@@ -170,16 +170,18 @@ lower_for_type :: fn(impl_decl: ImplDecl, typed: TypedProgram) -> Type {
     return type_from_expr(impl_decl.for_type, typed.resolved, scratch)
 }
 
-// The entry of an impl member : its resolver symbol, so downstream phases (DCE,
-// fn-table indexing) route by symbol id, and the vtable slot it fills in the
-// trait `trait_key`.
+// The entry of an impl member and the vtable slot it fills in the trait
+// `trait_key`. An impl member has no resolver symbol, so downstream phases route
+// it by its mangle ; a lookup by name would lend it the symbol of a free function
+// of the same name, and the backend, which indexes by symbol first, would then
+// put both in one slot.
 synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string, trait_key: string) -> MonoEntry {
     return MonoEntry {
         .id             = 0,
         .is_main        = false,
         .mangled        = mangled,
         .decl           = member,
-        .symbol         = symbol_for_decl(member, typed),
+        .symbol         = null,
         .subst          = new_substitution(),
         .type_arguments = [],
         .module         = typed,
