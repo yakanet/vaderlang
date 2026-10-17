@@ -184,7 +184,7 @@ surface_array_impl_members :: fn(
             element :: reached.element
             self_type :: mk_array(element)
             project_ctx.materialized_impl_keys.add(dedupe_key)
-            subst :: build_impl_subst(impl_decl, [element], typed, typed)
+            subst :: build_impl_subst(impl_entry, [element])
             types :: make_entry_types(typed, subst)
             params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
             return_type :: return_type_of(member, types)

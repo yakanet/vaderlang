@@ -40,7 +40,6 @@ export declare_module :: fn(
     program_decls: AST.Decl[],
     resolved: ResolvedModule,
     typed: TypedProgram,
-    factory: SymbolFactory,
     diags: Diagnostic[],
 ) -> void {
     by_name :: MutableMap<string, Symbol> {}
@@ -48,7 +47,10 @@ export declare_module :: fn(
         by_name[s.name] = s
     }
     for decl in program_decls {
-        declare_decl(decl, by_name, resolved, typed, factory, diags)
+        record_type_param_symbols(decl, resolved, typed)
+    }
+    for decl in program_decls {
+        declare_decl(decl, by_name, resolved, typed, diags)
         register_deprecated(decl, by_name, resolved)
     }
 }
@@ -120,22 +122,12 @@ declare_decl :: fn(
     by_name: MutableMap<string, Symbol>,
     resolved: ResolvedModule,
     typed: TypedProgram,
-    factory: SymbolFactory,
     diags: Diagnostic[],
 ) -> void {
     match decl {
         is AST.FnDecl     -> { declare_fn(decl, by_name, resolved, typed, diags) }
         is AST.StructDecl -> {
-            declare_named_with_args(
-                decl.name,
-                decl.name_span,
-                decl.type_params,
-                by_name,
-                typed,
-                resolved.path,
-                factory,
-                mk_struct,
-            )
+            declare_named_with_args(decl.name, decl.type_params, by_name, typed, mk_struct)
             // Index the struct decl by symbol id so `field.vader` can
             // walk fields without re-traversing the program AST.
             sym :: by_name[decl.name]
@@ -163,16 +155,7 @@ declare_decl :: fn(
         }
         is AST.EnumDecl  -> { declare_enum(decl, by_name, resolved, typed, diags) }
         is AST.TraitDecl -> {
-            declare_named_with_args(
-                decl.name,
-                decl.name_span,
-                decl.type_params,
-                by_name,
-                typed,
-                resolved.path,
-                factory,
-                mk_trait,
-            )
+            declare_named_with_args(decl.name, decl.type_params, by_name, typed, mk_trait)
             sym :: by_name[decl.name]
             if sym is Symbol {
                 typed.trait_decls[sym.id] = decl
@@ -189,29 +172,64 @@ declare_decl :: fn(
 // ImplDecl → ImplRegistry (impls.vader). AssertDecl → comptime only.
 // ImportDecl was wired by the resolver. No-op here for all three.
 
-/// Shared minter for Struct / Trait decls — they only differ in the
-/// `Type` constructor (`mk_struct` vs `mk_trait`). Mints one fresh
-/// TypeParam Symbol per declared `[T]` so the resulting Type renders
-/// as `Foo<T>` rather than `Foo(?)`. The resolver mints type-params in
-/// the body-walker scope ; we re-mint here because they're not exposed
-/// at the top-level symbol table.
+// Index the symbol the resolver gave each type parameter `decl` declares, its
+// members' included, by the parameter's declaration site.
+record_type_param_symbols :: fn(
+    decl: AST.Decl, resolved: ResolvedModule, typed: TypedProgram,
+) -> void {
+    for tp in declared_type_params(decl) {
+        sym :: resolved.idents[tp.span.hash()] ?? continue
+        typed.type_param_symbols[tp.span.hash()] = sym
+    }
+}
+
+declared_type_params :: fn(decl: AST.Decl) -> AST.TypeParam[] {
+    out: AST.TypeParam[]: []
+    match decl {
+        is AST.FnDecl        -> { out.push_all(decl.type_params) }
+        is AST.StructDecl    -> { out.push_all(decl.type_params) }
+        is AST.TypeAliasDecl -> { out.push_all(decl.type_params) }
+        is AST.TraitDecl     -> {
+            out.push_all(decl.type_params)
+            for m in decl.members {
+                out.push_all(m.type_params)
+            }
+        }
+        is AST.ImplDecl      -> {
+            out.push_all(decl.type_params)
+            for m in decl.members {
+                out.push_all(m.type_params)
+            }
+        }
+        is AST.EnumDecl | AST.ConstDecl | AST.AssertDecl | AST.ImportDecl -> {}
+    }
+    return out
+}
+
+/// Shared builder for Struct / Trait decls, which only differ in the `Type`
+/// constructor (`mk_struct` vs `mk_trait`). The declared type's arguments are the
+/// type parameters themselves (`declared_type_args`).
 declare_named_with_args :: fn(
     name: string,
-    name_span: Span,
     type_params: AST.TypeParam[],
     by_name: MutableMap<string, Symbol>,
     typed: TypedProgram,
-    module_path: string,
-    factory: SymbolFactory,
     mk: fn(Symbol, Type[]) -> Type,
 ) -> void {
     sym :: by_name[name] ?? return
-    args: Type[]: []
-    for tp in type_params {
-        tp_sym :: factory.make(.TypeParam, tp.name, module_path, module_path, .Private, tp.span)
-        args.push(mk_type_param(tp_sym))
-    }
+    args :: declared_type_args(type_params, typed) ?? return
     typed.decl_types[sym.id] = mk(sym, args)
+}
+
+// `tps` as the declaration's own fields and members write them : each under the
+// symbol the resolver gave it. Null when one has none.
+declared_type_args :: fn(tps: AST.TypeParam[], typed: TypedProgram) -> Type[] | null {
+    out: Type[]: []
+    for tp in tps {
+        sym :: typed.type_param_symbols[tp.span.hash()] ?? return null
+        out.push(mk_type_param(sym))
+    }
+    return out
 }
 
 // ---- per-decl declarers ---------------------------------------------------
@@ -1176,7 +1194,7 @@ declare_type_alias :: fn(
         if s.name == decl.name {
             typed.decl_types[s.id] = aliased
             resolved.alias_types[s.id] = aliased
-            resolved.alias_decls[s.id] = decl
+            resolved.alias_params[s.id] = type_param_ids(decl.type_params, typed)
         }
     }
 }
@@ -1358,7 +1376,7 @@ declared_type :: fn(src: string, name: string) -> string {
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)
     diags: Diagnostic[]: []
-    declare_module(parsed.program.decls, rm, typed, factory, diags)
+    declare_module(parsed.program.decls, rm, typed, diags)
     for s in rm.symbols {
         if s.name != name {
             continue

@@ -5,6 +5,7 @@ module "vader/lower"
 
 import "std/collections"
 import "std/iter"
+import "std/math"
 import "std/string_builder"
 
 import "vader/diagnostics"
@@ -14,61 +15,43 @@ import "vader/typecheck"
 import "vader/types"
 import "vader/comptime"
 import "vader/resolver/symbol"
-import "toolchain/span"
 
-/// Erasure variant of `build_fn_concrete_subst` — maps every type-parameter
-/// of `fd` to `TY_ANY` so the materialised instance's body / signature
-/// renders with `Any` slots regardless of the concrete call-site type
-/// arguments. The mangled name still embeds the concrete args (handled
-/// by the caller via `inst.mangled`).
-build_fn_any_subst :: fn(fd: FnDecl, typed: TypedProgram) -> Substitution {
-    subst :: new_substitution()
-    for tp in fd.type_params {
-        tp_sym :: find_type_param_in_resolved(typed.resolved, tp.name, tp.span)
-        if tp_sym is Symbol { subst.type_params[tp_sym.id] = TY_ANY }
+// A substitution of exactly `bindings`.
+substitution_of :: fn(bindings: MutableMap<i32, Type>) -> Substitution =
+    Substitution { .type_params = bindings, .self_type = null }
+
+/// Each of `tps` bound to `args[i]`, the concrete instance (`Mono`).
+build_concrete_subst :: fn(tps: TypeParam[], args: Type[], typed: TypedProgram) -> Substitution =
+    substitution_of(type_param_bindings(tps, args, typed))
+
+/// Each of `tps` bound to `args[i]` where `kept_argument` keeps it, to `Any` otherwise
+/// (`Mixed`) : a primitive argument stays concrete, so trait dispatch devirtualises
+/// and primitive operations inline, while references share one uniform-pointer body.
+/// A struct's layout and every accessor of it must be built the same way : a field a
+/// mixed layout keeps raw (`Entry.key: string`) is misread by an accessor that boxes
+/// it.
+build_mixed_subst :: fn(
+    impls: ImplRegistry, tps: TypeParam[], args: Type[], typed: TypedProgram,
+) -> Substitution = substitution_of(kept_or_any(impls, type_param_bindings(tps, args, typed)))
+
+/// Every one of `tps` bound to `Any` (`Erased`), whatever the instance's arguments :
+/// the instances of one declaration then share one body and one layout.
+build_erased_subst :: fn(tps: TypeParam[], typed: TypedProgram) -> Substitution {
+    bindings :: MutableMap<i32, Type> {}
+    for tp in tps {
+        sym :: typed.type_param_symbols[tp.span.hash()] ?? continue
+        bindings[sym.id] = TY_ANY
     }
-    return subst
+    return substitution_of(bindings)
 }
 
-// Concrete per-instance subst (GATE A) : map each type-param to its
-// concrete arg instead of `Any`. Mirror of `build_fn_any_subst`'s symbol
-// resolution (same `find_type_param_in_resolved`, which `build_subst`'s
-// span-offset finder doesn't match here) — only the mapped value differs.
-build_fn_concrete_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]) -> Substitution {
-    subst :: new_substitution()
-    i: usize = 0
-    for tp in fd.type_params {
-        if i >= type_args.len() { break }
-        tp_sym :: find_type_param_in_resolved(typed.resolved, tp.name, tp.span)
-        if tp_sym is Symbol { subst.type_params[tp_sym.id] = type_args[i] }
-        i += 1
+// Each binding as a mixed instance keeps it : what `kept_argument` keeps, else `Any`.
+kept_or_any :: fn(impls: ImplRegistry, bindings: MutableMap<i32, Type>) -> MutableMap<i32, Type> {
+    out :: MutableMap<i32, Type> {}
+    for [id, bound] in bindings {
+        out[id] = impls.kept_argument(bound) ?? TY_ANY
     }
-    return subst
-}
-
-// Mixed per-instance subst (mixed flavor, P1) : map each type-param to its concrete
-// arg WHEN `kept_argument` keeps it (the body sees `K = string` / `i32`, so
-// trait dispatch devirtualises and primops/atom-eq inline), else to `TY_ANY`
-// (references erase to one uniform-pointer body, like Java). The instance mangle
-// uses `mixed_any_suffix` (refs → `__Any`), making the instance INVARIANT under
-// ref-erasure so a top-level call (`[string, StructA]`) and a transitive call from
-// inside an erased body (`[string, Any]`) reconcile on the one materialised body.
-// Mirror of `build_fn_concrete_subst`'s symbol resolution + the impl-member
-// `map_type_params_mixed`'s kept-or-Any choice ; only used by free fns.
-build_fn_mixed_subst :: fn(
-    impls: ImplRegistry, fd: FnDecl, typed: TypedProgram, type_args: Type[],
-) -> Substitution {
-    subst :: new_substitution()
-    i: usize = 0
-    for tp in fd.type_params {
-        if i >= type_args.len() { break }
-        tp_sym :: find_type_param_in_resolved(typed.resolved, tp.name, tp.span)
-        if tp_sym is Symbol {
-            subst.type_params[tp_sym.id] = impls.kept_argument(type_args[i]) ?? TY_ANY
-        }
-        i += 1
-    }
-    return subst
+    return out
 }
 
 /// Replace every concrete leaf in a `Type` tree with `Any` while
@@ -181,53 +164,6 @@ join_any_displays :: fn(args: Type[]) -> string {
 }
 
 
-/// Build a substitution mapping every type-parameter of `sd` to
-/// `TY_ANY`. Used by the erasure pass to drop type info from
-/// monomorphized struct field types so identical monos share a single
-/// C-emit shape.
-build_any_subst :: fn(sd: StructDecl, owner_typed: TypedProgram) -> Substitution {
-    subst :: new_substitution()
-    for tp in sd.type_params {
-        tp_symbol :: find_type_param_in_resolved(owner_typed.resolved, tp.name, tp.span)
-        if !(tp_symbol is null) {
-            subst.type_params[tp_symbol.id] = TY_ANY
-        }
-    }
-    return subst
-}
-
-/// Mixed struct-layout subst (mixed flavor, P2 — the box-vs-raw FIELD flip). Maps
-/// each of `sd`'s type-params POSITIONALLY to its concrete instance arg WHEN
-/// `kept_argument` keeps it (so a primitive field lands RAW — `Entry.key : string`
-/// / `i32`, not a boxed `Any`), else to `TY_ANY` (reference fields stay uniform-
-/// pointer). The instance MANGLE is unchanged (`mangle_struct_instance` →
-/// `args_suffix(inst.args)` already renders a ref arg's pre-erased `Any`, e.g.
-/// `Entry__string__Any`), so this only changes the FIELD types, matching the mixed
-/// accessors P1 materialises (`put__string__Any` / `grow__string__Any` read
-/// `e.key` as `string`). SOUNDNESS depends on EVERY accessor being mixed — an
-/// erased `__Any` reader of a now-raw field is the Inc-3 `Hash.hash` trap; P1
-/// closed that. Mirror of `build_any_subst` + `build_fn_mixed_subst`'s kept-or-Any
-/// choice.
-build_struct_mixed_subst :: fn(
-    impls: ImplRegistry, sd: StructDecl, owner_typed: TypedProgram, args: Type[],
-) -> Substitution {
-    subst :: new_substitution()
-    i: usize = 0
-    for tp in sd.type_params {
-        if i >= args.len() { break }
-        tp_symbol :: find_type_param_in_resolved(owner_typed.resolved, tp.name, tp.span)
-        if !(tp_symbol is null) {
-            // The field lands as the accessor instances see it (`evals: i32[]`
-            // for a newtype over `i32`) : a boxed `Any[]` field read by packed
-            // accessors is a representation mismatch.
-            subst.type_params[tp_symbol.id] = impls.kept_argument(args[i]) ?? TY_ANY
-        }
-        i += 1
-    }
-    return subst
-}
-
-
 // Merge `extra`'s type-param bindings over `base` (extra wins on a key clash).
 // Used to thread a generic struct instance's type-args into the subst when
 // lowering its field DEFAULTS in the owner module's view — `base` is the caller's
@@ -258,141 +194,38 @@ resolve_field_type :: fn(
     return type_from_expr(ty, owner_typed.resolved, scratch)
 }
 
-build_struct_subst :: fn(decl: StructDecl, args: Type[], typed: TypedProgram) -> Substitution {
-    subst :: new_substitution()
-    for i in 0..<decl.type_params.len() {
-        if i >= args.len() { break }
-        tp_name :: decl.type_params[i].name
-        tp_span :: decl.type_params[i].span
-        bound :: find_type_param_in_resolved(typed.resolved, tp_name, tp_span)
-        match bound {
-            is null -> {}
-            is Symbol -> { subst.type_params[bound.id] = args[i] }
-        }
-    }
-    return subst
-}
+// Each of `entry`'s type parameters bound to what it takes on the instance whose
+// arguments are `args`.
+build_impl_subst :: fn(entry: ImplEntry, args: Type[]) -> Substitution =
+    substitution_of(impl_param_bindings(entry, args))
 
-find_type_param_in_resolved :: fn(resolved: ResolvedModule, name: string, def_span: Span) -> Symbol | null {
-    target_key :: def_span.hash()
-    // Use-site lookup : every use of `T` inside the struct's fields /
-    // impl body lands in `idents` ; the value's `defined_at` points
-    // back at the TypeParam's source span.
-    for [_, s] in resolved.idents {
-        if s.name != name { continue }
-        if s.kind != .TypeParam { continue }
-        match s.defined_at as def {
-            is null -> {}
-            is Span -> {
-                if def.hash() == target_key { return s }
-            }
-        }
+// The type each of `entry`'s type parameters takes on the instance whose arguments
+// are `args` : a parameter binds to its own argument at whatever position or depth
+// the impl writes it (`Pair<B, A> implements<A, B>`, `Wrapper<T[]> implements<T>`).
+impl_param_bindings :: fn(entry: ImplEntry, args: Type[]) -> MutableMap<i32, Type> {
+    written :: entry.for_type
+    if written is StructType {
+        return impl_bindings_at(entry, mk_struct(written.symbol, args))
     }
-    // Fallback : name-only match (no use-site exists, e.g. a generic
-    // decl never instantiated in this very module).
-    for [_, s] in resolved.idents {
-        if s.name == name && s.kind == .TypeParam { return s }
+    if written is ArrayType && args.len() == 1 {
+        return impl_bindings_at(entry, mk_array(args[0]))
     }
-    return null
-}
-
-build_impl_subst :: fn(
-    impl_decl: ImplDecl, args: Type[],
-    impl_typed: TypedProgram, owner_typed: TypedProgram,
-) -> Substitution {
-    subst :: new_substitution()
-    // Bounded form (impl-own typeParams) : substitute against impl's
-    // typeParams. The legacy `Foo<T> implements ...` form is handled
-    // by walking through the impl-side resolved symbols (the resolver
-    // hoists struct typeParam names into the impl's scope).
-    if impl_decl.type_params.len() > 0 {
-        for i in 0..<impl_decl.type_params.len() {
-            if i >= args.len() { break }
-            tp_sym :: lookup_type_param_symbol(impl_typed.resolved, impl_decl.type_params[i].span)
-            if tp_sym is null { continue }
-            if tp_sym is Symbol { subst.type_params[tp_sym.id] = args[i] }
-        }
-        return subst
-    }
-    // Legacy form : the struct's typeParams are referenced by name in
-    // the impl body. Bind by name against the impl module's symbols.
-    match impl_decl.for_type as gi {
-        is GenericInstExpr -> {
-            for i in 0..<gi.type_args.len() {
-                if i >= args.len() { break }
-                tp_name :: type_expr_simple_name(gi.type_args[i])
-                if tp_name == "" { continue }
-                for s in impl_typed.resolved.symbols {
-                    if s.name == tp_name && s.kind == .TypeParam {
-                        subst.type_params[s.id] = args[i]
-                        break
-                    }
-                }
-            }
-        }
-        _                  -> {}
-    }
-    return subst
-}
-
-/// Erasure variant of `build_impl_subst` — every type-parameter
-/// reachable from the impl maps to `TY_ANY` instead of the concrete
-/// instance args. Used during `materialize_impl_for_instance` so
-/// impl-member params / return types collapse to the deduped shape
-/// (`value: Any` instead of `value: T` or `value: i32`), letting
-/// distinct concrete monos share a single C-emit body.
-///
-/// Maps by name across every TypeParam symbol the impl module
-/// exposes. The legacy `Stack<T> implements ...` form hoists the
-/// struct's `T` into the impl's scope without giving it a fresh
-/// symbol id ; matching by `(name, kind=TypeParam)` catches it
-/// regardless of whose `defined_at` the use sites carry.
-collect_impl_type_param_names :: fn(impl_decl: ImplDecl) -> string[] {
-    names: string[]: []
-    for tp in impl_decl.type_params { names.push(tp.name) }
-    match impl_decl.for_type as gi {
-        is GenericInstExpr -> {
-            for ta in gi.type_args {
-                tp_name :: type_expr_simple_name(ta)
-                if tp_name != "" { names.push(tp_name) }
-            }
-        }
-        _                  -> {}
-    }
-    return names
-}
-
-/// Mixed substitution : map each impl type param to its concrete instance arg
-/// WHEN `kept_argument` keeps it (so the materialised body sees `K = i32` and
-/// primitive trait dispatch devirtualises), else to `Any`. `names[i]` corresponds to `args[i]`.
-map_type_params_mixed :: fn(
-    impls: ImplRegistry, subst: Substitution, scope: Symbol[], names: string[], args: Type[],
-) -> void {
-    for s in scope {
-        if s.kind != .TypeParam { continue }
-        idx: i32 = -1
-        for i in 0..<names.len() {
-            if s.name == names[i] {
-                idx = i32(i)
-                break
-            }
-        }
-        if idx < 0 { continue }
-        kept :: if usize(idx) < args.len() { impls.kept_argument(args[usize(idx)]) } else { null }
-        subst.type_params[s.id] = kept ?? TY_ANY
-    }
+    return MutableMap<i32, Type> {}
 }
 
 /// Variant of `build_impl_subst` keeping the type args `kept_argument` keeps and
-/// erasing every other one to `Any` (see `keep_concrete_or_erase`).
+/// erasing every other one to `Any` (see `keep_concrete_or_erase`). Every type
+/// parameter of a generic impl is mapped, so the substitution is empty exactly
+/// when the impl is concrete (`impl_is_generic`).
 build_impl_mixed_subst :: fn(
-    impls: ImplRegistry, impl_decl: ImplDecl, impl_typed: TypedProgram, args: Type[],
+    impls: ImplRegistry, entry: ImplEntry, impl_typed: TypedProgram, args: Type[],
 ) -> Substitution {
-    subst :: new_substitution()
-    names :: collect_impl_type_param_names(impl_decl)
-    map_type_params_mixed(impls, subst, impl_typed.resolved.symbols, names, args)
-    map_type_params_mixed(impls, subst, impl_typed.resolved.idents.values(), names, args)
-    return subst
+    bindings :: impl_param_bindings(entry, args)
+    kept :: MutableMap<i32, Type> {}
+    for id in impl_type_param_ids(entry.decl, impl_typed.resolved) {
+        kept[id] = impls.kept_argument(bindings[id] ?? TY_ANY) ?? TY_ANY
+    }
+    return substitution_of(kept)
 }
 
 /// Erase a type arg for the impl-member self-type, but KEEP what `kept_argument`
@@ -431,7 +264,7 @@ module_qualified_name :: fn(sym: Symbol) -> string =
 
 // True when AT LEAST ONE type arg is one `kept_argument` keeps (the mixed-flavor
 // gate, BROAD — incl `string`/`bool`/`char`, matching `mixed_any_suffix` /
-// `map_type_params_mixed`). Such an instance is monomorphized MIXED : those args
+// `build_mixed_subst`). Such an instance is monomorphized MIXED : those args
 // kept concrete (devirt + primops/atom-eq inline), references erased to `Any`
 // (uniform pointer). `Any` is `AnyType`, not `PrimitiveType`, so an all-erased
 // transitive arg list (`[Any, Any]`) is correctly EXCLUDED → stays fully erased
@@ -446,37 +279,11 @@ has_any_kept_arg :: fn(impls: ImplRegistry, type_args: Type[]) -> bool {
     return false
 }
 
-type_expr_simple_name :: fn(e: TypeExpr) -> string {
-    if e is IdentExpr { return e.name }
-    return ""
-}
-
 find_struct_decl_by_name :: fn(decls: Decl[], name: string) -> StructDecl | null {
     for d in decls {
         match d {
             is StructDecl -> { if d.name == name { return d } }
             _ -> {}
-        }
-    }
-    return null
-}
-
-lookup_type_param_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> Symbol | null {
-    target_key :: name_span.hash()
-    for s in resolved.symbols {
-        match s.defined_at as def {
-            is null -> {}
-            is Span -> {
-                if def.hash() == target_key { return s }
-            }
-        }
-    }
-    for [_, s] in resolved.idents {
-        match s.defined_at as def {
-            is null -> {}
-            is Span -> {
-                if def.hash() == target_key { return s }
-            }
         }
     }
     return null

@@ -12,7 +12,6 @@ import "vader/diagnostics"
 import "toolchain/ast"
 import "vader/parser"
 import "vader/resolver"
-import "vader/resolver/symbol"
 import "std/collections"
 
 /// Output of `check_module` — the typed program plus the impl registry
@@ -36,17 +35,15 @@ export CheckResult :: struct {
 
 /// Type-check `program` (parsed + resolved against `resolved`). Returns
 /// the populated `TypedProgram` + the project's `ImplRegistry`.
-/// Diagnostics flow into `diags`. `factory` is shared with the resolver
-/// so locally-minted `TypeParam` Symbols stay globally unique.
+/// Diagnostics flow into `diags`.
 export check_module :: fn(
     program: Program,
     resolved: ResolvedModule,
-    factory: SymbolFactory,
     diags: Diagnostic[],
 ) -> CheckResult {
     impls :: build_impl_registry(program.decls, resolved)
     typed :: new_typed_program(resolved)
-    declare_module(program.decls, resolved, typed, factory, diags)
+    declare_module(program.decls, resolved, typed, diags)
     return CheckResult {
         .typed = typed,
         .impls = impls,
@@ -58,6 +55,7 @@ export check_module :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "vader/resolver/symbol"
 import "vader/types"
 
 run_check :: fn(src: string) -> CheckResult {
@@ -65,7 +63,7 @@ run_check :: fn(src: string) -> CheckResult {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []
-    return check_module(parsed.program, rm, factory, diags)
+    return check_module(parsed.program, rm, diags)
 }
 
 @test

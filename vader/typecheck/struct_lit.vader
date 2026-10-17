@@ -105,7 +105,7 @@ check_field :: fn(
         // type-params). Fall back to walking the AST locally.
         raw :: resolved_field_type(st.symbol.id, decl, f.name, typed, diags)
         if raw !is null {
-            expected = substitute_by_name(raw, decl.type_params, st.args)
+            expected = substitute_struct_args(raw, st, typed)
         }
     }
     got :: check_expr_fn(f.value, expected, typed, diags)
@@ -201,7 +201,7 @@ expect_struct_lit :: fn(src: string) -> ExpectedSL {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []
-    result :: check_module(parsed.program, rm, factory, diags)
+    result :: check_module(parsed.program, rm, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
         is AST.FnDecl -> {

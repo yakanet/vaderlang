@@ -141,7 +141,7 @@ PendingFnInstance :: struct {
     key:          string
     fn_symbol_id: i32
     /// True when the source generic fn trait-dispatches on a type param
-    /// (GATE A → concretised per instance via `build_fn_concrete_subst`).
+    /// (GATE A → concretised per instance via `build_concrete_subst`).
     /// Such instances skip the `fn_symbol_id` erasure-dedupe: each per-key
     /// body (`get__string` vs `get__i32`) is a distinct concrete fn whose
     /// call sites target the per-key mangle.
@@ -229,15 +229,16 @@ build_fn_instance_decl :: fn(
     //            must be concrete, S5 Solution A). Full-concrete subst.
     //   Mixed  — ≥1 arg `kept_type_argument` keeps (a primitive, an enum with variant
     //            data): keep those concrete (devirt + primops/atom-eq inline), erase
-    //            the rest to `Any` via `build_fn_mixed_subst`. Mangle-indexed.
+    //            the rest to `Any` via `build_mixed_subst`. Mangle-indexed.
     //   Erased — all-reference: uniform pointer like Java, symbol-id indexed + deduped.
     // Mono+Mixed are both mangle-indexed (entry_symbol=null). Mixed SUBSUMES Inc 1's
     // narrow all-primitive case (an all-primitive mixed subst equals the concrete one).
     flavor :: fn_instance_flavor(project_ctx.impls, fn_decl, owner_typed, inst.type_args)
+    tps :: fn_decl.type_params
     subst :: match flavor {
-        .Mono   -> build_fn_concrete_subst(fn_decl, owner_typed, inst.type_args)
-        .Mixed  -> build_fn_mixed_subst(project_ctx.impls, fn_decl, owner_typed, inst.type_args)
-        .Erased -> build_fn_any_subst(fn_decl, owner_typed)
+        .Mono   -> build_concrete_subst(tps, inst.type_args, owner_typed)
+        .Mixed  -> build_mixed_subst(project_ctx.impls, tps, inst.type_args, owner_typed)
+        .Erased -> build_erased_subst(tps, owner_typed)
     }
     force_concrete :: flavor == .Mono || flavor == .Mixed
     types :: make_entry_types(owner_typed, subst)
@@ -324,10 +325,10 @@ returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
 //            or a distinct (boxed, it would reach its representation's), or a bare
 //            type-param array return (the result array's element kind must be
 //            concrete, S5 Solution A).
-//   Mixed  — `build_fn_mixed_subst` + `mixed_any_suffix`. ≥1 arg `kept_type_argument`
+//   Mixed  — `build_mixed_subst` + `mixed_any_suffix`. ≥1 arg `kept_type_argument`
 //            keeps: keep those concrete (devirt + primops/atom-eq inline), erase the
 //            rest to `Any`. Mangle-indexed (entry_symbol=null), invariant under ref-erasure.
-//   Erased — `build_fn_any_subst`, symbol-id indexed (flush keeps one body per fn).
+//   Erased — `build_erased_subst`, symbol-id indexed (flush keeps one body per fn).
 //            All-reference args: nothing to monomorphize, uniform pointer like Java.
 InstanceFlavor :: enum { Mono, Mixed, Erased }
 

@@ -370,14 +370,23 @@ any_of_trait :: fn(entries: ImplEntry[], trait_key: string) -> bool {
     return false
 }
 
-// `entry`'s trait arguments at `receiver` : its own type parameters bound by matching
-// the type it is written for against `receiver`.
+/// The type each of `entry`'s own type parameters takes at `receiver` : the type the
+/// impl is written for, matched against `receiver`.
+///
+/// @param entry     an impl of the registry.
+/// @param receiver  a type the impl covers.
+export impl_bindings_at :: fn(entry: ImplEntry, receiver: Type) -> MutableMap<i32, Type> {
+    bindings :: MutableMap<i32, Type> {}
+    unify_type_param(entry.for_type, receiver, bindings, null)
+    return bindings
+}
+
+// `entry`'s trait arguments at `receiver`.
 trait_args_at :: fn(entry: ImplEntry, receiver: Type) -> Type[] {
     if !entry.is_generic {
         return entry.trait_args
     }
-    bindings :: MutableMap<i32, Type> {}
-    unify_type_param(entry.for_type, receiver, bindings, null)
+    bindings :: impl_bindings_at(entry, receiver)
     out: Type[]: []
     for a in entry.trait_args {
         out.push(substitute_map(a, bindings))

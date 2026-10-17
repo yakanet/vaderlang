@@ -1,0 +1,14 @@
+// An explicit type argument on a generic function another module declares binds
+// that function's own parameter : `println<i64>` takes a value past `i32`, and
+// `println<u8>` prints a byte as a number.
+
+module "snippet"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    println<i64>(9000000000)
+    println<u8>(200)
+    println<string>("text")
+    return 0
+}

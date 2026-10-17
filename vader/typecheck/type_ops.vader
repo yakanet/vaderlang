@@ -768,9 +768,10 @@ export resolve_struct_trait_args :: fn(t: Type, trait_key: string, typed: TypedP
 // resolved against `t`'s.
 resolve_trait_args_for :: fn(t: Type, raw: Type[], typed: TypedProgram) -> Type[] {
     if t is StructType {
-        struct_decl :: typed.struct_decls[t.symbol.id] ?? return raw
         out: Type[]: []
-        for a in raw { out.push(substitute_by_name(a, struct_decl.type_params, t.args)) }
+        for a in raw {
+            out.push(substitute_struct_args(a, t, typed))
+        }
         return out
     }
     if t is ArrayType {

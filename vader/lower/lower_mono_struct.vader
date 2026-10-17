@@ -73,7 +73,7 @@ materialize_representative :: fn(
             if decl is StructDecl {
                 if decl.type_params.len() == 0 { return }
                 seen_reps.add(rep_mangled)
-                erase :: build_any_subst(decl, owner_typed)
+                erase :: build_erased_subst(decl.type_params, owner_typed)
                 fields: LoweredStructField[]: []
                 for f in decl.fields {
                     raw_ty :: resolve_field_type(f.ty, owner_typed, decl, inst.args)
@@ -220,14 +220,13 @@ materialize_struct_instance :: fn(
         // type-args), but the FIELDS get a MIXED subst — primitive type-args land
         // RAW (`Entry.key : string` / `i32`, devirt + unboxed), reference type-args
         // erase to `Any` (uniform pointer, identical monos collapse to one C-emit
-        // shape). Was a full all-Any `build_any_subst` (Inc 1 / pre-P2); the flip
-        // to raw primitive fields is sound only because P1 made EVERY accessor
-        // mixed (`put__string__Any` / `grow__string__Any` read the raw field with
-        // the concrete type) — an erased `__Any` reader of a raw field is the Inc-3
-        // `Hash.hash` trap. The mangle is unchanged (`Entry__string__Any` already,
+        // shape). Raw primitive fields are sound only because EVERY accessor is
+        // mixed too (`put__string__Any` / `grow__string__Any` read the raw field
+        // with the concrete type) : an erased `__Any` reader of a raw field would
+        // box what is stored raw. The mangle is unchanged (`Entry__string__Any` already,
         // ref arg pre-erased), so only field types change.
-        subst :: build_struct_subst(decl, inst.args, owner_typed)
-        erase :: build_struct_mixed_subst(project_ctx.impls, decl, owner_typed, inst.args)
+        subst :: build_concrete_subst(decl.type_params, inst.args, owner_typed)
+        erase :: build_mixed_subst(project_ctx.impls, decl.type_params, inst.args, owner_typed)
         fields: LoweredStructField[]: []
         for f in decl.fields {
             raw_ty :: resolve_field_type(f.ty, owner_typed, decl, inst.args)
@@ -479,7 +478,8 @@ materialize_impl_for_instance :: fn(
     // erasure can then collapse to a single C-emit body. Mangled name
     // keeps the concrete args suffix (`__i32`) so identity tags stay
     // distinct.
-    subst :: build_impl_mixed_subst(project_ctx.impls, impl_decl, impl_typed, inst.args)
+    impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return
+    subst :: build_impl_mixed_subst(project_ctx.impls, impl_entry, impl_typed, inst.args)
     // A concrete-instantiation impl (`Wrapper<i32> implements …`) has no
     // type params, so the substitution is empty — keep the concrete
     // instance args (self stays `Wrapper<i32>`). Only a genuinely
@@ -512,7 +512,6 @@ materialize_impl_for_instance :: fn(
     } else {
         mixed_any_suffix(project_ctx.impls, inst.args)
     }
-    impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return
     // Then what tells it from another impl of the trait on that base
     // (`Wrapper<MonType> implements Into<Label>` beside `Into<Tag>`).
     overload :: impl_entry.overload_suffix
@@ -580,10 +579,13 @@ materialize_bound_trait_impls :: fn(
     project_ctx: LowerProjectCtx, project: LoweredProject,
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> void {
-    for i in 0..<impl_decl.type_params.len() {
-        if i >= inst.args.len() { break }
-        bound :: impl_decl.type_params[i].bound ?? continue
-        target :: impl_base_key(inst.args[i])
+    entry :: project_ctx.impls.entry_of(impl_decl) ?? return
+    bindings :: impl_param_bindings(entry, inst.args)
+    for tp in impl_decl.type_params {
+        bound :: tp.bound ?? continue
+        sym :: impl_typed.type_param_symbols[tp.span.hash()] ?? continue
+        arg :: bindings[sym.id] ?? continue
+        target :: impl_base_key(arg)
         traits: string[]: []
         collect_bound_traits(bound, impl_typed.resolved, traits)
         for trait_key in traits {

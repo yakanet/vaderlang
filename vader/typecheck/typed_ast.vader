@@ -483,6 +483,13 @@ export TypedProgram :: struct {
     /// nominal references.
     struct_field_types: MutableMap<i32, MutableMap<string, Type>>
 
+    /// A type parameter's declaration site (`tp.span.hash()`) → the symbol the
+    /// resolver gave it, for every parameter a declaration lists in its `<…>` ; a
+    /// parameter an impl binds through its receiver alone (`Box<W> implements …`)
+    /// is not listed. Shared across modules (`share_type_param_symbols`), so a
+    /// substitution reaches the parameters of an imported declaration by id.
+    type_param_symbols: MutableMap<u64, Symbol> = MutableMap<u64, Symbol> {}
+
     /// `impl_base_key → trait_key`s for every `X implements Trait` impl — what
     /// the run-time `is Trait` test sees. A generic impl
     /// counts here for every argument ; `impl_bounds` narrows it to the arguments
@@ -798,7 +805,7 @@ export empty_typed_program :: fn() -> TypedProgram {
         .fn_overloads = MutableMap<string, Symbol[]> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
-        .alias_decls = MutableMap<i32, AST.TypeAliasDecl> {},
+        .alias_params = MutableMap<i32, i32[]> {},
         .type_param_bounds = MutableMap<i32, AST.Expr> {},
         .diags = [],
         .deprecated_messages = MutableMap<i32, string> {},
@@ -822,7 +829,7 @@ fresh_module :: fn() -> ResolvedModule {
         .fn_overloads = MutableMap<string, Symbol[]> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
-        .alias_decls = MutableMap<i32, AST.TypeAliasDecl> {},
+        .alias_params = MutableMap<i32, i32[]> {},
         .type_param_bounds = MutableMap<i32, AST.Expr> {},
         .diags = [],
         .deprecated_messages = MutableMap<i32, string> {},

@@ -1,0 +1,63 @@
+# Typecheck
+
+## tests/snippets/impl_names_its_own_parameters
+  StructDecl     Box                  :: Box<T>
+  TraitDecl      Getter               :: Getter<V>
+  TraitDecl      Labelled             :: Labelled
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Pair                 :: Pair<A, B>
+  TraitDecl      Swap                 :: Swap<X>
+  expr 18:28    FieldExpr      :: U
+  expr 18:28    IdentExpr      :: Box<U>
+  expr 31:41    StructLitExpr  :: Pair<R, L>
+  expr 32:18    FieldExpr      :: R
+  expr 32:18    IdentExpr      :: Pair<L, R>
+  expr 33:19    FieldExpr      :: L
+  expr 33:19    IdentExpr      :: Pair<L, R>
+  expr 42:35    StringLitExpr  :: string
+  expr 42:38    IntrinsicCallExpr :: string
+  expr 42:60    IntrinsicCallExpr :: string
+  expr 46:35    StringLitExpr  :: string
+  expr 46:45    IntrinsicCallExpr :: string
+  expr 50:10    StructLitExpr  :: Box<i32>
+  expr 51:10    StructLitExpr  :: Box<string>
+  expr 51:29    StringLitExpr  :: string
+  expr 52:13    StringLitExpr  :: string
+  expr 52:16    CallExpr       :: i32
+  expr 52:16    FieldExpr      :: fn() -> i32
+  expr 52:16    IdentExpr      :: Box<i32>
+  expr 52:27    CallExpr       :: string
+  expr 52:27    FieldExpr      :: fn() -> string
+  expr 52:27    IdentExpr      :: Box<string>
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
+  expr 53:10    StructLitExpr  :: Pair<i32, string>
+  expr 53:52    StringLitExpr  :: string
+  expr 54:10    CallExpr       :: Pair<string, i32>
+  expr 54:10    FieldExpr      :: fn() -> Pair<string, i32>
+  expr 54:10    IdentExpr      :: Pair<i32, string>
+  expr 55:13    StringLitExpr  :: string
+  expr 55:16    FieldExpr      :: string
+  expr 55:16    IdentExpr      :: Pair<string, i32>
+  expr 55:27    FieldExpr      :: i32
+  expr 55:27    IdentExpr      :: Pair<string, i32>
+  expr 55:5     CallExpr       :: void
+  expr 55:5     IdentExpr      :: fn(T) -> void
+  expr 56:13    CallExpr       :: string
+  expr 56:13    FieldExpr      :: fn() -> string
+  expr 56:13    IdentExpr      :: Pair<i32, string>
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(T) -> void
+  expr 57:13    CallExpr       :: string
+  expr 57:13    FieldExpr      :: fn() -> string
+  expr 57:13    IdentExpr      :: Pair<string, i32>
+  expr 57:5     CallExpr       :: void
+  expr 57:5     IdentExpr      :: fn(T) -> void
+  expr 58:13    CallExpr       :: string
+  expr 58:13    FieldExpr      :: fn() -> string
+  expr 58:13    IdentExpr      :: Box<i32>
+  expr 58:5     CallExpr       :: void
+  expr 58:5     IdentExpr      :: fn(T) -> void
+  expr 59:12    CallExpr       :: i32
+  expr 59:12    FieldExpr      :: fn() -> i32
+  expr 59:12    IdentExpr      :: Box<i32>

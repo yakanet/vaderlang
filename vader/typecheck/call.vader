@@ -396,7 +396,7 @@ seed_explicit_type_args :: fn(
     held :: MutableSet<i32> {}
     n :: min(decl.type_params.len(), callee.type_args.len())
     for i in 0..<n {
-        tp_sym :: typed.resolved.idents[decl.type_params[i].span.hash()] ?? continue
+        tp_sym :: typed.type_param_symbols[decl.type_params[i].span.hash()] ?? continue
         written :: callee.type_args[i]
         bindings[tp_sym.id] = type_from_expr(written, typed.resolved, diags)
         held.add(tp_sym.id)
@@ -1655,7 +1655,7 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []
-    result :: check_module(parsed.program, rm, factory, diags)
+    result :: check_module(parsed.program, rm, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     if last is AST.FnDecl {
         match last.body {

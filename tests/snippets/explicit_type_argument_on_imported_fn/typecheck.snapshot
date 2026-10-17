@@ -1,0 +1,14 @@
+# Typecheck
+
+## tests/snippets/explicit_type_argument_on_imported_fn
+  FnDecl         main                 :: fn() -> i32
+  expr 10:5     CallExpr       :: void
+  expr 10:5     GenericInstExpr :: fn(T) -> void
+  expr 10:5     IdentExpr      :: fn(T) -> void
+  expr 11:5     CallExpr       :: void
+  expr 11:5     GenericInstExpr :: fn(T) -> void
+  expr 11:5     IdentExpr      :: fn(T) -> void
+  expr 12:21    StringLitExpr  :: string
+  expr 12:5     CallExpr       :: void
+  expr 12:5     GenericInstExpr :: fn(T) -> void
+  expr 12:5     IdentExpr      :: fn(T) -> void

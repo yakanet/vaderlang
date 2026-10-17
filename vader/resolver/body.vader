@@ -252,8 +252,12 @@ walk_enum_decl :: fn(self: ResolveState, d: AST.EnumDecl) -> void {
 }
 
 // Bind `tp` in the current scope and walk its bound.
+// Bind `tp` in the current scope. Its declaration site is recorded in `idents` : the
+// typecheck reads every declared type parameter's symbol from there
+// (`record_type_param_symbols`), and so do explicit type arguments and bounds.
 bind_type_param :: fn(self: ResolveState, tp: AST.TypeParam) -> Symbol {
     sym :: self.mint_local(.TypeParam, tp.name, tp.span)
+    self.idents[tp.span.hash()] = sym
     self.scope.bind(tp.name, sym)
     self.walk_opt_expr(tp.bound)
     return sym
@@ -319,11 +323,7 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
     self.scope.push()
     // Type-params first so the rest of the signature + body sees them.
     for tp in d.type_params {
-        sym :: self.declare_type_param(tp)
-        // Record the decl site → Symbol in idents : `seed_explicit_type_args`
-        // recovers this type-param's Symbol id from it, and the T3006 bound table
-        // its name.
-        self.idents[tp.span.hash()] = sym
+        self.declare_type_param(tp)
     }
     for p in d.params {
         self.walk_opt_expr(p.ty)
@@ -362,10 +362,7 @@ walk_struct_decl :: fn(self: ResolveState, d: AST.StructDecl) -> void {
     self.walk_decorators(d.decorators)
     self.scope.push()
     for tp in d.type_params {
-        sym :: self.declare_type_param(tp)
-        // The decl site → Symbol, as for a fn's : `record_struct_bounds` recovers the
-        // bounds a literal is held to from it.
-        self.idents[tp.span.hash()] = sym
+        self.declare_type_param(tp)
     }
     for f in d.fields {
         self.walk_expr(f.ty)
@@ -394,9 +391,7 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
     self.walk_decorators(d.decorators)
     self.scope.push()
     for tp in d.type_params {
-        // Recorded at the decl site, as a fn's are (`walk_fn_decl`) : the typecheck
-        // recovers the impl's type parameters from it.
-        self.idents[tp.span.hash()] = self.declare_type_param(tp)
+        self.declare_type_param(tp)
     }
     // Auto-bind type params from `for_type` when the impl head
     // omits the explicit `[T]` block (e.g. `Stack<T> implements

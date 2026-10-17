@@ -1,0 +1,117 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      b: Box<i32> = Box<i32> { .v = 42 }
+      s: Box<string> = Box<string> { .v = "text" }
+      std.io.println<string>({
+          __p_0: string = snippet.Box<string>.get(s)
+          __buf_1: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_0))
+          __off_2: usize = 0
+          __off_2 = std.core.write_int(__buf_1, __off_2, i64(snippet.Box<i32>.get(b)))
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string)
+      p: Pair<i32, string> = Pair<i32, string> { .first = 1, .second = "one" }
+      q: Pair<string, i32> = snippet.Pair<i32, string>.swapped(p)
+      std.io.println<string>({
+          __p_3: string = q.first
+          __buf_4: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_3))
+          __off_5: usize = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(q.second))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      std.io.println<string>(snippet.Pair<i32, string>.label(p))
+      std.io.println<string>(snippet.Pair<string, i32>.label(q))
+      std.io.println<string>(snippet.Box<i32>.label(b))
+      return snippet.Box<i32>.get(b)
+  }
+  snippet.Box<i32> :: struct { v: i32 }  // snippet$Box__i32
+  snippet.Box<i32>.get :: fn(self: Box<i32>) -> i32 {  // snippet$Box$Getter$get__i32
+      self.v
+  }
+  snippet.Box<i32>.label :: fn(self: Box<i32>) -> string {  // snippet$Box$Labelled$label__i32
+      "box of i32"
+  }
+  snippet.Box<string> :: struct { v: string }  // snippet$Box__string
+  snippet.Box<string>.get :: fn(self: Box<string>) -> string {  // snippet$Box$Getter$get__string
+      self.v
+  }
+  snippet.Box<string>.label :: fn(self: Box<string>) -> string {  // snippet$Box$Labelled$label__string
+      "box of string"
+  }
+  snippet.Pair<i32, string> :: struct { first: i32, second: string }  // snippet$Pair__i32__string
+  snippet.Pair<i32, string>.swapped :: fn(self: Pair<i32, string>) -> Pair<string, i32> {  // snippet$Pair$Swap$swapped__i32__string
+      Pair<string, i32> { .first = self.second, .second = self.first }
+  }
+  snippet.Pair<i32, string>.label :: fn(self: Pair<i32, string>) -> string {  // snippet$Pair$Labelled$label__i32__string
+      "i32 then string"
+  }
+  snippet.Pair<string, i32> :: struct { first: string, second: i32 }  // snippet$Pair__string__i32
+  snippet.Pair<string, i32>.swapped :: fn(self: Pair<string, i32>) -> Pair<i32, string> {  // snippet$Pair$Swap$swapped__string__i32
+      Pair<i32, string> { .first = self.second, .second = self.first }
+  }
+  snippet.Pair<string, i32>.label :: fn(self: Pair<string, i32>) -> string {  // snippet$Pair$Labelled$label__string__i32
+      "string then i32"
+  }
+  snippet.Box<Any> :: struct { v: Any }  // snippet$Box__Any
+  snippet.Pair<Any, Any> :: struct { first: Any, second: Any }  // snippet$Pair__Any__Any
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable snippet.Getter.get for Box<i32>  snippet.Box<i32>.get  // snippet$Box$Getter$get__i32
+  vtable snippet.Getter.get for Box<string>  snippet.Box<string>.get  // snippet$Box$Getter$get__string
+  vtable snippet.Labelled.label for Box<i32>  snippet.Box<i32>.label  // snippet$Box$Labelled$label__i32
+  vtable snippet.Labelled.label for Box<string>  snippet.Box<string>.label  // snippet$Box$Labelled$label__string
+  vtable snippet.Labelled.label for Pair<i32, string>  snippet.Pair<i32, string>.label  // snippet$Pair$Labelled$label__i32__string
+  vtable snippet.Labelled.label for Pair<string, i32>  snippet.Pair<string, i32>.label  // snippet$Pair$Labelled$label__string__i32
+  vtable snippet.Swap.swapped for Pair<i32, string>  snippet.Pair<i32, string>.swapped  // snippet$Pair$Swap$swapped__i32__string
+  vtable snippet.Swap.swapped for Pair<string, i32>  snippet.Pair<string, i32>.swapped  // snippet$Pair$Swap$swapped__string__i32
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

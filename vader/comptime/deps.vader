@@ -341,7 +341,7 @@ build_order :: fn(src: string) -> ComptimeOrder {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []
-    result :: check_module(parsed.program, rm, factory, diags)
+    result :: check_module(parsed.program, rm, diags)
     return sort_comptime_decls(parsed.program.decls, result.typed)
 }
 

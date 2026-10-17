@@ -576,6 +576,10 @@ const C_PARITY = new Set<string>([
   "extern_enum_data_param",
   // A free function named like an impl member keeps its own slot.
   "free_fn_named_like_impl_member",
+  // An impl whose type parameters differ from its struct's in name or order.
+  "impl_names_its_own_parameters",
+  // An explicit type argument on a generic fn of another module.
+  "explicit_type_argument_on_imported_fn",
   // Declaration-shape snippets whose `main` runs what they declare.
   "decorators_ok",
   "expressions",

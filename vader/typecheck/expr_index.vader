@@ -363,8 +363,7 @@ index_param :: fn(target: Type, table: MutableMap<string, Type>, typed: TypedPro
         return null
     }
     tmpl :: impl_side(typed, table, target, "") ?? return null
-    decl :: typed.struct_decls[target.symbol.id] ?? return tmpl
-    return substitute_by_name(tmpl, decl.type_params, target.args)
+    return substitute_struct_args(tmpl, target, typed)
 }
 
 is_integer_index :: fn(t: Type) -> bool {

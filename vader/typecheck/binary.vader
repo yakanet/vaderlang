@@ -1436,7 +1436,7 @@ expect_binary :: fn(src: string) -> ExpectedBinary {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []
-    result :: check_module(parsed.program, rm, factory, diags)
+    result :: check_module(parsed.program, rm, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
         is AST.FnDecl -> {
@@ -1667,7 +1667,7 @@ repeat_diagnostics :: fn(src: string) -> Diagnostic[] {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []
-    check_module_with_bodies(parsed.program, rm, factory, diags)
+    check_module_with_bodies(parsed.program, rm, diags)
     return diags
 }
 

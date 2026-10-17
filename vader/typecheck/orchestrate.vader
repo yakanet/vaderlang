@@ -40,10 +40,9 @@ merge_module_program :: fn(files: SourceFile[]) -> AST.Program {
 export check_module_with_bodies :: fn(
     program: AST.Program,
     resolved: ResolvedModule,
-    factory: SymbolFactory,
     diags: Diagnostic[],
 ) -> CheckResult {
-    result :: check_module(program, resolved, factory, diags)
+    result :: check_module(program, resolved, diags)
     walk_bodies(program.decls, result.typed, diags, .Full)
     return CheckResult {
         .typed = result.typed,
@@ -205,7 +204,6 @@ check_project_modules :: fn(
         merge_module_program(entry_loaded.module.files).decls,
         entry_rm,
         entry_typed,
-        project.factory,
         diags,
     )
     // Declare every imported module too: the whole-program lowerer lowers imported
@@ -228,12 +226,12 @@ check_project_modules :: fn(
             merge_module_program(other.module.files).decls,
             other_typed.resolved,
             other_typed,
-            project.factory,
             diags,
         )
     }
     // Cross-module struct visibility — see `broadcast_struct_decls`.
     broadcast_struct_decls(per_module)
+    share_type_param_symbols(per_module)
     // Wire was done before declare ; now populate the remaining
     // typecheck-side tables that depend on per-module decl types.
     // Settle expression-bodied fn returns in every non-entry module
@@ -434,7 +432,7 @@ synth_resolved :: fn() -> ResolvedModule {
         .fn_overloads = MutableMap<string, Symbol[]> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
-        .alias_decls = MutableMap<i32, AST.TypeAliasDecl> {},
+        .alias_params = MutableMap<i32, i32[]> {},
         .type_param_bounds = MutableMap<i32, AST.Expr> {},
         .diags = [],
         .deprecated_messages = MutableMap<i32, string> {},
@@ -1425,7 +1423,7 @@ register_alias_decl :: fn(decl: AST.Decl, typed: TypedProgram) -> bool {
         for s in typed.resolved.symbols {
             if s.name == decl.name {
                 typed.resolved.alias_types[s.id] = aliased
-                typed.resolved.alias_decls[s.id] = decl
+                typed.resolved.alias_params[s.id] = type_param_ids(decl.type_params, typed)
             }
         }
         return !contains_unresolved(aliased)
@@ -1525,6 +1523,21 @@ can_settle_now :: fn(
 // to its `repr` ordinal. Enum-only — type aliases keep their entry-merge
 // scope. Keyed by global symbol id, so no cross-module name collisions.
 // Must run before `declare_module` lowers any signature.
+// Every module's `type_param_symbols` merged into one table they all share : a
+// struct, trait or impl written in one module substitutes the parameters another
+// one declares.
+share_type_param_symbols :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
+    shared :: MutableMap<u64, Symbol> {}
+    for [_, typed] in per_module {
+        for [site, sym] in typed.type_param_symbols {
+            shared[site] = sym
+        }
+    }
+    for [_, typed] in per_module {
+        typed.type_param_symbols = shared
+    }
+}
+
 // Cross-module struct visibility : each module's `declare_module` only
 // populates its OWN `struct_decls` / `struct_field_types`. Field access
 // on a local variable typed as a struct from another module (e.g.
@@ -1665,7 +1678,7 @@ export is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     return false
 }
 
-// Mirror every non-entry module's `alias_types` / `alias_decls` into
+// Mirror every non-entry module's `alias_types` / `alias_params` into
 // the entry's resolver tables so cross-module aliases (e.g. `Pet`
 // imported from `./types`) expand at use sites.
 //
@@ -1688,8 +1701,8 @@ merge_external_alias_types :: fn(
             }
             entry_typed.resolved.alias_types[sym_id] = ty
         }
-        for [sym_id, decl] in other.resolved.alias_decls {
-            entry_typed.resolved.alias_decls[sym_id] = decl
+        for [sym_id, params] in other.resolved.alias_params {
+            entry_typed.resolved.alias_params[sym_id] = params
         }
     }
 }
@@ -2555,6 +2568,20 @@ register_impl_metadata :: fn(
     record_impl_members(typed, id, for_ty, trait_sym, trait_key, typed, diags)
 }
 
+// An impl's own type parameters, as the parameters of the struct it is written
+// for : `Box<U> implements<U> …` gives `U ↦ T` for `Box :: struct<T>`. Empty for any
+// other receiver ; an impl written for one instance binds none.
+impl_params_as_struct_params :: fn(for_ty: Type, typed: TypedProgram) -> MutableMap<i32, Type> {
+    bindings :: MutableMap<i32, Type> {}
+    if for_ty !is StructType {
+        return bindings
+    }
+    decl :: typed.struct_decls[for_ty.symbol.id] ?? return bindings
+    declared :: declared_type_args(decl.type_params, typed) ?? return bindings
+    unify_type_param(for_ty, mk_struct(for_ty.symbol, declared), bindings)
+    return bindings
+}
+
 // The trait membership an impl declares — `is Trait`, trait widening, the bounds
 // its type parameters put on the arguments. Recorded for every impl before
 // anything else, so a member type that widens to a later-declared impl resolves.
@@ -2589,9 +2616,13 @@ record_impl_members :: fn(
     owner: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
+    // The impl's own parameters, as those of the struct it is written for : every
+    // template recorded below then reads a receiver's arguments by the struct's.
+    as_struct :: impl_params_as_struct_params(for_ty, typed)
     // With the default a slot's arguments take, so the impl's instance compares
     // with the slots that ask for it (`implements_trait_instance`).
-    trait_args :: written_type_args(decl.trait_args, owner.resolved, diags)
+    written :: written_type_args(decl.trait_args, owner.resolved, diags)
+    trait_args :: substitute_each_map(written, as_struct)
     index_impl_metadata(typed, for_ty, trait_key, trait_args)
     record_struct_trait_args(typed, for_ty, trait_key, trait_args)
     trait_decl :: typed.trait_decls[trait_sym.id]
@@ -2599,8 +2630,9 @@ record_impl_members :: fn(
     side :: impl_side_key(for_ty)
     for m in decl.members {
         trait_method :: lookup_trait_method(trait_decl, m.name)
+        written_ty :: ufcs_method_type(m, for_ty, trait_method, owner, diags)
         entry :: ImplMethod {
-            .ty = ufcs_method_type(m, for_ty, trait_method, owner, diags),
+            .ty = substitute_map(written_ty, as_struct),
             .decl = m,
             .impl_key = decl.span.hash(),
             .trait_key = trait_key,
@@ -2616,11 +2648,12 @@ record_impl_members :: fn(
         add_trait_unique(typed.impl_method_traits, member_key, trait_key)
         // `Into<T>` impls are indexed under a target-qualified key so
         // multiple `Into` impls for the same source (e.g. `Into<i32>` +
-        // `Into<string>`) don't collide. A generic impl's pair names a type
-        // parameter no conversion carries : it is found by the base of its target
-        // instead (`into_method_toward`).
+        // `Into<string>`) don't collide. The pair is the impl's own, as a body of
+        // the impl sees its receiver. A generic impl's pair names a type parameter
+        // no conversion carries : it is found by the base of its target instead
+        // (`into_method_toward`).
         if is_into && m.name == METHOD_INTO {
-            add_impl_method(typed, into_impl_key(for_ty, trait_args[0]), entry)
+            add_impl_method(typed, into_impl_key(for_ty, written[0]), entry)
             if type_contains_type_param(for_ty) {
                 add_impl_method(typed, "${side}${into_toward_suffix(trait_args[0])}", entry)
             }

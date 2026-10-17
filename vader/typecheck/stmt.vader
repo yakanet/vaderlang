@@ -1891,13 +1891,10 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
                 }
                 return TY_UNRESOLVED
             }
-            // Substitute the impl's TypeParam against the
-            // struct's declared type_params + concrete args
-            // (`Range<T> implements Iterator<T>` records the
-            // impl-side `T` — substitute_by_name swaps it
-            // for the call-site's concrete arg by name).
-            decl :: typed.struct_decls[iter_ty.symbol.id] ?? return elem
-            return substitute_by_name(elem, decl.type_params, iter_ty.args)
+            // The element is recorded in the struct's own parameters
+            // (`Range<T> implements Iterator<T>` records Range's `T`) : the
+            // receiver's arguments take their place.
+            return substitute_struct_args(elem, iter_ty, typed)
         }
         // A distinct keeps its own `Iterator` impl, recorded under its declaration ;
         // a distinct without one iterates through its backing.
@@ -2086,14 +2083,13 @@ into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Ty
     if declared !is StructType {
         return null
     }
-    decl :: typed.struct_decls[declared.symbol.id] ?? return null
     // Among its `Into` impls (`Into<[string, i32]>` beside `Into<Label>`), the one
     // toward a tuple of that arity.
     for into_args in struct_trait_arg_lists(declared, core_trait_key(TRAIT_INTO), typed) {
         if into_args.len() != 1 {
             continue
         }
-        target :: substitute_by_name(into_args[0], decl.type_params, declared.args)
+        target :: substitute_struct_args(into_args[0], declared, typed)
         if target is TupleType {
             if target.elements.len() == arity {
                 return target
@@ -2126,7 +2122,7 @@ stub_check_module :: fn(src: string) -> StubResult {
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)
     diags: Diagnostic[]: []
-    declare_module(parsed.program.decls, rm, typed, factory, diags)
+    declare_module(parsed.program.decls, rm, typed, diags)
     for decl in parsed.program.decls {
         if decl is AST.FnDecl {
             match decl.body as body {

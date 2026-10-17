@@ -128,7 +128,7 @@ fn_signature :: fn(owner: TypedProgram, callee: Symbol) -> FnType | null {
 declared_type_params :: fn(decl: AST.FnDecl, owner: TypedProgram) -> Symbol[] | null {
     out: Symbol[]: []
     for tp in decl.type_params {
-        out.push(find_type_param_in_resolved(owner.resolved, tp.name, tp.span) ?? return null)
+        out.push(owner.type_param_symbols[tp.span.hash()] ?? return null)
     }
     return out
 }
@@ -255,7 +255,7 @@ trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Typ
 subst_from_concrete :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, args: Type[]) -> Substitution | null {
     concrete :: strip_distinct_each(args)
     if !all_concrete(concrete) { return null }
-    return build_fn_concrete_subst(fn_decl, owner_typed, concrete)
+    return build_concrete_subst(fn_decl.type_params, concrete, owner_typed)
 }
 
 // ---- chained generator combinators (Increment 3) --------------------------
@@ -659,7 +659,7 @@ try_descend_into_gen_source :: fn(ctx: FnLowerCtx, expr: AST.Expr, span: Span) -
     if !all_concrete(type_args) {
         return null
     }
-    subst :: build_impl_subst(entry.decl, type_args, owner, owner)
+    subst :: build_impl_subst(entry, type_args)
     element :: iterator_element_of(substitute(signature.return_type, subst)) ?? return null
     if is_void(element) || !all_concrete([element]) {
         return null

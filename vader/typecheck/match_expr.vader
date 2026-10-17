@@ -470,7 +470,7 @@ bind_struct_pattern :: fn(
             continue
         }
         // `Box<i32> { value }` reads `value` as `i32`, not as the declared `T`.
-        ft :: substitute_struct_field(raw, decl, st)
+        ft :: substitute_struct_args(raw, st, typed)
         match field.value as value {
             is AST.PatternBinding -> { typed.local_types[value.span.hash()] = ft }
             is AST.PatternLiteral -> {
@@ -704,7 +704,7 @@ expect_match :: fn(src: string) -> ExpectedMatch {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []
-    result :: check_module(parsed.program, rm, factory, diags)
+    result :: check_module(parsed.program, rm, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
         is AST.FnDecl -> {

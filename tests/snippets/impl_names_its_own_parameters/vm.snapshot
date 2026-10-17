@@ -1,0 +1,8 @@
+# stdout
+42 text
+one 1
+i32 then string
+string then i32
+box of i32
+# exit
+42

@@ -9,7 +9,7 @@
 //     enum-variant dot access (`Color.Red`),
 //   - struct field lookup (the terminal fallback), with generic-arg
 //     substitution so a field typed `T` resolves to the receiver's
-//     concrete arg (`substitute_struct_field`).
+//     concrete arg (`substitute_struct_args`).
 // `resolve_struct_field` emits T3009 (missing field) / T3008 (non-struct
 // target) when nothing matches.
 
@@ -932,7 +932,7 @@ resolve_struct_field :: fn(
         )
         return TY_UNRESOLVED
     }
-    substituted :: substitute_struct_field(found, decl, st)
+    substituted :: substitute_struct_args(found, st, typed)
     return narrow_field_if_active(e, substituted, typed)
 }
 
@@ -985,7 +985,7 @@ export declared_struct_field_type :: fn(
     // Discard sink : the read-side check already emitted any field error.
     discard: Diagnostic[]: []
     found :: resolved_field_type(st.symbol.id, decl, field, typed, discard) ?? return null
-    return substitute_struct_field(found, decl, st)
+    return substitute_struct_args(found, st, typed)
 }
 
 /// Enforce `@internal` field visibility (T3054). A field parsed as
@@ -1078,81 +1078,50 @@ resolved_field_type :: fn(
     return find_struct_field_type(decl, name, typed.resolved, diags)
 }
 
-/// Substitute typeParam bindings from `decl.type_params` against
-/// `target.args` into `field_ty`. Lets `Node(i32) { value: T }` →
-/// `value: i32` instead of leaving `T` raw.
-substitute_struct_field :: fn(
-    field_ty: Type,
-    decl: AST.StructDecl,
-    target: StructType,
-) -> Type {
-    if decl.type_params.len() == 0 {
-        return field_ty
-    }
-    // Rewrite by NAME, not by Symbol id : `decl.vader::declare_named_with_args`
-    // mints a FRESH TypeParam Symbol per `tp.name` when it builds the StructType,
-    // so the field's raw `T` and the matching `target.args[i]` carry different
-    // ids and an id-keyed substitution would never fire. The name is the only
-    // thing the two sides share.
-    return substitute_by_name(field_ty, decl.type_params, target.args)
+/// Substitute `st`'s declared type parameters by its arguments in `t` : a field
+/// `value: T` of `Box :: struct<T>` reads as `i32` on a `Box<i32>`.
+///
+/// @param t      a type written with the struct's own parameters.
+/// @param st     an instance of the struct.
+/// @param typed  the program whose struct and parameter tables are read.
+/// @return       `t` as is when `st` names no struct of the project.
+export substitute_struct_args :: fn(t: Type, st: StructType, typed: TypedProgram) -> Type {
+    decl :: typed.struct_decls[st.symbol.id] ?? return t
+    return substitute_type_params(t, decl.type_params, st.args, typed)
 }
 
-export substitute_by_name :: fn(
-    t: Type,
-    tps: AST.TypeParam[],
-    args: Type[],
+/// Substitute the type parameters `tps` declares by `args`, in order.
+///
+/// @param t      the type written with the parameters.
+/// @param tps    the declaration's type parameters.
+/// @param args   the arguments, one per parameter ; fewer leaves the rest.
+/// @param typed  the program whose shared parameter table is read.
+export substitute_type_params :: fn(
+    t: Type, tps: AST.TypeParam[], args: Type[], typed: TypedProgram,
 ) -> Type {
-    // @partial: only TypeParam and the composite variants can carry a param to
-    // rewrite; every scalar / primitive variant has no inner type → return as-is.
-    @partial match t {
-        is TypeParamType -> {
-            for i in 0..<min(tps.len(), args.len()) {
-                if tps[i].name == t.symbol.name {
-                    return args[i]
-                }
-            }
-            return t
-        }
-        is ArrayType -> {
-            return mk_array(substitute_by_name(t.element, tps, args))
-        }
-        is TupleType -> {
-            els: Type[]: []
-            for el in t.elements {
-                els.push(substitute_by_name(el, tps, args))
-            }
-            return mk_tuple(els)
-        }
-        is StructType -> {
-            sargs: Type[]: []
-            for a in t.args {
-                sargs.push(substitute_by_name(a, tps, args))
-            }
-            return mk_struct(t.symbol, sargs)
-        }
-        is TraitType -> {
-            rargs: Type[]: []
-            for a in t.args {
-                rargs.push(substitute_by_name(a, tps, args))
-            }
-            return TraitType { ...t, .args = rargs }
-        }
-        is UnionType -> {
-            vs: Type[]: []
-            for v in t.variants {
-                vs.push(substitute_by_name(v, tps, args))
-            }
-            return union_of(vs)
-        }
-        is FnType -> {
-            ps: Type[]: []
-            for p in t.params {
-                ps.push(substitute_by_name(p, tps, args))
-            }
-            return mk_fn(ps, substitute_by_name(t.return_type, tps, args))
-        }
-        _ -> { return t }
+    if tps.len() == 0 || args.len() == 0 || !type_contains_type_param(t) {
+        return t
     }
+    return substitute_map(t, type_param_bindings(tps, args, typed))
+}
+
+/// The type each of `tps` takes : `args[i]` for the `i`-th, keyed by the symbol the
+/// resolver gave it (`type_param_symbols`), so the parameters of an imported
+/// declaration are reached too.
+///
+/// @param tps    a declaration's type parameters.
+/// @param args   the arguments, one per parameter ; a parameter past the last is left
+///               out.
+/// @param typed  the program whose shared parameter table is read.
+export type_param_bindings :: fn(
+    tps: AST.TypeParam[], args: Type[], typed: TypedProgram,
+) -> MutableMap<i32, Type> {
+    bindings :: MutableMap<i32, Type> {}
+    for i in 0..<min(tps.len(), args.len()) {
+        sym :: typed.type_param_symbols[tps[i].span.hash()] ?? continue
+        bindings[sym.id] = args[i]
+    }
+    return bindings
 }
 
 import "std/collections"
@@ -1207,9 +1176,9 @@ check_trait_ambiguity :: fn(
 // Bind a blanket array impl's type param to the concrete element. A blanket
 // array impl (`T[] implements<T> ArrayOps<T>`) carries exactly one type param =
 // the element, so every `TypeParamType` leaf in the resolved member IS that
-// element. Struct receivers bind by name (`substitute_by_name`, keyed on
-// `decl.type_params` × `target.args`) ; an array carries no `.args`, so bind
-// every param leaf to `element` instead.
+// element. Struct receivers bind by parameter symbol (`substitute_type_params`,
+// keyed on `decl.type_params` × `target.args`) ; an array carries no `.args`, so
+// bind every param leaf to `element` instead.
 substitute_array_element :: fn(t: Type, element: Type) -> Type {
     // @partial: only TypeParam + the composite variants carry a param to rewrite;
     // scalars have no inner type → return as-is.
@@ -1259,8 +1228,7 @@ substitute_impl_method :: fn(impl_ty: Type, target_ty: Type, typed: TypedProgram
     if target_ty !is StructType {
         return impl_ty
     }
-    decl :: typed.struct_decls[target_ty.symbol.id] ?? return impl_ty
-    return substitute_by_name(impl_ty, decl.type_params, target_ty.args)
+    return substitute_struct_args(impl_ty, target_ty, typed)
 }
 
 // `u.field` where `u: V1 | V2 | …`. Returns the union of each
@@ -1294,7 +1262,7 @@ union_common_field :: fn(
         } else if index != at {
             return null
         }
-        types.push(substitute_struct_field(ty, decl, v))
+        types.push(substitute_struct_args(ty, v, typed))
     }
     return union_of(types)
 }
@@ -1410,21 +1378,14 @@ substitute_trait_typeparams :: fn(
         return t
     }
     impl_args :: lookup_struct_trait_args(target_ty, trait_key, typed) ?? return t
-    // The impl args might themselves reference TypeParams from the
-    // implementing struct (`Range<T> implements Iterator<T>` records
-    // `[T]` where T is Range's). Resolve those against the receiver's
-    // concrete args first, so `Range<i32>` substitutes `i32`.
+    // The impl args are recorded in the implementing struct's own parameters
+    // (`Range<T> implements Iterator<T>` records `[T]`, Range's). Resolve those
+    // against the receiver's concrete args first, so `Range<i32>` gives `i32`.
     resolved_args: Type[]: []
-    struct_decl :: typed.struct_decls[target_ty.symbol.id]
     for a in impl_args {
-        if struct_decl is null {
-            resolved_args.push(a)
-        }
-        else {
-            resolved_args.push(substitute_by_name(a, struct_decl.type_params, target_ty.args))
-        }
+        resolved_args.push(substitute_struct_args(a, target_ty, typed))
     }
-    return substitute_by_name(t, trait_decl.type_params, resolved_args)
+    return substitute_type_params(t, trait_decl.type_params, resolved_args, typed)
 }
 
 // The symbol id of the trait whose `trait_key` is `key`, searched in the
@@ -1478,7 +1439,8 @@ try_trait_method :: fn(
     m :: lookup_trait_method(decl, name) ?? return null
     owner_resolved :: typed.trait_decl_owners[t.symbol.id] ?? typed.resolved
     padded :: pad_trait_default_args(t.args, decl.type_params, owner_resolved)
-    bound :: substitute_by_name(trait_member_type(t.symbol.id, m, typed), decl.type_params, padded)
+    member :: trait_member_type(t.symbol.id, m, typed)
+    bound :: substitute_type_params(member, decl.type_params, padded, typed)
     if self_ty == null {
         return bound
     }
@@ -1809,7 +1771,7 @@ first_field_in_last_fn :: fn(src: string) -> FieldFixture {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []
-    result :: check_module(parsed.program, rm, factory, diags)
+    result :: check_module(parsed.program, rm, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     if last is AST.FnDecl {
         match last.body as b {

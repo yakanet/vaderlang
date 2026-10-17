@@ -278,7 +278,7 @@ expect_seq :: fn(src: string) -> ExpectedSeq {
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []
-    result :: check_module(parsed.program, rm, factory, diags)
+    result :: check_module(parsed.program, rm, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
         is AST.FnDecl -> {

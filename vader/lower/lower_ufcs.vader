@@ -190,27 +190,6 @@ lookup_module_display_path :: fn(ctx: FnLowerCtx, module_id: string) -> string |
     return null
 }
 
-// Find a field's static type on a struct receiver. Used by the
-// `@field(target, "name")` fold to refine the result type when the
-// typer left it Unresolved (`@comptime for f in @fields(T)` paths
-// where the field name is only known post-substitution). Walks the
-// receiver's struct decl, applies the struct's type-arg substitution
-// to the field's TypeExpr.
-resolve_field_type :: fn(ctx: FnLowerCtx, target_arg: Expr, field_name: string) -> Type {
-    recv_ty :: ctx.types.expr_type(target_arg)
-    if recv_ty is StructType {
-        decl :: ctx.typed.struct_decls[recv_ty.symbol.id] ?? return TY_UNRESOLVED
-        if decl is StructDecl {
-            for f in decl.fields {
-                if f.name != field_name { continue }
-                raw :: type_from_expr(f.ty, ctx.typed.resolved, [])
-                return substitute_by_name(raw, decl.type_params, recv_ty.args)
-            }
-        }
-    }
-    return TY_UNRESOLVED
-}
-
 lookup_fn_type_anywhere :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
     // `Symbol.module` carries the owning module id — direct lookup
     // beats walking every evaluated module per UFCS call site.

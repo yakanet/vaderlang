@@ -1,0 +1,60 @@
+// An impl names its type parameters as it likes : apart from the struct's, in
+// another order, or through the receiver's arguments alone. Each parameter takes
+// the argument at its own position in the receiver the impl writes.
+
+module "snippet"
+
+import "std/io"
+
+Getter :: trait<V> {
+    get :: fn(self) -> V
+}
+
+Box :: struct<T> {
+    v: T
+}
+
+Box<U> implements<U> Getter<U> {
+    get :: fn(self) -> U = self.v
+}
+
+Pair :: struct<A, B> {
+    first: A
+    second: B
+}
+
+Swap :: trait<X> {
+    swapped :: fn(self) -> X
+}
+
+Pair<L, R> implements<R, L> Swap<Pair<R, L>> {
+    swapped :: fn(self) -> Pair<R, L> = Pair<R, L> {
+        .first = self.second,
+        .second = self.first,
+    }
+}
+
+Labelled :: trait {
+    label :: fn(self) -> string
+}
+
+Pair<L, R> implements<R, L> Labelled {
+    label :: fn(self) -> string = "${@type_name(L)} then ${@type_name(R)}"
+}
+
+Box<W> implements Labelled {
+    label :: fn(self) -> string = "box of ${@type_name(W)}"
+}
+
+main :: fn() -> i32 {
+    b :: Box<i32> { .v = 42 }
+    s :: Box<string> { .v = "text" }
+    println("${b.get()} ${s.get()}")
+    p :: Pair<i32, string> { .first = 1, .second = "one" }
+    q :: p.swapped()
+    println("${q.first} ${q.second}")
+    println(p.label())
+    println(q.label())
+    println(b.label())
+    return b.get()
+}
