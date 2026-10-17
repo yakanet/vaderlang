@@ -710,40 +710,8 @@ local_type_hint :: fn(l: LetStmt, source: string) = if l.ty != null { type_expr_
 // Slice the source for a `TypeExpr` reference. The parser tags every
 // node with `span`, so a verbatim re-slice keeps annotations like
 // `MyType(i32)` or `T?` intact.
-type_expr_slice :: fn(t: Expr, source: string) -> string {
-    // Every Expr variant shares a `.span` field, but `Expr` is a
-    // union — match exhaustively and slice the corresponding span.
-    sp: Span: match t {
-        is IntLitExpr        -> t.span
-        is NullCoalesceExpr  -> t.span
-        is FloatLitExpr      -> t.span
-        is BoolLitExpr       -> t.span
-        is NullLitExpr       -> t.span
-        is CharLitExpr       -> t.span
-        is StringLitExpr     -> t.span
-        is IdentExpr         -> t.span
-        is CallExpr          -> t.span
-        is FieldExpr         -> t.span
-        is IndexExpr         -> t.span
-        is UnaryExpr         -> t.span
-        is BinaryExpr        -> t.span
-        is IfExpr            -> t.span
-        is MatchExpr         -> t.span
-        is BlockExpr         -> t.span
-        is LambdaExpr        -> t.span
-        is StructLitExpr     -> t.span
-        is SeqLitExpr        -> t.span
-        is RangeExpr         -> t.span
-        is AwaitExpr         -> t.span
-        is CastExpr          -> t.span
-        is GenericInstExpr   -> t.span
-        is IntrinsicCallExpr -> t.span
-        is DotVariantExpr    -> t.span
-        is FnTypeExpr        -> t.span
-        is ArrayTypeExpr     -> t.span
-    }
-    return source.byte_slice(sp.start.offset, sp.end.offset).trim()
-}
+type_expr_slice :: fn(t: Expr, source: string) =
+    source.byte_slice(t.span.start.offset, t.span.end.offset).trim()
 
 ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
     match f.form as w {

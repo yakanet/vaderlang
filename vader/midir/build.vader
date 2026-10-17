@@ -242,7 +242,7 @@ lowered_to_bc_value :: fn(el: LoweredExpr) -> BcDataValue {
         for e in el.elements { elements.push(lowered_to_bc_value(e)) }
         return BcValArray { .element_type_name = array_element_name(el.type), .elements = elements }
     }
-    name :: display_type(type_of(el))
+    name :: display_type(el.type)
     return BcValPrim { .kind = array_kind_from_name(name), .bits = bc_value_bits(el, name) }
 }
 
@@ -920,7 +920,7 @@ build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
     dst :: if is_void(e.type) || e.type is NeverType { null } else { fresh_tmp(fn_ctx, "call_ind", e.type) }
     emit(fn_ctx, InstrCallIndirect {
         .dst = dst, .callee = callee, .args = args,
-        .fn_type = type_of(e.callee), .type = e.type, .span = e.span,
+        .fn_type = e.callee.type, .type = e.type, .span = e.span,
     })
     return end_after_no_return(fn_ctx, e, dst)
 }
@@ -1060,8 +1060,8 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary, dest: LocalId | null)
         declare_local(fn_ctx, if is_and { "and_res" } else { "or_res" }, e.type, null)
     }
 
-    then_id :: new_block(fn_ctx, e.right.span_of())
-    else_id :: new_block(fn_ctx, e.right.span_of())
+    then_id :: new_block(fn_ctx, e.right.span)
+    else_id :: new_block(fn_ctx, e.right.span)
     join_id :: new_block(fn_ctx, e.span)
 
     terminate(fn_ctx, TermCondBranch {
@@ -1076,7 +1076,7 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary, dest: LocalId | null)
         rhs :: build_expr(fn_ctx, e.right)
         if rhs !is null {
             if fn_ctx.current !is null {
-                emit(fn_ctx, InstrMove { .dst = result, .src = rhs, .span = e.right.span_of() })
+                emit(fn_ctx, InstrMove { .dst = result, .src = rhs, .span = e.right.span })
             }
         }
     } else {
@@ -1103,7 +1103,7 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary, dest: LocalId | null)
         rhs :: build_expr(fn_ctx, e.right)
         if rhs !is null {
             if fn_ctx.current !is null {
-                emit(fn_ctx, InstrMove { .dst = result, .src = rhs, .span = e.right.span_of() })
+                emit(fn_ctx, InstrMove { .dst = result, .src = rhs, .span = e.right.span })
             }
         }
     }
@@ -1161,7 +1161,7 @@ build_expr_into :: fn(fn_ctx: FnCtx, e: LoweredExpr, dest: LocalId) -> void {
     }
     val :: build_expr(fn_ctx, e)
     if fn_ctx.current !is null && val !is null {
-        emit(fn_ctx, InstrMove { .dst = dest, .src = val, .span = e.span_of() })
+        emit(fn_ctx, InstrMove { .dst = dest, .src = val, .span = e.span })
     }
 }
 
@@ -1255,7 +1255,7 @@ branch_on_cond :: fn(
         return CondReach { .on_true = swapped.on_false, .on_false = swapped.on_true }
     }
     if split && cond is LoweredBinary && is_short_circuit_op(cond.op) {
-        next :: new_block(fn_ctx, cond.right.span_of())
+        next :: new_block(fn_ctx, cond.right.span)
         if cond.op == .And {
             left :: branch_on_cond(fn_ctx, cond.left, next, on_false, split)
             if !left.on_true {
@@ -1288,7 +1288,7 @@ branch_on_cond :: fn(
         .cond = local,
         .then_block = on_true,
         .else_block = on_false,
-        .span = cond.span_of(),
+        .span = cond.span,
     })
     return CondReach { .on_true = true, .on_false = true }
 }
@@ -1471,7 +1471,7 @@ build_make_closure :: fn(fn_ctx: FnCtx, e: LoweredMakeClosure) -> LocalId | null
     dst :: fresh_tmp(fn_ctx, "closure", e.type)
     emit(fn_ctx, InstrMakeClosure {
         .dst = dst, .fn_symbol = e.fn_symbol, .env = env,
-        .env_type = type_of(e.env), .type = e.type, .span = e.span,
+        .env_type = e.env.type, .type = e.type, .span = e.span,
     })
     return dst
 }

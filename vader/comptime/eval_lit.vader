@@ -8,8 +8,8 @@
 module "vader/comptime"
 
 import "std/string_builder"
-import "vader/diagnostics"
 AST :: import "toolchain/ast"
+import "vader/diagnostics"
 
 /// Evaluate an `IntLitExpr`, signed as written (`AST.int_literal_value`). Its
 /// `type_name` defaults to `i32`, as the typechecker defaults a free int.
@@ -45,22 +45,19 @@ export evaluate_char_lit :: fn(literal: AST.CharLitExpr) -> EvalResult {
 /// itself doesn't reduce to a concrete value.
 /// @param literal  the literal node.
 /// @param context  the evaluator context.
-/// @param recurse  dispatcher callback ; passed in to avoid the
-///                 eval ↔ eval_lit import cycle.
 /// @return         the concatenated string value, or C4001 when an
 ///                 interpolation segment can't be evaluated.
 export evaluate_string_lit :: fn(
     literal: AST.StringLitExpr, context: ComptimeContext,
-    recurse: fn(AST.Expr, ComptimeContext) -> EvalResult,
 ) -> EvalResult {
     sb :: StringBuilder {}
     for part in literal.parts {
         match part {
             is AST.StringLitText -> { sb.append(part.value) }
             is AST.StringLitInterp -> {
-                inner :: recurse(part.expr, context)
-                if inner.value is null { return inner }
-                sb.append(interp_value(inner.value))
+                inner :: evaluate_expr(part.expr, context)
+                value :: inner.value ?? return inner
+                sb.append(interp_value(value))
             }
         }
     }

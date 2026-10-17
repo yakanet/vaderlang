@@ -63,7 +63,7 @@ let_type_text :: fn(stmt: LoweredLet) -> string {
 assign_text :: fn(
     names: DumpNames, target: LoweredExpr, value: LoweredExpr, indent: string,
 ) -> string {
-    written :: slot_value_text(names, value, type_of(target), indent)
+    written :: slot_value_text(names, value, target.type, indent)
     return "${expr_text(names, target, indent)} = ${written}"
 }
 
@@ -136,7 +136,7 @@ braced_text :: fn(names: DumpNames, block: LoweredBlock, indent: string) -> stri
 // through `cell_text`.
 expr_text :: fn(names: DumpNames, e: LoweredExpr, indent: string) -> string {
     text :: bare_expr_text(names, e, indent)
-    if type_of(e) is UnresolvedType && !is_untyped_by_design(e) {
+    if e.type is UnresolvedType && !is_untyped_by_design(e) {
         return "${text} :?"
     }
     return text
@@ -272,7 +272,7 @@ array_slice_text :: fn(names: DumpNames, e: LoweredArraySlice, indent: string) -
 binary_text :: fn(names: DumpNames, e: LoweredBinary, indent: string) -> string {
     left :: operand_text(names, e.left, indent)
     right :: operand_text(names, e.right, indent)
-    return "${left} ${binary_symbol(e.op, type_of(e.left))} ${right}"
+    return "${left} ${binary_symbol(e.op, e.left.type)} ${right}"
 }
 
 // Integer arithmetic the lowering leaves unchecked wraps (`+%`) ; a float's has

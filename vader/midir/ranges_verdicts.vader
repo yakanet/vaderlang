@@ -131,7 +131,7 @@ judge_sites :: fn(
             if site != null && is_arithmetic(site) == arithmetic {
                 sites.push(
                     RangeSite {
-                        .span = site_span(site),
+                        .span = site.span,
                         .block = block.id,
                         .position = position,
                         .what = site_label(ctx, site),
@@ -173,13 +173,6 @@ site_of :: fn(ctx: RangeContext, ins: Instruction) -> SiteInstruction | null {
 }
 
 is_arithmetic :: fn(site: SiteInstruction) -> bool = site is InstrBinOp | InstrUnOp
-
-site_span :: fn(site: SiteInstruction) -> Span = match site {
-    is InstrArrayGet -> site.span
-    is InstrArraySet -> site.span
-    is InstrBinOp    -> site.span
-    is InstrUnOp     -> site.span
-}
 
 site_label :: fn(ctx: RangeContext, site: SiteInstruction) -> string = match site {
     is InstrArrayGet -> "${local_name(ctx, site.target)}[${local_name(ctx, site.index)}]"

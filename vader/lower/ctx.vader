@@ -587,8 +587,7 @@ FnLowerCtx :: struct {
 /// The consumer side of a generator inline. Installed on
 /// `FnLowerCtx.gen_inline_sink` while a generator body is lowered into the chain
 /// that consumes it, so each `yield e` lowers to `<bind binding_symbol = e>` +
-/// the consumer's body instead of the state-machine marker. Lives here (not the
-/// fusion module) to avoid a `ctx` → fusion import cycle — mirrors `LiftedFnContext`.
+/// the consumer's body instead of the state-machine marker.
 GenInlineSink :: struct {
     binding_symbol: Symbol
     binding_name:   string

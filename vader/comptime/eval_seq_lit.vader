@@ -9,18 +9,21 @@
 module "vader/comptime"
 
 import "std/collections"
-import "vader/types"
 AST :: import "toolchain/ast"
+import "vader/types"
 
-export evaluate_seq_lit :: fn(
-    expr: AST.SeqLitExpr, context: ComptimeContext,
-    recurse: fn(AST.Expr, ComptimeContext) -> EvalResult,
-) -> EvalResult {
+/// Evaluate a `[e0, e1, …]` literal : each element in order, then a tuple or an
+/// array according to the literal's checked type.
+/// @param expr     the literal node.
+/// @param context  the evaluator context.
+/// @return         a `StructValue` for a tuple, an `ArrayValue` for an array, or
+///                 the first element's failure.
+export evaluate_seq_lit :: fn(expr: AST.SeqLitExpr, context: ComptimeContext) -> EvalResult {
     elements: ComptimeValue[]: []
     for el in expr.elements {
-        r :: recurse(el, context)
-        if r.value is null { return r }
-        elements.push(r.value)
+        r :: evaluate_expr(el, context)
+        value :: r.value ?? return r
+        elements.push(value)
     }
     inferred :: context.typed.expr_types[expr.id]
     if inferred is TupleType {

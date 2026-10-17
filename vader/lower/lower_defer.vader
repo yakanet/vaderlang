@@ -30,14 +30,10 @@ import "toolchain/span"
 /// fn + the env struct, pushes both onto `ctx.project.synth_decls`,
 /// then returns the push node carrying the closure.
 ///
-/// @param ctx           the surrounding fn-body context.
-/// @param defer_stmt    the source defer.
-/// @param block_lowerer callback to lower a `BlockExpr` (cycle-breaker).
-/// @return              the lowered defer.push stmt.
-lower_defer :: fn(
-    ctx: FnLowerCtx, defer_stmt: AST.DeferStmt,
-    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
-) -> LoweredStmt {
+/// @param ctx         the surrounding fn-body context.
+/// @param defer_stmt  the source defer.
+/// @return            the lowered defer.push stmt.
+lower_defer :: fn(ctx: FnLowerCtx, defer_stmt: AST.DeferStmt) -> LoweredStmt {
     captures :: lookup_defer_captures(ctx, defer_stmt)
     lifted_symbol :: fresh_lifted_defer_symbol(ctx, false)
     env_symbol    :: fresh_lifted_defer_symbol(ctx, true)
@@ -59,10 +55,6 @@ lower_defer :: fn(
     })
     lifted_entry :: synth_mono_entry(ctx, lifted_symbol)
 
-    // Wrap the body stmt in a synthetic BlockExpr so the existing
-    // block_lowerer can drive it.
-    body_block :: synth_body_block(defer_stmt)
-
     lifted_ctx :: new_fn_lower_ctx(
         ctx.project, lifted_entry, ctx.typed, ctx.subst, TY_VOID,
     )
@@ -72,7 +64,7 @@ lower_defer :: fn(
         .env_type       = env_type,
         .captures       = slots_by_symbol(captures, slots),
     }
-    body :: block_lowerer(lifted_ctx, body_block, true, null)
+    body :: lower_block(lifted_ctx, synth_body_block(defer_stmt), true, null)
 
     lifted_decl :: LoweredFnDecl {
         .mangled     = lifted_symbol.name,
@@ -107,8 +99,7 @@ lookup_defer_captures :: fn(ctx: FnLowerCtx, defer_stmt: AST.DeferStmt) -> Captu
     return empty
 }
 
-// Wrap the defer body (single Stmt OR BlockExpr) into a BlockExpr the
-// existing block_lowerer can drive.
+// Wrap the defer body (single Stmt OR BlockExpr) into a BlockExpr `lower_block` can drive.
 synth_body_block :: fn(defer_stmt: AST.DeferStmt) -> AST.BlockExpr {
     match defer_stmt.body as bb {
         is AST.DeferBlockBody -> { return bb.block }

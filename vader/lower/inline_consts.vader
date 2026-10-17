@@ -383,7 +383,7 @@ synthesize_const_fn :: fn(cd: LoweredConstDecl, fn_symbol: Symbol) -> LoweredFnD
         .params      = no_params,
         .return_type = cd.type,
         .body        = LoweredBlock {
-            .span     = span_of(cd.value),
+            .span     = cd.value.span,
             .type     = cd.type,
             .stmts    = no_stmts,
             .trailing = cd.value,

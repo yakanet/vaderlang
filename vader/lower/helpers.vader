@@ -43,7 +43,7 @@ prepare_node_for_slot :: fn(
 recorded_conversion :: fn(
     ctx: FnLowerCtx, node: Expr, role: CallRole, expr: LoweredExpr, slot: Type, span: Span,
 ) -> LoweredExpr {
-    into :: recorded_target(ctx, node, role, type_of(expr))
+    into :: recorded_target(ctx, node, role, expr.type)
     if into is UfcsMember {
         return build_member_call_or_inline(into, [expr], slot, span)
     }
@@ -149,7 +149,7 @@ bind_one_before_hoisted :: fn(ctx: FnLowerCtx, value: LoweredExpr, mark: usize) 
         return value
     }
     prelude: LoweredStmt[]: []
-    bound :: bind_unless_invariant(ctx, value, "operand", span_of(value), prelude)
+    bound :: bind_unless_invariant(ctx, value, "operand", value.span, prelude)
     hoist_prelude_before(ctx, prelude, mark)
     return bound
 }
@@ -165,7 +165,7 @@ bind_before_hoisted :: fn(ctx: FnLowerCtx, earlier: LoweredExpr[], mark: usize) 
     for i in 0..<earlier.len() {
         value :: earlier[i]
         if !bound_by_sink(ctx, value) {
-            earlier[i] = bind_unless_invariant(ctx, value, "operand", span_of(value), prelude)
+            earlier[i] = bind_unless_invariant(ctx, value, "operand", value.span, prelude)
         }
     }
     hoist_prelude_before(ctx, prelude, mark)
@@ -247,7 +247,7 @@ wrap_stmts :: fn(span: Span, stmts: LoweredStmt[]) -> LoweredStmt {
 /// @param span  span of the wrapping block.
 /// @return      a fresh block carrying `expr` as its trailing value.
 export wrap_as_block :: fn(expr: LoweredExpr, span: Span) -> LoweredBlock {
-    return LoweredBlock { .span = span, .type = type_of(expr), .stmts = [], .trailing = expr }
+    return LoweredBlock { .span = span, .type = expr.type, .stmts = [], .trailing = expr }
 }
 
 /// Flatten a block's trailing expression into its `stmts` list. Useful
@@ -260,7 +260,7 @@ block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
     trailing :: block.trailing ?? return block.stmts
     out: LoweredStmt[]: []
     for stmt in block.stmts { out.push(stmt) }
-    out.push(LoweredExprStmt { .span = span_of(trailing), .expr = trailing })
+    out.push(LoweredExprStmt { .span = trailing.span, .expr = trailing })
     return out
 }
 
@@ -484,7 +484,7 @@ bind_unless_invariant :: fn(
 ) -> LoweredExpr = if is_invariant_operand(ctx, value) {
     value
 } else {
-    bind_to_local(ctx, value, type_of(value), name, span, out)
+    bind_to_local(ctx, value, value.type, name, span, out)
 }
 
 // `value` itself when it is stable, else a local bound to it in `out`.
@@ -493,7 +493,7 @@ bind_unless_stable :: fn(
 ) -> LoweredExpr = if is_stable_operand(value) {
     value
 } else {
-    bind_to_local(ctx, value, type_of(value), name, span, out)
+    bind_to_local(ctx, value, value.type, name, span, out)
 }
 
 // Whether `value` reads the same however much code runs before the read — a loop
@@ -542,91 +542,8 @@ with_prelude :: fn(prelude: LoweredStmt[], value: LoweredExpr, span: Span) -> Lo
         return value
     }
     return LoweredBlock {
-        .span = span, .type = type_of(value), .stmts = prelude, .trailing = value,
+        .span = span, .type = value.type, .stmts = prelude, .trailing = value,
     }
-}
-
-// ---- internal helpers -----------------------------------------------------
-
-// Union types in Vader auto-promote a field when every variant carries one with
-// an identical name + type, and `LoweredExpr.type` / `.span` both qualify —
-// the typechecker DOES surface them today: `lower_ref.vader::for_each_lowered_expr`
-// reads `e.type` straight off the bare union, no match involved.
-//
-// So the two exhaustive matches below are pure sugar for `expr.type` / `expr.span`
-// and could go away entirely ; what keeps them alive is only their ~140 call
-// sites. Do not add a third one, and prefer the field access in new code.
-
-/// Pull the static `Type` off any `LoweredExpr` variant.
-/// @param expr  the lowered expression node.
-/// @return      the variant's `type` field.
-export type_of :: fn(expr: LoweredExpr) -> Type = match expr {
-    is LoweredIntLit        -> expr.type
-    is LoweredFloatLit      -> expr.type
-    is LoweredBoolLit       -> expr.type
-    is LoweredNullLit       -> expr.type
-    is LoweredCharLit       -> expr.type
-    is LoweredStringLit     -> expr.type
-    is LoweredIdent         -> expr.type
-    is LoweredCall          -> expr.type
-    is LoweredVirtualCall   -> expr.type
-    is LoweredFieldAccess   -> expr.type
-    is LoweredIndex         -> expr.type
-    is LoweredUnary         -> expr.type
-    is LoweredBinary        -> expr.type
-    is LoweredIf            -> expr.type
-    is LoweredBlock         -> expr.type
-    is LoweredStructLit     -> expr.type
-    is LoweredArrayLit      -> expr.type
-    is LoweredDataConst     -> expr.type
-    is LoweredGlobalGet     -> expr.type
-    is LoweredCast          -> expr.type
-    is LoweredTypeCheck     -> expr.type
-    is LoweredUnreachable   -> expr.type
-    is LoweredIntrinsicCall -> expr.type
-    is LoweredArrayLen      -> expr.type
-    is LoweredArrayPush     -> expr.type
-    is LoweredArraySlice    -> expr.type
-    is LoweredCellNew       -> expr.type
-    is LoweredCellGet       -> expr.type
-    is LoweredMakeClosure   -> expr.type
-    is LoweredTypeConst     -> expr.type
-}
-
-/// Pull the source `Span` off any `LoweredExpr` variant.
-/// @param expr  the lowered expression node.
-/// @return      the variant's `span` field.
-export span_of :: fn(expr: LoweredExpr) -> Span = match expr {
-    is LoweredIntLit        -> expr.span
-    is LoweredFloatLit      -> expr.span
-    is LoweredBoolLit       -> expr.span
-    is LoweredNullLit       -> expr.span
-    is LoweredCharLit       -> expr.span
-    is LoweredStringLit     -> expr.span
-    is LoweredIdent         -> expr.span
-    is LoweredCall          -> expr.span
-    is LoweredVirtualCall   -> expr.span
-    is LoweredFieldAccess   -> expr.span
-    is LoweredIndex         -> expr.span
-    is LoweredUnary         -> expr.span
-    is LoweredBinary        -> expr.span
-    is LoweredIf            -> expr.span
-    is LoweredBlock         -> expr.span
-    is LoweredStructLit     -> expr.span
-    is LoweredArrayLit      -> expr.span
-    is LoweredDataConst     -> expr.span
-    is LoweredGlobalGet     -> expr.span
-    is LoweredCast          -> expr.span
-    is LoweredTypeCheck     -> expr.span
-    is LoweredUnreachable   -> expr.span
-    is LoweredIntrinsicCall -> expr.span
-    is LoweredArrayLen      -> expr.span
-    is LoweredArrayPush     -> expr.span
-    is LoweredArraySlice    -> expr.span
-    is LoweredCellNew       -> expr.span
-    is LoweredCellGet       -> expr.span
-    is LoweredMakeClosure   -> expr.span
-    is LoweredTypeConst     -> expr.span
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -653,12 +570,4 @@ import "std/testing"
         is LoweredBoolLit -> { assert_eq(result.value, true) }
         _ -> {}
     }
-}
-
-@test test_type_of_recovers_type :: fn() -> void {
-    span :: empty_span()
-    lit: LoweredExpr: LoweredIntLit {
-        .span = span, .type = mk_primitive("i32"), .value = 7,
-    }
-    assert_eq(display_type(type_of(lit)), "i32")
 }

@@ -113,7 +113,10 @@ analyze_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
             // `let L = LoweredMakeClosure { fn_symbol, env }` : record the closure
             // alias, then scan the env (its captured idents are genuine value uses).
             if s.value is LoweredMakeClosure as mc {
-                ctx.closures[s.symbol.id] = ClosureAlias { .fn_sym = mc.fn_symbol, .env_type = type_of(mc.env) }
+                ctx.closures[s.symbol.id] = ClosureAlias {
+                    .fn_sym = mc.fn_symbol,
+                    .env_type = mc.env.type,
+                }
                 analyze_expr(mc.env, ctx)
                 return
             }

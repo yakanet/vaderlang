@@ -68,9 +68,9 @@ try_lower_value_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | n
 literal_eq :: fn(
     ctx: FnLowerCtx, value: LoweredExpr, literal: LoweredExpr, span: Span,
 ) -> LoweredExpr {
-    value_type :: type_of(value)
+    value_type :: value.type
     if !compares_by_bits(value_type) {
-        return value_eq(ctx, value, value_type, literal, type_of(literal), span)
+        return value_eq(ctx, value, value_type, literal, literal.type, span)
     }
     return equals_primop(value, literal, span)
 }

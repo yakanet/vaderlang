@@ -295,9 +295,6 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> B
 /// Opaque `ref` for a `Type` with no first-class bytecode shape.
 OPAQUE_REF :: BcRef { .trait_name = "" }
 
-import "vader/lower"
-import "toolchain/span"
-
 /// Map a primitive name to its `ValType`. Unknown names degrade to
 /// `Any` so the upstream typechecker has the only say in rejecting
 /// the source.
@@ -338,18 +335,6 @@ import "std/testing"
 @test test_type_intern_key_primitive_uses_name :: fn() -> void {
     key :: type_intern_key(mk_primitive("i32"))
     assert_eq(key, "i32")
-}
-
-
-@test test_type_of_int_literal :: fn() -> void {
-    p :: Position { .file = "<test>", .offset = 0, .line = 1, .column = 1 }
-    sp :: Span { .start = p, .end = p }
-    lit :: LoweredIntLit { .span = sp, .type = mk_primitive("i32"), .value = 42 }
-    t :: type_of(lit)
-    match t {
-        is PrimitiveType -> assert_eq(t.name, "i32")
-        _ -> assert_eq("expected primitive", "")
-    }
 }
 
 // ---- POC : structural hash key ---------------------------------------------

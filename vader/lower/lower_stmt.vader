@@ -125,7 +125,7 @@ guard_no_pending_await :: fn(ctx: FnLowerCtx, base: usize, span: Span) -> void {
 
 trailing_type :: fn(trailing: LoweredExpr | null) -> Type {
     if trailing == null { return TY_VOID }
-    return type_of(trailing)
+    return trailing.type
 }
 
 // Lower a single stmt and push its lowered form(s) onto `out`. Most
@@ -212,7 +212,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
             // `LoweredDeferPush { LoweredMakeClosure }` at the source
             // site. Block-exit `defer.pop_exec N` emission is handled
             // by `lower_block` (counts defers via the BlockCtx).
-            push :: lower_defer(ctx, stmt, lower_block)
+            push :: lower_defer(ctx, stmt)
             out.push(push)
             // Track the defer count on the innermost open block ctx
             // so the matching fall-through / break / continue / return
@@ -253,7 +253,7 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
             //   let a = __tup_n._0   (or __tup_n[0] for arrays)
             //   let b = __tup_n._1   (or __tup_n[1] for arrays)
             value :: lower_expr(ctx, let_stmt.value)
-            value_type :: type_of(value)
+            value_type :: value.type
             tup_symbol :: fresh_synthetic_symbol(ctx, "tup")
             out.push(LoweredLet {
                 .span = let_stmt.span, .name = tup_symbol.name,
@@ -387,7 +387,7 @@ evaluate_then_drain :: fn(
 ) -> LoweredExpr | null {
     read: LoweredExpr | null = null
     if value != null {
-        if is_void(type_of(value)) {
+        if is_void(value.type) {
             out.push(LoweredExprStmt { .span = value.span, .expr = value })
         } else {
             read = bind_unless_stable(ctx, value, name, value.span, out)
@@ -507,7 +507,7 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
                     .loop_var = DiscardVar {},
                     .iter     = while_for.cond,
                 }
-                return lower_for_in(ctx, for_stmt, synth_in, lower_expr, lower_block)
+                return lower_for_in(ctx, for_stmt, synth_in)
             }
             cond_base :: ctx.pending_awaits.len()
             cond :: lower_expr(ctx, while_for.cond)
@@ -521,7 +521,7 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
             }
         }
         is InFor       -> {
-            return lower_for_in(ctx, for_stmt, while_for, lower_expr, lower_block)
+            return lower_for_in(ctx, for_stmt, while_for)
         }
     }
 }

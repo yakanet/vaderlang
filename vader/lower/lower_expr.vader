@@ -139,7 +139,7 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         }
         is IntrinsicCallExpr -> { return lower_intrinsic(ctx, expr, type) }
         is MatchExpr -> {
-            lowered :: lower_match(ctx, expr, type, lower_expr)
+            lowered :: lower_match(ctx, expr, type)
             return lift_awaiting_value(ctx, lowered, type)
         }
         is AwaitExpr -> {
@@ -160,7 +160,7 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             })
             return LoweredIdent { .span = expr.span, .type = type, .symbol = target }
         }
-        is LambdaExpr -> { return lower_lambda(ctx, expr, lower_block) }
+        is LambdaExpr -> { return lower_lambda(ctx, expr) }
         is RangeExpr -> { return lower_range_expr(ctx, expr, type) }
         is DotVariantExpr -> { return lower_dot_variant(ctx, expr, type) }
         // Type-position expressions in value position — earlier phases
@@ -617,9 +617,10 @@ lower_null_coalesce :: fn(ctx: FnLowerCtx, e: NullCoalesceExpr) -> LoweredExpr {
     cond :: LoweredTypeCheck {
         .span = e.span, .type = TY_BOOL, .value = tmp_ref, .check_type = TY_NULL,
     }
-    else_block :: wrap_block(e.span, LoweredCast {
-        .span = e.span, .type = result, .value = tmp_ref,
-    })
+    else_block :: wrap_as_block(
+        LoweredCast { .span = e.span, .type = result, .value = tmp_ref },
+        e.span,
+    )
     // The fallback runs only when `left` is null, so an `await` in it cannot
     // hoist before the statement (M5009).
     fallback_base :: ctx.pending_awaits.len()
@@ -637,7 +638,7 @@ lower_null_coalesce :: fn(ctx: FnLowerCtx, e: NullCoalesceExpr) -> LoweredExpr {
 // lowered divergent statement followed by a provably-dead `unreachable`.
 lower_coalesce_fallback :: fn(ctx: FnLowerCtx, f: CoalesceFallback, result: Type) -> LoweredBlock = match f {
     is ReturnStmt | BreakStmt | ContinueStmt -> coalesce_diverge_block(ctx, f, result)
-    is Expr -> wrap_block(f.span, lower_for_slot(ctx, f, result, f.span))
+    is Expr -> wrap_as_block(lower_for_slot(ctx, f, result, f.span), f.span)
 }
 
 coalesce_diverge_block :: fn(ctx: FnLowerCtx, s: Stmt, result: Type) -> LoweredBlock {
@@ -684,7 +685,7 @@ lift_awaiting_value :: fn(ctx: FnLowerCtx, lowered: LoweredExpr, type: Type) -> 
     if !ctx.in_async || is_void(type) || !value_has_await(lowered) {
         return lowered
     }
-    span :: span_of(lowered)
+    span :: lowered.span
     // Spilled by the block-split so it survives a suspension in the value ;
     // every path that reaches the read stores it first.
     zero :: zero_value_lit(span, type)
@@ -717,7 +718,7 @@ store_value :: fn(value: LoweredExpr, target: LoweredExpr, out: LoweredStmt[]) -
             out.push(LoweredExprStmt { .span = value.span, .expr = stmt_if })
         }
         _               -> {
-            out.push(LoweredAssign { .span = span_of(value), .target = target, .value = value })
+            out.push(LoweredAssign { .span = value.span, .target = target, .value = value })
         }
     }
 }
@@ -756,7 +757,7 @@ value_has_await :: fn(e: LoweredExpr) -> bool {
 // @partial: every other expression lowers as usual.
 lower_unlifted :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr = @partial match expr {
     is IfExpr    -> lower_if(ctx, expr, ctx.types.expr_type(expr))
-    is MatchExpr -> lower_match(ctx, expr, ctx.types.expr_type(expr), lower_expr)
+    is MatchExpr -> lower_match(ctx, expr, ctx.types.expr_type(expr))
     is BlockExpr -> lower_block(ctx, expr, false, null)
     _            -> lower_expr(ctx, expr)
 }
@@ -809,7 +810,7 @@ lower_if_else :: fn(ctx: FnLowerCtx, branch: IfElse | null) -> LoweredBlock | nu
             drain_pending_from(ctx, stmts, base)
             return LoweredBlock {
                 .span = branch.branch.span,
-                .type = type_of(chained),
+                .type = chained.type,
                 .stmts = stmts,
                 .trailing = chained,
             }

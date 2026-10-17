@@ -339,7 +339,7 @@ export emit_program :: fn(self: Printer, prog: p.Program) -> string {
     }
     for i in 0..<decls.len() {
         d :: decls[i]
-        span :: decl_span(d)
+        span :: d.span
         before :: span.start.offset
         // Layout between decls : preserve the source's blank-line decision.
         //   prev_end_line + 1 == this_decl_start_line  → contiguous, single \n
@@ -349,7 +349,7 @@ export emit_program :: fn(self: Printer, prog: p.Program) -> string {
         if i > 0 || has_module {
             self.newline()
             prev_end_line := module_end_line
-            if i > 0 { prev_end_line = decl_span(decls[i - 1]).end.line }
+            if i > 0 { prev_end_line = decls[i - 1].span.end.line }
             if self.opens_gap(prev_end_line, before, decl_first_line(d)) {
                 self.newline()
             }
@@ -429,7 +429,7 @@ decorators_equal :: fn(a: p.Decorator[], b: p.Decorator[]) -> bool {
 decls_in_same_group :: fn(prev: p.Decl, cur: p.Decl) -> bool {
     if !decl_is_alignable(prev) { return false }
     if !decl_is_alignable(cur)  { return false }
-    if decl_first_line(cur) != decl_span(prev).end.line + 1 { return false }
+    if decl_first_line(cur) != prev.span.end.line + 1 { return false }
     // @partial: only fn and const groups are alignable (guarded above by
     // `decl_is_alignable`) ; any other `prev` kind can never anchor a group,
     // so it → false. `cur` must additionally match `prev`'s kind to extend.
@@ -484,19 +484,6 @@ compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> usize[] {
     return out
 }
 
-decl_span :: fn(d: p.Decl) -> Span {
-    match d {
-        is p.ImportDecl    -> d.span
-        is p.FnDecl        -> d.span
-        is p.StructDecl    -> d.span
-        is p.EnumDecl      -> d.span
-        is p.TraitDecl     -> d.span
-        is p.ImplDecl      -> d.span
-        is p.TypeAliasDecl -> d.span
-        is p.ConstDecl     -> d.span
-        is p.AssertDecl    -> d.span
-    }
-}
 
 // Decorators sit OUTSIDE the decl's own span — they're collected separately
 // by the parser. For "what line does this decl visually start on" we want
@@ -514,7 +501,7 @@ decl_first_line :: fn(d: p.Decl) -> i32 {
         is p.AssertDecl    -> d.decorators
     }
     if decos.len() > 0 { return decos[0].span.start.line }
-    return decl_span(d).start.line
+    return d.span.start.line
 }
 
 // Decorators followed by either a newline (the common case ; matches the

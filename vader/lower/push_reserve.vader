@@ -48,7 +48,7 @@ reserve_push_tail :: fn(stmts: LoweredStmt[]) -> void {
         if is_empty_array_lit(st.value) && has_top_level_push(counted.body, st.symbol) {
             reserve :: LoweredIntrinsicCall {
                 .span = st.span,
-                .type = type_of(st.value),
+                .type = st.value.type,
                 .name = INTRINSIC_ARRAY_REPEAT,
                 .args = [st.value, trip_count(counted.turns, st.span)],
             }
@@ -168,7 +168,7 @@ trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr {
     bound :: turns.bound
     inclusive :: turns.inclusive
     extra: i64: if inclusive { 1 } else { 0 }
-    if is_int_lit(start, 0) && is_usize(type_of(bound)) && !inclusive {
+    if is_int_lit(start, 0) && is_usize(bound.type) && !inclusive {
         return bound
     }
     if start is LoweredIntLit && bound is LoweredIntLit {

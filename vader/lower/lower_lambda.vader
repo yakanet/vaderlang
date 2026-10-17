@@ -35,12 +35,10 @@ import "toolchain/span"
 /// `cap_<N>` field per capture from `closure_analysis`) taken as the lifted
 /// fn's first param, and lowers to a `LoweredMakeClosure` carrying the env
 /// literal. The synthesised decls go onto `ctx.project.synth_decls`.
-/// @param ctx           the surrounding fn-body context.
-/// @param lambda        the source lambda.
-/// @param block_lowerer callback to lower a `BlockExpr` (cycle-breaker,
-///                      same pattern as `lower_match`).
-/// @return              the make-closure expression, or the lifted fn's ident.
-lower_lambda :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr, block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock) -> LoweredExpr {
+/// @param ctx     the surrounding fn-body context.
+/// @param lambda  the source lambda.
+/// @return        the make-closure expression, or the lifted fn's ident.
+lower_lambda :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> LoweredExpr {
     captures :: lookup_captures(ctx, lambda)
     lifted_symbol :: fresh_lifted_symbol(ctx, is_env = false)
     return_type :: lambda_return_type(ctx, lambda)
@@ -49,7 +47,7 @@ lower_lambda :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr, block_lowerer: fn(Fn
     lifted_ctx.comptime_bindings = ctx.comptime_bindings
     own_params :: lambda_params(lifted_ctx, lambda)
     if captures.len() == 0 {
-        ctx.project.synth_decls.push(lift_fn(lifted_ctx, lifted_symbol, lambda, own_params, block_lowerer))
+        ctx.project.synth_decls.push(lift_fn(lifted_ctx, lifted_symbol, lambda, own_params))
         return LoweredIdent { .span = lambda.span, .type = ctx.types.expr_type(lambda), .symbol = lifted_symbol }
     }
     env_symbol :: fresh_lifted_symbol(ctx, is_env = true)
@@ -66,7 +64,7 @@ lower_lambda :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr, block_lowerer: fn(Fn
     }
     lifted_params: LoweredParam[]: [LoweredParam { .name = env_param_symbol.name, .symbol = env_param_symbol, .type = env_type }]
     lifted_params.push_all(own_params)
-    lifted_decl :: lift_fn(lifted_ctx, lifted_symbol, lambda, lifted_params, block_lowerer)
+    lifted_decl :: lift_fn(lifted_ctx, lifted_symbol, lambda, lifted_params)
     ctx.project.synth_decls.push(env_decl)
     ctx.project.synth_decls.push(lifted_decl)
     return LoweredMakeClosure { .span = lambda.span, .type = ctx.types.expr_type(lambda), .fn_symbol = lifted_symbol, .env = LoweredStructLit { .span = lambda.span, .type = env_type, .fields = env_lit_fields(ctx, lambda.span, captures, slots) } }
@@ -75,9 +73,8 @@ lower_lambda :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr, block_lowerer: fn(Fn
 // The lifted fn: `lambda`'s body lowered in its own ctx, under `params`.
 lift_fn :: fn(
     lifted_ctx: FnLowerCtx, symbol: Symbol, lambda: AST.LambdaExpr, params: LoweredParam[],
-    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredFnDecl {
-    raw_body :: block_lowerer(lifted_ctx, lambda.body, true, null)
+    raw_body :: lower_block(lifted_ctx, lambda.body, true, null)
     // A lambda's OWN param can itself be captured by a further-nested lambda ;
     // cell-promote it at the lifted fn's entry, exactly as `lower_fn_body` does
     // for a top-level fn. (Captures FROM the outer scope route through the env,

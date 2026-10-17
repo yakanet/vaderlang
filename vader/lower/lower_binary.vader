@@ -19,7 +19,7 @@ import "toolchain/span"
 // compile-time view, so the check on the original box is what we want).
 strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr {
     if e is LoweredCast {
-        if type_of(e.value) is UnionType { return e.value }
+        if e.value.type is UnionType { return e.value }
     }
     return e
 }
@@ -90,7 +90,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
                         lo_value
                     }
                     hi :: if hoist {
-                        bind_to_local(ctx, hi_value, type_of(hi_value), "in_hi", span, bounds)
+                        bind_to_local(ctx, hi_value, hi_value.type, "in_hi", span, bounds)
                     } else {
                         hi_value
                     }

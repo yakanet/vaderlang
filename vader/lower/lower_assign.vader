@@ -94,7 +94,7 @@ bind_place_operand :: fn(ctx: FnLowerCtx, operand: Expr, out: LoweredStmt[]) -> 
     mark :: ctx.pending_awaits.len()
     value :: lower_expr(ctx, operand)
     hoist_prelude_before(ctx, out, mark)
-    bound :: bind_unless_invariant(ctx, value, "place_operand", span_of(value), out)
+    bound :: bind_unless_invariant(ctx, value, "place_operand", value.span, out)
     ctx.bound_operands[operand.id] = bound
 }
 
@@ -394,14 +394,7 @@ adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr, inclusive: LoweredExpr, span:
     }
 }
 
-cast_to_usize :: fn(value: LoweredExpr, span: Span) -> LoweredExpr {
-    // No-op when already usize.
-    vt :: type_of(value)
-    if vt is PrimitiveType {
-        if vt.name == "usize" { return value }
-    }
-    return LoweredCast { .span = span, .type = mk_primitive("usize"), .value = value }
-}
+cast_to_usize :: fn(value: LoweredExpr, span: Span) = cast_to_width(value, "usize", span)
 
 adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> LoweredExpr {
     if !inclusive { return hi }

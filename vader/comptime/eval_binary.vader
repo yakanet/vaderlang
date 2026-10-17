@@ -7,29 +7,23 @@
 
 module "vader/comptime"
 
+AST :: import "toolchain/ast"
 import "toolchain/span"
 import "vader/diagnostics"
 import "vader/integer"
 import "vader/types"
-AST :: import "toolchain/ast"
 
 /// Evaluate a `BinaryExpr`. Recurses into both operands ; combines
 /// per `op`. Short-circuits on operand failure (the operand's error
 /// propagates up). `Is` / `In` / `NotIn` need the typechecker's
 /// narrowing tables — fall back to C4001.
-/// @param expr        the binary expression node.
-/// @param context     the evaluator context.
-/// @param recurse     dispatcher callback (`eval.evaluate_expr`) ;
-///                    passed in to avoid the eval ↔ eval_binary import
-///                    cycle.
-/// @return            the combined value or a diagnostic.
-export evaluate_binary_expr :: fn(
-    expr: AST.BinaryExpr, context: ComptimeContext,
-    recurse: fn(AST.Expr, ComptimeContext) -> EvalResult,
-) -> EvalResult {
-    left_result :: recurse(expr.left, context)
+/// @param expr     the binary expression node.
+/// @param context  the evaluator context.
+/// @return         the combined value or a diagnostic.
+export evaluate_binary_expr :: fn(expr: AST.BinaryExpr, context: ComptimeContext) -> EvalResult {
+    left_result :: evaluate_expr(expr.left, context)
     left :: left_result.value ?? return left_result
-    right_result :: recurse(expr.right, context)
+    right_result :: evaluate_expr(expr.right, context)
     right :: right_result.value ?? return right_result
     // Width of the node's resolved type: the type `+`, `-` and `*` are checked
     // against, and the width the wrapping and bitwise operators wrap at, so a
@@ -113,7 +107,7 @@ combine_binary :: fn(
     .Sub    -> arithmetic(expr, left, right, rname)
     .Mul    -> arithmetic(expr, left, right, rname)
     .Div    -> int_div_check(expr, left, right, rname)
-    .Mod    -> int_mod_check(expr, left, right, op_mod)
+    .Mod    -> int_mod_check(expr, left, right)
     .Shl    -> arithmetic_int(expr, left, right, op_shl)
     .Shr    -> arithmetic_int(expr, left, right, op_shr)
     .BitAnd -> arithmetic_int(expr, left, right, op_bit_and)
@@ -140,13 +134,9 @@ combine_binary :: fn(
 /// Evaluate a `UnaryExpr` (`-x`, `!x`, `~x`).
 /// @param expr     the unary expression node.
 /// @param context  the evaluator context.
-/// @param recurse  dispatcher callback ; see `evaluate_binary_expr`.
 /// @return         the result value or a diagnostic.
-export evaluate_unary_expr :: fn(
-    expr: AST.UnaryExpr, context: ComptimeContext,
-    recurse: fn(AST.Expr, ComptimeContext) -> EvalResult,
-) -> EvalResult {
-    inner :: recurse(expr.operand, context)
+export evaluate_unary_expr :: fn(expr: AST.UnaryExpr, context: ComptimeContext) -> EvalResult {
+    inner :: evaluate_expr(expr.operand, context)
     operand :: inner.value ?? return inner
     rname :: resolved_int_name(context, expr.id)
     combined :: match expr.op {
@@ -286,14 +276,11 @@ int_div_check :: fn(
     return arithmetic(expr, left, right, rname)
 }
 
-int_mod_check :: fn(
-    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
-    int_op: fn(i64, i64) -> i64,
-) -> EvalResult {
+int_mod_check :: fn(expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue) -> EvalResult {
     if right is IntValue {
         if right.value == 0 { return division_by_zero(expr, "%") }
     }
-    return arithmetic_int(expr, left, right, int_op)
+    return arithmetic_int(expr, left, right, op_mod)
 }
 
 bool_op :: fn(
@@ -324,31 +311,24 @@ compare :: fn(
 ) -> EvalResult {
     match left {
         is IntValue -> {
-            match right {
-                is IntValue -> { return ok(bool_value(int_compare(left.value, right.value, op))) }
-                _ -> {}
+            if right is IntValue {
+                return ok(bool_value(int_compare(left.value, right.value, op)))
             }
         }
         is FloatValue -> {
-            match right {
-                is FloatValue -> { return ok(bool_value(float_compare(left.value, right.value, op))) }
-                _ -> {}
+            if right is FloatValue {
+                return ok(bool_value(float_compare(left.value, right.value, op)))
             }
         }
         is BoolValue -> {
-            match right {
-                is BoolValue -> { return bool_equality_only(expr, left.value == right.value, op) }
-                _ -> {}
+            if right is BoolValue {
+                return bool_equality_only(expr, left.value == right.value, op)
             }
         }
         is StringValue -> {
-            match right {
-                is StringValue -> {
-                    // Ordered by the `compare` that `string implements Comparable` runs.
-                    order :: i64(left.value.compare(right.value))
-                    return ok(bool_value(int_compare(order, 0, op)))
-                }
-                _ -> {}
+            if right is StringValue {
+                order :: i64(left.value.compare(right.value))
+                return ok(bool_value(int_compare(order, 0, op)))
             }
         }
         _ -> {}

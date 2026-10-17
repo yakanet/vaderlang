@@ -33,37 +33,31 @@ import "toolchain/span"
 
 /// Lower a `for x in iter { body }` statement to a step-loop driven
 /// by the `Iterator<T>.next()` dispatch.
-/// @param ctx          the fn-body context.
-/// @param for_stmt     the source for-stmt (carries label + body).
-/// @param in_form      the iter binding + iter expression.
-/// @param recurse      callback to lower nested expressions.
-/// @param block_lowerer callback to lower the body block (cycle break).
-/// @return             the lowered stmt (a block wrapping the loop).
-lower_for_in :: fn(
-    ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
-) -> LoweredStmt {
+/// @param ctx       the fn-body context.
+/// @param for_stmt  the source for-stmt (carries label + body).
+/// @param in_form   the iter binding + iter expression.
+/// @return          the lowered stmt (a block wrapping the loop).
+lower_for_in :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor) -> LoweredStmt {
     span :: for_stmt.span
     // Fast path : `for x in <chain>` where `<chain>` is generator combinators
     // (`map` / `filter` / …) over a range, an array, a generator call, or an
     // iterable whose `into` is a generator: the whole pipeline becomes one
     // loop. Skipped when the chain has no fusible bottom.
-    chain_form :: try_lower_chain_fusion(ctx, for_stmt, in_form, recurse, block_lowerer)
+    chain_form :: try_lower_chain_fusion(ctx, for_stmt, in_form)
     if chain_form != null { return walked_in_place(ctx, in_form.iter, "fused chain", chain_form) }
     // Fast path : `for x in lo..<hi` / `for x in lo..=hi` over an
     // integer range lowers to a direct counter loop ; no Range
     // allocation, no `Iterator.next` dispatch. Falls through to the
     // slow path when the range bound isn't an integer.
-    int_range :: try_lower_for_in_int_range(ctx, for_stmt, in_form, recurse, block_lowerer)
+    int_range :: try_lower_for_in_int_range(ctx, for_stmt, in_form)
     if int_range != null { return walked_in_place(ctx, in_form.iter, "counter", int_range) }
-    iter_lowered_raw :: recurse(ctx, in_form.iter)
-    iter_type_raw :: type_of(iter_lowered_raw)
+    iter_lowered_raw :: lower_expr(ctx, in_form.iter)
+    iter_type_raw :: iter_lowered_raw.type
 
     // Fast path : `for x in arr` over a raw `T[]` lowers to a counter
     // loop with index lookup. No iterator object, no per-iter virtual call.
     // Falls through to the slow path when the iter type isn't a plain array.
-    raw_array :: try_lower_for_in_raw_array(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, recurse, block_lowerer)
+    raw_array :: try_lower_for_in_raw_array(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw)
     if raw_array != null { return walked_in_place(ctx, in_form.iter, "element", raw_array) }
 
     // THE FALL. Every fast path above declined, so this `for` steps the `Iterator`
@@ -93,7 +87,7 @@ lower_for_in :: fn(
     // `Iterator<element>` for the step loop : the typecheck records the generator
     // itself as what steps it, and the state's synthesised `next` is reached
     // through the `Iterator` vtable.
-    iter_type :: erase_genstate_for_dispatch(ctx, type_of(iter_lowered), element_type)
+    iter_type :: erase_genstate_for_dispatch(ctx, iter_lowered.type, element_type)
 
     // No `Iterator` dispatch is reachable from the step loop for a primitive or a
     // union : emit a single `unreachable` rather than a `next()` nothing
@@ -148,7 +142,7 @@ lower_for_in :: fn(
     value_access :: step_value(shape, step_ref, span)
     bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, value_access, element_type, span)
 
-    user_body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
+    user_body :: lower_block(ctx, for_stmt.body, false, for_stmt.id)
     body_stmts :: build_body_stmts(bind_stmts, user_body)
 
     branch_if :: LoweredExprStmt {
@@ -254,7 +248,7 @@ build_body_stmts :: fn(bind_stmts: LoweredStmt[], user_body: LoweredBlock) -> Lo
     out.push_all(bind_stmts)
     for stmt in user_body.stmts { out.push(stmt) }
     trailing :: user_body.trailing ?? return out
-    out.push(LoweredExprStmt { .span = span_of(trailing), .expr = trailing })
+    out.push(LoweredExprStmt { .span = trailing.span, .expr = trailing })
     return out
 }
 
@@ -418,8 +412,6 @@ loop_var_type_key :: fn(loop_var: AST.LoopVar, fallback: Span) -> u64 = loop_var
 try_lower_for_in_raw_array :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
     iter_lowered: LoweredExpr, iter_type: Type,
-    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredStmt | null {
     array_elem_type: Type = TY_UNRESOLVED
     // Arrays — and array-backed distinct newtypes via `array_backing` — iterate
@@ -438,7 +430,7 @@ try_lower_for_in_raw_array :: fn(
     len_sym :: fresh_synthetic_symbol(ctx, "for_len")
     idx_sym :: fresh_synthetic_symbol(ctx, "for_i")
 
-    user_body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
+    user_body :: lower_block(ctx, for_stmt.body, false, for_stmt.id)
 
     arr_let :: LoweredLet {
         .span = span, .name = arr_sym.name, .symbol = arr_sym,
@@ -509,8 +501,6 @@ try_lower_for_in_raw_array :: fn(
 // the slow path (Iterator step dispatch).
 try_lower_for_in_int_range :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
-    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
-    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, usize | null) -> LoweredBlock,
 ) -> LoweredStmt | null {
     range :: extract_range(in_form.iter) ?? return null
     raw_lower :: ctx.types.expr_type(range.lower)
@@ -537,9 +527,9 @@ try_lower_for_in_int_range :: fn(
     // `int(0) :i32`. The counter's declared slot already widens to
     // bound_type, but the literal's own type carries the i32 default
     // unless the typer narrowed it ; rewrite the LoweredIntLit here.
-    lo_value :: recurse(ctx, range.lower)
+    lo_value :: lower_expr(ctx, range.lower)
     mark :: ctx.pending_awaits.len()
-    hi_value :: recurse(ctx, range.upper)
+    hi_value :: lower_expr(ctx, range.upper)
     lo :: widen_int_lit(bind_one_before_hoisted(ctx, lo_value, mark), bound_type)
     hi_raw :: widen_int_lit(hi_value, bound_type)
 
@@ -559,7 +549,7 @@ try_lower_for_in_int_range :: fn(
         .span = span, .type = bound_type, .symbol = counter_symbol,
     }
 
-    raw_user_body :: block_lowerer(ctx, for_stmt.body, false, for_stmt.id)
+    raw_user_body :: lower_block(ctx, for_stmt.body, false, for_stmt.id)
     user_body :: if !in_cell { raw_user_body } else {
         // The counter runs on `counter_symbol` ; rebind the user's loop var to a
         // fresh per-iteration cell over the current counter value.

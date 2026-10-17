@@ -19,7 +19,6 @@ module "vader/lower"
 import "std/collections"
 AST :: import "toolchain/ast"
 import "toolchain/span"
-import "vader/comptime"
 import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
@@ -331,12 +330,12 @@ bind_consumer_arguments :: fn(
     bound := call.chain
     for k in 0..<target.decl.params.len() {
         if k == call.shape.param {
-            bound = bind_chain_operands(ctx, call.chain, lower_expr, out)
+            bound = bind_chain_operands(ctx, call.chain, out)
             continue
         }
         slot :: substitute(call.signature.params[k], call.subst)
         arg :: target.args[k]
-        value :: prepare_node_for_slot(ctx, arg, lower_expr(ctx, arg), slot, span_of(arg))
+        value :: prepare_node_for_slot(ctx, arg, lower_expr(ctx, arg), slot, arg.span)
         out.push(bind_instance_param(ctx, call.instance, target.owner, target.decl.params[k], value, slot))
     }
     return bound

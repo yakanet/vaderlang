@@ -526,7 +526,6 @@ emit_fused_gen_combinator :: fn(
     chain: IterChain,
     outer_span: Span,
     template: BodyTemplate,
-    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] {
     src :: chain.source
     layer :: chain.gen_layer
@@ -547,9 +546,9 @@ emit_fused_gen_combinator :: fn(
     // The source chain emits inside this window and may hold another layer of the
     // same generator: the id leaves with the frame that put it there.
     entered :: ctx.project.inlining_callees.add(layer.instance.callee_id)
-    out.push_all(fuse_source_loop(ctx, gen_ctx, primary_binding, outer_span, chain.span, recurse))
+    out.push_all(fuse_source_loop(ctx, gen_ctx, primary_binding, outer_span, chain.span))
     for extra in layer.extra_sources {
-        out.push_all(fuse_source_loop(ctx, gen_ctx, extra, outer_span, chain.span, recurse))
+        out.push_all(fuse_source_loop(ctx, gen_ctx, extra, outer_span, chain.span))
     }
     if entered {
         ctx.project.inlining_callees.remove(layer.instance.callee_id)
@@ -562,8 +561,7 @@ emit_fused_gen_combinator :: fn(
 // counter `let`, sibling of the loop so inner counter refs resolve) followed by the
 // fused source loop binding the loop var to each element.
 fuse_source_loop :: fn(
-    ctx: FnLowerCtx, gen_ctx: FnLowerCtx, binding: GenSourceBinding,
-    outer_span: Span, span: Span, recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+    ctx: FnLowerCtx, gen_ctx: FnLowerCtx, binding: GenSourceBinding, outer_span: Span, span: Span,
 ) -> LoweredStmt[] {
     // The loop over the source is the source's consumer: its own jumps land in
     // the source's code.
@@ -576,11 +574,11 @@ fuse_source_loop :: fn(
         .element_type = chain_element_type(binding.source),
         .user_body = resumable_body(frame, inner_lowered),
     }
-    emitted :: emit_fused_chain(ctx, binding.source, outer_span, inner_template, recurse)
+    emitted :: emit_fused_chain(ctx, binding.source, outer_span, inner_template)
     out: LoweredStmt[]: []
     if binding.prelude.len() > 0 {
         prelude_expr: AST.Expr: AST.BlockExpr { .span = span, .stmts = binding.prelude, .trailing = null }
-        prelude_lowered :: recurse(gen_ctx, prelude_expr)
+        prelude_lowered :: lower_expr(gen_ctx, prelude_expr)
         if prelude_lowered is LoweredBlock { out.push_all(prelude_lowered.stmts) }
     }
     out.push_all(exit_block(frame, span, emitted))
@@ -716,15 +714,12 @@ gen_source_subst :: fn(ctx: FnLowerCtx, target: CallTarget, call: AST.CallExpr) 
 // parameter — the symbol the inlined body reads — and prepared for that
 // parameter's slot as a call would: a `T[]` reaching an `Iterator<T>` parameter
 // is read through `Iterator.next` by the body, so it must arrive wrapped.
-bind_gen_source_operands :: fn(
-    ctx: FnLowerCtx, chain: IterChain, recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
-    out: LoweredStmt[],
-) -> IterChain {
+bind_gen_source_operands :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[]) -> IterChain {
     gs :: chain.gen_source ?? return chain
     for k in 0..<gs.decl.params.len() {
         slot :: substitute(gs.signature.params[k], gs.subst)
-        arg :: recurse(ctx, gs.args[k])
-        value :: prepare_node_for_slot(ctx, gs.args[k], arg, slot, span_of(arg))
+        arg :: lower_expr(ctx, gs.args[k])
+        value :: prepare_node_for_slot(ctx, gs.args[k], arg, slot, arg.span)
         out.push(bind_instance_param(ctx, gs.instance, gs.owner, gs.decl.params[k], value, slot))
     }
     return chain

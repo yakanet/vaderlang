@@ -92,7 +92,7 @@ default_thunk :: fn(
     for _ in synth_start..<synth.len() {
         _ :: synth.remove_last()
     }
-    thunk :: DefaultThunk { .symbol = symbol, .type = type_of(value) }
+    thunk :: DefaultThunk { .symbol = symbol, .type = value.type }
     project.default_thunks[name] = thunk
     project.entry_decls.push(LoweredFnDecl {
         .mangled     = name,

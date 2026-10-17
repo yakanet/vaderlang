@@ -346,10 +346,12 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     }
 }
 
-// Widen `inner` to `width` (i64 / u64) for the write fn ; identity when already it.
+// Cast `inner` to the primitive `width` ; identity when it already has that type.
 cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExpr {
-    t :: type_of(inner)
-    if t is PrimitiveType { if t.name == width { return inner } }
+    t :: inner.type
+    if t is PrimitiveType && t.name == width {
+        return inner
+    }
     return LoweredCast { .span = span, .type = mk_primitive(width), .value = inner }
 }
 
@@ -408,7 +410,7 @@ writes_itself :: fn(ctx: FnLowerCtx, t: Type) -> bool {
 // of an enum with variant data, to its rank.
 shown_type :: fn(ctx: FnLowerCtx, source: Expr, lowered: LoweredExpr) -> Type {
     checked :: enum_type_or_unwrap(ctx, ctx.types.expr_type(source))
-    return if checked is EnumType { checked } else { type_of(lowered) }
+    return if checked is EnumType { checked } else { lowered.type }
 }
 
 has_interp_part :: fn(expr: StringLitExpr) -> bool {

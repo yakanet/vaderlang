@@ -324,7 +324,7 @@ virtual_call :: fn(
     param_types: Type[] = [],
 ) -> LoweredVirtualCall {
     ctx.project.virtually_dispatched_traits.add(trait_key)
-    surface_array_variants(ctx, type_of(receiver), trait_key, method)
+    surface_array_variants(ctx, receiver.type, trait_key, method)
     return LoweredVirtualCall {
         .span        = span,
         .type        = type,
@@ -497,7 +497,7 @@ emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExp
             // binding the cast first, or calling `trim(string(n))`, both worked.
             // The wrap direction below already stamps; this is the missing half.
             // Free at runtime: `bc_type_of(distinct) == bc_type_of(backing)`.
-            if equals_type(type_of(inner), type) {
+            if equals_type(inner.type, type) {
                 return inner
             }
             return LoweredCast { .span = call.span, .type = type, .value = inner }
@@ -512,7 +512,7 @@ emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExp
     // Any other target stamps itself too, unless the arg already has it : leaving a
     // distinct over a struct or an array for its backing (`i32[](row)`), whose
     // `Display` must be the backing's, or widening into a union (`(i32 | string)(3)`).
-    if equals_type(type_of(inner), type) {
+    if equals_type(inner.type, type) {
         return inner
     }
     return LoweredCast {

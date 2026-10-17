@@ -68,7 +68,7 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     if generic_form != null { return observed(ctx, call, .Call, generic_form) }
     callee :: lower_callee(ctx, call)
     mark :: ctx.pending_awaits.len()
-    args :: lower_call_args(ctx, call.args, param_types_of(type_of(callee)), 0)
+    args :: lower_call_args(ctx, call.args, param_types_of(callee.type), 0)
     plain :: LoweredCall {
         .span = call.span,
         .type = type,
@@ -156,7 +156,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
     callee_field :: as_field_expr(call.callee) ?? return null
     if callee_field is FieldExpr {
         receiver :: lower_expr(ctx, callee_field.target)
-        receiver_ty :: type_of(receiver)
+        receiver_ty :: receiver.type
         if receiver_ty is TraitType {
             // A `.method()` the typer resolved as a FREE-FN UFCS — a combinator
             // like `it.map(f)` on an erased `Iterator<T>` receiver, where the
@@ -304,7 +304,7 @@ fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) ->
     folded :: fold_const_value(ctx, sym, type, span) ?? return null
     // The value carries its own variant's type ; a read typed as a union boxes it,
     // as reading the const's slot would — `==` and `is` dispatch on that type.
-    if type is UnionType && !equals_type(type_of(folded), type) {
+    if type is UnionType && !equals_type(folded.type, type) {
         return LoweredCast {
             .span = span,
             .type = type,

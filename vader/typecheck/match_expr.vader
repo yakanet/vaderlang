@@ -46,21 +46,6 @@ check_pattern_bound_exprs :: fn(
 /// Type-check a `MatchExpr`. `expected` flows into every arm body so
 /// `let x: i32 = match v { is Foo -> 1, is Bar -> 2 }` narrows each
 /// arm to i32.
-/// Span of a match pattern, whichever variant it is.
-///
-/// Written out rather than reaching for `p.span` on the bare union: a common
-/// field reads at a FIXED offset, so the shorthand is only sound while every
-/// variant agrees on it, and nothing checks that.
-pattern_span :: fn(p: AST.Pattern) -> Span = match p {
-    is AST.IsPattern          -> p.span
-    is AST.StructPattern      -> p.span
-    is AST.WildcardPattern    -> p.span
-    is AST.EnumVariantPattern -> p.span
-    is AST.LiteralPattern     -> p.span
-    is AST.RangePattern       -> p.span
-    is AST.OrPattern          -> p.span
-}
-
 infer_match :: fn(
     e: AST.MatchExpr,
     expected: Type | null,
@@ -103,7 +88,7 @@ infer_match :: fn(
             diags.push(
                 warning(
                     .UnreachableMatchArm,
-                    pattern_span(arm.pattern),
+                    arm.pattern.span,
                     "every value of `${display_type(scrut_ty)}` is already matched above",
                 ),
             )

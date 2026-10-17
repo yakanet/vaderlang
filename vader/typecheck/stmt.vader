@@ -35,7 +35,7 @@ check_block :: fn(
     diverged := false
     for stmt in block.stmts {
         if diverged && first_unreachable_span is null {
-            first_unreachable_span = stmt_span(stmt)
+            first_unreachable_span = stmt.span
         }
         check_stmt(stmt, typed, diags, ctx)
         if !diverged && is_divergent_stmt(stmt, typed) {
@@ -1312,21 +1312,6 @@ is_divergent_stmt :: fn(s: AST.Stmt, typed: TypedProgram) -> bool {
         return loop_never_exits(s)
     }
     return false
-}
-
-stmt_span :: fn(s: AST.Stmt) -> Span {
-    match s {
-        is AST.LetStmt               -> { return s.span }
-        is AST.AssignStmt            -> { return s.span }
-        is AST.DestructureAssignStmt -> { return s.span }
-        is AST.ExprStmt              -> { return s.span }
-        is AST.ReturnStmt            -> { return s.span }
-        is AST.YieldStmt             -> { return s.span }
-        is AST.ForStmt               -> { return s.span }
-        is AST.BreakStmt             -> { return s.span }
-        is AST.ContinueStmt          -> { return s.span }
-        is AST.DeferStmt             -> { return s.span }
-    }
 }
 
 BlockNarrow :: struct {

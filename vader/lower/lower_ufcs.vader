@@ -28,14 +28,14 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     if callee_field is FieldExpr {
         receiver :: lower_expr(ctx, callee_field.target)
         // Inline `EnumName.Variant` receivers lower to their integer repr, so
-        // `type_of(receiver)` = i32 and `Direction.East.to_string()` would
+        // `receiver.type` = i32 and `Direction.East.to_string()` would
         // wrongly route to `i32$Display$to_string`. Recover the enum identity
         // from the surface (typed-AST) type for impl lookup — but ONLY for
         // enums : a generic/monomorphised receiver's surface type is the
         // unresolved type-param, so it must keep the concrete lowered type.
         // The lowered node (the repr value) is still passed as the `self` arg.
         surface_type :: ctx.types.expr_type(callee_field.target)
-        recv_type :: if surface_type is EnumType { surface_type } else { type_of(receiver) }
+        recv_type :: if surface_type is EnumType { surface_type } else { receiver.type }
         // A free fn typecheck chose is the call : it ranked the candidates the
         // call site's file can see, which neither an impl member probed here nor
         // a search over every loaded module reproduces. In a generic body it chose

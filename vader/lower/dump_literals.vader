@@ -16,7 +16,7 @@ import "vader/types"
 // A value written into a slot of its own type : a literal prints bare, and a
 // value joining branches drops the type the slot already gives.
 slot_value_text :: fn(names: DumpNames, value: LoweredExpr, slot: Type, indent: string) -> string {
-    if slot is UnresolvedType || !equals_type(type_of(value), slot) {
+    if slot is UnresolvedType || !equals_type(value.type, slot) {
         return expr_text(names, value, indent)
     }
     if value is LoweredIf {

@@ -1,10 +1,4 @@
 // vader/comptime/eval_types — shared types + helpers for the evaluator.
-//
-// Lives in its own file so per-variant evaluators (`eval_lit`,
-// `eval_binary`, `eval_ident`) can import `EvalResult` / `ComptimeContext`
-// without depending on the dispatcher (`eval.vader`). Avoids the import
-// cycle that would otherwise form when the dispatcher imports the
-// per-variant modules and they each import back for these shapes.
 
 module "vader/comptime"
 
