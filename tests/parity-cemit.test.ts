@@ -584,6 +584,8 @@ const C_PARITY = new Set<string>([
   "generic_call_inside_generic_body",
   // Written type arguments on every form of callee.
   "explicit_type_arguments_on_members",
+  // A lambda that reads a local only through a struct spread captures it.
+  "lambda_spread_capture",
   // An `await` on the left of a `??` or in an interpolation makes a coroutine.
   "async_await_in_value_positions",
   // A `yield` in a binding's value or in an argument block makes a generator.

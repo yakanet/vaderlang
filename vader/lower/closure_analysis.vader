@@ -390,8 +390,12 @@ walk_expr :: fn(
         is AST.StructLitExpr -> {
             for item in expr.items {
                 match item {
-                    is AST.StructLitField -> { walk_expr(item.value, scope, out_captures, out_seen, ctx) }
-                    is AST.StructLitSpread -> {}
+                    is AST.StructLitField  -> {
+                        walk_expr(item.value, scope, out_captures, out_seen, ctx)
+                    }
+                    is AST.StructLitSpread -> {
+                        walk_expr(item.expr, scope, out_captures, out_seen, ctx)
+                    }
                 }
             }
         }

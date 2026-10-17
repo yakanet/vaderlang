@@ -1,0 +1,18 @@
+# Typecheck
+
+## tests/snippets/lambda_spread_capture
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  expr 12:10    StructLitExpr  :: Point
+  expr 13:14    LambdaExpr     :: fn() -> Point
+  expr 13:22    StructLitExpr  :: Point
+  expr 13:33    IdentExpr      :: Point
+  expr 14:10    CallExpr       :: Point
+  expr 14:10    IdentExpr      :: fn() -> Point
+  expr 15:13    StringLitExpr  :: string
+  expr 15:16    FieldExpr      :: i32
+  expr 15:16    IdentExpr      :: Point
+  expr 15:23    FieldExpr      :: i32
+  expr 15:23    IdentExpr      :: Point
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void

@@ -1,0 +1,17 @@
+// A lambda that reads a local only through a struct spread still captures it.
+module "snippet"
+
+import "std/io"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1, .y = 2 }
+    moved :: () -> { Point { ...p, .x = 10 } }
+    q :: moved()
+    println("${q.x} ${q.y}")
+    return 0
+}
