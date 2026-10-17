@@ -174,7 +174,7 @@ PushedNarrow :: struct {
 
 // What a leaf leaves on the TRUE side, as a type the union can carry. Normally
 // its `then_ty` — but a trait test narrows to the TRAIT, and a trait is only ever
-// understood in isolation : `is_resolved_enough` waves a bare `TraitType` through,
+// understood in isolation : `is_overlap_checkable` waves a bare `TraitType` through,
 // while a union holding one is compared variant-by-variant against shapes and
 // every later `is` on it reports T3040. Its complement is already impl-aware, so
 // the implementors within the slot are `static − else_ty`.

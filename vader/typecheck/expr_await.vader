@@ -24,13 +24,5 @@ export infer_await :: fn(
         diags.push(typecheck_error(.AwaitOutsideAsync, e.span, ""))
     }
     inner :: check_expr_fn(e.inner, null, typed, diags)
-    return awaitable_element_of(inner)
-}
-
-// The `T` of an `Async<T>`, else `t` unchanged.
-awaitable_element_of :: fn(t: Type) -> Type {
-    if t is TraitType {
-        if t.symbol.name == TRAIT_ASYNC && t.args.len() > 0 { return t.args[0] }
-    }
-    return t
+    return async_inner_type(inner)
 }

@@ -1063,9 +1063,9 @@ check_is_overlap :: fn(
     tested: Type,
     diags: Diagnostic[],
 ) -> void {
-    if !is_resolved_enough(scrut)   { return }
-    if !is_resolved_enough(tested)  { return }
-    if types_overlap(scrut, tested) { return }
+    if !is_overlap_checkable(scrut)  { return }
+    if !is_overlap_checkable(tested) { return }
+    if types_overlap(scrut, tested)  { return }
     diags.push(
         typecheck_error(
             .UnreachableIsTest,
@@ -1075,17 +1075,6 @@ check_is_overlap :: fn(
     )
 }
 
-is_resolved_enough :: fn(t: Type) -> bool {
-    // @partial: overlap is undecidable only for the four open / abstract
-    // variants below; every concrete variant is resolved enough to check.
-    @partial match t {
-        is UnresolvedType -> { return false }
-        is TypeParamType  -> { return false }
-        is TypeMetaType   -> { return false }
-        is TraitType      -> { return false }
-        _                 -> { return true }
-    }
-}
 // Traits can be satisfied by any struct with a matching impl,
 // so structural overlap isn't enough to call the test
 // unreachable — defer that to the impl-driven dispatch.

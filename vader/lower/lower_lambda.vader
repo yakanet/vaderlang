@@ -225,15 +225,6 @@ export fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx, is_env: bool, fn_p
     return Symbol { .id = id, .kind = kind, .name = "${prefix}${key}_${seq}", .module = ctx.typed.resolved.path, .module_name = ctx.typed.resolved.display_path, .visibility = .Private, .defined_at = null }
 }
 
-/// Synthetic IDs walk negative ; render as an unsigned magnitude for
-/// readability so dumps don't show `-3`-style suffixes.
-export render_id_for_name :: fn(id: i32) -> string {
-    if id < 0 {
-        return "${0 - id}"
-    }
-    return "${id}"
-}
-
 /// Shared MonoEntry constructor for lambda + defer lifts. Each pass
 /// passes its own `symbol` (already minted via `next_synthetic_id`).
 export synth_mono_entry :: fn(ctx: FnLowerCtx, symbol: Symbol) -> MonoEntry {

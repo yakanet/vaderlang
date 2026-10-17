@@ -2509,7 +2509,7 @@ check_field_defaults :: fn(
 ) -> void {
     for f in decl.fields {
         dv :: f.default ?? continue
-        sym :: lookup_sym_by_name_orch(typed.resolved, decl.name) ?? return
+        sym :: lookup_sym_by_name(typed.resolved, decl.name) ?? return
         field_ty :: resolved_field_type(sym.id, decl, f.name, typed, diags) ?? continue
         got :: check_expr(dv, field_ty, typed, diags)
         emit_mismatch_if(got, field_ty, f.span, dv, .TypeMismatch, typed, diags)
@@ -2965,7 +2965,7 @@ param_type :: fn(
 }
 
 check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
-    sym :: lookup_sym_by_name_orch(typed.resolved, cd.name) ?? return
+    sym :: lookup_sym_by_name(typed.resolved, cd.name) ?? return
     // Only a written type is the expected type. An unannotated const's entry is what
     // an earlier walk inferred — a return-only walk types it before the expression-
     // bodied fns it calls have their return, and would pin it to `?`.
@@ -2984,15 +2984,6 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
     }
     got :: check_expr(cd.value, annot, typed, diags)
     typed.decl_types[sym.id] = annot ?? default_if_free(got)
-}
-
-lookup_sym_by_name_orch :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
-    for s in resolved.symbols {
-        if s.name == name {
-            return s
-        }
-    }
-    return null
 }
 
 // @partial: only type-introducing kinds are type kinds; every other SymbolKind → false.

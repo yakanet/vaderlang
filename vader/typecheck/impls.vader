@@ -267,18 +267,6 @@ any_instance_impl :: fn(entries: ImplEntry[]) -> bool {
 export impls_for :: fn(self: ImplRegistry, receiver: Type, trait_key: string) -> ImplEntry[] =
     covering_first(self.impls_of(impl_base_key(receiver), trait_key), receiver)
 
-/// The impl of `trait_key` that serves `receiver` : the one written for its own
-/// instance, else its base's. Null when none covers it.
-///
-/// @param receiver   the type asked about.
-/// @param trait_key  a `trait_key`.
-export winning_impl :: fn(
-    self: ImplRegistry, receiver: Type, trait_key: string,
-) -> ImplEntry | null {
-    covering :: self.impls_for(receiver, trait_key)
-    return if covering.len() == 0 { null } else { covering[0] }
-}
-
 /// `entries` that cover `receiver`, the instance impls first, less the generic impls
 /// one of them hides — the same trait at arguments some instantiation makes equal
 /// (`MonType[] implements Into<Label>` leaves `T[] implements<T> Into<Iterator<T>>`).
