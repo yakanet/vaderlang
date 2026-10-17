@@ -1,0 +1,40 @@
+// A trait's default method, inherited by two impls with different type
+// arguments, tests a value against `Box<T>` : each impl's copy tests against
+// its own argument, although both copies come from one source pattern.
+module "snippet"
+
+import "std/io"
+
+Box :: struct<T> { v: T }
+
+Probe :: trait<T> {
+    name :: fn(self) -> string
+    // @partial: the union's other variant depends on the impl's argument.
+    holds :: fn(self, x: Box<i32> | Box<string>) -> string = @partial match x {
+        is Box<T> -> "${self.name()} holds it"
+        _         -> "${self.name()} does not"
+    }
+}
+
+Ints :: struct { n: i32 }
+Strings :: struct { n: i32 }
+
+Ints implements Probe<i32> {
+    name :: fn(self) -> string = "ints"
+}
+
+Strings implements Probe<string> {
+    name :: fn(self) -> string = "strings"
+}
+
+main :: fn() -> i32 {
+    ints :: Ints { .n = 1 }
+    strings :: Strings { .n = 2 }
+    number: Box<i32> | Box<string>: Box<i32> { .v = 3 }
+    text: Box<i32> | Box<string>: Box<string> { .v = "x" }
+    println(ints.holds(number))
+    println(strings.holds(number))
+    println(ints.holds(text))
+    println(strings.holds(text))
+    return 0
+}

@@ -230,7 +230,7 @@ build_struct_lit_fields :: fn(
     // drop. Lower defaults with the owning module's typed view.
     default_ctx :: ctx_in_owning_module(ctx, st.symbol.module, decl, st.args)
     for field_decl in decl.fields {
-        field_type :: resolve_pattern_type(ctx, field_decl.ty)
+        field_type :: literal_field_type(ctx, st, field_decl)
         user_value :: provided[field_decl.name]
         if user_value is null {
             // Omitted field : inherit from the last `...spread`
@@ -267,6 +267,10 @@ build_struct_lit_fields :: fn(
     return out
 }
 
+// A literal's field type : its declaration's, through the entry's substitution.
+literal_field_type :: fn(ctx: FnLowerCtx, st: StructType, field: StructField) -> Type =
+    ctx.types.apply(declared_field_type(ctx.typed, st.symbol, field.name))
+
 // Build a `LoweredStructLit` for a compiler-SYNTHESISED construction of a
 // stdlib/core struct (Range, Field, …), ordering the
 // provided already-lowered fields by the struct's DECLARATION order instead of
@@ -302,7 +306,7 @@ build_core_struct_lit :: fn(ctx: FnLowerCtx, type: Type, fields: LoweredStructLi
             panic("build_core_struct_lit: missing field `${field_decl.name}` for ${st.symbol.name}")
         }
         default_ctx :: ctx_in_owning_module(ctx, st.symbol.module, decl, st.args)
-        field_type :: resolve_pattern_type(ctx, field_decl.ty)
+        field_type :: literal_field_type(ctx, st, field_decl)
         ordered.push(
             LoweredStructLitField {
                 .name = field_decl.name,

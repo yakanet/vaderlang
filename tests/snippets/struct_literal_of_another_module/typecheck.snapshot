@@ -1,0 +1,44 @@
+# Typecheck
+
+## tests/snippets/struct_literal_of_another_module
+  FnDecl         main                 :: fn() -> i32
+  expr 10:14    StructLitExpr  :: Config
+  expr 11:18    CallExpr       :: Config
+  expr 11:18    FieldExpr      :: Level
+  expr 11:18    IdentExpr      :: fn() -> Config
+  expr 12:18    StringLitExpr  :: string
+  expr 15:13    CallExpr       :: string
+  expr 15:13    IdentExpr      :: fn(Config) -> string
+  expr 15:22    IdentExpr      :: Config
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 16:15    StructLitExpr  :: Config
+  expr 16:27    CallExpr       :: Config
+  expr 16:27    IdentExpr      :: fn() -> Config
+  expr 17:13    CallExpr       :: string
+  expr 17:13    IdentExpr      :: fn(Config) -> string
+  expr 17:22    IdentExpr      :: Config
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/struct_literal_of_another_module/util
+  StructDecl     Config               :: Config
+  FnDecl         describe             :: fn(Config) -> string
+  FnDecl         make                 :: fn() -> Config
+  expr 11:33    StructLitExpr  :: Config
+  expr 12:14    DotVariantExpr :: Level
+  expr 13:14    StructLitExpr  :: Label
+  expr 13:30    StringLitExpr  :: string
+  expr 18:13    MatchExpr      :: string
+  expr 18:19    FieldExpr      :: Level
+  expr 18:19    IdentExpr      :: Config
+  expr 19:18    StringLitExpr  :: string
+  expr 20:18    StringLitExpr  :: string
+  expr 21:18    StringLitExpr  :: string
+  expr 23:12    StringLitExpr  :: string
+  expr 23:15    IdentExpr      :: string
+  expr 23:23    FieldExpr      :: Label
+  expr 23:23    FieldExpr      :: string
+  expr 23:23    IdentExpr      :: Config
+  expr 23:39    FieldExpr      :: i64
+  expr 23:39    IdentExpr      :: Config

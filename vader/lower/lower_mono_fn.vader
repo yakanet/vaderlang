@@ -18,14 +18,6 @@ import "vader/comptime"
 import "vader/resolver/symbol"
 import "toolchain/span"
 
-// Per-module decls. Loaded module's first file carries them ;
-// folder-modules with multiple files are flattened at load time so the
-// per-file accessor doesn't have to walk multiple files here. (Mirrors
-// `vader/comptime/check.vader::lookup_module_decls`.)
-/// Walk `evaluated.instances` and emit a synthetic monomorphic decl
-/// per concrete generic instance. Structs land as
-/// `Symbol__T1__T2 { field: ConcreteT }` ; generic-impl members
-/// follow as `Symbol$Trait$method__T1__T2(...)`.
 /// Build phase of generic-fn-instance materialisation. Drains the
 /// `fn_instances_order` + `pending_generic_impl_recv` queues into
 /// `project_ctx.generic_collected`, lowering each instance body against a
@@ -66,7 +58,7 @@ drain_generic_fn_instances :: fn(
             // The comptime harvest (`harvest_instances`) does not observe
             // generic fn calls today ; the lowerer's own probe is
             // authoritative, so we don't gate on the mono table.
-            built :: build_fn_instance_decl(inst, key, loaded, typed, project_ctx, diags)
+            built :: build_fn_instance_decl(inst, key, typed, project_ctx, diags)
             match built {
                 is null -> {}
                 is PendingFnInstance -> { project_ctx.generic_collected.push(built) }
@@ -205,8 +197,8 @@ lower_async_body :: fn(
 // those up. Returns null when the owner module / source decl is
 // missing.
 build_fn_instance_decl :: fn(
-    inst: GenericFnInstance, key: string, loaded: LoadedProject, typed: TypedProject,
-    project_ctx: LowerProjectCtx, diags: Diagnostic[],
+    inst: GenericFnInstance, key: string, typed: TypedProject, project_ctx: LowerProjectCtx,
+    diags: Diagnostic[],
 ) -> PendingFnInstance | null {
     // Bracket the synth_decls this instance's body lowering spawns (lambdas /
     // defers) so the push loop can drain exactly this window — see
@@ -214,11 +206,8 @@ build_fn_instance_decl :: fn(
     // body, so they append nothing.
     synth_start :: project_ctx.synth_decls.len()
     owner_module_id :: inst.owner_module
-    owner_module :: loaded.modules[owner_module_id]
     owner_typed :: typed.modules[owner_module_id] ?? return null
-    if owner_module is null { return null }
-    fn_decl :: find_fn_decl_for_symbol(module_decls(owner_module), inst.fn_symbol, inst.type_args.len())
-    if fn_decl is null { return null }
+    fn_decl :: owner_typed.fn_decls[inst.fn_symbol.id] ?? return null
     // Monomorphization flavor — see `fn_instance_flavor`, a 3-way classifier shared
     // with the call site so the registered instance mangle reconciles with this body:
     //   Mono   — a body needing its instance's real types (`fn_needs_concrete_instances`)
@@ -354,17 +343,9 @@ fn_instance_flavor :: fn(
 // on its mangle, so its suffix is irrelevant. The suffix the call site derives from
 // this MUST equal the flavor the materialiser computes for the same instance.
 call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) -> InstanceFlavor {
-    owner_typed :: ctx.project.typed.modules[fn_sym.module]
-    if owner_typed is TypedProgram {
-        owner_loaded :: ctx.project.loaded.modules[fn_sym.module]
-        if owner_loaded is LoadedModule {
-            fd :: find_fn_decl_for_symbol(module_decls(owner_loaded), fn_sym, type_args.len())
-            if fd is FnDecl {
-                return fn_instance_flavor(ctx.project.impls, fd, owner_typed, type_args)
-            }
-        }
-    }
-    return .Erased
+    owner_typed :: ctx.project.typed.modules[fn_sym.module] ?? return .Erased
+    fd :: owner_typed.fn_decls[fn_sym.id] ?? return .Erased
+    return fn_instance_flavor(ctx.project.impls, fd, owner_typed, type_args)
 }
 
 /// The type arguments an instance of `fn_sym` keys on (suffix, body subst,
@@ -398,48 +379,6 @@ call_site_instance_suffix :: fn(ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: 
         return mixed_any_suffix(ctx.project.impls, concrete_args)
     }
     return mono_suffix(concrete_args)
-}
-
-find_fn_decl_by_name :: fn(decls: Decl[], name: string, arity: usize) -> FnDecl | null {
-    for d in decls {
-        match d {
-            is FnDecl -> {
-                if d.name != name { continue }
-                if d.type_params.len() == 0 { continue }
-                if d.type_params.len() != arity { continue }
-                return d
-            }
-            _ -> {}
-        }
-    }
-    return null
-}
-
-// Resolve the AST decl for a monomorphic instance by the RESOLVED overload's
-// identity (its definition span), not just name + arity.
-//
-// Two same-name / same-arity generic overloads — `collect(arr: T[])` vs
-// `collect(it: Iterator<T>)` in `std/iter` — share a name. A name-only lookup
-// (`find_fn_decl_by_name`) always returns the FIRST decl, so the typechecker's
-// resolution (e.g. the `Iterator<T>` overload for a `FilterIterator` receiver)
-// is discarded and the wrong body is emitted — the `arr: T[]` body then runs
-// `array.len` on the iterator struct and traps. Match `name_span` against the
-// symbol's `defined_at` so each instance materialises its own overload body.
-find_fn_decl_for_symbol :: fn(decls: Decl[], sym: Symbol, arity: usize) -> FnDecl | null {
-    match sym.defined_at as def {
-        is Span -> {
-            for d in decls {
-                if d is FnDecl {
-                    if d.type_params.len() != arity { continue }
-                    if d.name_span.hash() == def.hash() { return d }
-                }
-            }
-        }
-        is null -> {}
-    }
-    // Fallback : name + arity, for synthetic / cloned decls whose symbol span
-    // doesn't line up with a source `name_span`.
-    return find_fn_decl_by_name(decls, sym.name, arity)
 }
 
 // Materialise the non-generic free fns harvested at call sites
@@ -488,8 +427,7 @@ materialize_nongeneric_imported_fns :: fn(
 // `build_ident` emits `unreachable`, truncating the caller. Sibling of
 // `materialize_nongeneric_imported_fns`.
 materialize_nongeneric_imported_consts :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
-    project: LoweredProject, diags: Diagnostic[],
+    typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
 ) -> void {
     // Cursor over a growing array : lowering one const value can harvest
     // further stdlib fns / consts it references, appending mid-loop. Resume
@@ -499,20 +437,15 @@ materialize_nongeneric_imported_consts :: fn(
         const_sym :: project_ctx.nongeneric_imported_const_order[project_ctx.nongeneric_imported_const_cursor]
         project_ctx.nongeneric_imported_const_cursor += 1
         module_typed :: typed.modules[const_sym.module] ?? continue
-        module_loaded :: loaded.modules[const_sym.module] ?? continue
-        if module_typed is TypedProgram {
-            if module_loaded is LoadedModule {
-                const_decl :: find_const_decl_by_name(module_decls(module_loaded), const_sym.name)
-                if const_decl is ConstDecl {
-                    synth_start :: project_ctx.synth_decls.len()
-                    lowered :: lower_const_decl(const_decl, module_typed, project_ctx, diags)
-                    if lowered != null { push_to_module(project, const_sym.module, lowered) }
-                    // A const RHS that lifts a lambda (rare, but possible)
-                    // appends synth fns into the same stdlib module — drain
-                    // them right after, mirroring the fn-harvest path.
-                    drain_synth_since(project, const_sym.module, project_ctx, synth_start)
-                }
-            }
+        const_decl :: module_typed.const_decls[const_sym.id] ?? continue
+        synth_start :: project_ctx.synth_decls.len()
+        lowered :: lower_const_decl(const_decl, module_typed, project_ctx, diags)
+        if lowered != null {
+            push_to_module(project, const_sym.module, lowered)
         }
+        // A const RHS that lifts a lambda (rare, but possible)
+        // appends synth fns into the same stdlib module — drain
+        // them right after, mirroring the fn-harvest path.
+        drain_synth_since(project, const_sym.module, project_ctx, synth_start)
     }
 }

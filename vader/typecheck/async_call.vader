@@ -9,8 +9,9 @@
 
 module "vader/typecheck"
 
-import "vader/types"
 AST :: import "toolchain/ast"
+import "vader/resolver/symbol"
+import "vader/types"
 
 /// The `Async<T>` result type when `c`'s callee is an async coroutine, else null.
 ///
@@ -19,7 +20,7 @@ AST :: import "toolchain/ast"
 /// already declares its erased type (return it verbatim — wrapping it again
 /// would nest to `Async<Async<T>>`). A `void` result normalizes to `null`
 /// (`Async<null>`) : void isn't a first-class stack value, so `void | Suspended`
-/// couldn't represent a completed-but-void coroutine. Mirror in `lower_decl`.
+/// couldn't represent a completed-but-void coroutine.
 export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_ret: Type) -> Type | null {
     async_sym :: typed.async_symbol ?? return null
     if c.callee is AST.IdentExpr as id {
@@ -30,13 +31,21 @@ export async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concre
             // (inner = T) and `-> Async<T>` (inner = T) both yield `Async<T>`,
             // never a nested `Async<Async<T>>`.
             if fn_is_async(typed, fd) {
-                inner :: async_result_arg(async_inner_type(concrete_ret))
-                return mk_trait(async_sym, [inner])
+                return erased_async_type(async_sym, concrete_ret)
             }
         }
     }
     return null
 }
+
+/// The erased `Async<T>` an `async fn` declaring `result` hands its callers : the
+/// `T` of a declared `Async<T>`, or the whole `result`, wrapped once. The call
+/// site and the lowered declaration both take their type from here.
+///
+/// @param async_sym  the core `Async` trait.
+/// @param result     the fn's declared return, substituted for the instance.
+export erased_async_type :: fn(async_sym: Symbol, result: Type) -> Type =
+    mk_trait(async_sym, [async_result_arg(async_inner_type(result))])
 
 /// The raw value type a coroutine body produces : the `T` of a declared
 /// `Async<T>` return (target form), or the declared return itself (transitional

@@ -3,6 +3,7 @@
 
 module "vader/lower"
 
+import "std/abort"
 import "std/collections"
 
 import "vader/diagnostics"
@@ -53,7 +54,7 @@ lower_impl_member_list :: fn(
     if impl_decl.for_type is ArrayTypeExpr { return out }
     // An impl whose trait does not resolve has no entry ; resolution reported it.
     impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return out
-    self_type :: lower_for_type(impl_decl, typed)
+    self_type :: impl_entry.for_type
     for member in impl_decl.members {
         if member.type_params.len() > 0 { continue }
         mangled :: impl_member_mangled(impl_entry, member, self_type)
@@ -146,11 +147,6 @@ impl_member_mangled :: fn(entry: ImplEntry, member: FnDecl, self_type: Type) -> 
     return impl_member_name(entry.module, self_type, entry.trait_symbol, member.name, suffix)
 }
 
-lower_for_type :: fn(impl_decl: ImplDecl, typed: TypedProgram) -> Type {
-    scratch: Diagnostic[]: []
-    return type_from_expr(impl_decl.for_type, typed.resolved, scratch)
-}
-
 // The entry of an impl member and the vtable slot it fills in the trait
 // `trait_key`. An impl member has no resolver symbol, so downstream phases route
 // it by its mangle ; a lookup by name would lend it the symbol of a free function
@@ -227,13 +223,11 @@ lower_fn_decl :: fn(
         // internal to `lower_async_fn`).
         inner_t :: async_inner_type(return_type)
         // `async main` keeps the raw inner return (its inlined driver hands back
-        // the exit code) ; every other async fn erases to `Async<T>`. The staged
-        // `else if` is load-bearing : it narrows `async_sym` to non-null in the
-        // final arm (a collapsed `is_main || async_sym == null` would not).
+        // the exit code) ; every other async fn erases to `Async<T>`.
         async_ret :: if is_main || async_sym == null {
             inner_t
         } else {
-            mk_trait(async_sym, [async_result_arg(inner_t)])
+            erased_async_type(async_sym, return_type)
         }
         return LoweredFnDecl {
             .mangled     = entry.mangled,
@@ -330,21 +324,17 @@ export promote_cell_params :: fn(
 
 // StructDecl → `LoweredStructDecl` with resolved field types (the dump
 // format includes the field list, so they're resolved eagerly here).
-// Field types come from `struct_field_types` (the typecheck-side
-// side-table the impl pass writes) when available — that's the only
-// place self-referential types like `Node.next: Node | null` reach
-// without going through a `TypeExpr` lookup that may miss.
 lower_struct_decl :: fn(
     struct_decl: StructDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl | null {
     if struct_decl.type_params.len() > 0 { return null }
-    types :: make_entry_types(typed, new_substitution())
-    field_table :: lookup_struct_field_table(struct_decl, typed)
+    sym :: decl_symbol(typed.resolved, struct_decl)
+        ?? panic("lower: struct `${struct_decl.name}` has no declaration symbol")
     fields: LoweredStructField[]: []
     for field in struct_decl.fields {
         fields.push(LoweredStructField {
             .name = field.name,
-            .type = resolve_field_type(types, field, field_table),
+            .type = declared_field_type(typed, sym, field.name),
         })
     }
     entry :: stub_entry(struct_decl, typed)
@@ -353,31 +343,6 @@ lower_struct_decl :: fn(
         .fields  = fields,
         .origin  = entry,
     }
-}
-
-
-// Recover the field-type-by-name table the typecheck wrote alongside
-// `struct_decls`. Match by SYMBOL ID, not name — two modules can both
-// declare a `PrimitiveType` struct (vader/types and vader/vm both do),
-// and a name-only lookup picks whichever module's decl iterates first,
-// returning a field table for a different struct entirely.
-lookup_struct_field_table :: fn(
-    struct_decl: StructDecl, typed: TypedProgram,
-) -> MutableMap<string, Type> | null {
-    sym :: symbol_declared_at(typed.resolved, struct_decl.name_span) ?? return null
-    return typed.struct_field_types[sym.id]
-}
-
-// Pick the most-resolved type available : the typecheck-written
-// `struct_field_types` entry first, falling back to the lowerer's
-// `EntryTypes.type_expr_type` which reads `type_expr_types` (often
-// unpopulated for self-referential fields).
-resolve_field_type :: fn(
-    types: EntryTypes, field: StructField, table: MutableMap<string, Type> | null,
-) -> Type {
-    if table == null { return types.type_expr_type(field.ty) }
-    from_table :: table[field.name] ?? return types.type_expr_type(field.ty)
-    return from_table
 }
 
 // ConstDecl → `LoweredConstDecl`. Lowers the value via the expression

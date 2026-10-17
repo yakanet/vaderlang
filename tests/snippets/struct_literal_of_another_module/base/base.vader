@@ -1,0 +1,9 @@
+module "snippet/base"
+
+export Level :: enum { Low, Mid, High }
+
+export Label :: struct { text: string }
+
+string implements Into<Label> {
+    into :: fn(self) -> Label = Label { .text = "<${self}>" }
+}

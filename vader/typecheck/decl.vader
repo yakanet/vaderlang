@@ -1130,6 +1130,7 @@ declare_enum :: fn(
     diags: Diagnostic[],
 ) -> void {
     sym :: symbol_declared_at(resolved, decl.name_span) ?? return
+    typed.enum_decls[sym.id] = decl
     enum_type :: build_enum_type(sym, decl, resolved, diags)
     typed.decl_types[sym.id] = enum_type
     resolved.alias_types[sym.id] = enum_type

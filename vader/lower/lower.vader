@@ -181,8 +181,8 @@ lower_project_impl :: fn(
     for draining {
         drain_generic_fn_instances(loaded, typed, project_ctx, project, diags)
         materialize_nongeneric_imported_fns(typed, project_ctx, project, diags)
-        materialize_nongeneric_imported_consts(loaded, typed, project_ctx, project, diags)
-        materialize_enum_tables(loaded, typed, project_ctx, project)
+        materialize_nongeneric_imported_consts(typed, project_ctx, project, diags)
+        materialize_enum_tables(typed, project_ctx, project)
         surface_referenced_intrinsic_externs(loaded, typed, project_ctx, project)
         cur_total :: project_ctx.fn_instances_order.len() +
             project_ctx.pending_generic_impl_recv.len() +
@@ -202,12 +202,12 @@ lower_project_impl :: fn(
     flush_generic_fn_instances(project_ctx, project)
     // Representative "any-args" structs come AFTER fn instances so
     // generic_brackets etc. keep a stable emission order.
-    materialize_representatives(loaded, typed, project_ctx, project)
+    materialize_representatives(typed, project_ctx, project)
     // Transitively materialise generic-struct shapes referenced by the
     // fields of the structs emitted above (concrete + representative),
     // e.g. `MutableSet<i32>`'s erased `inner: MutableMap<Any, bool>` —
     // otherwise the bytecode interner mints an orphan `ref` for them.
-    close_over_field_shapes(loaded, typed, project_ctx, project)
+    close_over_field_shapes(typed, project_ctx, project)
     // Place the project-global synthesised decls (`concat_N`, field-default
     // thunks) into the entry module — ONCE, unconditionally. They can't ride the
     // per-window `synth_decls` drain (a deduped generic instance's window is
@@ -383,8 +383,7 @@ seed_fn_seen :: fn(project_ctx: LowerProjectCtx, d: FnDecl) -> void {
 module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {
     files :: module_loaded.module.files
     if files.len() == 0 { return [] }
-    // Shared concat with the single-file zero-copy fast path. Hot :
-    // `call_site_fn_flavor` reaches through here per generic call site.
+    // Shared concat with the single-file zero-copy fast path.
     return concat_file_decls(files)
 }
 

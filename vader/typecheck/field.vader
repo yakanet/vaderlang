@@ -1068,7 +1068,16 @@ narrow_field_if_active :: fn(
     return narrow_for_field(typed, key, declared)
 }
 
-lookup_pre_resolved_field :: fn(struct_id: i32, name: string, typed: TypedProgram) -> Type | null {
+/// The type of field `name` of the struct `struct_id`, as resolved in the
+/// struct's own module when it was declared ; type parameters stay as written.
+///
+/// @param struct_id  the struct's symbol id.
+/// @param name       the field.
+/// @param typed      any module's typed program : the table is shared by the project.
+/// @return           null when the struct or the field has no entry.
+export lookup_pre_resolved_field :: fn(
+    struct_id: i32, name: string, typed: TypedProgram,
+) -> Type | null {
     fmap :: typed.struct_field_types[struct_id] ?? return null
     return fmap[name]
 }

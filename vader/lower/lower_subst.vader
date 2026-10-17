@@ -8,7 +8,6 @@ import "std/iter"
 import "std/math"
 import "std/string_builder"
 
-import "vader/diagnostics"
 import "toolchain/ast"
 import "vader/resolver"
 import "vader/typecheck"
@@ -178,21 +177,6 @@ merge_subst :: fn(base: Substitution, extra: Substitution) -> Substitution {
     return out
 }
 
-resolve_field_type :: fn(
-    ty: TypeExpr, owner_typed: TypedProgram, sd: StructDecl, args: Type[],
-) -> Type {
-    // Prefer the typer's recorded type ; fall back to `type_from_expr`
-    // resolving fresh against the struct's typeParam-shadowed scope.
-    raw :: owner_typed.type_expr_types[ty.span.hash()]
-    if !(raw is null) {
-        // `raw is Type as t` would always be false — `Type` is the union
-        // alias and the runtime tag carries the concrete variant, not the
-        // alias. After the null check, `raw` already narrows to `Type`.
-        if !(raw is UnresolvedType) { return raw }
-    }
-    scratch: Diagnostic[]: []
-    return type_from_expr(ty, owner_typed.resolved, scratch)
-}
 
 // Each of `entry`'s type parameters bound to what it takes on the instance whose
 // arguments are `args`.
@@ -269,16 +253,6 @@ has_any_kept_arg :: fn(impls: ImplRegistry, type_args: Type[]) -> bool {
         if impls.kept_argument(a) != null { return true }
     }
     return false
-}
-
-find_struct_decl_by_name :: fn(decls: Decl[], name: string) -> StructDecl | null {
-    for d in decls {
-        match d {
-            is StructDecl -> { if d.name == name { return d } }
-            _ -> {}
-        }
-    }
-    return null
 }
 
 args_suffix :: fn(args: Type[]) -> string {

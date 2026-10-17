@@ -73,7 +73,7 @@ default_thunk :: fn(
         return cached
     }
     symbol :: synth_entry_symbol(default_ctx, .Fn, name)
-    own_type :: resolve_pattern_type(default_ctx, field.ty)
+    own_type :: literal_field_type(default_ctx, st, field)
     project.default_thunks[name] = DefaultThunk { .symbol = symbol, .type = own_type }
     thunk_ctx :: new_fn_lower_ctx(
         project,

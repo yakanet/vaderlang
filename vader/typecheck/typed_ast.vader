@@ -582,6 +582,10 @@ export TypedProgram :: struct {
     /// Const Symbol.id → its declaration, from which the const walk finds its entry.
     const_decls: MutableMap<i32, AST.ConstDecl>
 
+    /// Enum Symbol.id → its declaration, from which the lowerer builds the enum's
+    /// variant data and value tables.
+    enum_decls: MutableMap<i32, AST.EnumDecl>
+
     /// Generic fn AST-node id → true when its body needs each instance's real
     /// types (`keep_instances_concrete`) : a trait dispatch on a type-param (no
     /// vtable resolves a `virtual.call` on an erased `ref _` receiver), or a free
@@ -792,6 +796,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .extern_symbols  = MutableMap<string, AST.FnDecl> {},
     .let_type_aliases = MutableMap<i32, Type> {},
     .const_decls = MutableMap<i32, AST.ConstDecl> {},
+    .enum_decls = MutableMap<i32, AST.EnumDecl> {},
     .fn_needs_concrete_instances = MutableMap<usize, bool> {},
     .fn_observes_type_params = MutableMap<usize, bool> {},
     .fn_display_dispatches = MutableMap<usize, bool> {},

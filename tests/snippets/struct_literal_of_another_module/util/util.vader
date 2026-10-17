@@ -1,0 +1,24 @@
+module "snippet/util"
+
+import "snippet/base"
+
+export Config :: struct {
+    level: Level
+    label: Label
+    count: i64
+}
+
+export make :: fn() -> Config = Config {
+    .level = .High,
+    .label = Label { .text = "made" },
+    .count = 1,
+}
+
+export describe :: fn(c: Config) -> string {
+    name :: match c.level {
+        .Low  -> "low"
+        .Mid  -> "mid"
+        .High -> "high"
+    }
+    return "${name} ${c.label.text} ${c.count}"
+}

@@ -1,0 +1,122 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      built: Config = Config {
+          .level = snippet.util.make().level,
+          .label = snippet.base.string.into("hi"),
+          .count = i64(3),
+      }
+      std.io.println<string>(snippet.util.describe(built))
+      copied: Config = {
+          __spread_0: Config = snippet.util.make()
+          Config {
+              .level = __spread_0.level,
+              .label = __spread_0.label,
+              .count = i64(2),
+          }
+      }
+      std.io.println<string>(snippet.util.describe(copied))
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.usize.new_buffer(c2)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+
+## snippet/base
+  snippet.base.string.into :: fn(self: string) -> Label {  // snippet_base$string$std_core_Into$into
+      Label { .text = concat_3("<", self, ">") }
+  }
+  snippet.base.Label :: struct { text: string }  // snippet_base$Label
+  vtable std.core.Into.into for string  snippet.base.string.into  // snippet_base$string$std_core_Into$into
+
+## snippet/util
+  snippet.util.make :: fn() -> Config {  // snippet_util$make
+      Config {
+          .level = u8(2),
+          .label = Label { .text = "made" },
+          .count = i64(1),
+      }
+  }
+  snippet.util.describe :: fn(c: Config) -> string {  // snippet_util$describe
+      name: string = {
+          __scrut_0: Level = c.level
+          if __scrut_0 == u8(0) {
+              "low"
+          } else if __scrut_0 == u8(1) {
+              "mid"
+          } else if __scrut_0 == u8(2) {
+              "high"
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      }
+      return {
+          __p_1: string = name
+          __p_2: string = c.label.text
+          __buf_3: Buffer = std.core.new_byte_buffer(usize(22) +% (std.core.byte_len(__p_1) +% std.core.byte_len(__p_2)))
+          __off_4: usize = 0
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_1)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_2)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_int(__buf_3, __off_4, c.count)
+          std.core.finish_buffer(__buf_3, __off_4)
+      } :string
+  }
+  snippet.util.Config :: struct { level: Level, label: Label, count: i64 }  // snippet_util$Config
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

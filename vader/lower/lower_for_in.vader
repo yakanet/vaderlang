@@ -278,34 +278,12 @@ iterator_of :: fn(ctx: FnLowerCtx, element: Type) -> Type | null {
     return mk_trait(trait_sym, [element])
 }
 
-// Determine the element type yielded by the iterator. Tries :
-// 0. The type the typer already bound to the loop variable, stored under
-//    its span in `local_types`. This is authoritative : the typer resolves
-//    the `Iterator<T>` impl and substitutes the iterator's concrete type
-//    args, so it correctly handles combinators whose element type is NOT
-//    the first type arg — a `map` generator over `i32` yields `U` (the impl's
-//    `Iterator<U>`), not the source `i32` ; a `MutableMap` iterator yields
-//    `[K, V]`. The structural heuristics below cannot, so they must
-//    only run when the typer left no usable entry.
-// 1. The iter type's first type-arg (`Range<T>`, a user iterator).
-// 2. `typed.iter_element_types[display_type(iter_type)]`, written
-//    by the typecheck when checking the Iterator impl.
-// 3. Falls back to TY_UNRESOLVED so the lowered loop still emits a
-//    well-formed shape (the typer's earlier diagnostics already
-//    surfaced the missing impl).
-resolve_element_type :: fn(ctx: FnLowerCtx, iter_type: Type, binding_key: u64) -> Type {
-    from_typed_binding :: concrete_local_type(ctx.types, binding_key)
-    if !(from_typed_binding is null) {
-        return from_typed_binding
-    }
-    args :: type_args_of(iter_type)
-    if args.len() > 0 {
-        return args[0]
-    }
-    elements :: ctx.typed.iter_element_types
-    element :: impl_side(ctx.typed, elements, iter_type, "") ?? return TY_UNRESOLVED
-    return element
-}
+// The element type yielded by the iterator : the type the typer bound to the
+// loop variable, substituted for this instance, else the typer's own rule
+// applied to the lowered iterator type (a destructured or unnamed variable has
+// no binding entry).
+resolve_element_type :: fn(ctx: FnLowerCtx, iter_type: Type, binding_key: u64) -> Type =
+    concrete_local_type(ctx.types, binding_key) ?? for_in_element(iter_type, ctx.typed)
 
 // Erase a concrete `__genstate_<fn>` iterator (a `generator`'s Direction-A call
 // result) back to the trait `Iterator<element>`, so an un-fused for-in dispatches

@@ -358,9 +358,8 @@ lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue
 // local / param shouldn't pay the module lookups below). Returns null when the
 // decl can't be located or its RHS isn't foldable (caller keeps its path).
 try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> LoweredExpr | null {
-    owner_loaded :: ctx.project.loaded.modules[resolved.module] ?? return null
     owner_typed :: ctx.project.evaluated.typed.modules[resolved.module] ?? return null
-    const_decl :: find_const_decl_by_name(module_decls(owner_loaded), resolved.name) ?? return null
+    const_decl :: owner_typed.const_decls[resolved.id] ?? return null
     // Only fold a LITERAL-RHS const. A computed RHS (`B + 1`) may depend on
     // other unbaked consts, so folding it here would (a) bypass comptime
     // cycle detection — a `@comptime A :: B + 1 ; B :: A + 1` must still
@@ -372,15 +371,6 @@ try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> L
     entry :: stub_entry(const_decl, owner_typed)
     fn_ctx :: new_fn_lower_ctx(ctx.project, entry, owner_typed, new_substitution(), type)
     return lower_const_value(const_decl, owner_typed, ctx.project, fn_ctx, type)
-}
-
-find_const_decl_by_name :: fn(decls: Decl[], name: string) -> ConstDecl | null {
-    for d in decls {
-        if d is ConstDecl {
-            if d.name == name { return d }
-        }
-    }
-    return null
 }
 
 // True when `e` is a scalar literal (int / float / bool / null / char /
@@ -786,27 +776,24 @@ lower_then_with_binding :: fn(ctx: FnLowerCtx, if_expr: IfExpr) -> LoweredBlock 
     block :: lower_block(ctx, if_expr.then_block, false, null)
     cond :: if_expr.cond
     if !(cond is BinaryExpr) { return block }
-    if cond is BinaryExpr {
-        if cond.op != .Is { return block }
-        alias :: cond.bind_as ?? return block
-        scrut_type :: ctx.types.expr_type(cond.left)
-        inner_type :: resolve_pattern_type(ctx, cond.right)
-        scrut_value :: lower_expr(ctx, cond.left)
-        cast_value: LoweredExpr: if scrut_type is UnionType {
-            LoweredCast { .span = cond.span, .type = inner_type, .value = scrut_value }
-        } else {
-            scrut_value
-        }
-        // Reuse the binding symbol the resolver minted for `as a` (keyed by
-        // the `a` token, `alias.span`), so references to `a` inside the
-        // then-block — which `resolved.idents` wires to THAT symbol — resolve
-        // to this slot. A `fresh_synthetic_symbol` here mints a different id,
-        // leaving every `a` reference unresolved (build_ident → unreachable).
-        symbol :: resolve_pattern_symbol(ctx, alias.span, alias.name)
-        let_stmt :: cell_aware_let(ctx, symbol, alias.name, cast_value, inner_type, cond.span)
-        return prepend_stmts_to_block([let_stmt], block)
+    if cond.op != .Is { return block }
+    alias :: cond.bind_as ?? return block
+    scrut_type :: ctx.types.expr_type(cond.left)
+    inner_type :: ctx.types.recorded_type_expr(cond.right)
+    scrut_value :: lower_expr(ctx, cond.left)
+    cast_value: LoweredExpr: if scrut_type is UnionType {
+        LoweredCast { .span = cond.span, .type = inner_type, .value = scrut_value }
+    } else {
+        scrut_value
     }
-    return block
+    // Reuse the binding symbol the resolver minted for `as a` (keyed by
+    // the `a` token, `alias.span`), so references to `a` inside the
+    // then-block — which `resolved.idents` wires to THAT symbol — resolve
+    // to this slot. A `fresh_synthetic_symbol` here mints a different id,
+    // leaving every `a` reference unresolved (build_ident → unreachable).
+    symbol :: resolve_pattern_symbol(ctx, alias.span, alias.name)
+    let_stmt :: cell_aware_let(ctx, symbol, alias.name, cast_value, inner_type, cond.span)
+    return prepend_stmts_to_block([let_stmt], block)
 }
 
 lower_if_else :: fn(ctx: FnLowerCtx, branch: IfElse | null) -> LoweredBlock | null {

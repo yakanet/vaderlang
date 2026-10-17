@@ -422,6 +422,9 @@ bind_pattern_types :: fn(
     match p {
         is AST.IsPattern      -> {
             narrowed :: pattern_type_of(p.ty, typed, diags)
+            // Recorded for the lowerer, by node id : the clones of a default
+            // method keep the trait's spans, each with fresh ids.
+            typed.expr_types[p.ty.id] = narrowed
             // Nested pattern (e.g. `is T { x, y }`) — recurse
             // with the narrowed type so inner StructPattern bindings
             // pick up T's field types.

@@ -580,8 +580,12 @@ const C_PARITY = new Set<string>([
   "free_fn_namesake_keeps_its_return_type",
   // Two traits of one name, from two modules, implemented for one type.
   "two_traits_of_one_name",
-  // A default value holding a lambda, written in another module.
+  // A default value written in another module.
   "default_value_from_another_module",
+  // A struct literal of another module's struct, whose field types it cannot name.
+  "struct_literal_of_another_module",
+  // A default method inherited by two impls tests against each one's own type argument.
+  "default_method_matches_its_type_argument",
   // An impl whose type parameters differ from its struct's in name or order.
   "impl_names_its_own_parameters",
   // An explicit type argument on a generic fn of another module.

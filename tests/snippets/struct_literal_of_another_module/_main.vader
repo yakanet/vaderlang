@@ -1,0 +1,19 @@
+// A struct literal of a struct declared in another module, whose field types
+// name what this module does not import: each field takes the type its own
+// module gives it, whether written, converted by `into`, or copied by a spread.
+module "snippet"
+
+import "std/io"
+import "snippet/util"
+
+main :: fn() -> i32 {
+    built :: Config {
+        .level = make().level,
+        .label = "hi",
+        .count = 3,
+    }
+    println(describe(built))
+    copied :: Config { ...make(), .count = 2 }
+    println(describe(copied))
+    return 0
+}

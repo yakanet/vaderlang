@@ -1,0 +1,80 @@
+# Lower
+
+## snippet
+  snippet.Ints :: struct { n: i32 }  // snippet$Ints
+  snippet.Strings :: struct { n: i32 }  // snippet$Strings
+  snippet.Ints.name :: fn(self: Ints) -> string {  // snippet$Ints$Probe$name
+      "ints"
+  }
+  snippet.Ints.holds :: fn(self: Ints, x: Box<i32> | Box<string>) -> string {  // snippet$Ints$Probe$holds
+      {
+          if x is Box<i32> { concat_2(snippet.Ints.name(self), " holds it") } else { concat_2(snippet.Ints.name(self), " does not") } :string
+      } :string
+  }
+  snippet.Strings.name :: fn(self: Strings) -> string {  // snippet$Strings$Probe$name
+      "strings"
+  }
+  snippet.Strings.holds :: fn(self: Strings, x: Box<i32> | Box<string>) -> string {  // snippet$Strings$Probe$holds
+      {
+          if x is Box<string> { concat_2(snippet.Strings.name(self), " holds it") } else { concat_2(snippet.Strings.name(self), " does not") } :string
+      } :string
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      ints: Ints = Ints { .n = 1 }
+      strings: Strings = Strings { .n = 2 }
+      number: Box<i32> | Box<string> = Box<i32> { .v = 3 }
+      text: Box<i32> | Box<string> = Box<string> { .v = "x" }
+      std.io.println<string>(snippet.Ints.holds(ints, number))
+      std.io.println<string>(snippet.Strings.holds(strings, number))
+      std.io.println<string>(snippet.Ints.holds(ints, text))
+      std.io.println<string>(snippet.Strings.holds(strings, text))
+      return 0
+  }
+  snippet.Box<i32> :: struct { v: i32 }  // snippet$Box__i32
+  snippet.Box<string> :: struct { v: string }  // snippet$Box__string
+  snippet.Box<Any> :: struct { v: Any }  // snippet$Box__Any
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable snippet.Probe.holds for Ints  snippet.Ints.holds  // snippet$Ints$Probe$holds
+  vtable snippet.Probe.holds for Strings  snippet.Strings.holds  // snippet$Strings$Probe$holds
+  vtable snippet.Probe.name for Ints  snippet.Ints.name  // snippet$Ints$Probe$name
+  vtable snippet.Probe.name for Strings  snippet.Strings.name  // snippet$Strings$Probe$name
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

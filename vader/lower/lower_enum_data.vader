@@ -180,31 +180,27 @@ enum_table_const :: fn(ctx: FnLowerCtx, enum_type: EnumType, kind: EnumTableKind
 /// own module, and push them there for `inline_consts` to route. Runs inside
 /// the lowering fixpoint : a read in a module lowered later queues its enum then.
 ///
-/// @param loaded       the source-level project, for the enum decls.
-/// @param typed        every module's typed program.
+/// @param typed        every module's typed program, and its enum decls.
 /// @param project_ctx  carries the queue ; C4001 lands on its `diags`.
 /// @param project      the lowered project ; the owning modules gain the tables.
 /// @error              C4001 when a variant's data is not a constant the data
 ///                     pool can bake.
 export materialize_enum_tables :: fn(
-    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
+    typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
     for project_ctx.enum_table_cursor < project_ctx.enum_table_order.len() {
         due :: project_ctx.enum_table_order[project_ctx.enum_table_cursor]
         project_ctx.enum_table_cursor += 1
         owner :: due.enum_type.symbol
         module_typed :: typed.modules[owner.module] ?? continue
-        module_loaded :: loaded.modules[owner.module] ?? continue
-        if module_typed is TypedProgram && module_loaded is LoadedModule {
-            decl :: find_enum_decl_by_name(module_decls(module_loaded), owner.name) ?? continue
-            table :: if due.kind == .Data {
-                lower_data_table(decl, due, module_typed, project_ctx)
-            } else {
-                lower_value_table(decl, due, module_typed)
-            }
-            if table != null {
-                push_to_module(project, owner.module, table)
-            }
+        decl :: module_typed.enum_decls[owner.id] ?? continue
+        table :: if due.kind == .Data {
+            lower_data_table(decl, due, module_typed, project_ctx)
+        } else {
+            lower_value_table(decl, due, module_typed)
+        }
+        if table != null {
+            push_to_module(project, owner.module, table)
         }
     }
 }
@@ -259,13 +255,4 @@ table_decl :: fn(decl: EnumDecl, entry: MonoEntry, type: Type, elements: Lowered
     .type    = type,
     .value   = LoweredArrayLit { .span = decl.span, .type = type, .elements = elements },
     .origin  = entry,
-}
-
-find_enum_decl_by_name :: fn(decls: Decl[], name: string) -> EnumDecl | null {
-    for d in decls {
-        if d is EnumDecl && d.name == name {
-            return d
-        }
-    }
-    return null
 }
