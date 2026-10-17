@@ -1,7 +1,8 @@
 // vader/typecheck/expr_await — AwaitExpr inference (`await e`).
 //
-// `await` is legal only directly inside an `async` fn body — a nested lambda's
-// context is not async, so an `await` there trips T3064 (AwaitOutsideAsync) too.
+// `await` is legal only directly inside an `async` fn body. Neither a nested
+// lambda nor a `defer` body is one, so an `await` there trips T3064
+// (AwaitOutsideAsync) too.
 // The result unwraps `Async<T>` to `T` ; a non-`Async` inner passes through
 // unchanged (downstream still gets a useful type).
 

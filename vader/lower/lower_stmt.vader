@@ -113,8 +113,8 @@ drain_pending_from :: fn(ctx: FnLowerCtx, out: LoweredStmt[], base: usize) -> vo
 }
 
 // Reject an `await` in a conditionally-evaluated operand (a `&&` / `||` RHS, a
-// loop condition). Hoisting such an await to statement position would run it
-// unconditionally / only once — unsound. v1 diagnoses (M5009) and drops the
+// `??` fallback, a loop condition). Hoisting such an await to statement
+// position would run it unconditionally / only once — unsound. v1 diagnoses (M5009) and drops the
 // leaked awaits ; the full flow-sensitive ANF that lifts them correctly is a
 // later phase. No-op outside async or when nothing was hoisted.
 export guard_no_pending_await :: fn(ctx: FnLowerCtx, base: usize, span: Span) -> void {

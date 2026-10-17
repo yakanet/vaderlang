@@ -3593,9 +3593,9 @@ Rules:
   `Iterator<T>` — it is an ordinary factory returning an iterator value
   (a bare array, `arr.into()`, a wrapping combinator). The empty-iterator case is an empty
   array `[]`, which coerces to `Iterator<T>`.
-- `yield e` is a **statement**, legal only directly inside a generator's own body
-  — never in a nested lambda (`T3059`). `e` must coerce to `T` (same path as
-  `return`, `T3061` on mismatch).
+- `yield e` is a **statement**, legal only directly inside a generator's own body,
+  never in a nested lambda or a `defer` body (`T3059`). `e` must coerce to `T`
+  (same path as `return`, `T3061` on mismatch).
 - `return <value>` inside a generator is an **error** (`T3058`) — a generator
   produces via `yield`. A bare `return`, or falling off the end, means
   **exhausted**: every subsequent `next()` hands back `Continuation.Stop`,
@@ -3746,7 +3746,7 @@ Single-threaded cooperative async, lowered to a coroutine state machine at compi
 - A function is an **async coroutine** when it uses `await`; it declares its return type as `Async<T>`. `await e` unwraps an `Async<T>` to `T`, and a call to a coroutine is typed as `Async<T>`.
 - The coroutine's body returns the inner `T` (the frame wraps it), mirroring how a generator's `-> Iterator<E>` body yields `E`. A coroutine that completes with no value returns `Async<void>`.
 - A function may also *return* an `Async<T>` value it constructs — a factory such as a future `sleep(ms) -> Async<void>` — without awaiting; that is an ordinary function.
-- `await` must appear directly in a coroutine body, not inside a nested lambda (T3064).
+- `await` must appear directly in a coroutine body, not inside a nested lambda or a `defer` body (T3064): a deferred block runs at scope exit and cannot suspend.
 - `defer` is allowed inside an async coroutine: pending defers live in the frame and run LIFO when the coroutine completes **or when it is cancelled** (see below), including defers registered before an `await` — the thunk, and any local it captures, survive the suspension. `defer` inside a generator is still rejected (T3060), pending the teardown hook for abandoned generators.
 - Errors are values: `await` on a fallible `fn -> Async<T | E>` yields `T | E`, narrowed at `if`/`match`.
 - **Entry & scheduler.** An async `main` runs on a cooperative single-threaded scheduler (strict-FIFO ready queue + timer min-heap), entered implicitly once the program imports `std/async`. `sleep(ms)` suspends the current coroutine until a virtual-clock deadline.

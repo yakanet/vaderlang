@@ -14,3 +14,11 @@ combine :: fn(a: bool) -> Async<bool> {
     r :: a && await flag_of()
     return r
 }
+
+count_of :: fn() -> Async<i32> = Ready<i32> { .v = 1 }
+
+// The fallback of a `??` runs only when the left side is null: same rule.
+fallback :: fn(a: i32 | null) -> Async<i32> {
+    r :: a ?? await count_of()
+    return r
+}

@@ -1,0 +1,47 @@
+# Typecheck
+
+## tests/snippets/async_await_in_value_positions
+  FnDecl         double               :: fn(i32) -> Async<i32>
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         maybe                :: fn(i32) -> Async<i32 | null>
+  FnDecl         nothing              :: fn() -> Async<i32 | null>
+  StructDecl     Ready                :: Ready<T>
+  FnDecl         show                 :: fn(i32) -> Async<string>
+  FnDecl         with_default         :: fn(i32) -> Async<i32>
+  expr 12:44    StructLitExpr  :: Ready<i32 | null>
+  expr 12:69    IdentExpr      :: i32
+  expr 14:40    StructLitExpr  :: Ready<i32 | null>
+  expr 16:38    StructLitExpr  :: Ready<i32>
+  expr 16:56    BinaryExpr     :: i32
+  expr 16:56    IdentExpr      :: i32
+  expr 16:60    IdentExpr      :: i32
+  expr 19:11    AwaitExpr      :: i32 | null
+  expr 19:11    NullCoalesceExpr :: i32
+  expr 19:17    CallExpr       :: Async<i32 | null>
+  expr 19:17    IdentExpr      :: fn(i32) -> Async<i32 | null>
+  expr 19:23    IdentExpr      :: i32
+  expr 20:11    AwaitExpr      :: i32 | null
+  expr 20:11    NullCoalesceExpr :: i32
+  expr 20:17    CallExpr       :: Async<i32 | null>
+  expr 20:17    IdentExpr      :: fn() -> Async<i32 | null>
+  expr 21:12    BinaryExpr     :: i32
+  expr 21:12    IdentExpr      :: i32
+  expr 21:16    IdentExpr      :: i32
+  expr 25:12    StringLitExpr  :: string
+  expr 25:24    AwaitExpr      :: i32
+  expr 25:30    CallExpr       :: Async<i32>
+  expr 25:30    IdentExpr      :: fn(i32) -> Async<i32>
+  expr 25:37    IdentExpr      :: i32
+  expr 29:13    StringLitExpr  :: string
+  expr 29:16    AwaitExpr      :: i32
+  expr 29:22    CallExpr       :: Async<i32>
+  expr 29:22    IdentExpr      :: fn(i32) -> Async<i32>
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 30:13    AwaitExpr      :: string
+  expr 30:19    CallExpr       :: Async<string>
+  expr 30:19    IdentExpr      :: fn(i32) -> Async<string>
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 9:50     FieldExpr      :: T
+  expr 9:50     IdentExpr      :: Ready<T>

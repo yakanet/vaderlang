@@ -1,0 +1,35 @@
+# Typecheck
+
+## tests/snippets/generator_yield_in_value
+  FnDecl         evens                :: fn(i32) -> Iterator<i32>
+  FnDecl         keep                 :: fn(i32) -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         squares              :: fn(i32) -> Iterator<i32>
+  expr 10:14    RangeExpr      :: Range<i32>
+  expr 10:18    IdentExpr      :: i32
+  expr 11:14    IfExpr         :: {integer}
+  expr 11:17    BinaryExpr     :: bool
+  expr 11:17    BinaryExpr     :: i32
+  expr 11:17    IdentExpr      :: i32
+  expr 12:19    IdentExpr      :: i32
+  expr 21:14    RangeExpr      :: Range<i32>
+  expr 21:18    IdentExpr      :: i32
+  expr 22:14    CallExpr       :: i32
+  expr 22:14    IdentExpr      :: fn(i32) -> i32
+  expr 23:19    BinaryExpr     :: i32
+  expr 23:19    IdentExpr      :: i32
+  expr 23:23    IdentExpr      :: i32
+  expr 24:13    IdentExpr      :: i32
+  expr 30:14    CallExpr       :: __genstate_evens<i32>
+  expr 30:14    IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 31:17    StringLitExpr  :: string
+  expr 31:20    IdentExpr      :: i32
+  expr 31:9     CallExpr       :: void
+  expr 31:9     IdentExpr      :: fn(T) -> void
+  expr 33:14    CallExpr       :: __genstate_squares<i32>
+  expr 33:14    IdentExpr      :: fn(i32) -> Iterator<i32>
+  expr 34:17    StringLitExpr  :: string
+  expr 34:20    IdentExpr      :: i32
+  expr 34:9     CallExpr       :: void
+  expr 34:9     IdentExpr      :: fn(T) -> void
+  expr 7:29     IdentExpr      :: i32

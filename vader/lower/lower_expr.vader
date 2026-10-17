@@ -640,9 +640,14 @@ lower_null_coalesce :: fn(ctx: FnLowerCtx, e: NullCoalesceExpr) -> LoweredExpr {
     else_block :: wrap_block(e.span, LoweredCast {
         .span = e.span, .type = result, .value = tmp_ref,
     })
+    // The fallback runs only when `left` is null, so an `await` in it cannot
+    // hoist before the statement (M5009).
+    fallback_base :: ctx.pending_awaits.len()
+    then_block :: lower_coalesce_fallback(ctx, e.fallback, result)
+    guard_no_pending_await(ctx, fallback_base, then_block.span)
     if_node :: LoweredIf {
         .span = e.span, .type = result, .cond = cond,
-        .then_block = lower_coalesce_fallback(ctx, e.fallback, result),
+        .then_block = then_block,
         .else_block = else_block,
     }
     return LoweredBlock { .span = e.span, .type = result, .stmts = [let_stmt], .trailing = if_node }

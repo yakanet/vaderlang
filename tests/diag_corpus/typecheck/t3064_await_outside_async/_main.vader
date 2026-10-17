@@ -16,3 +16,13 @@ export probe :: fn() -> i32 {
     }
     return step()
 }
+
+// A `defer` body runs at scope exit as a fn of its own: it cannot suspend the
+// coroutine either, even in a fn that awaits elsewhere.
+export settle :: fn() -> Async<i32> {
+    r: Async<i32>: Ready { .v = 5 }
+    defer {
+        _ :: await r
+    }
+    return await r
+}

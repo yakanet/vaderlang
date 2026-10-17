@@ -1,0 +1,32 @@
+// An `await` makes its fn a coroutine wherever it sits in the body: on the left
+// of a `??`, inside a string interpolation.
+module "snippet"
+
+import "std/io"
+
+Ready :: struct<T> { v: T }
+Ready<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended { return self.v }
+}
+
+maybe :: fn(x: i32) -> Async<i32 | null> = Ready<i32 | null> { .v = x }
+
+nothing :: fn() -> Async<i32 | null> = Ready<i32 | null> { .v = null }
+
+double :: fn(x: i32) -> Async<i32> = Ready<i32> { .v = x + x }
+
+with_default :: fn(x: i32) -> Async<i32> {
+    a :: (await maybe(x)) ?? 0
+    b :: (await nothing()) ?? 7
+    return a + b
+}
+
+show :: fn(x: i32) -> Async<string> {
+    return "doubled: ${await double(x)}"
+}
+
+main :: fn() -> i32 {
+    println("${await with_default(20)}")
+    println(await show(21))
+    return 0
+}

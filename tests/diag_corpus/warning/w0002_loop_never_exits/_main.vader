@@ -62,4 +62,28 @@ conditional :: fn() -> i32 {
     return n
 }
 
-main :: fn() -> i32 = bare_break() + coalesce_break() + labelled_break() + conditional()
+// Quiet: the `??` fallback sits in an operand, since a compound assignment
+// desugars to `n = n + (… ?? break)`.
+compound_break :: fn() -> i32 {
+    n := 0
+    for {
+        n += next_or_null(n) ?? break
+    }
+    return n
+}
+
+// Quiet: the `??` fallback sits in a condition.
+condition_break :: fn() -> i32 {
+    n := 0
+    for {
+        if (next_or_null(n) ?? break) > 2 {
+            return n
+        }
+        n += 1
+    }
+    return n
+}
+
+main :: fn() -> i32 =
+    bare_break() + coalesce_break() + labelled_break() + conditional() + compound_break()
+        + condition_break()

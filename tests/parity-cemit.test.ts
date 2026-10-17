@@ -584,6 +584,10 @@ const C_PARITY = new Set<string>([
   "generic_call_inside_generic_body",
   // Written type arguments on every form of callee.
   "explicit_type_arguments_on_members",
+  // An `await` on the left of a `??` or in an interpolation makes a coroutine.
+  "async_await_in_value_positions",
+  // A `yield` in a binding's value or in an argument block makes a generator.
+  "generator_yield_in_value",
   // Declaration-shape snippets whose `main` runs what they declare.
   "decorators_ok",
   "expressions",

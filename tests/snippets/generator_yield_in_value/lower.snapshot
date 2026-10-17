@@ -1,0 +1,180 @@
+# Lower
+
+## snippet
+  snippet.keep :: fn(x: i32) -> i32 {  // snippet$keep
+      x
+  }
+  snippet.evens :: fn(n: i32) -> Iterator<i32> {  // snippet$evens
+      return __genstate_evens {
+          .s0 = n,
+          .s1 = 0,
+          .s2 = 0,
+          .state = 4,
+      }
+  }
+  snippet.squares :: fn(n: i32) -> Iterator<i32> {  // snippet$squares
+      return __genstate_squares {
+          .s0 = n,
+          .s1 = 0,
+          .s2 = false,
+          .s3 = 0,
+          .state = 4,
+      }
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      {
+          n: i32 = 5
+          {
+              i: i32 = 0
+              for i < n {
+                  _: i32 = if (i % 2) == 0 {
+                      v: i32 = i
+                      std.io.println<string>({
+                          __buf_0: Buffer = std.core.new_byte_buffer(usize(20))
+                          __off_1: usize = 0
+                          __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                          std.core.finish_buffer(__buf_0, __off_1)
+                      } :string)
+                      1
+                  } else {
+                      0
+                  } :{integer}
+              } @step {
+                  i = i +% 1
+              }
+          }
+      }
+      {
+          n: i32 = 3
+          {
+              i: i32 = 1
+              __more_turns_0: bool = i <= n
+              for __more_turns_0 {
+                  _: i32 = snippet.keep({
+                      v: i32 = i * i
+                      std.io.println<string>({
+                          __buf_2: Buffer = std.core.new_byte_buffer(usize(20))
+                          __off_3: usize = 0
+                          __off_3 = std.core.write_int(__buf_2, __off_3, i64(v))
+                          std.core.finish_buffer(__buf_2, __off_3)
+                      } :string)
+                      i
+                  } :i32)
+              } @step {
+                  __more_turns_0 = i < n
+                  i = i +% 1
+              }
+          }
+      }
+      return 0
+  }
+  snippet$__genstate_evens :: struct { s0: i32, s1: i32, s2: i32, state: i32 }
+  snippet$__genstate_evens$Iterator$next :: fn(self: __genstate_evens) -> [i32, Continuation] {
+      dispatch$: for {
+          if __self_0.state == 0 {
+              __self_0.state = -1
+          } else if __self_0.state == 1 {
+              __self_0.state = 0
+          } else if __self_0.state == 2 {
+              if __self_0.s1 < __self_0.s0 {
+                  __self_0.state = 3
+              } else {
+                  __self_0.state = 1
+              }
+          } else if __self_0.state == 3 {
+              __self_0.s2 = if (__self_0.s1 % 2) == 0 {
+                  yield __self_0.s1
+                  1
+              } else {
+                  0
+              } :{integer}
+              __self_0.s1 = __self_0.s1 +% 1
+              __self_0.state = 2
+          } else if __self_0.state == 4 {
+              __self_0.s1 = 0
+              __self_0.state = 2
+          } else {
+              return [0, u8(1)] :[i32, Continuation]
+          }
+      }
+  }
+  snippet$__genstate_squares :: struct { s0: i32, s1: i32, s2: bool, s3: i32, state: i32 }
+  snippet$__genstate_squares$Iterator$next :: fn(self: __genstate_squares) -> [i32, Continuation] {
+      dispatch$: for {
+          if __self_1.state == 0 {
+              __self_1.state = -1
+          } else if __self_1.state == 1 {
+              __self_1.state = 0
+          } else if __self_1.state == 2 {
+              if __self_1.s2 {
+                  __self_1.state = 3
+              } else {
+                  __self_1.state = 1
+              }
+          } else if __self_1.state == 3 {
+              __self_1.s3 = snippet.keep({
+                  yield __self_1.s1 * __self_1.s1
+                  __self_1.s1
+              } :i32)
+              __self_1.s2 = __self_1.s1 < __self_1.s0
+              __self_1.s1 = __self_1.s1 +% 1
+              __self_1.state = 2
+          } else if __self_1.state == 4 {
+              __self_1.s1 = 1
+              __self_1.s2 = __self_1.s1 <= __self_1.s0
+              __self_1.state = 2
+          } else {
+              return [0, u8(1)] :[i32, Continuation]
+          }
+      }
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable std.core.Iterator.next for __genstate_evens  snippet$__genstate_evens$Iterator$next
+  vtable std.core.Iterator.next for __genstate_squares  snippet$__genstate_squares$Iterator$next
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

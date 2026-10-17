@@ -1,0 +1,37 @@
+// A `yield` makes its fn a generator wherever it sits in the body: inside the
+// value of a binding, inside a block passed as an argument.
+module "snippet"
+
+import "std/io"
+
+keep :: fn(x: i32) -> i32 = x
+
+evens :: fn(n: i32) -> Iterator<i32> {
+    for i in 0..<n {
+        _ :: if i % 2 == 0 {
+            yield i
+            1
+        } else {
+            0
+        }
+    }
+}
+
+squares :: fn(n: i32) -> Iterator<i32> {
+    for i in 1..=n {
+        _ :: keep({
+            yield i * i
+            i
+        })
+    }
+}
+
+main :: fn() -> i32 {
+    for v in evens(5) {
+        println("${v}")
+    }
+    for v in squares(3) {
+        println("${v}")
+    }
+    return 0
+}

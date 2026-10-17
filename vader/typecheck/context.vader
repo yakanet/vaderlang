@@ -33,16 +33,16 @@ export FnContext :: struct {
     /// True when the enclosing fn is a generator (it `yield`s). Drives `yield`
     /// legality, forbids `return <value>`, and suppresses the
     /// missing-return obligation on the `-> Iterator<T>` body. False for
-    /// lambdas and synthetic contexts, so a `yield` inside a nested lambda
-    /// trips the "yield outside generator" check.
+    /// lambdas, `defer` bodies and synthetic contexts, so a `yield` in one
+    /// trips T3059.
     is_generator: bool = false
     /// Element type `T` of the generator's `-> Iterator<T>` return —
     /// `yield e` must coerce to it. Null when not a generator (or the
     /// return type wasn't a valid `Iterator<T>`).
     yield_type: Type | null = null
     /// True when the enclosing fn is an async coroutine (it `await`s). Drives
-    /// `await` legality and forbids `defer` (v1). False for lambdas and
-    /// synthetic contexts, so an `await` in a nested lambda trips T3064.
+    /// `await` legality. False for lambdas, `defer` bodies and synthetic
+    /// contexts, so an `await` in one trips T3064.
     is_async: bool = false
     /// Union of every value `return`'s type seen in this body — accumulated by
     /// `check_return`. A block-body lambda that ends in `return` types its block
