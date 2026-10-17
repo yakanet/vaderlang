@@ -510,7 +510,7 @@ export check_dead_code :: fn(
         register_refs(refs_by_name, nd.name, nd.refs)
         if is_root_decl(nd.visibility, nd.decorators, nd.name, module_name) {
             root_names.push(nd.name)
-        } else {
+        } else if !is_comptime_helper(d) {
             flaggable.push(DeadDecl { .name = nd.name, .name_span = nd.name_span })
         }
     }
@@ -524,6 +524,10 @@ export check_dead_code :: fn(
         }
     }
 }
+
+// The `__comptime_NAME` fn behind a `NAME :: @comptime …` const: its refs count,
+// but only the const, which the user wrote, is reported.
+is_comptime_helper :: fn(d: AST.Decl) -> bool = d is AST.FnDecl && d.comptime_synthetic
 
 // Append `refs` to the edge set for `name` (overloads share a name → merge).
 register_refs :: fn(m: MutableMap<string, string[]>, name: string, refs: string[]) -> void {

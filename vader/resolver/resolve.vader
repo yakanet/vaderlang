@@ -17,6 +17,7 @@ import "std/collections"
 import "std/string"
 import "std/sort"
 import "toolchain/ast"
+import "toolchain/span"
 import "vader/resolver/symbol"
 import "vader/types"
 
@@ -58,6 +59,11 @@ export ResolvedModule :: struct {
     /// fn name — only one of which lands in `symbols`. The typecheck
     /// dump iterates this to surface every overload.
     fn_overloads: MutableMap<string, Symbol[]>
+    /// Every declaration's symbol under the hash of its name span, each fn
+    /// overload included: the one way back from a declaration to its symbol
+    /// (`symbol_declared_at`). A declaration the resolver gave no symbol of its own
+    /// (an impl member, a duplicate non-fn) has no entry.
+    declarations: MutableMap<u64, Symbol>
     /// `imports_to[sym.id]` follows an ImportBinding symbol to its
     /// concrete exported counterpart. Lets `type_from_expr` resolve
     /// `ParseError` to the real struct symbol on the std/string side
@@ -179,6 +185,7 @@ export resolve_module_files :: fn(
         .loop_rebinds     = resolved.loop_rebinds,
         .closure_rebound  = resolved.closure_rebound,
         .fn_overloads     = collected.fn_overloads,
+        .declarations     = declaration_index(collected),
         .imports_to       = MutableMap<i32, Symbol> {},
         .alias_types      = MutableMap<i32, Type> {},
         .alias_params     = MutableMap<i32, TypeParamType[]> {},
@@ -188,6 +195,49 @@ export resolve_module_files :: fn(
         .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> {},
         .namespace_private_members = MutableMap<i32, MutableMap<string, bool>> {},
     }
+}
+
+// Every symbol `collected` kept for a declaration, under its name span: each
+// non-fn name's, then every fn overload, the first of a name included.
+declaration_index :: fn(collected: CollectedModule) -> MutableMap<u64, Symbol> {
+    index :: MutableMap<u64, Symbol> {}
+    for [_, symbol] in collected.symbols {
+        if symbol.kind != .Fn {
+            index_declaration(index, symbol)
+        }
+    }
+    for [_, bucket] in collected.fn_overloads {
+        for symbol in bucket {
+            index_declaration(index, symbol)
+        }
+    }
+    return index
+}
+
+index_declaration :: fn(index: MutableMap<u64, Symbol>, symbol: Symbol) -> void {
+    defined :: symbol.defined_at ?? return
+    index[defined.hash()] = symbol
+}
+
+/// The symbol the resolver minted for the declaration named at `name_span`.
+///
+/// @param resolved   the module declaring it.
+/// @param name_span  the declaration's name span.
+/// @return           null for a declaration with no symbol of its own: an impl
+///                   member, a duplicate non-fn (R2004, R2026), a declaration
+///                   lowering synthesises.
+export symbol_declared_at :: fn(resolved: ResolvedModule, name_span: Span) -> Symbol | null =
+    resolved.declarations[name_span.hash()]
+
+/// The symbol the resolver minted for `decl`.
+///
+/// @param resolved  the module declaring it.
+/// @param decl      a declaration of that module.
+/// @return          null for an impl, an assert or an import, which name
+///                  nothing, and in the cases `symbol_declared_at` lists.
+export decl_symbol :: fn(resolved: ResolvedModule, decl: Decl) -> Symbol | null {
+    name_span :: decl_name_span(decl) ?? return null
+    return symbol_declared_at(resolved, name_span)
 }
 
 /// The imports `file` of the module wrote ; none when the module did not

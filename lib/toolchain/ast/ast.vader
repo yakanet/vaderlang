@@ -206,6 +206,20 @@ export decorators_have :: fn(decs: Decorator[], name: string) -> bool {
 // Declarations
 // ============================================================================
 
+/// The span of the name `decl` declares.
+///
+/// @param decl  a declaration.
+/// @return      null for an impl, an assert or an import, which declare no name.
+export decl_name_span :: fn(decl: Decl) -> Span | null = match decl {
+    is FnDecl        -> decl.name_span
+    is StructDecl    -> decl.name_span
+    is EnumDecl      -> decl.name_span
+    is TraitDecl     -> decl.name_span
+    is TypeAliasDecl -> decl.name_span
+    is ConstDecl     -> decl.name_span
+    is ImplDecl | AssertDecl | ImportDecl -> null
+}
+
 // ---- Import ---------------------------------------------------------------
 
 /// An `import` statement, whatever its form — see `ImportBinding`.

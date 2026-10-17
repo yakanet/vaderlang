@@ -14,6 +14,7 @@ import "std/collections"
 import "std/string"
 import "toolchain/ast"
 import "vader/comptime"
+import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
@@ -129,17 +130,9 @@ qualified_name :: fn(origin: MonoEntry, mangled: string, params: LoweredParam[])
     return mangled
 }
 
-// A free function is one the module's overload table holds, under the name span
-// its symbol was minted at ; an impl member is not there.
-is_free_fn :: fn(decl: FnDecl, module: TypedProgram) -> bool {
-    overloads :: module.resolved.fn_overloads[decl.name] ?? return false
-    for symbol in overloads {
-        if symbol.defined_at == decl.name_span {
-            return true
-        }
-    }
-    return false
-}
+// A free function has a symbol of its own ; an impl member does not.
+is_free_fn :: fn(decl: FnDecl, module: TypedProgram) -> bool =
+    symbol_declared_at(module.resolved, decl.name_span) != null
 
 is_made_up :: fn(symbol: Symbol) -> bool = symbol.id < 0 || symbol.kind == .Synthetic
 

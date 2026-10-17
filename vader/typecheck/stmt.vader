@@ -12,6 +12,7 @@ module "vader/typecheck"
 import "std/collections"
 import "vader/diagnostics"
 AST :: import "toolchain/ast"
+import "vader/resolver"
 import "vader/types"
 
 /// Check every statement in `block`, then type the trailing expression
@@ -243,48 +244,20 @@ export check_fn_body :: fn(
 }
 
 patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) -> void {
-    sym :: lookup_decl_symbol_stmt(typed.resolved, fn_decl)
-    match sym {
-        is Symbol -> {
-            cur :: typed.decl_types[sym.id]
-            match cur {
-                is FnType -> {
-                    typed.decl_types[sym.id] = FnType { ...cur, .return_type = ret }
-                }
-                _         -> {}
-            }
+    sym :: symbol_declared_at(typed.resolved, fn_decl.name_span)
+    if sym == null {
+        // An impl member has no symbol: its type is keyed by its name span.
+        sp_key :: fn_decl.name_span.hash()
+        cur :: typed.impl_method_decl_types[sp_key]
+        if cur is FnType {
+            typed.impl_method_decl_types[sp_key] = FnType { ...cur, .return_type = ret }
         }
-        is null        -> {
-            // Impl method — patch the span-keyed table.
-            sp_key :: fn_decl.name_span.hash()
-            cur :: typed.impl_method_decl_types[sp_key]
-            match cur {
-                is FnType -> {
-                    typed.impl_method_decl_types[sp_key] = FnType { ...cur, .return_type = ret }
-                }
-                _         -> {}
-            }
-        }
+        return
     }
-}
-
-lookup_decl_symbol_stmt :: fn(resolved: ResolvedModule, fd: AST.FnDecl) -> Symbol | null {
-    // Match by span to support overloaded fns.
-    bucket :: resolved.fn_overloads[fd.name]
-    if bucket !is null {
-        for s in bucket {
-            sp :: s.defined_at ?? continue
-            if sp.start.line == fd.name_span.start.line && sp.start.column == fd.name_span.start.column {
-                return s
-            }
-        }
+    cur :: typed.decl_types[sym.id]
+    if cur is FnType {
+        typed.decl_types[sym.id] = FnType { ...cur, .return_type = ret }
     }
-    for s in resolved.symbols {
-        if s.name == fd.name {
-            return s
-        }
-    }
-    return null
 }
 
 contains_unresolved :: fn(t: Type) -> bool = @partial match t {
@@ -1595,13 +1568,10 @@ is_known_non_iterable :: fn(t: Type) -> bool {
 }
 
 lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
-    sym :: lookup_decl_symbol_stmt(typed.resolved, fn_decl)
-    decl_ty :: match sym {
-        is Symbol -> typed.decl_types[sym.id]
-        is null   -> typed.impl_method_decl_types[fn_decl.name_span.hash()]
+    decl_ty :: declared_type_at(typed, fn_decl.name_span)
+    if decl_ty is FnType {
+        return decl_ty.return_type
     }
-    if decl_ty is null   { return TY_UNRESOLVED }
-    if decl_ty is FnType { return decl_ty.return_type }
     return TY_UNRESOLVED
 }
 
@@ -1757,7 +1727,6 @@ into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Ty
 
 import "std/testing"
 import "vader/parser"
-import "vader/resolver"
 import "toolchain/span"
 // Bundles parse + resolve + declare + walks fn bodies with the stub.
 // Returns both `typed` and `diags` so test sites can assert on either.

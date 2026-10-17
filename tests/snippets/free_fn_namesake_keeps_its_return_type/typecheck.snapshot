@@ -1,0 +1,26 @@
+# Typecheck
+
+## tests/snippets/free_fn_namesake_keeps_its_return_type
+  FnDecl         area                 :: fn(string) -> string
+  FnDecl         main                 :: fn() -> i32
+  TraitDecl      Shape                :: Shape
+  StructDecl     Sq                   :: Sq
+  expr 14:24    BinaryExpr     :: i32
+  expr 14:24    FieldExpr      :: i32
+  expr 14:24    IdentExpr      :: Sq
+  expr 14:36    FieldExpr      :: i32
+  expr 14:36    IdentExpr      :: Sq
+  expr 17:29    StringLitExpr  :: string
+  expr 17:40    IdentExpr      :: string
+  expr 20:20    CallExpr       :: string
+  expr 20:20    IdentExpr      :: fn(string) -> string
+  expr 20:25    StringLitExpr  :: string
+  expr 21:13    IdentExpr      :: string
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 22:13    StringLitExpr  :: string
+  expr 22:16    CallExpr       :: i32
+  expr 22:16    FieldExpr      :: fn() -> i32
+  expr 22:16    StructLitExpr  :: Sq
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void

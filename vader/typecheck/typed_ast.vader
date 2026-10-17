@@ -17,20 +17,19 @@ import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/types"
 
-/// Find the resolved `Const` symbol matching `decl` by name. The typed AST
-/// only indexes `IdentExpr` use sites, so this scans `resolved.symbols` by
-/// name + kind — linear, called once per const reference ; negligible at the
-/// module sizes the comptime / lower passes see.
+/// The type declared at `name_span`: the `decl_types` entry of the symbol
+/// declared there, or for an impl member, which has no symbol of its own, its
+/// entry in `impl_method_decl_types`.
 ///
-/// @param decl   the const declaration whose backing symbol is wanted.
-/// @param typed  the typechecked program carrying the resolved symbol table.
-/// @return       the matching `Const` `Symbol`, or `null` when none is found.
-export lookup_const_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Symbol | null {
-    for symbol in typed.resolved.symbols {
-        if symbol.kind != .Const { continue }
-        if symbol.name == decl.name { return symbol }
+/// @param typed      the module declaring it.
+/// @param name_span  the declaration's name span.
+/// @return           null when neither table holds it.
+export declared_type_at :: fn(typed: TypedProgram, name_span: Span) -> Type | null {
+    sym :: symbol_declared_at(typed.resolved, name_span)
+    if sym == null {
+        return typed.impl_method_decl_types[name_span.hash()]
     }
-    return null
+    return typed.decl_types[sym.id]
 }
 
 /// The suffix that tells apart the overloads of `name` in `module`: empty for
@@ -818,6 +817,7 @@ export empty_typed_program :: fn() -> TypedProgram {
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
         .fn_overloads = MutableMap<string, Symbol[]> {},
+        .declarations = MutableMap<u64, Symbol> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
         .alias_params = MutableMap<i32, TypeParamType[]> {},
@@ -842,6 +842,7 @@ fresh_module :: fn() -> ResolvedModule {
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
         .fn_overloads = MutableMap<string, Symbol[]> {},
+        .declarations = MutableMap<u64, Symbol> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
         .alias_params = MutableMap<i32, TypeParamType[]> {},

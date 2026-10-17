@@ -127,15 +127,14 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
     for [id, typed] in result.all_modules {
         mod :: project.modules[id] ?? continue
 
-        for sym in typed.resolved.symbols + typed.resolved.import_bindings {
-            canon :: resolve_import_redirect(sym, table)
-            add_symbol_site(index, typed, sym, canon, sym.kind != .ImportBinding)
-        }
-        // `resolved.symbols` holds an overloaded name's first declaration only.
-        for [_, overloads] in typed.resolved.fn_overloads {
-            for sym in overloads {
+        for [_, sym] in typed.resolved.declarations {
+            if !is_comptime_helper(typed, sym) {
                 add_symbol_site(index, typed, sym, sym, true)
             }
+        }
+        for sym in typed.resolved.import_bindings {
+            canon :: resolve_import_redirect(sym, table)
+            add_symbol_site(index, typed, sym, canon, sym.kind != .ImportBinding)
         }
 
         recorded :: recorded_fns(typed)
@@ -174,6 +173,13 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
         }
     }
     return ReferenceIndex { .sites = index.sites, .fixed = index.fixed }
+}
+
+// The `__comptime_NAME` fn behind a `NAME :: @comptime …` const: compiler-internal,
+// declared at the `@comptime` token, which names nothing a user would rename.
+is_comptime_helper :: fn(typed: TypedProgram, sym: Symbol) -> bool {
+    decl :: typed.fn_decls[sym.id] ?? return false
+    return decl.comptime_synthetic
 }
 
 // The sites gathered so far, the spans already holding a named site, and the

@@ -1,0 +1,24 @@
+// A free function and an impl member share a name but not a return type: each
+// keeps the one its own body gives it.
+module "snippet"
+
+import "std/io"
+
+Shape :: trait {
+    area :: fn(self) -> i32
+}
+
+Sq :: struct { side: i32 }
+
+Sq implements Shape {
+    area :: fn(self) = self.side * self.side
+}
+
+area :: fn(label: string) = "area of ${label}"
+
+main :: fn() -> i32 {
+    label: string: area("x")
+    println(label)
+    println("${Sq { .side = 3 }.area()}")
+    return 0
+}

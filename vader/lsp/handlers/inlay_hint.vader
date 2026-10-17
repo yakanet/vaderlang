@@ -20,7 +20,6 @@ import "std/collections"
 import "json"
 import "vader/diagnostics"
 import "vader/resolver"
-import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
 import "vader/lsp/protocol"
@@ -328,22 +327,16 @@ emit_let_hint :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]) -> void {
 }
 
 /// Same shape as `emit_let_hint`, but for top-level `ConstDecl`. The
-/// type comes from `decl_types[sym.id]` — that's the final defaulted
+/// type comes from `declared_type_at`: that's the final defaulted
 /// form (`FreeInt`→`i32`, `FreeFloat`→`f64`), whereas `expr_types`
 /// keeps the un-defaulted free type. Type-alias constants (`Type ::
 /// i32 | string`) get `TY_TYPE` ; we skip those — they're already
 /// self-describing.
 emit_const_hint :: fn(cd: AST.ConstDecl, ctx: HintCtx, out: JsonValue[]) -> void {
-    sym :: lookup_const_sym(ctx.typed.resolved, cd.name) ?? return
-    ty :: ctx.typed.decl_types[sym.id] ?? return
+    ty :: declared_type_at(ctx.typed, cd.name_span) ?? return
     if ty is UnresolvedType { return }
     if ty is TypeMetaType { return }
     emit_operator_hint(ctx, cd.name_span, cd.value.span, display_type(ty), out)
-}
-
-lookup_const_sym :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
-    for s in resolved.symbols { if s.name == name { return s } }
-    return null
 }
 
 build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {

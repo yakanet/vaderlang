@@ -155,8 +155,7 @@ reject_variant_data_reference :: fn(
 /// @param decl   an enum declaration of the module `typed` checks.
 /// @param typed  the module, whose types hold the enum's.
 export declared_enum_data :: fn(decl: EnumDecl, typed: TypedProgram) -> StructType | null {
-    sym :: lookup_sym_by_name(typed.resolved, decl.name) ?? return null
-    t :: typed.decl_types[sym.id]
+    t :: declared_type_at(typed, decl.name_span)
     if t is EnumType {
         return t.data
     }

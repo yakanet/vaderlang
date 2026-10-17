@@ -116,8 +116,8 @@ evaluate_module_decls :: fn(
         // the C4001 — unless the RHS isn't a stageable nullary call, in which
         // case the diagnostic stands.
         if result.vm_required {
-            symbol :: lookup_const_symbol(decl, typed)
-            if symbol is Symbol {
+            symbol :: symbol_declared_at(typed.resolved, decl.name_span)
+            if symbol != null {
                 record :: build_vm_required(decl, symbol, typed, module_id)
                 if record is VmRequiredDecl {
                     project.vm_required.push(record)
@@ -129,8 +129,8 @@ evaluate_module_decls :: fn(
         }
         value :: result.value
         if value !is null {
-            symbol :: lookup_const_symbol(decl, typed)
-            if !(symbol is null) {
+            symbol :: symbol_declared_at(typed.resolved, decl.name_span)
+            if symbol != null {
                 program.comptime_decls[symbol.id] = value
                 program.routes[symbol.id] = .Marked
             }
@@ -148,16 +148,14 @@ evaluate_module_decls :: fn(
             if has_comptime_decorator(decl) {
                 continue
             }
-            symbol :: lookup_const_symbol(decl, typed) ?? continue
-            if symbol is Symbol {
-                if program.comptime_decls[symbol.id] !is null {
-                    continue
-                }
-                result :: evaluate_expr(decl.value, context)
-                if result.value !is null {
-                    program.comptime_decls[symbol.id] = result.value
-                    program.routes[symbol.id] = .Folded
-                }
+            symbol :: symbol_declared_at(typed.resolved, decl.name_span) ?? continue
+            if program.comptime_decls[symbol.id] !is null {
+                continue
+            }
+            result :: evaluate_expr(decl.value, context)
+            if result.value !is null {
+                program.comptime_decls[symbol.id] = result.value
+                program.routes[symbol.id] = .Folded
             }
         }
     }
@@ -227,7 +225,7 @@ bake_one_file_expr :: fn(
         .name = constant_name(constant),
     })
     if constant != null {
-        symbol :: lookup_const_symbol(constant, program.typed) ?? return
+        symbol :: symbol_declared_at(program.typed.resolved, constant.name_span) ?? return
         project.file_baked_consts[symbol.id] = string_val(content)
     }
 }

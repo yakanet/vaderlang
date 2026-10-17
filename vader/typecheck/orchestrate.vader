@@ -428,6 +428,7 @@ synth_resolved :: fn() -> ResolvedModule {
         .idents = MutableMap<u64, Symbol> {},
         .immutable_locals = MutableMap<i32, bool> {},
         .fn_overloads = MutableMap<string, Symbol[]> {},
+        .declarations = MutableMap<u64, Symbol> {},
         .imports_to = MutableMap<i32, Symbol> {},
         .alias_types = MutableMap<i32, Type> {},
         .alias_params = MutableMap<i32, TypeParamType[]> {},
@@ -687,11 +688,8 @@ check_module_fn_redefinitions :: fn(
     tp :: per_module[id] ?? return
     loaded :: project.modules[id] ?? return
     // Group fn decls by name (cheap — no type resolution) ; resolve signatures
-    // only for names with ≥2 decls. Signatures come from the AST, not
-    // `decl_types` : a cross-file duplicate at the same (line, col) is left
-    // untyped because `lookup_fn_symbol_by_span` matches spans file-blind, so the
-    // second `main` of the `vader run dir/file.vader` footgun never lands in
-    // `decl_types`. The AST is the authoritative source of declared params.
+    // only for names with ≥2 decls. Signatures come from the AST, the
+    // authoritative source of declared params, not from `decl_types`.
     by_name :: MutableMap<string, AST.FnDecl[]> {}
     for decl in merge_module_program(loaded.module.files).decls {
         if decl !is AST.FnDecl {
@@ -1417,13 +1415,10 @@ settle_pending_aliases :: fn(typed: TypedProgram, pending: AST.Decl[]) -> AST.De
 // settle yet. Any other decl has nothing to register.
 register_alias_decl :: fn(decl: AST.Decl, typed: TypedProgram) -> bool {
     if decl is AST.TypeAliasDecl {
+        sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? return true
         aliased :: type_from_expr(decl.aliased, typed.resolved, diag_sink())
-        for s in typed.resolved.symbols {
-            if s.name == decl.name {
-                typed.resolved.alias_types[s.id] = aliased
-                typed.resolved.alias_params[s.id] = quantifier_of(decl.type_params, typed.resolved)
-            }
-        }
+        typed.resolved.alias_types[sym.id] = aliased
+        typed.resolved.alias_params[sym.id] = quantifier_of(decl.type_params, typed.resolved)
         return !contains_unresolved(aliased)
     }
     if decl is AST.ConstDecl {
@@ -1561,14 +1556,10 @@ broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram>, project
     collected :: MutableMap<i32, Type> {}
     for [id, typed] in per_module {
         loaded :: project.modules[id] ?? continue
-        by_name :: MutableMap<string, Symbol> {}
-        for s in typed.resolved.symbols {
-            by_name[s.name] = s
-        }
         for file in loaded.module.files {
             for decl in file.program.decls {
                 if decl is AST.EnumDecl {
-                    sym :: by_name[decl.name] ?? continue
+                    sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? continue
                     collected[sym.id] = build_enum_type(sym, decl, typed.resolved, diag_sink())
                 }
             }
@@ -1585,14 +1576,11 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
     if !is_type_expr(cd.value, typed.resolved) {
         return false
     }
+    sym :: symbol_declared_at(typed.resolved, cd.name_span) ?? return true
     aliased :: type_from_expr(cd.value, typed.resolved, diag_sink())
     // `alias_for` (decl.vader, same module) is the shared distinct promotion rule ;
     // this cross-project pass is the authoritative writer of `alias_types`.
-    for s in typed.resolved.symbols {
-        if s.name == cd.name {
-            typed.resolved.alias_types[s.id] = alias_for(s, aliased, cd)
-        }
-    }
+    typed.resolved.alias_types[sym.id] = alias_for(sym, aliased, cd)
     return true
 }
 
@@ -2433,9 +2421,9 @@ export walk_bodies :: fn(
 check_field_defaults :: fn(
     decl: AST.StructDecl, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
+    sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? return
     for f in decl.fields {
         dv :: f.default ?? continue
-        sym :: lookup_sym_by_name(typed.resolved, decl.name) ?? return
         field_ty :: resolved_field_type(sym.id, decl, f.name, typed, diags) ?? continue
         got :: check_expr(dv, field_ty, typed, diags)
         emit_mismatch_if(got, field_ty, f.span, dv, .TypeMismatch, typed, diags)
@@ -2891,7 +2879,7 @@ param_type :: fn(
 }
 
 check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
-    sym :: lookup_sym_by_name(typed.resolved, cd.name) ?? return
+    sym :: symbol_declared_at(typed.resolved, cd.name_span) ?? return
     // Only a written type is the expected type. An unannotated const's entry is what
     // an earlier walk inferred — a return-only walk types it before the expression-
     // bodied fns it calls have their return, and would pin it to `?`.

@@ -10,6 +10,7 @@ import "toolchain/ast"
 import "vader/typecheck"
 import "vader/types"
 import "vader/comptime"
+import "vader/resolver"
 import "vader/resolver/symbol"
 import "toolchain/span"
 
@@ -371,7 +372,7 @@ lower_struct_decl :: fn(
 lookup_struct_field_table :: fn(
     struct_decl: StructDecl, typed: TypedProgram,
 ) -> MutableMap<string, Type> | null {
-    sym :: symbol_for_decl(struct_decl, typed) ?? return null
+    sym :: symbol_declared_at(typed.resolved, struct_decl.name_span) ?? return null
     return typed.struct_field_types[sym.id]
 }
 
@@ -397,7 +398,7 @@ lower_const_decl :: fn(
 ) -> LoweredDecl | null {
     subst :: new_substitution()
     types :: make_entry_types(typed, subst)
-    type_val :: types.const_decl_type(const_decl)
+    type_val :: types.declared_type(const_decl.name_span)
     // Implicit / explicit type-alias consts (`const T: type = i32 | string`,
     // or `Mixed :: i32 | string` with the alias detected during decl typing)
     // have no runtime slot — use sites resolve via `alias_types`. Skip
@@ -430,11 +431,8 @@ lookup_comptime_value :: fn(
     const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> ComptimeValue | null {
     program :: project_ctx.evaluated.modules[typed.resolved.path] ?? return null
-    symbol :: lookup_const_symbol(const_decl, typed) ?? return null
-    if symbol is Symbol {
-        return program.comptime_decls[symbol.id]
-    }
-    return null
+    symbol :: symbol_declared_at(typed.resolved, const_decl.name_span) ?? return null
+    return program.comptime_decls[symbol.id]
 }
 
 
@@ -442,16 +440,10 @@ lookup_comptime_value :: fn(
 // back to `void` when the decl-type lookup misses (the fn was rejected
 // upstream — cascading diagnostics already surfaced).
 return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
-    decl_type :: types.fn_decl_type(fn_decl)
-    if decl_type is FnType { return decl_type.return_type }
-    // Impl members aren't in `decl_types` (Symbol.id-keyed for
-    // top-level decls). They live in `impl_method_decl_types`
-    // keyed by name_span via `Span.hash()` — consult that as a
-    // fallback so impl-member return types stop falling through
-    // to TY_VOID. Apply the entry's subst so an erasure-flavoured
-    // EntryTypes still produces an erased return type.
-    impl_type :: types.typed.impl_method_decl_types[fn_decl.name_span.hash()]
-    if impl_type is FnType { return types.apply(impl_type.return_type) }
+    decl_type :: types.declared_type(fn_decl.name_span)
+    if decl_type is FnType {
+        return decl_type.return_type
+    }
     return TY_VOID
 }
 
@@ -469,9 +461,7 @@ stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
     // the bytecode emit's `function_index_by_symbol_id` index) can route
     // call sites — `LoweredIdent.symbol` holds the same id, so the two
     // ends meet at the resolver symbol rather than the (null) mono one.
-    // `symbol_for_decl` disambiguates fn overloads via `name_span`, which
-    // a name-only lookup would mis-route.
-    resolved_symbol :: symbol_for_decl(decl, typed)
+    resolved_symbol :: decl_symbol(typed.resolved, decl)
     return MonoEntry {
         .id             = 0,
         .is_main        = is_main_decl(decl),
@@ -487,24 +477,11 @@ stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
 // The overload suffix of `decl` in its module (`overload_suffix`) ; `""` for a
 // declaration that is not a fn.
 overload_suffix_for :: fn(decl: Decl, typed: TypedProgram) -> string {
-    name_span :: decl_name_span(decl) ?? return ""
-    return overload_suffix(typed.resolved, decl_name(decl), name_span)
-}
-
-decl_name_span :: fn(decl: Decl) -> Span | null {
-    match decl {
-        is FnDecl        -> { return decl.name_span }
-        is StructDecl    -> { return decl.name_span }
-        is ConstDecl     -> { return decl.name_span }
-        is ImportDecl    -> { return null }
-        is EnumDecl      -> { return null }
-        is TraitDecl     -> { return null }
-        is ImplDecl      -> { return null }
-        is TypeAliasDecl -> { return null }
-        is AssertDecl    -> { return null }
+    if decl is FnDecl {
+        return overload_suffix(typed.resolved, decl.name, decl.name_span)
     }
+    return ""
 }
-
 
 // Recover the source name from any top-level decl. Feeds `stub_entry`'s
 // module-qualified `mangled` field (`<module>$<name>` + overload suffix) —

@@ -33,3 +33,7 @@ main :: fn() -> i32 {
     println(greeting())
     return 0
 }
+
+// dead : private `@comptime` const → one W0007, on the const ; the
+// `__comptime_STALE_TABLE` fn the parser makes for it is not reported.
+STALE_TABLE :: @comptime { 1 + 2 }

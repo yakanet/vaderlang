@@ -443,14 +443,11 @@ collect_decl :: fn(
     match d {
         is FnDecl -> {
             // `__comptime_NAME` synthetic fns (from the `NAME :: @comptime …`
-            // desugar, parser.vader::desugar_comptime_const) are compiler-internal
-            // — the user's symbol is the CONST, indexed separately below. Don't
-            // surface them as outline symbols: the synthetic fn's `name_span`
-            // points at the const NAME, OUTSIDE its `@comptime`-block `span`, so a
-            // `DocumentSymbol` over it trips the client's "selectionRange must be
-            // contained in fullRange" check and drops the WHOLE response. Still
-            // walk the body so goto-def works on locals inside the block.
-            if !d.name.starts_with("__comptime_") {
+            // desugar, parser.vader::desugar_comptime_const) are compiler-internal:
+            // the user's symbol is the CONST, indexed separately below, so they
+            // are not outline symbols. Still walk the body so goto-def works on
+            // locals inside the block.
+            if !d.comptime_synthetic {
                 entries.push(top_entry(d.name, .Fn, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
             }
             ix_walk_fn_body(d, source, entries)

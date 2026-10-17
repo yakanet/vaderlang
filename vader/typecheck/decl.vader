@@ -2,7 +2,7 @@
 //
 // Walks every
 // top-level decl in source order, mints its declared `Type`, and stores
-// the result in `typed.decl_types` keyed by the decl's `name_span`.
+// the result in `typed.decl_types` keyed by the decl's symbol id.
 // Later passes (body checking, ImplRegistry building) read this side
 // table without re-walking the AST.
 //
@@ -33,54 +33,25 @@ import "toolchain/span"
 /// Walk every top-level decl in `program.decls` and mint its `Type` into
 /// `typed.decl_types`. The pass is single-shot — re-running it is
 /// idempotent if `decl_types` is cleared first.
-///
-/// Builds a `name → Symbol` map up front so per-decl lookups don't scan
-/// the sorted `resolved.symbols` array N times.
 export declare_module :: fn(
     program_decls: AST.Decl[],
     resolved: ResolvedModule,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    by_name :: MutableMap<string, Symbol> {}
-    for s in resolved.symbols {
-        by_name[s.name] = s
-    }
     for decl in program_decls {
         record_type_param_symbols(decl, resolved, typed)
     }
     for decl in program_decls {
-        declare_decl(decl, by_name, resolved, typed, diags)
-        register_deprecated(decl, by_name, resolved)
+        declare_decl(decl, resolved, typed, diags)
+        register_deprecated(decl, resolved)
     }
 }
 
-register_deprecated :: fn(
-    decl: AST.Decl,
-    by_name: MutableMap<string, Symbol>,
-    resolved: ResolvedModule,
-) -> void {
-    name :: decorated_decl_name(decl)
-    if name == "" {
-        return
-    }
+register_deprecated :: fn(decl: AST.Decl, resolved: ResolvedModule) -> void {
     msg :: deprecated_message(decorated_decl_decorators(decl)) ?? return
-    sym :: by_name[name] ?? return
+    sym :: decl_symbol(resolved, decl) ?? return
     resolved.deprecated_messages[sym.id] = msg
-}
-
-decorated_decl_name :: fn(d: AST.Decl) -> string {
-    // Only the named decl kinds carry a name; Impl / Assert / Import are
-    // anonymous → "" (no symbol to attach a deprecation message to).
-    return match d {
-        is AST.FnDecl -> { d.name }
-        is AST.StructDecl -> { d.name }
-        is AST.EnumDecl -> { d.name }
-        is AST.TraitDecl -> { d.name }
-        is AST.TypeAliasDecl -> { d.name }
-        is AST.ConstDecl -> { d.name }
-        is AST.ImportDecl | AST.ImplDecl | AST.AssertDecl -> { "" }
-    }
 }
 
 decorated_decl_decorators :: fn(d: AST.Decl) -> AST.Decorator[] {
@@ -119,48 +90,43 @@ deprecated_message :: fn(decs: AST.Decorator[]) -> string | null {
 
 declare_decl :: fn(
     decl: AST.Decl,
-    by_name: MutableMap<string, Symbol>,
     resolved: ResolvedModule,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
     match decl {
-        is AST.FnDecl     -> { declare_fn(decl, by_name, resolved, typed, diags) }
+        is AST.FnDecl     -> { declare_fn(decl, resolved, typed, diags) }
         is AST.StructDecl -> {
-            declare_named_with_args(decl.name, decl.type_params, by_name, typed, mk_struct)
+            sym :: symbol_declared_at(resolved, decl.name_span) ?? return
+            declare_named_with_args(sym, decl.type_params, typed, mk_struct)
             // Index the struct decl by symbol id so `field.vader` can
             // walk fields without re-traversing the program AST.
-            sym :: by_name[decl.name]
-            if sym is Symbol {
-                typed.struct_decls[sym.id] = decl
-                // Pre-resolve every field's type using THIS module's
-                // resolved.idents. Cross-module field lookups (entry
-                // struct lives in `std/collections` but `entry.value`
-                // is read from main) consult these directly via the
-                // owner module's bindings.
-                fields_map :: MutableMap<string, Type> {}
-                // A private field (`@internal`) is invisible across the module
-                // boundary, so it never leaks — only public fields of an
-                // exported struct expose their type through the interface.
-                struct_public :: decl.visibility == .Public
-                for f in decl.fields {
-                    fty :: type_from_expr(f.ty, resolved, diags)
-                    fields_map[f.name] = fty
-                    if struct_public && f.visibility == .Public {
-                        report_private_leak(fty, f.ty.span, decl.name, "exposes a field of type", diags)
-                    }
+            typed.struct_decls[sym.id] = decl
+            // Pre-resolve every field's type using THIS module's
+            // resolved.idents. Cross-module field lookups (entry
+            // struct lives in `std/collections` but `entry.value`
+            // is read from main) consult these directly via the
+            // owner module's bindings.
+            fields_map :: MutableMap<string, Type> {}
+            // A private field (`@internal`) is invisible across the module
+            // boundary, so it never leaks: only public fields of an
+            // exported struct expose their type through the interface.
+            struct_public :: decl.visibility == .Public
+            for f in decl.fields {
+                fty :: type_from_expr(f.ty, resolved, diags)
+                fields_map[f.name] = fty
+                if struct_public && f.visibility == .Public {
+                    report_private_leak(fty, f.ty.span, decl.name, "exposes a field of type", diags)
                 }
-                typed.struct_field_types[sym.id] = fields_map
             }
+            typed.struct_field_types[sym.id] = fields_map
         }
-        is AST.EnumDecl  -> { declare_enum(decl, by_name, resolved, typed, diags) }
+        is AST.EnumDecl  -> { declare_enum(decl, resolved, typed, diags) }
         is AST.TraitDecl -> {
-            declare_named_with_args(decl.name, decl.type_params, by_name, typed, mk_trait)
-            sym :: by_name[decl.name]
-            if sym is Symbol {
-                typed.trait_decls[sym.id] = decl
-                typed.trait_decl_owners[sym.id] = resolved
-            }
+            sym :: symbol_declared_at(resolved, decl.name_span) ?? return
+            declare_named_with_args(sym, decl.type_params, typed, mk_trait)
+            typed.trait_decls[sym.id] = decl
+            typed.trait_decl_owners[sym.id] = resolved
         }
         is AST.TypeAliasDecl -> { declare_type_alias(decl, resolved, typed, diags) }
         is AST.ConstDecl     -> { declare_const(decl, resolved, typed, diags) }
@@ -210,13 +176,11 @@ listed_type_params :: fn(decl: AST.Decl) -> AST.TypeParam[] {
 /// constructor (`mk_struct` vs `mk_trait`). The declared type's arguments are the
 /// type parameters themselves (`declared_type_args`).
 declare_named_with_args :: fn(
-    name: string,
+    sym: Symbol,
     type_params: AST.TypeParam[],
-    by_name: MutableMap<string, Symbol>,
     typed: TypedProgram,
     mk: fn(Symbol, Type[]) -> Type,
 ) -> void {
-    sym :: by_name[name] ?? return
     args :: declared_type_args(type_params, typed) ?? return
     typed.decl_types[sym.id] = mk(sym, args)
 }
@@ -236,7 +200,6 @@ declared_type_args :: fn(tps: AST.TypeParam[], typed: TypedProgram) -> Type[] | 
 
 declare_fn :: fn(
     decl: AST.FnDecl,
-    by_name: MutableMap<string, Symbol>,
     resolved: ResolvedModule,
     typed: TypedProgram,
     diags: Diagnostic[],
@@ -246,10 +209,8 @@ declare_fn :: fn(
         params.push(declare_fn_param(p, resolved, typed, diags))
     }
     return_type :: declare_fn_return(decl, resolved, diags)
-    // For overloaded fns, `by_name[fn_name]` returns only ONE symbol.
-    // Match by span so each overload gets its own decl_types entry.
-    sym :: lookup_fn_symbol_by_span(decl, resolved, by_name)
-    if sym is Symbol {
+    sym :: symbol_declared_at(resolved, decl.name_span)
+    if sym != null {
         typed.decl_types[sym.id] = mk_fn(
             params, return_type, quantifier_of(decl.type_params, resolved),
         )
@@ -1084,27 +1045,6 @@ is_extern_abi_element :: fn(t: Type) -> bool {
     }
 }
 
-lookup_fn_symbol_by_span :: fn(
-    decl: AST.FnDecl,
-    resolved: ResolvedModule,
-    by_name: MutableMap<string, Symbol>,
-) -> Symbol | null {
-    bucket :: resolved.fn_overloads[decl.name]
-    if bucket !is null {
-        for s in bucket {
-            sp :: s.defined_at ?? continue
-            // Match the file too : two overloads at the same (line, column)
-            // in DIFFERENT sibling files of a module would otherwise collide,
-            // and the second's decl_types entry would never be written (the
-            // file-blind hazard `Span.hash()` already folds the file hash for).
-            if sp.start.line == decl.name_span.start.line && sp.start.column == decl.name_span.start.column && sp.start.file == decl.name_span.start.file {
-                return s
-            }
-        }
-    }
-    return by_name[decl.name]
-}
-
 // `main` must return i32 and either take no params or a single
 // `[string]` arg — emitters wire the entry point assuming both.
 check_main_signature :: fn(
@@ -1185,17 +1125,14 @@ declare_fn_return :: fn(
 
 declare_enum :: fn(
     decl: AST.EnumDecl,
-    by_name: MutableMap<string, Symbol>,
     resolved: ResolvedModule,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    sym :: by_name[decl.name]
-    if sym is Symbol {
-        enum_type :: build_enum_type(sym, decl, resolved, diags)
-        typed.decl_types[sym.id] = enum_type
-        resolved.alias_types[sym.id] = enum_type
-    }
+    sym :: symbol_declared_at(resolved, decl.name_span) ?? return
+    enum_type :: build_enum_type(sym, decl, resolved, diags)
+    typed.decl_types[sym.id] = enum_type
+    resolved.alias_types[sym.id] = enum_type
 }
 
 declare_type_alias :: fn(
@@ -1207,13 +1144,10 @@ declare_type_alias :: fn(
     aliased :: type_from_expr(decl.aliased, resolved, diags)
     // Index by alias symbol id ; `decl_types` and `alias_types` share
     // the key so use sites get the expanded union.
-    for s in resolved.symbols {
-        if s.name == decl.name {
-            typed.decl_types[s.id] = aliased
-            resolved.alias_types[s.id] = aliased
-            resolved.alias_params[s.id] = quantifier_of(decl.type_params, resolved)
-        }
-    }
+    sym :: symbol_declared_at(resolved, decl.name_span) ?? return
+    typed.decl_types[sym.id] = aliased
+    resolved.alias_types[sym.id] = aliased
+    resolved.alias_params[sym.id] = quantifier_of(decl.type_params, resolved)
 }
 
 declare_const :: fn(
@@ -1222,7 +1156,7 @@ declare_const :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    sym :: lookup_sym_by_name(resolved, decl.name) ?? return
+    sym :: symbol_declared_at(resolved, decl.name_span) ?? return
     typed.const_decls[sym.id] = decl
     annotation :: decl.ty
     if annotation != null {
@@ -1277,15 +1211,6 @@ distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
         return true
     }
     return false
-}
-
-lookup_sym_by_name :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
-    for s in resolved.symbols {
-        if s.name == name {
-            return s
-        }
-    }
-    return null
 }
 
 // ---- helpers --------------------------------------------------------------

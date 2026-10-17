@@ -9,7 +9,7 @@ module "vader/comptime"
 
 import "std/collections"
 import "vader/diagnostics"
-import "vader/resolver/symbol"
+import "vader/resolver"
 import "vader/typecheck"
 AST :: import "toolchain/ast"
 
@@ -93,7 +93,7 @@ has_comptime_decorator :: fn(decl: AST.ConstDecl) -> bool {
 populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
     for id in nodes.order {
         record :: nodes.by_id[id] ?? continue
-        symbol :: lookup_const_symbol(record.decl, typed) ?? continue
+        symbol :: symbol_declared_at(typed.resolved, record.decl.name_span) ?? continue
         nodes.by_symbol[symbol.id] = id
     }
     for id in nodes.order {
@@ -334,7 +334,7 @@ collect_stmt_deps :: fn(
 
 import "std/testing"
 import "vader/parser"
-import "vader/resolver"
+import "vader/resolver/symbol"
 
 build_order :: fn(src: string) -> ComptimeOrder {
     parsed :: parse_source(src, "t.vader")

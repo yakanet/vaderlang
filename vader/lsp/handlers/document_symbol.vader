@@ -82,8 +82,7 @@ symbol_json :: fn(e: DeclEntry, li: LineIndex) -> JsonValue {
     // The LSP requires `selectionRange ⊆ range`. A malformed `name_span` (a
     // synthetic decl whose name span sits outside its full span) would otherwise
     // make the client reject the ENTIRE `documentSymbol` response — fall back to
-    // the full span when the name span isn't contained. Belt-and-suspenders: the
-    // indexer already drops the known offender (`__comptime_*` synthetic fns).
+    // the full span when the name span isn't contained.
     sel :: if span_encloses(e.full_span, e.name_span) { e.name_span } else { e.full_span }
     obj["selectionRange"] = range_json(sel.span_to_range_json(li))
     return JsonObject { .entries = obj }
@@ -155,11 +154,10 @@ Box implements Contains<i32> -> value == self.v
 
 @test
 test_comptime_const_synthetic_fn_not_a_symbol :: fn() -> void {
-    // `NAME :: @comptime { … }` desugars to a synthetic `__comptime_NAME` fn whose
-    // `name_span` (the const name) sits OUTSIDE its `@comptime`-block `span`. It
-    // must not surface as an outline symbol — else the bad span trips the client's
-    // "selectionRange must be contained in fullRange" check and drops the whole
-    // response (the bug this guards — observed on `std/crypto::MD5_K`).
+    // `NAME :: @comptime { … }` desugars to a synthetic `__comptime_NAME` fn,
+    // compiler-internal: the outline shows the const alone, and every surfaced
+    // symbol's name span stays inside its full span (a client drops the whole
+    // response otherwise).
     src :: """
 K :: @comptime {
     1 + 2

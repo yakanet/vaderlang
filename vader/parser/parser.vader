@@ -1613,8 +1613,8 @@ parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
 // verbatim as the fn body (so a `return` inside it works) ; any other expression
 // is wrapped as the block's trailing expression.
 desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token, ty: TypeExpr | null) -> ConstDecl {
-    at_tok :: p.advance()   // `@`
-    p.advance()             // `comptime`
+    at_tok :: p.advance()         // `@`
+    comptime_tok :: p.advance()   // `comptime`
     // A `{ … }` block isn't an expression-position prefix, so parse it directly ;
     // anything else goes through the expression parser. `wrap_as_block` is a
     // no-op on a block and wraps a bare expr as its trailing.
@@ -1629,7 +1629,9 @@ desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Vis
     synth_fn :: FnDecl {
         .span                 = p.span_of(at_tok, end_tok),
         .name                 = synth_name,
-        .name_span            = name_tok.span,
+        // `@comptime`, not the const's name: a name span identifies one
+        // declaration (`symbol_declared_at`), and the const owns that one.
+        .name_span            = p.span_of(at_tok, comptime_tok),
         .visibility           = .Private,
         .type_params          = [],
         .params               = [],
