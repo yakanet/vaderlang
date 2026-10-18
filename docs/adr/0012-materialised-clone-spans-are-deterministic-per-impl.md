@@ -18,8 +18,8 @@ carrying the *trait's* spans, and two resolver tables are keyed on spans:
 `expr_types` and `expr_kinds` are id-keyed and were never exposed to this.
 
 A trait method's spans are shared by every impl of that trait, so leaving them on
-the clones made distinct nodes collide. Three failures came out of that, each in a
-different table:
+the clones made distinct nodes collide. Four failures came out of that, across
+three tables:
 
 1. **Body idents.** `std/core` implements `Comparable` for i8 … char; all those
    impls share one `gt` / `gte` / … default body. The cloned bodies hashed to one
@@ -36,6 +36,13 @@ different table:
    (lower, a span-keyed `idents` lookup) read the *last* impl's `self` Symbol
    while the body's `self` resolved to the right one; CFG build failed with
    `unresolved ident self`.
+
+4. **A default member's signature** (found 2026-10-18). A default-method clone
+   kept the trait method's own `name_span`, distinct per method but shared by
+   every impl, so `impl_method_decl_types` held the signature of the last impl
+   checked. A default returning `Self` read another impl's `Self`:
+   `pick :: fn(x: Self) -> Self = Self.lowest()` on `P` and `Q` was T3020
+   "expected Q, got P" in `P`'s clone.
 
 Uniqueness alone does not fix this, and that is the non-obvious part. Deriving the
 span from the per-clone node id is unique and still wrong: `std/core`'s default
@@ -57,9 +64,9 @@ counter   = 0, incremented once per cloned node
 file      = CLONE_FILE_PREFIX + impl_.trait_name_span.start.file
 ```
 
-Every cloned node draws its span from that one counter — block, stmt, expr, and
-**every param including `self`**. The counter accumulates across all of the
-impl's members rather than resetting per member.
+Every cloned node draws its span from that one counter: block, stmt, expr,
+**every param including `self`**, and the member's own `name_span`. The counter
+accumulates across all of the impl's members rather than resetting per member.
 
 Each ingredient answers one of the collisions above:
 

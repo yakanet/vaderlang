@@ -103,18 +103,13 @@ synth_with_body :: fn(
         .span = method.span,
         .id = id,
         .name = method.name,
-        // The trait method's name span, distinct per default method — not the
-        // shared `impl_.trait_name_span`, which is name-span-keyed into
-        // `impl_method_decl_types` and would collapse a trait's default methods
-        // onto one return type.
-        .name_span = method.name_span,
+        // Unique per (impl, method) : `impl_method_decl_types` is name-span-keyed.
+        .name_span = next_clone_span(stamp),
         .visibility = .Public,
         .type_params = [],
         // EVERY param, `self` included, draws from the SAME `StampCtx` as the
         // body : `build_impl_member_params` (lower) looks the param Symbol up in
-        // the span-keyed `idents`, so param and body must agree on the span.
-        // Anchoring `self` at the trait method's shared `name_span` instead
-        // makes it read a sibling impl's Symbol. See
+        // the span-keyed `idents`, so param and body must agree on the span. See
         // docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
         .params = substitute_params_stamped(method.params, subst, stamp),
         .return_type = substitute_opt_type(method.return_type, subst),

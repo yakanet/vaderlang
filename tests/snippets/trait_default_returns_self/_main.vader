@@ -1,0 +1,39 @@
+// A trait default whose signature names `Self` is cloned into each impl with that
+// impl's `Self` : three impls, a static default calling a static member through
+// `Self` and an instance default returning `Self`, each read at its own type.
+
+module "snippet"
+
+import "std/io"
+
+Floor :: trait {
+    lowest :: fn() -> Self
+    floor :: fn() -> Self = Self.lowest()
+    reset :: fn(self) -> Self = Self.lowest()
+}
+
+Point :: struct {
+    x: i32
+}
+
+Day :: enum { Mon, Tue, Wed }
+
+i32 implements Floor {
+    lowest :: fn() -> i32 = -5
+}
+
+Point implements Floor {
+    lowest :: fn() -> Point = Point { .x = 1 }
+}
+
+Day implements Floor {
+    lowest :: fn() -> Day = .Tue
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 4 }
+    println("${i32.floor()} ${7.reset()}")
+    println("${Point.floor().x} ${p.reset().x}")
+    println("${Day.floor() == .Tue} ${Day.Wed.reset() == .Tue}")
+    return 0
+}

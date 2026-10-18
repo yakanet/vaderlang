@@ -1,0 +1,509 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ImportDecl",
+        "path": "std/io",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "TraitDecl",
+        "name": "Floor",
+        "visibility": "private",
+        "typeParams": [],
+        "requires": null,
+        "members": [
+          {
+            "kind": "FnDecl",
+            "name": "lowest",
+            "visibility": "private",
+            "typeParams": [],
+            "params": [],
+            "returnType": {
+              "kind": "IdentExpr",
+              "name": "Self"
+            },
+            "body": null,
+            "decorators": []
+          },
+          {
+            "kind": "FnDecl",
+            "name": "floor",
+            "visibility": "private",
+            "typeParams": [],
+            "params": [],
+            "returnType": {
+              "kind": "IdentExpr",
+              "name": "Self"
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "Self"
+                  },
+                  "field": "lowest"
+                },
+                "args": []
+              }
+            },
+            "decorators": [],
+            "isExpressionBodied": true
+          },
+          {
+            "kind": "FnDecl",
+            "name": "reset",
+            "visibility": "private",
+            "typeParams": [],
+            "params": [
+              {
+                "name": "self",
+                "type": null,
+                "defaultValue": null,
+                "variadic": false
+              }
+            ],
+            "returnType": {
+              "kind": "IdentExpr",
+              "name": "Self"
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "Self"
+                  },
+                  "field": "lowest"
+                },
+                "args": []
+              }
+            },
+            "decorators": [],
+            "isExpressionBodied": true
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "StructDecl",
+        "name": "Point",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [
+          {
+            "name": "x",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "EnumDecl",
+        "name": "Day",
+        "visibility": "private",
+        "header": [],
+        "variants": [
+          {
+            "name": "Mon",
+            "value": null,
+            "data": null
+          },
+          {
+            "name": "Tue",
+            "value": null,
+            "data": null
+          },
+          {
+            "name": "Wed",
+            "value": null,
+            "data": null
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "ImplDecl",
+        "typeParams": [],
+        "forType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "traitName": "Floor",
+        "traitArgs": [],
+        "members": [
+          {
+            "kind": "FnDecl",
+            "name": "lowest",
+            "visibility": "private",
+            "typeParams": [],
+            "params": [],
+            "returnType": {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "IntLitExpr",
+                "value": "-5n"
+              }
+            },
+            "decorators": [],
+            "isExpressionBodied": true
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "ImplDecl",
+        "typeParams": [],
+        "forType": {
+          "kind": "IdentExpr",
+          "name": "Point"
+        },
+        "traitName": "Floor",
+        "traitArgs": [],
+        "members": [
+          {
+            "kind": "FnDecl",
+            "name": "lowest",
+            "visibility": "private",
+            "typeParams": [],
+            "params": [],
+            "returnType": {
+              "kind": "IdentExpr",
+              "name": "Point"
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "StructLitExpr",
+                "typeName": {
+                  "kind": "IdentExpr",
+                  "name": "Point"
+                },
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "x",
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "1n"
+                    }
+                  }
+                ]
+              }
+            },
+            "decorators": [],
+            "isExpressionBodied": true
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "ImplDecl",
+        "typeParams": [],
+        "forType": {
+          "kind": "IdentExpr",
+          "name": "Day"
+        },
+        "traitName": "Floor",
+        "traitArgs": [],
+        "members": [
+          {
+            "kind": "FnDecl",
+            "name": "lowest",
+            "visibility": "private",
+            "typeParams": [],
+            "params": [],
+            "returnType": {
+              "kind": "IdentExpr",
+              "name": "Day"
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "DotVariantExpr",
+                "variant": "Tue"
+              }
+            },
+            "decorators": [],
+            "isExpressionBodied": true
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "p"
+              },
+              "type": null,
+              "value": {
+                "kind": "StructLitExpr",
+                "typeName": {
+                  "kind": "IdentExpr",
+                  "name": "Point"
+                },
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "x",
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "4n"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "i32"
+                              },
+                              "field": "floor"
+                            },
+                            "args": []
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IntLitExpr",
+                                "value": "7n"
+                              },
+                              "field": "reset"
+                            },
+                            "args": []
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "IdentExpr",
+                                  "name": "Point"
+                                },
+                                "field": "floor"
+                              },
+                              "args": []
+                            },
+                            "field": "x"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "IdentExpr",
+                                  "name": "p"
+                                },
+                                "field": "reset"
+                              },
+                              "args": []
+                            },
+                            "field": "x"
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "eq",
+                            "left": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "IdentExpr",
+                                  "name": "Day"
+                                },
+                                "field": "floor"
+                              },
+                              "args": []
+                            },
+                            "right": {
+                              "kind": "DotVariantExpr",
+                              "variant": "Tue"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "eq",
+                            "left": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "FieldExpr",
+                                  "target": {
+                                    "kind": "IdentExpr",
+                                    "name": "Day"
+                                  },
+                                  "field": "Wed"
+                                },
+                                "field": "reset"
+                              },
+                              "args": []
+                            },
+                            "right": {
+                              "kind": "DotVariantExpr",
+                              "variant": "Tue"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

@@ -1,0 +1,61 @@
+# Typecheck
+
+## tests/snippets/trait_default_returns_self
+  EnumDecl       Day                  :: Day
+  TraitDecl      Floor                :: Floor
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  expr 21520:1  CallExpr       :: i32
+  expr 21520:2  FieldExpr      :: fn() -> i32
+  expr 21520:3  IdentExpr      :: type
+  expr 21520:6  CallExpr       :: i32
+  expr 21520:7  FieldExpr      :: fn() -> i32
+  expr 21520:8  IdentExpr      :: type
+  expr 25618:1  CallExpr       :: Point
+  expr 25618:2  FieldExpr      :: fn() -> Point
+  expr 25618:3  IdentExpr      :: Point
+  expr 25618:6  CallExpr       :: Point
+  expr 25618:7  FieldExpr      :: fn() -> Point
+  expr 25618:8  IdentExpr      :: Point
+  expr 26:31    StructLitExpr  :: Point
+  expr 29712:1  CallExpr       :: Day
+  expr 29712:2  FieldExpr      :: fn() -> Day
+  expr 29712:3  IdentExpr      :: Day
+  expr 29712:6  CallExpr       :: Day
+  expr 29712:7  FieldExpr      :: fn() -> Day
+  expr 29712:8  IdentExpr      :: Day
+  expr 30:29    DotVariantExpr :: Day
+  expr 34:10    StructLitExpr  :: Point
+  expr 35:13    StringLitExpr  :: string
+  expr 35:16    CallExpr       :: i32
+  expr 35:16    FieldExpr      :: fn() -> i32
+  expr 35:16    IdentExpr      :: type
+  expr 35:31    CallExpr       :: i32
+  expr 35:31    FieldExpr      :: fn() -> i32
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 36:13    StringLitExpr  :: string
+  expr 36:16    CallExpr       :: Point
+  expr 36:16    FieldExpr      :: fn() -> Point
+  expr 36:16    FieldExpr      :: i32
+  expr 36:16    IdentExpr      :: Point
+  expr 36:35    CallExpr       :: Point
+  expr 36:35    FieldExpr      :: fn() -> Point
+  expr 36:35    FieldExpr      :: i32
+  expr 36:35    IdentExpr      :: Point
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 37:13    StringLitExpr  :: string
+  expr 37:16    BinaryExpr     :: bool
+  expr 37:16    CallExpr       :: Day
+  expr 37:16    FieldExpr      :: fn() -> Day
+  expr 37:16    IdentExpr      :: Day
+  expr 37:31    DotVariantExpr :: Day
+  expr 37:39    BinaryExpr     :: bool
+  expr 37:39    CallExpr       :: Day
+  expr 37:39    FieldExpr      :: Day
+  expr 37:39    FieldExpr      :: fn() -> Day
+  expr 37:39    IdentExpr      :: Day
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 37:58    DotVariantExpr :: Day
