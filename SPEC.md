@@ -1006,7 +1006,7 @@ show :: fn(r: Result) -> string {
 
 #### Common-field access
 
-When every variant of a union carries a field of the same name **at the same position**, the field is accessible directly on the union value — no outer `match` required:
+When every variant of a union of structs reads a field the same way, the field is accessible directly on the union value, with no outer `match`:
 
 ```vader
 Cat :: struct { name: string, age: i32 }
@@ -1014,15 +1014,32 @@ Dog :: struct { name: string, age: i32 }
 Animal :: Cat | Dog
 
 animal_name :: fn(a: Animal) -> string {
-    return a.name        // OK — both Cat and Dog have a `name` field
+    return a.name        // OK: both Cat and Dog have a `name: string` field first
 }
 ```
 
-The resolution applies to inline unions (`a: Cat | Dog`), to `::` type-aliases (`Animal :: Cat | Dog`), and to discriminated unions of structs/tuples. When the field types match across variants (`Cat.name: string`, `Dog.name: string`), the result is that shared type. When they diverge (`Cat.age: i32`, `Dog.age: i64`), the result is their union (`i32 | i64`) — the caller narrows with `match` to discriminate.
+The variants read the field the same way when they share a common initial sequence up to it: the field sits at the same position in each of them with the same type, and so does every field before it. Those types are what place the field in memory, so the access lowers to a single read at that offset, whichever variant the value holds. The names of the earlier fields may differ:
 
-Lowering emits a single same-offset read: one cast to the first variant, then a fixed field index. **The position must therefore agree across variants** — `Cat { name, age }` and `Dog { age, name }` put `name` at 0 and 1, and reading one as the other has no shape to work with. That is `T3008`, naming who declares it where, and the caller narrows with `if` / `match` instead.
+```vader
+Point :: struct { id: i32, label: string }
+Tag   :: struct { rank: i32, label: string }
 
-A variant-dispatch cascade (`if a is Cat { (Cat) a.f } else if a is Dog { (Dog) a.f } else …`) would lift the restriction. It is not implemented; this paragraph described it as shipped until 2026-09-06, while the compiler read the first variant's slot unconditionally and mis-typed every other variant in silence.
+label_of :: fn(x: Point | Tag) -> string = x.label   // OK: `i32`, then `label: string`, in both
+```
+
+Any disagreement is `T3008`, which names the first one, and the caller narrows with `if` / `match` instead:
+
+```vader
+Kitten :: struct { name: string, age: i32 }
+Puppy  :: struct { name: string, age: i64 }
+Narrow :: struct { tag: u8, name: string }
+Wide   :: struct { tag: i64, name: string }
+
+age_of  :: fn(a: Kitten | Puppy) = a.age     // T3008: `age` is `i32` in one, `i64` in the other
+name_of :: fn(n: Narrow | Wide) = n.name     // T3008: field 0 differs, so the offset of `name` does
+```
+
+A field declared at different positions (`Cat { name, age }` against `Dog { age, name }`) is `T3008` for the same reason. The resolution applies to inline unions (`a: Cat | Dog`) and to `::` type aliases (`Animal :: Cat | Dog`).
 
 #### Flow-narrowing on `T | null`
 

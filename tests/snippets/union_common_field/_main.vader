@@ -1,9 +1,8 @@
-// Common-field access on a discriminated union. When every
-// variant of a union carries a field with the same name, the typechecker
-// allows direct `.field` access without an outer `match`. The lowerer
-// synthesises a variant-dispatch cascade (`if e is V1 { e.f } else if
-// e is V2 { e.f } else ...`) so the runtime reads the right struct
-// layout.
+// Common-field access on a union of structs. When the variants share a common
+// initial sequence up to the field (same position, same type for it and for
+// every field before it), `u.field` reads it with no outer `match`: one cast to
+// the first variant and a plain field read, whichever variant the value holds.
+// The names of the earlier fields may differ, as in `Point` and `Tag`.
 
 module "snippet"
 
@@ -11,6 +10,11 @@ import "std/io"
 
 Cat :: struct { name: string, age: i32 }
 Dog :: struct { name: string, age: i32 }
+
+Point :: struct { id: i32, label: string }
+Tag :: struct { rank: i32, label: string }
+
+label_of :: fn(x: Point | Tag) -> string = x.label
 
 main :: fn() -> i32 {
     a: Cat | Dog: Cat { .name = "Whiskers", .age = 3 }
@@ -20,5 +24,8 @@ main :: fn() -> i32 {
     b: Cat | Dog: Dog { .name = "Rex", .age = 7 }
     println("name = ${b.name}")
     println("age  = ${b.age}")
+
+    println("label = ${label_of(Point { .id = 1, .label = "origin" })}")
+    println("label = ${label_of(Tag { .rank = 2, .label = "second" })}")
     return 0
 }

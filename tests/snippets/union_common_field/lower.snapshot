@@ -3,6 +3,11 @@
 ## snippet
   snippet.Cat :: struct { name: string, age: i32 }  // snippet$Cat
   snippet.Dog :: struct { name: string, age: i32 }  // snippet$Dog
+  snippet.Point :: struct { id: i32, label: string }  // snippet$Point
+  snippet.Tag :: struct { rank: i32, label: string }  // snippet$Tag
+  snippet.label_of :: fn(x: Point | Tag) -> string {  // snippet$label_of
+      Point(x).label
+  }
   snippet.main :: fn() -> i32 {  // snippet$main
       a: Cat | Dog = Cat { .name = "Whiskers", .age = 3 }
       std.io.println<string>(concat_2("name = ", Cat(a).name))
@@ -22,6 +27,8 @@
           __off_3 = std.core.write_int(__buf_2, __off_3, i64(Cat(b).age))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
+      std.io.println<string>(concat_2("label = ", snippet.label_of(Point { .id = 1, .label = "origin" })))
+      std.io.println<string>(concat_2("label = ", snippet.label_of(Tag { .rank = 2, .label = "second" })))
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

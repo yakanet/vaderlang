@@ -345,8 +345,8 @@ export InstrFieldGet :: struct {
     span:   Span
     dst:    LocalId
     target: LocalId
-    field:  string
     type:   Type
+    field:  string
 }
 
 export InstrFieldSet :: struct {
@@ -365,8 +365,8 @@ export InstrArrayGet :: struct {
     span:   Span
     dst:    LocalId
     target: LocalId
-    index:  LocalId
     type:   Type
+    index:  LocalId
     /// The index is known in range: carried from `LoweredIndex.bounds_safe`, or
     /// set by the range analysis (`mark_proven_accesses`) ; forwarded to the
     /// emitted `LoadSlot*` / `ArrayGet` op so the C backend can skip the check.

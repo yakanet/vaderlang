@@ -3,5 +3,7 @@ name = Whiskers
 age  = 3
 name = Rex
 age  = 7
+label = origin
+label = second
 # exit
 0

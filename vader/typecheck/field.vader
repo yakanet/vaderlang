@@ -700,7 +700,20 @@ try_union_common_field_dispatch :: fn(
     if target_ty !is UnionType {
         return null
     }
-    return union_common_field(target_ty, e.field, typed, diags)
+    read :: union_field_read(target_ty, e.field, typed)
+    if read is LayoutClash {
+        diags.push(
+            typecheck_error(
+                .NotIndexable,
+                e.span,
+                "`.${e.field}` does not read the same in every variant of "
+                    + "`${display_type(target_ty)}` (${read.detail}); "
+                    + "narrow with `if`/`match` first",
+            ),
+        )
+        return TY_UNRESOLVED
+    }
+    return read
 }
 
 // A field access on an enum-typed receiver : `Direction.North` on the enum type
@@ -892,24 +905,6 @@ resolve_struct_field :: fn(
                 ),
             )
             return TY_UNRESOLVED
-        }
-        // Every variant DOES carry the field — they just declare it at different
-        // positions. The access lowers to one cast plus a fixed index, so there
-        // is no shape to read it at ; saying "non-struct" would send the reader
-        // looking for a missing field that is right there.
-        if target_ty is UnionType {
-            clash :: union_field_position_clash(target_ty, e.field, typed)
-            if clash is string {
-                diags.push(
-                    typecheck_error(
-                        .NotIndexable,
-                        e.span,
-                        "`.${e.field}` sits at a different position in each variant of "
-                            + "`${display_type(target_ty)}` (${clash}) — narrow with `if`/`match` first",
-                    ),
-                )
-                return TY_UNRESOLVED
-            }
         }
         diags.push(
             typecheck_error(
@@ -1260,63 +1255,102 @@ substitute_impl_method :: fn(impl_ty: Type, target_ty: Type, typed: TypedProgram
     return substitute_struct_args(impl_ty, target_ty, typed)
 }
 
-// `u.field` where `u: V1 | V2 | …`. Returns the union of each
-// variant's `.field` type when every variant carries it ; null when
-// any variant lacks the field (caller falls through to T3009).
-union_common_field :: fn(
+// Why `u.name` does not read the same in every variant of `u`, for T3008.
+LayoutClash :: struct {
+    detail: string
+}
+
+// How `u.name` reads : the field's type when every variant places it at one
+// offset, a `LayoutClash` when every variant declares it but not at one offset,
+// null when a variant is no struct or lacks the field.
+//
+// The access lowers to ONE cast to the first variant plus a field read
+// (`lower_expr.vader::try_lower_common_union_field`). The variants must therefore
+// agree on the field's position, on its type, and on the type of every field
+// before it, since those types are what place it. The names before it may differ.
+union_field_read :: fn(
     u: UnionType,
     name: string,
     typed: TypedProgram,
-    diags: Diagnostic[],
-) -> Type | null {
-    types: Type[]: []
-    index := -1
-    for v in u.variants {
+) -> Type | LayoutClash | null {
+    if u.variants.len() == 0 {
+        return null
+    }
+    first :: u.variants[0]
+    if first !is StructType {
+        return null
+    }
+    // The declaration's own check reports a field type that does not resolve.
+    discard: Diagnostic[]: []
+    shared :: field_layout(first, name, typed, discard) ?? return null
+    clash: LayoutClash | null = null
+    for i in 1..<u.variants.len() {
+        v :: u.variants[i]
         if v !is StructType {
             return null
         }
-        decl :: typed.struct_decls[v.symbol.id] ?? return null
-        ty :: resolved_field_type(v.symbol.id, decl, name, typed, diags) ?? return null
-        // The access lowers to ONE cast to the first variant plus a fixed field
-        // index (`lower_expr.vader::try_lower_common_union_field`), so the field
-        // has to sit at the same position in every variant. Two variants that
-        // declare it in a different order read each other's slot — silently, as
-        // whatever type the first variant put there.
-        at :: field_position(decl, name)
-        if at < 0 {
-            return null
+        layout :: field_layout(v, name, typed, discard) ?? return null
+        if clash == null {
+            clash = layout_clash(first, shared, v, layout)
         }
-        if index < 0 {
-            index = at
-        } else if index != at {
-            return null
-        }
-        types.push(substitute_struct_args(ty, v, typed))
     }
-    return union_of(types)
+    if clash is LayoutClash {
+        return clash
+    }
+    return shared[shared.len() - 1]
 }
 
-// When every variant of `u` declares `name` but not all at the same position,
-// a human-readable account of who puts it where ; `null` otherwise (the field is
-// missing somewhere, or the positions agree and the access is fine).
-union_field_position_clash :: fn(u: UnionType, name: string, typed: TypedProgram) -> string | null {
-    parts: string[]: []
-    index := -1
-    differs := false
-    for v in u.variants {
-        if !(v is StructType) { return null }
-        decl :: typed.struct_decls[v.symbol.id] ?? return null
-        at :: field_position(decl, name)
-        if at < 0 { return null }
-        if index < 0 {
-            index = at
-        } else if index != at {
-            differs = true
-        }
-        parts.push("`${v.symbol.name}` at ${at}")
+// The types of `st`'s fields up to and including `name`, as `st`'s arguments
+// make them ; null when `st` has no field `name`.
+field_layout :: fn(
+    st: StructType,
+    name: string,
+    typed: TypedProgram,
+    discard: Diagnostic[],
+) -> Type[] | null {
+    decl :: typed.struct_decls[st.symbol.id] ?? return null
+    at :: field_position(decl, name)
+    if at < 0 {
+        return null
     }
-    if !differs { return null }
-    return parts.join(", ")
+    out: Type[]: []
+    for i in 0..=at {
+        field :: decl.fields[i]
+        ty :: resolved_field_type(st.symbol.id, decl, field.name, typed, discard) ?? return null
+        out.push(substitute_struct_args(ty, st, typed))
+    }
+    return out
+}
+
+// The first disagreement between two variants' layouts up to the field they both
+// declare, the field being last in each ; null when they agree.
+layout_clash :: fn(
+    a: StructType,
+    a_types: Type[],
+    b: StructType,
+    b_types: Type[],
+) -> LayoutClash | null {
+    last :: a_types.len() - 1
+    if b_types.len() != a_types.len() {
+        return LayoutClash {
+            .detail = "`${display_type(a)}` declares it at ${last}, "
+                + "`${display_type(b)}` at ${b_types.len() - 1}",
+        }
+    }
+    for i in 0..<a_types.len() {
+        if equals_type(a_types[i], b_types[i]) {
+            continue
+        }
+        a_shown :: "`${display_type(a_types[i])}` in `${display_type(a)}`"
+        b_shown :: "`${display_type(b_types[i])}` in `${display_type(b)}`"
+        if i == last {
+            return LayoutClash { .detail = "it is ${a_shown}, ${b_shown}" }
+        }
+        return LayoutClash {
+            .detail = "field ${i}, before it, is ${a_shown} and ${b_shown}",
+        }
+    }
+    return null
 }
 
 // Where `name` sits among `decl`'s fields, or `-1` when it has none.
