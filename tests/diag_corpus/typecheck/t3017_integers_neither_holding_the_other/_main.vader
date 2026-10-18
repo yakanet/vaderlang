@@ -1,0 +1,17 @@
+// An operation between two integer types is computed in the one holding the
+// other : `b + i` with a `u8` and an `i32` is an `i32`. Two of which neither holds
+// the other are refused : `u32` and `i32`, and `u64` and `usize`, one set under two
+// names C tells apart.
+module "snippet"
+
+export main :: fn() -> i32 {
+    b: u8: 200
+    i: i32: -5
+    u: u32: 7
+    big: u64: 9
+    z: usize: 3
+    held :: b + i
+    signs :: u + i
+    names :: big + z
+    return held
+}

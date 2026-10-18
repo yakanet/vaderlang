@@ -336,6 +336,7 @@ emit_return_mismatch_if :: fn(
 // brace-bodied until the seed is advanced past that inliner/interning bug.
 flows_into :: fn(got: Type, expected: Type, value: AST.Expr, typed: TypedProgram) -> bool {
     if is_assignable(got, expected) {
+        note_integer_slot(typed, value, got, expected)
         return true
     }
     return try_into(got, expected, typed, value)

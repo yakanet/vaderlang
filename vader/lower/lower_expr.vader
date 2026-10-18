@@ -25,10 +25,6 @@ import "vader/types"
 import "vader/comptime"
 import "toolchain/span"
 
-/// Lower an `AST.Expr` to its `LoweredExpr` form.
-/// @param ctx   the fn-body context.
-/// @param expr  the source expression.
-/// @return      the lowered expression.
 // A char literal pinned to an integer (free-char coercion) lowers like a byte
 // literal once was — a `LoweredIntLit` of that width carrying the codepoint — so
 // `bytes[i] == '/'` emits identically to the old `b'/'`. A char-typed literal
@@ -43,7 +39,22 @@ lower_char_lit :: fn(e: CharLitExpr, ty: Type) -> LoweredExpr {
     return LoweredCharLit { .span = e.span, .type = mk_primitive("char"), .value = e.value }
 }
 
+/// Lower an `AST.Expr` to its `LoweredExpr` form, an integer converted to the slot
+/// the typecheck noted it fills (`TypedProgram.integer_slots`).
+/// @param ctx   the fn-body context.
+/// @param expr  the source expression.
+/// @return      the lowered expression.
 lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
+    value :: lower_expr_as_typed(ctx, expr)
+    if ctx.typed.integer_slots.is_empty() {
+        return value
+    }
+    slot :: ctx.typed.integer_slots[expr.id] ?? return value
+    return integer_held(value, ctx.types.apply(slot), expr.span)
+}
+
+// `expr` lowered at the type the typecheck recorded for it.
+lower_expr_as_typed :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
     if !ctx.bound_operands.is_empty() {
         bound :: ctx.bound_operands[expr.id]
         if bound != null {

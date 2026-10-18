@@ -4,8 +4,9 @@
 // integers : its result is the range of every value it can take (`h + 1` on
 // `0..=23` is `1..=24`), a literal standing for its own value (`n..=n`). Storing
 // that result in a narrower range takes a proof the type then carries
-// (`(h + 1) % 24` is `0..=23`). A primitive operand absorbs the range, which must
-// fit it, and the operation is the primitive's, checked as any. A bitwise
+// (`(h + 1) % 24` is `0..=23`). A primitive operand absorbs a range that fits it,
+// and the operation is the primitive's, checked as any ; beside a range holding it,
+// the primitive is read as the range of its values. A bitwise
 // operation reads a range as the integer it is held in (`represented`).
 
 module "vader/typecheck"
@@ -24,7 +25,7 @@ AST :: import "toolchain/ast"
 /// @param right  its right operand's type.
 /// @return       the result's type : a range over the integers, the absorbing
 ///               primitive, `i64` for a range past 64 bits, `bool` for a test.
-/// @error        T3017 when a range does not fit the primitive beside it.
+/// @error        T3017 when a range neither fits nor holds the primitive beside it.
 range_result :: fn(
     e: AST.BinaryExpr,
     left: Type,
@@ -32,11 +33,13 @@ range_result :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    l :: settle_range_operand(e.left, left, typed, diags)
-    r :: settle_range_operand(e.right, right, typed, diags)
-    if l is UnresolvedType || r is UnresolvedType {
+    settled_left :: settle_range_operand(e.left, left, typed, diags)
+    settled_right :: settle_range_operand(e.right, right, typed, diags)
+    if settled_left is UnresolvedType || settled_right is UnresolvedType {
         return TY_UNRESOLVED
     }
+    l :: read_beside(settled_left, settled_right)
+    r :: read_beside(settled_right, settled_left)
     absorbing :: absorbing_primitive(l, r)
     if absorbing != null {
         return absorbed_result(e, l, r, absorbing, diags)
@@ -80,8 +83,26 @@ settle_range_operand :: fn(
     return free_range(operand, t, typed, diags)
 }
 
-// The primitive operand of a range operation, if any : it absorbs the other.
+// `t` as an operation beside `other` reads it : a primitive that a range beside it
+// holds, without fitting it, as the range of its values (`b + r` with a `u8` and
+// an `r: 0..=300` is `0..=555`) ; anything else as it is.
+read_beside :: fn(t: Type, other: Type) -> Type {
+    if t !is PrimitiveType || other !is RangeType || holds_integer(t, other) {
+        return t
+    }
+    values :: primitive_interval(t.name) ?? return t
+    if !interval_within(values, other.bounds) {
+        return t
+    }
+    return RangeType { .bounds = values }
+}
+
+// The primitive operand of a range operation, if any : it absorbs the other. Of
+// two, the one holding the other.
 absorbing_primitive :: fn(left: Type, right: Type) -> PrimitiveType | null {
+    if left is PrimitiveType && right is PrimitiveType && holds_integer(right, left) {
+        return right
+    }
     if left is PrimitiveType {
         return left
     }
@@ -91,7 +112,7 @@ absorbing_primitive :: fn(left: Type, right: Type) -> PrimitiveType | null {
     return null
 }
 
-// `e` computed in the primitive `p`, each range operand fitting it.
+// `e` computed in the primitive `p`, each other operand held by it.
 absorbed_result :: fn(
     e: AST.BinaryExpr,
     left: Type,
@@ -99,16 +120,16 @@ absorbed_result :: fn(
     p: PrimitiveType,
     diags: Diagnostic[],
 ) -> Type {
-    whole :: primitive_interval(p.name)
     for operand in [left, right] {
-        if operand is RangeType && (whole == null || !interval_within(operand.bounds, whole)) {
+        if equals_type(operand, p) || holds_integer(p, operand) {
+            continue
+        }
+        if operand is RangeType {
             diags.push(typecheck_error(.OperatorNotDefined, e.span,
                 "${display_range(operand)} does not fit `${p.name}`"))
-            return TY_UNRESOLVED
+        } else {
+            push_op_undefined(e, left, right, diags)
         }
-    }
-    if left is PrimitiveType && right is PrimitiveType && left.name != right.name {
-        push_op_undefined(e, left, right, diags)
         return TY_UNRESOLVED
     }
     return p

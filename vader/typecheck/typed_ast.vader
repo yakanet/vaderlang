@@ -659,6 +659,13 @@ export TypedProgram :: struct {
     /// effect summary checks once every module is typed.
     widened_arguments: MutableMap<usize, WidenedArgument> = MutableMap<usize, WidenedArgument> {}
 
+    /// Expression id → the type of the slot its integer value goes into, where the
+    /// slot holds it in another integer (`u32` into an `i64` argument, a `u8` into
+    /// an `i64 | null` field ; `note_integer_slot`). The lowering converts the value
+    /// at the node, whatever slot type the path to it computes : a generic `T`, a
+    /// member's declared parameter, an operator's impl.
+    integer_slots: MutableMap<usize, Type> = MutableMap<usize, Type> {}
+
     /// Walk-global stack of enclosing loops, pushed around each loop body by
     /// `check_for`. Unlike `FnContext.loop_depth` (not threaded through the
     /// expression checker, so lost inside `if`/`match` branch blocks), this

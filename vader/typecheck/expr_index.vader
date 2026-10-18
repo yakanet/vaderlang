@@ -82,7 +82,11 @@ infer_index :: fn(e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) ->
 reject_index_key :: fn(
     index: AST.Expr, index_ty: Type, key: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    if key == null || index_ty is UnresolvedType || is_assignable(index_ty, key) {
+    if key == null || index_ty is UnresolvedType {
+        return
+    }
+    if is_assignable(index_ty, key) {
+        note_integer_slot(typed, index, index_ty, key)
         return
     }
     diags.push(typecheck_error(

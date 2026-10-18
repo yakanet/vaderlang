@@ -151,8 +151,13 @@ check_field :: fn(
     unbound_args :: decl is AST.StructDecl && st.args.len() < decl.type_params.len()
     as_pattern :: unbound_args && !is_free_numeric(got)
     want :: if as_pattern { erase_type_params(expected) } else { expected }
-    if is_assignable(got, want)            { return }
-    if try_into(got, want, typed, f.value) { return }
+    if is_assignable(got, want) {
+        note_integer_slot(typed, f.value, got, want)
+        return
+    }
+    if try_into(got, want, typed, f.value) {
+        return
+    }
     diags.push(mismatch_diagnostic(got, expected, f.span, .TypeMismatch, typed))
 }
 

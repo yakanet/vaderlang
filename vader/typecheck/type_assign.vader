@@ -3,9 +3,8 @@
 // then routes to one of the per-variant fns via a single `match from`.
 //
 // All variants pass through `check_common` last : `to is Union` element-wise
-// widening. Several "no implicit widening" variants (Primitive, Enum, TypeMeta,
-// Self, …) have no logic beyond the common path and skip the dedicated fn
-// entirely.
+// widening. Several "no implicit widening" variants (Enum, TypeMeta, Self, …)
+// have no logic beyond the common path and skip the dedicated fn entirely.
 //
 // Keep one fn per `from` variant : a single fn matching every `from`
 // against every `to` compiles to one C function too large for cc's
@@ -47,7 +46,9 @@ is_assignable :: fn(from: Type, to: Type) -> bool {
         is FnType        -> is_assignable_fn(from, from, to)
         is UnionType     -> is_assignable_union(from, from, to)
         is FreeIntType | FreeCharType | FreeFloatType -> is_assignable_free_literal(from, to)
-        is RangeType     -> is_assignable_range(from, to)
+        // A range or an integer widens into an integer type holding it (never into
+        // a distinct, which only its own values enter), or into a union through one.
+        is RangeType | PrimitiveType -> holds_integer(to, from) || check_common(from, to)
         _                -> check_common(from, to)
     }
 }
@@ -197,19 +198,37 @@ array_widening_depth :: fn(from: ArrayType, slot: ArrayType, typed: TypedProgram
 same_element :: fn(narrow: Type, wide: Type) -> bool =
     adopts_any_layout(narrow) || wide is UnresolvedType || equals_type(narrow, wide)
 
-/// `from is FnType`. Params contravariant, return covariant.
+/// `from is FnType`. Params contravariant, return covariant, an integer held
+/// alike on both sides (`fn_signature_compatible`).
 is_assignable_fn :: fn(from: Type, self: FnType, to: Type) -> bool {
     match to {
         is FnType -> {
             if self.params.len() != to.params.len() { return false }
             for i in 0..<self.params.len() {
-                if !fn_param_compatible(to.params[i], self.params[i]) { return false }
+                if !fn_signature_compatible(to.params[i], self.params[i]) { return false }
             }
-            return fn_param_compatible(self.return_type, to.return_type)
+            return fn_signature_compatible(self.return_type, to.return_type)
         }
         _ -> {}
     }
     return check_common(from, to)
+}
+
+// A function is called through another function type as it is, no value
+// converted on the way : an integer it takes or gives back must be laid out
+// alike on both sides (`fn() -> u8` is no `fn() -> i32`, `fn() -> Hour` is a
+// `fn() -> u8`).
+fn_signature_compatible :: fn(from: Type, to: Type) -> bool =
+    is_assignable(from, to) && laid_out_alike(from, to)
+
+// Whether `a` and `b` are laid out alike where both are integer types, as the
+// lowering lays out a type inside another (`erase_nested`) ; true when either is
+// another type, whose own check is somebody else's.
+laid_out_alike :: fn(a: Type, b: Type) -> bool {
+    if integer_values(a) == null || integer_values(b) == null {
+        return true
+    }
+    return equals_type(erase_nested(a), erase_nested(b))
 }
 
 /// T3097 : `t` implements `trait_key` more than once, and `what` reaches the trait
@@ -263,13 +282,28 @@ is_assignable_union :: fn(from: Type, self: UnionType, to: Type) -> bool {
     match to {
         is UnionType -> {
             for v in self.variants {
-                if !is_assignable(v, to) { return false }
+                if !variant_keeps_tag(v, to) { return false }
             }
             return true
         }
         _ -> {}
     }
     return check_common(from, to)
+}
+
+// A union's value keeps its tag going into another union, nothing converts it : an
+// integer variant goes only into a variant laid out alike (`Hour | null` into
+// `u8 | null`), never one holding it wider (`u8 | null` is no `i32 | null`).
+variant_keeps_tag :: fn(v: Type, to: UnionType) -> bool {
+    if integer_values(v) == null {
+        return is_assignable(v, to)
+    }
+    for w in to.variants {
+        if is_assignable(v, w) && laid_out_alike(v, w) {
+            return true
+        }
+    }
+    return false
 }
 
 // `from` is a free literal : it widens to any primitive of its family
@@ -285,17 +319,20 @@ is_assignable_free_literal :: fn(from: Type, to: Type) -> bool {
     return check_common(from, to)
 }
 
-// `from` is a range : it widens into a range or an integer type holding every
-// value it has, or into a union through one ; never into a distinct, which only
-// its own values enter.
-is_assignable_range :: fn(from: RangeType, to: Type) -> bool {
-    return integer_holds_range(to, from) || check_common(from, to)
-}
-
-// Whether `t` is an integer type holding every value of the range `r`.
-integer_holds_range :: fn(t: Type, r: RangeType) -> bool {
-    outer :: integer_values(t) ?? return false
-    return interval_within(r.bounds, outer)
+/// Whether `wide` is an integer type holding every value of the integer type
+/// `narrow` (`u8` in an `i32`, `0..=9` in a `u8`), and more when both are
+/// primitives : `u64` and `usize`, one set under two names C tells apart, hold
+/// neither the other.
+///
+/// @param wide    the type a value of `narrow` would go into.
+/// @param narrow  any type : only a range or an integer primitive is held.
+holds_integer :: fn(wide: Type, narrow: Type) -> bool {
+    outer :: integer_values(wide) ?? return false
+    values :: integer_values(narrow) ?? return false
+    if !interval_within(values, outer) {
+        return false
+    }
+    return narrow !is PrimitiveType || wide !is PrimitiveType || !same_interval(values, outer)
 }
 
 /// The values of `t` a `match` covers arm by arm : a range's, an integer
@@ -340,8 +377,9 @@ export integer_values :: fn(t: Type) -> Interval | null {
 
 // ---- helpers shared by struct/fn/array variants ---------------------------
 
-/// Single-arg compatibility used by Fn → Fn and Array → Array. An alias of
-/// `is_assignable` that documents the variance intent at the call site.
+/// Single-arg compatibility used by Array → Array and a struct's type arguments.
+/// An alias of `is_assignable` that documents the variance intent at the call
+/// site.
 fn_param_compatible :: fn(a: Type, b: Type) -> bool {
     return is_assignable(a, b)
 }

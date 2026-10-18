@@ -1,0 +1,22 @@
+// A function is called through another function type as it is, so an integer it
+// takes or gives back must be held in the same integer on both sides : a
+// `fn() -> u8` is no `fn() -> i32`, though a `u8` goes into an `i32`. A
+// `fn() -> Hour` is a `fn() -> u8`, the integer an `Hour` is held in.
+module "snippet"
+
+export Hour :: Int in 0..=23
+
+export twice :: fn(f: fn() -> i32) -> i32 = f() * 2
+
+export as_byte :: fn(f: fn() -> u8) -> u8 = f()
+
+export main :: fn() -> i32 {
+    b: u8: 7
+    h: Hour: 9
+    byte :: () -> b
+    hour :: () -> h
+    a :: twice(byte)
+    c :: as_byte(hour)
+    d :: twice(() -> b)
+    return a + i32(c) + d
+}

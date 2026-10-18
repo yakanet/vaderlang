@@ -23,8 +23,8 @@ AST :: import "toolchain/ast"
 /// one — mirroring the binary-operator coercion (`binary.vader::numeric_result`).
 /// Without this, an unannotated `::` binding (`expected = null`) escapes as a
 /// union with no arithmetic defined on it (T3017). Ranges join into the one
-/// holding them all (`union_of_paths`). Unrelated branches fall back to the plain
-/// union. A union branch settles its free member the same way
+/// holding them all, and an integer type into another branch's holding it
+/// (`union_of_paths`). Unrelated branches fall back to the plain union. A union branch settles its free member the same way
 /// (`if b { 300 } else { null }` beside a `u8` is a `u8 | null`). The value of a
 /// coerced branch takes its new type too, so that its literals are built at it and
 /// must fit it (T3066): `k :: if flag { u8(7) } else { 300 }` is refused.

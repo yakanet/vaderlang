@@ -73,6 +73,21 @@ try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
     return element is UnresolvedType || equals_type(got.element, element)
 }
 
+// Whether the variant `v` of a union value fits `expected` keeping its tag, which
+// nothing converts : an integer variant only into a variant laid out alike
+// (`variant_keeps_tag`), never one holding it wider.
+variant_fits :: fn(v: Type, expected: Type, typed: TypedProgram) -> bool {
+    if integer_values(v) == null || expected !is UnionType {
+        return fits_or_implements(v, expected, typed)
+    }
+    for w in expected.variants {
+        if laid_out_alike(v, w) && fits_or_implements(v, w, typed) {
+            return true
+        }
+    }
+    return false
+}
+
 /// True when `got` implements the trait `expected`, at `expected`'s arguments
 /// (or a variant of `expected` if it's a union). Handles struct receivers AND primitives
 /// — `i32 implements Doubler(i32)` is a valid impl whose receiver name
@@ -86,7 +101,7 @@ try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
     // `implements Error`, string == string) instead of failing per-variant.
     if got is UnionType {
         for v in got.variants {
-            if !fits_or_implements(v, expected, typed) {
+            if !variant_fits(v, expected, typed) {
                 return false
             }
         }

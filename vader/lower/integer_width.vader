@@ -131,21 +131,21 @@ narrower :: fn(candidate: PrimitiveType, found: PrimitiveType | null) -> bool {
 }
 
 /// `block`, a branch of a value `if` or `match`, its value held as `type`, the
-/// type of the whole one : every branch reaches one slot at one width.
+/// type of the whole one (`integer_held`) : every branch reaches one slot at one
+/// width, a union's variant included.
 ///
 /// @param block  the branch, lowered.
 /// @param type   the type of the `if` or `match`.
 held_block :: fn(block: LoweredBlock, type: Type) -> LoweredBlock {
     value :: block.trailing ?? return block
-    held :: integer_primitive(value.type) ?? return block
-    target :: integer_primitive(type) ?? return block
-    if held.name == target.name {
+    held :: integer_held(value, type, value.span)
+    if equals_type(held.type, value.type) {
         return block
     }
     return LoweredBlock {
         ...block,
-        .type = type,
-        .trailing = cast_to_width(value, target.name, value.span),
+        .type = held.type,
+        .trailing = held,
     }
 }
 

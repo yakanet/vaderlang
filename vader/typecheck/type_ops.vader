@@ -148,9 +148,10 @@ export union_of :: fn(variants: Type[]) -> Type {
 /// The type of a value one of several paths gave, of the types `reached` : their
 /// union, the ranges among them joined into the one range holding them all, since
 /// a range has no hole (`if h < 12 { h } else { h }` is an `Hour`, not two halves
-/// on which no arithmetic is defined), and that range into an integer type among
-/// the paths holding it (`0..=9` beside an `i32` is an `i32`). A union written in
-/// the source keeps its ranges apart (`union_of`).
+/// on which no arithmetic is defined), and each integer type a path gives bare into
+/// another among the paths holding it (`0..=9` or a `u8` beside an `i32` or an
+/// `i32 | null` is an `i32`, an `i32 | null`). A union written in the source keeps
+/// its ranges apart (`union_of`).
 ///
 /// @param reached  the type of the value on each path.
 union_of_paths :: fn(reached: Type[]) -> Type {
@@ -163,17 +164,43 @@ union_of_paths :: fn(reached: Type[]) -> Type {
             rest.push(t)
         }
     }
-    if hull != null && !holds_range(rest, hull) {
-        rest.push(hull)
+    // Flattened and deduplicated : a `match` of many arms gives one type many times.
+    variants: Type[]: []
+    for t in rest {
+        t.collect_variant(variants)
     }
-    return union_of(rest)
+    if hull != null && !held_by_another(variants, hull) {
+        variants.push(hull)
+    }
+    kept: Type[]: []
+    for v in variants {
+        if !absorbed(v, variants, rest) {
+            kept.push(v)
+        }
+    }
+    return union_of(kept)
 }
 
-// Whether one of `paths` is an integer type holding every value of `hull` : the
-// range goes into it there, as an operand into the primitive beside it.
-holds_range :: fn(paths: Type[], hull: RangeType) -> bool {
-    for t in paths {
-        if integer_holds_range(t, hull) {
+// Whether the integer primitive `v`, one of `variants`, goes into another of them
+// holding it. Only a value a path gives bare does : one inside a union keeps its
+// tag, which nothing converts (`u8 | null` is no `i32 | null`).
+absorbed :: fn(v: Type, variants: Type[], paths: Type[]) -> bool {
+    if v !is PrimitiveType || !held_by_another(variants, v) {
+        return false
+    }
+    for path in paths {
+        if path is UnionType && path.variants.any_match((inner) -> equals_type(inner, v)) {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether one of `types` holds every value of the integer type `t` (`holds_integer`) :
+// `t` goes into it there, as an operand into the integer beside it.
+held_by_another :: fn(types: Type[], t: Type) -> bool {
+    for other in types {
+        if holds_integer(other, t) {
             return true
         }
     }

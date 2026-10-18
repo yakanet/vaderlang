@@ -242,7 +242,8 @@ pick_by_first_arg :: fn(sigs: Type[], arg: Type, arity: usize, typed: TypedProgr
 
 // How well a candidate whose first param accepts `arg0` fits, highest wins:
 // receiver specificity (a concrete union member beats a bare `T` wildcard — see
-// `overload_specificity`), then an exact arity (`size(a = 1, b = 2)` against
+// `overload_specificity`), then how tightly an integer param holds an integer
+// argument (`integer_closeness`), then an exact arity (`size(a = 1, b = 2)` against
 // `size(a = 1)`), then, for a free literal, the param that is its default type —
 // the rule a literal follows into a union (`union_literal_member`), so `abs(-5)`
 // reaches the `i32` overload whatever the declaration order.
@@ -250,7 +251,38 @@ overload_rank :: fn(arg0: Type, param0: Type, exact_arity: bool) -> i32 {
     arity: i32: if exact_arity { 2 } else { 0 }
     is_default :: is_free_numeric(arg0) && equals_type(default_if_free(arg0), param0)
     literal_default: i32: if is_default { 1 } else { 0 }
-    return overload_specificity(arg0, param0) * 4 + arity + literal_default
+    fit :: overload_specificity(arg0, param0) * (OWN_TYPE_CLOSENESS + 1)
+        + integer_closeness(arg0, param0)
+    return fit * 4 + arity + literal_default
+}
+
+// The closeness of an integer argument to a parameter of its own type, above any
+// wider one : an 8-byte slot holding a narrower argument is 1.
+OWN_TYPE_CLOSENESS: i32: 9
+
+// How tightly `param0` holds the integer argument `arg0` : `OWN_TYPE_CLOSENESS`
+// for its own type, that less the bytes of the integer of `param0` holding it
+// otherwise (a union's variant included), so that `min(b, b)` on a `u8` takes the
+// `i32` overload over the `usize` one ; 0 for an argument of no integer type.
+integer_closeness :: fn(arg0: Type, param0: Type) -> i32 {
+    if integer_values(arg0) == null {
+        return 0
+    }
+    closest: i32 = 0
+    for slot in union_variants(param0) ?? [param0] {
+        if equals_type(arg0, slot) {
+            return OWN_TYPE_CLOSENESS
+        }
+        if integer_values(slot) == null || !is_assignable(arg0, slot) {
+            continue
+        }
+        held :: scalar_backing(erase_nested(slot)) ?? continue
+        tightness :: OWN_TYPE_CLOSENESS - i32(primitive_size(held.name))
+        if tightness > closest {
+            closest = tightness
+        }
+    }
+    return closest
 }
 
 // Two candidates of one rank, declared in one module: neither shadows the other,
@@ -268,8 +300,17 @@ ambiguous_overload_error :: fn(
 ) -> Diagnostic = typecheck_error(
     .AmbiguousOverload,
     span,
-    "`${display_type(first.ty)}` and `${display_type(other.ty)}` both accept ${display_type(arg0)} for `${name}` — narrow it with `if`/`match` first",
+    "`${display_type(first.ty)}` and `${display_type(other.ty)}` both accept ${display_type(arg0)} for `${name}` : ${disambiguation_hint(arg0)}",
 )
+
+// How to pick among overloads an argument of type `arg0` fits alike : an integer is
+// converted to one of their parameters, a union narrowed first.
+disambiguation_hint :: fn(arg0: Type) -> string {
+    if integer_values(arg0) != null {
+        return "convert it to the parameter type of the one to call"
+    }
+    return "narrow it with `if`/`match` first"
+}
 
 /// Specificity of `param0` for a receiver `arg0` : the count of `arg0`'s (union)
 /// variants that match a CONCRETE (non-type-param) variant of `param0`. A bare `T`
@@ -1065,8 +1106,32 @@ reject_ufcs_receiver_at_instance :: fn(
 
 // Whether an argument of type `from` fits a parameter of type `to`, as it is or by
 // widening an array.
-fits_argument :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) -> bool =
-    is_assignable(from, to) || fits_by_widening(typed, arg, from, to)
+fits_argument :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) -> bool {
+    if is_assignable(from, to) {
+        note_integer_slot(typed, arg, from, to)
+        return true
+    }
+    return fits_by_widening(typed, arg, from, to)
+}
+
+/// Note the slot `slot` that `value`, of type `got`, fills, where it holds an integer
+/// `got` in another integer (`TypedProgram.integer_slots`) ; else forget what an
+/// earlier check of `value` noted, the lowering following the last one.
+///
+/// @param typed  the program being checked.
+/// @param value  the expression filling the slot.
+/// @param got    its type.
+/// @param slot   the slot's type, `got` fitting it.
+note_integer_slot :: fn(typed: TypedProgram, value: AST.Expr, got: Type, slot: Type) -> void {
+    if integer_values(got) == null {
+        return
+    }
+    if equals_type(erase_ranges(got), erase_ranges(slot)) {
+        _ :: typed.integer_slots.remove(value.id)
+        return
+    }
+    typed.integer_slots[value.id] = slot
+}
 
 // Whether `arg` fits its parameter by widening an array (`widening_depth`): the
 // effect summary then checks that the callee puts no wider element into it.

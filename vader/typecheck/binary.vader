@@ -10,9 +10,8 @@
 // the T3040 "test never matches" soundness check, and a value-position
 // `T | U` of two metatypes builds a type-meta union.
 //
-// No implicit numeric width-promotion : any combination of Free* and
-// same-name primitive is accepted, but mixed concrete widths
-// (`i32 + i64`) surface T3017 — widen with an explicit cast.
+// Two concrete integer operands compute in the one holding the other
+// (`numeric_result`) ; two neither of which holds the other surface T3017.
 
 module "vader/typecheck"
 
@@ -378,7 +377,7 @@ check_operator_rhs :: fn(
         recv, chosen.trait_key, .OperatorTraitNotImplemented, operand_expr.span, typed, diags,
     )
     if method.params.len() > 0 {
-        check_operand_fits(recv, operand, operand_expr, method.params[0], op_label, diags)
+        check_operand_fits(recv, operand, operand_expr, method.params[0], op_label, typed, diags)
     }
     return method
 }
@@ -464,7 +463,7 @@ check_dispatched_operator :: fn(
     // A refused union dispatch is already reported.
     if specialised.params.len() > 0 && !member.refused {
         want :: specialised.params[0]
-        check_operand_fits(recv, operand, operand_expr, want, op_label, diags)
+        check_operand_fits(recv, operand, operand_expr, want, op_label, typed, diags)
     }
     return specialised
 }
@@ -477,9 +476,11 @@ check_operand_fits :: fn(
     operand_expr: AST.Expr,
     want: Type,
     op_label: string,
+    typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
     if is_assignable(operand, want) {
+        note_integer_slot(typed, operand_expr, operand, want)
         return
     }
     push_operand_mismatch(recv, operand, want, op_label, operand_expr.span, diags)
@@ -559,11 +560,9 @@ check_compare :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    // Numeric ordering : both operands must be the SAME numeric family / width.
-    // `numeric_result` is the shared compatibility gate (Free* fold to their own
-    // family, two concretes must match by name) — it pushes T3017 on a mismatched
-    // pair like `f64 < i32` / `i32 < i64`. The ordering result is always `bool`
-    // regardless of the operand type it returns.
+    // Numeric ordering goes through the shared gate (`numeric_result`), which pushes
+    // T3017 on `f64 < i32` or `u32 < i32` ; the result is a `bool` whatever the
+    // operand type it returns.
     if is_numeric(left) && is_numeric(right) {
         numeric_result(e, left, right, typed, diags)
         return TY_BOOL
@@ -731,7 +730,7 @@ check_contains_element :: fn(
     if fits_through_backing(e, left, want) {
         return
     }
-    check_operand_fits(right, left, e.left, want, "operator in", diags)
+    check_operand_fits(right, left, e.left, want, "operator in", typed, diags)
 }
 
 // A literal range or array on the right took the backing of a distinct element
@@ -750,8 +749,8 @@ fits_through_backing :: fn(e: AST.BinaryExpr, left: Type, want: Type) -> bool =
 ///     variant with no tag of its own may sit only beside `null` (T3087) ; it
 ///     compares by variant (`lower/lower_value_eq.vader`).
 ///   - two distinct types neither of which is the other's backing : T3001.
-///   - two numerics : must be the same family / width (`numeric_result`, T3017) ;
-///     free literals fold, so `x == 0` still type-checks.
+///   - two numerics : the shared numeric gate (`numeric_result`, T3017) ; free
+///     literals fold, so `x == 0` still type-checks.
 ///   - two scalars : one representation (T3001).
 ///   - two tuples : one type (T3001), compared element by element.
 ///   - a struct operand : the other must fit its `Equals`'s `other: Self` (T3017).
@@ -819,9 +818,9 @@ check_equality :: fn(
         push_unrelated_distincts(e, left, right, diags)
         return TY_BOOL
     }
-    // Both operands concrete (non-null). Numeric equality must be same family /
-    // width — reuse the shared `numeric_result` gate (T3017 on `u32 == i32`,
-    // `f64 == i32`, …). Free literals fold, so `x == 0` still type-checks.
+    // Both operands concrete (non-null). Numeric equality goes through the shared
+    // `numeric_result` gate (T3017 on `u32 == i32`, `f64 == i32`, …). Free
+    // literals fold, so `x == 0` still type-checks.
     if is_numeric(left) && is_numeric(right) {
         numeric_result(e, left, right, typed, diags)
         return TY_BOOL
@@ -1289,7 +1288,8 @@ repin_operand :: fn(
 
 // Compute the result type of a numeric binary op. Both operands must
 // be numeric AND in the same family (int / float) — Free* folds to a
-// concrete operand of its own family only. No implicit widening.
+// concrete operand of its own family only. An integer widens into the integer
+// type beside it that holds it ; a float never widens.
 numeric_result :: fn(
     e: AST.BinaryExpr,
     left: Type,
@@ -1357,15 +1357,17 @@ numeric_result :: fn(
         push_op_undefined(e, left, right, diags)
         return TY_UNRESOLVED
     }
-    // Both concrete : must match by name (no implicit widening).
-    if left is PrimitiveType {
-        if right is PrimitiveType {
-            if left.name != right.name {
-                push_op_undefined(e, left, right, diags)
-                return TY_UNRESOLVED
-            }
+    // Both concrete : one type, or of two integer types the one holding the other
+    // (`u8 + i32` is an `i32`) ; `u32 + i32`, which neither holds, is refused.
+    if left is PrimitiveType && right is PrimitiveType {
+        if left.name == right.name || holds_integer(left, right) {
             return left
         }
+        if holds_integer(right, left) {
+            return right
+        }
+        push_op_undefined(e, left, right, diags)
+        return TY_UNRESOLVED
     }
     return TY_UNRESOLVED
 }
@@ -1531,8 +1533,8 @@ test_in_requires_contains :: fn() -> void {
 }
 
 @test
-test_arith_width_mismatch_emits_T3017 :: fn() -> void {
-    eb :: expect_binary("f :: fn(a: i32, b: i64) -> i64 { return a + b }")
+test_arith_unrelated_integers_emit_T3017 :: fn() -> void {
+    eb :: expect_binary("f :: fn(a: u32, b: i32) -> i32 { return a + b }")
     diags: Diagnostic[]: []
     infer_binary(eb.bin, null, eb.typed, diags)
     found := false
@@ -1541,12 +1543,19 @@ test_arith_width_mismatch_emits_T3017 :: fn() -> void {
             found = true
         }
     }
-    assert(found, "expected T3017 for `i32 + i64` (no implicit widening)")
+    assert(found, "expected T3017 for `u32 + i32` (neither holds the other)")
 }
 
 @test
-test_compare_width_mismatch_emits_T3017 :: fn() -> void {
-    eb :: expect_binary("f :: fn(a: i32, b: i64) -> bool { return a < b }")
+test_arith_takes_the_integer_holding_the_other :: fn() -> void {
+    eb :: expect_binary("f :: fn(a: i32, b: i64) -> i64 { return a + b }")
+    diags: Diagnostic[]: []
+    assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags)), "i64")
+}
+
+@test
+test_compare_unrelated_integers_emit_T3017 :: fn() -> void {
+    eb :: expect_binary("f :: fn(a: u32, b: i32) -> bool { return a < b }")
     diags: Diagnostic[]: []
     infer_binary(eb.bin, null, eb.typed, diags)
     found := false
@@ -1555,7 +1564,7 @@ test_compare_width_mismatch_emits_T3017 :: fn() -> void {
             found = true
         }
     }
-    assert(found, "expected T3017 for `i32 < i64` (mixed width comparison)")
+    assert(found, "expected T3017 for `u32 < i32` (neither holds the other)")
 }
 
 @test
@@ -1573,7 +1582,7 @@ test_compare_cross_family_emits_T3017 :: fn() -> void {
 }
 
 @test
-test_equality_width_mismatch_emits_T3017 :: fn() -> void {
+test_equality_unrelated_integers_emit_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: u32, b: i32) -> bool { return a == b }")
     diags: Diagnostic[]: []
     infer_binary(eb.bin, null, eb.typed, diags)
@@ -1583,7 +1592,7 @@ test_equality_width_mismatch_emits_T3017 :: fn() -> void {
             found = true
         }
     }
-    assert(found, "expected T3017 for `u32 == i32` (mixed width equality)")
+    assert(found, "expected T3017 for `u32 == i32` (neither holds the other)")
 }
 
 // `==` compares scalars by representation : a distinct type stands for its

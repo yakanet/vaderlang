@@ -1,0 +1,11 @@
+# stdout
+total 269, offset -50
+louder 12 -3
+reading 7 at 4000000000
+slot 4000000003
+quietest 7
+later 4000000000, tally 4000000001
+window 4000000000 12
+last 7
+# exit
+0

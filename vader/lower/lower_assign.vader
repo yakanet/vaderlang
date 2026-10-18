@@ -202,7 +202,8 @@ lower_destructuring_assign :: fn(ctx: FnLowerCtx, s: DestructureAssignStmt) -> L
 // The element `index` of `src` for the place `place`, read at the place's type ;
 // when the typecheck accepted a conversion into the place (filed on the place, as
 // the value has no node of its own), read at the source's element type and run its
-// `into`.
+// `into` ; an integer element read at its own and held at the place's
+// (`integer_held`), as the two widths may differ.
 destructured_leaf :: fn(
     ctx: FnLowerCtx,
     place: Expr,
@@ -212,12 +213,16 @@ destructured_leaf :: fn(
     span: Span,
     index: usize,
 ) -> LoweredExpr {
-    if ctx.typed.into_coercions[place.id] == null {
+    source_type :: element_type_at(backing, index, place_type)
+    if ctx.typed.into_coercions[place.id] != null {
+        leaf :: build_leaf_access(src, backing, source_type, span, index, null)
+        return prepare_node_for_slot(ctx, place, leaf, place_type, span)
+    }
+    if integer_primitive(source_type) == null {
         return build_leaf_access(src, backing, place_type, span, index, null)
     }
-    source_type :: element_type_at(backing, index, place_type)
     leaf :: build_leaf_access(src, backing, source_type, span, index, null)
-    return prepare_node_for_slot(ctx, place, leaf, place_type, span)
+    return integer_held(leaf, place_type, span)
 }
 
 // The type element `index` of `backing` holds ; `fallback` for any other shape.
