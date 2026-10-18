@@ -86,11 +86,17 @@ check_project_modules :: fn(
         mod_index,
         core_seed,
     )
-    // One set of impl tables for the whole project (`register_project_impls`).
+    // One set of impl tables for the whole project (`register_project_impls`), and
+    // one alias table: symbol ids are project-wide, and every module expands an
+    // alias as its owner registered it.
     impl_tables :: ImplTables {}
+    alias_types :: MutableMap<i32, Type> {}
+    alias_params :: MutableMap<i32, TypeParamType[]> {}
     entry_typed :: new_typed_program(entry_rm)
     entry_typed.dump_types = dump_types
     entry_typed.impl_tables = impl_tables
+    entry_rm.alias_types = alias_types
+    entry_rm.alias_params = alias_params
     // Pre-resolve every module first so we can register all type
     // aliases project-wide before any fn signature is lowered.
     per_module :: MutableMap<string, TypedProgram> {}
@@ -108,6 +114,8 @@ check_project_modules :: fn(
             mod_index,
             core_seed,
         )
+        rm.alias_types = alias_types
+        rm.alias_params = alias_params
         typed :: new_typed_program(rm)
         typed.dump_types = dump_types
         typed.impl_tables = impl_tables
@@ -131,12 +139,11 @@ check_project_modules :: fn(
         }
     }
     _ :: settle_project_aliases(per_module, unsettled)
-    merge_external_alias_types(entry_typed, per_module)
     // Make every module's enums resolvable cross-module before any fn
     // signature is lowered — so a `d: parser.Visibility` param resolves to
     // the `EnumType` (→ `repr` ordinal at bytecode emit) instead of the
     // struct placeholder.
-    broadcast_enum_types(per_module, project)
+    register_enum_types(per_module, project, alias_types)
     // Wire imports + resolver-side imports_to early so cross-module
     // alias lookups (`Pet` from `./types`) follow ImportBinding to
     // the real symbol during fn-signature lowering below.
@@ -178,7 +185,6 @@ check_project_modules :: fn(
     // during `declare_module` below, before `populate_external_types` builds
     // `namespace_exports`), and settle the aliases that name such a member.
     settle_namespace_member_aliases(project, wire_targets, per_module, unsettled)
-    merge_external_alias_types(entry_typed, per_module)
     // Phase B : declare every decl (fn signatures, struct types, etc.)
     // across ALL files of the module. decl_types is Symbol.id-keyed and
     // the span-keyed tables (param_types / type_expr_types) are now
@@ -201,12 +207,6 @@ check_project_modules :: fn(
             continue
         }
         other_typed :: per_module[id] ?? continue
-        // Merge cross-module alias/union types into this import too (the entry
-        // got this above). A signature param typed by an imported union/alias
-        // (`got: Type`, `sh: Shape`) resolves via `resolved.alias_types`, which
-        // only holds the module's OWN aliases until merged; without this, the
-        // param degrades to `?` (→ field-gets and `is T as a` binds collapse).
-        merge_external_alias_types(other_typed, per_module)
         declare_module(
             merge_module_program(other.module.files).decls,
             other_typed.resolved,
@@ -1561,8 +1561,8 @@ register_alias_decl :: fn(decl: AST.Decl, typed: TypedProgram) -> bool {
 }
 
 // An alias naming another module's types (`Reading :: Celsius | Label`, the
-// members imported) settles only once that module's aliases are visible: merge
-// every module's tables into each one still unsettled and retry, until a round
+// members imported) settles only once that module has registered them: retry each
+// module's pending aliases, the alias table being the project's, until a round
 // registers nothing. True when anything settled.
 settle_project_aliases :: fn(
     per_module: MutableMap<string, TypedProgram>, unsettled: MutableMap<string, AST.Decl[]>,
@@ -1576,7 +1576,6 @@ settle_project_aliases :: fn(
             if pending.len() == 0 {
                 continue
             }
-            merge_external_alias_types(typed, per_module)
             rest :: settle_pending_aliases(typed, pending)
             if rest.len() < pending.len() {
                 unsettled[id] = rest
@@ -1637,15 +1636,6 @@ can_settle_now :: fn(
     return false
 }
 
-// Compute every enum's `EnumType` across all files of all modules (Phase A)
-// and broadcast it into every module's `alias_types`, keyed by the enum
-// symbol's global id. A fn signature or struct field then resolves an enum
-// reference — same-module, cross-module, or in a sibling file of a
-// multi-file module — to its `EnumType` rather than the `type_from_symbol`
-// `.Enum -> mk_struct` placeholder, so the bytecode emit collapses the enum
-// to its `repr` ordinal. Enum-only — type aliases keep their entry-merge
-// scope. Keyed by global symbol id, so no cross-module name collisions.
-// Must run before `declare_module` lowers any signature.
 // Every module's `type_param_symbols` merged into one table they all share : a
 // struct, trait or impl written in one module substitutes the parameters another
 // one declares.
@@ -1685,7 +1675,18 @@ broadcast_struct_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> vo
     }
 }
 
-broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram>, project: LoadedProject) -> void {
+// Compute every enum's `EnumType` across all files of all modules (Phase A) and
+// record it in the project's alias table, keyed by the enum symbol's global id. A
+// fn signature or struct field then resolves an enum reference (same module, another
+// one, or a sibling file of a multi-file module) to its `EnumType` rather than the
+// `type_from_symbol` `.Enum -> mk_struct` placeholder, so the bytecode emit
+// collapses the enum to its `repr` ordinal. Every enum is built before any is
+// recorded. Must run before `declare_module` lowers any signature.
+register_enum_types :: fn(
+    per_module: MutableMap<string, TypedProgram>,
+    project: LoadedProject,
+    alias_types: MutableMap<i32, Type>,
+) -> void {
     collected :: MutableMap<i32, Type> {}
     for [id, typed] in per_module {
         loaded :: project.modules[id] ?? continue
@@ -1698,10 +1699,8 @@ broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram>, project
             }
         }
     }
-    for [_, typed] in per_module {
-        for [sid, t] in collected {
-            typed.resolved.alias_types[sid] = t
-        }
+    for [sid, t] in collected {
+        alias_types[sid] = t
     }
 }
 
@@ -1782,35 +1781,6 @@ is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
         return true
     }
     return false
-}
-
-// Mirror every non-entry module's `alias_types` / `alias_params` into
-// the entry's resolver tables so cross-module aliases (e.g. `Pet`
-// imported from `./types`) expand at use sites.
-//
-// A copy taken while an alias was still unsettled (`?` inside) never replaces a
-// settled entry: during `settle_project_aliases` the module that owns the alias
-// may have settled it since another module copied it.
-merge_external_alias_types :: fn(
-    entry_typed: TypedProgram,
-    per_module: MutableMap<string, TypedProgram>,
-) -> void {
-    entry_path :: entry_typed.resolved.path
-    for [_, other] in per_module {
-        if other.resolved.path == entry_path {
-            continue
-        }
-        for [sym_id, ty] in other.resolved.alias_types {
-            present :: entry_typed.resolved.alias_types[sym_id]
-            if present != null && contains_unresolved(ty) && !contains_unresolved(present) {
-                continue
-            }
-            entry_typed.resolved.alias_types[sym_id] = ty
-        }
-        for [sym_id, params] in other.resolved.alias_params {
-            entry_typed.resolved.alias_params[sym_id] = params
-        }
-    }
 }
 
 /// Give every typed program the project-wide `trait_decls` (+ owner), so
@@ -2418,8 +2388,8 @@ build_namespace_type_members :: fn(
             continue
         }
         // TypeAlias resolves to the alias's expanded union (already
-        // registered on the owning module's `resolved.alias_types`
-        // by `register_aliases`). Other type-kind symbols resolve via
+        // registered in the project's alias table by `register_aliases`).
+        // Other type-kind symbols resolve via
         // `type_from_symbol`, which dispatches on `sym.kind`.
         if target_typed !is null {
             aliased :: target_typed.resolved.alias_types[sym.id]
