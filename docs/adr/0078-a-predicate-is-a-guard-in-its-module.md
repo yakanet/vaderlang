@@ -4,7 +4,8 @@
 
 Accepted (2026-10-18). Step 7 of the type-system charter, its fifth part (D11, S7):
 guards inferred within a module. The declared forms, `@guard` and `@asserts`, come
-next. Builds on 0076.
+next. Builds on 0076. Amended by 0082: the declared forms are written `@returns` and
+`@ensures`.
 
 ## Context
 

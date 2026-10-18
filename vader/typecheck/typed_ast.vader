@@ -458,7 +458,7 @@ export TypedProgram :: struct {
     /// and what each proves (`guard.vader`). A call in a condition narrows its
     /// argument the same way.
     guards: GuardState = GuardState {}
-    /// The `@guard` contracts of the project : one table shared by every module
+    /// The `@returns` contracts of the project : one table shared by every module
     /// (`share_guards`).
     shared_guards: SharedGuards = SharedGuards {}
 

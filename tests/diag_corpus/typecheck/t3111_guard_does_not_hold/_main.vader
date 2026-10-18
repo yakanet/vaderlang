@@ -1,4 +1,4 @@
-// A `@guard` is an equivalence : where the fn returns true its parameter lies
+// `@returns(cond)` is an equivalence : where the fn returns true its parameter lies
 // within what the condition proves, and where it returns false outside it. A body
 // answering true too often, or false too often, does not hold. A block body is held
 // at each `return` and at its trailing value, the narrowings of its guards in force,
@@ -8,13 +8,13 @@ module "snippet"
 export Weekday :: Int in 0..=6
 export Weekend :: Int in 5..=6
 
-@guard(d in Weekend)
+@returns(d in Weekend)
 export too_wide :: fn(d: Weekday) -> bool = d >= 4
 
-@guard(d in Weekend)
+@returns(d in Weekend)
 export too_narrow :: fn(d: Weekday) -> bool = d == 6
 
-@guard(d in Weekend)
+@returns(d in Weekend)
 export block_lie :: fn(d: Weekday) -> bool {
     if d == 3 {
         return true
@@ -22,13 +22,13 @@ export block_lie :: fn(d: Weekday) -> bool {
     return d >= 5
 }
 
-@guard(d in Weekend)
+@returns(d in Weekend)
 export branch_lie :: fn(d: Weekday) -> bool = if d >= 3 { true } else { false }
 
-@guard(d in Weekend)
+@returns(d in Weekend)
 export honest_branches :: fn(d: Weekday) -> bool = if d >= 5 { true } else { false }
 
-@guard(d in Weekend)
+@returns(d in Weekend)
 export honest_after_guard :: fn(d: Weekday) -> bool {
     if d < 5 {
         return false

@@ -144,9 +144,9 @@ export TypecheckCode :: enum(CodeInfo) {
     IntIsNoValueType                { .id = "T3108", .message = "`Int` only names the base of a range" },
     MalformedRangeType              { .id = "T3109", .message = "a range type takes integer literal bounds within 64 bits, the least first" },
     NotAnIntegerType                { .id = "T3110", .message = "only an integer type has bounds" },
-    GuardDoesNotHold                { .id = "T3111", .message = "a declared guard does not hold" },
-    MisshapenGuard                  { .id = "T3112", .message = "`@guard` states what a non-generic function returning `bool` proves of its parameters" },
-    GuardParameterWritten           { .id = "T3113", .message = "a guard cannot write a parameter its contract speaks of" },
+    GuardDoesNotHold                { .id = "T3111", .message = "a function does not return what its `@returns` states" },
+    MisshapenGuard                  { .id = "T3112", .message = "`@returns` states, over its parameters, the `bool` a non-generic function returns" },
+    GuardParameterWritten           { .id = "T3113", .message = "a function cannot write a parameter its `@returns` speaks of" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

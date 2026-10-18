@@ -4,7 +4,8 @@
 
 Accepted (2026-10-18). Step 7 of the type-system charter, its fifth part continued
 (D11, S7): the declared guard, `@guard(cond)`, validated in the charter on
-2026-10-11. Builds on 0078.
+2026-10-11. Builds on 0078. Amended by 0082: the form is written `@returns(cond)`;
+`@guard` below is its former spelling.
 
 ## Context
 

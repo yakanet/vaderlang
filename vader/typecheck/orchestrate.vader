@@ -1086,7 +1086,7 @@ record_impl_bounds :: fn(owner: TypedProgram, for_ty: Type, trait_key: string) -
 
 // ---- cross-module table merges --------------------------------------------
 
-// Every module's `@guard` fns in ONE table every module reads : a call reads the
+// Every module's `@returns` fns in ONE table every module reads : a call reads the
 // contract of a guard another module declares, read on demand in that module
 // (`contract_of`), whatever has been walked.
 share_guards :: fn(per_module: MutableMap<string, TypedProgram>) -> void {

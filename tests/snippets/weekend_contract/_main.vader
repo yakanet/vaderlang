@@ -1,4 +1,4 @@
-// `@guard(cond)` exports what a predicate proves : `is_weekend` narrows `d` in
+// `@returns(cond)` exports what a predicate proves : `is_weekend` narrows `d` in
 // this module as `d in Weekend` does, its body checked against that contract in
 // its own. `is_monday`, a guard by its body alone, narrows nothing here.
 

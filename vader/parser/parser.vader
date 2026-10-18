@@ -670,19 +670,19 @@ reject_free_fn_decorators :: fn(
             p.error(.UnknownDecoratorPlacement, d.span,
                 "`@singleton` applies to a free function ; it does not apply to ${what}")
         }
-        if d.name == "guard" {
+        if d.name == "returns" {
             p.error(.UnknownDecoratorPlacement, d.span,
-                "`@guard` states what a free function proves ; it does not apply to ${what}")
+                "`@returns` states what a free function returns ; it does not apply to ${what}")
         }
     }
 }
 
-// `@guard(cond)` states one condition.
+// `@returns(cond)` states one condition.
 check_guard_arity :: fn(p: Parser, decorators: Decorator[]) -> void {
     for d in decorators {
-        if d.name == "guard" && d.args.len() != 1 {
+        if d.name == "returns" && d.args.len() != 1 {
             p.error(.DecoratorArgumentCount, d.span,
-                "`@guard` expects one condition over the parameters : `@guard(d in Weekend)`")
+                "`@returns` expects one condition over the parameters : `@returns(d in Weekend)`")
         }
     }
 }

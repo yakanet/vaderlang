@@ -5,13 +5,13 @@ module "snippet"
 export Weekday :: Int in 0..=6
 export Weekend :: Int in 5..=6
 
-@guard(d in Weekend)
+@returns(d in Weekend)
 export always :: fn(d: Weekday) -> bool {
     d = 6
     return d >= 5
 }
 
-@guard(d in Weekend)
+@returns(d in Weekend)
 export through_a_lambda :: fn(d: Weekday) -> bool {
     move :: () -> void
     {

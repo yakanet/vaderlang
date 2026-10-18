@@ -9,7 +9,7 @@
 // first, on its own. An inferred guard holds in its own module : the facts live in
 // its `TypedProgram`, and another module calls it as a plain predicate.
 //
-// `@guard(cond)` declares the contract instead : what the fn proves is then what
+// `@returns(cond)` declares the contract instead : what the fn proves is then what
 // `cond` proves, in every module. The contract depends on the signature and
 // `cond` alone, so it is read on demand in the module declaring it, whatever has
 // been walked. The body is held to it at each value it returns, both sides
@@ -22,7 +22,7 @@ import "vader/diagnostics"
 import "vader/types"
 AST :: import "toolchain/ast"
 
-/// The inferred guards of a module, and the contract being held while a `@guard`
+/// The inferred guards of a module, and the contract being held while a `@returns`
 /// fn's body is checked.
 export GuardState :: struct {
     /// The module's top-level fns that may be inferred guards
@@ -31,14 +31,14 @@ export GuardState :: struct {
     /// What each checked candidate proves, by node id ; nothing while its body is
     /// being checked.
     facts: MutableMap<usize, GuardFact[]> = MutableMap<usize, GuardFact[]> {}
-    /// The contract of the `@guard` fn whose body is being checked : a write to one
+    /// The contract of the `@returns` fn whose body is being checked : a write to one
     /// of its parameters, from a lambda in it too, is refused.
     verifying: GuardContract | null = null
 }
 
-/// The `@guard` contracts of the project : one table every module shares.
+/// The `@returns` contracts of the project : one table every module shares.
 export SharedGuards :: struct {
-    /// The module declaring each `@guard` fn, by node id.
+    /// The module declaring each `@returns` fn, by node id.
     owners: MutableMap<usize, TypedProgram> = MutableMap<usize, TypedProgram> {}
     /// Each contract read so far, by node id.
     contracts: MutableMap<usize, GuardContract> = MutableMap<usize, GuardContract> {}
@@ -47,7 +47,7 @@ export SharedGuards :: struct {
     reading: MutableSet<usize> = MutableSet<usize> {}
 }
 
-/// What a `@guard` fn promises : the facts its condition proves, over its
+/// What a `@returns` fn promises : the facts its condition proves, over its
 /// parameters.
 export GuardContract :: struct {
     decl: AST.FnDecl
@@ -151,21 +151,21 @@ guard_facts :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardFact[] | null {
 
 // ---- declared guards ------------------------------------------------------
 
-/// The condition `@guard(cond)` declares on `fd`, if it carries one.
+/// The condition `@returns(cond)` declares on `fd`, if it carries one.
 ///
 /// @param fd  a function declaration.
 guard_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null {
-    guard :: AST.find_decorator(fd.decorators, "guard") ?? return null
+    guard :: AST.find_decorator(fd.decorators, "returns") ?? return null
     if guard.args.len() == 0 {
         return null
     }
     return guard.args[0]
 }
 
-/// The contract the `@guard` fn `decl` declares : read once, in the module
+/// The contract the `@returns` fn `decl` declares : read once, in the module
 /// declaring it, apart from whatever that module's walk is in.
 ///
-/// @return  null for no `@guard` fn, a misshapen one, and while the contract is
+/// @return  null for no `@returns` fn, a misshapen one, and while the contract is
 ///          being read.
 contract_of :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardContract | null {
     shared :: typed.shared_guards
@@ -200,12 +200,12 @@ read_contract :: fn(decl: AST.FnDecl, cond: AST.Expr, owner: TypedProgram) -> Gu
     }
 }
 
-/// Start checking the body of the `@guard` fn `fd` : report what its contract
+/// Start checking the body of the `@returns` fn `fd` : report what its contract
 /// lacks, and hold the body to it, its returns through `ctx` and its writes through
 /// the module's guard state.
 ///
 /// @param ctx  the context of `fd`'s body.
-/// @error      T3112 when `@guard` is misshapen or proves nothing.
+/// @error      T3112 when `@returns` is misshapen or proves nothing.
 hold_to_contract :: fn(fd: AST.FnDecl, ctx: FnContext, typed: TypedProgram, diags: Diagnostic[]) -> void {
     cond :: guard_condition(fd) ?? return
     problem :: predicate_problem(fd, typed)
@@ -224,7 +224,7 @@ hold_to_contract :: fn(fd: AST.FnDecl, ctx: FnContext, typed: TypedProgram, diag
     typed.guards.verifying = contract
 }
 
-/// Hold the value `returned` a `@guard` fn returns to its contract : where it is
+/// Hold the value `returned` a `@returns` fn returns to its contract : where it is
 /// true, each parameter must lie within what the contract proves on the true side,
 /// and where it is false, on the false side.
 ///
@@ -302,7 +302,7 @@ check_body_value :: fn(block: AST.BlockExpr, ctx: FnContext | null, typed: Typed
     }
 }
 
-/// Refuse a write to `target` when it names a parameter of the `@guard` fn whose
+/// Refuse a write to `target` when it names a parameter of the `@returns` fn whose
 /// body is being checked : the contract speaks of the argument, which the write
 /// would hide.
 ///

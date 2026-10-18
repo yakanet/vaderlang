@@ -1,21 +1,21 @@
-// `@guard` states what a non-generic fn returning `bool` proves of its
-// parameters : a condition proving nothing of them states no contract, and nor
-// does one that only reaches its own guard.
+// `@returns` states, over its parameters, the `bool` a non-generic fn returns : a
+// condition proving nothing of them states no contract, and nor does one that only
+// reaches its own guard.
 module "snippet"
 
 export Weekday :: Int in 0..=6
 export Weekend :: Int in 5..=6
 
-@guard(d in Weekend)
+@returns(d in Weekend)
 export not_a_predicate :: fn(d: Weekday) -> i32 = 1
 
-@guard(x != null)
+@returns(x != null)
 export generic :: fn<T>(x: T | null) -> bool = x != null
 
-@guard(true)
+@returns(true)
 export says_nothing :: fn(d: Weekday) -> bool = true
 
-@guard(goes_round(d))
+@returns(goes_round(d))
 export goes_round :: fn(d: Weekday) -> bool = d >= 5
 
 export main :: fn() -> i32 {

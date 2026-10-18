@@ -65,16 +65,16 @@
   FnDecl         is_workday           :: fn(Weekday) -> bool
   ConstDecl      Weekday              :: type
   ConstDecl      Weekend              :: type
-  expr 11:13    IdentExpr      :: Weekend
-  expr 11:8     BinaryExpr     :: bool
-  expr 11:8     IdentExpr      :: Weekday
+  expr 11:10    BinaryExpr     :: bool
+  expr 11:10    IdentExpr      :: Weekday
+  expr 11:15    IdentExpr      :: Weekend
   expr 12:47    BinaryExpr     :: bool
   expr 12:47    IdentExpr      :: Weekday
   expr 17:46    BinaryExpr     :: bool
   expr 17:46    IdentExpr      :: Weekday
-  expr 22:13    RangeExpr      :: Range<Weekday>
-  expr 22:8     BinaryExpr     :: bool
-  expr 22:8     IdentExpr      :: Weekday
+  expr 22:10    BinaryExpr     :: bool
+  expr 22:10    IdentExpr      :: Weekday
+  expr 22:15    RangeExpr      :: Range<Weekday>
   expr 24:5     IfExpr         :: void
   expr 24:8     BinaryExpr     :: bool
   expr 24:8     IdentExpr      :: Weekday

@@ -335,7 +335,7 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
         // the body to find a use-site.
         self.idents[p.span.hash()] = sym
     }
-    guard :: AST.find_decorator(d.decorators, "guard")
+    guard :: AST.find_decorator(d.decorators, "returns")
     if guard != null {
         for a in guard.args {
             self.walk_expr(a)
@@ -455,9 +455,9 @@ walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
             self.check_target_selectors(d)
             continue
         }
-        // `@guard`'s condition reads the parameters : `walk_fn_decl` walks it once
+        // `@returns`'s condition reads the parameters : `walk_fn_decl` walks it once
         // they are bound.
-        if d.name == "guard" {
+        if d.name == "returns" {
             continue
         }
         for a in d.args { self.walk_expr(a) }
@@ -504,7 +504,7 @@ is_known_decorator :: fn(name: string) -> bool {
         || name == "c_variadic"
         || name == "displayable"
         || name == "singleton"
-        || name == "guard"
+        || name == "returns"
 }
 
 walk_opt_expr :: fn(self: ResolveState, e: AST.Expr | null) -> void {
