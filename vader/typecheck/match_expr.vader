@@ -612,7 +612,7 @@ range_variant :: fn(target: Type, low: Type) -> Type | null {
 }
 
 is_integer_or_char :: fn(t: Type) -> bool =
-    t is PrimitiveType && (is_int_name(t.name) || t.name == "char")
+    t is RangeType || t is PrimitiveType && (is_int_name(t.name) || t.name == "char")
 
 scratch_diags :: fn() -> Diagnostic[] { return [] }
 

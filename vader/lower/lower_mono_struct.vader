@@ -161,6 +161,7 @@ has_type_param :: fn(t: Type) -> bool {
         is PrimitiveType  -> { return false }
         is EnumType       -> { return false }
         is DistinctType   -> { return false }
+        is RangeType      -> { return false }
         is TypeMetaType   -> { return false }
         is SelfType       -> { return false }
         is UnresolvedType -> { return false }

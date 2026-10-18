@@ -71,8 +71,16 @@ infer_binary :: fn(
     // type first (so `4 * i` with `i: i32` stays i32, not the outer expected),
     // repinning its recorded type (and any inner shift / bitwise leaves) and
     // bounds-checking a char literal at its pin.
-    left = repin_operand(e.left, left, right, typed, diags)
-    right = repin_operand(e.right, right, left, typed, diags)
+    // A bitwise operation reads a range as the integer it is held in.
+    if classify(e.op) == .Integral {
+        left = represented(left)
+        right = represented(right)
+    }
+    // A literal beside a range stands for its own value (`range_result`).
+    if left !is RangeType && right !is RangeType {
+        left = repin_operand(e.left, left, right, typed, diags)
+        right = repin_operand(e.right, right, left, typed, diags)
+    }
     // `x in c` : a free element takes `c`'s, `4_000_000_000 in r` an `i64` on a
     // `Range<i64>`.
     if classify(e.op) == .In && is_free_numeric(left) {
@@ -911,8 +919,9 @@ has_identity :: fn(t: Type) -> bool = match t {
     is StructType | ArrayType | UnresolvedType | NeverType -> true
     is UnionType -> union_has_identity(t)
     is DistinctType -> has_identity(t.backing)
-    is PrimitiveType | EnumType | TupleType | FnType | TraitType | AnyType | TypeParamType
-        | InferVar | SelfType | TypeMetaType | FreeIntType | FreeFloatType | FreeCharType -> false
+    is PrimitiveType | EnumType | RangeType | TupleType | FnType | TraitType | AnyType
+        | TypeParamType | InferVar | SelfType | TypeMetaType | FreeIntType | FreeFloatType
+        | FreeCharType -> false
 }
 
 union_has_identity :: fn(u: UnionType) -> bool {
@@ -941,7 +950,7 @@ part_without_equality :: fn(t: Type, typed: TypedProgram) -> Type | null = match
         } else {
             part_without_equality(t.backing, typed)
         }
-    is PrimitiveType | EnumType | AnyType | UnresolvedType | NeverType | SelfType
+    is PrimitiveType | EnumType | RangeType | AnyType | UnresolvedType | NeverType | SelfType
         | TypeMetaType | FreeIntType | FreeFloatType | FreeCharType -> null
 }
 
@@ -1203,6 +1212,8 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
     // shift amount / mask repins (`u32(b) >> 4`, `mask & 0xFF`).
 
     if !propagates                                                     { return null }
+    // A literal beside a range stands for its own value (`range_result`).
+    if left is RangeType                                               { return null }
     if is_numeric(left)                                                { return left }
     // Equality propagates enum types too so `.Variant` on the RHS can
     // infer its enum from the LHS (e.g. `d == .East`).
@@ -1279,6 +1290,9 @@ numeric_result :: fn(
     }
     // The built-in op, whichever width the operands settle on below.
     record_site(typed, e, .Operator, BUILTIN_CALLEE)
+    if left is RangeType || right is RangeType {
+        return range_result(e, left, right, typed, diags)
+    }
     // Same Free kind on both sides : keep the free kind.
     if left is FreeIntType && right is FreeIntType     { return left }
     if left is FreeFloatType && right is FreeFloatType { return left }
@@ -1353,6 +1367,7 @@ is_numeric :: fn(t: Type) -> bool {
     if t is UnresolvedType                                         { return true }
     // suppress cascade
     if t is FreeIntType || t is FreeFloatType || t is FreeCharType { return true }
+    if t is RangeType                                              { return true }
     if t is PrimitiveType                                          { return is_numeric_name(t.name) }
     return false
 }
@@ -1362,6 +1377,7 @@ is_metatype :: fn(t: Type) -> bool = t is TypeMetaType
 is_integer :: fn(t: Type) -> bool {
     if t is UnresolvedType                   { return true }
     if t is FreeIntType || t is FreeCharType { return true }
+    if t is RangeType                        { return true }
     if t is PrimitiveType                    { return is_int_name(t.name) }
     return false
 }

@@ -1,0 +1,115 @@
+// vader/lower/integer_width — the integer an operation is computed in.
+//
+// After `erase_ranges`, the operands and the result of an operation are of one
+// integer type, except where a range took part : a range is held in the narrowest
+// integer holding it, narrower than what an operation on it computes. `a + b` on
+// two `0..=200` is a `u16` sum of two `u8` ; `(h + by) + 24`, `h + by` possibly
+// negative and its sum not, an `i16` one whose result is then held in the `u8` its
+// range promises. The operation is computed in an integer holding every value of
+// each type, its operands converted to it first : the bytecode reads an
+// operation's width off its left operand.
+
+module "vader/lower"
+
+import "toolchain/span"
+import "vader/integer"
+import "vader/types"
+
+/// The integer type an operation is computed in when the integer types it involves
+/// differ : one holding every value of `left`, `right` and the result's.
+///
+/// @param left    the left operand's type.
+/// @param right   the right operand's type ; null for a unary operation.
+/// @param result  the operation's type : an integer, or the `bool` of a test,
+///                which takes no part.
+/// @return        null when the integer types are one, or an operand is no integer.
+computation_width :: fn(left: Type, right: Type | null, result: Type) -> PrimitiveType | null {
+    l :: integer_primitive(left) ?? return null
+    as_integer :: integer_primitive(result)
+    r :: operand_width(right, l)
+    if r == null {
+        return null
+    }
+    if r.name == l.name && (as_integer == null || as_integer.name == l.name) {
+        return null
+    }
+    values := join_values(primitive_interval(l.name) ?? return null, r) ?? return null
+    if as_integer != null {
+        values = join_values(values, as_integer) ?? return null
+    }
+    return narrowest_integer(values)
+}
+
+// `values` joined with those of the integer type `t`.
+join_values :: fn(values: Interval, t: PrimitiveType) -> Interval | null {
+    more :: primitive_interval(t.name) ?? return null
+    return interval_join(values, more)
+}
+
+// The integer type of the right operand ; `left`'s for a unary operation, null when
+// it is no integer.
+operand_width :: fn(right: Type | null, left: PrimitiveType) -> PrimitiveType | null {
+    if right == null {
+        return left
+    }
+    return integer_primitive(right)
+}
+
+/// `e` converted to `width`, when there is one to compute in.
+///
+/// @param e      an operand, lowered.
+/// @param width  the computation's integer (`computation_width`), or null.
+in_width :: fn(e: LoweredExpr, width: PrimitiveType | null, span: Span) -> LoweredExpr {
+    if width == null {
+        return e
+    }
+    return cast_to_width(e, width.name, span)
+}
+
+/// The type of an operation of type `result` computed in `width` : that integer,
+/// or `result` itself for a test or when there is no other width.
+computed_type :: fn(result: Type, width: PrimitiveType | null) -> Type {
+    if width == null || integer_primitive(result) == null {
+        return result
+    }
+    return width
+}
+
+/// `computed` held as `result`, the integer type its value is in.
+///
+/// @param computed  the operation, of its computation's type.
+/// @param result    its type as the typecheck recorded it.
+held_as :: fn(computed: LoweredExpr, result: Type, span: Span) -> LoweredExpr {
+    as_integer :: integer_primitive(result) ?? return computed
+    return cast_to_width(computed, as_integer.name, span)
+}
+
+/// The unary operation `op` on `operand`, of type `result` : computed in an integer
+/// holding both when they differ (`-h` on a `u8` `0..=23` is an `i8`), then held as
+/// `result`.
+///
+/// @param operand  the operand, lowered.
+/// @param result   the operation's type.
+lower_unary_op_on :: fn(
+    op: LoweredUnaryOp,
+    operand: LoweredExpr,
+    result: Type,
+    span: Span,
+) -> LoweredExpr {
+    width :: computation_width(operand.type, null, result)
+    computed :: LoweredUnary {
+        .span = span,
+        .type = computed_type(result, width),
+        .op = op,
+        .operand = in_width(operand, width, span),
+    }
+    return held_as(computed, result, span)
+}
+
+// `t` when it is an integer primitive.
+integer_primitive :: fn(t: Type) -> PrimitiveType | null {
+    if t is PrimitiveType && is_int_name(t.name) {
+        return t
+    }
+    return null
+}

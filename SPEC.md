@@ -595,7 +595,7 @@ A literal float with no concrete context **infers to `f64`** (`x := 3.14` ⇒ `x
 
 ### Implicit numeric coercion
 
-There is **no implicit coercion between sized numeric types**. `i32 → i64` requires an explicit cast (`i64(x)`). The exception is numeric literals: `x: i64 = 42` works because `42` is left flexible until it lands in a typed context.
+There is **no implicit coercion between sized numeric types**. `i32 → i64` requires an explicit cast (`i64(x)`). The exceptions are numeric literals (`x: i64 = 42` works because `42` is left flexible until it lands in a typed context) and range types, which widen into any integer type holding them (§Range types).
 
 ### Float ↔ bits reinterpret
 
@@ -675,6 +675,36 @@ A constant the compiler folds follows the same rule: an overflow while evaluatin
 The **wrapping operators** `+%`, `-%` and `*%` (and `+%=`, `-%=`, `*%=`) wrap in every mode: integer operands only (`T3017` otherwise, and no trait overloads them), the result wrapping around the operands' width, an 8- or 16-bit one included: so `250 +% 10` is `4` on a `u8`, at run time as when a constant folds. They are the form for arithmetic meant to wrap (a hash, a PRNG, a checksum): `h *%= 16_777_619`. There is no wrapping negation: write `0 -% x`.
 
 A negative integer literal is one value (§Default integer), so `x: i64: -9_223_372_036_854_775_808` holds the least `i64` rather than negating a magnitude past its range. Division by zero traps in every mode (§Lowered AST); a narrowing cast truncates and a shift never traps (§Casts).
+
+### Range types
+
+A **range type** holds the integers of an interval. It is declared over the abstract integer `Int`, or written in place where a type is expected:
+
+```vader
+Hour :: Int in 0..=23
+Offset :: Int in -12..=14
+
+Clock :: struct {
+    hour: Hour
+    minute: 0..<60
+}
+```
+
+`Int` only names the base of a range: a value, a parameter or a field typed `Int` is **T3108**. The bounds are integer literals within `i64`, the least first (`Int in 5..=1`, `Int in 0..=LIMIT`, a bound past `i64` or another base are **T3109**). A range alone in value position (`r :: 0..=23`) stays a `Range<i32>` value. `Name :: Int in …` is a transparent refinement of the integer, shown under its name; a range alias written alone (`Heure :: Hour`) is a distinct type, as any type named alone.
+
+**Representation.** A value of a range is held in the narrowest of `u8`, `u16`, `u32`, `u64` that holds it when it has no negative value, of `i8`, `i16`, `i32`, `i64` otherwise: `Hour` is one byte, `Offset` an `i8`. `@size_of`, the layout of a field and an array's element all follow.
+
+**Widening.** A range goes into any range or integer type holding every value it has, with no conversion written: an `Hour` into a `u8`, an `i8`, an `i32` or a `0..=99`, into a union through such a member, and as an argument to a function taking an `i32`. Nothing goes in the other direction implicitly: an `i32` into an `Hour` is **T3001**. The widening does not reach through a container or a function type: an `Hour[]` is no `i32[]`.
+
+**Literals.** A literal stored in a range must be one of its values (**T3066**): `h: Hour = 30` is refused, in a field, an array, a union member (`Hour | null`), a `match` pattern (`30 ->` or `20..=40 ->` on an `Hour`) and a conversion alike.
+
+**Operations.** An operation between ranges and literals is computed over the integers, and its type is the range of every value it can take, a literal standing for its own value: `h + 1` on an `Hour` is `1..=24`, `h - 30` is `-30..=-7`, `-h` is `-23..=0`, `h / 2` is `0..=11`, and `(h + 1) % 24` is `0..=23`. Storing a result in a narrower range is refused (`next: Hour = h + 1` is **T3001**; write `(h + 1) % 24`), and so is `h += 1`. `/` truncates toward zero and `%` takes the dividend's sign, as at run time. A result past 64 bits is an `i64`, checked as any (§Integer overflow). A primitive operand absorbs the range, which must fit it: `h * x` with `x: i32` is an `i32` product, `h < x` with `x: i64` compares, and a range that does not fit the primitive beside it is **T3017**. A comparison and an equality give a `bool`. A bitwise operation (`&`, `|`, `^`, shifts, `~`, the wrapping operators) reads a range as the integer it is held in.
+
+A mutable local takes the base of a range computed in place: `n := h + 1` is an `i32` (an `i64` past it), so that `n` can take another value later; a local of a declared range (`k := next_hour(h)`) keeps it, and so does `n :: h + 1`.
+
+**Conversion.** `Hour(x)` converts an integer into a range: the value is checked against the bounds its own type does not already keep, and the program **stops** outside them, in every build, a release one included. A literal is checked at compile time (**T3066**), a value its type keeps within the range is converted as it is, and a source no value of which is in the range (`Below(b)` with `b: u8` and `Below :: Int in -9..=-1`), or a float, is **T3010**.
+
+A range is its integer to every impl: `"${h}"` prints the number, and its `Display`, `Equals` or `Hash` are those of the integer it is held in. A literal into a union of several integers and ranges (`u8 | Hour`) is ambiguous (**T3089**).
 
 ### Strings
 

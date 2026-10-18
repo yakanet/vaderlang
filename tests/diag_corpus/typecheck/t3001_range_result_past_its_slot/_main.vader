@@ -1,0 +1,17 @@
+// An operation on ranges has the range of every value it can take : `h + 1` on an
+// `Hour` is `1..=24`, which an `Hour` does not hold (`(h + 1) % 24` does), and so
+// is a sum of literals past its slot. A primitive does not go into a range without
+// a conversion.
+module "snippet"
+
+export Hour :: Int in 0..=23
+
+export main :: fn() -> i32 {
+    h: Hour: 3
+    next: Hour: h + 1
+    wrapped: Hour: (h + 1) % 24
+    noon: Hour: 20 + 10
+    x: i32: 4
+    k: Hour: x
+    return 0
+}

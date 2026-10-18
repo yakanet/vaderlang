@@ -14,6 +14,7 @@ module "vader/typecheck"
 
 import "std/collections"
 import "vader/diagnostics"
+import "vader/integer"
 import "toolchain/ast"
 import "vader/parser"
 import "vader/types"
@@ -72,17 +73,8 @@ find_owner :: fn(out: MutableMap<string, i64>, target: i64) -> string {
 
 /// The narrowest integer holding every index in `[smallest, largest]` : unsigned when
 /// none is negative.
-export narrowest_width :: fn(smallest: i64, largest: i64) -> string {
-    candidates :: if smallest >= 0 { ["u8", "u16", "u32"] } else { ["i8", "i16", "i32"] }
-    for name in candidates {
-        range :: repr_range(name)
-        if range.contains(smallest) && range.contains(largest) {
-            return name
-        }
-    }
-    // The 64-bit width holds every index the parser can carry.
-    return if smallest >= 0 { "u64" } else { "i64" }
-}
+export narrowest_width :: fn(smallest: i64, largest: i64) -> string =
+    narrowest_integer(interval(smallest, largest)).name
 
 /// `[smallest, largest]` of `values` ; `[0, 0]` when there are none.
 export value_bounds :: fn(values: i64[]) -> [i64, i64] {
@@ -181,9 +173,9 @@ contains :: fn(self: ReprRange, v: i64) -> bool {
 // from its width + signedness (`vader/types::PRIMITIVE_META`) rather than a
 // per-width name table. Signed n-bit = `[-2^(n-1), 2^(n-1)-1]`; unsigned =
 // `[0, 2^n-1]`. The 64-bit widths (i64/isize + u64/usize) clamp `max` to
-// `i64.MAX`: values above it can't be carried in the AST. That clamp is a
-// typecheck-local decision, which is why the bounds live here and not in the
-// leaf `vader/types` (only the universal `size` / `is_signed` do).
+// `i64.MAX`: values above it can't be carried in the AST. `vader/types::
+// primitive_interval` gives the same bounds as an interval, its 64-bit unsigned
+// end open past `i64`.
 repr_range :: fn(repr: string) -> ReprRange {
     m :: primitive_meta(repr)
     if m == null  { return ReprRange { .min = 0, .max = 0, .has_bounds = false } }

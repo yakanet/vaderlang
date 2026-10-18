@@ -9,6 +9,7 @@
 module "vader/typecheck"
 
 import "vader/diagnostics"
+import "vader/integer"
 import "vader/types"
 // `display_type` and `is_numeric` live in sibling files of this module and are
 // referenced directly (a re-import would trip R2026 duplicate-declaration).
@@ -54,6 +55,7 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
     // Undecidable operands (an earlier error, an unbound type param, a metatype)
     // opt out — never pile a T3010 on top of a cascade.
     if not_decidable(src) || not_decidable(target) { return true }
+    if target is RangeType { return range_conversion_allowed(src, target) }
     if enum_data_of(src, target) != null { return true }
     // The `Convert` op domain — numeric / char / enum conversions (`usize(i32)`,
     // `f64(u64)`, `u8(char)`, `i32(enum)`) and distinct newtype construct / unwrap
@@ -109,6 +111,16 @@ is_machine_word :: fn(t: Type) -> bool {
 }
 
 not_decidable :: fn(t: Type) = t is UnresolvedType | TypeParamType | InferVar | TypeMetaType
+
+// A conversion into a range takes an integer some value of which is in it ; the
+// rest are stopped at run time. A float goes through an integer first.
+range_conversion_allowed :: fn(src: Type, target: RangeType) -> bool {
+    if is_free_numeric(src) {
+        return src is FreeIntType
+    }
+    values :: integer_values(src) ?? return false
+    return interval_meet(values, target.bounds) != null
+}
 
 // Numeric (int / float, free or concrete), `char`, or an enum — everything the
 // `Convert` op can move between. `is_numeric` already covers the free / numeric

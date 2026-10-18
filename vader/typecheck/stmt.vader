@@ -377,6 +377,11 @@ check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> voi
     declared: Type = TY_UNRESOLVED
     if ann == null {
         declared = default_free_members(got)
+        // A local that takes other values later starts from the base of a range
+        // computed in place, not from its first value's range.
+        if s.mutable {
+            declared = widened_base(declared)
+        }
     } else {
         declared = ann
         emit_mismatch_if(got, ann, s.span, s.value, .TypeMismatch, typed, diags)

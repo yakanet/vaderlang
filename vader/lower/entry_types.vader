@@ -32,14 +32,14 @@ make_entry_types :: fn(typed: TypedProgram, subst: Substitution) -> EntryTypes {
     return EntryTypes { .typed = typed, .subst = subst }
 }
 
-/// Apply the entry's substitution to an arbitrary type. No-op when the
-/// substitution is empty (the common case for non-generic decls).
+/// Apply the entry's substitution to an arbitrary type, every range in it read as
+/// its representation (`erase_ranges`) : the lowering sees integers.
 /// @param self  the entry-types view.
 /// @param t     the type to rewrite.
 /// @return      the rewritten type (may be `t` itself).
 export apply :: fn(self: EntryTypes, t: Type) -> Type {
-    if is_empty_substitution(self.subst) { return t }
-    return substitute(t, self.subst)
+    if is_empty_substitution(self.subst) { return erase_ranges(t) }
+    return erase_ranges(substitute(t, self.subst))
 }
 
 // Apply the entry's substitution to a `Type | null` lookup result,
@@ -159,14 +159,17 @@ recorded_type_expr :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
 /// The type of field `name` of the struct `struct_symbol`, as the typecheck
 /// resolved it in the struct's own module : a field's type may name what the
 /// module using the struct does not see. Type parameters stay as written, for
-/// the caller to substitute ; a missing entry panics (`recorded_type_expr`).
+/// the caller to substitute ; a range is read as its integer (`erase_ranges`) ; a
+/// missing entry panics (`recorded_type_expr`).
 ///
 /// @param typed          any module's typed program : the table is shared.
 /// @param struct_symbol  the struct's declaration symbol.
 /// @param name           the field.
-declared_field_type :: fn(typed: TypedProgram, struct_symbol: Symbol, name: string) -> Type =
-    lookup_pre_resolved_field(struct_symbol.id, name, typed)
+declared_field_type :: fn(typed: TypedProgram, struct_symbol: Symbol, name: string) -> Type {
+    declared :: lookup_pre_resolved_field(struct_symbol.id, name, typed)
         ?? panic("lower: no type recorded for `${struct_symbol.name}.${name}`")
+    return erase_ranges(declared)
+}
 
 /// The type declared at `name_span` (`declared_type_at`), through the entry's
 /// substitution.

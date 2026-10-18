@@ -71,7 +71,11 @@ settle_branch :: fn(
 // (`union_literal_member`: `u8 | null` offers its `u8`).
 family_member :: fn(sibling: Type, free: Type) -> PrimitiveType | null {
     if sibling is UnionType {
-        return union_literal_member(free, sibling)
+        member :: union_literal_member(free, sibling)
+        if member is PrimitiveType {
+            return member
+        }
+        return null
     }
     if sibling is PrimitiveType && literal_family_holds(free, sibling.name) {
         return sibling

@@ -21,12 +21,13 @@ import "vader/types"
 export BUILTIN_MODULE_ID :: "<builtin>"
 
 /// Non-primitive, non-alias builtin names, minted after the primitives and
-/// aliases. `Self` is the trait self-type; `type` is the metatype.
-BUILTIN_EXTRA_NAMES :: ["Self", "type"]
+/// aliases. `Self` is the trait self-type; `type` is the metatype; `Int` the base
+/// of a range type (`Int in 0..=23`), never the type of a value.
+BUILTIN_EXTRA_NAMES :: ["Self", "type", INT_BASE_NAME]
 
 /// Every builtin type name in mint order: canonical primitives
 /// (`PRIMITIVE_META`), then friendly aliases (`PRIMITIVE_ALIASES`), then
-/// `Self` / `type`. Order is load-bearing — symbol IDs mint in this sequence
+/// `Self` / `type` / `Int`. Order is load-bearing — symbol IDs mint in this sequence
 /// and are embedded in snapshots, so the three sources are concatenated in a
 /// fixed order rather than re-listed here.
 builtin_type_names :: fn() -> string[] {

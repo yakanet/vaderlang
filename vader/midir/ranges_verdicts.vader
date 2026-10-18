@@ -14,6 +14,7 @@ module "vader/midir"
 import "std/collections"
 import "std/sort"
 import "toolchain/span"
+import "vader/integer"
 import "vader/lower"
 
 /// What the analysis concludes about one array access or checked operation.

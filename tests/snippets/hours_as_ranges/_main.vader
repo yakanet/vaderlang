@@ -1,0 +1,66 @@
+// Integer ranges as types : declared over `Int` or written in place, held in the
+// narrowest integer, widened into any integer holding them. An operation on ranges
+// has the range of what it computes (`(h + 1) % 24` stays an `Hour`, two
+// `0..=200` add up past a byte), and a conversion `Hour(x)` checks its value.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+Hour    :: Int in 0..=23
+Offset  :: Int in -12..=14
+Percent :: Int in 0..=100
+
+Clock :: struct {
+    hour: Hour
+    minute: 0..<60
+}
+
+next_hour :: fn(h: Hour) -> Hour = (h + 1) % 24
+
+shifted :: fn(h: Hour, by: Offset) -> Hour = (h + by + 24) % 24
+
+total :: fn(a: Percent, b: Percent) -> i32 = a + b
+
+later :: fn(c: Clock, other: Clock) -> bool =
+    c.hour > other.hour || c.hour == other.hour && c.minute > other.minute
+
+parse_hour :: fn(raw: i32) -> Hour = Hour(raw)
+
+part_of_day :: fn(h: Hour) -> string = match h {
+    0      -> "midnight"
+    12     -> "noon"
+    0..=11 -> "morning"
+    _      -> "afternoon"
+}
+
+low_bits :: fn(o: Offset) -> i8 = o & 7
+
+six_later :: fn(h: Hour) -> Hour = (h + 2 * 3) % 24
+
+first_free :: fn(taken: Hour[]) -> Hour | null {
+    for h in 0..<24 {
+        if !taken.any_match((t) -> t == h) {
+            return Hour(h)
+        }
+    }
+    return null
+}
+
+main :: fn() -> i32 {
+    c :: Clock { .hour = 23, .minute = 45 }
+    d :: Clock { .hour = next_hour(c.hour), .minute = 5 }
+    println("${c.hour}:${c.minute} then ${d.hour}:${d.minute}, later ${later(c, d)}")
+    println("tokyo ${shifted(c.hour, 9)}, honolulu ${shifted(c.hour, -10)}, ${shifted(2, -10)}")
+    println("${total(100, 100)} ${parse_hour(7)} ${-c.hour}")
+    println(
+        "${part_of_day(12)} ${part_of_day(5)} ${part_of_day(20)} ${low_bits(-3)} ${six_later(20)}",
+    )
+    taken: Hour[]: [0, 1, 2]
+    println("first free ${first_free(taken) ?? 0}")
+    count := c.hour + 1
+    count = count * 1000
+    println("count ${count}")
+    return 0
+}

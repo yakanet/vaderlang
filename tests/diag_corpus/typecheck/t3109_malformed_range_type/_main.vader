@@ -1,0 +1,14 @@
+// A range type takes integer literal bounds within `i64`, the least first, written
+// over `Int` : a range holding no integer, a bound that is not a literal, a bound
+// past `i64` and another base are T3109.
+module "snippet"
+
+LIMIT :: 9
+
+export Empty :: Int in 5..=1
+export Named :: Int in 0..=LIMIT
+export Huge  :: Int in 0..=0xFFFF_FFFF_FFFF_FFFF
+export Based :: u8 in 0..=9
+export Shut  :: Int in 3..<3
+
+export main :: fn() -> i32 = 0

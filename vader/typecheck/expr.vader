@@ -56,7 +56,8 @@ check_keeping_quantifier :: fn(expr: AST.Expr, typed: TypedProgram, diags: Diagn
 finish_check :: fn(
     expr: AST.Expr, got: Type, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    narrowed :: narrow_for_expected(got, expected)
+    narrowed :: free_value_in_range(expr, got, expected, typed, diags)
+        ?? narrow_for_expected(got, expected)
     // Still free against a union : no member settled it alone.
     final :: if expected is UnionType && is_free_numeric(narrowed) {
         settle_ambiguous_literal(expr, got, expected, diags)
@@ -93,6 +94,11 @@ check_literal_bounds :: fn(
                 diags.push(typecheck_error(.IntegerLiteralOutOfRange, expr.span,
                     "`${AST.int_literal_text(expr)}` does not fit in `${final.name}`"))
             }
+        }
+        if final is RangeType && !literal_in_range(expr, final) {
+            diags.push(typecheck_error(.IntegerLiteralOutOfRange, expr.span,
+                "`${AST.int_literal_text(expr)}` is not in `${display_type(final)}`"
+                    + " (${display_bounds(final.bounds)})"))
         }
         if final is FreeIntType {
             defaulted :: default_if_free(final)
@@ -210,8 +216,8 @@ settle_ambiguous_literal :: fn(
     if candidates.len() < 2 {
         return got
     }
-    names :: candidates.map((c) -> "`${c.name}`").collect()
-    example :: "`${candidates[0].name}(…)`"
+    names :: candidates.map((c) -> "`${display_type(c)}`").collect()
+    example :: "`${display_type(candidates[0])}(…)`"
     diags.push(typecheck_error(.AmbiguousLiteralInUnion, expr.span,
         "could be ${names.join(", ")} — convert it explicitly, e.g. ${example}"))
     return candidates[0]
@@ -388,6 +394,8 @@ has_display :: fn(t: Type, typed: TypedProgram) -> bool = match t {
         || has_display(t.backing, typed))
     is ArrayType     -> has_display(t.element, typed)
     is UnionType     -> all_display(t.variants, typed)
+    // A range renders as its integer.
+    is RangeType     -> true
     is TypeParamType -> bound_names_display(typed.resolved.type_param_bounds[t.symbol.id], typed)
     is TraitType     -> is_core_trait(t, TRAIT_DISPLAY)
     is FreeIntType | FreeFloatType | FreeCharType | NeverType -> true

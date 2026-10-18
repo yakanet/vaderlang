@@ -29,7 +29,7 @@ infer_unary :: fn(
                 push_op_undefined(e, operand, "-", diags)
                 return TY_UNRESOLVED
             }
-            return operand
+            return negated(operand)
         }
         .Not -> {
             if !is_bool(operand) {
@@ -43,7 +43,7 @@ infer_unary :: fn(
                 push_op_undefined(e, operand, "~", diags)
                 return TY_UNRESOLVED
             }
-            return operand
+            return represented(operand)
         }
     }
 }

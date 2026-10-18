@@ -309,8 +309,8 @@ written_keys :: fn(t: Type | null) -> string[] = match t {
     is DistinctType -> written_keys(t.backing)
     is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType | null -> [ANYTHING]
     is InferVar -> leaked_infer_var(t)
-    is PrimitiveType | EnumType | FnType | TypeMetaType | FreeIntType | FreeFloatType
-     | FreeCharType | NeverType -> []
+    is PrimitiveType | EnumType | RangeType | FnType | TypeMetaType | FreeIntType
+     | FreeFloatType | FreeCharType | NeverType -> []
 }
 
 // Whether some write of the program may reach a value of type `t`, or a value it
@@ -331,8 +331,8 @@ may_be_written :: fn(
         is DistinctType -> reaches(t.backing)
         is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType | null -> true
         is InferVar -> leaked_infer_var(t)
-        is PrimitiveType | EnumType | FnType | TypeMetaType | FreeIntType | FreeFloatType
-         | FreeCharType | NeverType -> false
+        is PrimitiveType | EnumType | RangeType | FnType | TypeMetaType | FreeIntType
+         | FreeFloatType | FreeCharType | NeverType -> false
     }
 }
 

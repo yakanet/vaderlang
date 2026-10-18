@@ -1,0 +1,26 @@
+// A literal stored in a range must be one of its values : in a local, a field, an
+// array, an optional slot, a conversion `Hour(…)` and a `match` pattern alike.
+module "snippet"
+
+export Hour :: Int in 0..=23
+
+export Alarm :: struct {
+    at: Hour
+}
+
+export none_or :: fn() -> Hour | null = 24
+
+export label :: fn(h: Hour) -> string = match h {
+    30 -> "never"
+    20..=40 -> "late"
+    _ -> "other"
+}
+
+export main :: fn() -> i32 {
+    late: Hour: 30
+    early: Hour: -1
+    alarm :: Alarm { .at = 99 }
+    hours: Hour[]: [1, 24]
+    converted :: Hour(25)
+    return 0
+}

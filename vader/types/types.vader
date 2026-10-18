@@ -1,7 +1,7 @@
 // vader/types/types — the Type IR.
 //
 // Every Vader value gets exactly one
-// Type. The discriminated union has 18 variants ; constructors are
+// Type. The discriminated union has 20 variants ; constructors are
 // plain factories (no hash-consing for MVP — `equals_type` in
 // `type_ops.vader` walks structurally instead of relying on reference
 // identity). Interning lands when a downstream hot path needs it.
@@ -11,6 +11,7 @@ module "vader/types"
 import "std/abort"
 import "std/collections"
 import "std/string_builder"
+import "vader/integer"
 import "vader/resolver/symbol"
 
 // ---- variants -------------------------------------------------------------
@@ -59,6 +60,111 @@ export DistinctType :: struct {
     /// (`val_type_of_type`, `array_backing`, `struct_backing`, …)
     /// rather than assume a primitive.
     backing: Type
+}
+
+/// The name of the abstract integer a range type is written over (`Int in 0..=23`).
+export INT_BASE_NAME :: "Int"
+
+/// A range of integers, `Int in lo..=hi` : a refinement of the integer, held in
+/// the narrowest integer type that holds it (`range_representation`). Told apart
+/// by its bounds alone, which are closed and within `i64` once declared ; a range
+/// an expression computes may open past them.
+export RangeType :: struct {
+    bounds: Interval
+    /// The alias it was declared as (`Hour`), for display ; "" for a range written
+    /// in place or computed by an expression.
+    name: string = ""
+}
+
+/// The integer type a value of `r` is held in (`narrowest_integer`).
+///
+/// @param r  a range.
+export range_representation :: fn(r: RangeType) -> PrimitiveType = narrowest_integer(r.bounds)
+
+/// The narrowest of `u8`, `u16`, `u32`, `u64` holding every value of `values` when
+/// none is negative, of `i8`, `i16`, `i32`, `i64` otherwise : what a range is held
+/// in, and an enum's inferred width.
+///
+/// @param values  the integers to hold ; past 64 bits, the widest of its kind.
+export narrowest_integer :: fn(values: Interval) -> PrimitiveType {
+    candidates :: integer_candidates(values)
+    for name in candidates {
+        whole :: primitive_interval(name) ?? continue
+        if interval_within(values, whole) {
+            return PrimitiveType { .name = name }
+        }
+    }
+    return PrimitiveType { .name = candidates[candidates.len() - 1] }
+}
+
+integer_candidates :: fn(values: Interval) -> string[] {
+    if !values.lo_open && values.lo >= 0 {
+        return ["u8", "u16", "u32", "u64"]
+    }
+    return ["i8", "i16", "i32", "i64"]
+}
+
+/// The values of the primitive integer type `name`.
+///
+/// @return  null for a name that is no integer type. A 64-bit unsigned type's
+///          upper end is open : it reaches past every `i64`.
+export primitive_interval :: fn(name: string) -> Interval | null {
+    meta :: primitive_meta(name) ?? return null
+    if !meta.is_int {
+        return null
+    }
+    bits :: meta.size * 8
+    if meta.is_signed {
+        return signed_interval(bits)
+    }
+    return unsigned_interval(bits)
+}
+
+unsigned_interval :: fn(bits: i64) -> Interval {
+    if bits == 64 {
+        return Interval {
+            .lo = 0,
+            .hi = I64_MAX,
+            .hi_open = true,
+        }
+    }
+    return interval(0, (1 << bits) - 1)
+}
+
+signed_interval :: fn(bits: i64) -> Interval {
+    if bits == 64 {
+        return interval(I64_MIN, I64_MAX)
+    }
+    half :: 1 << (bits - 1)
+    return interval(-half, half - 1)
+}
+
+// `r` as written : its declared name, else its bounds.
+write_range :: fn(sb: StringBuilder, r: RangeType) -> void {
+    if r.name != "" {
+        sb.append(r.name)
+        return
+    }
+    sb.append(display_bounds(r.bounds))
+}
+
+/// `bounds` as a range is written, `lo..=hi`, an open end left out (`0..`).
+///
+/// @param bounds  the interval to render.
+export display_bounds :: fn(bounds: Interval) -> string {
+    lo :: open_or(bounds.lo_open, bounds.lo)
+    if bounds.hi_open {
+        return "${lo}.."
+    }
+    return "${lo}..=${bounds.hi}"
+}
+
+// The text of a bound, "" when the end is open.
+open_or :: fn(open: bool, value: i64) -> string {
+    if open {
+        return ""
+    }
+    return "${value}"
 }
 
 export TraitType :: struct {
@@ -154,6 +260,7 @@ export Type ::
     | NeverType
     | AnyType
     | DistinctType
+    | RangeType
     | InferVar
 
 // ---- name registries ------------------------------------------------------
@@ -234,7 +341,7 @@ export is_int_name :: fn(name: string) -> bool {
 /// @param t  the lower bound's type.
 export is_counting_type :: fn(t: Type) -> bool = match t {
     is PrimitiveType -> is_int_name(t.name)
-    is FreeIntType | FreeCharType -> true
+    is FreeIntType | FreeCharType | RangeType -> true
     is FreeFloatType | StructType | EnumType | DistinctType | ArrayType | TupleType -> false
     is UnionType | FnType | TraitType | TypeParamType | InferVar | SelfType | AnyType -> false
     is NeverType | UnresolvedType | TypeMetaType -> false
@@ -293,6 +400,7 @@ export slot_byte_size :: fn(t: Type) -> i64 = match t {
     // enums and one that is four times denser.
     is EnumType     -> primitive_size(t.repr)
     is DistinctType -> slot_byte_size(t.backing)
+    is RangeType    -> primitive_size(range_representation(t).name)
     is StructType | ArrayType | TupleType | FnType   -> REF_SLOT_BYTES
     is TraitType | UnionType | AnyType               -> BOX_SLOT_BYTES
     is TypeMetaType | TypeParamType | InferVar | SelfType | UnresolvedType
@@ -638,6 +746,8 @@ export impl_base_key :: fn(t: Type) -> string {
     @partial match t {
         is StructType | TraitType | EnumType | DistinctType -> { return declaration_key(t.symbol) }
         is ArrayType -> { return "[]" }
+        // A range is its integer to every impl.
+        is RangeType -> { return range_representation(t).name }
         // Two same-named types of two modules print alike inside one of these.
         is TupleType | FnType | UnionType -> { return canonical_key(t) }
         _ -> { return display_type(t) }
@@ -653,6 +763,7 @@ write_type :: fn(sb: StringBuilder, t: Type, qualified: bool) -> void {
         }
         is EnumType       -> { sb.append(nominal_name(t.symbol, qualified)) }
         is DistinctType   -> { sb.append(nominal_name(t.symbol, qualified)) }
+        is RangeType      -> { sb.write_range(t) }
         is TraitType      -> {
             sb.write_named(nominal_name(t.symbol, qualified), t.args, qualified)
         }
@@ -725,6 +836,7 @@ export canonical_key :: fn(t: Type) -> string {
         is TypeParamType  -> { return "P${t.symbol.id}" }
         is EnumType       -> { return "e${t.symbol.id}" }
         is DistinctType   -> { return "d${t.symbol.id}" }
+        is RangeType      -> { return "r${display_bounds(t.bounds)}" }
         is TypeMetaType   -> { return "M" }
         is SelfType       -> { return "S" }
         is UnresolvedType -> { return "?" }
@@ -898,6 +1010,7 @@ export tuple_backing :: fn(t: Type) -> TupleType | null {
 export scalar_backing :: fn(t: Type) -> PrimitiveType | null {
     if t is PrimitiveType { return t }
     if t is DistinctType { return scalar_backing(t.backing) }
+    if t is RangeType { return range_representation(t) }
     return null
 }
 
@@ -952,7 +1065,7 @@ export is_untagged :: fn(t: Type) -> bool {
 export carries_own_tag :: fn(t: Type) -> bool = match t {
     is StructType -> !is_untagged(t)
     is ArrayType | PrimitiveType -> true
-    is EnumType | DistinctType | AnyType | TypeParamType | InferVar -> false
+    is EnumType | DistinctType | RangeType | AnyType | TypeParamType | InferVar -> false
     // Never the receiver of an impl.
     is UnionType | TupleType | TraitType | FnType | SelfType | TypeMetaType -> false
     is NeverType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType -> false
@@ -964,7 +1077,8 @@ export carries_own_tag :: fn(t: Type) -> bool = match t {
 /// its type is known statically.
 ///
 /// @param t  the type of the value boxed.
-export boxes_as_representation :: fn(t: Type) -> bool = t is EnumType || t is DistinctType
+export boxes_as_representation :: fn(t: Type) -> bool =
+    t is EnumType || t is DistinctType || t is RangeType
 
 /// Map `strip_distinct` over a type-arg list. Always returns a fresh array
 /// with each element passed through `strip_distinct`.

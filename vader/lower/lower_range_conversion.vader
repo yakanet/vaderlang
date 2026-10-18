@@ -1,0 +1,141 @@
+// vader/lower/lower_range_conversion — `Hour(x)`, a value converted into a range.
+//
+// The value is checked against the bounds its own type does not already keep —
+// `u8` into `-5..=5` needs no test below — and the program stops outside them, in
+// every build : a range's values are what its type promises, and the lowering
+// past here reads a range as the integer it is held in. A value its type keeps
+// within the range is converted as it is.
+
+module "vader/lower"
+
+import "toolchain/ast"
+import "toolchain/span"
+import "vader/integer"
+import "vader/typecheck"
+import "vader/types"
+
+/// The conversion `call`, `T(value)`, into the range `target`.
+///
+/// @param call    the conversion, its single argument the value.
+/// @param target  the range converted into, as the typecheck recorded it.
+/// @return        the value, checked where it may leave the range, then
+///                converted to the integer the range is held in.
+lower_range_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: RangeType) -> LoweredExpr {
+    observe_no_call(ctx, call, .Call, "range check")
+    span :: call.span
+    held :: range_representation(target).name
+    value :: lower_expr(ctx, call.args[0].value)
+    source_values :: values_of(
+        ctx,
+        call.args[0].value,
+        value,
+    ) ?? return cast_to_width(value, held, span)
+    below :: source_values.lo_open || source_values.lo < target.bounds.lo
+    above :: source_values.hi_open || source_values.hi > target.bounds.hi
+    if !below && !above {
+        return cast_to_width(value, held, span)
+    }
+    compared :: comparison_type(source_values, target.bounds, below, above)
+    stmts: LoweredStmt[]: []
+    bound :: bind_to_local(
+        ctx,
+        cast_to_width(value, compared.name, span),
+        compared,
+        "in_range",
+        span,
+        stmts,
+    )
+    stmts.push(
+        LoweredExprStmt {
+            .span = span,
+            .expr = LoweredIf {
+                .span = span,
+                .type = TY_VOID,
+                .cond = outside_test(bound, target.bounds, below, above, compared, span),
+                .then_block = LoweredBlock {
+                    .span = span,
+                    .type = TY_VOID,
+                    .stmts = [stop_outside(target, span)],
+                    .trailing = null,
+                },
+                .else_block = null,
+            },
+        },
+    )
+    return with_prelude(stmts, cast_to_width(bound, held, span), span)
+}
+
+// The values the converted value can take : those of its type as the typecheck
+// recorded it, a range's bounds included, else of the type it is lowered at.
+values_of :: fn(ctx: FnLowerCtx, arg: Expr, lowered: LoweredExpr) -> Interval | null {
+    recorded :: integer_values(ctx.types.raw_expr_type(arg))
+    if recorded != null {
+        return recorded
+    }
+    return integer_values(lowered.type)
+}
+
+// The integer type a value of `source` is compared in with the bounds of `target`
+// it is tested against : one holding both.
+comparison_type :: fn(source: Interval, target: Interval, below: bool, above: bool) -> PrimitiveType {
+    tested := source
+    if below {
+        tested = interval_join(tested, interval(target.lo, target.lo))
+    }
+    if above {
+        tested = interval_join(tested, interval(target.hi, target.hi))
+    }
+    return narrowest_integer(tested)
+}
+
+// `value < lo || value > hi`, each side only where it is tested.
+outside_test :: fn(
+    value: LoweredExpr,
+    bounds: Interval,
+    below: bool,
+    above: bool,
+    compared: Type,
+    span: Span,
+) -> LoweredExpr {
+    under :: bound_test(value, .Lt, bounds.lo, compared, span)
+    over :: bound_test(value, .Gt, bounds.hi, compared, span)
+    if !below {
+        return over
+    }
+    if !above {
+        return under
+    }
+    return LoweredBinary {
+        .span = span,
+        .type = TY_BOOL,
+        .op = .Or,
+        .left = under,
+        .right = over,
+    }
+}
+
+// `value op bound`.
+bound_test :: fn(
+    value: LoweredExpr,
+    op: LoweredBinaryOp,
+    bound: i64,
+    compared: Type,
+    span: Span,
+) -> LoweredExpr = LoweredBinary {
+    .span = span,
+    .type = TY_BOOL,
+    .op = op,
+    .left = value,
+    .right = LoweredIntLit { .span = span, .type = compared, .value = bound },
+}
+
+// The stop a value outside `target` reaches.
+stop_outside :: fn(target: RangeType, span: Span) -> LoweredStmt = LoweredExprStmt {
+    .span = span,
+    .expr = LoweredUnreachable {
+        .span = span,
+        .type = TY_VOID,
+        .reason = "value out of range: not in `${display_type(target)}`"
+            + " (${display_bounds(target.bounds)})",
+    },
+}

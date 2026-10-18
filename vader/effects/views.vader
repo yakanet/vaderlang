@@ -66,8 +66,8 @@ may_hold_bytes :: fn(t: Type | null) -> bool = match t {
     is DistinctType -> may_hold_bytes(t.backing)
     is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType | null -> true
     is InferVar -> leaked_infer_var(t)
-    is StructType | TupleType | PrimitiveType | EnumType | FnType | TypeMetaType | FreeIntType
-     | FreeFloatType | FreeCharType | NeverType -> false
+    is StructType | TupleType | PrimitiveType | EnumType | RangeType | FnType | TypeMetaType
+     | FreeIntType | FreeFloatType | FreeCharType | NeverType -> false
 }
 
 // Whether a value of type `t` may be a byte, the element of a view.
@@ -77,8 +77,9 @@ may_be_byte :: fn(t: Type) -> bool = match t {
     is DistinctType  -> may_be_byte(t.backing)
     is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType -> true
     is InferVar -> leaked_infer_var(t)
-    is StructType | TupleType | ArrayType | EnumType | FnType | TypeMetaType | FreeIntType
-     | FreeFloatType | FreeCharType | NeverType -> false
+    // A range takes no byte by inclusion : no container converts.
+    is StructType | TupleType | ArrayType | EnumType | RangeType | FnType | TypeMetaType
+     | FreeIntType | FreeFloatType | FreeCharType | NeverType -> false
 }
 
 // Whether `r` is a use of a view.

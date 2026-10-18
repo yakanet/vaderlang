@@ -125,11 +125,8 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         }
         is IndexExpr -> { return lower_index(ctx, expr, type) }
         is UnaryExpr -> {
-            return LoweredUnary {
-                .span = expr.span, .type = type,
-                .op = lower_unary_op(expr.op),
-                .operand = lower_expr(ctx, expr.operand),
-            }
+            operand :: lower_expr(ctx, expr.operand)
+            return lower_unary_op_on(lower_unary_op(expr.op), operand, type, expr.span)
         }
         is BinaryExpr -> { return lower_binary(ctx, expr, type) }
         is NullCoalesceExpr -> { return lower_null_coalesce(ctx, expr) }

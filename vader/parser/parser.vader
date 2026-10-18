@@ -1939,9 +1939,38 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
         }
         return head
     }
+    // A range written where a type goes, `1..=31` : the type of the integers it holds.
+    if t.kind == .IntLit || (t.kind == .Minus && p.peek_at(1).kind == .IntLit) {
+        return p.parse_range_type()
+    }
     p.error(.ExpectedType, t.span, "got ${describe_token(t)}")
     p.advance()
     return ident_expr(t.span, "?")
+}
+
+// `lo..=hi` or `lo..<hi` in type position, its bounds integer literals.
+parse_range_type :: fn(p: Parser) -> TypeExpr {
+    lower :: p.parse_range_bound()
+    op :: p.peek()
+    if op.kind != .RangeIncl && op.kind != .RangeExcl {
+        p.error(.ExpectedType, op.span, "a range type is `lo..=hi` or `lo..<hi`, got ${describe_token(op)}")
+        return lower
+    }
+    p.advance()
+    upper :: p.parse_range_bound()
+    return RangeExpr {
+        .span = Span { .start = lower.span.start, .end = upper.span.end },
+        .inclusive = op.kind == .RangeIncl,
+        .lower = lower,
+        .upper = upper,
+    }
+}
+
+// An integer literal bounding a range type, a `-` written against it included.
+parse_range_bound :: fn(p: Parser) -> Expr {
+    minus :: p.match_kind(.Minus)
+    literal :: p.expect(.IntLit, "integer literal as a range bound")
+    return number_literal(literal, p.span_of(minus ?? literal, literal), minus != null)
 }
 
 parse_fn_type :: fn(p: Parser) -> FnTypeExpr {

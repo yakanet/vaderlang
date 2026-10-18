@@ -134,7 +134,7 @@ value_eq :: fn(
         // An erased type parameter: the boxed receiver's tag picks the impl.
         is AnyType | TypeParamType -> virtual_equals(ctx, left, right, span)
         is InferVar -> leaked_infer_var(left_ty)
-        is PrimitiveType | EnumType | FreeIntType | FreeFloatType | FreeCharType ->
+        is PrimitiveType | EnumType | RangeType | FreeIntType | FreeFloatType | FreeCharType ->
             equals_primop(left, right, span)
         is TraitType | FnType | SelfType | TypeMetaType | NeverType | UnresolvedType ->
             no_equals(left_ty, span)

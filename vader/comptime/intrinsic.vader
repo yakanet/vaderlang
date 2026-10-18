@@ -148,7 +148,7 @@ export byte_align :: fn(t: Type) -> i64 = slot_byte_align(t)
 // ONE copy, deliberately: `vader/lower` reads this same fn for the runtime fold,
 // so the comptime value and the runtime value of `@type_kind(T)` cannot disagree.
 export type_kind_label :: fn(t: Type) -> string = match t {
-    is PrimitiveType  -> "primitive"
+    is PrimitiveType | RangeType -> "primitive"
     is DistinctType   -> type_kind_label(t.backing)
     is StructType     -> "struct"
     is EnumType       -> "enum"

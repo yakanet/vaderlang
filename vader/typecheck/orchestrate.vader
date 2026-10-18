@@ -1761,6 +1761,11 @@ is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
         return members[e.field] !is null
     }
     if e is AST.BinaryExpr {
+        // `Int in 0..=23` : a range type, its base a type. A range alone (`0..=23`)
+        // stays a value.
+        if e.op == .In {
+            return is_type_expr(e.left, resolved)
+        }
         if e.op == .BitOr {
             // Treat `T | U` chains as types.
 

@@ -21,6 +21,7 @@ module "vader/typecheck"
 import "std/collections"
 import "std/math"
 import "vader/diagnostics"
+import "vader/integer"
 import "vader/resolver"
 import "vader/resolver/symbol"
 AST :: import "toolchain/ast"
@@ -36,6 +37,11 @@ export type_from_expr :: fn(
     // (value-position) Expr is illegal in a type slot → T3002, handled by `_`.
     @partial match expr {
         is AST.IdentExpr -> {
+            if names_int_base(expr, resolved) {
+                diags.push(typecheck_error(.IntIsNoValueType, expr.span,
+                    "write a range over it: `Int in 0..=255`"))
+                return TY_UNRESOLVED
+            }
             ty :: lower_ident(expr, resolved)
             // A bound ident that degrades to unresolved is a VALUE symbol (const /
             // fn / local) used in a type slot — e.g. `b: SomeValueConst`, or a
@@ -58,6 +64,7 @@ export type_from_expr :: fn(
         // position : lower the callee to a Type and apply its args.
         is AST.CallExpr -> { return lower_call_in_type_position(expr, resolved, diags) }
         is AST.BinaryExpr -> { return lower_binary(expr, resolved, diags) }
+        is AST.RangeExpr -> { return range_type(expr, diags) }
         is AST.FnTypeExpr -> {
             params :: written_type_args(expr.params, resolved, diags)
             return mk_fn(params, opt_or_void(expr.return_type, resolved, diags))
@@ -226,6 +233,9 @@ lookup_type_name :: fn(id: AST.IdentExpr, resolved: ResolvedModule) -> Symbol | 
 lower_binary :: fn(
     e: AST.BinaryExpr, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
+    if e.op == .In {
+        return range_over_int(e, resolved, diags)
+    }
     if u8(e.op) != u8(AST.BinaryOp.BitOr) {
         diags.push(typecheck_error(.ExpectedKnownType, e.span,
             "binary op not allowed in type position"))
@@ -236,6 +246,79 @@ lower_binary :: fn(
         variants.push(type_from_expr(v, resolved, diags))
     }
     return union_of(variants)
+}
+
+// `Int in lo..=hi` : the range over the abstract integer, the only base a range
+// is written over today.
+range_over_int :: fn(e: AST.BinaryExpr, resolved: ResolvedModule, diags: Diagnostic[]) -> Type {
+    if !names_int_base(e.left, resolved) {
+        diags.push(typecheck_error(.MalformedRangeType, e.left.span,
+            "a range is written over `Int`: `Int in 0..=255`"))
+        return TY_UNRESOLVED
+    }
+    if e.right !is AST.RangeExpr {
+        diags.push(typecheck_error(.MalformedRangeType, e.right.span,
+            "`Int in` takes a range: `Int in 0..=255`"))
+        return TY_UNRESOLVED
+    }
+    return range_type(e.right, diags)
+}
+
+// Whether `e` names the builtin `Int`, the base of a range type.
+names_int_base :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
+    if e !is AST.IdentExpr || e.name != INT_BASE_NAME {
+        return false
+    }
+    sym :: resolved.idents[e.span.hash()] ?? return false
+    return sym.kind == .BuiltinType && sym.name == INT_BASE_NAME
+}
+
+// The range type `lo..=hi` or `lo..<hi` : its bounds integer literals within
+// `i64`, the least first.
+range_type :: fn(e: AST.RangeExpr, diags: Diagnostic[]) -> Type {
+    lo :: range_bound(e.lower, diags) ?? return TY_UNRESOLVED
+    written_hi :: range_bound(e.upper, diags) ?? return TY_UNRESOLVED
+    hi :: greatest_below(written_hi, e.inclusive)
+    if hi == null || lo > hi {
+        diags.push(typecheck_error(.MalformedRangeType, e.span, "the range holds no integer"))
+        return TY_UNRESOLVED
+    }
+    return RangeType { .bounds = interval(lo, hi) }
+}
+
+// The greatest integer of a range ending at `end` ; null for one ending below
+// every `i64` (`..<i64.min`).
+greatest_below :: fn(end: i64, inclusive: bool) -> i64 | null {
+    if inclusive {
+        return end
+    }
+    if end == I64_MIN {
+        return null
+    }
+    return end - 1
+}
+
+// The value of a range type's bound `e`, an integer literal within `i64`.
+range_bound :: fn(e: AST.Expr, diags: Diagnostic[]) -> i64 | null {
+    if e !is AST.IntLitExpr {
+        diags.push(typecheck_error(.MalformedRangeType, e.span, "a bound is an integer literal"))
+        return null
+    }
+    if !int_fits(e.value, e.negative, "i64") {
+        diags.push(typecheck_error(.MalformedRangeType, e.span,
+            "`${AST.int_literal_text(e)}` is past `i64`"))
+        return null
+    }
+    return AST.int_literal_value(e)
+}
+
+// Whether the integer literal `e`, its sign as written, is a value of the range `r`.
+literal_in_range :: fn(e: AST.IntLitExpr, r: RangeType) -> bool {
+    if !int_fits(e.value, e.negative, "i64") {
+        return false
+    }
+    value :: AST.int_literal_value(e)
+    return interval_within(interval(value, value), r.bounds)
 }
 
 opt_or_void :: fn(

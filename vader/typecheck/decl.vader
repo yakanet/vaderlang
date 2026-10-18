@@ -408,6 +408,7 @@ first_unexported_type :: fn(t: Type) -> Symbol | null {
             return first_unexported_type(t.return_type)
         }
         is PrimitiveType     -> { return null }
+        is RangeType         -> { return null }
         is TypeParamType     -> { return null }
         is InferVar          -> { return null }
         is TypeMetaType      -> { return null }
@@ -1173,7 +1174,7 @@ declare_const :: fn(
 /// Resolve the type a `Name :: <type-expr>` declaration registers. A primitive,
 /// array, struct or tuple RHS (`Name :: i64`, `BigInt :: u32[]`) becomes a
 /// `DistinctType` (nominal newtype) — see `distinct_backing` ; a union or fn RHS
-/// stays a transparent alias.
+/// stays a transparent alias, and so does a range written out (`Int in 0..=23`).
 ///
 /// @param sym       the declared name's symbol.
 /// @param alias_ty  the RHS, resolved.
@@ -1183,7 +1184,20 @@ alias_for :: fn(sym: Symbol, alias_ty: Type, decl: AST.ConstDecl) -> Type {
     if distinct_backing(alias_ty, decl.decorators) {
         return mk_distinct(sym, alias_ty)
     }
+    if alias_ty is RangeType {
+        return named_range(sym, alias_ty, decl.value)
+    }
     return alias_ty
+}
+
+// The range `Name :: <rhs>` declares : `Int in 0..=23` a transparent refinement
+// of the integer, shown under its name ; a range alias written alone
+// (`Heure :: Hour`) a type of its own, as any other type named alone.
+named_range :: fn(sym: Symbol, range: RangeType, rhs: AST.Expr) -> Type {
+    if rhs is AST.IdentExpr | AST.FieldExpr {
+        return mk_distinct(sym, range)
+    }
+    return RangeType { ...range, .name = sym.name }
 }
 
 /// True when a `Name :: <type>` const should become a `DistinctType` rather

@@ -1,0 +1,14 @@
+// `Int` is the abstract integer a range is written over (`Int in 0..=23`), never
+// the type of a value : a parameter, a field or a local typed `Int` is T3108.
+module "snippet"
+
+export Reading :: struct {
+    value: Int
+}
+
+export twice :: fn(x: Int) -> i32 = 0
+
+export main :: fn() -> i32 {
+    n: Int: 3
+    return twice(n)
+}

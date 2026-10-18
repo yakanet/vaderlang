@@ -16,6 +16,7 @@ module "vader/typecheck"
 import "std/collections"
 import "toolchain/span"
 import "vader/diagnostics"
+import "vader/integer"
 import "vader/types"
 
 /// Whether `from` can flow into a slot expecting `to` without explicit coercion.
@@ -46,6 +47,7 @@ is_assignable :: fn(from: Type, to: Type) -> bool {
         is FnType        -> is_assignable_fn(from, from, to)
         is UnionType     -> is_assignable_union(from, from, to)
         is FreeIntType | FreeCharType | FreeFloatType -> is_assignable_free_literal(from, to)
+        is RangeType     -> is_assignable_range(from, to)
         _                -> check_common(from, to)
     }
 }
@@ -271,12 +273,41 @@ is_assignable_union :: fn(from: Type, self: UnionType, to: Type) -> bool {
 }
 
 // `from` is a free literal : it widens to any primitive of its family
-// (`literal_family_holds`), or to a union holding one.
+// (`literal_family_holds`), an integer one to a range (its value is checked where
+// it is pinned, T3066), or to a union holding one.
 is_assignable_free_literal :: fn(from: Type, to: Type) -> bool {
     if to is PrimitiveType && literal_family_holds(from, to.name) {
         return true
     }
+    if to is RangeType && from is FreeIntType {
+        return true
+    }
     return check_common(from, to)
+}
+
+// `from` is a range : it widens into a range or an integer type holding every
+// value it has, or into a union through one ; never into a distinct, which only
+// its own values enter.
+is_assignable_range :: fn(from: RangeType, to: Type) -> bool {
+    outer :: integer_values(to)
+    if outer != null && interval_within(from.bounds, outer) {
+        return true
+    }
+    return check_common(from, to)
+}
+
+/// The values of the integer type `t` : a range's bounds, an integer primitive's
+/// values.
+///
+/// @return  null for any other type, a distinct over an integer included.
+export integer_values :: fn(t: Type) -> Interval | null {
+    if t is RangeType {
+        return t.bounds
+    }
+    if t is PrimitiveType {
+        return primitive_interval(t.name)
+    }
+    return null
 }
 
 // ---- helpers shared by struct/fn/array variants ---------------------------
@@ -353,6 +384,7 @@ slot_layout :: fn(t: Type) -> SlotLayout = match t {
     is StructType | ArrayType | FnType | TupleType | TraitType | AnyType -> .Dispatched
     is UnionType -> union_slot_layout(t)
     is DistinctType -> slot_layout(t.backing)
+    is RangeType -> slot_layout(range_representation(t))
     is EnumType | TypeParamType | InferVar | SelfType | TypeMetaType -> .Raw
     is NeverType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType -> .Raw
 }

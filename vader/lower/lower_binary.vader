@@ -208,13 +208,15 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     left :: lower_expr(ctx, binary.left)
     mark :: ctx.pending_awaits.len()
     right :: lower_expr(ctx, binary.right)
-    return LoweredBinary {
+    computed_in :: computation_width(left.type, right.type, type)
+    computed :: LoweredBinary {
         .span = binary.span,
-        .type = type,
+        .type = computed_type(type, computed_in),
         .op = lower_binary_op(binary.op),
-        .left = bind_one_before_hoisted(ctx, left, mark),
-        .right = right,
+        .left = in_width(bind_one_before_hoisted(ctx, left, mark), computed_in, binary.span),
+        .right = in_width(right, computed_in, binary.span),
     }
+    return held_as(computed, type, binary.span)
 }
 
 // True iff `t` is the `string` primitive — the predicate that routes `+` to the

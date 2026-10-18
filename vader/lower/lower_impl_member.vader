@@ -440,6 +440,8 @@ type_surface_name :: fn(t: Type) -> string = match t {
     // Distinct (newtype) dispatches operators / UFCS under its own nominal
     // name (opaque — an impl on the distinct, never the backing's).
     is DistinctType -> t.symbol.name
+    // A range is its integer to every impl.
+    is RangeType -> range_representation(t).name
     // Generic-shape pattern + concrete receiver agree on a canonical token :
     // `T[]` and `i32[]` both surface as `[]` for UFCS lookup.
     is ArrayType          -> "[]"
@@ -499,6 +501,10 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
 /// (`nsM.T(value)` in `try_lower_namespace_call`). The caller has already
 /// confirmed this is a cast (type-shaped callee / TypeMetaType) with one arg.
 emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
+    target_range :: ctx.types.raw_expr_type(call)
+    if target_range is RangeType {
+        return lower_range_conversion(ctx, call, target_range)
+    }
     // The cast itself calls nothing ; an `into` it runs is its value's site.
     observe_no_call(ctx, call, .Call, "cast")
     // The checked type, not the lowered one : a variant literal lowers to its
