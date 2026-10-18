@@ -296,6 +296,32 @@ is_assignable_range :: fn(from: RangeType, to: Type) -> bool {
     return check_common(from, to)
 }
 
+/// The values of `t` a `match` covers arm by arm : a range's, an integer
+/// primitive's, the Unicode scalar values of `char`, those of a distinct over one.
+///
+/// @return  null for any other type, and for one past `i64` (`u64`, `usize`),
+///          which no literal reaches the end of.
+integer_set :: fn(t: Type) -> Interval[] | null {
+    if t !is PrimitiveType | RangeType | DistinctType {
+        return null
+    }
+    backing :: strip_distinct(t)
+    if backing is PrimitiveType && backing.name == "char" {
+        return CHAR_VALUES
+    }
+    values :: integer_values(backing) ?? return null
+    if values.lo_open || values.hi_open {
+        return null
+    }
+    return [values]
+}
+
+// The Unicode scalar values : every code point but the surrogates.
+CHAR_VALUES: Interval[]: [
+    Interval { .lo = 0, .hi = 0xD7FF },
+    Interval { .lo = 0xE000, .hi = 0x10FFFF },
+]
+
 /// The values of the integer type `t` : a range's bounds, an integer primitive's
 /// values.
 ///

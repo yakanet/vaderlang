@@ -1,0 +1,175 @@
+# Lower
+
+## snippet
+  snippet.part_of_day :: fn(h: u8) -> string {  // snippet$part_of_day
+      {
+          if (h >= u8(0)) && (h <= u8(5)) {
+              "night"
+          } else if (h >= u8(6)) && (h <= u8(11)) {
+              "morning"
+          } else if (h >= u8(12)) && (h <= u8(17)) {
+              "afternoon"
+          } else if (h >= u8(18)) && (h <= u8(23)) {
+              "evening"
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  snippet.high_bit :: fn(b: u8) -> bool {  // snippet$high_bit
+      {
+          if (b >= u8(0)) && (b < u8(128)) {
+              false
+          } else if (b >= u8(128)) && (b <= u8(255)) {
+              true
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :bool
+      } :bool
+  }
+  snippet.sign :: fn(n: i8) -> i32 {  // snippet$sign
+      {
+          if (n >= i8(-128)) && (n <= i8(-1)) {
+              -1
+          } else if n == i8(0) {
+              0
+          } else if (n >= i8(1)) && (n <= i8(127)) {
+              1
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :i32
+      } :i32
+  }
+  snippet.plane :: fn(c: char) -> i32 {  // snippet$plane
+      {
+          if (c >= '\0') && (c <= '\u{ffff}') {
+              0
+          } else if (c >= '\u{10000}') && (c <= '\u{1ffff}') {
+              1
+          } else if (c >= '\u{20000}') && (c <= '\u{10ffff}') {
+              2
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :i32
+      } :i32
+  }
+  snippet.shift_of :: fn(h: null | u8) -> string {  // snippet$shift_of
+      {
+          if ((h is u8) && (u8(h) >= u8(0))) && (u8(h) <= u8(7)) {
+              "night shift"
+          } else if ((h is u8) && (u8(h) >= u8(8))) && (u8(h) <= u8(23)) {
+              "day shift"
+          } else if h == null {
+              "off"
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
+      h: u8 = 14
+      std.io.println<string>(concat_5(snippet.part_of_day(h), " ", snippet.part_of_day(u8(3)), " ", snippet.part_of_day(u8(23))))
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(11))
+          __off_1: usize = 0
+          __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.high_bit(u8(200)))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.high_bit(u8(7)))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(usize(62))
+          __off_3: usize = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.sign(i8(-5))))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.sign(i8(0))))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.sign(i8(9))))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(usize(62))
+          __off_5: usize = 0
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.plane('a')))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.plane('\u{1f600}')))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.plane('\u{2a6d6}')))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      off: null | u8 = null
+      std.io.println<string>(concat_3(snippet.shift_of(h), ", ", snippet.shift_of(off)))
+      return 0
+  }
+  concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      c3: usize = c2 +% std.core.byte_len(p3)
+      c4: usize = c3 +% std.core.byte_len(p4)
+      buf: Buffer = std.core.usize.new_buffer(c4)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.write_string(buf, c3, p4)
+      std.core.Buffer.intern_string(buf, c4)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.usize.new_buffer(c2)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

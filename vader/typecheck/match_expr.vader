@@ -5,11 +5,14 @@
 // An `is T` arm narrows the scrutinee (a name, a field chain, or the header alias
 // of `match e as x`) to `T`, the wildcard arm to what the arms above leave
 // (`arm_narrow_for`). Every match is exhaustive (T3013) : a union or an enum by
-// its variants, any other scrutinee by `_`. Guards must be `bool` (T3019).
+// its variants, an integer type by its values (its literal and range arms, an
+// integer variant of a union alike), any other scrutinee by `_`. Guards must be
+// `bool` (T3019).
 
 module "vader/typecheck"
 
 import "vader/diagnostics"
+import "vader/integer"
 import "vader/types"
 AST :: import "toolchain/ast"
 
@@ -73,17 +76,22 @@ infer_match :: fn(
     remaining := scrut_ty
     has_wildcard := false
     covered_enum_variants: string[]: []
+    // The integer type among the scrutinee's (itself, or a union's one integer
+    // variant) and its values no unguarded arm took yet : its literal and range
+    // arms cover it, and once they took every value it is matched.
+    counted :: counted_integer(scrut_ty)
+    whole :: integer_set_of(counted)
+    uncovered := whole
+    // Unions, enums and integer types, whose arms can consume the scrutinee. Any
+    // other scrutinee REQUIRES a wildcard (T3013 says so in as many words), and an
+    // `is P` over it subtracts the whole of `P` here — so on those W0014 would
+    // flag the arm T3013 just demanded.
+    closed_scrutinee :: scrut_ty is UnionType || scrut_ty is EnumType || whole != null
     for arm in e.arms {
         // W0014 — nothing is left for this arm to match: a wildcard, or arms
         // that together consumed the scrutinee, came before it. T3013 asks the
         // opposite question (is a variant MISSING) and T3040 compares against
         // the scrutinee's static type, so neither sees a variant covered twice.
-        //
-        // Unions and enums only, the same domain W0005 takes. A non-union
-        // scrutinee REQUIRES a wildcard (T3013 says so in as many words), and an
-        // `is P` over it subtracts the whole of `P` here — so on those this
-        // would flag the arm T3013 just demanded.
-        closed_scrutinee :: scrut_ty is UnionType || scrut_ty is EnumType
         if closed_scrutinee && (has_wildcard || remaining is NeverType) {
             diags.push(
                 warning(
@@ -223,6 +231,19 @@ infer_match :: fn(
                     remaining = TY_NEVER
                 }
             }
+            // `null ->` takes the `null` of a union as `is null` does.
+            is AST.LiteralPattern     -> {
+                if !guarded && pattern.value is AST.NullLitExpr {
+                    narrowed :: subtract_type_with_impls(remaining, TY_NULL, typed)
+                    if equals_type(narrowed, remaining) && types_overlap(scrut_ty, TY_NULL)
+                        && remaining !is NeverType {
+                        diags.push(
+                            warning(.UnreachableMatchArm, pattern.span, "`null` is matched by an earlier arm"),
+                        )
+                    }
+                    remaining = narrowed
+                }
+            }
             is AST.OrPattern          -> {
                 for sub in pattern.patterns {
                     if sub is AST.IsPattern {
@@ -232,7 +253,7 @@ infer_match :: fn(
                 }
                 // Each alternative consumes its own variant — enum variants add
                 // to the covered set, `is T` alternatives subtract their type.
-                // Literal alternatives exhaust nothing (open domain).
+                // Literal alternatives take values of an integer scrutinee below.
                 if !guarded {
                     for sub in pattern.patterns {
                         if sub is AST.EnumVariantPattern {
@@ -250,19 +271,24 @@ infer_match :: fn(
             }
             _                         -> {}
         }
+        if !guarded && counted != null && whole != null && uncovered != null
+            && uncovered.len() > 0 {
+            uncovered = covering(uncovered, whole, arm.pattern, diags)
+            if uncovered.len() == 0 {
+                remaining = subtract_type_with_impls(remaining, counted, typed)
+            }
+        }
     }
     // T3013 — non-exhaustive match. `@partial` / `@unreachable` opt out
     // (the latter asserts the uncovered variants trap rather than degrade).
     if !has_wildcard && !e.partial && !e.unreachable && e.arms.len() > 0 {
         if scrut_ty is UnionType {
             if !is_never(remaining) {
-                diags.push(
-                    typecheck_error(
-                        .NonExhaustiveMatch,
-                        e.span,
-                        "variant ${display_type(remaining)} of ${display_type(scrut_ty)} is not covered",
-                    ),
-                )
+                diags.push(typecheck_error(
+                    .NonExhaustiveMatch,
+                    e.span,
+                    uncovered_variant_detail(remaining, scrut_ty, counted, whole, uncovered, typed),
+                ))
             }
         } else if scrut_ty is EnumType {
             missing_variant :: missing_enum_variant_name(scrut_ty, typed, covered_enum_variants)
@@ -277,6 +303,11 @@ infer_match :: fn(
             }
         } else if scrut_ty is UnresolvedType {
             // skip — upstream error already surfaced.
+        } else if uncovered != null {
+            if !is_never(remaining) && uncovered.len() > 0 {
+                detail :: uncovered_detail(uncovered[0], scrut_ty)
+                diags.push(typecheck_error(.NonExhaustiveMatch, e.span, detail))
+            }
         } else {
             diags.push(
                 typecheck_error(
@@ -311,6 +342,161 @@ infer_match :: fn(
         }
     }
     return result_ty
+}
+
+// What an integer scrutinee leaves uncovered once the arm `pattern` took its
+// values : a literal or a range, or each of an or-pattern's alternatives. An arm
+// whose values of the type `whole` holds are all taken already is W0014, said once
+// by the arm's own check when no value is left at all ; values out of the type are
+// T3066's.
+covering :: fn(
+    uncovered: Interval[],
+    whole: Interval[],
+    pattern: AST.Pattern,
+    diags: Diagnostic[],
+) -> Interval[] {
+    if pattern is AST.OrPattern {
+        left := uncovered
+        for sub in pattern.patterns {
+            left = covering(left, whole, sub, diags)
+        }
+        return left
+    }
+    if uncovered.len() == 0 {
+        return uncovered
+    }
+    taken :: pattern_values(pattern) ?? return uncovered
+    if !meets_any(whole, taken) {
+        return uncovered
+    }
+    if meets_any(uncovered, taken) {
+        return interval_remove(uncovered, taken)
+    }
+    diags.push(
+        warning(.UnreachableMatchArm, pattern.span, "its values are matched by an earlier arm"),
+    )
+    return uncovered
+}
+
+// Whether `taken` shares a value with one of `set`.
+meets_any :: fn(set: Interval[], taken: Interval) -> bool {
+    for part in set {
+        if interval_meet(part, taken) != null {
+            return true
+        }
+    }
+    return false
+}
+
+// T3013's detail for the first values `gap` of the integer scrutinee `scrut` no arm
+// covers : `value `12` of Hour`, `code points `0..=96` of char`.
+uncovered_detail :: fn(gap: Interval, scrut: Type) -> string {
+    values :: display_values(gap)
+    backing :: strip_distinct(scrut)
+    if backing is PrimitiveType && backing.name == "char" {
+        return "code points `${values}` of ${display_type(scrut)} are not covered"
+    }
+    if gap.lo == gap.hi {
+        return "value `${values}` of ${display_type(scrut)} is not covered"
+    }
+    return "values `${values}` of ${display_type(scrut)} are not covered"
+}
+
+// `gap` as written : one value alone, else its bounds.
+display_values :: fn(gap: Interval) -> string {
+    if gap.lo == gap.hi {
+        return "${gap.lo}"
+    }
+    return display_bounds(gap)
+}
+
+// The values the literal or range pattern `p` matches, as one interval ; null for
+// any other pattern, a bound no integer or `char` literal, and an empty range.
+pattern_values :: fn(p: AST.Pattern) -> Interval | null {
+    if p is AST.LiteralPattern {
+        value :: literal_scalar(p.value) ?? return null
+        return interval(value, value)
+    }
+    if p !is AST.RangePattern {
+        return null
+    }
+    lo :: literal_scalar(p.lower) ?? return null
+    written_hi :: literal_scalar(p.upper) ?? return null
+    hi :: greatest_below(written_hi, p.inclusive) ?? return null
+    if hi < lo {
+        return null
+    }
+    return interval(lo, hi)
+}
+
+// The value of an integer or `char` literal ; null for any other expression.
+literal_scalar :: fn(e: AST.Expr) -> i64 | null {
+    if e is AST.CharLitExpr {
+        return i64(e.value)
+    }
+    return int_literal_i64(e)
+}
+
+// The integer type whose values a match over `scrut` counts arm by arm : `scrut`
+// itself, or the one integer variant of a union (`Hour` of `Hour | null`) ; null
+// for none, and for a union of several, which a literal would not tell apart.
+counted_integer :: fn(scrut: Type) -> Type | null {
+    if integer_set(scrut) != null {
+        return scrut
+    }
+    if scrut !is UnionType {
+        return null
+    }
+    found: Type | null = null
+    for v in scrut.variants {
+        if integer_set(v) == null {
+            continue
+        }
+        if found != null {
+            return null
+        }
+        found = v
+    }
+    return found
+}
+
+// The values of `counted` (`integer_set`), null when there is none.
+integer_set_of :: fn(counted: Type | null) -> Interval[] | null {
+    if counted == null {
+        return null
+    }
+    return integer_set(counted)
+}
+
+// T3013's detail for a union scrutinee : the first values of its integer variant no
+// arm covers, when arms took some of them, else the variants left.
+uncovered_variant_detail :: fn(
+    remaining: Type,
+    scrut: Type,
+    counted: Type | null,
+    whole: Interval[] | null,
+    uncovered: Interval[] | null,
+    typed: TypedProgram,
+) -> string {
+    if counted != null && whole != null && uncovered != null && took_some(whole, uncovered)
+        && uncovered.len() > 0
+        && !equals_type(subtract_type_with_impls(remaining, counted, typed), remaining) {
+        return uncovered_detail(uncovered[0], counted)
+    }
+    return "variant ${display_type(remaining)} of ${display_type(scrut)} is not covered"
+}
+
+// Whether arms took some of the values `whole` : what is left differs from it.
+took_some :: fn(whole: Interval[], left: Interval[]) -> bool {
+    if whole.len() != left.len() {
+        return true
+    }
+    for i in 0..<whole.len() {
+        if !same_interval(whole[i], left[i]) {
+            return true
+        }
+    }
+    return false
 }
 
 // First enum variant name absent from `covered`. Uses the EnumType's

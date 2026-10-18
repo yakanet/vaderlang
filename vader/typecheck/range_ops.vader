@@ -261,8 +261,8 @@ free_value_in_range :: fn(
 // range of its value, arithmetic on literals the range of what it computes, any
 // other free value its default width.
 free_range :: fn(e: AST.Expr, free: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
-    if e is AST.IntLitExpr && int_fits(e.value, e.negative, "i64") {
-        value :: AST.int_literal_value(e)
+    value :: int_literal_i64(e)
+    if value != null {
         return check_expr(e, RangeType { .bounds = interval(value, value) }, typed, diags)
     }
     if e is AST.BinaryExpr && classify(e.op) == .Arith {

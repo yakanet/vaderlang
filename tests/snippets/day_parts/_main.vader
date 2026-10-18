@@ -1,0 +1,50 @@
+// A `match` over an integer type needs no wildcard once its literal and range arms
+// cover every value : an `Hour` split in four, a `u8` by its high bit, an `i8` by
+// its sign, every `char` by the plane it lies in, and the integer variant of an
+// `Hour | null` beside a `null` arm. Nothing is left for a stray value to reach.
+module "snippet"
+
+import "std/io"
+
+Hour :: Int in 0..=23
+
+part_of_day :: fn(h: Hour) -> string = match h {
+    0..=5   -> "night"
+    6..=11  -> "morning"
+    12..=17 -> "afternoon"
+    18..=23 -> "evening"
+}
+
+high_bit :: fn(b: u8) -> bool = match b {
+    0..<128   -> false
+    128..=255 -> true
+}
+
+sign :: fn(n: i8) -> i32 = match n {
+    -128..=-1 -> -1
+    0         -> 0
+    1..=127   -> 1
+}
+
+plane :: fn(c: char) -> i32 = match c {
+    '\0'..='\u{FFFF}'          -> 0
+    '\u{10000}'..='\u{1FFFF}'  -> 1
+    '\u{20000}'..='\u{10FFFF}' -> 2
+}
+
+shift_of :: fn(h: Hour | null) -> string = match h {
+    0..=7   -> "night shift"
+    8..=23  -> "day shift"
+    null    -> "off"
+}
+
+main :: fn(argv: string[]) -> i32 {
+    h: Hour: 14
+    println("${part_of_day(h)} ${part_of_day(3)} ${part_of_day(23)}")
+    println("${high_bit(200)} ${high_bit(7)}")
+    println("${sign(-5)} ${sign(0)} ${sign(9)}")
+    println("${plane('a')} ${plane('😀')} ${plane('\u{2A6D6}')}")
+    off: Hour | null: null
+    println("${shift_of(h)}, ${shift_of(off)}")
+    return 0
+}

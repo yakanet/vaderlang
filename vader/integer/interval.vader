@@ -81,6 +81,30 @@ export interval_meet :: fn(a: Interval, b: Interval) -> Interval | null {
     }
 }
 
+/// `set` without the integers `removed` holds : what a `match` leaves of its
+/// scrutinee once an arm took `removed`.
+///
+/// @param set      disjoint closed intervals, the least first.
+/// @param removed  a closed interval.
+/// @return         the intervals left, disjoint, the least first.
+export interval_remove :: fn(set: Interval[], removed: Interval) -> Interval[] {
+    out: Interval[]: []
+    for part in set {
+        met :: interval_meet(part, removed)
+        if met == null {
+            out.push(part)
+            continue
+        }
+        if part.lo < met.lo {
+            out.push(interval(part.lo, met.lo - 1))
+        }
+        if met.hi < part.hi {
+            out.push(interval(met.hi + 1, part.hi))
+        }
+    }
+    return out
+}
+
 export lesser :: fn(a: i64, b: i64) -> i64 {
     if a <= b {
         return a
@@ -303,4 +327,19 @@ test_closed_within_rejects_an_open_end :: fn() -> void {
     }
     plus_one :: interval_add(u64_iv, interval(1, 1))
     assert(!closed_within(plus_one, u64_iv), "u64.max + 1 is past u64")
+}
+
+@test
+test_interval_remove_splits_a_part :: fn() -> void {
+    left :: interval_remove([interval(0, 23)], interval(5, 9))
+    assert_eq(left.len(), 2)
+    assert(same_interval(left[0], interval(0, 4)), "the part below")
+    assert(same_interval(left[1], interval(10, 23)), "the part above")
+}
+
+@test
+test_interval_remove_drops_a_covered_part :: fn() -> void {
+    left :: interval_remove([interval(0, 3), interval(8, 9)], interval(0, 5))
+    assert_eq(left.len(), 1)
+    assert(same_interval(left[0], interval(8, 9)), "only the part out of reach stays")
 }

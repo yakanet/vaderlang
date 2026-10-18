@@ -314,11 +314,17 @@ range_bound :: fn(e: AST.Expr, diags: Diagnostic[]) -> i64 | null {
 
 // Whether the integer literal `e`, its sign as written, is a value of the range `r`.
 literal_in_range :: fn(e: AST.IntLitExpr, r: RangeType) -> bool {
-    if !int_fits(e.value, e.negative, "i64") {
-        return false
-    }
-    value :: AST.int_literal_value(e)
+    value :: int_literal_i64(e) ?? return false
     return interval_within(interval(value, value), r.bounds)
+}
+
+/// The value of the integer literal `e`, its sign as written ; null for any other
+/// expression, and for a literal past `i64`.
+int_literal_i64 :: fn(e: AST.Expr) -> i64 | null {
+    if e !is AST.IntLitExpr || !int_fits(e.value, e.negative, "i64") {
+        return null
+    }
+    return AST.int_literal_value(e)
 }
 
 opt_or_void :: fn(

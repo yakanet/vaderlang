@@ -1,0 +1,19 @@
+// An arm of a `match` over an integer type whose values earlier arms all took can
+// never be taken, and neither can a wildcard after arms that cover the type.
+module "snippet"
+
+export Hour :: Int in 0..=23
+
+export part :: fn(h: Hour) -> i32 = match h {
+    0..=11  -> 1
+    5 | 6   -> 2
+    12..=23 -> 3
+}
+
+export byte :: fn(b: u8) -> i32 = match b {
+    0..<128   -> 1
+    128..=255 -> 2
+    _         -> 3
+}
+
+export main :: fn() -> i32 = part(3) + byte(4)
