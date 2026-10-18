@@ -55,6 +55,10 @@ export FnContext :: struct {
     /// position stays inferable (else it drops → GATE B1). Null until the first
     /// value `return`.
     inferred_return: Type | null = null
+    /// The contract of the `@guard` fn whose body this is (`hold_to_contract`) :
+    /// each value it returns is held to it. A lambda in it has its own context,
+    /// and no contract.
+    guard: GuardContract | null = null
 }
 
 new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnContext {

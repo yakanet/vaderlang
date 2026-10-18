@@ -6,24 +6,53 @@
 // false, so `if is_weekend(d)` narrows `d` at the call. What it proves is what the
 // narrowing machine gives its condition on each side, read for each parameter
 // once the body is checked ; a call written ahead of the guard checks that body
-// first, on its own. A guard holds in its own module : the facts live in its
-// `TypedProgram`, and another module calls it as a plain predicate.
+// first, on its own. An inferred guard holds in its own module : the facts live in
+// its `TypedProgram`, and another module calls it as a plain predicate.
+//
+// `@guard(cond)` declares the contract instead : what the fn proves is then what
+// `cond` proves, in every module. The contract depends on the signature and
+// `cond` alone, so it is read on demand in the module declaring it, whatever has
+// been walked. The body is held to it at each value it returns, both sides
+// (T3111), and may not write a parameter (T3113).
 
 module "vader/typecheck"
 
 import "std/collections"
+import "vader/diagnostics"
 import "vader/types"
 AST :: import "toolchain/ast"
 
-/// The guards of a module : the candidates among its fns, and what each checked
-/// one proves.
+/// The inferred guards of a module, and the contract being held while a `@guard`
+/// fn's body is checked.
 export GuardState :: struct {
-    /// The module's top-level fns that may be guards (`is_guard_candidate`), by
-    /// node id.
+    /// The module's top-level fns that may be inferred guards
+    /// (`is_guard_candidate`), by node id.
     candidates: MutableSet<usize> = MutableSet<usize> {}
     /// What each checked candidate proves, by node id ; nothing while its body is
     /// being checked.
     facts: MutableMap<usize, GuardFact[]> = MutableMap<usize, GuardFact[]> {}
+    /// The contract of the `@guard` fn whose body is being checked : a write to one
+    /// of its parameters, from a lambda in it too, is refused.
+    verifying: GuardContract | null = null
+}
+
+/// The `@guard` contracts of the project : one table every module shares.
+export SharedGuards :: struct {
+    /// The module declaring each `@guard` fn, by node id.
+    owners: MutableMap<usize, TypedProgram> = MutableMap<usize, TypedProgram> {}
+    /// Each contract read so far, by node id.
+    contracts: MutableMap<usize, GuardContract> = MutableMap<usize, GuardContract> {}
+    /// The contracts being read : a condition that reaches its own guard reads
+    /// nothing of it.
+    reading: MutableSet<usize> = MutableSet<usize> {}
+}
+
+/// What a `@guard` fn promises : the facts its condition proves, over its
+/// parameters.
+export GuardContract :: struct {
+    decl: AST.FnDecl
+    facts: GuardFact[]
+    params: ParamSlots
 }
 
 /// What a guard proves about one of its parameters.
@@ -38,17 +67,24 @@ export GuardFact :: struct {
     else_ty: Type
 }
 
-/// Whether `fd`, a top-level fn of the module once declared, may be a guard : a
-/// predicate written as one expression, returning `bool` or an inferred type, not
-/// generic, with a parameter of a type a test can narrow.
+/// The symbol and the declared type of each parameter of a fn, by position.
+export ParamSlots :: struct {
+    symbols: i32[]
+    declared: Type[]
+}
+
+// ---- inferred guards ------------------------------------------------------
+
+/// Whether `fd`, a top-level fn of the module once declared, may be an inferred
+/// guard : a predicate written as one expression, with a parameter of a type a test
+/// can narrow, and no contract of its own.
 ///
 /// @param fd  a function declaration whose signature is declared.
 is_guard_candidate :: fn(fd: AST.FnDecl, typed: TypedProgram) -> bool {
-    if !fd.is_expression_bodied || fd.params.len() == 0 || fd.type_params.len() > 0 {
+    if !fd.is_expression_bodied || fd.params.len() == 0 || guard_condition(fd) != null {
         return false
     }
-    returned :: lookup_return_type(fd, typed)
-    if !is_bool(returned) && returned !is UnresolvedType {
+    if predicate_problem(fd, typed) != "" {
         return false
     }
     for p in fd.params {
@@ -60,6 +96,19 @@ is_guard_candidate :: fn(fd: AST.FnDecl, typed: TypedProgram) -> bool {
     return false
 }
 
+// What keeps `fd` from being a predicate a guard can be : "" when it returns
+// `bool` or an inferred type and is not generic.
+predicate_problem :: fn(fd: AST.FnDecl, typed: TypedProgram) -> string {
+    if fd.type_params.len() > 0 {
+        return "`${fd.name}` is generic"
+    }
+    returned :: lookup_return_type(fd, typed)
+    if !is_bool(returned) && returned !is UnresolvedType {
+        return "`${fd.name}` returns ${display_type(returned)}"
+    }
+    return ""
+}
+
 // Whether a test can narrow a value of type `t` : a union, a trait value, an
 // integer a bounds test narrows, a range ; or an unresolved type, which says
 // nothing yet.
@@ -69,7 +118,7 @@ is_narrowable :: fn(t: Type) -> bool =
 /// What the checked predicate `fd` proves about each parameter its condition
 /// narrows.
 ///
-/// @param fd    a guard candidate (`is_guard_candidate`).
+/// @param fd    an inferred guard candidate (`is_guard_candidate`).
 /// @param body  its body, the condition its trailing expression.
 proved_facts :: fn(fd: AST.FnDecl, body: AST.BlockExpr, typed: TypedProgram) -> GuardFact[] {
     facts: GuardFact[]: []
@@ -78,15 +127,228 @@ proved_facts :: fn(fd: AST.FnDecl, body: AST.BlockExpr, typed: TypedProgram) -> 
     if !is_bool(recorded) {
         return facts
     }
-    symbols: i32[]: []
-    declared: Type[]: []
-    for p in fd.params {
-        sym :: typed.resolved.idents[p.span.hash()] ?? return facts
-        symbols.push(sym.id)
-        declared.push(typed.param_types[p.span.hash()] ?? return facts)
+    params :: param_slots(fd, typed) ?? return facts
+    return facts_of(cond, params, typed)
+}
+
+// What the guard `decl` of this module proves : read off its checked body, which a
+// call written ahead of it checks now. Null while a const's value is typed : a fn
+// body is checked once every const it may read is set.
+guard_facts :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardFact[] | null {
+    known :: typed.guards.facts[decl.id]
+    if known != null {
+        return known
     }
-    then_tys :: narrowed_params(cond, true, symbols, declared, typed)
-    else_tys :: narrowed_params(cond, false, symbols, declared, typed)
+    if typed.const_walk.typing.len() > 0 {
+        return null
+    }
+    body :: decl.body ?? return null
+    position :: set_walk_aside(typed)
+    check_fn_body(decl, body, typed, diag_sink())
+    resume_walk(typed, position)
+    return typed.guards.facts[decl.id]
+}
+
+// ---- declared guards ------------------------------------------------------
+
+/// The condition `@guard(cond)` declares on `fd`, if it carries one.
+///
+/// @param fd  a function declaration.
+guard_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null {
+    guard :: AST.find_decorator(fd.decorators, "guard") ?? return null
+    if guard.args.len() == 0 {
+        return null
+    }
+    return guard.args[0]
+}
+
+/// The contract the `@guard` fn `decl` declares : read once, in the module
+/// declaring it, apart from whatever that module's walk is in.
+///
+/// @return  null for no `@guard` fn, a misshapen one, and while the contract is
+///          being read.
+contract_of :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardContract | null {
+    shared :: typed.shared_guards
+    known :: shared.contracts[decl.id]
+    if known != null {
+        return known
+    }
+    owner :: shared.owners[decl.id] ?? return null
+    cond :: guard_condition(decl) ?? return null
+    if decl.id in shared.reading || predicate_problem(decl, owner) != "" {
+        return null
+    }
+    _ :: shared.reading.add(decl.id)
+    position :: set_walk_aside(owner)
+    contract :: read_contract(decl, cond, owner)
+    resume_walk(owner, position)
+    _ :: shared.reading.remove(decl.id)
+    if contract != null {
+        shared.contracts[decl.id] = contract
+    }
+    return contract
+}
+
+// The contract `cond` states for `decl`, read in the module declaring it.
+read_contract :: fn(decl: AST.FnDecl, cond: AST.Expr, owner: TypedProgram) -> GuardContract | null {
+    _ :: check_expr(cond, TY_BOOL, owner, diag_sink())
+    params :: param_slots(decl, owner) ?? return null
+    return GuardContract {
+        .decl = decl,
+        .facts = facts_of(cond, params, owner),
+        .params = params,
+    }
+}
+
+/// Start checking the body of the `@guard` fn `fd` : report what its contract
+/// lacks, and hold the body to it, its returns through `ctx` and its writes through
+/// the module's guard state.
+///
+/// @param ctx  the context of `fd`'s body.
+/// @error      T3112 when `@guard` is misshapen or proves nothing.
+hold_to_contract :: fn(fd: AST.FnDecl, ctx: FnContext, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    cond :: guard_condition(fd) ?? return
+    problem :: predicate_problem(fd, typed)
+    if problem != "" {
+        diags.push(typecheck_error(.MisshapenGuard, fd.name_span, problem))
+        return
+    }
+    _ :: check_expr(cond, TY_BOOL, typed, diags)
+    contract :: contract_of(fd, typed) ?? return
+    if contract.facts.len() == 0 {
+        diags.push(typecheck_error(.MisshapenGuard, cond.span,
+            "the condition proves nothing of the parameters of `${fd.name}`"))
+        return
+    }
+    ctx.guard = contract
+    typed.guards.verifying = contract
+}
+
+/// Hold the value `returned` a `@guard` fn returns to its contract : where it is
+/// true, each parameter must lie within what the contract proves on the true side,
+/// and where it is false, on the false side.
+///
+/// @param contract  the fn's contract.
+/// @param returned  a value the fn returns, already checked, the narrowings in
+///                  force where it is returned still pushed.
+/// @error           T3111 for each side and parameter that leaves the contract.
+check_guard_return :: fn(
+    contract: GuardContract,
+    returned: AST.Expr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if returned is AST.IfExpr && check_guard_branches(contract, returned, typed, diags) {
+        return
+    }
+    params :: contract.params
+    for truth in [true, false] {
+        if returned is AST.BoolLitExpr && returned.value != truth {
+            continue
+        }
+        holds :: narrowed_params(returned, truth, params.symbols, params.declared, typed)
+        for fact in contract.facts {
+            promised :: side_of(truth, fact.then_ty, fact.else_ty)
+            if !is_assignable(holds[fact.index], promised) {
+                param :: contract.decl.params[fact.index].name
+                diags.push(typecheck_error(.GuardDoesNotHold, returned.span,
+                    "`${contract.decl.name}` returns ${truth} where `${param}` is "
+                        + "${described(holds[fact.index])}, not within ${described(promised)}"))
+            }
+        }
+    }
+}
+
+// Hold each branch of the `if` value `e` to the contract, its condition pushed on
+// the side that reaches it ; whether `e` gives a value on every branch. What a
+// branch block's own statements narrow is not read, which only refuses more.
+check_guard_branches :: fn(
+    contract: GuardContract,
+    e: AST.IfExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> bool {
+    then_value :: e.then_block.trailing ?? return false
+    else_value :: else_value_of(e) ?? return false
+    taken :: push_cond_narrows(e.cond, true, typed, diag_sink())
+    check_guard_return(contract, then_value, typed, diags)
+    pop_narrows(taken, typed)
+    skipped :: push_cond_narrows(e.cond, false, typed, diag_sink())
+    check_guard_return(contract, else_value, typed, diags)
+    pop_narrows(skipped, typed)
+    return true
+}
+
+// The value the `else` of `e` gives : its block's trailing, or the next `if`.
+else_value_of :: fn(e: AST.IfExpr) -> AST.Expr | null = match e.else_branch as eb {
+    is null            -> null
+    is AST.IfElseBlock -> eb.block.trailing
+    is AST.IfElseIf    -> eb.branch
+}
+
+/// Hold the trailing value of `block` to the contract of the fn it is the body of,
+/// before the narrowings its guards pushed are undone.
+///
+/// @param ctx  the context the block is checked in.
+check_body_value :: fn(block: AST.BlockExpr, ctx: FnContext | null, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    if ctx == null {
+        return
+    }
+    contract :: ctx.guard ?? return
+    body :: contract.decl.body ?? return
+    value :: block.trailing ?? return
+    if body.id == block.id {
+        check_guard_return(contract, value, typed, diags)
+    }
+}
+
+/// Refuse a write to `target` when it names a parameter of the `@guard` fn whose
+/// body is being checked : the contract speaks of the argument, which the write
+/// would hide.
+///
+/// @param target  the name an assignment writes.
+/// @return        whether the write was refused.
+/// @error         T3113.
+reject_guard_param_write :: fn(target: AST.IdentExpr, typed: TypedProgram, diags: Diagnostic[]) -> bool {
+    contract :: typed.guards.verifying ?? return false
+    sym :: typed.resolved.idents[target.span.hash()] ?? return false
+    if sym.id !in contract.params.symbols {
+        return false
+    }
+    diags.push(typecheck_error(.GuardParameterWritten, target.span,
+        "`${contract.decl.name}` writes `${target.name}`"))
+    return true
+}
+
+// `t` as a message names it, a range with its bounds.
+described :: fn(t: Type) -> string {
+    if t is RangeType {
+        return display_range(t)
+    }
+    return "`${display_type(t)}`"
+}
+
+// ---- facts ----------------------------------------------------------------
+
+// The parameters of `fd` as a guard's condition reads them ; null when one is not
+// recorded.
+param_slots :: fn(fd: AST.FnDecl, typed: TypedProgram) -> ParamSlots | null {
+    params :: ParamSlots { .symbols = [], .declared = [] }
+    for p in fd.params {
+        sym :: typed.resolved.idents[p.span.hash()] ?? return null
+        params.symbols.push(sym.id)
+        params.declared.push(typed.param_types[p.span.hash()] ?? return null)
+    }
+    return params
+}
+
+// A fact for each parameter `cond` narrows, read where it is true and where it is
+// false.
+facts_of :: fn(cond: AST.Expr, params: ParamSlots, typed: TypedProgram) -> GuardFact[] {
+    declared :: params.declared
+    then_tys :: narrowed_params(cond, true, params.symbols, declared, typed)
+    else_tys :: narrowed_params(cond, false, params.symbols, declared, typed)
+    facts: GuardFact[]: []
     for i in 0..<declared.len() {
         if equals_type(then_tys[i], declared[i]) && equals_type(else_tys[i], declared[i]) {
             continue
@@ -102,7 +364,7 @@ proved_facts :: fn(fd: AST.FnDecl, body: AST.BlockExpr, typed: TypedProgram) -> 
 }
 
 // What each parameter, the binding `symbols` names, holds where `cond` evaluates
-// to `truth`.
+// to `truth`, on top of the narrowings in force.
 narrowed_params :: fn(
     cond: AST.Expr,
     truth: bool,
@@ -119,17 +381,26 @@ narrowed_params :: fn(
     return out
 }
 
-/// The narrowings a call to a guard of this module gives the arguments it
-/// narrows, one per argument that is a binding or a field chain.
+/// `then_ty` where a test evaluated to `truth`, `else_ty` otherwise.
+///
+/// @param truth  the test's outcome.
+side_of :: fn(truth: bool, then_ty: Type, else_ty: Type) -> Type {
+    if truth {
+        return then_ty
+    }
+    return else_ty
+}
+
+// ---- calls ----------------------------------------------------------------
+
+/// The narrowings a call to a guard gives the arguments it narrows, one per
+/// argument that is a binding or a field chain.
 ///
 /// @param call  a call in a condition, already checked.
 /// @return      null when the callee is no guard here.
 guard_narrowings :: fn(call: AST.CallExpr, typed: TypedProgram) -> IsNarrow[] | null {
     decl :: recorded_decl(typed, call) ?? return null
-    if decl.id !in typed.guards.candidates {
-        return null
-    }
-    facts :: guard_facts(decl, typed) ?? return null
+    facts :: callee_guard_facts(decl, typed) ?? return null
     offset :: receiver_offset(call, decl, typed)
     out: IsNarrow[]: []
     for fact in facts {
@@ -148,6 +419,16 @@ guard_narrowings :: fn(call: AST.CallExpr, typed: TypedProgram) -> IsNarrow[] | 
         })
     }
     return out
+}
+
+// What the fn `decl` a call names proves as a guard : its contract, in any module,
+// else what it proves as an inferred guard of this module.
+callee_guard_facts :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardFact[] | null {
+    if decl.id in typed.guards.candidates {
+        return guard_facts(decl, typed)
+    }
+    contract :: contract_of(decl, typed) ?? return null
+    return contract.facts
 }
 
 /// The first narrowing a call to a guard gives : what a test read as one leaf
@@ -169,34 +450,8 @@ guard_narrowing :: fn(call: AST.CallExpr, typed: TypedProgram) -> IsNarrow | nul
 push_guard_call :: fn(call: AST.CallExpr, truth: bool, typed: TypedProgram, pushed: PushedNarrow[]) -> void {
     narrowings :: guard_narrowings(call, typed) ?? return
     for n in narrowings {
-        pushed.push(push_one_narrow(typed, n.sym_id, n.field_key, narrowed_side(n, truth)))
+        pushed.push(push_one_narrow(typed, n.sym_id, n.field_key, side_of(truth, n.then_ty, n.else_ty)))
     }
-}
-
-// What `n` narrows its slot to where its test evaluated to `truth`.
-narrowed_side :: fn(n: IsNarrow, truth: bool) -> Type {
-    if truth {
-        return n.then_ty
-    }
-    return n.else_ty
-}
-
-// What the guard `decl` proves : read off its checked body, which a call written
-// ahead of it checks now. Null while a const's value is typed : a fn body is
-// checked once every const it may read is set.
-guard_facts :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardFact[] | null {
-    known :: typed.guards.facts[decl.id]
-    if known != null {
-        return known
-    }
-    if typed.const_walk.typing.len() > 0 {
-        return null
-    }
-    body :: decl.body ?? return null
-    position :: set_walk_aside(typed)
-    check_fn_body(decl, body, typed, diag_sink())
-    resume_walk(typed, position)
-    return typed.guards.facts[decl.id]
 }
 
 // The argument `call` passes the parameter `index` of a fn `offset` of whose

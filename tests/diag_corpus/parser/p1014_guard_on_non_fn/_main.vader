@@ -1,0 +1,11 @@
+// `@guard` states what a free function proves ; on a struct it would do nothing.
+module "snippet"
+
+@guard(x > 0)
+export Bag :: struct {
+    x: i32
+}
+
+export main :: fn() -> i32 {
+    return 0
+}

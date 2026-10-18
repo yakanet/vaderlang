@@ -261,7 +261,7 @@ push_cond_narrows_into :: fn(
         return
     }
     leaf :: detect_is_narrow(cond, typed, diags) ?? return
-    side_ty :: if truth { leaf.then_ty } else { leaf.else_ty }
+    side_ty :: side_of(truth, leaf.then_ty, leaf.else_ty)
     pushed.push(push_one_narrow(typed, leaf.sym_id, leaf.field_key, side_ty))
 }
 

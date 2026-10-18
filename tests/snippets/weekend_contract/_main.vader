@@ -1,0 +1,39 @@
+// `@guard(cond)` exports what a predicate proves : `is_weekend` narrows `d` in
+// this module as `d in Weekend` does, its body checked against that contract in
+// its own. `is_monday`, a guard by its body alone, narrows nothing here.
+
+module "snippet"
+
+import "snippet/days"
+import "std/io"
+
+rest :: fn(d: Weekend) -> string = "rest ${d}"
+
+work :: fn(d: 0..=4) -> string = "work ${d}"
+
+plan :: fn(d: Weekday) -> string {
+    if is_weekend(d) {
+        return rest(d)
+    }
+    return work(d)
+}
+
+shift :: fn(d: Weekday) -> string {
+    if !d.is_workday() {
+        return rest(d)
+    }
+    return work(d)
+}
+
+greeting :: fn(d: Weekday) -> string {
+    if is_monday(d) {
+        return "monday ${d}"
+    }
+    return "day ${d}"
+}
+
+main :: fn() -> i32 {
+    println("${plan(6)} ${plan(3)} ${shift(5)} ${shift(0)}")
+    println("${greeting(0)} ${greeting(4)}")
+    return 0
+}

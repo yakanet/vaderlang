@@ -1,0 +1,26 @@
+// A guard's contract speaks of the argument : a body writing the parameter, in
+// place or from a lambda, would hide it.
+module "snippet"
+
+export Weekday :: Int in 0..=6
+export Weekend :: Int in 5..=6
+
+@guard(d in Weekend)
+export always :: fn(d: Weekday) -> bool {
+    d = 6
+    return d >= 5
+}
+
+@guard(d in Weekend)
+export through_a_lambda :: fn(d: Weekday) -> bool {
+    move :: () -> void
+    {
+        d = 6
+    }
+    move()
+    return d >= 5
+}
+
+export main :: fn() -> i32 {
+    return 0
+}

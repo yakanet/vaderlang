@@ -1,0 +1,28 @@
+// The days of a week, and two predicates over them : `is_weekend` exports its
+// contract with `@guard`, `is_monday` is a guard here only.
+module "snippet/days"
+
+export Weekday :: Int in 0..=6
+export Weekend :: Int in 5..=6
+
+/// Whether `d` falls on a weekend.
+///
+/// @param d  the day, Monday first.
+@guard(d in Weekend)
+export is_weekend :: fn(d: Weekday) -> bool = d >= 5
+
+/// Whether `d` is the first day, checked by its body alone.
+///
+/// @param d  the day, Monday first.
+export is_monday :: fn(d: Weekday) -> bool = d == 0
+
+/// Whether `d` is a working day, written with returns.
+///
+/// @param d  the day, Monday first.
+@guard(d in 0..=4)
+export is_workday :: fn(d: Weekday) -> bool {
+    if d >= 5 {
+        return false
+    }
+    return true
+}

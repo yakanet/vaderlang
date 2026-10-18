@@ -66,6 +66,7 @@ check_block :: fn(
         }
         _       -> { result = check_expr(block.trailing, expected, typed, diags) }
     }
+    check_body_value(block, ctx, typed, diags)
     // Restore the binding's static type on block exit so outer scopes don't see
     // the narrowed shape. In reverse: a binding several guards narrowed gets back
     // what it had before the first, not what a later guard found.
@@ -186,12 +187,16 @@ check_fn_body :: fn(
     }
     prev :: typed.current_fn_ctx
     typed.current_fn_ctx = ctx
-    guard :: fn_decl.is_expression_bodied && fn_decl.id in typed.guards.candidates
+    guard :: fn_decl.id in typed.guards.candidates
     if guard {
         // A call inside the body reads nothing of the guard yet.
         typed.guards.facts[fn_decl.id] = []
     }
+    outer_contract :: typed.guards.verifying
+    typed.guards.verifying = null
+    hold_to_contract(fn_decl, ctx, typed, diags)
     got :: check_block(body, expected, typed, diags, ctx)
+    typed.guards.verifying = outer_contract
     if guard {
         typed.guards.facts[fn_decl.id] = proved_facts(fn_decl, body, typed)
     }
@@ -466,8 +471,11 @@ check_assign :: fn(s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[]) 
     // Surface the diag and skip the value-side typing so the dump doesn't carry
     // extra expr_types for a rejected write.
     target :: s.target
-    if target is AST.IdentExpr && reject_const_reassign(target, typed, diags) {
-        return
+    if target is AST.IdentExpr {
+        if reject_const_reassign(target, typed, diags)
+            || reject_guard_param_write(target, typed, diags) {
+            return
+        }
     }
     // T3082 : a name, a field or an element is a place ; a call, a literal or what
     // an operator computes is not (`get() = 3`, `xs.len() = 5`, `1 = 2`).
@@ -853,7 +861,8 @@ check_destructure_target :: fn(
     diags: Diagnostic[],
 ) -> void {
     if target is AST.IdentExpr {
-        if reject_const_reassign(target, typed, diags) {
+        if reject_const_reassign(target, typed, diags)
+            || reject_guard_param_write(target, typed, diags) {
             return
         }
     } else if target is AST.FieldExpr {
@@ -984,6 +993,10 @@ check_return :: fn(
             effective.inferred_return = union_of_paths([prev, got])
         }
         emit_return_mismatch_if(got, effective.return_type, s.span, v, typed, diags)
+        contract :: effective.guard
+        if contract != null {
+            check_guard_return(contract, v, typed, diags)
+        }
     }
 }
 

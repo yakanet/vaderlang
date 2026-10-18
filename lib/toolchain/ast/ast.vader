@@ -193,13 +193,19 @@ export Decorator :: struct {
 ///
 /// @param decs  the declaration's decorators.
 /// @param name  the decorator name, without the `@`.
-export decorators_have :: fn(decs: Decorator[], name: string) -> bool {
+export decorators_have :: fn(decs: Decorator[], name: string) -> bool = find_decorator(decs, name) != null
+
+/// The decorator called `name` among `decs`, the first when several are.
+///
+/// @param decs  the declaration's decorators.
+/// @param name  the decorator name, without the `@`.
+export find_decorator :: fn(decs: Decorator[], name: string) -> Decorator | null {
     for d in decs {
         if d.name == name {
-            return true
+            return d
         }
     }
-    return false
+    return null
 }
 
 // ============================================================================

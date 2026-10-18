@@ -1,0 +1,12 @@
+// `@guard` states one condition.
+module "snippet"
+
+export Weekday :: Int in 0..=6
+export Weekend :: Int in 5..=6
+
+@guard(d in Weekend, d > 5)
+export two :: fn(d: Weekday) -> bool = d >= 5
+
+export main :: fn() -> i32 {
+    return 0
+}

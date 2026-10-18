@@ -97,6 +97,9 @@ declare_decl :: fn(
     match decl {
         is AST.FnDecl     -> {
             declare_fn(decl, resolved, typed, diags)
+            if guard_condition(decl) != null {
+                typed.shared_guards.owners[decl.id] = typed
+            }
             if is_guard_candidate(decl, typed) {
                 _ :: typed.guards.candidates.add(decl.id)
             }

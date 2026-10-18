@@ -1,0 +1,80 @@
+# Typecheck
+
+## tests/snippets/weekend_contract
+  FnDecl         greeting             :: fn(Weekday) -> string
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         plan                 :: fn(Weekday) -> string
+  FnDecl         rest                 :: fn(Weekend) -> string
+  FnDecl         shift                :: fn(Weekday) -> string
+  FnDecl         work                 :: fn(0..=4) -> string
+  expr 10:36    StringLitExpr  :: string
+  expr 10:44    IdentExpr      :: Weekend
+  expr 12:34    StringLitExpr  :: string
+  expr 12:42    IdentExpr      :: 0..=4
+  expr 15:19    IdentExpr      :: Weekday
+  expr 15:5     IfExpr         :: void
+  expr 15:8     CallExpr       :: bool
+  expr 15:8     IdentExpr      :: fn(Weekday) -> bool
+  expr 16:16    CallExpr       :: string
+  expr 16:16    IdentExpr      :: fn(Weekend) -> string
+  expr 16:21    IdentExpr      :: Weekend
+  expr 18:12    CallExpr       :: string
+  expr 18:12    IdentExpr      :: fn(0..=4) -> string
+  expr 18:17    IdentExpr      :: 0..=4
+  expr 22:5     IfExpr         :: void
+  expr 22:8     UnaryExpr      :: bool
+  expr 22:9     CallExpr       :: bool
+  expr 22:9     FieldExpr      :: fn() -> bool
+  expr 22:9     IdentExpr      :: Weekday
+  expr 23:16    CallExpr       :: string
+  expr 23:16    IdentExpr      :: fn(Weekend) -> string
+  expr 23:21    IdentExpr      :: 5..=6
+  expr 25:12    CallExpr       :: string
+  expr 25:12    IdentExpr      :: fn(0..=4) -> string
+  expr 25:17    IdentExpr      :: 0..=4
+  expr 29:18    IdentExpr      :: Weekday
+  expr 29:5     IfExpr         :: void
+  expr 29:8     CallExpr       :: bool
+  expr 29:8     IdentExpr      :: fn(Weekday) -> bool
+  expr 30:16    StringLitExpr  :: string
+  expr 30:26    IdentExpr      :: Weekday
+  expr 32:12    StringLitExpr  :: string
+  expr 32:19    IdentExpr      :: Weekday
+  expr 36:13    StringLitExpr  :: string
+  expr 36:16    CallExpr       :: string
+  expr 36:16    IdentExpr      :: fn(Weekday) -> string
+  expr 36:27    CallExpr       :: string
+  expr 36:27    IdentExpr      :: fn(Weekday) -> string
+  expr 36:38    CallExpr       :: string
+  expr 36:38    IdentExpr      :: fn(Weekday) -> string
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
+  expr 36:50    CallExpr       :: string
+  expr 36:50    IdentExpr      :: fn(Weekday) -> string
+  expr 37:13    StringLitExpr  :: string
+  expr 37:16    CallExpr       :: string
+  expr 37:16    IdentExpr      :: fn(Weekday) -> string
+  expr 37:31    CallExpr       :: string
+  expr 37:31    IdentExpr      :: fn(Weekday) -> string
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/weekend_contract/days
+  FnDecl         is_monday            :: fn(Weekday) -> bool
+  FnDecl         is_weekend           :: fn(Weekday) -> bool
+  FnDecl         is_workday           :: fn(Weekday) -> bool
+  ConstDecl      Weekday              :: type
+  ConstDecl      Weekend              :: type
+  expr 11:13    IdentExpr      :: Weekend
+  expr 11:8     BinaryExpr     :: bool
+  expr 11:8     IdentExpr      :: Weekday
+  expr 12:47    BinaryExpr     :: bool
+  expr 12:47    IdentExpr      :: Weekday
+  expr 17:46    BinaryExpr     :: bool
+  expr 17:46    IdentExpr      :: Weekday
+  expr 22:13    RangeExpr      :: Range<Weekday>
+  expr 22:8     BinaryExpr     :: bool
+  expr 22:8     IdentExpr      :: Weekday
+  expr 24:5     IfExpr         :: void
+  expr 24:8     BinaryExpr     :: bool
+  expr 24:8     IdentExpr      :: Weekday
