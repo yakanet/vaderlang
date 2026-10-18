@@ -1,0 +1,108 @@
+// A comparison narrows a range where it holds : `h < 12` makes an `Hour` a
+// `0..=11` in the branch and a `12..=23` past it, for a binding and a field chain,
+// through `&&`, `||`, `!` and a guard that leaves the block. `x != 23` removes the
+// end value, so `x + 1` is an `Hour` again under it. Where narrowed ranges meet
+// again (a true `||`, the branches of an `if` or a `match`) they join into the one
+// range holding them, a literal beside them standing for its own value. A write
+// under a narrowing is held to the declared range.
+
+module "snippet"
+
+import "std/io"
+
+Hour    :: Int in 0..=23
+Morning :: Int in 0..=11
+Evening :: Int in 12..=23
+
+Clock :: struct {
+    hour: Hour
+}
+
+split :: fn(h: Hour) -> string {
+    if h < 12 {
+        morning: Morning: h
+        return "am ${morning}"
+    }
+    evening: Evening: h
+    return "pm ${evening}"
+}
+
+twelve_hour :: fn(h: Hour) -> 1..=12 {
+    if h == 0 {
+        return 12
+    }
+    if h > 12 {
+        return h - 12
+    }
+    return h
+}
+
+dial :: fn(c: Clock) -> Morning {
+    if !(c.hour < 12) {
+        return c.hour - 12
+    }
+    return c.hour
+}
+
+breakfast :: fn(h: Hour) -> 6..=9 | null {
+    if h >= 6 && h <= 9 {
+        return h
+    }
+    return null
+}
+
+daylight :: fn(h: Hour) -> 6..=20 | null {
+    if h < 6 || h > 20 {
+        return null
+    }
+    return h
+}
+
+after_dark :: fn(h: Hour) -> 1..=24 {
+    if h < 6 || h > 20 {
+        return h + 1
+    }
+    return 24
+}
+
+next_hour :: fn(h: Hour) -> Hour {
+    rejoined :: if h < 12 { h } else { h }
+    return (rejoined + 1) % 24
+}
+
+shifted :: fn(h: Hour, step: i32) -> Hour {
+    moved :: match step {
+        0 -> h
+        1 -> h + 1
+        _ -> 12
+    }
+    return moved % 24
+}
+
+rewind :: fn(h: Hour) -> Hour {
+    x := h
+    turns := 0
+    if x == 23 {
+        [x, turns] = [0, 1]
+    }
+    return x
+}
+
+tick :: fn(h: Hour) -> Hour {
+    x := h
+    if x != 23 {
+        x = x + 1
+    } else {
+        x = 0
+    }
+    return x
+}
+
+main :: fn() -> i32 {
+    println("${split(5)} ${split(18)}")
+    println("${twelve_hour(0)} ${twelve_hour(15)} ${twelve_hour(7)} ${dial(Clock { .hour = 20 })}")
+    println("${breakfast(7) ?? 6} ${breakfast(11) == null} ${tick(13)} ${tick(23)}")
+    println("${daylight(3) == null} ${daylight(12) ?? 6} ${after_dark(22)} ${after_dark(9)}")
+    println("${next_hour(9)} ${shifted(23, 1)} ${shifted(4, 7)} ${rewind(23)} ${rewind(8)}")
+    return 0
+}

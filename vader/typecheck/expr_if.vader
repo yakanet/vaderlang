@@ -22,8 +22,9 @@ AST :: import "toolchain/ast"
 /// (`if c { byte } else { '(' }` is that byte's `u8`) or is the `char` of a char
 /// one — mirroring the binary-operator coercion (`binary.vader::numeric_result`).
 /// Without this, an unannotated `::` binding (`expected = null`) escapes as a
-/// union with no arithmetic defined on it (T3017). Unrelated branches fall back
-/// to the plain union. A union branch settles its free member the same way
+/// union with no arithmetic defined on it (T3017). Ranges join into the one
+/// holding them all (`union_of_paths`). Unrelated branches fall back to the plain
+/// union. A union branch settles its free member the same way
 /// (`if b { 300 } else { null }` beside a `u8` is a `u8 | null`). The value of a
 /// coerced branch takes its new type too, so that its literals are built at it and
 /// must fit it (T3066): `k :: if flag { u8(7) } else { 300 }` is refused.
@@ -40,13 +41,14 @@ join_branch_types :: fn(
     for i in 0..<types.len() {
         settled.push(settle_branch(values[i], types[i], types, typed, diags))
     }
-    return union_of(settled)
+    return union_of_paths(settled)
 }
 
 // The type a branch giving `value` of type `t` takes among `siblings`, its value
 // settled with it: a free literal, or the free member of a union reached through a
 // block, an `if` or a `match` (`{integer} | null`), takes the type the first
-// sibling offers its family.
+// sibling offers its family. Beside a range, a free integer is the range of its
+// own value (`free_range`), which the join then holds.
 settle_branch :: fn(
     value: AST.Expr,
     t: Type,
@@ -59,6 +61,9 @@ settle_branch :: fn(
         return t
     }
     for sibling in siblings {
+        if sibling is RangeType && t is FreeIntType {
+            return free_range(value, t, typed, diags)
+        }
         to :: family_member(sibling, free) ?? continue
         settle_free_value(value, to, typed, diags)
         return settled_type(t, to) ?? t
@@ -256,7 +261,7 @@ push_cond_narrows_into :: fn(
 }
 
 // A true `||` narrows only when every operand tests the SAME slot : then to the
-// union of what they matched.
+// union of what they matched (`union_of_paths`).
 push_or_true :: fn(cond: AST.Expr, typed: TypedProgram, pushed: PushedNarrow[]) -> void {
     leaves: IsNarrow[]: []
     if !or_leaves(cond, typed, leaves) {
@@ -269,7 +274,7 @@ push_or_true :: fn(cond: AST.Expr, typed: TypedProgram, pushed: PushedNarrow[]) 
         }
         tys.push(positive_of(n))
     }
-    pushed.push(push_one_narrow(typed, leaves[0].sym_id, leaves[0].field_key, union_of(tys)))
+    pushed.push(push_one_narrow(typed, leaves[0].sym_id, leaves[0].field_key, union_of_paths(tys)))
 }
 
 // Narrow one slot to `ty`, returning the record that unwinds it. A `field_key` of
@@ -302,6 +307,14 @@ pop_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram) -> void {
 detect_is_narrow :: fn(
     cond: AST.Expr, typed: TypedProgram, diags: Diagnostic[],
 ) -> IsNarrow | null {
+    // A comparison narrowing a range (`h < 12`) ; under a `!`, reached by the
+    // swap below.
+    if cond is AST.BinaryExpr {
+        by_value :: detect_value_narrow(cond, typed)
+        if by_value != null {
+            return by_value
+        }
+    }
     // `!(x is T)` flips the two arms — peel the Not, then swap. Carry
     // `field_key` so a field scrutinee (`!(b.opt is null)`) still narrows the
     // FIELD in the then-block — without it the swap records a symbol narrowing

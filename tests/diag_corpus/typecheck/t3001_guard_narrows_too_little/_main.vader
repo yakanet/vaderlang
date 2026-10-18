@@ -1,0 +1,29 @@
+// A guard narrows a range to what it proves and no further : `h < 20` leaves an
+// `Hour` in `0..=19`, which an `Evening` does not hold ; `h != 12` removes no
+// value inside the range ; a primitive is not narrowed ; a write, a destructuring
+// one included, retires what the test proved.
+module "snippet"
+
+export Hour    :: Int in 0..=23
+export Evening :: Int in 12..=23
+
+export main :: fn() -> i32 {
+    h: Hour: 15
+    if h < 20 {
+        late: Evening: h
+    }
+    if h != 12 {
+        noon_or_not: 0..=11: h
+    }
+    n: i32: 5
+    if n < 10 {
+        digit: 0..=9: n
+    }
+    x := h
+    turns := 0
+    if x == 23 {
+        [x, turns] = [h, 1]
+        last: 23..=23: x
+    }
+    return turns
+}

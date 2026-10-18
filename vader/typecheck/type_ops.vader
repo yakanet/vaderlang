@@ -145,6 +145,45 @@ export union_of :: fn(variants: Type[]) -> Type {
     return mk_union(sort_by_display_key(dedup))
 }
 
+/// The type of a value one of several paths gave, of the types `reached` : their
+/// union, the ranges among them joined into the one range holding them all, since
+/// a range has no hole (`if h < 12 { h } else { h }` is an `Hour`, not two halves
+/// on which no arithmetic is defined). A union written in the source keeps its
+/// ranges apart (`union_of`).
+///
+/// @param reached  the type of the value on each path.
+union_of_paths :: fn(reached: Type[]) -> Type {
+    hull: RangeType | null = null
+    rest: Type[]: []
+    for t in reached {
+        if t is RangeType {
+            hull = joined_ranges(hull, t)
+        } else {
+            rest.push(t)
+        }
+    }
+    if hull != null {
+        rest.push(hull)
+    }
+    return union_of(rest)
+}
+
+// The one range holding `a` and `b`, `b` alone when `a` is null ; either of them,
+// named, when it holds the other.
+joined_ranges :: fn(a: RangeType | null, b: RangeType) -> RangeType {
+    if a == null {
+        return b
+    }
+    joined :: interval_join(a.bounds, b.bounds)
+    if same_interval(joined, a.bounds) {
+        return a
+    }
+    if same_interval(joined, b.bounds) {
+        return b
+    }
+    return RangeType { .bounds = joined }
+}
+
 /// `t` with every range in it replaced by its representation (`Hour` by `u8`,
 /// `Hour[]` by `u8[]`) : what the lowering and every pass after it see, for which
 /// a range is the integer it is held in. A union is rebuilt canonical, so

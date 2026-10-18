@@ -486,16 +486,16 @@ check_assign :: fn(s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[]) 
         return
     }
     target_ty :: check_expr(s.target, null, typed, diags)
+    // The value is checked against the slot's *declared* type, not `target_ty`,
+    // which may be a flow-narrowing. `x: A|B = a ; if x is A { x = b_value }` is
+    // legal, and so is `x = 0` where `x == 23` holds (the write retires the
+    // narrowing, per `invalidate_narrow_on_assign`).
+    declared :: declared_lvalue_type(s.target, target_ty, typed)
     value_hint: Type | null = null
-    if target_ty !is UnresolvedType {
-        value_hint = target_ty
+    if declared !is UnresolvedType {
+        value_hint = declared
     }
     value_ty :: check_expr(s.value, value_hint, typed, diags)
-    // Enforce the slot's *declared* type — not `target_ty`, which may be a
-    // flow-narrowing. `x: A|B = a ; if x is A { x = b_value }` is legal (the
-    // write retires the narrowing, per `invalidate_narrow_on_assign`), so the
-    // assignability check must target the declaration, not the narrowed view.
-    declared :: declared_lvalue_type(s.target, target_ty, typed)
     emit_assign_mismatch_if(value_ty, declared, s.span, s.value, typed, diags)
     // A write to a narrowed binding / field chain retires its stale
     // narrowings — see `narrow.vader::invalidate_narrow_on_assign`.
@@ -661,7 +661,7 @@ check_destructuring_assign :: fn(
 // never what an `Index` read gives back — `check_destructure_target` judges it.
 place_slot :: fn(place: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     if place !is AST.IndexExpr {
-        return check_expr(place, null, typed, diags)
+        return declared_lvalue_type(place, check_expr(place, null, typed, diags), typed)
     }
     receiver :: check_expr(place.target, null, typed, diags)
     return index_write_type(receiver, typed) ?? TY_UNRESOLVED
@@ -866,8 +866,11 @@ check_destructure_target :: fn(
             "a destructuring assignment writes to names, fields and indices — not to this"))
         return
     }
-    slot_ty :: check_expr(target, elem_ty, typed, diags)
-    emit_assign_mismatch_if(elem_ty, slot_ty, target.span, target, typed, diags)
+    // Judged against the declaration, as `x = v` is, and retiring the narrowings
+    // the write makes stale.
+    declared :: declared_lvalue_type(target, check_expr(target, elem_ty, typed, diags), typed)
+    emit_assign_mismatch_if(elem_ty, declared, target.span, target, typed, diags)
+    invalidate_narrow_on_assign(target, elem_ty, typed)
 }
 
 // T3041 when `ident` names a binding nothing may rebind ; whether it was reported.
@@ -970,7 +973,7 @@ check_return :: fn(
         if prev == null {
             effective.inferred_return = got
         } else {
-            effective.inferred_return = union_of([prev, got])
+            effective.inferred_return = union_of_paths([prev, got])
         }
         emit_return_mismatch_if(got, effective.return_type, s.span, v, typed, diags)
     }
@@ -1288,6 +1291,14 @@ push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram, stack: PushedNarro
             return
         }
     }
+    // `!(a && b)` false is `a && b` true : both operands hold.
+    if cond is AST.UnaryExpr && cond.op == .Not {
+        inner :: cond.operand
+        if inner is AST.BinaryExpr && inner.op == .And {
+            push_cond_narrows_into(inner, true, typed, diag_sink(), stack)
+            return
+        }
+    }
     narrowing :: detect_is_narrow_for_block(cond, typed) ?? return
     stack.push(push_one_narrow(typed, narrowing.sym_id, narrowing.field_key, narrowing.else_ty))
 }
@@ -1342,6 +1353,15 @@ BlockNarrow :: struct {
 detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNarrow | null {
     // Mirrors `expr_if.vader::detect_is_narrow` at a narrower result shape —
     // the divergent-guard case only needs the else-type.
+    by_value :: detect_value_narrow(cond, typed)
+    if by_value != null {
+        return BlockNarrow {
+            .sym_id = by_value.sym_id,
+            .static_ty = by_value.static_ty,
+            .else_ty = by_value.else_ty,
+            .field_key = by_value.field_key,
+        }
+    }
     if cond is AST.UnaryExpr {
         if cond.op == .Not {
             inner :: detect_is_narrow_for_block(cond.operand, typed) ?? return null

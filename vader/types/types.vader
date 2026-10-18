@@ -148,6 +148,17 @@ write_range :: fn(sb: StringBuilder, r: RangeType) -> void {
     sb.append(display_bounds(r.bounds))
 }
 
+/// `r` as a message names it : `` `Hour` (0..=23) `` when it has a name,
+/// `` `0..=23` `` otherwise.
+///
+/// @param r  a range.
+export display_range :: fn(r: RangeType) -> string {
+    if r.name == "" {
+        return "`${display_bounds(r.bounds)}`"
+    }
+    return "`${r.name}` (${display_bounds(r.bounds)})"
+}
+
 /// `bounds` as a range is written, `lo..=hi`, an open end left out (`0..`).
 ///
 /// @param bounds  the interval to render.

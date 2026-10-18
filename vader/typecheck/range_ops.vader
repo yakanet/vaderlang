@@ -100,8 +100,7 @@ absorbed_result :: fn(
     for operand in [left, right] {
         if operand is RangeType && (whole == null || !interval_within(operand.bounds, whole)) {
             diags.push(typecheck_error(.OperatorNotDefined, e.span,
-                "`${display_type(operand)}` (${display_bounds(operand.bounds)}) does not fit"
-                    + " `${p.name}`"))
+                "${display_range(operand)} does not fit `${p.name}`"))
             return TY_UNRESOLVED
         }
     }

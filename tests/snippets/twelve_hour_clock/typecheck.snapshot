@@ -1,0 +1,158 @@
+# Typecheck
+
+## tests/snippets/twelve_hour_clock
+  FnDecl         after_dark           :: fn(Hour) -> 1..=24
+  FnDecl         breakfast            :: fn(Hour) -> 6..=9 | null
+  StructDecl     Clock                :: Clock
+  FnDecl         daylight             :: fn(Hour) -> 6..=20 | null
+  FnDecl         dial                 :: fn(Clock) -> Morning
+  ConstDecl      Evening              :: type
+  ConstDecl      Hour                 :: type
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Morning              :: type
+  FnDecl         next_hour            :: fn(Hour) -> Hour
+  FnDecl         rewind               :: fn(Hour) -> Hour
+  FnDecl         shifted              :: fn(Hour, i32) -> Hour
+  FnDecl         split                :: fn(Hour) -> string
+  FnDecl         tick                 :: fn(Hour) -> Hour
+  FnDecl         twelve_hour          :: fn(Hour) -> 1..=12
+  expr 102:13   StringLitExpr  :: string
+  expr 102:16   CallExpr       :: string
+  expr 102:16   IdentExpr      :: fn(Hour) -> string
+  expr 102:28   CallExpr       :: string
+  expr 102:28   IdentExpr      :: fn(Hour) -> string
+  expr 102:5    CallExpr       :: void
+  expr 102:5    IdentExpr      :: fn(T) -> void
+  expr 103:13   StringLitExpr  :: string
+  expr 103:16   CallExpr       :: 1..=12
+  expr 103:16   IdentExpr      :: fn(Hour) -> 1..=12
+  expr 103:34   CallExpr       :: 1..=12
+  expr 103:34   IdentExpr      :: fn(Hour) -> 1..=12
+  expr 103:5    CallExpr       :: void
+  expr 103:5    IdentExpr      :: fn(T) -> void
+  expr 103:53   CallExpr       :: 1..=12
+  expr 103:53   IdentExpr      :: fn(Hour) -> 1..=12
+  expr 103:71   CallExpr       :: Morning
+  expr 103:71   IdentExpr      :: fn(Clock) -> Morning
+  expr 103:76   StructLitExpr  :: Clock
+  expr 104:13   StringLitExpr  :: string
+  expr 104:16   CallExpr       :: 6..=9 | null
+  expr 104:16   IdentExpr      :: fn(Hour) -> 6..=9 | null
+  expr 104:16   NullCoalesceExpr :: 6..=9
+  expr 104:37   BinaryExpr     :: bool
+  expr 104:37   CallExpr       :: 6..=9 | null
+  expr 104:37   IdentExpr      :: fn(Hour) -> 6..=9 | null
+  expr 104:5    CallExpr       :: void
+  expr 104:5    IdentExpr      :: fn(T) -> void
+  expr 104:62   CallExpr       :: Hour
+  expr 104:62   IdentExpr      :: fn(Hour) -> Hour
+  expr 104:74   CallExpr       :: Hour
+  expr 104:74   IdentExpr      :: fn(Hour) -> Hour
+  expr 105:13   StringLitExpr  :: string
+  expr 105:16   BinaryExpr     :: bool
+  expr 105:16   CallExpr       :: 6..=20 | null
+  expr 105:16   IdentExpr      :: fn(Hour) -> 6..=20 | null
+  expr 105:39   CallExpr       :: 6..=20 | null
+  expr 105:39   IdentExpr      :: fn(Hour) -> 6..=20 | null
+  expr 105:39   NullCoalesceExpr :: 6..=20
+  expr 105:5    CallExpr       :: void
+  expr 105:5    IdentExpr      :: fn(T) -> void
+  expr 105:60   CallExpr       :: 1..=24
+  expr 105:60   IdentExpr      :: fn(Hour) -> 1..=24
+  expr 105:78   CallExpr       :: 1..=24
+  expr 105:78   IdentExpr      :: fn(Hour) -> 1..=24
+  expr 106:13   StringLitExpr  :: string
+  expr 106:16   CallExpr       :: Hour
+  expr 106:16   IdentExpr      :: fn(Hour) -> Hour
+  expr 106:32   CallExpr       :: Hour
+  expr 106:32   IdentExpr      :: fn(Hour, i32) -> Hour
+  expr 106:5    CallExpr       :: void
+  expr 106:5    IdentExpr      :: fn(T) -> void
+  expr 106:50   CallExpr       :: Hour
+  expr 106:50   IdentExpr      :: fn(Hour, i32) -> Hour
+  expr 106:67   CallExpr       :: Hour
+  expr 106:67   IdentExpr      :: fn(Hour) -> Hour
+  expr 106:81   CallExpr       :: Hour
+  expr 106:81   IdentExpr      :: fn(Hour) -> Hour
+  expr 22:5     IfExpr         :: void
+  expr 22:8     BinaryExpr     :: bool
+  expr 22:8     IdentExpr      :: Hour
+  expr 23:27    IdentExpr      :: 0..=11
+  expr 24:16    StringLitExpr  :: string
+  expr 24:22    IdentExpr      :: Morning
+  expr 26:23    IdentExpr      :: 12..=23
+  expr 27:12    StringLitExpr  :: string
+  expr 27:18    IdentExpr      :: Evening
+  expr 31:5     IfExpr         :: void
+  expr 31:8     BinaryExpr     :: bool
+  expr 31:8     IdentExpr      :: Hour
+  expr 34:5     IfExpr         :: void
+  expr 34:8     BinaryExpr     :: bool
+  expr 34:8     IdentExpr      :: 1..=23
+  expr 35:16    BinaryExpr     :: 1..=11
+  expr 35:16    IdentExpr      :: 13..=23
+  expr 37:12    IdentExpr      :: 1..=12
+  expr 41:10    BinaryExpr     :: bool
+  expr 41:10    FieldExpr      :: Hour
+  expr 41:10    IdentExpr      :: Clock
+  expr 41:5     IfExpr         :: void
+  expr 41:8     UnaryExpr      :: bool
+  expr 42:16    BinaryExpr     :: 0..=11
+  expr 42:16    FieldExpr      :: 12..=23
+  expr 42:16    IdentExpr      :: Clock
+  expr 44:12    FieldExpr      :: 0..=11
+  expr 44:12    IdentExpr      :: Clock
+  expr 48:18    BinaryExpr     :: bool
+  expr 48:18    IdentExpr      :: 6..=23
+  expr 48:5     IfExpr         :: void
+  expr 48:8     BinaryExpr     :: bool
+  expr 48:8     BinaryExpr     :: bool
+  expr 48:8     IdentExpr      :: Hour
+  expr 49:16    IdentExpr      :: 6..=9
+  expr 55:17    BinaryExpr     :: bool
+  expr 55:17    IdentExpr      :: 6..=23
+  expr 55:5     IfExpr         :: void
+  expr 55:8     BinaryExpr     :: bool
+  expr 55:8     BinaryExpr     :: bool
+  expr 55:8     IdentExpr      :: Hour
+  expr 58:12    IdentExpr      :: 6..=20
+  expr 62:17    BinaryExpr     :: bool
+  expr 62:17    IdentExpr      :: 6..=23
+  expr 62:5     IfExpr         :: void
+  expr 62:8     BinaryExpr     :: bool
+  expr 62:8     BinaryExpr     :: bool
+  expr 62:8     IdentExpr      :: Hour
+  expr 63:16    BinaryExpr     :: 1..=24
+  expr 63:16    IdentExpr      :: 0..=23
+  expr 69:17    IfExpr         :: 0..=23
+  expr 69:20    BinaryExpr     :: bool
+  expr 69:20    IdentExpr      :: Hour
+  expr 69:29    IdentExpr      :: 0..=11
+  expr 69:40    IdentExpr      :: 12..=23
+  expr 70:13    BinaryExpr     :: 0..=23
+  expr 70:13    BinaryExpr     :: 1..=24
+  expr 70:13    IdentExpr      :: 0..=23
+  expr 74:14    MatchExpr      :: 0..=24
+  expr 74:20    IdentExpr      :: i32
+  expr 75:14    IdentExpr      :: Hour
+  expr 76:14    BinaryExpr     :: 1..=24
+  expr 76:14    IdentExpr      :: Hour
+  expr 79:12    BinaryExpr     :: 0..=23
+  expr 79:12    IdentExpr      :: 0..=24
+  expr 83:10    IdentExpr      :: Hour
+  expr 85:5     IfExpr         :: void
+  expr 85:8     BinaryExpr     :: bool
+  expr 85:8     IdentExpr      :: Hour
+  expr 86:10    IdentExpr      :: 23..=23
+  expr 86:13    IdentExpr      :: i32
+  expr 86:22    SeqLitExpr     :: [Hour, i32]
+  expr 88:12    IdentExpr      :: Hour
+  expr 92:10    IdentExpr      :: Hour
+  expr 93:5     IfExpr         :: void
+  expr 93:8     BinaryExpr     :: bool
+  expr 93:8     IdentExpr      :: Hour
+  expr 94:13    BinaryExpr     :: 1..=23
+  expr 94:13    IdentExpr      :: 0..=22
+  expr 94:9     IdentExpr      :: 0..=22
+  expr 96:9     IdentExpr      :: 23..=23
+  expr 98:12    IdentExpr      :: Hour

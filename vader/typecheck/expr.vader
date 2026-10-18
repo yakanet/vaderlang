@@ -97,8 +97,7 @@ check_literal_bounds :: fn(
         }
         if final is RangeType && !literal_in_range(expr, final) {
             diags.push(typecheck_error(.IntegerLiteralOutOfRange, expr.span,
-                "`${AST.int_literal_text(expr)}` is not in `${display_type(final)}`"
-                    + " (${display_bounds(final.bounds)})"))
+                "`${AST.int_literal_text(expr)}` is not in ${display_range(final)}"))
         }
         if final is FreeIntType {
             defaulted :: default_if_free(final)

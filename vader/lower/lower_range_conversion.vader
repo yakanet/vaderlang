@@ -135,7 +135,6 @@ stop_outside :: fn(target: RangeType, span: Span) -> LoweredStmt = LoweredExprSt
     .expr = LoweredUnreachable {
         .span = span,
         .type = TY_VOID,
-        .reason = "value out of range: not in `${display_type(target)}`"
-            + " (${display_bounds(target.bounds)})",
+        .reason = "value out of range: not in ${display_range(target)}",
     },
 }
