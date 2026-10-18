@@ -175,7 +175,7 @@ register_nongeneric_imported_const :: fn(ctx: FnLowerCtx, const_sym: Symbol) -> 
 // arguments the typecheck recorded for a generic fn, the fn itself otherwise. A
 // fn of a module lowered lazily is harvested either way, so its body is emitted.
 ufcs_callee_symbol :: fn(ctx: FnLowerCtx, call: CallExpr, fn_sym: Symbol) -> Symbol {
-    mangled :: recorded_instance_mangle(ctx, call, fn_sym)
+    mangled :: recorded_instance_mangle(ctx, call, .Call, fn_sym)
     if mangled == null {
         register_nongeneric_imported_fn(ctx, fn_sym)
         return fn_sym

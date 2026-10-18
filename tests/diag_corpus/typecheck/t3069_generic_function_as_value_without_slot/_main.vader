@@ -1,0 +1,17 @@
+// A generic function used as a value with no function type to instantiate it
+// against, and no type arguments written : nothing binds its parameter.
+
+module "main"
+
+import "std/io"
+
+id :: fn<T>(x: T) -> T = x
+
+keep :: fn<T>(x: T) -> T = x
+
+main :: fn() -> i32 {
+    changing := id
+    changing = id
+    held :: keep(id)
+    return 0
+}

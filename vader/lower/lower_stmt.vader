@@ -243,6 +243,9 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
             // `let t: type = …` is an in-fn type alias — no runtime
             // slot, the typer pre-resolved the type. Skip emit.
             if binding_type is TypeMetaType { return }
+            if binding_type is FnType && is_fn_alias(ctx, simple.name_span) {
+                return
+            }
             // Mirror of the typer's `try_into` hook at let-stmt's value-position.
             value :: lower_for_slot(ctx, let_stmt.value, binding_type, let_stmt.span)
             out.push(cell_aware_let(ctx, symbol, simple.name, value, binding_type, let_stmt.span))

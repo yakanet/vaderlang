@@ -1,0 +1,173 @@
+# Lower
+
+## snippet
+  snippet.apply :: fn(f: fn(i32) -> string, x: i32) -> string {  // snippet$apply
+      f(x)
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.io.println<string>(snippet.apply(snippet.name_of<i32>, 5))
+      {
+          __fuse_arr_0: f64[] = [1.5, 2.5] :f64[]
+          f: fn(f64) -> string = snippet.name_of<f64>
+          __fuse_len_1: usize = @array.len(__fuse_arr_0)
+          __fuse_i_2: usize = 0
+          for __fuse_i_2 < __fuse_len_1 {
+              x: f64 = __fuse_arr_0[__fuse_i_2]
+              name: string = snippet.name_of<f64>(x)
+              std.io.println<string>(name)
+          } @step {
+              __fuse_i_2 = __fuse_i_2 +% usize(1)
+          }
+      }
+      std.io.println<i32>(snippet.twice<i32>(snippet.id<i32>, 7))
+      typed: fn(bool, f64) -> string = snippet.pair<bool, f64>
+      std.io.println<string>(snippet.pair<bool, f64>(true, 1.5))
+      written: fn(i64, string) -> string = snippet.pair<i64, string>
+      std.io.println<string>(snippet.pair<i64, string>(i64(1), "s"))
+      std.io.println<string>(snippet.apply(snippet.name_of<i32>, 3))
+      std.io.println<string>({
+          __p_3: string = snippet.id<string>("s")
+          __buf_4: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_3))
+          __off_5: usize = 0
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.id<i32>(3)))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      later: fn() -> bool = __lambda_snippet_0
+      std.io.println<bool>(__lambda_snippet_0())
+      shown: fn(string) -> void = std.io.println<string>
+      std.io.println<string>("through a module")
+      return 0
+  }
+  __lambda_snippet_0 :: fn() -> bool {
+      snippet.id<bool>(false)
+  }
+  snippet.id<bool> :: fn(x: bool) -> bool {  // snippet$id__bool
+      x
+  }
+  snippet.id<i32> :: fn(x: i32) -> i32 {  // snippet$id__i32
+      x
+  }
+  snippet.id<string> :: fn(x: string) -> string {  // snippet$id__string
+      x
+  }
+  snippet.name_of<f64> :: fn(x: f64) -> string {  // snippet$name_of__f64
+      "f64"
+  }
+  snippet.name_of<i32> :: fn(x: i32) -> string {  // snippet$name_of__i32
+      "i32"
+  }
+  snippet.pair<bool, f64> :: fn(a: bool, b: f64) -> string {  // snippet$pair__bool__f64
+      "bool f64"
+  }
+  snippet.pair<i64, string> :: fn(a: i64, b: string) -> string {  // snippet$pair__i64__string
+      "i64 string"
+  }
+  snippet.twice<i32> :: fn(f: fn(i32) -> i32, x: i32) -> i32 {  // snippet$twice__i32
+      f(f(x))
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/collections
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core_Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core_Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core_Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core_Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core_Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core_Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core_Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core_Into$into__i32
+    fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
+    fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
+    fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
+    fn std.collections.ensure_index<i32, bool>  // std_collections$ensure_index__i32__bool
+    fn std.collections.ensure_index<i32, i32>  // std_collections$ensure_index__i32__i32
+    fn std.collections.ensure_index<string, i32>  // std_collections$ensure_index__string__i32
+    fn std.collections.first_slot  // std_collections$first_slot
+    fn std.collections.get<i32, bool>  // std_collections$get__i32__bool
+    fn std.collections.get<i32, i32>  // std_collections$get__i32__i32
+    fn std.collections.get<string, i32>  // std_collections$get__string__i32
+    fn std.collections.next_slot  // std_collections$next_slot
+    fn std.collections.put<i32, bool>  // std_collections$put__i32__bool
+    fn std.collections.put<i32, i32>  // std_collections$put__i32__i32
+    fn std.collections.put<string, i32>  // std_collections$put__string__i32
+    fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
+    fn std.collections.rehash<i32, i32>  // std_collections$rehash__i32__i32
+    fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
+    fn std.collections.write_entry<i32, bool>  // std_collections$write_entry__i32__bool
+    fn std.collections.write_entry<i32, i32>  // std_collections$write_entry__i32__i32
+    fn std.collections.write_entry<string, i32>  // std_collections$write_entry__string__i32
+    fn std_collections$__gen_state_std_collections_0$Iterator$next
+    fn std_collections$__gen_state_std_collections_1$Iterator$next
+    fn std_collections$__gen_state_std_collections_2$Iterator$next
+    fn std_collections$__gen_state_std_collections_3$Iterator$next
+    struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
+    struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
+    struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
+    struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
+    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
+    struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
+    struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32
+    struct std_collections$__gen_state_std_collections_0
+    struct std_collections$__gen_state_std_collections_1
+    struct std_collections$__gen_state_std_collections_2
+    struct std_collections$__gen_state_std_collections_3
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.hash  // std_core$i32$Hash$hash
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$i32$Equals$equals$guard
+    fn std_core$string$Equals$equals$guard
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<bool>  // std_io$println__bool
+    fn std.io.println<i32>  // std_io$println__i32
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

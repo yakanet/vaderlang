@@ -56,7 +56,7 @@ type_generic_call :: fn(
         .inst = substitute_fn_map(callee_ty, vars),
         .own = own,
         .solutions = solutions,
-        .held = seed_explicit_infer(c, written, typed, solutions, diags),
+        .held = seed_explicit_infer(c.type_args, written, typed, solutions, diags),
         .typed = typed,
     }
     seed_ufcs_infer(ctx, vars)
@@ -133,7 +133,7 @@ type_generic_call :: fn(
         }
     }
     repin_free_ufcs_receiver_at_instance(c, bindings, typed, diags)
-    check_typeparam_bounds(c, bindings, typed, diags)
+    check_typeparam_bounds(c.span, callee_name(c.callee), bindings, typed, diags)
     return recorded.return_type
 }
 
@@ -177,7 +177,7 @@ solve_through_lambdas :: fn(ctx: CallInference, lambdas: usize[]) -> void {
 written_vars :: fn(
     c: AST.CallExpr, callee_ty: FnType, own: InferVar[], typed: TypedProgram,
 ) -> InferVar[] {
-    explicit :: explicit_params(c, callee_ty.type_params, typed)
+    explicit :: explicit_params(c.callee, callee_ty.type_params, typed)
     if explicit.len() == own.len() {
         return own
     }
@@ -193,18 +193,18 @@ written_vars :: fn(
 // Fix the variables an explicit `<…>` writes, in the order the callee declares its
 // parameters. Returns the ids of the variables it fixed.
 seed_explicit_infer :: fn(
-    c: AST.CallExpr,
+    type_args: AST.TypeExpr[],
     own: InferVar[],
     typed: TypedProgram,
     solutions: MutableMap<i32, Type>,
     diags: Diagnostic[],
 ) -> MutableSet<i32> | null {
-    if c.type_args.len() == 0 {
+    if type_args.len() == 0 {
         return null
     }
     held :: MutableSet<i32> {}
-    for i in 0..<min(own.len(), c.type_args.len()) {
-        solutions[own[i].id] = type_from_expr(c.type_args[i], typed.resolved, diags)
+    for i in 0..<min(own.len(), type_args.len()) {
+        solutions[own[i].id] = type_from_expr(type_args[i], typed.resolved, diags)
         held.add(own[i].id)
     }
     return held

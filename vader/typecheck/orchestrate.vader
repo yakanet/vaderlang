@@ -2497,6 +2497,7 @@ walk_bodies :: fn(
     if mode == .Full {
         report_literals_past_default(typed, diags)
     }
+    settle_fn_references(typed, diags)
     zonk_module_tables(typed)
 }
 

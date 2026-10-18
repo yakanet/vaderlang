@@ -156,7 +156,7 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
             for e in found.nodes {
                 at :: recorded[e.id]
                 if at != null {
-                    add_recorded_sites(index, e, at)
+                    add_recorded_sites(index, typed, e, at)
                 }
                 if e is AST.FieldExpr {
                     add_namespace_member(index, typed, e)
@@ -230,6 +230,8 @@ target_key :: fn(typed: TypedProgram, sym: Symbol) -> i64 {
 RecordedFns :: struct {
     called: AST.FnDecl[] = []
     implicit: AST.FnDecl[] = []
+    /// A generic fn named as a value at the node.
+    referenced: AST.FnDecl[] = []
 }
 
 // The fns the typecheck recorded in `typed`, by node : one pass over the record's
@@ -244,10 +246,10 @@ recorded_fns :: fn(typed: TypedProgram) -> MutableMap<usize, RecordedFns> {
                     continue
                 }
                 at :: out[id] ?? new_recorded(out, id)
-                if role == .Call {
-                    at.called.push(decl)
-                } else {
-                    at.implicit.push(decl)
+                match role {
+                    .Call      -> { at.called.push(decl) }
+                    .Reference -> { at.referenced.push(decl) }
+                    _          -> { at.implicit.push(decl) }
                 }
             }
         }
@@ -263,9 +265,17 @@ new_recorded :: fn(out: MutableMap<usize, RecordedFns>, id: usize) -> RecordedFn
 
 // The sites of the fns recorded at `e` : a call refers to its fn at the callee's
 // name, any other role at `e` itself, once per fn, and not again for the fn the
-// call names (a `for` stepping a generator it calls).
-add_recorded_sites :: fn(index: IndexBuilder, e: AST.Expr, at: RecordedFns) -> void {
-    if e is AST.CallExpr {
+// call names (a `for` stepping a generator it calls). A name aliasing a generic fn
+// (`g :: id`) stays the local's : the fn it names is an implicit site there, and a
+// fn named as a value by its own name is the identifier's site already.
+add_recorded_sites :: fn(
+    index: IndexBuilder, typed: TypedProgram, e: AST.Expr, at: RecordedFns,
+) -> void {
+    listed: i64[]: []
+    if names_through_alias(typed, e) {
+        add_implicit_sites(index, e, at.called, listed)
+        add_implicit_sites(index, e, at.referenced, listed)
+    } else if e is AST.CallExpr {
         span :: callee_name_span(e.callee)
         if span != null {
             for decl in at.called {
@@ -273,11 +283,17 @@ add_recorded_sites :: fn(index: IndexBuilder, e: AST.Expr, at: RecordedFns) -> v
             }
         }
     }
-    listed: i64[]: []
     for decl in at.called {
         listed.push(fn_key(decl))
     }
-    for decl in at.implicit {
+    add_implicit_sites(index, e, at.implicit, listed)
+}
+
+// An implicit site at `e` for each of `decls` not `listed` yet.
+add_implicit_sites :: fn(
+    index: IndexBuilder, e: AST.Expr, decls: AST.FnDecl[], listed: i64[],
+) -> void {
+    for decl in decls {
         key :: fn_key(decl)
         if key !in listed {
             listed.push(key)
@@ -288,6 +304,24 @@ add_recorded_sites :: fn(index: IndexBuilder, e: AST.Expr, at: RecordedFns) -> v
             })
         }
     }
+}
+
+// Whether `e` names a fn through a local aliasing it, as a callee or as a value.
+names_through_alias :: fn(typed: TypedProgram, e: AST.Expr) -> bool {
+    name :: site_name(e)
+    if name !is AST.IdentExpr {
+        return false
+    }
+    sym :: typed.resolved.idents[name.span.hash()] ?? return false
+    return typed.fn_aliases[sym.id] != null
+}
+
+// The name a site designates its fn by : a call's callee, or the site itself.
+site_name :: fn(e: AST.Expr) -> AST.Expr {
+    if e is AST.CallExpr {
+        return e.callee
+    }
+    return e
 }
 
 // The span of the name a callee calls by : `f`, the `f` of `x.f` or `NS.f` ; null

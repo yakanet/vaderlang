@@ -111,6 +111,8 @@ export CallRole :: enum {
     IterNext,
     /// What renders an interpolated `${value}`, at the value.
     Display,
+    /// A generic function named as a value, at the name : the instance it takes.
+    Reference,
 }
 
 /// The sites of a module, one table per role, each keyed by the node's id. A node
@@ -120,8 +122,8 @@ export CallSites :: struct {
     /// its enclosing function's, whose instances it shares.
     calls_in_fn: MutableMap<usize, usize[]> = MutableMap<usize, usize[]> {}
     calls: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
-    /// Where each call of a generic fn sits, by its node id : the calls `calls`
-    /// records with bindings.
+    /// Where each instantiation of a generic fn sits, by its node id : the calls
+    /// `calls` records with bindings, and every site `references` records.
     instantiation_spans: MutableMap<usize, Span> = MutableMap<usize, Span> {}
     operators: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
     index_reads: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
@@ -130,6 +132,7 @@ export CallSites :: struct {
     iterator_conversions: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
     iterator_steps: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
     displays: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    references: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
 }
 
 /// The table of the sites playing `role`.
@@ -145,6 +148,7 @@ export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<usize, Cal
     .IterInto   -> sites.iterator_conversions
     .IterNext   -> sites.iterator_steps
     .Display    -> sites.displays
+    .Reference  -> sites.references
 }
 
 /// Every role, for a reader that walks them all : a role added to `CallRole` is
@@ -158,6 +162,7 @@ export all_roles :: fn() -> CallRole[] = [
     .IterInto,
     .IterNext,
     .Display,
+    .Reference,
 ]
 
 /// The declarations `callee` runs by name: a known fn's, each of a structural
@@ -663,6 +668,7 @@ export role_label :: fn(role: CallRole) -> string = match role {
     .IterInto   -> "iter-into"
     .IterNext   -> "iter-next"
     .Display    -> "display"
+    .Reference  -> "reference"
 }
 
 // A call inside a materialised default method sits at a synthetic span, the same

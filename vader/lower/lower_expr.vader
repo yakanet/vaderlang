@@ -74,6 +74,10 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // NODE_ID`, …) degrades to a drop.
             ns_const :: try_lower_namespace_const(ctx, expr, type)
             if ns_const != null { return ns_const }
+            if type is FnType {
+                reference :: recorded_fn_reference(ctx, expr, type)
+                if reference != null { return reference }
+            }
             // `nsM.foo` used as a fn-VALUE (not a call callee) — lower to the
             // member fn symbol, mirroring the direct-ident fn-value path ; else
             // it degrades to a bogus field access on the import binding.
@@ -167,12 +171,17 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         is LambdaExpr -> { return lower_lambda(ctx, expr) }
         is RangeExpr -> { return lower_range_expr(ctx, expr, type) }
         is DotVariantExpr -> { return lower_dot_variant(ctx, expr, type) }
-        // Type-position expressions in value position — earlier phases
-        // emit T3035 ; the lowerer just emits a stub.
-        is FnTypeExpr | GenericInstExpr -> {
+        // A generic fn as a value (`id<i32>`), or a type in value position.
+        is GenericInstExpr -> {
+            reference :: recorded_fn_reference(ctx, expr, type)
+            if reference != null { return reference }
             return stub(expr.span, type, "type-valued slot not lowered")
         }
-        is ArrayTypeExpr -> { return stub(expr.span, type, "type-valued slot not lowered") }
+        // Type-position expressions in value position — earlier phases
+        // emit T3035 ; the lowerer just emits a stub.
+        is FnTypeExpr | ArrayTypeExpr -> {
+            return stub(expr.span, type, "type-valued slot not lowered")
+        }
     }
 }
 
@@ -226,6 +235,10 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             if !ctx.comptime_bindings.is_empty() {
                 comptime_val :: ctx.comptime_bindings[symbol.id]
                 if !(comptime_val is null) { return comptime_val }
+            }
+            if type is FnType {
+                reference :: recorded_fn_reference(ctx, ident, type)
+                if reference != null { return reference }
             }
             // TypeMeta-typed ident in value position — reify the
             // underlying Type so the bytecode emit can lower it to

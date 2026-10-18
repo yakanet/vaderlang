@@ -373,7 +373,7 @@ check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> voi
     if written_ty !is null {
         ann = type_from_expr(written_ty, typed.resolved, diags)
     }
-    got :: check_expr(s.value, ann, typed, diags)
+    got :: check_let_value(s, ann, typed, diags)
     declared: Type = TY_UNRESOLVED
     if ann == null {
         declared = default_free_members(got)
@@ -417,6 +417,19 @@ check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> voi
     }
     assign_binding_types(s.binding, declared, typed, diags)
     record_empty_array_init(s, declared, typed)
+}
+
+// The type of `s`'s value. A `::` binding with no annotation keeps the quantifier of
+// a generic function its value names : it aliases the function.
+check_let_value :: fn(
+    s: AST.LetStmt, ann: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    if s.mutable || ann != null {
+        return check_expr(s.value, ann, typed, diags)
+    }
+    got :: check_keeping_quantifier(s.value, typed, diags)
+    note_fn_alias(s, got, typed)
+    return got
 }
 
 // `x := []` : remember which expression the `?[]` came from, so the first

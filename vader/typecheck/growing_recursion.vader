@@ -10,8 +10,9 @@
 // call is refused (T3104). A recursion that passes its parameters on unchanged, or
 // calls itself on a fixed type, is not.
 //
-// Only the calls that record bindings are seen : a member called on a receiver,
-// which binds the impl's parameters through the receiver's type, adds no edge.
+// A generic function named as a value records its bindings like a call. Only the
+// sites that record bindings are seen : a member called on a receiver, which binds
+// the impl's parameters through the receiver's type, adds no edge.
 
 module "vader/typecheck"
 
@@ -48,25 +49,27 @@ reject_growing_recursion :: fn(
     graph :: InstantiationGraph {}
     growing: GrowingCall[]: []
     for [_, typed] in per_module {
-        for [id, callee] in typed.call_sites.calls {
-            if callee !is DirectFn {
-                continue
-            }
-            bindings :: callee.bindings ?? continue
-            span :: typed.call_sites.instantiation_spans[id] ?? continue
-            for [param, bound] in bindings {
-                to :: graph.node_of(param)
-                for from in type_params_in(bound) {
-                    origin :: graph.node_of(from.id)
-                    graph.successors[origin].push(to)
-                    if bound !is TypeParamType {
-                        growing.push(GrowingCall {
-                            .from = from,
-                            .edge = [origin, to],
-                            .callee = callee.decl.name,
-                            .bound = bound,
-                            .span = span,
-                        })
+        for table in [typed.call_sites.calls, typed.call_sites.references] {
+            for [id, callee] in table {
+                if callee !is DirectFn {
+                    continue
+                }
+                bindings :: callee.bindings ?? continue
+                span :: typed.call_sites.instantiation_spans[id] ?? continue
+                for [param, bound] in bindings {
+                    to :: graph.node_of(param)
+                    for from in type_params_in(bound) {
+                        origin :: graph.node_of(from.id)
+                        graph.successors[origin].push(to)
+                        if bound !is TypeParamType {
+                            growing.push(GrowingCall {
+                                .from = from,
+                                .edge = [origin, to],
+                                .callee = callee.decl.name,
+                                .bound = bound,
+                                .span = span,
+                            })
+                        }
                     }
                 }
             }

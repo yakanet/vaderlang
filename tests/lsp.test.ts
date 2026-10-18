@@ -1787,6 +1787,40 @@ test("lsp: a namespace member is referenced and renamed as a value too", async (
   expect(edits).toHaveLength(3);
 }, { timeout: MEDIUM_BUILD });
 
+// `g :: id` aliases a generic fn: the name `g` stays the local's, and `id` is
+// referenced once wherever it is named as a value.
+const FN_ALIAS_SOURCE = `module "lsptest"
+
+id :: fn<T>(x: T) -> T = x
+
+apply :: fn(f: fn(i32) -> i32, x: i32) -> i32 = f(x)
+
+main :: fn() -> i32 {
+    g :: id
+    return g(3) + apply(id, 1) + apply(g, 2)
+}
+`;
+
+test("lsp: an alias of a generic fn keeps its own name", async () => {
+  const src = FN_ALIAS_SOURCE;
+  const results = await driveLsp(src, [
+    { method: "textDocument/rename", position: positionOf(src, "g :: id") },
+    { method: "textDocument/references", position: positionOf(src, "id :: fn") },
+  ]);
+
+  const renamed = soleFileEdits(results[0]!.result as WorkspaceEditT);
+  expect(starts(renamed)).toEqual(
+    [key(positionOf(src, "g :: id")), key(positionOf(src, "g(3)")), key(positionOf(src, "g, 2"))].sort(),
+  );
+  for (const e of renamed) expect(textAt(src, e.range)).toBe("g");
+
+  // Named: its declaration, the alias's value, `apply(id, 1)` once.
+  const named = starts(results[1]!.result as Location[]);
+  expect(named).toContain(key(positionOf(src, "id :: fn")));
+  expect(named).toContain(key(positionOf(src, "id\n", 0)));
+  expect(named.filter((k) => k === key(positionOf(src, "id, 1")))).toHaveLength(1);
+}, { timeout: MEDIUM_BUILD });
+
 // A trait default is copied into each impl that inherits it; the copy has no
 // source of its own, so nothing in it is a reference.
 const DEFAULT_COPY_SOURCE = `module "lsptest"

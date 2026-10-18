@@ -634,7 +634,7 @@ type_call :: fn(
     if c.callee is AST.FieldExpr {
         typed.callee_field_id = c.callee.id
     }
-    initial_callee_ty :: check_expr(c.callee, null, typed, diags)
+    initial_callee_ty :: check_keeping_quantifier(c.callee, typed, diags)
     // Overload dispatch : when the callee is a bare ident whose name
     // has multiple fn overloads (`describe :: fn(Box) -> ... ;
     // describe :: fn(Bag) -> ...`), pre-walk the args and pick the
@@ -702,7 +702,7 @@ type_call :: fn(
     // type-checked first so a bad argument to `todo(...)` is still flagged.
     diverges :: named != null && AST.decorators_have(named.decorators, "no_return")
     n :: min(c.args.len(), callee_ty.params.len())
-    reject_extra_type_args(c, callee_ty, typed, diags)
+    reject_extra_type_args(c.callee, c.type_args, callee_ty, typed, diags)
     if callee_ty.type_params.len() > 0 {
         returned :: type_generic_call(c, callee_ty, expected, n, typed, diags)
         return call_result(c, returned, diverges, typed)
@@ -727,30 +727,34 @@ type_call :: fn(
     return call_result(c, callee_ty.return_type, diverges, typed)
 }
 
-// T3105 on a call writing more type arguments than its callee quantifies over ; it
-// may write fewer, and the call infers the rest.
+// T3105 on a function named with more type arguments than it quantifies over, on a
+// call or as a value ; it may be written with fewer, and the rest are inferred.
 reject_extra_type_args :: fn(
-    c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram, diags: Diagnostic[],
+    callee: AST.Expr,
+    type_args: AST.TypeExpr[],
+    callee_ty: FnType,
+    typed: TypedProgram,
+    diags: Diagnostic[],
 ) -> void {
-    declared :: explicit_params(c, callee_ty.type_params, typed).len()
-    if c.type_args.len() <= declared {
+    declared :: explicit_params(callee, callee_ty.type_params, typed).len()
+    if type_args.len() <= declared {
         return
     }
     taken :: type_args_taken(declared)
-    detail :: "`${callee_name(c.callee)}` takes ${taken}, got ${c.type_args.len()}"
-    diags.push(typecheck_error(.TypeArgumentCountMismatch, c.type_args[declared].span, detail))
+    detail :: "`${callee_name(callee)}` takes ${taken}, got ${type_args.len()}"
+    diags.push(typecheck_error(.TypeArgumentCountMismatch, type_args[declared].span, detail))
 }
 
-// The parameters a call's written type arguments fix, in order : the callee's, but
-// for a static member not those of the type it is called on, which that type's own
-// arguments fix (`Bag.make<i64>(1)` gives `i64` to `make`'s own parameter).
+// The parameters a function's written type arguments fix, in order : the callee's,
+// but for a static member not those of the type it is called on, which that type's
+// own arguments fix (`Bag.make<i64>(1)` gives `i64` to `make`'s own parameter).
 explicit_params :: fn(
-    c: AST.CallExpr, quantifier: TypeParamType[], typed: TypedProgram,
+    callee: AST.Expr, quantifier: TypeParamType[], typed: TypedProgram,
 ) -> TypeParamType[] {
-    if c.callee !is AST.FieldExpr {
+    if callee !is AST.FieldExpr {
         return quantifier
     }
-    found :: typed.static_members[c.callee.id] ?? return quantifier
+    found :: typed.static_members[callee.id] ?? return quantifier
     of_owner :: type_params_in(found.owner)
     out: TypeParamType[]: []
     for tp in quantifier {
@@ -946,7 +950,8 @@ note_cast_into :: fn(typed: TypedProgram, value: AST.Expr, source: Type, target:
 /// — direct, UFCS, through a namespace. Skips a parameter the call left unbound
 /// (it already reports T3001 or T3069).
 check_typeparam_bounds :: fn(
-    c: AST.CallExpr,
+    site: Span,
+    owner: string,
     bindings: MutableMap<i32, Type>,
     typed: TypedProgram,
     diags: Diagnostic[],
@@ -957,7 +962,6 @@ check_typeparam_bounds :: fn(
             wanted :: bound_instance(trait_ty, bindings)
             reason :: unmet_bound_reason(bound_ty, wanted, typed) ?? continue
             key :: trait_key_of(trait_ty.symbol)
-            owner :: callee_name(c.callee)
             detail := unmet_bound_detail(bound.name, owner, wanted, reason) +
                 unmet_impl_bound_note(bound_ty, key, typed)
             // `satisfies_bound` refuses an array any `Display` : say why.
@@ -965,7 +969,7 @@ check_typeparam_bounds :: fn(
                 detail = ("an array renders only when interpolated directly, not through type "
                     + "parameter `${bound.name}` of `${owner}`")
             }
-            diags.push(typecheck_error(.TraitNotSatisfied, c.span, detail))
+            diags.push(typecheck_error(.TraitNotSatisfied, site, detail))
         }
     }
 }
@@ -1105,7 +1109,8 @@ export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST
     }
     sym :: typed.resolved.idents[callee.span.hash()] ?? return null
     redirected :: declared_symbol(sym, typed)
-    return typed.fn_decls[redirected.id]
+    declared :: typed.fn_decls[redirected.id] ?? return typed.fn_aliases[redirected.id]
+    return declared
 }
 
 // True when the callee fn carries `@no_return` (`panic` / `todo` /

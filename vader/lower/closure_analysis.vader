@@ -405,6 +405,10 @@ record_ident_capture :: fn(
         is Symbol -> {
             if !is_capturable(symbol) { return }
             if symbol.id in scope { return }
+            // An alias of a generic fn has no slot : each use names the fn.
+            if ctx.typed.fn_aliases[symbol.id] != null {
+                return
+            }
             add_capture(symbol, ident, out_captures, out_seen, ctx.typed)
         }
     }

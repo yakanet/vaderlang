@@ -34,7 +34,28 @@ check_expr :: fn(
     expr: AST.Expr, expected: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    got :: infer_expr(expr, expected, typed, diags)
+    inferred :: infer_expr(expr, expected, typed, diags)
+    got := inferred
+    if inferred is FnType && inferred.type_params.len() > 0 {
+        got = instantiate_fn_value(expr, inferred, expected, typed, diags)
+    }
+    return finish_check(expr, got, expected, typed, diags)
+}
+
+/// Type-check `expr` with no slot, keeping the quantifier of a generic function it
+/// names : the callee of a call, the value of an alias (`g :: id`), `f` in `f<T>`.
+/// Anywhere else, such a function is instantiated against its slot (`check_expr`).
+///
+/// @param expr   the expression.
+/// @param typed  the module.
+/// @param diags  the diagnostics.
+check_keeping_quantifier :: fn(expr: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type =
+    finish_check(expr, infer_expr(expr, null, typed, diags), null, typed, diags)
+
+// Settle `got` against `expected` and record it as `expr`'s type.
+finish_check :: fn(
+    expr: AST.Expr, got: Type, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
     narrowed :: narrow_for_expected(got, expected)
     // Still free against a union : no member settled it alone.
     final :: if expected is UnionType && is_free_numeric(narrowed) {
@@ -308,7 +329,7 @@ infer_expr :: fn(
             return awaited
         }
         is AST.IntrinsicCallExpr -> { return infer_intrinsic(expr, typed, diags) }
-        is AST.GenericInstExpr -> { return infer_generic_inst(expr, typed, diags) }
+        is AST.GenericInstExpr -> { return infer_generic_inst(expr, expected, typed, diags) }
         is AST.ArrayTypeExpr -> { return infer_array_type_value(expr, typed, diags) }
         is AST.FnTypeExpr -> { return infer_fn_type_value(expr, typed, diags) }
     }

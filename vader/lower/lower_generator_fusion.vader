@@ -706,7 +706,7 @@ gen_source_subst :: fn(ctx: FnLowerCtx, target: CallTarget, call: AST.CallExpr) 
     if decl.type_params.len() == 0 {
         return new_substitution()
     }
-    concrete :: recorded_type_args(ctx, call, target.callee) ?? return null
+    concrete :: recorded_type_args(ctx, call, .Call, target.callee) ?? return null
     return subst_from_concrete(decl, target.owner, concrete)
 }
 

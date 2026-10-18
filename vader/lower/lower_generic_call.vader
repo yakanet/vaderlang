@@ -54,7 +54,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
 emit_generic_fn_call :: fn(
     ctx: FnLowerCtx, call: CallExpr, type: Type, fn_sym: Symbol, params: Type[], callee_span: Span,
 ) -> LoweredExpr | null {
-    mangled :: recorded_instance_mangle(ctx, call, fn_sym) ?? return null
+    mangled :: recorded_instance_mangle(ctx, call, .Call, fn_sym) ?? return null
     lowered_args :: lower_call_args(ctx, call.args, params, 0)
     return LoweredCall {
         .span = call.span,
@@ -68,11 +68,13 @@ emit_generic_fn_call :: fn(
     }
 }
 
-// The mangle of the instance of the generic `fn_sym` that `call` names, at the type
-// arguments the typecheck recorded there, registered for materialisation. Null for a
-// fn that takes none, or for arguments not all concrete.
-recorded_instance_mangle :: fn(ctx: FnLowerCtx, call: CallExpr, fn_sym: Symbol) -> string | null {
-    type_args :: recorded_type_args(ctx, call, fn_sym) ?? return null
+// The mangle of the instance of the generic `fn_sym` that the site `role` plays at
+// `node` names, at the type arguments the typecheck recorded there, registered for
+// materialisation. Null for a fn that takes none, or for arguments not all concrete.
+recorded_instance_mangle :: fn(
+    ctx: FnLowerCtx, node: Expr, role: CallRole, fn_sym: Symbol,
+) -> string | null {
+    type_args :: recorded_type_args(ctx, node, role, fn_sym) ?? return null
     if !all_concrete(type_args) {
         return null
     }

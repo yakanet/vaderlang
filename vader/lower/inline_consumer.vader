@@ -257,7 +257,7 @@ consumer_subst :: fn(
     if shape.type_params.len() == 0 {
         return subst
     }
-    bound :: recorded_type_args(ctx, call, callee) ?? return null
+    bound :: recorded_type_args(ctx, call, .Call, callee) ?? return null
     concrete :: strip_distinct_each(bound)
     if !all_concrete(concrete) {
         return null

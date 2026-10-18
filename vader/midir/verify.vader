@@ -89,7 +89,8 @@ index_by_name :: fn(
     by_symbol[sym.id] = index
 }
 
-// The function an `InstrCall` runs : by mangle, then by symbol id.
+// The function an `InstrCall` runs, or a value, an address or a closure is made of :
+// by mangle, then by symbol id.
 function_called :: fn(r: CfgResolution, callee: Symbol) -> i32 | null {
     found :: r.fn_by_mangle[callee.name] ?? return r.fn_by_symbol[callee.id]
     return found
@@ -105,9 +106,6 @@ import_called :: fn(r: CfgResolution, callee: Symbol) -> i32 | null {
 // `InstrCall`'s full fallback chain.
 callee_resolves :: fn(r: CfgResolution, callee: Symbol) -> bool =
     function_called(r, callee) != null || import_called(r, callee) != null
-
-// The fn-as-value chain : symbol id into the FUNCTION table only.
-function_taken :: fn(r: CfgResolution, target: Symbol) -> i32 | null = r.fn_by_symbol[target.id]
 
 // ---- entry point ----------------------------------------------------------
 
@@ -312,7 +310,7 @@ verify_fn_references :: fn(
                 // straight off the union — and the fn-as-value rule keeps one
                 // site rather than three copies to hold in step.
                 is InstrFnRef | InstrFnAddr | InstrMakeClosure -> {
-                    if function_taken(resolution, ins.fn_symbol) != null { continue }
+                    if function_called(resolution, ins.fn_symbol) != null { continue }
                     diags.push(internal_error(.UnresolvedFnReference, ins.span,
                         "${where}: ${fn_value_kind(ins)} `${ins.fn_symbol.name}` (symbol ${ins.fn_symbol.id}) was never materialised"))
                 }

@@ -3311,7 +3311,8 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
     return ident_expr(t.span, t.text)
 }
 
-// `head<…>` followed by a call, a struct literal or a member, `<` next.
+// `head<…>` followed by a call, a struct literal, a member, or nothing more (a generic
+// fn as a value), `<` next.
 parse_generic_use :: fn(p: Parser, head: Expr) -> Expr {
     p.advance()  // `<`
     args :: p.parse_type_list_until_angle()
@@ -3398,18 +3399,29 @@ scan_angle_generic :: fn(p: Parser, lt_pos: i32) -> bool {
 }
 
 // Whether the `>` at `close` ends a generic argument list : a call `(`, a struct
-// literal `{`, or a member `.name` of the instance follows it.
+// literal `{`, a member `.name` of the instance, or the end of a value (`id<i32>`
+// passed on, bound or returned) follows it.
 generic_use_follows :: fn(p: Parser, close: i32) -> bool {
     n :: i32(p.tokens.len())
     if close + 1 >= n {
         return false
     }
     next :: p.tokens[usize(close + 1)].kind
-    if next == .LParen || next == .LBrace {
+    if next == .LParen || next == .LBrace || ends_a_value(next) || ends_its_line(p, close) {
         return true
     }
     return next == .Dot && close + 2 < n && p.tokens[usize(close + 2)].kind == .Ident
 }
+
+// Whether the token at `pos` is the last of its line. The lexer drops the newline
+// after a trailing operator, `>` included, so the next token can be the next
+// statement's first.
+ends_its_line :: fn(p: Parser, pos: i32) -> bool =
+    p.tokens[usize(pos + 1)].span.start.line > p.tokens[usize(pos)].span.end.line
+
+// A token that closes the expression before it. No newline follows a `>` : the
+// lexer drops it (`ends_its_line`).
+ends_a_value :: fn(k: TokenKind) -> bool = bracket_step(k) < 0 || k == .Comma || k == .Eof
 
 is_angle_scan_bailout :: fn(k: TokenKind) -> bool {
     if k == .LBrace { return true }

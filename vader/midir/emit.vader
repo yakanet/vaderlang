@@ -446,7 +446,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             existing_t :: ctx.type_key[key_str]
             if existing_t is i32 { ctx.pinned_types.push(existing_t) }
             root_idx :: resolve_fn_index(ve.fn_symbol, ctx)
-            if root_idx >= 0 { vtable_roots.push(root_idx) }
+            if root_idx != null { vtable_roots.push(root_idx) }
         }
         prune_unused_functions(ctx, vtable_roots, opts.keep_mangles)
         prune_unused_imports(ctx)
@@ -486,15 +486,16 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
 /// survive the prune). MANGLE-first : materialised impl-member entries and
 /// calls carry a synthetic `fn_symbol.id = 0`, so the symbol-id path would
 /// collide on slot 0 — the mangle is the reliable key (and
-/// `prune_unused_functions` remaps `function_index_by_mangle`). Generic-instance
-/// calls likewise carry the instance mangle. A real-symbol name isn't a
+/// `prune_unused_functions` remaps `function_index_by_mangle`). An instance of a
+/// generic fn shares its origin's symbol id, so a call to it, a value, an address
+/// or a closure made of it carries the instance mangle. A real-symbol name isn't a
 /// registered mangle, so it falls through to the id path.
-resolve_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 {
-    fi_mangle_opt :: ctx.function_index_by_mangle[fn_symbol.name]
-    if fi_mangle_opt is i32 { return fi_mangle_opt }
-    fi_opt :: ctx.function_index_by_symbol_id[fn_symbol.id]
-    if fi_opt is i32 { return fi_opt }
-    return -1
+resolve_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 | null {
+    by_mangle :: ctx.function_index_by_mangle[fn_symbol.name]
+    if by_mangle != null {
+        return by_mangle
+    }
+    return ctx.function_index_by_symbol_id[fn_symbol.id]
 }
 
 /// Build per-(trait, method) vtable rows from the CFG vtable entries.
@@ -531,8 +532,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
     for ve in ordered {
         key :: vtable_key(ve.trait_name, ve.method_name)
         if used_keys[key] !is bool { continue }
-        fn_idx :: resolve_fn_index(ve.fn_symbol, ctx)
-        if fn_idx < 0 { continue }
+        fn_idx :: resolve_fn_index(ve.fn_symbol, ctx) ?? continue
         receiver_key :: type_intern_key(ve.struct_type)
         receiver_slot :: ctx.type_key[receiver_key]
         if receiver_slot !is i32 { continue }
@@ -1092,7 +1092,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrFnRef {
-        fn_idx_opt :: ctx.project.function_index_by_symbol_id[ins.fn_symbol.id]
+        fn_idx_opt :: resolve_fn_index(ins.fn_symbol, ctx.project)
         if fn_idx_opt is i32 {
             type_index :: intern_type(ins.type, ctx.project)
             push_emit(ctx, FnRef { .function_index = fn_idx_opt, .type_id = type_index }, ins.span)
@@ -1107,7 +1107,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrFnAddr {
-        fn_idx_opt :: ctx.project.function_index_by_symbol_id[ins.fn_symbol.id]
+        fn_idx_opt :: resolve_fn_index(ins.fn_symbol, ctx.project)
         if fn_idx_opt is i32 {
             push_emit(ctx, FnAddr { .function_index = fn_idx_opt }, ins.span)
         } else {
@@ -1408,7 +1408,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // recycles. One such site existed, a `defer` closure, and it was invisible
         // to the collector.
         closure_type_id :: intern_type(closure_header_type(ins.type), ctx.project)
-        fn_idx_opt :: ctx.project.function_index_by_symbol_id[ins.fn_symbol.id]
+        fn_idx_opt :: resolve_fn_index(ins.fn_symbol, ctx.project)
         if fn_idx_opt is i32 {
             push_emit(ctx, MakeClosure { .function_index = fn_idx_opt, .env_type_id = closure_type_id }, ins.span)
         } else {
@@ -1571,7 +1571,7 @@ resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
         }
     }
     fn_index :: resolve_fn_index(ins.callee, p)
-    if fn_index >= 0 {
+    if fn_index != null {
         return DirectCallTarget {
             .op = Call { .function_index = fn_index },
             .signature = p.functions[usize(fn_index)].signature,

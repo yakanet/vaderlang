@@ -1,0 +1,40 @@
+// A generic function named as a value takes its instance from the slot it fills :
+// a parameter of a plain function, of a generic one (`map`, `twice`), an annotated
+// binding. Written type arguments fix it outright, and a `::` binding with no
+// annotation aliases the function, instantiated afresh at each use.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+IO :: import "std/io"
+
+id :: fn<T>(x: T) -> T = x
+
+name_of :: fn<T>(x: T) -> string = @type_name(T)
+
+pair :: fn<A, B>(a: A, b: B) -> string = "${@type_name(A)} ${@type_name(B)}"
+
+apply :: fn(f: fn(i32) -> string, x: i32) -> string = f(x)
+
+twice :: fn<T>(f: fn(T) -> T, x: T) -> T = f(f(x))
+
+main :: fn() -> i32 {
+    println(apply(name_of, 5))
+    for name in [1.5, 2.5].map(name_of) {
+        println(name)
+    }
+    println(twice(id, 7))
+    typed: fn(bool, f64) -> string: pair
+    println(typed(true, 1.5))
+    written :: pair<i64, string>
+    println(written(1, "s"))
+    println(apply(name_of<i32>, 3))
+    alias :: id
+    println("${alias(3)} ${alias("s")}")
+    later :: () -> alias(false)
+    println(later())
+    shown :: IO.println<string>
+    shown("through a module")
+    return 0
+}

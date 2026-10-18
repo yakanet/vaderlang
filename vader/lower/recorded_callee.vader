@@ -9,6 +9,7 @@ module "vader/lower"
 
 import "std/collections"
 import "toolchain/ast"
+import "toolchain/span"
 import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
@@ -221,16 +222,20 @@ runs_builtin_equals :: fn(ctx: FnLowerCtx, call: CallExpr) -> bool {
     return callee is BoundMember && callee.trait_key == core_trait_key(TRAIT_EQUALS)
 }
 
-/// The type arguments of the call `call` to the generic fn `fn_sym`, in its
-/// declaration's order, at this instance : those the typecheck recorded, and, for
-/// one it left to the instance (`count(it)` with `it: I` and `I: Iterator<i32>`,
-/// which only the instance's own `I` settles), the binding the arguments' types
-/// give at this instance. Null for a fn that takes none, and when one stays unbound.
+/// The type arguments the site `role` plays at `node` gives the generic fn `fn_sym`,
+/// in its declaration's order, at this instance : those the typecheck recorded,
+/// and, for one a call left to the instance (`count(it)` with `it: I` and
+/// `I: Iterator<i32>`, which only the instance's own `I` settles), the binding the
+/// arguments' types give at this instance. Null for a fn that takes none, and when
+/// one stays unbound.
 ///
-/// @param call    the call.
-/// @param fn_sym  the fn it runs.
-recorded_type_args :: fn(ctx: FnLowerCtx, call: CallExpr, fn_sym: Symbol) -> Type[] | null {
-    callee :: recorded_callee(ctx, call, .Call)
+/// @param node    the call, or the name of a fn used as a value.
+/// @param role    `.Call` or `.Reference`.
+/// @param fn_sym  the fn it designates.
+recorded_type_args :: fn(
+    ctx: FnLowerCtx, node: Expr, role: CallRole, fn_sym: Symbol,
+) -> Type[] | null {
+    callee :: recorded_callee(ctx, node, role)
     if callee !is DirectFn || callee.decl.type_params.len() == 0 {
         return null
     }
@@ -241,14 +246,40 @@ recorded_type_args :: fn(ctx: FnLowerCtx, call: CallExpr, fn_sym: Symbol) -> Typ
     for [id, bound] in recorded {
         bindings[id] = ctx.types.apply(bound)
     }
-    if leaves_unbound(declared, bindings) {
-        bind_at_instance(ctx, call, owner.decl_types[fn_sym.id], bindings)
+    if node is CallExpr && leaves_unbound(declared, bindings) {
+        bind_at_instance(ctx, node, owner.decl_types[fn_sym.id], bindings)
     }
     out: Type[]: []
     for tp in declared {
         out.push(bindings[tp.id] ?? return null)
     }
     return out
+}
+
+/// The instance of a generic fn named as a value at `node` (`name_of`, `M.f`, an
+/// alias `g` of one, `id<i32>`), at the type arguments the typecheck recorded there,
+/// registered for materialisation. Null when the site names none, or when a type
+/// argument is not concrete at this instance.
+///
+/// @param node  the name.
+/// @param type  the instance's fn type, as the site takes it.
+recorded_fn_reference :: fn(ctx: FnLowerCtx, node: Expr, type: Type) -> LoweredIdent | null {
+    callee :: recorded_callee(ctx, node, .Reference) ?? return null
+    if callee !is DirectFn {
+        return null
+    }
+    fn_sym :: ctx.project.fn_symbols[callee.decl.id] ?? return null
+    mangled :: recorded_instance_mangle(ctx, node, .Reference, fn_sym) ?? return null
+    return LoweredIdent { .span = node.span, .type = type, .symbol = instance_symbol(fn_sym, mangled) }
+}
+
+/// Whether the binding at `name_span` aliases a generic fn (`g :: id`) : it has no
+/// slot, each use names the fn.
+///
+/// @param name_span  the binding's name.
+is_fn_alias :: fn(ctx: FnLowerCtx, name_span: Span) -> bool {
+    sym :: ctx.typed.resolved.idents[name_span.hash()] ?? return false
+    return ctx.typed.fn_aliases[sym.id] != null
 }
 
 // Whether `bindings` leaves one of `declared` unbound.

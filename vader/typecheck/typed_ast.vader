@@ -518,6 +518,9 @@ export TypedProgram :: struct {
     /// so the calls nested in a callee's target or in the arguments leave it as it
     /// was.
     callee_field_id: usize = AST.UNASSIGNED_NODE_ID
+    /// The `::` bindings that alias a generic function (`g :: id`), by the binding's
+    /// symbol id : each use names the function, instantiated where it is used.
+    fn_aliases: MutableMap<i32, AST.FnDecl> = MutableMap<i32, AST.FnDecl> {}
     /// What each inference variable minted in this module was solved to, by id.
     infer_solutions: MutableMap<i32, Type> = MutableMap<i32, Type> {}
     /// The id the next inference variable takes.
