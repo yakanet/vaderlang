@@ -74,6 +74,10 @@ export RangeType :: struct {
     /// The alias it was declared as (`Hour`), for display ; "" for a range written
     /// in place or computed by an expression.
     name: string = ""
+    /// The integer type a value narrowed into the range was declared as (`i64` for
+    /// an `n: i64` past `n in Hour`), "" for none : what a mutable local copied
+    /// from it takes. Two ranges of one bounds are one type whatever it is.
+    origin: string = ""
 }
 
 /// The integer type a value of `r` is held in (`narrowest_integer`).

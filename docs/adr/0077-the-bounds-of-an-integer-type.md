@@ -54,5 +54,6 @@ value of an integer type into a range with no conversion at all.
   range: after `if n !in Hour { return }` with `n: i64`, `acc := n * 1000` is an
   `i32`, and a later `acc * 1_000_000` overflows it where the unguarded code computed
   in `i64`. Writing `acc: i64` keeps the width. Whether a range narrowed from a
-  primitive should keep that primitive as the base a `:=` takes is open.
+  primitive should keep that primitive as the base a `:=` takes is open. Amended by
+  0083: it keeps it, `acc` is an `i64`.
 - The charter's `wrap_next` reads `(x - @min(T) + 1) % (@max(T) - @min(T) + 1) + @min(T)`.

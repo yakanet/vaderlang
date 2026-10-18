@@ -47,18 +47,22 @@ range_result :: fn(
     }
     // A bitwise operation reads its ranges as integers before it gets here.
     return @unreachable match classify(e.op) {
-        .Arith               -> range_or_i64(arith_interval(e.op, l.bounds, r.bounds))
+        .Arith               -> range_or_i64(
+            arith_interval(e.op, l.bounds, r.bounds),
+            wider_origin(l.origin, r.origin),
+        )
         .Compare | .Equality -> TY_BOOL
     }
 }
 
-/// `t` as a bitwise operation reads it : a range as the integer it is held in,
-/// any other type as it is.
+/// `t` as a bitwise operation reads it : a range as the integer type it was
+/// narrowed out of where that holds it (`origin_holding`), else as the integer it
+/// is held in ; any other type as it is.
 ///
 /// @param t  an operand's type.
 represented :: fn(t: Type) -> Type {
     if t is RangeType {
-        return range_representation(t)
+        return origin_holding(t) ?? range_representation(t)
     }
     return t
 }
@@ -111,13 +115,13 @@ absorbed_result :: fn(
     return p
 }
 
-// The range of every value of `exact` ; `i64` once it leaves 64 bits, where the
-// operation is checked as any.
-range_or_i64 :: fn(exact: Interval) -> Type {
+// The range of every value of `exact`, computed from values narrowed out of
+// `origin` ; `i64` once it leaves 64 bits, where the operation is checked as any.
+range_or_i64 :: fn(exact: Interval, origin: string) -> Type {
     if exact.lo_open || exact.hi_open {
         return mk_primitive("i64")
     }
-    return RangeType { .bounds = exact }
+    return RangeType { .bounds = exact, .origin = origin }
 }
 
 // `op` over the integers.
@@ -136,25 +140,95 @@ arith_interval :: fn(op: AST.BinaryOp, a: Interval, b: Interval) -> Interval =
 /// @param t  the negated operand's type.
 negated :: fn(t: Type) -> Type {
     if t is RangeType {
-        return range_or_i64(interval_negate(t.bounds))
+        return range_or_i64(interval_negate(t.bounds), t.origin)
     }
     return t
 }
 
-/// The type a mutable local takes from a value of type `t` : the narrowest of
-/// `i32`, `i64` holding a range computed in place (`n := h + 1` is an `i32`, so
-/// that `n` can take another value later), `t` itself for any other type, a
-/// declared range included.
+/// The type a mutable local takes from a value of type `t`, so that it can take
+/// another value later. A range narrowed out of an integer type takes that type
+/// where it holds the range : a narrowing adds a fact, it changes no width
+/// (`acc := n * 1000` is an `i64` for an `n: i64` past `n in Hour`). Any other
+/// range computed in place takes the narrowest of `i32`, `i64` holding it
+/// (`n := h + 1` is an `i32`). Any other type is `t` itself, a declared range
+/// included.
 ///
 /// @param t  the initial value's type.
 widened_base :: fn(t: Type) -> Type {
-    if t !is RangeType || t.name != "" {
+    if t !is RangeType {
+        return t
+    }
+    held :: origin_holding(t)
+    if held != null {
+        return held
+    }
+    if t.origin == "" && t.name != "" {
         return t
     }
     if interval_within(t.bounds, I32_VALUES) {
         return mk_primitive("i32")
     }
     return mk_primitive("i64")
+}
+
+/// The integer type a value of `t` was declared as, as a range narrowed out of it
+/// keeps it (`RangeType.origin`) : a primitive integer's own name, a range's
+/// origin, "" for anything else.
+///
+/// @param t  the type of the value narrowed.
+origin_of :: fn(t: Type) -> string {
+    if t is PrimitiveType && is_int_name(t.name) {
+        return t.name
+    }
+    if t is RangeType {
+        return t.origin
+    }
+    return ""
+}
+
+/// The integer type the range `r` was narrowed out of, where it holds `r`'s values :
+/// the width a narrowing keeps, for a mutable local and a bitwise operation alike.
+///
+/// @return  null for a range with no origin, or one its origin does not hold.
+origin_holding :: fn(r: RangeType) -> PrimitiveType | null {
+    values :: primitive_interval(r.origin) ?? return null
+    if !interval_within(r.bounds, values) {
+        return null
+    }
+    return PrimitiveType { .name = r.origin }
+}
+
+/// `r` narrowed out of a value declared as `origin`.
+with_origin :: fn(r: RangeType, origin: string) -> RangeType {
+    if r.origin == origin {
+        return r
+    }
+    return RangeType { ...r, .origin = origin }
+}
+
+/// The values `bounds` of a value of type `current`, as a range keeping its origin.
+narrowed_range :: fn(current: Type, bounds: Interval) -> RangeType =
+    RangeType { .bounds = bounds, .origin = origin_of(current) }
+
+/// `narrowed`, what a value of type `current` was narrowed to, keeping the origin
+/// of `current` where it is a range.
+keeping_origin :: fn(narrowed: Type, current: Type) -> Type {
+    if narrowed !is RangeType {
+        return narrowed
+    }
+    return with_origin(narrowed, origin_of(current))
+}
+
+/// The origin of a computation on values out of `a` and `b` : the narrowest integer
+/// type holding both, so that the order of the operands does not matter ; "" when
+/// neither has one.
+wider_origin :: fn(a: string, b: string) -> string {
+    if b == "" || b == a {
+        return a
+    }
+    a_values :: primitive_interval(a) ?? return b
+    b_values :: primitive_interval(b) ?? return a
+    return narrowest_integer(interval_join(a_values, b_values)).name
 }
 
 // The values of `i32`.

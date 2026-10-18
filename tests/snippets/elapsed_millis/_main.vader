@@ -1,0 +1,53 @@
+// A narrowing adds a fact, it changes no width : a mutable local copied from a value
+// narrowed out of an integer type takes that type where it holds the value. Past
+// `n in Hour` with `n: i64`, `micros := n * 3_600_000` is an `i64`, as without the
+// test, so `micros * 1000` does not overflow an `i32` ; so is a product past a
+// guard's narrowing (`is_morning`), and `n << 40` reads `n` as its `i64`. A `u8`
+// narrowed into `0..=10` gives a `u8` copy, and a product past `u8` the narrowest of
+// `i32`, `i64` holding it. Values out of a `u32` and an `i32` give an `i64`, in
+// either order. A declared range keeps the rule : `h + 1` on an `Hour` is an `i32`.
+module "snippet"
+
+import "std/io"
+
+Hour :: Int in 0..=23
+
+is_morning :: fn(h: Hour) -> bool = h < 12
+
+main :: fn(argv: string[]) -> i32 {
+    n: i64: i64(argv.len()) + 4
+    if n !in Hour {
+        return 1
+    }
+    micros := n * 3_600_000
+    micros = micros * 1000
+    if is_morning(n) {
+        early := n * 1000
+        early = early * 1_000_000
+        println("early ${early}")
+    }
+    shifted :: n << 40
+    b: u8: u8(argv.len()) + 7
+    if b !in 0..=10 {
+        return 2
+    }
+    count := b
+    count += 1
+    scaled := b * 1000
+    scaled += 1
+    wide: u32: u32(argv.len()) + 3
+    signed: i32: i32(argv.len()) + 2
+    if wide !in 0..=9 || signed !in 0..=9 {
+        return 3
+    }
+    forward := wide + signed
+    backward := signed + wide
+    forward = forward * 1_000_000_000
+    backward = backward * 1_000_000_000
+    h: Hour: 23
+    next := h + 1
+    next = next % 24
+    println("micros ${micros}, shifted ${shifted}, count ${count}, scaled ${scaled}")
+    println("forward ${forward}, backward ${backward}, next ${next}")
+    return 0
+}

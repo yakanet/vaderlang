@@ -1,0 +1,129 @@
+# Lower
+
+## snippet
+  snippet.is_morning :: fn(h: u8) -> bool {  // snippet$is_morning
+      h < u8(12)
+  }
+  snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
+      n: i64 = i64(@array.len(argv)) + i64(4)
+      if (n < i64(0)) || (n > i64(23)) {
+          return 1
+      }
+      micros: i64 = u32(u8(n)) * u32(3600000)
+      micros = micros * i64(1000)
+      if snippet.is_morning(u8(n)) {
+          early: i64 = u16(u8(n)) * u16(1000)
+          early = early * i64(1000000)
+          std.io.println<string>({
+              __buf_0: Buffer = std.core.new_byte_buffer(usize(26))
+              __off_1: usize = 0
+              __off_1 = std.core.write_string_at(__buf_0, __off_1, "early ")
+              __off_1 = std.core.write_int(__buf_0, __off_1, early)
+              std.core.finish_buffer(__buf_0, __off_1)
+          } :string)
+      }
+      shifted: i64 = i64(u8(n)) << i64(40)
+      b: u8 = u8(@array.len(argv)) + u8(7)
+      if !((u8(0) <= b) && (b <= u8(10))) {
+          return 2
+      }
+      count: u8 = b
+      count = count + u8(1)
+      scaled: i32 = u16(b) * u16(1000)
+      scaled = scaled + 1
+      wide: u32 = u32(@array.len(argv)) + u32(3)
+      signed: i32 = i32(@array.len(argv)) + 2
+      if (!((u32(0) <= wide) && (wide <= u32(9)))) || (!((0 <= signed) && (signed <= 9))) {
+          return 3
+      }
+      forward: i64 = u8(wide) + u8(signed)
+      backward: i64 = u8(signed) + u8(wide)
+      forward = forward * i64(1000000000)
+      backward = backward * i64(1000000000)
+      h: u8 = 23
+      next: i32 = h + u8(1)
+      next = next % 24
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(usize(114))
+          __off_3: usize = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "micros ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, micros)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, ", shifted ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, shifted)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, ", count ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(count))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, ", scaled ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(scaled))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(usize(86))
+          __off_5: usize = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "forward ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, forward)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, ", backward ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, backward)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, ", next ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(next))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<u32>.contains  // std_core$Range$Contains$contains__u32
+    fn std.core.Range<u32>.next  // std_core$Range$Iterator$next__u32
+    fn std.core.Range<u8>.contains  // std_core$Range$Contains$contains__u8
+    fn std.core.Range<u8>.next  // std_core$Range$Iterator$next__u8
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.u32.compare  // std_core$u32$Comparable$compare
+    fn std.core.u32.step  // std_core$u32$Step$step
+    fn std.core.u8.compare  // std_core$u8$Comparable$compare
+    fn std.core.u8.step  // std_core$u8$Step$step
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<u32>  // std_core$Range__u32
+    struct std.core.Range<u8>  // std_core$Range__u8
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

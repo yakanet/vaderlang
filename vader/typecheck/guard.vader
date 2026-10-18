@@ -478,7 +478,7 @@ guard_argument :: fn(call: AST.CallExpr, offset: usize, index: usize) -> AST.Exp
 // `current` itself when the fact says nothing of it.
 fitted :: fn(current: Type, declared: Type, proved: Type) -> Type {
     if proved is NeverType || equals_type(current, declared) {
-        return proved
+        return keeping_origin(proved, current)
     }
     proved_values :: integer_values(proved)
     if proved_values != null {
@@ -488,7 +488,7 @@ fitted :: fn(current: Type, declared: Type, proved: Type) -> Type {
         }
     }
     if is_assignable(proved, current) {
-        return proved
+        return keeping_origin(proved, current)
     }
     return current
 }

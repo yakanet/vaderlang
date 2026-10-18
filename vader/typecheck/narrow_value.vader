@@ -165,9 +165,9 @@ inside_of :: fn(current: Type, tested: RangeType) -> Type | null {
         return current
     }
     if same_interval(met, tested.bounds) {
-        return tested
+        return keeping_origin(tested, current)
     }
-    return RangeType { .bounds = met }
+    return narrowed_range(current, met)
 }
 
 // What `current` is where it lies outside `tested` : the part of a range past an
@@ -183,10 +183,10 @@ outside_of :: fn(current: Type, tested: Interval) -> Type {
         return TY_NEVER
     }
     if met.lo == bounds.lo {
-        return RangeType { .bounds = interval(met.hi + 1, bounds.hi) }
+        return narrowed_range(current, interval(met.hi + 1, bounds.hi))
     }
     if met.hi == bounds.hi {
-        return RangeType { .bounds = interval(bounds.lo, met.lo - 1) }
+        return narrowed_range(current, interval(bounds.lo, met.lo - 1))
     }
     return current
 }
@@ -247,7 +247,7 @@ holding :: fn(current: RangeType, op: AST.BinaryOp, bounds: Interval) -> Type {
     if same_interval(met, current.bounds) {
         return current
     }
-    return RangeType { .bounds = met }
+    return narrowed_range(current, met)
 }
 
 // The integers `x` lies within where `x op other` is true, `other` within

@@ -169,19 +169,20 @@ union_of_paths :: fn(reached: Type[]) -> Type {
 }
 
 // The one range holding `a` and `b`, `b` alone when `a` is null ; either of them,
-// named, when it holds the other.
+// named, when it holds the other. It keeps the wider origin of the two.
 joined_ranges :: fn(a: RangeType | null, b: RangeType) -> RangeType {
     if a == null {
         return b
     }
     joined :: interval_join(a.bounds, b.bounds)
+    origin :: wider_origin(a.origin, b.origin)
     if same_interval(joined, a.bounds) {
-        return a
+        return with_origin(a, origin)
     }
     if same_interval(joined, b.bounds) {
-        return b
+        return with_origin(b, origin)
     }
-    return RangeType { .bounds = joined }
+    return RangeType { .bounds = joined, .origin = origin }
 }
 
 /// `t` with every range in it replaced by its representation (`Hour` by `u8`,
